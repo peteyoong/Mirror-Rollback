@@ -300,6 +300,144 @@ def generate_human_design_keystone_explanation(
 
 
 # =============================================================================
+# ENNEAGRAM REPETITION LOOP EXPLANATIONS
+# Maps pattern_id → why this pattern keeps repeating
+#
+# RULES:
+# - Must explain the LOOP, not the identity
+# - Must answer: "Why do I keep repeating this pattern?"
+# - Must reference self-protective reaction and recurring tendency
+# - NO banned words: energy, alignment, growth, transformation, awareness
+# - Must NOT become generic type description
+# - Must NOT sound like "who you are" - must sound like "why this repeats"
+# =============================================================================
+
+ENNEAGRAM_REPETITION_EXPLANATIONS = {
+    "decision_switch_loop": {
+        "title": "Why You Keep Cycling Through Options",
+        "body": "Switching protects you from the wrong choice. If you never land, you never fail. The loop repeats because certainty feels dangerous—what if you pick wrong? So you keep the options open, rewrite the draft, check one more time. The switching isn't indecision. It's a defense against regret that never lets you rest."
+    },
+    "decide_then_undo": {
+        "title": "Why You Take It Back",
+        "body": "The reversal protects you from being locked in. Committing feels like closing a door you might need. So you say yes, then feel trapped, then undo it to breathe again. The loop repeats because finality triggers something in you that needs an exit. It's not about the decision—it's about keeping the escape hatch open."
+    },
+    "endless_options": {
+        "title": "Why Nothing Ever Feels Like Enough",
+        "body": "More options feel like more safety. If you keep looking, maybe you'll find the perfect one that doesn't require sacrifice. The loop repeats because choosing means losing the others. So you keep them all in view, never narrowing, because narrowing feels like loss. The paralysis isn't weakness—it's a refusal to grieve what you'd give up."
+    },
+    "start_stop_restart": {
+        "title": "Why You Keep Stalling Out",
+        "body": "Stopping protects you from what happens if you finish. Starting feels safe—full of possibility. But midway, the stakes get real. So you pause, reset, begin again where it still feels open. The loop repeats because completion carries weight you're not ready to hold. Starting over is lighter than finishing."
+    },
+    "almost_act": {
+        "title": "Why You Pull Back at the Edge",
+        "body": "The hesitation protects you from being seen acting. Moving forward means committing publicly. Pulling back means you can still change your mind. The loop repeats because action makes you visible, and visibility makes you vulnerable. Staying at the edge feels safer than crossing it."
+    },
+    "action_delay_loop": {
+        "title": "Why Tomorrow Always Feels Safer",
+        "body": "Delaying protects you from the discomfort of now. Doing it later means you don't have to feel the friction today. The loop repeats because the future version of you seems more capable, more ready. But that version never arrives—because avoiding today is the point, not the problem."
+    },
+    "force_clarity_fail": {
+        "title": "Why Answers Keep Slipping Away",
+        "body": "Pushing for clarity protects you from sitting with not-knowing. Uncertainty feels unbearable, so you search harder. But the loop repeats because the answer you want doesn't exist yet—and forcing it creates more confusion. The real fear isn't the question. It's the silence while you wait."
+    },
+    "think_loop": {
+        "title": "Why Your Mind Won't Stop",
+        "body": "Thinking protects you from feeling. As long as you're analyzing, you don't have to land in the discomfort of not understanding. The loop repeats because stopping feels like giving up, and giving up feels like failure. So you keep circling, hoping the next pass will finally make it click. It won't. But stopping feels worse."
+    },
+    "check_recheck": {
+        "title": "Why Once Is Never Enough",
+        "body": "Checking protects you from the fear of missing something. What if you overlooked it? What if it changed? The loop repeats because trust doesn't stick. Each verification fades quickly, and the doubt returns. You're not looking for new information—you're looking for the certainty that checking can never give you."
+    },
+    "direction_shift": {
+        "title": "Why You Keep Changing Course",
+        "body": "Shifting protects you from being wrong for too long. If you change direction, maybe you'll find the right one before it's too late. The loop repeats because staying the course requires tolerating doubt—and doubt feels like failure. So you pivot, hoping the next direction will feel more certain. It doesn't, but you keep trying."
+    },
+    "restless_pivot": {
+        "title": "Why Stillness Feels Like Danger",
+        "body": "Moving protects you from feeling stuck. Staying in one place too long makes you anxious—what if you're missing something better? The loop repeats because rest feels like stagnation, and stagnation feels like death. So you keep pivoting, not toward something, but away from the discomfort of standing still."
+    },
+    "forward_backward": {
+        "title": "Why You Undo Your Own Progress",
+        "body": "Retreating protects you from the exposure of moving forward. Progress makes you visible. Regression lets you stay hidden. The loop repeats because advancement triggers fear of being seen, judged, or proven inadequate. Going backward isn't failure—it's a return to safety."
+    },
+    "almost_done": {
+        "title": "Why You Can't Cross The Finish Line",
+        "body": "Stopping short protects you from what happens after. Finishing means facing the next thing—or worse, facing judgment on what you made. The loop repeats because incompleteness is safe. As long as it's not done, it can't be evaluated. You stay in the 90% zone because 100% feels too exposed."
+    },
+    "hold_open": {
+        "title": "Why You Won't Let It Close",
+        "body": "Keeping it open protects you from the grief of closing. Finishing means accepting that this version is the final version. The loop repeats because endings feel like loss, and loss feels unbearable. So you hold it open, just in case, because 'just in case' feels better than 'it's done.'"
+    },
+    "finish_unfinish": {
+        "title": "Why Done Never Stays Done",
+        "body": "Reopening protects you from living with the finished version. Once it's done, you have to accept it as-is. But if you reopen it, you can still make it better—or at least delay accepting it. The loop repeats because closure triggers doubt, and doubt demands another pass. The real fear isn't imperfection—it's finality."
+    },
+    "react_regret": {
+        "title": "Why You Move Before You Think",
+        "body": "Reacting fast protects you from sitting with the discomfort of waiting. Slowness feels unbearable—something needs to happen now. The loop repeats because the impulse to act is stronger than the fear of being wrong. You move, then regret, then move again. The pattern isn't impulsivity—it's an intolerance for stillness."
+    },
+    "feel_before_think": {
+        "title": "Why Emotion Arrives First",
+        "body": "Feeling first protects you from overthinking yourself into paralysis. If you waited for logic, you might never move. The loop repeats because your emotional system trusts itself more than your mental system. The feeling isn't irrational—it's faster, and sometimes that's what you need. But it also means understanding comes late."
+    },
+    "snap_then_soften": {
+        "title": "Why You Lead With Edge",
+        "body": "The sharpness protects you from being hurt first. If you come in strong, you control the interaction. The softening that follows is the real you—but you can't lead with it. The loop repeats because vulnerability without armor feels dangerous. So you snap, then soften, because softening first feels too exposed."
+    },
+}
+
+
+def generate_enneagram_keystone_explanation(
+    keystone_pattern_id: str,
+    keystone_label: str,
+    keystone_sequence: list,
+    enneagram_data: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """
+    Generate Enneagram's explanation of WHY this Keystone Pattern keeps repeating.
+    
+    Role: REPETITION_LOOP
+    Question answered: "Why do I keep repeating this pattern?"
+    
+    Returns the Lens Framing Contract:
+    {
+        "keystone_pattern_id": "...",
+        "lens_role": "repetition_loop",
+        "lens_explanation_title": "...",
+        "lens_explanation_body": "...",
+        "supports_keystone": true
+    }
+    """
+    
+    # Get the pre-written explanation for this pattern
+    explanation = ENNEAGRAM_REPETITION_EXPLANATIONS.get(keystone_pattern_id)
+    
+    if explanation:
+        return {
+            "keystone_pattern_id": keystone_pattern_id,
+            "keystone_label": keystone_label,
+            "keystone_sequence": keystone_sequence,
+            "lens_role": LensRole.REPETITION_LOOP.value,
+            "lens_explanation_title": explanation["title"],
+            "lens_explanation_body": explanation["body"],
+            "supports_keystone": True
+        }
+    
+    # Fallback if pattern not in library
+    logger.warning(f"[KeystoneExplanation] No Enneagram explanation for pattern: {keystone_pattern_id}")
+    return {
+        "keystone_pattern_id": keystone_pattern_id,
+        "keystone_label": keystone_label,
+        "keystone_sequence": keystone_sequence,
+        "lens_role": LensRole.REPETITION_LOOP.value,
+        "lens_explanation_title": "Why This Pattern Keeps Returning",
+        "lens_explanation_body": "This loop serves a protective function. It repeats because some part of you believes it keeps you safe. Understanding the protection reveals the pattern.",
+        "supports_keystone": True
+    }
+
+
+# =============================================================================
 # VALIDATION: Ensure lens explanation matches Keystone
 # =============================================================================
 
@@ -399,6 +537,25 @@ def validate_lens_explanation(
             return {
                 "valid": False,
                 "error": "missing_mechanism_language",
+                "pattern_id": actual_pattern_id
+            }
+    
+    elif lens_role == LensRole.REPETITION_LOOP.value:
+        # Enneagram must contain repetition/loop language
+        repetition_indicators = [
+            "loop", "repeats", "repeat", "keeps", "again", "cycle", "cycling",
+            "protects", "protection", "protective", "defense", "defending",
+            "pattern", "recurring", "returns", "returning", "back",
+            "fear", "avoid", "avoiding", "safety", "safe", "danger", "dangerous",
+            "because", "so you", "that's why", "the real"
+        ]
+        has_repetition = any(indicator in explanation_body for indicator in repetition_indicators)
+        
+        if not has_repetition:
+            logger.warning(f"[LensValidation] No repetition language found in Enneagram explanation")
+            return {
+                "valid": False,
+                "error": "missing_repetition_language",
                 "pattern_id": actual_pattern_id
             }
     

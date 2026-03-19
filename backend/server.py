@@ -16490,6 +16490,49 @@ async def get_enneagram_deep_dive(user_id: str):
         type_label = f"{core_type}w{wing}" if wing else str(core_type)
         type_name = type_names.get(core_type, "Unknown")
         
+        # =====================================================================
+        # KEYSTONE PATTERN EXPLANATION: Why this pattern keeps repeating
+        # Role: REPETITION_LOOP
+        # =====================================================================
+        keystone_explanation = None
+        try:
+            from services.keystone_lens_explanations import generate_enneagram_keystone_explanation, validate_lens_explanation
+            from datetime import timezone as tz
+            
+            # Get today's date string
+            today_date = datetime.now(tz.utc).strftime("%Y-%m-%d")
+            
+            # Fetch user's current Keystone Pattern
+            keystone_doc = await db.keystone_patterns.find_one({
+                "user_id": user_id,
+                "date": today_date
+            })
+            
+            if keystone_doc:
+                # Generate the explanation
+                keystone_explanation = generate_enneagram_keystone_explanation(
+                    keystone_pattern_id=keystone_doc.get("pattern_id"),
+                    keystone_label=keystone_doc.get("pattern_label"),
+                    keystone_sequence=keystone_doc.get("behavior_sequence", [])
+                )
+                
+                # Validate the explanation matches
+                validation = validate_lens_explanation(
+                    keystone_explanation,
+                    keystone_doc.get("pattern_id")
+                )
+                
+                if validation["valid"]:
+                    logger.info(f"[EnneagramDeepDive] Added keystone explanation for pattern: {keystone_doc.get('pattern_id')}")
+                else:
+                    logger.warning(f"[EnneagramDeepDive] Keystone validation failed: {validation}")
+                    keystone_explanation = None
+            else:
+                logger.info(f"[EnneagramDeepDive] No keystone found for user {user_id}")
+                
+        except Exception as keystone_err:
+            logger.warning(f"[EnneagramDeepDive] Keystone explanation error: {keystone_err}")
+        
         return {
             "success": True,
             "title": f"Type {type_label}: {type_name}",
@@ -16501,6 +16544,7 @@ async def get_enneagram_deep_dive(user_id: str):
             "confidence_tier": confidence_tier,
             "sections": sections,
             "computed_details": computed_details,
+            "keystone_explanation": keystone_explanation,
             "debug_stamp": {
                 "assessment_version": result.get("version", "v1"),
                 "convergence_applied": convergence_summary is not None,

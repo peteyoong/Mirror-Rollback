@@ -741,9 +741,15 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // Theme support - use the useTheme hook
   const { theme, isDark } = useTheme();
   
+  // Derived values with null safety
+  const core = result?.inferred_core || 0;
+  const wing = result?.inferred_wing || 0;
+  const wings = WING_NUMBERS[core] || { left: 0, right: 0 };
+  const otherWing = wing === wings?.left ? wings?.right : wings?.left;
+  
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [energyState, setEnergyState] = useState<EnergyState | null>(
-    (result.state_calibration?.energy_state as EnergyState) || null
+    (result?.state_calibration?.energy_state as EnergyState) || null
   );
   const [selectedMasteryLevel, setSelectedMasteryLevel] = useState<MasteryLevel>('average');
   const [showRetakeModal, setShowRetakeModal] = useState(false);
@@ -790,11 +796,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
   const [qaQuestion, setQaQuestion] = useState('');
   const [qaAnswer, setQaAnswer] = useState<string | null>(null);
   const [qaLoading, setQaLoading] = useState(false);
-
-  const core = result.inferred_core;
-  const wing = result.inferred_wing;
-  const wings = WING_NUMBERS[core];
-  const otherWing = wing === wings.left ? wings.right : wings.left;
   
   // Send chat message
   const handleSendChat = useCallback(async () => {
@@ -812,9 +813,9 @@ export default function EnneagramLensView({ result, userId }: Props) {
         context: {
           inferred_core: result.inferred_core,
           inferred_wing: result.inferred_wing,
-          confidence_tier: result.confidence_tier,
+          confidence_tier: result?.confidence_tier || 'low',
           is_close: result.is_close || false,
-          top_candidates: result.top_candidates.slice(0, 2),
+          top_candidates: (result?.top_candidates || []).slice(0, 2),
           energy_state: energyState || 'unknown',
           active_card_context: activeTab === 'deep_dive' ? 'deep_dive' : activeCardContext,
         },
@@ -880,12 +881,14 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // Load Deep Dive data when tab is selected
   useEffect(() => {
     const loadDeepDive = async () => {
-      if (!userId || activeTab !== 'deep_dive' || deepDiveData) return;
+      if (!userId || activeTab !== 'deep_dive') return;
       
+      // Always reload to get fresh keystone data
       setDeepDiveLoading(true);
       try {
         const response = await getEnneagramDeepDive(userId);
         setDeepDiveData(response);
+        console.log('[EnneagramLensView] Deep dive data loaded, has keystone:', !!response?.keystone_explanation);
       } catch (error) {
         console.error('Failed to load deep dive:', error);
       } finally {
@@ -893,7 +896,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
       }
     };
     loadDeepDive();
-  }, [userId, activeTab, deepDiveData]);
+  }, [userId, activeTab]);
 
   // Load Pattern Drift data (lazy load on Overview tab)
   useEffect(() => {
@@ -991,8 +994,8 @@ export default function EnneagramLensView({ result, userId }: Props) {
   );
 
   const renderConfidenceBadge = () => {
-    const tier = result.confidence_tier;
-    const isSelfDeclared = result.source === 'self_declared' || result.method === 'self_declared';
+    const tier = result?.confidence_tier;
+    const isSelfDeclared = result?.source === 'self_declared' || result?.method === 'self_declared';
     
     // Self-declared results show "Self-declared" instead of confidence
     if (isSelfDeclared) {
@@ -1046,7 +1049,12 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // ============================================
 
   const renderSummaryTab = () => {
-    const manifestations = PATTERN_MANIFESTATIONS[core];
+    const manifestations = PATTERN_MANIFESTATIONS[core] || {
+      decisions: "Processing decisions carefully",
+      work: "Approaching work thoughtfully",
+      relationships: "Navigating relationships",
+      stress: "Managing stress responses"
+    };
     
     return (
       <>
@@ -1307,7 +1315,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
             {/* Confidence Badge */}
             <View style={styles.glanceFooter}>
               <Text style={[styles.glanceFooterText, { color: theme.textTertiary }]}>
-                {result.confidence_tier === 'high' ? 'High' : result.confidence_tier === 'medium' ? 'Moderate' : 'Low'} confidence
+                {result?.confidence_tier === 'high' ? 'High' : result?.confidence_tier === 'medium' ? 'Moderate' : 'Low'} confidence
               </Text>
               <Text style={[styles.glanceFooterText, { color: theme.textTertiary }]}>
                 {' '}·{' '}Based on assessment_inference_v2 results
@@ -1468,10 +1476,60 @@ export default function EnneagramLensView({ result, userId }: Props) {
 
   // Get confidence label from top candidate
   const getConfidenceLabel = (): { text: string; tier: 'high' | 'medium' | 'low' } => {
-    const topProb = result.top_candidates[0]?.probability || 0;
+    const topProb = result?.top_candidates?.[0]?.probability || 0;
     if (topProb >= 0.7) return { text: 'High confidence', tier: 'high' };
     if (topProb >= 0.5) return { text: 'Moderate confidence', tier: 'medium' };
     return { text: 'Exploratory', tier: 'low' };
+  };
+
+  // Render Keystone Pattern explanation section (Deep Dive only)
+  const renderKeystoneExplanation = () => {
+    console.log('[EnneagramLensView] renderKeystoneExplanation - deepDiveData:', !!deepDiveData, 'keystone_explanation:', !!deepDiveData?.keystone_explanation);
+    if (!deepDiveData?.keystone_explanation) return null;
+    
+    const { 
+      keystone_label, 
+      keystone_sequence, 
+      lens_explanation_title, 
+      lens_explanation_body 
+    } = deepDiveData.keystone_explanation;
+
+    return (
+      <View style={[styles.keystoneExplanationCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+        {/* Keystone Anchor */}
+        <View style={styles.keystoneAnchor}>
+          <Text style={[styles.keystoneEyebrow, { color: theme.textTertiary }]}>
+            TODAY'S PATTERN
+          </Text>
+          <Text style={[styles.keystoneLabel, { color: theme.text }]}>
+            {keystone_label}
+          </Text>
+          <View style={styles.keystoneSequence}>
+            {keystone_sequence?.map((line, idx) => (
+              <Text key={idx} style={[styles.keystoneSequenceLine, { color: theme.textSecondary }]}>
+                {line}
+              </Text>
+            ))}
+          </View>
+        </View>
+
+        {/* Divider */}
+        <View style={[styles.keystoneDivider, { backgroundColor: theme.border }]} />
+
+        {/* Enneagram Repetition Explanation */}
+        <View style={styles.keystoneExplanation}>
+          <Text style={[styles.keystoneRoleLabel, { color: theme.accent }]}>
+            WHY THIS KEEPS REPEATING
+          </Text>
+          <Text style={[styles.keystoneExplanationTitle, { color: theme.text }]}>
+            {lens_explanation_title}
+          </Text>
+          <Text style={[styles.keystoneExplanationBody, { color: theme.textSecondary }]}>
+            {lens_explanation_body}
+          </Text>
+        </View>
+      </View>
+    );
   };
 
   const renderDeepDiveTab = () => {
@@ -1487,7 +1545,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
 
     // Use API data if available, fallback to local data
     const data = deepDiveData;
-    const confidence = data?.confidence_tier || result.confidence_tier;
+    const confidence = data?.confidence_tier || result?.confidence_tier || 'low';
     const typeLabel = data?.type_label || (wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`);
     const typeName = data?.type_name || TYPE_NAMES[core];
     
@@ -1548,10 +1606,16 @@ export default function EnneagramLensView({ result, userId }: Props) {
     );
 
     // Check if self-declared
-    const isSelfDeclared = result.source === 'self_declared' || result.method === 'self_declared';
+    const isSelfDeclared = result?.source === 'self_declared' || result?.method === 'self_declared';
 
     return (
       <>
+        {/* ═══════════════════════════════════════════════════════════════
+            KEYSTONE PATTERN EXPLANATION — Why this loop keeps repeating
+            Role: REPETITION_LOOP
+        ═══════════════════════════════════════════════════════════════ */}
+        {renderKeystoneExplanation()}
+
         {/* ═══════════════════════════════════════════════════════════════
             SECTION 1 — IDENTITY BLOCK
             Identity card + Core Story (expanded by default)
@@ -1592,10 +1656,10 @@ export default function EnneagramLensView({ result, userId }: Props) {
         >
           {data?.sections && data.sections.map((section, index) => (
             <View key={index} style={styles.accordionBodySection}>
-              {section.label !== 'Core Story' && (
+              {section?.label && section.label !== 'Core Story' && (
                 <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>{section.label}</Text>
               )}
-              <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{section.body}</Text>
+              <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{section?.body || ''}</Text>
             </View>
           ))}
         </AccordionSection>
@@ -1839,7 +1903,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
           <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
             Your responses showed resonance with these types. Worth exploring if your primary type doesn't fully land.
           </Text>
-          {result.top_candidates.slice(0, 3).map((candidate, index) => (
+          {(result?.top_candidates || []).slice(0, 3).map((candidate, index) => (
             <View key={candidate.type} style={styles.alternativeRow}>
               <Text style={styles.alternativeRank}>{index + 1}</Text>
               <View style={styles.alternativeInfo}>
@@ -1988,7 +2052,7 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // MAIN RENDER
   // ============================================
 
-  const isSelfDeclared = result.source === 'self_declared' || result.method === 'self_declared';
+  const isSelfDeclared = result?.source === 'self_declared' || result?.method === 'self_declared';
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -3847,5 +3911,58 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     color: "inherit",
+  },
+  // Keystone Explanation Card styles
+  keystoneExplanationCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderLeftWidth: 3,
+  },
+  keystoneAnchor: {
+    marginBottom: 16,
+  },
+  keystoneEyebrow: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  keystoneLabel: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  keystoneSequence: {
+    gap: 6,
+  },
+  keystoneSequenceLine: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  keystoneDivider: {
+    height: 1,
+    marginVertical: 16,
+  },
+  keystoneExplanation: {
+    gap: 8,
+  },
+  keystoneRoleLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  keystoneExplanationTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  keystoneExplanationBody: {
+    fontSize: 15,
+    lineHeight: 23,
+    marginTop: 4,
   },
 });

@@ -563,6 +563,15 @@ export interface EnneagramDeepDiveResponse {
   computed_details?: EnneagramComputedDetails;
   error?: string;
   message?: string;
+  keystone_explanation?: {
+    keystone_pattern_id: string;
+    keystone_label: string;
+    keystone_sequence: string[];
+    lens_role: string;
+    lens_explanation_title: string;
+    lens_explanation_body: string;
+    supports_keystone: boolean;
+  } | null;
   debug_stamp?: {
     assessment_version: string;
     convergence_applied: boolean;
