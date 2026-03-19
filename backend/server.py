@@ -8870,16 +8870,17 @@ General atmosphere: supportive of inward focus.
 @api_router.get("/astrology/today-v2/{user_id}")
 async def get_astrology_today_v2(user_id: str):
     """
-    Astrology Today Snapshot v2 — Causal Layer Architecture
+    Astrology Today Snapshot v4 — Full Integration (No Dual Systems)
     
-    Returns 3-layer structure:
-    1. EXPERIENCE - what user feels (clear human tension)
-    2. CAUSE - what is driving it (transit stack translated to plain language)
-    3. GUIDANCE - how to relate to it (1-line activation)
+    ONE coherent narrative:
+    1. EXPERIENCE (hook)
+    2. INTERNAL DYNAMICS (placements as felt experience)
+    3. CAUSE (transit stack)
+    4. GUIDANCE
     
-    NO vague astrology language
-    NO generic statements
-    ALWAYS explains "why now"
+    Technical astrology in expandable "See what's driving this"
+    
+    NO bullet points. NO numbered lists. NO placement-first explanations.
     """
     try:
         from services.astrology_today_v2 import (
@@ -8892,22 +8893,62 @@ async def get_astrology_today_v2(user_id: str):
         transit_stack = detect_transit_convergence()
         day_class = transit_stack.get("classification", "normal_flow")
         
-        # Generate v2 snapshot with causal layer
+        # v4: Get user's chart data for internal dynamics
+        chart_data = None
+        try:
+            # Try to get from deep dive cache (the actual stored location)
+            # Deep dives are cached with format: {"user_id": ..., "core_placements": {...}}
+            cached_dd = await db.deep_dive_cache.find_one({"user_id": user_id, "lens": "astrology"})
+            if cached_dd and cached_dd.get("core_placements"):
+                placements = cached_dd.get("core_placements", {})
+                sun = placements.get("sun")
+                moon = placements.get("moon")
+                asc = placements.get("ascendant")
+                
+                chart_data = {
+                    "sun_sign": sun.get("sign") if isinstance(sun, dict) else sun,
+                    "moon_sign": moon.get("sign") if isinstance(moon, dict) else moon,
+                    "rising_sign": asc.get("sign") if isinstance(asc, dict) else asc,
+                }
+            
+            # Alternative: check if user has stored chart data
+            if not chart_data:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+                if user and user.get("birth_chart"):
+                    bc = user.get("birth_chart", {})
+                    chart_data = {
+                        "sun_sign": bc.get("sun_sign"),
+                        "moon_sign": bc.get("moon_sign"),
+                        "rising_sign": bc.get("rising_sign") or bc.get("ascendant_sign"),
+                    }
+            
+            # Log what we found
+            if chart_data and any(chart_data.values()):
+                logger.info(f"[AstrologyV4] Found chart data: sun={chart_data.get('sun_sign')}, moon={chart_data.get('moon_sign')}, rising={chart_data.get('rising_sign')}")
+            else:
+                chart_data = None
+                logger.debug(f"[AstrologyV4] No chart data found for user {user_id[:8]}")
+                
+        except Exception as e:
+            logger.debug(f"[AstrologyV4] Could not load chart data: {e}")
+        
+        # Generate v4 snapshot with full integration
         snapshot = generate_astrology_snapshot_v2(
             transit_stack=transit_stack,
             day_class=day_class,
-            user_context={"user_id": user_id}
+            user_context={"user_id": user_id},
+            chart_data=chart_data
         )
         
         # Also return formatted version for display
         snapshot["display"] = format_snapshot_for_display(snapshot)
         
-        logger.info(f"[AstrologyV2] Generated snapshot for {user_id[:8]}: day_class={day_class}, theme={transit_stack.get('interaction_theme')}")
+        logger.info(f"[AstrologyV4] Generated snapshot for {user_id[:8]}: day_class={day_class}, has_dynamics={snapshot.get('internal_dynamics') is not None}")
         
         return snapshot
         
     except Exception as e:
-        logger.error(f"Astrology today v2 error: {e}")
+        logger.error(f"Astrology today v4 error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

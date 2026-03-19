@@ -1,20 +1,22 @@
 """
-Astrology Today Snapshot v3 — Experience-First Narrative
+Astrology Today Snapshot v4 — Full Integration (No Dual Systems)
 
-This module generates astrology snapshots as ONE continuous narrative:
+ONE coherent intelligence. No split between "narrative" and "data".
+
+Structure:
 1. EXPERIENCE (hook) - Start with lived experience
-2. CAUSE (why) - Transit stack in human language
-3. GUIDANCE (what to do) - Single actionable line
+2. INTERNAL DYNAMICS (placements translated to felt experience)
+3. CAUSE (transit stack in human language)
+4. GUIDANCE (what to do)
 
-NO sections or bullet points
-NO abstract concepts ("internal compass")
-NO report-style language
-Human-readable narrative flow
+Technical astrology available in expandable "See what's driving this"
+
+NO bullet points. NO numbered lists. NO placement-first explanations.
 """
 
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import hashlib
 
 logger = logging.getLogger(__name__)
@@ -46,6 +48,172 @@ def is_horoscope_language(text: str) -> bool:
     """Check if text contains banned horoscope-style language."""
     text_lower = text.lower()
     return any(term in text_lower for term in BANNED_ASTROLOGY_TERMS)
+
+
+# =============================================================================
+# v4: PLACEMENT TO EXPERIENCE TRANSLATIONS
+# =============================================================================
+# Translate raw placements into felt internal dynamics
+
+SUN_SIGN_DYNAMICS = {
+    "aries": "Quick impulses. A need to act before thinking catches up.",
+    "taurus": "A pull toward stability. Resistance to being pushed.",
+    "gemini": "Multiple threads running at once. Hard to settle on one.",
+    "cancer": "Emotional undertow. Sensitivity to atmosphere.",
+    "leo": "Need to be seen. Tension when overlooked.",
+    "virgo": "Noticing everything that's wrong. Difficulty letting it go.",
+    "libra": "Weighing options. Difficulty committing without consensus.",
+    "scorpio": "Intensity underneath. Awareness of what's not being said.",
+    "sagittarius": "Restlessness. A pull toward something bigger.",
+    "capricorn": "Weight of responsibility. Focus on what's practical.",
+    "aquarius": "Detachment. Observing more than participating.",
+    "pisces": "Picking up more nuance than usual. Boundaries feel thin.",
+}
+
+MOON_SIGN_DYNAMICS = {
+    "aries": "Emotional reactions come quickly. Impatience with slow processing.",
+    "taurus": "Emotional security through stability. Resistance to disruption.",
+    "gemini": "Feelings change quickly. Hard to pin down what you actually feel.",
+    "cancer": "Deep emotional sensitivity. Strong reactions to personal space.",
+    "leo": "Need for emotional recognition. Hurt when dismissed.",
+    "virgo": "Anxiety about getting things right. Emotional perfectionism.",
+    "libra": "Emotional peace through harmony. Conflict feels destabilizing.",
+    "scorpio": "Intense feelings running deep. Hard to surface them.",
+    "sagittarius": "Emotional need for freedom. Restlessness when contained.",
+    "capricorn": "Guarded emotions. Difficulty expressing vulnerability.",
+    "aquarius": "Emotional distance. Processing through observation, not feeling.",
+    "pisces": "Absorbing others' emotions. Difficulty knowing what's yours.",
+}
+
+RISING_SIGN_DYNAMICS = {
+    "aries": "Approach things directly. Frustration with hesitation.",
+    "taurus": "Slow, steady approach. Taking your time feels natural.",
+    "gemini": "Curious, scattered attention. Multiple approaches at once.",
+    "cancer": "Protective stance. Cautious until safety is established.",
+    "leo": "Present yourself visibly. Confidence as default mode.",
+    "virgo": "Analytical approach. Noticing details before acting.",
+    "libra": "Diplomatic stance. Seeking balance before committing.",
+    "scorpio": "Guarded approach. Revealing slowly, watching first.",
+    "sagittarius": "Pull between stepping back and wanting movement.",
+    "capricorn": "Serious approach. Responsibility before pleasure.",
+    "aquarius": "Unconventional stance. Doing things your own way.",
+    "pisces": "Receptive approach. Taking in before responding.",
+}
+
+HOUSE_CONTEXTS = {
+    1: "how you present yourself",
+    2: "what you value and need for security",
+    3: "how you think and communicate",
+    4: "home, family, and emotional foundation",
+    5: "creativity, pleasure, and self-expression",
+    6: "daily routines and how you handle stress",
+    7: "relationships and how you partner",
+    8: "shared resources and emotional intensity",
+    9: "beliefs, meaning, and expansion",
+    10: "career, reputation, and public role",
+    11: "community, hopes, and future vision",
+    12: "what's hidden, including from yourself",
+}
+
+
+def translate_placement_to_experience(
+    planet: str,
+    sign: str,
+    house: Optional[int] = None
+) -> str:
+    """
+    Translate a single placement into felt experience.
+    
+    Instead of: "Sun in Pisces in 3rd house"
+    Returns: "Your mind is picking up more nuance than usual"
+    """
+    sign_lower = sign.lower() if sign else ""
+    planet_lower = planet.lower() if planet else ""
+    
+    # Get base dynamic from sign
+    if planet_lower == "sun":
+        base = SUN_SIGN_DYNAMICS.get(sign_lower, "")
+    elif planet_lower == "moon":
+        base = MOON_SIGN_DYNAMICS.get(sign_lower, "")
+    elif planet_lower in ["ascendant", "rising"]:
+        base = RISING_SIGN_DYNAMICS.get(sign_lower, "")
+    else:
+        base = ""
+    
+    # Add house context if available
+    if house and house in HOUSE_CONTEXTS:
+        context = HOUSE_CONTEXTS[house]
+        if base:
+            # Combine: dynamic + context
+            return f"{base} This shows up especially around {context}."
+        else:
+            return f"Something is active around {context}."
+    
+    return base
+
+
+def generate_internal_dynamics(
+    sun_sign: str = None,
+    moon_sign: str = None,
+    rising_sign: str = None,
+    sun_house: int = None,
+    moon_house: int = None,
+    day_class: str = "normal_flow"
+) -> str:
+    """
+    Generate the INTERNAL DYNAMICS layer - placements as felt experience.
+    
+    Picks the most relevant 1-2 dynamics based on day_class.
+    No bullet points. Flowing prose.
+    """
+    dynamics = []
+    
+    # Sun dynamic
+    if sun_sign:
+        sun_exp = translate_placement_to_experience("sun", sun_sign, sun_house)
+        if sun_exp:
+            dynamics.append(("sun", sun_exp))
+    
+    # Moon dynamic
+    if moon_sign:
+        moon_exp = translate_placement_to_experience("moon", moon_sign, moon_house)
+        if moon_exp:
+            dynamics.append(("moon", moon_exp))
+    
+    # Rising dynamic
+    if rising_sign:
+        rising_exp = translate_placement_to_experience("rising", rising_sign)
+        if rising_exp:
+            dynamics.append(("rising", rising_exp))
+    
+    if not dynamics:
+        return ""
+    
+    # Select based on day_class priority
+    # phase_shift: prioritize Moon (emotional processing)
+    # cycle_event: prioritize Sun (core identity)
+    # normal_flow: prioritize Rising (daily approach)
+    
+    if day_class == "phase_shift":
+        priority_order = ["moon", "sun", "rising"]
+    elif day_class == "cycle_event":
+        priority_order = ["sun", "moon", "rising"]
+    else:
+        priority_order = ["rising", "moon", "sun"]
+    
+    # Sort by priority
+    dynamics_sorted = sorted(dynamics, key=lambda x: priority_order.index(x[0]) if x[0] in priority_order else 99)
+    
+    # Take top 2 max for narrative flow
+    selected = [d[1] for d in dynamics_sorted[:2]]
+    
+    # Combine into flowing prose
+    if len(selected) == 2:
+        return f"{selected[0]} Meanwhile, {selected[1].lower()}"
+    elif len(selected) == 1:
+        return selected[0]
+    
+    return ""
 
 
 # =============================================================================
@@ -432,22 +600,69 @@ def generate_narrative_block(
 def generate_astrology_snapshot_v2(
     transit_stack: Dict[str, Any],
     day_class: str,
-    user_context: Optional[Dict] = None
+    user_context: Optional[Dict] = None,
+    chart_data: Optional[Dict] = None
 ) -> Dict[str, Any]:
     """
-    Generate Astrology Today Snapshot v3 - Experience-First Narrative.
+    Generate Astrology Today Snapshot v4 - Full Integration.
     
-    Returns SINGLE narrative block, not sections.
+    Structure:
+    1. EXPERIENCE (hook)
+    2. INTERNAL DYNAMICS (placements as felt experience)
+    3. CAUSE (transit stack)
+    4. GUIDANCE
+    
+    Returns ONE coherent narrative, no dual systems.
     """
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
-    # Generate v3 narrative block
+    # Generate v4 components
     experience = generate_experience_hook(day_class, transit_stack)
     cause = generate_cause_bridge(transit_stack, day_class)
     guidance = generate_guidance_line(day_class, transit_stack)
     
-    # Build single narrative
-    narrative = f"{experience}\n\n{cause}\n\n{guidance}"
+    # v4: Generate internal dynamics from chart placements
+    internal_dynamics = ""
+    technical_placements = []  # For "See what's driving this" expandable
+    
+    if chart_data:
+        sun_sign = chart_data.get("sun_sign")
+        moon_sign = chart_data.get("moon_sign")
+        rising_sign = chart_data.get("rising_sign") or chart_data.get("ascendant_sign")
+        sun_house = chart_data.get("sun_house")
+        moon_house = chart_data.get("moon_house")
+        
+        # Generate felt experience from placements
+        internal_dynamics = generate_internal_dynamics(
+            sun_sign=sun_sign,
+            moon_sign=moon_sign,
+            rising_sign=rising_sign,
+            sun_house=sun_house,
+            moon_house=moon_house,
+            day_class=day_class
+        )
+        
+        # Store technical for expandable section
+        if sun_sign:
+            house_str = f" in {sun_house}th house" if sun_house else ""
+            technical_placements.append(f"Sun in {sun_sign.title()}{house_str}")
+        if moon_sign:
+            house_str = f" in {moon_house}th house" if moon_house else ""
+            technical_placements.append(f"Moon in {moon_sign.title()}{house_str}")
+        if rising_sign:
+            technical_placements.append(f"{rising_sign.title()} Rising")
+    
+    # Build v4 narrative: EXPERIENCE → INTERNAL DYNAMICS → CAUSE → GUIDANCE
+    narrative_parts = [experience]
+    
+    if internal_dynamics:
+        narrative_parts.append(internal_dynamics)
+    
+    narrative_parts.append(cause)
+    narrative_parts.append(guidance)
+    
+    # Join with paragraph breaks
+    narrative = "\n\n".join(narrative_parts)
     
     # Build transit summary (human-readable)
     events = transit_stack.get("events", [])
@@ -462,18 +677,24 @@ def generate_astrology_snapshot_v2(
     
     # Validate no horoscope language
     if is_horoscope_language(narrative):
-        logger.warning("[AstrologyV3] Horoscope language detected in output")
+        logger.warning("[AstrologyV4] Horoscope language detected in output")
     
     return {
         "success": True,
-        "version": "v3_narrative",
+        "version": "v4_integrated",
         "date": today,
-        # v3: Single narrative block (primary output)
+        # v4: Single coherent narrative (primary output)
         "narrative": narrative,
-        # Component parts (for debugging/flexibility)
+        # Component parts (for debugging)
         "experience": experience,
+        "internal_dynamics": internal_dynamics if internal_dynamics else None,
         "cause": cause,
         "guidance": guidance,
+        # Technical details for "See what's driving this" expandable
+        "technical": {
+            "placements": technical_placements if technical_placements else None,
+            "transits": event_names if event_names else None,
+        } if technical_placements or event_names else None,
         # Metadata
         "day_class": day_class,
         "transit_summary": transit_summary,
@@ -484,6 +705,8 @@ def generate_astrology_snapshot_v2(
             "events_count": len(events),
             "interaction_theme": transit_stack.get("interaction_theme"),
             "day_class": day_class,
+            "has_chart_data": chart_data is not None,
+            "has_internal_dynamics": bool(internal_dynamics),
             "horoscope_check_passed": not is_horoscope_language(narrative),
         }
     }
@@ -491,12 +714,14 @@ def generate_astrology_snapshot_v2(
 
 def format_snapshot_for_display(snapshot: Dict[str, Any]) -> Dict[str, Any]:
     """
-    v3: Format for display - single narrative, no sections.
+    v4: Format for display - single narrative with optional technical expandable.
     """
     return {
         "title": "Today",
         "date": snapshot.get("date"),
         "narrative": snapshot.get("narrative"),
         "day_class": snapshot.get("day_class"),
-        "version": "v3_narrative",
+        # Expandable "See what's driving this"
+        "expandable": snapshot.get("technical"),
+        "version": "v4_integrated",
     }
