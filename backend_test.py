@@ -11,7 +11,7 @@ import sys
 from typing import Dict, Any
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://behavioral-anchor.preview.emergentagent.com/api"
+BACKEND_URL = "https://insight-journal-13.preview.emergentagent.com/api"
 
 # Test user IDs from review request
 TEST_USER_ID_1 = "6971c81f2b40fd5ef501d375"
