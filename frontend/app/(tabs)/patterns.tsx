@@ -98,22 +98,25 @@ export default function PatternsScreen() {
   const router = useRouter();
   
   // ============================================================================
-  // SCROLL RESET - PLATFORM-AWARE APPROACH
+  // SCROLL RESET - LAYOUT-BASED APPROACH
   // ============================================================================
   // 
-  // ROOT CAUSE IDENTIFIED:
-  // - Native tabs (iOS/Android) AUTOMATICALLY preserve scroll position
-  // - Native scroll restoration happens AFTER React's useFocusEffect
-  // - This is why web tests pass but native device fails
+  // ROOT CAUSE CONFIRMED:
+  // User screenshots show the screen opening mid-page (at later timeline entries)
+  // instead of at the HERO section at top. Native scroll restoration is
+  // overriding our reset attempts.
   //
-  // SOLUTION:
-  // - Use multiple requestAnimationFrame calls to wait for native restoration
-  // - This ensures our scroll reset runs AFTER native layer finishes
-  // - Remove mountKey approach as it fights against native behavior
+  // NEW APPROACH:
+  // 1. Use onLayout callback to reset scroll AFTER layout completes
+  // 2. Track layout completion with ref to avoid infinite loops
+  // 3. Force scroll reset on EVERY layout cycle until we're focused
   //
   
-  // Track if we're in a focus event
-  const didFocusRef = useRef(false);
+  // Track if we should reset scroll on next layout
+  const shouldResetScrollRef = useRef(true);
+  
+  // Track focus state
+  const isFocusedRef = useRef(false);
   
   // Scroll ref for explicit scroll control
   const scrollViewRef = useRef<ScrollView>(null);
@@ -153,55 +156,62 @@ export default function PatternsScreen() {
     }
   }, []);
 
-  // On focus: reset scroll AFTER native restoration completes
-  // Uses multiple requestAnimationFrame to wait for native layer
+  // On focus: mark that we should reset scroll
   useFocusEffect(
     useCallback(() => {
-      didFocusRef.current = true;
+      isFocusedRef.current = true;
+      shouldResetScrollRef.current = true;
       setExpandedWeek(null);
       
-      // Immediate reset (works for web)
+      // Immediate reset attempt
       resetScroll();
       
-      // For native: wait for platform scroll restoration to complete
-      // Multiple RAF frames ensures we run AFTER native restoration
-      requestAnimationFrame(() => {
-        if (!didFocusRef.current) return;
-        resetScroll();
-        
-        requestAnimationFrame(() => {
-          if (!didFocusRef.current) return;
+      // Aggressive reset - keep trying for 500ms
+      let attempts = 0;
+      const intervalId = setInterval(() => {
+        if (shouldResetScrollRef.current && attempts < 25) {
           resetScroll();
-          
-          requestAnimationFrame(() => {
-            if (!didFocusRef.current) return;
-            resetScroll();
-            
-            // Final reset after native layer definitely finished
-            requestAnimationFrame(() => {
-              if (!didFocusRef.current) return;
-              resetScroll();
-            });
-          });
-        });
-      });
+          attempts++;
+        } else {
+          clearInterval(intervalId);
+        }
+      }, 20);
       
       return () => {
-        didFocusRef.current = false;
+        isFocusedRef.current = false;
+        shouldResetScrollRef.current = false;
+        clearInterval(intervalId);
       };
     }, [resetScroll])
   );
 
-  // Reset scroll AFTER data loads (handles content height changes)
+  // Handle layout changes - reset scroll when content renders
+  const handleContentLayout = useCallback(() => {
+    if (shouldResetScrollRef.current && isFocusedRef.current) {
+      resetScroll();
+    }
+  }, [resetScroll]);
+
+  // Reset scroll AFTER data loads
   useEffect(() => {
-    if (didFocusRef.current && !timelineLoading && !weeklyLoading) {
-      // Data loaded - reset scroll to handle any layout shifts
+    if (!timelineLoading && !weeklyLoading && isFocusedRef.current) {
+      // Data loaded - mark for reset and reset immediately
+      shouldResetScrollRef.current = true;
       resetScroll();
       
-      // Additional reset after layout settles
-      requestAnimationFrame(() => {
-        if (didFocusRef.current) resetScroll();
-      });
+      // Continue resetting for a short period
+      let resetCount = 0;
+      const intervalId = setInterval(() => {
+        if (resetCount < 10) {
+          resetScroll();
+          resetCount++;
+        } else {
+          clearInterval(intervalId);
+          shouldResetScrollRef.current = false;
+        }
+      }, 50);
+      
+      return () => clearInterval(intervalId);
     }
   }, [timelineLoading, weeklyLoading, resetScroll]);
 
@@ -779,6 +789,7 @@ export default function PatternsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         scrollsToTop={false}
+        onLayout={handleContentLayout}
         refreshControl={
           <RefreshControl
             refreshing={timelineRefreshing}
