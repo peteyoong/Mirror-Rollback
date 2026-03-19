@@ -98,26 +98,21 @@ export default function PatternsScreen() {
   const router = useRouter();
   
   // ============================================================================
-  // SCROLL RESET - DETERMINISTIC APPROACH
+  // SCROLL RESET - PLATFORM-AWARE APPROACH
   // ============================================================================
   // 
-  // ROOT CAUSE ANALYSIS:
-  // 1. useFocusEffect runs BEFORE data loads
-  // 2. When data loads, content height changes
-  // 3. Some platforms (iOS/Android) restore previous scroll position after layout
-  // 4. Browser may restore scroll from history
+  // ROOT CAUSE IDENTIFIED:
+  // - Native tabs (iOS/Android) AUTOMATICALLY preserve scroll position
+  // - Native scroll restoration happens AFTER React's useFocusEffect
+  // - This is why web tests pass but native device fails
   //
   // SOLUTION:
-  // 1. Reset scroll on focus
-  // 2. Reset scroll AFTER data loads
-  // 3. Reset scroll AFTER layout completes
-  // 4. Use key prop to force ScrollView remount
+  // - Use multiple requestAnimationFrame calls to wait for native restoration
+  // - This ensures our scroll reset runs AFTER native layer finishes
+  // - Remove mountKey approach as it fights against native behavior
   //
   
-  // Mount key for forcing ScrollView remount
-  const [mountKey, setMountKey] = useState(0);
-  
-  // Track if we're in a focus event to coordinate reset timing
+  // Track if we're in a focus event
   const didFocusRef = useRef(false);
   
   // Scroll ref for explicit scroll control
@@ -135,14 +130,13 @@ export default function PatternsScreen() {
   // Expanded week tracking
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
 
-  // Master scroll reset function
+  // Master scroll reset function - resets to absolute top
   const resetScroll = useCallback(() => {
-    // Reset ScrollView
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: false });
     }
     
-    // Reset browser scroll on web
+    // Also reset browser scroll on web
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
@@ -150,7 +144,7 @@ export default function PatternsScreen() {
     }
   }, []);
 
-  // Disable browser scroll restoration (web only, run once)
+  // Disable browser scroll restoration (web only)
   useEffect(() => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       if ('scrollRestoration' in history) {
@@ -159,37 +153,55 @@ export default function PatternsScreen() {
     }
   }, []);
 
-  // On focus: increment mount key and mark focus
+  // On focus: reset scroll AFTER native restoration completes
+  // Uses multiple requestAnimationFrame to wait for native layer
   useFocusEffect(
     useCallback(() => {
-      // Mark that we just focused (for post-data-load reset)
       didFocusRef.current = true;
-      
-      // Increment key to force ScrollView remount
-      setMountKey(prev => prev + 1);
-      
-      // Reset expanded state
       setExpandedWeek(null);
       
-      // Immediate reset
+      // Immediate reset (works for web)
       resetScroll();
       
-      // Cleanup on blur
+      // For native: wait for platform scroll restoration to complete
+      // Multiple RAF frames ensures we run AFTER native restoration
+      requestAnimationFrame(() => {
+        if (!didFocusRef.current) return;
+        resetScroll();
+        
+        requestAnimationFrame(() => {
+          if (!didFocusRef.current) return;
+          resetScroll();
+          
+          requestAnimationFrame(() => {
+            if (!didFocusRef.current) return;
+            resetScroll();
+            
+            // Final reset after native layer definitely finished
+            requestAnimationFrame(() => {
+              if (!didFocusRef.current) return;
+              resetScroll();
+            });
+          });
+        });
+      });
+      
       return () => {
         didFocusRef.current = false;
       };
     }, [resetScroll])
   );
 
-  // Reset scroll AFTER content loads (critical for data-driven layouts)
+  // Reset scroll AFTER data loads (handles content height changes)
   useEffect(() => {
     if (didFocusRef.current && !timelineLoading && !weeklyLoading) {
-      // Data has loaded after a focus event - reset scroll now
+      // Data loaded - reset scroll to handle any layout shifts
       resetScroll();
       
-      // Also reset after a brief delay to catch any layout shifts
-      const timer = setTimeout(resetScroll, 100);
-      return () => clearTimeout(timer);
+      // Additional reset after layout settles
+      requestAnimationFrame(() => {
+        if (didFocusRef.current) resetScroll();
+      });
     }
   }, [timelineLoading, weeklyLoading, resetScroll]);
 
@@ -762,7 +774,6 @@ export default function PatternsScreen() {
       </View>
       
       <ScrollView
-        key={`patterns-scroll-${mountKey}`}
         ref={scrollViewRef}
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
