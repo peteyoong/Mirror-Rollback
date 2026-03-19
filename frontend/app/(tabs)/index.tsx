@@ -70,10 +70,7 @@ export default function MirrorScreen() {
   const lastLoadedDateRef = useRef<string | null>(null);
   
   // REMOVED: activeInfluences - no longer rendered
-  
-  // Top patterns for depth preview (demoted below navigation)
-  const [topPatterns, setTopPatterns] = useState<PatternCategory[]>([]);
-  const [patternTension, setPatternTension] = useState<PatternTension | null>(null);
+  // REMOVED: topPatterns, patternTension - Patterns tab disabled
   
   // Recent reflection for continuity (demoted below navigation)
   const [recentReflection, setRecentReflection] = useState<JournalEntry | null>(null);
@@ -194,7 +191,7 @@ export default function MirrorScreen() {
     
     await Promise.all([
       loadKeystonePattern(),  // KEYSTONE: Single source of truth
-      loadPatternData(),
+      // loadPatternData(),    // REMOVED: Patterns tab disabled
       loadRecentReflection(),
       loadLifelineCount(),
     ]);
@@ -262,30 +259,8 @@ export default function MirrorScreen() {
     }
   };
 
-  const loadPatternData = async () => {
-    if (!user?.id) return;
-    
-    try {
-      const response = await api.get(`/pattern-graph/${user.id}`);
-      if (response.data.success) {
-        const { pattern_tensions, categories } = response.data;
-        
-        // Get top 3 patterns by score
-        const sortedPatterns = (categories || [])
-          .filter((c: PatternCategory) => c.signal_strength !== 'quiet')
-          .sort((a: PatternCategory, b: PatternCategory) => b.pattern_score - a.pattern_score)
-          .slice(0, 3);
-        setTopPatterns(sortedPatterns);
-        
-        // Get top tension
-        if (pattern_tensions && pattern_tensions.length > 0) {
-          setPatternTension(pattern_tensions[0]);
-        }
-      }
-    } catch (err) {
-      console.log('[PatternData] Failed to load:', err);
-    }
-  };
+  // REMOVED: loadPatternData - Patterns tab disabled
+  // const loadPatternData = async () => { ... };
 
   const loadRecentReflection = async () => {
     if (!user?.id) return;
@@ -417,7 +392,7 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            POSITION 2: NAVIGATION - Explore Lenses / View Patterns
+            POSITION 2: NAVIGATION - Explore Lenses / Life
             ALWAYS renders after Keystone, even if loading
             =================================================================== */}
         <View style={styles.doorwaysSection}>
@@ -433,11 +408,11 @@ export default function MirrorScreen() {
 
             <TouchableOpacity
               style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
-              onPress={() => router.push('/(tabs)/patterns')}
+              onPress={() => router.push('/(tabs)/life')}
               activeOpacity={0.7}
             >
-              <Text style={[styles.doorwayIconSmall, { color: theme.textSecondary }]}>◈</Text>
-              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>View Patterns</Text>
+              <Text style={[styles.doorwayIconSmall, { color: theme.textSecondary }]}>❧</Text>
+              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>Your Lifeline</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -475,103 +450,35 @@ export default function MirrorScreen() {
             POSITION 4: MIRROR REMEMBERS
             Renders in position, content appears when data available
             =================================================================== */}
-        {(recentReflection || patternTension) && (
+        {recentReflection && (
           <View style={[styles.continuitySection, { borderColor: theme.border }]}>
             <Text style={[styles.continuityTitle, { color: theme.textTertiary }]}>
               MIRROR REMEMBERS
             </Text>
             
             {/* Recent Reflection - feels like a note to self */}
-            {recentReflection && (
-              <TouchableOpacity 
-                style={[styles.continuityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                onPress={() => router.push('/(tabs)/journal')}
-                activeOpacity={0.7}
+            <TouchableOpacity 
+              style={[styles.continuityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => router.push('/(tabs)/journal')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.continuityLabel, { color: theme.textTertiary }]}>
+                A thought you left yourself · {formatRelativeDate(recentReflection.timestamp)}
+              </Text>
+              <Text 
+                style={[styles.continuityText, { color: theme.textSecondary }]}
+                numberOfLines={2}
               >
-                <Text style={[styles.continuityLabel, { color: theme.textTertiary }]}>
-                  A thought you left yourself · {formatRelativeDate(recentReflection.timestamp)}
-                </Text>
-                <Text 
-                  style={[styles.continuityText, { color: theme.textSecondary }]}
-                  numberOfLines={2}
-                >
-                  "{recentReflection.content}"
-                </Text>
-              </TouchableOpacity>
-            )}
-            
-            {/* Active Tension - feels like recognition, not analysis */}
-            {patternTension && (
-              <TouchableOpacity 
-                style={[styles.continuityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                onPress={() => router.push('/(tabs)/patterns')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.continuityLabel, { color: theme.textTertiary }]}>
-                  A tension that keeps returning
-                </Text>
-                <Text style={[styles.tensionTitle, { color: theme.text }]}>
-                  {patternTension.category_a} ↔ {patternTension.category_b}
-                </Text>
-                <Text 
-                  style={[styles.continuityText, { color: theme.textSecondary }]}
-                  numberOfLines={2}
-                >
-                  {patternTension.summary}
-                </Text>
-              </TouchableOpacity>
-            )}
+                "{recentReflection.content}"
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
         {/* ===================================================================
-            POSITION 5: ACTIVE PATTERNS
+            POSITION 5: ACTIVE PATTERNS - TEMPORARILY HIDDEN (pending rebuild)
             =================================================================== */}
-        {topPatterns.length > 0 && (
-          <View style={[styles.depthSection, { borderColor: theme.border }]}>
-            <View style={styles.depthHeader}>
-              <Text style={[styles.depthTitle, { color: theme.textTertiary }]}>
-                TODAY'S ACTIVE PATTERNS
-              </Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/patterns')}>
-                <Text style={[styles.depthLink, { color: theme.accent }]}>See all</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.patternPills}>
-              {topPatterns.map((pattern, index) => (
-                <View 
-                  key={pattern.category_id} 
-                  style={[
-                    styles.patternPill, 
-                    { 
-                      backgroundColor: pattern.signal_strength === 'recurring' 
-                        ? `${theme.accent}20` 
-                        : theme.surface,
-                      borderColor: pattern.signal_strength === 'recurring' 
-                        ? theme.accent 
-                        : theme.border 
-                    }
-                  ]}
-                >
-                  <Text style={[
-                    styles.patternPillText, 
-                    { 
-                      color: pattern.signal_strength === 'recurring' 
-                        ? theme.accent 
-                        : theme.textSecondary 
-                    }
-                  ]}>
-                    {pattern.category_name}
-                  </Text>
-                  {pattern.signal_strength === 'recurring' && (
-                    <Text style={[styles.patternPillBadge, { color: theme.accent }]}>↑</Text>
-                  )}
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
+        {/* Patterns section removed - will be rebuilt as standalone feature */}
 
         {/* ===================================================================
             POSITION 6: FORUMS

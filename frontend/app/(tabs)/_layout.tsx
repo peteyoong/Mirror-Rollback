@@ -60,7 +60,7 @@ export default function TabLayout() {
         }}
       />
       
-      {/* 4. Patterns - Pattern engine with Weekly/Timeline sub-views */}
+      {/* 4. Patterns - TEMPORARILY HIDDEN (scroll state issues, pending rebuild) */}
       <Tabs.Screen
         name="patterns"
         options={{
@@ -68,8 +68,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Text style={{ fontSize: 22, color }}>⬡</Text>
           ),
-          // Note: unmountOnBlur removed - it causes issues on some platforms
-          // Scroll reset is handled within the component via useFocusEffect
+          // HIDDEN: Tab button not shown in navigation
+          href: null,
         }}
       />
       
