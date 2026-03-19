@@ -1,19 +1,19 @@
 """
-Astrology Today Snapshot v5 — Mirror Language Alignment
+Astrology Today Snapshot v6 — Real Thought Pattern Layer
 
-Every line must feel like: "That's exactly what I'm doing / feeling right now"
+Output must feel like:
+- the user's actual thoughts
+- slightly messy, not perfectly structured
+- interruptive, not explanatory
 
 Rules:
-- Direct "you" language (not "one may feel")
-- Observable behavior (what user is DOING)
-- Felt tension (what's uncomfortable)
-- Internal split ("Part of you... another part...")
+- Less perfect sentences (thought fragments)
+- Replace descriptions with motivation (WHY they're doing it)
+- Remove explanation tone from cause
+- Add context hook (messages, decisions, conversations)
+- Must feel like inner dialogue, not well-written paragraph
 
-NO abstract terms (recalibrating, inner compass, meaningful, reflective)
-NO observer language ("may notice", "can feel like")
-NO soft/general phrasing
-
-Quality validation before output: if not Mirror-style, REWRITE.
+Quality check: If it sounds written → REWRITE. If it feels like a thought → PASS.
 """
 
 import logging
@@ -110,30 +110,60 @@ def validate_mirror_style(text: str) -> Dict[str, Any]:
 
 
 # =============================================================================
-# v5: EXPERIENCE HOOKS - Behavior-based, immediately recognizable
+# v6: EXPERIENCE HOOKS - Thought fragments, real-time thinking
 # =============================================================================
+# Less perfect sentences. Slightly messy. Like actual thoughts.
 
 EXPERIENCE_HOOKS_V5 = {
     "phase_shift": [
-        "You keep almost deciding, then pulling back. Part of you wants it settled. Another part knows it's not ready.",
-        "You're replaying something. A conversation, a message, a moment. You're trying to figure out what it actually meant.",
-        "You want to act, but you can't find the right move. So you wait. And the waiting feels worse than being wrong would.",
-        "You've checked your phone three times in the last hour. You're waiting for something to land. It hasn't.",
-        "Part of you wants to force a conclusion. Another part knows that forcing it will break something.",
+        "You try to decide. Then something feels off. You pull back. Then you try again. It keeps happening.",
+        "You want this done. You just want to stop thinking about it. But something won't let you close it.",
+        "You've been here before — almost ready to move, then not. The loop is getting old.",
+        "There's a decision sitting there. You keep circling it. You don't land.",
+        "Part of you says just do it. Another part says wait. Neither one wins.",
     ],
     "cycle_event": [
-        "Something keeps coming back into your head. The same thought. The same question. You're not done with it yet.",
-        "You're more aware than usual. Small things feel heavier. You're not imagining it.",
-        "You've been putting something off. Today it's harder to ignore. It keeps surfacing.",
-        "You're noticing patterns. The same kind of conversation. The same feeling. It's not random.",
-        "Something is asking for your attention. You've been looking away. Today you can't.",
+        "The same thought keeps coming back. You push it away. It returns. There's something there.",
+        "Today feels different. Heavier. You're not imagining it.",
+        "You've been avoiding something. Today it's louder. Harder to ignore.",
+        "Small things are catching your attention. They don't feel small.",
+        "Something wants you to look at it. You've been looking away. That's getting harder.",
     ],
     "normal_flow": [
-        "You're running through your day, but something underneath keeps pulling. You're not sure what.",
-        "You catch yourself thinking about something without meaning to. It comes back. Again.",
-        "Nothing urgent is happening, but you're not settled either. There's something you're not looking at.",
-        "You're doing the usual things, but your mind keeps drifting. Somewhere else wants your attention.",
-        "Part of you is here. Another part is somewhere else. You keep losing focus.",
+        "Nothing urgent. But you're not settled either. Something is there, underneath.",
+        "You keep drifting. Your mind goes somewhere else. You pull it back. It drifts again.",
+        "You're here, doing the thing. But part of you is somewhere else.",
+        "The day is fine. Regular. But something keeps tugging. You don't know what.",
+        "You lose focus. Catch yourself somewhere else. Come back. It happens again.",
+    ],
+}
+
+# =============================================================================
+# v6: CONTEXT HOOKS - Real-life connection (mandatory)
+# =============================================================================
+# Messages, decisions, conversations, delays
+
+CONTEXT_HOOKS_V6 = {
+    "phase_shift": [
+        "You see it in the messages you haven't replied to. The decisions you keep pushing.",
+        "It shows up in small places — texts sitting there, things half-started, nothing finished.",
+        "There's probably a conversation you're putting off. A decision that keeps getting delayed.",
+        "Look at what you're avoiding. The email. The call. The thing you keep saying 'later' to.",
+        "It's in the tabs still open. The draft not sent. The thing you'll 'get to tomorrow.'",
+    ],
+    "cycle_event": [
+        "You notice it in conversations. The same topic keeps surfacing. It's not random.",
+        "There's something you've been meaning to address. Today it's harder to sidestep.",
+        "Look at what keeps coming up. In your head. In your messages. In what people say to you.",
+        "It's showing up in what you're reading, watching, overhearing. The theme is there.",
+        "Pay attention to what you've said 'I should really...' about. That's the thing.",
+    ],
+    "normal_flow": [
+        "You might notice it in what you're scrolling. What you're reaching for without thinking.",
+        "It's there in the pauses. The moments between tasks. Where your mind goes.",
+        "Look at what you did when you didn't have to do anything. That tells you something.",
+        "The thing you keep thinking about when you're doing something else. That's it.",
+        "Notice what you're putting off that doesn't need to be put off. There's information there.",
     ],
 }
 
@@ -187,101 +217,102 @@ RISING_DYNAMICS_V5 = {
 }
 
 # =============================================================================
-# v5: CAUSE BRIDGES - Simple, no jargon
+# v6: CAUSE BRIDGES - Fragmented, not explanation
 # =============================================================================
+# Remove "Two things are happening" → "Something is ending. Something else is starting."
 
 CAUSE_BRIDGES_V5 = {
     "reset_at_threshold": [
-        "Two things are happening at once: something is ending and something is trying to start. That's why nothing feels settled.",
-        "A reset and a turning point landed on the same day. That's why you can't find solid ground.",
-        "An ending and a beginning are overlapping. Your system is processing both at once.",
+        "Something is ending. Something else is trying to start. They don't line up yet. That's the tension.",
+        "A chapter closing. A new one opening. Both at once. That's why nothing lands.",
+        "Reset happening. Shift happening. Same time. No wonder you can't find your footing.",
     ],
     "portal_opening": [
-        "Multiple things want to begin. None of them have your full attention. That's the split you're feeling.",
-        "Too many starting points. Not enough clarity. That's why you feel scattered.",
-        "Several doors opened at once. You're standing in the hallway, not sure which one to walk through.",
+        "Too many things want to begin. You can't give them all attention. Something has to wait.",
+        "Several doors. All open. You're standing in the middle. Not moving.",
+        "Start here. Or here. Or here. You can't do all of them. That's the jam.",
     ],
     "culmination_at_threshold": [
-        "Something is completing right when everything else is shifting. That's the pressure.",
-        "An ending is happening during a transition. You're being asked to close and open at the same time.",
-        "Completion and change collided. That's why this moment feels heavy.",
+        "Something finishing. Something shifting. Both at once. Heavy.",
+        "Ending and beginning colliding. That's the weight you feel.",
+        "Close this. Open that. Same moment. It's a lot.",
     ],
     "destabilization_window": [
-        "The usual rules aren't working right now. That's not a failure. That's the window you're in.",
-        "What normally holds isn't holding. That's the instability you're feeling.",
-        "Things are looser than usual. Boundaries are softer. That's the moment.",
+        "The usual rules? Not working. That's the window you're in.",
+        "What normally holds isn't holding. You're not doing it wrong. Things are just loose right now.",
+        "The ground shifted. You didn't imagine it.",
     ],
     "deep_release": [
-        "Something old is trying to leave. The weight you feel is the last bit of holding on.",
-        "You're at the edge of a release. The discomfort is the resistance before it goes.",
-        "What you've been carrying is ready to drop. The pressure is the final grip.",
+        "Something old is ready to go. You're still gripping. That's the pressure.",
+        "The weight you feel? It's the last bit of holding on. It wants to drop.",
+        "You're at the edge of letting go. The discomfort is the resistance.",
     ],
     "peak_illumination": [
-        "Everything is visible right now. You can see what you've been avoiding.",
-        "The picture is clear. That's not always comfortable, but it's true.",
-        "Maximum clarity landed. What you see is what's there.",
+        "Everything visible. Can't unsee it. That's today.",
+        "The picture is clear now. Uncomfortable, but clear.",
+        "Full view. No hiding. You see what's there.",
     ],
     "emotional_culmination": [
-        "Feelings that have been building are cresting. You're at the top of the wave.",
-        "Emotional pressure built to a peak. That's why small things feel big.",
-        "What you're feeling has been accumulating. Today it's surfacing.",
+        "Feelings built up. Now they're cresting. Small things feel big because they are.",
+        "Emotional pressure peaked. That's why you're raw.",
+        "What you're feeling has been accumulating. Today it surfaces.",
     ],
     "multiple_events_active": [
-        "Several things are active at once. That's why there's no single clear signal.",
-        "Multiple forces are pulling. The confusion is because there isn't one answer right now.",
-        "Different cycles are overlapping. You're navigating more than one thing.",
+        "Several things pulling at once. No single answer. That's the confusion.",
+        "Multiple forces. Different directions. No wonder you're scattered.",
+        "It's not one thing. It's several. All at once. Makes sense you can't land.",
     ],
 }
 
 # Single transit causes
 SINGLE_CAUSES_V5 = {
     "new_moon": [
-        "A cycle is starting. The slate is blank. That's both freeing and disorienting.",
-        "Something new is beginning. You can feel the space where the old thing used to be.",
-        "A reset is happening. Your system is wiping clean before the next thing.",
+        "New cycle starting. Old one ended. The gap between feels weird.",
+        "Blank slate. The old thing is gone. The new thing hasn't formed yet.",
+        "Reset. Clean. Also disorienting.",
     ],
     "full_moon": [
-        "What's been building is now fully visible. You can see the whole picture.",
-        "Something is completing. The pressure to resolve is real.",
-        "Maximum visibility. What you've been working toward is showing its results.",
+        "Everything visible now. What's been building is showing itself.",
+        "Full picture. Can't pretend anymore. You see it.",
+        "Peak. Whatever was growing is here now.",
     ],
     "equinox": [
-        "A turning point. What worked before might need adjustment now.",
-        "The system is rebalancing. Old momentum meeting new direction.",
-        "You're at a pivot. The shift is happening whether you're ready or not.",
+        "Turning point. Old direction meeting new one. Friction.",
+        "Shift happening. What worked before might not work now.",
+        "The system is rebalancing. You're in the wobble.",
     ],
     "solstice": [
-        "You're at an extreme. Maximum stretch in one direction. Something has to give.",
-        "Peak point. The furthest extension before reversal.",
-        "The limit has been reached. What comes next is the turn.",
+        "Extreme point. Something has to give.",
+        "Furthest stretch in one direction. Turn coming.",
+        "The limit. You're there. Now what?",
     ],
 }
 
 # =============================================================================
-# v5: GUIDANCE LINES - Direct, grounded instructions
+# v6: GUIDANCE LINES - Direct, interruptive
 # =============================================================================
 
 GUIDANCE_V5 = {
     "phase_shift": [
-        "Don't decide yet. Let the pressure exist without acting on it.",
-        "Stop trying to make it make sense. It doesn't yet. That's okay.",
-        "The urge to close this is strong. Don't. It's not ready.",
-        "Name what you're feeling, not what you should do about it.",
-        "Part of you wants this over. That part doesn't have all the information yet.",
+        "Don't decide. Not yet. Let it sit.",
+        "Stop trying to close it. It's not ready.",
+        "The loop you're in? That's the answer for now. Stay in it.",
+        "You want it done. Fine. But done isn't available today.",
+        "Name what you feel. Don't fix it. Just name it.",
     ],
     "cycle_event": [
-        "Pay attention. What you notice today matters more than usual.",
-        "Don't dismiss what keeps coming back. It's trying to tell you something.",
-        "This day has weight. Don't sleepwalk through it.",
-        "What completes today shapes what starts next. Let it finish.",
-        "The thing you keep avoiding? Look at it. Just look.",
+        "Look at the thing you keep avoiding. Just look.",
+        "What keeps coming back? Pay attention to that.",
+        "Don't dismiss it. It's not random.",
+        "The weight is real. Stop pretending it's not.",
+        "Whatever you've been putting off. Today's the day to at least acknowledge it.",
     ],
     "normal_flow": [
-        "Use the quiet. It won't last.",
-        "Notice what your mind keeps returning to. That's the thing.",
-        "Small adjustments now. Before it becomes a bigger correction.",
-        "You have space. Don't fill it with noise.",
-        "The thing underneath? Let it surface. You don't have to do anything with it yet.",
+        "Use the space. It won't last.",
+        "Notice where your mind keeps going. There's something there.",
+        "The quiet isn't nothing. Something's processing.",
+        "Don't fill the gap. Let it be a gap.",
+        "What you're avoiding? You don't have to do it. But notice you're avoiding it.",
     ],
 }
 
@@ -373,13 +404,75 @@ def generate_cause_bridge_v5(transit_stack: Dict[str, Any]) -> str:
 
 
 def generate_guidance_v5(day_class: str) -> str:
-    """v5: Generate guidance - direct, grounded."""
+    """v6: Generate guidance - direct, interruptive."""
     guidance = GUIDANCE_V5.get(day_class, GUIDANCE_V5["normal_flow"])
     
     date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
     seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
     
     return guidance[(seed_hash + 2) % len(guidance)]
+
+
+def generate_context_hook_v6(day_class: str) -> str:
+    """v6: Generate context hook - connects to real-life situations (mandatory)."""
+    hooks = CONTEXT_HOOKS_V6.get(day_class, CONTEXT_HOOKS_V6["normal_flow"])
+    
+    date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
+    seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
+    
+    return hooks[(seed_hash + 3) % len(hooks)]
+
+
+def validate_thought_pattern(text: str) -> Dict[str, Any]:
+    """
+    v6: Validate text feels like inner dialogue, not well-written paragraph.
+    
+    If it sounds written → FAIL
+    If it feels like a thought → PASS
+    """
+    issues = []
+    text_lower = text.lower()
+    
+    # Check banned terms (from v5)
+    for term in BANNED_TERMS:
+        if term in text_lower:
+            issues.append(f"BANNED: '{term}'")
+    
+    # Check for overly clean phrasing (too polished)
+    polished_markers = [
+        "this is because",
+        "that's why",
+        "as a result",
+        "therefore",
+        "consequently",
+        "in other words",
+        "to put it simply",
+    ]
+    for marker in polished_markers:
+        if marker in text_lower:
+            issues.append(f"TOO_POLISHED: '{marker}'")
+    
+    # Check for thought fragment patterns (GOOD)
+    fragment_markers = [".", "—", "?"]
+    sentence_count = len([s for s in text.split('.') if s.strip()])
+    has_short_sentences = any(len(s.strip().split()) <= 6 for s in text.split('.') if s.strip())
+    
+    if not has_short_sentences and sentence_count > 2:
+        issues.append("TOO_SMOOTH: No short thought fragments")
+    
+    # Check for direct "you" (required)
+    if "you " not in text_lower and "you'" not in text_lower:
+        issues.append("MISSING: Direct 'you' language")
+    
+    # Determine severity
+    must_rewrite = len([i for i in issues if "BANNED" in i]) > 0
+    
+    return {
+        "valid": len(issues) == 0,
+        "issues": issues,
+        "must_rewrite": must_rewrite,
+        "feels_like_thought": has_short_sentences and "you " in text_lower,
+    }
 
 
 def generate_astrology_snapshot_v2(
@@ -389,18 +482,23 @@ def generate_astrology_snapshot_v2(
     chart_data: Optional[Dict] = None
 ) -> Dict[str, Any]:
     """
-    Generate Astrology Today Snapshot v5 — Mirror Language Alignment.
+    Generate Astrology Today Snapshot v6 — Real Thought Pattern Layer.
     
-    Every line must feel like: "That's exactly what I'm doing"
+    Output must feel like:
+    - inner dialogue
+    - slightly messy but clear
+    - immediately recognizable
+    - not "written well" but "felt true"
     
     Returns ONE coherent narrative with quality validation.
     """
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
-    # Generate v5 components
+    # Generate v6 components
     experience = generate_experience_hook_v5(day_class)
     cause = generate_cause_bridge_v5(transit_stack)
     guidance = generate_guidance_v5(day_class)
+    context_hook = generate_context_hook_v6(day_class)  # v6: mandatory context hook
     
     # Generate internal dynamics if chart data available
     internal_dynamics = ""
@@ -425,8 +523,11 @@ def generate_astrology_snapshot_v2(
         if rising_sign:
             technical_placements.append(f"{rising_sign.title()} Rising")
     
-    # Build narrative: EXPERIENCE → INTERNAL DYNAMICS → CAUSE → GUIDANCE
+    # v6: Build narrative: EXPERIENCE → CONTEXT → INTERNAL DYNAMICS → CAUSE → GUIDANCE
     narrative_parts = [experience]
+    
+    # Add context hook after experience (grounds it in real life)
+    narrative_parts.append(context_hook)
     
     if internal_dynamics:
         narrative_parts.append(internal_dynamics)
@@ -436,18 +537,20 @@ def generate_astrology_snapshot_v2(
     
     narrative = "\n\n".join(narrative_parts)
     
-    # v5: QUALITY VALIDATION - must match Mirror style
-    validation = validate_mirror_style(narrative)
+    # v6: QUALITY VALIDATION - must feel like thought, not written
+    validation = validate_thought_pattern(narrative)
     
     if validation["must_rewrite"]:
-        logger.warning(f"[AstrologyV5] Quality check failed: {validation['issues']}")
+        logger.warning(f"[AstrologyV6] Quality check failed: {validation['issues']}")
         # If validation fails, use hardcoded safe fallback
-        narrative = f"""You keep almost deciding, then pulling back. Part of you wants it settled. Another part knows it's not ready.
+        narrative = f"""You try to decide. Then something feels off. You pull back. Then you try again.
+
+{context_hook}
 
 {cause}
 
 {guidance}"""
-        validation = validate_mirror_style(narrative)
+        validation = validate_thought_pattern(narrative)
     
     # Build transit summary
     events = transit_stack.get("events", [])
@@ -459,7 +562,7 @@ def generate_astrology_snapshot_v2(
     
     return {
         "success": True,
-        "version": "v5_mirror_aligned",
+        "version": "v6_thought_pattern",
         "date": today,
         # v5: Single narrative only (no section labels)
         "narrative": narrative,
@@ -498,5 +601,5 @@ def format_snapshot_for_display(snapshot: Dict[str, Any]) -> Dict[str, Any]:
         "date": snapshot.get("date"),
         "narrative": snapshot.get("narrative"),
         "expandable": snapshot.get("technical"),
-        "version": "v5_mirror_aligned",
+        "version": "v6_thought_pattern",
     }
