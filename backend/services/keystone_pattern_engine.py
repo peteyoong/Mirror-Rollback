@@ -57,152 +57,192 @@ class KeystonePattern(str, Enum):
 
 
 # =============================================================================
-# PATTERN DEFINITIONS
+# MICRO-BEHAVIOR LIBRARY
 # =============================================================================
+# Real-world actions that create recognition: "That literally just happened"
+
+MICRO_ACTIONS = {
+    # Digital actions
+    "typing": ["you start typing", "you type something out", "you write it down"],
+    "deleting": ["you delete it", "you erase what you wrote", "you clear it"],
+    "checking": ["you check it again", "you look at it one more time", "you refresh"],
+    "opening": ["you open it", "you pull it up", "you go back to it"],
+    "closing": ["you close it", "you put it away", "you exit out"],
+    "scrolling": ["you scroll through", "you keep scrolling", "you scroll past it"],
+    "switching": ["you switch tabs", "you move to something else", "you jump to another thing"],
+    "sending": ["you send it", "you hit send", "you post it"],
+    "not_sending": ["you don't send it", "you leave it unsent", "you save it as draft"],
+    "rereading": ["you reread it", "you go over it again", "you read it one more time"],
+    
+    # Physical actions
+    "stopping": ["you stop", "you pause", "you freeze mid-action"],
+    "starting": ["you start", "you begin", "you make a move"],
+    "going_back": ["you go back", "you return to it", "you come back"],
+    "walking_away": ["you walk away", "you step back", "you leave it"],
+    "picking_up": ["you pick it up", "you grab it", "you reach for it"],
+    "putting_down": ["you put it down", "you set it aside", "you drop it"],
+    
+    # Mental/emotional micro-moments
+    "hesitating": ["you hesitate", "you pause", "something stops you"],
+    "doubting": ["you're not sure", "it doesn't feel right", "something's off"],
+    "deciding": ["you decide", "you make the call", "you choose"],
+    "undoing": ["you undo it", "you take it back", "you reverse it"],
+}
+
+
+# =============================================================================
+# PATTERN DEFINITIONS - MICRO-BEHAVIOR PRECISION
+# =============================================================================
+# Each pattern must include:
+# 1. At least ONE real-world action (physical/digital)
+# 2. ONE interruption/break
+# 3. ONE behavioral shift
+#
+# Format: ACTION → BREAK → CONTINUATION
 
 PATTERN_DEFINITIONS = {
     KeystonePattern.DECISION_SWITCH_LOOP: {
-        "label": "You Keep Changing Your Mind",
+        "label": "You Keep Rewriting It",
         "sequence": [
-            "You decide something.",
-            "Then you hesitate.",
-            "Then you switch."
+            "You start typing something out.",
+            "Then you stop. It doesn't feel right.",
+            "So you delete it and start again."
         ],
     },
     KeystonePattern.DECIDE_THEN_UNDO: {
-        "label": "You Commit Then Reverse",
+        "label": "You Send Then Regret",
         "sequence": [
-            "You commit to a choice.",
-            "Then doubt creeps in.",
-            "Then you undo it."
+            "You hit send.",
+            "Then immediately wish you hadn't.",
+            "Now you're thinking about how to take it back."
         ],
     },
     KeystonePattern.ENDLESS_OPTIONS: {
-        "label": "You're Stuck in Options",
+        "label": "You Keep Scrolling",
         "sequence": [
-            "You look at the options.",
-            "Then you find more options.",
-            "Then you don't pick any."
+            "You scroll through the options.",
+            "You find more options.",
+            "You keep scrolling instead of picking one."
         ],
     },
     KeystonePattern.START_STOP_RESTART: {
-        "label": "You Keep Stopping Midway",
+        "label": "You Open It Then Close It",
         "sequence": [
-            "You begin something.",
-            "Then you stop mid-way.",
-            "Then you start it again."
+            "You open it to finally do it.",
+            "Then you close it.",
+            "Then you open it again later."
         ],
     },
     KeystonePattern.ALMOST_ACT: {
-        "label": "You Almost Move",
+        "label": "You Almost Send It",
         "sequence": [
-            "You move toward action.",
-            "Then you pull back.",
-            "Then you move toward it again."
+            "You write the message.",
+            "Your finger hovers over send.",
+            "You close the app instead."
         ],
     },
     KeystonePattern.ACTION_DELAY_LOOP: {
-        "label": "You Keep Delaying",
+        "label": "You'll Do It Later",
         "sequence": [
-            "You plan to do something.",
-            "Then you delay doing it.",
-            "Then you plan it again."
+            "You tell yourself you'll do it.",
+            "You do something else first.",
+            "Now it's later and you still haven't."
         ],
     },
     KeystonePattern.FORCE_CLARITY_FAIL: {
-        "label": "You're Forcing an Answer",
+        "label": "You Keep Checking For Answers",
         "sequence": [
-            "You try to figure it out.",
-            "Nothing sticks.",
-            "Then you try again."
+            "You search for the answer.",
+            "Nothing clicks.",
+            "So you search again with different words."
         ],
     },
     KeystonePattern.THINK_LOOP: {
-        "label": "You're Overthinking It",
+        "label": "You Overthink The Same Thing",
         "sequence": [
-            "You think you understand.",
-            "Then you doubt it.",
-            "Then you think it through again."
+            "You think you've figured it out.",
+            "Then a new angle appears.",
+            "Now you're back to square one."
         ],
     },
     KeystonePattern.CHECK_RECHECK: {
-        "label": "You Keep Checking",
+        "label": "You Keep Refreshing",
         "sequence": [
-            "You verify something.",
-            "You're still not certain.",
-            "Then you check again."
+            "You check it.",
+            "Nothing new.",
+            "You check it again anyway."
         ],
     },
     KeystonePattern.DIRECTION_SHIFT: {
-        "label": "You Keep Changing Direction",
+        "label": "You Switch Tabs Mid-Thought",
         "sequence": [
-            "You move in a direction.",
-            "It doesn't feel right.",
-            "Then you change course."
+            "You're focused on one thing.",
+            "Something pulls your attention.",
+            "Now you're doing something completely different."
         ],
     },
     KeystonePattern.RESTLESS_PIVOT: {
-        "label": "You Can't Settle",
+        "label": "You Can't Settle Into Anything",
         "sequence": [
-            "You settle into something.",
-            "Then you feel unsettled.",
-            "Then you move to something else."
+            "You sit down to do it.",
+            "You get up.",
+            "You sit down somewhere else."
         ],
     },
     KeystonePattern.FORWARD_BACKWARD: {
-        "label": "You Move Then Retreat",
+        "label": "You Make Progress Then Undo It",
         "sequence": [
-            "You make progress.",
-            "Then you pull back.",
-            "Then you try again."
+            "You move forward on it.",
+            "Then you second-guess yourself.",
+            "You go back and redo what you just did."
         ],
     },
     KeystonePattern.ALMOST_DONE: {
-        "label": "You Almost Finish",
+        "label": "You're Almost Done But Not Quite",
         "sequence": [
-            "You get close to done.",
-            "Then you pull back.",
-            "Then you get close again."
+            "You're 90% there.",
+            "You stop before the last step.",
+            "It sits unfinished."
         ],
     },
     KeystonePattern.HOLD_OPEN: {
-        "label": "You Won't Close It",
+        "label": "You Won't Close The Loop",
         "sequence": [
-            "You could finish it.",
-            "But you keep it open.",
-            "The option to finish keeps returning."
+            "You could finish it right now.",
+            "But you leave it open.",
+            "Just in case."
         ],
     },
     KeystonePattern.FINISH_UNFINISH: {
         "label": "You Finish Then Reopen",
         "sequence": [
-            "You finish something.",
-            "Then you reopen it.",
-            "Then you try to finish again."
+            "You mark it done.",
+            "Then you go back and tweak it.",
+            "Now it's undone again."
         ],
     },
     KeystonePattern.REACT_REGRET: {
-        "label": "You Respond Too Fast",
+        "label": "You Reply Too Fast",
         "sequence": [
-            "You respond quickly.",
-            "Then you realize it was too quick.",
-            "Then you wish you'd waited."
+            "You see it. You react immediately.",
+            "Then you realize you should've waited.",
+            "Now you're doing damage control."
         ],
     },
     KeystonePattern.FEEL_BEFORE_THINK: {
-        "label": "You Feel Before You Think",
+        "label": "You Feel It Before You Understand It",
         "sequence": [
-            "You feel something strongly.",
-            "You react from that feeling.",
-            "Understanding comes later."
+            "Something hits you.",
+            "You react from the gut.",
+            "The why comes later."
         ],
     },
     KeystonePattern.SNAP_THEN_SOFTEN: {
-        "label": "You Snap Then Soften",
+        "label": "You Snap Then Apologize",
         "sequence": [
-            "You respond sharply.",
-            "Then you realize it was too sharp.",
-            "Then you soften."
+            "You respond sharp.",
+            "Then you hear yourself.",
+            "Now you're walking it back."
         ],
     },
 }
