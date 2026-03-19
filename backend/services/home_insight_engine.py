@@ -2,13 +2,261 @@
 
 Simple structured insight generation for Home Screen.
 Phase 1: Transform existing data into new structured format.
+v1.5: Day-Class Hero Framing - titles/copy selected by day classification
 """
 
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
+import hashlib
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# DAY-CLASS HERO FRAMING (v1.5)
+# =============================================================================
+# Hero title and shape are determined by day classification FIRST
+# Then modulated tension fills in the specific message
+
+DAY_CLASS_FRAMINGS = {
+    "phase_shift": {
+        "tone": "interruptive",
+        "description": "Today is not normal - transition / unfinished / turning point",
+        "title_options": [
+            "This Is Not a Normal Day",
+            "Don't Lock It In Yet",
+            "Something Is Turning",
+            "What's Shifting Hasn't Landed",
+            "You're In the Middle of the Change",
+            "The Ground Is Still Moving",
+            "Not Yet",
+            "It's Still Becoming",
+        ],
+        "body_directions": [
+            "Something is shifting and part of you wants to finalize it too early.",
+            "The pressure is real, but it isn't clarity.",
+            "You may want a conclusion before the moment has finished becoming itself.",
+            "This isn't a moment to decide. It's a moment to let things continue shifting.",
+            "The urge to resolve this comes from transition, not clarity.",
+        ],
+        "bridge_directions": [
+            "Let it keep moving. Don't grip.",
+            "What you're reaching for isn't stable yet.",
+            "The shape isn't final. Wait.",
+            "This is the middle, not the end.",
+        ],
+    },
+    "cycle_event": {
+        "tone": "directional",
+        "description": "Notable day - threshold / culmination / opening",
+        "title_options": [
+            "Something Is Coming to a Head",
+            "A Door Is Opening",
+            "The Pattern Is Getting Louder",
+            "This Wants Your Attention",
+            "A Threshold",
+            "Something Is Culminating",
+            "The Cycle Is Turning",
+            "Pay Attention Today",
+        ],
+        "body_directions": [
+            "This is a notable moment. What you notice today may matter more than usual.",
+            "A cycle is turning. What emerges now has weight.",
+            "Something is coming to a head. Don't dismiss it.",
+            "The door is open, but not for long.",
+        ],
+        "bridge_directions": [
+            "This moment matters. Stay present.",
+            "Decisions made today carry weight.",
+            "Notice what's illuminated right now.",
+        ],
+    },
+    "normal_flow": {
+        "tone": "subtle",
+        "description": "Ordinary but meaningful - pattern recognition / psychological",
+        "title_options": [
+            "It's Not One Thing",
+            "You've Been Here Before",
+            "Something Underneath This",
+            "The Same Shape Again",
+            "A Familiar Pressure",
+            "Something Present",
+            "Part of You Knows",
+            "The Pattern Returns",
+        ],
+        "body_directions": [
+            "The details are new. The shape may not be.",
+            "Something about this moment may feel familiar.",
+            "Part of you already knows how this goes.",
+            "This isn't the first time you've felt this pull.",
+        ],
+        "bridge_directions": [
+            "The past leaves grooves.",
+            "You've navigated this before.",
+            "Something in you recognizes this.",
+        ],
+    },
+}
+
+# Interaction theme to title mappings for phase_shift
+PHASE_SHIFT_THEME_TITLES = {
+    "reset_at_threshold": [
+        "This Is Not a Normal Day",
+        "Something Is Turning", 
+        "Don't Lock It In Yet",
+    ],
+    "portal_opening": [
+        "A Portal Is Open",
+        "This Is Not a Normal Day",
+        "Something Is Shifting",
+    ],
+    "culmination_at_threshold": [
+        "Something Is Coming to a Head",
+        "A Threshold Is Crossing",
+        "This Wants Your Attention",
+    ],
+    "destabilization_window": [
+        "The Ground Is Still Moving",
+        "Don't Make It Make Sense Yet",
+        "You're In the Middle of the Change",
+    ],
+    "deep_release": [
+        "Something Wants to Leave",
+        "Let It Go",
+        "This Is Not a Normal Day",
+    ],
+}
+
+
+def select_hero_framing(
+    day_class: str,
+    transit_stack: Dict[str, Any],
+    dominant_tension: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Select hero framing based on day classification.
+    
+    v1.5: Hero title and shape are determined by day_class FIRST,
+    then modulated tension fills in the specific message.
+    
+    Returns:
+    {
+        "day_class": str,
+        "hero_mode": str,
+        "selected_title": str,
+        "body_direction": str,
+        "bridge_direction": str,
+        "tone": str
+    }
+    """
+    # Get base framing for day class
+    framing = DAY_CLASS_FRAMINGS.get(day_class, DAY_CLASS_FRAMINGS["normal_flow"])
+    
+    # Get interaction theme for more specific title selection
+    interaction_theme = transit_stack.get("interaction_theme", "")
+    intensity = transit_stack.get("intensity", 0.5)
+    
+    # Select title based on day class and interaction theme
+    if day_class == "phase_shift":
+        # Use theme-specific titles if available
+        theme_titles = PHASE_SHIFT_THEME_TITLES.get(interaction_theme, framing["title_options"])
+        title_options = theme_titles
+        hero_mode = "turning_point"
+    elif day_class == "cycle_event":
+        title_options = framing["title_options"]
+        hero_mode = "threshold"
+    else:
+        title_options = framing["title_options"]
+        hero_mode = "pattern"
+    
+    # Use date-based seed for consistent title selection within a day
+    date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
+    seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
+    
+    # Select title deterministically
+    title_index = seed_hash % len(title_options)
+    selected_title = title_options[title_index]
+    
+    # Select body and bridge direction
+    body_index = (seed_hash + 1) % len(framing["body_directions"])
+    bridge_index = (seed_hash + 2) % len(framing["bridge_directions"])
+    
+    body_direction = framing["body_directions"][body_index]
+    bridge_direction = framing["bridge_directions"][bridge_index]
+    
+    # If we have a modulated tension with strong copy, prefer it for body
+    if dominant_tension and dominant_tension.get("modulated_copy"):
+        modulated_copy = dominant_tension.get("modulated_copy", "")
+        # Only use if it matches the day class tone
+        if day_class == "phase_shift" and any(word in modulated_copy.lower() for word in ["shift", "form", "shape", "decide", "land", "stable"]):
+            body_direction = modulated_copy
+        elif day_class == "cycle_event" and any(word in modulated_copy.lower() for word in ["turn", "open", "culminat", "threshold"]):
+            body_direction = modulated_copy
+    
+    logger.info(f"[HeroFraming] Day class: {day_class}, Mode: {hero_mode}, Title: {selected_title}")
+    
+    return {
+        "day_class": day_class,
+        "hero_mode": hero_mode,
+        "interaction_theme": interaction_theme,
+        "selected_title": selected_title,
+        "body_direction": body_direction,
+        "bridge_direction": bridge_direction,
+        "tone": framing["tone"],
+        "intensity": intensity,
+    }
+
+
+def generate_day_class_hero(
+    day_class: str,
+    transit_stack: Dict[str, Any],
+    dominant_tension: Optional[Dict[str, Any]] = None,
+    pattern_key: str = "default"
+) -> Dict[str, Any]:
+    """
+    Generate complete hero content using day-class framing.
+    
+    This is the main entry point for v1.5 hero generation.
+    """
+    # Get hero framing based on day class
+    framing = select_hero_framing(day_class, transit_stack, dominant_tension)
+    
+    # For phase_shift, ensure body reflects transition
+    if day_class == "phase_shift":
+        body = framing["body_direction"]
+        bridge = framing["bridge_direction"]
+        
+        # Add emphasis on incompleteness if from tension
+        if dominant_tension and dominant_tension.get("emphasis"):
+            emphasis = dominant_tension.get("emphasis", [])
+            if "incompleteness" in emphasis:
+                bridge = "It's not finished forming. Don't force it."
+            elif "instability" in emphasis:
+                bridge = "The ground is still moving."
+            elif "letting_go" in emphasis:
+                bridge = "Release is what this moment asks for."
+    else:
+        body = framing["body_direction"]
+        bridge = framing["bridge_direction"]
+    
+    return {
+        "success": True,
+        "day_class": day_class,
+        "hero_mode": framing["hero_mode"],
+        "title": framing["selected_title"],
+        "body": body,
+        "bridge": bridge,
+        "tone": framing["tone"],
+        "pattern_key": pattern_key,
+        "transit_stack": transit_stack,
+        "dominant_tension": dominant_tension.get("modulated_id") if dominant_tension else None,
+        "debug": {
+            "framing_source": "day_class_v1.5",
+            "interaction_theme": framing.get("interaction_theme"),
+            "intensity": framing.get("intensity"),
+        }
+    }
 
 
 # =============================================================================
@@ -654,7 +902,34 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     modified_template = apply_phase_modifier(template, phase, phase_description)
     
     # =================================================================
-    # STEP 6: Build response with debug info
+    # STEP 5.5 (v1.5): GET DAY-CLASS HERO FRAMING
+    # =================================================================
+    # Fetch transit stack from field signals for day classification
+    try:
+        from services.field_signals import detect_transit_convergence
+        transit_stack = detect_transit_convergence()
+    except Exception as e:
+        logger.debug(f"[HomeInsight] Transit detection error: {e}")
+        transit_stack = {"type": "background", "classification": "normal_flow", "intensity": 0}
+    
+    day_class = transit_stack.get("classification", "normal_flow")
+    
+    # Fetch modulated tension for the day
+    try:
+        from services.transit_signals import get_dominant_modulated_tension
+        field_context = {"field_tone": "clarity" if phase == "CLARITY" else "reset", "clarity_level": "low" if phase == "FRICTION" else "medium"}
+        dominant_tension = get_dominant_modulated_tension(transit_stack, field_context)
+    except Exception as e:
+        logger.debug(f"[HomeInsight] Tension modulation error: {e}")
+        dominant_tension = None
+    
+    # Generate day-class aware hero
+    hero_output = generate_day_class_hero(day_class, transit_stack, dominant_tension, pattern_key)
+    
+    logger.info(f"[HomeInsight] Day class: {day_class}, Hero title: {hero_output.get('title')}")
+    
+    # =================================================================
+    # STEP 6: Build response with day-class hero
     # =================================================================
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
@@ -665,26 +940,37 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     elif len(active_flags) >= 1:
         confidence = "medium"
     
-    # Build Mirror-format body from what_happening
-    body = modified_template["what_happening"]
-    # Clean any system language
-    body = body.replace("Looking at your timeline", "").replace("a certain rhythm appears", "").strip()
-    if body.startswith(","):
-        body = body[1:].strip()
-    
-    # Use why_feels as bridge if it's personal enough
-    bridge = modified_template.get("why_feels", "")
-    if "timeline" in bridge.lower() or "rhythm" in bridge.lower() or "pattern suggests" in bridge.lower():
-        bridge = ""  # Don't use system-sounding bridges
+    # Use day-class hero for title and body if phase_shift or cycle_event
+    if day_class in ["phase_shift", "cycle_event"]:
+        # Day-class framing takes priority
+        title = hero_output.get("title", modified_template["title"])
+        body = hero_output.get("body", modified_template["what_happening"])
+        bridge = hero_output.get("bridge", "")
+    else:
+        # Normal flow - use pattern-based title but can still use day-class body
+        title = modified_template["title"]
+        body = modified_template["what_happening"]
+        # Clean any system language
+        body = body.replace("Looking at your timeline", "").replace("a certain rhythm appears", "").strip()
+        if body.startswith(","):
+            body = body[1:].strip()
+        # Use why_feels as bridge if it's personal enough
+        bridge = modified_template.get("why_feels", "")
+        if "timeline" in bridge.lower() or "rhythm" in bridge.lower() or "pattern suggests" in bridge.lower():
+            bridge = ""  # Don't use system-sounding bridges
     
     return {
         "success": True,
         "date": today,
         "pattern_id": f"{pattern_key}_{today.replace('-', '')}",
-        "title": modified_template["title"],
-        # New Mirror-format fields
+        "title": title,
+        # New Mirror-format fields (v1.5 day-class aware)
         "body": body,
         "bridge": bridge if bridge else None,
+        # Day-class metadata
+        "day_class": day_class,
+        "hero_mode": hero_output.get("hero_mode"),
+        "tone": hero_output.get("tone"),
         # Legacy fields (for compatibility)
         "what_happening": modified_template["what_happening"],
         "why_feels": modified_template["why_feels"],
@@ -694,7 +980,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v3",  # Version flag for frontend
+        "card_version": "mirror_v5_dayclass",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
@@ -705,7 +991,12 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             "signal_sources": list(set(signal_sources)),
             "texts_analyzed": len(texts_to_analyze),
             "entries_in_history": len(entry_history),
-            "source": "signal_v3_trajectory" if active_flags else "fallback_rotation",
+            "source": "signal_v5_dayclass" if day_class != "normal_flow" else "signal_v3_trajectory" if active_flags else "fallback_rotation",
+            "day_class": day_class,
+            "hero_mode": hero_output.get("hero_mode"),
+            "interaction_theme": transit_stack.get("interaction_theme"),
+            "transit_intensity": transit_stack.get("intensity"),
+            "dominant_tension": dominant_tension.get("modulated_id") if dominant_tension else None,
             "computed_at": datetime.now(timezone.utc).isoformat()
         }
     }
