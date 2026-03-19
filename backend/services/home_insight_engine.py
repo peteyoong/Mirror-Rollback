@@ -33,18 +33,19 @@ DAY_CLASS_FRAMINGS = {
             "Not Yet",
             "It's Still Becoming",
         ],
-        "body_directions": [
-            "Something is shifting and part of you wants to finalize it too early.",
-            "The pressure is real, but it isn't clarity.",
-            "You may want a conclusion before the moment has finished becoming itself.",
-            "This isn't a moment to decide. It's a moment to let things continue shifting.",
-            "The urge to resolve this comes from transition, not clarity.",
+        "body_templates": [
+            "You may feel pressure to decide something before it's ready. The urge is to lock it in just to stop the discomfort. That's where you can mistake pressure for clarity.",
+            "Part of you wants this resolved—now. But the thing you're trying to finalize hasn't finished forming. Forcing it will cost you more than waiting.",
+            "You might feel urgency that doesn't have a clear source. That urgency is real, but it's not a signal to act. It's a signal that something is still shifting.",
+            "The discomfort you feel is trying to push you toward a conclusion. But the conclusion isn't ready. Sitting with incompleteness is the move right now.",
+            "You want to decide because deciding feels like relief. But deciding now means deciding on incomplete information. The picture isn't done.",
         ],
-        "bridge_directions": [
-            "Let it keep moving. Don't grip.",
-            "What you're reaching for isn't stable yet.",
-            "The shape isn't final. Wait.",
-            "This is the middle, not the end.",
+        "bridge_templates": [
+            "Part of you wants relief more than truth right now.",
+            "The need to settle it may be louder than the truth itself.",
+            "What feels urgent may not actually be ready.",
+            "Don't mistake the pressure for the answer.",
+            "The itch to close this is not the same as knowing what to do.",
         ],
     },
     "cycle_event": {
@@ -60,16 +61,17 @@ DAY_CLASS_FRAMINGS = {
             "The Cycle Is Turning",
             "Pay Attention Today",
         ],
-        "body_directions": [
-            "This is a notable moment. What you notice today may matter more than usual.",
-            "A cycle is turning. What emerges now has weight.",
-            "Something is coming to a head. Don't dismiss it.",
-            "The door is open, but not for long.",
+        "body_templates": [
+            "There's something asking for your attention today—not later, now. You might feel it as a pull, a deadline, or a sense that something is peaking. Don't dismiss it.",
+            "A cycle is turning. What's been building is starting to show itself. The question isn't whether to engage—it's whether you're paying attention to what's being revealed.",
+            "You may notice that something feels more significant than usual today. It is. This moment is a turning point—not in a dramatic way, but in a real one.",
+            "Today has weight. You might not be able to explain it, but something wants your full presence. Don't sleepwalk through this one.",
         ],
-        "bridge_directions": [
-            "This moment matters. Stay present.",
-            "Decisions made today carry weight.",
-            "Notice what's illuminated right now.",
+        "bridge_templates": [
+            "What you notice today may matter more than you think.",
+            "This moment won't return the same way twice.",
+            "Decisions made now carry more weight than usual.",
+            "The door is open, but it won't stay open.",
         ],
     },
     "normal_flow": {
@@ -85,16 +87,17 @@ DAY_CLASS_FRAMINGS = {
             "Part of You Knows",
             "The Pattern Returns",
         ],
-        "body_directions": [
-            "The details are new. The shape may not be.",
-            "Something about this moment may feel familiar.",
-            "Part of you already knows how this goes.",
-            "This isn't the first time you've felt this pull.",
+        "body_templates": [
+            "You're feeling something strongly, but you can't name it cleanly. Part of you wants to make it make sense just so the pressure will stop. But the pressure isn't the answer.",
+            "This moment may feel familiar—not the details, but the shape of it. You've been somewhere like this before. The question is whether you'll respond the same way.",
+            "There's a pull you might not be able to explain. Something underneath the surface is asking for attention. You don't have to name it yet—just notice it.",
+            "Part of you already knows what this is about. The thinking hasn't caught up yet, but the knowing is there. Don't rush it.",
         ],
-        "bridge_directions": [
-            "The past leaves grooves.",
-            "You've navigated this before.",
-            "Something in you recognizes this.",
+        "bridge_templates": [
+            "The past leaves grooves. This may be one of them.",
+            "You've navigated this shape before.",
+            "Something in you already recognizes this.",
+            "The pattern is older than this moment.",
         ],
     },
 }
