@@ -665,11 +665,27 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     elif len(active_flags) >= 1:
         confidence = "medium"
     
+    # Build Mirror-format body from what_happening
+    body = modified_template["what_happening"]
+    # Clean any system language
+    body = body.replace("Looking at your timeline", "").replace("a certain rhythm appears", "").strip()
+    if body.startswith(","):
+        body = body[1:].strip()
+    
+    # Use why_feels as bridge if it's personal enough
+    bridge = modified_template.get("why_feels", "")
+    if "timeline" in bridge.lower() or "rhythm" in bridge.lower() or "pattern suggests" in bridge.lower():
+        bridge = ""  # Don't use system-sounding bridges
+    
     return {
         "success": True,
         "date": today,
         "pattern_id": f"{pattern_key}_{today.replace('-', '')}",
         "title": modified_template["title"],
+        # New Mirror-format fields
+        "body": body,
+        "bridge": bridge if bridge else None,
+        # Legacy fields (for compatibility)
         "what_happening": modified_template["what_happening"],
         "why_feels": modified_template["why_feels"],
         "watch_for": modified_template["watch_for"],
@@ -678,6 +694,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
+        "card_version": "mirror_v3",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
