@@ -9068,6 +9068,143 @@ async def get_astrology_snapshot_3alt(user_id: str):
 
 
 
+@api_router.post("/keystone-pattern/detect")
+async def detect_keystone_pattern_endpoint(data: dict):
+    """
+    Detect ONE dominant behavioral pattern from multi-lens input.
+    
+    Input:
+    {
+        "astrology": {
+            "dominant_tension": "string",
+            "altitude": "today",
+            "transit_stack": {}
+        },
+        "human_design": {
+            "active_centers": [],
+            "defined_channels": []
+        },
+        "enneagram": {
+            "type": number,
+            "current_pattern_activation": "string"
+        }
+    }
+    
+    Output:
+    {
+        "pattern_id": "string_snake_case",
+        "pattern_label": "short human readable label",
+        "behavior_sequence": ["action", "break_point", "continuation"],
+        "confidence": 0.0-1.0
+    }
+    """
+    try:
+        from services.keystone_pattern_engine import detect_keystone_pattern
+        
+        astrology = data.get("astrology")
+        human_design = data.get("human_design")
+        enneagram = data.get("enneagram")
+        
+        result = detect_keystone_pattern(
+            astrology=astrology,
+            human_design=human_design,
+            enneagram=enneagram,
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Keystone pattern detection error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/keystone-pattern/{user_id}")
+async def get_keystone_pattern_for_user(user_id: str):
+    """
+    Detect keystone pattern for a user by auto-fetching their lens data.
+    """
+    try:
+        from services.keystone_pattern_engine import detect_keystone_pattern
+        from services.field_signals import detect_transit_convergence
+        from services.astrology_signal_engine import select_dominant_tension, DayClass
+        
+        # Get transit data for astrology tension
+        transit_stack = detect_transit_convergence()
+        day_class_str = transit_stack.get("classification", "normal_flow")
+        try:
+            day_class = DayClass(day_class_str)
+        except ValueError:
+            day_class = DayClass.NORMAL_FLOW
+        
+        # Get dominant tension
+        dominant_tension = select_dominant_tension(day_class, transit_stack)
+        
+        # Build astrology input
+        astrology = {
+            "dominant_tension": dominant_tension.value,
+            "altitude": "today",
+            "transit_stack": transit_stack,
+        }
+        
+        # Try to get Human Design data
+        human_design = None
+        try:
+            cached_hd = await db.deep_dive_cache.find_one({"user_id": user_id, "lens": "human_design"})
+            if cached_hd:
+                active_centers = []
+                defined_channels = []
+                
+                # Extract from cached data
+                if cached_hd.get("centers"):
+                    for center_name, center_data in cached_hd.get("centers", {}).items():
+                        if center_data.get("defined"):
+                            active_centers.append(center_name)
+                
+                if cached_hd.get("channels"):
+                    defined_channels = [c.get("name", "") for c in cached_hd.get("channels", [])]
+                
+                if active_centers:
+                    human_design = {
+                        "active_centers": active_centers,
+                        "defined_channels": defined_channels,
+                    }
+        except Exception as e:
+            logger.debug(f"[KeystonePattern] Could not load HD data: {e}")
+        
+        # Try to get Enneagram data
+        enneagram = None
+        try:
+            user = await db.users.find_one({"_id": ObjectId(user_id)})
+            if user and user.get("enneagram_type"):
+                enneagram = {
+                    "type": user.get("enneagram_type"),
+                    "current_pattern_activation": user.get("enneagram_pattern", ""),
+                }
+        except Exception as e:
+            logger.debug(f"[KeystonePattern] Could not load Enneagram data: {e}")
+        
+        # Detect pattern
+        result = detect_keystone_pattern(
+            astrology=astrology,
+            human_design=human_design,
+            enneagram=enneagram,
+        )
+        
+        logger.info(f"[KeystonePattern] User {user_id[:8]}: {result['pattern_id']} (confidence={result['confidence']})")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Keystone pattern error for user: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
 @api_router.get("/astrology/deep-dive/{user_id}")
 async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
     """
