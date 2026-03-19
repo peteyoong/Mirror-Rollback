@@ -158,6 +158,83 @@ export default function PatternsScreen() {
   // HELPERS
   // ============================================================================
 
+  // HUMAN PATTERN PHRASES - Internal domain labels → lived experience
+  // These replace abstract categories with recognizable behavior patterns
+  const DOMAIN_TO_HUMAN_PHRASE: Record<string, string> = {
+    'energy_vitality': 'You push hard → then feel drained',
+    'emotional_landscape': 'You hold things in → then it spills out',
+    'identity_direction': 'You start strong → then second-guess',
+    'relationships_connection': 'You reach out → then pull back',
+    'work_purpose': 'You commit fully → then feel trapped',
+    'creativity_expression': 'You create freely → then doubt it',
+    'health_body': 'You ignore signals → then crash',
+    'spirituality_meaning': 'You search for answers → then lose the thread',
+    'money_security': 'You spend freely → then restrict',
+    'family_roots': 'You protect others → then feel unseen',
+  };
+
+  // Get human phrase from domain ID, with fallback
+  const getHumanPhrase = (domainId: string | null | undefined, domain: string | null | undefined): string => {
+    if (domainId && DOMAIN_TO_HUMAN_PHRASE[domainId]) {
+      return DOMAIN_TO_HUMAN_PHRASE[domainId];
+    }
+    // Fallback: convert domain name to a generic phrase
+    if (domain) {
+      return `A pattern around ${domain.toLowerCase()}`;
+    }
+    return 'A recurring pattern';
+  };
+
+  // Get short behavioral summary for timeline entry
+  const getBehavioralSummary = (week: WeekEntry): string => {
+    const domainId = week.top_domain_id;
+    const trend = week.trend_map?.[week.top_domain || ''];
+    
+    // Trend-specific behavioral summaries
+    const summaries: Record<string, Record<string, string>> = {
+      'energy_vitality': {
+        rising: 'Pushed harder than usual',
+        steady: 'Sustained effort, building tension',
+        fading: 'Finally slowing down',
+      },
+      'emotional_landscape': {
+        rising: 'Emotions intensifying',
+        steady: 'Holding steady, but full',
+        fading: 'Starting to process',
+      },
+      'identity_direction': {
+        rising: 'Questioning more than usual',
+        steady: 'Still searching',
+        fading: 'Beginning to settle',
+      },
+      'relationships_connection': {
+        rising: 'Feeling the distance',
+        steady: 'Navigating connections',
+        fading: 'Finding balance',
+      },
+      'work_purpose': {
+        rising: 'Driven, maybe too much',
+        steady: 'Committed, carrying weight',
+        fading: 'Easing the grip',
+      },
+    };
+
+    if (domainId && summaries[domainId] && trend && summaries[domainId][trend]) {
+      return summaries[domainId][trend];
+    }
+    
+    // Fallback to narrative excerpt if available
+    if (week.narrative && week.narrative.length > 0) {
+      // Extract first meaningful phrase
+      const shortNarrative = week.narrative.split('.')[0];
+      if (shortNarrative.length < 60) {
+        return shortNarrative;
+      }
+    }
+    
+    return 'Pattern present';
+  };
+
   const formatDateRange = (start: string, end: string) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -191,7 +268,8 @@ export default function PatternsScreen() {
     
     if (!week.top_domain) return null;
     
-    const trends = Object.entries(week.trend_map).slice(0, 3);
+    // Use behavioral summary instead of domain label
+    const behavioralSummary = getBehavioralSummary(week);
     
     return (
       <TouchableOpacity
@@ -212,7 +290,7 @@ export default function PatternsScreen() {
               {weekLabel}
             </Text>
             <Text style={[styles.weekTopDomain, { color: theme.text }]}>
-              {week.top_domain}
+              {behavioralSummary}
             </Text>
           </View>
           <Text style={[styles.weekChevron, { color: theme.textTertiary }]}>
@@ -220,26 +298,11 @@ export default function PatternsScreen() {
           </Text>
         </View>
         
-        {isExpanded && (
+        {isExpanded && week.narrative && (
           <View style={[styles.weekExpanded, { borderTopColor: theme.border }]}>
             <Text style={[styles.weekNarrative, { color: theme.textSecondary }]}>
               {week.narrative}
             </Text>
-            
-            {trends.length > 0 && (
-              <View style={styles.trendsRow}>
-                {trends.map(([domain, trend]) => (
-                  <View key={domain} style={styles.trendItem}>
-                    <Text style={[styles.trendDomain, { color: theme.textTertiary }]}>
-                      {domain}
-                    </Text>
-                    <Text style={[styles.trendIndicator, { color: getTrendColor(trend) }]}>
-                      {trend === 'rising' ? '↑' : trend === 'fading' ? '↓' : '•'}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
           </View>
         )}
       </TouchableOpacity>
@@ -272,22 +335,26 @@ export default function PatternsScreen() {
       );
     }
 
-    // Calculate recurrence count for HERO display
+    // Calculate recurrence count for display
     const weeksWithPattern = timeline.weeks.filter(w => w.top_domain).length;
-    const mostRecurring = timeline.insights?.most_recurring_domain || timeline.weeks[0]?.top_domain;
+    
+    // Get human phrase for HERO - NOT domain label
+    const mostRecurringId = timeline.weeks.find(w => w.top_domain_id)?.top_domain_id;
+    const mostRecurring = timeline.weeks.find(w => w.top_domain)?.top_domain;
+    const humanPhrase = getHumanPhrase(mostRecurringId, mostRecurring);
 
     return (
       <View style={styles.section}>
-        {/* HERO: Recurrence Count - First thing user sees */}
+        {/* HERO: Human Pattern Phrase - First thing user sees */}
         <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.accent }]}>
+          <Text style={[styles.heroPattern, { color: theme.text }]}>
+            {humanPhrase}
+          </Text>
           <Text style={[styles.heroCount, { color: theme.accent }]}>
             Seen {weeksWithPattern} times in {timeline.weeks.length} weeks
           </Text>
-          <Text style={[styles.heroPattern, { color: theme.text }]}>
-            {mostRecurring}
-          </Text>
           <Text style={[styles.heroSubtext, { color: theme.textSecondary }]}>
-            This is real and has happened multiple times.
+            This is real. It keeps happening.
           </Text>
         </View>
 
@@ -322,8 +389,10 @@ export default function PatternsScreen() {
       return null;
     }
 
-    // Get the top domain for this week
+    // Get human phrase for this week - NOT domain label
+    const topDomainId = weeklySummary.top_domains?.[0]?.domain_id;
     const topDomain = weeklySummary.top_domains?.[0]?.domain;
+    const humanPhrase = getHumanPhrase(topDomainId, topDomain);
 
     return (
       <View style={styles.section}>
@@ -336,16 +405,14 @@ export default function PatternsScreen() {
           </Text>
         </View>
 
-        {/* Simplified, direct language */}
+        {/* Human phrase, not domain label */}
         <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.narrativeText, { color: theme.text }]}>
-            {topDomain ? `${topDomain} is active again this week.` : 'This pattern is active again this week.'}
+            This pattern is active again.
           </Text>
-          {weeklySummary.top_domains && weeklySummary.top_domains.length > 1 && (
-            <Text style={[styles.narrativeSubtext, { color: theme.textSecondary }]}>
-              Also present: {weeklySummary.top_domains.slice(1, 3).map(d => d.domain).join(', ')}
-            </Text>
-          )}
+          <Text style={[styles.narrativeSubtext, { color: theme.textSecondary }]}>
+            {humanPhrase}
+          </Text>
         </View>
 
         {/* Link to current Keystone */}
