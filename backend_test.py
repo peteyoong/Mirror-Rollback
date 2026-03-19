@@ -11,7 +11,7 @@ import time
 from typing import Dict, List, Any
 
 # Configuration
-BASE_URL = "https://copy-sharpening-pass.preview.emergentagent.com/api"
+BASE_URL = "https://astro-narrative-v6.preview.emergentagent.com/api"
 TEST_USER_ID = "6971c81f2b40fd5ef501d375"  # Metal element / strong Day Master / Resource Ten God user
 
 # Expected patterns for quality validation
