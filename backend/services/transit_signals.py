@@ -272,6 +272,50 @@ DOMINANT_THEMES = {
 }
 
 
+
+def _enhance_dominant_for_stacked(dominant: 'DominantSignal', transit_stack: Dict, copy_tone: Dict) -> 'DominantSignal':
+    """
+    Enhance the dominant signal copy when we have stacked transits (phase_shift).
+    
+    Makes copy more:
+    - Direct
+    - Interruptive  
+    - Less explanatory
+    - More "this matters now"
+    """
+    from dataclasses import replace
+    
+    interaction_theme = transit_stack.get("interaction_theme", "")
+    copy_direction = transit_stack.get("copy_direction", "")
+    
+    # Enhance activation framing for stacked events
+    enhanced_activation = dominant.activation_framing
+    if copy_direction and not enhanced_activation.startswith("This isn't"):
+        enhanced_activation = f"{copy_direction}"
+    
+    # Make today framing more urgent for phase_shift
+    enhanced_today = dominant.today_framing
+    if "phase_shift" in transit_stack.get("classification", ""):
+        if not enhanced_today.startswith("This isn't"):
+            enhanced_today = f"This isn't a normal day. {enhanced_today}"
+    
+    return DominantSignal(
+        theme=dominant.theme,
+        theme_id=dominant.theme_id,
+        confidence=min(0.98, dominant.confidence * 1.1),  # Boost confidence for stacked
+        center_focus=dominant.center_focus,
+        field_alignment=dominant.field_alignment,
+        supporting_signals=dominant.supporting_signals,
+        activation_framing=enhanced_activation,
+        opportunity_framing=dominant.opportunity_framing,
+        friction_framing=dominant.friction_framing,
+        today_framing=enhanced_today,
+        week_framing=dominant.week_framing,
+        month_framing=dominant.month_framing,
+    )
+
+
+
 def select_dominant_signal(
     all_signals: List[TransitSignal],
     field_context: Dict[str, str],
@@ -864,16 +908,40 @@ def compute_transit_signals(
     # Apply field context adaptation to all signals
     adapted_signals = [adapt_signal_to_field(s, field_context, i == 0) for i, s in enumerate(top_signals)]
     
+    # === LAYER 0: MULTI-TRANSIT CONVERGENCE ===
+    # Detect if multiple major transits are converging
+    from services.field_signals import (
+        get_major_sky_events, 
+        get_sky_dominant_override,
+        detect_transit_convergence,
+        get_field_climate_from_transit_stack,
+        get_copy_tone_for_classification,
+    )
+    
+    # Detect transit convergence FIRST
+    transit_stack = detect_transit_convergence()
+    
+    # Get field climate derived from transit stack (Layer 1 updated)
+    stacked_field_climate = get_field_climate_from_transit_stack(transit_stack)
+    
+    # Get copy tone rules based on classification
+    copy_tone = get_copy_tone_for_classification(transit_stack.get("classification", "normal_flow"))
+    
+    # Merge stacked climate with original field context
+    enhanced_field_context = {
+        **field_context,
+        **stacked_field_climate,
+        "transit_stack": transit_stack,
+        "copy_tone": copy_tone,
+    }
+    
     # === SKY PRIORITY LAYER ===
-    # Check for major sky events that should override personal signals
-    from services.field_signals import get_major_sky_events, get_sky_dominant_override
     major_sky_events = get_major_sky_events()
     sky_override = get_sky_dominant_override(major_sky_events)
     
     # === SELECT DOMINANT SIGNAL ===
-    # Either from sky event override or from personal HD signals
     if sky_override:
-        # Major sky event takes priority
+        # Enhance with stacked context
         dominant = DominantSignal(
             theme=sky_override["theme"],
             theme_id=sky_override["theme_id"],
@@ -888,22 +956,26 @@ def compute_transit_signals(
             week_framing=sky_override.get("week_framing", ""),
             month_framing=sky_override.get("month_framing", ""),
         )
-        logger.info(f"[TransitSignals] Sky event override active: {sky_override.get('sky_event')}")
+        
+        # If stacked (phase_shift), enhance copy to be more direct/interruptive
+        if transit_stack.get("classification") == "phase_shift":
+            dominant = _enhance_dominant_for_stacked(dominant, transit_stack, copy_tone)
+        
+        logger.info(f"[TransitSignals] Sky event override active: {sky_override.get('sky_event')} (classification: {transit_stack.get('classification')})")
     else:
         # No major sky event - use personal HD signals
-        dominant = select_dominant_signal(all_signals, field_context, defined_centers, undefined_centers)
+        dominant = select_dominant_signal(all_signals, enhanced_field_context, defined_centers, undefined_centers)
     
     # === UNIFY SIGNALS AROUND DOMINANT THEME ===
-    # Rewrite signal content to orbit the dominant theme
-    unified_signals = unify_signals_around_theme(adapted_signals, dominant, field_context)
+    unified_signals = unify_signals_around_theme(adapted_signals, dominant, enhanced_field_context)
     
     # FINAL POLISH: Differentiate signals and compress language
-    polished_signals = differentiate_and_polish_signals(unified_signals, field_context)
+    polished_signals = differentiate_and_polish_signals(unified_signals, enhanced_field_context)
     
     # Assign roles: Biggest Activation, Opportunity, Friction
     categorized = categorize_signals(polished_signals)
     
-    logger.info(f"[TransitSignals] Computed {len(all_signals)} signals, dominant theme: {dominant.theme_id} (confidence: {dominant.confidence:.2f})")
+    logger.info(f"[TransitSignals] Computed {len(all_signals)} signals, dominant theme: {dominant.theme_id} (confidence: {dominant.confidence:.2f}, classification: {transit_stack.get('classification')})")
     
     return {
         "computed_at": datetime.now(timezone.utc).isoformat(),
@@ -913,6 +985,8 @@ def compute_transit_signals(
             "opportunity": signal_to_dict(categorized["opportunity"]),
             "friction": signal_to_dict(categorized["friction"]),
         },
+        # === Include transit stack (Layer 0) ===
+        "transit_stack": transit_stack,
         # === Include dominant signal in response ===
         "dominant_signal": {
             "theme": dominant.theme,

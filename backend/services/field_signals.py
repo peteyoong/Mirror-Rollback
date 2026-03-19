@@ -730,6 +730,324 @@ def signal_to_dict(signal: FieldSignal) -> Dict[str, Any]:
 
 
 # =============================================================================
+# LAYER 0: MULTI-TRANSIT CONVERGENCE DETECTION (v1.3)
+# =============================================================================
+
+# Major event types for convergence detection
+MAJOR_EVENT_TYPES = {
+    FieldSignalType.NEW_MOON,
+    FieldSignalType.FULL_MOON,
+    FieldSignalType.ECLIPSE_SOLAR,
+    FieldSignalType.ECLIPSE_LUNAR,
+    FieldSignalType.EQUINOX,
+    FieldSignalType.SOLSTICE,
+}
+
+# Interaction themes when events stack
+CONVERGENCE_THEMES = {
+    # New Moon combinations
+    ("new_moon", "equinox"): {
+        "interaction_theme": "reset_at_threshold",
+        "classification": "phase_shift",
+        "tone": "interruptive",
+        "copy_direction": "This isn't a normal day. Something is resetting at a turning point.",
+    },
+    ("new_moon", "solstice"): {
+        "interaction_theme": "reset_at_extreme",
+        "classification": "phase_shift",
+        "tone": "interruptive",
+        "copy_direction": "A reset is happening at peak intensity. Let go without forcing direction.",
+    },
+    ("new_moon", "eclipse_solar"): {
+        "interaction_theme": "portal_opening",
+        "classification": "phase_shift",
+        "tone": "decisive",
+        "copy_direction": "This is a major portal. What shifts now won't come back the same way.",
+    },
+    ("new_moon", "eclipse_lunar"): {
+        "interaction_theme": "deep_release",
+        "classification": "phase_shift",
+        "tone": "interruptive",
+        "copy_direction": "Something buried is ready to leave. Let it go.",
+    },
+    
+    # Full Moon combinations
+    ("full_moon", "equinox"): {
+        "interaction_theme": "culmination_at_threshold",
+        "classification": "phase_shift",
+        "tone": "decisive",
+        "copy_direction": "Clarity and turning point converge. Act on what's illuminated.",
+    },
+    ("full_moon", "solstice"): {
+        "interaction_theme": "peak_illumination",
+        "classification": "phase_shift",
+        "tone": "decisive",
+        "copy_direction": "Maximum visibility at maximum intensity. What you see now is real.",
+    },
+    ("full_moon", "eclipse_lunar"): {
+        "interaction_theme": "emotional_culmination",
+        "classification": "phase_shift",
+        "tone": "interruptive",
+        "copy_direction": "Deep feelings are surfacing and peaking. Let them move through.",
+    },
+    
+    # Eclipse combinations
+    ("eclipse_solar", "equinox"): {
+        "interaction_theme": "portal_at_threshold",
+        "classification": "phase_shift",
+        "tone": "decisive",
+        "copy_direction": "A major portal opens at a seasonal turning point. This is rare.",
+    },
+    ("eclipse_solar", "solstice"): {
+        "interaction_theme": "portal_at_extreme",
+        "classification": "phase_shift",
+        "tone": "decisive",
+        "copy_direction": "Portal energy at peak intensity. Don't force—let it move you.",
+    },
+    ("eclipse_lunar", "equinox"): {
+        "interaction_theme": "release_at_threshold",
+        "classification": "phase_shift",
+        "tone": "interruptive",
+        "copy_direction": "Deep release at a turning point. Old patterns are falling away.",
+    },
+    
+    # Equinox + Solstice (rare but possible in edge calculations)
+    ("equinox", "solstice"): {
+        "interaction_theme": "dual_threshold",
+        "classification": "phase_shift",
+        "tone": "interruptive",
+        "copy_direction": "Multiple thresholds active. Ground yourself before deciding.",
+    },
+}
+
+
+def detect_transit_convergence(dt: Optional[datetime] = None) -> Dict[str, Any]:
+    """
+    LAYER 0: Detect multi-transit convergence BEFORE computing field climate.
+    
+    This is the first layer in the signal engine. It determines:
+    1. What transits are active
+    2. If multiple major events overlap
+    3. What classification the day has
+    
+    Classification:
+    - "normal_flow" = no major events
+    - "cycle_event" = single major event
+    - "phase_shift" = multiple major events (STACKED)
+    
+    Returns transit_stack object for downstream layers.
+    """
+    if dt is None:
+        dt = datetime.now(timezone.utc)
+    
+    # Step 1: Get all active major sky events
+    major_events = get_major_sky_events(dt)
+    
+    # Step 2: Filter to only high-intensity events (>= 0.7)
+    high_intensity_events = [e for e in major_events if e.get("intensity", 0) >= 0.7]
+    
+    # Step 3: Classify based on event count
+    if len(high_intensity_events) == 0:
+        return {
+            "type": "background",
+            "events": [],
+            "classification": "normal_flow",
+            "intensity": 0.0,
+            "interaction_theme": None,
+            "tone": "subtle",
+            "copy_direction": None,
+        }
+    
+    if len(high_intensity_events) == 1:
+        event = high_intensity_events[0]
+        return {
+            "type": "single",
+            "events": [event],
+            "event": event["type"],
+            "classification": "cycle_event",
+            "intensity": event["intensity"],
+            "interaction_theme": event.get("theme"),
+            "tone": "directional",
+            "copy_direction": event.get("dominant_override", {}).get("theme"),
+        }
+    
+    # Step 4: STACKED - Multiple major events converging
+    # Sort by intensity and take top 2 for interaction calculation
+    top_events = sorted(high_intensity_events, key=lambda x: x["intensity"], reverse=True)[:2]
+    
+    # Normalize event types for lookup (sorted alphabetically)
+    event_type_1 = top_events[0]["type"].replace("eclipse_solar", "eclipse_solar").replace("eclipse_lunar", "eclipse_lunar")
+    event_type_2 = top_events[1]["type"].replace("eclipse_solar", "eclipse_solar").replace("eclipse_lunar", "eclipse_lunar")
+    event_types = tuple(sorted([event_type_1, event_type_2]))
+    
+    # Look up convergence theme
+    convergence = CONVERGENCE_THEMES.get(event_types, {})
+    
+    # If no exact match, try with generic types
+    if not convergence:
+        # Try swapped order
+        convergence = CONVERGENCE_THEMES.get((event_types[1], event_types[0]), {})
+    
+    # Calculate combined intensity (not additive - use geometric mean with boost)
+    intensities = [e["intensity"] for e in top_events]
+    combined_intensity = min(0.98, (intensities[0] * intensities[1]) ** 0.5 * 1.15)
+    
+    # Log the convergence detection
+    logger.info(f"[TransitConvergence] STACKED detected: {event_types} -> {convergence.get('interaction_theme', 'multiple_events_active')}")
+    
+    return {
+        "type": "stacked",
+        "events": top_events,
+        "classification": convergence.get("classification", "phase_shift"),
+        "intensity": round(combined_intensity, 2),
+        "interaction_theme": convergence.get("interaction_theme", "multiple_events_active"),
+        "tone": convergence.get("tone", "interruptive"),
+        "copy_direction": convergence.get("copy_direction", "This isn't a normal day. Multiple forces are converging."),
+    }
+
+
+def get_field_climate_from_transit_stack(transit_stack: Dict[str, Any]) -> Dict[str, str]:
+    """
+    LAYER 1 (UPDATED): Derive field climate from transit_stack.
+    
+    This replaces the old compute_field_context for the dominant signal path.
+    Field climate is now determined by transit classification.
+    """
+    classification = transit_stack.get("classification", "normal_flow")
+    tone = transit_stack.get("tone", "subtle")
+    intensity = transit_stack.get("intensity", 0)
+    
+    if classification == "phase_shift":
+        # STACKED - this is a DIFFERENT TYPE OF DAY
+        return {
+            "field_tone": "transition",
+            "clarity_level": "low",
+            "pressure": "high",
+            "pace": "fast",
+            "origin": "stacked_transits",
+            "interaction_theme": transit_stack.get("interaction_theme"),
+            "dominant_message": transit_stack.get("copy_direction", "Something is shifting under your feet"),
+        }
+    
+    if classification == "cycle_event":
+        # Single major event
+        event_type = transit_stack.get("event", "")
+        
+        if "moon" in event_type and "new" in event_type:
+            return {
+                "field_tone": "reset",
+                "clarity_level": "low",
+                "pressure": "medium",
+                "pace": "slow",
+                "origin": "single_transit",
+                "interaction_theme": transit_stack.get("interaction_theme"),
+                "dominant_message": "a reset is happening",
+            }
+        elif "moon" in event_type and "full" in event_type:
+            return {
+                "field_tone": "clarity",
+                "clarity_level": "high",
+                "pressure": "medium",
+                "pace": "fast",
+                "origin": "single_transit",
+                "interaction_theme": transit_stack.get("interaction_theme"),
+                "dominant_message": "clarity is peaking",
+            }
+        elif "eclipse" in event_type:
+            return {
+                "field_tone": "pressure",
+                "clarity_level": "low",
+                "pressure": "high",
+                "pace": "fast",
+                "origin": "single_transit",
+                "interaction_theme": transit_stack.get("interaction_theme"),
+                "dominant_message": "powerful forces are at play",
+            }
+        elif "equinox" in event_type or "solstice" in event_type:
+            return {
+                "field_tone": "turning_point",
+                "clarity_level": "emerging",
+                "pressure": "medium",
+                "pace": "building",
+                "origin": "single_transit",
+                "interaction_theme": transit_stack.get("interaction_theme"),
+                "dominant_message": "a threshold is being crossed",
+            }
+        else:
+            return {
+                "field_tone": "clarity",
+                "clarity_level": "emerging",
+                "pressure": "low",
+                "pace": "building",
+                "origin": "single_transit",
+                "interaction_theme": transit_stack.get("interaction_theme"),
+                "dominant_message": "cycle energy is present",
+            }
+    
+    # normal_flow - no major events
+    return {
+        "field_tone": "clarity",
+        "clarity_level": "high",
+        "pressure": "low",
+        "pace": "building",
+        "origin": "background",
+        "interaction_theme": None,
+        "dominant_message": "things are relatively stable",
+    }
+
+
+def get_copy_tone_for_classification(classification: str) -> Dict[str, Any]:
+    """
+    Return copy generation rules based on transit classification.
+    
+    phase_shift: more direct, interruptive, "this matters now"
+    cycle_event: reflective but directional
+    normal_flow: subtle, pattern-based
+    """
+    if classification == "phase_shift":
+        return {
+            "directness": "high",
+            "tone": "interruptive",
+            "length": "short",
+            "hedging": False,
+            "opening_style": "declarative",  # "This isn't a normal day."
+            "examples": [
+                "This isn't a normal day.",
+                "Something is shifting under your feet.",
+                "The urge to decide right now is coming from pressure—not clarity.",
+            ],
+        }
+    
+    if classification == "cycle_event":
+        return {
+            "directness": "medium",
+            "tone": "directional",
+            "length": "medium",
+            "hedging": False,
+            "opening_style": "observational",  # "You may notice..."
+            "examples": [
+                "A reset is happening.",
+                "Something is becoming clear.",
+                "This cycle is teaching you something.",
+            ],
+        }
+    
+    # normal_flow
+    return {
+        "directness": "low",
+        "tone": "subtle",
+        "length": "medium",
+        "hedging": True,
+        "opening_style": "exploratory",  # "You might feel..."
+        "examples": [
+            "Something familiar may be present.",
+            "You might notice a pattern returning.",
+            "Part of you may be circling something.",
+        ],
+    }
+
+
+# =============================================================================
 # MAJOR SKY EVENTS - Priority Layer
 # =============================================================================
 
