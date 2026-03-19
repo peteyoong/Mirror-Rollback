@@ -35,7 +35,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useFocusEffect, useScrollToTop } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
@@ -97,6 +97,51 @@ export default function PatternsScreen() {
   const { user } = useAppStore();
   const router = useRouter();
   
+  // ============================================================================
+  // SCROLL RESET - NUCLEAR OPTION: FORCE REMOUNT ON EVERY FOCUS
+  // ============================================================================
+  // 
+  // ROOT CAUSE: Multiple factors can restore scroll position after initial reset:
+  // 1. Browser history.scrollRestoration 
+  // 2. React Navigation state caching
+  // 3. Content height changes after data loads shifting scroll position
+  // 4. iOS/Android native scroll restoration
+  //
+  // SOLUTION: Force a complete remount of the scroll container on every tab focus
+  // by using a key that changes each time the screen gains focus.
+  //
+  const [mountKey, setMountKey] = useState(0);
+  
+  // Disable browser scroll restoration on web (run once at mount)
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      // Disable browser's automatic scroll restoration
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+      // Reset scroll immediately
+      window.scrollTo(0, 0);
+    }
+  }, []);
+  
+  // Force remount on every focus by incrementing mountKey
+  useFocusEffect(
+    useCallback(() => {
+      // Increment key to force ScrollView remount
+      setMountKey(prev => prev + 1);
+      
+      // Also reset any expanded state
+      setExpandedWeek(null);
+      
+      // Reset browser scroll on web
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }
+    }, [])
+  );
+  
   // Timeline State (PRIMARY)
   const [timeline, setTimeline] = useState<TimelineData | null>(null);
   const [timelineLoading, setTimelineLoading] = useState(true);
@@ -109,52 +154,8 @@ export default function PatternsScreen() {
   // Expanded week tracking
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
 
-  // Scroll ref for forcing scroll to top on focus
+  // Scroll ref (still useful for pull-to-refresh positioning)
   const scrollViewRef = useRef<ScrollView>(null);
-
-  // ============================================================================
-  // SCROLL RESET - DETERMINISTIC FIX
-  // ============================================================================
-  // 
-  // ROOT CAUSE: React Navigation's useScrollToTop hook automatically scrolls
-  // the nearest ScrollView when tapping the active tab or navigating to it.
-  // On web, browser history may also restore scroll position.
-  //
-  // FIX: 
-  // 1. Override useScrollToTop with empty scrollToTop function (disables auto-scroll)
-  // 2. Use useFocusEffect to explicitly reset scroll to y=0 on every focus
-  // 3. scrollsToTop={false} on ScrollView prevents iOS status bar tap scroll
-  //
-  
-  // Override React Navigation's automatic scroll-to-top with a no-op
-  // This ref is passed to useScrollToTop but has an empty scrollToTop function
-  const scrollToTopRef = useRef({
-    scrollToTop: () => {
-      // Intentionally empty - we handle scroll ourselves
-    },
-  });
-  useScrollToTop(scrollToTopRef);
-  
-  // Force scroll to top on every focus
-  useFocusEffect(
-    useCallback(() => {
-      // Reset scroll position
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: false });
-      }
-      
-      // Also reset browser scroll on web
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.scrollTo(0, 0);
-        // Also try to reset any element that might have overflow scroll
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      }
-      
-      // Reset collapsed state
-      setExpandedWeek(null);
-    }, [])
-  );
 
   // ============================================================================
   // DATA LOADING
@@ -725,6 +726,7 @@ export default function PatternsScreen() {
       </View>
       
       <ScrollView
+        key={`patterns-scroll-${mountKey}`}
         ref={scrollViewRef}
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
