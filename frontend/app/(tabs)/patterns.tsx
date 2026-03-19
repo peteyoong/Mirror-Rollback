@@ -17,7 +17,7 @@
  * REMOVED: Domain accordions, Signals tab, Chart resonance, Analytics-heavy UI
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
@@ -101,6 +102,20 @@ export default function PatternsScreen() {
   
   // Expanded week tracking
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
+
+  // Scroll ref for forcing scroll to top on focus
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // ============================================================================
+  // SCROLL TO TOP ON SCREEN FOCUS
+  // ============================================================================
+
+  useFocusEffect(
+    useCallback(() => {
+      // Force scroll to top when entering Patterns tab
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    }, [])
+  );
 
   // ============================================================================
   // DATA LOADING
@@ -671,6 +686,7 @@ export default function PatternsScreen() {
       </View>
       
       <ScrollView
+        ref={scrollViewRef}
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -686,16 +702,25 @@ export default function PatternsScreen() {
         {renderHeroSection()}
         
         {/* 2. WHEN IT APPEARED - Evidence/receipts */}
-        {renderRepeatingList()}
+        <View style={styles.timelineSection}>
+          {renderRepeatingList()}
+        </View>
         
         {/* 3. THIS WEEK - Current activation */}
-        {renderThisWeekSection()}
+        <View style={styles.thisWeekSection}>
+          <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+          {renderThisWeekSection()}
+        </View>
         
         {/* 4. ARCHETYPE - Conclusion */}
-        {renderArchetypeSection()}
+        <View style={styles.archetypeSection}>
+          {renderArchetypeSection()}
+        </View>
         
         {/* 5. REFLECTION PROMPT */}
-        {renderReflectionPrompt()}
+        <View style={styles.reflectionSection}>
+          {renderReflectionPrompt()}
+        </View>
         
         {/* Bottom padding for tab bar */}
         <View style={{ height: 100 }} />
@@ -789,6 +814,26 @@ const styles = StyleSheet.create({
   },
   sectionRange: {
     fontSize: 12,
+  },
+  
+  // HARD SECTION BOUNDARIES
+  timelineSection: {
+    marginTop: 28,
+  },
+  thisWeekSection: {
+    marginTop: 32,
+    paddingTop: 24,
+  },
+  archetypeSection: {
+    marginTop: 36,
+  },
+  reflectionSection: {
+    marginTop: 24,
+    paddingBottom: 16,
+  },
+  sectionDivider: {
+    height: 1,
+    marginBottom: 24,
   },
   
   // Narrative Card
