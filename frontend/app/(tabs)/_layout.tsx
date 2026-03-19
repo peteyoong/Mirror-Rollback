@@ -68,9 +68,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Text style={{ fontSize: 22, color }}>⬡</Text>
           ),
-          // CRITICAL: Unmount screen on blur to reset scroll position
-          // This ensures the screen always starts fresh at the top
-          unmountOnBlur: true,
+          // Note: unmountOnBlur removed - it causes issues on some platforms
+          // Scroll reset is handled within the component via useFocusEffect
         }}
       />
       

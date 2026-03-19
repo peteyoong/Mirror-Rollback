@@ -98,49 +98,30 @@ export default function PatternsScreen() {
   const router = useRouter();
   
   // ============================================================================
-  // SCROLL RESET - NUCLEAR OPTION: FORCE REMOUNT ON EVERY FOCUS
+  // SCROLL RESET - DETERMINISTIC APPROACH
   // ============================================================================
   // 
-  // ROOT CAUSE: Multiple factors can restore scroll position after initial reset:
-  // 1. Browser history.scrollRestoration 
-  // 2. React Navigation state caching
-  // 3. Content height changes after data loads shifting scroll position
-  // 4. iOS/Android native scroll restoration
+  // ROOT CAUSE ANALYSIS:
+  // 1. useFocusEffect runs BEFORE data loads
+  // 2. When data loads, content height changes
+  // 3. Some platforms (iOS/Android) restore previous scroll position after layout
+  // 4. Browser may restore scroll from history
   //
-  // SOLUTION: Force a complete remount of the scroll container on every tab focus
-  // by using a key that changes each time the screen gains focus.
+  // SOLUTION:
+  // 1. Reset scroll on focus
+  // 2. Reset scroll AFTER data loads
+  // 3. Reset scroll AFTER layout completes
+  // 4. Use key prop to force ScrollView remount
   //
+  
+  // Mount key for forcing ScrollView remount
   const [mountKey, setMountKey] = useState(0);
   
-  // Disable browser scroll restoration on web (run once at mount)
-  useEffect(() => {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      // Disable browser's automatic scroll restoration
-      if ('scrollRestoration' in history) {
-        history.scrollRestoration = 'manual';
-      }
-      // Reset scroll immediately
-      window.scrollTo(0, 0);
-    }
-  }, []);
+  // Track if we're in a focus event to coordinate reset timing
+  const didFocusRef = useRef(false);
   
-  // Force remount on every focus by incrementing mountKey
-  useFocusEffect(
-    useCallback(() => {
-      // Increment key to force ScrollView remount
-      setMountKey(prev => prev + 1);
-      
-      // Also reset any expanded state
-      setExpandedWeek(null);
-      
-      // Reset browser scroll on web
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      }
-    }, [])
-  );
+  // Scroll ref for explicit scroll control
+  const scrollViewRef = useRef<ScrollView>(null);
   
   // Timeline State (PRIMARY)
   const [timeline, setTimeline] = useState<TimelineData | null>(null);
@@ -154,8 +135,63 @@ export default function PatternsScreen() {
   // Expanded week tracking
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
 
-  // Scroll ref (still useful for pull-to-refresh positioning)
-  const scrollViewRef = useRef<ScrollView>(null);
+  // Master scroll reset function
+  const resetScroll = useCallback(() => {
+    // Reset ScrollView
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: false });
+    }
+    
+    // Reset browser scroll on web
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
+
+  // Disable browser scroll restoration (web only, run once)
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+    }
+  }, []);
+
+  // On focus: increment mount key and mark focus
+  useFocusEffect(
+    useCallback(() => {
+      // Mark that we just focused (for post-data-load reset)
+      didFocusRef.current = true;
+      
+      // Increment key to force ScrollView remount
+      setMountKey(prev => prev + 1);
+      
+      // Reset expanded state
+      setExpandedWeek(null);
+      
+      // Immediate reset
+      resetScroll();
+      
+      // Cleanup on blur
+      return () => {
+        didFocusRef.current = false;
+      };
+    }, [resetScroll])
+  );
+
+  // Reset scroll AFTER content loads (critical for data-driven layouts)
+  useEffect(() => {
+    if (didFocusRef.current && !timelineLoading && !weeklyLoading) {
+      // Data has loaded after a focus event - reset scroll now
+      resetScroll();
+      
+      // Also reset after a brief delay to catch any layout shifts
+      const timer = setTimeout(resetScroll, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [timelineLoading, weeklyLoading, resetScroll]);
 
   // ============================================================================
   // DATA LOADING
