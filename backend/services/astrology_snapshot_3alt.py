@@ -27,78 +27,78 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # TODAY HOOKS - Immediate, fractured thought rhythm
 # =============================================================================
-# MOST PERSONAL. Shortest. What you're doing RIGHT NOW.
-# Should feel like: "this is me, right now"
+# MOST PERSONAL. Real-time thought unfolding.
+# Mix of short + longer. Not all punchlines.
 
 TODAY_HOOKS = {
     "phase_shift": [
-        "You try to decide. Then pull back. Then try again.",
-        "You want this done. Something keeps blocking you.",
-        "Part of you says move. Another part won't.",
-        "You keep checking the thing. Not doing the thing.",
-        "Every option feels slightly wrong.",
+        "You start to move on it, then stop. Something pulls you back. You try again, and the same thing happens.",
+        "You want it done. You keep circling back to it, but each time you get close, something makes you hesitate.",
+        "Part of you is ready to move. But there's another part that keeps saying not yet, and you can't tell which one to trust.",
+        "You check the thing again. You don't do anything about it. Then you check it again.",
+        "You run through the options. None of them feel right. So you wait. Then run through them again.",
     ],
     "cycle_event": [
-        "The same thought returns. You push it away. It returns.",
-        "Today feels heavier than yesterday.",
-        "Something wants your attention.",
-        "Small things are landing harder.",
-        "You can feel something unfinished.",
+        "The same thought keeps showing up. You push it aside, focus on something else, and then there it is again.",
+        "Today feels heavier than it should. Nothing specific happened, but you're carrying something.",
+        "Something wants your attention. You keep looking past it, but it's still there at the edge.",
+        "Small things are landing harder than usual. You're reacting more than the situation calls for.",
+        "There's something unfinished sitting in the background. You can feel its weight even when you're not thinking about it directly.",
     ],
     "normal_flow": [
-        "Part of you is somewhere else.",
-        "You keep drifting. Pulling back. Drifting again.",
-        "Nothing urgent. But not settled.",
-        "The day is fine. Something keeps tugging.",
-        "Running on autopilot. Present, but absent.",
+        "Part of you is here, doing the thing. Another part is somewhere else entirely.",
+        "You keep drifting off. You pull yourself back. Then you drift again. It's been like that all day.",
+        "Nothing urgent is happening. But you're not settled either. There's a low-grade restlessness underneath.",
+        "The day is fine. Normal. But something keeps tugging at the edge of your attention.",
+        "You're going through the motions. Present, but not really here. Autopilot with a slight delay.",
     ],
 }
 
 TODAY_CONTEXT = {
     "phase_shift": [
-        "The message you keep not answering. The draft not sent. That's it.",
-        "The tabs still open. The decision not made.",
-        "Check what you're scrolling past.",
-        "The thing you keep saying 'later' to — look at it.",
-        "The unfinished thing is the signal.",
+        "Look at what you've been avoiding — the message you keep not answering, the draft sitting unsent, the thing you keep saying 'later' to.",
+        "It's in the tabs still open. The decision you haven't made. The conversation you keep rehearsing but not having.",
+        "Notice what you're scrolling past. What you're clicking away from. That's where the signal is.",
+        "The thing you keep putting off isn't random. It's connected to whatever's making you hesitate right now.",
+        "The unfinished thing keeps pulling at you because it's the signal, not the noise.",
     ],
     "cycle_event": [
-        "What keeps coming up in conversations? That.",
-        "The topic you keep circling back to.",
-        "What did you wake up thinking about?",
-        "The thing you've been putting off is louder today.",
-        "What have you said 'I should really...' about?",
+        "Pay attention to what keeps coming up in conversations. You've probably mentioned it more than once without realizing.",
+        "There's a topic you keep circling back to, even when you try to move on. That's the thing.",
+        "What did you wake up thinking about this morning? That's probably it.",
+        "The thing you've been putting off is louder today. It's asking to be looked at.",
+        "Think about what you've said 'I should really deal with that' about. It's still waiting.",
     ],
     "normal_flow": [
-        "Where does your mind go when you're not directing it?",
-        "What did you reach for in a free moment?",
-        "The pause between tasks — what shows up?",
-        "What are you avoiding that doesn't need avoiding?",
-        "What you're not doing is telling you something.",
+        "Notice where your mind goes when you stop directing it. That's the real thread.",
+        "What did you reach for in your first free moment? That tells you something.",
+        "In the pause between tasks, what shows up? That's the thing underneath.",
+        "You're avoiding something that doesn't actually need to be avoided. Look at what that is.",
+        "What you're not doing is telling you as much as what you are doing.",
     ],
 }
 
 TODAY_GUIDANCE = {
     "phase_shift": [
-        "Don't decide. Not yet.",
-        "The loop is the answer for now.",
-        "Stop trying to close it.",
-        "Name what you feel. Don't fix it.",
-        "Done isn't available today.",
+        "You don't have to decide right now. The loop you're in is information, not failure.",
+        "The back-and-forth is the answer for today. Let it be that.",
+        "Stop trying to close it. It's not ready to close, and forcing it won't help.",
+        "Name what you're feeling. That's enough. You don't have to fix it yet.",
+        "Done isn't available today. That's frustrating, but it's also true.",
     ],
     "cycle_event": [
-        "Just look at it.",
-        "Don't dismiss it.",
-        "The weight is real.",
-        "At least acknowledge it.",
-        "Let it be heavy.",
+        "Just look at it. Don't try to solve it or push it away. Just see it.",
+        "Don't dismiss it because it's familiar. Familiar doesn't mean handled.",
+        "The weight you're feeling is real. Stop pretending it isn't there.",
+        "At least acknowledge what's been sitting there. That's the first step.",
+        "Let it be heavy for now. You don't have to make it light.",
     ],
     "normal_flow": [
-        "Use the space. It won't last.",
-        "Something's processing.",
-        "Don't fill the gap.",
-        "Notice where attention goes.",
-        "You don't have to act. Just notice.",
+        "Use the space while you have it. This kind of quiet doesn't last forever.",
+        "Something's processing in the background. You don't have to understand it yet.",
+        "Don't rush to fill the gap. Let it be empty for a while.",
+        "Just notice where your attention keeps going. That's the work right now.",
+        "You don't have to act on it. Just notice that it's there.",
     ],
 }
 
@@ -107,77 +107,77 @@ TODAY_GUIDANCE = {
 # WEEK HOOKS - Pattern recognition, what keeps returning
 # =============================================================================
 # WIDER RHYTHM. What repeats AFTER the first reaction fades.
-# Should feel like: "this keeps coming back"
+# Flowing, not stacked. Shows the recurrence unfolding.
 
 WEEK_HOOKS = {
     "phase_shift": [
-        "Same choice, different day. You've run through this before.",
-        "The decision you didn't make earlier in the week? Still here.",
-        "Every few days, it resurfaces. You don't pick. It returns.",
-        "Forward or stay. You keep arriving at this fork.",
-        "You almost decide. Then don't. The pattern holds.",
+        "This is the same crossroads you were at a few days ago. You thought you'd moved past it, but here it is again, dressed slightly differently.",
+        "The decision you didn't make earlier this week is still sitting there. You've walked around it, looked at it from different angles, but it hasn't budged.",
+        "Every few days you arrive back at the same fork. You stand there, consider both paths, then step back without choosing. The pattern holds.",
+        "You keep returning to this. Forward or stay. You've run through it multiple times now, and you're no closer to resolution than when you started.",
+        "Watch for the moment when you almost commit to something, then pull back. That hesitation has been happening all week.",
     ],
     "cycle_event": [
-        "There's something cycling through. You've noticed it more than once.",
-        "The same feeling keeps showing up in different situations.",
-        "A theme is running underneath this week.",
-        "Different triggers, same reaction. That's a signal.",
-        "The thing you felt on Monday? It's still here Friday.",
+        "There's something cycling through this week. You've noticed it more than once — the same feeling surfacing in different situations.",
+        "The same emotional tone keeps returning. Different triggers, but the same reaction underneath. That's not coincidence.",
+        "There's a rhythm running through these past few days. Tension builds, then releases, then builds again. You can feel it even when you can't name it.",
+        "A familiar feeling keeps showing up. It finds you in conversations, in quiet moments, in reactions you don't quite understand.",
+        "The same theme is threading through your week. Different contexts, same underlying current.",
     ],
     "normal_flow": [
-        "A quiet thread runs through the week. Not loud, but present.",
-        "The same thought keeps surfacing at odd moments.",
-        "Something small keeps catching your attention.",
-        "There's a background hum. You've half-noticed it.",
-        "The week has a theme. You can feel it without naming it.",
+        "Something quiet keeps returning. Not dramatic, not urgent, but present. A thought that surfaces at odd moments.",
+        "There's a background hum to this week. You've half-noticed it — something persistent underneath the ordinary.",
+        "The same thought keeps appearing when you're not paying attention. In the shower, between tasks, right before sleep.",
+        "The week has a theme, even if you can't name it yet. Something keeps catching your attention, again and again.",
+        "Something small keeps pulling at you. It's easy to dismiss, but it keeps coming back.",
     ],
 }
 
 WEEK_CONTEXT = {
     "phase_shift": [
-        "Count how many times you've said 'I'll figure it out later.'",
-        "Look at what you've postponed. It's been on your list for days.",
-        "How many versions of this decision have you played out in your head?",
-        "The reply you didn't send earlier this week — still waiting.",
-        "Track where you keep getting stuck. That's the real location.",
+        "Think about how many times you've said 'I'll figure it out later' this week. That later keeps getting pushed forward.",
+        "The thing you've been postponing has been on your mental list for days now. Maybe longer. It's not going anywhere.",
+        "How many versions of this decision have you already played out in your head? And yet here you are, still undecided.",
+        "There's probably a message or a conversation you've been avoiding since earlier this week. It's still waiting.",
+        "Try to track where you keep getting stuck. The location where progress stalls — that's where the real issue lives.",
     ],
     "cycle_event": [
-        "The same topic keeps surfacing with different people.",
-        "What bothered you earlier this week? Still there? Unprocessed?",
-        "There's a conversation you've been meaning to have.",
-        "What did you promise yourself you'd handle? Is it handled?",
-        "The pattern shows up when you're not working.",
+        "Notice that the same topic keeps surfacing with different people. The common thread isn't them — it's you.",
+        "What bothered you earlier this week? Check if it's still there, unprocessed, still carrying weight.",
+        "There's a conversation you've been meaning to have. You keep finding reasons to postpone it.",
+        "Think about what you promised yourself you'd handle this week. Has it actually been handled?",
+        "The pattern is most visible when you're not working. Pay attention to what shows up in the quiet moments.",
     ],
     "normal_flow": [
-        "What keeps coming back in your free moments?",
-        "Look at what you've mentioned to others more than once.",
-        "The background thought is actually foreground. You're just not listening.",
-        "Pay attention to what returns when you stop directing.",
-        "There's something you keep meaning to address.",
+        "Notice what keeps coming back when you have a free moment. That's where your attention actually wants to go.",
+        "Pay attention to what you've mentioned to others more than once this week. That repetition is meaningful.",
+        "The thought you keep having in the background isn't background. It's foreground waiting to be acknowledged.",
+        "When you stop directing your attention, where does it drift? That's the thread worth following.",
+        "There's something you keep meaning to address. It's been waiting patiently for days now.",
     ],
 }
 
 WEEK_GUIDANCE = {
     "phase_shift": [
-        "Name the pattern. That's enough for now.",
-        "Stop pretending the loop isn't happening.",
-        "Find where the decision keeps stalling. That's where the issue lives.",
-        "Notice what's blocking. Don't solve it yet.",
-        "Let the repetition teach you something.",
+        "You don't have to break the pattern yet. Just naming it is enough for now. Recognition before resolution.",
+        "Stop pretending the loop isn't happening. You've been running through the same options all week — acknowledge that.",
+        "Find where the decision keeps stalling out. The sticking point tells you more than the options themselves.",
+        "This week isn't about making the choice. It's about noticing what's been blocking the choice.",
+        "Let the repetition teach you something. What keeps coming back? That's the information.",
     ],
     "cycle_event": [
-        "The returning feeling is asking to be seen, not fixed.",
-        "Stay with it instead of pushing past.",
-        "The cycle runs until you acknowledge what it's carrying.",
-        "You can't process what you won't name.",
-        "This isn't about action. It's recognition.",
+        "The feeling that keeps returning is asking to be seen, not solved. You can't process what you won't acknowledge.",
+        "Instead of pushing past it again, try staying with it for a moment. See what it's actually carrying.",
+        "The cycle will keep running until you acknowledge what it's trying to show you. That's how these things work.",
+        "You can't process what you won't name. Start by naming it, even if just to yourself.",
+        "This isn't about taking action. It's about recognition. Action comes later.",
     ],
     "normal_flow": [
-        "The quiet pattern is still a pattern.",
-        "Follow the thread.",
-        "The recurring thought has information.",
-        "Don't wait for it to get louder.",
-        "Let it show you what it wants.",
+        "The quiet pattern is still a pattern. Don't dismiss it just because it's not loud.",
+        "Follow the thread and see where it leads. You don't have to do anything about it yet.",
+        "The thought that keeps recurring has information in it. What is it pointing toward?",
+        "Don't wait for it to get louder before you pay attention. It's already been speaking all week.",
+        "Let the pattern show you what it wants. Stop trying to direct it.",
     ],
 }
 
@@ -185,78 +185,78 @@ WEEK_GUIDANCE = {
 # =============================================================================
 # MONTH HOOKS - Developmental arc, what this phase is teaching
 # =============================================================================
-# LEAST REACTIVE. Most developmental.
-# Should answer: "What is this period trying to do in me?"
+# LEAST REACTIVE. Most developmental. Flows like reflection.
+# Answer: "What is this period trying to do in me?"
 
 MONTH_HOOKS = {
     "phase_shift": [
-        "This period is reshaping how you hold decisions.",
-        "The discomfort is friction. You're becoming someone who waits differently.",
-        "You're learning to stay still when everything says move.",
-        "Something in you is being restructured. You won't see it until after.",
-        "This phase is teaching tolerance for not-knowing.",
+        "This period is reshaping how you hold decisions. You can feel it in the way you approach choices now — more carefully, more hesitantly. Something is shifting.",
+        "The discomfort you've been feeling isn't random. It's the friction that comes from becoming someone who waits differently than you used to.",
+        "You're learning to stay still when every instinct says move. It doesn't feel like progress, but it is.",
+        "Something in you is being restructured. You won't be able to see the shape of it until later, but the work is happening now.",
+        "This phase is teaching you to tolerate not-knowing. That's harder than deciding, and also more important.",
     ],
     "cycle_event": [
-        "What keeps surfacing is asking to finally close.",
-        "This phase is completing something older than this month.",
-        "You're being taught that some things can only be felt through.",
-        "The cycle is reaching its endpoint. Let it.",
-        "Clearing is happening. Room is being made.",
+        "What keeps surfacing this month is asking to finally close. It's been open for longer than you realized, and now it wants resolution.",
+        "This phase is completing something that started well before this month. You're at the end of a cycle, not the beginning.",
+        "You're being taught that some things can only be felt through, not figured out. The understanding comes after, not before.",
+        "The cycle that's been running is reaching its endpoint. What you've been holding is ready to be set down.",
+        "Clearing is happening, whether you're directing it or not. Space is being made for something you can't see yet.",
     ],
     "normal_flow": [
-        "Nothing dramatic. But something is shifting underneath.",
-        "A building phase. Not visible yet.",
-        "The quiet work happening now becomes obvious later.",
-        "Preparation is underway. You won't see what for.",
-        "Integration. Let the recent past settle into place.",
+        "Nothing dramatic is happening on the surface, but something is shifting underneath. You can sense it in the background.",
+        "This is a building phase. The foundation being laid now isn't visible yet, but it will support what comes next.",
+        "The quiet work happening this month will become obvious later. Right now it just feels like ordinary time.",
+        "Preparation is underway for something you can't see yet. Trust the process even when you can't track the progress.",
+        "Integration is the work of this period. Let what's happened recently settle into place. That's enough for now.",
     ],
 }
 
 MONTH_CONTEXT = {
     "phase_shift": [
-        "How have you been approaching decisions over the last few weeks?",
-        "Your tolerance for uncertainty — is it growing or shrinking?",
-        "The real question: who are you becoming while you wait?",
-        "This phase is testing a specific edge. Can you name it?",
-        "What you're learning isn't about the situation. It's about how you hold situations.",
+        "Look at how you've been approaching decisions over the past few weeks. Notice if there's a pattern forming in how you hesitate, reconsider, wait.",
+        "Ask yourself: has your tolerance for uncertainty been growing or shrinking? The answer tells you something about what this phase is doing.",
+        "The real question isn't 'what should I do?' It's 'who am I becoming while I wait?' That's what this month is about.",
+        "This phase is testing a specific edge in you. Can you name what capacity is being stretched? What tolerance is being built?",
+        "What you're learning right now isn't about the situation itself. It's about how you hold situations like this one.",
     ],
     "cycle_event": [
-        "Look back. What has kept appearing? That's the through-line.",
-        "Something that started before now is reaching its endpoint.",
-        "The emotional material surfacing has roots further back.",
-        "This cycle has been in motion. You're approaching release.",
-        "What felt unrelated is connecting. See the pattern.",
+        "Look back at the past month. What has kept appearing? That repeated theme is the through-line trying to complete.",
+        "Something that started before now is reaching its natural endpoint. You can feel the arc bending toward conclusion.",
+        "The emotional material surfacing this month has roots further back than you might think. It's connected to older patterns.",
+        "This cycle has been in motion for a while. You're approaching the point of resolution or release — whichever is needed.",
+        "Things that seemed unrelated are starting to connect. See the larger pattern that's been emerging.",
     ],
     "normal_flow": [
-        "Even in quiet periods, something is being built.",
-        "Changes now are foundational, not dramatic.",
-        "What's integrating this month supports what comes next.",
-        "Your system is consolidating. Give it time.",
-        "The work is happening whether you see it or not.",
+        "Even in quiet periods like this, something is being built. Look for the subtle evidence of change.",
+        "The changes happening now are foundational rather than dramatic. They won't be visible until later.",
+        "What's integrating this month will support what comes next. The quiet work matters.",
+        "Your system is consolidating something. Give it time to finish before you push for the next thing.",
+        "The work is happening whether you can see it or not. Some progress isn't measurable in the moment.",
     ],
 }
 
 MONTH_GUIDANCE = {
     "phase_shift": [
-        "Let this phase do its work.",
-        "The discomfort is educational. What's it teaching?",
-        "Don't rush the ending.",
-        "The lesson is in the waiting.",
-        "You're not stuck. You're being restructured.",
+        "Let this phase do its work. You're being shaped by it, not punished by it.",
+        "The discomfort is educational. Instead of trying to end it, ask what it's teaching you about yourself.",
+        "Don't rush toward an ending. The timing has its own intelligence, and forcing it won't help.",
+        "The lesson is in the waiting itself. Stay present to the process instead of focusing on when it will end.",
+        "You're not stuck. You're being restructured. Those feel similar but aren't the same thing.",
     ],
     "cycle_event": [
-        "Let what wants to complete, complete.",
-        "The release being asked for is specific. Can you name it?",
-        "This ends when you let go.",
-        "Clearing creates room.",
-        "Honor what's ending.",
+        "Let what wants to complete, complete. Stop holding things open that are ready to close.",
+        "The release being asked of you is specific. Can you name what you're being asked to let go of?",
+        "This ends when you let go. Not before. The timing is connected to your willingness.",
+        "Clearing creates room. Trust that what's being made space for is worth what's leaving.",
+        "Honor what's ending instead of rushing past it. Endings deserve attention too.",
     ],
     "normal_flow": [
-        "Nothing dramatic doesn't mean nothing important.",
-        "Use this period to prepare.",
-        "Let the quiet do its work.",
-        "Don't force intensity.",
-        "Trust the building.",
+        "Nothing dramatic doesn't mean nothing important. Stay attentive to the quiet shifts.",
+        "Use this period to prepare. Something is coming that will need you ready.",
+        "Let the quiet do its work. Integration happens in stillness, not activity.",
+        "Don't force intensity where there isn't any. This period has its own value exactly as it is.",
+        "Trust the building that's happening beneath the surface. The foundation matters.",
     ],
 }
 
