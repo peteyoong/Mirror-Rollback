@@ -8952,6 +8952,88 @@ async def get_astrology_today_v2(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+@api_router.get("/astrology/snapshot/{user_id}")
+async def get_astrology_snapshot_3alt(user_id: str):
+    """
+    Astrology Snapshot 3-Altitude System
+    
+    Three distinct narrative altitudes:
+    - TODAY: Immediate lived experience
+    - THIS WEEK: Repeating pattern / resurfacing dynamic  
+    - THIS MONTH: Developmental arc / what this phase is teaching
+    
+    Returns:
+    {
+        today: {title, body, bridge, technical},
+        week: {title, body, bridge, technical},
+        month: {title, body, bridge, technical},
+        transit_stack: {...},
+        version: "astrology_snapshot_v_next"
+    }
+    """
+    try:
+        from services.astrology_snapshot_3alt import generate_astrology_snapshot_3alt
+        from services.field_signals import detect_transit_convergence
+        
+        # Get transit stack (real data from field_signals)
+        transit_stack = detect_transit_convergence()
+        
+        # Get user's chart data if available
+        chart_data = None
+        try:
+            # Try deep dive cache first
+            cached_dd = await db.deep_dive_cache.find_one({"user_id": user_id, "lens": "astrology"})
+            if cached_dd and cached_dd.get("core_placements"):
+                placements = cached_dd.get("core_placements", {})
+                sun = placements.get("sun")
+                moon = placements.get("moon")
+                asc = placements.get("ascendant")
+                
+                chart_data = {
+                    "sun_sign": sun.get("sign") if isinstance(sun, dict) else sun,
+                    "moon_sign": moon.get("sign") if isinstance(moon, dict) else moon,
+                    "rising_sign": asc.get("sign") if isinstance(asc, dict) else asc,
+                }
+            
+            # Alternative: check user's birth_chart
+            if not chart_data:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+                if user and user.get("birth_chart"):
+                    bc = user.get("birth_chart", {})
+                    chart_data = {
+                        "sun_sign": bc.get("sun_sign"),
+                        "moon_sign": bc.get("moon_sign"),
+                        "rising_sign": bc.get("rising_sign") or bc.get("ascendant_sign"),
+                    }
+            
+            if chart_data and any(chart_data.values()):
+                logger.info(f"[AstrologySnapshot3Alt] Found chart data for {user_id[:8]}")
+            else:
+                chart_data = None
+                
+        except Exception as e:
+            logger.debug(f"[AstrologySnapshot3Alt] Could not load chart data: {e}")
+        
+        # Generate 3-altitude snapshot
+        snapshot = generate_astrology_snapshot_3alt(
+            transit_stack=transit_stack,
+            chart_data=chart_data,
+            user_context={"user_id": user_id}
+        )
+        
+        logger.info(f"[AstrologySnapshot3Alt] Generated for {user_id[:8]}: classification={transit_stack.get('classification')}, intensity={transit_stack.get('intensity')}")
+        
+        return snapshot
+        
+    except Exception as e:
+        logger.error(f"Astrology snapshot 3-altitude error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @api_router.get("/astrology/deep-dive/{user_id}")
 async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
     """

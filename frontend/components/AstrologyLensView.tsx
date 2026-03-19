@@ -19,7 +19,7 @@ interface AstrologySection {
   body: string;
 }
 
-// v6: Narrative-based response from /astrology/today-v2
+// v6: Narrative-based response from /astrology/today-v2 (deprecated)
 interface AstrologyNarrativeData {
   success: boolean;
   version: string;
@@ -39,6 +39,40 @@ interface AstrologyNarrativeData {
     valid: boolean;
     feels_like_thought?: boolean;
   };
+}
+
+// v_next: 3-altitude snapshot system
+interface AltitudeNarrative {
+  title: string;
+  body: string;
+  bridge: string | null;
+  date?: string;
+  date_range?: string;
+  month?: string;
+  technical?: {
+    day_class?: string;
+    week_class?: string;
+    month_class?: string;
+    transits?: string[];
+    placements?: string[];
+    interaction_theme?: string;
+    intensity?: number;
+  };
+}
+
+interface Snapshot3AltData {
+  success: boolean;
+  today: AltitudeNarrative;
+  week: AltitudeNarrative;
+  month: AltitudeNarrative;
+  transit_stack: {
+    classification?: string;
+    intensity?: number;
+    interaction_theme?: string;
+    events?: string[];
+  };
+  version: string;
+  generated_at: string;
 }
 
 interface AstrologyData {
@@ -88,6 +122,10 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
   const [showChartModal, setShowChartModal] = useState(false);
   const [isRecomputing, setIsRecomputing] = useState(false);
   
+  // v_next: 3-altitude snapshot state
+  const [snapshotData, setSnapshotData] = useState<Snapshot3AltData | null>(null);
+  const [activeAltitude, setActiveAltitude] = useState<'today' | 'week' | 'month'>('today');
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
 
@@ -100,39 +138,46 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     setError(null);
 
     try {
-      // v6: Use today-v2 endpoint for Mirror-style narrative
-      const endpoint = tab === 'today' 
-        ? `/astrology/today-v2/${userId}`
-        : tab === 'deep_dive'
-        ? `/astrology/deep-dive/${userId}`
-        : `/astrology/summary/${userId}`;
-
-      const response = await api.get(endpoint);
-      
-      // v6: Transform today-v2 response to unified format
-      if (tab === 'today' && response.data.narrative) {
-        const narrativeData = response.data as AstrologyNarrativeData;
-        setData({
-          title: 'Today',
-          sections: [], // No sections for narrative view
-          mirror_prompt: '',
-          date: narrativeData.date,
-          success: narrativeData.success,
-          narrative: narrativeData.narrative,
-          technical: narrativeData.technical,
-        });
+      // v_next: Use 3-altitude snapshot for Today tab
+      if (tab === 'today') {
+        const response = await api.get(`/astrology/snapshot/${userId}`);
+        console.log('[ASTROLOGY_SNAPSHOT] 3-altitude data:', JSON.stringify(response.data, null, 2));
+        
+        if (response.data.success) {
+          setSnapshotData(response.data as Snapshot3AltData);
+          // Also set legacy data for fallback compatibility
+          const todayNarrative = response.data.today;
+          setData({
+            title: todayNarrative.title,
+            sections: [],
+            mirror_prompt: '',
+            date: todayNarrative.date,
+            success: true,
+            narrative: todayNarrative.body,
+            technical: todayNarrative.technical,
+          });
+        } else {
+          throw new Error('Failed to load snapshot');
+        }
       } else {
+        // Summary and Deep Dive use existing endpoints
+        const endpoint = tab === 'deep_dive'
+          ? `/astrology/deep-dive/${userId}`
+          : `/astrology/summary/${userId}`;
+
+        const response = await api.get(endpoint);
         setData(response.data);
+        setSnapshotData(null); // Clear snapshot data for non-today tabs
       }
       
       // Debug: Calculate raw data length for comparison
-      if (isDebugEnabled() && response.data?.sections) {
-        const totalChars = response.data.sections.reduce(
+      if (isDebugEnabled() && data?.sections) {
+        const totalChars = data.sections.reduce(
           (sum: number, s: AstrologySection) => sum + (s.body?.length || 0), 
           0
         );
         setRawDataLength(totalChars);
-        console.log(`[DEBUG_MIRROR] Astrology ${tab}: API returned ${totalChars} chars across ${response.data.sections.length} sections`);
+        console.log(`[DEBUG_MIRROR] Astrology ${tab}: API returned ${totalChars} chars across ${data.sections.length} sections`);
       }
     } catch (err: any) {
       console.error(`Astrology ${tab} error:`, err);
@@ -355,7 +400,155 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
     </Modal>
   );
 
-  // v6: Render Mirror-style narrative for Today tab (no sections, no headers)
+  // v_next: Render 3-altitude snapshot for Today tab
+  const render3AltitudeSnapshot = () => {
+    if (!snapshotData) return null;
+
+    // Get current altitude data
+    const currentAltitude = snapshotData[activeAltitude];
+    if (!currentAltitude) return null;
+
+    // Get date display for current altitude
+    const getDateDisplay = () => {
+      switch (activeAltitude) {
+        case 'today':
+          return currentAltitude.date;
+        case 'week':
+          return currentAltitude.date_range;
+        case 'month':
+          return currentAltitude.month;
+        default:
+          return '';
+      }
+    };
+
+    return (
+      <View style={styles.snapshotContainer}>
+        {/* Altitude Selector */}
+        <View style={[styles.altitudeSelector, { backgroundColor: theme.surfaceLight }]}>
+          <TouchableOpacity
+            style={[
+              styles.altitudeTab,
+              activeAltitude === 'today' && [styles.altitudeTabActive, { backgroundColor: theme.surface }]
+            ]}
+            onPress={() => setActiveAltitude('today')}
+          >
+            <Text style={[
+              styles.altitudeTabText,
+              { color: activeAltitude === 'today' ? theme.text : theme.textTertiary }
+            ]}>
+              Today
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.altitudeTab,
+              activeAltitude === 'week' && [styles.altitudeTabActive, { backgroundColor: theme.surface }]
+            ]}
+            onPress={() => setActiveAltitude('week')}
+          >
+            <Text style={[
+              styles.altitudeTabText,
+              { color: activeAltitude === 'week' ? theme.text : theme.textTertiary }
+            ]}>
+              This Week
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.altitudeTab,
+              activeAltitude === 'month' && [styles.altitudeTabActive, { backgroundColor: theme.surface }]
+            ]}
+            onPress={() => setActiveAltitude('month')}
+          >
+            <Text style={[
+              styles.altitudeTabText,
+              { color: activeAltitude === 'month' ? theme.text : theme.textTertiary }
+            ]}>
+              This Month
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Date Display */}
+        <Text style={[styles.altitudeDate, { color: theme.textTertiary }]}>
+          {getDateDisplay()}
+        </Text>
+
+        {/* Bridge - what this altitude represents */}
+        {currentAltitude.bridge && (
+          <Text style={[styles.altitudeBridge, { color: theme.textSecondary }]}>
+            {currentAltitude.bridge}
+          </Text>
+        )}
+
+        {/* Narrative Card */}
+        <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.narrativeText, { color: theme.text }]}>
+            {currentAltitude.body}
+          </Text>
+        </View>
+
+        {/* Technical Details Toggle */}
+        {currentAltitude.technical && (currentAltitude.technical.transits || currentAltitude.technical.placements) && (
+          <TouchableOpacity
+            style={styles.technicalToggle}
+            onPress={() => setExpandedSection(expandedSection === 'technical' ? null : 'technical')}
+          >
+            <Text style={[styles.technicalToggleText, { color: theme.textTertiary }]}>
+              {expandedSection === 'technical' ? 'Hide' : 'See'} what's driving this
+            </Text>
+            <Text style={{ fontSize: 12, color: theme.textTertiary }}>
+              {expandedSection === 'technical' ? '▲' : '▼'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Technical Details (expanded) */}
+        {expandedSection === 'technical' && currentAltitude.technical && (
+          <View style={[styles.technicalCard, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
+            {currentAltitude.technical.transits && currentAltitude.technical.transits.length > 0 && (
+              <View style={styles.technicalRow}>
+                <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>TRANSITS</Text>
+                <Text style={[styles.technicalValue, { color: theme.textSecondary }]}>
+                  {currentAltitude.technical.transits.join(' • ')}
+                </Text>
+              </View>
+            )}
+            {currentAltitude.technical.placements && currentAltitude.technical.placements.length > 0 && (
+              <View style={styles.technicalRow}>
+                <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>PLACEMENTS</Text>
+                <Text style={[styles.technicalValue, { color: theme.textSecondary }]}>
+                  {currentAltitude.technical.placements.join(' • ')}
+                </Text>
+              </View>
+            )}
+            {currentAltitude.technical.interaction_theme && (
+              <View style={styles.technicalRow}>
+                <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>THEME</Text>
+                <Text style={[styles.technicalValue, { color: theme.textSecondary }]}>
+                  {currentAltitude.technical.interaction_theme.replace(/_/g, ' ')}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Reflect Button */}
+        <InlineReflectButton
+          source={{
+            lens: 'astrology',
+            type: `snapshot_${activeAltitude}`,
+            name: currentAltitude.title,
+            id: `astrology_snapshot_${activeAltitude}`,
+          }}
+          prompt={`Reflect on ${currentAltitude.title}: ${currentAltitude.body.slice(0, 150)}...`}
+        />
+      </View>
+    );
+  };
+
+  // Legacy: Render old narrative for fallback (deprecated)
   const renderTodayNarrative = () => {
     if (!data?.narrative) return null;
 
@@ -452,24 +645,21 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           </View>
         ) : data ? (
           <>
-            {/* Title */}
-            <Text style={[styles.title, { color: theme.text }]}>{data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : activeTab === 'today' ? 'Today' : 'Astrology')}</Text>
-
-            {/* Date for Today's Snapshot tab only */}
-            {activeTab === 'today' && data.date && (
-              <Text style={[styles.dateLabel, { color: theme.textTertiary }]}>{data.date}</Text>
+            {/* Title - only show for non-Today tabs */}
+            {activeTab !== 'today' && (
+              <Text style={[styles.title, { color: theme.text }]}>{data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}</Text>
             )}
 
-            {/* v6: TODAY TAB - Render narrative card */}
+            {/* v_next: TODAY TAB - 3-altitude snapshot system */}
             {activeTab === 'today' && (
               <>
-                {/* Debug: Log narrative data */}
-                {console.log('[ASTROLOGY_TODAY] data:', JSON.stringify({ narrative: data.narrative, technical: data.technical }, null, 2))}
-                
-                {data.narrative ? (
+                {snapshotData ? (
+                  render3AltitudeSnapshot()
+                ) : data?.narrative ? (
+                  /* Legacy fallback */
                   renderTodayNarrative()
                 ) : (
-                  /* Fallback when no narrative */
+                  /* Fallback when no data */
                   <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                     <Text style={[styles.narrativeText, { color: theme.textSecondary, fontStyle: 'italic' }]}>
                       Still forming…
@@ -930,5 +1120,45 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     color: 'inherit',
+  },
+  // v_next: 3-altitude snapshot styles
+  snapshotContainer: {
+    flex: 1,
+  },
+  altitudeSelector: {
+    flexDirection: 'row',
+    borderRadius: 10,
+    padding: 4,
+    marginBottom: 16,
+  },
+  altitudeTab: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  altitudeTabActive: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  altitudeTabText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  altitudeDate: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  altitudeBridge: {
+    fontSize: 12,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginBottom: 16,
   },
 });
