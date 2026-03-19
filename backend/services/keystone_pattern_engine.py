@@ -62,147 +62,147 @@ class KeystonePattern(str, Enum):
 
 PATTERN_DEFINITIONS = {
     KeystonePattern.DECISION_SWITCH_LOOP: {
-        "label": "Decide → hesitate → switch",
+        "label": "You Keep Changing Your Mind",
         "sequence": [
-            "decide something",
-            "hesitate / something doesn't land",
-            "switch to another option"
+            "You decide something.",
+            "Then you hesitate.",
+            "Then you switch."
         ],
     },
     KeystonePattern.DECIDE_THEN_UNDO: {
-        "label": "Commit → doubt → reverse",
+        "label": "You Commit Then Reverse",
         "sequence": [
-            "commit to a choice",
-            "doubt creeps in",
-            "reverse or undo the decision"
+            "You commit to a choice.",
+            "Then doubt creeps in.",
+            "Then you undo it."
         ],
     },
     KeystonePattern.ENDLESS_OPTIONS: {
-        "label": "Consider → consider more → never pick",
+        "label": "You're Stuck in Options",
         "sequence": [
-            "look at options",
-            "find more options",
-            "don't pick any"
+            "You look at the options.",
+            "Then you find more options.",
+            "Then you don't pick any."
         ],
     },
     KeystonePattern.START_STOP_RESTART: {
-        "label": "Start → stop → start again",
+        "label": "You Keep Stopping Midway",
         "sequence": [
-            "begin something",
-            "stop mid-way",
-            "start it again later"
+            "You begin something.",
+            "Then you stop mid-way.",
+            "Then you start it again."
         ],
     },
     KeystonePattern.ALMOST_ACT: {
-        "label": "Reach → pull back → reach again",
+        "label": "You Almost Move",
         "sequence": [
-            "move toward action",
-            "pull back at the edge",
-            "move toward it again"
+            "You move toward action.",
+            "Then you pull back.",
+            "Then you move toward it again."
         ],
     },
     KeystonePattern.ACTION_DELAY_LOOP: {
-        "label": "Plan → delay → plan again",
+        "label": "You Keep Delaying",
         "sequence": [
-            "plan to do something",
-            "delay doing it",
-            "plan to do it again"
+            "You plan to do something.",
+            "Then you delay doing it.",
+            "Then you plan it again."
         ],
     },
     KeystonePattern.FORCE_CLARITY_FAIL: {
-        "label": "Push for answer → nothing lands",
+        "label": "You're Forcing an Answer",
         "sequence": [
-            "try to figure it out",
-            "answer doesn't stick",
-            "try again"
+            "You try to figure it out.",
+            "Nothing sticks.",
+            "Then you try again."
         ],
     },
     KeystonePattern.THINK_LOOP: {
-        "label": "Figure out → doubt → figure again",
+        "label": "You're Overthinking It",
         "sequence": [
-            "think you understand",
-            "doubt the understanding",
-            "think through it again"
+            "You think you understand.",
+            "Then you doubt it.",
+            "Then you think it through again."
         ],
     },
     KeystonePattern.CHECK_RECHECK: {
-        "label": "Check → not sure → check again",
+        "label": "You Keep Checking",
         "sequence": [
-            "verify something",
-            "still not certain",
-            "check it again"
+            "You verify something.",
+            "You're still not certain.",
+            "Then you check again."
         ],
     },
     KeystonePattern.DIRECTION_SHIFT: {
-        "label": "Head one way → change → head another",
+        "label": "You Keep Changing Direction",
         "sequence": [
-            "move in a direction",
-            "direction doesn't feel right",
-            "change to another direction"
+            "You move in a direction.",
+            "It doesn't feel right.",
+            "Then you change course."
         ],
     },
     KeystonePattern.RESTLESS_PIVOT: {
-        "label": "Settle → unsettled → move",
+        "label": "You Can't Settle",
         "sequence": [
-            "settle into something",
-            "feel unsettled",
-            "move to something else"
+            "You settle into something.",
+            "Then you feel unsettled.",
+            "Then you move to something else."
         ],
     },
     KeystonePattern.FORWARD_BACKWARD: {
-        "label": "Progress → retreat → progress",
+        "label": "You Move Then Retreat",
         "sequence": [
-            "make progress forward",
-            "pull back or retreat",
-            "try to progress again"
+            "You make progress.",
+            "Then you pull back.",
+            "Then you try again."
         ],
     },
     KeystonePattern.ALMOST_DONE: {
-        "label": "Near finish → pull back → near again",
+        "label": "You Almost Finish",
         "sequence": [
-            "get close to done",
-            "pull back from completion",
-            "get close again"
+            "You get close to done.",
+            "Then you pull back.",
+            "Then you get close again."
         ],
     },
     KeystonePattern.HOLD_OPEN: {
-        "label": "Could close → don't → could close again",
+        "label": "You Won't Close It",
         "sequence": [
-            "have option to finish",
-            "keep it open instead",
-            "option to finish returns"
+            "You could finish it.",
+            "But you keep it open.",
+            "The option to finish keeps returning."
         ],
     },
     KeystonePattern.FINISH_UNFINISH: {
-        "label": "Complete → reopen → complete",
+        "label": "You Finish Then Reopen",
         "sequence": [
-            "finish something",
-            "reopen or revisit it",
-            "try to finish again"
+            "You finish something.",
+            "Then you reopen it.",
+            "Then you try to finish again."
         ],
     },
     KeystonePattern.REACT_REGRET: {
-        "label": "Respond fast → realize too fast",
+        "label": "You Respond Too Fast",
         "sequence": [
-            "respond quickly",
-            "realize it was too quick",
-            "wish you'd waited"
+            "You respond quickly.",
+            "Then you realize it was too quick.",
+            "Then you wish you'd waited."
         ],
     },
     KeystonePattern.FEEL_BEFORE_THINK: {
-        "label": "Feel first → think catches up",
+        "label": "You Feel Before You Think",
         "sequence": [
-            "feel something strongly",
-            "react from the feeling",
-            "understanding comes after"
+            "You feel something strongly.",
+            "You react from that feeling.",
+            "Understanding comes later."
         ],
     },
     KeystonePattern.SNAP_THEN_SOFTEN: {
-        "label": "Sharp response → soften after",
+        "label": "You Snap Then Soften",
         "sequence": [
-            "respond sharply",
-            "realize it was too sharp",
-            "soften or regret"
+            "You respond sharply.",
+            "Then you realize it was too sharp.",
+            "Then you soften."
         ],
     },
 }

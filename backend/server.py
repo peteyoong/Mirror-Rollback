@@ -9121,16 +9121,65 @@ async def detect_keystone_pattern_endpoint(data: dict):
 
 
 @api_router.get("/keystone-pattern/{user_id}")
-async def get_keystone_pattern_for_user(user_id: str):
+async def get_keystone_pattern_for_user(user_id: str, force_refresh: bool = False):
     """
-    Detect keystone pattern for a user by auto-fetching their lens data.
+    Unified Keystone Pattern - ONE truth per day.
+    
+    This is the PRIMARY output for the Mirror homepage.
+    All lenses explain this pattern - it is the single source of truth.
+    
+    Behavior:
+    - If today's pattern exists → return cached
+    - Else → generate → store → return
+    
+    Output Format:
+    {
+        "pattern_id": "decision_switch_loop",
+        "pattern_label": "Decide → hesitate → switch",
+        "behavior_sequence": [
+            "You decide something.",
+            "Then you hesitate.",
+            "Then you switch."
+        ],
+        "confidence": 0.82,
+        "sources": ["astrology", "human_design", "enneagram"],
+        "date": "YYYY-MM-DD",
+        "cached": true/false
+    }
     """
     try:
         from services.keystone_pattern_engine import detect_keystone_pattern
         from services.field_signals import detect_transit_convergence
         from services.astrology_signal_engine import select_dominant_tension, DayClass
         
-        # Get transit data for astrology tension
+        # Determine today's date
+        today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        
+        # =====================================================================
+        # CHECK CACHE FIRST - ONE truth per day, deterministic
+        # =====================================================================
+        if not force_refresh:
+            cached = await db.keystone_patterns.find_one({
+                "user_id": user_id,
+                "date": today_date
+            })
+            if cached:
+                logger.info(f"[KeystonePattern] Returning cached pattern for {user_id[:8]} on {today_date}")
+                return {
+                    "pattern_id": cached.get("pattern_id"),
+                    "pattern_label": cached.get("pattern_label"),
+                    "behavior_sequence": cached.get("behavior_sequence"),
+                    "confidence": cached.get("confidence"),
+                    "sources": cached.get("sources", []),
+                    "date": cached.get("date"),
+                    "cached": True
+                }
+        
+        # =====================================================================
+        # GENERATE NEW PATTERN FROM LENS DATA
+        # =====================================================================
+        
+        # Get transit data for astrology tension (timing trigger)
         transit_stack = detect_transit_convergence()
         day_class_str = transit_stack.get("classification", "normal_flow")
         try:
@@ -9148,53 +9197,134 @@ async def get_keystone_pattern_for_user(user_id: str):
             "transit_stack": transit_stack,
         }
         
-        # Try to get Human Design data
+        # Get Human Design data (mechanism)
         human_design = None
         try:
-            cached_hd = await db.deep_dive_cache.find_one({"user_id": user_id, "lens": "human_design"})
-            if cached_hd:
+            user = await db.users.find_one({"_id": ObjectId(user_id)})
+            if user and user.get("human_design"):
+                hd_data = user.get("human_design", {})
                 active_centers = []
                 defined_channels = []
                 
-                # Extract from cached data
-                if cached_hd.get("centers"):
-                    for center_name, center_data in cached_hd.get("centers", {}).items():
-                        if center_data.get("defined"):
-                            active_centers.append(center_name)
+                # Extract defined centers
+                centers = hd_data.get("centers", {})
+                for center_name, center_data in centers.items():
+                    if isinstance(center_data, dict) and center_data.get("defined"):
+                        active_centers.append(center_name)
+                    elif center_data == True:  # Simple boolean format
+                        active_centers.append(center_name)
                 
-                if cached_hd.get("channels"):
-                    defined_channels = [c.get("name", "") for c in cached_hd.get("channels", [])]
+                # Extract channels
+                channels = hd_data.get("channels", [])
+                if isinstance(channels, list):
+                    for c in channels:
+                        if isinstance(c, dict):
+                            defined_channels.append(c.get("name", str(c)))
+                        else:
+                            defined_channels.append(str(c))
                 
-                if active_centers:
+                if active_centers or defined_channels:
                     human_design = {
                         "active_centers": active_centers,
                         "defined_channels": defined_channels,
                     }
         except Exception as e:
-            logger.debug(f"[KeystonePattern] Could not load HD data: {e}")
+            logger.debug(f"[KeystonePattern] Could not load HD data from user: {e}")
         
-        # Try to get Enneagram data
+        # Fallback to deep_dive_cache if user profile doesn't have HD
+        if not human_design:
+            try:
+                cached_hd = await db.deep_dive_cache.find_one({"user_id": user_id, "lens": "human_design"})
+                if cached_hd:
+                    active_centers = []
+                    defined_channels = []
+                    
+                    if cached_hd.get("centers"):
+                        for center_name, center_data in cached_hd.get("centers", {}).items():
+                            if center_data.get("defined"):
+                                active_centers.append(center_name)
+                    
+                    if cached_hd.get("channels"):
+                        defined_channels = [c.get("name", "") for c in cached_hd.get("channels", [])]
+                    
+                    if active_centers:
+                        human_design = {
+                            "active_centers": active_centers,
+                            "defined_channels": defined_channels,
+                        }
+            except Exception as e:
+                logger.debug(f"[KeystonePattern] Could not load HD data from cache: {e}")
+        
+        # Get Enneagram data (behavior loop)
         enneagram = None
         try:
-            user = await db.users.find_one({"_id": ObjectId(user_id)})
-            if user and user.get("enneagram_type"):
-                enneagram = {
-                    "type": user.get("enneagram_type"),
-                    "current_pattern_activation": user.get("enneagram_pattern", ""),
-                }
+            if not user:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+            
+            if user:
+                # Check enneagram_type on user profile
+                ennea_type = user.get("enneagram_type")
+                if ennea_type:
+                    enneagram = {
+                        "type": ennea_type,
+                        "current_pattern_activation": user.get("enneagram_pattern", ""),
+                    }
+                else:
+                    # Check enneagram_results collection
+                    ennea_result = await db.enneagram_results.find_one(
+                        {"user_id": user_id},
+                        sort=[("created_at", -1)]
+                    )
+                    if ennea_result:
+                        enneagram = {
+                            "type": ennea_result.get("inferred_core"),
+                            "current_pattern_activation": "",
+                        }
         except Exception as e:
             logger.debug(f"[KeystonePattern] Could not load Enneagram data: {e}")
         
-        # Detect pattern
+        # =====================================================================
+        # DETECT THE ONE DOMINANT PATTERN
+        # =====================================================================
         result = detect_keystone_pattern(
             astrology=astrology,
             human_design=human_design,
             enneagram=enneagram,
         )
         
-        logger.info(f"[KeystonePattern] User {user_id[:8]}: {result['pattern_id']} (confidence={result['confidence']})")
+        # =====================================================================
+        # STORE IN DATABASE - ONE truth per day
+        # =====================================================================
+        keystone_doc = {
+            "user_id": user_id,
+            "date": today_date,
+            "pattern_id": result.get("pattern_id"),
+            "pattern_label": result.get("pattern_label"),
+            "behavior_sequence": result.get("behavior_sequence"),
+            "confidence": result.get("confidence"),
+            "sources": result.get("sources", []),
+            "created_at": datetime.now(timezone.utc)
+        }
         
-        return result
+        # Upsert - replace if exists for today
+        await db.keystone_patterns.update_one(
+            {"user_id": user_id, "date": today_date},
+            {"$set": keystone_doc},
+            upsert=True
+        )
+        
+        logger.info(f"[KeystonePattern] Generated NEW pattern for {user_id[:8]}: {result['pattern_id']} (confidence={result['confidence']})")
+        
+        # Return with explicit format
+        return {
+            "pattern_id": result.get("pattern_id"),
+            "pattern_label": result.get("pattern_label"),
+            "behavior_sequence": result.get("behavior_sequence"),
+            "confidence": result.get("confidence"),
+            "sources": result.get("sources", []),
+            "date": today_date,
+            "cached": False
+        }
         
     except Exception as e:
         logger.error(f"Keystone pattern error for user: {e}")

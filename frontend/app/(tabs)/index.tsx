@@ -22,39 +22,7 @@ import { storage } from '../../store';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
-import MirrorHeroCard, { MirrorHeroData } from '../../components/MirrorHeroCard';
-
-interface DailyKeystone {
-  date: string;
-  title: string;
-  keystone: string;
-  reflect_question: string;
-  micro_affirmation: string;
-  personal_echo?: string | null;
-  cause_layer?: string | null;
-  decision_replay?: string | null;
-  pattern_phase_line?: string | null;
-  pattern_phase?: {
-    phase: string;
-    display: string;
-    description: string;
-    confidence: number;
-    sequence_labels: string[];
-  } | null;
-  decision_awareness_prompt?: string | null;
-  decision_awareness?: {
-    style: string;
-    style_display: string;
-    confidence: number;
-  } | null;
-  source_signals: {
-    used: string[];
-    tone: string;
-  };
-  daily_seed: string;
-  is_first_visit: boolean;
-  is_enriched?: boolean;
-}
+import KeystoneHeroCard, { KeystonePatternData } from '../../components/KeystoneHeroCard';
 
 interface PatternCategory {
   category_id: string;
@@ -70,12 +38,6 @@ interface PatternTension {
   category_b: string;
   summary: string;
   reflection_prompt: string;
-}
-
-interface ActiveInfluence {
-  source: string;
-  label: string;
-  detail?: string;
 }
 
 interface JournalEntry {
@@ -99,10 +61,9 @@ export default function MirrorScreen() {
   const { user, hasTriedSessionRestore, isRestoringSession, clearUser } = useAppStore();
   const router = useRouter();
   
-  // REBUILT: Single hero data state
-  const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
-  const [heroData, setHeroData] = useState<MirrorHeroData | null>(null);
-  const [heroLoading, setHeroLoading] = useState(true);
+  // KEYSTONE PATTERN: Single source of truth for the day
+  const [keystoneData, setKeystoneData] = useState<KeystonePatternData | null>(null);
+  const [keystoneLoading, setKeystoneLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
@@ -232,8 +193,7 @@ export default function MirrorScreen() {
     setIsLoading(true);
     
     await Promise.all([
-      loadHeroData(),  // REBUILT: Single hero card
-      loadKeystone(),
+      loadKeystonePattern(),  // KEYSTONE: Single source of truth
       loadPatternData(),
       loadRecentReflection(),
       loadLifelineCount(),
@@ -258,132 +218,47 @@ export default function MirrorScreen() {
 
   // Task 75: Removed loadSynthesisTeaser - HomeArchetypeCard fetches its own data
 
-  const loadKeystone = async () => {
+  // KEYSTONE PATTERN: Load the single source of truth for the day
+  const loadKeystonePattern = async () => {
     if (!user?.id) return;
+    setKeystoneLoading(true);
     const dateToLoad = getLocalDateString();
 
     try {
-      const response = await api.get(`/mirror/home/${user.id}`, {
-        params: { date: dateToLoad }
-      });
-      setKeystone(response.data);
-      lastLoadedDateRef.current = dateToLoad;
-      
-      // Extract active influences from source_signals
-      const influences: ActiveInfluence[] = [];
-      const signals = response.data.source_signals?.used || [];
-      
-      if (signals.includes('lens_core')) {
-        influences.push({ source: 'Human Design', label: 'Your core pattern is active' });
-      }
-      if (signals.includes('timeline')) {
-        influences.push({ source: 'Timeline', label: 'Current life phase' });
-      }
-      if (signals.includes('transit')) {
-        influences.push({ source: 'Transit', label: 'Planetary movement today' });
-      }
-      if (signals.includes('gene_keys')) {
-        influences.push({ source: 'Gene Keys', label: 'Shadow/Gift dynamic' });
-      }
-      
-      setActiveInfluences(influences);
-      
-      // Poll for enriched version if needed
-      if (response.data.is_enriched === false) {
-        setTimeout(async () => {
-          try {
-            const enrichedResponse = await api.get(`/mirror/home/${user.id}`, {
-              params: { date: dateToLoad }
-            });
-            if (enrichedResponse.data.is_enriched && lastLoadedDateRef.current === dateToLoad) {
-              setKeystone(enrichedResponse.data);
-            }
-          } catch (e) {
-            console.log('[MirrorHome] Enrichment poll failed');
-          }
-        }, 5000);
-      }
-    } catch (err: any) {
-      setKeystone({
-        date: dateToLoad,
-        title: "A Quiet Arrival",
-        keystone: "Something in you brought you here today. That's worth noticing.",
-        reflect_question: "What feels most present right now?",
-        micro_affirmation: "You don't have to have it figured out to be here.",
-        source_signals: { used: ["fallback"], tone: "grounding" },
-        daily_seed: "fallback",
-        is_first_visit: false,
-      });
-      lastLoadedDateRef.current = dateToLoad;
-    }
-  };
-
-  // REBUILT: Load hero data from daily-insight endpoint
-  const loadHeroData = async () => {
-    if (!user?.id) return;
-    setHeroLoading(true);
-    try {
-      const response = await api.get(`/daily-insight/${user.id}`);
+      const response = await api.get(`/keystone-pattern/${user.id}`);
       const data = response.data;
       
-      // Get raw body text
-      let rawBody = data.body || data.what_happening || "";
-      
-      // COMPRESS & CLEAN: Remove system language, shorten to 2-3 sentences
-      let body = rawBody
-        // Remove banned system phrases
-        .replace(/multiple signals hitting at once[.]?\s*/gi, '')
-        .replace(/the noise makes it hard to think straight[,.]?\s*/gi, '')
-        .replace(/and that creates more frustration[.]?\s*/gi, '')
-        .replace(/looking at your timeline[,.]?\s*/gi, '')
-        .replace(/a certain rhythm appears[,.]?\s*/gi, '')
-        .replace(/deeper arc/gi, 'pattern')
-        .replace(/current life phase/gi, 'this moment')
-        .replace(/active influences/gi, '')
-        .replace(/pattern may be actively expressing itself/gi, 'this keeps coming back')
-        .trim();
-      
-      // Compress to max 2-3 sentences if too long
-      const sentences = body.split(/(?<=[.!?])\s+/).filter(s => s.length > 0);
-      if (sentences.length > 3) {
-        body = sentences.slice(0, 3).join(' ');
-      }
-      
-      // Get bridge - make it feel like insight, not explanation
-      let bridge = data.bridge || data.why_feels || null;
-      if (bridge) {
-        // Clean system language from bridge too
-        bridge = bridge
-          .replace(/multiple signals/gi, 'too many things')
-          .replace(/creates more frustration/gi, 'makes it harder')
-          .replace(/the mismatch/gi, 'that gap')
-          .trim();
-        // Keep bridge short - one sentence max
-        const bridgeSentences = bridge.split(/(?<=[.!?])\s+/);
-        if (bridgeSentences.length > 1) {
-          bridge = bridgeSentences[0];
-        }
-      }
-      
-      setHeroData({
-        title: data.title || 'Something Present',
-        body: body || "There's something here today asking for your attention. You might not have words for it yet.",
-        bridge: bridge,
-        reflectPrompt: "What feels true about this?",
-        date: data.date || getLocalDateString(),
+      setKeystoneData({
+        pattern_id: data.pattern_id,
+        pattern_label: data.pattern_label,
+        behavior_sequence: data.behavior_sequence,
+        confidence: data.confidence,
+        sources: data.sources || [],
+        date: data.date || dateToLoad,
+        cached: data.cached,
       });
+      
+      lastLoadedDateRef.current = dateToLoad;
+      console.log('[KeystonePattern] Loaded:', data.pattern_label);
     } catch (err: any) {
-      console.log('[MirrorHome] Hero data error:', err);
-      // Mirror-voice fallback
-      setHeroData({
-        title: 'Something Present',
-        body: "There's something here today. You might not have words for it yet—and that's okay.",
-        bridge: null,
-        reflectPrompt: "What feels most present right now?",
-        date: getLocalDateString(),
+      console.log('[KeystonePattern] Load error:', err);
+      // Fallback pattern
+      setKeystoneData({
+        pattern_id: "fallback",
+        pattern_label: "Something's Here",
+        behavior_sequence: [
+          "There's a pattern present today.",
+          "You might not have words for it yet.",
+          "That's okay. Start noticing."
+        ],
+        confidence: 0.3,
+        sources: [],
+        date: dateToLoad,
+        cached: false,
       });
+      lastLoadedDateRef.current = dateToLoad;
     } finally {
-      setHeroLoading(false);
+      setKeystoneLoading(false);
     }
   };
 
@@ -520,13 +395,13 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            LAYER 1: PRIMARY HERO - One card. One truth. One action.
-            REBUILT FROM SCRATCH - not patched.
+            LAYER 1: KEYSTONE PATTERN - ONE truth per day. ONE card. ONE action.
+            All lenses explain this pattern - it is the single source of truth.
             =================================================================== */}
         {!isLoading && !userIsReflector && (
-          <MirrorHeroCard 
-            data={heroData} 
-            isLoading={heroLoading} 
+          <KeystoneHeroCard 
+            data={keystoneData} 
+            isLoading={keystoneLoading} 
           />
         )}
 
@@ -575,7 +450,7 @@ export default function MirrorScreen() {
             DEMOTED: YOUR LIFELINE - below navigation, subtle
             =================================================================== */}
         {!isLoading && (
-          <View style={[styles.lifelineBridge, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+          <View style={[styles.lifelineBridge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.lifelineBridgeLabel, { color: theme.textTertiary }]}>
               YOUR LIFELINE
             </Text>
