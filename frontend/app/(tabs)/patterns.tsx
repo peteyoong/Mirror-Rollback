@@ -32,7 +32,6 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
-import PatternArchetypeCard from '../../components/patterns/PatternArchetypeCard';
 
 // ============================================================================
 // INTERFACES
@@ -517,26 +516,108 @@ export default function PatternsScreen() {
   };
 
   // ============================================================================
-  // RENDER: ARCHETYPE SECTION (LAST - meaning after evidence)
+  // RENDER: ARCHETYPE SECTION (CONCLUSION - meaning after evidence)
   // ============================================================================
 
+  const [archetypeData, setArchetypeData] = useState<any>(null);
+  const [archetypeLoading, setArchetypeLoading] = useState(true);
+  const [archetypeExpanded, setArchetypeExpanded] = useState(false);
+
+  // Fetch archetype data
+  useEffect(() => {
+    const fetchArchetype = async () => {
+      if (!user?.id) return;
+      try {
+        setArchetypeLoading(true);
+        const response = await api.get(`/pattern-archetype/${user.id}`);
+        setArchetypeData(response.data);
+      } catch (error) {
+        console.error('Failed to fetch archetype:', error);
+      } finally {
+        setArchetypeLoading(false);
+      }
+    };
+    fetchArchetype();
+  }, [user?.id]);
+
   const renderArchetypeSection = () => {
+    if (archetypeLoading) {
+      return null; // Don't show loading - let it appear when ready
+    }
+
+    if (!archetypeData?.primary_archetype) {
+      return null;
+    }
+
+    const archetype = archetypeData.primary_archetype;
+    const narrative = archetype.narrative;
+    
+    // Extract just the archetype name without "A" or "Pattern"
+    // e.g., "The Reinventor" not "A The Reinventor Pattern"
+    const archetypeName = archetype.name;
+
+    // Create a tight opening line based on archetype
+    const tightOpeningLines: Record<string, string> = {
+      'The Reinventor': 'You do not stay who you were - you outgrow it.',
+      'The Carrier': 'You hold what others cannot hold for themselves.',
+      'The Seeker': 'You chase what keeps moving just out of reach.',
+      'The Protector': 'You build walls so others do not have to.',
+      'The Striver': 'You measure yourself by what you have not yet done.',
+      'The Feeler': 'You carry the room before anyone speaks.',
+      'Emergence Keeper': 'You hold space for what has not yet arrived.',
+      'The Observer': 'You see patterns others miss.',
+    };
+
+    const tightOpening = tightOpeningLines[archetypeName] || narrative.short_description;
+
     return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-            YOUR PATTERN IDENTITY
+      <View style={styles.conclusionSection}>
+        {/* Transition text - bridges timeline to meaning */}
+        <Text style={[styles.conclusionTransition, { color: theme.textTertiary }]}>
+          When this keeps happening, it usually points to this:
+        </Text>
+
+        {/* Archetype as conclusion - softer, continuation feel */}
+        <View style={[styles.conclusionCard, { borderColor: theme.border }]}>
+          <View style={styles.conclusionHeader}>
+            <Text style={styles.conclusionIcon}>{archetype.icon}</Text>
+            <Text style={[styles.conclusionName, { color: theme.text }]}>
+              {archetypeName}
+            </Text>
+          </View>
+          
+          {/* Tight opening line */}
+          <Text style={[styles.conclusionOpening, { color: theme.textSecondary }]}>
+            {tightOpening}
           </Text>
-        </View>
-        
-        {/* PatternArchetypeCard handles its own loading/data */}
-        <PatternArchetypeCard />
-        
-        {/* Copy direction: NOT "You are this" but "This tends to show up when..." */}
-        <View style={[styles.archetypeNote, { borderColor: theme.border }]}>
-          <Text style={[styles.archetypeNoteText, { color: theme.textTertiary }]}>
-            This identity emerges from the patterns you've shown over time — not a fixed label, but a recognition of what tends to return.
-          </Text>
+
+          {/* Expand for details */}
+          <TouchableOpacity
+            style={styles.conclusionExpand}
+            onPress={() => setArchetypeExpanded(!archetypeExpanded)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.conclusionExpandText, { color: theme.accent }]}>
+              {archetypeExpanded ? 'Less' : 'More about this pattern'}
+            </Text>
+          </TouchableOpacity>
+
+          {archetypeExpanded && (
+            <View style={[styles.conclusionDetails, { borderTopColor: theme.border }]}>
+              <Text style={[styles.conclusionSummary, { color: theme.textSecondary }]}>
+                {narrative.summary}
+              </Text>
+              {narrative.how_this_shows_up && narrative.how_this_shows_up.length > 0 && (
+                <View style={styles.conclusionShowsUp}>
+                  {narrative.how_this_shows_up.slice(0, 3).map((item: string, index: number) => (
+                    <Text key={index} style={[styles.conclusionShowsUpItem, { color: theme.textTertiary }]}>
+                      {item}
+                    </Text>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
         </View>
       </View>
     );
@@ -860,6 +941,65 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontStyle: 'italic',
     textAlign: 'center',
+  },
+  
+  // Conclusion Section (Archetype as conclusion, not separate card)
+  conclusionSection: {
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  conclusionTransition: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  conclusionCard: {
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderLeftWidth: 2,
+  },
+  conclusionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  conclusionIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  conclusionName: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  conclusionOpening: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  conclusionExpand: {
+    paddingVertical: 8,
+  },
+  conclusionExpandText: {
+    fontSize: 13,
+  },
+  conclusionDetails: {
+    paddingTop: 12,
+    marginTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  conclusionSummary: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  conclusionShowsUp: {
+    gap: 6,
+  },
+  conclusionShowsUpItem: {
+    fontSize: 13,
+    lineHeight: 18,
   },
   
   // Reflection
