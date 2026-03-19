@@ -158,19 +158,20 @@ export default function PatternsScreen() {
   // HELPERS
   // ============================================================================
 
-  // HUMAN PATTERN PHRASES - Internal domain labels → lived experience
-  // These replace abstract categories with recognizable behavior patterns
+  // PATTERN FINGERPRINT LANGUAGE - Confronting, specific, recognizable
+  // Structure: [Action] - [Internal experience] - [Outcome or shift]
+  // Test: "That is uncomfortable... but true"
   const DOMAIN_TO_HUMAN_PHRASE: Record<string, string> = {
-    'energy_vitality': 'You push hard → then feel drained',
-    'emotional_landscape': 'You hold things in → then it spills out',
-    'identity_direction': 'You start strong → then second-guess',
-    'relationships_connection': 'You reach out → then pull back',
-    'work_purpose': 'You commit fully → then feel trapped',
-    'creativity_expression': 'You create freely → then doubt it',
-    'health_body': 'You ignore signals → then crash',
-    'spirituality_meaning': 'You search for answers → then lose the thread',
-    'money_security': 'You spend freely → then restrict',
-    'family_roots': 'You protect others → then feel unseen',
+    'energy_vitality': 'You push until you break - then wonder why you are exhausted',
+    'emotional_landscape': 'You hold it together... until you cannot anymore',
+    'identity_direction': 'You reinvent yourself - but the same doubts follow',
+    'relationships_connection': 'You pull people close - then push them away before they see too much',
+    'work_purpose': 'You throw yourself into work - hoping it will finally feel like enough',
+    'creativity_expression': 'You create something - then convince yourself it does not matter',
+    'health_body': 'You ignore what your body tells you - until it stops asking',
+    'spirituality_meaning': 'You search for meaning - but abandon it before it settles',
+    'money_security': 'You chase security - then sabotage it when you get close',
+    'family_roots': 'You carry everyone else - but will not let anyone carry you',
   };
 
   // Get human phrase from domain ID, with fallback
@@ -178,44 +179,45 @@ export default function PatternsScreen() {
     if (domainId && DOMAIN_TO_HUMAN_PHRASE[domainId]) {
       return DOMAIN_TO_HUMAN_PHRASE[domainId];
     }
-    // Fallback: convert domain name to a generic phrase
+    // Fallback: still make it confronting
     if (domain) {
-      return `A pattern around ${domain.toLowerCase()}`;
+      return 'Something keeps pulling you back to ' + domain.toLowerCase() + ' - even when you try to move on';
     }
-    return 'A recurring pattern';
+    return 'A pattern you recognize - even when you wish you did not';
   };
 
-  // Get short behavioral summary for timeline entry
+  // Get behavioral summary with TENSION for timeline entry
+  // Structure: [Action] - [Internal experience] - [Outcome or shift]
   const getBehavioralSummary = (week: WeekEntry): string => {
     const domainId = week.top_domain_id;
     const trend = week.trend_map?.[week.top_domain || ''];
     
-    // Trend-specific behavioral summaries
+    // Trend-specific summaries WITH TENSION BUILT IN
     const summaries: Record<string, Record<string, string>> = {
       'energy_vitality': {
-        rising: 'Pushed harder than usual',
-        steady: 'Sustained effort, building tension',
-        fading: 'Finally slowing down',
+        rising: 'You pushed harder... but it did not feel right',
+        steady: 'You kept going... even though something felt off',
+        fading: 'You stopped - not because you finished, but because you had to',
       },
       'emotional_landscape': {
-        rising: 'Emotions intensifying',
-        steady: 'Holding steady, but full',
-        fading: 'Starting to process',
+        rising: 'More came up than you expected... and you did not know what to do with it',
+        steady: 'You held it together... barely',
+        fading: 'The weight lifted - but you are not sure why',
       },
       'identity_direction': {
-        rising: 'Questioning more than usual',
-        steady: 'Still searching',
-        fading: 'Beginning to settle',
+        rising: 'The doubt got louder... and you could not outrun it',
+        steady: 'Still asking who you are supposed to be',
+        fading: 'Something shifted - but you are afraid to trust it',
       },
       'relationships_connection': {
-        rising: 'Feeling the distance',
-        steady: 'Navigating connections',
-        fading: 'Finding balance',
+        rising: 'You felt the distance growing... and did not know how to close it',
+        steady: 'Still navigating the space between too close and too far',
+        fading: 'You let someone in - and waited for it to go wrong',
       },
       'work_purpose': {
-        rising: 'Driven, maybe too much',
-        steady: 'Committed, carrying weight',
-        fading: 'Easing the grip',
+        rising: 'You worked harder... hoping it would finally mean something',
+        steady: 'You kept producing... while wondering if any of it matters',
+        fading: 'You stepped back - and felt guilty for it',
       },
     };
 
@@ -223,16 +225,18 @@ export default function PatternsScreen() {
       return summaries[domainId][trend];
     }
     
-    // Fallback to narrative excerpt if available
-    if (week.narrative && week.narrative.length > 0) {
-      // Extract first meaningful phrase
-      const shortNarrative = week.narrative.split('.')[0];
-      if (shortNarrative.length < 60) {
-        return shortNarrative;
-      }
+    // Generic but still confronting fallback
+    const genericSummaries: Record<string, string> = {
+      rising: 'Something intensified... and you were not ready for it',
+      steady: 'The same thing kept showing up... whether you wanted it to or not',
+      fading: 'It got quieter - but you know it is not gone',
+    };
+    
+    if (trend && genericSummaries[trend]) {
+      return genericSummaries[trend];
     }
     
-    return 'Pattern present';
+    return 'Something familiar surfaced - even though you hoped it would not';
   };
 
   const formatDateRange = (start: string, end: string) => {
