@@ -21,10 +21,8 @@ import api from '../../services/api';
 import { storage } from '../../store';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
-// DailyPatternSignalCard REMOVED - merged into HomeInsightCard
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
-import HomeArchetypeCard from '../../components/HomeArchetypeCard';
-import HomeInsightCard, { DailyInsight } from '../../components/HomeInsightCard';
+import MirrorHeroCard, { MirrorHeroData } from '../../components/MirrorHeroCard';
 
 interface DailyKeystone {
   date: string;
@@ -101,31 +99,28 @@ export default function MirrorScreen() {
   const { user, hasTriedSessionRestore, isRestoringSession, clearUser } = useAppStore();
   const router = useRouter();
   
-  // Core data states
+  // REBUILT: Single hero data state
   const [keystone, setKeystone] = useState<DailyKeystone | null>(null);
-  const [dailyInsight, setDailyInsight] = useState<DailyInsight | null>(null);
-  const [insightLoading, setInsightLoading] = useState(true);
+  const [heroData, setHeroData] = useState<MirrorHeroData | null>(null);
+  const [heroLoading, setHeroLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
   const lastLoadedDateRef = useRef<string | null>(null);
   
-  // Active influences for "Why This Is Showing Up"
-  const [activeInfluences, setActiveInfluences] = useState<ActiveInfluence[]>([]);
+  // REMOVED: activeInfluences - no longer rendered
   
-  // Top patterns for depth preview
+  // Top patterns for depth preview (demoted below navigation)
   const [topPatterns, setTopPatterns] = useState<PatternCategory[]>([]);
   const [patternTension, setPatternTension] = useState<PatternTension | null>(null);
   
-  // Recent reflection for continuity
+  // Recent reflection for continuity (demoted below navigation)
   const [recentReflection, setRecentReflection] = useState<JournalEntry | null>(null);
   
-  // Task 75: Removed Cross-lens synthesis teaser - HomeArchetypeCard is single source
-  
-  // Lifeline event count for bridge section
+  // Lifeline event count for bridge section (demoted)
   const [lifelineEventCount, setLifelineEventCount] = useState<number>(0);
   
-  // Reflector status for conditional signal card rendering (Task 49)
+  // Reflector status for Lunar card
   const [userIsReflector, setUserIsReflector] = useState(false);
   
   // Settings modal
@@ -237,7 +232,7 @@ export default function MirrorScreen() {
     setIsLoading(true);
     
     await Promise.all([
-      loadDailyInsight(),  // NEW: Load structured daily insight
+      loadHeroData(),  // REBUILT: Single hero card
       loadKeystone(),
       loadPatternData(),
       loadRecentReflection(),
@@ -323,30 +318,34 @@ export default function MirrorScreen() {
     }
   };
 
-  // Load new structured daily insight
-  const loadDailyInsight = async () => {
+  // REBUILT: Load hero data from daily-insight endpoint
+  const loadHeroData = async () => {
     if (!user?.id) return;
-    setInsightLoading(true);
+    setHeroLoading(true);
     try {
       const response = await api.get(`/daily-insight/${user.id}`);
-      setDailyInsight(response.data);
+      const data = response.data;
+      
+      // Transform API response to MirrorHeroData
+      setHeroData({
+        title: data.title || 'Something Present',
+        body: data.body || data.what_happening || "Something is present that's worth paying attention to.",
+        bridge: data.bridge || null,
+        reflectPrompt: "What feels true about this?",
+        date: data.date || getLocalDateString(),
+      });
     } catch (err: any) {
-      console.log('[MirrorHome] Daily insight error:', err);
-      // Fallback
-      setDailyInsight({
-        success: true,
+      console.log('[MirrorHome] Hero data error:', err);
+      // Mirror-voice fallback
+      setHeroData({
+        title: 'Something Present',
+        body: "There's something here today asking for your attention. You might not have words for it yet—and that's okay.",
+        bridge: null,
+        reflectPrompt: "What feels most present right now?",
         date: getLocalDateString(),
-        pattern_id: 'fallback',
-        title: 'Noticing Today',
-        what_happening: "Something is present that's worth paying attention to.",
-        why_feels: 'Your attention is being drawn somewhere specific.',
-        watch_for: "Dismissing what you're noticing as unimportant.",
-        better_move: "Stay with what's here before moving to what's next.",
-        interrupt: "If you're rushing past this moment—pause and ask why.",
-        confidence: 'low',
       });
     } finally {
-      setInsightLoading(false);
+      setHeroLoading(false);
     }
   };
 
@@ -368,19 +367,6 @@ export default function MirrorScreen() {
         // Get top tension
         if (pattern_tensions && pattern_tensions.length > 0) {
           setPatternTension(pattern_tensions[0]);
-        }
-        
-        // Add pattern influence if recurring
-        if (sortedPatterns.length > 0 && sortedPatterns[0].signal_strength === 'recurring') {
-          setActiveInfluences(prev => {
-            if (!prev.find(i => i.source === 'Pattern')) {
-              return [...prev, { 
-                source: 'Pattern', 
-                label: `${sortedPatterns[0].category_name} is recurring` 
-              }];
-            }
-            return prev;
-          });
         }
       }
     } catch (err) {
@@ -496,18 +482,18 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            SECTION 1: DAILY INSIGHT - Primary Mirror Card (ONLY ONE)
-            Pattern Signal merged into this card via backend/toMirrorFormat
+            LAYER 1: PRIMARY HERO - One card. One truth. One action.
+            REBUILT FROM SCRATCH - not patched.
             =================================================================== */}
-        {!isLoading && (
-          <HomeInsightCard 
-            insight={dailyInsight} 
-            isLoading={insightLoading} 
+        {!isLoading && !userIsReflector && (
+          <MirrorHeroCard 
+            data={heroData} 
+            isLoading={heroLoading} 
           />
         )}
 
         {/* ===================================================================
-            LUNAR REFLECTION - Shows ONLY for Reflectors (replaces daily card)
+            LUNAR REFLECTION - Shows ONLY for Reflectors (replaces hero)
             =================================================================== */}
         {!isLoading && user?.id && (
           <LunarReflectionSignalCard 
@@ -520,15 +506,11 @@ export default function MirrorScreen() {
           />
         )}
 
-        {/* REMOVED: DailyPatternSignalCard - merged into HomeInsightCard */}
-        {/* REMOVED: ACTIVE INFLUENCES - clutters homepage */}
-
         {/* ===================================================================
-            SECTION 2: SECONDARY NAVIGATION
+            LAYER 3: NAVIGATION - Explore and Patterns
             =================================================================== */}
         {!isLoading && (
           <View style={styles.doorwaysSection}>
-            {/* Secondary Doorways - Explore and Patterns */}
             <View style={styles.doorwaysRow}>
               <TouchableOpacity
                 style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
@@ -552,16 +534,7 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            SECTION 4: ARCHETYPE INSIGHT CARD (Task 75: Unified Narrative)
-            =================================================================== */}
-        {!isLoading && (
-          <View style={styles.archetypeSection}>
-            <HomeArchetypeCard />
-          </View>
-        )}
-
-        {/* ===================================================================
-            SECTION 4.5: LIFELINE BRIDGE
+            DEMOTED: YOUR LIFELINE - moved below navigation
             =================================================================== */}
         {!isLoading && (
           <View style={[styles.lifelineBridge, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
