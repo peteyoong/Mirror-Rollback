@@ -15,9 +15,14 @@
  * THEN: "This is your pattern"
  * 
  * REMOVED: Domain accordions, Signals tab, Chart resonance, Analytics-heavy UI
+ * 
+ * SCROLL RESET: This screen must ALWAYS open at the top.
+ * - useScrollToTop hook is disabled (empty scrollToTop function)
+ * - useFocusEffect forces scroll to y=0 on every tab focus
+ * - scrollsToTop={false} prevents iOS status bar tap scroll
  */
 
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -30,7 +35,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useScrollToTop } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
@@ -108,44 +113,47 @@ export default function PatternsScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   // ============================================================================
-  // DETERMINISTIC SCROLL RESET
+  // SCROLL RESET - DETERMINISTIC FIX
   // ============================================================================
-  // Problem: Even with unmountOnBlur, web browsers may restore scroll position.
-  // Solution: Explicit scroll reset on mount AND on every focus event.
+  // 
+  // ROOT CAUSE: React Navigation's useScrollToTop hook automatically scrolls
+  // the nearest ScrollView when tapping the active tab or navigating to it.
+  // On web, browser history may also restore scroll position.
+  //
+  // FIX: 
+  // 1. Override useScrollToTop with empty scrollToTop function (disables auto-scroll)
+  // 2. Use useFocusEffect to explicitly reset scroll to y=0 on every focus
+  // 3. scrollsToTop={false} on ScrollView prevents iOS status bar tap scroll
+  //
   
-  // Reset function - scrolls to absolute top
-  const resetScrollPosition = useCallback(() => {
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: false });
-    }
-    // Also reset any browser-level scroll (web only)
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.scrollTo(0, 0);
-    }
-  }, []);
+  // Override React Navigation's automatic scroll-to-top with a no-op
+  // This ref is passed to useScrollToTop but has an empty scrollToTop function
+  const scrollToTopRef = useRef({
+    scrollToTop: () => {
+      // Intentionally empty - we handle scroll ourselves
+    },
+  });
+  useScrollToTop(scrollToTopRef);
   
-  // Reset on component mount (runs before paint via useLayoutEffect)
-  useLayoutEffect(() => {
-    resetScrollPosition();
-  }, [resetScrollPosition]);
-  
-  // Reset on every focus (tab becomes active)
+  // Force scroll to top on every focus
   useFocusEffect(
     useCallback(() => {
-      // Immediate reset
-      resetScrollPosition();
-      // Also reset collapsed state
+      // Reset scroll position
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: false });
+      }
+      
+      // Also reset browser scroll on web
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.scrollTo(0, 0);
+        // Also try to reset any element that might have overflow scroll
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }
+      
+      // Reset collapsed state
       setExpandedWeek(null);
-      
-      // Backup reset after a frame (catches async content rendering)
-      const frameId = requestAnimationFrame(() => {
-        resetScrollPosition();
-      });
-      
-      return () => {
-        cancelAnimationFrame(frameId);
-      };
-    }, [resetScrollPosition])
+    }, [])
   );
 
   // ============================================================================
@@ -721,6 +729,7 @@ export default function PatternsScreen() {
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        scrollsToTop={false}
         refreshControl={
           <RefreshControl
             refreshing={timelineRefreshing}
