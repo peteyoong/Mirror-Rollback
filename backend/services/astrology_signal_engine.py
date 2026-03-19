@@ -453,35 +453,64 @@ def select_dominant_tension(
     chart_data: Optional[Dict] = None
 ) -> TransitTension:
     """
-    Select ONE dominant tension based on transit conditions.
+    L1 DOMINANCE: Select ONE dominant tension based on transit conditions.
+    
+    RULE: Only ONE tension. No bleed. No multiple interpretations.
     
     Priority:
     1. Stacked events → specific tensions
     2. Single events → matched tensions
-    3. Fallback → context-appropriate default
+    3. Natal chart influence (if available)
+    4. Fallback → context-appropriate default
     """
     events = transit_stack.get("events", [])
     event_types = set(e.get("type", e) if isinstance(e, dict) else str(e) for e in events)
     
-    # Stacked event combinations → specific tensions
+    # PHASE 1: Stacked event combinations → LOCKED tension (no other option)
     if "equinox" in event_types or "solstice" in event_types:
         if "new_moon" in event_types:
-            return TransitTension.SHIFT_BEFORE_DIRECTION
+            return TransitTension.SHIFT_BEFORE_DIRECTION  # LOCKED: threshold + beginning = direction unclear
         elif "full_moon" in event_types:
-            return TransitTension.COMPLETION_RESISTANCE
+            return TransitTension.COMPLETION_RESISTANCE  # LOCKED: threshold + peak = completion pressure
         else:
-            return TransitTension.INNER_PACE_OUTER_TIMING
+            return TransitTension.INNER_PACE_OUTER_TIMING  # LOCKED: seasonal shift = timing mismatch
     
     if "eclipse_solar" in event_types or "eclipse_lunar" in event_types:
-        return TransitTension.SHIFT_BEFORE_DIRECTION
+        return TransitTension.SHIFT_BEFORE_DIRECTION  # LOCKED: eclipse = major direction shift
     
+    # PHASE 2: Single events → matched tensions
     if "new_moon" in event_types:
-        return TransitTension.MOVEMENT_BEFORE_ALIGNMENT
+        return TransitTension.MOVEMENT_BEFORE_ALIGNMENT  # new moon = wanting to start but not aligned
     
     if "full_moon" in event_types:
-        return TransitTension.FORCING_CLARITY
+        return TransitTension.FORCING_CLARITY  # full moon = pushing for answers
     
-    # Day class fallbacks
+    # PHASE 3: Natal chart influence (personalizes the tension)
+    if chart_data:
+        moon_sign = chart_data.get("moon_sign", "").lower()
+        sun_sign = chart_data.get("sun_sign", "").lower()
+        
+        # Water moon = emotional reactions lead
+        if moon_sign in ["cancer", "scorpio", "pisces"]:
+            if day_class == DayClass.PHASE_SHIFT:
+                return TransitTension.REACTING_BEFORE_UNDERSTANDING
+        
+        # Air moon = mental loops
+        if moon_sign in ["gemini", "libra", "aquarius"]:
+            if day_class == DayClass.PHASE_SHIFT:
+                return TransitTension.FORCING_CLARITY
+        
+        # Fire moon = action impulse
+        if moon_sign in ["aries", "leo", "sagittarius"]:
+            if day_class == DayClass.PHASE_SHIFT:
+                return TransitTension.MOVEMENT_BEFORE_ALIGNMENT
+        
+        # Earth moon = completion focus
+        if moon_sign in ["taurus", "virgo", "capricorn"]:
+            if day_class == DayClass.PHASE_SHIFT:
+                return TransitTension.COMPLETION_RESISTANCE
+    
+    # PHASE 4: Day class fallbacks
     if day_class == DayClass.PHASE_SHIFT:
         return TransitTension.SHIFT_BEFORE_DIRECTION
     elif day_class == DayClass.CYCLE_EVENT:
