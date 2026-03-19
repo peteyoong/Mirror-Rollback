@@ -32,13 +32,28 @@ const SHOW_DEBUG_PANEL = false; // Disabled for production
 
 /**
  * Welcome Page - The Psychological Orientation Layer
- * Now with full dark mode support
+ * ALWAYS DARK MODE - Onboarding should feel calm, safe, intentional
  */
 export default function Welcome() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { theme, isDark, themeMode } = useTheme();
-  const { user, setUser, setChart } = useAppStore();
+  // Force dark theme for onboarding - ignore user preference
+  const { setUser, setChart } = useAppStore();
+  
+  // Dark onboarding colors (hardcoded)
+  const darkTheme = {
+    background: '#0B0B0C',
+    surface: '#1C1C1E',
+    surfaceElevated: '#2C2C2E',
+    text: '#F0EDE8',
+    textSecondary: '#B5B2AD',
+    textTertiary: '#8E8E93',
+    border: '#2C2C2E',
+    accent: '#EAE3D9',
+    buttonPrimaryBg: '#EAE3D9',
+    buttonPrimaryText: '#1C1C1E',
+    error: '#EF5350',
+  };
   
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState('');
@@ -52,6 +67,7 @@ export default function Welcome() {
     userAgent: string;
   } | null>(null);
   
+  const { user } = useAppStore();
   const hasExistingSession = !!user;
 
   // Load debug info on mount
@@ -61,7 +77,7 @@ export default function Welcome() {
         const storedTheme = await AsyncStorage.getItem('@mirror_theme_mode');
         setDebugInfo({
           storedTheme,
-          effectiveTheme: isDark ? 'dark' : 'light',
+          effectiveTheme: 'dark', // Always dark for onboarding
           platform: Platform.OS,
           userAgent: Platform.OS === 'web' ? (typeof navigator !== 'undefined' ? navigator.userAgent.substring(0, 50) : 'N/A') : 'native',
         });
@@ -70,28 +86,28 @@ export default function Welcome() {
       }
     };
     loadDebugInfo();
-  }, [isDark, themeMode]);
+  }, []);
 
   // Debug panel component
   const renderDebugPanel = () => {
     if (!SHOW_DEBUG_PANEL || !debugInfo) return null;
     
     return (
-      <View style={[styles.debugPanel, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
-        <Text style={[styles.debugTitle, { color: theme.accent }]}>🔧 Theme Debug</Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+      <View style={[styles.debugPanel, { backgroundColor: darkTheme.surfaceElevated, borderColor: darkTheme.border }]}>
+        <Text style={[styles.debugTitle, { color: darkTheme.accent }]}>🔧 Theme Debug</Text>
+        <Text style={[styles.debugText, { color: darkTheme.textSecondary }]}>
           Stored: {debugInfo.storedTheme || 'none'}
         </Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+        <Text style={[styles.debugText, { color: darkTheme.textSecondary }]}>
           Mode: {themeMode} → {debugInfo.effectiveTheme}
         </Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+        <Text style={[styles.debugText, { color: darkTheme.textSecondary }]}>
           Platform: {debugInfo.platform}
         </Text>
-        <Text style={[styles.debugText, { color: theme.textTertiary, fontSize: 10 }]}>
+        <Text style={[styles.debugText, { color: darkTheme.textTertiary, fontSize: 10 }]}>
           {debugInfo.userAgent}
         </Text>
-        <Text style={[styles.debugText, { color: theme.accent, fontSize: 10 }]}>
+        <Text style={[styles.debugText, { color: darkTheme.accent, fontSize: 10 }]}>
           Build: {BUILD_VERSION} • {BUILD_ID}
         </Text>
       </View>
@@ -166,64 +182,64 @@ export default function Welcome() {
   // If user is already logged in, show continue option
   if (hasExistingSession) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+      <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
+        <StatusBar style={'light'} />
         
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={[styles.title, { color: theme.text }]}>Project Mirror</Text>
+            <Text style={[styles.title, { color: darkTheme.text }]}>Project Mirror</Text>
           </View>
           
           <View style={styles.messageContainer}>
-            <Text style={[styles.welcomeBack, { color: theme.text }]}>Welcome back{user?.name ? `, ${user.name}` : ''}.</Text>
-            <Text style={[styles.tagline, { color: theme.textSecondary }]}>Your reflection space awaits.</Text>
+            <Text style={[styles.welcomeBack, { color: darkTheme.text }]}>Welcome back{user?.name ? `, ${user.name}` : ''}.</Text>
+            <Text style={[styles.tagline, { color: darkTheme.textSecondary }]}>Your reflection space awaits.</Text>
           </View>
           
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={[styles.primaryButton, { 
-                backgroundColor: theme.buttonPrimaryBg,
-                borderColor: theme.border 
+                backgroundColor: darkTheme.buttonPrimaryBg,
+                borderColor: darkTheme.border 
               }]}
               onPress={handleContinue}
               activeOpacity={0.8}
             >
-              <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>Continue</Text>
+              <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Continue</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={[styles.textButton, { borderColor: theme.border }]}
+              style={[styles.textButton, { borderColor: darkTheme.border }]}
               onPress={handleBeginReflection}
               activeOpacity={0.8}
             >
-              <Text style={[styles.textButtonText, { color: theme.textTertiary }]}>Start Fresh</Text>
+              <Text style={[styles.textButtonText, { color: darkTheme.textTertiary }]}>Start Fresh</Text>
             </TouchableOpacity>
           </View>
 
           {/* Forums Quick Access */}
-          <View style={[styles.forumsSection, { borderTopColor: theme.border }]}>
-            <Text style={[styles.forumsSectionLabel, { color: theme.textTertiary }]}>FORUMS</Text>
+          <View style={[styles.forumsSection, { borderTopColor: darkTheme.border }]}>
+            <Text style={[styles.forumsSectionLabel, { color: darkTheme.textTertiary }]}>FORUMS</Text>
             <View style={styles.forumsButtons}>
               <TouchableOpacity 
-                style={[styles.forumButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                style={[styles.forumButton, { backgroundColor: darkTheme.surface, borderColor: darkTheme.border }]}
                 onPress={handleCreateForum}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.forumButtonText, { color: theme.text }]}>Create Forum</Text>
+                <Text style={[styles.forumButtonText, { color: darkTheme.text }]}>Create Forum</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.forumButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                style={[styles.forumButton, { backgroundColor: darkTheme.surface, borderColor: darkTheme.border }]}
                 onPress={handleJoinForum}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.forumButtonText, { color: theme.text }]}>Join Forum</Text>
+                <Text style={[styles.forumButtonText, { color: darkTheme.text }]}>Join Forum</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
         
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: theme.textTertiary }]}>
+          <Text style={[styles.footerText, { color: darkTheme.textTertiary }]}>
             You don't have to do anything with what you notice.
           </Text>
         </View>
@@ -234,28 +250,28 @@ export default function Welcome() {
   // Login form view
   if (showLogin) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+      <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
+        <StatusBar style={'light'} />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
           <View style={styles.content}>
             <View style={styles.header}>
-              <Text style={[styles.title, { color: theme.text }]}>Project Mirror</Text>
+              <Text style={[styles.title, { color: darkTheme.text }]}>Project Mirror</Text>
             </View>
             
             <View style={styles.loginContainer}>
-              <Text style={[styles.loginTitle, { color: theme.text }]}>Welcome back</Text>
-              <Text style={[styles.loginSubtitle, { color: theme.textSecondary }]}>
+              <Text style={[styles.loginTitle, { color: darkTheme.text }]}>Welcome back</Text>
+              <Text style={[styles.loginSubtitle, { color: darkTheme.textSecondary }]}>
                 Enter the email you used to save your reflection space.
               </Text>
               
               <TextInput
                 style={[styles.input, { 
-                  backgroundColor: theme.surface,
-                  borderColor: theme.border,
-                  color: theme.text 
+                  backgroundColor: darkTheme.surface,
+                  borderColor: darkTheme.border,
+                  color: darkTheme.text 
                 }]}
                 value={email}
                 onChangeText={(text) => {
@@ -263,7 +279,7 @@ export default function Welcome() {
                   setError('');
                 }}
                 placeholder="your@email.com"
-                placeholderTextColor={theme.textTertiary}
+                placeholderTextColor={darkTheme.textTertiary}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -271,8 +287,8 @@ export default function Welcome() {
               />
               
               {error ? (
-                <View style={[styles.errorContainer, { backgroundColor: theme.error + '20' }]}>
-                  <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
+                <View style={[styles.errorContainer, { backgroundColor: darkTheme.error + '20' }]}>
+                  <Text style={[styles.errorText, { color: darkTheme.error }]}>{error}</Text>
                 </View>
               ) : null}
               
@@ -280,8 +296,8 @@ export default function Welcome() {
                 style={[
                   styles.primaryButton, 
                   { 
-                    backgroundColor: theme.buttonPrimaryBg,
-                    borderColor: theme.border 
+                    backgroundColor: darkTheme.buttonPrimaryBg,
+                    borderColor: darkTheme.border 
                   },
                   isLoading && styles.buttonDisabled
                 ]}
@@ -290,9 +306,9 @@ export default function Welcome() {
                 activeOpacity={0.8}
               >
                 {isLoading ? (
-                  <ActivityIndicator size="small" color={theme.buttonPrimaryText} />
+                  <ActivityIndicator size="small" color={darkTheme.buttonPrimaryText} />
                 ) : (
-                  <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>Sign In</Text>
+                  <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Sign In</Text>
                 )}
               </TouchableOpacity>
               
@@ -306,7 +322,7 @@ export default function Welcome() {
                 disabled={isLoading}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.textButtonText, { color: theme.textTertiary }]}>Back</Text>
+                <Text style={[styles.textButtonText, { color: darkTheme.textTertiary }]}>Back</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -317,21 +333,21 @@ export default function Welcome() {
 
   // Default welcome view with two options
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+    <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
+      <StatusBar style={'light'} />
       
       <View style={styles.content}>
         {/* Title */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.text }]}>Project Mirror</Text>
+          <Text style={[styles.title, { color: darkTheme.text }]}>Project Mirror</Text>
         </View>
         
         {/* Core Message */}
         <View style={styles.messageContainer}>
-          <Text style={[styles.tagline, { color: theme.textSecondary }]}>A space for noticing.</Text>
+          <Text style={[styles.tagline, { color: darkTheme.textSecondary }]}>A space for noticing.</Text>
           <View style={styles.permissionLines}>
-            <Text style={[styles.permissionText, { color: theme.textTertiary }]}>Nothing to fix.</Text>
-            <Text style={[styles.permissionText, { color: theme.textTertiary }]}>Nothing to decide.</Text>
+            <Text style={[styles.permissionText, { color: darkTheme.textTertiary }]}>Nothing to fix.</Text>
+            <Text style={[styles.permissionText, { color: darkTheme.textTertiary }]}>Nothing to decide.</Text>
           </View>
         </View>
         
@@ -340,58 +356,58 @@ export default function Welcome() {
           {/* New User */}
           <TouchableOpacity 
             style={[styles.primaryButton, { 
-              backgroundColor: theme.buttonPrimaryBg,
-              borderColor: theme.border 
+              backgroundColor: darkTheme.buttonPrimaryBg,
+              borderColor: darkTheme.border 
             }]}
             onPress={handleBeginReflection}
             activeOpacity={0.8}
           >
-            <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>New User</Text>
-            <Text style={[styles.buttonSubtext, { color: theme.textTertiary }]}>Begin your reflection journey</Text>
+            <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Begin</Text>
+            <Text style={[styles.buttonSubtext, { color: darkTheme.textTertiary }]}>Begin your reflection journey</Text>
           </TouchableOpacity>
           
           {/* Existing User */}
           <TouchableOpacity 
-            style={[styles.secondaryButton, { borderColor: theme.border }]}
+            style={[styles.secondaryButton, { borderColor: darkTheme.border }]}
             onPress={() => setShowLogin(true)}
             activeOpacity={0.8}
           >
-            <Text style={[styles.secondaryButtonText, { color: theme.textSecondary }]}>Existing User</Text>
-            <Text style={[styles.secondaryButtonSubtext, { color: theme.textTertiary }]}>Sign in with email</Text>
+            <Text style={[styles.secondaryButtonText, { color: darkTheme.textSecondary }]}>Return</Text>
+            <Text style={[styles.secondaryButtonSubtext, { color: darkTheme.textTertiary }]}>Sign in with email</Text>
           </TouchableOpacity>
         </View>
 
         {/* Forums Quick Access */}
-        <View style={[styles.forumsSection, { borderTopColor: theme.border }]}>
-          <Text style={[styles.forumsSectionLabel, { color: theme.textTertiary }]}>FORUMS</Text>
+        <View style={[styles.forumsSection, { borderTopColor: darkTheme.border }]}>
+          <Text style={[styles.forumsSectionLabel, { color: darkTheme.textTertiary }]}>FORUMS</Text>
           <View style={styles.forumsButtons}>
             <TouchableOpacity 
-              style={[styles.forumButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              style={[styles.forumButton, { backgroundColor: darkTheme.surface, borderColor: darkTheme.border }]}
               onPress={handleCreateForum}
               activeOpacity={0.8}
             >
-              <Text style={[styles.forumButtonText, { color: theme.text }]}>Create Forum</Text>
+              <Text style={[styles.forumButtonText, { color: darkTheme.text }]}>Create Forum</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.forumButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              style={[styles.forumButton, { backgroundColor: darkTheme.surface, borderColor: darkTheme.border }]}
               onPress={handleJoinForum}
               activeOpacity={0.8}
             >
-              <Text style={[styles.forumButtonText, { color: theme.text }]}>Join Forum</Text>
+              <Text style={[styles.forumButtonText, { color: darkTheme.text }]}>Join Forum</Text>
             </TouchableOpacity>
           </View>
         </View>
         
         {/* Exit Permission */}
-        <Text style={[styles.exitPermission, { color: theme.textTertiary }]}>You can leave at any time.</Text>
+        <Text style={[styles.exitPermission, { color: darkTheme.textTertiary }]}>You can leave at any time.</Text>
       </View>
       
       {/* Footer Philosophy Line */}
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.textTertiary }]}>
+        <Text style={[styles.footerText, { color: darkTheme.textTertiary }]}>
           You don't have to do anything with what you notice.
         </Text>
-        <Text style={[styles.buildInfo, { color: theme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID} • {BUILD_DATE}</Text>
+        <Text style={[styles.buildInfo, { color: darkTheme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID} • {BUILD_DATE}</Text>
       </View>
       
       {/* Debug Panel */}

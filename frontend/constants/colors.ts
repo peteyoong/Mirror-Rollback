@@ -1,44 +1,45 @@
-// Project Mirror - Light, calm color palette with improved contrast
-// v1.1: Enhanced readability - darker text, better badge contrast
+// Project Mirror - DARK MODE ONLY color palette for onboarding
+// Onboarding should feel: calm, safe, intentional, reflective
+// NOT: transactional, bright, corporate
 export const Colors = {
-  // Backgrounds
-  background: '#F5F3EF',
-  surface: '#FFFFFF',
-  surfaceLight: '#FAF9F7',
-  surfaceMuted: '#F0EDE8',
+  // Backgrounds - Deep, calming dark
+  background: '#0B0B0C',          // Global dark background
+  surface: '#1C1C1E',             // Card/input surfaces
+  surfaceLight: '#2C2C2E',        // Elevated surfaces
+  surfaceMuted: '#151515',        // Subtle backgrounds
   
-  // Text - improved contrast ratios
-  text: '#1A1A1A',              // Primary text - deep black
-  textSecondary: '#4A4A4A',     // Secondary - darker gray (was #666666)
-  textTertiary: '#6B6B6B',      // Muted text - darker (was #999999)
-  textDisabled: '#9A9A9A',      // Disabled/placeholder
+  // Text - Warm whites
+  text: '#F0EDE8',                // Primary text
+  textSecondary: '#B5B2AD',       // Secondary text
+  textTertiary: '#8E8E93',        // Muted/placeholder text
+  textDisabled: '#4A4845',        // Disabled text
   
-  // Accent & Interactive
-  accent: '#2A2A2A',
-  accentMuted: '#5A5A5A',
+  // Accent - Warm beige for CTAs
+  accent: '#EAE3D9',              // Primary CTA background
+  accentMuted: '#8A857A',         // Secondary accent
   
-  // Borders & Dividers
-  border: '#D8D5D0',            // Slightly darker border (was #E5E3DF)
-  borderLight: '#E5E3DF',
+  // Borders - Subtle dark borders
+  border: '#2C2C2E',              // Primary border
+  borderLight: '#3A3A3C',         // Lighter border
   
   // Semantic Colors
-  error: '#C62828',             // Darker red for better contrast
-  success: '#2E7D32',           // Darker green for better contrast
-  warning: '#E65100',           // Orange warning
+  error: '#EF5350',               // Soft red for dark mode
+  success: '#66BB6A',             // Soft green for dark mode
+  warning: '#FFA726',             // Soft orange for dark mode
   
   // Highlights & Badges
-  highlight: '#E8F4E8',
-  highlightText: '#1B5E20',     // Dark green text on light green bg
-  badgeBg: '#E8F4E8',
-  badgeText: '#2E7D32',
+  highlight: '#1A2C1A',
+  highlightText: '#66BB6A',
+  badgeBg: '#1A2C1A',
+  badgeText: '#66BB6A',
   
   // Special states
-  cardShadow: 'rgba(0,0,0,0.08)',
-  overlay: 'rgba(0,0,0,0.5)',
+  cardShadow: 'rgba(0,0,0,0.4)',
+  overlay: 'rgba(0,0,0,0.7)',
   
   // Pattern Movement specific
-  stressColor: '#C62828',
-  stressColorLight: '#FFEBEE',
-  growthColor: '#2E7D32',
-  growthColorLight: '#E8F5E9',
+  stressColor: '#EF5350',
+  stressColorLight: '#2C1A1A',
+  growthColor: '#66BB6A',
+  growthColorLight: '#1A2C1A',
 };

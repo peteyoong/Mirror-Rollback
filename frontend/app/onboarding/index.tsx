@@ -240,7 +240,7 @@ export default function Onboarding() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -268,7 +268,7 @@ export default function Onboarding() {
           {/* Step 1: Basic Info */}
           {step === 1 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>Let's begin</Text>
+              <Text style={styles.stepTitle}>Create your space</Text>
               <Text style={styles.stepDescription}>
                 We'll gather a few details to create your unique reflection space.
               </Text>
@@ -506,7 +506,7 @@ export default function Onboarding() {
                 onPress={() => setStep(2)}
                 disabled={!canProceed()}
               >
-                <Text style={styles.buttonText}>Continue</Text>
+                <Text style={styles.buttonText}>Enter</Text>
               </TouchableOpacity>
             )}
 
@@ -520,9 +520,9 @@ export default function Onboarding() {
                 disabled={!canProceed() || isSubmitting}
               >
                 {isSubmitting ? (
-                  <ActivityIndicator size="small" color={Colors.background} />
+                  <ActivityIndicator size="small" color={Colors.text} />
                 ) : (
-                  <Text style={styles.buttonText}>Begin Journey</Text>
+                  <Text style={styles.buttonText}>Begin</Text>
                 )}
               </TouchableOpacity>
             )}
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
     color: Colors.error,
     textAlign: 'center',
   },
-  // Buttons
+  // Buttons - Dark mode with warm beige CTA
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -783,7 +783,7 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: Colors.text,
+    backgroundColor: Colors.accent,  // Warm beige #EAE3D9
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -800,7 +800,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.background,
+    color: Colors.background,  // Dark text on warm beige
   },
   buttonSecondaryText: {
     fontSize: 16,
