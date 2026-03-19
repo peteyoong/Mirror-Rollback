@@ -140,303 +140,304 @@ NATAL_RECEIVERS = {
 # =============================================================================
 
 # TODAY: Immediate felt tension (shortest distance to behavior)
-# RULE: Must describe WHAT USER IS DOING, not what is happening to them
+# RULE: Must have ACTION → BREAK POINT → recognition
+# BREAK POINT phrases: "then...", "but...", "doesn't land", "doesn't stick", "something catches", "you pause", "you pull back"
 TODAY_NARRATIVES = {
     TransitTension.FORCING_CLARITY: {
         "phase_shift": [
-            "You open the thing. You stare at it. You close it. Then you open it again. You're trying to decide something that isn't ready to be decided.",
-            "You draft the message. Delete it. Redraft. Delete again. You know what you want to say. You just can't land on how to say it.",
-            "You keep checking — the email, the text, the conversation you're replaying. You're looking for an answer that isn't there yet.",
+            "You open the thing. You stare at it. You close it. Then you open it again. It doesn't land. You're trying to decide something that isn't ready to be decided.",
+            "You draft the message. Delete it. Redraft. Then delete again. It doesn't stick. You know what you want to say — but something catches every time you try.",
+            "You check in with yourself. Ask what you think. Then doubt it. Ask again. Nothing settles. You're looking for certainty that isn't available.",
         ],
         "cycle_event": [
-            "You catch yourself thinking about it again. You thought you'd let it go an hour ago. You didn't.",
-            "You're running the same scenario in your head. Different angles, same question. No landing.",
-            "You ask yourself what you think. Then second-guess it. Then ask again.",
+            "You think you've got it figured out. Then something shifts. You don't. The answer keeps slipping right when you reach for it.",
+            "You run the scenario in your head. It makes sense. Then you run it again — and it doesn't. Something's not clicking.",
+            "You try to land on a decision. It almost sticks. Then it doesn't. You pull back to think again.",
         ],
         "normal_flow": [
-            "You move to the next task, but part of your mind stays on the last one. Unfinished.",
-            "You're half-doing something. The other half is still chewing on a question you haven't answered.",
-            "You notice you've been staring at the same thing for a while. Thinking, but not arriving anywhere.",
+            "You move to the next task. But part of your mind stays behind. It doesn't release. Something's still chewing on the last thing.",
+            "You tell yourself you're done thinking about it. Then you catch yourself thinking about it. It didn't let go.",
+            "You reach for the answer. It almost forms. Then it dissolves. Unfinished.",
         ],
     },
     TransitTension.MOVEMENT_BEFORE_ALIGNMENT: {
         "phase_shift": [
-            "You start to do the thing. Then stop. Then almost start again. Something keeps catching you right before you move.",
-            "You reach for your phone to send it. Then you put it down. Then you pick it up again. You're ready. But you're not.",
-            "You've said 'I'm going to' three times today. You haven't yet. You're not stalling — you're waiting for something to click.",
+            "You start to do the thing. Then stop. Something catches. You almost start again — but you don't. The break happens right before action.",
+            "You reach for your phone to send it. Then you put it down. You pick it up again. Then put it down again. You're ready — but it doesn't land.",
+            "You say 'I'm going to.' Then you don't. You say it again later. Still don't. Something keeps pulling you back at the edge.",
         ],
         "cycle_event": [
-            "You feel the push to act. You hold back. The push comes again. You hold back again.",
-            "You want to move forward. Something keeps pulling you back to check one more time.",
-            "You're pacing — physically or mentally. Ready to go, but the green light isn't there.",
+            "You feel the push to move. You lean forward. Then something catches. You pull back. The momentum doesn't stick.",
+            "You're about to act. Then you pause. Check one more thing. The action dissolves into waiting.",
+            "You gear up. Then you don't go. The readiness doesn't convert. Something breaks the chain.",
         ],
         "normal_flow": [
-            "You've been meaning to start that thing all day. You haven't. Not avoidance — just not time yet.",
-            "You think about doing it, then do something else. Then think about it again.",
-            "Your to-do list has one thing that keeps not getting done. Not because you don't want to.",
+            "You think about starting. Then you do something else. Then you think about it again. It doesn't happen.",
+            "You mean to do it. But you don't. Not avoidance. Something catches you before you begin.",
+            "You're ready. But you wait. The wait extends. The ready doesn't become action.",
         ],
     },
     TransitTension.REACTING_BEFORE_UNDERSTANDING: {
         "phase_shift": [
-            "Someone says something. You snap back. Then you wonder why you reacted that hard. It wasn't about them.",
-            "You feel the heat rise before you understand why. You're reacting to something you haven't processed yet.",
-            "You catch yourself mid-response — too fast, too sharp. The feeling got there before the thought.",
+            "Someone says something. You snap back. Then you pause. That was too hard. The reaction came before the thought — and it didn't match.",
+            "You feel the heat rise. You open your mouth. Then catch yourself. Almost too late. The feeling got there first.",
+            "You respond. Then regret it. The words came out before you understood why. Something broke the filter.",
         ],
         "cycle_event": [
-            "You're irritated by something small. Too irritated. The size doesn't match. Something else is under it.",
-            "You tear up at something minor. That's not the thing. There's something behind it.",
-            "You notice you're tense. You don't know why. Your body figured it out before you did.",
+            "You're irritated. Then you realize — at nothing real. The size doesn't match the trigger. Something else is running underneath.",
+            "You tear up. Then stop. That wasn't about this. The emotion hijacked the moment.",
+            "You snap. Then catch yourself. That wasn't them. Something slipped through.",
         ],
         "normal_flow": [
-            "You sigh heavier than the moment calls for. Something's processing.",
-            "You find yourself short with someone. Not because of them. Because of something unnamed.",
-            "You feel off. Can't pinpoint it. Your system knows something your mind hasn't caught up to.",
+            "You sigh. Then notice — that was heavier than the moment called for. Something's processing that you haven't named.",
+            "You're short with someone. Then realize — they didn't deserve that. Something unnamed pushed through.",
+            "You feel off. Can't pinpoint it. But your body knows something. Your mind hasn't caught up yet.",
         ],
     },
     TransitTension.REOPENING_UNRESOLVED: {
         "phase_shift": [
-            "You're thinking about them again. The person. The thing. You thought you were past it. You're not.",
-            "A name shows up in your head. A memory surfaces. Same one as before. It's back.",
-            "You find yourself replaying a conversation that ended months ago. Editing what you should have said.",
+            "You're thinking about them again. Then catch yourself. You thought you were past it. You're not. The past didn't close.",
+            "A memory surfaces. You push it away. Then it's back. Same one. It doesn't stay down.",
+            "You replay the conversation. Then stop. You've done this before. It doesn't change anything — but you keep going back.",
         ],
         "cycle_event": [
-            "A song comes on. You're right back there. The thing you thought you handled — it's not handled.",
-            "Someone mentions something unrelated, and your mind jumps to the old thing. Still loaded.",
-            "You catch yourself wondering about someone you decided to stop wondering about.",
+            "A song comes on. You're right back there. Then you notice — it still has weight. It didn't finish.",
+            "Someone mentions something. Your mind jumps to the old thing. Still loaded. Still live.",
+            "You catch yourself wondering about someone. Then stop. You decided to stop doing that. But you didn't.",
         ],
         "normal_flow": [
-            "A familiar ache shows up. Not loud. Just there. Something old, asking to be noticed.",
-            "You scroll past a photo. Your chest tightens slightly. Still live.",
-            "A thought from the past visits. You don't invite it. It just appears.",
+            "A familiar ache shows up. Then fades. Then shows up again. Something old is asking to be seen.",
+            "You scroll past a photo. Your chest tightens. Then you keep scrolling. But the feeling stays.",
+            "A thought visits. You didn't invite it. Then you notice — you're still holding it.",
         ],
     },
     TransitTension.SHIFT_BEFORE_DIRECTION: {
         "phase_shift": [
-            "You wake up and something feels different. You can't point to what. You're not the same as yesterday, but you don't know what changed.",
-            "You make a decision, then unmake it. Make another. Unmake that too. The ground keeps shifting under your choices.",
-            "You start three things, finish none. Not because you're scattered — because none of them feel like the right one anymore.",
+            "You wake up. Something feels different. Then you try to name it. You can't. The shift happened — but the shape didn't form.",
+            "You make a decision. Then unmake it. Make another. Unmake that too. Nothing sticks. The ground keeps moving.",
+            "You start something. Then lose the thread. Start another. Same thing. Nothing lands because everything is shifting.",
         ],
         "cycle_event": [
-            "You feel restless in a space that was fine last week. Something outgrew something.",
-            "You lose interest mid-task. Not lazy. Just... done with it. Before it's done.",
-            "You hear yourself say 'I don't know' more than usual. Not confusion. Recalibration.",
+            "You feel restless. Then realize — in a space that was fine last week. Something outgrew something. But you don't know what.",
+            "You lose interest mid-task. Then notice — not tired. Just done. Before it's done. Something moved on without you.",
+            "You say 'I don't know' again. Then catch yourself — you've said that a lot. Not confusion. Recalibration.",
         ],
         "normal_flow": [
-            "You pause mid-sentence. Forget what you were going to say. Not tired — just shifting.",
-            "You pick up your phone, then put it down. Pick up a book. Put that down too. Nothing lands.",
-            "You feel a low hum of 'what now' in the background. No urgency. Just present.",
+            "You pause mid-sentence. Forget what you were going to say. Then it doesn't come back. You shrug. Something shifted.",
+            "You pick up your phone. Put it down. Pick up a book. Put that down too. Nothing lands. You don't know what you want.",
+            "You feel a hum of 'what now.' Then it fades. Then it's back. No urgency. Just present.",
         ],
     },
     TransitTension.INNER_PACE_OUTER_TIMING: {
         "phase_shift": [
-            "Everyone's moving fast. You're moving slow. Or they're dragging and you want to sprint. Either way — mismatch.",
-            "You're asked to respond now. Your insides say 'not yet.' You give them something, but it's not your real answer.",
-            "You show up on time, but you're not ready. You needed ten more minutes your schedule didn't give you.",
+            "Everyone's moving fast. You're not. Then you try to speed up. It doesn't fit. Your rhythm and theirs — mismatch.",
+            "You're asked to respond now. You try. Then it comes out wrong. Your insides weren't ready. The words didn't match.",
+            "You show up on time. But you're not there. Then you realize — you needed ten more minutes you didn't have.",
         ],
         "cycle_event": [
-            "You feel rushed by something that shouldn't be rushing you. The pressure is external, not real.",
-            "Someone's waiting for your answer. You don't have it. You give them a placeholder.",
-            "You're behind on everything but actually right on time by your own measure. The gap is friction.",
+            "You feel rushed. Then notice — nothing's actually urgent. The pressure is external. Your pace doesn't match.",
+            "Someone waits for your answer. You give them something. Then catch yourself — that wasn't your real answer.",
+            "You're behind. Then realize — only by their clock. By your clock, you're on time. That gap is the friction.",
         ],
         "normal_flow": [
-            "You catch yourself saying 'in a minute' more than usual. Your pace and the world's aren't syncing.",
-            "You want to linger on something. Life wants you to move on. You compromise badly.",
-            "You feel slightly out of step. Nothing dramatic. Just a half-beat off.",
+            "You say 'in a minute.' Then say it again. Then again. Your pace and the world's aren't syncing.",
+            "You want to linger. Life says move. Then you compromise — badly. The middle doesn't work.",
+            "You feel a half-beat off. Then adjust. But it doesn't fix. Slightly out of step — and staying that way.",
         ],
     },
     TransitTension.COMPLETION_RESISTANCE: {
         "phase_shift": [
-            "You could end it. The conversation, the project, the thing. You keep it open anyway. You're not ready to close it.",
-            "You hover over 'send' and don't press it. You check the draft one more time. And again. Completion is available. You're not taking it.",
-            "You know it's done. You keep picking it up anyway. Looking for something more. There isn't anything more.",
+            "You could end it. You don't. Then you look at it again. Still not ending it. Something catches before the close.",
+            "You hover over 'send.' Then don't press it. Check the draft one more time. Then one more. It's ready — but you're not letting go.",
+            "You know it's done. Then you pick it up again. Check it. Put it down. Check it again. Completion is available — you're not taking it.",
         ],
         "cycle_event": [
-            "You reread the final version, looking for something to fix. Not because it needs fixing. Because ending feels too fast.",
-            "You add one more thing. Then another. Not improving — delaying.",
-            "You walk away from the finished thing, then come back. Just to look at it. Not done letting go.",
+            "You reread the final version. Looking for something to fix. Then stop. It doesn't need fixing. You're delaying — not improving.",
+            "You add one more thing. Then another. Then catch yourself. Not making it better. Making it longer.",
+            "You walk away from the finished thing. Then come back. Then walk away again. Something won't let you close it.",
         ],
         "normal_flow": [
-            "You finish something and don't feel finished. There's a gap between done and accepted.",
-            "You sit with a completed task longer than you need to. Something isn't landing.",
-            "You pause before marking it complete. Not checking — just not ready.",
+            "You finish something. But don't feel finished. Then notice — the gap between done and accepted. That's where you're stuck.",
+            "You sit with a completed task. Then realize — longer than needed. Something isn't landing.",
+            "You pause before marking it complete. Then pause again. Not checking — just not ready to let go.",
         ],
     },
 }
 
 # WEEK: Recurring loop (attempt → interruption → return)
-# RULE: Must show SPECIFIC BEHAVIOR that has repeated multiple times
+# RULE: Must show loop with BREAK POINT - where it fails each time
 WEEK_NARRATIVES = {
     TransitTension.FORCING_CLARITY: {
         "phase_shift": [
-            "You've opened that thing more than once this week. Stared at it. Closed it. Opened it again.\n\nEach time, you think you'll finally figure it out. Each time, you don't.\n\nYou're not avoiding it. You keep coming back. The answer just isn't arriving.",
-            "You've asked yourself the same question at least three times.\n\nYou think you have the answer. Then you doubt it. Then you ask again.\n\nThat loop — it's been running all week.",
+            "You've opened that thing more than once this week. Stared at it. Then closed it.\n\nEach time, you think you'll finally figure it out. Then you don't. Something catches right before the landing.\n\nThe answer keeps dissolving when you reach for it.",
+            "You've asked yourself the same question at least three times.\n\nYou think you have the answer. Then doubt it. Then ask again. Each time — the certainty doesn't stick.\n\nThat loop has been running all week.",
         ],
         "cycle_event": [
-            "You've caught yourself drifting back to this more than once.\n\nYou move on to other things. Then you're back. Thinking about it again.\n\nThe pattern is visible now.",
+            "You've caught yourself drifting back to this more than once.\n\nYou move on. Then you're back. Then you move on again. But it doesn't release.\n\nThe question keeps pulling you.",
         ],
         "normal_flow": [
-            "You've noticed the same thought returning in quiet moments.\n\nMorning. Mid-afternoon. Right before sleep.\n\nNot urgent. Just persistent.",
+            "You've noticed the same thought returning.\n\nMorning. Afternoon. Evening. Each time you think you're done with it — then it's back.\n\nIt doesn't let go.",
         ],
     },
     TransitTension.MOVEMENT_BEFORE_ALIGNMENT: {
         "phase_shift": [
-            "You've said 'I'm going to do that' more than once this week. You haven't.\n\nNot because you don't want to. Because something keeps catching you right before you start.\n\nThat hesitation has shown up multiple times now.",
-            "You've reached for it several times. Each time, you pull back.\n\nReach. Pull back. Reach again.\n\nThe loop is the same every time.",
+            "You've said 'I'm going to do that' more than once this week. Then you didn't.\n\nNot because you don't want to. Something catches you right before you start. Every time.\n\nThe action keeps dissolving at the edge.",
+            "You've reached for it several times. Then pulled back.\n\nReach. Something catches. Pull back. Repeat.\n\nThe break point is always the same — right before the doing.",
         ],
         "cycle_event": [
-            "You've felt ready to move forward more than once.\n\nEach time, something makes you pause. Then you feel ready again.\n\nThe readiness keeps arriving. The action doesn't.",
+            "You've felt ready to move more than once.\n\nEach time, you pause. Check one more thing. Then the moment passes.\n\nThe readiness doesn't convert. Something keeps breaking the chain.",
         ],
         "normal_flow": [
-            "That thing on your list — you've looked at it several times.\n\nEach time, you do something else.\n\nNot avoiding. Just not yet.",
+            "That thing on your list — you've looked at it several times.\n\nEach time, you almost start. Then you don't. Then you look at it again.\n\nThe gap stays the same.",
         ],
     },
     TransitTension.REACTING_BEFORE_UNDERSTANDING: {
         "phase_shift": [
-            "You've snapped at someone more than once this week. Then wondered why.\n\nDifferent people. Different moments. Same overreaction.\n\nSomething's been running under the surface.",
-            "You've felt the heat rise several times. Caught yourself mid-reaction.\n\nEach time, the trigger was small. The response was big.\n\nThat gap keeps showing up.",
+            "You've snapped at someone more than once this week. Then caught yourself.\n\nDifferent people. Different moments. Same overreaction. Same pause after.\n\nThe pattern is: react first, then realize it was too much.",
+            "You've felt the heat rise several times. Each time — caught yourself mid-response.\n\nThe trigger was small. The response was big. Then you pulled back.\n\nThat gap keeps showing up.",
         ],
         "cycle_event": [
-            "You've noticed the same feeling surfacing in different situations.\n\nAnnoyed. Then fine. Then annoyed again.\n\nThe loop is emotional.",
+            "You've noticed the same feeling surfacing in different situations.\n\nAnnoyed. Then fine. Then annoyed again. Each time — at something that shouldn't matter that much.\n\nThe size keeps not matching the trigger.",
         ],
         "normal_flow": [
-            "You've sighed heavily more than usual this week.\n\nNot always at anything specific.\n\nJust releasing something you haven't named.",
+            "You've sighed heavily more than usual this week.\n\nNot always at anything specific. Then you notice — something's processing underneath.\n\nIt keeps coming through in small ways.",
         ],
     },
     TransitTension.REOPENING_UNRESOLVED: {
         "phase_shift": [
-            "You've thought about them again. More than once.\n\nYou moved on. Then you didn't. Then you thought you did. Then there they were again.\n\nThe past keeps visiting.",
-            "That thing from before — it's come back multiple times this week.\n\nYou don't summon it. It just shows up.\n\nSame memory. Same weight.",
+            "You've thought about them again. More than once.\n\nYou moved on. Then you didn't. Then you thought you did — then there they were again.\n\nThe past doesn't stay past. It keeps surfacing.",
+            "That thing from before has come back multiple times this week.\n\nYou don't summon it. It just shows up. Then you push it away. Then it's back.\n\nSame memory. Same weight. Same loop.",
         ],
         "cycle_event": [
-            "A familiar feeling has surfaced more than once.\n\nDifferent triggers. Same undertone.\n\nIt's not new. It's returning.",
+            "A familiar feeling has surfaced more than once.\n\nDifferent triggers. Same undertone. Then it fades. Then it's back.\n\nIt's not new. It's returning.",
         ],
         "normal_flow": [
-            "You've caught yourself remembering something more than once.\n\nNot dwelling. Just... noticing it's still there.\n\nQuiet, but present.",
+            "You've caught yourself remembering something more than once.\n\nNot dwelling. Just noticing — it's still there. Then you move on. Then you notice it again.\n\nQuiet, but persistent.",
         ],
     },
     TransitTension.SHIFT_BEFORE_DIRECTION: {
         "phase_shift": [
-            "You've changed your mind more than once this week.\n\nDecided something. Then undecided. Then decided something else.\n\nNothing is sticking because everything is shifting.",
-            "You've started things and stopped them multiple times.\n\nNot because they're wrong. Because something about them doesn't fit anymore.\n\nThe ground keeps moving.",
+            "You've changed your mind more than once this week.\n\nDecided something. Then undecided. Made another choice. Then unmade that too.\n\nNothing sticks because everything keeps shifting underneath.",
+            "You've started things and stopped them multiple times.\n\nNot because they're wrong. Because something catches — they don't feel right anymore.\n\nThe fit keeps breaking.",
         ],
         "cycle_event": [
-            "You've felt restless in spaces that were fine last week.\n\nMore than once, you've looked around and thought: this doesn't feel right.\n\nSomething outgrew something.",
+            "You've felt restless in spaces that were fine last week.\n\nMore than once, you've looked around and thought: this doesn't fit. Then you're not sure what would.\n\nThe mismatch keeps repeating.",
         ],
         "normal_flow": [
-            "You've said 'I don't know' more than usual.\n\nNot confused. Just... not landed.\n\nThe answer keeps moving.",
+            "You've said 'I don't know' more than usual.\n\nNot confused. Just not landed. Then you try to land somewhere — and you don't.\n\nThe answer keeps moving.",
         ],
     },
     TransitTension.INNER_PACE_OUTER_TIMING: {
         "phase_shift": [
-            "You've felt rushed more than once this week. By things that shouldn't be rushing you.\n\nYou speed up. It doesn't feel right. You slow down. They push again.\n\nThe mismatch keeps repeating.",
-            "You've given placeholder answers several times.\n\n'I'll let you know.' 'I'm thinking about it.' 'Soon.'\n\nYou're buying time because your real timing isn't matching theirs.",
+            "You've felt rushed more than once this week. By things that shouldn't be rushing you.\n\nYou speed up. It doesn't feel right. You slow down. They push again.\n\nThe mismatch keeps repeating at the same break point.",
+            "You've given placeholder answers several times.\n\n'I'll let you know.' 'I'm thinking about it.' Each time — your real answer wasn't ready.\n\nBut the moment didn't wait.",
         ],
         "cycle_event": [
-            "You've felt out of sync more than once.\n\nWith the day. With someone's pace. With what's being asked.\n\nThe friction is recurring.",
+            "You've felt out of sync more than once.\n\nWith the day. With someone's pace. Each time you adjust — something catches. The fit doesn't land.\n\nThe friction keeps returning.",
         ],
         "normal_flow": [
-            "You've said 'in a minute' more than usual.\n\nNot stalling. Just needing a beat more than the moment allows.\n\nA small gap, but consistent.",
+            "You've said 'in a minute' more than usual.\n\nNot stalling. Just needing one more beat. Then another. Then another.\n\nThe gap stays consistent.",
         ],
     },
     TransitTension.COMPLETION_RESISTANCE: {
         "phase_shift": [
-            "You've almost finished it more than once this week. Then pulled back.\n\nChecked it again. Tweaked something. Kept it open.\n\nThe ending is available. You keep not taking it.",
-            "You've hovered over 'done' several times.\n\nThen found one more thing to adjust. Then one more.\n\nNot improving. Delaying.",
+            "You've almost finished it more than once this week. Then pulled back.\n\nChecked it again. Tweaked something. Kept it open. Each time — right at the edge of done.\n\nThe ending is available. But you keep not taking it.",
+            "You've hovered over 'done' several times.\n\nThen found one more thing to adjust. Then one more. Each time — the close doesn't happen.\n\nDelaying, not improving.",
         ],
         "cycle_event": [
-            "You've circled back to something that's finished more than once.\n\nJust to look at it. Just to make sure.\n\nNot checking. Lingering.",
+            "You've circled back to something that's finished more than once.\n\nJust to look at it. Just to make sure. Then leave. Then come back.\n\nThe release doesn't land.",
         ],
         "normal_flow": [
-            "You've paused before closing things out this week.\n\nSmall pauses. But repeated.\n\nThe finish line keeps feeling premature.",
+            "You've paused before closing things out this week.\n\nSmall pauses. But repeated. Each time — not checking. Just hesitating.\n\nThe finish line keeps feeling premature.",
         ],
     },
 }
 
 # MONTH: Identity/behavioral shift (past vs now comparison)
-# RULE: Must show SPECIFIC BEHAVIORAL CHANGE - what user DOES differently now
+# RULE: Must show behavioral change with BREAK POINT - what used to happen vs what happens now
 MONTH_NARRATIVES = {
     TransitTension.FORCING_CLARITY: {
         "phase_shift": [
-            "A month ago, you would have pushed harder. Forced the answer. Demanded to know.\n\nNow you're doing something different. You're sitting with the question longer.\n\nYou still want to know. But you're not grabbing for it the same way.",
-            "You used to need the answer before you could move. You don't do that anymore.\n\nYou move anyway. Even when it's unclear.\n\nThat's not how you used to operate.",
+            "A month ago, you would have pushed harder. Forced the answer. Demanded to know.\n\nNow you do something different. You reach for certainty — then pause. Let it sit.\n\nThat pause wasn't there before. Something changed in how you hold not-knowing.",
+            "You used to need the answer before you could move. Now you try to force it — then stop.\n\nThe grab doesn't work the same way. So you're learning to move anyway.\n\nThat's not how you used to operate.",
         ],
         "cycle_event": [
-            "You're holding uncertainty differently.\n\nBefore, you'd chase the answer until you had it. Now you let it come.\n\nThe need to know is still there. The grip is lighter.",
+            "You're holding uncertainty differently.\n\nBefore, you'd chase the answer until something broke. Now you chase — then catch yourself. Pull back.\n\nThe grip is lighter. That took something.",
         ],
         "normal_flow": [
-            "You're not as urgent about figuring things out.\n\nThat impatience — the one that used to show up — it's quieter now.\n\nYou're still curious. Just less frantic.",
+            "You're not as urgent about figuring things out.\n\nThat impatience — the one that used to drive you — it still fires. Then it doesn't land the same way.\n\nYou're still curious. Just less frantic about it.",
         ],
     },
     TransitTension.MOVEMENT_BEFORE_ALIGNMENT: {
         "phase_shift": [
-            "You used to jump. Now you pause first.\n\nThe impulse still fires. But you're not acting on it as fast.\n\nThat pause? It wasn't there a month ago.",
-            "You've slowed down. Not because you're tired — because you're checking.\n\nBefore, you'd go. Now you verify.\n\nThe change happened without you noticing.",
+            "You used to jump. Now you jump — then pause mid-air.\n\nThe impulse still fires. But something catches you before you land. You check. Then move.\n\nThat check wasn't there a month ago.",
+            "You've slowed down. Not because you're tired — because something breaks the chain earlier now.\n\nBefore, you'd go. Now you start to go — then verify.\n\nThe change happened without you noticing.",
         ],
         "cycle_event": [
-            "You're not pushing as hard as you used to.\n\nThe urgency is still there. But you're not letting it drive.\n\nSomewhere along the way, you started waiting.",
+            "You're not pushing as hard as you used to.\n\nThe urgency is still there. It rises. Then — something catches. You don't follow through the same way.\n\nSomewhere along the way, you started waiting.",
         ],
         "normal_flow": [
-            "You're more patient than you were.\n\nNot infinitely. But noticeably.\n\nYou're giving things time that you used to try to force.",
+            "You're more patient than you were.\n\nNot infinitely. But noticeably. The push comes — then doesn't complete.\n\nYou're giving things time that you used to try to force.",
         ],
     },
     TransitTension.REACTING_BEFORE_UNDERSTANDING: {
         "phase_shift": [
-            "You used to react first, think later. That's changing.\n\nNow there's a beat. A small gap between feeling and responding.\n\nYou're catching yourself before you speak. That's new.",
-            "A month ago, you'd have already said the thing. Now you hold it.\n\nThe feeling still rises. But you're not letting it out as fast.\n\nYou're editing in real time.",
+            "You used to react first, think later. That's changing.\n\nNow the reaction rises — then you catch it. A small gap. A beat before you speak.\n\nThat beat is new. You're editing in real time.",
+            "A month ago, you'd have already said the thing. Now you start to — then hold it.\n\nThe feeling still rises. It tries to become words. Then something catches.\n\nYou're not letting it out as fast.",
         ],
         "cycle_event": [
-            "Your responses are slower than they used to be.\n\nNot sluggish. Just measured.\n\nYou're giving yourself time to choose the reaction.",
+            "Your responses are slower than they used to be.\n\nNot sluggish. Just — the reaction starts, then pauses. You choose instead of blurt.\n\nThat's different.",
         ],
         "normal_flow": [
-            "You're less reactive.\n\nStill feeling things. But not blurting.\n\nThe filter is thicker than it was.",
+            "You're less reactive.\n\nThe feeling comes up. You start to express it — then don't. The filter caught something.\n\nIt's thicker than it was.",
         ],
     },
     TransitTension.REOPENING_UNRESOLVED: {
         "phase_shift": [
-            "You used to avoid the old stuff. Change the subject. Look away.\n\nNow you're letting it sit there. Not running.\n\nThat's different. That took something.",
-            "The past shows up, and you don't flinch as hard.\n\nYou used to shut it down fast. Now you look at it.\n\nYou're steadier with your own history.",
+            "You used to avoid the old stuff. Change the subject. Look away.\n\nNow it surfaces — and you let it sit there. You don't run. Something broke the avoidance pattern.\n\nThat steadiness wasn't there before.",
+            "The past shows up, and you don't flinch as hard.\n\nBefore, it would land — and you'd shut it down fast. Now it lands — and you look at it.\n\nThe fear doesn't complete the way it used to.",
         ],
         "cycle_event": [
-            "You're not dodging it the way you used to.\n\nWhen the old material surfaces, you let it be there.\n\nThe fear of it is fading.",
+            "You're not dodging it the way you used to.\n\nThe old material surfaces. You start to push it away — then don't.\n\nSomething shifted in how you face it.",
         ],
         "normal_flow": [
-            "You're handling the old stuff better.\n\nNot processing it all. Just not running from it.\n\nThat's progress you didn't plan.",
+            "You're handling the old stuff better.\n\nIt arrives. You notice. You start to resist — then let it be there instead.\n\nThat's progress you didn't plan.",
         ],
     },
     TransitTension.SHIFT_BEFORE_DIRECTION: {
         "phase_shift": [
-            "You used to need to know where you were going. Now you just go.\n\nThe destination isn't clear. You're moving anyway.\n\nThat's not how you used to travel.",
-            "You're more comfortable in the unknown than you were.\n\nBefore, ambiguity made you freeze. Now it makes you curious.\n\nThe relationship with uncertainty has shifted.",
+            "You used to need to know where you were going. Now you try to figure it out — then stop.\n\nThe destination isn't clear. You move anyway. The need for certainty doesn't complete.\n\nThat's not how you used to travel.",
+            "You're more comfortable in the unknown than you were.\n\nBefore, ambiguity made you freeze. Now it starts to — then curiosity takes over.\n\nThe relationship with uncertainty has shifted.",
         ],
         "cycle_event": [
-            "You're not demanding a map the way you used to.\n\nYou're letting the path reveal itself.\n\nLess control. More trust.",
+            "You're not demanding a map the way you used to.\n\nThe urge to control the path arises. Then it doesn't follow through.\n\nYou're letting things reveal themselves instead.",
         ],
         "normal_flow": [
-            "You're okay with not knowing.\n\nNot thrilled. But okay.\n\nThat tolerance wasn't there a month ago.",
+            "You're okay with not knowing.\n\nNot thrilled. But okay. The anxiety rises — then dissipates faster.\n\nThat tolerance wasn't there a month ago.",
         ],
     },
     TransitTension.INNER_PACE_OUTER_TIMING: {
         "phase_shift": [
-            "You used to speed up when they wanted you to. Now you don't.\n\nYou hold your pace. Even when it's uncomfortable.\n\nThat boundary is new.",
-            "You're not adjusting your rhythm as quickly.\n\nThe world pushes. You don't fold.\n\nYou've started trusting your own timing more.",
+            "You used to speed up when they wanted you to. Now you start to — then stop.\n\nYou hold your pace. Even when it's uncomfortable. Something catches the accommodation reflex.\n\nThat boundary is new.",
+            "You're not adjusting your rhythm as quickly.\n\nThe world pushes. You feel the pull to match. Then you don't.\n\nYou've started trusting your own timing more.",
         ],
         "cycle_event": [
-            "You're less apologetic about your pace.\n\nYou used to rush to match. Now you state your timing and stick to it.\n\nThat confidence wasn't there before.",
+            "You're less apologetic about your pace.\n\nYou start to rush — then catch yourself. State your timing. Stick to it.\n\nThat confidence wasn't there before.",
         ],
         "normal_flow": [
-            "You're moving at your own speed more often.\n\nNot always. But more.\n\nThe accommodation reflex is softening.",
+            "You're moving at your own speed more often.\n\nNot always. But more. The pressure to match arises — then doesn't complete.\n\nYour rhythm is becoming more your own.",
         ],
     },
     TransitTension.COMPLETION_RESISTANCE: {
         "phase_shift": [
-            "You used to hold on longer. Past the point. Past the use.\n\nNow you're setting things down faster.\n\nNot perfectly. But more than before.",
-            "Endings used to feel like loss. Now they feel like release.\n\nThat shift didn't happen overnight. But it happened.",
+            "You used to hold on longer. Past the point. Past the use.\n\nNow the grip starts — then loosens. You're setting things down faster.\n\nNot perfectly. But more than before.",
+            "Endings used to feel like loss. Now they start to — then something shifts. Release becomes possible.\n\nThat shift didn't happen overnight. But it happened.",
         ],
         "cycle_event": [
-            "You're letting go easier.\n\nThe grip that used to be automatic — it's loosening.\n\nYou're closing chapters you used to keep open.",
+            "You're letting go easier.\n\nThe grip starts. Then catches. Loosens.\n\nYou're closing chapters you used to keep open.",
         ],
         "normal_flow": [
-            "You're finishing things you used to leave open.\n\nSmall things. But consistently.\n\nThe pattern is changing.",
+            "You're finishing things you used to leave open.\n\nSmall things. But consistently. The resistance arises — then doesn't complete.\n\nThe pattern is changing.",
         ],
     },
 }
@@ -552,7 +553,7 @@ def get_cause_sentence(tension: TransitTension, transit_stack: Dict[str, Any]) -
 
 
 # =============================================================================
-# VALIDATION (v7 Behavioral Edge)
+# VALIDATION (v7 Edge Detection)
 # =============================================================================
 
 FAIL_PHRASES = [
@@ -574,9 +575,17 @@ FAIL_PHRASES = [
     "this is about",
 ]
 
+# EDGE/BREAK POINT markers - indicate where behavior breaks or fails
+EDGE_MARKERS = [
+    "then", "but", "doesn't land", "doesn't stick", "doesn't complete",
+    "something catches", "you pause", "you pull back", "it doesn't",
+    "you stop", "you catch yourself", "then you don't", "then stop",
+    "that wasn't there", "that's not how", "that didn't",
+]
+
 def validate_narrative(body: str, altitude: str) -> Tuple[bool, str]:
     """
-    Validate narrative against v7 behavioral edge standards.
+    Validate narrative against v7 edge detection standards.
     Returns (is_valid, reason).
     """
     body_lower = body.lower()
@@ -585,6 +594,11 @@ def validate_narrative(body: str, altitude: str) -> Tuple[bool, str]:
     for phrase in FAIL_PHRASES:
         if phrase in body_lower:
             return False, f"Contains banned phrase: '{phrase}'"
+    
+    # Check for edge/break point markers (REQUIRED for all altitudes)
+    has_edge = any(m in body_lower for m in EDGE_MARKERS)
+    if not has_edge:
+        return False, "Missing break point / edge marker (then, but, doesn't land, etc.)"
     
     # Altitude-specific validation
     if altitude == "week":
