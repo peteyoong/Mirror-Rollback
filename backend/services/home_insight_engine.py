@@ -247,11 +247,10 @@ def validate_hero_copy(title: str, body: str, bridge: str, day_class: str) -> Di
 
 
 # =============================================================================
-# DAY-CLASS HERO FRAMING (v1.8 - Precision Upgrade)
+# DAY-CLASS HERO FRAMING (v1.9 - Compression & Punch)
 # =============================================================================
-# v1.8: Sharper body (2-3 sentences), additive bridges (new layer, not repetition)
-# Body: Name tension + trap, avoid over-explaining
-# Bridge: Recognition/truth that adds new insight, slightly uncomfortable
+# v1.9: Maximum compression. No connectors. 6-12 words per sentence.
+# Every line must pass: "Would someone screenshot this?"
 
 DAY_CLASS_FRAMINGS = {
     "phase_shift": {
@@ -267,21 +266,21 @@ DAY_CLASS_FRAMINGS = {
             "Not Yet",
             "It's Still Becoming",
         ],
-        # v1.8: Sharper bodies - 2-3 sentences, tension + trap, no over-explaining
+        # v1.9: Compressed, punchy - no connectors, quotable lines
         "body_templates": [
-            "The pressure to decide feels like clarity. It isn't. That urgency is discomfort looking for an exit.",
-            "Part of you wants this settled now. But wanting it done isn't the same as it being ready.",
-            "You're reaching for a conclusion that hasn't formed yet. The grip is the tell.",
-            "Something is trying to resolve before it's finished. Forcing it now will cost you later.",
-            "The itch to lock this in is real. But the itch is pressure, not signal.",
+            "The pressure feels like clarity. It isn't. That's discomfort wearing a mask.",
+            "Wanting it done doesn't make it ready. The grip is the tell.",
+            "You're reaching for a conclusion that doesn't exist yet.",
+            "Something is trying to finish before it's formed. That never works.",
+            "The itch to close this is real. The answer isn't.",
         ],
-        # v1.8: Additive bridges - new layer, recognition, slightly exposing
+        # v1.9: Punchy bridges - single impact line
         "bridge_templates": [
-            "Relief and clarity are getting mixed up here.",
-            "The urgency is coming from discomfort, not truth.",
-            "Wanting it settled isn't the same as it being ready.",
-            "You're trying to skip the part that actually matters.",
-            "The conclusion you want doesn't exist yet.",
+            "Relief is not the same as clarity.",
+            "The urgency is the lie.",
+            "Settling it won't make it true.",
+            "You're skipping the part that matters.",
+            "That conclusion doesn't exist yet.",
         ],
     },
     "cycle_event": {
@@ -297,19 +296,19 @@ DAY_CLASS_FRAMINGS = {
             "The Cycle Is Turning",
             "Pay Attention Today",
         ],
-        # v1.8: Sharper bodies
+        # v1.9: Compressed bodies
         "body_templates": [
-            "Something is peaking. You can feel it even if you can't name it. This isn't background noise.",
-            "A cycle is completing. What's been building wants your attention now—not later.",
-            "Today has weight. The temptation is to treat it like any other day. It isn't.",
-            "Something is asking for a decision. Delaying is also a decision.",
+            "Something is peaking. You feel it. This isn't background noise.",
+            "A cycle is completing. It wants your attention now.",
+            "Today has weight. Treating it like any other day is the mistake.",
+            "Something is asking for a decision. Delay is also a decision.",
         ],
-        # v1.8: Additive bridges
+        # v1.9: Punchy bridges
         "bridge_templates": [
-            "What you ignore today will return louder.",
-            "This window won't stay open.",
-            "You already know what this is about.",
-            "Pretending it's not significant won't make it less so.",
+            "What you ignore returns louder.",
+            "This window closes.",
+            "You already know what this is.",
+            "Pretending won't make it smaller.",
         ],
     },
     "normal_flow": {
@@ -324,19 +323,19 @@ DAY_CLASS_FRAMINGS = {
             "Part of You Knows",
             "The Pattern Returns",
         ],
-        # v1.8: Sharper bodies
+        # v1.9: Compressed bodies
         "body_templates": [
-            "You're feeling something you can't name. The urge is to make it make sense. That urge is the trap.",
-            "This shape is familiar. You've been here before. The question is whether you'll repeat the move.",
-            "Part of you already knows what this is. The thinking is catching up to the knowing.",
-            "There's a pull underneath today. You don't have to name it yet—just don't ignore it.",
+            "You're feeling something you can't name. The urge to explain it is the trap.",
+            "This shape is familiar. You've been here. Will you repeat the move?",
+            "Part of you already knows. The thinking is catching up.",
+            "There's a pull underneath. Don't name it yet. Don't ignore it either.",
         ],
-        # v1.8: Additive bridges
+        # v1.9: Punchy bridges
         "bridge_templates": [
             "The pattern is older than this moment.",
             "You're circling something you already know.",
-            "The answer isn't in more information.",
-            "Naming it won't make it easier—but it will make it real.",
+            "More information won't help.",
+            "Naming it makes it real.",
         ],
     },
 }
@@ -477,8 +476,8 @@ def select_hero_framing(
     body_direction = body_options[body_index]
     bridge_direction = bridge_options[bridge_index]
     
-    # v1.8: Only use modulated_copy if it's substantive (>70 chars)
-    # v1.8 templates are concise by design, so don't replace with shorter transit copy
+    # v1.9: Only use modulated_copy if it's substantive (>70 chars)
+    # v1.9 templates are compressed by design, so don't replace with shorter transit copy
     if dominant_tension and dominant_tension.get("modulated_copy"):
         modulated_copy = dominant_tension.get("modulated_copy", "")
         
@@ -554,33 +553,33 @@ def generate_day_class_hero(
     body = framing["body_direction"]
     bridge = framing["bridge_direction"]
     
-    # v1.8: Emphasis-based bridges that ADD insight (not repeat body)
-    # These are psychologically precise and slightly exposing
-    EMPHASIS_BRIDGES_V18 = {
+    # v1.9: Emphasis-based bridges - MAXIMUM COMPRESSION
+    # No connectors. 6-12 words. Every line quotable.
+    EMPHASIS_BRIDGES_V19 = {
         "incompleteness": [
-            "The conclusion you want doesn't exist yet.",
-            "You're trying to finish something that isn't done forming.",
-            "Wanting it complete won't make it complete.",
+            "That conclusion doesn't exist yet.",
+            "It's not done forming.",
+            "Finishing it won't make it ready.",
         ],
         "instability": [
-            "Stability isn't available right now. That's the information.",
-            "The ground will settle. Just not today.",
-            "You can't stabilize something still in motion.",
+            "Stability isn't available today.",
+            "The ground settles later. Not now.",
+            "You can't stabilize motion.",
         ],
         "letting_go": [
-            "Holding tighter won't change what wants to leave.",
-            "The release you're avoiding is the move.",
-            "What you're gripping is already gone.",
+            "Gripping won't change what's leaving.",
+            "The release is the move.",
+            "What you're holding is already gone.",
         ],
         "pressure": [
-            "The urgency is coming from discomfort, not truth.",
-            "Relief and clarity are getting mixed up here.",
-            "The pressure is real. The answer it's pushing you toward isn't.",
+            "The urgency is the lie.",
+            "Relief isn't clarity.",
+            "The pressure is real. The answer isn't.",
         ],
         "patience": [
-            "Wanting it settled isn't the same as it being ready.",
-            "The timing isn't yours to force.",
-            "You're ahead of where this actually is.",
+            "Wanting it done won't make it ready.",
+            "The timing isn't yours.",
+            "You're ahead of where this is.",
         ],
     }
     
@@ -590,19 +589,19 @@ def generate_day_class_hero(
         
         # Find matching emphasis bridge
         for emph in emphasis_list:
-            if emph in EMPHASIS_BRIDGES_V18:
-                bridges = EMPHASIS_BRIDGES_V18[emph]
+            if emph in EMPHASIS_BRIDGES_V19:
+                bridges = EMPHASIS_BRIDGES_V19[emph]
                 # Select based on date seed
                 date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
                 seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
                 bridge_index = seed_hash % len(bridges)
                 candidate_bridge = bridges[bridge_index]
                 
-                # v1.8: Validate bridge is additive (not repetitive of body)
+                # v1.9: Validate bridge is additive (not repetitive of body)
                 bridge_validation = validate_bridge_additive(body, candidate_bridge)
                 if bridge_validation["is_additive"]:
                     bridge = candidate_bridge
-                    logger.info(f"[HeroFraming v1.8] Selected additive bridge for emphasis '{emph}'")
+                    logger.info(f"[HeroFraming v1.9] Selected additive bridge for emphasis '{emph}'")
                 else:
                     # Try next bridge option
                     for i in range(1, len(bridges)):
@@ -610,11 +609,11 @@ def generate_day_class_hero(
                         alt_validation = validate_bridge_additive(body, alt_bridge)
                         if alt_validation["is_additive"]:
                             bridge = alt_bridge
-                            logger.info(f"[HeroFraming v1.8] Selected alt additive bridge for '{emph}'")
+                            logger.info(f"[HeroFraming v1.9] Selected alt additive bridge for '{emph}'")
                             break
                 break
     
-    # v1.8: Final bridge additivity check - if bridge duplicates body, select different
+    # v1.9: Final bridge additivity check - if bridge duplicates body, select different
     bridge_check = validate_bridge_additive(body, bridge)
     if not bridge_check["is_additive"]:
         logger.warning(f"[HeroFraming v1.8] Bridge duplicates body concepts: {bridge_check['overlap_concepts']}")
@@ -635,15 +634,15 @@ def generate_day_class_hero(
                     logger.info(f"[HeroFraming v1.8] Replaced with additive bridge: {bridge}")
                     break
     
-    # v1.7/v1.8: Final validation before return
+    # v1.9: Final validation before return
     final_validation = validate_hero_copy(framing["selected_title"], body, bridge, day_class)
     
     if final_validation["severity"] == "BLOCK":
         logger.error("[HeroFraming] CRITICAL: Generic copy slipped through. Forcing override.")
         
         if day_class == "phase_shift":
-            body = "The pressure to decide feels like clarity. It isn't. That urgency is discomfort looking for an exit."
-            bridge = "Relief and clarity are getting mixed up here."
+            body = "The pressure feels like clarity. It isn't. That's discomfort wearing a mask."
+            bridge = "The urgency is the lie."
     
     return {
         "success": True,
@@ -1441,7 +1440,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v8_precision",  # Version flag for frontend
+        "card_version": "mirror_v9_punch",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
