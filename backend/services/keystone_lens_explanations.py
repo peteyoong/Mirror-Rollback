@@ -39,76 +39,76 @@ class LensRole(str, Enum):
 
 ASTROLOGY_TIMING_EXPLANATIONS = {
     "decision_switch_loop": {
-        "title": "Why You Can't Land on Anything Right Now",
+        "title": "Why Today Won't Let You Land",
         "body": "Mercury is square Neptune today. Information is distorted. What seemed clear five minutes ago now has gaps. You're not indecisive—you're receiving conflicting signals that make commitment feel premature."
     },
     "decide_then_undo": {
-        "title": "Why You Keep Taking Things Back",
-        "body": "Mars is pushing action while the Moon is in a holding pattern. You commit from impulse, then the slower part of you catches up and says 'wait.' The reversal isn't weakness—it's two different timing systems colliding."
+        "title": "Why Today Pulls You Back",
+        "body": "Mars is pushing action while the Moon is in a holding pattern. You commit from impulse, then the slower part catches up and says 'wait.' Two different timing systems are colliding."
     },
     "endless_options": {
-        "title": "Why Nothing Feels Like The One",
-        "body": "Jupiter is expanding your field of perception today. Every option opens two more. Your system is absorbing faster than it can filter. The paralysis isn't in you—it's in the volume of incoming data."
+        "title": "Why Nothing Settles Today",
+        "body": "Jupiter is expanding your field of perception. Every option opens two more. Your system is absorbing faster than it can filter. The paralysis isn't in you—it's in the volume of incoming data."
     },
     "start_stop_restart": {
-        "title": "Why You Can't Sustain Momentum",
-        "body": "The Moon is void-of-course right now. Actions started during this window tend to stall or need restarting. This isn't a personal failing—it's literally a dead zone for follow-through."
+        "title": "Why Today Stalls Momentum",
+        "body": "The Moon is void-of-course right now. Actions started during this window tend to stall or need restarting. This isn't personal—it's literally a dead zone for follow-through."
     },
     "almost_act": {
-        "title": "Why You Keep Pulling Back at the Edge",
-        "body": "Saturn is aspecting your action planets today. Every time you reach forward, something pulls you back for one more check. The hesitation is Saturn asking: 'Are you actually ready for what happens next?'"
+        "title": "Why Today Keeps You at the Edge",
+        "body": "Saturn is aspecting your action planets. Every time you reach forward, something pulls you back for one more check. Saturn is asking: 'Are you actually ready for what happens next?'"
     },
     "action_delay_loop": {
-        "title": "Why You Keep Postponing",
-        "body": "Mars is in a slow sign and squared by Saturn. The drive to act is there, but the timing keeps saying 'not yet.' You're not procrastinating—the window for clean action hasn't opened."
+        "title": "Why Today Says 'Not Yet'",
+        "body": "Mars is in a slow sign and squared by Saturn. The drive to act is there, but the timing keeps saying 'not yet.' The window for clean action hasn't opened."
     },
     "force_clarity_fail": {
-        "title": "Why Answers Aren't Coming",
-        "body": "Mercury is conjunct Neptune today. The harder you push for clarity, the more it dissolves. This isn't confusion—it's a transit that dissolves false certainty before real understanding arrives."
+        "title": "Why Today Dissolves Answers",
+        "body": "Mercury is conjunct Neptune. The harder you push for clarity, the more it dissolves. This transit dissolves false certainty before real understanding arrives."
     },
     "think_loop": {
-        "title": "Why Your Mind Won't Stop Looping",
-        "body": "Mercury is in a tight aspect to Pluto today. Thoughts go deep, then deeper, then circle back. You're not overthinking—you're caught in a transit that demands you see what's underneath."
+        "title": "Why Today Won't Let You Stop Thinking",
+        "body": "Mercury is in a tight aspect to Pluto. Thoughts go deep, then deeper, then circle back. You're caught in a transit that demands you see what's underneath."
     },
     "check_recheck": {
-        "title": "Why You Keep Looking Again",
-        "body": "The Moon is in Virgo today, activating the part of you that double-checks everything. Verification doesn't satisfy because the transit keeps moving the threshold for 'enough.' It passes tomorrow."
+        "title": "Why Today Moves the Threshold",
+        "body": "The Moon is in Virgo, activating the part of you that double-checks everything. Verification doesn't satisfy because the transit keeps moving the threshold for 'enough.' It passes tomorrow."
     },
     "direction_shift": {
-        "title": "Why You Keep Changing Course",
+        "title": "Why Today Keeps Rewriting the Plan",
         "body": "Uranus is active in your chart today. Each new input rewrites the previous plan. The instability isn't in your character—it's in a transit that literally specializes in sudden pivots."
     },
     "restless_pivot": {
-        "title": "Why You Can't Stay in One Place",
-        "body": "The Moon is making multiple hard aspects today—square, opposition, square again. Every few hours, your internal state shifts. You're not restless by nature right now—you're being moved by rapid lunar transits."
+        "title": "Why Today Won't Let You Settle",
+        "body": "The Moon is making multiple hard aspects—square, opposition, square again. Every few hours, your internal state shifts. You're being moved by rapid lunar transits."
     },
     "forward_backward": {
-        "title": "Why Progress Feels Like Regression",
+        "title": "Why Today Reverses Progress",
         "body": "Mercury is stationing retrograde (or just stationed direct). Forward motion hits review mode. Two steps forward, one step back isn't failure—it's the literal signature of this transit period."
     },
     "almost_done": {
-        "title": "Why You Can't Cross The Finish Line",
-        "body": "Saturn is aspecting your completion planets today. The last 10% requires more than the first 90%. This isn't resistance—it's a transit that demands you earn the ending."
+        "title": "Why Today Blocks the Finish",
+        "body": "Saturn is aspecting your completion planets. The last 10% requires more than the first 90%. This transit demands you earn the ending."
     },
     "hold_open": {
-        "title": "Why You Won't Close The Loop",
-        "body": "Neptune is active today, blurring boundaries between done and not-done. Closure feels like loss of possibility. You're not avoiding commitment—you're under a transit that makes endings feel premature."
+        "title": "Why Today Resists Closure",
+        "body": "Neptune is active today, blurring boundaries between done and not-done. Closure feels like loss of possibility. This transit makes endings feel premature."
     },
     "finish_unfinish": {
-        "title": "Why Done Never Stays Done",
+        "title": "Why Today Reopens What's Done",
         "body": "Mercury retrograde (or its shadow) is activating revision. What you finished keeps reopening because the transit insists on one more pass. Completion will stick once Mercury clears this zone."
     },
     "react_regret": {
-        "title": "Why You're Moving Faster Than You Should",
-        "body": "Mars is conjunct or square your natal Mercury today. Your reaction speed is outpacing your processing speed. The impulse arrives before the thought completes. This gap closes when Mars moves on."
+        "title": "Why Today Moves You Too Fast",
+        "body": "Mars is conjunct or square your natal Mercury. Your reaction speed is outpacing your processing speed. The impulse arrives before the thought completes. This gap closes when Mars moves on."
     },
     "feel_before_think": {
-        "title": "Why Emotion Arrives Before Logic",
-        "body": "The Moon is making a hard aspect to Mercury today. Emotional data is reaching you faster than mental data. You're not being irrational—you're receiving information in the wrong order."
+        "title": "Why Today Puts Feeling First",
+        "body": "The Moon is making a hard aspect to Mercury. Emotional data is reaching you faster than mental data. You're not being irrational—you're receiving information in the wrong order."
     },
     "snap_then_soften": {
-        "title": "Why You're Sharp Then Sorry",
-        "body": "Mars is square Venus today. Assertion comes out harder than intended because tenderness isn't available in the same moment. The softening that follows is the Venus catching up. The friction is temporary."
+        "title": "Why Today Makes You Sharp First",
+        "body": "Mars is square Venus. Assertion comes out harder than intended because tenderness isn't available in the same moment. The softening follows as Venus catches up. The friction is temporary."
     },
 }
 
@@ -176,76 +176,76 @@ def generate_astrology_keystone_explanation(
 
 HUMAN_DESIGN_MECHANISM_EXPLANATIONS = {
     "decision_switch_loop": {
-        "title": "Where The Switching Comes From",
-        "body": "Your system processes decisions through multiple centers before landing. The Head and Ajna want certainty. The Solar Plexus wants emotional clarity. When they don't sync, you cycle through options. This isn't indecision—it's your mechanism requiring more passes before commitment."
+        "title": "How Your System Cycles Through Options",
+        "body": "When you try to land on something, your system routes it through multiple centers. Head wants certainty. Ajna wants logic. Solar Plexus wants emotional clarity. They don't sync at the same speed—so you cycle."
     },
     "decide_then_undo": {
-        "title": "Why You Reverse After Committing",
-        "body": "Your design has a fast response mechanism paired with a slower emotional wave. The initial 'yes' comes from one center. Then another center catches up and overrides. The undo isn't flip-flopping—it's a two-stage verification system built into your wiring."
+        "title": "How Your System Overrides Itself",
+        "body": "When you commit, your fast-response mechanism fires first. Then a slower center catches up and says 'wait.' The undo isn't flip-flopping—it's a two-stage verification system built into your wiring."
     },
     "endless_options": {
-        "title": "Why Options Keep Multiplying",
-        "body": "Your Head Center generates possibilities faster than your Authority can filter them. Each option triggers three more considerations. The paralysis isn't weakness—it's an overactive conceptual system outpacing your decision mechanism."
+        "title": "How Your System Generates More Than It Can Filter",
+        "body": "When you consider options, your Head Center generates possibilities faster than your Authority can filter. Each option triggers three more. The paralysis is an overactive conceptual system outpacing your decision mechanism."
     },
     "start_stop_restart": {
-        "title": "Why Momentum Breaks",
-        "body": "Your Sacral responds in bursts, not sustained streams. It says 'yes' to begin, then needs to check again mid-process. The stopping isn't lack of commitment—it's your generator mechanism requiring re-confirmation to continue."
+        "title": "How Your System Checks Mid-Process",
+        "body": "When you start something, your Sacral says 'yes.' Mid-process, it needs to check again. The stopping isn't lack of commitment—it's your mechanism requiring re-confirmation to continue."
     },
     "almost_act": {
-        "title": "Why You Pull Back at the Edge",
-        "body": "Your system has a built-in pause before action. The Spleen or Solar Plexus sends a last-second check signal. You get to the threshold, then something in your design says 'wait.' The hesitation is protective circuitry, not fear."
+        "title": "How Your System Pauses Before Action",
+        "body": "When you reach for action, your Spleen or Solar Plexus sends a last-second check signal. The hesitation isn't fear—it's protective circuitry built into your design."
     },
     "action_delay_loop": {
-        "title": "Why Doing Gets Postponed",
-        "body": "Your Authority requires time that your mind doesn't want to give. The head plans immediately. The body needs to process longer. The delay isn't procrastination—it's a mismatch between your mental speed and your decision mechanism's timing requirements."
+        "title": "How Your System Slows the Mental Rush",
+        "body": "When you plan to act, your head moves immediately. Your body needs longer. The delay isn't procrastination—it's a mismatch between mental speed and your Authority's timing requirements."
     },
     "force_clarity_fail": {
-        "title": "Why Clarity Won't Arrive on Demand",
-        "body": "Your design doesn't produce clarity through force. The Ajna analyzes, but your Authority operates on its own timeline. Pushing harder creates static, not signal. Your mechanism requires patience that your mind resists."
+        "title": "How Your System Resists Forced Answers",
+        "body": "When you push for clarity, your Ajna analyzes—but your Authority operates on its own timeline. Pushing harder creates static, not signal. Your mechanism requires patience your mind resists."
     },
     "think_loop": {
-        "title": "Why Thoughts Keep Circling",
-        "body": "Your Head Center is defined and constantly active. It generates questions, then questions the answers. The loop isn't overthinking—it's a pressure system designed to process deeply, not quickly. Completion comes from the body, not the mind."
+        "title": "How Your System Processes Deeply",
+        "body": "When you think, your defined Head Center generates questions, then questions the answers. The loop isn't overthinking—it's a pressure system designed to process deeply, not quickly."
     },
     "check_recheck": {
-        "title": "Why Verification Never Satisfies",
-        "body": "Your system has an undefined center that amplifies uncertainty. It absorbs doubt from the environment and magnifies it internally. The checking isn't paranoia—it's an open center looking for stability it can't generate on its own."
+        "title": "How Your System Amplifies Uncertainty",
+        "body": "When you check, your undefined center absorbs doubt from the environment and magnifies it. The rechecking isn't paranoia—it's an open center looking for stability it can't generate on its own."
     },
     "direction_shift": {
-        "title": "Why Direction Keeps Changing",
-        "body": "Your G Center or Spleen receives new orientation data continuously. Each input recalibrates your sense of direction. The shifting isn't confusion—it's a navigation system that updates in real-time rather than locking in."
+        "title": "How Your System Updates in Real-Time",
+        "body": "When you set a direction, your G Center or Spleen keeps receiving new orientation data. Each input recalibrates. The shifting isn't confusion—it's a navigation system that updates continuously."
     },
     "restless_pivot": {
-        "title": "Why Settling Feels Impossible",
-        "body": "Your design has motor energy that seeks movement. Stillness creates pressure in your system. The restlessness isn't anxiety—it's defined motor centers that aren't satisfied with static states. Your mechanism is built to move."
+        "title": "How Your System Seeks Movement",
+        "body": "When you try to settle, your defined motor centers create pressure. Stillness doesn't satisfy them. The restlessness isn't anxiety—your mechanism is built to move, not stay still."
     },
     "forward_backward": {
-        "title": "Why Progress Reverses",
-        "body": "Your Authority operates in waves, not straight lines. Forward movement triggers a review signal from another center. The backward step isn't regression—it's your system's natural integration rhythm. Two steps forward, one step back is your pattern, not a flaw."
+        "title": "How Your System Integrates in Waves",
+        "body": "When you move forward, another center triggers a review signal. The backward step isn't regression—it's your system's natural integration rhythm. Two forward, one back is your pattern."
     },
     "almost_done": {
-        "title": "Why Finishing Stalls",
-        "body": "Your system has a completion checkpoint that activates near the end. The Throat or Solar Plexus sends a pause signal before the final step. The stall isn't resistance—it's a quality-control mechanism asking: 'Are we actually ready to close this?'"
+        "title": "How Your System Quality-Checks the Ending",
+        "body": "When you near completion, your Throat or Solar Plexus sends a pause signal. The stall isn't resistance—it's a quality-control checkpoint asking: 'Are we actually ready to close this?'"
     },
     "hold_open": {
-        "title": "Why Closure Gets Avoided",
-        "body": "Your design processes better with options than with finality. Closing a loop triggers loss signals in your system. The avoidance isn't fear of commitment—it's a mechanism that values possibility over completion."
+        "title": "How Your System Values Optionality",
+        "body": "When you could close something, your design processes better with options than finality. Closing triggers loss signals. The avoidance isn't fear—it's a mechanism that values possibility."
     },
     "finish_unfinish": {
-        "title": "Why Done Keeps Reopening",
-        "body": "Your Authority doesn't recognize 'done' the way your mind does. The mental 'complete' happens before the body agrees. The reopening isn't perfectionism—it's your system signaling that the actual completion criteria weren't met."
+        "title": "How Your System Signals 'Not Actually Done'",
+        "body": "When you finish mentally, your body hasn't agreed yet. The reopening isn't perfectionism—it's your system signaling that actual completion criteria weren't met."
     },
     "react_regret": {
-        "title": "Why Response Outruns Processing",
-        "body": "Your Sacral or Solar Plexus responds before your Ajna can evaluate. The response mechanism is faster than the analysis mechanism. The regret isn't impulsivity—it's a timing gap between reaction and understanding that's built into your design."
+        "title": "How Your System Responds Before Processing",
+        "body": "When something happens, your Sacral or Solar Plexus responds before your Ajna can evaluate. The regret isn't impulsivity—it's a timing gap between reaction and understanding built into your design."
     },
     "feel_before_think": {
-        "title": "Why Emotion Arrives First",
-        "body": "Your Solar Plexus is defined and processes ahead of your mental centers. Feeling is your first data point, not an afterthought. The sequencing isn't irrationality—it's your system prioritizing emotional intelligence over mental analysis."
+        "title": "How Your System Prioritizes Emotional Data",
+        "body": "When you encounter something, your defined Solar Plexus processes ahead of your mental centers. Feeling is your first data point. The sequencing isn't irrational—it's how you're built."
     },
     "snap_then_soften": {
-        "title": "Why Sharpness Comes Before Tenderness",
-        "body": "Your system has a protective edge that activates before your softer response. The Spleen or defined Will pushes out first. Vulnerability follows once safety is established. The snap isn't aggression—it's a defense mechanism that fires before your heart center engages."
+        "title": "How Your System Protects Before It Softens",
+        "body": "When you respond, your Spleen or Will pushes out a protective edge first. Vulnerability follows once safety is established. The snap isn't aggression—it's a defense mechanism that fires before your heart engages."
     },
 }
 
@@ -314,76 +314,76 @@ def generate_human_design_keystone_explanation(
 
 ENNEAGRAM_REPETITION_EXPLANATIONS = {
     "decision_switch_loop": {
-        "title": "Why You Keep Cycling Through Options",
-        "body": "Switching protects you from the wrong choice. If you never land, you never fail. The loop repeats because certainty feels dangerous—what if you pick wrong? So you keep the options open, rewrite the draft, check one more time. The switching isn't indecision. It's a defense against regret that never lets you rest."
+        "title": "Why You Won't Let Yourself Land",
+        "body": "Switching protects you from the wrong choice. If you never land, you never fail. The loop repeats because certainty feels dangerous. So you keep options open, rewrite the draft, check one more time. It's a defense against regret."
     },
     "decide_then_undo": {
-        "title": "Why You Take It Back",
-        "body": "The reversal protects you from being locked in. Committing feels like closing a door you might need. So you say yes, then feel trapped, then undo it to breathe again. The loop repeats because finality triggers something in you that needs an exit. It's not about the decision—it's about keeping the escape hatch open."
+        "title": "Why You Keep the Exit Open",
+        "body": "Reversing protects you from being locked in. Commitment feels like closing a door you might need. So you say yes, feel trapped, then undo it to breathe. The loop repeats because finality triggers something that needs an escape hatch."
     },
     "endless_options": {
-        "title": "Why Nothing Ever Feels Like Enough",
-        "body": "More options feel like more safety. If you keep looking, maybe you'll find the perfect one that doesn't require sacrifice. The loop repeats because choosing means losing the others. So you keep them all in view, never narrowing, because narrowing feels like loss. The paralysis isn't weakness—it's a refusal to grieve what you'd give up."
+        "title": "Why You Won't Narrow Down",
+        "body": "More options feel safer. If you keep looking, maybe you'll find the perfect one. The loop repeats because choosing means losing the others. Paralysis isn't weakness—it's a refusal to grieve what you'd give up."
     },
     "start_stop_restart": {
-        "title": "Why You Keep Stalling Out",
-        "body": "Stopping protects you from what happens if you finish. Starting feels safe—full of possibility. But midway, the stakes get real. So you pause, reset, begin again where it still feels open. The loop repeats because completion carries weight you're not ready to hold. Starting over is lighter than finishing."
+        "title": "Why You Keep Resetting",
+        "body": "Stopping protects you from what happens if you finish. Midway, the stakes get real. The loop repeats because completion carries weight you're not ready to hold. Starting over is lighter than finishing."
     },
     "almost_act": {
-        "title": "Why You Pull Back at the Edge",
-        "body": "The hesitation protects you from being seen acting. Moving forward means committing publicly. Pulling back means you can still change your mind. The loop repeats because action makes you visible, and visibility makes you vulnerable. Staying at the edge feels safer than crossing it."
+        "title": "Why You Stay at the Edge",
+        "body": "Hesitation protects you from being seen acting. Moving forward means committing publicly. The loop repeats because action makes you visible, and visibility makes you vulnerable. The edge feels safer than crossing."
     },
     "action_delay_loop": {
-        "title": "Why Tomorrow Always Feels Safer",
-        "body": "Delaying protects you from the discomfort of now. Doing it later means you don't have to feel the friction today. The loop repeats because the future version of you seems more capable, more ready. But that version never arrives—because avoiding today is the point, not the problem."
+        "title": "Why You Keep Pushing It Forward",
+        "body": "Delaying protects you from the friction of now. The future version of you seems more ready. The loop repeats because that version never arrives—avoiding today is the point, not the problem."
     },
     "force_clarity_fail": {
-        "title": "Why Answers Keep Slipping Away",
-        "body": "Pushing for clarity protects you from sitting with not-knowing. Uncertainty feels unbearable, so you search harder. But the loop repeats because the answer you want doesn't exist yet—and forcing it creates more confusion. The real fear isn't the question. It's the silence while you wait."
+        "title": "Why You Keep Searching Harder",
+        "body": "Pushing protects you from sitting with not-knowing. The loop repeats because the answer you want doesn't exist yet—forcing it creates more confusion. The real fear isn't the question. It's the silence."
     },
     "think_loop": {
-        "title": "Why Your Mind Won't Stop",
-        "body": "Thinking protects you from feeling. As long as you're analyzing, you don't have to land in the discomfort of not understanding. The loop repeats because stopping feels like giving up, and giving up feels like failure. So you keep circling, hoping the next pass will finally make it click. It won't. But stopping feels worse."
+        "title": "Why You Keep Circling Back",
+        "body": "Thinking protects you from feeling. The loop repeats because stopping feels like giving up. So you keep circling, hoping the next pass will click. It won't. But stopping feels worse."
     },
     "check_recheck": {
-        "title": "Why Once Is Never Enough",
-        "body": "Checking protects you from the fear of missing something. What if you overlooked it? What if it changed? The loop repeats because trust doesn't stick. Each verification fades quickly, and the doubt returns. You're not looking for new information—you're looking for the certainty that checking can never give you."
+        "title": "Why You Don't Trust the First Look",
+        "body": "Checking protects you from missing something. The loop repeats because trust doesn't stick. Each verification fades quickly. You're not looking for new information—you're looking for certainty checking can't give."
     },
     "direction_shift": {
-        "title": "Why You Keep Changing Course",
-        "body": "Shifting protects you from being wrong for too long. If you change direction, maybe you'll find the right one before it's too late. The loop repeats because staying the course requires tolerating doubt—and doubt feels like failure. So you pivot, hoping the next direction will feel more certain. It doesn't, but you keep trying."
+        "title": "Why You Keep Pivoting",
+        "body": "Shifting protects you from being wrong for too long. The loop repeats because staying the course requires tolerating doubt—and doubt feels like failure. So you pivot, hoping the next direction feels certain. It doesn't."
     },
     "restless_pivot": {
-        "title": "Why Stillness Feels Like Danger",
-        "body": "Moving protects you from feeling stuck. Staying in one place too long makes you anxious—what if you're missing something better? The loop repeats because rest feels like stagnation, and stagnation feels like death. So you keep pivoting, not toward something, but away from the discomfort of standing still."
+        "title": "Why Staying Put Feels Wrong",
+        "body": "Moving protects you from feeling stuck. The loop repeats because rest feels like stagnation. So you keep pivoting—not toward something, but away from the discomfort of standing still."
     },
     "forward_backward": {
-        "title": "Why You Undo Your Own Progress",
-        "body": "Retreating protects you from the exposure of moving forward. Progress makes you visible. Regression lets you stay hidden. The loop repeats because advancement triggers fear of being seen, judged, or proven inadequate. Going backward isn't failure—it's a return to safety."
+        "title": "Why You Retreat From Progress",
+        "body": "Retreating protects you from exposure. Progress makes you visible. Regression lets you stay hidden. The loop repeats because advancement triggers fear of being seen or judged. Going backward is a return to safety."
     },
     "almost_done": {
-        "title": "Why You Can't Cross The Finish Line",
-        "body": "Stopping short protects you from what happens after. Finishing means facing the next thing—or worse, facing judgment on what you made. The loop repeats because incompleteness is safe. As long as it's not done, it can't be evaluated. You stay in the 90% zone because 100% feels too exposed."
+        "title": "Why You Stop at 90%",
+        "body": "Stopping short protects you from what happens after. Finishing means facing judgment. The loop repeats because incompleteness is safe—it can't be evaluated yet. 100% feels too exposed."
     },
     "hold_open": {
-        "title": "Why You Won't Let It Close",
-        "body": "Keeping it open protects you from the grief of closing. Finishing means accepting that this version is the final version. The loop repeats because endings feel like loss, and loss feels unbearable. So you hold it open, just in case, because 'just in case' feels better than 'it's done.'"
+        "title": "Why You Won't Close It",
+        "body": "Keeping it open protects you from grief. Finishing means this version is final. The loop repeats because endings feel like loss. So you hold it open, just in case."
     },
     "finish_unfinish": {
-        "title": "Why Done Never Stays Done",
-        "body": "Reopening protects you from living with the finished version. Once it's done, you have to accept it as-is. But if you reopen it, you can still make it better—or at least delay accepting it. The loop repeats because closure triggers doubt, and doubt demands another pass. The real fear isn't imperfection—it's finality."
+        "title": "Why Done Keeps Reopening",
+        "body": "Reopening protects you from living with the finished version. The loop repeats because closure triggers doubt. The real fear isn't imperfection—it's finality."
     },
     "react_regret": {
-        "title": "Why You Move Before You Think",
-        "body": "Reacting fast protects you from sitting with the discomfort of waiting. Slowness feels unbearable—something needs to happen now. The loop repeats because the impulse to act is stronger than the fear of being wrong. You move, then regret, then move again. The pattern isn't impulsivity—it's an intolerance for stillness."
+        "title": "Why You Move Before You're Ready",
+        "body": "Reacting fast protects you from the discomfort of waiting. The loop repeats because the impulse to act is stronger than the fear of being wrong. You move, regret, move again."
     },
     "feel_before_think": {
-        "title": "Why Emotion Arrives First",
-        "body": "Feeling first protects you from overthinking yourself into paralysis. If you waited for logic, you might never move. The loop repeats because your emotional system trusts itself more than your mental system. The feeling isn't irrational—it's faster, and sometimes that's what you need. But it also means understanding comes late."
+        "title": "Why Feeling Leads",
+        "body": "Feeling first protects you from overthinking into paralysis. The loop repeats because your emotional system trusts itself more than logic. The feeling isn't irrational—it's faster. Understanding comes late."
     },
     "snap_then_soften": {
-        "title": "Why You Lead With Edge",
-        "body": "The sharpness protects you from being hurt first. If you come in strong, you control the interaction. The softening that follows is the real you—but you can't lead with it. The loop repeats because vulnerability without armor feels dangerous. So you snap, then soften, because softening first feels too exposed."
+        "title": "Why You Come In Sharp",
+        "body": "Sharpness protects you from being hurt first. The softening that follows is the real you—but you can't lead with it. The loop repeats because vulnerability without armor feels dangerous."
     },
 }
 
