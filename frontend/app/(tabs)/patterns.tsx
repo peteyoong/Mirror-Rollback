@@ -682,19 +682,19 @@ export default function PatternsScreen() {
           />
         }
       >
-        {/* SECTION 1: HERO - Pattern fingerprint */}
+        {/* 1. HERO - Pattern fingerprint */}
         {renderHeroSection()}
         
-        {/* SECTION 2: ARCHETYPE - What it points to */}
-        {renderArchetypeSection()}
-        
-        {/* SECTION 3: REPEATING PATTERNS LIST - Evidence/receipts */}
+        {/* 2. WHEN IT APPEARED - Evidence/receipts */}
         {renderRepeatingList()}
         
-        {/* SECTION 4: THIS WEEK - Current activation */}
+        {/* 3. THIS WEEK - Current activation */}
         {renderThisWeekSection()}
         
-        {/* SECTION 5: REFLECTION PROMPT */}
+        {/* 4. ARCHETYPE - Conclusion */}
+        {renderArchetypeSection()}
+        
+        {/* 5. REFLECTION PROMPT */}
         {renderReflectionPrompt()}
         
         {/* Bottom padding for tab bar */}
