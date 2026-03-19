@@ -8956,28 +8956,31 @@ async def get_astrology_today_v2(user_id: str):
 @api_router.get("/astrology/snapshot/{user_id}")
 async def get_astrology_snapshot_3alt(user_id: str):
     """
-    Astrology Snapshot 3-Altitude System
+    Astrology Snapshot v7 Signal Engine
     
-    Three distinct narrative altitudes:
-    - TODAY: Immediate lived experience
-    - THIS WEEK: Repeating pattern / resurfacing dynamic  
-    - THIS MONTH: Developmental arc / what this phase is teaching
+    4-Layer Signal Architecture:
+    - Layer 0: Transit Convergence / Day Class
+    - Layer 1: Dominant Transit Tension (ONE signal selected)
+    - Layer 2: Natal Receiver (personalization)
+    - Layer 3: Time Altitude differentiation
     
     Returns:
     {
-        today: {title, body, bridge, technical},
-        week: {title, body, bridge, technical},
-        month: {title, body, bridge, technical},
+        today: {title, body, cause, technical},
+        week: {title, body, technical},
+        month: {title, body, technical},
         transit_stack: {...},
-        version: "astrology_snapshot_v_next"
+        version: "astrology_signal_v7"
     }
     """
     try:
-        from services.astrology_snapshot_3alt import generate_astrology_snapshot_3alt
+        from services.astrology_signal_engine import generate_astrology_signal
         from services.field_signals import detect_transit_convergence
+        from datetime import datetime, timezone, timedelta
         
         # Get transit stack (real data from field_signals)
         transit_stack = detect_transit_convergence()
+        day_class = transit_stack.get("classification", "normal_flow")
         
         # Get user's chart data if available
         chart_data = None
@@ -9008,23 +9011,54 @@ async def get_astrology_snapshot_3alt(user_id: str):
                     }
             
             if chart_data and any(chart_data.values()):
-                logger.info(f"[AstrologySnapshot3Alt] Found chart data for {user_id[:8]}")
+                logger.info(f"[AstrologySnapshot_v7] Found chart data for {user_id[:8]}: {chart_data}")
             else:
                 chart_data = None
                 
         except Exception as e:
-            logger.debug(f"[AstrologySnapshot3Alt] Could not load chart data: {e}")
+            logger.debug(f"[AstrologySnapshot_v7] Could not load chart data: {e}")
         
-        # Generate 3-altitude snapshot
-        snapshot = generate_astrology_snapshot_3alt(
-            transit_stack=transit_stack,
-            chart_data=chart_data,
-            user_context={"user_id": user_id}
-        )
+        # Generate each altitude using signal engine
+        today_signal = generate_astrology_signal("today", day_class, transit_stack, chart_data)
+        week_signal = generate_astrology_signal("week", day_class, transit_stack, chart_data)
+        month_signal = generate_astrology_signal("month", day_class, transit_stack, chart_data)
         
-        logger.info(f"[AstrologySnapshot3Alt] Generated for {user_id[:8]}: classification={transit_stack.get('classification')}, intensity={transit_stack.get('intensity')}")
+        # Add date context to each altitude
+        now = datetime.now(timezone.utc)
+        today_signal["date"] = now.strftime("%Y-%m-%d")
         
-        return snapshot
+        week_start = now - timedelta(days=now.weekday())
+        week_end = week_start + timedelta(days=6)
+        week_signal["date_range"] = f"{week_start.strftime('%b %d')} - {week_end.strftime('%b %d')}"
+        
+        month_signal["month"] = now.strftime("%B %Y")
+        
+        # Build event names for response
+        events = transit_stack.get("events", [])
+        event_names = [
+            e.get("name", e.get("type", "unknown")) if isinstance(e, dict) else str(e)
+            for e in events
+        ]
+        
+        # Get dominant tension from today for logging
+        dominant_tension = today_signal.get("technical", {}).get("tension", "unknown")
+        
+        logger.info(f"[AstrologySnapshot_v7] Generated for {user_id[:8]}: tension={dominant_tension}, classification={day_class}, intensity={transit_stack.get('intensity')}")
+        
+        return {
+            "success": True,
+            "today": today_signal,
+            "week": week_signal,
+            "month": month_signal,
+            "transit_stack": {
+                "classification": day_class,
+                "intensity": transit_stack.get("intensity"),
+                "interaction_theme": transit_stack.get("interaction_theme"),
+                "events": event_names,
+            },
+            "version": "astrology_signal_v7",
+            "generated_at": now.isoformat(),
+        }
         
     except Exception as e:
         logger.error(f"Astrology snapshot 3-altitude error: {e}")

@@ -45,6 +45,7 @@ interface AstrologyNarrativeData {
 interface AltitudeNarrative {
   title: string;
   body: string;
+  cause?: string | null;  // v7: Short human cause (for Today)
   bridge: string | null;
   date?: string;
   date_range?: string;
@@ -53,6 +54,9 @@ interface AltitudeNarrative {
     day_class?: string;
     week_class?: string;
     month_class?: string;
+    tension?: string;      // v7: Dominant tension name
+    receiver?: string;     // v7: How it lands in natal chart
+    receiver_hint?: string;
     transits?: string[];
     placements?: string[];
     interaction_theme?: string;
@@ -480,6 +484,13 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.narrativeText, { color: theme.text }]}>
             {currentAltitude.body}
           </Text>
+          
+          {/* v7: Cause layer - short, human explanation (Today only) */}
+          {currentAltitude.cause && activeAltitude === 'today' && (
+            <Text style={[styles.causeText, { color: theme.textSecondary }]}>
+              {currentAltitude.cause}
+            </Text>
+          )}
         </View>
 
         {/* Technical Details Toggle - secondary, collapsed */}
@@ -500,6 +511,15 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
         {/* Technical Details (expanded) - supporting evidence, not main experience */}
         {expandedSection === 'technical' && currentAltitude.technical && (
           <View style={[styles.technicalCard, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
+            {/* v7: Show dominant tension */}
+            {currentAltitude.technical.tension && (
+              <View style={styles.technicalRow}>
+                <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>SIGNAL</Text>
+                <Text style={[styles.technicalValue, { color: theme.textSecondary }]}>
+                  {currentAltitude.technical.tension}
+                </Text>
+              </View>
+            )}
             {currentAltitude.technical.transits && currentAltitude.technical.transits.length > 0 && (
               <View style={styles.technicalRow}>
                 <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>TRANSITS</Text>
@@ -516,11 +536,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
                 </Text>
               </View>
             )}
-            {currentAltitude.technical.interaction_theme && (
+            {currentAltitude.technical.receiver_hint && (
               <View style={styles.technicalRow}>
-                <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>THEME</Text>
+                <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>LANDING</Text>
                 <Text style={[styles.technicalValue, { color: theme.textSecondary }]}>
-                  {currentAltitude.technical.interaction_theme.replace(/_/g, ' ')}
+                  {currentAltitude.technical.receiver_hint}
                 </Text>
               </View>
             )}
@@ -1078,6 +1098,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     color: 'inherit',
+  },
+  causeText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: 'inherit',
+    fontStyle: 'italic',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(128, 128, 128, 0.2)',
   },
   technicalToggle: {
     flexDirection: 'row',
