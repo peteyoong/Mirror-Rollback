@@ -1,15 +1,15 @@
 """
-Astrology Today Snapshot v2 — Causal Layer Architecture
+Astrology Today Snapshot v3 — Experience-First Narrative
 
-This module generates astrology snapshots with 3 layers:
-1. EXPERIENCE - what user feels (clear human tension)
-2. CAUSE - what is driving it (transit stack translated to plain language)
-3. GUIDANCE - how to relate to it (1-line activation)
+This module generates astrology snapshots as ONE continuous narrative:
+1. EXPERIENCE (hook) - Start with lived experience
+2. CAUSE (why) - Transit stack in human language
+3. GUIDANCE (what to do) - Single actionable line
 
-NO vague astrology language ("energy", "vibes")
-NO generic statements
-ALWAYS explain "why now"
-Human-readable (no heavy jargon)
+NO sections or bullet points
+NO abstract concepts ("internal compass")
+NO report-style language
+Human-readable narrative flow
 """
 
 import logging
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
-# BANNED ASTROLOGY LANGUAGE - We reject horoscope-style vagueness
+# BANNED LANGUAGE - Horoscope vagueness + Abstract concepts
 # =============================================================================
 
 BANNED_ASTROLOGY_TERMS = [
@@ -36,6 +36,9 @@ BANNED_ASTROLOGY_TERMS = [
     "powerful", "powerful time",
     "transformation", "transformative",
     "awakening", "spiritual awakening",
+    "internal compass", "compass",
+    "recalibrating", "recalibrate",
+    "reflective day", "reflective time",
 ]
 
 
@@ -145,62 +148,132 @@ INTERACTION_THEME_CAUSES = {
     },
 }
 
-# Day class to experience mapping
-DAY_CLASS_EXPERIENCES = {
-    "phase_shift": {
-        "experiences": [
-            "There's pressure to decide something before it's ready.",
-            "You want to lock something in, but you can't.",
-            "Something is trying to finish before it's actually done.",
-            "You feel urgency but the path forward isn't clear.",
-            "The ground feels unstable. Nothing is landing.",
-        ],
-        "tone": "interruptive",
-    },
-    "cycle_event": {
-        "experiences": [
-            "Something feels more significant than usual today.",
-            "There's weight to decisions that wouldn't normally feel heavy.",
-            "You're aware that something is peaking or completing.",
-            "Attention is being demanded on something specific.",
-            "A pattern you've been watching is becoming obvious.",
-        ],
-        "tone": "directional",
-    },
-    "normal_flow": {
-        "experiences": [
-            "Today feels ordinary but something underneath is moving.",
-            "You might notice subtle patterns more than dramatic shifts.",
-            "The usual rhythms are running, but with slight variation.",
-            "Nothing is forcing itself on your attention today.",
-            "Space exists for reflection without pressure.",
-        ],
-        "tone": "subtle",
-    },
-}
+# =============================================================================
+# v3: EXPERIENCE HOOKS - Lived experience, not descriptions
+# =============================================================================
+# Start with what user is actually experiencing right now
 
-# Guidance templates by day class
-DAY_CLASS_GUIDANCE = {
+EXPERIENCE_HOOKS = {
     "phase_shift": [
-        "Don't treat urgency as a signal to decide.",
-        "Let the pressure exist without acting on it.",
-        "What feels like delay is actually timing.",
-        "The answer you want isn't available yet.",
-        "Stay with the discomfort instead of resolving it prematurely.",
+        "You may find yourself replaying things today — conversations, messages, small moments that suddenly feel heavier than they should.",
+        "You keep wanting to make a decision, but every time you try, something doesn't feel right.",
+        "There's a restlessness that won't settle. You want something resolved, but you're not sure what.",
+        "You're noticing details you normally wouldn't — small things that feel like they mean something.",
+        "Part of you knows something is shifting, but you can't point to what exactly.",
     ],
     "cycle_event": [
-        "Pay attention. This day carries weight.",
-        "What you notice today matters more than usual.",
-        "Don't dismiss the significance you're feeling.",
-        "This window won't stay open indefinitely.",
-        "The pattern you're seeing is real.",
+        "Something keeps pulling at your attention today. You can't quite look away from it.",
+        "A conversation or moment from recently keeps surfacing. There's something there you haven't fully processed.",
+        "You may feel more aware of time today — what's been and what's coming.",
+        "Things you'd normally let pass are catching your attention. Something is asking to be noticed.",
+        "There's a sense that something is completing, even if you can't name what.",
     ],
     "normal_flow": [
-        "Use the space. It won't last forever.",
-        "Notice what's moving underneath the surface.",
-        "The quiet is information, not absence.",
-        "Small adjustments today prevent larger corrections later.",
+        "The day feels ordinary, but something underneath is gently moving.",
+        "You may catch yourself thinking about things without any obvious trigger.",
+        "There's a quiet quality to today. Nothing is demanding, but something is present.",
+        "Small observations feel more interesting than usual. Your mind is processing something.",
+        "Things feel steady, but there's a subtle pull toward reflection.",
+    ],
+}
+
+# =============================================================================
+# v3: CAUSE BRIDGES - Human language cause statements
+# =============================================================================
+# Translate transits into felt experience, not astrology terms
+
+CAUSE_BRIDGES = {
+    "reset_at_threshold": [
+        "That's because a reset cycle and a directional shift are overlapping right now. It creates reflection before movement.",
+        "This is happening because two cycles are converging — one ending, one trying to start. That overlap creates pressure without resolution.",
+        "A new beginning and a major turning point are landing at the same time. Your system is processing more than usual.",
+    ],
+    "portal_opening": [
+        "Multiple starting points are converging right now. Your attention is being pulled in several directions.",
+        "Several things are trying to begin at once. That's why nothing feels settled yet.",
+        "New impulses are stacking up before old ones have resolved. That's the source of the restlessness.",
+    ],
+    "culmination_at_threshold": [
+        "Something is coming to a head exactly when the ground is shifting. Endings and beginnings are colliding.",
+        "A completion is happening during a major transition. That's why the weight feels doubled.",
+        "You're being asked to close one chapter while another is already opening. That's the pressure.",
+    ],
+    "destabilization_window": [
+        "The usual rules aren't holding right now. What normally works isn't working.",
+        "Multiple systems are in flux at the same time. That's why things feel off.",
+        "This is a window where stability isn't available. That's information, not a problem to solve.",
+    ],
+    "deep_release": [
+        "Something old is ready to leave. The pressure you feel is resistance to that release.",
+        "A holding pattern has reached its limit. What's been held is asking to move.",
+        "The weight you're feeling is accumulated — things that have been waiting to release.",
+    ],
+    "peak_illumination": [
+        "Everything is more visible right now. What was hidden is becoming obvious.",
+        "You can see the full picture now. That's why it feels heavier — denial isn't available.",
+        "Maximum clarity is landing. What you're seeing is what's actually there.",
+    ],
+    "emotional_culmination": [
+        "Feelings that have been building are cresting. That's why small things feel big.",
+        "Emotional pressure that's been accumulating is surfacing. The container is full.",
+        "What you're feeling isn't new — it's been building. This is just when it's becoming visible.",
+    ],
+    "multiple_events_active": [
+        "Several forces are active at once. That's why there's no single clear signal.",
+        "Multiple cycles are overlapping. The confusion you feel is because there isn't one answer right now.",
+        "This is a convergence point. Several things are asking for attention simultaneously.",
+    ],
+}
+
+# Single transit causes (when no interaction theme)
+SINGLE_TRANSIT_CAUSES = {
+    "new_moon": [
+        "A new cycle is starting. Old patterns are closing and something new is trying to begin.",
+        "This is a beginning point. Your system is wiping the slate before the next thing.",
+        "Something is resetting. That's why the urge to start fresh feels strong.",
+    ],
+    "full_moon": [
+        "Something that's been building is now fully visible. You can see it clearly now.",
+        "This is a completion point. What's been developing is ready to be acknowledged.",
+        "Maximum visibility on something. What you're noticing has been building for a while.",
+    ],
+    "equinox": [
+        "A major directional shift is happening. The system is rebalancing.",
+        "You're at a pivot point in the year. Old momentum is meeting new direction.",
+        "This is a turning point. What worked before may need adjustment.",
+    ],
+    "solstice": [
+        "You're at an extreme point. Maximum extension before reversal.",
+        "This is a peak or trough. Something has gone as far as it can in one direction.",
+        "The system is at maximum stretch. Change of direction is coming.",
+    ],
+}
+
+# =============================================================================
+# v3: GUIDANCE LINES - Single actionable statements
+# =============================================================================
+
+GUIDANCE_LINES = {
+    "phase_shift": [
+        "Don't rush to act on what comes up. Let it show you what it's actually about first.",
+        "The pressure to decide is real. The answer isn't available yet. Both are true.",
+        "Let things stay unresolved for now. Clarity comes after this passes.",
+        "Notice what keeps coming back. That's the thing to pay attention to.",
+        "Don't try to make it make sense yet. Let the picture develop.",
+    ],
+    "cycle_event": [
+        "What you notice today matters. Don't dismiss it as coincidence.",
+        "Pay closer attention than usual. Something is trying to land.",
+        "This is a day to watch, not to force. Let it reveal itself.",
+        "What completes today shapes what begins next. Let it finish properly.",
+        "The significance you're feeling is real. Trust that.",
+    ],
+    "normal_flow": [
+        "Use the quiet. It won't last.",
         "Let things settle without forcing movement.",
+        "Small adjustments now prevent larger corrections later.",
+        "The space is here for a reason. Don't fill it unnecessarily.",
+        "Notice what surfaces. It's showing you what's next.",
     ],
 }
 
@@ -268,42 +341,92 @@ def generate_cause_from_transit_stack(transit_stack: Dict[str, Any]) -> Dict[str
     }
 
 
-def generate_experience_statement(
-    day_class: str,
-    transit_stack: Dict[str, Any],
-    user_signals: Optional[Dict] = None
-) -> str:
+def generate_experience_hook(day_class: str, transit_stack: Dict[str, Any]) -> str:
     """
-    Generate the EXPERIENCE layer - what user feels.
+    v3: Generate the EXPERIENCE hook - lived experience opener.
     
-    Uses day_class as primary driver, with optional user signal influence.
+    Starts with what user is actually experiencing right now.
     """
-    experiences = DAY_CLASS_EXPERIENCES.get(day_class, DAY_CLASS_EXPERIENCES["normal_flow"])
-    experience_options = experiences["experiences"]
+    hooks = EXPERIENCE_HOOKS.get(day_class, EXPERIENCE_HOOKS["normal_flow"])
     
     # Use date-based seed for consistency within a day
     date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
     seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
     
-    # Select experience
-    experience_index = seed_hash % len(experience_options)
-    return experience_options[experience_index]
+    hook_index = seed_hash % len(hooks)
+    return hooks[hook_index]
 
 
-def generate_guidance_statement(day_class: str, transit_stack: Dict[str, Any]) -> str:
+def generate_cause_bridge(transit_stack: Dict[str, Any], day_class: str) -> str:
     """
-    Generate the GUIDANCE layer - how to relate to it.
+    v3: Generate the CAUSE bridge - human language cause statement.
     
-    1-line activation based on day class.
+    Translates transit stack into felt experience, not astrology terms.
     """
-    guidance_options = DAY_CLASS_GUIDANCE.get(day_class, DAY_CLASS_GUIDANCE["normal_flow"])
+    interaction_theme = transit_stack.get("interaction_theme", "")
+    transit_type = transit_stack.get("type", "background")
+    events = transit_stack.get("events", [])
     
     # Use date-based seed for consistency
     date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
     seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
     
-    guidance_index = (seed_hash + 1) % len(guidance_options)
+    # Priority 1: Interaction theme (stacked transits)
+    if interaction_theme and interaction_theme in CAUSE_BRIDGES:
+        bridges = CAUSE_BRIDGES[interaction_theme]
+        bridge_index = seed_hash % len(bridges)
+        return bridges[bridge_index]
+    
+    # Priority 2: Single transit event
+    if events:
+        event = events[0] if isinstance(events, list) else events
+        event_type = event.get("type", "") if isinstance(event, dict) else str(event)
+        
+        if event_type in SINGLE_TRANSIT_CAUSES:
+            causes = SINGLE_TRANSIT_CAUSES[event_type]
+            cause_index = seed_hash % len(causes)
+            return causes[cause_index]
+    
+    # Fallback: Normal flow
+    return "The usual rhythms are running. Nothing is forcing itself on you right now."
+
+
+def generate_guidance_line(day_class: str, transit_stack: Dict[str, Any]) -> str:
+    """
+    v3: Generate the GUIDANCE line - single actionable statement.
+    """
+    guidance_options = GUIDANCE_LINES.get(day_class, GUIDANCE_LINES["normal_flow"])
+    
+    # Use date-based seed for consistency
+    date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
+    seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
+    
+    guidance_index = (seed_hash + 2) % len(guidance_options)
     return guidance_options[guidance_index]
+
+
+def generate_narrative_block(
+    transit_stack: Dict[str, Any],
+    day_class: str
+) -> str:
+    """
+    v3: Generate ONE continuous narrative block.
+    
+    Structure:
+    1. EXPERIENCE (hook) - lived experience opener
+    2. CAUSE (why) - transit in human language
+    3. GUIDANCE (what to do) - single actionable line
+    
+    No sections. No bullet points. One flow.
+    """
+    experience = generate_experience_hook(day_class, transit_stack)
+    cause = generate_cause_bridge(transit_stack, day_class)
+    guidance = generate_guidance_line(day_class, transit_stack)
+    
+    # Build narrative as single flowing block
+    narrative = f"{experience}\n\n{cause}\n\n{guidance}"
+    
+    return narrative
 
 
 def generate_astrology_snapshot_v2(
@@ -312,39 +435,19 @@ def generate_astrology_snapshot_v2(
     user_context: Optional[Dict] = None
 ) -> Dict[str, Any]:
     """
-    Generate Astrology Today Snapshot v2 with 3-layer causal structure.
+    Generate Astrology Today Snapshot v3 - Experience-First Narrative.
     
-    Returns:
-    {
-        "success": True,
-        "version": "v2_causal",
-        "date": str,
-        "experience": {
-            "statement": str,
-            "tone": str
-        },
-        "cause": {
-            "statement": str,
-            "effect": str,
-            "why_now": str
-        },
-        "guidance": str,
-        "day_class": str,
-        "transit_summary": str,
-        "debug": {...}
-    }
+    Returns SINGLE narrative block, not sections.
     """
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
-    # Generate EXPERIENCE layer
-    experience_statement = generate_experience_statement(day_class, transit_stack)
-    experience_tone = DAY_CLASS_EXPERIENCES.get(day_class, {}).get("tone", "subtle")
+    # Generate v3 narrative block
+    experience = generate_experience_hook(day_class, transit_stack)
+    cause = generate_cause_bridge(transit_stack, day_class)
+    guidance = generate_guidance_line(day_class, transit_stack)
     
-    # Generate CAUSE layer
-    cause_data = generate_cause_from_transit_stack(transit_stack)
-    
-    # Generate GUIDANCE layer
-    guidance_statement = generate_guidance_statement(day_class, transit_stack)
+    # Build single narrative
+    narrative = f"{experience}\n\n{cause}\n\n{guidance}"
     
     # Build transit summary (human-readable)
     events = transit_stack.get("events", [])
@@ -355,30 +458,23 @@ def generate_astrology_snapshot_v2(
         else:
             event_names.append(str(e))
     
-    if event_names:
-        transit_summary = f"Active: {', '.join(event_names)}"
-    else:
-        transit_summary = "No major transits active"
+    transit_summary = f"Active: {', '.join(event_names)}" if event_names else "No major transits"
     
-    # Validate no horoscope language slipped through
-    all_text = f"{experience_statement} {cause_data['cause_statement']} {guidance_statement}"
-    if is_horoscope_language(all_text):
-        logger.warning("[AstrologyV2] Horoscope language detected in output")
+    # Validate no horoscope language
+    if is_horoscope_language(narrative):
+        logger.warning("[AstrologyV3] Horoscope language detected in output")
     
     return {
         "success": True,
-        "version": "v2_causal",
+        "version": "v3_narrative",
         "date": today,
-        "experience": {
-            "statement": experience_statement,
-            "tone": experience_tone,
-        },
-        "cause": {
-            "statement": cause_data["cause_statement"],
-            "effect": cause_data["effect_statement"],
-            "why_now": cause_data["why_now"],
-        },
-        "guidance": guidance_statement,
+        # v3: Single narrative block (primary output)
+        "narrative": narrative,
+        # Component parts (for debugging/flexibility)
+        "experience": experience,
+        "cause": cause,
+        "guidance": guidance,
+        # Metadata
         "day_class": day_class,
         "transit_summary": transit_summary,
         "interaction_theme": transit_stack.get("interaction_theme"),
@@ -388,35 +484,19 @@ def generate_astrology_snapshot_v2(
             "events_count": len(events),
             "interaction_theme": transit_stack.get("interaction_theme"),
             "day_class": day_class,
-            "horoscope_check_passed": not is_horoscope_language(all_text),
+            "horoscope_check_passed": not is_horoscope_language(narrative),
         }
     }
 
 
 def format_snapshot_for_display(snapshot: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Format the v2 snapshot for frontend display.
-    
-    Returns a structure optimized for rendering.
+    v3: Format for display - single narrative, no sections.
     """
     return {
-        "title": "Today's Snapshot",
+        "title": "Today",
         "date": snapshot.get("date"),
-        "sections": [
-            {
-                "label": "What You're Feeling",
-                "body": snapshot["experience"]["statement"],
-            },
-            {
-                "label": "Why This Is Happening",
-                "body": f"{snapshot['cause']['statement']}. {snapshot['cause']['effect']}",
-            },
-            {
-                "label": "How to Work With It",
-                "body": snapshot["guidance"],
-            },
-        ],
-        "transit_info": snapshot.get("transit_summary"),
+        "narrative": snapshot.get("narrative"),
         "day_class": snapshot.get("day_class"),
-        "version": "v2_causal",
+        "version": "v3_narrative",
     }
