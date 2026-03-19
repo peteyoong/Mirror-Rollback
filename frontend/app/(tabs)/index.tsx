@@ -326,11 +326,49 @@ export default function MirrorScreen() {
       const response = await api.get(`/daily-insight/${user.id}`);
       const data = response.data;
       
-      // Transform API response to MirrorHeroData
+      // Get raw body text
+      let rawBody = data.body || data.what_happening || "";
+      
+      // COMPRESS & CLEAN: Remove system language, shorten to 2-3 sentences
+      let body = rawBody
+        // Remove banned system phrases
+        .replace(/multiple signals hitting at once[.]?\s*/gi, '')
+        .replace(/the noise makes it hard to think straight[,.]?\s*/gi, '')
+        .replace(/and that creates more frustration[.]?\s*/gi, '')
+        .replace(/looking at your timeline[,.]?\s*/gi, '')
+        .replace(/a certain rhythm appears[,.]?\s*/gi, '')
+        .replace(/deeper arc/gi, 'pattern')
+        .replace(/current life phase/gi, 'this moment')
+        .replace(/active influences/gi, '')
+        .replace(/pattern may be actively expressing itself/gi, 'this keeps coming back')
+        .trim();
+      
+      // Compress to max 2-3 sentences if too long
+      const sentences = body.split(/(?<=[.!?])\s+/).filter(s => s.length > 0);
+      if (sentences.length > 3) {
+        body = sentences.slice(0, 3).join(' ');
+      }
+      
+      // Get bridge - make it feel like insight, not explanation
+      let bridge = data.bridge || data.why_feels || null;
+      if (bridge) {
+        // Clean system language from bridge too
+        bridge = bridge
+          .replace(/multiple signals/gi, 'too many things')
+          .replace(/creates more frustration/gi, 'makes it harder')
+          .replace(/the mismatch/gi, 'that gap')
+          .trim();
+        // Keep bridge short - one sentence max
+        const bridgeSentences = bridge.split(/(?<=[.!?])\s+/);
+        if (bridgeSentences.length > 1) {
+          bridge = bridgeSentences[0];
+        }
+      }
+      
       setHeroData({
         title: data.title || 'Something Present',
-        body: data.body || data.what_happening || "Something is present that's worth paying attention to.",
-        bridge: data.bridge || null,
+        body: body || "There's something here today asking for your attention. You might not have words for it yet.",
+        bridge: bridge,
         reflectPrompt: "What feels true about this?",
         date: data.date || getLocalDateString(),
       });
@@ -339,7 +377,7 @@ export default function MirrorScreen() {
       // Mirror-voice fallback
       setHeroData({
         title: 'Something Present',
-        body: "There's something here today asking for your attention. You might not have words for it yet—and that's okay.",
+        body: "There's something here today. You might not have words for it yet—and that's okay.",
         bridge: null,
         reflectPrompt: "What feels most present right now?",
         date: getLocalDateString(),
@@ -534,7 +572,7 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            DEMOTED: YOUR LIFELINE - moved below navigation
+            DEMOTED: YOUR LIFELINE - below navigation, subtle
             =================================================================== */}
         {!isLoading && (
           <View style={[styles.lifelineBridge, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
@@ -543,7 +581,7 @@ export default function MirrorScreen() {
             </Text>
             <Text style={[styles.lifelineBridgeText, { color: theme.textSecondary }]}>
               {lifelineEventCount > 0 
-                ? "The patterns you see here often begin in the turning points of your life."
+                ? "The patterns you notice today often began much earlier."
                 : "Mirror learns from the moments that shaped you."}
             </Text>
             <TouchableOpacity
@@ -564,7 +602,7 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            SECTION 5: CONTINUITY / MEMORY
+            SECTION 5: CONTINUITY / MEMORY - feels like cues, not records
             =================================================================== */}
         {!isLoading && (recentReflection || patternTension) && (
           <View style={[styles.continuitySection, { borderColor: theme.border }]}>
@@ -572,7 +610,7 @@ export default function MirrorScreen() {
               MIRROR REMEMBERS
             </Text>
             
-            {/* Recent Reflection */}
+            {/* Recent Reflection - feels like a note to self */}
             {recentReflection && (
               <TouchableOpacity 
                 style={[styles.continuityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
@@ -580,7 +618,7 @@ export default function MirrorScreen() {
                 activeOpacity={0.7}
               >
                 <Text style={[styles.continuityLabel, { color: theme.textTertiary }]}>
-                  Last reflection · {formatRelativeDate(recentReflection.timestamp)}
+                  A thought you left yourself · {formatRelativeDate(recentReflection.timestamp)}
                 </Text>
                 <Text 
                   style={[styles.continuityText, { color: theme.textSecondary }]}
@@ -591,7 +629,7 @@ export default function MirrorScreen() {
               </TouchableOpacity>
             )}
             
-            {/* Active Tension */}
+            {/* Active Tension - feels like recognition, not analysis */}
             {patternTension && (
               <TouchableOpacity 
                 style={[styles.continuityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
@@ -599,7 +637,7 @@ export default function MirrorScreen() {
                 activeOpacity={0.7}
               >
                 <Text style={[styles.continuityLabel, { color: theme.textTertiary }]}>
-                  Recurring dynamic
+                  A tension that keeps returning
                 </Text>
                 <Text style={[styles.tensionTitle, { color: theme.text }]}>
                   {patternTension.category_a} ↔ {patternTension.category_b}
