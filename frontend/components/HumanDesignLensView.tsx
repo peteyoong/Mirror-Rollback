@@ -2912,9 +2912,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* 2. BODY GRAPH */}
         {renderImprovedBodygraph()}
         
-        {/* 3. CORE MECHANICS - ACCORDION CARDS (collapsed by default) */}
-        <Text style={[styles.deepDiveSectionHeader, { color: theme.textTertiary, marginTop: 24 }]}>CORE MECHANICS</Text>
-        
+        {/* 3. MECHANICS - Direct content, no wrapper header */}
         {/* Type Accordion */}
         {data.core_mechanics?.type && renderMechanicAccordion(
           'type',
@@ -4740,8 +4738,9 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
             {/* Navigates to Home where the full Keystone card lives */}
             <KeystoneReferenceLink patternLabel={data?.keystone_explanation?.keystone_label} />
             
-            {/* Tab Blurb - Show at top of each tab EXCEPT Today (which has its own header) */}
-            {activeTab !== 'today' && renderTabBlurb()}
+            {/* Tab Blurb - Show at top of each tab EXCEPT Today and Deep Dive */}
+            {/* Deep Dive uses KeystoneExplanation as its intro - no competing header */}
+            {activeTab !== 'today' && activeTab !== 'deep_dive' && renderTabBlurb()}
             
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (

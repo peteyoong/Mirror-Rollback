@@ -703,9 +703,10 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
             {/* Navigates to Home where the full Keystone card lives */}
             <KeystoneReferenceLink patternLabel={data?.keystone_explanation?.keystone_label} />
 
-            {/* Title - only show for non-Today tabs */}
-            {activeTab !== 'today' && (
-              <Text style={[styles.title, { color: theme.text }]}>{data.title || (activeTab === 'deep_dive' ? 'Your Core Structure' : 'Astrology')}</Text>
+            {/* Title - only show for non-Today and non-Deep Dive tabs */}
+            {/* Deep Dive uses KeystoneExplanation as its intro */}
+            {activeTab !== 'today' && activeTab !== 'deep_dive' && (
+              <Text style={[styles.title, { color: theme.text }]}>{data.title || 'Astrology'}</Text>
             )}
 
             {/* v_next: TODAY TAB - 3-altitude snapshot system */}
@@ -727,11 +728,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: Props) {
               </>
             )}
 
-            {/* Core Placements Card (Deep Dive only) - always show even if success=false */}
-            {activeTab === 'deep_dive' && renderCorePlacements()}
-
-            {/* KEYSTONE EXPLANATION: Why TODAY triggers this pattern */}
+            {/* KEYSTONE EXPLANATION: Why TODAY triggers this pattern - FIRST in Deep Dive */}
             {activeTab === 'deep_dive' && renderKeystoneExplanation()}
+
+            {/* Core Placements Card (Deep Dive only) - after explanation */}
+            {activeTab === 'deep_dive' && renderCorePlacements()}
 
             {/* ERROR CARD: Show when Deep Dive computation failed */}
             {activeTab === 'deep_dive' && data.success === false && renderComputeErrorCard()}
