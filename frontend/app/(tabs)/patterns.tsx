@@ -26,10 +26,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  InteractionManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
@@ -106,16 +107,46 @@ export default function PatternsScreen() {
   // Scroll ref for forcing scroll to top on focus
   const scrollViewRef = useRef<ScrollView>(null);
 
+  // Top anchor ref for explicit scroll target
+  const topAnchorRef = useRef<View>(null);
+
   // ============================================================================
-  // SCROLL TO TOP ON SCREEN FOCUS
+  // HARD SCROLL RESET - Force scroll to top on EVERY screen focus
   // ============================================================================
 
+  // Robust scroll to top function
+  const forceScrollToTop = useCallback(() => {
+    // Method 1: Direct scroll to y=0
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    
+    // Method 2: Delayed scroll after layout settles
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    }, 50);
+    
+    // Method 3: After interactions complete
+    InteractionManager.runAfterInteractions(() => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    });
+  }, []);
+
+  // Reset on tab focus
   useFocusEffect(
     useCallback(() => {
-      // Force scroll to top when entering Patterns tab
-      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-    }, [])
+      // Immediate reset
+      forceScrollToTop();
+      
+      // Also reset after a short delay to catch late renders
+      const timer = setTimeout(forceScrollToTop, 100);
+      
+      return () => clearTimeout(timer);
+    }, [forceScrollToTop])
   );
+
+  // Reset on component mount
+  useEffect(() => {
+    forceScrollToTop();
+  }, [forceScrollToTop]);
 
   // ============================================================================
   // DATA LOADING
@@ -698,6 +729,9 @@ export default function PatternsScreen() {
           />
         }
       >
+        {/* TOP ANCHOR - Explicit scroll target */}
+        <View ref={topAnchorRef} style={styles.topAnchor} />
+        
         {/* 1. HERO - Pattern fingerprint */}
         {renderHeroSection()}
         
@@ -757,6 +791,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
+  },
+  
+  // Top anchor for scroll reset
+  topAnchor: {
+    height: 0,
+    width: '100%',
   },
   
   // Loading
