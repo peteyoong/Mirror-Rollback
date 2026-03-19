@@ -109,37 +109,73 @@ export default function PatternsScreen() {
 
   // Top anchor ref for explicit scroll target
   const topAnchorRef = useRef<View>(null);
+  
+  // Track focus count to force re-render on each focus
+  const [focusKey, setFocusKey] = useState(0);
 
   // ============================================================================
   // HARD SCROLL RESET - Force scroll to top on EVERY screen focus
   // ============================================================================
 
-  // Robust scroll to top function
+  // Aggressive scroll to top - multiple attempts at different timings
   const forceScrollToTop = useCallback(() => {
-    // Method 1: Direct scroll to y=0
-    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    const scrollToZero = () => {
+      scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
+    };
     
-    // Method 2: Delayed scroll after layout settles
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-    }, 50);
+    // Immediate
+    scrollToZero();
     
-    // Method 3: After interactions complete
+    // After microtask
+    Promise.resolve().then(scrollToZero);
+    
+    // After 0ms (next event loop tick)
+    setTimeout(scrollToZero, 0);
+    
+    // After 16ms (one frame)
+    setTimeout(scrollToZero, 16);
+    
+    // After 50ms (layout settle)
+    setTimeout(scrollToZero, 50);
+    
+    // After 100ms (content load buffer)
+    setTimeout(scrollToZero, 100);
+    
+    // After 200ms (final catch)
+    setTimeout(scrollToZero, 200);
+    
+    // After interactions complete
     InteractionManager.runAfterInteractions(() => {
-      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+      scrollToZero();
+      // One more after interactions settle
+      setTimeout(scrollToZero, 50);
     });
   }, []);
 
-  // Reset on tab focus
+  // Reset on tab focus - CRITICAL for consistent behavior
   useFocusEffect(
     useCallback(() => {
-      // Immediate reset
+      console.log('[PATTERNS_SCROLL] Tab focused - initiating scroll reset');
+      
+      // Increment focus key to trigger any focus-dependent effects
+      setFocusKey(prev => prev + 1);
+      
+      // Collapse any expanded week
+      setExpandedWeek(null);
+      
+      // Force scroll reset
       forceScrollToTop();
       
-      // Also reset after a short delay to catch late renders
-      const timer = setTimeout(forceScrollToTop, 100);
+      // Additional delayed resets to catch async content
+      const timers = [
+        setTimeout(forceScrollToTop, 150),
+        setTimeout(forceScrollToTop, 300),
+        setTimeout(forceScrollToTop, 500),
+      ];
       
-      return () => clearTimeout(timer);
+      return () => {
+        timers.forEach(clearTimeout);
+      };
     }, [forceScrollToTop])
   );
 
@@ -147,6 +183,15 @@ export default function PatternsScreen() {
   useEffect(() => {
     forceScrollToTop();
   }, [forceScrollToTop]);
+  
+  // Reset when data loads (timeline or weekly changes)
+  useEffect(() => {
+    if (timeline || weeklySummary) {
+      // Small delay to let content render, then scroll
+      const timer = setTimeout(forceScrollToTop, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [timeline, weeklySummary, forceScrollToTop]);
 
   // ============================================================================
   // DATA LOADING
@@ -717,10 +762,12 @@ export default function PatternsScreen() {
       </View>
       
       <ScrollView
+        key={`patterns-scroll-${focusKey}`}
         ref={scrollViewRef}
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        contentOffset={{ x: 0, y: 0 }}
         refreshControl={
           <RefreshControl
             refreshing={timelineRefreshing}
