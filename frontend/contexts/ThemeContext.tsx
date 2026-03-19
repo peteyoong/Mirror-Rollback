@@ -9,72 +9,72 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // THEME TOKENS
 // ============================================
 
-// Light Theme - Calm, warm, paper-like
+// Light Theme - Calm, warm, paper-like (NO PURE WHITE)
 export const LightTheme = {
-  // Backgrounds
-  background: '#F5F3EF',
-  surface: '#FFFFFF',
-  surfaceElevated: '#FFFFFF',
-  surfaceLight: '#FAF9F7',
-  surfaceMuted: '#F0EDE8',
+  // Backgrounds - warm beige tones (replaces all white)
+  background: '#F2ECE4',         // warm beige base
+  surface: '#EAE3D9',            // warm beige for cards/surfaces
+  surfaceElevated: '#F2ECE4',    // softer beige for elevated
+  surfaceLight: '#F5EFE7',       // lightest warm tone
+  surfaceMuted: '#E5DED4',       // muted warm
   
-  // Text
-  text: '#1A1A1A',
+  // Text - dark on light
+  text: '#1C1C1E',               // primary text on beige
   textSecondary: '#4A4A4A',
-  textTertiary: '#6B6B6B',
+  textTertiary: '#6B6B6B',       // muted text on beige
   textDisabled: '#9A9A9A',
-  textInverse: '#FFFFFF',
+  textInverse: '#F2ECE4',        // light text for dark backgrounds
   
   // Accent
   accent: '#2A2A2A',
   accentMuted: '#5A5A5A',
-  accentLight: '#E8E6E3',
+  accentLight: '#DDD6CC',        // warm accent light
   
-  // Borders
-  border: '#D8D5D0',
-  borderLight: '#E5E3DF',
-  borderFocus: '#1A1A1A',
+  // Borders - warm tinted
+  border: '#D4CCC2',
+  borderLight: '#E0D9CF',
+  borderFocus: '#1C1C1E',
   
   // Semantic
   error: '#C62828',
-  errorLight: '#FFEBEE',
+  errorLight: '#F8E8E8',         // warm error bg
   success: '#2E7D32',
-  successLight: '#E8F5E9',
+  successLight: '#E8F0E8',       // warm success bg
   warning: '#E65100',
-  warningLight: '#FFF3E0',
+  warningLight: '#F8F0E4',       // warm warning bg
   
   // Badges
-  badgeBg: '#E8F4E8',
+  badgeBg: '#E4EDE4',
   badgeText: '#2E7D32',
   
   // Pattern Movement
   stressColor: '#C62828',
-  stressColorBg: '#FFEBEE',
+  stressColorBg: '#F8E8E8',
   growthColor: '#2E7D32',
-  growthColorBg: '#E8F5E9',
+  growthColorBg: '#E8F0E8',
   
-  // Inputs
-  inputBg: '#FFFFFF',
-  inputBorder: '#D8D5D0',
+  // Inputs - warm beige
+  inputBg: '#F5EFE7',
+  inputBorder: '#D4CCC2',
   inputPlaceholder: '#9A9A9A',
   
-  // Tabs
-  tabActive: '#1A1A1A',
+  // Tabs - warm tones
+  tabActive: '#1C1C1E',
   tabInactive: '#6B6B6B',
-  tabIndicator: '#1A1A1A',
-  tabBg: '#FFFFFF',
+  tabIndicator: '#1C1C1E',
+  tabBg: '#EAE3D9',
   
   // Buttons
-  buttonPrimaryBg: '#1A1A1A',
-  buttonPrimaryText: '#FFFFFF',
+  buttonPrimaryBg: '#1C1C1E',
+  buttonPrimaryText: '#F2ECE4',
   buttonSecondaryBg: 'transparent',
-  buttonSecondaryText: '#1A1A1A',
-  buttonSecondaryBorder: '#D8D5D0',
+  buttonSecondaryText: '#1C1C1E',
+  buttonSecondaryBorder: '#D4CCC2',
   
-  // Cards
-  cardBg: '#FFFFFF',
-  cardBorder: '#E5E3DF',
-  cardShadow: 'rgba(0,0,0,0.08)',
+  // Cards - warm beige
+  cardBg: '#EAE3D9',
+  cardBorder: '#DDD6CC',
+  cardShadow: 'rgba(0,0,0,0.06)',
   
   // Overlay
   overlay: 'rgba(0,0,0,0.5)',
