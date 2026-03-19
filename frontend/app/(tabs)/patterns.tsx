@@ -17,7 +17,7 @@
  * REMOVED: Domain accordions, Signals tab, Chart resonance, Analytics-heavy UI
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -26,11 +26,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  InteractionManager,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
@@ -107,91 +107,46 @@ export default function PatternsScreen() {
   // Scroll ref for forcing scroll to top on focus
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Top anchor ref for explicit scroll target
-  const topAnchorRef = useRef<View>(null);
+  // ============================================================================
+  // DETERMINISTIC SCROLL RESET
+  // ============================================================================
+  // Problem: Even with unmountOnBlur, web browsers may restore scroll position.
+  // Solution: Explicit scroll reset on mount AND on every focus event.
   
-  // Track focus count to force re-render on each focus
-  const [focusKey, setFocusKey] = useState(0);
-
-  // ============================================================================
-  // HARD SCROLL RESET - Force scroll to top on EVERY screen focus
-  // ============================================================================
-
-  // Aggressive scroll to top - multiple attempts at different timings
-  const forceScrollToTop = useCallback(() => {
-    const scrollToZero = () => {
-      scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
-    };
-    
-    // Immediate
-    scrollToZero();
-    
-    // After microtask
-    Promise.resolve().then(scrollToZero);
-    
-    // After 0ms (next event loop tick)
-    setTimeout(scrollToZero, 0);
-    
-    // After 16ms (one frame)
-    setTimeout(scrollToZero, 16);
-    
-    // After 50ms (layout settle)
-    setTimeout(scrollToZero, 50);
-    
-    // After 100ms (content load buffer)
-    setTimeout(scrollToZero, 100);
-    
-    // After 200ms (final catch)
-    setTimeout(scrollToZero, 200);
-    
-    // After interactions complete
-    InteractionManager.runAfterInteractions(() => {
-      scrollToZero();
-      // One more after interactions settle
-      setTimeout(scrollToZero, 50);
-    });
+  // Reset function - scrolls to absolute top
+  const resetScrollPosition = useCallback(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: false });
+    }
+    // Also reset any browser-level scroll (web only)
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
   }, []);
-
-  // Reset on tab focus - CRITICAL for consistent behavior
+  
+  // Reset on component mount (runs before paint via useLayoutEffect)
+  useLayoutEffect(() => {
+    resetScrollPosition();
+  }, [resetScrollPosition]);
+  
+  // Reset on every focus (tab becomes active)
   useFocusEffect(
     useCallback(() => {
-      console.log('[PATTERNS_SCROLL] Tab focused - initiating scroll reset');
-      
-      // Increment focus key to trigger any focus-dependent effects
-      setFocusKey(prev => prev + 1);
-      
-      // Collapse any expanded week
+      // Immediate reset
+      resetScrollPosition();
+      // Also reset collapsed state
       setExpandedWeek(null);
       
-      // Force scroll reset
-      forceScrollToTop();
-      
-      // Additional delayed resets to catch async content
-      const timers = [
-        setTimeout(forceScrollToTop, 150),
-        setTimeout(forceScrollToTop, 300),
-        setTimeout(forceScrollToTop, 500),
-      ];
+      // Backup reset after a frame (catches async content rendering)
+      const frameId = requestAnimationFrame(() => {
+        resetScrollPosition();
+      });
       
       return () => {
-        timers.forEach(clearTimeout);
+        cancelAnimationFrame(frameId);
       };
-    }, [forceScrollToTop])
+    }, [resetScrollPosition])
   );
-
-  // Reset on component mount
-  useEffect(() => {
-    forceScrollToTop();
-  }, [forceScrollToTop]);
-  
-  // Reset when data loads (timeline or weekly changes)
-  useEffect(() => {
-    if (timeline || weeklySummary) {
-      // Small delay to let content render, then scroll
-      const timer = setTimeout(forceScrollToTop, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [timeline, weeklySummary, forceScrollToTop]);
 
   // ============================================================================
   // DATA LOADING
@@ -762,12 +717,10 @@ export default function PatternsScreen() {
       </View>
       
       <ScrollView
-        key={`patterns-scroll-${focusKey}`}
         ref={scrollViewRef}
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        contentOffset={{ x: 0, y: 0 }}
         refreshControl={
           <RefreshControl
             refreshing={timelineRefreshing}
@@ -776,9 +729,6 @@ export default function PatternsScreen() {
           />
         }
       >
-        {/* TOP ANCHOR - Explicit scroll target */}
-        <View ref={topAnchorRef} style={styles.topAnchor} />
-        
         {/* 1. HERO - Pattern fingerprint */}
         {renderHeroSection()}
         
@@ -838,12 +788,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
-  },
-  
-  // Top anchor for scroll reset
-  topAnchor: {
-    height: 0,
-    width: '100%',
   },
   
   // Loading
