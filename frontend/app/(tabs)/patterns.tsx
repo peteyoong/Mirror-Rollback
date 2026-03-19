@@ -186,57 +186,159 @@ export default function PatternsScreen() {
     return 'A pattern you recognize - even when you wish you did not';
   };
 
-  // Get behavioral summary with TENSION for timeline entry
-  // Structure: [Action] - [Internal experience] - [Outcome or shift]
-  const getBehavioralSummary = (week: WeekEntry): string => {
+  // VARIATION GENERATOR - Unique behavioral summary for each week
+  // All variations map to the same core pattern, but express it differently
+  // NO REPEATED PHRASES allowed in the same timeline
+  const getBehavioralSummary = (week: WeekEntry, weekIndex: number): string => {
     const domainId = week.top_domain_id;
-    const trend = week.trend_map?.[week.top_domain || ''];
     
-    // Trend-specific summaries WITH TENSION BUILT IN
-    const summaries: Record<string, Record<string, string>> = {
-      'energy_vitality': {
-        rising: 'You pushed harder... but it did not feel right',
-        steady: 'You kept going... even though something felt off',
-        fading: 'You stopped - not because you finished, but because you had to',
-      },
-      'emotional_landscape': {
-        rising: 'More came up than you expected... and you did not know what to do with it',
-        steady: 'You held it together... barely',
-        fading: 'The weight lifted - but you are not sure why',
-      },
-      'identity_direction': {
-        rising: 'The doubt got louder... and you could not outrun it',
-        steady: 'Still asking who you are supposed to be',
-        fading: 'Something shifted - but you are afraid to trust it',
-      },
-      'relationships_connection': {
-        rising: 'You felt the distance growing... and did not know how to close it',
-        steady: 'Still navigating the space between too close and too far',
-        fading: 'You let someone in - and waited for it to go wrong',
-      },
-      'work_purpose': {
-        rising: 'You worked harder... hoping it would finally mean something',
-        steady: 'You kept producing... while wondering if any of it matters',
-        fading: 'You stepped back - and felt guilty for it',
-      },
+    // VARIATION BANKS - 8+ unique phrases per domain, all expressing same core pattern
+    const variationBanks: Record<string, string[]> = {
+      'energy_vitality': [
+        'You kept going even after your body said stop',
+        'You pushed harder, hoping effort would fix the strain',
+        'You stayed with it too long because stopping felt worse',
+        'You overrode the fatigue and only noticed it later',
+        'You treated depletion like something to push through',
+        'You kept carrying it after the energy had already dropped',
+        'You forced momentum when recovery was what was needed',
+        'You only stopped once your system made the decision for you',
+        'You ran on empty and called it discipline',
+        'You mistook exhaustion for not trying hard enough',
+      ],
+      'emotional_landscape': [
+        'You held it in until holding became its own weight',
+        'You swallowed what needed to come out',
+        'You kept composure while something cracked underneath',
+        'You smiled through it and no one noticed',
+        'You numbed the signal instead of hearing it',
+        'You let it build because expressing felt unsafe',
+        'You carried more than you showed anyone',
+        'You felt it all but said nothing',
+        'You kept functioning while something inside went quiet',
+        'You performed calm while chaos lived beneath it',
+      ],
+      'identity_direction': [
+        'You started over again, hoping this time it would stick',
+        'You questioned the path even while walking it',
+        'You changed direction before the last one settled',
+        'You abandoned what was working because it did not feel like you',
+        'You reinvented before anyone could pin you down',
+        'You second-guessed the decision before it had a chance',
+        'You wondered if this version of you was real either',
+        'You searched for yourself in a new form',
+        'You let go of something before knowing why',
+        'You started fresh but brought the same doubts with you',
+      ],
+      'relationships_connection': [
+        'You reached out then pulled back before they could respond',
+        'You wanted closeness but created distance instead',
+        'You tested them to see if they would stay',
+        'You protected yourself by not asking for what you needed',
+        'You felt alone in the room even with people around',
+        'You kept them at arm length and felt the gap',
+        'You showed up halfway and wondered why it felt hollow',
+        'You gave more than you let yourself receive',
+        'You stayed guarded and called it being careful',
+        'You wanted to be seen but hid the parts that mattered',
+      ],
+      'work_purpose': [
+        'You worked harder hoping it would finally feel like enough',
+        'You produced more and felt less satisfied',
+        'You delivered but the meaning did not land',
+        'You stayed late and still felt behind',
+        'You achieved the goal and immediately moved the bar',
+        'You kept going because stopping felt like failing',
+        'You tied your worth to output and came up short',
+        'You performed well but felt like a fraud',
+        'You finished it and felt nothing',
+        'You did more and mattered less to yourself',
+      ],
+      'creativity_expression': [
+        'You made something then convinced yourself it was nothing',
+        'You created and immediately dismissed it',
+        'You shared then wished you had not',
+        'You held back the work that felt most true',
+        'You edited the life out of what you made',
+        'You compared it before it even had a chance',
+        'You doubted it before anyone else could',
+        'You created in private and kept it hidden',
+        'You wanted to be seen but not judged',
+        'You made art then called it waste',
+      ],
+      'health_body': [
+        'You ignored what your body was telling you',
+        'You pushed past the warning signs',
+        'You treated symptoms instead of causes',
+        'You powered through when rest was the answer',
+        'You let it get worse before paying attention',
+        'You dismissed the signal until it screamed',
+        'You knew something was off but kept going anyway',
+        'You waited too long to listen',
+        'You prioritized everything except your own body',
+        'You ran the system into the ground',
+      ],
+      'spirituality_meaning': [
+        'You searched for answers then abandoned them before they landed',
+        'You found something real then doubted it away',
+        'You craved meaning but resisted stillness',
+        'You touched depth then retreated to the surface',
+        'You asked the big questions then distracted yourself',
+        'You glimpsed something true then looked away',
+        'You wanted to believe but could not let yourself',
+        'You sought connection then ran from what you found',
+        'You reached for transcendence then called it foolish',
+        'You needed more and settled for less',
+      ],
+      'money_security': [
+        'You built security then tore it down',
+        'You saved then spent it all at once',
+        'You planned carefully then sabotaged the plan',
+        'You got close to stable then created chaos',
+        'You accumulated then felt guilty for having',
+        'You protected then punished yourself for it',
+        'You earned more and felt less secure',
+        'You restricted then released in the worst moment',
+        'You hoarded then gave away what you needed',
+        'You chased enough and never arrived',
+      ],
+      'family_roots': [
+        'You carried them but would not let them carry you',
+        'You protected everyone else and left yourself exposed',
+        'You gave what you never got',
+        'You stayed strong for them and fell apart alone',
+        'You absorbed their weight and called it love',
+        'You held the family together while you crumbled',
+        'You kept the peace by losing yourself',
+        'You showed up for them but never asked for the same',
+        'You parented everyone including yourself',
+        'You sacrificed without saying what it cost',
+      ],
     };
 
-    if (domainId && summaries[domainId] && trend && summaries[domainId][trend]) {
-      return summaries[domainId][trend];
-    }
+    // Generic fallback variations (used if domain not in bank)
+    const genericVariations = [
+      'Something familiar showed up again',
+      'The same thing returned in a different form',
+      'You recognized this even before you named it',
+      'It appeared again, wearing new clothes',
+      'The pattern surfaced whether you wanted it to or not',
+      'You saw it coming and still could not stop it',
+      'It found you again like it always does',
+      'The cycle continued even as you noticed it',
+      'You caught yourself doing it again',
+      'It returned like an old habit you thought you broke',
+    ];
+
+    // Get the variation bank for this domain, or use generic
+    const variations = domainId && variationBanks[domainId] 
+      ? variationBanks[domainId] 
+      : genericVariations;
+
+    // Use weekIndex to select a unique variation (modulo to handle overflow)
+    const variationIndex = weekIndex % variations.length;
     
-    // Generic but still confronting fallback
-    const genericSummaries: Record<string, string> = {
-      rising: 'Something intensified... and you were not ready for it',
-      steady: 'The same thing kept showing up... whether you wanted it to or not',
-      fading: 'It got quieter - but you know it is not gone',
-    };
-    
-    if (trend && genericSummaries[trend]) {
-      return genericSummaries[trend];
-    }
-    
-    return 'Something familiar surfaced - even though you hoped it would not';
+    return variations[variationIndex];
   };
 
   const formatDateRange = (start: string, end: string) => {
@@ -272,8 +374,8 @@ export default function PatternsScreen() {
     
     if (!week.top_domain) return null;
     
-    // Use behavioral summary instead of domain label
-    const behavioralSummary = getBehavioralSummary(week);
+    // Use index to get unique behavioral variation for this week
+    const behavioralSummary = getBehavioralSummary(week, index);
     
     return (
       <TouchableOpacity
