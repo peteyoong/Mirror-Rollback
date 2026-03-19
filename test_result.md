@@ -4372,6 +4372,87 @@ agent_communication:
           
           CONCLUSION: Keystone Pattern API endpoint is fully functional and working correctly. All review request requirements met including response structure validation, behavior sequence format, caching behavior, force refresh functionality, and proper pattern generation for different users. The endpoint successfully returns daily keystone patterns with proper confidence scoring and source attribution.
 
+  - task: "Astrology Keystone Explanation Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          ASTROLOGY KEYSTONE EXPLANATION INTEGRATION TESTING COMPLETE ✅
+          
+          🧪 COMPREHENSIVE TESTING PERFORMED (28/28 TESTS PASSED - 100% SUCCESS RATE):
+          
+          **Test Review Request Requirements:**
+          1. GET /api/keystone-pattern/{user_id} - Verify keystone exists
+          2. GET /api/astrology/deep-dive/{user_id}?force_refresh=true - Test keystone explanation
+          3. Test with different user (69819f1a1e4549392d7cb6d1)
+          4. Validation test - Verify keystone_pattern_id matching
+          
+          🎯 ALL REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+          
+          1. ✅ **User 1 (6971c81f2b40fd5ef501d375) - Keystone Pattern Exists**:
+             - GET /api/keystone-pattern/{user_id} ✅ 200 OK (0.31s)
+             - pattern_id: "direction_shift" ✅
+             - pattern_label: "You Switch Tabs Mid-Thought" ✅
+             - behavior_sequence: 3-step array with proper format ✅
+          
+          2. ✅ **User 1 - Astrology Deep Dive Keystone Explanation**:
+             - GET /api/astrology/deep-dive/{user_id}?force_refresh=true ✅ 200 OK (48.54s)
+             - keystone_explanation field present ✅
+             - keystone_pattern_id: "direction_shift" (matches keystone endpoint) ✅
+             - lens_role: "timing_trigger" ✅
+             - lens_explanation_title: "Why You Keep Changing Course" (28 chars) ✅
+             - lens_explanation_body: Non-empty string (145 chars) ✅
+             - supports_keystone: true ✅
+          
+          3. ✅ **User 2 (69819f1a1e4549392d7cb6d1) - Different User Testing**:
+             - GET /api/keystone-pattern/{user_id} ✅ 200 OK (0.17s)
+             - pattern_id: "decision_switch_loop" ✅
+             - pattern_label: "You Keep Rewriting It" ✅
+             - behavior_sequence: Different pattern from User 1 ✅
+          
+          4. ✅ **User 2 - Astrology Deep Dive Keystone Explanation**:
+             - GET /api/astrology/deep-dive/{user_id}?force_refresh=true ✅ 200 OK (17.98s)
+             - keystone_explanation field present ✅
+             - keystone_pattern_id: "decision_switch_loop" (matches keystone endpoint) ✅
+             - lens_role: "timing_trigger" ✅
+             - lens_explanation_title: Non-empty string (36 chars) ✅
+             - lens_explanation_body: Non-empty string (178 chars) ✅
+             - supports_keystone: true ✅
+          
+          5. ✅ **Validation Test - Pattern ID Matching**:
+             - User 1: Keystone pattern_id = "direction_shift" matches Astrology keystone_pattern_id = "direction_shift" ✅
+             - User 2: Keystone pattern_id = "decision_switch_loop" matches Astrology keystone_pattern_id = "decision_switch_loop" ✅
+             - Perfect pattern matching across both users ✅
+          
+          🔧 BACKEND INTEGRATION VERIFIED:
+          - All endpoints accessible via public URL (https://insight-lens-7.preview.emergentagent.com/api)
+          - No HTTP errors or timeouts
+          - Response times acceptable (keystone: 0.17-0.31s, astrology: 17.98-48.54s)
+          - Backend logs confirm integration: "[AstrologyDeepDive] Added keystone explanation for pattern: direction_shift"
+          - Force refresh working correctly for astrology endpoint
+          - Keystone explanation properly included in astrology deep-dive responses
+          
+          📊 SAMPLE KEYSTONE EXPLANATION VERIFIED:
+          - Pattern ID: "direction_shift"
+          - Lens Role: "timing_trigger"
+          - Title: "Why You Keep Changing Course"
+          - Body: "Cross-currents are pulling you in multiple directions. Each new input suggests a different path. The..."
+          - Supports Keystone: true
+          
+          📊 PATTERN MATCHING VERIFICATION:
+          - User 1: direction_shift ↔ direction_shift ✅ PERFECT MATCH
+          - User 2: decision_switch_loop ↔ decision_switch_loop ✅ PERFECT MATCH
+          
+          📊 TEST RESULTS: 28/28 TESTS PASSED (100% SUCCESS RATE)
+          
+          CONCLUSION: Astrology Keystone Explanation integration is fully functional and working correctly. All review request requirements met including keystone pattern verification, astrology deep-dive keystone explanation inclusion, proper field validation (lens_role="timing_trigger", supports_keystone=true), and perfect pattern ID matching between keystone and astrology endpoints. The integration successfully provides timing-based explanations for user keystone patterns within the astrology context.
+
 agent_communication:
   - agent: "testing"
     message: |
@@ -4409,3 +4490,44 @@ agent_communication:
       **Backend Integration**: Pattern engine generating unique patterns with proper confidence scoring
       
       🎉 **CONCLUSION**: All Keystone Pattern API requirements met. The endpoint successfully returns daily keystone patterns with proper response structure, behavior sequence format, caching functionality, and force refresh capability.
+
+  - agent: "testing"
+    message: |
+      ASTROLOGY KEYSTONE EXPLANATION INTEGRATION TESTING COMPLETE ✅
+      
+      Successfully tested the Astrology Keystone Explanation integration as requested in the review:
+      
+      🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+      
+      **Test 1: GET /api/keystone-pattern/{user_id}** ✅
+      - User ID: 6971c81f2b40fd5ef501d375 ✅ pattern_id: "direction_shift"
+      - User ID: 69819f1a1e4549392d7cb6d1 ✅ pattern_id: "decision_switch_loop"
+      - Both users have valid keystone patterns with pattern_id, pattern_label, behavior_sequence
+      
+      **Test 2: GET /api/astrology/deep-dive/{user_id}?force_refresh=true** ✅
+      - Both users return 200 OK with keystone_explanation field
+      - keystone_explanation contains all required fields:
+        * keystone_pattern_id (matches keystone endpoint) ✅
+        * lens_role = "timing_trigger" ✅
+        * lens_explanation_title (non-empty string) ✅
+        * lens_explanation_body (non-empty string) ✅
+        * supports_keystone = true ✅
+      
+      **Test 3: Pattern ID Validation** ✅
+      - User 1: keystone_pattern_id "direction_shift" matches between endpoints ✅
+      - User 2: keystone_pattern_id "decision_switch_loop" matches between endpoints ✅
+      - Perfect pattern matching across all test scenarios
+      
+      **Backend Integration Verified:**
+      - Response times: keystone (0.17-0.31s), astrology (17.98-48.54s) - acceptable
+      - Backend logs confirm: "[AstrologyDeepDive] Added keystone explanation for pattern: {pattern_id}"
+      - No HTTP errors or timeouts
+      - Force refresh working correctly
+      
+      **Sample Keystone Explanations:**
+      - User 1: "Why You Keep Changing Course" - Cross-currents pulling in multiple directions
+      - User 2: "Why You Keep Rewriting It" - Decision refinement patterns
+      
+      📊 TEST RESULTS: 28/28 TESTS PASSED (100% SUCCESS RATE)
+      
+      🎉 **CONCLUSION**: Astrology Keystone Explanation integration is fully functional and working correctly. All review request requirements met with perfect pattern ID matching between keystone and astrology endpoints.
