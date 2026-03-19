@@ -271,6 +271,292 @@ DOMINANT_THEMES = {
     },
 }
 
+# =============================================================================
+# PHASE-AWARE TENSION MODULATION (v1.4)
+# =============================================================================
+
+# Base behavioral tensions (derived from patterns)
+BASE_TENSIONS = {
+    "urge_to_decide_for_relief": {
+        "description": "Wanting to decide just to end the uncertainty",
+        "behavior": "Making premature commitments",
+        "copy_hook": "The urge right now is to decide—just to get relief",
+    },
+    "seeking_certainty_from_others": {
+        "description": "Looking for external validation before acting",
+        "behavior": "Asking for opinions you don't need",
+        "copy_hook": "You keep asking because committing feels too final",
+    },
+    "over_controlling_when_unclear": {
+        "description": "Gripping tighter when things feel uncertain",
+        "behavior": "Micromanaging details that don't matter",
+        "copy_hook": "You're controlling small things because you can't control the big thing",
+    },
+    "forcing_clarity_before_ready": {
+        "description": "Trying to name something before it's nameable",
+        "behavior": "Labeling feelings too early",
+        "copy_hook": "Part of you wants this resolved more than understood",
+    },
+    "moving_to_avoid_feeling": {
+        "description": "Taking action to escape discomfort",
+        "behavior": "Starting things to feel productive",
+        "copy_hook": "Movement feels like progress. It's not. But stillness feels worse",
+    },
+    "pushing_timing_that_isnt_ready": {
+        "description": "Trying to make something happen before its time",
+        "behavior": "Manufacturing openings that aren't there",
+        "copy_hook": "You're ready. It isn't. That gap is unbearable",
+    },
+    "holding_back_what_wants_expression": {
+        "description": "Not saying what needs to be said",
+        "behavior": "Waiting for a perfect moment that won't come",
+        "copy_hook": "There's something you want to say. You've rehearsed it. But you haven't said it",
+    },
+    "analyzing_to_avoid_deciding": {
+        "description": "Thinking in loops instead of choosing",
+        "behavior": "Gathering more information when you have enough",
+        "copy_hook": "You've thought about this decision until thinking feels like action. It's not",
+    },
+}
+
+# Phase modulation transforms base tension based on transit context
+PHASE_MODULATION = {
+    "phase_shift": {
+        # For stacked transits / transition periods
+        "urge_to_decide_for_relief": {
+            "modulated": "trying_to_finalize_during_transition",
+            "copy_hook": "You're trying to lock something in before it's fully formed. It's still shifting.",
+            "emphasis": ["incompleteness", "instability", "not_ready"],
+        },
+        "seeking_certainty_from_others": {
+            "modulated": "seeking_ground_when_everything_shifts",
+            "copy_hook": "You're looking for someone to tell you this is solid. It isn't—not because they don't know, but because it's not stable yet.",
+            "emphasis": ["external_instability", "transition"],
+        },
+        "over_controlling_when_unclear": {
+            "modulated": "gripping_during_dissolution",
+            "copy_hook": "The tighter you grip, the more slips through. This is a moment to release, not hold.",
+            "emphasis": ["letting_go", "transition"],
+        },
+        "forcing_clarity_before_ready": {
+            "modulated": "naming_what_hasnt_landed",
+            "copy_hook": "This isn't a moment to decide. It's still taking shape.",
+            "emphasis": ["incompleteness", "patience"],
+        },
+        "moving_to_avoid_feeling": {
+            "modulated": "escaping_the_transition",
+            "copy_hook": "You want to move because staying still during transition feels unbearable. But moving won't speed this up.",
+            "emphasis": ["allowing", "transition"],
+        },
+        "pushing_timing_that_isnt_ready": {
+            "modulated": "forcing_arrival_during_passage",
+            "copy_hook": "You can't arrive somewhere that's still forming. The destination is also shifting.",
+            "emphasis": ["patience", "instability"],
+        },
+        "holding_back_what_wants_expression": {
+            "modulated": "waiting_for_stable_ground_to_speak",
+            "copy_hook": "Maybe the silence isn't avoidance. Maybe it's wisdom—waiting for things to settle before you name them.",
+            "emphasis": ["timing", "transition"],
+        },
+        "analyzing_to_avoid_deciding": {
+            "modulated": "thinking_through_unstable_ground",
+            "copy_hook": "Your analysis assumes stable variables. Right now, the variables are still moving.",
+            "emphasis": ["instability", "patience"],
+        },
+    },
+    "cycle_event": {
+        # For single major transit (new moon, full moon, etc.)
+        "urge_to_decide_for_relief": {
+            "modulated": "deciding_at_turning_point",
+            "copy_hook": "This is a turning point. Decisions made now carry weight—be sure it's clarity, not just relief.",
+            "emphasis": ["direction", "significance"],
+        },
+        "forcing_clarity_before_ready": {
+            "modulated": "forcing_clarity_at_cycle_turn",
+            "copy_hook": "Clarity is close. Don't grab for it. Let it arrive.",
+            "emphasis": ["patience", "timing"],
+        },
+        "moving_to_avoid_feeling": {
+            "modulated": "moving_through_cycle_energy",
+            "copy_hook": "The energy wants movement—but conscious movement, not escape.",
+            "emphasis": ["direction", "intention"],
+        },
+    },
+    "normal_flow": {
+        # No modulation - use base tensions
+    },
+}
+
+
+def modulate_tension(base_tension_id: str, transit_stack: Dict) -> Dict[str, Any]:
+    """
+    Modulate a base tension through phase context.
+    
+    Returns modulated tension with phase-aware copy.
+    """
+    classification = transit_stack.get("classification", "normal_flow")
+    interaction_theme = transit_stack.get("interaction_theme", "")
+    intensity = transit_stack.get("intensity", 0.5)
+    
+    base = BASE_TENSIONS.get(base_tension_id, {})
+    
+    # Get phase modulation if available
+    phase_mods = PHASE_MODULATION.get(classification, {})
+    modulation = phase_mods.get(base_tension_id, {})
+    
+    if modulation:
+        # Return modulated tension
+        return {
+            "base_id": base_tension_id,
+            "base_description": base.get("description", ""),
+            "modulated_id": modulation.get("modulated", base_tension_id),
+            "modulated_copy": modulation.get("copy_hook", base.get("copy_hook", "")),
+            "emphasis": modulation.get("emphasis", []),
+            "phase": classification,
+            "interaction_theme": interaction_theme,
+            "score": round(intensity * 0.9 + 0.1, 2),  # Score based on phase intensity
+            "is_modulated": True,
+        }
+    else:
+        # No modulation - return base
+        return {
+            "base_id": base_tension_id,
+            "base_description": base.get("description", ""),
+            "modulated_id": base_tension_id,
+            "modulated_copy": base.get("copy_hook", ""),
+            "emphasis": [],
+            "phase": classification,
+            "interaction_theme": interaction_theme,
+            "score": round(intensity * 0.5 + 0.3, 2),
+            "is_modulated": False,
+        }
+
+
+def compute_modulated_tensions(
+    base_tension_ids: List[str],
+    transit_stack: Dict,
+    max_tensions: int = 3
+) -> List[Dict[str, Any]]:
+    """
+    Compute modulated tensions from base tensions using phase context.
+    
+    Returns list of modulated tensions sorted by score.
+    """
+    modulated = []
+    
+    for tension_id in base_tension_ids:
+        if tension_id in BASE_TENSIONS:
+            modulated.append(modulate_tension(tension_id, transit_stack))
+    
+    # Sort by score and return top N
+    modulated.sort(key=lambda x: x["score"], reverse=True)
+    return modulated[:max_tensions]
+
+
+def get_dominant_modulated_tension(transit_stack: Dict, field_context: Dict) -> Dict[str, Any]:
+    """
+    Derive the dominant modulated tension based on phase and field context.
+    
+    This is the SINGLE tension that drives the day's narrative.
+    """
+    classification = transit_stack.get("classification", "normal_flow")
+    field_tone = field_context.get("field_tone", "clarity")
+    clarity = field_context.get("clarity_level", "high")
+    
+    # Select base tensions based on field context
+    if classification == "phase_shift":
+        # During transitions, these tensions are most relevant
+        if clarity == "low":
+            candidates = ["forcing_clarity_before_ready", "urge_to_decide_for_relief", "gripping_during_dissolution"]
+        else:
+            candidates = ["urge_to_decide_for_relief", "pushing_timing_that_isnt_ready", "moving_to_avoid_feeling"]
+    elif classification == "cycle_event":
+        if field_tone == "reset":
+            candidates = ["forcing_clarity_before_ready", "moving_to_avoid_feeling"]
+        else:
+            candidates = ["urge_to_decide_for_relief", "holding_back_what_wants_expression"]
+    else:
+        # normal_flow - use field tone to select
+        if field_tone == "reset":
+            candidates = ["forcing_clarity_before_ready", "over_controlling_when_unclear"]
+        elif field_tone == "pressure":
+            candidates = ["urge_to_decide_for_relief", "analyzing_to_avoid_deciding"]
+        else:
+            candidates = ["seeking_certainty_from_others", "holding_back_what_wants_expression"]
+    
+    # Map to actual base tension IDs
+    tension_map = {
+        "forcing_clarity_before_ready": "forcing_clarity_before_ready",
+        "urge_to_decide_for_relief": "urge_to_decide_for_relief",
+        "gripping_during_dissolution": "over_controlling_when_unclear",
+        "pushing_timing_that_isnt_ready": "pushing_timing_that_isnt_ready",
+        "moving_to_avoid_feeling": "moving_to_avoid_feeling",
+        "holding_back_what_wants_expression": "holding_back_what_wants_expression",
+        "over_controlling_when_unclear": "over_controlling_when_unclear",
+        "analyzing_to_avoid_deciding": "analyzing_to_avoid_deciding",
+        "seeking_certainty_from_others": "seeking_certainty_from_others",
+    }
+    
+    base_ids = [tension_map.get(c, c) for c in candidates if tension_map.get(c, c) in BASE_TENSIONS]
+    
+    # Compute modulated tensions
+    modulated = compute_modulated_tensions(base_ids, transit_stack, max_tensions=1)
+    
+    if modulated:
+        return modulated[0]
+    
+    # Fallback
+    return modulate_tension("urge_to_decide_for_relief", transit_stack)
+
+
+def generate_phase_aware_copy(dominant_tension: Dict, transit_stack: Dict) -> Dict[str, str]:
+    """
+    Generate hero copy that reflects both tension and phase.
+    
+    For phase_shift: Emphasize transition, incompleteness, instability
+    For cycle_event: Emphasize direction, turning points
+    For normal_flow: Emphasize pattern, behavior
+    """
+    classification = transit_stack.get("classification", "normal_flow")
+    interaction_theme = transit_stack.get("interaction_theme", "")
+    copy_hook = dominant_tension.get("modulated_copy", "")
+    emphasis = dominant_tension.get("emphasis", [])
+    
+    # Build body based on phase
+    if classification == "phase_shift":
+        # Transition-aware copy
+        if "incompleteness" in emphasis:
+            body = f"{copy_hook}"
+            bridge = "This isn't the moment to resolve it. It's still taking shape."
+        elif "instability" in emphasis:
+            body = f"{copy_hook}"
+            bridge = "The ground is moving. Don't plant flags on shifting ground."
+        elif "letting_go" in emphasis:
+            body = f"{copy_hook}"
+            bridge = "Release is what this moment asks for."
+        else:
+            body = f"{copy_hook}"
+            bridge = "Something is shifting. Let it shift."
+    elif classification == "cycle_event":
+        # Direction-aware copy
+        if "direction" in emphasis:
+            body = f"{copy_hook}"
+            bridge = "This moment is a turning point. Pay attention."
+        else:
+            body = f"{copy_hook}"
+            bridge = "A cycle is completing. Notice what's ready to change."
+    else:
+        # Pattern-aware copy (normal_flow)
+        body = copy_hook
+        bridge = None
+    
+    return {
+        "body": body,
+        "bridge": bridge,
+        "phase_context": classification,
+        "dominant_tension": dominant_tension.get("modulated_id", ""),
+    }
+
 
 
 def _enhance_dominant_for_stacked(dominant: 'DominantSignal', transit_stack: Dict, copy_tone: Dict) -> 'DominantSignal':
@@ -977,6 +1263,12 @@ def compute_transit_signals(
     
     logger.info(f"[TransitSignals] Computed {len(all_signals)} signals, dominant theme: {dominant.theme_id} (confidence: {dominant.confidence:.2f}, classification: {transit_stack.get('classification')})")
     
+    # === LAYER 4: COMPUTE MODULATED TENSIONS (v1.4) ===
+    dominant_tension = get_dominant_modulated_tension(transit_stack, enhanced_field_context)
+    phase_copy = generate_phase_aware_copy(dominant_tension, transit_stack)
+    
+    logger.info(f"[TransitSignals] Modulated tension: {dominant_tension.get('modulated_id')} (phase: {dominant_tension.get('phase')}, score: {dominant_tension.get('score')})")
+    
     return {
         "computed_at": datetime.now(timezone.utc).isoformat(),
         "transits": transits,
@@ -987,6 +1279,18 @@ def compute_transit_signals(
         },
         # === Include transit stack (Layer 0) ===
         "transit_stack": transit_stack,
+        # === MODULATED TENSION (Layer 4 - v1.4) ===
+        "modulated_tension": {
+            "base": dominant_tension.get("base_id"),
+            "modulated": dominant_tension.get("modulated_id"),
+            "phase": dominant_tension.get("phase"),
+            "interaction_theme": dominant_tension.get("interaction_theme"),
+            "score": dominant_tension.get("score"),
+            "is_modulated": dominant_tension.get("is_modulated"),
+            "emphasis": dominant_tension.get("emphasis", []),
+        },
+        # === PHASE-AWARE COPY ===
+        "phase_copy": phase_copy,
         # === Include dominant signal in response ===
         "dominant_signal": {
             "theme": dominant.theme,
@@ -1001,7 +1305,7 @@ def compute_transit_signals(
         },
         # === Major sky events for frontend display ===
         "major_sky_events": major_sky_events[:2] if major_sky_events else [],
-        "field_context": field_context,
+        "field_context": enhanced_field_context,
         "user_context": {
             "type": user_type,
             "authority": user_authority,
