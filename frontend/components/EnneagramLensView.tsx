@@ -22,6 +22,7 @@ import {
   askEnneagramQuestion,
   getEnneagramDeepDive,
   getPatternDrift,
+  getEnneagramResult,
   EnneagramTraitCard,
   EnneagramComputedDetails,
   EnneagramDeepDiveSection,
@@ -107,6 +108,86 @@ const CORE_PATTERN_CONCISE: { [key: number]: string } = {
   7: 'You move toward what feels open, interesting, and full of possibility.\n\nWhen something feels limiting or heavy, your instinct is to shift — to reframe, redirect, or find another path forward.',
   8: 'You move toward strength, directness, and protecting your autonomy.\n\nWhen control feels threatened, your instinct is to take charge — to push back, set boundaries, assert your position.',
   9: 'You move toward harmony, comfort, and maintaining inner peace.\n\nWhen conflict arises, your instinct is to smooth it over — to merge, accommodate, and keep things steady.',
+};
+
+// Hero summary sentences for each type + wing combo
+const HERO_SUMMARY_SENTENCES: { [key: string]: string } = {
+  '1w9': 'You move toward correctness and improvement — with added patience and steadiness from your 9 wing.',
+  '1w2': 'You move toward correctness and improvement — with added warmth and care from your 2 wing.',
+  '2w1': 'You move toward connection through helping — with added structure and standards from your 1 wing.',
+  '2w3': 'You move toward connection through helping — with added drive and visibility from your 3 wing.',
+  '3w2': 'You move toward achievement and recognition — with added warmth and people-focus from your 2 wing.',
+  '3w4': 'You move toward achievement and recognition — with added depth and personal style from your 4 wing.',
+  '4w3': 'You move toward authenticity and meaning — with added drive and outward expression from your 3 wing.',
+  '4w5': 'You move toward authenticity and meaning — with added intellectual depth and privacy from your 5 wing.',
+  '5w4': 'You move toward understanding and clarity — with added emotional sensitivity from your 4 wing.',
+  '5w6': 'You move toward understanding and clarity — with added vigilance and practical application from your 6 wing.',
+  '6w5': 'You move toward security and preparation — with added analytical depth from your 5 wing.',
+  '6w7': 'You move toward security and preparation — with added optimism and forward energy from your 7 wing.',
+  '7w6': 'You move toward possibility and stimulation — with added loyalty and groundedness from your 6 wing.',
+  '7w8': 'You move toward possibility, stimulation, and freedom — with added decisiveness from your 8 wing.',
+  '8w7': 'You move toward strength and autonomy — with added energy and expansiveness from your 7 wing.',
+  '8w9': 'You move toward strength and autonomy — with added patience and steadiness from your 9 wing.',
+  '9w8': 'You move toward harmony and peace — with added directness and backbone from your 8 wing.',
+  '9w1': 'You move toward harmony and peace — with added principles and purpose from your 1 wing.',
+};
+
+// Expanded Core Story content for Summary page
+const CORE_STORY_CONTENT: { [key: number]: { what: string; drives: string; tradeoff: string; helps: string } } = {
+  1: {
+    what: 'Type 1 is the pattern of improvement, integrity, and holding things to a higher standard. Your attention naturally moves toward what could be better, more aligned, more correct.',
+    drives: 'A deep sense that things should be done right — and that you have a responsibility to make them so. This isn\'t about perfectionism for its own sake; it\'s about a genuine desire for goodness and order.',
+    tradeoff: 'The inner critic that drives improvement can become relentless. The pursuit of "right" can crowd out acceptance of what already is. Resentment builds when others don\'t share your standards.',
+    helps: 'Your conscientiousness creates trust. Your commitment to improvement raises the bar for everyone. Your integrity is a quiet anchor in chaotic environments.',
+  },
+  2: {
+    what: 'Type 2 is the pattern of connection through giving, anticipating needs, and being valued for helping. Your attention naturally moves toward what others need — often before they ask.',
+    drives: 'A deep sense that love is earned through giving, and that being needed is the surest path to belonging. This isn\'t manipulation; it\'s a genuine desire to matter to people.',
+    tradeoff: 'Your own needs can disappear beneath the focus on others. Resentment builds when giving doesn\'t generate the recognition you expected. The help can come with invisible strings.',
+    helps: 'Your attentiveness creates genuine warmth. Your ability to anticipate needs makes others feel seen. Your generosity builds bridges others can\'t.',
+  },
+  3: {
+    what: 'Type 3 is the pattern of achievement, efficiency, and presenting yourself in the best possible light. Your attention naturally moves toward goals, outcomes, and how you\'re perceived.',
+    drives: 'A deep sense that you are what you accomplish — and that being seen as successful is essential to being valued. This isn\'t vanity; it\'s a genuine drive to create and achieve.',
+    tradeoff: 'The drive to succeed can disconnect you from what you actually feel. Image management can replace authenticity. The fear of failure can make slowing down feel dangerous.',
+    helps: 'Your ability to get things done is real. Your adaptability helps you navigate complex environments. Your energy inspires others to raise their game.',
+  },
+  4: {
+    what: 'Type 4 is the pattern of authenticity, depth, and finding meaning in emotional experience. Your attention naturally moves toward what feels significant, unique, or missing.',
+    drives: 'A deep sense that authentic self-expression is essential — and that something meaningful is always just out of reach. This isn\'t drama; it\'s a genuine search for what\'s real.',
+    tradeoff: 'The search for depth can become an attachment to melancholy. Comparing your inner life to others\' surfaces creates unnecessary pain. The extraordinary can eclipse the ordinary.',
+    helps: 'Your emotional honesty creates permission for others to feel. Your aesthetic sense adds beauty to environments. Your depth reaches places others can\'t access.',
+  },
+  5: {
+    what: 'Type 5 is the pattern of observation, understanding, and preserving inner resources. Your attention naturally moves toward knowledge, clarity, and maintaining boundaries.',
+    drives: 'A deep sense that your resources — time, energy, knowledge — are limited and must be protected. This isn\'t coldness; it\'s a genuine need to understand before engaging.',
+    tradeoff: 'The pull toward observation can become avoidance of participation. The pursuit of certainty can delay action indefinitely. Knowledge can substitute for connection.',
+    helps: 'Your ability to see clearly without emotional distortion is rare. Your depth of understanding creates real expertise. Your independence allows you to think freely.',
+  },
+  6: {
+    what: 'Type 6 is the pattern of vigilance, preparation, and seeking reliable ground. Your attention naturally moves toward potential risks, loyalties, and what can be trusted.',
+    drives: 'A deep sense that the world requires alertness — and that security must be actively maintained. This isn\'t anxiety; it\'s a genuine desire for trustworthy foundations.',
+    tradeoff: 'The scanning for threats can create the very anxiety you\'re trying to prevent. Worst-case thinking can crowd out possibility. Testing loyalty can strain the relationships you value.',
+    helps: 'Your ability to anticipate problems prevents real disasters. Your loyalty creates deep, durable bonds. Your questioning mind catches what others miss.',
+  },
+  7: {
+    what: 'Type 7 is the pattern of possibility, exploration, and staying open to positive options. Your attention naturally moves toward what could be interesting, stimulating, or enjoyable.',
+    drives: 'A deep sense that freedom and possibility are essential — and that being trapped in limitation or pain must be avoided. This isn\'t escapism; it\'s a genuine appetite for life.',
+    tradeoff: 'The draw toward options can prevent the satisfaction of completion. Reframing everything positively can bypass pain that needs attention. Depth requires staying when moving feels easier.',
+    helps: 'Your enthusiasm is genuinely contagious. Your ability to reframe creates resilience. Your vision for possibility opens doors others don\'t see.',
+  },
+  8: {
+    what: 'Type 8 is the pattern of strength, directness, and protecting autonomy. Your attention naturally moves toward power dynamics, control, and who can be trusted with vulnerability.',
+    drives: 'A deep sense that strength is necessary for survival — and that vulnerability invites harm. This isn\'t aggression; it\'s a genuine desire to protect what matters.',
+    tradeoff: 'The protection of strength can block the intimacy you actually want. Control can become domination. The denial of vulnerability can leave you isolated at the top.',
+    helps: 'Your ability to take charge creates safety for others. Your directness cuts through confusion. Your strength protects those who can\'t protect themselves.',
+  },
+  9: {
+    what: 'Type 9 is the pattern of harmony, acceptance, and maintaining inner and outer peace. Your attention naturally moves toward what creates connection and avoids disruption.',
+    drives: 'A deep sense that peace must be preserved — and that your own needs can wait to maintain harmony. This isn\'t passivity; it\'s a genuine desire for calm and connection.',
+    tradeoff: 'The maintenance of peace can mean the loss of yourself. Avoiding conflict can create passive resistance. Merging with others\' agendas can make your own voice disappear.',
+    helps: 'Your ability to see all sides creates real mediation. Your acceptance creates space where others can be themselves. Your steadiness is an anchor in turbulent times.',
+  },
 };
 
 // Wing influence descriptions (concise)
@@ -776,8 +857,9 @@ interface EnneagramResult {
 }
 
 interface Props {
-  result: EnneagramResult;
+  result?: EnneagramResult;  // Make optional - will fetch internally if not provided
   userId: string;
+  onOpenChat?: () => void;
 }
 
 type TabType = 'summary' | 'at_a_glance' | 'today' | 'deep_dive';
@@ -793,11 +875,18 @@ interface ChatMessage {
   content: string;
 }
 
-export default function EnneagramLensView({ result, userId }: Props) {
+export default function EnneagramLensView({ result: propResult, userId, onOpenChat }: Props) {
   const router = useRouter();
   
   // Theme support - use the useTheme hook
   const { theme, isDark } = useTheme();
+  
+  // Internal result state (fetch if not provided as prop)
+  const [internalResult, setInternalResult] = useState<EnneagramResult | null>(propResult || null);
+  const [resultLoading, setResultLoading] = useState(!propResult);
+  
+  // Use prop result if provided, otherwise use internal fetched result
+  const result = propResult || internalResult;
   
   // Derived values with null safety
   const core = result?.inferred_core || 0;
@@ -843,6 +932,29 @@ export default function EnneagramLensView({ result, userId }: Props) {
     console.log('[EnneagramLensView] userId:', userId);
     console.log('[EnneagramLensView] renderTabs will be called:', typeof renderTabs);
   }, []);
+
+  // Fetch enneagram result if not provided as prop
+  useEffect(() => {
+    const fetchResult = async () => {
+      if (propResult || !userId) return;
+      
+      console.log('[EnneagramLensView] Fetching enneagram result for user:', userId);
+      setResultLoading(true);
+      try {
+        const data = await getEnneagramResult(userId);
+        // API returns { has_result: boolean, result: EnneagramResult }
+        const resultData = data?.result || data;
+        console.log('[EnneagramLensView] Fetched result:', resultData?.inferred_core, resultData?.inferred_wing);
+        setInternalResult(resultData);
+      } catch (error) {
+        console.error('[EnneagramLensView] Failed to fetch result:', error);
+        setInternalResult(null);
+      } finally {
+        setResultLoading(false);
+      }
+    };
+    fetchResult();
+  }, [userId, propResult]);
 
   // Debug logging on tab change
   useEffect(() => {
@@ -1126,218 +1238,154 @@ export default function EnneagramLensView({ result, userId }: Props) {
     const stressType = STRESS_DIRECTIONS[core];
     const growthType = GROWTH_DIRECTIONS[core];
     const confidenceTier = result?.confidence_tier || 'medium';
+    const isSelfDeclared = result?.source === 'self_declared' || result?.method === 'self_declared';
     
-    // Get bridge line based on type and wing
-    const getBridgeLine = () => {
-      if (!wingKey) return CORE_MOTIVATIONS[core] || '';
-      const wingInfluence = WING_INFLUENCE_CONCISE[wingKey];
-      if (wingInfluence && CORE_NEEDS[core]) {
-        return `A pattern centered on ${CORE_NEEDS[core].toLowerCase()} — with added ${wingNum === WING_NUMBERS[core]?.right ? 'forward energy' : 'grounding'} from your ${wingNum} wing.`;
+    // Get hero summary sentence
+    const getHeroSummary = () => {
+      if (wingKey && HERO_SUMMARY_SENTENCES[wingKey]) {
+        return HERO_SUMMARY_SENTENCES[wingKey];
       }
       return CORE_MOTIVATIONS[core] || '';
     };
+
+    // Get Core Story content
+    const coreStory = CORE_STORY_CONTENT[core];
     
     return (
       <>
         {/* ============================================ */}
-        {/* SECTION 1: ENNEAGRAM WHEEL */}
+        {/* SECTION 1: HERO RESULT CARD (TOP OF PAGE) */}
         {/* ============================================ */}
-        <View style={[styles.wheelContainer, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-          <View style={styles.wheelWrapper}>
-            {/* Render 9 types in a circle */}
-            {[9, 1, 2, 3, 4, 5, 6, 7, 8].map((type, index) => {
-              const angle = (index * 40 - 90) * (Math.PI / 180); // Start from top, 40 degrees apart
-              const radius = 95;
-              const x = 120 + radius * Math.cos(angle);
-              const y = 120 + radius * Math.sin(angle);
-              
-              const isCore = type === core;
-              const isWing = wingNum && type === wingNum;
-              const isStress = type === stressType;
-              const isGrowth = type === growthType;
-              const isActive = isCore || isWing || isStress || isGrowth;
-              
-              return (
-                <View
-                  key={type}
-                  style={[
-                    styles.wheelNode,
-                    {
-                      left: x - 28,
-                      top: y - 28,
-                      backgroundColor: isCore 
-                        ? theme.accent 
-                        : isWing 
-                          ? `${theme.accent}60`
-                          : isGrowth
-                            ? '#2E7D3220'
-                            : isStress
-                              ? '#C6282820'
-                              : theme.surface,
-                      borderColor: isCore 
-                        ? theme.accent 
-                        : isWing 
-                          ? theme.accent
-                          : isGrowth
-                            ? '#2E7D32'
-                            : isStress
-                              ? '#C62828'
-                              : theme.border,
-                      borderWidth: isCore || isWing ? 2 : 1,
-                      opacity: isActive ? 1 : 0.4,
-                    },
-                  ]}
-                >
-                  <Text style={[
-                    styles.wheelNumber, 
-                    { 
-                      color: isCore 
-                        ? (theme.isDark ? '#0B0B0C' : '#F0EDE8')
-                        : isWing
-                          ? theme.accent
-                          : isGrowth
-                            ? '#2E7D32'
-                            : isStress
-                              ? '#C62828'
-                              : theme.textSecondary,
-                      fontWeight: isCore || isWing ? '700' : '500',
-                    }
-                  ]}>
-                    {type}
-                  </Text>
-                  {isCore && (
-                    <Text style={[styles.wheelLabel, { color: theme.isDark ? '#0B0B0C' : '#F0EDE8' }]}>Core</Text>
-                  )}
-                  {isWing && !isCore && (
-                    <Text style={[styles.wheelLabel, { color: theme.accent }]}>Wing</Text>
-                  )}
-                  {isGrowth && !isCore && !isWing && (
-                    <Text style={[styles.wheelLabel, { color: '#2E7D32' }]}>Growth</Text>
-                  )}
-                  {isStress && !isCore && !isWing && (
-                    <Text style={[styles.wheelLabel, { color: '#C62828' }]}>Stress</Text>
-                  )}
-                </View>
-              );
-            })}
-            
-            {/* Center info */}
-            <View style={styles.wheelCenter}>
-              <Text style={[styles.wheelCenterType, { color: theme.text }]}>
-                {wingNum ? `${core}w${wingNum}` : `Type ${core}`}
-              </Text>
-              <Text style={[styles.wheelCenterName, { color: theme.textSecondary }]}>
-                {TYPE_NAMES[core]}
-              </Text>
-            </View>
-          </View>
+        <View style={[styles.heroResultCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          {/* Large Result Label */}
+          <Text style={[styles.heroResultLabel, { color: theme.text }]}>
+            {wingNum ? `${core}w${wingNum}` : `Type ${core}`}
+          </Text>
           
-          {/* Movement Legend */}
-          <View style={styles.wheelLegend}>
-            <View style={styles.wheelLegendItem}>
-              <View style={[styles.wheelLegendDot, { backgroundColor: '#2E7D32' }]} />
-              <Text style={[styles.wheelLegendText, { color: theme.textTertiary }]}>
-                → {growthType} when resourced
-              </Text>
-            </View>
-            <View style={styles.wheelLegendItem}>
-              <View style={[styles.wheelLegendDot, { backgroundColor: '#C62828' }]} />
-              <Text style={[styles.wheelLegendText, { color: theme.textTertiary }]}>
-                → {stressType} under pressure
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ============================================ */}
-        {/* SECTION 2: STRUCTURE SUMMARY CARD */}
-        {/* ============================================ */}
-        <View style={[styles.structureCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-          <View style={styles.structureHeader}>
-            <Text style={[styles.structureType, { color: theme.text }]}>
-              {wingNum ? `${core}w${wingNum}` : `Type ${core}`} — {TYPE_NAMES[core]}
-            </Text>
-            <View style={[
-              styles.confidenceBadge, 
-              { 
-                backgroundColor: confidenceTier === 'high' 
-                  ? '#2E7D3220' 
-                  : confidenceTier === 'medium'
-                    ? '#F5A62320'
-                    : '#C6282820',
-                borderColor: confidenceTier === 'high' 
-                  ? '#2E7D32' 
-                  : confidenceTier === 'medium'
-                    ? '#F5A623'
-                    : '#C62828',
-              }
-            ]}>
-              <Text style={[
-                styles.confidenceBadgeText, 
+          {/* Type Name Subtitle */}
+          <Text style={[styles.heroResultName, { color: theme.textSecondary }]}>
+            {TYPE_NAMES[core]}
+          </Text>
+          
+          {/* Confidence Badge */}
+          <View style={styles.heroConfidenceRow}>
+            {isSelfDeclared ? (
+              <View style={[styles.heroConfidenceBadge, { backgroundColor: theme.surfaceLight }]}>
+                <Text style={[styles.heroConfidenceText, { color: theme.textSecondary }]}>Self-declared</Text>
+              </View>
+            ) : (
+              <View style={[
+                styles.heroConfidenceBadge,
                 { 
-                  color: confidenceTier === 'high' 
-                    ? '#2E7D32' 
+                  backgroundColor: confidenceTier === 'high' 
+                    ? '#2E7D3220' 
                     : confidenceTier === 'medium'
-                      ? '#F5A623'
-                      : '#C62828',
+                      ? '#F5A62320'
+                      : '#C6282820',
                 }
               ]}>
-                {confidenceTier === 'high' ? 'High' : confidenceTier === 'medium' ? 'Medium' : 'Low'} Confidence
-              </Text>
-            </View>
+                <Text style={[
+                  styles.heroConfidenceText,
+                  { 
+                    color: confidenceTier === 'high' 
+                      ? '#2E7D32' 
+                      : confidenceTier === 'medium'
+                        ? '#F5A623'
+                        : '#C62828',
+                  }
+                ]}>
+                  {confidenceTier === 'high' ? 'High' : confidenceTier === 'medium' ? 'Medium' : 'Low'} Confidence
+                </Text>
+              </View>
+            )}
           </View>
-          <Text style={[styles.structureSubtext, { color: theme.textTertiary }]}>
+          
+          {/* Summary Sentence */}
+          <Text style={[styles.heroSummaryText, { color: theme.text }]}>
+            {getHeroSummary()}
+          </Text>
+          
+          {/* Small Note */}
+          <Text style={[styles.heroNote, { color: theme.textTertiary }]}>
             This lens reflects strategy, not identity.
           </Text>
-          <Text style={[styles.structureBridge, { color: theme.textSecondary }]}>
-            {getBridgeLine()}
-          </Text>
         </View>
 
         {/* ============================================ */}
-        {/* SECTION 3: CORE PATTERN */}
+        {/* SECTION 2: CORE STORY OF TYPE */}
         {/* ============================================ */}
-        <View style={[styles.patternCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-          <Text style={[styles.patternTitle, { color: theme.textTertiary }]}>
-            CORE PATTERN — TYPE {core}
+        <View style={[styles.coreStoryCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.coreStoryTitle, { color: theme.textTertiary }]}>
+            CORE STORY — TYPE {core}
           </Text>
-          <Text style={[styles.patternBody, { color: theme.text }]}>
-            {CORE_PATTERN_CONCISE[core]}
-          </Text>
+          
+          {/* What Type X Is */}
+          <View style={styles.coreStorySection}>
+            <Text style={[styles.coreStorySectionTitle, { color: theme.text }]}>Core Pattern</Text>
+            <Text style={[styles.coreStoryBody, { color: theme.textSecondary }]}>
+              {coreStory?.what || CORE_PATTERNS[core]}
+            </Text>
+          </View>
+          
+          {/* What Drives This */}
+          <View style={styles.coreStorySection}>
+            <Text style={[styles.coreStorySectionTitle, { color: theme.text }]}>What Drives This</Text>
+            <Text style={[styles.coreStoryBody, { color: theme.textSecondary }]}>
+              {coreStory?.drives || PATTERN_DRIVERS[core]}
+            </Text>
+          </View>
+          
+          {/* Tradeoff to Watch */}
+          <View style={styles.coreStorySection}>
+            <Text style={[styles.coreStorySectionTitle, { color: theme.text }]}>Tradeoff to Watch</Text>
+            <Text style={[styles.coreStoryBody, { color: theme.textSecondary }]}>
+              {coreStory?.tradeoff || ''}
+            </Text>
+          </View>
+          
+          {/* Where This Helps */}
+          <View style={styles.coreStorySection}>
+            <Text style={[styles.coreStorySectionTitle, { color: theme.text }]}>Where This Often Helps</Text>
+            <Text style={[styles.coreStoryBody, { color: theme.textSecondary }]}>
+              {coreStory?.helps || ''}
+            </Text>
+          </View>
         </View>
 
         {/* ============================================ */}
-        {/* SECTION 4: WING INFLUENCE */}
+        {/* SECTION 3: HOW WING SHAPES THIS */}
         {/* ============================================ */}
         {wingKey && WING_INFLUENCE_CONCISE[wingKey] && (
-          <View style={[styles.patternCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-            <Text style={[styles.patternTitle, { color: theme.textTertiary }]}>
+          <View style={[styles.wingInfluenceCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+            <Text style={[styles.wingInfluenceTitle, { color: theme.textTertiary }]}>
               HOW {wingNum} SHAPES THIS
             </Text>
-            <Text style={[styles.patternBody, { color: theme.text }]}>
+            <Text style={[styles.wingInfluenceBody, { color: theme.text }]}>
               {WING_INFLUENCE_CONCISE[wingKey]}
             </Text>
           </View>
         )}
 
         {/* ============================================ */}
-        {/* SECTION 5: TOP SIGNALS */}
+        {/* SECTION 4: OTHER STRONG SIGNALS */}
         {/* ============================================ */}
         <View style={[styles.signalsCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-          <Text style={[styles.patternTitle, { color: theme.textTertiary }]}>
-            YOUR STRONGEST SIGNALS
+          <Text style={[styles.signalsTitle, { color: theme.textTertiary }]}>
+            OTHER STRONG SIGNALS
           </Text>
           {result?.top_candidates?.slice(0, 3).map((candidate, index) => {
             const percentage = Math.round(candidate.probability * 100);
-            const barWidth = `${percentage}%`;
+            const barWidth = `${Math.min(percentage, 100)}%`;
             const isTop = index === 0;
             
             return (
               <View key={candidate.type} style={styles.signalRow}>
-                <Text style={[styles.signalType, { color: theme.text }]}>
-                  Type {candidate.type}
-                </Text>
-                <View style={styles.signalBarContainer}>
+                <View style={styles.signalTypeContainer}>
+                  <Text style={[styles.signalType, { color: theme.text }]}>
+                    Type {candidate.type}
+                  </Text>
+                </View>
+                <View style={[styles.signalBarContainer, { backgroundColor: theme.surfaceLight }]}>
                   <View 
                     style={[
                       styles.signalBar, 
@@ -1357,7 +1405,131 @@ export default function EnneagramLensView({ result, userId }: Props) {
         </View>
 
         {/* ============================================ */}
-        {/* SECTION 6: CTA */}
+        {/* SECTION 5: ENNEAGRAM WHEEL (SUPPORTING STRUCTURE) */}
+        {/* ============================================ */}
+        <View style={[styles.wheelSupportCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.wheelSupportTitle, { color: theme.textTertiary }]}>
+            ENNEAGRAM STRUCTURE
+          </Text>
+          
+          <View style={styles.wheelWrapper}>
+            {/* Render 9 types in a circle */}
+            {[9, 1, 2, 3, 4, 5, 6, 7, 8].map((type, index) => {
+              const angle = (index * 40 - 90) * (Math.PI / 180);
+              const radius = 85;
+              const x = 110 + radius * Math.cos(angle);
+              const y = 110 + radius * Math.sin(angle);
+              
+              const isCore = type === core;
+              const isWing = wingNum && type === wingNum;
+              const isStress = type === stressType;
+              const isGrowth = type === growthType;
+              const isActive = isCore || isWing || isStress || isGrowth;
+              
+              // Type labels mapping
+              const typeLabels: { [key: number]: string } = {
+                1: 'Reformer',
+                2: 'Helper',
+                3: 'Achiever',
+                4: 'Individualist',
+                5: 'Observer',
+                6: 'Loyalist',
+                7: 'Enthusiast',
+                8: 'Challenger',
+                9: 'Peacemaker',
+              };
+              
+              return (
+                <View
+                  key={type}
+                  style={[
+                    styles.wheelNodeCompact,
+                    {
+                      left: x - 22,
+                      top: y - 22,
+                      backgroundColor: isCore 
+                        ? theme.accent 
+                        : isWing 
+                          ? `${theme.accent}40`
+                          : isGrowth
+                            ? '#2E7D3215'
+                            : isStress
+                              ? '#C6282815'
+                              : theme.surface,
+                      borderColor: isCore 
+                        ? theme.accent 
+                        : isWing 
+                          ? theme.accent
+                          : isGrowth
+                            ? '#2E7D32'
+                            : isStress
+                              ? '#C62828'
+                              : theme.border,
+                      borderWidth: isCore ? 2 : isWing ? 2 : 1,
+                      opacity: isActive ? 1 : 0.35,
+                    },
+                  ]}
+                >
+                  <Text style={[
+                    styles.wheelNumberCompact, 
+                    { 
+                      color: isCore 
+                        ? (theme.isDark ? '#0B0B0C' : '#F0EDE8')
+                        : isWing
+                          ? theme.accent
+                          : isGrowth
+                            ? '#2E7D32'
+                            : isStress
+                              ? '#C62828'
+                              : theme.textSecondary,
+                      fontWeight: isCore || isWing ? '700' : '500',
+                    }
+                  ]}>
+                    {type}
+                  </Text>
+                </View>
+              );
+            })}
+            
+            {/* Center info */}
+            <View style={styles.wheelCenterCompact}>
+              <Text style={[styles.wheelCenterTypeCompact, { color: theme.text }]}>
+                {wingNum ? `${core}w${wingNum}` : `${core}`}
+              </Text>
+            </View>
+          </View>
+          
+          {/* Compact Legend */}
+          <View style={styles.wheelLegendCompact}>
+            <View style={styles.wheelLegendRow}>
+              <View style={styles.wheelLegendItemCompact}>
+                <View style={[styles.wheelLegendDotCompact, { backgroundColor: theme.accent }]} />
+                <Text style={[styles.wheelLegendTextCompact, { color: theme.textTertiary }]}>Core</Text>
+              </View>
+              {wingNum && (
+                <View style={styles.wheelLegendItemCompact}>
+                  <View style={[styles.wheelLegendDotCompact, { backgroundColor: `${theme.accent}60`, borderWidth: 1, borderColor: theme.accent }]} />
+                  <Text style={[styles.wheelLegendTextCompact, { color: theme.textTertiary }]}>Wing</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.wheelLegendRow}>
+              <View style={styles.wheelLegendItemCompact}>
+                <View style={[styles.wheelLegendDotCompact, { backgroundColor: '#2E7D32' }]} />
+                <Text style={[styles.wheelLegendTextCompact, { color: theme.textTertiary }]}>Growth → {growthType} when resourced</Text>
+              </View>
+            </View>
+            <View style={styles.wheelLegendRow}>
+              <View style={styles.wheelLegendItemCompact}>
+                <View style={[styles.wheelLegendDotCompact, { backgroundColor: '#C62828' }]} />
+                <Text style={[styles.wheelLegendTextCompact, { color: theme.textTertiary }]}>Stress → {stressType} under pressure</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* ============================================ */}
+        {/* SECTION 6: ASK ABOUT THIS LENS CTA */}
         {/* ============================================ */}
         {renderAskLensButton()}
       </>
@@ -4305,5 +4477,179 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     textAlign: 'right',
+  },
+
+  // ============================================
+  // HERO RESULT CARD STYLES (New Summary Tab)
+  // ============================================
+  heroResultCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 24,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  heroResultLabel: {
+    fontSize: 48,
+    fontWeight: '700',
+    letterSpacing: -1,
+    marginBottom: 4,
+  },
+  heroResultName: {
+    fontSize: 18,
+    fontWeight: '500',
+    marginBottom: 12,
+  },
+  heroConfidenceRow: {
+    marginBottom: 16,
+  },
+  heroConfidenceBadge: {
+    paddingVertical: 5,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+  },
+  heroConfidenceText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  heroSummaryText: {
+    fontSize: 16,
+    lineHeight: 24,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+    marginBottom: 12,
+  },
+  heroNote: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+
+  // ============================================
+  // CORE STORY CARD STYLES (New Summary Tab)
+  // ============================================
+  coreStoryCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 20,
+    marginBottom: 16,
+  },
+  coreStoryTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 16,
+  },
+  coreStorySection: {
+    marginBottom: 16,
+  },
+  coreStorySectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  coreStoryBody: {
+    fontSize: 15,
+    lineHeight: 23,
+  },
+
+  // ============================================
+  // WING INFLUENCE CARD STYLES (New Summary Tab)
+  // ============================================
+  wingInfluenceCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 20,
+    marginBottom: 16,
+  },
+  wingInfluenceTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+  },
+  wingInfluenceBody: {
+    fontSize: 15,
+    lineHeight: 23,
+  },
+
+  // ============================================
+  // SIGNALS CARD STYLES (Updated for New Summary)
+  // ============================================
+  signalsTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 16,
+  },
+  signalTypeContainer: {
+    width: 65,
+  },
+
+  // ============================================
+  // WHEEL SUPPORT CARD STYLES (New Summary Tab)
+  // ============================================
+  wheelSupportCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 20,
+    marginBottom: 20,
+  },
+  wheelSupportTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  wheelNodeCompact: {
+    position: 'absolute',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wheelNumberCompact: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  wheelCenterCompact: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -25 }, { translateY: -15 }],
+    width: 50,
+    alignItems: 'center',
+  },
+  wheelCenterTypeCompact: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  wheelLegendCompact: {
+    marginTop: 16,
+    gap: 6,
+  },
+  wheelLegendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  wheelLegendItemCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  wheelLegendDotCompact: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  wheelLegendTextCompact: {
+    fontSize: 12,
   },
 });
