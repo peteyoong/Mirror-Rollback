@@ -65,6 +65,334 @@ ARCHETYPES = {
     "navigator": "The Navigator — the ability to find direction when the path is unclear.",
 }
 
+
+# ============================================================================
+# TRANSIT-COMPATIBLE PATTERN TEMPLATES
+# ============================================================================
+
+PATTERN_TEMPLATES = {
+    "emotional_wave_riding": {
+        "title": "Emotional Wave Riding",
+        "timing_compatibility": ["emotional_sensitivity", "clarity_vs_confusion", "transition_threshold"],
+        "signal_keywords": ["feel", "emotion", "mood", "overwhelm", "intense", "react"],
+        "what_you_may_be": "You may be experiencing emotions that arrive in waves—intense one moment, settled the next—making it hard to trust what you're actually feeling.",
+        "challenge": [
+            "questioning your reactions after the fact",
+            "waiting for stability before trusting yourself",
+            "second-guessing decisions made during emotional peaks"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the ability to ride emotional waves without being capsized by them.",
+            "archetype": "The Navigator"
+        },
+        "micro_shifts": [
+            "Try noticing the wave without needing to name it immediately.",
+            "Ask: Can I trust this feeling even if it changes tomorrow?"
+        ]
+    },
+    "anticipating_impact": {
+        "title": "Anticipating Impact",
+        "timing_compatibility": ["pressure", "urgency", "emotional_sensitivity"],
+        "signal_keywords": ["worry", "anxious", "afraid", "brace", "prepare", "expect"],
+        "what_you_may_be": "You may be anticipating discomfort before it's present, preparing yourself for impact instead of staying with what's real.",
+        "challenge": [
+            "assuming the worst quickly",
+            "bracing for reactions that haven't happened",
+            "running scenarios instead of staying present"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the ability to prepare thoughtfully without being consumed by what-ifs.",
+            "archetype": "The Navigator"
+        },
+        "micro_shifts": [
+            "Try noticing the moment before you brace.",
+            "Ask: What is actually happening vs what I'm imagining?"
+        ]
+    },
+    "duty_over_self": {
+        "title": "Duty Over Self",
+        "timing_compatibility": ["pressure", "contraction", "relational_sensitivity"],
+        "signal_keywords": ["handle", "manage", "control", "responsible", "keep it together", "strong"],
+        "what_you_may_be": "You may be staying highly functional through major life changes by focusing on what needs to be handled next—work, logistics, and being reliable for others—while keeping your own reactions tightly contained.",
+        "challenge": [
+            "postponing your own processing indefinitely",
+            "interpreting your needs as inconveniences",
+            "measuring self-worth by how much you absorb without complaint"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the capacity to remain steady under pressure while staying connected to what you actually need.",
+            "archetype": "The Anchor"
+        },
+        "micro_shifts": [
+            "Try noticing when you move into 'handle it' mode before you're asked.",
+            "Ask: What am I trying to keep from becoming inconvenient—and for whom?"
+        ]
+    },
+    "threshold_standing": {
+        "title": "Standing at Threshold",
+        "timing_compatibility": ["transition_threshold", "identity_shift", "reset_cycle"],
+        "signal_keywords": ["decide", "choice", "direction", "change", "crossroads", "stuck"],
+        "what_you_may_be": "You may be standing at a decision point that feels larger than the specific choice—as if what you decide will set a direction you can't easily undo.",
+        "challenge": [
+            "waiting for certainty before moving",
+            "analyzing options instead of sensing what's right",
+            "looking for permission from outside sources"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the ability to step through thresholds without needing to see the entire path first.",
+            "archetype": "The Navigator"
+        },
+        "micro_shifts": [
+            "Try noticing which direction your body leans when you stop thinking.",
+            "Ask: What do I already know that I'm pretending not to?"
+        ]
+    },
+    "holding_the_line": {
+        "title": "Holding the Line",
+        "timing_compatibility": ["pressure", "urgency", "relational_sensitivity"],
+        "signal_keywords": ["angry", "frustrated", "resentful", "unfair", "boundaries", "enough"],
+        "what_you_may_be": "You may be holding firm on something that matters to you, but the effort of holding is starting to wear.",
+        "challenge": [
+            "repeating points that aren't landing",
+            "feeling unheard or dismissed",
+            "carrying tension in the body"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the courage to name what needs naming without attachment to being received.",
+            "archetype": "The Truthsayer"
+        },
+        "micro_shifts": [
+            "Try noticing where the tension lives in your body.",
+            "Ask: What would it mean to let this go?"
+        ]
+    },
+    "moving_through": {
+        "title": "Moving Through",
+        "timing_compatibility": ["reset_cycle", "emotional_sensitivity", "contraction"],
+        "signal_keywords": ["sad", "loss", "grief", "ending", "goodbye", "letting go"],
+        "what_you_may_be": "You may be processing something that needed to end, even if you didn't choose the ending.",
+        "challenge": [
+            "replaying what could have been different",
+            "withdrawing when connection might help",
+            "minimizing what you're actually feeling"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the ability to honor what was while making space for what's next.",
+            "archetype": "The Phoenix"
+        },
+        "micro_shifts": [
+            "Try naming what you're actually grieving.",
+            "Ask: What part of this am I ready to set down?"
+        ]
+    },
+    "expansion_resistance": {
+        "title": "Expansion Resistance",
+        "timing_compatibility": ["expansion", "identity_shift", "transition_threshold"],
+        "signal_keywords": ["opportunity", "growth", "fear", "ready", "big", "next level"],
+        "what_you_may_be": "You may be standing at the edge of something bigger than you've allowed yourself before—and noticing the part of you that wants to pull back.",
+        "challenge": [
+            "finding reasons why now isn't the right time",
+            "focusing on what could go wrong",
+            "self-editing before you've even started"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the wisdom to discern true readiness from premature expansion.",
+            "archetype": "The Gardener"
+        },
+        "micro_shifts": [
+            "Try noticing what your resistance is protecting.",
+            "Ask: What would I do if I trusted I could handle what comes next?"
+        ]
+    },
+    "somethings_here": {
+        "title": "Something's Here",
+        "timing_compatibility": ["clarity_vs_confusion", "emotional_sensitivity", "transition_threshold"],
+        "signal_keywords": ["sense", "feeling", "notice", "something", "can't explain", "intuition"],
+        "what_you_may_be": "You may be noticing something you can't quite name yet—a pull, a tension, or a question that keeps returning.",
+        "challenge": [
+            "dismissing subtle signals",
+            "waiting for clarity before acting",
+            "outsourcing your knowing to others"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the ability to trust incomplete information and move with it.",
+            "archetype": "The Witness"
+        },
+        "micro_shifts": [
+            "Try noticing what keeps coming back to mind.",
+            "Ask: What would I do if I trusted what I already know?"
+        ]
+    },
+    "relational_weight": {
+        "title": "Relational Weight",
+        "timing_compatibility": ["relational_sensitivity", "emotional_sensitivity", "pressure"],
+        "signal_keywords": ["relationship", "they", "them", "others", "connection", "distance"],
+        "what_you_may_be": "You may be carrying the weight of a relationship dynamic that feels unresolved—something unspoken, misaligned, or in need of attention.",
+        "challenge": [
+            "over-functioning to keep peace",
+            "interpreting silence as rejection",
+            "avoiding direct conversation to prevent conflict"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the capacity to hold relational complexity without needing immediate resolution.",
+            "archetype": "The Bridge"
+        },
+        "micro_shifts": [
+            "Try noticing what you're hoping they'll say first.",
+            "Ask: What would I want them to know if I weren't afraid of the response?"
+        ]
+    },
+}
+
+
+# ============================================================================
+# TRANSIT-FIRST PATTERN SCORING
+# ============================================================================
+
+def score_pattern_transit_alignment(
+    pattern_id: str,
+    active_themes: List[str],
+    theme_intensity: Dict[str, float]
+) -> float:
+    """
+    Score how well a pattern aligns with current transit themes.
+    
+    Returns: 0.0 to 1.0
+    """
+    template = PATTERN_TEMPLATES.get(pattern_id)
+    if not template:
+        return 0.0
+    
+    compatible_themes = template.get("timing_compatibility", [])
+    if not compatible_themes:
+        return 0.3  # Neutral score for patterns without timing rules
+    
+    # Calculate alignment score
+    matching_themes = [t for t in compatible_themes if t in active_themes]
+    
+    if not matching_themes:
+        return 0.0  # No alignment = reject pattern
+    
+    # Base score from match ratio
+    base_score = len(matching_themes) / len(compatible_themes)
+    
+    # Weight by intensity of matching themes
+    intensity_boost = 0
+    for theme in matching_themes:
+        intensity_boost += theme_intensity.get(theme, 0.3)
+    
+    intensity_boost = intensity_boost / len(matching_themes) if matching_themes else 0
+    
+    # Final score: base + intensity boost
+    final_score = (base_score * 0.6) + (intensity_boost * 0.4)
+    
+    return min(1.0, final_score)
+
+
+def score_pattern_signal_alignment(
+    pattern_id: str,
+    signals: Dict[str, Any]
+) -> float:
+    """
+    Score how well a pattern matches user signals.
+    
+    Returns: 0.0 to 1.0
+    """
+    template = PATTERN_TEMPLATES.get(pattern_id)
+    if not template:
+        return 0.0
+    
+    signal_keywords = template.get("signal_keywords", [])
+    if not signal_keywords:
+        return 0.5  # Neutral score
+    
+    # Collect all text from signals
+    all_text = ""
+    
+    for entry in signals.get("journal_entries", []):
+        all_text += " " + entry.get("content", "")
+        all_text += " " + " ".join(entry.get("themes", []))
+    
+    for msg in signals.get("chat_messages", []):
+        all_text += " " + msg.get("content", "")
+    
+    for event in signals.get("lifeline_events", []):
+        all_text += " " + (event.get("title", "") or "")
+        all_text += " " + (event.get("description", "") or "")
+        all_text += " " + (event.get("emotional_tone", "") or "")
+    
+    all_text = all_text.lower()
+    
+    # Count keyword matches
+    matches = sum(1 for kw in signal_keywords if kw in all_text)
+    
+    # Score based on match ratio
+    if matches == 0:
+        return 0.1  # Minimal score if no keyword matches
+    
+    score = min(1.0, matches / (len(signal_keywords) * 0.5))
+    
+    # Boost for emotional tone alignment
+    emotional_tones = signals.get("emotional_tones", [])
+    if emotional_tones:
+        tone_boost = 0.1  # Small boost for having detected emotions
+        score = min(1.0, score + tone_boost)
+    
+    return score
+
+
+def select_best_pattern(
+    signals: Dict[str, Any],
+    transit_themes: Any  # TransitThemes dataclass
+) -> tuple[str, Dict[str, float]]:
+    """
+    Select the best pattern using transit-first logic.
+    
+    Final Score = (signal_score × 0.6) + (transit_score × 0.4)
+    
+    CRITICAL: Patterns with transit_score < 0.2 are REJECTED.
+    """
+    scores = {}
+    
+    for pattern_id in PATTERN_TEMPLATES.keys():
+        # Calculate transit alignment score (CRITICAL)
+        transit_score = score_pattern_transit_alignment(
+            pattern_id,
+            transit_themes.active_themes,
+            transit_themes.theme_intensity
+        )
+        
+        # REJECT patterns that don't align with timing
+        if transit_score < 0.2:
+            logger.debug(f"[PatternSelect] {pattern_id} REJECTED - transit_score={transit_score:.2f}")
+            continue
+        
+        # Calculate signal alignment score
+        signal_score = score_pattern_signal_alignment(pattern_id, signals)
+        
+        # Final weighted score
+        final_score = (signal_score * 0.6) + (transit_score * 0.4)
+        
+        scores[pattern_id] = {
+            "final": final_score,
+            "signal": signal_score,
+            "transit": transit_score,
+        }
+        
+        logger.debug(
+            f"[PatternSelect] {pattern_id}: "
+            f"final={final_score:.2f}, signal={signal_score:.2f}, transit={transit_score:.2f}"
+        )
+    
+    # Select highest scoring pattern
+    if not scores:
+        # Fallback: no patterns matched timing - use most general pattern
+        logger.warning("[PatternSelect] No patterns matched timing, using fallback")
+        return "somethings_here", {"final": 0.3, "signal": 0.3, "transit": 0.3}
+    
+    best_pattern = max(scores.keys(), key=lambda k: scores[k]["final"])
+    return best_pattern, scores[best_pattern]
+
 # ============================================================================
 # SIGNAL AGGREGATION
 # ============================================================================
@@ -530,10 +858,25 @@ async def generate_pattern_mirror(
     user_id: str,
     force_refresh: bool = False
 ) -> Dict[str, Any]:
-    """Generate a pattern mirror for the user."""
+    """
+    Generate a pattern mirror for the user using TRANSIT-FIRST logic.
+    
+    Scoring:
+    - Final Score = (signal_score × 0.6) + (transit_score × 0.4)
+    - Patterns with transit_score < 0.2 are REJECTED
+    """
     from emergentintegrations.llm.chat import LlmChat, UserMessage
+    from services.transit_theme_engine import (
+        compute_transit_themes,
+        generate_timing_context,
+        generate_timing_signals
+    )
     
     EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+    
+    # STEP 1: Compute current transit themes (CRITICAL - drives pattern selection)
+    transit_themes = compute_transit_themes()
+    logger.info(f"[PatternMirror] Transit themes: {transit_themes.active_themes}")
     
     # Check cache first (unless force refresh)
     if not force_refresh:
@@ -544,22 +887,113 @@ async def generate_pattern_mirror(
             })
             if cached:
                 logger.info(f"[PatternMirror] Cache hit for user {user_id}")
-                # Regenerate signals for cached response (signals are dynamic)
+                # Regenerate dynamic elements for cached response
                 signals = await aggregate_user_signals(db, user_id)
-                # Generate pattern-specific signals by source
                 signals_by_source = generate_signals_by_source(signals, cached["pattern"])
+                
+                # Add timing signals to signals_by_source
+                timing_signals = generate_timing_signals(transit_themes)
+                if timing_signals:
+                    signals_by_source["timing"] = timing_signals
+                
+                # Generate timing context
+                timing_context = generate_timing_context(transit_themes)
+                
                 return {
                     "pattern": cached["pattern"],
                     "cached": True,
                     "generated_at": cached["generated_at"],
                     "signal_strength": cached.get("signal_strength", "weak"),
-                    "signals_by_source": signals_by_source
+                    "signals_by_source": signals_by_source,
+                    "timing_context": timing_context,
+                    "active_themes": transit_themes.active_themes[:3]
                 }
         except Exception as e:
             logger.warning(f"[PatternMirror] Cache check failed: {e}")
     
-    # Aggregate signals
+    # STEP 2: Aggregate user signals
     signals = await aggregate_user_signals(db, user_id)
+    
+    # STEP 3: Select best pattern using TRANSIT-FIRST scoring
+    selected_pattern_id, scores = select_best_pattern(signals, transit_themes)
+    logger.info(
+        f"[PatternMirror] Selected: {selected_pattern_id} "
+        f"(final={scores['final']:.2f}, signal={scores['signal']:.2f}, transit={scores['transit']:.2f})"
+    )
+    
+    # STEP 4: Get pattern template
+    template = PATTERN_TEMPLATES.get(selected_pattern_id)
+    
+    if template:
+        # Use template directly (no LLM needed for V1)
+        pattern = {
+            "title": template["title"],
+            "what_you_may_be": template["what_you_may_be"],
+            "challenge": template["challenge"],
+            "genius": template["genius"],
+            "micro_shifts": template["micro_shifts"]
+        }
+    else:
+        # Fallback to LLM generation
+        pattern = await _generate_pattern_with_llm(
+            signals, transit_themes, EMERGENT_LLM_KEY, user_id
+        )
+    
+    if not pattern:
+        return get_fallback_pattern(signals, transit_themes)
+    
+    # STEP 5: Generate signals by source
+    signals_by_source = generate_signals_by_source(signals, pattern)
+    
+    # STEP 6: Add timing signals
+    timing_signals = generate_timing_signals(transit_themes)
+    if timing_signals:
+        signals_by_source["timing"] = timing_signals
+    
+    # STEP 7: Generate timing context
+    timing_context = generate_timing_context(transit_themes)
+    
+    # STEP 8: Cache the result
+    try:
+        await db.pattern_mirror_cache.update_one(
+            {"user_id": user_id, "date": datetime.now(timezone.utc).strftime('%Y-%m-%d')},
+            {
+                "$set": {
+                    "pattern": pattern,
+                    "signal_strength": signals["signal_strength"],
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "pattern_id": selected_pattern_id,
+                    "scores": scores,
+                }
+            },
+            upsert=True
+        )
+    except Exception as e:
+        logger.warning(f"[PatternMirror] Cache write failed: {e}")
+    
+    return {
+        "pattern": pattern,
+        "cached": False,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "signal_strength": signals["signal_strength"],
+        "signals_by_source": signals_by_source,
+        "timing_context": timing_context,
+        "active_themes": transit_themes.active_themes[:3],
+        "scores": scores
+    }
+
+
+async def _generate_pattern_with_llm(
+    signals: Dict[str, Any],
+    transit_themes: Any,
+    api_key: str,
+    user_id: str
+) -> Optional[Dict[str, Any]]:
+    """Generate pattern using LLM when template doesn't match."""
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    if not api_key:
+        return None
     
     # Format signals for prompt
     signal_text = ""
@@ -580,36 +1014,33 @@ async def generate_pattern_mirror(
             signal_text += f"{i}. {event['title']} - {event.get('description', '')[:100]}\n"
     
     if not signal_text:
-        signal_text = "No recent signals available. Generate a relatable general pattern."
+        signal_text = "No recent signals available."
+    
+    # Add transit context to prompt
+    transit_context = f"\n\nCURRENT TIMING THEMES: {', '.join(transit_themes.active_themes[:3])}"
+    transit_context += f"\nLunar phase: {transit_themes.lunar_phase}"
+    transit_context += f"\nSeasonal context: {transit_themes.seasonal_context}"
     
     emotional_tones = ", ".join(signals["emotional_tones"]) if signals["emotional_tones"] else "None clearly detected"
     
-    # Build prompt
     prompt = PATTERN_GENERATION_PROMPT.format(
-        user_signals=signal_text,
+        user_signals=signal_text + transit_context,
         emotional_tones=emotional_tones,
         signal_strength=signals["signal_strength"]
     )
     
-    # Generate with LLM
     try:
-        if not EMERGENT_LLM_KEY:
-            logger.warning("[PatternMirror] No LLM key, using fallback")
-            return get_fallback_pattern(signals)
-        
         chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
+            api_key=api_key,
             session_id=f"pattern_mirror_{user_id}_{datetime.now().timestamp()}",
             system_message="You are the Pattern Mirror engine. Return ONLY valid JSON."
         )
         chat.with_model("openai", "gpt-5.2")
         
         response = await chat.send_message(UserMessage(text=prompt))
-        
-        # Parse response
         response_text = response.strip()
         
-        # Try to extract JSON from response
+        # Parse JSON
         if response_text.startswith("```json"):
             response_text = response_text[7:]
         if response_text.startswith("```"):
@@ -617,63 +1048,28 @@ async def generate_pattern_mirror(
         if response_text.endswith("```"):
             response_text = response_text[:-3]
         
-        response_text = response_text.strip()
+        pattern_data = json.loads(response_text.strip())
         
-        try:
-            pattern_data = json.loads(response_text)
-        except json.JSONDecodeError as e:
-            logger.error(f"[PatternMirror] JSON parse error: {e}")
-            logger.error(f"[PatternMirror] Raw response: {response_text[:500]}")
-            return get_fallback_pattern(signals)
-        
-        # Validate structure
-        if "pattern" not in pattern_data:
-            logger.error("[PatternMirror] Missing 'pattern' key")
-            return get_fallback_pattern(signals)
-        
-        pattern = pattern_data["pattern"]
-        
-        # Ensure required fields
-        required_fields = ["title", "what_you_may_be", "challenge", "genius", "micro_shifts"]
-        for field in required_fields:
-            if field not in pattern:
-                logger.error(f"[PatternMirror] Missing field: {field}")
-                return get_fallback_pattern(signals)
-        
-        # Cache the result
-        try:
-            await db.pattern_mirror_cache.update_one(
-                {"user_id": user_id, "date": datetime.now(timezone.utc).strftime('%Y-%m-%d')},
-                {
-                    "$set": {
-                        "pattern": pattern,
-                        "signal_strength": signals["signal_strength"],
-                        "generated_at": datetime.now(timezone.utc).isoformat()
-                    }
-                },
-                upsert=True
-            )
-        except Exception as e:
-            logger.warning(f"[PatternMirror] Cache write failed: {e}")
-        
-        # Generate pattern-specific signals by source
-        signals_by_source = generate_signals_by_source(signals, pattern)
-        
-        return {
-            "pattern": pattern,
-            "cached": False,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "signal_strength": signals["signal_strength"],
-            "signals_by_source": signals_by_source
-        }
+        if "pattern" in pattern_data:
+            return pattern_data["pattern"]
+        return None
         
     except Exception as e:
-        logger.error(f"[PatternMirror] LLM error: {e}")
-        return get_fallback_pattern(signals)
+        logger.error(f"[PatternMirror] LLM generation failed: {e}")
+        return None
 
 
-def get_fallback_pattern(signals: Dict[str, Any]) -> Dict[str, Any]:
-    """Return a safe fallback pattern when LLM fails or data is weak."""
+def get_fallback_pattern(signals: Dict[str, Any], transit_themes: Any = None) -> Dict[str, Any]:
+    """Return a safe fallback pattern when no pattern matches timing."""
+    from services.transit_theme_engine import (
+        compute_transit_themes,
+        generate_timing_context,
+        generate_timing_signals
+    )
+    
+    # If no transit themes provided, compute them
+    if transit_themes is None:
+        transit_themes = compute_transit_themes()
     
     # Select fallback based on detected emotional tones
     tones = signals.get("emotional_tones", [])
@@ -756,11 +1152,21 @@ def get_fallback_pattern(signals: Dict[str, Any]) -> Dict[str, Any]:
     # Generate pattern-specific signals by source
     signals_by_source = generate_signals_by_source(signals, pattern)
     
+    # Add timing signals
+    timing_signals = generate_timing_signals(transit_themes)
+    if timing_signals:
+        signals_by_source["timing"] = timing_signals
+    
+    # Generate timing context
+    timing_context = generate_timing_context(transit_themes)
+    
     return {
         "pattern": pattern,
         "cached": False,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "signal_strength": signals.get("signal_strength", "weak"),
         "signals_by_source": signals_by_source,
+        "timing_context": timing_context,
+        "active_themes": transit_themes.active_themes[:3],
         "fallback": True
     }

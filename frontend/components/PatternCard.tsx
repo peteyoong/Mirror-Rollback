@@ -54,6 +54,8 @@ interface PatternData {
   generated_at: string;
   signal_strength?: string;
   signals_by_source?: SignalsBySource;
+  timing_context?: string[];
+  active_themes?: string[];
   fallback?: boolean;
 }
 
@@ -157,6 +159,23 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
           What may be happening right now
         </Text>
       </View>
+
+      {/* Timing Context - What's active right now */}
+      {patternData.timing_context && patternData.timing_context.length > 0 && (
+        <View style={[styles.timingContext, { backgroundColor: theme.surfaceAlt || theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.timingContextTitle, { color: theme.textTertiary }]}>
+            WHAT'S ACTIVE RIGHT NOW
+          </Text>
+          {patternData.timing_context.map((context, index) => (
+            <View key={index} style={styles.timingContextItem}>
+              <Text style={[styles.timingBullet, { color: theme.accent }]}>•</Text>
+              <Text style={[styles.timingContextText, { color: theme.textSecondary }]}>
+                {context}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Title */}
       <Text style={[styles.patternTitle, { color: theme.text }]}>
@@ -384,6 +403,36 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     fontStyle: 'italic',
     marginBottom: 6,
+  },
+  
+  // Timing Context (What's active right now)
+  timingContext: {
+    marginBottom: 20,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  timingContextTitle: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+  },
+  timingContextItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 5,
+  },
+  timingBullet: {
+    fontSize: 10,
+    marginRight: 6,
+    marginTop: 2,
+  },
+  timingContextText: {
+    fontSize: 12,
+    lineHeight: 17,
+    flex: 1,
+    fontStyle: 'italic',
   },
   
   // CTA Button
