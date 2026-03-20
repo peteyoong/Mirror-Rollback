@@ -23,6 +23,7 @@ import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import KeystoneHeroCard, { KeystonePatternData } from '../../components/KeystoneHeroCard';
+import PatternCard from '../../components/PatternCard';
 
 interface PatternCategory {
   category_id: string;
@@ -392,6 +393,19 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
+            POSITION 1.5: TODAY'S PATTERN (Pattern Mirror V1)
+            Real-time pattern reflection based on user signals
+            =================================================================== */}
+        {user?.id && (
+          <View style={styles.patternSection}>
+            <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+              TODAY'S PATTERN
+            </Text>
+            <PatternCard userId={user.id} />
+          </View>
+        )}
+
+        {/* ===================================================================
             POSITION 2: NAVIGATION - Explore Lenses / Life
             ALWAYS renders after Keystone, even if loading
             =================================================================== */}
@@ -563,6 +577,21 @@ const styles = StyleSheet.create({
   loadingContainer: {
     paddingVertical: 80,
     alignItems: 'center',
+  },
+
+  // =========================================================================
+  // PATTERN SECTION (Pattern Mirror V1)
+  // =========================================================================
+  patternSection: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginLeft: 20,
+    marginBottom: 4,
   },
 
   // =========================================================================

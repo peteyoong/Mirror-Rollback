@@ -43,6 +43,8 @@ export default function ReflectionChat() {
   const params = useLocalSearchParams<{
     context?: string;
     dismissed?: string;
+    seedMessage?: string;
+    autoSend?: string;
   }>();
   const { user } = useAppStore();
   
@@ -51,6 +53,7 @@ export default function ReflectionChat() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const hasInitializedRef = useRef(false);
+  const autoSendTriggeredRef = useRef(false);
   
   // Micro-Reflection Prompt state (session only, not persisted)
   const [microPromptShown, setMicroPromptShown] = useState(false);
@@ -61,6 +64,11 @@ export default function ReflectionChat() {
   const getOpeningMessage = useCallback((): string => {
     const context = params.context;
     const dismissed = params.dismissed === 'true';
+    
+    // Pattern context - special opening for pattern reflection
+    if (context === 'pattern') {
+      return "I see a pattern you want to explore.\nLet me hear what showed up.";
+    }
     
     // C) If user recently dismissed Daily Focus Card
     if (dismissed) {
@@ -105,8 +113,9 @@ export default function ReflectionChat() {
     setMessages(prev => prev.filter(m => m.role !== 'micro-prompt'));
   };
 
-  const handleSend = async () => {
-    if (!inputText.trim() || isLoading || !user?.id) return;
+  // Function to send a message (can be called with custom content for auto-send)
+  const sendMessage = async (messageContent: string) => {
+    if (!messageContent.trim() || isLoading || !user?.id) return;
 
     // Track user message count for micro-prompt logic
     userMessageCountRef.current += 1;
@@ -114,7 +123,7 @@ export default function ReflectionChat() {
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputText.trim(),
+      content: messageContent.trim(),
       timestamp: new Date(),
     };
 
@@ -183,6 +192,29 @@ export default function ReflectionChat() {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
+  };
+
+  // Auto-send seeded message from Pattern card
+  useEffect(() => {
+    if (
+      params.seedMessage && 
+      params.autoSend === 'true' && 
+      !autoSendTriggeredRef.current &&
+      hasInitializedRef.current &&
+      messages.length > 0 &&
+      user?.id
+    ) {
+      autoSendTriggeredRef.current = true;
+      // Small delay to ensure UI is ready
+      setTimeout(() => {
+        sendMessage(params.seedMessage as string);
+      }, 500);
+    }
+  }, [params.seedMessage, params.autoSend, messages.length, user?.id]);
+
+  const handleSend = async () => {
+    if (!inputText.trim() || isLoading || !user?.id) return;
+    await sendMessage(inputText.trim());
   };
 
   const handleBack = () => {

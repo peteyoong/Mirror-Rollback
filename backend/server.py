@@ -22384,6 +22384,82 @@ async def get_pattern_snapshot(user_id: str, consideration_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =====================================================================
+# PATTERN MIRROR V1 - Real-time Pattern Reflection
+# =====================================================================
+
+class PatternMirrorRequest(BaseModel):
+    user_id: str
+    force_refresh: bool = False
+
+
+@api_router.post("/patterns/generate")
+async def generate_pattern(request: PatternMirrorRequest):
+    """
+    Generate a Pattern Mirror for the user.
+    
+    This is NOT a personality report. This is a REAL-TIME PATTERN MIRROR.
+    
+    Output:
+    {
+        "pattern": {
+            "title": "string",
+            "what_you_may_be": "string",
+            "challenge": ["string", "string"],
+            "genius": {
+                "description": "string",
+                "archetype": "string (optional)"
+            },
+            "micro_shifts": ["string", "string"]
+        },
+        "cached": bool,
+        "generated_at": "ISO datetime",
+        "signal_strength": "weak|moderate|strong"
+    }
+    """
+    try:
+        from services.pattern_mirror import generate_pattern_mirror
+        
+        result = await generate_pattern_mirror(
+            db=db,
+            user_id=request.user_id,
+            force_refresh=request.force_refresh
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"[PatternMirror] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/patterns/{user_id}")
+async def get_pattern_for_user(user_id: str, force_refresh: bool = False):
+    """
+    Get Pattern Mirror for user (convenience GET endpoint).
+    
+    Returns the same structure as POST /patterns/generate.
+    """
+    try:
+        from services.pattern_mirror import generate_pattern_mirror
+        
+        result = await generate_pattern_mirror(
+            db=db,
+            user_id=user_id,
+            force_refresh=force_refresh
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"[PatternMirror] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 

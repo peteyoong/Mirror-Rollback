@@ -1,249 +1,393 @@
 #!/usr/bin/env python3
-"""
-Backend API Testing Script for Project Mirror
-Testing the Astrology Keystone Explanation integration as specified in review request.
+"""Backend Test Script for Pattern Mirror V1 API Endpoints
+==========================================================
+
+Test the new Pattern Mirror V1 backend endpoints:
+1. GET /api/patterns/{user_id}
+2. POST /api/patterns/generate
+
+Expected response structure and language rules validation.
 """
 
-import requests
+import asyncio
+import httpx
 import json
-import time
-import sys
-from typing import Dict, Any
+from datetime import datetime
+from typing import Dict, Any, List
 
-# Backend URL from frontend environment
-BACKEND_URL = "https://wheel-visualization.preview.emergentagent.com/api"
+# Backend URL from frontend/.env
+BASE_URL = "https://narrative-enneagram.preview.emergentagent.com/api"
 
-# Test user IDs from review request
-TEST_USER_ID_1 = "6971c81f2b40fd5ef501d375"
-TEST_USER_ID_2 = "69819f1a1e4549392d7cb6d1"
-
-class AstrologyKeystoneExplanationTester:
-    """Test suite for Astrology Keystone Explanation integration"""
-    
+class PatternMirrorTester:
     def __init__(self):
+        self.client = httpx.AsyncClient(timeout=30.0)
         self.test_results = []
-        self.total_tests = 0
-        self.passed_tests = 0
-        
-    def log_test(self, test_name: str, passed: bool, details: str = ""):
-        """Log test result"""
-        self.total_tests += 1
-        if passed:
-            self.passed_tests += 1
-            status = "✅ PASS"
-        else:
-            status = "❌ FAIL"
-        
-        result = f"{status} - {test_name}"
+    
+    async def close(self):
+        await self.client.aclose()
+    
+    def log_test_result(self, test_name: str, success: bool, message: str, details: Dict = None):
+        """Log test result for reporting"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "timestamp": datetime.now().isoformat(),
+            "details": details or {}
+        }
+        self.test_results.append(result)
+        status = "✅" if success else "❌"
+        print(f"{status} {test_name}: {message}")
         if details:
-            result += f": {details}"
-        
-        print(result)
-        self.test_results.append({
-            "name": test_name,
-            "passed": passed,
-            "details": details
-        })
+            print(f"   Details: {json.dumps(details, indent=2)}")
     
-    def test_keystone_pattern_exists(self, user_id: str, test_name: str) -> Dict[str, Any]:
-        """Test that keystone pattern exists for user"""
+    def validate_response_structure(self, data: Dict[str, Any]) -> tuple[bool, str]:
+        """Validate the Pattern Mirror response structure"""
         try:
-            url = f"{BACKEND_URL}/keystone-pattern/{user_id}"
-            start_time = time.time()
+            # Check top-level required fields
+            required_top_fields = ["pattern", "cached", "generated_at", "signal_strength"]
+            for field in required_top_fields:
+                if field not in data:
+                    return False, f"Missing top-level field: {field}"
             
-            response = requests.get(url, timeout=30)
-            response_time = time.time() - start_time
+            # Validate pattern object
+            pattern = data["pattern"]
+            required_pattern_fields = ["title", "what_you_may_be", "challenge", "genius", "micro_shifts"]
+            for field in required_pattern_fields:
+                if field not in pattern:
+                    return False, f"Missing pattern field: {field}"
             
-            # Test HTTP status
-            if response.status_code != 200:
-                self.log_test(f"{test_name} - Keystone HTTP Status", False, f"Got {response.status_code}, expected 200")
-                return {}
+            # Validate pattern field types
+            if not isinstance(pattern["title"], str):
+                return False, "pattern.title must be string"
             
-            self.log_test(f"{test_name} - Keystone HTTP Status", True, f"200 OK ({response_time:.2f}s)")
+            if not isinstance(pattern["what_you_may_be"], str):
+                return False, "pattern.what_you_may_be must be string"
             
-            # Test JSON parsing
-            try:
-                data = response.json()
-                self.log_test(f"{test_name} - Keystone JSON Parse", True, "Valid JSON response")
-            except json.JSONDecodeError as e:
-                self.log_test(f"{test_name} - Keystone JSON Parse", False, f"Invalid JSON: {e}")
-                return {}
+            if not isinstance(pattern["challenge"], list):
+                return False, "pattern.challenge must be array"
             
-            # Test required fields for keystone
-            required_fields = ["pattern_id", "pattern_label", "behavior_sequence"]
+            if not isinstance(pattern["genius"], dict):
+                return False, "pattern.genius must be object"
             
-            for field in required_fields:
-                if field in data:
-                    self.log_test(f"{test_name} - Keystone Field '{field}'", True, f"Present: {data[field]}")
-                else:
-                    self.log_test(f"{test_name} - Keystone Field '{field}'", False, "Missing required field")
-                    
-            return data
+            if not isinstance(pattern["micro_shifts"], list):
+                return False, "pattern.micro_shifts must be array"
             
-        except requests.exceptions.RequestException as e:
-            self.log_test(f"{test_name} - Keystone HTTP Request", False, f"Request failed: {e}")
-            return {}
+            # Validate genius object
+            genius = pattern["genius"]
+            if "description" not in genius:
+                return False, "Missing pattern.genius.description"
+            
+            if not isinstance(genius["description"], str):
+                return False, "pattern.genius.description must be string"
+            
+            # archetype is optional
+            if "archetype" in genius and not isinstance(genius["archetype"], str):
+                return False, "pattern.genius.archetype must be string if present"
+            
+            # Validate signal_strength
+            valid_signal_strengths = ["weak", "moderate", "strong"]
+            if data["signal_strength"] not in valid_signal_strengths:
+                return False, f"signal_strength must be one of: {valid_signal_strengths}"
+            
+            # Validate cached is boolean
+            if not isinstance(data["cached"], bool):
+                return False, "cached must be boolean"
+            
+            # Validate generated_at is string (ISO timestamp)
+            if not isinstance(data["generated_at"], str):
+                return False, "generated_at must be string"
+            
+            return True, "Response structure valid"
+            
         except Exception as e:
-            self.log_test(f"{test_name} - Keystone Unexpected Error", False, f"Error: {e}")
-            return {}
+            return False, f"Structure validation error: {str(e)}"
     
-    def test_astrology_keystone_explanation(self, user_id: str, test_name: str, expected_pattern_id: str = None) -> Dict[str, Any]:
-        """Test astrology deep-dive endpoint includes keystone_explanation"""
+    def validate_language_rules(self, data: Dict[str, Any]) -> tuple[bool, List[str]]:
+        """Validate language rules according to review request"""
+        issues = []
+        pattern = data["pattern"]
+        
+        # Rule 1: what_you_may_be should start with "You may be..."
+        what_you_may_be = pattern["what_you_may_be"]
+        if not what_you_may_be.lower().startswith("you may be"):
+            issues.append(f"what_you_may_be should start with 'You may be...' but starts with: '{what_you_may_be[:50]}...'")
+        
+        # Rule 2: No spiritual jargon (energy, vibration, alignment)
+        forbidden_words = ["energy", "vibration", "alignment"]
+        all_text = json.dumps(pattern).lower()
+        
+        for word in forbidden_words:
+            if word in all_text:
+                issues.append(f"Found forbidden spiritual jargon word: '{word}'")
+        
+        # Rule 3: Check for vague phrases
+        vague_phrases = ["something is shifting", "you are being called", "energy is"]
+        for phrase in vague_phrases:
+            if phrase.lower() in all_text:
+                issues.append(f"Found vague phrase: '{phrase}'")
+        
+        return len(issues) == 0, issues
+    
+    async def test_get_patterns_endpoint(self, user_id: str):
+        """Test GET /api/patterns/{user_id} endpoint"""
         try:
-            url = f"{BACKEND_URL}/astrology/deep-dive/{user_id}?force_refresh=true"
-            start_time = time.time()
+            url = f"{BASE_URL}/patterns/{user_id}"
+            response = await self.client.get(url)
             
-            response = requests.get(url, timeout=60)  # Longer timeout for deep-dive
-            response_time = time.time() - start_time
-            
-            # Test HTTP status
             if response.status_code != 200:
-                self.log_test(f"{test_name} - Astrology HTTP Status", False, f"Got {response.status_code}, expected 200")
-                return {}
+                self.log_test_result(
+                    "GET /api/patterns/{user_id}",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"url": url, "status": response.status_code}
+                )
+                return None
             
-            self.log_test(f"{test_name} - Astrology HTTP Status", True, f"200 OK ({response_time:.2f}s)")
+            data = response.json()
             
-            # Test JSON parsing
-            try:
-                data = response.json()
-                self.log_test(f"{test_name} - Astrology JSON Parse", True, "Valid JSON response")
-            except json.JSONDecodeError as e:
-                self.log_test(f"{test_name} - Astrology JSON Parse", False, f"Invalid JSON: {e}")
-                return {}
+            # Validate structure
+            structure_valid, structure_msg = self.validate_response_structure(data)
+            if not structure_valid:
+                self.log_test_result(
+                    "GET /api/patterns/{user_id} - Structure",
+                    False,
+                    structure_msg,
+                    {"response": data}
+                )
+                return None
             
-            # Test keystone_explanation field exists
-            if "keystone_explanation" in data:
-                self.log_test(f"{test_name} - keystone_explanation Field", True, "Present in response")
-                keystone_exp = data["keystone_explanation"]
+            # Validate language rules
+            language_valid, language_issues = self.validate_language_rules(data)
+            if not language_valid:
+                self.log_test_result(
+                    "GET /api/patterns/{user_id} - Language Rules",
+                    False,
+                    f"Language rule violations: {'; '.join(language_issues)}",
+                    {"violations": language_issues}
+                )
             else:
-                self.log_test(f"{test_name} - keystone_explanation Field", False, "Missing from response")
-                return data
+                self.log_test_result(
+                    "GET /api/patterns/{user_id} - Language Rules",
+                    True,
+                    "All language rules passed"
+                )
             
-            # Test keystone_explanation required fields
-            required_keystone_fields = [
-                "keystone_pattern_id",
-                "lens_role", 
-                "lens_explanation_title",
-                "lens_explanation_body",
-                "supports_keystone"
-            ]
+            self.log_test_result(
+                "GET /api/patterns/{user_id}",
+                True,
+                f"Response received with {data['signal_strength']} signal strength",
+                {
+                    "title": data["pattern"]["title"],
+                    "what_you_may_be": data["pattern"]["what_you_may_be"][:100] + "..." if len(data["pattern"]["what_you_may_be"]) > 100 else data["pattern"]["what_you_may_be"],
+                    "signal_strength": data["signal_strength"],
+                    "cached": data["cached"]
+                }
+            )
             
-            for field in required_keystone_fields:
-                if field in keystone_exp:
-                    value = keystone_exp[field]
-                    if field == "lens_role":
-                        if value == "timing_trigger":
-                            self.log_test(f"{test_name} - {field}", True, f"Correct: {value}")
-                        else:
-                            self.log_test(f"{test_name} - {field}", False, f"Expected 'timing_trigger', got: {value}")
-                    elif field == "supports_keystone":
-                        if value is True:
-                            self.log_test(f"{test_name} - {field}", True, f"Correct: {value}")
-                        else:
-                            self.log_test(f"{test_name} - {field}", False, f"Expected true, got: {value}")
-                    elif field in ["lens_explanation_title", "lens_explanation_body"]:
-                        if isinstance(value, str) and len(value.strip()) > 0:
-                            self.log_test(f"{test_name} - {field}", True, f"Non-empty string ({len(value)} chars)")
-                        else:
-                            self.log_test(f"{test_name} - {field}", False, f"Empty or invalid: {value}")
-                    else:
-                        self.log_test(f"{test_name} - {field}", True, f"Present: {value}")
-                else:
-                    self.log_test(f"{test_name} - {field}", False, "Missing required field")
-            
-            # Test pattern ID match if provided
-            if expected_pattern_id and "keystone_pattern_id" in keystone_exp:
-                actual_pattern_id = keystone_exp["keystone_pattern_id"]
-                if actual_pattern_id == expected_pattern_id:
-                    self.log_test(f"{test_name} - Pattern ID Match", True, f"Matches: {actual_pattern_id}")
-                else:
-                    self.log_test(f"{test_name} - Pattern ID Match", False, f"Expected: {expected_pattern_id}, got: {actual_pattern_id}")
-                    
             return data
             
-        except requests.exceptions.RequestException as e:
-            self.log_test(f"{test_name} - Astrology HTTP Request", False, f"Request failed: {e}")
-            return {}
         except Exception as e:
-            self.log_test(f"{test_name} - Astrology Unexpected Error", False, f"Error: {e}")
-            return {}
+            self.log_test_result(
+                "GET /api/patterns/{user_id}",
+                False,
+                f"Exception: {str(e)}",
+                {"error": str(e)}
+            )
+            return None
     
-    def run_all_tests(self):
-        """Run all test scenarios from review request"""
-        print("🧪 ASTROLOGY KEYSTONE EXPLANATION INTEGRATION TESTING")
-        print("=" * 70)
+    async def test_post_patterns_generate_endpoint(self, user_id: str):
+        """Test POST /api/patterns/generate endpoint"""
+        try:
+            url = f"{BASE_URL}/patterns/generate"
+            payload = {
+                "user_id": user_id,
+                "force_refresh": False
+            }
+            
+            response = await self.client.post(url, json=payload)
+            
+            if response.status_code != 200:
+                self.log_test_result(
+                    "POST /api/patterns/generate",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}",
+                    {"url": url, "payload": payload, "status": response.status_code}
+                )
+                return None
+            
+            data = response.json()
+            
+            # Validate structure
+            structure_valid, structure_msg = self.validate_response_structure(data)
+            if not structure_valid:
+                self.log_test_result(
+                    "POST /api/patterns/generate - Structure",
+                    False,
+                    structure_msg,
+                    {"response": data}
+                )
+                return None
+            
+            # Validate language rules
+            language_valid, language_issues = self.validate_language_rules(data)
+            if not language_valid:
+                self.log_test_result(
+                    "POST /api/patterns/generate - Language Rules",
+                    False,
+                    f"Language rule violations: {'; '.join(language_issues)}",
+                    {"violations": language_issues}
+                )
+            else:
+                self.log_test_result(
+                    "POST /api/patterns/generate - Language Rules",
+                    True,
+                    "All language rules passed"
+                )
+            
+            self.log_test_result(
+                "POST /api/patterns/generate",
+                True,
+                f"Response received with {data['signal_strength']} signal strength",
+                {
+                    "title": data["pattern"]["title"],
+                    "what_you_may_be": data["pattern"]["what_you_may_be"][:100] + "..." if len(data["pattern"]["what_you_may_be"]) > 100 else data["pattern"]["what_you_may_be"],
+                    "signal_strength": data["signal_strength"],
+                    "cached": data["cached"]
+                }
+            )
+            
+            return data
+            
+        except Exception as e:
+            self.log_test_result(
+                "POST /api/patterns/generate",
+                False,
+                f"Exception: {str(e)}",
+                {"error": str(e)}
+            )
+            return None
+    
+    async def test_response_consistency(self, get_data: Dict, post_data: Dict):
+        """Test that GET and POST return consistent results"""
+        try:
+            # For cached results, they should be identical
+            if get_data["cached"] and post_data["cached"]:
+                if get_data["pattern"]["title"] == post_data["pattern"]["title"]:
+                    self.log_test_result(
+                        "GET/POST Response Consistency",
+                        True,
+                        "Cached responses are consistent"
+                    )
+                else:
+                    self.log_test_result(
+                        "GET/POST Response Consistency", 
+                        False,
+                        "Cached responses differ",
+                        {
+                            "get_title": get_data["pattern"]["title"],
+                            "post_title": post_data["pattern"]["title"]
+                        }
+                    )
+            else:
+                self.log_test_result(
+                    "GET/POST Response Consistency",
+                    True,
+                    "Both endpoints return valid patterns (may differ if not cached)"
+                )
+                
+        except Exception as e:
+            self.log_test_result(
+                "GET/POST Response Consistency",
+                False,
+                f"Exception: {str(e)}"
+            )
+    
+    def print_summary(self):
+        """Print test summary"""
+        print("\n" + "="*60)
+        print("PATTERN MIRROR V1 API TEST SUMMARY")
+        print("="*60)
         
-        # Test 1: Verify keystone exists for user 1
-        print(f"\n--- Test 1: Keystone Pattern for User {TEST_USER_ID_1} ---")
-        keystone_data_1 = self.test_keystone_pattern_exists(TEST_USER_ID_1, "User 1")
-        pattern_id_1 = keystone_data_1.get("pattern_id") if keystone_data_1 else None
+        passed = sum(1 for r in self.test_results if r["success"])
+        total = len(self.test_results)
         
-        # Test 2: Test keystone explanation for user 1
-        print(f"\n--- Test 2: Astrology Keystone Explanation for User {TEST_USER_ID_1} ---")
-        astrology_data_1 = self.test_astrology_keystone_explanation(TEST_USER_ID_1, "User 1", pattern_id_1)
+        print(f"Tests Passed: {passed}/{total}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%")
         
-        # Test 3: Verify keystone exists for user 2
-        print(f"\n--- Test 3: Keystone Pattern for User {TEST_USER_ID_2} ---")
-        keystone_data_2 = self.test_keystone_pattern_exists(TEST_USER_ID_2, "User 2")
-        pattern_id_2 = keystone_data_2.get("pattern_id") if keystone_data_2 else None
+        if passed < total:
+            print("\nFAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    print(f"❌ {result['test']}: {result['message']}")
         
-        # Test 4: Test keystone explanation for user 2
-        print(f"\n--- Test 4: Astrology Keystone Explanation for User {TEST_USER_ID_2} ---")
-        astrology_data_2 = self.test_astrology_keystone_explanation(TEST_USER_ID_2, "User 2", pattern_id_2)
-        
-        # Summary
-        print("\n" + "=" * 70)
-        print("🧪 ASTROLOGY KEYSTONE EXPLANATION TEST SUMMARY")
-        print("=" * 70)
-        
-        print(f"Total Tests: {self.total_tests}")
-        print(f"Passed: {self.passed_tests}")
-        print(f"Failed: {self.total_tests - self.passed_tests}")
-        print(f"Success Rate: {(self.passed_tests / self.total_tests * 100):.1f}%")
-        
-        # Show failed tests
-        failed_tests = [test for test in self.test_results if not test["passed"]]
-        if failed_tests:
-            print("\n❌ FAILED TESTS:")
-            for test in failed_tests:
-                print(f"  - {test['name']}: {test['details']}")
-        
-        # Show sample keystone explanation if available
-        if astrology_data_1 and "keystone_explanation" in astrology_data_1:
-            keystone_exp = astrology_data_1["keystone_explanation"]
-            print(f"\n📊 SAMPLE KEYSTONE EXPLANATION (User 1):")
-            print(f"  Pattern ID: {keystone_exp.get('keystone_pattern_id', 'N/A')}")
-            print(f"  Lens Role: {keystone_exp.get('lens_role', 'N/A')}")
-            print(f"  Title: {keystone_exp.get('lens_explanation_title', 'N/A')}")
-            print(f"  Body: {keystone_exp.get('lens_explanation_body', 'N/A')[:100]}...")
-            print(f"  Supports Keystone: {keystone_exp.get('supports_keystone', 'N/A')}")
-        
-        # Show pattern matching summary
-        print(f"\n📊 PATTERN MATCHING VERIFICATION:")
-        if pattern_id_1:
-            print(f"  User 1 Keystone Pattern: {pattern_id_1}")
-            if astrology_data_1 and "keystone_explanation" in astrology_data_1:
-                astro_pattern_1 = astrology_data_1["keystone_explanation"].get("keystone_pattern_id", "N/A")
-                match_1 = "✅ MATCH" if astro_pattern_1 == pattern_id_1 else "❌ MISMATCH"
-                print(f"  User 1 Astrology Pattern: {astro_pattern_1} {match_1}")
-        
-        if pattern_id_2:
-            print(f"  User 2 Keystone Pattern: {pattern_id_2}")
-            if astrology_data_2 and "keystone_explanation" in astrology_data_2:
-                astro_pattern_2 = astrology_data_2["keystone_explanation"].get("keystone_pattern_id", "N/A")
-                match_2 = "✅ MATCH" if astro_pattern_2 == pattern_id_2 else "❌ MISMATCH"
-                print(f"  User 2 Astrology Pattern: {astro_pattern_2} {match_2}")
-        
-        return self.passed_tests == self.total_tests
+        print(f"\nAll tests completed at {datetime.now().isoformat()}")
 
+async def main():
+    """Main test execution"""
+    print("PATTERN MIRROR V1 BACKEND API TESTING")
+    print("="*50)
+    print(f"Testing against: {BASE_URL}")
+    print(f"Test User ID: test_user_123")
+    print()
+    
+    tester = PatternMirrorTester()
+    
+    try:
+        user_id = "test_user_123"
+        
+        # Test GET endpoint
+        print("1. Testing GET /api/patterns/{user_id}...")
+        get_data = await tester.test_get_patterns_endpoint(user_id)
+        
+        print("\n2. Testing POST /api/patterns/generate...")
+        post_data = await tester.test_post_patterns_generate_endpoint(user_id)
+        
+        # Test consistency if both succeeded
+        if get_data and post_data:
+            print("\n3. Testing response consistency...")
+            await tester.test_response_consistency(get_data, post_data)
+        
+        # Test force refresh to ensure non-cached works correctly
+        print("\n4. Testing GET with force_refresh=true...")
+        refresh_url = f"{BASE_URL}/patterns/{user_id}?force_refresh=true"
+        try:
+            response = await tester.client.get(refresh_url)
+            if response.status_code == 200:
+                refresh_data = response.json()
+                structure_valid, structure_msg = tester.validate_response_structure(refresh_data)
+                language_valid, language_issues = tester.validate_language_rules(refresh_data)
+                
+                if structure_valid and language_valid:
+                    tester.log_test_result(
+                        "GET /api/patterns/{user_id}?force_refresh=true",
+                        True,
+                        f"Force refresh successful, signal_strength: {refresh_data['signal_strength']}, cached: {refresh_data['cached']}"
+                    )
+                else:
+                    tester.log_test_result(
+                        "GET /api/patterns/{user_id}?force_refresh=true",
+                        False,
+                        f"Structure: {structure_msg}, Language issues: {language_issues}"
+                    )
+            else:
+                tester.log_test_result(
+                    "GET /api/patterns/{user_id}?force_refresh=true",
+                    False,
+                    f"HTTP {response.status_code}: {response.text}"
+                )
+        except Exception as e:
+            tester.log_test_result(
+                "GET /api/patterns/{user_id}?force_refresh=true",
+                False,
+                f"Exception: {str(e)}"
+            )
+        
+        # Print summary
+        tester.print_summary()
+        
+    finally:
+        await tester.close()
 
 if __name__ == "__main__":
-    tester = AstrologyKeystoneExplanationTester()
-    success = tester.run_all_tests()
-    
-    if success:
-        print("\n🎉 ALL TESTS PASSED!")
-        sys.exit(0)
-    else:
-        print("\n🚨 SOME TESTS FAILED!")
-        sys.exit(1)
+    asyncio.run(main())

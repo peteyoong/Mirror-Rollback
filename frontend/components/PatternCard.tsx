@@ -1,0 +1,353 @@
+/**
+ * PatternCard.tsx
+ * ================
+ * 
+ * Pattern Mirror V1 - Real-time Pattern Reflection Card
+ * 
+ * This is NOT a personality report.
+ * This is a REAL-TIME PATTERN MIRROR.
+ * 
+ * Structure:
+ * - Header: "PATTERN" / "What may be happening right now"
+ * - What you may be (current pattern)
+ * - What's your challenge (shadow behaviors)
+ * - What's your genius (expanded expression + archetype)
+ * - Practical ways to think about it (micro shifts)
+ * - CTA: "Reflect on this" → Opens Mirror Chat seeded with pattern
+ */
+
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useTheme } from '../contexts/ThemeContext';
+import api from '../services/api';
+
+interface PatternGenius {
+  description: string;
+  archetype?: string | null;
+}
+
+interface Pattern {
+  title: string;
+  what_you_may_be: string;
+  challenge: string[];
+  genius: PatternGenius;
+  micro_shifts: string[];
+}
+
+interface PatternData {
+  pattern: Pattern;
+  cached: boolean;
+  generated_at: string;
+  signal_strength?: string;
+  fallback?: boolean;
+}
+
+interface PatternCardProps {
+  userId: string;
+  onPatternLoaded?: (pattern: Pattern | null) => void;
+}
+
+export default function PatternCard({ userId, onPatternLoaded }: PatternCardProps) {
+  const { theme } = useTheme();
+  const router = useRouter();
+  
+  const [patternData, setPatternData] = useState<PatternData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadPattern = useCallback(async () => {
+    if (!userId) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await api.get(`/patterns/${userId}`);
+      setPatternData(response.data);
+      onPatternLoaded?.(response.data?.pattern || null);
+    } catch (err: any) {
+      console.error('[PatternCard] Load error:', err);
+      setError('Unable to load pattern');
+      onPatternLoaded?.(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId, onPatternLoaded]);
+
+  useEffect(() => {
+    loadPattern();
+  }, [loadPattern]);
+
+  // Handle "Reflect on this" button
+  const handleReflect = useCallback(() => {
+    if (!patternData?.pattern) return;
+    
+    // Navigate to reflection-chat with seeded message about the pattern
+    const seedMessage = `This pattern showed up:\n\n"${patternData.pattern.what_you_may_be}"\n\nHelp me see what I'm not seeing.`;
+    
+    router.push({
+      pathname: '/reflection-chat',
+      params: {
+        context: 'pattern',
+        seedMessage: seedMessage,
+        autoSend: 'true',
+      }
+    });
+  }, [patternData, router]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={theme.textTertiary} />
+          <Text style={[styles.loadingText, { color: theme.textTertiary }]}>
+            Reading your signals...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error || !patternData?.pattern) {
+    return (
+      <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: theme.textTertiary }]}>
+            Pattern will appear as you reflect more
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  const { pattern } = patternData;
+
+  return (
+    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[styles.headerLabel, { color: theme.textTertiary }]}>PATTERN</Text>
+        <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
+          What may be happening right now
+        </Text>
+      </View>
+
+      {/* Title */}
+      <Text style={[styles.patternTitle, { color: theme.text }]}>
+        {pattern.title}
+      </Text>
+
+      {/* What you may be */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+          WHAT YOU MAY BE
+        </Text>
+        <Text style={[styles.whatYouMayBe, { color: theme.text }]}>
+          {pattern.what_you_may_be}
+        </Text>
+      </View>
+
+      {/* Challenge */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+          WHAT'S YOUR CHALLENGE
+        </Text>
+        <View style={styles.challengeList}>
+          {pattern.challenge.map((item, index) => (
+            <View key={index} style={styles.challengeItem}>
+              <Text style={[styles.bulletPoint, { color: theme.textTertiary }]}>•</Text>
+              <Text style={[styles.challengeText, { color: theme.textSecondary }]}>
+                {item}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Genius */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+          WHAT'S YOUR GENIUS
+        </Text>
+        <Text style={[styles.geniusDescription, { color: theme.text }]}>
+          {pattern.genius.description}
+        </Text>
+        {pattern.genius.archetype && (
+          <Text style={[styles.archetype, { color: theme.accent }]}>
+            {pattern.genius.archetype}
+          </Text>
+        )}
+      </View>
+
+      {/* Micro Shifts */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+          PRACTICAL WAYS TO THINK ABOUT IT
+        </Text>
+        {pattern.micro_shifts.map((shift, index) => (
+          <Text key={index} style={[styles.microShift, { color: theme.textSecondary }]}>
+            {shift}
+          </Text>
+        ))}
+      </View>
+
+      {/* CTA: Reflect on this */}
+      <TouchableOpacity
+        style={[styles.reflectButton, { backgroundColor: theme.accent }]}
+        onPress={handleReflect}
+        activeOpacity={0.8}
+      >
+        <Text style={[styles.reflectButtonText, { color: theme.textInverse }]}>
+          Reflect on this
+        </Text>
+      </TouchableOpacity>
+
+      {/* Signal strength indicator (subtle) */}
+      {patternData.signal_strength && (
+        <Text style={[styles.signalIndicator, { color: theme.textTertiary }]}>
+          Based on {patternData.signal_strength} signals
+        </Text>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    marginHorizontal: 20,
+    marginVertical: 12,
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  
+  // Loading state
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  
+  // Empty state
+  emptyContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  
+  // Header
+  header: {
+    marginBottom: 16,
+  },
+  headerLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  
+  // Pattern title
+  patternTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 20,
+  },
+  
+  // Sections
+  section: {
+    marginBottom: 20,
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  
+  // What you may be
+  whatYouMayBe: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  
+  // Challenge
+  challengeList: {
+    gap: 6,
+  },
+  challengeItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  bulletPoint: {
+    fontSize: 14,
+    marginRight: 8,
+    marginTop: 2,
+  },
+  challengeText: {
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
+  },
+  
+  // Genius
+  geniusDescription: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  archetype: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+  
+  // Micro shifts
+  microShift: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+    marginBottom: 6,
+  },
+  
+  // CTA Button
+  reflectButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  reflectButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  
+  // Signal indicator
+  signalIndicator: {
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 12,
+    fontStyle: 'italic',
+  },
+});
