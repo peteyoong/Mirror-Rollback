@@ -1494,7 +1494,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
         {/* ============================================ */}
         <View style={[styles.wheelSupportCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
           <Text style={[styles.wheelSupportTitle, { color: theme.textTertiary }]}>
-            ENNEAGRAM STRUCTURE
+            How your pattern moves
           </Text>
           
           {/* Classic Enneagram Wheel with inner geometry */}
