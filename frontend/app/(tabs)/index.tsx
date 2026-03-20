@@ -22,8 +22,8 @@ import { storage } from '../../store';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
-import KeystoneHeroCard, { KeystonePatternData } from '../../components/KeystoneHeroCard';
 import PatternCard from '../../components/PatternCard';
+// KeystoneHeroCard REMOVED - replaced by PatternCard (Pattern Mirror V1)
 
 interface PatternCategory {
   category_id: string;
@@ -62,9 +62,7 @@ export default function MirrorScreen() {
   const { user, hasTriedSessionRestore, isRestoringSession, clearUser } = useAppStore();
   const router = useRouter();
   
-  // KEYSTONE PATTERN: Single source of truth for the day
-  const [keystoneData, setKeystoneData] = useState<KeystonePatternData | null>(null);
-  const [keystoneLoading, setKeystoneLoading] = useState(true);
+  // REMOVED: keystoneData, keystoneLoading - PatternCard now handles its own data
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>(getLocalDateString());
@@ -191,8 +189,7 @@ export default function MirrorScreen() {
     setIsLoading(true);
     
     await Promise.all([
-      loadKeystonePattern(),  // KEYSTONE: Single source of truth
-      // loadPatternData(),    // REMOVED: Patterns tab disabled
+      // REMOVED: loadKeystonePattern - PatternCard handles its own data
       loadRecentReflection(),
       loadLifelineCount(),
     ]);
@@ -216,52 +213,9 @@ export default function MirrorScreen() {
 
   // Task 75: Removed loadSynthesisTeaser - HomeArchetypeCard fetches its own data
 
-  // KEYSTONE PATTERN: Load the single source of truth for the day
-  const loadKeystonePattern = async () => {
-    if (!user?.id) return;
-    setKeystoneLoading(true);
-    const dateToLoad = getLocalDateString();
-
-    try {
-      const response = await api.get(`/keystone-pattern/${user.id}`);
-      const data = response.data;
-      
-      setKeystoneData({
-        pattern_id: data.pattern_id,
-        pattern_label: data.pattern_label,
-        behavior_sequence: data.behavior_sequence,
-        confidence: data.confidence,
-        sources: data.sources || [],
-        date: data.date || dateToLoad,
-        cached: data.cached,
-      });
-      
-      lastLoadedDateRef.current = dateToLoad;
-      console.log('[KeystonePattern] Loaded:', data.pattern_label);
-    } catch (err: any) {
-      console.log('[KeystonePattern] Load error:', err);
-      // Fallback pattern
-      setKeystoneData({
-        pattern_id: "fallback",
-        pattern_label: "Something's Here",
-        behavior_sequence: [
-          "There's a pattern present today.",
-          "You might not have words for it yet.",
-          "That's okay. Start noticing."
-        ],
-        confidence: 0.3,
-        sources: [],
-        date: dateToLoad,
-        cached: false,
-      });
-      lastLoadedDateRef.current = dateToLoad;
-    } finally {
-      setKeystoneLoading(false);
-    }
-  };
+  // REMOVED: loadKeystonePattern - PatternCard (Pattern Mirror V1) now handles its own data
 
   // REMOVED: loadPatternData - Patterns tab disabled
-  // const loadPatternData = async () => { ... };
 
   const loadRecentReflection = async () => {
     if (!user?.id) return;
@@ -364,22 +318,17 @@ export default function MirrorScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ===================================================================
-            POSITION 1: KEYSTONE PATTERN - ALWAYS FIRST. NO EXCEPTIONS.
-            ARCHITECTURE LOCK: This must be the FIRST rendered content block.
-            - If loading: show skeleton placeholder IN THIS POSITION
-            - If no data: show fallback IN THIS POSITION
-            - NEVER shift this position based on data availability
+            POSITION 1: PATTERN MIRROR V1 - Single Pattern Surface
+            This is the ONLY pattern card on Home. 
+            OLD KeystoneHeroCard REMOVED.
             =================================================================== */}
-        {!userIsReflector && (
-          <KeystoneHeroCard 
-            data={keystoneData} 
-            isLoading={isLoading || keystoneLoading} 
-          />
+        {user?.id && (
+          <PatternCard userId={user.id} />
         )}
 
         {/* ===================================================================
-            POSITION 1 (REFLECTORS ONLY): LUNAR REFLECTION
-            Replaces Keystone for Reflector types only
+            POSITION 1b (REFLECTORS ONLY): LUNAR REFLECTION
+            Additional card for Reflector types only
             =================================================================== */}
         {userIsReflector && user?.id && (
           <LunarReflectionSignalCard 
@@ -393,21 +342,7 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            POSITION 1.5: TODAY'S PATTERN (Pattern Mirror V1)
-            Real-time pattern reflection based on user signals
-            =================================================================== */}
-        {user?.id && (
-          <View style={styles.patternSection}>
-            <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-              TODAY'S PATTERN
-            </Text>
-            <PatternCard userId={user.id} />
-          </View>
-        )}
-
-        {/* ===================================================================
             POSITION 2: NAVIGATION - Explore Lenses / Life
-            ALWAYS renders after Keystone, even if loading
             =================================================================== */}
         <View style={styles.doorwaysSection}>
           <View style={styles.doorwaysRow}>
@@ -580,19 +515,8 @@ const styles = StyleSheet.create({
   },
 
   // =========================================================================
-  // PATTERN SECTION (Pattern Mirror V1)
+  // REMOVED: patternSection, sectionLabel - Pattern card handles its own layout
   // =========================================================================
-  patternSection: {
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    marginLeft: 20,
-    marginBottom: 4,
-  },
 
   // =========================================================================
   // SECTION 1: HERO
