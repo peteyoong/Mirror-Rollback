@@ -99,7 +99,7 @@ export default function Welcome() {
           Stored: {debugInfo.storedTheme || 'none'}
         </Text>
         <Text style={[styles.debugText, { color: darkTheme.textSecondary }]}>
-          Mode: {themeMode} → {debugInfo.effectiveTheme}
+          Mode: dark → {debugInfo.effectiveTheme}
         </Text>
         <Text style={[styles.debugText, { color: darkTheme.textSecondary }]}>
           Platform: {debugInfo.platform}

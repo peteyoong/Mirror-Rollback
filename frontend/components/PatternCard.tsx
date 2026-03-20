@@ -88,6 +88,7 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [signalsExpanded, setSignalsExpanded] = useState(false);
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
 
   const loadPattern = useCallback(async () => {
     if (!userId) return;
