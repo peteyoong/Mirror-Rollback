@@ -28,45 +28,98 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 TIMING_THEMES = {
+    # === CHALLENGE / SHADOW THEMES ===
     "emotional_sensitivity": {
         "description": "Heightened emotional awareness and reactivity",
         "indicators": ["lunar_peak", "water_season", "venus_active"],
+        "polarity": "neutral",  # Can be positive or challenging
     },
     "clarity_vs_confusion": {
         "description": "Mental clarity may fluctuate",
         "indicators": ["mercury_retrograde", "mutable_season", "neptune_active"],
+        "polarity": "challenge",
     },
     "pressure": {
         "description": "External or internal pressure intensifying",
         "indicators": ["saturn_active", "cardinal_season", "eclipse_window"],
+        "polarity": "challenge",
     },
     "urgency": {
         "description": "Sense of needing to act or decide quickly",
         "indicators": ["mars_active", "fire_season", "lunar_waning"],
+        "polarity": "challenge",
     },
     "transition_threshold": {
         "description": "Standing at a crossroads or decision point",
         "indicators": ["equinox_window", "eclipse_window", "saturn_return"],
+        "polarity": "neutral",
     },
     "reset_cycle": {
         "description": "Natural ending and beginning phase",
         "indicators": ["new_moon", "solstice_window", "pluto_active"],
+        "polarity": "neutral",
     },
     "relational_sensitivity": {
         "description": "Relationships and connection feel heightened",
         "indicators": ["venus_active", "full_moon", "libra_season"],
+        "polarity": "neutral",
     },
     "identity_shift": {
         "description": "Questions about self and direction",
         "indicators": ["sun_transit", "aries_season", "uranus_active"],
+        "polarity": "neutral",
     },
     "expansion": {
         "description": "Growth, opportunity, opening energy",
         "indicators": ["jupiter_active", "sagittarius_season", "waxing_moon"],
+        "polarity": "opening",
     },
     "contraction": {
         "description": "Consolidation, reflection, inward energy",
         "indicators": ["saturn_active", "capricorn_season", "waning_moon"],
+        "polarity": "challenge",
+    },
+    
+    # === POSITIVE / OPENING THEMES (NEW) ===
+    "relational_harmony": {
+        "description": "Ease and flow in connection with others",
+        "indicators": ["venus_active", "libra_season", "waxing_moon"],
+        "polarity": "opening",
+    },
+    "emotional_openness": {
+        "description": "Capacity to feel and express freely",
+        "indicators": ["full_moon", "water_season", "jupiter_active"],
+        "polarity": "opening",
+    },
+    "receptivity": {
+        "description": "Openness to receiving support, love, input",
+        "indicators": ["venus_active", "cancer_season", "waxing_moon"],
+        "polarity": "opening",
+    },
+    "renewal_cycle": {
+        "description": "Fresh energy, new chapter beginning",
+        "indicators": ["new_moon", "aries_season", "jupiter_active"],
+        "polarity": "opening",
+    },
+    "reconnection_window": {
+        "description": "Opportunity to rebuild or repair connection",
+        "indicators": ["venus_active", "full_moon", "libra_season"],
+        "polarity": "opening",
+    },
+    "softening_phase": {
+        "description": "Defenses lowering, heart opening",
+        "indicators": ["venus_active", "pisces_season", "waning_crescent"],
+        "polarity": "opening",
+    },
+    "integration_phase": {
+        "description": "Coming together of previously separate parts",
+        "indicators": ["full_moon", "virgo_season", "mercury_direct"],
+        "polarity": "opening",
+    },
+    "grounded_stability": {
+        "description": "Sense of solid footing and presence",
+        "indicators": ["taurus_season", "earth_element", "saturn_stable"],
+        "polarity": "opening",
     },
 }
 
@@ -382,11 +435,13 @@ def generate_timing_context(themes: TransitThemes) -> List[str]:
     - NOT about user identity
     - Describes environment/conditions
     - 2-4 lines max
+    - INCLUDES positive/opening context when relevant
     """
     context_lines = []
     
-    # Map themes to context statements
+    # Map themes to context statements (including POSITIVE themes)
     theme_to_context = {
+        # Challenge/Neutral themes
         "emotional_sensitivity": "Emotional sensitivity may be elevated",
         "clarity_vs_confusion": "Decision clarity may fluctuate",
         "pressure": "External or internal pressure may feel intensified",
@@ -397,6 +452,16 @@ def generate_timing_context(themes: TransitThemes) -> List[str]:
         "identity_shift": "Questions about direction may be surfacing",
         "expansion": "Opportunity and growth energy may be present",
         "contraction": "This may be a period for consolidation and reflection",
+        
+        # POSITIVE / OPENING themes
+        "relational_harmony": "Relational ease and connection may feel more accessible",
+        "emotional_openness": "Emotional openness and expression may flow more freely",
+        "receptivity": "This may be a time of openness to receiving",
+        "renewal_cycle": "Fresh energy and new beginnings may be emerging",
+        "reconnection_window": "Conditions may support reconnection and repair",
+        "softening_phase": "Defenses may be softening, allowing more in",
+        "integration_phase": "What was separate may be coming together",
+        "grounded_stability": "A sense of solid ground may be present",
     }
     
     # Add context for top 3 active themes
@@ -409,6 +474,8 @@ def generate_timing_context(themes: TransitThemes) -> List[str]:
         "full_moon": "Full moon energy may amplify what's already present",
         "new_moon": "New moon suggests a reset or fresh starting point",
         "waning_crescent": "This may be a time for release before new beginnings",
+        "waxing_crescent": "New intentions may be gaining momentum",
+        "waxing_gibbous": "What you've been building may be coming into focus",
     }
     
     if themes.lunar_phase in lunar_context and len(context_lines) < 4:
@@ -424,6 +491,7 @@ def generate_timing_context(themes: TransitThemes) -> List[str]:
 def generate_timing_signals(themes: TransitThemes) -> List[str]:
     """
     Generate timing-specific signals for the explainability layer.
+    Includes BOTH challenge and positive/opening signals.
     """
     signals = []
     
@@ -433,6 +501,7 @@ def generate_timing_signals(themes: TransitThemes) -> List[str]:
         if themes.theme_intensity.get(t, 0) >= 0.5
     ]
     
+    # === CHALLENGE THEME SIGNALS ===
     if "emotional_sensitivity" in high_intensity_themes:
         signals.append(
             "Current conditions may be amplifying emotional fluctuation"
@@ -463,6 +532,52 @@ def generate_timing_signals(themes: TransitThemes) -> List[str]:
             "The sense of needing to act quickly may be timing-driven, not actual emergency"
         )
     
+    # === POSITIVE / OPENING THEME SIGNALS (NEW) ===
+    if "relational_harmony" in high_intensity_themes:
+        signals.append(
+            "Current conditions suggest emotional openness and relational ease"
+        )
+    
+    if "emotional_openness" in high_intensity_themes:
+        signals.append(
+            "This may be a period where emotional expression flows more freely"
+        )
+    
+    if "receptivity" in high_intensity_themes:
+        signals.append(
+            "Conditions support openness to receiving support, connection, or insight"
+        )
+    
+    if "renewal_cycle" in high_intensity_themes:
+        signals.append(
+            "Fresh energy may be present, signaling new beginnings"
+        )
+    
+    if "reconnection_window" in high_intensity_themes:
+        signals.append(
+            "This may be a favorable window for reconnection or repair"
+        )
+    
+    if "softening_phase" in high_intensity_themes:
+        signals.append(
+            "Defenses may be naturally softening, allowing more connection"
+        )
+    
+    if "integration_phase" in high_intensity_themes:
+        signals.append(
+            "What was fragmented may be finding coherence"
+        )
+    
+    if "grounded_stability" in high_intensity_themes:
+        signals.append(
+            "A sense of stability and groundedness may be present"
+        )
+    
+    if "expansion" in high_intensity_themes:
+        signals.append(
+            "Growth and opening energy may be available"
+        )
+    
     # Lunar phase signals
     if themes.lunar_phase == "full_moon":
         signals.append(
@@ -471,6 +586,10 @@ def generate_timing_signals(themes: TransitThemes) -> List[str]:
     elif themes.lunar_phase == "new_moon":
         signals.append(
             "New moon suggests this is a natural reset point"
+        )
+    elif themes.lunar_phase == "waxing_gibbous":
+        signals.append(
+            "Waxing moon suggests building momentum and clarity"
         )
     
     return signals[:2]  # Max 2 timing signals

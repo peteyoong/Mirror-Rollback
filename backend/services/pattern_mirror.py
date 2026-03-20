@@ -227,6 +227,7 @@ PATTERN_TEMPLATES = {
         "title": "Relational Weight",
         "timing_compatibility": ["relational_sensitivity", "emotional_sensitivity", "pressure"],
         "signal_keywords": ["relationship", "they", "them", "others", "connection", "distance"],
+        "pattern_type": "challenge",
         "what_you_may_be": "You may be carrying the weight of a relationship dynamic that feels unresolved—something unspoken, misaligned, or in need of attention.",
         "challenge": [
             "over-functioning to keep peace",
@@ -242,6 +243,177 @@ PATTERN_TEMPLATES = {
             "Ask: What would I want them to know if I weren't afraid of the response?"
         ]
     },
+    
+    # =========================================================================
+    # POSITIVE / OPENING PATTERNS (NEW)
+    # =========================================================================
+    
+    "relational_reopening": {
+        "title": "Relational Reopening",
+        "timing_compatibility": ["relational_harmony", "reconnection_window", "emotional_openness", "softening_phase"],
+        "signal_keywords": ["close", "connect", "open", "together", "warmth", "love", "trust", "repair", "reconnect"],
+        "pattern_type": "opening",
+        "what_you_may_be": "You may be allowing warmth back in where there was distance—reconnecting with someone, or with a part of yourself that was guarded.",
+        "challenge": [
+            "doubting if openness will last",
+            "holding back fully in case it doesn't",
+            "overanalyzing a good moment"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the ability to receive connection without needing to control it.",
+            "archetype": "The Bridge"
+        },
+        "micro_shifts": [
+            "Try letting this moment be enough without needing more proof.",
+            "Ask: What if I trusted this opening?"
+        ]
+    },
+    "heart_thaw": {
+        "title": "Heart Thaw",
+        "timing_compatibility": ["emotional_openness", "softening_phase", "receptivity", "relational_harmony"],
+        "signal_keywords": ["soft", "vulnerable", "open", "feel", "heart", "tender", "safe", "receive"],
+        "pattern_type": "opening",
+        "what_you_may_be": "You may be softening in places that were guarded—allowing yourself to feel more fully, or to be seen more honestly.",
+        "challenge": [
+            "bracing for the vulnerability to backfire",
+            "questioning if it's safe to stay open",
+            "retreating at the first hint of discomfort"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the capacity to stay open even when it feels unfamiliar.",
+            "archetype": "The Witness"
+        },
+        "micro_shifts": [
+            "Try staying with the softness a little longer before protecting.",
+            "Ask: What becomes possible if I let myself be seen here?"
+        ]
+    },
+    "safe_intimacy_returning": {
+        "title": "Safe Intimacy Returning",
+        "timing_compatibility": ["relational_harmony", "receptivity", "softening_phase", "reconnection_window"],
+        "signal_keywords": ["intimate", "close", "safe", "trust", "connection", "together", "partner", "loved"],
+        "pattern_type": "opening",
+        "what_you_may_be": "You may be experiencing a return of safety in closeness—a sense that it's okay to let someone in, or to be truly present with another.",
+        "challenge": [
+            "waiting for something to go wrong",
+            "testing the connection instead of receiving it",
+            "numbing the good to protect from future loss"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the ability to be fully present in intimacy without needing guarantees.",
+            "archetype": "The Anchor"
+        },
+        "micro_shifts": [
+            "Try noticing where your body feels the safety.",
+            "Ask: What if this is exactly what it seems?"
+        ]
+    },
+    "reconnection_window": {
+        "title": "Reconnection Window",
+        "timing_compatibility": ["reconnection_window", "relational_harmony", "renewal_cycle", "softening_phase"],
+        "signal_keywords": ["reconnect", "repair", "bridge", "heal", "return", "restore", "mend", "again"],
+        "pattern_type": "opening",
+        "what_you_may_be": "You may be sensing an opening—a window where repair, reconnection, or reconciliation feels more possible than before.",
+        "challenge": [
+            "overthinking the right way to approach",
+            "waiting for the other person to move first",
+            "dismissing the opening as unlikely to work"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the courage to reach out when the moment is present.",
+            "archetype": "The Bridge"
+        },
+        "micro_shifts": [
+            "Try noticing what small step feels available.",
+            "Ask: What do I have to lose by trying?"
+        ]
+    },
+    "renewal_after_distance": {
+        "title": "Renewal After Distance",
+        "timing_compatibility": ["renewal_cycle", "reconnection_window", "expansion", "relational_harmony"],
+        "signal_keywords": ["new", "fresh", "start", "again", "return", "begin", "renewed", "different"],
+        "pattern_type": "opening",
+        "what_you_may_be": "You may be entering a new phase in something that felt stuck or distant—a relationship, a project, or a part of yourself that's waking up again.",
+        "challenge": [
+            "doubting if the change is real",
+            "bringing old expectations into the new phase",
+            "rushing past the renewal instead of inhabiting it"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the ability to begin again with fresh eyes.",
+            "archetype": "The Phoenix"
+        },
+        "micro_shifts": [
+            "Try meeting this moment as if you don't already know how it ends.",
+            "Ask: What wants to be different this time?"
+        ]
+    },
+    "grounded_presence": {
+        "title": "Grounded Presence",
+        "timing_compatibility": ["grounded_stability", "integration_phase", "receptivity", "emotional_openness"],
+        "signal_keywords": ["grounded", "present", "calm", "stable", "centered", "clear", "settled", "peace"],
+        "pattern_type": "opening",
+        "what_you_may_be": "You may be experiencing a sense of stability—a groundedness that doesn't require fixing, only inhabiting.",
+        "challenge": [
+            "distrusting calm as the quiet before a storm",
+            "filling silence with activity",
+            "looking for what's wrong instead of resting in what's right"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the capacity to rest in presence without needing to do.",
+            "archetype": "The Anchor"
+        },
+        "micro_shifts": [
+            "Try letting this steadiness be true.",
+            "Ask: What if there's nothing to fix right now?"
+        ]
+    },
+    "emotional_integration": {
+        "title": "Emotional Integration",
+        "timing_compatibility": ["integration_phase", "emotional_openness", "renewal_cycle", "grounded_stability"],
+        "signal_keywords": ["whole", "together", "integrate", "make sense", "coming together", "clarity", "understand"],
+        "pattern_type": "opening",
+        "what_you_may_be": "You may be experiencing something clicking into place—pieces that were scattered beginning to make sense, emotions that were confusing starting to integrate.",
+        "challenge": [
+            "rushing to name it before it fully forms",
+            "doubting the integration will hold",
+            "needing to explain it to others too soon"
+        ],
+        "genius": {
+            "description": "At its best, this same pattern becomes the ability to let understanding arrive in its own time.",
+            "archetype": "The Witness"
+        },
+        "micro_shifts": [
+            "Try letting the pieces settle without forcing a conclusion.",
+            "Ask: What's becoming clearer without effort?"
+        ]
+    },
+}
+
+
+# ============================================================================
+# POSITIVE SIGNAL VOCABULARY
+# ============================================================================
+
+POSITIVE_SIGNAL_KEYWORDS = {
+    "relational_openness": ["open", "close", "connect", "together", "near", "with"],
+    "emotional_softening": ["soft", "gentle", "tender", "ease", "relax", "let go"],
+    "vulnerability_access": ["vulnerable", "honest", "real", "true", "show", "reveal"],
+    "intimacy_activation": ["intimate", "close", "deep", "meaningful", "present"],
+    "trust_returning": ["trust", "safe", "believe", "faith", "reliable"],
+    "warmth": ["warm", "love", "care", "affection", "kind", "gentle"],
+    "connection": ["connect", "bond", "link", "together", "us", "we"],
+    "safety_in_contact": ["safe", "comfortable", "okay", "alright", "secure"],
+    "emotional_regulation": ["calm", "steady", "balanced", "regulated", "centered"],
+    "grounded_presence": ["grounded", "present", "here", "now", "stable", "rooted"],
+    "mutual_recognition": ["see", "seen", "understood", "known", "recognized"],
+    "repair_in_progress": ["repair", "fix", "mend", "heal", "restore", "reconcile"],
+    "reconnection": ["reconnect", "return", "back", "again", "resume", "renew"],
+    "expansion": ["grow", "expand", "open", "more", "possibility", "opportunity"],
+    "relief_after_tension": ["relief", "release", "exhale", "finally", "over", "done"],
+    "receiving": ["receive", "accept", "allow", "let in", "take in"],
+    "heart_opening": ["heart", "love", "open", "feel", "moved", "touched"],
+    "stability_after_fluctuation": ["stable", "steady", "consistent", "settled", "even"],
 }
 
 
@@ -341,20 +513,79 @@ def score_pattern_signal_alignment(
     return score
 
 
+def detect_dominant_energy_state(signals: Dict[str, Any]) -> str:
+    """
+    Detect if user signals indicate OPENING vs CHALLENGE energy.
+    
+    Returns: "opening", "challenge", or "neutral"
+    """
+    all_text = ""
+    
+    for entry in signals.get("journal_entries", []):
+        all_text += " " + (entry.get("content", "") or "")
+    
+    for msg in signals.get("chat_messages", []):
+        all_text += " " + (msg.get("content", "") or "")
+    
+    all_text = all_text.lower()
+    
+    # Count positive/opening signals
+    opening_count = 0
+    for signal_name, keywords in POSITIVE_SIGNAL_KEYWORDS.items():
+        for kw in keywords:
+            if kw in all_text:
+                opening_count += 1
+                break
+    
+    # Count challenge signals
+    challenge_keywords = [
+        "afraid", "scared", "anxious", "worry", "stressed", "overwhelm",
+        "angry", "frustrated", "resentful", "stuck", "lost", "confused",
+        "sad", "depressed", "lonely", "hurt", "rejected", "abandoned",
+        "ashamed", "guilty", "doubt", "uncertain", "pressured", "drained"
+    ]
+    
+    challenge_count = sum(1 for kw in challenge_keywords if kw in all_text)
+    
+    # Determine dominant state
+    if opening_count >= 3 and opening_count > challenge_count * 1.5:
+        return "opening"
+    elif challenge_count >= 3 and challenge_count > opening_count * 1.5:
+        return "challenge"
+    else:
+        return "neutral"
+
+
 def select_best_pattern(
     signals: Dict[str, Any],
     transit_themes: Any  # TransitThemes dataclass
 ) -> tuple[str, Dict[str, float]]:
     """
-    Select the best pattern using transit-first logic.
+    Select the best pattern using transit-first logic with POSITIVE/OPENING support.
     
-    Final Score = (signal_score × 0.6) + (transit_score × 0.4)
+    Final Score = (signal_score × 0.5) + (transit_score × 0.5)
     
-    CRITICAL: Patterns with transit_score < 0.2 are REJECTED.
+    CRITICAL: 
+    - Patterns with transit_score < 0.2 are REJECTED
+    - If dominant energy is "opening", challenge patterns are penalized
+    - If dominant energy is "challenge", opening patterns are penalized
     """
+    from services.transit_theme_engine import TIMING_THEMES
+    
     scores = {}
     
-    for pattern_id in PATTERN_TEMPLATES.keys():
+    # Detect dominant energy state from user signals
+    dominant_energy = detect_dominant_energy_state(signals)
+    logger.info(f"[PatternSelect] Dominant energy: {dominant_energy}")
+    
+    # Check if transit themes favor opening
+    opening_transit_themes = ["relational_harmony", "emotional_openness", "receptivity", 
+                              "renewal_cycle", "reconnection_window", "softening_phase",
+                              "integration_phase", "grounded_stability", "expansion"]
+    
+    transit_favors_opening = any(t in transit_themes.active_themes for t in opening_transit_themes)
+    
+    for pattern_id, template in PATTERN_TEMPLATES.items():
         # Calculate transit alignment score (CRITICAL)
         transit_score = score_pattern_transit_alignment(
             pattern_id,
@@ -370,25 +601,51 @@ def select_best_pattern(
         # Calculate signal alignment score
         signal_score = score_pattern_signal_alignment(pattern_id, signals)
         
-        # Final weighted score
-        final_score = (signal_score * 0.6) + (transit_score * 0.4)
+        # Get pattern type (opening vs challenge)
+        pattern_type = template.get("pattern_type", "challenge")
+        
+        # Apply energy state adjustments
+        energy_modifier = 1.0
+        
+        if dominant_energy == "opening":
+            if pattern_type == "opening":
+                energy_modifier = 1.3  # Boost opening patterns
+            elif pattern_type == "challenge":
+                energy_modifier = 0.6  # Penalize challenge patterns heavily
+        
+        elif dominant_energy == "challenge":
+            if pattern_type == "challenge":
+                energy_modifier = 1.2  # Boost challenge patterns
+            elif pattern_type == "opening":
+                energy_modifier = 0.7  # Penalize opening patterns
+        
+        # If transit favors opening, give extra boost to opening patterns
+        if transit_favors_opening and pattern_type == "opening":
+            energy_modifier *= 1.15
+        
+        # Final weighted score: 50/50 split for more transit influence
+        base_score = (signal_score * 0.5) + (transit_score * 0.5)
+        final_score = base_score * energy_modifier
         
         scores[pattern_id] = {
             "final": final_score,
             "signal": signal_score,
             "transit": transit_score,
+            "pattern_type": pattern_type,
+            "energy_modifier": energy_modifier,
         }
         
         logger.debug(
-            f"[PatternSelect] {pattern_id}: "
-            f"final={final_score:.2f}, signal={signal_score:.2f}, transit={transit_score:.2f}"
+            f"[PatternSelect] {pattern_id} ({pattern_type}): "
+            f"final={final_score:.2f}, signal={signal_score:.2f}, transit={transit_score:.2f}, "
+            f"modifier={energy_modifier:.2f}"
         )
     
     # Select highest scoring pattern
     if not scores:
         # Fallback: no patterns matched timing - use most general pattern
         logger.warning("[PatternSelect] No patterns matched timing, using fallback")
-        return "somethings_here", {"final": 0.3, "signal": 0.3, "transit": 0.3}
+        return "somethings_here", {"final": 0.3, "signal": 0.3, "transit": 0.3, "pattern_type": "neutral"}
     
     best_pattern = max(scores.keys(), key=lambda k: scores[k]["final"])
     return best_pattern, scores[best_pattern]
@@ -517,12 +774,17 @@ def generate_signals_by_source(
     - NOT generic, NOT surveillance-like
     - Group by source: journal, mirror_chat, lifeline, timing
     - Omit sources with no meaningful signals
+    - INCLUDES positive/opening signal detection
     """
     signals_by_source = {}
     
     pattern_title = pattern.get("title", "")
     what_you_may_be = pattern.get("what_you_may_be", "")
     challenges = pattern.get("challenge", [])
+    
+    # Detect if this is an opening pattern
+    is_opening_pattern = any(word in what_you_may_be.lower() for word in 
+        ["warmth", "opening", "softening", "reconnect", "closeness", "safe", "trust", "receiving"])
     
     # Extract key behavioral indicators from the pattern
     pattern_keywords = extract_pattern_keywords(what_you_may_be, challenges)
@@ -535,38 +797,73 @@ def generate_signals_by_source(
     
     if journal_entries:
         # Analyze journal content for pattern-specific signals
-        for entry in journal_entries[:5]:
-            content = entry.get("content", "").lower()
-            themes = entry.get("themes", [])
+        all_content = " ".join([e.get("content", "") for e in journal_entries[:5]]).lower()
+        
+        # === POSITIVE / OPENING SIGNALS ===
+        if is_opening_pattern:
+            # Check for connection/closeness signals
+            if any(kw in all_content for kw in ["close", "connect", "together", "warmth", "love"]):
+                journal_signals.append(
+                    "You described moments of closeness and openness in connection"
+                )
             
-            # Check for emotional decision-making patterns
-            if any(kw in content for kw in ["decide", "decision", "choice", "choosing", "should i"]):
-                if any(kw in content for kw in ["feel", "feeling", "emotion", "mood"]):
+            # Check for softening/vulnerability signals
+            if any(kw in all_content for kw in ["soft", "vulnerable", "open", "honest", "real"]):
+                journal_signals.append(
+                    "Your writing shows a willingness to be seen or to soften"
+                )
+            
+            # Check for trust/safety signals
+            if any(kw in all_content for kw in ["trust", "safe", "secure", "believe", "faith"]):
+                journal_signals.append(
+                    "You reflected on trust or safety in relationship"
+                )
+            
+            # Check for repair/reconnection signals
+            if any(kw in all_content for kw in ["repair", "reconnect", "heal", "mend", "return"]):
+                journal_signals.append(
+                    "You described movement toward repair or reconnection"
+                )
+            
+            # Check for receiving signals
+            if any(kw in all_content for kw in ["receive", "accept", "allow", "let in"]):
+                journal_signals.append(
+                    "You wrote about openness to receiving"
+                )
+        
+        # === CHALLENGE SIGNALS (existing) ===
+        else:
+            for entry in journal_entries[:5]:
+                content = entry.get("content", "").lower()
+                
+                # Check for emotional decision-making patterns
+                if any(kw in content for kw in ["decide", "decision", "choice", "choosing", "should i"]):
+                    if any(kw in content for kw in ["feel", "feeling", "emotion", "mood"]):
+                        journal_signals.append(
+                            "You described trying to make important decisions while your emotional state was shifting"
+                        )
+                        break
+                
+                # Check for self-doubt / second-guessing
+                if any(kw in content for kw in ["doubt", "second-guess", "unsure", "wonder if", "maybe i shouldn't"]):
                     journal_signals.append(
-                        "You described trying to make important decisions while your emotional state was shifting"
+                        "Your recent reflections show a pattern of second-guessing after emotional intensity"
                     )
                     break
-            
-            # Check for self-doubt / second-guessing
-            if any(kw in content for kw in ["doubt", "second-guess", "unsure", "wonder if", "maybe i shouldn't"]):
-                journal_signals.append(
-                    "Your recent reflections show a pattern of second-guessing after emotional intensity"
-                )
-                break
-            
-            # Check for control patterns
-            if any(kw in content for kw in ["control", "handle", "manage", "keep it together", "stay strong"]):
-                journal_signals.append(
-                    "You described staying functional by focusing on what needs to be handled"
-                )
-                break
-            
-            # Check for avoidance patterns
-            if any(kw in content for kw in ["avoid", "ignore", "push down", "not think about", "later"]):
-                journal_signals.append(
-                    "Your writing suggests setting aside certain feelings to focus on action"
-                )
-                break
+                
+                # Check for control patterns
+                if any(kw in content for kw in ["control", "handle", "manage", "keep it together", "stay strong"]):
+                    journal_signals.append(
+                        "You described staying functional by focusing on what needs to be handled"
+                    )
+                    break
+                
+                # Check for avoidance patterns
+                if any(kw in content for kw in ["avoid", "ignore", "push down", "not think about", "later"]):
+                    journal_signals.append(
+                        "Your writing suggests setting aside certain feelings to focus on action"
+                    )
+                    break
         
         # Theme-based signals
         all_themes = []
