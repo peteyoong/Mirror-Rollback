@@ -1984,7 +1984,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
             Understanding your type structure
         ═══════════════════════════════════════════════════════════════ */}
         
-        <SectionDivider title="Understanding Your Structure" />
+        <SectionDivider title="How your pattern moves" />
 
         {/* Your Core Strategy */}
         <AccordionSection
