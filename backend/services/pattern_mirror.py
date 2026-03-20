@@ -170,7 +170,104 @@ async def aggregate_user_signals(
     else:
         signals["signal_strength"] = "weak"
     
+    # 6. Generate human-readable signal explanations (max 5)
+    signals["explainable_signals"] = generate_explainable_signals(signals)
+    
     return signals
+
+
+def generate_explainable_signals(signals: Dict[str, Any]) -> List[str]:
+    """
+    Generate human-readable signal explanations.
+    
+    Rules:
+    - Max 3-5 signals
+    - Summarized, human-readable
+    - No raw logs, timestamps, or IDs
+    - Use phrasing like "You described...", "You noted...", "Your recent entries suggest..."
+    """
+    explanations = []
+    
+    # From journal entries
+    journal_entries = signals.get("journal_entries", [])
+    if journal_entries:
+        # Get themes from entries
+        all_themes = []
+        for entry in journal_entries[:3]:
+            themes = entry.get("themes", [])
+            all_themes.extend(themes)
+        
+        if all_themes:
+            unique_themes = list(set(all_themes))[:3]
+            if len(unique_themes) == 1:
+                explanations.append(f"Your recent reflections touched on {unique_themes[0].lower()}")
+            elif len(unique_themes) >= 2:
+                explanations.append(f"Your journal entries explored themes of {', '.join(t.lower() for t in unique_themes[:2])}")
+        
+        # Content-based signal
+        if len(journal_entries) >= 2:
+            explanations.append(f"You've been writing consistently over the past few days")
+        elif len(journal_entries) == 1:
+            content_preview = journal_entries[0].get("content", "")[:50]
+            if content_preview:
+                explanations.append(f"You recently described what's been on your mind")
+    
+    # From chat messages
+    chat_messages = signals.get("chat_messages", [])
+    if chat_messages:
+        if len(chat_messages) >= 5:
+            explanations.append("You've been actively reflecting in conversations")
+        elif len(chat_messages) >= 2:
+            explanations.append("Your recent conversations revealed recurring themes")
+        elif len(chat_messages) == 1:
+            explanations.append("You shared something significant in a recent reflection")
+    
+    # From lifeline events
+    lifeline_events = signals.get("lifeline_events", [])
+    if lifeline_events:
+        # Look for emotional tones in events
+        emotional_events = [e for e in lifeline_events if e.get("emotional_tone") and e.get("emotional_tone") != "neutral"]
+        
+        if emotional_events:
+            tones = list(set(e.get("emotional_tone", "") for e in emotional_events[:3]))
+            if tones:
+                explanations.append(f"Your life events carry emotional weight worth noticing")
+        
+        if len(lifeline_events) >= 3:
+            explanations.append("Your lifeline shows patterns across multiple experiences")
+    
+    # From emotional tones detected
+    emotional_tones = signals.get("emotional_tones", [])
+    if emotional_tones:
+        tone_map = {
+            "fear": "a sense of anticipation or worry",
+            "shame": "self-questioning moments",
+            "anger": "moments of frustration",
+            "sadness": "processing something difficult",
+            "joy": "hopeful or grateful moments",
+            "confusion": "uncertainty about direction",
+        }
+        
+        for tone in emotional_tones[:2]:
+            if tone in tone_map:
+                explanations.append(f"Your words suggest {tone_map[tone]}")
+                break
+    
+    # If no signals, provide a gentle fallback
+    if not explanations:
+        explanations.append("This pattern is based on general awareness prompts")
+    
+    # Limit to max 5, unique
+    seen = set()
+    unique_explanations = []
+    for exp in explanations:
+        if exp not in seen:
+            seen.add(exp)
+            unique_explanations.append(exp)
+            if len(unique_explanations) >= 5:
+                break
+    
+    return unique_explanations
 
 
 # ============================================================================
@@ -293,11 +390,14 @@ async def generate_pattern_mirror(
             })
             if cached:
                 logger.info(f"[PatternMirror] Cache hit for user {user_id}")
+                # Regenerate signals for cached response (signals are dynamic)
+                signals = await aggregate_user_signals(db, user_id)
                 return {
                     "pattern": cached["pattern"],
                     "cached": True,
                     "generated_at": cached["generated_at"],
-                    "signal_strength": cached.get("signal_strength", "weak")
+                    "signal_strength": cached.get("signal_strength", "weak"),
+                    "signals": signals.get("explainable_signals", [])
                 }
         except Exception as e:
             logger.warning(f"[PatternMirror] Cache check failed: {e}")
@@ -404,7 +504,8 @@ async def generate_pattern_mirror(
             "pattern": pattern,
             "cached": False,
             "generated_at": datetime.now(timezone.utc).isoformat(),
-            "signal_strength": signals["signal_strength"]
+            "signal_strength": signals["signal_strength"],
+            "signals": signals.get("explainable_signals", [])
         }
         
     except Exception as e:
@@ -414,6 +515,9 @@ async def generate_pattern_mirror(
 
 def get_fallback_pattern(signals: Dict[str, Any]) -> Dict[str, Any]:
     """Return a safe fallback pattern when LLM fails or data is weak."""
+    
+    # Get explainable signals
+    explainable = signals.get("explainable_signals", ["This pattern is based on general awareness prompts"])
     
     # Select fallback based on detected emotional tones
     tones = signals.get("emotional_tones", [])
@@ -440,6 +544,7 @@ def get_fallback_pattern(signals: Dict[str, Any]) -> Dict[str, Any]:
             "cached": False,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "signal_strength": signals.get("signal_strength", "weak"),
+            "signals": explainable,
             "fallback": True
         }
     
@@ -465,6 +570,7 @@ def get_fallback_pattern(signals: Dict[str, Any]) -> Dict[str, Any]:
             "cached": False,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "signal_strength": signals.get("signal_strength", "weak"),
+            "signals": explainable,
             "fallback": True
         }
     
@@ -490,6 +596,7 @@ def get_fallback_pattern(signals: Dict[str, Any]) -> Dict[str, Any]:
             "cached": False,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "signal_strength": signals.get("signal_strength", "weak"),
+            "signals": explainable,
             "fallback": True
         }
     
@@ -515,5 +622,6 @@ def get_fallback_pattern(signals: Dict[str, Any]) -> Dict[str, Any]:
         "cached": False,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "signal_strength": signals.get("signal_strength", "weak"),
+        "signals": explainable,
         "fallback": True
     }

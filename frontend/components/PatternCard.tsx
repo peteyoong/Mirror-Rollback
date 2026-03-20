@@ -46,6 +46,7 @@ interface PatternData {
   cached: boolean;
   generated_at: string;
   signal_strength?: string;
+  signals?: string[];
   fallback?: boolean;
 }
 
@@ -61,6 +62,7 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   const [patternData, setPatternData] = useState<PatternData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [signalsExpanded, setSignalsExpanded] = useState(false);
 
   const loadPattern = useCallback(async () => {
     if (!userId) return;
@@ -211,11 +213,37 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </Text>
       </TouchableOpacity>
 
-      {/* Signal strength indicator (subtle) */}
+      {/* Signal strength indicator with tap to expand */}
       {patternData.signal_strength && (
-        <Text style={[styles.signalIndicator, { color: theme.textTertiary }]}>
-          Based on {patternData.signal_strength} signals
-        </Text>
+        <TouchableOpacity
+          onPress={() => setSignalsExpanded(!signalsExpanded)}
+          activeOpacity={0.7}
+          style={styles.signalTrigger}
+        >
+          <Text style={[styles.signalIndicator, { color: theme.textTertiary }]}>
+            Based on {patternData.signal_strength} signals
+            <Text style={styles.signalExpandHint}>
+              {signalsExpanded ? '  ▲' : '  ▼'}
+            </Text>
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Collapsible signals section */}
+      {signalsExpanded && patternData.signals && patternData.signals.length > 0 && (
+        <View style={[styles.signalsSection, { borderTopColor: theme.border }]}>
+          <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>
+            WHAT THIS IS BASED ON
+          </Text>
+          {patternData.signals.map((signal, index) => (
+            <View key={index} style={styles.signalItem}>
+              <Text style={[styles.signalBullet, { color: theme.textTertiary }]}>•</Text>
+              <Text style={[styles.signalText, { color: theme.textSecondary }]}>
+                {signal}
+              </Text>
+            </View>
+          ))}
+        </View>
       )}
     </View>
   );
@@ -343,11 +371,45 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
-  // Signal indicator
+  // Signal indicator with tap to expand
+  signalTrigger: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
   signalIndicator: {
-    fontSize: 11,
+    fontSize: 12,
     textAlign: 'center',
-    marginTop: 12,
     fontStyle: 'italic',
+  },
+  signalExpandHint: {
+    fontSize: 10,
+  },
+  
+  // Collapsible signals section
+  signalsSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+  },
+  signalsSectionTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginBottom: 12,
+  },
+  signalItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  signalBullet: {
+    fontSize: 12,
+    marginRight: 8,
+    marginTop: 1,
+  },
+  signalText: {
+    fontSize: 13,
+    lineHeight: 18,
+    flex: 1,
   },
 });
