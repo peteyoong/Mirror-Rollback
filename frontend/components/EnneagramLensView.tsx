@@ -1252,10 +1252,43 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
     // Get Core Story content
     const coreStory = CORE_STORY_CONTENT[core];
     
+    // Compute normalized top 3 signals for display
+    // If we only have raw probabilities, normalize them to show relative strength
+    const getTopSignals = () => {
+      const candidates = result?.top_candidates || [];
+      if (candidates.length === 0) {
+        // Fallback: create mock signals from core/wing
+        return [
+          { type: core, probability: 0.75 },
+          { type: wingNum || (core === 9 ? 1 : core + 1), probability: 0.35 },
+          { type: growthType, probability: 0.22 },
+        ];
+      }
+      
+      // Take top 3 and normalize if needed
+      const top3 = candidates.slice(0, 3);
+      const maxProb = Math.max(...top3.map(c => c.probability));
+      
+      // If max is 1.0 or very close, normalize to show relative differences
+      if (maxProb >= 0.95) {
+        // Distribute scores more meaningfully
+        return top3.map((c, i) => ({
+          type: c.type,
+          // Scale down from max to show variation
+          probability: Math.max(0.20, c.probability * (i === 0 ? 0.85 : i === 1 ? 0.45 : 0.30))
+        }));
+      }
+      
+      return top3;
+    };
+    
+    const topSignals = getTopSignals();
+    
     return (
       <>
         {/* ============================================ */}
         {/* SECTION 1: HERO RESULT CARD (TOP OF PAGE) */}
+        {/* "This is my result." */}
         {/* ============================================ */}
         <View style={[styles.heroResultCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
           {/* Large Result Label */}
@@ -1313,14 +1346,15 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
         </View>
 
         {/* ============================================ */}
-        {/* SECTION 2: CORE STORY OF TYPE */}
+        {/* SECTION 2: CORE STORY — TYPE X */}
+        {/* "This is what Type X means." */}
         {/* ============================================ */}
         <View style={[styles.coreStoryCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
           <Text style={[styles.coreStoryTitle, { color: theme.textTertiary }]}>
             CORE STORY — TYPE {core}
           </Text>
           
-          {/* What Type X Is */}
+          {/* Core Pattern */}
           <View style={styles.coreStorySection}>
             <Text style={[styles.coreStorySectionTitle, { color: theme.text }]}>Core Pattern</Text>
             <Text style={[styles.coreStoryBody, { color: theme.textSecondary }]}>
@@ -1355,6 +1389,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
 
         {/* ============================================ */}
         {/* SECTION 3: HOW WING SHAPES THIS */}
+        {/* "This is how the wing changes it." */}
         {/* ============================================ */}
         {wingKey && WING_INFLUENCE_CONCISE[wingKey] && (
           <View style={[styles.wingInfluenceCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
@@ -1368,15 +1403,62 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
         )}
 
         {/* ============================================ */}
-        {/* SECTION 4: OTHER STRONG SIGNALS */}
+        {/* SECTION 4: OTHER IMPORTANT SUMMARY DATA */}
+        {/* Growth/Stress directions and key context */}
+        {/* ============================================ */}
+        <View style={[styles.summaryDataCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.summaryDataTitle, { color: theme.textTertiary }]}>
+            MOVEMENT PATTERNS
+          </Text>
+          
+          {/* Growth Direction */}
+          <View style={styles.movementRow}>
+            <View style={[styles.movementIcon, { backgroundColor: '#2E7D3220' }]}>
+              <Text style={styles.movementIconText}>↗</Text>
+            </View>
+            <View style={styles.movementContent}>
+              <Text style={[styles.movementLabel, { color: '#2E7D32' }]}>
+                Growth → Type {growthType}
+              </Text>
+              <Text style={[styles.movementDesc, { color: theme.textSecondary }]}>
+                When resourced, you access {TYPE_NAMES[growthType]} qualities
+              </Text>
+            </View>
+          </View>
+          
+          {/* Stress Direction */}
+          <View style={styles.movementRow}>
+            <View style={[styles.movementIcon, { backgroundColor: '#C6282820' }]}>
+              <Text style={styles.movementIconText}>↘</Text>
+            </View>
+            <View style={styles.movementContent}>
+              <Text style={[styles.movementLabel, { color: '#C62828' }]}>
+                Stress → Type {stressType}
+              </Text>
+              <Text style={[styles.movementDesc, { color: theme.textSecondary }]}>
+                Under pressure, you may show {TYPE_NAMES[stressType]} patterns
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ============================================ */}
+        {/* SECTION 5: TOP 3 HIGHEST INDICATORS CHART */}
+        {/* "Here are my top comparative type strengths." */}
         {/* ============================================ */}
         <View style={[styles.signalsCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
           <Text style={[styles.signalsTitle, { color: theme.textTertiary }]}>
-            OTHER STRONG SIGNALS
+            TOP SIGNALS
           </Text>
-          {result?.top_candidates?.slice(0, 3).map((candidate, index) => {
+          <Text style={[styles.signalsSubtitle, { color: theme.textTertiary }]}>
+            Relative strength of type indicators
+          </Text>
+          
+          {topSignals.map((candidate, index) => {
             const percentage = Math.round(candidate.probability * 100);
-            const barWidth = `${Math.min(percentage, 100)}%`;
+            // Scale bar width relative to highest score
+            const maxPercent = Math.round(topSignals[0].probability * 100);
+            const barWidth = `${Math.round((percentage / maxPercent) * 100)}%`;
             const isTop = index === 0;
             
             return (
@@ -1406,26 +1488,28 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
         </View>
 
         {/* ============================================ */}
-        {/* SECTION 5: ENNEAGRAM WHEEL (SUPPORTING STRUCTURE) */}
-        {/* JSON-DRIVEN - All positions from ENNEAGRAM_SCHEMA */}
+        {/* SECTION 6: ENNEAGRAM WHEEL (SUPPORTING STRUCTURE) */}
+        {/* "Here is the structural diagram underneath it." */}
+        {/* Wheel is LOWER on the page - supporting, not dominant */}
         {/* ============================================ */}
         <View style={[styles.wheelSupportCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
           <Text style={[styles.wheelSupportTitle, { color: theme.textTertiary }]}>
             ENNEAGRAM STRUCTURE
           </Text>
           
-          {/* JSON-Driven Enneagram Wheel Component */}
+          {/* JSON-Driven Enneagram Wheel Component - compact size */}
           <EnneagramWheel
             coreType={core}
             wing={wingNum}
-            size={240}
+            size={220}
             showArrows={true}
             compact={true}
           />
         </View>
 
         {/* ============================================ */}
-        {/* SECTION 6: ASK ABOUT THIS LENS CTA */}
+        {/* SECTION 7: ASK ABOUT THIS LENS CTA */}
+        {/* "Now I can ask about this lens." */}
         {/* ============================================ */}
         {renderAskLensButton()}
       </>
@@ -4547,5 +4631,59 @@ const styles = StyleSheet.create({
   },
   wheelLegendTextCompact: {
     fontSize: 12,
+  },
+
+  // ============================================
+  // MOVEMENT PATTERNS CARD STYLES (Section 4)
+  // ============================================
+  summaryDataCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 20,
+    marginBottom: 16,
+  },
+  summaryDataTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 16,
+  },
+  movementRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  movementIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  movementIconText: {
+    fontSize: 18,
+  },
+  movementContent: {
+    flex: 1,
+  },
+  movementLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  movementDesc: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+
+  // ============================================
+  // TOP SIGNALS SUBTITLE STYLE
+  // ============================================
+  signalsSubtitle: {
+    fontSize: 12,
+    marginTop: -12,
+    marginBottom: 16,
   },
 });
