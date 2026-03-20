@@ -25,13 +25,309 @@ import json
 import logging
 import hashlib
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from dotenv import load_dotenv
+
+
+# ============================================================================
+# PERSONALIZED TRANSIT TARGETING - Venus Sequence Mapping
+# ============================================================================
+
+# Map timing themes to Venus Sequence targets
+THEME_TO_VENUS_TARGETS = {
+    # Challenge/Neutral themes
+    "emotional_sensitivity": ["eq", "sq"],
+    "clarity_vs_confusion": ["iq", "core"],
+    "pressure": ["core", "iq"],
+    "urgency": ["purpose", "core"],
+    "transition_threshold": ["core", "purpose"],
+    "reset_cycle": ["core", "eq"],
+    "relational_sensitivity": ["sq", "attraction"],
+    "identity_shift": ["core", "purpose"],
+    "expansion": ["purpose", "attraction"],
+    "contraction": ["core", "iq"],
+    
+    # Positive/Opening themes
+    "relational_harmony": ["sq", "attraction"],
+    "emotional_openness": ["eq", "sq"],
+    "receptivity": ["attraction", "sq"],
+    "renewal_cycle": ["core", "eq"],
+    "reconnection_window": ["sq", "attraction"],
+    "softening_phase": ["eq", "attraction"],
+    "integration_phase": ["iq", "core"],
+    "grounded_stability": ["core", "iq"],
+}
+
+# Human-readable descriptions for Venus Sequence spheres (NO Gene Key numbers)
+VENUS_SPHERE_DESCRIPTIONS = {
+    "core": {
+        "name": "core stability",
+        "description": "how you hold your ground and sense of self",
+        "shadow": "where pressure can destabilize",
+        "gift": "where groundedness emerges",
+    },
+    "eq": {
+        "name": "emotional intelligence",
+        "description": "how you relate to expectations and emotional clarity",
+        "shadow": "where emotions can overwhelm discernment",
+        "gift": "where emotional wisdom becomes available",
+    },
+    "sq": {
+        "name": "relational intelligence",
+        "description": "how you show up in connection with others",
+        "shadow": "where relating can feel effortful",
+        "gift": "where intimacy and ease become possible",
+    },
+    "iq": {
+        "name": "mental clarity",
+        "description": "how you process and make sense of things",
+        "shadow": "where thinking can loop or confuse",
+        "gift": "where insight and understanding arrive",
+    },
+    "attraction": {
+        "name": "what draws others to you",
+        "description": "the quality that naturally invites connection",
+        "shadow": "where self-presentation can feel forced",
+        "gift": "where authentic magnetism emerges",
+    },
+    "purpose": {
+        "name": "your sense of direction",
+        "description": "what gives meaning to your efforts",
+        "shadow": "where purpose can feel unclear",
+        "gift": "where alignment with direction emerges",
+    },
+}
+
+
+def compute_personal_activations(
+    user_profile: Optional[Dict[str, Any]],
+    active_themes: List[str],
+    transit_score: float
+) -> List[Dict[str, Any]]:
+    """
+    Map timing themes to user's Gene Keys Venus Sequence.
+    
+    Returns top 2 activated spheres with scores.
+    NO Gene Key numbers in output - only sphere descriptions.
+    """
+    # Default Venus Sequence if not available
+    default_venus = {
+        "core": 1,
+        "eq": 2,
+        "sq": 3,
+        "iq": 4,
+        "attraction": 5,
+        "purpose": 6,
+    }
+    
+    # Get user's Venus Sequence
+    venus = default_venus
+    if user_profile:
+        gene_keys = user_profile.get("gene_keys", {})
+        if gene_keys and "venus_sequence" in gene_keys:
+            venus = gene_keys.get("venus_sequence", default_venus)
+    
+    # Calculate activation scores for each sphere
+    scores = {k: 0.0 for k in venus.keys()}
+    
+    for theme in active_themes:
+        targets = THEME_TO_VENUS_TARGETS.get(theme, [])
+        for target in targets:
+            if target in scores:
+                # Weight by theme position (first themes are strongest)
+                theme_index = active_themes.index(theme) if theme in active_themes else 0
+                weight = 1.0 - (theme_index * 0.15)  # Decay by position
+                scores[target] += transit_score * weight
+    
+    # Sort by score and take top 2
+    sorted_targets = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:2]
+    
+    # Build activations with descriptions (NO Gene Key numbers)
+    activations = []
+    for target, score in sorted_targets:
+        if score > 0:
+            sphere_info = VENUS_SPHERE_DESCRIPTIONS.get(target, {})
+            activations.append({
+                "target": target,
+                "gene_key": venus.get(target, 0),  # Internal use only
+                "score": round(score, 2),
+                "name": sphere_info.get("name", target),
+                "description": sphere_info.get("description", ""),
+            })
+    
+    return activations
+
+
+# ============================================================================
+# UNIFIED NARRATIVE BUILDER
+# ============================================================================
+
+def build_unified_narrative(
+    pattern: Dict[str, Any],
+    signals_by_source: Dict[str, List[str]],
+    timing_context: List[str],
+    activations: List[Dict[str, Any]],
+    active_themes: List[str]
+) -> str:
+    """
+    Build a SINGLE unified narrative that combines:
+    - Pattern recognition (what you may be)
+    - Timing context (what's happening now)
+    - Personal activation (where it's touching you)
+    
+    Rules:
+    - No astrology terms
+    - No "Gene Key 41"
+    - No jargon
+    - Must feel like a single coherent reflection
+    """
+    parts = []
+    
+    # Part 1: Pattern sentence (from "what_you_may_be")
+    what_you_may_be = pattern.get("what_you_may_be", "")
+    if what_you_may_be:
+        parts.append(what_you_may_be)
+    
+    # Part 2: Timing sentence (grounded, not mystical)
+    timing_sentence = build_timing_sentence(timing_context, active_themes)
+    if timing_sentence:
+        parts.append(timing_sentence)
+    
+    # Part 3: Activation sentence (personalized, no jargon)
+    if activations:
+        activation_sentence = build_activation_sentence(activations)
+        if activation_sentence:
+            parts.append(activation_sentence)
+    
+    # Join with double newlines for readability
+    return "\n\n".join(parts)
+
+
+def build_timing_sentence(
+    timing_context: List[str],
+    active_themes: List[str]
+) -> str:
+    """
+    Build a grounded timing sentence.
+    
+    Style:
+    "Right now, [timing condition], which can make [pattern feeling]."
+    """
+    if not timing_context and not active_themes:
+        return ""
+    
+    # Map themes to timing phrases
+    theme_phrases = {
+        "emotional_sensitivity": "emotional sensitivity may be higher than usual",
+        "clarity_vs_confusion": "mental clarity may come and go",
+        "pressure": "pressure may feel more present than usual",
+        "transition_threshold": "you may be at a threshold between phases",
+        "reset_cycle": "a natural reset may be underway",
+        "relational_sensitivity": "relational sensitivity may be heightened",
+        "relational_harmony": "connection may feel more available",
+        "emotional_openness": "emotional openness may feel more accessible",
+        "softening_phase": "defenses may be naturally softening",
+        "renewal_cycle": "new energy may be present",
+        "expansion": "a sense of expansion may be available",
+        "receptivity": "receptivity may be heightened",
+    }
+    
+    # Get primary timing phrase
+    timing_phrase = None
+    for theme in active_themes[:2]:
+        if theme in theme_phrases:
+            timing_phrase = theme_phrases[theme]
+            break
+    
+    if not timing_phrase and timing_context:
+        # Fallback to first timing context, cleaned up
+        timing_phrase = timing_context[0].lower()
+        if timing_phrase.startswith("this may"):
+            timing_phrase = timing_phrase[9:]  # Remove "This may"
+    
+    if not timing_phrase:
+        return ""
+    
+    # Build the sentence
+    # Determine if opening or challenge energy
+    opening_themes = ["relational_harmony", "emotional_openness", "receptivity",
+                      "renewal_cycle", "softening_phase", "expansion"]
+    
+    is_opening = any(t in active_themes for t in opening_themes)
+    
+    if is_opening:
+        effect_clause = "which can make openness feel both inviting and uncertain"
+    else:
+        effect_clause = "which can make this pattern feel more present"
+    
+    return f"Right now, {timing_phrase}, {effect_clause}."
+
+
+def build_activation_sentence(
+    activations: List[Dict[str, Any]]
+) -> str:
+    """
+    Build a personal activation sentence.
+    
+    Style:
+    "This may be touching [sphere description] — where [shadow/gift dynamic]."
+    
+    NO Gene Key numbers. NO jargon.
+    """
+    if not activations:
+        return ""
+    
+    # Get primary activation
+    primary = activations[0]
+    target = primary.get("target", "")
+    name = primary.get("name", target)
+    description = primary.get("description", "")
+    
+    # Build sphere-specific endings
+    sphere_endings = {
+        "core": "where it's easy to feel destabilized, but also where groundedness can emerge",
+        "eq": "where it's easy to respond to what you feel, but harder to tell what is actually true",
+        "sq": "where showing up in connection can feel effortful, but also where intimacy becomes possible",
+        "iq": "where thinking can loop, but also where clarity can arrive",
+        "attraction": "where self-presentation can feel forced, but also where authenticity wants to emerge",
+        "purpose": "where direction can feel unclear, but also where meaning becomes visible",
+    }
+    
+    ending = sphere_endings.get(target, "where something wants your attention")
+    
+    # Build the sentence
+    if description:
+        return f"This may be touching {description} — {ending}."
+    else:
+        return f"This may be touching {name} — {ending}."
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# USER PROFILE HELPER
+# ============================================================================
+
+async def get_user_profile(db: AsyncIOMotorDatabase, user_id: str) -> Optional[Dict[str, Any]]:
+    """Fetch user profile including Gene Keys data for personalized activations."""
+    try:
+        from bson import ObjectId
+        # Try with string first
+        user = await db.users.find_one({"_id": user_id})
+        if not user:
+            # Try with ObjectId
+            try:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+            except:
+                pass
+        return user
+    except Exception as e:
+        logger.warning(f"[PatternMirror] Failed to fetch user profile: {e}")
+        return None
+
 
 # ============================================================================
 # PATTERN MIRROR OUTPUT CONTRACT
@@ -1197,6 +1493,24 @@ async def generate_pattern_mirror(
                 # Generate timing context
                 timing_context = generate_timing_context(transit_themes)
                 
+                # Compute personal activations for cached pattern
+                cached_transit_score = cached.get("scores", {}).get("transit", 0.4)
+                user_profile = await get_user_profile(db, user_id)
+                personal_activations = compute_personal_activations(
+                    user_profile,
+                    transit_themes.active_themes,
+                    cached_transit_score
+                )
+                
+                # Build unified narrative for cached pattern
+                unified_narrative = cached.get("unified_narrative") or build_unified_narrative(
+                    cached["pattern"],
+                    signals_by_source,
+                    timing_context,
+                    personal_activations,
+                    transit_themes.active_themes
+                )
+                
                 return {
                     "pattern": cached["pattern"],
                     "cached": True,
@@ -1204,7 +1518,9 @@ async def generate_pattern_mirror(
                     "signal_strength": cached.get("signal_strength", "weak"),
                     "signals_by_source": signals_by_source,
                     "timing_context": timing_context,
-                    "active_themes": transit_themes.active_themes[:3]
+                    "active_themes": transit_themes.active_themes[:3],
+                    "personal_activations": personal_activations,
+                    "unified_narrative": unified_narrative,
                 }
         except Exception as e:
             logger.warning(f"[PatternMirror] Cache check failed: {e}")
@@ -1252,7 +1568,24 @@ async def generate_pattern_mirror(
     # STEP 7: Generate timing context
     timing_context = generate_timing_context(transit_themes)
     
-    # STEP 8: Cache the result
+    # STEP 8: Compute personal activations (Venus Sequence mapping)
+    user_profile = await get_user_profile(db, user_id)
+    personal_activations = compute_personal_activations(
+        user_profile,
+        transit_themes.active_themes,
+        transit_score
+    )
+    
+    # STEP 9: Build UNIFIED NARRATIVE (single coherent reflection)
+    unified_narrative = build_unified_narrative(
+        pattern,
+        signals_by_source,
+        timing_context,
+        personal_activations,
+        transit_themes.active_themes
+    )
+    
+    # STEP 10: Cache the result
     try:
         await db.pattern_mirror_cache.update_one(
             {"user_id": user_id, "date": datetime.now(timezone.utc).strftime('%Y-%m-%d')},
@@ -1263,6 +1596,8 @@ async def generate_pattern_mirror(
                     "generated_at": datetime.now(timezone.utc).isoformat(),
                     "pattern_id": selected_pattern_id,
                     "scores": scores,
+                    "personal_activations": personal_activations,
+                    "unified_narrative": unified_narrative,
                 }
             },
             upsert=True
@@ -1278,7 +1613,9 @@ async def generate_pattern_mirror(
         "signals_by_source": signals_by_source,
         "timing_context": timing_context,
         "active_themes": transit_themes.active_themes[:3],
-        "scores": scores
+        "scores": scores,
+        "personal_activations": personal_activations,
+        "unified_narrative": unified_narrative,
     }
 
 

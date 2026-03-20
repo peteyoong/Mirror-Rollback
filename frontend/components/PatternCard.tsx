@@ -56,6 +56,14 @@ interface PatternData {
   signals_by_source?: SignalsBySource;
   timing_context?: string[];
   active_themes?: string[];
+  personal_activations?: Array<{
+    target: string;
+    gene_key: number;
+    score: number;
+    name: string;
+    description: string;
+  }>;
+  unified_narrative?: string;
   fallback?: boolean;
 }
 
@@ -182,59 +190,86 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         {pattern.title}
       </Text>
 
-      {/* What you may be */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-          WHAT YOU MAY BE
-        </Text>
-        <Text style={[styles.whatYouMayBe, { color: theme.text }]}>
-          {pattern.what_you_may_be}
-        </Text>
-      </View>
-
-      {/* Challenge */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-          WHAT'S YOUR CHALLENGE
-        </Text>
-        <View style={styles.challengeList}>
-          {pattern.challenge.map((item, index) => (
-            <View key={index} style={styles.challengeItem}>
-              <Text style={[styles.bulletPoint, { color: theme.textTertiary }]}>•</Text>
-              <Text style={[styles.challengeText, { color: theme.textSecondary }]}>
-                {item}
-              </Text>
-            </View>
-          ))}
+      {/* UNIFIED NARRATIVE - Single coherent reflection */}
+      {patternData.unified_narrative ? (
+        <View style={styles.section}>
+          <Text style={[styles.unifiedNarrative, { color: theme.text }]}>
+            {patternData.unified_narrative}
+          </Text>
         </View>
-      </View>
+      ) : (
+        /* Fallback to separate sections if no unified narrative */
+        <>
+          {/* What you may be */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+              WHAT YOU MAY BE
+            </Text>
+            <Text style={[styles.whatYouMayBe, { color: theme.text }]}>
+              {pattern.what_you_may_be}
+            </Text>
+          </View>
+        </>
+      )}
 
-      {/* Genius */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-          WHAT'S YOUR GENIUS
+      {/* Challenge - keep but collapsed by default */}
+      <TouchableOpacity
+        onPress={() => setDetailsExpanded(!detailsExpanded)}
+        activeOpacity={0.7}
+        style={styles.detailsTrigger}
+      >
+        <Text style={[styles.detailsTriggerText, { color: theme.textTertiary }]}>
+          {detailsExpanded ? 'Hide details ▲' : 'Show challenge & genius ▼'}
         </Text>
-        <Text style={[styles.geniusDescription, { color: theme.text }]}>
-          {pattern.genius.description}
-        </Text>
-        {pattern.genius.archetype && (
-          <Text style={[styles.archetype, { color: theme.accent }]}>
-            {pattern.genius.archetype}
-          </Text>
-        )}
-      </View>
+      </TouchableOpacity>
 
-      {/* Micro Shifts */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-          PRACTICAL WAYS TO THINK ABOUT IT
-        </Text>
-        {pattern.micro_shifts.map((shift, index) => (
-          <Text key={index} style={[styles.microShift, { color: theme.textSecondary }]}>
-            {shift}
-          </Text>
-        ))}
-      </View>
+      {detailsExpanded && (
+        <>
+          {/* Challenge */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+              WHAT'S YOUR CHALLENGE
+            </Text>
+            <View style={styles.challengeList}>
+              {pattern.challenge.map((item, index) => (
+                <View key={index} style={styles.challengeItem}>
+                  <Text style={[styles.bulletPoint, { color: theme.textTertiary }]}>•</Text>
+                  <Text style={[styles.challengeText, { color: theme.textSecondary }]}>
+                    {item}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Genius */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+              WHAT'S YOUR GENIUS
+            </Text>
+            <Text style={[styles.geniusDescription, { color: theme.text }]}>
+              {pattern.genius.description}
+            </Text>
+            {pattern.genius.archetype && (
+              <Text style={[styles.archetype, { color: theme.accent }]}>
+                {pattern.genius.archetype}
+              </Text>
+            )}
+          </View>
+
+          {/* Micro Shifts */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+              PRACTICAL WAYS TO THINK ABOUT IT
+            </Text>
+            {pattern.micro_shifts.map((shift, index) => (
+              <Text key={index} style={[styles.microShift, { color: theme.textSecondary }]}>
+                {shift}
+              </Text>
+            ))}
+          </View>
+        </>
+      )}
 
       {/* CTA: Reflect on this */}
       <TouchableOpacity
