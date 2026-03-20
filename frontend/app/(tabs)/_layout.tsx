@@ -60,18 +60,16 @@ export default function TabLayout() {
         }}
       />
       
-      {/* 4. Patterns - Pattern domain tracking */}
+      {/* Patterns tab REMOVED - Patterns V1 now lives on Home as "Today's Pattern" */}
+      {/* Hide patterns route from tab bar but keep file for potential dev use */}
       <Tabs.Screen
         name="patterns"
         options={{
-          title: 'Patterns',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22, color }}>⬡</Text>
-          ),
+          href: null, // This removes it from tab bar
         }}
       />
       
-      {/* 5. Lenses - Framework explanations */}
+      {/* 4. Lenses - Framework explanations */}
       <Tabs.Screen
         name="lenses"
         options={{
