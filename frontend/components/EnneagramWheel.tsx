@@ -7,11 +7,12 @@
  * - Classic inner line geometry (triangle 3-6-9, hexad 1-4-2-8-5-7)
  * - Type labels positioned AROUND the wheel (not in a list below)
  * - User overlay for core, wing, growth, stress highlights
+ * - Subtle radial gradient for depth
  */
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Circle, Line, Path, G, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Line, Path, G, Text as SvgText, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { useTheme } from '../contexts/ThemeContext';
 
 // ============================================
@@ -327,6 +328,31 @@ export default function EnneagramWheel({
           top: showLabels ? 70 : 0,
         }]}>
           <Svg width={svgSize} height={svgSize}>
+            {/* Radial gradient definition for subtle depth */}
+            <Defs>
+              <RadialGradient
+                id="wheelDepthGradient"
+                cx="50%"
+                cy="50%"
+                rx="55%"
+                ry="55%"
+                fx="50%"
+                fy="50%"
+              >
+                <Stop offset="0%" stopColor="rgba(255, 245, 220, 0.06)" />
+                <Stop offset="50%" stopColor="rgba(255, 245, 220, 0.03)" />
+                <Stop offset="100%" stopColor="rgba(255, 245, 220, 0)" />
+              </RadialGradient>
+            </Defs>
+            
+            {/* Subtle depth gradient behind wheel */}
+            <Circle
+              cx={center}
+              cy={center}
+              r={outerRadius + 12}
+              fill="url(#wheelDepthGradient)"
+            />
+            
             {/* Outer circle - slightly thicker */}
             <Circle cx={center} cy={center} r={outerRadius}
               fill="none" stroke={colors.circle} strokeWidth={2.5} />
