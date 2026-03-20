@@ -74,6 +74,63 @@ const WING_NUMBERS: { [key: number]: { left: number; right: number } } = {
   9: { left: 8, right: 1 },
 };
 
+// Stress/Growth directions (Enneagram movement arrows)
+const STRESS_DIRECTIONS: { [key: number]: number } = {
+  1: 4, 2: 8, 3: 9, 4: 2, 5: 7, 6: 3, 7: 1, 8: 5, 9: 6,
+};
+
+const GROWTH_DIRECTIONS: { [key: number]: number } = {
+  1: 7, 2: 4, 3: 6, 4: 1, 5: 8, 6: 9, 7: 5, 8: 2, 9: 3,
+};
+
+// Core needs (short labels for wheel)
+const CORE_NEEDS: { [key: number]: string } = {
+  1: 'Integrity',
+  2: 'Connection',
+  3: 'Achievement',
+  4: 'Authenticity',
+  5: 'Knowledge',
+  6: 'Security',
+  7: 'Freedom',
+  8: 'Autonomy',
+  9: 'Peace',
+};
+
+// Concise Core Pattern descriptions for Summary (NOT essays)
+const CORE_PATTERN_CONCISE: { [key: number]: string } = {
+  1: 'You move toward what feels correct, aligned, and improvable.\n\nWhen something feels wrong or out of order, your instinct is to fix it — to make it better, more right, more complete.',
+  2: 'You move toward connection through giving and being needed.\n\nWhen someone seems to need support, your instinct is to offer it — anticipating, helping, making yourself valuable.',
+  3: 'You move toward achievement, recognition, and presenting your best self.\n\nWhen success feels possible, your instinct is to pursue it — adapting, optimizing, showing what you can do.',
+  4: 'You move toward what feels authentic, meaningful, and emotionally true.\n\nWhen life feels ordinary or flat, your instinct is to seek depth — to find what\'s missing, what\'s real, what matters.',
+  5: 'You move toward understanding, clarity, and preserving your inner resources.\n\nWhen the world feels demanding, your instinct is to observe — to gather knowledge, maintain boundaries, protect your energy.',
+  6: 'You move toward security, preparation, and reliable foundations.\n\nWhen uncertainty arises, your instinct is to question it — to test, plan, and find ground you can trust.',
+  7: 'You move toward what feels open, interesting, and full of possibility.\n\nWhen something feels limiting or heavy, your instinct is to shift — to reframe, redirect, or find another path forward.',
+  8: 'You move toward strength, directness, and protecting your autonomy.\n\nWhen control feels threatened, your instinct is to take charge — to push back, set boundaries, assert your position.',
+  9: 'You move toward harmony, comfort, and maintaining inner peace.\n\nWhen conflict arises, your instinct is to smooth it over — to merge, accommodate, and keep things steady.',
+};
+
+// Wing influence descriptions (concise)
+const WING_INFLUENCE_CONCISE: { [key: string]: string } = {
+  '1w9': 'Your 9 wing adds patience and a preference for harmony.\n\nInstead of confronting directly, you pick battles carefully — holding principles without forcing them.',
+  '1w2': 'Your 2 wing adds warmth and care for others.\n\nYour desire for improvement often shows up as wanting to help people grow and do better.',
+  '2w1': 'Your 1 wing adds structure and standards.\n\nYou don\'t just help — you want to help the right way, with integrity and conscientiousness.',
+  '2w3': 'Your 3 wing adds energy and visibility.\n\nYou\'re drawn to roles where care has impact — leading, organizing, being the one who makes things happen.',
+  '3w2': 'Your 2 wing adds warmth and people-focus.\n\nSuccess isn\'t just about results — it\'s about being liked, building networks, bringing others along.',
+  '3w4': 'Your 4 wing adds depth and personal style.\n\nYou pursue success in distinctive ways — achievement with authenticity, work that reflects something real.',
+  '4w3': 'Your 3 wing adds drive and outward expression.\n\nYou want your uniqueness to be seen and valued — creativity that connects, not just internal depth.',
+  '4w5': 'Your 5 wing adds intellectual depth and privacy.\n\nYour emotional world is rich but guarded — depth explored through ideas, not just feelings.',
+  '5w4': 'Your 4 wing adds emotional sensitivity and aesthetic sense.\n\nKnowledge isn\'t just analytical — it carries feeling, meaning, personal significance.',
+  '5w6': 'Your 6 wing adds vigilance and practical application.\n\nYou seek knowledge that\'s reliable, tested — understanding that provides security.',
+  '6w5': 'Your 5 wing adds intellectual depth and independence.\n\nYou question through analysis — seeking certainty through understanding, not just loyalty.',
+  '6w7': 'Your 7 wing adds optimism and forward energy.\n\nYou balance caution with possibility — preparing for risks while staying open to opportunity.',
+  '7w6': 'Your 6 wing adds loyalty and conscientiousness.\n\nYou\'re enthusiastic but grounded — pursuing possibilities while maintaining trusted connections.',
+  '7w8': 'Your 8 wing adds intensity and decisiveness.\n\nInstead of just exploring options, you\'re willing to act, push, and take control to make things happen.',
+  '8w7': 'Your 7 wing adds energy and expansiveness.\n\nYou combine strength with enthusiasm — taking charge while keeping things moving and alive.',
+  '8w9': 'Your 9 wing adds patience and steadiness.\n\nYour strength is quieter, more grounded — power that doesn\'t need to constantly assert itself.',
+  '9w8': 'Your 8 wing adds directness and backbone.\n\nYou can assert yourself when needed — peace-seeking, but not a pushover.',
+  '9w1': 'Your 1 wing adds principles and purpose.\n\nYour calm has direction — harmony pursued through values, not just avoidance.',
+};
+
 // Stress patterns per type
 // Stress patterns per type - structured format
 const STRESS_PATTERNS: { [key: number]: { pattern: string; tradeoff: string; strength: string; experiment: string } } = {
@@ -1050,127 +1107,258 @@ export default function EnneagramLensView({ result, userId }: Props) {
   // ============================================
 
   const renderSummaryTab = () => {
-    const manifestations = PATTERN_MANIFESTATIONS[core] || {
-      decisions: "Processing decisions carefully",
-      work: "Approaching work thoughtfully",
-      relationships: "Navigating relationships",
-      stress: "Managing stress responses"
+    // Guard against no data
+    if (!core || core === 0) {
+      return (
+        <View style={[styles.structureCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.structureType, { color: theme.text }]}>
+            No Enneagram Result Yet
+          </Text>
+          <Text style={[styles.structureBridge, { color: theme.textSecondary }]}>
+            Complete the assessment to see your pattern analysis.
+          </Text>
+        </View>
+      );
+    }
+    
+    const wingNum = typeof wing === 'number' ? wing : (wing === 'balanced' ? null : parseInt(wing));
+    const wingKey = wingNum && wingNum !== 0 ? `${core}w${wingNum}` : null;
+    const stressType = STRESS_DIRECTIONS[core];
+    const growthType = GROWTH_DIRECTIONS[core];
+    const confidenceTier = result?.confidence_tier || 'medium';
+    
+    // Get bridge line based on type and wing
+    const getBridgeLine = () => {
+      if (!wingKey) return CORE_MOTIVATIONS[core] || '';
+      const wingInfluence = WING_INFLUENCE_CONCISE[wingKey];
+      if (wingInfluence && CORE_NEEDS[core]) {
+        return `A pattern centered on ${CORE_NEEDS[core].toLowerCase()} — with added ${wingNum === WING_NUMBERS[core]?.right ? 'forward energy' : 'grounding'} from your ${wingNum} wing.`;
+      }
+      return CORE_MOTIVATIONS[core] || '';
     };
     
     return (
       <>
-        {/* Identity Card */}
-        <View style={[styles.identityCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-          <View style={styles.identityMain}>
-            <View style={styles.identityTitleRow}>
-              <Text style={[styles.identityType, { color: theme.text }]}>
-                {wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`}
+        {/* ============================================ */}
+        {/* SECTION 1: ENNEAGRAM WHEEL */}
+        {/* ============================================ */}
+        <View style={[styles.wheelContainer, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <View style={styles.wheelWrapper}>
+            {/* Render 9 types in a circle */}
+            {[9, 1, 2, 3, 4, 5, 6, 7, 8].map((type, index) => {
+              const angle = (index * 40 - 90) * (Math.PI / 180); // Start from top, 40 degrees apart
+              const radius = 95;
+              const x = 120 + radius * Math.cos(angle);
+              const y = 120 + radius * Math.sin(angle);
+              
+              const isCore = type === core;
+              const isWing = wingNum && type === wingNum;
+              const isStress = type === stressType;
+              const isGrowth = type === growthType;
+              const isActive = isCore || isWing || isStress || isGrowth;
+              
+              return (
+                <View
+                  key={type}
+                  style={[
+                    styles.wheelNode,
+                    {
+                      left: x - 28,
+                      top: y - 28,
+                      backgroundColor: isCore 
+                        ? theme.accent 
+                        : isWing 
+                          ? `${theme.accent}60`
+                          : isGrowth
+                            ? '#2E7D3220'
+                            : isStress
+                              ? '#C6282820'
+                              : theme.surface,
+                      borderColor: isCore 
+                        ? theme.accent 
+                        : isWing 
+                          ? theme.accent
+                          : isGrowth
+                            ? '#2E7D32'
+                            : isStress
+                              ? '#C62828'
+                              : theme.border,
+                      borderWidth: isCore || isWing ? 2 : 1,
+                      opacity: isActive ? 1 : 0.4,
+                    },
+                  ]}
+                >
+                  <Text style={[
+                    styles.wheelNumber, 
+                    { 
+                      color: isCore 
+                        ? (theme.isDark ? '#0B0B0C' : '#F0EDE8')
+                        : isWing
+                          ? theme.accent
+                          : isGrowth
+                            ? '#2E7D32'
+                            : isStress
+                              ? '#C62828'
+                              : theme.textSecondary,
+                      fontWeight: isCore || isWing ? '700' : '500',
+                    }
+                  ]}>
+                    {type}
+                  </Text>
+                  {isCore && (
+                    <Text style={[styles.wheelLabel, { color: theme.isDark ? '#0B0B0C' : '#F0EDE8' }]}>Core</Text>
+                  )}
+                  {isWing && !isCore && (
+                    <Text style={[styles.wheelLabel, { color: theme.accent }]}>Wing</Text>
+                  )}
+                  {isGrowth && !isCore && !isWing && (
+                    <Text style={[styles.wheelLabel, { color: '#2E7D32' }]}>Growth</Text>
+                  )}
+                  {isStress && !isCore && !isWing && (
+                    <Text style={[styles.wheelLabel, { color: '#C62828' }]}>Stress</Text>
+                  )}
+                </View>
+              );
+            })}
+            
+            {/* Center info */}
+            <View style={styles.wheelCenter}>
+              <Text style={[styles.wheelCenterType, { color: theme.text }]}>
+                {wingNum ? `${core}w${wingNum}` : `Type ${core}`}
+              </Text>
+              <Text style={[styles.wheelCenterName, { color: theme.textSecondary }]}>
+                {TYPE_NAMES[core]}
               </Text>
             </View>
-            <Text style={[styles.identityName, { color: theme.textSecondary }]}>{TYPE_NAMES[core]}</Text>
           </View>
-          {renderConfidenceBadge()}
-          <Text style={[styles.identityNote, { color: theme.textTertiary }]}>
+          
+          {/* Movement Legend */}
+          <View style={styles.wheelLegend}>
+            <View style={styles.wheelLegendItem}>
+              <View style={[styles.wheelLegendDot, { backgroundColor: '#2E7D32' }]} />
+              <Text style={[styles.wheelLegendText, { color: theme.textTertiary }]}>
+                → {growthType} when resourced
+              </Text>
+            </View>
+            <View style={styles.wheelLegendItem}>
+              <View style={[styles.wheelLegendDot, { backgroundColor: '#C62828' }]} />
+              <Text style={[styles.wheelLegendText, { color: theme.textTertiary }]}>
+                → {stressType} under pressure
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ============================================ */}
+        {/* SECTION 2: STRUCTURE SUMMARY CARD */}
+        {/* ============================================ */}
+        <View style={[styles.structureCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <View style={styles.structureHeader}>
+            <Text style={[styles.structureType, { color: theme.text }]}>
+              {wingNum ? `${core}w${wingNum}` : `Type ${core}`} — {TYPE_NAMES[core]}
+            </Text>
+            <View style={[
+              styles.confidenceBadge, 
+              { 
+                backgroundColor: confidenceTier === 'high' 
+                  ? '#2E7D3220' 
+                  : confidenceTier === 'medium'
+                    ? '#F5A62320'
+                    : '#C6282820',
+                borderColor: confidenceTier === 'high' 
+                  ? '#2E7D32' 
+                  : confidenceTier === 'medium'
+                    ? '#F5A623'
+                    : '#C62828',
+              }
+            ]}>
+              <Text style={[
+                styles.confidenceBadgeText, 
+                { 
+                  color: confidenceTier === 'high' 
+                    ? '#2E7D32' 
+                    : confidenceTier === 'medium'
+                      ? '#F5A623'
+                      : '#C62828',
+                }
+              ]}>
+                {confidenceTier === 'high' ? 'High' : confidenceTier === 'medium' ? 'Medium' : 'Low'} Confidence
+              </Text>
+            </View>
+          </View>
+          <Text style={[styles.structureSubtext, { color: theme.textTertiary }]}>
             This lens reflects strategy, not identity.
           </Text>
-        </View>
-
-        {/* Core Pattern Card */}
-        <View style={[styles.overviewCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-          <Text style={[styles.overviewCardTitle, { color: theme.textTertiary }]}>Your Core Pattern</Text>
-          <Text style={[styles.overviewCardBody, { color: theme.text }]}>
-            {CORE_PATTERNS[core]}
+          <Text style={[styles.structureBridge, { color: theme.textSecondary }]}>
+            {getBridgeLine()}
           </Text>
-          <InlineReflectButton
-            source={{
-              lens: 'enneagram',
-              type: 'core_pattern',
-              name: `Type ${core} Core Pattern`,
-              value: TYPE_NAMES[core],
-              id: `enneagram_type_${core}_core`,
-            }}
-            prompt={`Reflect on your core pattern: ${CORE_PATTERNS[core]}`}
-          />
         </View>
 
-        {/* What Drives This Card */}
-        <View style={[styles.overviewCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-          <Text style={[styles.overviewCardTitle, { color: theme.textTertiary }]}>What Drives This</Text>
-          <Text style={[styles.overviewCardBody, { color: theme.text }]}>
-            {PATTERN_DRIVERS[core]}
+        {/* ============================================ */}
+        {/* SECTION 3: CORE PATTERN */}
+        {/* ============================================ */}
+        <View style={[styles.patternCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.patternTitle, { color: theme.textTertiary }]}>
+            CORE PATTERN — TYPE {core}
           </Text>
-          <InlineReflectButton
-            source={{
-              lens: 'enneagram',
-              type: 'driver',
-              name: `Type ${core} Driver`,
-              value: TYPE_NAMES[core],
-              id: `enneagram_type_${core}_driver`,
-            }}
-            prompt={`What drives your pattern: ${PATTERN_DRIVERS[core]}`}
-          />
+          <Text style={[styles.patternBody, { color: theme.text }]}>
+            {CORE_PATTERN_CONCISE[core]}
+          </Text>
         </View>
 
-        {/* Where This Shows Up Card */}
-        <View style={[styles.overviewCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-          <Text style={[styles.overviewCardTitle, { color: theme.textTertiary }]}>Where This Often Appears</Text>
-          <View style={styles.manifestationList}>
-            <View style={styles.manifestationItem}>
-              <Text style={[styles.manifestationLabel, { color: theme.textTertiary }]}>Decision making</Text>
-              <Text style={[styles.manifestationText, { color: theme.textSecondary }]}>{manifestations.decisions}</Text>
-            </View>
-            <View style={styles.manifestationItem}>
-              <Text style={[styles.manifestationLabel, { color: theme.textTertiary }]}>Work & creativity</Text>
-              <Text style={[styles.manifestationText, { color: theme.textSecondary }]}>{manifestations.work}</Text>
-            </View>
-            <View style={styles.manifestationItem}>
-              <Text style={[styles.manifestationLabel, { color: theme.textTertiary }]}>Relationships</Text>
-              <Text style={[styles.manifestationText, { color: theme.textSecondary }]}>{manifestations.relationships}</Text>
-            </View>
-            <View style={styles.manifestationItem}>
-              <Text style={[styles.manifestationLabel, { color: theme.textTertiary }]}>Under stress</Text>
-              <Text style={[styles.manifestationText, { color: theme.textSecondary }]}>{manifestations.stress}</Text>
-            </View>
+        {/* ============================================ */}
+        {/* SECTION 4: WING INFLUENCE */}
+        {/* ============================================ */}
+        {wingKey && WING_INFLUENCE_CONCISE[wingKey] && (
+          <View style={[styles.patternCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+            <Text style={[styles.patternTitle, { color: theme.textTertiary }]}>
+              HOW {wingNum} SHAPES THIS
+            </Text>
+            <Text style={[styles.patternBody, { color: theme.text }]}>
+              {WING_INFLUENCE_CONCISE[wingKey]}
+            </Text>
           </View>
-          <InlineReflectButton
-            source={{
-              lens: 'enneagram',
-              type: 'manifestation',
-              name: `Type ${core} Manifestations`,
-              value: TYPE_NAMES[core],
-              id: `enneagram_type_${core}_manifest`,
-            }}
-            prompt="Where do you notice this pattern showing up most in your life right now?"
-          />
-        </View>
+        )}
 
-        {/* Reflection Prompt Card */}
-        <View style={[styles.reflectionCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
-          <Text style={[styles.reflectionLabel, { color: theme.textTertiary }]}>A REFLECTION</Text>
-          <Text style={[styles.reflectionText, { color: theme.text }]}>
-            "{OVERVIEW_REFLECTIONS[core]}"
+        {/* ============================================ */}
+        {/* SECTION 5: TOP SIGNALS */}
+        {/* ============================================ */}
+        <View style={[styles.signalsCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.patternTitle, { color: theme.textTertiary }]}>
+            YOUR STRONGEST SIGNALS
           </Text>
-          <InlineReflectButton
-            source={{
-              lens: 'enneagram',
-              type: 'reflection',
-              name: `Type ${core} Reflection`,
-              value: TYPE_NAMES[core],
-              id: `enneagram_type_${core}_reflect`,
-            }}
-            prompt={OVERVIEW_REFLECTIONS[core]}
-          />
+          {result?.top_candidates?.slice(0, 3).map((candidate, index) => {
+            const percentage = Math.round(candidate.probability * 100);
+            const barWidth = `${percentage}%`;
+            const isTop = index === 0;
+            
+            return (
+              <View key={candidate.type} style={styles.signalRow}>
+                <Text style={[styles.signalType, { color: theme.text }]}>
+                  Type {candidate.type}
+                </Text>
+                <View style={styles.signalBarContainer}>
+                  <View 
+                    style={[
+                      styles.signalBar, 
+                      { 
+                        width: barWidth as any,
+                        backgroundColor: isTop ? theme.accent : `${theme.accent}60`,
+                      }
+                    ]} 
+                  />
+                </View>
+                <Text style={[styles.signalPercent, { color: theme.textSecondary }]}>
+                  {percentage}%
+                </Text>
+              </View>
+            );
+          })}
         </View>
 
-        {/* Subtle CTA */}
-        <TouchableOpacity
-          style={styles.subtleLink}
-          onPress={() => setActiveTab('deep_dive')}
-        >
-          <Text style={[styles.subtleLinkText, { color: theme.textTertiary }]}>Explore Deep Dive →</Text>
-        </TouchableOpacity>
-
-        {/* Chat Box */}
+        {/* ============================================ */}
+        {/* SECTION 6: CTA */}
+        {/* ============================================ */}
         {renderAskLensButton()}
       </>
     );
@@ -1592,12 +1780,6 @@ export default function EnneagramLensView({ result, userId }: Props) {
     return (
       <>
         {/* ═══════════════════════════════════════════════════════════════
-            KEYSTONE PATTERN EXPLANATION — Why this loop keeps repeating
-            Role: REPETITION_LOOP
-        ═══════════════════════════════════════════════════════════════ */}
-        {renderKeystoneExplanation()}
-
-        {/* ═══════════════════════════════════════════════════════════════
             SECTION 1 — IDENTITY BLOCK
             Identity card + Core Story (expanded by default)
         ═══════════════════════════════════════════════════════════════ */}
@@ -1897,6 +2079,12 @@ export default function EnneagramLensView({ result, userId }: Props) {
             </View>
           ))}
         </AccordionSection>
+
+        {/* ═══════════════════════════════════════════════════════════════
+            WHY THIS KEEPS REPEATING — Moved to bottom of Deep Dive
+            Role: REPETITION_LOOP (after user sees structure, pattern, behavior)
+        ═══════════════════════════════════════════════════════════════ */}
+        {renderKeystoneExplanation()}
 
         {/* ═══════════════════════════════════════════════════════════════
             FOOTER
@@ -3949,5 +4137,173 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 23,
     marginTop: 4,
+  },
+
+  // ============================================
+  // ENNEAGRAM WHEEL STYLES (New Summary Tab)
+  // ============================================
+  wheelContainer: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 20,
+    marginBottom: 16,
+  },
+  wheelWrapper: {
+    width: 240,
+    height: 240,
+    alignSelf: 'center',
+    position: 'relative',
+  },
+  wheelNode: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wheelNumber: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  wheelLabel: {
+    fontSize: 8,
+    fontWeight: '600',
+    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  wheelCenter: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -40 }, { translateY: -25 }],
+    width: 80,
+    alignItems: 'center',
+  },
+  wheelCenterType: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  wheelCenterName: {
+    fontSize: 11,
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  wheelLegend: {
+    marginTop: 20,
+    gap: 8,
+  },
+  wheelLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  wheelLegendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  wheelLegendText: {
+    fontSize: 12,
+  },
+
+  // ============================================
+  // STRUCTURE SUMMARY CARD STYLES
+  // ============================================
+  structureCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  structureHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  structureType: {
+    fontSize: 20,
+    fontWeight: '700',
+    flex: 1,
+  },
+  confidenceBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  confidenceBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  structureSubtext: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  structureBridge: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+
+  // ============================================
+  // PATTERN CARD STYLES
+  // ============================================
+  patternCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  patternTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+  },
+  patternBody: {
+    fontSize: 15,
+    lineHeight: 23,
+  },
+
+  // ============================================
+  // SIGNALS CARD STYLES
+  // ============================================
+  signalsCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  signalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  signalType: {
+    width: 60,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  signalBarContainer: {
+    flex: 1,
+    height: 12,
+    backgroundColor: 'rgba(128,128,128,0.1)',
+    borderRadius: 6,
+    marginHorizontal: 10,
+    overflow: 'hidden',
+  },
+  signalBar: {
+    height: '100%',
+    borderRadius: 6,
+  },
+  signalPercent: {
+    width: 40,
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'right',
   },
 });
