@@ -605,8 +605,8 @@ def generate_true_evidence(
     # Check LIFELINE
     lifeline_matches = []
     for event in signals.get("lifeline_events", [])[:10]:
-        title = event.get("title", "").lower()
-        desc = event.get("description", "").lower()
+        title = (event.get("title") or "").lower()
+        desc = (event.get("description") or "").lower()
         combined = f"{title} {desc}"
         
         for kw in all_keywords:
@@ -2051,10 +2051,21 @@ async def generate_pattern_mirror(
         transit_themes, scores, timing_context
     )
     
-    # STEP 12: Compute debug data
+    # STEP 12: Compute debug data and selection_debug
     signal_only_ranking = compute_signal_only_ranking(signals, transit_themes)
     final_ranking = scores.get("top_candidates", [])
     timing_impact = determine_timing_impact(signal_only_ranking, final_ranking, selected_pattern_id)
+    
+    # Selection debug - explicit fields for validation
+    selection_debug = {
+        "top_3_by_signal_score": signal_only_ranking[:3],
+        "top_3_by_final_score": final_ranking[:3],
+        "fallback_mode": fallback_mode,
+        "timing_changed_winner": timing_impact.get("timing_changed_winner", False),
+        "timing_only_amplified": not timing_impact.get("timing_changed_winner", True),
+        "signal_winner": timing_impact.get("signal_only_winner"),
+        "final_winner": timing_impact.get("final_winner"),
+    }
     
     debug_data = {
         "signal_only_top3": signal_only_ranking[:3],
@@ -2092,6 +2103,7 @@ async def generate_pattern_mirror(
         "timing_amplifier": timing_amplifier,
         "narrative": signals_first_narrative,
         "evidence": pattern_evidence,
+        "selection_debug": selection_debug,
         "debug": debug_data,
         
         # ===== LEGACY FIELDS (backwards compatibility) =====

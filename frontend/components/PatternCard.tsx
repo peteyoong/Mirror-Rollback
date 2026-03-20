@@ -48,8 +48,71 @@ interface SignalsBySource {
   timing?: string[];
 }
 
+// ===== V2 INTERFACES =====
+
+interface PersonalPattern {
+  selected_pattern_id: string;
+  selected_pattern_title: string;
+  selected_pattern_summary: string;
+  primary_signal_sources: string[];
+  primary_signal_evidence: Record<string, any>;
+  signal_strength: string;
+  signal_score: number;
+}
+
+interface TimingAmplifier {
+  active_timing_themes: string[];
+  timing_summary: string | null;
+  transit_score: number;
+  timing_role: 'amplifier' | 'fallback';
+  lunar_phase?: string | null;
+  seasonal_context?: string | null;
+}
+
+interface Narrative {
+  main_explanation: string;
+  timing_note: string | null;
+  evidence_summary: string | null;
+  combined: string;
+}
+
+interface EvidenceMatch {
+  text: string;
+  matched_keyword: string;
+  strength: 'high' | 'moderate';
+  date?: string | null;
+  emotional_tone?: string | null;
+}
+
+interface Evidence {
+  pattern_id: string;
+  contributing_sources: string[];
+  matched_evidence: Record<string, EvidenceMatch[]>;
+  total_matches: number;
+  primary_source: string | null;
+}
+
+interface SelectionDebug {
+  top_3_by_signal_score: Array<{pattern_id: string; signal_score: number; title: string}>;
+  top_3_by_final_score: Array<{pattern_id: string; final: number; signal: number; transit: number}>;
+  fallback_mode: boolean;
+  timing_changed_winner: boolean;
+  timing_only_amplified: boolean;
+  signal_winner: string;
+  final_winner: string;
+}
+
 interface PatternData {
+  // V2 Structure
+  personal_pattern?: PersonalPattern;
+  timing_amplifier?: TimingAmplifier;
+  narrative?: Narrative;
+  evidence?: Evidence;
+  selection_debug?: SelectionDebug;
+  
+  // Legacy fields
   pattern: Pattern;
+  pattern_id?: string;
   cached: boolean;
   generated_at: string;
   signal_strength?: string;
@@ -69,10 +132,10 @@ interface PatternData {
 
 // Source display names
 const SOURCE_LABELS: Record<string, string> = {
-  journal: 'Journal',
-  mirror_chat: 'Mirror chat',
-  lifeline: 'Lifeline',
-  timing: 'Timing',
+  journal: 'Your journal entries',
+  mirror_chat: 'Mirror conversations',
+  lifeline: 'Your lifeline events',
+  timing: 'Current timing',
 };
 
 interface PatternCardProps {
@@ -158,6 +221,13 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   }
 
   const { pattern } = patternData;
+  
+  // V2: Extract signals-first data
+  const personalPattern = patternData.personal_pattern;
+  const timingAmplifier = patternData.timing_amplifier;
+  const narrative = patternData.narrative;
+  const evidence = patternData.evidence;
+  const isAmplifierMode = timingAmplifier?.timing_role === 'amplifier';
 
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -169,48 +239,64 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </Text>
       </View>
 
-      {/* Timing Context - What's active right now */}
-      {patternData.timing_context && patternData.timing_context.length > 0 && (
-        <View style={[styles.timingContext, { backgroundColor: theme.surfaceAlt || theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.timingContextTitle, { color: theme.textTertiary }]}>
-            WHAT'S ACTIVE RIGHT NOW
-          </Text>
-          {patternData.timing_context.map((context, index) => (
-            <View key={index} style={styles.timingContextItem}>
-              <Text style={[styles.timingBullet, { color: theme.accent }]}>•</Text>
-              <Text style={[styles.timingContextText, { color: theme.textSecondary }]}>
-                {context}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Title */}
+      {/* V2: Title from personal_pattern (primary) */}
       <Text style={[styles.patternTitle, { color: theme.text }]}>
-        {pattern.title}
+        {personalPattern?.selected_pattern_title || pattern.title}
       </Text>
 
-      {/* UNIFIED NARRATIVE - Single coherent reflection */}
-      {patternData.unified_narrative ? (
+      {/* V2: SIGNALS-FIRST NARRATIVE */}
+      {narrative?.main_explanation ? (
+        <View style={styles.section}>
+          {/* Main explanation from personal signals */}
+          <Text style={[styles.unifiedNarrative, { color: theme.text }]}>
+            {narrative.main_explanation}
+          </Text>
+          
+          {/* Timing note - SECONDARY, only if in amplifier mode */}
+          {isAmplifierMode && narrative.timing_note && (
+            <Text style={[styles.timingNote, { color: theme.textSecondary }]}>
+              {narrative.timing_note}
+            </Text>
+          )}
+          
+          {/* Evidence summary */}
+          {narrative.evidence_summary && (
+            <Text style={[styles.evidenceSummary, { color: theme.textTertiary }]}>
+              {narrative.evidence_summary}
+            </Text>
+          )}
+        </View>
+      ) : patternData.unified_narrative ? (
+        /* Legacy fallback to unified_narrative */
         <View style={styles.section}>
           <Text style={[styles.unifiedNarrative, { color: theme.text }]}>
             {patternData.unified_narrative}
           </Text>
         </View>
       ) : (
-        /* Fallback to separate sections if no unified narrative */
-        <>
-          {/* What you may be */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-              WHAT YOU MAY BE
+        /* Fallback to separate sections if no narrative */
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+            WHAT YOU MAY BE
+          </Text>
+          <Text style={[styles.whatYouMayBe, { color: theme.text }]}>
+            {pattern.what_you_may_be}
+          </Text>
+        </View>
+      )}
+
+      {/* V2: Timing Context - DOWNGRADED to secondary */}
+      {timingAmplifier && timingAmplifier.active_timing_themes && timingAmplifier.active_timing_themes.length > 0 && (
+        <View style={[styles.timingContextSecondary, { backgroundColor: theme.surfaceAlt || theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.timingContextTitleSecondary, { color: theme.textTertiary }]}>
+            CURRENT TIMING {isAmplifierMode ? '(amplifying)' : '(driving)'}
+          </Text>
+          {timingAmplifier.timing_summary && (
+            <Text style={[styles.timingContextText, { color: theme.textSecondary }]}>
+              {timingAmplifier.timing_summary}
             </Text>
-            <Text style={[styles.whatYouMayBe, { color: theme.text }]}>
-              {pattern.what_you_may_be}
-            </Text>
-          </View>
-        </>
+          )}
+        </View>
       )}
 
       {/* Challenge - keep but collapsed by default */}
@@ -283,15 +369,20 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </Text>
       </TouchableOpacity>
 
-      {/* Signal strength indicator with tap to expand */}
-      {patternData.signal_strength && (
+      {/* V2: Signal strength indicator with source info */}
+      {(personalPattern?.signal_strength || patternData.signal_strength) && (
         <TouchableOpacity
           onPress={() => setSignalsExpanded(!signalsExpanded)}
           activeOpacity={0.7}
           style={styles.signalTrigger}
         >
           <Text style={[styles.signalIndicator, { color: theme.textTertiary }]}>
-            Based on {patternData.signal_strength} signals
+            Based on {personalPattern?.signal_strength || patternData.signal_strength} signals
+            {personalPattern?.primary_signal_sources && personalPattern.primary_signal_sources.length > 0 && (
+              <Text style={styles.signalSourceHint}>
+                {' '}from {personalPattern.primary_signal_sources.slice(0, 2).map(s => SOURCE_LABELS[s] || s).join(', ')}
+              </Text>
+            )}
             <Text style={styles.signalExpandHint}>
               {signalsExpanded ? '  ▲' : '  ▼'}
             </Text>
@@ -299,16 +390,53 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </TouchableOpacity>
       )}
 
-      {/* Collapsible signals section - grouped by source */}
-      {signalsExpanded && patternData.signals_by_source && Object.keys(patternData.signals_by_source).length > 0 && (
+      {/* V2: TRUE EVIDENCE PANEL - shows actual matched signals */}
+      {signalsExpanded && (
         <View style={[styles.signalsSection, { borderTopColor: theme.border }]}>
           <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>
             WHAT THIS IS BASED ON
           </Text>
           
-          {/* Render each source that has signals */}
-          {Object.entries(patternData.signals_by_source).map(([source, signals]) => {
+          {/* V2: Render true evidence from evidence object */}
+          {evidence?.matched_evidence && Object.entries(evidence.matched_evidence).map(([source, matches]) => {
+            if (!matches || matches.length === 0) return null;
+            
+            // Skip timing in evidence panel - it's shown separately
+            if (source === 'timing') return null;
+            
+            return (
+              <View key={source} style={styles.signalSourceGroup}>
+                <View style={styles.sourceHeader}>
+                  <Text style={[styles.signalSourceLabel, { color: theme.textSecondary }]}>
+                    {SOURCE_LABELS[source] || source}
+                  </Text>
+                  {source === evidence.primary_source && (
+                    <Text style={[styles.primaryBadge, { color: theme.accent }]}>
+                      primary
+                    </Text>
+                  )}
+                </View>
+                {(matches as EvidenceMatch[]).map((match, index) => (
+                  <View key={index} style={styles.evidenceItem}>
+                    <Text style={[styles.signalBullet, { color: theme.textTertiary }]}>•</Text>
+                    <View style={styles.evidenceContent}>
+                      <Text style={[styles.signalText, { color: theme.textSecondary }]}>
+                        {match.text}
+                      </Text>
+                      <Text style={[styles.matchedKeyword, { color: theme.textTertiary }]}>
+                        matched: "{match.matched_keyword}" ({match.strength})
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            );
+          })}
+          
+          {/* Fallback to legacy signals_by_source if no V2 evidence */}
+          {!evidence?.matched_evidence && patternData.signals_by_source && Object.entries(patternData.signals_by_source).map(([source, signals]) => {
             if (!signals || signals.length === 0) return null;
+            if (source === 'timing') return null; // Skip timing
             
             return (
               <View key={source} style={styles.signalSourceGroup}>
@@ -326,6 +454,13 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
               </View>
             );
           })}
+          
+          {/* V2: Total matches summary */}
+          {evidence?.total_matches !== undefined && (
+            <Text style={[styles.totalMatches, { color: theme.textTertiary }]}>
+              {evidence.total_matches} signal{evidence.total_matches !== 1 ? 's' : ''} matched this pattern
+            </Text>
+          )}
         </View>
       )}
     </View>
@@ -533,5 +668,83 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     flex: 1,
+  },
+  
+  // V2: Timing note (secondary)
+  timingNote: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+    marginTop: 16,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(128, 128, 128, 0.3)',
+  },
+  
+  // V2: Evidence summary
+  evidenceSummary: {
+    fontSize: 12,
+    marginTop: 12,
+    fontStyle: 'italic',
+  },
+  
+  // V2: Secondary timing context (downgraded)
+  timingContextSecondary: {
+    marginTop: 16,
+    marginBottom: 8,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    opacity: 0.8,
+  },
+  timingContextTitleSecondary: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  
+  // V2: Signal source hint
+  signalSourceHint: {
+    fontSize: 11,
+    fontStyle: 'normal',
+  },
+  
+  // V2: Source header with badge
+  sourceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  primaryBadge: {
+    fontSize: 9,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  
+  // V2: Evidence item with keyword info
+  evidenceItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+    paddingLeft: 4,
+  },
+  evidenceContent: {
+    flex: 1,
+  },
+  matchedKeyword: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  
+  // V2: Total matches summary
+  totalMatches: {
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });
