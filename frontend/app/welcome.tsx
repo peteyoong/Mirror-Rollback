@@ -142,6 +142,7 @@ export default function Welcome() {
   };
 
   const handleLogin = async () => {
+    console.log('[Login] handleLogin called with email:', email);
     if (!email.trim()) {
       setError('Please enter your email');
       return;
@@ -151,18 +152,23 @@ export default function Welcome() {
     setError('');
     
     try {
+      console.log('[Login] Calling loginUser API...');
       const result = await loginUser(email.trim());
+      console.log('[Login] API response:', result?.success, result?.user?.id);
       
       if (result.success && result.user) {
         // Set user in store
+        console.log('[Login] Setting user in store...');
         await setUser(result.user);
         
         // Set chart if available
         if (result.chart) {
+          console.log('[Login] Setting chart...');
           await setChart(result.chart);
         }
         
         // Navigate based on forums redirect or default to main app
+        console.log('[Login] Navigating to main app...');
         if (forumsRedirect === 'create') {
           router.replace('/forums/create');
         } else if (forumsRedirect === 'join') {
@@ -170,8 +176,12 @@ export default function Welcome() {
         } else {
           router.replace('/(tabs)');
         }
+      } else {
+        console.log('[Login] Login failed - no success or user:', result);
+        setError('Login failed. Please try again.');
       }
     } catch (err: any) {
+      console.error('[Login] Error:', err);
       const errorMsg = err.response?.data?.detail || err.message || 'Login failed. Please try again.';
       setError(errorMsg);
     } finally {

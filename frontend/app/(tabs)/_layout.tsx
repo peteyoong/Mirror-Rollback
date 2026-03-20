@@ -60,7 +60,7 @@ export default function TabLayout() {
         }}
       />
       
-      {/* 4. Patterns - TEMPORARILY HIDDEN (scroll state issues, pending rebuild) */}
+      {/* 4. Patterns - Pattern domain tracking */}
       <Tabs.Screen
         name="patterns"
         options={{
@@ -68,8 +68,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Text style={{ fontSize: 22, color }}>⬡</Text>
           ),
-          // HIDDEN: Tab button not shown in navigation
-          href: null,
         }}
       />
       
