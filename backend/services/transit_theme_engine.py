@@ -485,111 +485,163 @@ def generate_timing_context(themes: TransitThemes) -> List[str]:
 
 
 # ============================================================================
-# TIMING SIGNALS FOR EXPLAINABILITY
+# TIMING SIGNALS FOR EXPLAINABILITY (ENHANCED)
 # ============================================================================
 
-def generate_timing_signals(themes: TransitThemes) -> List[str]:
+# Human-readable theme descriptions
+THEME_TO_SIGNAL = {
+    # Challenge/Neutral themes
+    "emotional_sensitivity": "Emotional sensitivity may be elevated right now",
+    "clarity_vs_confusion": "Mental clarity may come in waves rather than stability",
+    "pressure": "External or internal pressure may feel intensified at this time",
+    "urgency": "A sense of urgency may be present, even if the situation doesn't require it",
+    "transition_threshold": "This may feel like a threshold between phases, not a stable state",
+    "reset_cycle": "Current conditions suggest a reset or new beginning phase",
+    "relational_sensitivity": "Relationships may feel more emotionally charged right now",
+    "identity_shift": "Questions about identity or direction may be surfacing",
+    "expansion": "Growth and possibility energy may be present",
+    "contraction": "This may be a period of consolidation or inward focus",
+    
+    # Positive/Opening themes
+    "relational_harmony": "Conditions support ease and flow in connection with others",
+    "emotional_openness": "Emotional expression may flow more freely at this time",
+    "receptivity": "This may be a favorable time for receiving support or insight",
+    "renewal_cycle": "Fresh energy suggests new beginnings may be taking root",
+    "reconnection_window": "Conditions may support reconnection or repair",
+    "softening_phase": "Defenses may be naturally softening, allowing more in",
+    "integration_phase": "What was fragmented may be coming together",
+    "grounded_stability": "A sense of solid ground and stability may be accessible",
+}
+
+# Specific event signals (lunar, seasonal)
+LUNAR_SIGNALS = {
+    "new_moon": "A new moon may be marking a reset or fresh starting point",
+    "full_moon": "Full moon energy may be amplifying what's already present",
+    "waning_crescent": "This waning phase supports release and letting go",
+    "waxing_gibbous": "Building momentum may be bringing things into clearer focus",
+    "first_quarter": "This may be a time of action and forward movement",
+    "last_quarter": "This may be a natural pause point for reflection",
+}
+
+SEASONAL_SIGNALS = {
+    "equinox_window": "This may be a seasonal turning point (equinox energy)",
+    "solstice_window": "Solstice energy may be marking a peak or turning point",
+}
+
+
+def generate_timing_signals(
+    themes: TransitThemes,
+    transit_score: float = 0.0
+) -> List[str]:
     """
-    Generate timing-specific signals for the explainability layer.
-    Includes BOTH challenge and positive/opening signals.
+    Generate explicit, human-readable timing signals for the explainability layer.
+    
+    Rules:
+    - ALWAYS include if transit data exists
+    - Minimum 2 signals if transit_score > 0.3
+    - Observational, not predictive
+    - Grounded, not mystical
+    - Relevant to lived experience
+    
+    NO: "Mars is transiting Pisces"
+    YES: "Emotional sensitivity may be elevated right now"
     """
     signals = []
     
-    # High-intensity theme signals
-    high_intensity_themes = [
-        t for t in themes.active_themes 
-        if themes.theme_intensity.get(t, 0) >= 0.5
-    ]
+    # Get active themes sorted by intensity
+    sorted_themes = sorted(
+        [(t, themes.theme_intensity.get(t, 0)) for t in themes.active_themes],
+        key=lambda x: x[1],
+        reverse=True
+    )
     
-    # === CHALLENGE THEME SIGNALS ===
-    if "emotional_sensitivity" in high_intensity_themes:
-        signals.append(
-            "Current conditions may be amplifying emotional fluctuation"
-        )
+    # Add signals for top active themes (max 3)
+    theme_signals_added = 0
+    for theme, intensity in sorted_themes:
+        if theme in THEME_TO_SIGNAL and theme_signals_added < 3:
+            # Only include if intensity is meaningful
+            if intensity >= 0.25:
+                signals.append(THEME_TO_SIGNAL[theme])
+                theme_signals_added += 1
     
-    if "clarity_vs_confusion" in high_intensity_themes:
-        signals.append(
-            "This may be a period where clarity comes in waves rather than stability"
-        )
+    # Add lunar phase signal (max 1)
+    if themes.lunar_phase in LUNAR_SIGNALS:
+        # Prioritize new_moon and full_moon
+        if themes.lunar_phase in ["new_moon", "full_moon"]:
+            signals.insert(0, LUNAR_SIGNALS[themes.lunar_phase])  # Put at front
+        elif len(signals) < 3:
+            signals.append(LUNAR_SIGNALS[themes.lunar_phase])
     
-    if "transition_threshold" in high_intensity_themes:
-        signals.append(
-            "Timing suggests you may be standing at a natural decision point"
-        )
+    # Add seasonal signal if near equinox/solstice (max 1)
+    if "equinox_window" in themes.raw_indicators:
+        if len(signals) < 4:
+            signals.append(SEASONAL_SIGNALS["equinox_window"])
+    elif "solstice_window" in themes.raw_indicators:
+        if len(signals) < 4:
+            signals.append(SEASONAL_SIGNALS["solstice_window"])
     
-    if "pressure" in high_intensity_themes:
-        signals.append(
-            "Current timing may be intensifying pressure that was already present"
-        )
+    # PRIORITY RULE: If transit score > 0.3, ensure at least 2 signals
+    if transit_score > 0.3 and len(signals) < 2:
+        # Add general timing signal
+        if themes.active_themes:
+            primary_theme = themes.active_themes[0]
+            if primary_theme in THEME_TO_SIGNAL and THEME_TO_SIGNAL[primary_theme] not in signals:
+                signals.append(THEME_TO_SIGNAL[primary_theme])
+        
+        # Add contextual signal based on polarity
+        opening_themes = ["relational_harmony", "emotional_openness", "receptivity", 
+                        "renewal_cycle", "reconnection_window", "softening_phase",
+                        "integration_phase", "grounded_stability", "expansion"]
+        
+        has_opening = any(t in themes.active_themes for t in opening_themes)
+        
+        if has_opening and len(signals) < 2:
+            signals.append("Current timing may be supporting openness and connection")
+        elif len(signals) < 2:
+            signals.append("Current conditions may be influencing how this pattern shows up")
     
-    if "reset_cycle" in high_intensity_themes:
-        signals.append(
-            "This may be a natural closing-and-opening phase, not a crisis"
-        )
+    # Ensure signals are unique
+    seen = set()
+    unique_signals = []
+    for s in signals:
+        if s not in seen:
+            seen.add(s)
+            unique_signals.append(s)
     
-    if "urgency" in high_intensity_themes:
-        signals.append(
-            "The sense of needing to act quickly may be timing-driven, not actual emergency"
-        )
+    return unique_signals[:4]  # Max 4 timing signals
+
+
+def get_transit_summary(themes: TransitThemes) -> str:
+    """
+    Generate a brief, human-readable summary of current timing conditions.
+    Used for overview displays.
+    """
+    if not themes.active_themes:
+        return "No strong timing signals detected"
     
-    # === POSITIVE / OPENING THEME SIGNALS (NEW) ===
-    if "relational_harmony" in high_intensity_themes:
-        signals.append(
-            "Current conditions suggest emotional openness and relational ease"
-        )
+    # Get primary theme
+    primary = themes.active_themes[0]
+    intensity = themes.theme_intensity.get(primary, 0)
     
-    if "emotional_openness" in high_intensity_themes:
-        signals.append(
-            "This may be a period where emotional expression flows more freely"
-        )
+    # Create summary
+    if intensity >= 0.6:
+        strength = "strong"
+    elif intensity >= 0.4:
+        strength = "moderate"
+    else:
+        strength = "subtle"
     
-    if "receptivity" in high_intensity_themes:
-        signals.append(
-            "Conditions support openness to receiving support, connection, or insight"
-        )
+    theme_descriptions = {
+        "emotional_sensitivity": "emotional sensitivity",
+        "transition_threshold": "transition energy",
+        "reset_cycle": "reset/renewal energy",
+        "relational_harmony": "relational harmony",
+        "emotional_openness": "emotional openness",
+        "expansion": "expansion",
+        "pressure": "pressure",
+        "renewal_cycle": "renewal energy",
+    }
     
-    if "renewal_cycle" in high_intensity_themes:
-        signals.append(
-            "Fresh energy may be present, signaling new beginnings"
-        )
+    desc = theme_descriptions.get(primary, primary.replace("_", " "))
     
-    if "reconnection_window" in high_intensity_themes:
-        signals.append(
-            "This may be a favorable window for reconnection or repair"
-        )
-    
-    if "softening_phase" in high_intensity_themes:
-        signals.append(
-            "Defenses may be naturally softening, allowing more connection"
-        )
-    
-    if "integration_phase" in high_intensity_themes:
-        signals.append(
-            "What was fragmented may be finding coherence"
-        )
-    
-    if "grounded_stability" in high_intensity_themes:
-        signals.append(
-            "A sense of stability and groundedness may be present"
-        )
-    
-    if "expansion" in high_intensity_themes:
-        signals.append(
-            "Growth and opening energy may be available"
-        )
-    
-    # Lunar phase signals
-    if themes.lunar_phase == "full_moon":
-        signals.append(
-            "Full moon period may be bringing subconscious patterns to the surface"
-        )
-    elif themes.lunar_phase == "new_moon":
-        signals.append(
-            "New moon suggests this is a natural reset point"
-        )
-    elif themes.lunar_phase == "waxing_gibbous":
-        signals.append(
-            "Waxing moon suggests building momentum and clarity"
-        )
-    
-    return signals[:2]  # Max 2 timing signals
+    return f"{strength.capitalize()} {desc} detected in current timing"

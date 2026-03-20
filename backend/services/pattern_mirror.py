@@ -1188,8 +1188,9 @@ async def generate_pattern_mirror(
                 signals = await aggregate_user_signals(db, user_id)
                 signals_by_source = generate_signals_by_source(signals, cached["pattern"])
                 
-                # Add timing signals to signals_by_source
-                timing_signals = generate_timing_signals(transit_themes)
+                # ALWAYS add timing signals (transit_score from cache or default)
+                cached_transit_score = cached.get("scores", {}).get("transit", 0.4)
+                timing_signals = generate_timing_signals(transit_themes, cached_transit_score)
                 if timing_signals:
                     signals_by_source["timing"] = timing_signals
                 
@@ -1242,8 +1243,9 @@ async def generate_pattern_mirror(
     # STEP 5: Generate signals by source
     signals_by_source = generate_signals_by_source(signals, pattern)
     
-    # STEP 6: Add timing signals
-    timing_signals = generate_timing_signals(transit_themes)
+    # STEP 6: ALWAYS add timing signals (pass transit score for priority rule)
+    transit_score = scores.get("transit", 0.0)
+    timing_signals = generate_timing_signals(transit_themes, transit_score)
     if timing_signals:
         signals_by_source["timing"] = timing_signals
     
@@ -1449,8 +1451,8 @@ def get_fallback_pattern(signals: Dict[str, Any], transit_themes: Any = None) ->
     # Generate pattern-specific signals by source
     signals_by_source = generate_signals_by_source(signals, pattern)
     
-    # Add timing signals
-    timing_signals = generate_timing_signals(transit_themes)
+    # ALWAYS add timing signals (use default transit_score for fallback)
+    timing_signals = generate_timing_signals(transit_themes, 0.3)
     if timing_signals:
         signals_by_source["timing"] = timing_signals
     
