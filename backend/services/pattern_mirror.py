@@ -857,22 +857,35 @@ def select_best_pattern(
     transit_themes: Any  # TransitThemes dataclass
 ) -> tuple[str, Dict[str, float]]:
     """
-    Select the best pattern using transit-first logic with POSITIVE/OPENING support.
+    Select the best pattern using SIGNALS-FIRST logic.
     
-    Final Score = (signal_score × 0.5) + (transit_score × 0.5)
+    ARCHITECTURE (V2 - Signals First):
+    - Personal signals (journal, chat, lifeline) drive pattern selection
+    - Transit acts as amplifier/modulator, NOT gatekeeper
+    - No hard transit gate - all patterns remain eligible
     
-    CRITICAL: 
-    - Patterns with transit_score < 0.2 are REJECTED
-    - If dominant energy is "opening", challenge patterns are penalized
-    - If dominant energy is "challenge", opening patterns are penalized
+    Weighting:
+    - Normal mode (signal_strength != "weak"): signal=0.75, transit=0.25
+    - Fallback mode (signal_strength == "weak"): signal=0.30, transit=0.70
+    
+    Transit may: boost, dampen, break ties
+    Transit may NOT: gate eligibility, dominate when signals are present
     """
     from services.transit_theme_engine import TIMING_THEMES
     
     scores = {}
+    signal_strength = signals.get("signal_strength", "weak")
+    
+    # Determine if we're in fallback mode (sparse personal data)
+    fallback_mode = signal_strength == "weak"
     
     # Detect dominant energy state from user signals
     dominant_energy = detect_dominant_energy_state(signals)
-    logger.info(f"[PatternSelect] Dominant energy: {dominant_energy}")
+    
+    logger.info(
+        f"[PatternSelect] Mode: {'FALLBACK' if fallback_mode else 'NORMAL'}, "
+        f"signal_strength={signal_strength}, dominant_energy={dominant_energy}"
+    )
     
     # Check if transit themes favor opening
     opening_transit_themes = ["relational_harmony", "emotional_openness", "receptivity", 
@@ -882,17 +895,15 @@ def select_best_pattern(
     transit_favors_opening = any(t in transit_themes.active_themes for t in opening_transit_themes)
     
     for pattern_id, template in PATTERN_TEMPLATES.items():
-        # Calculate transit alignment score (CRITICAL)
+        # Calculate transit alignment score
         transit_score = score_pattern_transit_alignment(
             pattern_id,
             transit_themes.active_themes,
             transit_themes.theme_intensity
         )
         
-        # REJECT patterns that don't align with timing
-        if transit_score < 0.2:
-            logger.debug(f"[PatternSelect] {pattern_id} REJECTED - transit_score={transit_score:.2f}")
-            continue
+        # V2: NO HARD GATE - all patterns remain eligible
+        # Transit score of 0 is fine; signals can still select this pattern
         
         # Calculate signal alignment score
         signal_score = score_pattern_signal_alignment(pattern_id, signals)
@@ -915,12 +926,18 @@ def select_best_pattern(
             elif pattern_type == "opening":
                 energy_modifier = 0.7  # Penalize opening patterns
         
-        # If transit favors opening, give extra boost to opening patterns
+        # If transit favors opening, give modest boost to opening patterns
         if transit_favors_opening and pattern_type == "opening":
-            energy_modifier *= 1.15
+            energy_modifier *= 1.1  # Reduced from 1.15 - transit should modulate, not dominate
         
-        # Final weighted score: 50/50 split for more transit influence
-        base_score = (signal_score * 0.5) + (transit_score * 0.5)
+        # V2: SIGNALS-FIRST WEIGHTING
+        if fallback_mode:
+            # Fallback: transit drives when personal data is sparse
+            base_score = (signal_score * 0.30) + (transit_score * 0.70)
+        else:
+            # Normal: personal signals drive selection
+            base_score = (signal_score * 0.75) + (transit_score * 0.25)
+        
         final_score = base_score * energy_modifier
         
         scores[pattern_id] = {
@@ -929,22 +946,44 @@ def select_best_pattern(
             "transit": transit_score,
             "pattern_type": pattern_type,
             "energy_modifier": energy_modifier,
+            "fallback_mode": fallback_mode,
+            "signal_strength": signal_strength,
         }
         
         logger.debug(
             f"[PatternSelect] {pattern_id} ({pattern_type}): "
             f"final={final_score:.2f}, signal={signal_score:.2f}, transit={transit_score:.2f}, "
-            f"modifier={energy_modifier:.2f}"
+            f"modifier={energy_modifier:.2f}, mode={'fallback' if fallback_mode else 'normal'}"
         )
     
     # Select highest scoring pattern
     if not scores:
-        # Fallback: no patterns matched timing - use most general pattern
-        logger.warning("[PatternSelect] No patterns matched timing, using fallback")
-        return "somethings_here", {"final": 0.3, "signal": 0.3, "transit": 0.3, "pattern_type": "neutral"}
+        # Fallback: no patterns evaluated (should not happen)
+        logger.warning("[PatternSelect] No patterns scored, using fallback")
+        return "somethings_here", {
+            "final": 0.3, "signal": 0.3, "transit": 0.3, 
+            "pattern_type": "neutral", "fallback_mode": True, "signal_strength": "weak"
+        }
     
-    best_pattern = max(scores.keys(), key=lambda k: scores[k]["final"])
-    return best_pattern, scores[best_pattern]
+    # Get top 3 candidates for debug output
+    sorted_patterns = sorted(scores.items(), key=lambda x: x[1]["final"], reverse=True)
+    top_3_candidates = sorted_patterns[:3]
+    
+    logger.info(
+        f"[PatternSelect] Top 3 candidates: "
+        f"{[(p, round(s['final'], 3), round(s['signal'], 3), round(s['transit'], 3)) for p, s in top_3_candidates]}"
+    )
+    
+    best_pattern = sorted_patterns[0][0]
+    best_scores = scores[best_pattern]
+    
+    # Add top_candidates to return for debugging
+    best_scores["top_candidates"] = [
+        {"pattern_id": p, "final": round(s["final"], 3), "signal": round(s["signal"], 3), "transit": round(s["transit"], 3)}
+        for p, s in top_3_candidates
+    ]
+    
+    return best_pattern, best_scores
 
 # ============================================================================
 # SIGNAL AGGREGATION
@@ -1528,11 +1567,12 @@ async def generate_pattern_mirror(
     # STEP 2: Aggregate user signals
     signals = await aggregate_user_signals(db, user_id)
     
-    # STEP 3: Select best pattern using TRANSIT-FIRST scoring
+    # STEP 3: Select best pattern using SIGNALS-FIRST scoring (V2)
     selected_pattern_id, scores = select_best_pattern(signals, transit_themes)
     logger.info(
         f"[PatternMirror] Selected: {selected_pattern_id} "
-        f"(final={scores['final']:.2f}, signal={scores['signal']:.2f}, transit={scores['transit']:.2f})"
+        f"(final={scores['final']:.2f}, signal={scores['signal']:.2f}, transit={scores['transit']:.2f}, "
+        f"mode={'fallback' if scores.get('fallback_mode') else 'normal'})"
     )
     
     # STEP 4: Get pattern template
