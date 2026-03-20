@@ -41,14 +41,29 @@ interface Pattern {
   micro_shifts: string[];
 }
 
+interface SignalsBySource {
+  journal?: string[];
+  mirror_chat?: string[];
+  lifeline?: string[];
+  timing?: string[];
+}
+
 interface PatternData {
   pattern: Pattern;
   cached: boolean;
   generated_at: string;
   signal_strength?: string;
-  signals?: string[];
+  signals_by_source?: SignalsBySource;
   fallback?: boolean;
 }
+
+// Source display names
+const SOURCE_LABELS: Record<string, string> = {
+  journal: 'Journal',
+  mirror_chat: 'Mirror chat',
+  lifeline: 'Lifeline',
+  timing: 'Timing',
+};
 
 interface PatternCardProps {
   userId: string;
@@ -229,20 +244,33 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </TouchableOpacity>
       )}
 
-      {/* Collapsible signals section */}
-      {signalsExpanded && patternData.signals && patternData.signals.length > 0 && (
+      {/* Collapsible signals section - grouped by source */}
+      {signalsExpanded && patternData.signals_by_source && Object.keys(patternData.signals_by_source).length > 0 && (
         <View style={[styles.signalsSection, { borderTopColor: theme.border }]}>
           <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>
             WHAT THIS IS BASED ON
           </Text>
-          {patternData.signals.map((signal, index) => (
-            <View key={index} style={styles.signalItem}>
-              <Text style={[styles.signalBullet, { color: theme.textTertiary }]}>•</Text>
-              <Text style={[styles.signalText, { color: theme.textSecondary }]}>
-                {signal}
-              </Text>
-            </View>
-          ))}
+          
+          {/* Render each source that has signals */}
+          {Object.entries(patternData.signals_by_source).map(([source, signals]) => {
+            if (!signals || signals.length === 0) return null;
+            
+            return (
+              <View key={source} style={styles.signalSourceGroup}>
+                <Text style={[styles.signalSourceLabel, { color: theme.textSecondary }]}>
+                  {SOURCE_LABELS[source] || source}
+                </Text>
+                {signals.map((signal, index) => (
+                  <View key={index} style={styles.signalItem}>
+                    <Text style={[styles.signalBullet, { color: theme.textTertiary }]}>•</Text>
+                    <Text style={[styles.signalText, { color: theme.textSecondary }]}>
+                      {signal}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            );
+          })}
         </View>
       )}
     </View>
@@ -395,12 +423,21 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  signalSourceGroup: {
+    marginBottom: 16,
+  },
+  signalSourceLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 8,
   },
   signalItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 6,
+    paddingLeft: 4,
   },
   signalBullet: {
     fontSize: 12,
@@ -409,7 +446,7 @@ const styles = StyleSheet.create({
   },
   signalText: {
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 19,
     flex: 1,
   },
 });

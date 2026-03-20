@@ -170,104 +170,258 @@ async def aggregate_user_signals(
     else:
         signals["signal_strength"] = "weak"
     
-    # 6. Generate human-readable signal explanations (max 5)
-    signals["explainable_signals"] = generate_explainable_signals(signals)
+    # 6. Store raw signals for pattern-specific explanation generation
+    # (explainable signals will be generated AFTER pattern is known)
     
     return signals
 
 
-def generate_explainable_signals(signals: Dict[str, Any]) -> List[str]:
+def generate_signals_by_source(
+    signals: Dict[str, Any], 
+    pattern: Dict[str, Any]
+) -> Dict[str, List[str]]:
     """
-    Generate human-readable signal explanations.
+    Generate specific, pattern-tied signal explanations grouped by source.
     
     Rules:
-    - Max 3-5 signals
-    - Summarized, human-readable
-    - No raw logs, timestamps, or IDs
-    - Use phrasing like "You described...", "You noted...", "Your recent entries suggest..."
+    - Signals must explain WHY this specific pattern was selected
+    - Specific, human-readable, grounded, observational
+    - NOT generic, NOT surveillance-like
+    - Group by source: journal, mirror_chat, lifeline, timing
+    - Omit sources with no meaningful signals
     """
-    explanations = []
+    signals_by_source = {}
     
-    # From journal entries
+    pattern_title = pattern.get("title", "")
+    what_you_may_be = pattern.get("what_you_may_be", "")
+    challenges = pattern.get("challenge", [])
+    
+    # Extract key behavioral indicators from the pattern
+    pattern_keywords = extract_pattern_keywords(what_you_may_be, challenges)
+    
+    # =========================================================================
+    # JOURNAL SIGNALS
+    # =========================================================================
     journal_entries = signals.get("journal_entries", [])
+    journal_signals = []
+    
     if journal_entries:
-        # Get themes from entries
+        # Analyze journal content for pattern-specific signals
+        for entry in journal_entries[:5]:
+            content = entry.get("content", "").lower()
+            themes = entry.get("themes", [])
+            
+            # Check for emotional decision-making patterns
+            if any(kw in content for kw in ["decide", "decision", "choice", "choosing", "should i"]):
+                if any(kw in content for kw in ["feel", "feeling", "emotion", "mood"]):
+                    journal_signals.append(
+                        "You described trying to make important decisions while your emotional state was shifting"
+                    )
+                    break
+            
+            # Check for self-doubt / second-guessing
+            if any(kw in content for kw in ["doubt", "second-guess", "unsure", "wonder if", "maybe i shouldn't"]):
+                journal_signals.append(
+                    "Your recent reflections show a pattern of second-guessing after emotional intensity"
+                )
+                break
+            
+            # Check for control patterns
+            if any(kw in content for kw in ["control", "handle", "manage", "keep it together", "stay strong"]):
+                journal_signals.append(
+                    "You described staying functional by focusing on what needs to be handled"
+                )
+                break
+            
+            # Check for avoidance patterns
+            if any(kw in content for kw in ["avoid", "ignore", "push down", "not think about", "later"]):
+                journal_signals.append(
+                    "Your writing suggests setting aside certain feelings to focus on action"
+                )
+                break
+        
+        # Theme-based signals
         all_themes = []
         for entry in journal_entries[:3]:
-            themes = entry.get("themes", [])
-            all_themes.extend(themes)
+            all_themes.extend(entry.get("themes", []))
         
         if all_themes:
             unique_themes = list(set(all_themes))[:3]
-            if len(unique_themes) == 1:
-                explanations.append(f"Your recent reflections touched on {unique_themes[0].lower()}")
+            theme_str = ", ".join(t.lower() for t in unique_themes[:2])
+            
+            # Make theme signal pattern-specific
+            if any(t.lower() in ["fear", "anxiety", "worry"] for t in unique_themes):
+                journal_signals.append(
+                    f"Your entries touched on {theme_str}, which may be feeding this anticipatory pattern"
+                )
+            elif any(t.lower() in ["anger", "frustration", "resentment"] for t in unique_themes):
+                journal_signals.append(
+                    f"Your reflections on {theme_str} suggest energy being held rather than expressed"
+                )
+            elif any(t.lower() in ["sadness", "grief", "loss"] for t in unique_themes):
+                journal_signals.append(
+                    f"Your writing about {theme_str} indicates something being processed beneath the surface"
+                )
             elif len(unique_themes) >= 2:
-                explanations.append(f"Your journal entries explored themes of {', '.join(t.lower() for t in unique_themes[:2])}")
+                journal_signals.append(
+                    f"Your journal explored {theme_str}, themes that connect to this pattern"
+                )
         
-        # Content-based signal
-        if len(journal_entries) >= 2:
-            explanations.append(f"You've been writing consistently over the past few days")
-        elif len(journal_entries) == 1:
-            content_preview = journal_entries[0].get("content", "")[:50]
-            if content_preview:
-                explanations.append(f"You recently described what's been on your mind")
+        # Recency and intensity signals
+        if len(journal_entries) >= 3:
+            journal_signals.append(
+                "The frequency of your recent entries suggests this is actively on your mind"
+            )
     
-    # From chat messages
+    if journal_signals:
+        signals_by_source["journal"] = journal_signals[:2]  # Max 2 per source
+    
+    # =========================================================================
+    # MIRROR CHAT SIGNALS
+    # =========================================================================
     chat_messages = signals.get("chat_messages", [])
+    chat_signals = []
+    
     if chat_messages:
-        if len(chat_messages) >= 5:
-            explanations.append("You've been actively reflecting in conversations")
-        elif len(chat_messages) >= 2:
-            explanations.append("Your recent conversations revealed recurring themes")
-        elif len(chat_messages) == 1:
-            explanations.append("You shared something significant in a recent reflection")
+        all_chat_content = " ".join([m.get("content", "") for m in chat_messages[:10]]).lower()
+        
+        # Check for urgency vs self-monitoring
+        has_urgency = any(kw in all_chat_content for kw in ["need to", "have to", "must", "quickly", "now"])
+        has_monitoring = any(kw in all_chat_content for kw in ["i notice", "i think", "maybe", "i wonder", "probably"])
+        
+        if has_urgency and has_monitoring:
+            chat_signals.append(
+                "In your reflections, you moved between urgency and self-monitoring, suggesting difficulty trusting your inner timing"
+            )
+        elif has_urgency:
+            chat_signals.append(
+                "Your conversations carried a sense of needing to resolve or act, even when sitting with it might help"
+            )
+        elif has_monitoring:
+            chat_signals.append(
+                "You showed a pattern of observing yourself carefully, which can be strength or self-doubt depending on context"
+            )
+        
+        # Check for relational patterns
+        if any(kw in all_chat_content for kw in ["they", "them", "other people", "everyone", "nobody"]):
+            if any(kw in all_chat_content for kw in ["understand", "see", "notice", "realize"]):
+                chat_signals.append(
+                    "You reflected on how others perceive or respond to you, suggesting relational weight in this pattern"
+                )
+        
+        # Check for repeated themes across messages
+        if len(chat_messages) >= 3:
+            # Simple theme recurrence check
+            first_half = " ".join([m.get("content", "") for m in chat_messages[:len(chat_messages)//2]]).lower()
+            second_half = " ".join([m.get("content", "") for m in chat_messages[len(chat_messages)//2:]]).lower()
+            
+            recurring_words = ["work", "relationship", "family", "money", "health", "future", "past"]
+            for word in recurring_words:
+                if word in first_half and word in second_half:
+                    chat_signals.append(
+                        f"You returned to {word} multiple times, suggesting it's central to what's unfolding"
+                    )
+                    break
     
-    # From lifeline events
+    if chat_signals:
+        signals_by_source["mirror_chat"] = chat_signals[:2]
+    
+    # =========================================================================
+    # LIFELINE SIGNALS
+    # =========================================================================
     lifeline_events = signals.get("lifeline_events", [])
+    lifeline_signals = []
+    
     if lifeline_events:
-        # Look for emotional tones in events
-        emotional_events = [e for e in lifeline_events if e.get("emotional_tone") and e.get("emotional_tone") != "neutral"]
+        # Check for recurring emotional patterns
+        emotional_tones = [e.get("emotional_tone", "") for e in lifeline_events if e.get("emotional_tone")]
         
-        if emotional_events:
-            tones = list(set(e.get("emotional_tone", "") for e in emotional_events[:3]))
-            if tones:
-                explanations.append(f"Your life events carry emotional weight worth noticing")
+        if len(emotional_tones) >= 2:
+            # Count tone occurrences
+            tone_counts = {}
+            for tone in emotional_tones:
+                tone_counts[tone] = tone_counts.get(tone, 0) + 1
+            
+            most_common_tone = max(tone_counts, key=tone_counts.get) if tone_counts else None
+            
+            if most_common_tone and tone_counts[most_common_tone] >= 2:
+                lifeline_signals.append(
+                    f"Your lifeline shows this is not a one-off reaction—{most_common_tone} appears across multiple life events"
+                )
         
+        # Check for pattern of events
         if len(lifeline_events) >= 3:
-            explanations.append("Your lifeline shows patterns across multiple experiences")
-    
-    # From emotional tones detected
-    emotional_tones = signals.get("emotional_tones", [])
-    if emotional_tones:
-        tone_map = {
-            "fear": "a sense of anticipation or worry",
-            "shame": "self-questioning moments",
-            "anger": "moments of frustration",
-            "sadness": "processing something difficult",
-            "joy": "hopeful or grateful moments",
-            "confusion": "uncertainty about direction",
-        }
+            lifeline_signals.append(
+                "The shape of your lifeline suggests this pattern has roots in how you've navigated pressure before"
+            )
         
-        for tone in emotional_tones[:2]:
-            if tone in tone_map:
-                explanations.append(f"Your words suggest {tone_map[tone]}")
-                break
+        # Check for recent significant events
+        recent_events = [e for e in lifeline_events[:3] if e.get("title")]
+        if recent_events:
+            event_titles = [e.get("title", "") for e in recent_events[:2]]
+            if event_titles:
+                lifeline_signals.append(
+                    "Recent life events may be reactivating a familiar response pattern"
+                )
     
-    # If no signals, provide a gentle fallback
-    if not explanations:
-        explanations.append("This pattern is based on general awareness prompts")
+    if lifeline_signals:
+        signals_by_source["lifeline"] = lifeline_signals[:2]
     
-    # Limit to max 5, unique
-    seen = set()
-    unique_explanations = []
-    for exp in explanations:
-        if exp not in seen:
-            seen.add(exp)
-            unique_explanations.append(exp)
-            if len(unique_explanations) >= 5:
-                break
+    # =========================================================================
+    # TIMING SIGNALS (if available)
+    # =========================================================================
+    timing_signals = []
+    emotional_tones = signals.get("emotional_tones", [])
     
-    return unique_explanations
+    # Generate timing-based signals based on detected emotional state
+    if emotional_tones:
+        if "fear" in emotional_tones or "confusion" in emotional_tones:
+            timing_signals.append(
+                "Current signals suggest a period of heightened sensitivity, which may be amplifying this pattern"
+            )
+        elif "sadness" in emotional_tones:
+            timing_signals.append(
+                "This may be a period where loss or transition is asking for attention rather than resolution"
+            )
+        elif "anger" in emotional_tones:
+            timing_signals.append(
+                "Current energy suggests something pressing for expression or boundary-setting"
+            )
+    
+    # Add general timing context if signals are weak but pattern is present
+    if not timing_signals and signals.get("signal_strength") == "weak":
+        timing_signals.append(
+            "Even without strong recent signals, this pattern may be quietly active beneath the surface"
+        )
+    
+    if timing_signals:
+        signals_by_source["timing"] = timing_signals[:1]  # Max 1 timing signal
+    
+    return signals_by_source
+
+
+def extract_pattern_keywords(what_you_may_be: str, challenges: List[str]) -> List[str]:
+    """Extract key behavioral keywords from pattern description."""
+    keywords = []
+    
+    text = (what_you_may_be + " " + " ".join(challenges)).lower()
+    
+    # Behavioral patterns to detect
+    behavioral_patterns = [
+        "anticipat", "prepar", "brace", "expect",  # Anticipation
+        "control", "manage", "handle", "function",  # Control
+        "avoid", "withdraw", "shut down", "pull away",  # Avoidance
+        "repeat", "again", "pattern", "same",  # Recurrence
+        "other", "they", "people", "relationship",  # Relational
+        "decide", "choice", "option", "direction",  # Decision
+        "feel", "emotion", "mood", "react",  # Emotional
+    ]
+    
+    for pattern in behavioral_patterns:
+        if pattern in text:
+            keywords.append(pattern)
+    
+    return keywords
 
 
 # ============================================================================
@@ -392,12 +546,14 @@ async def generate_pattern_mirror(
                 logger.info(f"[PatternMirror] Cache hit for user {user_id}")
                 # Regenerate signals for cached response (signals are dynamic)
                 signals = await aggregate_user_signals(db, user_id)
+                # Generate pattern-specific signals by source
+                signals_by_source = generate_signals_by_source(signals, cached["pattern"])
                 return {
                     "pattern": cached["pattern"],
                     "cached": True,
                     "generated_at": cached["generated_at"],
                     "signal_strength": cached.get("signal_strength", "weak"),
-                    "signals": signals.get("explainable_signals", [])
+                    "signals_by_source": signals_by_source
                 }
         except Exception as e:
             logger.warning(f"[PatternMirror] Cache check failed: {e}")
@@ -500,12 +656,15 @@ async def generate_pattern_mirror(
         except Exception as e:
             logger.warning(f"[PatternMirror] Cache write failed: {e}")
         
+        # Generate pattern-specific signals by source
+        signals_by_source = generate_signals_by_source(signals, pattern)
+        
         return {
             "pattern": pattern,
             "cached": False,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "signal_strength": signals["signal_strength"],
-            "signals": signals.get("explainable_signals", [])
+            "signals_by_source": signals_by_source
         }
         
     except Exception as e:
@@ -516,93 +675,67 @@ async def generate_pattern_mirror(
 def get_fallback_pattern(signals: Dict[str, Any]) -> Dict[str, Any]:
     """Return a safe fallback pattern when LLM fails or data is weak."""
     
-    # Get explainable signals
-    explainable = signals.get("explainable_signals", ["This pattern is based on general awareness prompts"])
-    
     # Select fallback based on detected emotional tones
     tones = signals.get("emotional_tones", [])
     
+    # Define fallback patterns
     if "fear" in tones or "anxiety" in tones:
-        return {
-            "pattern": {
-                "title": "Anticipating Impact",
-                "what_you_may_be": "You may be anticipating discomfort before it's present, preparing yourself for impact instead of staying with what's real.",
-                "challenge": [
-                    "assuming the worst quickly",
-                    "bracing for reactions that haven't happened",
-                    "running scenarios instead of staying present"
-                ],
-                "genius": {
-                    "description": "At its best, this same pattern becomes the ability to prepare thoughtfully without being consumed by what-ifs.",
-                    "archetype": "The Navigator"
-                },
-                "micro_shifts": [
-                    "Try noticing the moment before you brace.",
-                    "Ask: What is actually happening vs what I'm imagining?"
-                ]
+        pattern = {
+            "title": "Anticipating Impact",
+            "what_you_may_be": "You may be anticipating discomfort before it's present, preparing yourself for impact instead of staying with what's real.",
+            "challenge": [
+                "assuming the worst quickly",
+                "bracing for reactions that haven't happened",
+                "running scenarios instead of staying present"
+            ],
+            "genius": {
+                "description": "At its best, this same pattern becomes the ability to prepare thoughtfully without being consumed by what-ifs.",
+                "archetype": "The Navigator"
             },
-            "cached": False,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "signal_strength": signals.get("signal_strength", "weak"),
-            "signals": explainable,
-            "fallback": True
+            "micro_shifts": [
+                "Try noticing the moment before you brace.",
+                "Ask: What is actually happening vs what I'm imagining?"
+            ]
         }
-    
     elif "anger" in tones or "frustration" in tones:
-        return {
-            "pattern": {
-                "title": "Holding the Line",
-                "what_you_may_be": "You may be holding firm on something that matters to you, but the effort of holding is starting to wear.",
-                "challenge": [
-                    "repeating points that aren't landing",
-                    "feeling unheard or dismissed",
-                    "carrying tension in the body"
-                ],
-                "genius": {
-                    "description": "At its best, this same pattern becomes the courage to name what needs naming without attachment to being received.",
-                    "archetype": "The Truthsayer"
-                },
-                "micro_shifts": [
-                    "Try noticing where the tension lives in your body.",
-                    "Ask: What would it mean to let this go?"
-                ]
+        pattern = {
+            "title": "Holding the Line",
+            "what_you_may_be": "You may be holding firm on something that matters to you, but the effort of holding is starting to wear.",
+            "challenge": [
+                "repeating points that aren't landing",
+                "feeling unheard or dismissed",
+                "carrying tension in the body"
+            ],
+            "genius": {
+                "description": "At its best, this same pattern becomes the courage to name what needs naming without attachment to being received.",
+                "archetype": "The Truthsayer"
             },
-            "cached": False,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "signal_strength": signals.get("signal_strength", "weak"),
-            "signals": explainable,
-            "fallback": True
+            "micro_shifts": [
+                "Try noticing where the tension lives in your body.",
+                "Ask: What would it mean to let this go?"
+            ]
         }
-    
     elif "sadness" in tones or "grief" in tones:
-        return {
-            "pattern": {
-                "title": "Moving Through",
-                "what_you_may_be": "You may be processing something that needed to end, even if you didn't choose the ending.",
-                "challenge": [
-                    "replaying what could have been different",
-                    "withdrawing when connection might help",
-                    "minimizing what you're actually feeling"
-                ],
-                "genius": {
-                    "description": "At its best, this same pattern becomes the ability to honor what was while making space for what's next.",
-                    "archetype": "The Phoenix"
-                },
-                "micro_shifts": [
-                    "Try naming what you're actually grieving.",
-                    "Ask: What part of this am I ready to set down?"
-                ]
+        pattern = {
+            "title": "Moving Through",
+            "what_you_may_be": "You may be processing something that needed to end, even if you didn't choose the ending.",
+            "challenge": [
+                "replaying what could have been different",
+                "withdrawing when connection might help",
+                "minimizing what you're actually feeling"
+            ],
+            "genius": {
+                "description": "At its best, this same pattern becomes the ability to honor what was while making space for what's next.",
+                "archetype": "The Phoenix"
             },
-            "cached": False,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "signal_strength": signals.get("signal_strength", "weak"),
-            "signals": explainable,
-            "fallback": True
+            "micro_shifts": [
+                "Try naming what you're actually grieving.",
+                "Ask: What part of this am I ready to set down?"
+            ]
         }
-    
-    # Default fallback for weak/no signals
-    return {
-        "pattern": {
+    else:
+        # Default fallback for weak/no signals
+        pattern = {
             "title": "Something's Here",
             "what_you_may_be": "You may be noticing something you can't quite name yet—a pull, a tension, or a question that keeps returning.",
             "challenge": [
@@ -618,10 +751,16 @@ def get_fallback_pattern(signals: Dict[str, Any]) -> Dict[str, Any]:
                 "Try noticing what keeps coming back to mind.",
                 "Ask: What would I do if I trusted what I already know?"
             ]
-        },
+        }
+    
+    # Generate pattern-specific signals by source
+    signals_by_source = generate_signals_by_source(signals, pattern)
+    
+    return {
+        "pattern": pattern,
         "cached": False,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "signal_strength": signals.get("signal_strength", "weak"),
-        "signals": explainable,
+        "signals_by_source": signals_by_source,
         "fallback": True
     }
