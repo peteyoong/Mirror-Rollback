@@ -1,16 +1,16 @@
 /**
- * EnneagramWheel - Classic Enneagram Diagram Component
+ * EnneagramWheel - Classic Enneagram Diagram with Annotations Around Wheel
  * 
  * Renders a proper Enneagram wheel with:
  * - Outer circle
  * - 9 type positions (9 at top, clockwise)
  * - Classic inner line geometry (triangle 3-6-9, hexad 1-4-2-8-5-7)
- * - Type names and need descriptors
+ * - Type labels positioned AROUND the wheel (not in a list below)
  * - User overlay for core, wing, growth, stress highlights
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle, Line, Path, G, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -50,15 +50,8 @@ export const STRESS_DIRECTIONS: { [key: number]: number } = {
 };
 
 // Classic Enneagram inner lines
-// Triangle: 3-6-9
-// Hexad: 1-4-2-8-5-7-1 (based on 1/7 = 0.142857...)
-const TRIANGLE_CONNECTIONS = [
-  [3, 6], [6, 9], [9, 3]
-];
-
-const HEXAD_CONNECTIONS = [
-  [1, 4], [4, 2], [2, 8], [8, 5], [5, 7], [7, 1]
-];
+const TRIANGLE_CONNECTIONS = [[3, 6], [6, 9], [9, 3]];
+const HEXAD_CONNECTIONS = [[1, 4], [4, 2], [2, 8], [8, 5], [5, 7], [7, 1]];
 
 // ============================================
 // HELPER FUNCTIONS
@@ -75,7 +68,6 @@ const polarToXY = (
   radius: number,
   angleDegrees: number
 ): { x: number; y: number } => {
-  // Convert to radians, adjust so 0° is at top
   const angleRadians = (angleDegrees - 90) * (Math.PI / 180);
   return {
     x: centerX + radius * Math.cos(angleRadians),
@@ -83,7 +75,6 @@ const polarToXY = (
   };
 };
 
-// Get position for a type ID
 const getTypePosition = (
   typeId: number,
   centerX: number,
@@ -107,20 +98,10 @@ interface EnneagramWheelProps {
   compact?: boolean;
 }
 
-// ============================================
-// TYPE NAMES FOR DISPLAY
-// ============================================
-
+// Type display names
 const TYPE_DISPLAY_NAMES: { [key: number]: string } = {
-  1: "Reformer",
-  2: "Helper",
-  3: "Achiever",
-  4: "Individualist",
-  5: "Observer",
-  6: "Loyalist",
-  7: "Epicure",
-  8: "Challenger",
-  9: "Peacemaker",
+  1: "Reformer", 2: "Helper", 3: "Achiever", 4: "Individualist",
+  5: "Observer", 6: "Loyalist", 7: "Epicure", 8: "Challenger", 9: "Peacemaker",
 };
 
 // ============================================
@@ -130,37 +111,38 @@ const TYPE_DISPLAY_NAMES: { [key: number]: string } = {
 export default function EnneagramWheel({
   coreType,
   wing = null,
-  size = 280,
+  size = 300,
   showLabels = true,
   compact = false
 }: EnneagramWheelProps) {
   const { theme } = useTheme();
   
-  // Calculate dimensions
+  // Calculate dimensions for labels around the wheel
+  const containerSize = showLabels ? size + 140 : size;
   const svgSize = size;
   const center = svgSize / 2;
-  const outerRadius = (svgSize / 2) - 8; // Main circle radius
-  const nodeRadius = outerRadius - 15; // Where nodes sit
-  const innerLineRadius = nodeRadius - 8; // Inner geometry lines
+  const outerRadius = (svgSize / 2) - 12;
+  const nodeRadius = outerRadius - 18;
+  const innerLineRadius = nodeRadius - 10;
   
   // Get growth and stress targets
   const growthTarget = GROWTH_DIRECTIONS[coreType] || 0;
   const stressTarget = STRESS_DIRECTIONS[coreType] || 0;
   
   // Node sizes
-  const nodeSize = compact ? 24 : 28;
-  const coreNodeSize = compact ? 30 : 34;
+  const nodeSize = compact ? 26 : 30;
+  const coreNodeSize = compact ? 32 : 36;
   
   // Colors
   const colors = {
-    circle: theme.isDark ? 'rgba(201, 168, 108, 0.3)' : 'rgba(201, 168, 108, 0.4)',
-    innerLines: theme.isDark ? 'rgba(201, 168, 108, 0.15)' : 'rgba(201, 168, 108, 0.25)',
+    circle: theme.isDark ? 'rgba(201, 168, 108, 0.35)' : 'rgba(201, 168, 108, 0.5)',
+    innerLines: theme.isDark ? 'rgba(201, 168, 108, 0.18)' : 'rgba(201, 168, 108, 0.3)',
     core: theme.accent || '#C9A86C',
     wing: theme.isDark ? 'rgba(201, 168, 108, 0.5)' : 'rgba(201, 168, 108, 0.6)',
     growth: '#2E7D32',
     stress: '#C62828',
-    inactive: theme.isDark ? 'rgba(150, 150, 150, 0.25)' : 'rgba(100, 100, 100, 0.3)',
-    inactiveText: theme.isDark ? 'rgba(150, 150, 150, 0.6)' : 'rgba(100, 100, 100, 0.7)',
+    inactive: theme.isDark ? 'rgba(150, 150, 150, 0.3)' : 'rgba(100, 100, 100, 0.35)',
+    inactiveText: theme.isDark ? 'rgba(150, 150, 150, 0.5)' : 'rgba(100, 100, 100, 0.6)',
     text: theme.text || '#E8E3DB',
     textSecondary: theme.textSecondary || '#9A9590',
   };
@@ -176,11 +158,12 @@ export default function EnneagramWheel({
       return {
         fill: colors.core,
         stroke: colors.core,
-        strokeWidth: 2,
+        strokeWidth: 2.5,
         size: coreNodeSize,
         textColor: theme.isDark ? '#0B0B0C' : '#FFFFFF',
         fontWeight: '700' as const,
         opacity: 1,
+        labelColor: colors.core,
       };
     }
     if (isWing) {
@@ -192,6 +175,7 @@ export default function EnneagramWheel({
         textColor: colors.core,
         fontWeight: '600' as const,
         opacity: 1,
+        labelColor: colors.core,
       };
     }
     if (isGrowth) {
@@ -203,6 +187,7 @@ export default function EnneagramWheel({
         textColor: colors.growth,
         fontWeight: '600' as const,
         opacity: 1,
+        labelColor: colors.growth,
       };
     }
     if (isStress) {
@@ -214,6 +199,7 @@ export default function EnneagramWheel({
         textColor: colors.stress,
         fontWeight: '600' as const,
         opacity: 1,
+        labelColor: colors.stress,
       };
     }
     return {
@@ -223,7 +209,8 @@ export default function EnneagramWheel({
       size: nodeSize - 4,
       textColor: colors.inactiveText,
       fontWeight: '500' as const,
-      opacity: 0.5,
+      opacity: 0.45,
+      labelColor: colors.inactiveText,
     };
   };
   
@@ -236,15 +223,8 @@ export default function EnneagramWheel({
       const fromPos = getTypePosition(from, center, center, innerLineRadius);
       const toPos = getTypePosition(to, center, center, innerLineRadius);
       lines.push(
-        <Line
-          key={`tri-${idx}`}
-          x1={fromPos.x}
-          y1={fromPos.y}
-          x2={toPos.x}
-          y2={toPos.y}
-          stroke={colors.innerLines}
-          strokeWidth={1.5}
-        />
+        <Line key={`tri-${idx}`} x1={fromPos.x} y1={fromPos.y} x2={toPos.x} y2={toPos.y}
+          stroke={colors.innerLines} strokeWidth={1.5} />
       );
     });
     
@@ -253,44 +233,30 @@ export default function EnneagramWheel({
       const fromPos = getTypePosition(from, center, center, innerLineRadius);
       const toPos = getTypePosition(to, center, center, innerLineRadius);
       lines.push(
-        <Line
-          key={`hex-${idx}`}
-          x1={fromPos.x}
-          y1={fromPos.y}
-          x2={toPos.x}
-          y2={toPos.y}
-          stroke={colors.innerLines}
-          strokeWidth={1.5}
-        />
+        <Line key={`hex-${idx}`} x1={fromPos.x} y1={fromPos.y} x2={toPos.x} y2={toPos.y}
+          stroke={colors.innerLines} strokeWidth={1.5} />
       );
     });
     
     return lines;
   };
   
-  // Render directional indicator (growth/stress)
-  const renderDirectionalLine = (
-    fromType: number,
-    toType: number,
-    color: string,
-    isDashed: boolean = false
-  ) => {
+  // Render directional arrows
+  const renderDirectionalLine = (fromType: number, toType: number, color: string, isDashed: boolean = false) => {
     const fromPos = getTypePosition(fromType, center, center, nodeRadius);
     const toPos = getTypePosition(toType, center, center, nodeRadius);
     
-    // Shorten line to not overlap with nodes
     const dx = toPos.x - fromPos.x;
     const dy = toPos.y - fromPos.y;
     const length = Math.sqrt(dx * dx + dy * dy);
-    const shortenBy = coreNodeSize / 2 + 6;
+    const shortenBy = coreNodeSize / 2 + 8;
     
     const startX = fromPos.x + (dx / length) * shortenBy;
     const startY = fromPos.y + (dy / length) * shortenBy;
-    const endX = toPos.x - (dx / length) * (nodeSize / 2 + 4);
-    const endY = toPos.y - (dy / length) * (nodeSize / 2 + 4);
+    const endX = toPos.x - (dx / length) * (nodeSize / 2 + 6);
+    const endY = toPos.y - (dy / length) * (nodeSize / 2 + 6);
     
-    // Arrow head
-    const arrowSize = 6;
+    const arrowSize = 7;
     const angle = Math.atan2(endY - startY, endX - startX);
     const arrowX1 = endX - arrowSize * Math.cos(angle - Math.PI / 6);
     const arrowY1 = endY - arrowSize * Math.sin(angle - Math.PI / 6);
@@ -299,26 +265,15 @@ export default function EnneagramWheel({
     
     return (
       <G key={`dir-${fromType}-${toType}`}>
-        <Line
-          x1={startX}
-          y1={startY}
-          x2={endX}
-          y2={endY}
-          stroke={color}
-          strokeWidth={2}
-          strokeDasharray={isDashed ? "4,3" : undefined}
-          opacity={0.7}
-        />
-        <Path
-          d={`M ${endX} ${endY} L ${arrowX1} ${arrowY1} L ${arrowX2} ${arrowY2} Z`}
-          fill={color}
-          opacity={0.7}
-        />
+        <Line x1={startX} y1={startY} x2={endX} y2={endY}
+          stroke={color} strokeWidth={2} strokeDasharray={isDashed ? "5,3" : undefined} opacity={0.75} />
+        <Path d={`M ${endX} ${endY} L ${arrowX1} ${arrowY1} L ${arrowX2} ${arrowY2} Z`}
+          fill={color} opacity={0.75} />
       </G>
     );
   };
   
-  // Render nodes (type circles)
+  // Render nodes
   const renderNodes = () => {
     return ENNEAGRAM_TYPES.map(type => {
       const pos = polarToXY(center, center, nodeRadius, type.angle);
@@ -327,23 +282,11 @@ export default function EnneagramWheel({
       
       return (
         <G key={`node-${type.id}`} opacity={style.opacity}>
-          <Circle
-            cx={pos.x}
-            cy={pos.y}
-            r={halfSize}
-            fill={style.fill}
-            stroke={style.stroke}
-            strokeWidth={style.strokeWidth}
-          />
-          <SvgText
-            x={pos.x}
-            y={pos.y + 1}
-            fontSize={style.size > 28 ? 14 : 12}
-            fontWeight={style.fontWeight}
-            fill={style.textColor}
-            textAnchor="middle"
-            alignmentBaseline="middle"
-          >
+          <Circle cx={pos.x} cy={pos.y} r={halfSize}
+            fill={style.fill} stroke={style.stroke} strokeWidth={style.strokeWidth} />
+          <SvgText x={pos.x} y={pos.y + 1} fontSize={style.size > 30 ? 14 : 12}
+            fontWeight={style.fontWeight} fill={style.textColor}
+            textAnchor="middle" alignmentBaseline="middle">
             {type.id}
           </SvgText>
         </G>
@@ -351,106 +294,91 @@ export default function EnneagramWheel({
     });
   };
   
+  // Get label position adjustment based on angle
+  const getLabelPosition = (angle: number) => {
+    // Determine which quadrant/position for better label placement
+    if (angle === 0) return { align: 'center', vAlign: 'bottom', offsetX: 0, offsetY: -8 }; // top
+    if (angle === 40) return { align: 'left', vAlign: 'bottom', offsetX: 8, offsetY: -4 }; // top-right
+    if (angle === 80) return { align: 'left', vAlign: 'center', offsetX: 10, offsetY: 0 }; // right-top
+    if (angle === 120) return { align: 'left', vAlign: 'center', offsetX: 10, offsetY: 0 }; // right-bottom
+    if (angle === 160) return { align: 'left', vAlign: 'top', offsetX: 8, offsetY: 4 }; // bottom-right
+    if (angle === 200) return { align: 'right', vAlign: 'top', offsetX: -8, offsetY: 4 }; // bottom-left
+    if (angle === 240) return { align: 'right', vAlign: 'center', offsetX: -10, offsetY: 0 }; // left-bottom
+    if (angle === 280) return { align: 'right', vAlign: 'center', offsetX: -10, offsetY: 0 }; // left-top
+    if (angle === 320) return { align: 'right', vAlign: 'bottom', offsetX: -8, offsetY: -4 }; // top-left
+    return { align: 'center', vAlign: 'center', offsetX: 0, offsetY: 0 };
+  };
+  
   return (
     <View style={styles.container}>
-      {/* SVG Wheel */}
-      <View style={styles.wheelContainer}>
-        <Svg width={svgSize} height={svgSize}>
-          {/* Outer circle */}
-          <Circle
-            cx={center}
-            cy={center}
-            r={outerRadius}
-            fill="none"
-            stroke={colors.circle}
-            strokeWidth={2}
-          />
+      {/* Wheel with labels around it */}
+      <View style={[styles.wheelWrapper, { width: containerSize, height: containerSize }]}>
+        {/* SVG Wheel in center */}
+        <View style={[styles.svgContainer, { 
+          width: svgSize, 
+          height: svgSize,
+          left: showLabels ? 70 : 0,
+          top: showLabels ? 70 : 0,
+        }]}>
+          <Svg width={svgSize} height={svgSize}>
+            {/* Outer circle */}
+            <Circle cx={center} cy={center} r={outerRadius}
+              fill="none" stroke={colors.circle} strokeWidth={2} />
+            
+            {/* Inner geometry */}
+            {renderInnerLines()}
+            
+            {/* Directional arrows */}
+            {renderDirectionalLine(coreType, growthTarget, colors.growth, false)}
+            {renderDirectionalLine(coreType, stressTarget, colors.stress, true)}
+            
+            {/* Nodes */}
+            {renderNodes()}
+          </Svg>
+        </View>
+        
+        {/* Labels positioned around the wheel */}
+        {showLabels && ENNEAGRAM_TYPES.map(type => {
+          const labelRadius = (svgSize / 2) + 52;
+          const labelPos = polarToXY(containerSize / 2, containerSize / 2, labelRadius, type.angle);
+          const posInfo = getLabelPosition(type.angle);
+          const style = getNodeStyle(type.id);
+          const isHighlighted = type.id === coreType || type.id === wing || type.id === growthTarget || type.id === stressTarget;
           
-          {/* Inner enneagram geometry */}
-          {renderInnerLines()}
-          
-          {/* Directional arrows (growth and stress) */}
-          {renderDirectionalLine(coreType, growthTarget, colors.growth, false)}
-          {renderDirectionalLine(coreType, stressTarget, colors.stress, true)}
-          
-          {/* Type nodes */}
-          {renderNodes()}
-        </Svg>
+          return (
+            <View
+              key={`label-${type.id}`}
+              style={[
+                styles.labelContainer,
+                {
+                  left: labelPos.x + posInfo.offsetX - 55,
+                  top: labelPos.y + posInfo.offsetY - 18,
+                  alignItems: posInfo.align === 'right' ? 'flex-end' : posInfo.align === 'left' ? 'flex-start' : 'center',
+                  opacity: isHighlighted ? 1 : 0.5,
+                }
+              ]}
+            >
+              <Text style={[
+                styles.labelTitle,
+                { 
+                  color: style.labelColor,
+                  fontWeight: isHighlighted ? '600' : '400',
+                }
+              ]}>
+                {type.id} {type.shortName}
+              </Text>
+              <Text style={[
+                styles.labelNeed,
+                { color: isHighlighted ? colors.textSecondary : colors.inactiveText }
+              ]}>
+                {type.need}
+              </Text>
+            </View>
+          );
+        })}
       </View>
       
-      {/* Labels around the wheel (mobile-friendly list below) */}
-      {showLabels && (
-        <View style={styles.labelsContainer}>
-          {ENNEAGRAM_TYPES.map(type => {
-            const isCore = type.id === coreType;
-            const isWing = type.id === wing;
-            const isGrowth = type.id === growthTarget;
-            const isStress = type.id === stressTarget;
-            const isHighlighted = isCore || isWing || isGrowth || isStress;
-            
-            return (
-              <View key={`label-${type.id}`} style={styles.labelRow}>
-                <View style={[
-                  styles.labelNumber,
-                  isCore && { backgroundColor: colors.core },
-                  isWing && { backgroundColor: colors.wing, borderColor: colors.core, borderWidth: 1 },
-                  isGrowth && { backgroundColor: 'rgba(46, 125, 50, 0.2)', borderColor: colors.growth, borderWidth: 1 },
-                  isStress && { backgroundColor: 'rgba(198, 40, 40, 0.2)', borderColor: colors.stress, borderWidth: 1 },
-                  !isHighlighted && { backgroundColor: theme.surfaceLight, opacity: 0.5 },
-                ]}>
-                  <Text style={[
-                    styles.labelNumberText,
-                    isCore && { color: theme.isDark ? '#0B0B0C' : '#FFFFFF' },
-                    isWing && { color: colors.core },
-                    isGrowth && { color: colors.growth },
-                    isStress && { color: colors.stress },
-                    !isHighlighted && { color: colors.inactiveText },
-                  ]}>
-                    {type.id}
-                  </Text>
-                </View>
-                <View style={styles.labelTextContainer}>
-                  <Text style={[
-                    styles.labelName,
-                    { color: isHighlighted ? colors.text : colors.inactiveText },
-                    isCore && { fontWeight: '600' },
-                  ]}>
-                    {type.shortName}
-                  </Text>
-                  <Text style={[
-                    styles.labelNeed,
-                    { color: isHighlighted ? colors.textSecondary : colors.inactiveText },
-                  ]}>
-                    The need {type.need}
-                  </Text>
-                </View>
-                {isCore && (
-                  <View style={[styles.labelBadge, { backgroundColor: colors.core }]}>
-                    <Text style={[styles.labelBadgeText, { color: theme.isDark ? '#0B0B0C' : '#FFFFFF' }]}>Core</Text>
-                  </View>
-                )}
-                {isWing && (
-                  <View style={[styles.labelBadge, { backgroundColor: colors.wing, borderColor: colors.core, borderWidth: 1 }]}>
-                    <Text style={[styles.labelBadgeText, { color: colors.core }]}>Wing</Text>
-                  </View>
-                )}
-                {isGrowth && (
-                  <View style={[styles.labelBadge, { backgroundColor: 'rgba(46, 125, 50, 0.2)', borderColor: colors.growth, borderWidth: 1 }]}>
-                    <Text style={[styles.labelBadgeText, { color: colors.growth }]}>Growth</Text>
-                  </View>
-                )}
-                {isStress && (
-                  <View style={[styles.labelBadge, { backgroundColor: 'rgba(198, 40, 40, 0.2)', borderColor: colors.stress, borderWidth: 1 }]}>
-                    <Text style={[styles.labelBadgeText, { color: colors.stress }]}>Stress</Text>
-                  </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
-      )}
-      
-      {/* Legend */}
+      {/* Compact Legend */}
       <View style={styles.legend}>
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
@@ -477,30 +405,21 @@ export default function EnneagramWheel({
       {/* Result Label */}
       <View style={styles.resultLabel}>
         <Text style={[styles.resultText, { color: colors.text }]}>
-          {wing ? `${coreType}w${wing}` : `Type ${coreType}`} — {TYPE_DISPLAY_NAMES[coreType] || 'Unknown'}
+          {wing ? `${coreType}w${wing}` : `Type ${coreType}`} — {TYPE_DISPLAY_NAMES[coreType]}
         </Text>
       </View>
     </View>
   );
 }
 
-// For backward compatibility
+// Backward compatibility exports
 export const ENNEAGRAM_SCHEMA = {
-  types: ENNEAGRAM_TYPES.map(t => ({
-    id: t.id,
-    name: t.shortName,
-    core_need: t.need,
-    angle: t.angle
-  })),
-  connections: {
-    growth: GROWTH_DIRECTIONS,
-    stress: STRESS_DIRECTIONS
-  }
+  types: ENNEAGRAM_TYPES.map(t => ({ id: t.id, name: t.shortName, core_need: t.need, angle: t.angle })),
+  connections: { growth: GROWTH_DIRECTIONS, stress: STRESS_DIRECTIONS }
 };
 
 export const generateUserState = (coreType: number, wing: number | null) => ({
-  core_type: coreType,
-  wing: wing,
+  core_type: coreType, wing: wing,
   growth_target: GROWTH_DIRECTIONS[coreType] || 0,
   stress_target: STRESS_DIRECTIONS[coreType] || 0
 });
@@ -513,58 +432,30 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
   },
-  wheelContainer: {
-    marginBottom: 16,
+  wheelWrapper: {
+    position: 'relative',
   },
-  labelsContainer: {
-    width: '100%',
-    paddingHorizontal: 4,
-    marginBottom: 16,
+  svgContainer: {
+    position: 'absolute',
   },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    marginBottom: 4,
+  labelContainer: {
+    position: 'absolute',
+    width: 110,
   },
-  labelNumber: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  labelNumberText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  labelTextContainer: {
-    flex: 1,
-  },
-  labelName: {
-    fontSize: 13,
+  labelTitle: {
+    fontSize: 11,
     fontWeight: '500',
+    lineHeight: 14,
   },
   labelNeed: {
-    fontSize: 11,
+    fontSize: 9,
+    lineHeight: 12,
     marginTop: 1,
-  },
-  labelBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    marginLeft: 8,
-  },
-  labelBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
   },
   legend: {
     width: '100%',
     paddingHorizontal: 8,
+    marginTop: 12,
     marginBottom: 12,
   },
   legendRow: {
@@ -588,7 +479,7 @@ const styles = StyleSheet.create({
   },
   resultLabel: {
     alignItems: 'center',
-    paddingTop: 8,
+    paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: 'rgba(150, 150, 150, 0.2)',
     width: '100%',
