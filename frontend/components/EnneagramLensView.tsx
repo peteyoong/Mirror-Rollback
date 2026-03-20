@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { InlineReflectButton } from './UniversalReflectButton';
 import KeystoneReferenceLink from './KeystoneReferenceLink';
+import EnneagramWheel, { ENNEAGRAM_SCHEMA } from './EnneagramWheel';
 import { 
   sendEnneagramChat, 
   getEnneagramTraits,
@@ -1406,126 +1407,21 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
 
         {/* ============================================ */}
         {/* SECTION 5: ENNEAGRAM WHEEL (SUPPORTING STRUCTURE) */}
+        {/* JSON-DRIVEN - All positions from ENNEAGRAM_SCHEMA */}
         {/* ============================================ */}
         <View style={[styles.wheelSupportCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
           <Text style={[styles.wheelSupportTitle, { color: theme.textTertiary }]}>
             ENNEAGRAM STRUCTURE
           </Text>
           
-          <View style={styles.wheelWrapper}>
-            {/* Render 9 types in a circle */}
-            {[9, 1, 2, 3, 4, 5, 6, 7, 8].map((type, index) => {
-              const angle = (index * 40 - 90) * (Math.PI / 180);
-              const radius = 85;
-              const x = 110 + radius * Math.cos(angle);
-              const y = 110 + radius * Math.sin(angle);
-              
-              const isCore = type === core;
-              const isWing = wingNum && type === wingNum;
-              const isStress = type === stressType;
-              const isGrowth = type === growthType;
-              const isActive = isCore || isWing || isStress || isGrowth;
-              
-              // Type labels mapping
-              const typeLabels: { [key: number]: string } = {
-                1: 'Reformer',
-                2: 'Helper',
-                3: 'Achiever',
-                4: 'Individualist',
-                5: 'Observer',
-                6: 'Loyalist',
-                7: 'Enthusiast',
-                8: 'Challenger',
-                9: 'Peacemaker',
-              };
-              
-              return (
-                <View
-                  key={type}
-                  style={[
-                    styles.wheelNodeCompact,
-                    {
-                      left: x - 22,
-                      top: y - 22,
-                      backgroundColor: isCore 
-                        ? theme.accent 
-                        : isWing 
-                          ? `${theme.accent}40`
-                          : isGrowth
-                            ? '#2E7D3215'
-                            : isStress
-                              ? '#C6282815'
-                              : theme.surface,
-                      borderColor: isCore 
-                        ? theme.accent 
-                        : isWing 
-                          ? theme.accent
-                          : isGrowth
-                            ? '#2E7D32'
-                            : isStress
-                              ? '#C62828'
-                              : theme.border,
-                      borderWidth: isCore ? 2 : isWing ? 2 : 1,
-                      opacity: isActive ? 1 : 0.35,
-                    },
-                  ]}
-                >
-                  <Text style={[
-                    styles.wheelNumberCompact, 
-                    { 
-                      color: isCore 
-                        ? (theme.isDark ? '#0B0B0C' : '#F0EDE8')
-                        : isWing
-                          ? theme.accent
-                          : isGrowth
-                            ? '#2E7D32'
-                            : isStress
-                              ? '#C62828'
-                              : theme.textSecondary,
-                      fontWeight: isCore || isWing ? '700' : '500',
-                    }
-                  ]}>
-                    {type}
-                  </Text>
-                </View>
-              );
-            })}
-            
-            {/* Center info */}
-            <View style={styles.wheelCenterCompact}>
-              <Text style={[styles.wheelCenterTypeCompact, { color: theme.text }]}>
-                {wingNum ? `${core}w${wingNum}` : `${core}`}
-              </Text>
-            </View>
-          </View>
-          
-          {/* Compact Legend */}
-          <View style={styles.wheelLegendCompact}>
-            <View style={styles.wheelLegendRow}>
-              <View style={styles.wheelLegendItemCompact}>
-                <View style={[styles.wheelLegendDotCompact, { backgroundColor: theme.accent }]} />
-                <Text style={[styles.wheelLegendTextCompact, { color: theme.textTertiary }]}>Core</Text>
-              </View>
-              {wingNum && (
-                <View style={styles.wheelLegendItemCompact}>
-                  <View style={[styles.wheelLegendDotCompact, { backgroundColor: `${theme.accent}60`, borderWidth: 1, borderColor: theme.accent }]} />
-                  <Text style={[styles.wheelLegendTextCompact, { color: theme.textTertiary }]}>Wing</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.wheelLegendRow}>
-              <View style={styles.wheelLegendItemCompact}>
-                <View style={[styles.wheelLegendDotCompact, { backgroundColor: '#2E7D32' }]} />
-                <Text style={[styles.wheelLegendTextCompact, { color: theme.textTertiary }]}>Growth → {growthType} when resourced</Text>
-              </View>
-            </View>
-            <View style={styles.wheelLegendRow}>
-              <View style={styles.wheelLegendItemCompact}>
-                <View style={[styles.wheelLegendDotCompact, { backgroundColor: '#C62828' }]} />
-                <Text style={[styles.wheelLegendTextCompact, { color: theme.textTertiary }]}>Stress → {stressType} under pressure</Text>
-              </View>
-            </View>
-          </View>
+          {/* JSON-Driven Enneagram Wheel Component */}
+          <EnneagramWheel
+            coreType={core}
+            wing={wingNum}
+            size={240}
+            showArrows={true}
+            compact={true}
+          />
         </View>
 
         {/* ============================================ */}
