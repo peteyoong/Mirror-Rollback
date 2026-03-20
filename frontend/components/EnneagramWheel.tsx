@@ -133,16 +133,22 @@ export default function EnneagramWheel({
   const nodeSize = compact ? 26 : 30;
   const coreNodeSize = compact ? 32 : 36;
   
-  // Colors
+  // Colors - POLISHED for better mobile readability
+  // Increased contrast for muted elements while keeping hierarchy
   const colors = {
-    circle: theme.isDark ? 'rgba(201, 168, 108, 0.35)' : 'rgba(201, 168, 108, 0.5)',
-    innerLines: theme.isDark ? 'rgba(201, 168, 108, 0.18)' : 'rgba(201, 168, 108, 0.3)',
+    // Outer circle - more visible
+    circle: theme.isDark ? 'rgba(201, 168, 108, 0.50)' : 'rgba(201, 168, 108, 0.6)',
+    // Inner geometry lines - clearer but still subtle
+    innerLines: theme.isDark ? 'rgba(201, 168, 108, 0.30)' : 'rgba(201, 168, 108, 0.4)',
+    // Active highlights
     core: theme.accent || '#C9A86C',
-    wing: theme.isDark ? 'rgba(201, 168, 108, 0.5)' : 'rgba(201, 168, 108, 0.6)',
+    wing: theme.isDark ? 'rgba(201, 168, 108, 0.55)' : 'rgba(201, 168, 108, 0.65)',
     growth: '#2E7D32',
     stress: '#C62828',
-    inactive: theme.isDark ? 'rgba(150, 150, 150, 0.3)' : 'rgba(100, 100, 100, 0.35)',
-    inactiveText: theme.isDark ? 'rgba(150, 150, 150, 0.5)' : 'rgba(100, 100, 100, 0.6)',
+    // Inactive elements - improved contrast
+    inactive: theme.isDark ? 'rgba(160, 155, 145, 0.45)' : 'rgba(100, 100, 100, 0.45)',
+    inactiveText: theme.isDark ? 'rgba(180, 175, 165, 0.70)' : 'rgba(90, 90, 90, 0.75)',
+    inactiveNeed: theme.isDark ? 'rgba(160, 155, 145, 0.60)' : 'rgba(100, 100, 100, 0.65)',
     text: theme.text || '#E8E3DB',
     textSecondary: theme.textSecondary || '#9A9590',
   };
@@ -203,38 +209,38 @@ export default function EnneagramWheel({
       };
     }
     return {
-      fill: theme.isDark ? 'rgba(40, 40, 40, 0.8)' : 'rgba(240, 237, 232, 0.9)',
+      fill: theme.isDark ? 'rgba(50, 48, 45, 0.9)' : 'rgba(240, 237, 232, 0.9)',
       stroke: colors.inactive,
-      strokeWidth: 1,
-      size: nodeSize - 4,
+      strokeWidth: 1.5,
+      size: nodeSize - 2,
       textColor: colors.inactiveText,
       fontWeight: '500' as const,
-      opacity: 0.45,
+      opacity: 0.65,
       labelColor: colors.inactiveText,
     };
   };
   
-  // Render inner enneagram lines
+  // Render inner enneagram lines - improved visibility
   const renderInnerLines = () => {
     const lines: JSX.Element[] = [];
     
-    // Triangle (3-6-9)
+    // Triangle (3-6-9) - slightly thicker for visibility
     TRIANGLE_CONNECTIONS.forEach(([from, to], idx) => {
       const fromPos = getTypePosition(from, center, center, innerLineRadius);
       const toPos = getTypePosition(to, center, center, innerLineRadius);
       lines.push(
         <Line key={`tri-${idx}`} x1={fromPos.x} y1={fromPos.y} x2={toPos.x} y2={toPos.y}
-          stroke={colors.innerLines} strokeWidth={1.5} />
+          stroke={colors.innerLines} strokeWidth={1.8} />
       );
     });
     
-    // Hexad (1-4-2-8-5-7)
+    // Hexad (1-4-2-8-5-7) - slightly thicker for visibility
     HEXAD_CONNECTIONS.forEach(([from, to], idx) => {
       const fromPos = getTypePosition(from, center, center, innerLineRadius);
       const toPos = getTypePosition(to, center, center, innerLineRadius);
       lines.push(
         <Line key={`hex-${idx}`} x1={fromPos.x} y1={fromPos.y} x2={toPos.x} y2={toPos.y}
-          stroke={colors.innerLines} strokeWidth={1.5} />
+          stroke={colors.innerLines} strokeWidth={1.8} />
       );
     });
     
@@ -321,9 +327,9 @@ export default function EnneagramWheel({
           top: showLabels ? 70 : 0,
         }]}>
           <Svg width={svgSize} height={svgSize}>
-            {/* Outer circle */}
+            {/* Outer circle - slightly thicker */}
             <Circle cx={center} cy={center} r={outerRadius}
-              fill="none" stroke={colors.circle} strokeWidth={2} />
+              fill="none" stroke={colors.circle} strokeWidth={2.5} />
             
             {/* Inner geometry */}
             {renderInnerLines()}
@@ -354,7 +360,7 @@ export default function EnneagramWheel({
                   left: labelPos.x + posInfo.offsetX - 55,
                   top: labelPos.y + posInfo.offsetY - 18,
                   alignItems: posInfo.align === 'right' ? 'flex-end' : posInfo.align === 'left' ? 'flex-start' : 'center',
-                  opacity: isHighlighted ? 1 : 0.5,
+                  opacity: isHighlighted ? 1 : 0.7, // Increased from 0.5 for better readability
                 }
               ]}
             >
@@ -362,14 +368,14 @@ export default function EnneagramWheel({
                 styles.labelTitle,
                 { 
                   color: style.labelColor,
-                  fontWeight: isHighlighted ? '600' : '400',
+                  fontWeight: isHighlighted ? '600' : '500',
                 }
               ]}>
                 {type.id} {type.shortName}
               </Text>
               <Text style={[
                 styles.labelNeed,
-                { color: isHighlighted ? colors.textSecondary : colors.inactiveText }
+                { color: isHighlighted ? colors.textSecondary : colors.inactiveNeed }
               ]}>
                 {type.need}
               </Text>
