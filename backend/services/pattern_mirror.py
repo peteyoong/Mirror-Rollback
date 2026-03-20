@@ -330,6 +330,365 @@ async def get_user_profile(db: AsyncIOMotorDatabase, user_id: str) -> Optional[D
 
 
 # ============================================================================
+# V2: SIGNALS-FIRST RESPONSE STRUCTURE
+# ============================================================================
+
+def build_personal_pattern_layer(
+    pattern: Dict[str, Any],
+    signals: Dict[str, Any],
+    pattern_evidence: Dict[str, Any],
+    scores: Dict[str, float]
+) -> Dict[str, Any]:
+    """
+    Build the PERSONAL_PATTERN layer of the response.
+    
+    This represents what was derived from personal signals:
+    - journal
+    - mirror chat
+    - lifeline
+    
+    This is the PRIMARY truth of the homepage.
+    """
+    return {
+        "selected_pattern_id": pattern_evidence.get("pattern_id", "unknown"),
+        "selected_pattern_title": pattern.get("title", ""),
+        "selected_pattern_summary": pattern.get("what_you_may_be", ""),
+        "primary_signal_sources": pattern_evidence.get("contributing_sources", []),
+        "primary_signal_evidence": pattern_evidence.get("matched_evidence", {}),
+        "signal_strength": signals.get("signal_strength", "weak"),
+        "signal_score": round(scores.get("signal", 0), 3),
+    }
+
+
+def build_timing_amplifier_layer(
+    transit_themes: Any,
+    scores: Dict[str, float],
+    timing_context: List[str]
+) -> Dict[str, Any]:
+    """
+    Build the TIMING_AMPLIFIER layer of the response.
+    
+    This represents contextual timing that may amplify or modulate:
+    - lunar phase
+    - seasonal context
+    - transit themes
+    
+    This is SECONDARY to personal signals.
+    """
+    fallback_mode = scores.get("fallback_mode", False)
+    
+    # Determine timing role
+    if fallback_mode:
+        timing_role = "fallback"  # Timing is driving because personal data is sparse
+    else:
+        timing_role = "amplifier"  # Timing is only amplifying personal signals
+    
+    return {
+        "active_timing_themes": transit_themes.active_themes[:3] if transit_themes else [],
+        "timing_summary": timing_context[0] if timing_context else None,
+        "transit_score": round(scores.get("transit", 0), 3),
+        "timing_role": timing_role,
+        "lunar_phase": transit_themes.lunar_phase if transit_themes else None,
+        "seasonal_context": transit_themes.seasonal_context if transit_themes else None,
+    }
+
+
+def build_signals_first_narrative(
+    pattern: Dict[str, Any],
+    pattern_evidence: Dict[str, Any],
+    timing_context: List[str],
+    active_themes: List[str],
+    fallback_mode: bool = False
+) -> Dict[str, Any]:
+    """
+    Build the narrative in SIGNALS-FIRST order:
+    
+    1. Main pattern title
+    2. Main pattern explanation (from personal signals)
+    3. Optional timing note (amplification only)
+    4. Evidence summary
+    
+    Timing does NOT author the main narrative.
+    """
+    # A. Main pattern explanation (purely from pattern template, selected by signals)
+    main_explanation = pattern.get("what_you_may_be", "")
+    
+    # B. Optional timing note (ONLY if not fallback mode)
+    timing_note = None
+    if not fallback_mode and active_themes:
+        # Build a subtle timing amplification note
+        timing_note = _build_timing_amplification_note(active_themes, timing_context)
+    
+    # C. Evidence summary sentence
+    evidence_summary = _build_evidence_summary(pattern_evidence)
+    
+    return {
+        "main_explanation": main_explanation,
+        "timing_note": timing_note,
+        "evidence_summary": evidence_summary,
+        # Combined narrative for backwards compatibility
+        "combined": _combine_narrative_parts(main_explanation, timing_note, evidence_summary)
+    }
+
+
+def _build_timing_amplification_note(
+    active_themes: List[str],
+    timing_context: List[str]
+) -> Optional[str]:
+    """
+    Build a SHORT timing amplification note.
+    
+    Style: "This may feel more present right now because [timing context]."
+    
+    NOT: Blended into main explanation
+    """
+    # Map themes to short amplification phrases
+    amplification_phrases = {
+        "emotional_sensitivity": "emotional sensitivity may be heightened",
+        "transition_threshold": "you may be at a threshold moment",
+        "reset_cycle": "a natural reset cycle may be underway",
+        "renewal_cycle": "renewal energy is present",
+        "relational_harmony": "relational conditions are supportive",
+        "emotional_openness": "emotional openness feels more available",
+        "softening_phase": "a softening is naturally occurring",
+        "expansion": "expansion energy is present",
+        "pressure": "pressure may be intensifying things",
+        "urgency": "urgency may be amplifying this",
+    }
+    
+    # Get the most relevant timing phrase
+    timing_phrase = None
+    for theme in active_themes[:2]:
+        if theme in amplification_phrases:
+            timing_phrase = amplification_phrases[theme]
+            break
+    
+    if not timing_phrase and timing_context:
+        # Use first timing context, cleaned up
+        ctx = timing_context[0]
+        if ctx.lower().startswith("this may be"):
+            timing_phrase = ctx[12:].strip()  # Remove "This may be "
+        else:
+            timing_phrase = ctx.lower()
+    
+    if timing_phrase:
+        return f"This may feel more present right now because {timing_phrase}."
+    
+    return None
+
+
+def _build_evidence_summary(pattern_evidence: Dict[str, Any]) -> Optional[str]:
+    """
+    Build a brief evidence summary.
+    
+    Style: "This pattern emerged from [sources]."
+    """
+    sources = pattern_evidence.get("contributing_sources", [])
+    
+    if not sources:
+        return None
+    
+    source_names = {
+        "journal": "your recent journal entries",
+        "mirror_chat": "your Mirror conversations",
+        "lifeline": "your lifeline events",
+    }
+    
+    readable_sources = [source_names.get(s, s) for s in sources if s in source_names]
+    
+    if not readable_sources:
+        return None
+    
+    if len(readable_sources) == 1:
+        return f"This pattern emerged from {readable_sources[0]}."
+    elif len(readable_sources) == 2:
+        return f"This pattern emerged from {readable_sources[0]} and {readable_sources[1]}."
+    else:
+        return f"This pattern emerged from {', '.join(readable_sources[:-1])}, and {readable_sources[-1]}."
+
+
+def _combine_narrative_parts(
+    main_explanation: str,
+    timing_note: Optional[str],
+    evidence_summary: Optional[str]
+) -> str:
+    """Combine narrative parts for backwards compatibility."""
+    parts = [main_explanation]
+    if timing_note:
+        parts.append(timing_note)
+    if evidence_summary:
+        parts.append(evidence_summary)
+    return "\n\n".join(parts)
+
+
+def generate_true_evidence(
+    signals: Dict[str, Any],
+    pattern_id: str,
+    pattern: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Generate TRUE evidence that shows what actually matched.
+    
+    This is NOT post-hoc rationalization.
+    This shows the ACTUAL signal matches that led to pattern selection.
+    
+    Returns:
+    {
+        "pattern_id": str,
+        "contributing_sources": ["journal", "lifeline", ...],
+        "matched_evidence": {
+            "journal": [{"text": "...", "matched_keyword": "...", "strength": "high"}],
+            "lifeline": [...],
+            "mirror_chat": [...]
+        },
+        "total_matches": int,
+        "primary_source": str (source with most matches)
+    }
+    """
+    evidence = {
+        "pattern_id": pattern_id,
+        "contributing_sources": [],
+        "matched_evidence": {},
+        "total_matches": 0,
+        "primary_source": None,
+    }
+    
+    # Get pattern keywords
+    template = PATTERN_TEMPLATES.get(pattern_id, {})
+    signal_keywords = template.get("signal_keywords", [])
+    what_you_may_be = pattern.get("what_you_may_be", "").lower()
+    
+    # Additional keywords from pattern description
+    pattern_words = ["feel", "emotion", "decide", "trust", "control", "close", "open", 
+                     "connect", "fear", "doubt", "wait", "stuck", "resist", "avoid"]
+    all_keywords = list(set(signal_keywords + [w for w in pattern_words if w in what_you_may_be]))
+    
+    source_match_counts = {}
+    
+    # Check JOURNAL
+    journal_matches = []
+    for entry in signals.get("journal_entries", [])[:5]:
+        content = entry.get("content", "").lower()
+        for kw in all_keywords:
+            if kw in content:
+                journal_matches.append({
+                    "text": entry.get("content", "")[:100] + "...",
+                    "matched_keyword": kw,
+                    "strength": "high" if content.count(kw) > 1 else "moderate",
+                    "date": entry.get("created_at", "")[:10] if entry.get("created_at") else None
+                })
+                break  # One match per entry
+    
+    if journal_matches:
+        evidence["matched_evidence"]["journal"] = journal_matches[:3]
+        evidence["contributing_sources"].append("journal")
+        source_match_counts["journal"] = len(journal_matches)
+    
+    # Check MIRROR CHAT
+    chat_matches = []
+    for msg in signals.get("chat_messages", [])[:10]:
+        content = msg.get("content", "").lower()
+        for kw in all_keywords:
+            if kw in content:
+                chat_matches.append({
+                    "text": msg.get("content", "")[:80] + "...",
+                    "matched_keyword": kw,
+                    "strength": "moderate",
+                })
+                break
+    
+    if chat_matches:
+        evidence["matched_evidence"]["mirror_chat"] = chat_matches[:3]
+        evidence["contributing_sources"].append("mirror_chat")
+        source_match_counts["mirror_chat"] = len(chat_matches)
+    
+    # Check LIFELINE
+    lifeline_matches = []
+    for event in signals.get("lifeline_events", [])[:10]:
+        title = event.get("title", "").lower()
+        desc = event.get("description", "").lower()
+        combined = f"{title} {desc}"
+        
+        for kw in all_keywords:
+            if kw in combined:
+                lifeline_matches.append({
+                    "text": event.get("title", ""),
+                    "matched_keyword": kw,
+                    "strength": "high" if event.get("emotional_tone") else "moderate",
+                    "emotional_tone": event.get("emotional_tone"),
+                })
+                break
+    
+    if lifeline_matches:
+        evidence["matched_evidence"]["lifeline"] = lifeline_matches[:3]
+        evidence["contributing_sources"].append("lifeline")
+        source_match_counts["lifeline"] = len(lifeline_matches)
+    
+    # Calculate totals
+    evidence["total_matches"] = sum(source_match_counts.values())
+    
+    if source_match_counts:
+        evidence["primary_source"] = max(source_match_counts, key=source_match_counts.get)
+    
+    return evidence
+
+
+def compute_signal_only_ranking(
+    signals: Dict[str, Any],
+    transit_themes: Any
+) -> List[Dict[str, Any]]:
+    """
+    Compute pattern ranking by SIGNAL SCORE ONLY (ignoring transit).
+    
+    Used for debug output to show what would have been selected
+    without transit influence.
+    """
+    from services.transit_theme_engine import TIMING_THEMES
+    
+    signal_rankings = []
+    
+    for pattern_id, template in PATTERN_TEMPLATES.items():
+        signal_score = score_pattern_signal_alignment(pattern_id, signals)
+        
+        signal_rankings.append({
+            "pattern_id": pattern_id,
+            "signal_score": round(signal_score, 3),
+            "title": template.get("title", "")
+        })
+    
+    # Sort by signal score descending
+    signal_rankings.sort(key=lambda x: x["signal_score"], reverse=True)
+    
+    return signal_rankings[:5]  # Top 5
+
+
+def determine_timing_impact(
+    signal_only_top: List[Dict[str, Any]],
+    final_top: List[Dict[str, Any]],
+    selected_pattern_id: str
+) -> Dict[str, Any]:
+    """
+    Determine whether timing changed the winner or only amplified it.
+    """
+    signal_winner = signal_only_top[0]["pattern_id"] if signal_only_top else None
+    final_winner = final_top[0]["pattern_id"] if final_top else selected_pattern_id
+    
+    if signal_winner == final_winner:
+        timing_changed_winner = False
+        impact_description = "Timing amplified the signal-selected pattern"
+    else:
+        timing_changed_winner = True
+        impact_description = f"Timing changed selection from '{signal_winner}' to '{final_winner}'"
+    
+    return {
+        "timing_changed_winner": timing_changed_winner,
+        "signal_only_winner": signal_winner,
+        "final_winner": final_winner,
+        "impact_description": impact_description
+    }
+
+
+# ============================================================================
 # PATTERN MIRROR OUTPUT CONTRACT
 # ============================================================================
 
@@ -1491,11 +1850,24 @@ async def generate_pattern_mirror(
     force_refresh: bool = False
 ) -> Dict[str, Any]:
     """
-    Generate a pattern mirror for the user using TRANSIT-FIRST logic.
+    Generate a pattern mirror for the user using SIGNALS-FIRST logic (V2).
     
-    Scoring:
-    - Final Score = (signal_score × 0.6) + (transit_score × 0.4)
-    - Patterns with transit_score < 0.2 are REJECTED
+    V2 ARCHITECTURE:
+    - Personal signals (journal, chat, lifeline) DRIVE pattern selection
+    - Transit acts as AMPLIFIER only, not gatekeeper
+    - Response clearly separates personal_pattern from timing_amplifier
+    
+    Scoring (V2):
+    - Normal mode: signal=0.75, transit=0.25
+    - Fallback mode (weak signals): signal=0.30, transit=0.70
+    - No hard transit gate
+    
+    Response Structure (V2):
+    - personal_pattern: what came from personal signals
+    - timing_amplifier: what came from transit/timing
+    - narrative: signals-first narrative structure
+    - evidence: true evidence showing actual matches
+    - debug: diagnostic data for validation
     """
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     from services.transit_theme_engine import (
@@ -1524,7 +1896,8 @@ async def generate_pattern_mirror(
                 signals_by_source = generate_signals_by_source(signals, cached["pattern"])
                 
                 # ALWAYS add timing signals (transit_score from cache or default)
-                cached_transit_score = cached.get("scores", {}).get("transit", 0.4)
+                cached_scores = cached.get("scores", {})
+                cached_transit_score = cached_scores.get("transit", 0.4)
                 timing_signals = generate_timing_signals(transit_themes, cached_transit_score)
                 if timing_signals:
                     signals_by_source["timing"] = timing_signals
@@ -1533,7 +1906,6 @@ async def generate_pattern_mirror(
                 timing_context = generate_timing_context(transit_themes)
                 
                 # Compute personal activations for cached pattern
-                cached_transit_score = cached.get("scores", {}).get("transit", 0.4)
                 user_profile = await get_user_profile(db, user_id)
                 personal_activations = compute_personal_activations(
                     user_profile,
@@ -1550,14 +1922,46 @@ async def generate_pattern_mirror(
                     transit_themes.active_themes
                 )
                 
+                # V2: Generate layered response for cached pattern
+                cached_pattern_id = cached.get("pattern_id", "unknown")
+                pattern_evidence = cached.get("pattern_evidence") or generate_true_evidence(
+                    signals, cached_pattern_id, cached["pattern"]
+                )
+                
+                fallback_mode = cached_scores.get("fallback_mode", False)
+                signals_first_narrative = build_signals_first_narrative(
+                    cached["pattern"],
+                    pattern_evidence,
+                    timing_context,
+                    transit_themes.active_themes,
+                    fallback_mode
+                )
+                
+                personal_pattern = build_personal_pattern_layer(
+                    cached["pattern"], signals, pattern_evidence, cached_scores
+                )
+                
+                timing_amplifier = build_timing_amplifier_layer(
+                    transit_themes, cached_scores, timing_context
+                )
+                
                 return {
+                    # ===== V2 LAYERED STRUCTURE =====
+                    "personal_pattern": personal_pattern,
+                    "timing_amplifier": timing_amplifier,
+                    "narrative": signals_first_narrative,
+                    "evidence": pattern_evidence,
+                    
+                    # ===== LEGACY FIELDS =====
                     "pattern": cached["pattern"],
+                    "pattern_id": cached_pattern_id,
                     "cached": True,
                     "generated_at": cached["generated_at"],
                     "signal_strength": cached.get("signal_strength", "weak"),
                     "signals_by_source": signals_by_source,
                     "timing_context": timing_context,
                     "active_themes": transit_themes.active_themes[:3],
+                    "scores": cached_scores,
                     "personal_activations": personal_activations,
                     "unified_narrative": unified_narrative,
                 }
@@ -1596,19 +2000,22 @@ async def generate_pattern_mirror(
     if not pattern:
         return get_fallback_pattern(signals, transit_themes)
     
-    # STEP 5: Generate signals by source
+    # STEP 5: Generate TRUE evidence (actual matches, not post-hoc)
+    pattern_evidence = generate_true_evidence(signals, selected_pattern_id, pattern)
+    
+    # STEP 6: Generate signals by source (legacy, for backwards compatibility)
     signals_by_source = generate_signals_by_source(signals, pattern)
     
-    # STEP 6: ALWAYS add timing signals (pass transit score for priority rule)
+    # STEP 7: ALWAYS add timing signals (pass transit score for priority rule)
     transit_score = scores.get("transit", 0.0)
     timing_signals = generate_timing_signals(transit_themes, transit_score)
     if timing_signals:
         signals_by_source["timing"] = timing_signals
     
-    # STEP 7: Generate timing context
+    # STEP 8: Generate timing context
     timing_context = generate_timing_context(transit_themes)
     
-    # STEP 8: Compute personal activations (Venus Sequence mapping)
+    # STEP 9: Compute personal activations (Venus Sequence mapping)
     user_profile = await get_user_profile(db, user_id)
     personal_activations = compute_personal_activations(
         user_profile,
@@ -1616,7 +2023,17 @@ async def generate_pattern_mirror(
         transit_score
     )
     
-    # STEP 9: Build UNIFIED NARRATIVE (single coherent reflection)
+    # STEP 10: Build SIGNALS-FIRST NARRATIVE (V2)
+    fallback_mode = scores.get("fallback_mode", False)
+    signals_first_narrative = build_signals_first_narrative(
+        pattern,
+        pattern_evidence,
+        timing_context,
+        transit_themes.active_themes,
+        fallback_mode
+    )
+    
+    # STEP 10b: Build legacy unified narrative (for backwards compatibility)
     unified_narrative = build_unified_narrative(
         pattern,
         signals_by_source,
@@ -1625,7 +2042,29 @@ async def generate_pattern_mirror(
         transit_themes.active_themes
     )
     
-    # STEP 10: Cache the result
+    # STEP 11: Build V2 layered response structure
+    personal_pattern = build_personal_pattern_layer(
+        pattern, signals, pattern_evidence, scores
+    )
+    
+    timing_amplifier = build_timing_amplifier_layer(
+        transit_themes, scores, timing_context
+    )
+    
+    # STEP 12: Compute debug data
+    signal_only_ranking = compute_signal_only_ranking(signals, transit_themes)
+    final_ranking = scores.get("top_candidates", [])
+    timing_impact = determine_timing_impact(signal_only_ranking, final_ranking, selected_pattern_id)
+    
+    debug_data = {
+        "signal_only_top3": signal_only_ranking[:3],
+        "final_top3": final_ranking[:3],
+        "timing_impact": timing_impact,
+        "fallback_mode": fallback_mode,
+        "signal_strength": signals["signal_strength"],
+    }
+    
+    # STEP 13: Cache the result
     try:
         await db.pattern_mirror_cache.update_one(
             {"user_id": user_id, "date": datetime.now(timezone.utc).strftime('%Y-%m-%d')},
@@ -1638,6 +2077,7 @@ async def generate_pattern_mirror(
                     "scores": scores,
                     "personal_activations": personal_activations,
                     "unified_narrative": unified_narrative,
+                    "pattern_evidence": pattern_evidence,
                 }
             },
             upsert=True
@@ -1645,8 +2085,18 @@ async def generate_pattern_mirror(
     except Exception as e:
         logger.warning(f"[PatternMirror] Cache write failed: {e}")
     
+    # V2 RESPONSE: Two-layer structure with clear separation
     return {
+        # ===== V2 LAYERED STRUCTURE =====
+        "personal_pattern": personal_pattern,
+        "timing_amplifier": timing_amplifier,
+        "narrative": signals_first_narrative,
+        "evidence": pattern_evidence,
+        "debug": debug_data,
+        
+        # ===== LEGACY FIELDS (backwards compatibility) =====
         "pattern": pattern,
+        "pattern_id": selected_pattern_id,
         "cached": False,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "signal_strength": signals["signal_strength"],
