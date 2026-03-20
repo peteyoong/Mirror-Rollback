@@ -1497,13 +1497,13 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
             ENNEAGRAM STRUCTURE
           </Text>
           
-          {/* JSON-Driven Enneagram Wheel Component - compact size */}
+          {/* Classic Enneagram Wheel with inner geometry */}
           <EnneagramWheel
             coreType={core}
             wing={wingNum}
-            size={220}
-            showArrows={true}
-            compact={true}
+            size={260}
+            showLabels={true}
+            compact={false}
           />
         </View>
 
