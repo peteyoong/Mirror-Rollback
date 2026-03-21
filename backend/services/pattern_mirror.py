@@ -1633,6 +1633,278 @@ V105_PHRASE_REPLACEMENTS = {
     "something wants to": "part of you wants to",
 }
 
+# ============================================================================
+# V10.6: SHORT-TERM MEMORY & CONTINUITY SYSTEM
+# ============================================================================
+# Adds awareness of recent patterns to make daily cards feel connected.
+# Goal: Users feel progression, not repetition.
+#
+# Input: Last 1-3 surfaced patterns, last core insight, last frame_type
+# Output: Subtle continuity language (1 short phrase max)
+# 
+# Only applied when:
+# - Same or related pattern appears
+# - Strong signal continuity exists
+# ============================================================================
+
+# Pattern similarity mapping - which patterns are related
+RELATED_PATTERNS = {
+    "relational_reopening": ["heart_thaw", "relational_weight", "testing_trust"],
+    "heart_thaw": ["relational_reopening", "testing_trust", "somethings_here"],
+    "threshold_standing": ["expansion_resistance", "somethings_here", "moving_through"],
+    "expansion_resistance": ["threshold_standing", "over_functioning_hero", "somethings_here"],
+    "moving_through": ["somethings_here", "threshold_standing", "emotional_wave_riding"],
+    "somethings_here": ["moving_through", "heart_thaw", "threshold_standing"],
+    "emotional_wave_riding": ["moving_through", "somethings_here", "relational_weight"],
+    "over_functioning_hero": ["expansion_resistance", "threshold_standing"],
+    "relational_weight": ["relational_reopening", "heart_thaw", "emotional_wave_riding"],
+    "testing_trust": ["relational_reopening", "heart_thaw"],
+}
+
+# Frame similarity mapping
+RELATED_FRAMES = {
+    "edge_of_action": ["testing_the_waters", "clarity_arriving"],
+    "grief_underneath": ["something_surfacing", "holding_back"],
+    "here_again": ["something_different", "testing_the_waters"],
+    "holding_back": ["testing_the_waters", "grief_underneath"],
+    "something_surfacing": ["clarity_arriving", "grief_underneath"],
+    "clarity_arriving": ["edge_of_action", "something_surfacing"],
+    "testing_the_waters": ["edge_of_action", "holding_back", "here_again"],
+    "something_different": ["here_again", "edge_of_action"],
+}
+
+# Continuity phrases - subtle, one-liner additions
+CONTINUITY_PHRASES = {
+    # Same pattern recurring
+    "same_pattern": [
+        "This has been present for a few days now.",
+        "You've been sitting with this recently.",
+        "This continues to surface.",
+    ],
+    # Related pattern emerging
+    "related_pattern": [
+        "This connects to what you were noticing before.",
+        "There's a thread here from recent days.",
+        "This seems to be building on something earlier.",
+    ],
+    # Same frame type recurring
+    "same_frame": [
+        "The same energy is still present.",
+        "This tone continues.",
+        "You're still in this space.",
+    ],
+    # Related frame emerging
+    "related_frame": [
+        "The feeling is shifting but connected.",
+        "This is moving from where you were.",
+        "Something is evolving from before.",
+    ],
+    # Strong signal continuity (e.g., grief persisting)
+    "signal_continuity": [
+        "What you've been feeling is still here.",
+        "This continues to be present.",
+        "You're still holding this.",
+    ],
+}
+
+def detect_continuity(
+    current_pattern_id: str,
+    current_frame_type: str,
+    current_tones: Dict[str, float],
+    recent_history: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Detect if there's meaningful continuity with recent patterns.
+    
+    Args:
+        current_pattern_id: Today's selected pattern
+        current_frame_type: Today's frame type
+        current_tones: Today's signal tones
+        recent_history: Dict with recent_patterns, last_frame_type, last_tones
+    
+    Returns:
+        {
+            "has_continuity": bool,
+            "continuity_type": str or None,
+            "strength": float (0-1),
+            "details": str
+        }
+    """
+    if not recent_history:
+        return {"has_continuity": False, "continuity_type": None, "strength": 0, "details": ""}
+    
+    recent_patterns = recent_history.get("recent_patterns", [])
+    last_frame = recent_history.get("last_frame_type", "")
+    last_tones = recent_history.get("last_tones", {})
+    
+    # Check for same pattern recurring
+    if current_pattern_id in recent_patterns:
+        return {
+            "has_continuity": True,
+            "continuity_type": "same_pattern",
+            "strength": 0.9,
+            "details": f"Pattern '{current_pattern_id}' appeared recently"
+        }
+    
+    # Check for related pattern
+    related = RELATED_PATTERNS.get(current_pattern_id, [])
+    for recent in recent_patterns:
+        if recent in related:
+            return {
+                "has_continuity": True,
+                "continuity_type": "related_pattern",
+                "strength": 0.7,
+                "details": f"Pattern '{current_pattern_id}' relates to recent '{recent}'"
+            }
+    
+    # Check for same frame type
+    if current_frame_type and current_frame_type == last_frame:
+        return {
+            "has_continuity": True,
+            "continuity_type": "same_frame",
+            "strength": 0.8,
+            "details": f"Frame '{current_frame_type}' continues"
+        }
+    
+    # Check for related frame
+    related_frames = RELATED_FRAMES.get(current_frame_type, [])
+    if last_frame in related_frames:
+        return {
+            "has_continuity": True,
+            "continuity_type": "related_frame",
+            "strength": 0.6,
+            "details": f"Frame shifted from '{last_frame}' to related '{current_frame_type}'"
+        }
+    
+    # Check for strong signal continuity
+    if last_tones and current_tones:
+        # Find strongest current tone
+        strongest_current = max(current_tones.items(), key=lambda x: x[1], default=(None, 0))
+        if strongest_current[0] and strongest_current[1] >= 0.5:
+            # Check if same tone was strong before
+            last_value = last_tones.get(strongest_current[0], 0)
+            if last_value >= 0.4:
+                return {
+                    "has_continuity": True,
+                    "continuity_type": "signal_continuity",
+                    "strength": 0.65,
+                    "details": f"Signal '{strongest_current[0]}' persists ({last_value:.1f} -> {strongest_current[1]:.1f})"
+                }
+    
+    return {"has_continuity": False, "continuity_type": None, "strength": 0, "details": ""}
+
+
+def generate_continuity_phrase(continuity_info: Dict[str, Any], user_id: str = "") -> str:
+    """
+    Generate a subtle continuity phrase based on detected continuity.
+    
+    Returns empty string if no continuity or to add variety.
+    Max: 1 short phrase.
+    """
+    if not continuity_info.get("has_continuity"):
+        return ""
+    
+    continuity_type = continuity_info.get("continuity_type", "")
+    strength = continuity_info.get("strength", 0)
+    
+    # Only apply when strength is meaningful
+    if strength < 0.5:
+        return ""
+    
+    # Get phrase options for this type
+    phrases = CONTINUITY_PHRASES.get(continuity_type, [])
+    if not phrases:
+        return ""
+    
+    # Select phrase based on user_id hash for consistency
+    idx = hash(f"{user_id}_{continuity_type}") % len(phrases)
+    return phrases[idx]
+
+
+def apply_continuity_to_why_now(why_now_text: str, continuity_phrase: str) -> str:
+    """
+    Apply continuity phrase to the why_now section.
+    Keeps it subtle - prepends as a short intro clause.
+    """
+    if not continuity_phrase:
+        return why_now_text
+    
+    # Don't duplicate if phrase is already similar
+    if any(word in why_now_text.lower() for word in ["continuing", "recent", "before", "earlier", "still"]):
+        return why_now_text
+    
+    # Prepend continuity phrase
+    return f"{continuity_phrase} {why_now_text}"
+
+
+async def fetch_recent_pattern_history(db, user_id: str, days: int = 3) -> Dict[str, Any]:
+    """
+    Fetch recent pattern history for continuity detection.
+    
+    Returns:
+        {
+            "recent_patterns": list of pattern_ids from last N days,
+            "last_frame_type": frame_type from most recent card,
+            "last_core_insight": core insight text from most recent card,
+            "last_tones": signal tones from most recent card,
+            "history_count": number of historical entries found
+        }
+    """
+    from datetime import timedelta
+    
+    try:
+        # Get pattern cache entries from recent days
+        today = datetime.now(timezone.utc)
+        cutoff = today - timedelta(days=days)
+        
+        # Find recent entries (excluding today)
+        recent_entries = await db.pattern_mirror_cache.find({
+            "user_id": user_id,
+            "date": {
+                "$gte": cutoff.strftime('%Y-%m-%d'),
+                "$lt": today.strftime('%Y-%m-%d')  # Exclude today
+            }
+        }).sort("date", -1).to_list(length=days)
+        
+        if not recent_entries:
+            return {
+                "recent_patterns": [],
+                "last_frame_type": "",
+                "last_core_insight": "",
+                "last_tones": {},
+                "history_count": 0
+            }
+        
+        # Extract pattern IDs
+        recent_patterns = [
+            entry.get("pattern_id", "") 
+            for entry in recent_entries 
+            if entry.get("pattern_id")
+        ]
+        
+        # Get details from most recent entry
+        most_recent = recent_entries[0]
+        last_frame_type = most_recent.get("frame_type", "")
+        last_core_insight = most_recent.get("core_insight", "")
+        last_tones = most_recent.get("signal_tones", {})
+        
+        return {
+            "recent_patterns": recent_patterns,
+            "last_frame_type": last_frame_type,
+            "last_core_insight": last_core_insight,
+            "last_tones": last_tones,
+            "history_count": len(recent_entries)
+        }
+    except Exception as e:
+        logger.warning(f"[V10.6] Failed to fetch recent history: {e}")
+        return {
+            "recent_patterns": [],
+            "last_frame_type": "",
+            "last_core_insight": "",
+            "last_tones": {},
+            "history_count": 0
+        }
+
 # --- HEDGING LANGUAGE BY CONFIDENCE ---
 
 CONFIDENCE_HEDGES = {
@@ -4884,18 +5156,22 @@ def build_two_layer_mirror_output(
     signals_extended: Dict[str, Any],
     transit_themes: Any,
     user_profile: Optional[Dict[str, Any]] = None,
-    bazi_chart: Optional[Dict[str, Any]] = None
+    bazi_chart: Optional[Dict[str, Any]] = None,
+    recent_history: Optional[Dict[str, Any]] = None,  # V10.6: For continuity
+    frame_type: str = ""  # V10.6: Current frame type
 ) -> Dict[str, Any]:
     """
     Build the V10 Three-Layer Mirror Output structure with CONTEXT-AWARE LANGUAGE.
     
     V10 Upgrade: Language now adapts to user signals instead of using static templates.
+    V10.6 Upgrade: Adds subtle continuity phrases when pattern/signal continuity detected.
     
     Layer A: CORE PATTERN (always visible)
     - One sharp, behaviorally meaningful sentence
     
     Layer B: WHY THIS MAY BE SHOWING UP (always visible)
     - 1-2 sentences explaining timing/activation (context-aware)
+    - V10.6: May include continuity phrase if relevant
     
     Layer C: HOW THIS WAS DERIVED (collapsible)
     - Structured cross-lens proof with plain language translations
@@ -4911,6 +5187,25 @@ def build_two_layer_mirror_output(
     user_id = ""
     if user_profile:
         user_id = str(user_profile.get("_id", ""))
+    
+    # ===== V10.6: DETECT CONTINUITY =====
+    continuity_info = {"has_continuity": False}
+    continuity_phrase = ""
+    
+    if recent_history:
+        # Extract current tones for comparison
+        current_tones = extract_signal_tones(signals_extended)
+        
+        continuity_info = detect_continuity(
+            current_pattern_id=pattern_id,
+            current_frame_type=frame_type,
+            current_tones=current_tones,
+            recent_history=recent_history
+        )
+        
+        if continuity_info.get("has_continuity"):
+            continuity_phrase = generate_continuity_phrase(continuity_info, user_id)
+            logger.info(f"[V10.6] Continuity detected: {continuity_info.get('continuity_type')} - '{continuity_phrase}'")
     
     # ===== LAYER A: CORE PATTERN (one sharp sentence) =====
     # Extract the core insight from daily angle or pattern summary
@@ -4932,6 +5227,10 @@ def build_two_layer_mirror_output(
         daily_angle,
         user_id
     )
+    
+    # V10.6: Apply continuity phrase to why_showing_up
+    if continuity_phrase:
+        why_showing_up = apply_continuity_to_why_now(why_showing_up, continuity_phrase)
     
     # ===== LAYER C: HOW THIS WAS DERIVED (cross-lens proof) =====
     # Build structured derivation from each contributing lens
@@ -4960,6 +5259,8 @@ def build_two_layer_mirror_output(
         "why_showing_up": {
             "text": why_showing_up,
             "is_timing_driven": timing_amplifier.get("timing_role") == "fallback",
+            "has_continuity": continuity_info.get("has_continuity", False),  # V10.6
+            "continuity_type": continuity_info.get("continuity_type", None),  # V10.6
         },
         "cross_lens_derivation": cross_lens_derivation,
         # V6 NEW: Usefulness layers
@@ -7420,6 +7721,11 @@ async def generate_pattern_mirror(
     # Also get regular signals for backwards compatibility
     signals = await aggregate_user_signals(db, user_id)
     
+    # V10.6: Fetch recent pattern history for continuity
+    recent_history = await fetch_recent_pattern_history(db, user_id, days=3)
+    if recent_history.get("history_count", 0) > 0:
+        logger.info(f"[V10.6] Recent history found: {recent_history['recent_patterns'][:3]}")
+    
     # STEP 2b: Compute signal clustering (V3/V4) using memory window
     # Build combined signals for clustering
     memory_signals = {
@@ -7561,6 +7867,7 @@ async def generate_pattern_mirror(
     )
     
     # V5: Build two-layer mirror output (Insight + Cross-Lens Proof)
+    # V10.6: Pass recent_history for continuity detection
     two_layer_output = build_two_layer_mirror_output(
         pattern=pattern,
         pattern_id=selected_pattern_id,
@@ -7571,7 +7878,9 @@ async def generate_pattern_mirror(
         signals_extended=signals_extended,
         transit_themes=transit_themes,
         user_profile=user_profile,
-        bazi_chart=None  # Will be populated if available
+        bazi_chart=None,  # Will be populated if available
+        recent_history=recent_history,  # V10.6: For continuity
+        frame_type=""  # V10.6: Frame type (extracted inside function)
     )
     
     # Selection debug - V4 enhanced with two-timescale data
@@ -7609,6 +7918,10 @@ async def generate_pattern_mirror(
     }
     
     # STEP 13: Cache the result
+    # V10.6: Also cache frame_type and signal_tones for continuity detection
+    current_tones = extract_signal_tones(signals_extended)
+    frame_type = two_layer_output.get("why_showing_up", {}).get("continuity_type", "")
+    
     try:
         await db.pattern_mirror_cache.update_one(
             {"user_id": user_id, "date": datetime.now(timezone.utc).strftime('%Y-%m-%d')},
@@ -7624,6 +7937,10 @@ async def generate_pattern_mirror(
                     "pattern_evidence": pattern_evidence,
                     "core_pattern_memory": core_pattern_memory,
                     "daily_angle": daily_angle,
+                    # V10.6: Store for continuity detection
+                    "signal_tones": current_tones,
+                    "frame_type": frame_type,
+                    "core_insight": two_layer_output.get("core_insight", {}).get("text", ""),
                 }
             },
             upsert=True
