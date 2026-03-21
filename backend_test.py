@@ -10,7 +10,7 @@ import time
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://language-v10.preview.emergentagent.com/api"
+BASE_URL = "https://resonance-check-v7.preview.emergentagent.com/api"
 TEST_USER_ID = "697f0c6abf35c0528ff06954"
 
 def test_pattern_mirror_v10():
