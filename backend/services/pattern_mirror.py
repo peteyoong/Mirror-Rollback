@@ -1179,6 +1179,45 @@ FRAME_COMPATIBLE_FRAMINGS = {
 # Core shift: compatible frame selection >>> competitive frame ranking
 # ============================================================================
 
+# V10.5: QUALITY CALIBRATION CONSTANTS
+# ============================================================================
+# Tuned thresholds and scoring weights to produce meaningful confidence 
+# distribution across high/medium/low signal scenarios.
+#
+# Key changes from V10.4:
+# - Stronger primary signal weights (+4.0 for strong, +3.0 for moderate)
+# - Adjusted confidence thresholds (HIGH > 1.5, MEDIUM > 0.5)
+# - Reduced over-penalization from conflicting signals
+# - Bonus for reinforcing signal pairs increased
+# ============================================================================
+
+V105_CONFIDENCE_THRESHOLDS = {
+    "high": 1.5,     # Margin > 1.5 = HIGH confidence (was 2.0)
+    "medium": 0.5,   # Margin > 0.5 = MEDIUM confidence (was 1.0)
+    # Below 0.5 = LOW confidence
+}
+
+V105_SCORING_WEIGHTS = {
+    "primary_strong": 4.0,      # Tone > 0.5 (was 3.0)
+    "primary_moderate": 3.0,    # Tone > 0.25 (was 2.0)
+    "secondary_strong": 2.0,    # (was 1.5)
+    "secondary_moderate": 1.5,  # (was 1.0)
+    "negative_strong": -1.5,    # (was -2.0) - reduced penalty
+    "negative_moderate": -0.5,  # (was -1.0) - reduced penalty
+    "lifeline_strong": 2.5,     # (was 2.0)
+    "lifeline_moderate": 2.0,   # (was 1.5)
+    "pattern_strong": 2.5,      # (was 2.0)
+    "pattern_moderate": 1.5,    # (was 1.0)
+    "pattern_weak": -0.5,       # (was -1.0) - reduced penalty
+    "reinforcing_pair": 1.5,    # (was 1.0) - increased bonus
+    "conflicting_pair": -0.25,  # (was -0.5) - reduced penalty
+}
+
+V105_TONE_THRESHOLDS = {
+    "strong": 0.5,   # Tone value >= 0.5 is strong (was 0.4)
+    "moderate": 0.25, # Tone value >= 0.25 is moderate (was 0.2)
+}
+
 # --- FRAME SIGNAL AFFINITIES ---
 # Primary and secondary signal affinities for each frame, with weights
 
@@ -1333,22 +1372,26 @@ def score_frame(
     """
     Calculate a competitive score for a frame based on signal strength and context.
     
-    Scoring:
-    - +3.0 per strong primary signal match (tone > 0.4)
-    - +2.0 per moderate primary signal match (tone > 0.2)
-    - +1.5 per strong secondary signal match (tone > 0.4)
-    - +1.0 per moderate secondary signal match (tone > 0.2)
-    - -2.0 per strong negative signal (tone > 0.4)
-    - -1.0 per moderate negative signal (tone > 0.2)
-    - +2.0 if lifeline pattern strongly supports frame
-    - +2.0 if pattern archetype strongly aligns
-    - +1.0 if pattern archetype moderately aligns
-    - -1.0 if pattern archetype weakly aligns
-    - +1.0 per reinforcing signal pair present
-    - -0.5 per conflicting signal pair present
+    V10.5 CALIBRATED SCORING:
+    - +4.0 per strong primary signal match (tone >= 0.5)
+    - +3.0 per moderate primary signal match (tone >= 0.25)
+    - +2.0 per strong secondary signal match (tone >= 0.5)
+    - +1.5 per moderate secondary signal match (tone >= 0.25)
+    - -1.5 per strong negative signal (tone >= 0.5) [reduced from -2.0]
+    - -0.5 per moderate negative signal (tone >= 0.25) [reduced from -1.0]
+    - +2.5 if lifeline pattern strongly supports frame
+    - +2.5 if pattern archetype strongly aligns
+    - +1.5 if pattern archetype moderately aligns
+    - -0.5 if pattern archetype weakly aligns [reduced from -1.0]
+    - +1.5 per reinforcing signal pair present [increased from 1.0]
+    - -0.25 per conflicting signal pair present [reduced from -0.5]
     
     Returns dict with score breakdown for debugging.
     """
+    # Use V10.5 calibrated weights
+    W = V105_SCORING_WEIGHTS
+    T = V105_TONE_THRESHOLDS
+    
     weights = FRAME_SIGNAL_WEIGHTS.get(frame_type, {})
     primary_signals = weights.get("primary", [])
     secondary_signals = weights.get("secondary", [])
@@ -1366,88 +1409,88 @@ def score_frame(
         "total_score": 0,
     }
     
-    # --- Primary signal scoring ---
+    # --- Primary signal scoring (V10.5) ---
     for signal in primary_signals:
         tone_value = tones.get(signal, 0)
         # Special handling for repeated_cycles (comes from lifeline_patterns)
         if signal == "repeated_cycles" and "repeated_cycles" in lifeline_patterns:
-            tone_value = 0.6  # Treat as strong signal
+            tone_value = 0.7  # Treat as strong signal (increased from 0.6)
         
-        if tone_value > 0.4:
-            score += 3.0
-            breakdown["primary_matches"].append((signal, tone_value, 3.0))
-        elif tone_value > 0.2:
-            score += 2.0
-            breakdown["primary_matches"].append((signal, tone_value, 2.0))
+        if tone_value >= T["strong"]:
+            score += W["primary_strong"]
+            breakdown["primary_matches"].append((signal, tone_value, W["primary_strong"]))
+        elif tone_value >= T["moderate"]:
+            score += W["primary_moderate"]
+            breakdown["primary_matches"].append((signal, tone_value, W["primary_moderate"]))
     
-    # --- Secondary signal scoring ---
+    # --- Secondary signal scoring (V10.5) ---
     for signal in secondary_signals:
         tone_value = tones.get(signal, 0)
         if signal == "repeated_cycles" and "repeated_cycles" in lifeline_patterns:
-            tone_value = 0.6
+            tone_value = 0.7
         
-        if tone_value > 0.4:
-            score += 1.5
-            breakdown["secondary_matches"].append((signal, tone_value, 1.5))
-        elif tone_value > 0.2:
-            score += 1.0
-            breakdown["secondary_matches"].append((signal, tone_value, 1.0))
+        if tone_value >= T["strong"]:
+            score += W["secondary_strong"]
+            breakdown["secondary_matches"].append((signal, tone_value, W["secondary_strong"]))
+        elif tone_value >= T["moderate"]:
+            score += W["secondary_moderate"]
+            breakdown["secondary_matches"].append((signal, tone_value, W["secondary_moderate"]))
     
-    # --- Negative signal scoring ---
+    # --- Negative signal scoring (V10.5 - reduced penalties) ---
     for signal in negative_signals:
         tone_value = tones.get(signal, 0)
-        if tone_value > 0.4:
-            score -= 2.0
-            breakdown["negative_matches"].append((signal, tone_value, -2.0))
-        elif tone_value > 0.2:
-            score -= 1.0
-            breakdown["negative_matches"].append((signal, tone_value, -1.0))
+        if tone_value >= T["strong"]:
+            score += W["negative_strong"]  # Negative value
+            breakdown["negative_matches"].append((signal, tone_value, W["negative_strong"]))
+        elif tone_value >= T["moderate"]:
+            score += W["negative_moderate"]  # Negative value
+            breakdown["negative_matches"].append((signal, tone_value, W["negative_moderate"]))
     
-    # --- Lifeline pattern support ---
+    # --- Lifeline pattern support (V10.5 - increased bonuses) ---
     if "repeated_cycles" in lifeline_patterns:
         if frame_type in ["here_again", "something_different"]:
-            score += 2.0
-            breakdown["lifeline_bonus"] = 2.0
+            score += W["lifeline_strong"]
+            breakdown["lifeline_bonus"] = W["lifeline_strong"]
     
     # Check for other lifeline patterns that support frames
     if "delayed_action" in lifeline_patterns:
         if frame_type in ["holding_back", "testing_the_waters"]:
-            score += 1.5
-            breakdown["lifeline_bonus"] += 1.5
+            score += W["lifeline_moderate"]
+            breakdown["lifeline_bonus"] += W["lifeline_moderate"]
     
     if "breakthrough_moments" in lifeline_patterns:
         if frame_type in ["edge_of_action", "something_different", "clarity_arriving"]:
-            score += 1.5
-            breakdown["lifeline_bonus"] += 1.5
+            score += W["lifeline_moderate"]
+            breakdown["lifeline_bonus"] += W["lifeline_moderate"]
     
-    # --- Pattern archetype alignment ---
+    # --- Pattern archetype alignment (V10.5) ---
     affinities = PATTERN_FRAME_AFFINITIES.get(pattern_id, {})
     if frame_type in affinities.get("strong", []):
-        score += 2.0
-        breakdown["pattern_alignment"] = 2.0
+        score += W["pattern_strong"]
+        breakdown["pattern_alignment"] = W["pattern_strong"]
     elif frame_type in affinities.get("moderate", []):
-        score += 1.0
-        breakdown["pattern_alignment"] = 1.0
+        score += W["pattern_moderate"]
+        breakdown["pattern_alignment"] = W["pattern_moderate"]
     elif frame_type in affinities.get("weak", []):
-        score -= 1.0
-        breakdown["pattern_alignment"] = -1.0
+        score += W["pattern_weak"]  # Negative value
+        breakdown["pattern_alignment"] = W["pattern_weak"]
     
-    # --- Signal consistency scoring ---
-    active_signals = [s for s, v in tones.items() if v > 0.2]
+    # --- Signal consistency scoring (V10.5) ---
+    active_signals = [s for s, v in tones.items() if v >= T["moderate"]]
     if "repeated_cycles" in lifeline_patterns:
         active_signals.append("repeated_cycles")
     
-    # Reinforcing pairs bonus
+    # Reinforcing pairs bonus (increased)
     for pair in REINFORCING_SIGNAL_PAIRS:
         if pair[0] in active_signals and pair[1] in active_signals:
-            score += 1.0
-            breakdown["consistency_bonus"] += 1.0
+            score += W["reinforcing_pair"]
+            breakdown["consistency_bonus"] += W["reinforcing_pair"]
     
-    # Conflicting pairs penalty (smaller than reinforcing bonus)
+    # Conflicting pairs penalty (reduced)
     for pair in CONFLICTING_SIGNAL_PAIRS:
         if pair[0] in active_signals and pair[1] in active_signals:
-            score -= 0.5
-            breakdown["consistency_bonus"] -= 0.5
+            score += W["conflicting_pair"]  # Negative value
+            breakdown["consistency_bonus"] += W["conflicting_pair"]
     
     breakdown["total_score"] = round(score, 2)
     
@@ -1499,11 +1542,12 @@ def select_best_frame(
     
     Returns (best_frame_type, debug_info).
     
+    V10.5 CALIBRATED THRESHOLDS:
     Debug info includes:
     - all_candidates: ranked list of all frame scores
     - winner: the selected frame
     - margin: score difference from second place
-    - confidence: "high" if margin > 2.0, "medium" if > 1.0, "low" otherwise
+    - confidence: "high" if margin > 1.5, "medium" if > 0.5, "low" otherwise
     """
     # Get ranked frames
     ranked_frames = rank_candidate_frames(
@@ -1518,12 +1562,13 @@ def select_best_frame(
     winner = ranked_frames[0]
     runner_up = ranked_frames[1] if len(ranked_frames) > 1 else None
     
-    # Calculate margin and confidence
+    # Calculate margin and confidence using V10.5 calibrated thresholds
     margin = winner["total_score"] - (runner_up["total_score"] if runner_up else 0)
     
-    if margin > 2.0:
+    THRESHOLDS = V105_CONFIDENCE_THRESHOLDS
+    if margin > THRESHOLDS["high"]:
         confidence = "high"
-    elif margin > 1.0:
+    elif margin > THRESHOLDS["medium"]:
         confidence = "medium"
     else:
         confidence = "low"
@@ -1561,6 +1606,33 @@ def select_best_frame(
 # Core insight: Confidence shapes EXPRESSION, not just selection.
 # ============================================================================
 
+# V10.5: BANNED VAGUE PHRASES
+# ============================================================================
+# These phrases should be avoided or replaced with more concrete language.
+# Used for validation and automatic replacement.
+# ============================================================================
+
+V105_BANNED_PHRASES = [
+    "something is stirring",
+    "something is present",
+    "something is moving",
+    "something wants to",
+    "something in the air",
+    "something is shifting",
+    "the universe",
+    "energy is",
+    "vibration",
+    "alignment",
+    "being called",
+]
+
+V105_PHRASE_REPLACEMENTS = {
+    "something is stirring": "you may be sensing",
+    "something is present": "there's a feeling present",
+    "something is moving": "a shift is underway",
+    "something wants to": "part of you wants to",
+}
+
 # --- HEDGING LANGUAGE BY CONFIDENCE ---
 
 CONFIDENCE_HEDGES = {
@@ -1586,6 +1658,7 @@ CONFIDENCE_HEDGES = {
 
 # --- DUAL-FRAME TEMPLATES ---
 # Used when confidence is LOW to express both winning and runner-up frames
+# V10.5: Removed vague phrases like "Something is stirring"
 
 DUAL_FRAME_TEMPLATES = {
     # Core insight templates - combine two tendencies
@@ -1595,10 +1668,10 @@ DUAL_FRAME_TEMPLATES = {
         "You may be {frame1_gerund}—and at the same time, {frame2_gerund}.",
         "{frame1_sentence} And yet, {frame2_sentence_lower}",
     ],
-    # Why now templates
+    # Why now templates - V10.5: replaced vague "Something is stirring"
     "why_now": [
         "This may be surfacing because {frame1_reason}—though {frame2_reason} is also present.",
-        "Something is stirring: {frame1_short}, but also {frame2_short}.",
+        "You may be sensing both {frame1_short} and {frame2_short}.",
         "The timing seems to be highlighting both {frame1_noun} and {frame2_noun}.",
     ],
     # Friction templates
@@ -1607,10 +1680,10 @@ DUAL_FRAME_TEMPLATES = {
         "Part of the difficulty is {frame1_friction}, while also {frame2_friction}.",
         "The friction may be coming from {frame1_source}—but also from {frame2_source}.",
     ],
-    # Practical templates  
+    # Practical templates - V10.5: made more actionable
     "practical": [
-        "Notice both: {frame1_action}, and {frame2_action}.",
-        "Try holding both: {frame1_practice} while also {frame2_practice}.",
+        "Try noticing both: {frame1_action}, and {frame2_action}.",
+        "Pause to hold both: {frame1_practice} while also {frame2_practice}.",
         "Give space to {frame1_need}—without abandoning {frame2_need}.",
     ],
 }
@@ -1633,16 +1706,16 @@ FRAME_EXPRESSION_COMPONENTS = {
         "need": "the readiness",
     },
     "testing_the_waters": {
-        "verb": "wants to test whether this is safe",
+        "verb": "wants to check if this is safe",
         "noun": "caution",
-        "gerund": "checking whether it's okay to proceed",
-        "sentence": "Part of you is testing whether this is safe.",
+        "gerund": "checking if it's okay to proceed",
+        "sentence": "Part of you is checking if this is safe.",
         "reason": "you're checking the ground before stepping",
         "short": "careful exploration",
         "friction": "needing more certainty first",
         "source": "wanting to be sure",
         "action": "where you're hesitating",
-        "practice": "noticing what you're testing for",
+        "practice": "noticing what you're cautious about",
         "need": "the hesitation",
     },
     "walls_questioning": {
@@ -1672,12 +1745,12 @@ FRAME_EXPRESSION_COMPONENTS = {
         "need": "the grief",
     },
     "something_surfacing": {
-        "verb": "is noticing something emerging",
+        "verb": "is sensing something emerging",
         "noun": "emergence",
-        "gerund": "sensing something not yet named",
-        "sentence": "Something is surfacing that doesn't have a name yet.",
-        "reason": "something unnamed is becoming visible",
-        "short": "something emerging",
+        "gerund": "sensing what's not yet named",
+        "sentence": "A feeling is surfacing that doesn't have a name yet.",
+        "reason": "an unnamed feeling is becoming visible",
+        "short": "an emerging awareness",
         "friction": "not being able to name it clearly",
         "source": "the unknown",
         "action": "what's trying to surface",
@@ -1688,7 +1761,7 @@ FRAME_EXPRESSION_COMPONENTS = {
         "verb": "is starting to see clearly",
         "noun": "clarity",
         "gerund": "recognizing what's been true",
-        "sentence": "Something is becoming clear that wasn't before.",
+        "sentence": "A clarity is arriving that wasn't there before.",
         "reason": "understanding is arriving",
         "short": "growing clarity",
         "friction": "knowing but not acting yet",
@@ -1763,12 +1836,12 @@ FRAME_EXPRESSION_COMPONENTS = {
         "need": "the letting go",
     },
     "holding_back": {
-        "verb": "is containing something that wants to move",
+        "verb": "is containing what wants to move",
         "noun": "containment",
         "gerund": "holding back what wants to come out",
-        "sentence": "Something is being held back that wants to move.",
+        "sentence": "You may be holding back what wants to move.",
         "reason": "containment is becoming harder",
-        "short": "held-back energy",
+        "short": "held-back expression",
         "friction": "not letting it out",
         "source": "what's being suppressed",
         "action": "what you're containing",
@@ -2195,7 +2268,7 @@ WHY_NOW_STRUCTURES = {
             {
                 "framing": "testing",
                 "affinities": ["hesitation", "resistance"],
-                "text": "You're testing whether it's safe to feel again, one small moment at a time.",
+                "text": "You're checking if it's safe to feel again, one careful moment at a time.",
             },
             {
                 "framing": "grief_aware",
@@ -2205,12 +2278,12 @@ WHY_NOW_STRUCTURES = {
             {
                 "framing": "pressure",
                 "affinities": ["pressure", "clarity"],
-                "text": "Something is pressing against the walls—not forcing, but persistent.",
+                "text": "Warmth is pressing against the walls—not forcing, but persistent.",
             },
             {
                 "framing": "confusion",
                 "affinities": ["confusion"],
-                "text": "You're not sure if you're ready, but something is thawing anyway.",
+                "text": "You're not sure if you're ready, but a thaw is happening anyway.",
             },
         ],
         "default": "Conditions may be supporting a quiet softening.",
@@ -2433,7 +2506,7 @@ FRICTION_STRUCTURES = {
             {
                 "framing": "testing",
                 "affinities": ["hesitation", "resistance"],
-                "text": "Part of you may still be testing whether softening is worth the risk.",
+                "text": "Part of you may still be checking if softening is worth the risk.",
             },
             {
                 "framing": "betrayal_fear",
@@ -2456,7 +2529,7 @@ FRICTION_STRUCTURES = {
                 "text": "Being guarded has become who you are. Softening feels like losing yourself.",
             },
         ],
-        "default": "Part of you may still be testing whether softening is worth the risk.",
+        "default": "Part of you may still be uncertain if softening is worth the risk.",
     },
     "inner_critic_override": {
         "structures": [
@@ -2526,17 +2599,17 @@ PRACTICAL_STRUCTURES = {
             {
                 "framing": "small_moment",
                 "affinities": ["hesitation", "warmth"],
-                "text": "Notice one small moment of connection today without evaluating it.",
+                "text": "Try letting one moment of connection land without analyzing it.",
             },
             {
                 "framing": "staying",
                 "affinities": ["resistance", "grief"],
-                "text": "When you feel the urge to pull back, try staying one beat longer.",
+                "text": "When you feel the urge to pull back, pause and stay one beat longer.",
             },
             {
                 "framing": "receiving",
                 "affinities": ["growth", "clarity"],
-                "text": "Let yourself receive something today—a compliment, help, or kindness—without deflecting.",
+                "text": "Let yourself receive one thing today—a compliment, help, or kindness—without deflecting.",
             },
             {
                 "framing": "honesty",
@@ -2546,17 +2619,17 @@ PRACTICAL_STRUCTURES = {
             {
                 "framing": "pattern_breaking",
                 "affinities": ["repeated_cycles"],
-                "text": "Do one thing differently than you did last time you were here.",
+                "text": "Do one thing differently than you did last time. This time might be different.",
             },
         ],
-        "default": "Let yourself notice one small moment of connection without immediately evaluating it.",
+        "default": "Let yourself receive one moment of connection without immediately evaluating it.",
     },
     "threshold_standing": {
         "structures": [
             {
                 "framing": "body_knowing",
                 "affinities": ["warmth", "hesitation"],
-                "text": "Check what your body already knows about this choice, before your mind weighs in.",
+                "text": "Ask your body what it already knows about this choice, before your mind weighs in.",
             },
             {
                 "framing": "small_step",
@@ -2566,32 +2639,32 @@ PRACTICAL_STRUCTURES = {
             {
                 "framing": "naming",
                 "affinities": ["clarity", "pressure"],
-                "text": "Name what you're actually afraid of losing by moving forward.",
+                "text": "Write down what you're actually afraid of losing by moving forward.",
             },
             {
                 "framing": "grief_honoring",
                 "affinities": ["grief", "growth"],
-                "text": "Give yourself permission to grieve what you're leaving behind, even as you go.",
+                "text": "Say goodbye to what you're leaving behind, even as you go.",
             },
             {
                 "framing": "pattern_breaking",
                 "affinities": ["repeated_cycles"],
-                "text": "Ask yourself what you'd do differently this time, even one small thing.",
+                "text": "Ask yourself: what would I do differently this time? Then try it.",
             },
         ],
-        "default": "Let yourself notice what already feels true before asking for more proof.",
+        "default": "Take one small action in the direction your body is already leaning.",
     },
     "over_functioning_hero": {
         "structures": [
             {
                 "framing": "good_enough",
                 "affinities": ["pressure", "growth"],
-                "text": "Let one thing be good enough today without fixing it further.",
+                "text": "Let one thing be good enough today. Don't fix it further.",
             },
             {
                 "framing": "not_doing",
                 "affinities": ["hesitation", "confusion"],
-                "text": "Practice not doing one thing you usually would. See what happens.",
+                "text": "Drop one thing you usually would do. See what happens when you don't catch it.",
             },
             {
                 "framing": "asking",
@@ -2606,32 +2679,32 @@ PRACTICAL_STRUCTURES = {
             {
                 "framing": "pattern_breaking",
                 "affinities": ["repeated_cycles"],
-                "text": "Let something fall that usually you'd catch. Watch what actually happens.",
+                "text": "Let something fall that you'd usually catch. Watch what actually happens.",
             },
         ],
-        "default": "Let one thing be good enough today without fixing it further.",
+        "default": "Let one thing be good enough today. Don't fix it further.",
     },
     "somethings_here": {
         "structures": [
             {
                 "framing": "naming",
                 "affinities": ["hesitation", "clarity"],
-                "text": "Name one feeling you notice right now, even if it's incomplete.",
+                "text": "Write down one feeling you notice right now, even if it's incomplete.",
             },
             {
                 "framing": "staying",
                 "affinities": ["resistance", "grief"],
-                "text": "Stay with the feeling for one minute without trying to change or understand it.",
+                "text": "Sit with the feeling for one minute. Don't try to change or understand it yet.",
             },
             {
                 "framing": "curiosity",
                 "affinities": ["warmth", "growth"],
-                "text": "Ask the feeling what it wants you to know, and listen without judging.",
+                "text": "Ask the feeling what it wants you to know. Listen without judging.",
             },
             {
                 "framing": "body",
                 "affinities": ["confusion", "pressure"],
-                "text": "Notice where in your body this feeling lives. Just locate it.",
+                "text": "Put your hand where in your body this feeling lives. Just locate it.",
             },
             {
                 "framing": "pattern_awareness",
@@ -2639,14 +2712,14 @@ PRACTICAL_STRUCTURES = {
                 "text": "Ask yourself: when have I felt this before? What was true then?",
             },
         ],
-        "default": "Name one feeling you notice right now, even if it's incomplete.",
+        "default": "Write down one feeling you notice right now, even if it's incomplete.",
     },
     "moving_through": {
         "structures": [
             {
                 "framing": "permission",
                 "affinities": ["grief", "warmth"],
-                "text": "Give yourself permission to feel what's actually here, not what you think you should feel.",
+                "text": "Say out loud: I give myself permission to feel what's actually here.",
             },
             {
                 "framing": "expression",
@@ -2661,22 +2734,22 @@ PRACTICAL_STRUCTURES = {
             {
                 "framing": "witnessing",
                 "affinities": ["clarity", "growth"],
-                "text": "Let someone witness what you're going through, even just one person.",
+                "text": "Tell one person what you're going through. Let them witness it.",
             },
             {
                 "framing": "pattern_breaking",
                 "affinities": ["repeated_cycles"],
-                "text": "This time, let yourself feel it all the way through. Don't stop at comfortable.",
+                "text": "This time, feel it all the way through. Don't stop at comfortable.",
             },
         ],
-        "default": "Give yourself permission to feel what's actually here, not what you think you should feel.",
+        "default": "Say out loud: I give myself permission to feel what's actually here.",
     },
     "heart_thaw": {
         "structures": [
             {
                 "framing": "unguarded",
                 "affinities": ["warmth", "growth"],
-                "text": "Allow yourself one unguarded thought today without rushing to protect it.",
+                "text": "Say one unguarded thought today without rushing to protect it.",
             },
             {
                 "framing": "risk",
@@ -2686,12 +2759,12 @@ PRACTICAL_STRUCTURES = {
             {
                 "framing": "receiving",
                 "affinities": ["grief", "clarity"],
-                "text": "Accept warmth from someone without explaining why you don't deserve it.",
+                "text": "Accept warmth from someone today without explaining why you don't deserve it.",
             },
             {
                 "framing": "softening",
                 "affinities": ["pressure", "confusion"],
-                "text": "When you notice yourself hardening, pause and take one slow breath.",
+                "text": "When you catch yourself hardening, pause and take one slow breath.",
             },
             {
                 "framing": "pattern_breaking",
@@ -2859,30 +2932,30 @@ CORE_INSIGHT_STRUCTURES = {
             {
                 "framing": "emergence",
                 "affinities": ["warmth", "growth"],
-                "text": "Something is present that wasn't before—still forming, not yet named, but real.",
+                "text": "A feeling is present that wasn't before—still forming, not yet named, but real.",
             },
             {
                 "framing": "fog",
                 "affinities": ["confusion", "hesitation"],
-                "text": "There's something here you can't quite see clearly yet, but you feel it.",
+                "text": "There's a feeling here you can't quite see clearly yet, but you sense it.",
             },
             {
                 "framing": "recognition",
                 "affinities": ["clarity"],
-                "text": "You're noticing something that's been there awhile. It just became impossible to ignore.",
+                "text": "You're noticing a feeling that's been there awhile. It just became impossible to ignore.",
             },
             {
                 "framing": "avoided",
                 "affinities": ["grief", "resistance"],
-                "text": "Something you've been avoiding is making itself known.",
+                "text": "A feeling you've been avoiding is making itself known.",
             },
             {
                 "framing": "underneath",
                 "affinities": ["pressure"],
-                "text": "Under everything else, something quieter is asking for your attention.",
+                "text": "Under everything else, a quieter feeling is asking for your attention.",
             },
         ],
-        "default": "Something is present that wasn't before—a feeling, an awareness, a shift.",
+        "default": "A feeling is present that wasn't before—an awareness, a shift.",
     },
     "moving_through": {
         "structures": [
@@ -2924,7 +2997,7 @@ CORE_INSIGHT_STRUCTURES = {
             {
                 "framing": "testing",
                 "affinities": ["hesitation", "resistance"],
-                "text": "You're testing whether it's safe to feel again, one small moment at a time.",
+                "text": "You're checking if it's safe to feel again, one careful moment at a time.",
             },
             {
                 "framing": "grief_aware",
@@ -2934,12 +3007,12 @@ CORE_INSIGHT_STRUCTURES = {
             {
                 "framing": "unwilled",
                 "affinities": ["confusion", "clarity"],
-                "text": "Something is thawing whether you intended it to or not.",
+                "text": "A thaw is happening, even if you didn't plan it.",
             },
             {
                 "framing": "pressure",
                 "affinities": ["pressure"],
-                "text": "Something is pressing against the walls—not forcing, but persistent.",
+                "text": "Warmth is pressing against the walls—not forcing, but persistent.",
             },
         ],
         "default": "Walls that have been up are starting to soften.",
@@ -3096,6 +3169,11 @@ def extract_signal_tones(signals_extended: Dict[str, Any]) -> Dict[str, float]:
     """
     Analyze signals to detect emotional/behavioral tones.
     
+    V10.5 CALIBRATION:
+    - Increased sensitivity: 2 matches = 0.5 (strong threshold)
+    - Better normalization to produce meaningful differentiation
+    - Each match contributes 0.25 (capped at 1.0)
+    
     Returns dict of tone -> strength (0-1) based on keyword matches.
     """
     tones = {tone: 0.0 for tone in SIGNAL_TONE_MARKERS}
@@ -3125,17 +3203,12 @@ def extract_signal_tones(signals_extended: Dict[str, Any]) -> Dict[str, float]:
     if not combined_text:
         return tones
     
-    # Count matches for each tone
-    total_matches = 0
+    # V10.5: More sensitive matching - count unique marker matches
+    # Each unique marker match contributes 0.25 to the tone score
     for tone, markers in SIGNAL_TONE_MARKERS.items():
         matches = sum(1 for marker in markers if marker in combined_text)
-        tones[tone] = matches
-        total_matches += matches
-    
-    # Normalize to 0-1 scores
-    if total_matches > 0:
-        for tone in tones:
-            tones[tone] = min(1.0, tones[tone] / 5)  # Cap at 5 matches = 1.0
+        # V10.5: 2 matches = 0.5 (strong), 4 matches = 1.0 (max)
+        tones[tone] = min(1.0, matches * 0.25)
     
     return tones
 
@@ -3594,7 +3667,7 @@ def generate_core_insight(
         # No active signals - use default
         default_text = CORE_INSIGHT_STRUCTURES[pattern_id].get(
             "default",
-            pattern.get("summary", "Something is present that deserves your attention.")
+            pattern.get("summary", "A feeling is present that deserves your attention.")
         )
         frame_debug["expression_mode"] = "default"
         return (default_text, "something_surfacing", frame_debug)
@@ -3602,7 +3675,7 @@ def generate_core_insight(
         # Pattern not in structures - use pattern summary
         frame_debug["expression_mode"] = "fallback"
         return (
-            pattern.get("summary", "Something is present that deserves your attention."),
+            pattern.get("summary", "A feeling is present that deserves your attention."),
             "something_surfacing",
             frame_debug
         )
