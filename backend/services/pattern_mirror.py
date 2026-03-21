@@ -886,6 +886,359 @@ VERB_VARIATIONS = {
 
 
 # ============================================================================
+# V10.7: SITUATIONAL SPECIFICITY SYSTEM
+# ============================================================================
+# Extracts contextual hints from journal/signals and injects light specificity
+# into language without inventing details or making unsafe assumptions.
+#
+# Key principle: Ground language in user's actual situation using safe qualifiers
+# like "someone", "something", "that situation" instead of specific names/events.
+# ============================================================================
+
+# --- CONTEXTUAL HINT MARKERS ---
+# Keywords that indicate specific situational contexts
+
+RELATIONAL_CONTEXT_MARKERS = {
+    "someone_specific": [
+        "they", "them", "their", "he", "she", "him", "her", 
+        "friend", "partner", "mom", "dad", "parent", "sibling", "brother", "sister",
+        "boyfriend", "girlfriend", "husband", "wife", "ex", "boss", "coworker",
+        "roommate", "neighbor"
+    ],
+    "conversation": [
+        "said", "told", "asked", "talked", "spoke", "conversation", "call", "text",
+        "message", "email", "replied", "responded", "heard from"
+    ],
+    "distance": [
+        "away", "apart", "distant", "space", "hasn't called", "silent", "ghosted",
+        "pulled back", "withdrew", "avoiding", "not talking"
+    ],
+    "reconnecting": [
+        "reached out", "reconnect", "back in touch", "heard from", "texted",
+        "called again", "saw them", "ran into", "met up"
+    ],
+}
+
+ACTION_CONTEXT_MARKERS = {
+    "reaching_out": [
+        "reached out", "texted", "called", "messaged", "emailed", "asked",
+        "invited", "suggested", "offered", "initiated"
+    ],
+    "deciding": [
+        "decide", "choice", "option", "whether", "should I", "considering",
+        "thinking about", "weighing", "torn between", "crossroads"
+    ],
+    "holding_back": [
+        "didn't say", "held back", "kept it in", "didn't tell", "bit my tongue",
+        "stayed quiet", "didn't respond", "ignored", "avoided"
+    ],
+    "taking_action": [
+        "did it", "finally", "took the step", "made the move", "went for it",
+        "committed", "signed", "submitted", "started"
+    ],
+    "waiting": [
+        "waiting", "haven't heard", "still hoping", "expecting", "pending",
+        "in limbo", "on hold", "not yet"
+    ],
+}
+
+EMOTIONAL_FOCUS_MARKERS = {
+    "missing": [
+        "miss", "missed", "missing", "wish they", "wish we", "used to",
+        "remember when", "think about them"
+    ],
+    "frustration": [
+        "frustrated", "annoyed", "irritated", "angry", "upset", "fed up",
+        "tired of", "can't believe", "why do they"
+    ],
+    "uncertainty": [
+        "not sure", "uncertain", "don't know if", "wondering", "confused about",
+        "mixed feelings", "can't tell"
+    ],
+    "longing": [
+        "want", "wish", "hope", "longing", "craving", "need", "desire",
+        "ache", "yearn"
+    ],
+    "relief": [
+        "relieved", "weight lifted", "finally", "at peace", "can breathe",
+        "feels better", "glad it's over"
+    ],
+}
+
+# --- SPECIFICITY INJECTORS ---
+# Light modifiers that add situational grounding without over-specifying
+
+SPECIFICITY_INJECTORS = {
+    "relational": {
+        "someone_specific": {
+            "opening up": "opening up to someone",
+            "moving toward connection": "moving toward reconnecting with someone",
+            "reaching out": "reaching out to someone",
+            "holding back": "holding back from someone",
+            "letting in": "letting someone in",
+            "pushing away": "pushing someone away",
+            "feeling close": "feeling close to someone again",
+            "creating distance": "creating distance from someone",
+        },
+        "conversation": {
+            "saying something": "saying what you've been holding",
+            "speaking up": "speaking up about something that matters",
+            "being honest": "being honest about what you're feeling",
+            "expressing": "expressing something you've held back",
+        },
+        "distance": {
+            "the distance": "the distance between you",
+            "feeling far": "feeling far from someone",
+            "the gap": "the gap that's grown",
+        },
+        "reconnecting": {
+            "opening again": "opening toward reconnection",
+            "reaching back": "reaching back toward someone",
+            "rebuilding": "rebuilding what was there",
+        },
+    },
+    "action": {
+        "reaching_out": {
+            "taking action": "reaching out",
+            "making a move": "making the first move",
+            "initiating": "initiating contact",
+        },
+        "deciding": {
+            "sitting with this": "sitting with a decision",
+            "processing": "processing what to do",
+            "threshold": "threshold of a choice",
+        },
+        "holding_back": {
+            "not acting": "not saying something",
+            "containing": "containing what you want to say",
+        },
+        "waiting": {
+            "being patient": "waiting for something to shift",
+            "sitting still": "sitting in the in-between",
+        },
+    },
+    "emotional": {
+        "missing": {
+            "grief": "missing what was",
+            "loss": "loss of what you had",
+            "letting go": "letting go of someone or something",
+        },
+        "frustration": {
+            "friction": "friction with someone or something",
+            "tension": "tension around a situation",
+            "resistance": "resistance to how things are",
+        },
+        "uncertainty": {
+            "not knowing": "not knowing how this will go",
+            "unclear": "unclear where things stand",
+            "confusion": "confusion about someone or something",
+        },
+        "longing": {
+            "wanting": "wanting something to be different",
+            "desire": "desire for connection or change",
+            "reaching": "reaching for what isn't quite there",
+        },
+    },
+}
+
+# --- SAFE QUALIFIER PHRASES ---
+# Used when context is detected but specifics are uncertain
+
+SAFE_QUALIFIERS = {
+    "relational": ["someone", "a person", "someone close", "someone in your life"],
+    "situational": ["a situation", "something", "a circumstance", "what's happening"],
+    "temporal": ["recently", "lately", "in recent days", "this week"],
+    "emotional": ["a feeling", "something you're carrying", "what's present"],
+}
+
+
+def extract_contextual_hints(signals_extended: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    V10.7: Extract contextual hints from user signals for situational specificity.
+    
+    Returns:
+        {
+            "relational_context": list of detected relational contexts,
+            "action_context": list of detected action contexts,
+            "emotional_focus": list of detected emotional focuses,
+            "has_specificity": bool,
+            "primary_context": str or None (strongest detected context),
+        }
+    """
+    hints = {
+        "relational_context": [],
+        "action_context": [],
+        "emotional_focus": [],
+        "has_specificity": False,
+        "primary_context": None,
+        "context_strength": 0,
+    }
+    
+    # Gather all signal text
+    all_text = []
+    memory = signals_extended.get("memory", signals_extended)
+    
+    for entry in memory.get("journal_entries", []):
+        content = entry.get("content", "")
+        all_text.append(content.lower())
+    
+    for msg in memory.get("chat_messages", []):
+        content = msg.get("content", "")
+        all_text.append(content.lower())
+    
+    combined_text = " ".join(all_text)
+    if not combined_text:
+        return hints
+    
+    # Detect relational context
+    for context_type, markers in RELATIONAL_CONTEXT_MARKERS.items():
+        matches = sum(1 for marker in markers if marker in combined_text)
+        if matches >= 1:
+            hints["relational_context"].append(context_type)
+            hints["context_strength"] += matches
+    
+    # Detect action context
+    for context_type, markers in ACTION_CONTEXT_MARKERS.items():
+        matches = sum(1 for marker in markers if marker in combined_text)
+        if matches >= 1:
+            hints["action_context"].append(context_type)
+            hints["context_strength"] += matches
+    
+    # Detect emotional focus
+    for context_type, markers in EMOTIONAL_FOCUS_MARKERS.items():
+        matches = sum(1 for marker in markers if marker in combined_text)
+        if matches >= 1:
+            hints["emotional_focus"].append(context_type)
+            hints["context_strength"] += matches
+    
+    # Determine if we have enough specificity to use
+    total_contexts = (
+        len(hints["relational_context"]) + 
+        len(hints["action_context"]) + 
+        len(hints["emotional_focus"])
+    )
+    hints["has_specificity"] = total_contexts >= 1 and hints["context_strength"] >= 2
+    
+    # Determine primary context (strongest signal)
+    if hints["relational_context"]:
+        hints["primary_context"] = f"relational:{hints['relational_context'][0]}"
+    elif hints["action_context"]:
+        hints["primary_context"] = f"action:{hints['action_context'][0]}"
+    elif hints["emotional_focus"]:
+        hints["primary_context"] = f"emotional:{hints['emotional_focus'][0]}"
+    
+    return hints
+
+
+def inject_specificity(
+    text: str, 
+    contextual_hints: Dict[str, Any],
+    pattern_id: str = ""
+) -> str:
+    """
+    V10.7: Inject light situational specificity into text based on contextual hints.
+    
+    Rules:
+    1. Only inject if we have clear contextual signals (context_strength >= 2)
+    2. Use safe qualifiers, never invent specific names/events
+    3. Make at most ONE injection per text to avoid over-specification
+    4. Fallback to original if injection makes text awkward
+    
+    Returns modified text or original if no suitable injection found.
+    """
+    if not contextual_hints.get("has_specificity"):
+        return text
+    
+    text_lower = text.lower()
+    injection_made = False
+    
+    # Try relational injections first (most impactful)
+    for rel_context in contextual_hints.get("relational_context", []):
+        if injection_made:
+            break
+        injectors = SPECIFICITY_INJECTORS.get("relational", {}).get(rel_context, {})
+        for generic, specific in injectors.items():
+            if generic in text_lower and specific not in text_lower:
+                # Check if replacement would be natural
+                if _is_natural_replacement(text, generic, specific):
+                    text = _replace_preserving_case(text, generic, specific)
+                    injection_made = True
+                    break
+    
+    # Try action injections
+    if not injection_made:
+        for action_context in contextual_hints.get("action_context", []):
+            if injection_made:
+                break
+            injectors = SPECIFICITY_INJECTORS.get("action", {}).get(action_context, {})
+            for generic, specific in injectors.items():
+                if generic in text_lower and specific not in text_lower:
+                    if _is_natural_replacement(text, generic, specific):
+                        text = _replace_preserving_case(text, generic, specific)
+                        injection_made = True
+                        break
+    
+    # Try emotional injections
+    if not injection_made:
+        for emotional_focus in contextual_hints.get("emotional_focus", []):
+            if injection_made:
+                break
+            injectors = SPECIFICITY_INJECTORS.get("emotional", {}).get(emotional_focus, {})
+            for generic, specific in injectors.items():
+                if generic in text_lower and specific not in text_lower:
+                    if _is_natural_replacement(text, generic, specific):
+                        text = _replace_preserving_case(text, generic, specific)
+                        injection_made = True
+                        break
+    
+    return text
+
+
+def _is_natural_replacement(text: str, generic: str, specific: str) -> bool:
+    """
+    V10.7: Check if replacing generic with specific would sound natural.
+    
+    Avoids awkward constructions like double qualifiers or broken grammar.
+    """
+    # Don't replace if the text already has a more specific version
+    if "someone" in text.lower() and "someone" in specific.lower():
+        return False
+    
+    # Don't replace if it would create redundancy
+    if specific.lower() in text.lower():
+        return False
+    
+    # Check for common awkward patterns
+    awkward_patterns = [
+        ("to to", False),
+        ("from from", False),
+        ("with with", False),
+        ("someone someone", False),
+    ]
+    
+    test_text = text.lower().replace(generic.lower(), specific.lower())
+    for pattern, _ in awkward_patterns:
+        if pattern in test_text:
+            return False
+    
+    return True
+
+
+def _replace_preserving_case(text: str, old: str, new: str) -> str:
+    """Replace text while preserving the case of the original."""
+    import re
+    
+    def replace_match(match):
+        matched = match.group(0)
+        if matched[0].isupper():
+            return new[0].upper() + new[1:]
+        return new
+    
+    pattern = re.compile(re.escape(old), re.IGNORECASE)
+    return pattern.sub(replace_match, text, count=1)
+
+
+# ============================================================================
 # V10.1: STRUCTURAL VARIATION SYSTEM
 # ============================================================================
 # Instead of always using the same base sentence with modifiers,
@@ -5717,6 +6070,9 @@ def build_two_layer_mirror_output(
     if user_profile:
         user_id = str(user_profile.get("_id", ""))
     
+    # ===== V10.7: EXTRACT CONTEXTUAL HINTS FOR SPECIFICITY =====
+    contextual_hints = extract_contextual_hints(signals_extended) if signals_extended else {}
+    
     # ===== V10.6.2: DETECT CONTINUITY WITH CONFIDENCE GATING =====
     continuity_info = {"has_continuity": False}
     continuity_result = {"why_now_phrase": "", "core_insight_phrase": "", "location": "none"}
@@ -5811,6 +6167,17 @@ def build_two_layer_mirror_output(
     # V10: Context-aware practical using signal tones and lifeline patterns
     practical = _build_practical_layer_v10(pattern, pattern_id, signals_extended, cluster_data, user_id)
     
+    # ===== V10.7: INJECT SITUATIONAL SPECIFICITY =====
+    # Apply light specificity to make language more grounded in user's actual situation
+    if contextual_hints.get("has_specificity"):
+        core_insight = inject_specificity(core_insight, contextual_hints, pattern_id)
+        why_showing_up = inject_specificity(why_showing_up, contextual_hints, pattern_id)
+        friction = inject_specificity(friction, contextual_hints, pattern_id)
+        practical = inject_specificity(practical, contextual_hints, pattern_id)
+        
+        if contextual_hints.get("primary_context"):
+            logger.info(f"[V10.7] Specificity injected: {contextual_hints['primary_context']}")
+    
     return {
         "core_insight": {
             "title": core_title,
@@ -5821,10 +6188,10 @@ def build_two_layer_mirror_output(
             "is_timing_driven": timing_amplifier.get("timing_role") == "fallback",
             "has_continuity": continuity_info.get("has_continuity", False),
             "continuity_type": continuity_info.get("continuity_type", None),
-            "continuity_location": continuity_result.get("location", "none"),  # V10.6.2
+            "continuity_location": continuity_result.get("location", "none"),
+            "has_specificity": contextual_hints.get("has_specificity", False),  # V10.7
         },
         "cross_lens_derivation": cross_lens_derivation,
-        # V6 NEW: Usefulness layers
         "friction": {
             "text": friction,
         },
