@@ -43,6 +43,14 @@ interface LensDerivation {
   lens: string;
   signal: string;
   contributed: boolean;
+  // V7: Astrology can now include individual drivers
+  drivers?: Array<{
+    key: string;
+    text: string;
+    category: string;
+    priority: number;
+  }>;
+  driver_count?: number;
 }
 
 interface CrossLensDerivation {
@@ -446,19 +454,45 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
 
             {derivationExpanded && (
               <View style={[styles.derivationSection, { borderTopColor: theme.border }]}>
-                {contributingLenses.map((lens, index) => (
-                  <View key={index} style={styles.lensItem}>
-                    <Text style={[styles.lensName, { color: theme.textSecondary }]}>
-                      {lens.lens}
-                    </Text>
-                    <Text style={[styles.lensArrow, { color: theme.textTertiary }]}>
-                      →
-                    </Text>
-                    <Text style={[styles.lensSignal, { color: theme.text }]}>
-                      {lens.signal}
-                    </Text>
-                  </View>
-                ))}
+                {contributingLenses.map((lens, index) => {
+                  // V7: For Astrology, show individual drivers if available
+                  if (lens.lens === 'Astrology' && lens.drivers && lens.drivers.length > 0) {
+                    return (
+                      <View key={index} style={styles.lensItemWithDrivers}>
+                        <Text style={[styles.lensName, { color: theme.textSecondary }]}>
+                          {lens.lens}
+                        </Text>
+                        <View style={styles.driversContainer}>
+                          {lens.drivers.slice(0, 3).map((driver, dIdx) => (
+                            <View key={dIdx} style={styles.driverItem}>
+                              <Text style={[styles.lensArrow, { color: theme.textTertiary }]}>
+                                →
+                              </Text>
+                              <Text style={[styles.driverText, { color: theme.text }]}>
+                                {driver.text}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    );
+                  }
+                  
+                  // Default: single line for other lenses
+                  return (
+                    <View key={index} style={styles.lensItem}>
+                      <Text style={[styles.lensName, { color: theme.textSecondary }]}>
+                        {lens.lens}
+                      </Text>
+                      <Text style={[styles.lensArrow, { color: theme.textTertiary }]}>
+                        →
+                      </Text>
+                      <Text style={[styles.lensSignal, { color: theme.text }]}>
+                        {lens.signal}
+                      </Text>
+                    </View>
+                  );
+                })}
               </View>
             )}
           </View>
@@ -1201,5 +1235,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     fontWeight: '500',
+  },
+  
+  // V7: Astrology drivers display
+  lensItemWithDrivers: {
+    marginBottom: 14,
+    paddingHorizontal: 4,
+  },
+  driversContainer: {
+    marginTop: 4,
+    marginLeft: 100, // Align with other lens signals
+  },
+  driverItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  driverText: {
+    fontSize: 13,
+    lineHeight: 19,
+    flex: 1,
+    marginLeft: 4,
   },
 });

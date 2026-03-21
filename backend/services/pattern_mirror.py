@@ -2081,15 +2081,29 @@ def _build_cross_lens_derivation(
     else:
         debug_info["excluded"].append({"lens": "Lifeline", "reason": "no lifeline events or matches"})
     
-    # 3. ASTROLOGY lens (timing context)
-    astrology_signal = _get_astrology_derivation(transit_themes)
-    debug_info["candidates"].append({"lens": "Astrology", "signal": astrology_signal})
-    if astrology_signal:
-        derivations.append({
-            "lens": "Astrology",
-            "signal": astrology_signal,
-            "contributed": True,
-        })
+    # 3. ASTROLOGY lens (timing context) - V7: Now returns structured data with drivers
+    astrology_data = _get_astrology_derivation(transit_themes)
+    debug_info["candidates"].append({"lens": "Astrology", "data": astrology_data})
+    
+    if astrology_data:
+        # V7: Astrology now returns a dict with signal, drivers, etc.
+        if isinstance(astrology_data, dict):
+            astrology_signal = astrology_data.get("signal", "")
+            astrology_drivers = astrology_data.get("drivers", [])
+            derivations.append({
+                "lens": "Astrology",
+                "signal": astrology_signal,
+                "drivers": astrology_drivers,  # V7: Include individual drivers
+                "driver_count": len(astrology_drivers),
+                "contributed": True,
+            })
+        else:
+            # Fallback for old string format
+            derivations.append({
+                "lens": "Astrology",
+                "signal": astrology_data,
+                "contributed": True,
+            })
         debug_info["included"].append("Astrology")
     else:
         debug_info["excluded"].append({"lens": "Astrology", "reason": "no transit themes"})
@@ -2145,39 +2159,174 @@ def _build_cross_lens_derivation(
     }
 
 
-def _get_astrology_derivation(transit_themes: Any) -> Optional[str]:
-    """Get plain-language astrology signal."""
+def _get_astrology_derivation(transit_themes: Any) -> Optional[Dict[str, Any]]:
+    """
+    Get Astrology derivation with ACTUAL transit drivers (not generic summaries).
+    
+    V7: Returns structured data with specific timing drivers in plain English.
+    
+    Returns:
+        Dict with:
+        - signal: The combined plain English sentence
+        - drivers: List of individual driver objects with details
+        - raw_indicators: The raw indicator keys for debugging
+    """
     if not transit_themes:
         return None
     
-    active_themes = transit_themes.active_themes if transit_themes else []
+    # Get raw indicators from transit themes
+    raw_indicators = transit_themes.raw_indicators if hasattr(transit_themes, 'raw_indicators') else []
+    lunar_phase = transit_themes.lunar_phase if hasattr(transit_themes, 'lunar_phase') else None
+    seasonal_context = transit_themes.seasonal_context if hasattr(transit_themes, 'seasonal_context') else None
     
-    if not active_themes:
+    # Plain English translations for specific transit drivers
+    DRIVER_TRANSLATIONS = {
+        # === LUNAR PHASES ===
+        "new_moon": "A new moon is supporting fresh starts and reset energy",
+        "full_moon": "A full moon is bringing things to visibility and emotional peak",
+        "waxing_moon": "The waxing moon is building momentum and energy",
+        "waning_moon": "The waning moon is supporting release and completion",
+        "waxing_crescent": "Early momentum is gathering—something new is taking shape",
+        "waning_crescent": "A cycle is completing—time to let go of what's finished",
+        "first_quarter": "Decision energy is present—a crossroads moment",
+        "last_quarter": "Evaluation energy is active—assessing what worked",
+        "lunar_peak": "Lunar energy is at its strongest right now",
+        
+        # === PLANETARY ACTIVATIONS ===
+        "mercury_active": "Mercury timing is supporting clarity and communication",
+        "venus_active": "Venus energy is bringing warmth and connection",
+        "mars_active": "Mars activation is adding drive and urgency",
+        "jupiter_active": "Jupiter is expanding possibilities and optimism",
+        "saturn_active": "Saturn is bringing structure and serious reflection",
+        "uranus_active": "Uranus energy is stirring change and breakthrough",
+        "neptune_active": "Neptune is heightening intuition and imagination",
+        "pluto_active": "Pluto is deepening transformation and renewal",
+        "sun_transit": "Solar energy is highlighting identity and direction",
+        
+        # === SEASONAL / ZODIAC ===
+        "aries_season": "Spring energy is supporting new beginnings",
+        "taurus_season": "Earthy energy is supporting stability and presence",
+        "gemini_season": "Curious energy is supporting learning and connection",
+        "cancer_season": "Nurturing energy is supporting emotional depth",
+        "leo_season": "Expressive energy is supporting creativity and heart",
+        "virgo_season": "Practical energy is supporting refinement and service",
+        "libra_season": "Relational energy is supporting balance and partnership",
+        "scorpio_season": "Deep energy is supporting transformation and truth",
+        "sagittarius_season": "Expansive energy is supporting growth and meaning",
+        "capricorn_season": "Grounded energy is supporting commitment and goals",
+        "aquarius_season": "Innovative energy is supporting vision and change",
+        "pisces_season": "Fluid energy is supporting surrender and compassion",
+        
+        # === ELEMENTAL ===
+        "water_season": "Emotional and intuitive currents are stronger now",
+        "fire_season": "Action and passion energy is heightened",
+        "earth_element": "Grounding and stability are supported now",
+        "air_element": "Mental clarity and communication are supported",
+        
+        # === SPECIAL WINDOWS ===
+        "eclipse_window": "An eclipse window is creating turning point energy",
+        "equinox_window": "Equinox energy is supporting balance and transition",
+        "solstice_window": "Solstice energy is marking a threshold moment",
+        "mercury_retrograde": "Mercury retrograde is inviting review and reflection",
+        "mercury_direct": "Mercury direct is supporting forward momentum",
+        "saturn_return": "Saturn return energy is inviting maturity and commitment",
+        
+        # === MODALITIES ===
+        "cardinal_season": "Initiating energy is supporting new action",
+        "mutable_season": "Adaptive energy is supporting flexibility",
+        "fixed_season": "Stabilizing energy is supporting persistence",
+    }
+    
+    drivers = []
+    
+    # 1. Check lunar phase FIRST (most impactful)
+    if lunar_phase:
+        lunar_key = lunar_phase.lower().replace(" ", "_")
+        if lunar_key in DRIVER_TRANSLATIONS:
+            drivers.append({
+                "key": lunar_key,
+                "text": DRIVER_TRANSLATIONS[lunar_key],
+                "category": "lunar",
+                "priority": 1,
+            })
+    
+    # 2. Check planetary activations (high priority)
+    planetary_indicators = [
+        "mercury_active", "venus_active", "mars_active",
+        "jupiter_active", "saturn_active", "uranus_active",
+        "neptune_active", "pluto_active", "sun_transit"
+    ]
+    
+    for indicator in planetary_indicators:
+        if indicator in raw_indicators and indicator in DRIVER_TRANSLATIONS:
+            drivers.append({
+                "key": indicator,
+                "text": DRIVER_TRANSLATIONS[indicator],
+                "category": "planetary",
+                "priority": 2,
+            })
+    
+    # 3. Check special windows (eclipse, equinox, etc.)
+    special_windows = ["eclipse_window", "equinox_window", "solstice_window", "mercury_retrograde"]
+    for window in special_windows:
+        if window in raw_indicators and window in DRIVER_TRANSLATIONS:
+            drivers.append({
+                "key": window,
+                "text": DRIVER_TRANSLATIONS[window],
+                "category": "special",
+                "priority": 1,  # High priority
+            })
+    
+    # 4. Check seasonal context
+    if seasonal_context:
+        seasonal_key = seasonal_context.lower().replace(" ", "_")
+        # Handle variations
+        for key, translation in DRIVER_TRANSLATIONS.items():
+            if seasonal_key in key or key in seasonal_context.lower():
+                drivers.append({
+                    "key": key,
+                    "text": translation,
+                    "category": "seasonal",
+                    "priority": 3,
+                })
+                break
+    
+    # Also check raw indicators for seasonal markers
+    for indicator in raw_indicators:
+        if indicator.endswith("_season") and indicator in DRIVER_TRANSLATIONS:
+            # Avoid duplicates
+            if not any(d["key"] == indicator for d in drivers):
+                drivers.append({
+                    "key": indicator,
+                    "text": DRIVER_TRANSLATIONS[indicator],
+                    "category": "seasonal",
+                    "priority": 3,
+                })
+    
+    # If no drivers found, return None
+    if not drivers:
         return None
     
-    # Build combined signal from top 2 themes
-    signals = []
-    translations = LENS_SIGNAL_TRANSLATIONS.get("astrology", {})
+    # Sort by priority and take top 3
+    drivers.sort(key=lambda d: d["priority"])
+    top_drivers = drivers[:3]
     
-    for theme in active_themes[:2]:
-        if theme in translations:
-            signals.append(translations[theme])
+    # Build combined signal
+    if len(top_drivers) == 1:
+        combined_signal = top_drivers[0]["text"]
+    elif len(top_drivers) == 2:
+        # Combine two drivers more naturally
+        combined_signal = f"{top_drivers[0]['text']}; {top_drivers[1]['text'].lower()}"
+    else:
+        # Combine three drivers
+        combined_signal = f"{top_drivers[0]['text']}; {top_drivers[1]['text'].lower()}"
     
-    # Add lunar phase if available
-    lunar_phase = transit_themes.lunar_phase if transit_themes else None
-    if lunar_phase and lunar_phase.lower() in translations:
-        lunar_signal = translations.get(lunar_phase.lower())
-        if lunar_signal and lunar_signal not in signals:
-            signals.insert(0, lunar_signal)
-    
-    if signals:
-        return signals[0]  # Return most relevant
-    
-    # Fallback to timing summary
-    if hasattr(transit_themes, 'seasonal_context') and transit_themes.seasonal_context:
-        return f"Current season supports processing and reflection"
-    
-    return None
+    return {
+        "signal": combined_signal,
+        "drivers": top_drivers,
+        "raw_indicators": raw_indicators[:10],  # Limit for debugging
+        "driver_count": len(top_drivers),
+    }
 
 
 def _get_human_design_derivation(
