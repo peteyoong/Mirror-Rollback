@@ -689,6 +689,443 @@ def determine_timing_impact(
 
 
 # ============================================================================
+# V3: MULTI-SIGNAL CLUSTERING ENGINE
+# ============================================================================
+
+# Theme categories for clustering
+THEME_CATEGORIES = {
+    "relational": ["connect", "partner", "relationship", "love", "trust", "intimacy", "close", 
+                   "warmth", "openness", "vulnerable", "heart", "bond", "attachment", "safe"],
+    "emotional": ["feel", "emotion", "sad", "angry", "fear", "joy", "anxious", "overwhelm",
+                  "sensitive", "mood", "cry", "hurt", "pain", "healing", "grief"],
+    "behavioral": ["decide", "control", "resist", "avoid", "stuck", "wait", "act", "move",
+                   "change", "habit", "pattern", "cycle", "repeat", "stop", "start"],
+    "identity": ["who", "self", "purpose", "direction", "lost", "confused", "meaning",
+                 "growth", "change", "becoming", "identity", "role", "calling"],
+    "pressure": ["pressure", "stress", "deadline", "urgent", "overwhelm", "busy", "tired",
+                 "exhausted", "burden", "responsibility", "must", "should", "need"],
+}
+
+# Map pattern_ids to theme categories
+PATTERN_TO_THEME_CATEGORY = {
+    "relational_reopening": "relational",
+    "heart_thaw": "relational",
+    "safe_intimacy_returning": "relational",
+    "somethings_here": "emotional",
+    "threshold_standing": "behavioral",
+    "closed_door_syndrome": "relational",
+    "over_functioning_hero": "behavioral",
+    "inner_critic_override": "identity",
+    "waiting_for_permission": "behavioral",
+    "perfectionist_paralysis": "behavioral",
+    "emotional_flooding": "emotional",
+    "avoidant_autopilot": "behavioral",
+    "control_grip": "behavioral",
+    "boundary_blur": "relational",
+    "people_pleasing_loop": "relational",
+}
+
+
+def cluster_signal_themes(signals: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Cluster signals across sources to find dominant themes.
+    
+    Returns:
+    {
+        "theme_counts": {"relational": 5, "emotional": 3, ...},
+        "dominant_theme": "relational",
+        "source_distribution": {"journal": 3, "chat": 2, "lifeline": 1},
+        "total_evidence_count": 6,
+        "source_diversity_score": 0.8,  # 0-1, higher = more diverse
+        "repetition_score": 0.6,  # 0-1, higher = more repeated themes
+        "matched_themes_by_source": {...}
+    }
+    """
+    theme_counts = {cat: 0 for cat in THEME_CATEGORIES}
+    source_distribution = {"journal": 0, "chat": 0, "lifeline": 0}
+    matched_themes_by_source = {"journal": [], "chat": [], "lifeline": []}
+    
+    # Process journal entries
+    for entry in signals.get("journal_entries", []):
+        content = entry.get("content", "").lower()
+        entry_themes = []
+        for category, keywords in THEME_CATEGORIES.items():
+            matches = [kw for kw in keywords if kw in content]
+            if matches:
+                theme_counts[category] += len(matches)
+                entry_themes.extend(matches)
+        if entry_themes:
+            source_distribution["journal"] += 1
+            matched_themes_by_source["journal"].append({
+                "text": entry.get("content", "")[:80],
+                "themes": entry_themes[:3]
+            })
+    
+    # Process chat messages
+    for msg in signals.get("chat_messages", []):
+        content = msg.get("content", "").lower()
+        msg_themes = []
+        for category, keywords in THEME_CATEGORIES.items():
+            matches = [kw for kw in keywords if kw in content]
+            if matches:
+                theme_counts[category] += len(matches)
+                msg_themes.extend(matches)
+        if msg_themes:
+            source_distribution["chat"] += 1
+            matched_themes_by_source["chat"].append({
+                "text": msg.get("content", "")[:60],
+                "themes": msg_themes[:3]
+            })
+    
+    # Process lifeline events
+    for event in signals.get("lifeline_events", []):
+        title = (event.get("title") or "").lower()
+        desc = (event.get("description") or "").lower()
+        combined = f"{title} {desc}"
+        event_themes = []
+        for category, keywords in THEME_CATEGORIES.items():
+            matches = [kw for kw in keywords if kw in combined]
+            if matches:
+                theme_counts[category] += len(matches)
+                event_themes.extend(matches)
+        if event_themes:
+            source_distribution["lifeline"] += 1
+            matched_themes_by_source["lifeline"].append({
+                "text": event.get("title", ""),
+                "themes": event_themes[:3]
+            })
+    
+    # Calculate metrics
+    total_evidence = sum(source_distribution.values())
+    active_sources = sum(1 for v in source_distribution.values() if v > 0)
+    
+    # Source diversity: 0-1, higher = more diverse
+    source_diversity_score = active_sources / 3.0 if total_evidence > 0 else 0
+    
+    # Repetition score: based on how concentrated themes are
+    total_theme_hits = sum(theme_counts.values())
+    if total_theme_hits > 0:
+        max_theme_count = max(theme_counts.values())
+        repetition_score = max_theme_count / total_theme_hits
+    else:
+        repetition_score = 0
+    
+    # Find dominant theme
+    dominant_theme = max(theme_counts, key=theme_counts.get) if total_theme_hits > 0 else None
+    
+    return {
+        "theme_counts": theme_counts,
+        "dominant_theme": dominant_theme,
+        "source_distribution": source_distribution,
+        "total_evidence_count": total_evidence,
+        "source_diversity_score": round(source_diversity_score, 2),
+        "repetition_score": round(repetition_score, 2),
+        "matched_themes_by_source": matched_themes_by_source,
+    }
+
+
+def score_pattern_with_clustering(
+    pattern_id: str,
+    signals: Dict[str, Any],
+    cluster_data: Dict[str, Any]
+) -> Dict[str, float]:
+    """
+    Score a pattern using multi-signal clustering.
+    
+    Factors:
+    - Base signal alignment (keyword matching)
+    - Theme category alignment (does pattern match dominant theme?)
+    - Evidence count weight (more evidence = higher score)
+    - Source diversity weight (multi-source support = higher score)
+    - Repetition weight (repeated themes = higher score)
+    """
+    # Base signal score (existing logic)
+    base_score = score_pattern_signal_alignment(pattern_id, signals)
+    
+    # Theme category alignment
+    pattern_category = PATTERN_TO_THEME_CATEGORY.get(pattern_id)
+    dominant_theme = cluster_data.get("dominant_theme")
+    
+    theme_alignment = 0.0
+    if pattern_category and dominant_theme and pattern_category == dominant_theme:
+        theme_alignment = 0.3  # Boost for matching dominant theme
+    
+    # Evidence count weight (logarithmic to prevent runaway scores)
+    evidence_count = cluster_data.get("total_evidence_count", 0)
+    evidence_weight = min(0.2, evidence_count * 0.05)  # Max 0.2 bonus
+    
+    # Source diversity weight
+    diversity_score = cluster_data.get("source_diversity_score", 0)
+    diversity_weight = diversity_score * 0.15  # Max 0.15 bonus
+    
+    # Repetition weight (theme concentration)
+    repetition_score = cluster_data.get("repetition_score", 0)
+    repetition_weight = repetition_score * 0.1  # Max 0.1 bonus
+    
+    # Calculate clustered score
+    clustered_score = base_score + theme_alignment + evidence_weight + diversity_weight + repetition_weight
+    
+    return {
+        "base_score": round(base_score, 3),
+        "theme_alignment": round(theme_alignment, 3),
+        "evidence_weight": round(evidence_weight, 3),
+        "diversity_weight": round(diversity_weight, 3),
+        "repetition_weight": round(repetition_weight, 3),
+        "clustered_score": round(clustered_score, 3),
+    }
+
+
+def compute_archetypal_resonance(
+    pattern_id: str,
+    pattern: Dict[str, Any],
+    user_profile: Optional[Dict[str, Any]],
+    cluster_data: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
+    """
+    Compute archetypal resonance from existing lens data.
+    
+    Uses Gene Keys Venus Sequence if available.
+    Does NOT add natal transit contact logic.
+    
+    Returns:
+    {
+        "primary_archetype_label": "The Heart Opener",
+        "supporting_archetypes": ["Receptivity", "Trust"],
+        "source_lens": "gene_keys",
+        "resonance_summary": "Your Venus sequence suggests..."
+    }
+    """
+    if not user_profile:
+        return None
+    
+    # Check for Gene Keys Venus data
+    gene_keys = user_profile.get("gene_keys", {})
+    venus_sequence = gene_keys.get("venus_sequence", {})
+    
+    if not venus_sequence:
+        return None
+    
+    # Map pattern categories to Venus spheres
+    pattern_category = PATTERN_TO_THEME_CATEGORY.get(pattern_id)
+    dominant_theme = cluster_data.get("dominant_theme")
+    
+    # Venus sphere relevance mapping
+    sphere_to_archetype = {
+        "attraction": {"label": "The Attractor", "themes": ["relational", "identity"]},
+        "iq": {"label": "The Mind Holder", "themes": ["behavioral", "identity"]},
+        "eq": {"label": "The Heart Opener", "themes": ["emotional", "relational"]},
+        "sq": {"label": "The Soul Bridge", "themes": ["relational", "identity"]},
+        "core": {"label": "The Core Self", "themes": ["identity", "emotional"]},
+        "purpose": {"label": "The Purpose Finder", "themes": ["identity", "behavioral"]},
+    }
+    
+    # Find relevant sphere based on pattern/dominant theme
+    relevant_sphere = None
+    relevant_archetype = None
+    
+    for sphere, data in sphere_to_archetype.items():
+        if pattern_category in data["themes"] or dominant_theme in data["themes"]:
+            sphere_data = venus_sequence.get(sphere, {})
+            if sphere_data:
+                relevant_sphere = sphere
+                relevant_archetype = data["label"]
+                break
+    
+    if not relevant_sphere:
+        return None
+    
+    # Get Gene Key data for this sphere
+    sphere_data = venus_sequence.get(relevant_sphere, {})
+    gene_key_num = sphere_data.get("gene_key")
+    sphere_name = sphere_data.get("name", "")
+    
+    # Build resonance summary
+    if gene_key_num and pattern_category == "relational":
+        resonance_summary = f"Your {relevant_sphere.upper()} sphere ({sphere_name}) may be resonating with this pattern."
+    elif gene_key_num:
+        resonance_summary = f"Gene Key {gene_key_num} in your {relevant_sphere.upper()} sphere adds depth to this pattern."
+    else:
+        resonance_summary = None
+    
+    # Build supporting archetypes from other relevant spheres
+    supporting = []
+    for sphere, data in sphere_to_archetype.items():
+        if sphere != relevant_sphere and (pattern_category in data["themes"] or dominant_theme in data["themes"]):
+            sphere_data = venus_sequence.get(sphere, {})
+            if sphere_data:
+                supporting.append(data["label"])
+    
+    return {
+        "primary_archetype_label": relevant_archetype,
+        "supporting_archetypes": supporting[:2],
+        "source_lens": "gene_keys",
+        "gene_key": gene_key_num,
+        "sphere": relevant_sphere,
+        "resonance_summary": resonance_summary,
+    }
+
+
+def build_personal_pattern_core(
+    pattern: Dict[str, Any],
+    pattern_id: str,
+    cluster_data: Dict[str, Any],
+    cluster_scores: Dict[str, float],
+    signals: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Build the PERSONAL_PATTERN_CORE layer for V3 response.
+    
+    Based on clustered multi-signal evidence, not single entry.
+    """
+    # Determine source mix
+    source_dist = cluster_data.get("source_distribution", {})
+    active_sources = [s for s, count in source_dist.items() if count > 0]
+    
+    # Calculate confidence based on evidence strength
+    evidence_count = cluster_data.get("total_evidence_count", 0)
+    diversity = cluster_data.get("source_diversity_score", 0)
+    repetition = cluster_data.get("repetition_score", 0)
+    
+    if evidence_count >= 5 and diversity >= 0.6:
+        confidence = "high"
+    elif evidence_count >= 3 or diversity >= 0.3:
+        confidence = "moderate"
+    else:
+        confidence = "low"
+    
+    return {
+        "title": pattern.get("title", ""),
+        "summary": pattern.get("what_you_may_be", ""),
+        "pattern_domain": cluster_data.get("dominant_theme", "general"),
+        "source_mix": active_sources,
+        "evidence_count": evidence_count,
+        "supporting_entries_count": sum(source_dist.values()),
+        "confidence": confidence,
+        "cluster_scores": cluster_scores,
+    }
+
+
+def build_evidence_panel_v3(
+    signals: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    pattern: Dict[str, Any],
+    pattern_id: str
+) -> Dict[str, Any]:
+    """
+    Build structured evidence panel for V3 response.
+    
+    Shows evidence by source with contribution strength.
+    """
+    source_sections = []
+    
+    # Build journal section
+    journal_evidence = cluster_data.get("matched_themes_by_source", {}).get("journal", [])
+    if journal_evidence:
+        source_sections.append({
+            "source_name": "journal",
+            "contribution_strength": "high" if len(journal_evidence) >= 2 else "moderate",
+            "matched_themes": list(set([t for e in journal_evidence for t in e.get("themes", [])])),
+            "sample_snippets": [e.get("text", "") for e in journal_evidence[:2]],
+            "entry_count": len(journal_evidence),
+        })
+    
+    # Build chat section
+    chat_evidence = cluster_data.get("matched_themes_by_source", {}).get("chat", [])
+    if chat_evidence:
+        source_sections.append({
+            "source_name": "mirror_chat",
+            "contribution_strength": "moderate" if len(chat_evidence) >= 2 else "light",
+            "matched_themes": list(set([t for e in chat_evidence for t in e.get("themes", [])])),
+            "sample_snippets": [e.get("text", "") for e in chat_evidence[:2]],
+            "entry_count": len(chat_evidence),
+        })
+    
+    # Build lifeline section
+    lifeline_evidence = cluster_data.get("matched_themes_by_source", {}).get("lifeline", [])
+    if lifeline_evidence:
+        source_sections.append({
+            "source_name": "lifeline",
+            "contribution_strength": "moderate" if len(lifeline_evidence) >= 2 else "light",
+            "matched_themes": list(set([t for e in lifeline_evidence for t in e.get("themes", [])])),
+            "sample_snippets": [e.get("text", "") for e in lifeline_evidence[:2]],
+            "entry_count": len(lifeline_evidence),
+        })
+    
+    # Build summary line
+    total = cluster_data.get("total_evidence_count", 0)
+    sources = [s["source_name"] for s in source_sections]
+    if len(sources) == 1:
+        summary_line = f"This pattern emerged from {total} signal(s) in your {sources[0]}."
+    elif len(sources) == 2:
+        summary_line = f"This pattern emerged from {total} signals across your {sources[0]} and {sources[1]}."
+    elif len(sources) >= 3:
+        summary_line = f"This pattern emerged from {total} signals across {len(sources)} sources."
+    else:
+        summary_line = "This pattern is based on current timing context."
+    
+    return {
+        "summary_line": summary_line,
+        "source_sections": source_sections,
+        "total_evidence_count": total,
+        "source_count": len(source_sections),
+    }
+
+
+def build_v3_narrative(
+    personal_core: Dict[str, Any],
+    timing_amplifier: Dict[str, Any],
+    archetypal_resonance: Optional[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """
+    Build V3 narrative with clear separation of layers.
+    
+    Order:
+    A. Main title = personal pattern core title
+    B. Main explanation = personal pattern core summary
+    C. Timing note = why it may feel stronger now
+    D. Archetypal note = what deeper pattern this resembles
+    E. Evidence summary = what this is based on
+    """
+    # A + B: Main content from personal core
+    main_explanation = personal_core.get("summary", "")
+    
+    # C: Timing note
+    timing_note = None
+    if timing_amplifier.get("timing_summary"):
+        timing_note = f"This may feel stronger right now because {timing_amplifier['timing_summary'].lower()}"
+        # Clean up double "may be"
+        timing_note = timing_note.replace("because may be", "because")
+    
+    # D: Archetypal note
+    archetypal_note = None
+    if archetypal_resonance and archetypal_resonance.get("resonance_summary"):
+        archetypal_note = archetypal_resonance["resonance_summary"]
+    
+    # E: Evidence reference (handled separately in evidence_panel)
+    
+    return {
+        "main_explanation": main_explanation,
+        "timing_note": timing_note,
+        "archetypal_note": archetypal_note,
+        "combined": _combine_v3_narrative(main_explanation, timing_note, archetypal_note),
+    }
+
+
+def _combine_v3_narrative(
+    main: str,
+    timing: Optional[str],
+    archetypal: Optional[str]
+) -> str:
+    """Combine V3 narrative parts into single text for backwards compatibility."""
+    parts = [main]
+    if timing:
+        parts.append(timing)
+    if archetypal:
+        parts.append(archetypal)
+    return "\n\n".join(parts)
+
+
+# ============================================================================
 # PATTERN MIRROR OUTPUT CONTRACT
 # ============================================================================
 
@@ -1213,27 +1650,37 @@ def detect_dominant_energy_state(signals: Dict[str, Any]) -> str:
 
 def select_best_pattern(
     signals: Dict[str, Any],
-    transit_themes: Any  # TransitThemes dataclass
-) -> tuple[str, Dict[str, float]]:
+    transit_themes: Any,  # TransitThemes dataclass
+    cluster_data: Optional[Dict[str, Any]] = None
+) -> tuple[str, Dict[str, float], Dict[str, Any]]:
     """
-    Select the best pattern using SIGNALS-FIRST logic.
+    Select the best pattern using SIGNALS-FIRST logic with V3 clustering.
     
-    ARCHITECTURE (V2 - Signals First):
+    ARCHITECTURE (V3 - Multi-Signal Clustering):
     - Personal signals (journal, chat, lifeline) drive pattern selection
+    - Multi-signal clustering weights patterns with broader evidence
     - Transit acts as amplifier/modulator, NOT gatekeeper
     - No hard transit gate - all patterns remain eligible
     
-    Weighting:
-    - Normal mode (signal_strength != "weak"): signal=0.75, transit=0.25
-    - Fallback mode (signal_strength == "weak"): signal=0.30, transit=0.70
+    V3 Scoring Factors:
+    - Base signal alignment (keyword matching)
+    - Theme category alignment (dominant theme match)
+    - Evidence count weight (more evidence = higher score)
+    - Source diversity weight (multi-source = higher score)
+    - Repetition weight (repeated themes = higher score)
+    - Transit amplification (secondary)
     
-    Transit may: boost, dampen, break ties
-    Transit may NOT: gate eligibility, dominate when signals are present
+    Returns: (pattern_id, scores_dict, cluster_scores_dict)
     """
     from services.transit_theme_engine import TIMING_THEMES
     
     scores = {}
+    cluster_scores_all = {}
     signal_strength = signals.get("signal_strength", "weak")
+    
+    # Compute cluster data if not provided
+    if cluster_data is None:
+        cluster_data = cluster_signal_themes(signals)
     
     # Determine if we're in fallback mode (sparse personal data)
     fallback_mode = signal_strength == "weak"
@@ -1243,7 +1690,9 @@ def select_best_pattern(
     
     logger.info(
         f"[PatternSelect] Mode: {'FALLBACK' if fallback_mode else 'NORMAL'}, "
-        f"signal_strength={signal_strength}, dominant_energy={dominant_energy}"
+        f"signal_strength={signal_strength}, dominant_energy={dominant_energy}, "
+        f"dominant_theme={cluster_data.get('dominant_theme')}, "
+        f"evidence_count={cluster_data.get('total_evidence_count')}"
     )
     
     # Check if transit themes favor opening
@@ -1261,11 +1710,10 @@ def select_best_pattern(
             transit_themes.theme_intensity
         )
         
-        # V2: NO HARD GATE - all patterns remain eligible
-        # Transit score of 0 is fine; signals can still select this pattern
-        
-        # Calculate signal alignment score
-        signal_score = score_pattern_signal_alignment(pattern_id, signals)
+        # V3: Calculate clustered signal score
+        cluster_scores = score_pattern_with_clustering(pattern_id, signals, cluster_data)
+        clustered_signal_score = cluster_scores["clustered_score"]
+        cluster_scores_all[pattern_id] = cluster_scores
         
         # Get pattern type (opening vs challenge)
         pattern_type = template.get("pattern_type", "challenge")
@@ -1289,29 +1737,36 @@ def select_best_pattern(
         if transit_favors_opening and pattern_type == "opening":
             energy_modifier *= 1.1  # Reduced from 1.15 - transit should modulate, not dominate
         
-        # V2: SIGNALS-FIRST WEIGHTING
+        # V3: SIGNALS-FIRST WEIGHTING with clustered score
         if fallback_mode:
             # Fallback: transit drives when personal data is sparse
-            base_score = (signal_score * 0.30) + (transit_score * 0.70)
+            base_score = (clustered_signal_score * 0.30) + (transit_score * 0.70)
         else:
             # Normal: personal signals drive selection
-            base_score = (signal_score * 0.75) + (transit_score * 0.25)
+            base_score = (clustered_signal_score * 0.75) + (transit_score * 0.25)
         
         final_score = base_score * energy_modifier
         
         scores[pattern_id] = {
             "final": final_score,
-            "signal": signal_score,
+            "signal": clustered_signal_score,
+            "base_signal": cluster_scores["base_score"],
             "transit": transit_score,
             "pattern_type": pattern_type,
             "energy_modifier": energy_modifier,
             "fallback_mode": fallback_mode,
             "signal_strength": signal_strength,
+            "cluster_bonuses": {
+                "theme_alignment": cluster_scores["theme_alignment"],
+                "evidence_weight": cluster_scores["evidence_weight"],
+                "diversity_weight": cluster_scores["diversity_weight"],
+                "repetition_weight": cluster_scores["repetition_weight"],
+            }
         }
         
         logger.debug(
             f"[PatternSelect] {pattern_id} ({pattern_type}): "
-            f"final={final_score:.2f}, signal={signal_score:.2f}, transit={transit_score:.2f}, "
+            f"final={final_score:.2f}, clustered_signal={clustered_signal_score:.2f}, transit={transit_score:.2f}, "
             f"modifier={energy_modifier:.2f}, mode={'fallback' if fallback_mode else 'normal'}"
         )
     
@@ -1342,7 +1797,10 @@ def select_best_pattern(
         for p, s in top_3_candidates
     ]
     
-    return best_pattern, best_scores
+    # V3: Return cluster data for the selected pattern
+    best_cluster_scores = cluster_scores_all.get(best_pattern, {})
+    
+    return best_pattern, best_scores, {"cluster_data": cluster_data, "cluster_scores": best_cluster_scores}
 
 # ============================================================================
 # SIGNAL AGGREGATION
@@ -1971,12 +2429,17 @@ async def generate_pattern_mirror(
     # STEP 2: Aggregate user signals
     signals = await aggregate_user_signals(db, user_id)
     
-    # STEP 3: Select best pattern using SIGNALS-FIRST scoring (V2)
-    selected_pattern_id, scores = select_best_pattern(signals, transit_themes)
+    # STEP 2b: Compute signal clustering (V3)
+    cluster_data = cluster_signal_themes(signals)
+    
+    # STEP 3: Select best pattern using SIGNALS-FIRST scoring with clustering (V3)
+    selected_pattern_id, scores, v3_data = select_best_pattern(signals, transit_themes, cluster_data)
     logger.info(
         f"[PatternMirror] Selected: {selected_pattern_id} "
         f"(final={scores['final']:.2f}, signal={scores['signal']:.2f}, transit={scores['transit']:.2f}, "
-        f"mode={'fallback' if scores.get('fallback_mode') else 'normal'})"
+        f"mode={'fallback' if scores.get('fallback_mode') else 'normal'}, "
+        f"evidence_count={cluster_data.get('total_evidence_count')}, "
+        f"dominant_theme={cluster_data.get('dominant_theme')})"
     )
     
     # STEP 4: Get pattern template
@@ -2042,29 +2505,56 @@ async def generate_pattern_mirror(
         transit_themes.active_themes
     )
     
-    # STEP 11: Build V2 layered response structure
+    # STEP 11: Build V3 layered response structure
+    
+    # V3: Build personal pattern core using clustering
+    cluster_scores = v3_data.get("cluster_scores", {})
+    personal_pattern_core = build_personal_pattern_core(
+        pattern, selected_pattern_id, cluster_data, cluster_scores, signals
+    )
+    
+    # V3: Timing amplifier (enhanced)
+    timing_amplifier = build_timing_amplifier_layer(
+        transit_themes, scores, timing_context
+    )
+    # Add contribution level based on timing role
+    timing_amplifier["contribution_level"] = "secondary" if not fallback_mode else "primary"
+    timing_amplifier["top_timing_factors"] = transit_themes.active_themes[:3]
+    
+    # V3: Compute archetypal resonance from Gene Keys
+    user_profile = await get_user_profile(db, user_id)
+    archetypal_resonance = compute_archetypal_resonance(
+        selected_pattern_id, pattern, user_profile, cluster_data
+    )
+    
+    # V3: Build evidence panel
+    evidence_panel = build_evidence_panel_v3(signals, cluster_data, pattern, selected_pattern_id)
+    
+    # V3: Build narrative with all layers
+    v3_narrative = build_v3_narrative(personal_pattern_core, timing_amplifier, archetypal_resonance)
+    
+    # Legacy personal_pattern (for backwards compatibility)
     personal_pattern = build_personal_pattern_layer(
         pattern, signals, pattern_evidence, scores
     )
     
-    timing_amplifier = build_timing_amplifier_layer(
-        transit_themes, scores, timing_context
-    )
-    
-    # STEP 12: Compute debug data and selection_debug
+    # STEP 12: Compute debug data and selection_debug (V3 enhanced)
     signal_only_ranking = compute_signal_only_ranking(signals, transit_themes)
     final_ranking = scores.get("top_candidates", [])
     timing_impact = determine_timing_impact(signal_only_ranking, final_ranking, selected_pattern_id)
     
-    # Selection debug - explicit fields for validation
+    # Selection debug - V3 enhanced with clustering data
     selection_debug = {
-        "top_3_by_signal_score": signal_only_ranking[:3],
-        "top_3_by_final_score": final_ranking[:3],
+        "top_candidates_by_personal_score": signal_only_ranking[:3],
+        "top_candidates_by_final_score": final_ranking[:3],
+        "source_diversity_score": cluster_data.get("source_diversity_score", 0),
+        "repetition_score": cluster_data.get("repetition_score", 0),
+        "evidence_count": cluster_data.get("total_evidence_count", 0),
+        "dominant_theme": cluster_data.get("dominant_theme"),
         "fallback_mode": fallback_mode,
-        "timing_changed_winner": timing_impact.get("timing_changed_winner", False),
-        "timing_only_amplified": not timing_impact.get("timing_changed_winner", True),
-        "signal_winner": timing_impact.get("signal_only_winner"),
-        "final_winner": timing_impact.get("final_winner"),
+        "timing_changed_rank": timing_impact.get("timing_changed_winner", False),
+        "archetypal_resonance_used": archetypal_resonance is not None,
+        "cluster_bonuses": scores.get("cluster_bonuses", {}),
     }
     
     debug_data = {
@@ -2073,6 +2563,10 @@ async def generate_pattern_mirror(
         "timing_impact": timing_impact,
         "fallback_mode": fallback_mode,
         "signal_strength": signals["signal_strength"],
+        "cluster_data": {
+            "theme_counts": cluster_data.get("theme_counts", {}),
+            "source_distribution": cluster_data.get("source_distribution", {}),
+        },
     }
     
     # STEP 13: Cache the result
@@ -2096,12 +2590,23 @@ async def generate_pattern_mirror(
     except Exception as e:
         logger.warning(f"[PatternMirror] Cache write failed: {e}")
     
-    # V2 RESPONSE: Two-layer structure with clear separation
+    # V3 RESPONSE: Three-layer structure with clustering and archetypal resonance
     return {
-        # ===== V2 LAYERED STRUCTURE =====
+        # ===== V3 LAYERED STRUCTURE =====
+        "pattern_card_v3": {
+            "personal_pattern_core": personal_pattern_core,
+            "timing_amplifier": timing_amplifier,
+            "archetypal_resonance": archetypal_resonance,
+            "evidence_panel": evidence_panel,
+            "selection_debug": selection_debug,
+        },
+        
+        # ===== V3 NARRATIVE =====
+        "narrative": v3_narrative,
+        
+        # ===== V2 COMPATIBILITY =====
         "personal_pattern": personal_pattern,
         "timing_amplifier": timing_amplifier,
-        "narrative": signals_first_narrative,
         "evidence": pattern_evidence,
         "selection_debug": selection_debug,
         "debug": debug_data,
