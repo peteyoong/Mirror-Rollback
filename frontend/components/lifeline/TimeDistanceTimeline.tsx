@@ -11,6 +11,9 @@
  * - Pattern Storm detection (Intense Periods)
  * - Animated reveal on first load
  * - First event reinforcement messages
+ * - Era/chapter markers for narrative orientation
+ * - Year grouping for multi-event years
+ * - Jump destination highlighting
  */
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
@@ -47,6 +50,23 @@ const MAX_SPACING = 120;  // Maximum gap between events (pixels)
 const QUIET_YEARS_THRESHOLD = 5; // Years gap to trigger "Quiet years" label
 const PIXELS_PER_YEAR = 15; // Base scale for year-to-pixel conversion
 
+// Era/Chapter definitions based on typical life stages
+interface LifeEra {
+  id: string;
+  label: string;
+  minAge: number;
+  maxAge: number;
+}
+
+const LIFE_ERAS: LifeEra[] = [
+  { id: 'early', label: 'Early Life', minAge: 0, maxAge: 12 },
+  { id: 'formative', label: 'Formative Years', minAge: 13, maxAge: 22 },
+  { id: 'building', label: 'Building', minAge: 23, maxAge: 35 },
+  { id: 'establishing', label: 'Establishing', minAge: 36, maxAge: 50 },
+  { id: 'midlife', label: 'Midlife', minAge: 51, maxAge: 65 },
+  { id: 'later', label: 'Later Years', minAge: 66, maxAge: 150 },
+];
+
 interface Props {
   events: LifelineEvent[];
   onEditEvent?: (event: LifelineEvent) => void;
@@ -54,11 +74,12 @@ interface Props {
   onAddEarlierMoment?: (prefill: EarlierMomentPrefill) => void;
   isCompact?: boolean;
   isFirstReveal?: boolean;
-  showEarlyMessages?: boolean; // Show "Your life is becoming visible" for 1-3 events
-  newEventAdded?: LifelineEvent | null; // Recently added event to trigger memory echo
-  resonanceMap?: Record<string, ChartResonance[]>; // Resonance data keyed by event_id
-  onEventLayout?: (year: number, y: number) => void; // Callback for scroll navigation
-  highlightedYear?: number | null; // Year to highlight after scroll jump
+  showEarlyMessages?: boolean;
+  newEventAdded?: LifelineEvent | null;
+  resonanceMap?: Record<string, ChartResonance[]>;
+  onEventLayout?: (year: number, y: number) => void;
+  highlightedYear?: number | null;
+  birthYear?: number;
 }
 
 interface TimelineNode {
@@ -68,6 +89,10 @@ interface TimelineNode {
   quietYearsCount?: number;
   gapStartYear?: number;
   gapEndYear?: number;
+  isFirstInYear: boolean; // First event in this year (for year markers)
+  eventsInYear: number; // Total events in this year
+  showEraMarker: boolean; // Should show era transition marker
+  eraLabel?: string; // Era label to show
 }
 
 // =============================================================================
@@ -75,9 +100,16 @@ interface TimelineNode {
 // =============================================================================
 
 /**
- * Calculate time-proportional spacing between events
+ * Get era label for a given age
  */
-function calculateTimelineNodes(events: LifelineEvent[]): TimelineNode[] {
+function getEraForAge(age: number): LifeEra | undefined {
+  return LIFE_ERAS.find(era => age >= era.minAge && age <= era.maxAge);
+}
+
+/**
+ * Calculate time-proportional spacing between events with era markers
+ */
+function calculateTimelineNodes(events: LifelineEvent[], birthYear?: number): TimelineNode[] {
   if (events.length === 0) return [];
   
   // Sort events by year (oldest first)
@@ -87,28 +119,61 @@ function calculateTimelineNodes(events: LifelineEvent[]): TimelineNode[] {
     return yearA - yearB;
   });
   
+  // Count events per year
+  const eventsPerYear = new Map<number, number>();
+  sortedEvents.forEach(e => {
+    const year = e.year || 0;
+    eventsPerYear.set(year, (eventsPerYear.get(year) || 0) + 1);
+  });
+  
+  // Track first event per year and current era
+  const seenYears = new Set<number>();
+  let lastEra: string | undefined;
+  
   return sortedEvents.map((event, index) => {
+    const eventYear = event.year || 0;
+    const isFirstInYear = !seenYears.has(eventYear);
+    seenYears.add(eventYear);
+    
+    // Calculate era
+    let showEraMarker = false;
+    let eraLabel: string | undefined;
+    
+    if (birthYear && isFirstInYear) {
+      const age = eventYear - birthYear;
+      const currentEra = getEraForAge(age);
+      if (currentEra && currentEra.id !== lastEra) {
+        showEraMarker = true;
+        eraLabel = currentEra.label;
+        lastEra = currentEra.id;
+      }
+    }
+    
     if (index === 0) {
-      // First event has no spacing above
       return {
         event,
         spacing: 0,
         showQuietYears: false,
+        isFirstInYear,
+        eventsInYear: eventsPerYear.get(eventYear) || 1,
+        showEraMarker,
+        eraLabel,
       };
     }
     
     const prevEvent = sortedEvents[index - 1];
     const prevYear = prevEvent.year || 0;
-    const currYear = event.year || 0;
-    const yearGap = Math.max(0, currYear - prevYear);
+    const yearGap = Math.max(0, eventYear - prevYear);
     
     // Calculate spacing based on year gap
     let spacing = yearGap * PIXELS_PER_YEAR;
-    
-    // Clamp to min/max
     spacing = Math.max(MIN_SPACING, Math.min(MAX_SPACING, spacing));
     
-    // Check for quiet years
+    // Reduce spacing for events in the same year (cluster them)
+    if (eventYear === prevYear) {
+      spacing = 16; // Tight clustering for same-year events
+    }
+    
     const showQuietYears = yearGap >= QUIET_YEARS_THRESHOLD;
     
     return {
@@ -117,7 +182,11 @@ function calculateTimelineNodes(events: LifelineEvent[]): TimelineNode[] {
       showQuietYears,
       quietYearsCount: yearGap,
       gapStartYear: prevYear,
-      gapEndYear: currYear,
+      gapEndYear: eventYear,
+      isFirstInYear,
+      eventsInYear: eventsPerYear.get(eventYear) || 1,
+      showEraMarker,
+      eraLabel,
     };
   });
 }
@@ -138,8 +207,23 @@ export default function TimeDistanceTimeline({
   resonanceMap = {},
   onEventLayout,
   highlightedYear,
+  birthYear,
 }: Props) {
   const { theme } = useTheme();
+  
+  // Highlight animation
+  const highlightAnim = useRef(new Animated.Value(0)).current;
+  
+  // Animate highlight when year changes
+  useEffect(() => {
+    if (highlightedYear) {
+      Animated.sequence([
+        Animated.timing(highlightAnim, { toValue: 1, duration: 300, useNativeDriver: false }),
+        Animated.delay(2000),
+        Animated.timing(highlightAnim, { toValue: 0, duration: 500, useNativeDriver: false }),
+      ]).start();
+    }
+  }, [highlightedYear]);
   
   // Animation state
   const [isAnimating, setIsAnimating] = useState(isFirstReveal);
@@ -155,7 +239,7 @@ export default function TimeDistanceTimeline({
   const [selectedStorm, setSelectedStorm] = useState<PatternStorm | null>(null);
   
   // Calculate timeline nodes with spacing
-  const timelineNodes = calculateTimelineNodes(events);
+  const timelineNodes = useMemo(() => calculateTimelineNodes(events, birthYear), [events, birthYear]);
   
   // Detect pattern storms
   const storms = useMemo(() => detectPatternStorms(events), [events]);
@@ -317,42 +401,66 @@ export default function TimeDistanceTimeline({
                 </View>
               )}
               
-              {/* Event card - with storm highlight if part of storm */}
-              {eventStorm ? (
-                <View 
-                  style={[
-                    styles.stormHighlight, 
-                    { backgroundColor: `${theme.accent}05` },
-                    highlightedYear === node.event.year && styles.highlightedCard,
-                    highlightedYear === node.event.year && { borderColor: theme.accent }
-                  ]}
-                  onLayout={(e) => onEventLayout?.(node.event.year || 0, e.nativeEvent.layout.y)}
-                >
-                  <LifelineEventCard
-                    event={node.event}
-                    onEdit={onEditEvent}
-                    onDelete={onDeleteEvent}
-                    isCompact={isCompact}
-                    resonances={resonanceMap[node.event.id] || []}
-                  />
-                </View>
-              ) : (
-                <View 
-                  style={[
-                    highlightedYear === node.event.year && styles.highlightedCard,
-                    highlightedYear === node.event.year && { borderColor: theme.accent }
-                  ]}
-                  onLayout={(e) => onEventLayout?.(node.event.year || 0, e.nativeEvent.layout.y)}
-                >
-                  <LifelineEventCard
-                    event={node.event}
-                    onEdit={onEditEvent}
-                    onDelete={onDeleteEvent}
-                    isCompact={isCompact}
-                    resonances={resonanceMap[node.event.id] || []}
-                  />
+              {/* Era marker - when entering a new life chapter */}
+              {node.showEraMarker && node.eraLabel && (
+                <View style={[styles.eraMarker, { borderColor: theme.border }]}>
+                  <View style={[styles.eraLine, { backgroundColor: theme.border }]} />
+                  <Text style={[styles.eraLabel, { color: theme.textTertiary, backgroundColor: theme.background }]}>
+                    {node.eraLabel}
+                  </Text>
+                  <View style={[styles.eraLine, { backgroundColor: theme.border }]} />
                 </View>
               )}
+              
+              {/* Year marker for first event in a year with multiple events */}
+              {node.isFirstInYear && node.eventsInYear > 1 && (
+                <View style={[styles.yearMarker, { backgroundColor: theme.surfaceAlt || theme.surface }]}>
+                  <Text style={[styles.yearMarkerYear, { color: theme.textSecondary }]}>
+                    {node.event.year}
+                  </Text>
+                  <Text style={[styles.yearMarkerCount, { color: theme.textTertiary }]}>
+                    {node.eventsInYear} moments
+                  </Text>
+                </View>
+              )}
+              
+              {/* Event card - with enhanced highlight for jump destination */}
+              <Animated.View 
+                style={[
+                  eventStorm && styles.stormHighlight,
+                  eventStorm && { backgroundColor: `${theme.accent}05` },
+                  highlightedYear === node.event.year && styles.highlightedCard,
+                  highlightedYear === node.event.year && { 
+                    borderColor: theme.accent,
+                    backgroundColor: highlightAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['transparent', `${theme.accent}10`],
+                    }),
+                  },
+                ]}
+                onLayout={(e) => onEventLayout?.(node.event.year || 0, e.nativeEvent.layout.y)}
+              >
+                {/* Jump indicator badge */}
+                {highlightedYear === node.event.year && (
+                  <Animated.View style={[
+                    styles.jumpBadge, 
+                    { 
+                      backgroundColor: theme.accent,
+                      opacity: highlightAnim,
+                    }
+                  ]}>
+                    <Text style={styles.jumpBadgeText}>Jumped here</Text>
+                  </Animated.View>
+                )}
+                
+                <LifelineEventCard
+                  event={node.event}
+                  onEdit={onEditEvent}
+                  onDelete={onDeleteEvent}
+                  isCompact={isCompact}
+                  resonances={resonanceMap[node.event.id] || []}
+                />
+              </Animated.View>
             </View>
           );
         })}
@@ -476,6 +584,62 @@ const styles = StyleSheet.create({
   highlightedCard: {
     borderWidth: 2,
     borderRadius: 14,
-    padding: 2,
+    padding: 4,
+    overflow: 'hidden',
+  },
+  
+  // Jump badge
+  jumpBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 10,
+  },
+  jumpBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  
+  // Era markers
+  eraMarker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    marginLeft: 20,
+    paddingRight: 20,
+  },
+  eraLine: {
+    flex: 1,
+    height: 1,
+  },
+  eraLabel: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  
+  // Year markers
+  yearMarker: {
+    marginLeft: 30,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  yearMarkerYear: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  yearMarkerCount: {
+    fontSize: 11,
+    marginTop: 1,
   },
 });

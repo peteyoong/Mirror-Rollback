@@ -593,6 +593,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
           resonanceMap={resonanceMap}
           onEventLayout={handleEventLayout}
           highlightedYear={highlightedYear}
+          birthYear={birthYear || undefined}
         />
         
         {/* Chart Resonance Section for Pattern Lens */}

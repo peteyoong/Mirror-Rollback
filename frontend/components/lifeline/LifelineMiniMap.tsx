@@ -404,6 +404,11 @@ export default function LifelineMiniMap({
         <Text style={[styles.headerSubtext, { color: theme.textTertiary }]}>
           The rhythm of your life — supported periods, challenging stretches, and turning points.
         </Text>
+        {events.length >= 3 && (
+          <Text style={[styles.tapHint, { color: theme.accent }]}>
+            Tap a moment to jump into that part of your story
+          </Text>
+        )}
       </View>
       
       {/* Life Arc Graph */}
@@ -689,6 +694,11 @@ const styles = StyleSheet.create({
   headerSubtext: {
     fontSize: 13,
     lineHeight: 18,
+  },
+  tapHint: {
+    fontSize: 12,
+    marginTop: 6,
+    fontStyle: 'italic',
   },
   graphContainer: {
     flexDirection: 'row',
