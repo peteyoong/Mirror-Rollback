@@ -1593,6 +1593,31 @@ def _build_natural_title(core_title: str, facet: Dict[str, Any]) -> str:
             "processing": "Staying Firm",
             "_default": "Holding Something Important",
         },
+        # === Opening/positive patterns ===
+        "Reconnection Window": {
+            "reaching": "Reaching Out",
+            "repair": "Time to Mend",
+            "trust": "A Window to Reconnect",
+            "_default": "An Opening for Reconnection",
+        },
+        "Renewal After Distance": {
+            "beginning": "Starting Fresh",
+            "trust": "Trying Again",
+            "receiving": "Letting in the New",
+            "_default": "Something Renewed",
+        },
+        "Grounded Presence": {
+            "stability": "Resting in Stability",
+            "calm": "Settled for Now",
+            "trust": "Trusting the Calm",
+            "_default": "Grounded and Present",
+        },
+        "Emotional Integration": {
+            "clarity": "Things Coming Together",
+            "processing": "Making Sense of It",
+            "understanding": "Pieces Falling into Place",
+            "_default": "Integration Happening",
+        },
     }
     
     # Try to find a natural title
@@ -2053,13 +2078,28 @@ def _build_practical_layer(pattern: Dict[str, Any], pattern_id: str) -> str:
     This should be a simple, useful, concrete suggestion the user can actually do.
     """
     # Pattern-specific practical suggestions (concise, one sentence)
+    # V9: COMPLETE COVERAGE - all 16 content patterns have specific practical advice
     practical_map = {
+        # === Relational patterns ===
         "relational_reopening": "Let yourself notice one small moment of connection without immediately evaluating it.",
         "heart_thaw": "Allow yourself one unguarded thought today without rushing to protect it.",
         "safe_intimacy_returning": "Notice where you already feel safe, even if it's just for a moment.",
+        "relational_weight": "Name one thing you've been carrying that isn't yours to hold alone.",
+        "reconnection_window": "Send one small signal today—a text, a question—without needing to control the response.",
+        
+        # === Emotional patterns ===
         "somethings_here": "Name one feeling you notice right now, even if it's incomplete.",
+        "emotional_wave_riding": "Let one wave of feeling pass through without trying to stop it or figure it out.",
+        "moving_through": "Give yourself permission to feel what's actually here, not what you think you should feel.",
+        "emotional_integration": "Notice one thing that's starting to make sense, even if the whole picture isn't clear.",
+        
+        # === Threshold/identity patterns ===
         "threshold_standing": "Let yourself notice what already feels true before asking for more proof.",
-        "closed_door_syndrome": "Try staying present one beat longer than your instinct to retreat.",
+        "expansion_resistance": "Take one small step toward the thing you're resisting—just to see what happens.",
+        "anticipating_impact": "Ask yourself: what is actually happening right now, not what might happen?",
+        
+        # === Behavioral patterns ===
+        "duty_over_self": "Put one of your own needs on the list today, even if it's small.",
         "over_functioning_hero": "Let one thing be good enough today without fixing it further.",
         "inner_critic_override": "Notice what you'd say to a friend in your situation—and say it to yourself.",
         "waiting_for_permission": "Ask yourself what you'd do if you already had permission.",
@@ -2069,6 +2109,12 @@ def _build_practical_layer(pattern: Dict[str, Any], pattern_id: str) -> str:
         "control_grip": "Release your grip on one small thing today and notice what happens.",
         "boundary_blur": "Check in with what you actually want before saying yes.",
         "people_pleasing_loop": "Before adjusting, ask: what would I choose if no one were watching?",
+        "holding_the_line": "Notice where you're holding tension and let your body soften, even slightly.",
+        "closed_door_syndrome": "Try staying present one beat longer than your instinct to retreat.",
+        
+        # === Opening/positive patterns ===
+        "grounded_presence": "Let yourself rest in what's stable right now—no need to look for trouble.",
+        "renewal_after_distance": "Meet this moment fresh, without assuming it will repeat the past.",
     }
     
     # Get pattern-specific practical or generate from micro_shifts
@@ -2139,7 +2185,9 @@ def _build_why_showing_up(
     dominant_theme = cluster_data.get("dominant_theme", "")
     
     # V9: Pattern-specific "why now" explanations
+    # COMPLETE COVERAGE - all 16 content patterns have specific "why now" entries
     PATTERN_WHY_NOW = {
+        # === Relational patterns ===
         "relational_reopening": {
             "high": "Something in you may be becoming more willing to let connection back in.",
             "medium": "Momentum is building around connection—readiness is growing.",
@@ -2150,20 +2198,66 @@ def _build_why_showing_up(
             "medium": "Something is thawing—defensiveness is loosening.",
             "low": "Conditions may be supporting a quiet softening.",
         },
-        "threshold_standing": {
-            "high": "You're at a decision point, and multiple signals are converging on it.",
-            "medium": "A choice is becoming more present—the moment feels ripe.",
-            "low": "Current timing may be highlighting a threshold.",
+        "safe_intimacy_returning": {
+            "high": "Safety in closeness is becoming more accessible again.",
+            "medium": "The conditions for safe connection are improving.",
+            "low": "Timing may be supporting a return to closeness.",
         },
+        "relational_weight": {
+            "high": "A relationship dynamic you've been carrying is pressing for attention.",
+            "medium": "Something unspoken may be ready to surface.",
+            "low": "Current timing may be highlighting what's been held too long.",
+        },
+        "reconnection_window": {
+            "high": "An opening for repair or reconnection is becoming visible.",
+            "medium": "Conditions seem more favorable for reaching out.",
+            "low": "Timing may be supporting a gentle move toward connection.",
+        },
+        
+        # === Emotional patterns ===
         "somethings_here": {
             "high": "Something has been stirring and is now ready to be noticed.",
             "medium": "An awareness is emerging—something wants attention.",
             "low": "Current timing may be bringing something into focus.",
         },
-        "safe_intimacy_returning": {
-            "high": "Safety in closeness is becoming more accessible again.",
-            "medium": "The conditions for safe connection are improving.",
-            "low": "Timing may be supporting a return to closeness.",
+        "emotional_wave_riding": {
+            "high": "Emotional waves are moving through with more intensity right now.",
+            "medium": "Feelings may be arriving faster than you can process them.",
+            "low": "Current timing may be amplifying emotional fluctuations.",
+        },
+        "moving_through": {
+            "high": "Something you've been holding is ready to move through you.",
+            "medium": "Processing something old may feel more available now.",
+            "low": "Timing may be supporting release or completion.",
+        },
+        "emotional_integration": {
+            "high": "Pieces that felt separate are starting to come together.",
+            "medium": "Something about your experience is becoming clearer.",
+            "low": "Integration may be happening quietly beneath the surface.",
+        },
+        
+        # === Threshold/identity patterns ===
+        "threshold_standing": {
+            "high": "You're at a decision point, and multiple signals are converging on it.",
+            "medium": "A choice is becoming more present—the moment feels ripe.",
+            "low": "Current timing may be highlighting a threshold.",
+        },
+        "expansion_resistance": {
+            "high": "Something bigger is calling, and the resistance to it is becoming clearer.",
+            "medium": "Growth pressure is building—the pull and the hesitation are both present.",
+            "low": "Timing may be revealing where expansion feels risky.",
+        },
+        "anticipating_impact": {
+            "high": "Future concerns are pressing more heavily than usual.",
+            "medium": "Your mind may be running ahead of present reality.",
+            "low": "Current timing may be amplifying anticipatory tension.",
+        },
+        
+        # === Behavioral patterns ===
+        "duty_over_self": {
+            "high": "The gap between what you're giving and what you're receiving is becoming visible.",
+            "medium": "Self-sacrifice patterns may be surfacing for attention.",
+            "low": "Current pressures may be highlighting where you put yourself last.",
         },
         "over_functioning_hero": {
             "high": "The weight of carrying so much is becoming harder to ignore.",
@@ -2174,6 +2268,23 @@ def _build_why_showing_up(
             "high": "Self-critical voices are louder right now, asking to be worked with.",
             "medium": "Your inner critic may be more active than usual.",
             "low": "Timing may be amplifying self-judgment.",
+        },
+        "holding_the_line": {
+            "high": "Something you've been firm about is being tested again.",
+            "medium": "A boundary or position you hold may need reinforcement.",
+            "low": "Current timing may be highlighting where you're holding firm.",
+        },
+        
+        # === Opening/positive patterns ===
+        "grounded_presence": {
+            "high": "A sense of stability is genuinely available right now.",
+            "medium": "Groundedness feels more accessible than usual.",
+            "low": "Conditions may be supporting a moment of stillness.",
+        },
+        "renewal_after_distance": {
+            "high": "Something that felt stuck or distant is opening again.",
+            "medium": "Fresh energy is entering where things felt stale.",
+            "low": "Timing may be supporting a new beginning.",
         },
     }
     

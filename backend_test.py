@@ -15,7 +15,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://signals-first-home.preview.emergentagent.com/api"
+BACKEND_URL = "https://mirror-v9-validation.preview.emergentagent.com/api"
 
 class TestResult:
     def __init__(self, name: str):
