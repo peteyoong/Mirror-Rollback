@@ -158,6 +158,73 @@ user_problem_statement: |
 
 
 backend:
+  - task: "Two-Layer Mirror Output API"
+    implemented: true
+    working: true
+    file: "/app/backend/services/pattern_mirror.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW FEATURE: Two-Layer Mirror Output (V5)
+          Implements the new output format for Pattern Mirror:
+          
+          A. CORE PATTERN (always visible)
+             - One sharp, behaviorally meaningful sentence
+          
+          B. WHY THIS MAY BE SHOWING UP (always visible)
+             - 1-2 sentences explaining timing/activation
+          
+          C. HOW THIS WAS DERIVED (collapsible)
+             - Cross-lens proof showing convergence
+             - Format: Lens → plain language signal
+             - Includes: Astrology, Human Design, BaZi, Lifeline lenses
+          
+          API Response includes new `two_layer_output` field:
+          - core_insight: { title, text }
+          - why_showing_up: { text, is_timing_driven }
+          - cross_lens_derivation: { lenses[], convergence_count, shows_convergence, convergence_note }
+          
+          Language Rules enforced:
+          - NO jargon (translates "Gate 22" etc to plain English)
+          - Uses directional language ("moving toward", "shifting from → to")
+          - Only includes lenses that meaningfully contributed
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ COMPREHENSIVE TESTING COMPLETED - Two-Layer Mirror Output API WORKING PERFECTLY
+          
+          ENDPOINT TESTED: GET /api/patterns/{user_id}?force_refresh=true
+          
+          🎯 ALL REVIEW REQUEST REQUIREMENTS VERIFIED:
+          ✅ two_layer_output field exists in response
+          ✅ core_insight has both title and text fields (string types)
+          ✅ why_showing_up has text and is_timing_driven fields (string + boolean)
+          ✅ cross_lens_derivation structure with lenses array complete
+          ✅ Lenses have plain language signals (NO jargon like "Gate 22")
+          ✅ convergence_count matches number of contributing lenses
+          ✅ display_config structure complete with all required fields
+          ✅ Tested with different user IDs for consistent structure
+          
+          📊 TEST RESULTS:
+          - Structure validation: 8/8 tests passed
+          - Cross-user consistency: 4/4 users successful
+          - Sample commands: 3/3 working correctly
+          - Success rate: 100%
+          
+          🔍 VERIFIED FEATURES:
+          - Core insight with meaningful titles and behavioral text
+          - Timing-driven explanations with boolean flags
+          - Plain language lens signals (no technical jargon)
+          - Accurate convergence counting
+          - Proper display configuration
+          - Consistent structure across all test users
+          
+          NOTE: API requires force_refresh=true parameter for fresh data generation
+
   - task: "Weekly Pattern Synthesis API Endpoint"
     implemented: true
     working: true
@@ -4654,3 +4721,87 @@ agent_communication:
       📊 TEST RESULTS: 6/6 TESTS PASSED (100% SUCCESS RATE)
       
       🎉 **CONCLUSION**: Pattern Mirror V1 backend endpoints are fully functional and meet all specified requirements. The API successfully generates contextual pattern mirrors with proper language rules compliance and consistent response structure across both GET and POST endpoints.
+
+  - agent: "testing"
+    message: |
+      TWO-LAYER MIRROR OUTPUT API TESTING COMPLETE ✅
+      
+      Successfully tested the new Two-Layer Mirror Output API feature as requested in the review:
+      
+      🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+      
+      **ENDPOINT TESTED: GET /api/patterns/{user_id}?force_refresh=true** ✅
+      
+      **Test 1: two_layer_output Field Structure** ✅
+      - ✅ two_layer_output field exists in response
+      - ✅ core_insight has both title and text fields (string types)
+      - ✅ why_showing_up has text and is_timing_driven fields (string + boolean)
+      - ✅ cross_lens_derivation structure with lenses array complete
+      - ✅ display_config structure with all required fields
+      
+      **Test 2: Plain Language Signal Verification** ✅
+      - ✅ Lenses have plain language signals (NO jargon like "Gate 22", "Resource element")
+      - ✅ Example signal: "Renewal energy is present—something wants to grow" (Astrology lens)
+      - ✅ All technical terms properly translated to plain English
+      
+      **Test 3: Convergence Logic** ✅
+      - ✅ convergence_count matches number of contributing lenses
+      - ✅ shows_convergence boolean working correctly
+      - ✅ convergence_note provides meaningful explanation
+      
+      **Test 4: Cross-User Consistency** ✅
+      - ✅ Structure consistent across 4 different user IDs
+      - ✅ All users return complete two_layer_output structure
+      - ✅ Different lens counts per user (1-2 lenses) working correctly
+      
+      **Test 5: Sample Commands from Review Request** ✅
+      - ✅ curl /api/patterns/test-user-123 | jq '.two_layer_output' ✅
+      - ✅ curl /api/patterns/test-user-456 | jq '.two_layer_output.core_insight' ✅
+      - ✅ curl /api/patterns/random-user | jq '.two_layer_output.cross_lens_derivation' ✅
+      
+      **Expected Structure Verification:**
+      ```json
+      {
+        "two_layer_output": {
+          "core_insight": {
+            "title": "Standing at Threshold: Releasing",
+            "text": "Today something may be ready to let go—a weight that's been carried long enough."
+          },
+          "why_showing_up": {
+            "text": "This facet is active because current timing themes (identity_shift, renewal_cycle) highlight this facet.",
+            "is_timing_driven": true
+          },
+          "cross_lens_derivation": {
+            "lenses": [
+              {
+                "lens": "Astrology",
+                "signal": "Renewal energy is present—something wants to grow",
+                "contributed": true
+              }
+            ],
+            "convergence_count": 1,
+            "shows_convergence": false,
+            "convergence_note": "1 system points to this theme"
+          },
+          "display_config": {
+            "core_always_visible": true,
+            "why_always_visible": true,
+            "derivation_collapsed_by_default": true,
+            "derivation_label": "How this was derived"
+          }
+        }
+      }
+      ```
+      
+      **Performance & Integration:**
+      - ✅ Response times: 0.11-0.21s (excellent performance)
+      - ✅ Backend URL: https://signals-first-home.preview.emergentagent.com/api
+      - ✅ force_refresh parameter required for fresh data generation
+      - ✅ All 8 structure validation tests passed
+      
+      📊 TEST RESULTS: 3/3 MAJOR TESTS PASSED (100% SUCCESS RATE)
+      - Structure validation: 8/8 tests passed
+      - Cross-user consistency: 4/4 users successful  
+      - Sample commands: 3/3 working correctly
+      
+      🎉 **CONCLUSION**: Two-Layer Mirror Output API is fully functional and working perfectly. All review request requirements met with complete structure validation, plain language signal verification, accurate convergence logic, and consistent cross-user behavior.

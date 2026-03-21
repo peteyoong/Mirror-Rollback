@@ -1700,6 +1700,464 @@ def _combine_v4_narrative(
 
 
 # ============================================================================
+# V5: TWO-LAYER MIRROR OUTPUT STRUCTURE
+# ============================================================================
+# 
+# Implements the new output format:
+# A. CORE PATTERN (always visible) - One sharp sentence
+# B. WHY THIS MAY BE SHOWING UP - 1-2 sentences on timing/activation  
+# C. HOW THIS WAS DERIVED (collapsible) - Cross-lens proof
+#
+# Language Rules:
+# - NO jargon (avoid "Gate 22", "Resource element" unless simplified)
+# - Use directional language: "moving toward", "shifting from → to", etc.
+# - Only include lenses that meaningfully contribute
+# ============================================================================
+
+# Cross-lens translation templates (plain English, no jargon)
+LENS_SIGNAL_TRANSLATIONS = {
+    "astrology": {
+        "new_moon": "A new cycle is beginning—endings and fresh starts overlapping",
+        "full_moon": "Things are reaching a peak—what's been building is now visible", 
+        "waning": "Energy is moving inward—time to process rather than push",
+        "waxing": "Energy is building—momentum gathering toward something",
+        "emotional_sensitivity": "Emotional sensitivity is heightened right now",
+        "transition_threshold": "You're at a threshold—one phase ending, another beginning",
+        "reset_cycle": "A natural reset is underway—clearing to make room",
+        "renewal_cycle": "Renewal energy is present—something wants to grow",
+        "pressure": "Pressure is building—decisions or tensions coming to a head",
+        "expansion": "Expansion is available—conditions support reaching outward",
+        "contraction": "Energy is contracting—pulling inward for consolidation",
+        "relational_harmony": "Relational conditions are supportive right now",
+        "relational_sensitivity": "Relational sensitivity is heightened",
+        "softening_phase": "A natural softening is occurring—defenses relaxing",
+        "integration_phase": "Integration is happening—pieces coming together",
+    },
+    "human_design": {
+        "defined_head": "Mental activity may feel more constant—processing is active",
+        "defined_ajna": "Mental certainty may feel stronger—fixed perspectives present",
+        "defined_throat": "Expression and communication feel more available",
+        "defined_g_center": "Sense of direction feels more stable",
+        "defined_heart": "Willpower and commitment feel more accessible",
+        "defined_sacral": "Energy for work and response feels consistent",
+        "defined_spleen": "Instincts and intuition are speaking clearly",
+        "defined_solar_plexus": "Emotional waves are moving—clarity comes with time",
+        "defined_root": "Pressure to act or complete is present",
+        "undefined_centers": "You may be absorbing energy from your environment",
+        "generator": "Waiting for response before acting serves you",
+        "projector": "Waiting for recognition and invitation matters now",
+        "manifestor": "Initiating energy is available—inform before acting",
+        "reflector": "Taking time before decisions is especially important",
+    },
+    "bazi": {
+        "wood_dominant": "Growth energy is strong—expansion and new beginnings",
+        "fire_dominant": "Transformation energy is active—passion and visibility",
+        "earth_dominant": "Stability energy is present—grounding and consolidation",
+        "metal_dominant": "Refinement energy is active—cutting away what doesn't serve",
+        "water_dominant": "Wisdom and flow energy present—adaptability serves you",
+        "wood_weak": "Growth energy may feel harder to access—patience with progress",
+        "fire_weak": "Passion and drive may feel lower—rest supports recovery",
+        "earth_weak": "Stability may feel harder to find—seek grounding",
+        "metal_weak": "Clarity and boundaries may need extra attention",
+        "water_weak": "Going with the flow may feel challenging—structure helps",
+        "energy_shifting": "Energy is shifting from one mode to another",
+        "seasonal_alignment": "Current season supports this pattern",
+        "element_clash": "Conflicting energies present—inner tension is normal",
+    },
+    "lifeline": {
+        "pattern_repeating": "This pattern has appeared before in your life",
+        "similar_themes": "Similar themes show up across multiple experiences",
+        "emotional_echo": "Emotional tone matches previous significant moments",
+        "relationship_pattern": "Relational patterns from your history are echoing",
+        "growth_edge": "This touches a growth edge you've been working on",
+        "unresolved_thread": "An unresolved thread from your past is active",
+    },
+}
+
+
+def build_two_layer_mirror_output(
+    pattern: Dict[str, Any],
+    pattern_id: str,
+    core_pattern_memory: Dict[str, Any],
+    daily_angle: Dict[str, Any],
+    timing_amplifier: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    signals_extended: Dict[str, Any],
+    transit_themes: Any,
+    user_profile: Optional[Dict[str, Any]] = None,
+    bazi_chart: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Build the Two-Layer Mirror Output structure.
+    
+    Layer A: CORE PATTERN (always visible)
+    - One sharp, behaviorally meaningful sentence
+    
+    Layer B: WHY THIS MAY BE SHOWING UP (always visible)
+    - 1-2 sentences explaining timing/activation (not abstract meaning)
+    
+    Layer C: HOW THIS WAS DERIVED (collapsible)
+    - Structured cross-lens proof with plain language translations
+    - Only includes lenses that meaningfully contributed
+    """
+    
+    # ===== LAYER A: CORE PATTERN (one sharp sentence) =====
+    # Extract the core insight from daily angle or pattern summary
+    core_summary = daily_angle.get("angle_summary", "")
+    core_title = daily_angle.get("angle_title", pattern.get("title", ""))
+    
+    # Simplify to one sharp sentence if needed
+    core_insight = _extract_sharp_insight(core_summary, pattern)
+    
+    # ===== LAYER B: WHY THIS MAY BE SHOWING UP =====
+    # Build timing/activation explanation (not abstract meaning)
+    why_showing_up = _build_why_showing_up(
+        timing_amplifier, 
+        transit_themes, 
+        cluster_data,
+        daily_angle
+    )
+    
+    # ===== LAYER C: HOW THIS WAS DERIVED (cross-lens proof) =====
+    # Build structured derivation from each contributing lens
+    cross_lens_derivation = _build_cross_lens_derivation(
+        transit_themes,
+        cluster_data,
+        signals_extended,
+        user_profile,
+        bazi_chart,
+        pattern_id
+    )
+    
+    return {
+        "core_insight": {
+            "title": core_title,
+            "text": core_insight,
+        },
+        "why_showing_up": {
+            "text": why_showing_up,
+            "is_timing_driven": timing_amplifier.get("timing_role") == "fallback",
+        },
+        "cross_lens_derivation": cross_lens_derivation,
+        "display_config": {
+            "core_always_visible": True,
+            "why_always_visible": True,
+            "derivation_collapsed_by_default": True,
+            "derivation_label": "How this was derived",
+        }
+    }
+
+
+def _extract_sharp_insight(angle_summary: str, pattern: Dict[str, Any]) -> str:
+    """
+    Extract or generate one sharp, behaviorally meaningful sentence.
+    
+    Must be:
+    - Human, clear, behaviorally meaningful
+    - Not abstract or mystical
+    """
+    # If angle_summary is already short enough, use it
+    if angle_summary and len(angle_summary) < 120:
+        # Clean up if needed
+        insight = angle_summary.strip()
+        if insight.endswith("."):
+            return insight
+        return insight + "."
+    
+    # If too long, take first sentence
+    if angle_summary:
+        sentences = angle_summary.split(".")
+        if sentences:
+            first = sentences[0].strip()
+            if first and len(first) > 20:
+                return first + "."
+    
+    # Fallback to pattern's what_you_may_be, simplified
+    what_you_may_be = pattern.get("what_you_may_be", "")
+    if what_you_may_be:
+        sentences = what_you_may_be.split(".")
+        if sentences:
+            first = sentences[0].strip()
+            if first:
+                return first + "."
+    
+    return "A pattern is showing up that may deserve your attention."
+
+
+def _build_why_showing_up(
+    timing_amplifier: Dict[str, Any],
+    transit_themes: Any,
+    cluster_data: Dict[str, Any],
+    daily_angle: Dict[str, Any]
+) -> str:
+    """
+    Build 1-2 sentences explaining WHY this pattern is showing up NOW.
+    
+    Focus on timing/activation, not abstract meaning.
+    """
+    parts = []
+    
+    # Check timing influence
+    active_themes = transit_themes.active_themes if transit_themes else []
+    timing_summary = timing_amplifier.get("timing_summary", "")
+    freshness_reason = daily_angle.get("freshness_reason", "")
+    
+    # Build timing-based explanation
+    if active_themes:
+        theme = active_themes[0]
+        translation = LENS_SIGNAL_TRANSLATIONS.get("astrology", {}).get(theme)
+        if translation:
+            parts.append(translation)
+    
+    # Add freshness reason if different
+    if freshness_reason and not any(freshness_reason.lower() in p.lower() for p in parts):
+        # Clean up the freshness reason
+        if "timing" in freshness_reason.lower() or "recent" in freshness_reason.lower():
+            parts.append(f"This facet is active because {freshness_reason}.")
+    
+    # Add signal diversity note if multi-source
+    source_diversity = cluster_data.get("source_diversity_score", 0)
+    evidence_count = cluster_data.get("total_evidence_count", 0)
+    
+    if source_diversity >= 0.6 and evidence_count >= 3:
+        parts.append("This theme appears across multiple areas of your reflection.")
+    elif evidence_count >= 2:
+        parts.append("This has been showing up in your recent entries.")
+    
+    # Combine (max 2 sentences)
+    if len(parts) >= 2:
+        return " ".join(parts[:2])
+    elif parts:
+        return parts[0]
+    else:
+        return "This pattern is surfacing from your recent reflections."
+
+
+def _build_cross_lens_derivation(
+    transit_themes: Any,
+    cluster_data: Dict[str, Any],
+    signals_extended: Dict[str, Any],
+    user_profile: Optional[Dict[str, Any]],
+    bazi_chart: Optional[Dict[str, Any]],
+    pattern_id: str
+) -> Dict[str, Any]:
+    """
+    Build structured cross-lens derivation showing convergence.
+    
+    Format per lens:
+    Lens Name → plain language signal
+    
+    Only includes lenses that meaningfully contributed.
+    """
+    derivations = []
+    
+    # 1. ASTROLOGY lens
+    astrology_signal = _get_astrology_derivation(transit_themes)
+    if astrology_signal:
+        derivations.append({
+            "lens": "Astrology",
+            "signal": astrology_signal,
+            "contributed": True,
+        })
+    
+    # 2. HUMAN DESIGN lens (if user has HD data)
+    hd_signal = _get_human_design_derivation(user_profile, pattern_id)
+    if hd_signal:
+        derivations.append({
+            "lens": "Human Design",
+            "signal": hd_signal,
+            "contributed": True,
+        })
+    
+    # 3. BAZI lens (if user has BaZi data)
+    bazi_signal = _get_bazi_derivation(bazi_chart, user_profile)
+    if bazi_signal:
+        derivations.append({
+            "lens": "BaZi",
+            "signal": bazi_signal,
+            "contributed": True,
+        })
+    
+    # 4. LIFELINE lens (from user's lifeline events)
+    lifeline_signal = _get_lifeline_derivation(signals_extended, cluster_data)
+    if lifeline_signal:
+        derivations.append({
+            "lens": "Lifeline",
+            "signal": lifeline_signal,
+            "contributed": True,
+        })
+    
+    # Calculate convergence
+    contributing_count = len([d for d in derivations if d.get("contributed")])
+    
+    return {
+        "lenses": derivations,
+        "convergence_count": contributing_count,
+        "shows_convergence": contributing_count >= 2,
+        "convergence_note": f"{contributing_count} system{'s' if contributing_count != 1 else ''} point{'s' if contributing_count == 1 else ''} to this theme" if contributing_count > 0 else None,
+    }
+
+
+def _get_astrology_derivation(transit_themes: Any) -> Optional[str]:
+    """Get plain-language astrology signal."""
+    if not transit_themes:
+        return None
+    
+    active_themes = transit_themes.active_themes if transit_themes else []
+    
+    if not active_themes:
+        return None
+    
+    # Build combined signal from top 2 themes
+    signals = []
+    translations = LENS_SIGNAL_TRANSLATIONS.get("astrology", {})
+    
+    for theme in active_themes[:2]:
+        if theme in translations:
+            signals.append(translations[theme])
+    
+    # Add lunar phase if available
+    lunar_phase = transit_themes.lunar_phase if transit_themes else None
+    if lunar_phase and lunar_phase.lower() in translations:
+        lunar_signal = translations.get(lunar_phase.lower())
+        if lunar_signal and lunar_signal not in signals:
+            signals.insert(0, lunar_signal)
+    
+    if signals:
+        return signals[0]  # Return most relevant
+    
+    # Fallback to timing summary
+    if hasattr(transit_themes, 'seasonal_context') and transit_themes.seasonal_context:
+        return f"Current season supports processing and reflection"
+    
+    return None
+
+
+def _get_human_design_derivation(
+    user_profile: Optional[Dict[str, Any]], 
+    pattern_id: str
+) -> Optional[str]:
+    """Get plain-language Human Design signal."""
+    if not user_profile:
+        return None
+    
+    # Check for HD data in profile
+    hd_data = user_profile.get("human_design", {})
+    if not hd_data:
+        return None
+    
+    translations = LENS_SIGNAL_TRANSLATIONS.get("human_design", {})
+    
+    # Check for type-based signal
+    hd_type = hd_data.get("type", "").lower()
+    if hd_type and hd_type in translations:
+        return translations[hd_type]
+    
+    # Check for defined centers relevant to pattern
+    defined_centers = hd_data.get("defined_centers", [])
+    
+    # Map pattern domains to relevant centers
+    pattern_center_relevance = {
+        "emotional": ["solar_plexus", "heart"],
+        "relational": ["g_center", "solar_plexus", "heart"],
+        "behavioral": ["sacral", "root", "spleen"],
+        "identity": ["g_center", "head", "ajna"],
+        "pressure": ["root", "head"],
+    }
+    
+    # Find relevant center signal
+    for center in defined_centers:
+        key = f"defined_{center.lower().replace(' ', '_')}"
+        if key in translations:
+            return translations[key]
+    
+    return None
+
+
+def _get_bazi_derivation(
+    bazi_chart: Optional[Dict[str, Any]],
+    user_profile: Optional[Dict[str, Any]]
+) -> Optional[str]:
+    """Get plain-language BaZi signal."""
+    # Try to get BaZi from chart or profile
+    if not bazi_chart and user_profile:
+        bazi_chart = user_profile.get("bazi_chart", {})
+    
+    if not bazi_chart:
+        return None
+    
+    translations = LENS_SIGNAL_TRANSLATIONS.get("bazi", {})
+    
+    # Check element analysis
+    element_analysis = bazi_chart.get("element_analysis", {})
+    
+    if element_analysis:
+        dominant = element_analysis.get("dominant_element", "").lower()
+        weak = element_analysis.get("weak_element", "").lower()
+        
+        # Check for dominant element signal
+        dominant_key = f"{dominant}_dominant"
+        if dominant_key in translations:
+            return translations[dominant_key]
+        
+        # Check for weak element signal
+        weak_key = f"{weak}_weak"
+        if weak_key in translations:
+            return translations[weak_key]
+    
+    # Check for general energy signal
+    day_master = bazi_chart.get("day_master", {})
+    if day_master:
+        element = day_master.get("element", "").lower()
+        element_key = f"{element}_dominant"
+        if element_key in translations:
+            return f"Your {element.title()} nature supports this pattern"
+    
+    return None
+
+
+def _get_lifeline_derivation(
+    signals_extended: Dict[str, Any],
+    cluster_data: Dict[str, Any]
+) -> Optional[str]:
+    """Get plain-language Lifeline signal."""
+    translations = LENS_SIGNAL_TRANSLATIONS.get("lifeline", {})
+    
+    # Check for lifeline evidence in cluster data
+    lifeline_evidence = cluster_data.get("matched_themes_by_source", {}).get("lifeline", [])
+    
+    if not lifeline_evidence:
+        # Check signals_extended
+        memory = signals_extended.get("memory", {})
+        lifeline_events = memory.get("lifeline_events", [])
+        if not lifeline_events:
+            return None
+    
+    # Check for pattern repetition
+    repetition_score = cluster_data.get("repetition_score", 0)
+    
+    if repetition_score >= 0.5:
+        return translations.get("pattern_repeating")
+    
+    # Check for multiple lifeline matches
+    if len(lifeline_evidence) >= 2:
+        return translations.get("similar_themes")
+    
+    # Check for emotional echo
+    if lifeline_evidence:
+        first_match = lifeline_evidence[0] if lifeline_evidence else {}
+        themes = first_match.get("themes", [])
+        if "emotion" in str(themes).lower() or "feel" in str(themes).lower():
+            return translations.get("emotional_echo")
+    
+    # Default if lifeline contributed
+    if lifeline_evidence:
+        return translations.get("growth_edge")
+    
+    return None
+
+
+# ============================================================================
 # PATTERN MIRROR OUTPUT CONTRACT
 # ============================================================================
 
@@ -3146,6 +3604,20 @@ async def generate_pattern_mirror(
         core_pattern_memory, daily_angle, timing_amplifier, archetypal_resonance
     )
     
+    # V5: Build two-layer mirror output (Insight + Cross-Lens Proof)
+    two_layer_output = build_two_layer_mirror_output(
+        pattern=pattern,
+        pattern_id=selected_pattern_id,
+        core_pattern_memory=core_pattern_memory,
+        daily_angle=daily_angle,
+        timing_amplifier=timing_amplifier,
+        cluster_data=cluster_data,
+        signals_extended=signals_extended,
+        transit_themes=transit_themes,
+        user_profile=user_profile,
+        bazi_chart=None  # Will be populated if available
+    )
+    
     # Selection debug - V4 enhanced with two-timescale data
     selection_debug = {
         "top_core_candidates_by_memory_score": signal_only_ranking[:3],
@@ -3205,6 +3677,9 @@ async def generate_pattern_mirror(
     
     # V4 RESPONSE: Two-timescale structure with core memory and daily angle
     return {
+        # ===== V5 TWO-LAYER MIRROR OUTPUT =====
+        "two_layer_output": two_layer_output,
+        
         # ===== V4 LAYERED STRUCTURE =====
         "pattern_card_v4": {
             "core_pattern_memory": core_pattern_memory,

@@ -2,18 +2,17 @@
  * PatternCard.tsx
  * ================
  * 
- * Pattern Mirror V1 - Real-time Pattern Reflection Card
- * 
- * This is NOT a personality report.
- * This is a REAL-TIME PATTERN MIRROR.
+ * Pattern Mirror V5 - Two-Layer Mirror Output
  * 
  * Structure:
- * - Header: "PATTERN" / "What may be happening right now"
- * - What you may be (current pattern)
- * - What's your challenge (shadow behaviors)
- * - What's your genius (expanded expression + archetype)
- * - Practical ways to think about it (micro shifts)
- * - CTA: "Reflect on this" → Opens Mirror Chat seeded with pattern
+ * A. CORE PATTERN (always visible) - One sharp, behaviorally meaningful sentence
+ * B. WHY THIS MAY BE SHOWING UP (always visible) - 1-2 sentences on timing/activation
+ * C. HOW THIS WAS DERIVED (collapsible) - Cross-lens proof showing convergence
+ * 
+ * Design Principles:
+ * - Insight creates resonance (top line)
+ * - Explanation creates trust (proof layer)
+ * - User should feel the system is thinking, not guessing
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -27,6 +26,43 @@ import {
 import { useRouter } from 'expo-router';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
+
+// ===== V5 TWO-LAYER INTERFACES =====
+
+interface CoreInsight {
+  title: string;
+  text: string;
+}
+
+interface WhyShowingUp {
+  text: string;
+  is_timing_driven: boolean;
+}
+
+interface LensDerivation {
+  lens: string;
+  signal: string;
+  contributed: boolean;
+}
+
+interface CrossLensDerivation {
+  lenses: LensDerivation[];
+  convergence_count: number;
+  shows_convergence: boolean;
+  convergence_note: string | null;
+}
+
+interface TwoLayerOutput {
+  core_insight: CoreInsight;
+  why_showing_up: WhyShowingUp;
+  cross_lens_derivation: CrossLensDerivation;
+  display_config: {
+    core_always_visible: boolean;
+    why_always_visible: boolean;
+    derivation_collapsed_by_default: boolean;
+    derivation_label: string;
+  };
+}
 
 interface PatternGenius {
   description: string;
@@ -103,6 +139,9 @@ interface SelectionDebug {
 }
 
 interface PatternData {
+  // V5 Two-Layer Output
+  two_layer_output?: TwoLayerOutput;
+  
   // V2 Structure
   personal_pattern?: PersonalPattern;
   timing_amplifier?: TimingAmplifier;
@@ -152,6 +191,7 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   const [error, setError] = useState<string | null>(null);
   const [signalsExpanded, setSignalsExpanded] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [derivationExpanded, setDerivationExpanded] = useState(false);
 
   const loadPattern = useCallback(async () => {
     if (!userId) return;
@@ -161,6 +201,7 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
     // ALWAYS reset details to collapsed when loading new pattern
     setDetailsExpanded(false);
     setSignalsExpanded(false);
+    setDerivationExpanded(false);
     
     try {
       const response = await api.get(`/patterns/${userId}`);
@@ -183,6 +224,7 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   useEffect(() => {
     setDetailsExpanded(false);
     setSignalsExpanded(false);
+    setDerivationExpanded(false);
   }, [userId]);
 
   // Handle "Reflect on this" button
@@ -231,7 +273,13 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
 
   const { pattern } = patternData;
   
-  // V4: Extract two-timescale data (primary)
+  // V5: Extract two-layer output (primary)
+  const twoLayer = patternData.two_layer_output;
+  const coreInsight = twoLayer?.core_insight;
+  const whyShowingUp = twoLayer?.why_showing_up;
+  const crossLensDerivation = twoLayer?.cross_lens_derivation;
+  
+  // V4: Extract two-timescale data (fallback)
   const v4 = (patternData as any).pattern_card_v4;
   const coreMemory = v4?.core_pattern_memory;
   const dailyAngle = v4?.daily_angle;
@@ -245,10 +293,229 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   const evidence = patternData.evidence;
   const isAmplifierMode = timingAmplifier?.timing_role === 'amplifier';
   
-  // Log V4 status for debugging
-  console.log('[PatternCard] V4 present:', !!v4);
-  console.log('[PatternCard] Daily angle:', dailyAngle?.angle_title);
-  console.log('[PatternCard] Evidence snippets:', evidencePanel?.total_snippet_count);
+  // Log V5 status for debugging
+  console.log('[PatternCard] V5 Two-Layer present:', !!twoLayer);
+  console.log('[PatternCard] Core insight:', coreInsight?.title);
+  console.log('[PatternCard] Cross-lens count:', crossLensDerivation?.convergence_count);
+
+  // ===== V5 TWO-LAYER RENDER =====
+  if (twoLayer) {
+    return (
+      <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.headerLabel, { color: theme.textTertiary }]}>PATTERN</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
+            What may be happening right now
+          </Text>
+        </View>
+
+        {/* ===== A. CORE PATTERN (always visible) ===== */}
+        <Text style={[styles.patternTitle, { color: theme.text }]}>
+          {coreInsight?.title || pattern.title}
+        </Text>
+        
+        <View style={styles.section}>
+          <Text style={[styles.coreInsightText, { color: theme.text }]}>
+            {coreInsight?.text || pattern.what_you_may_be}
+          </Text>
+        </View>
+
+        {/* ===== B. WHY THIS MAY BE SHOWING UP (always visible) ===== */}
+        {whyShowingUp?.text && (
+          <View style={[styles.whyShowingUpSection, { borderColor: theme.border }]}>
+            <Text style={[styles.whyShowingUpLabel, { color: theme.textTertiary }]}>
+              WHY THIS MAY BE SHOWING UP
+            </Text>
+            <Text style={[styles.whyShowingUpText, { color: theme.textSecondary }]}>
+              {whyShowingUp.text}
+            </Text>
+          </View>
+        )}
+
+        {/* ===== C. HOW THIS WAS DERIVED (collapsible) ===== */}
+        {crossLensDerivation && crossLensDerivation.lenses && crossLensDerivation.lenses.length > 0 && (
+          <>
+            <TouchableOpacity
+              onPress={() => setDerivationExpanded(!derivationExpanded)}
+              activeOpacity={0.7}
+              style={styles.derivationTrigger}
+            >
+              <Text style={[styles.derivationTriggerText, { color: theme.textTertiary }]}>
+                {derivationExpanded ? 'Hide how this was derived ▲' : 'How this was derived ▼'}
+              </Text>
+              {crossLensDerivation.convergence_note && (
+                <Text style={[styles.convergenceBadge, { color: theme.accent }]}>
+                  {crossLensDerivation.convergence_note}
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            {derivationExpanded && (
+              <View style={[styles.derivationSection, { borderTopColor: theme.border }]}>
+                {crossLensDerivation.lenses.map((lens, index) => (
+                  lens.contributed && lens.signal ? (
+                    <View key={index} style={styles.lensItem}>
+                      <Text style={[styles.lensName, { color: theme.textSecondary }]}>
+                        {lens.lens}
+                      </Text>
+                      <Text style={[styles.lensArrow, { color: theme.textTertiary }]}>
+                        →
+                      </Text>
+                      <Text style={[styles.lensSignal, { color: theme.text }]}>
+                        {lens.signal}
+                      </Text>
+                    </View>
+                  ) : null
+                ))}
+              </View>
+            )}
+          </>
+        )}
+
+        {/* Challenge & Genius - keep but collapsed */}
+        <TouchableOpacity
+          onPress={() => setDetailsExpanded(!detailsExpanded)}
+          activeOpacity={0.7}
+          style={styles.detailsTrigger}
+        >
+          <Text style={[styles.detailsTriggerText, { color: theme.textTertiary }]}>
+            {detailsExpanded ? 'Hide details ▲' : 'Show challenge & genius ▼'}
+          </Text>
+        </TouchableOpacity>
+
+        {detailsExpanded && (
+          <>
+            {/* Challenge */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+                WHAT'S YOUR CHALLENGE
+              </Text>
+              <View style={styles.challengeList}>
+                {pattern.challenge.map((item, index) => (
+                  <View key={index} style={styles.challengeItem}>
+                    <Text style={[styles.bulletPoint, { color: theme.textTertiary }]}>•</Text>
+                    <Text style={[styles.challengeText, { color: theme.textSecondary }]}>
+                      {item}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Genius */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+                WHAT'S YOUR GENIUS
+              </Text>
+              <Text style={[styles.geniusDescription, { color: theme.text }]}>
+                {pattern.genius.description}
+              </Text>
+              {pattern.genius.archetype && (
+                <Text style={[styles.archetype, { color: theme.accent }]}>
+                  {pattern.genius.archetype}
+                </Text>
+              )}
+            </View>
+
+            {/* Micro Shifts */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+                PRACTICAL WAYS TO THINK ABOUT IT
+              </Text>
+              {pattern.micro_shifts.map((shift, index) => (
+                <Text key={index} style={[styles.microShift, { color: theme.textSecondary }]}>
+                  {shift}
+                </Text>
+              ))}
+            </View>
+          </>
+        )}
+
+        {/* CTA: Reflect on this */}
+        <TouchableOpacity
+          style={[styles.reflectButton, { backgroundColor: theme.accent }]}
+          onPress={handleReflect}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.reflectButtonText, { color: theme.textInverse }]}>
+            Reflect on this
+          </Text>
+        </TouchableOpacity>
+
+        {/* Signal strength indicator */}
+        {(evidencePanel || personalPattern?.signal_strength || patternData.signal_strength) && (
+          <TouchableOpacity
+            onPress={() => setSignalsExpanded(!signalsExpanded)}
+            activeOpacity={0.7}
+            style={styles.signalTrigger}
+          >
+            <Text style={[styles.signalIndicator, { color: theme.textTertiary }]}>
+              {evidencePanel ? (
+                `${evidencePanel.total_snippet_count} signals across ${
+                  Object.keys(evidencePanel.snippet_count_by_source || {}).join(' and ')
+                }`
+              ) : (
+                `Based on ${personalPattern?.signal_strength || patternData.signal_strength} signals`
+              )}
+              <Text style={styles.signalExpandHint}>
+                {signalsExpanded ? '  ▲' : '  ▼'}
+              </Text>
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Expanded evidence panel */}
+        {signalsExpanded && evidencePanel?.source_sections && (
+          <View style={[styles.signalsSection, { borderTopColor: theme.border }]}>
+            <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>
+              WHAT THIS IS BASED ON
+            </Text>
+            
+            {evidencePanel.summary_line && (
+              <Text style={[styles.evidenceSummaryLine, { color: theme.textSecondary }]}>
+                {evidencePanel.summary_line}
+              </Text>
+            )}
+            
+            {evidencePanel.source_sections.map((section: any) => {
+              if (!section.sample_snippets || section.sample_snippets.length === 0) return null;
+              
+              return (
+                <View key={section.source_name} style={styles.signalSourceGroup}>
+                  <View style={styles.sourceHeader}>
+                    <Text style={[styles.signalSourceLabel, { color: theme.textSecondary }]}>
+                      {SOURCE_LABELS[section.source_name] || section.source_name} ({section.snippet_count})
+                    </Text>
+                    <Text style={[styles.contributionBadge, { color: theme.textTertiary }]}>
+                      {section.contribution_strength}
+                    </Text>
+                  </View>
+                  {section.sample_snippets.slice(0, 3).map((snippet: any, index: number) => (
+                    <View key={index} style={styles.evidenceItem}>
+                      <Text style={[styles.signalBullet, { color: theme.textTertiary }]}>•</Text>
+                      <View style={styles.evidenceContent}>
+                        <Text style={[styles.signalText, { color: theme.textSecondary }]}>
+                          {snippet.text}
+                        </Text>
+                        {snippet.date && (
+                          <Text style={[styles.snippetDate, { color: theme.textTertiary }]}>
+                            {snippet.date}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
+    );
+  }
+
+  // ===== LEGACY RENDER (V4/V3/V2 fallback) =====
 
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -820,5 +1087,75 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 4,
     paddingLeft: 16,
+  },
+  
+  // ===== V5 TWO-LAYER OUTPUT STYLES =====
+  
+  // Core insight text (the one sharp sentence)
+  coreInsightText: {
+    fontSize: 17,
+    lineHeight: 26,
+    fontWeight: '500',
+  },
+  
+  // Why showing up section
+  whyShowingUpSection: {
+    marginTop: 16,
+    marginBottom: 16,
+    paddingTop: 16,
+    paddingBottom: 4,
+    borderTopWidth: 1,
+  },
+  whyShowingUpLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  whyShowingUpText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+  },
+  
+  // Derivation section (collapsible cross-lens proof)
+  derivationTrigger: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  derivationTriggerText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  convergenceBadge: {
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  derivationSection: {
+    paddingTop: 16,
+    borderTopWidth: 1,
+    marginBottom: 16,
+  },
+  lensItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 14,
+    paddingHorizontal: 4,
+  },
+  lensName: {
+    fontSize: 13,
+    fontWeight: '600',
+    width: 100,
+  },
+  lensArrow: {
+    fontSize: 13,
+    marginHorizontal: 8,
+    marginTop: 1,
+  },
+  lensSignal: {
+    fontSize: 13,
+    lineHeight: 19,
+    flex: 1,
   },
 });
