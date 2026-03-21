@@ -1463,7 +1463,8 @@ def select_daily_angle(
         selected_facet = available_facets[0] if available_facets else {"tag": "general", "label": "Today", "desc": ""}
     
     # Build daily angle summary
-    angle_title = f"{core_title}: {selected_facet['label']}"
+    # V9: Create more natural, human-readable titles
+    angle_title = _build_natural_title(core_title, selected_facet)
     
     # Generate angle summary based on core + facet
     angle_summary = _generate_angle_summary(core_summary, selected_facet, transit_themes)
@@ -1488,6 +1489,93 @@ def select_daily_angle(
         "freshness_reason": freshness_reason,
         "facet_scores": {k: round(v, 2) for k, v in facet_scores.items()},
     }
+
+
+def _build_natural_title(core_title: str, facet: Dict[str, Any]) -> str:
+    """
+    V9: Build more natural, human-readable titles.
+    
+    Avoid awkward "Label: Label" constructions.
+    Create titles that feel like natural phrases.
+    """
+    facet_tag = facet.get("tag", "")
+    
+    # V9: Natural title mappings by pattern + facet combination
+    # Pattern titles mapped to more readable versions
+    NATURAL_TITLES = {
+        # Relational patterns
+        "Relational Reopening": {
+            "trust": "Opening Back Up",
+            "reopening": "Letting Connection In Again",
+            "deciding": "A Decision to Reopen",
+            "receiving": "Becoming Ready to Receive",
+            "general": "Connection Becoming Possible",
+            "_default": "Opening Back Up",
+        },
+        "Heart Thaw": {
+            "softening": "Softening Again",
+            "trust": "Beginning to Trust",
+            "vulnerability": "Letting Walls Down",
+            "processing": "Thawing Out",
+            "_default": "A Quiet Thaw",
+        },
+        "Safe Intimacy Returning": {
+            "trust": "Safety Returning",
+            "receiving": "Letting Closeness In",
+            "boundaries": "Finding Safe Ground",
+            "_default": "Closeness Becoming Safer",
+        },
+        # Emotional patterns
+        "Something's Here": {
+            "emerging": "Something Is Stirring",
+            "processing": "Noticing What's Here",
+            "trust": "Trusting What's Arriving",
+            "_default": "Something Wants Attention",
+        },
+        "Emotional Wave Riding": {
+            "processing": "Riding the Wave",
+            "holding": "Holding Steady",
+            "releasing": "Letting It Move",
+            "_default": "Moving Through Waves",
+        },
+        # Threshold/decision patterns
+        "Standing at Threshold": {
+            "deciding": "Standing at a Choice",
+            "trust": "Ready to Step Forward",
+            "releasing": "Releasing the Old",
+            "_default": "At a Threshold",
+        },
+        # Behavioral patterns
+        "Over-Functioning Hero": {
+            "boundaries": "Carrying Too Much",
+            "releasing": "Learning to Put It Down",
+            "processing": "Noticing the Weight",
+            "_default": "Doing Too Much",
+        },
+        "Inner Critic Override": {
+            "processing": "The Inner Critic Is Loud",
+            "softening": "Finding Self-Compassion",
+            "_default": "Working with the Critic",
+        },
+        "Waiting for Permission": {
+            "deciding": "Ready Without Permission",
+            "trust": "Learning to Trust Yourself",
+            "_default": "Not Needing Permission",
+        },
+    }
+    
+    # Try to find a natural title
+    if core_title in NATURAL_TITLES:
+        pattern_titles = NATURAL_TITLES[core_title]
+        # Look for facet-specific title
+        if facet_tag in pattern_titles:
+            return pattern_titles[facet_tag]
+        # Use default for this pattern
+        if "_default" in pattern_titles:
+            return pattern_titles["_default"]
+    
+    # Fallback: Use core title alone (cleaner than "Title: Facet")
+    return core_title
 
 
 def _generate_angle_summary(
@@ -1816,12 +1904,13 @@ def build_two_layer_mirror_output(
     core_insight = _extract_sharp_insight(core_summary, pattern)
     
     # ===== LAYER B: WHY THIS MAY BE SHOWING UP =====
-    # Build timing/activation explanation (not abstract meaning)
+    # V9: Pattern-specific, human explanation
     why_showing_up = _build_why_showing_up(
         timing_amplifier, 
         transit_themes, 
         cluster_data,
-        daily_angle
+        daily_angle,
+        pattern_id  # V9: Pass pattern_id for specific explanations
     )
     
     # ===== LAYER C: HOW THIS WAS DERIVED (cross-lens proof) =====
@@ -1871,43 +1960,40 @@ def build_two_layer_mirror_output(
 
 def _build_friction_layer(pattern: Dict[str, Any], pattern_id: str) -> str:
     """
-    Build the V6 friction layer - one short sentence describing the likely tension.
+    V9: Build the friction layer - one short, sharp sentence.
     
-    This should describe the hesitation, blind spot, or internal resistance
-    that often accompanies this pattern.
+    Describes the likely tension, hesitation, or blind spot.
+    Tighter and more emotionally true.
     """
-    # Pattern-specific friction statements (concise, one sentence)
+    # V9: Polished, tighter friction statements
     friction_map = {
-        "relational_reopening": "You may still be watching for proof that opening up won't lead to disappointment again.",
-        "heart_thaw": "Part of you may still be waiting to see if this softening can be trusted.",
-        "safe_intimacy_returning": "You may hesitate to fully arrive, worried the safety could shift.",
-        "somethings_here": "You might feel something stirring but resist naming it too soon.",
-        "threshold_standing": "You may be waiting for more certainty before trusting what is already becoming clear.",
-        "closed_door_syndrome": "You might notice yourself scanning for reasons to step back or protect yourself.",
-        "over_functioning_hero": "You may find it hard to rest when there's still something you could be doing.",
-        "inner_critic_override": "You may be dismissing your own knowing before giving it space to speak.",
-        "waiting_for_permission": "You might be looking for external validation before trusting your own readiness.",
-        "perfectionist_paralysis": "You may be telling yourself it's not ready yet when it might be closer than you think.",
-        "emotional_flooding": "You may want to push through the discomfort rather than letting it move at its own pace.",
-        "avoidant_autopilot": "You might find yourself subtly steering away from what feels too close or too real.",
-        "control_grip": "You may be tightening your hold on things that actually need room to breathe.",
-        "boundary_blur": "You might feel pulled between your own needs and what others expect.",
-        "people_pleasing_loop": "You may notice yourself adjusting to fit others before checking what you actually want.",
+        "relational_reopening": "Part of you may still want proof that openness is safe.",
+        "heart_thaw": "Part of you may still be testing whether softening is worth the risk.",
+        "safe_intimacy_returning": "You might hesitate to fully arrive, in case the safety shifts.",
+        "somethings_here": "You might be resisting naming it too soon.",
+        "threshold_standing": "You may still be waiting for certainty before stepping forward.",
+        "closed_door_syndrome": "Part of you may still be scanning for reasons to step back.",
+        "over_functioning_hero": "You might find it hard to rest when there's still something you could do.",
+        "inner_critic_override": "You may be dismissing your own knowing before it has room to land.",
+        "waiting_for_permission": "You might be looking outside for permission you already have.",
+        "perfectionist_paralysis": "You may be telling yourself it's not ready when it might be.",
+        "emotional_flooding": "You might want to push through the feeling rather than let it move.",
+        "avoidant_autopilot": "Part of you may be subtly steering away from what feels too close.",
+        "control_grip": "You may be tightening your hold on things that need room to breathe.",
+        "boundary_blur": "You might feel pulled between your needs and what others expect.",
+        "people_pleasing_loop": "You may be adjusting to fit others before checking what you want.",
     }
     
-    # Get pattern-specific friction or generate from challenge
     if pattern_id in friction_map:
         return friction_map[pattern_id]
     
-    # Fallback: use first challenge sentence, simplified
+    # Fallback: use first challenge, polished
     challenge = pattern.get("challenge", [])
     if challenge and len(challenge) > 0:
-        first_challenge = challenge[0]
-        # Convert to friction framing
-        if first_challenge:
-            return f"You may notice {first_challenge.lower()}"
+        first_challenge = challenge[0].lower()
+        return f"You may notice a tendency toward {first_challenge}."
     
-    return "You may be waiting for the right moment instead of trusting the one that's here."
+    return "You may be waiting for the right moment instead of trusting this one."
 
 
 def _build_practical_layer(pattern: Dict[str, Any], pattern_id: str) -> str:
@@ -1989,49 +2075,104 @@ def _build_why_showing_up(
     timing_amplifier: Dict[str, Any],
     transit_themes: Any,
     cluster_data: Dict[str, Any],
-    daily_angle: Dict[str, Any]
+    daily_angle: Dict[str, Any],
+    pattern_id: str = ""
 ) -> str:
     """
-    Build a concise, high-level explanation for WHY this pattern is showing up NOW.
+    V9: Build a specific, human explanation for WHY this pattern is showing up NOW.
     
-    V8: Simplified to avoid repetition with Astrology derivation.
-    Keep this abstract; let derivation provide the specific evidence.
+    Keep this concise but meaningful. Don't repeat derivation details.
     """
     # Get evidence-based signals
     source_diversity = cluster_data.get("source_diversity_score", 0)
     evidence_count = cluster_data.get("total_evidence_count", 0)
     dominant_theme = cluster_data.get("dominant_theme", "")
     
-    # V8: Focus on convergence and user signals, not timing details
-    # (timing details now live in Astrology derivation)
+    # V9: Pattern-specific "why now" explanations
+    PATTERN_WHY_NOW = {
+        "relational_reopening": {
+            "high": "Something in you may be becoming more willing to let connection back in.",
+            "medium": "Momentum is building around connection—readiness is growing.",
+            "low": "Current timing may be making openness feel more possible.",
+        },
+        "heart_thaw": {
+            "high": "Walls that have been up are starting to soften.",
+            "medium": "Something is thawing—defensiveness is loosening.",
+            "low": "Conditions may be supporting a quiet softening.",
+        },
+        "threshold_standing": {
+            "high": "You're at a decision point, and multiple signals are converging on it.",
+            "medium": "A choice is becoming more present—the moment feels ripe.",
+            "low": "Current timing may be highlighting a threshold.",
+        },
+        "somethings_here": {
+            "high": "Something has been stirring and is now ready to be noticed.",
+            "medium": "An awareness is emerging—something wants attention.",
+            "low": "Current timing may be bringing something into focus.",
+        },
+        "safe_intimacy_returning": {
+            "high": "Safety in closeness is becoming more accessible again.",
+            "medium": "The conditions for safe connection are improving.",
+            "low": "Timing may be supporting a return to closeness.",
+        },
+        "over_functioning_hero": {
+            "high": "The weight of carrying so much is becoming harder to ignore.",
+            "medium": "Something about your current load is asking for attention.",
+            "low": "Current pressures may be revealing where you're overextended.",
+        },
+        "inner_critic_override": {
+            "high": "Self-critical voices are louder right now, asking to be worked with.",
+            "medium": "Your inner critic may be more active than usual.",
+            "low": "Timing may be amplifying self-judgment.",
+        },
+    }
     
-    if evidence_count >= 3 and source_diversity >= 0.6:
-        # Strong multi-source signal
-        return "Multiple sources—your recent reflections and current timing—point to this moment as significant."
+    # Determine evidence level
+    if evidence_count >= 3 and source_diversity >= 0.5:
+        level = "high"
+    elif evidence_count >= 2:
+        level = "medium"
+    else:
+        level = "low"
     
-    if evidence_count >= 2:
-        # Moderate signal
-        theme_contexts = {
-            "relational": "connection and openness are in the air right now",
-            "emotional": "emotional processing is active right now",
-            "identity": "questions of direction and purpose are surfacing",
-            "behavioral": "patterns in how you respond are becoming visible",
-            "pressure": "a sense of being stretched is present",
-        }
-        if dominant_theme and dominant_theme in theme_contexts:
-            return f"This may feel more present because {theme_contexts[dominant_theme]}."
-        return "This theme is surfacing now because both your inner signals and current timing align."
+    # Try pattern-specific explanation first
+    if pattern_id in PATTERN_WHY_NOW:
+        return PATTERN_WHY_NOW[pattern_id].get(level, PATTERN_WHY_NOW[pattern_id]["low"])
     
-    if evidence_count >= 1:
-        # Light signal
+    # V9: Fallback based on dominant theme
+    theme_why_now = {
+        "relational": {
+            "high": "Connection and closeness are becoming more present in your awareness.",
+            "medium": "Something around relationships is asking for attention.",
+            "low": "Current timing may be highlighting relational themes.",
+        },
+        "emotional": {
+            "high": "Emotional material is moving and wants to be witnessed.",
+            "medium": "Feelings are surfacing that may have been waiting.",
+            "low": "Current timing may be bringing emotions into focus.",
+        },
+        "behavioral": {
+            "high": "Patterns in how you respond are becoming visible.",
+            "medium": "Something about how you're operating is asking for notice.",
+            "low": "Current timing may be revealing habitual patterns.",
+        },
+        "identity": {
+            "high": "Questions of direction and purpose are pressing for attention.",
+            "medium": "Something about your sense of self is shifting.",
+            "low": "Current timing may be highlighting identity questions.",
+        },
+    }
+    
+    if dominant_theme in theme_why_now:
+        return theme_why_now[dominant_theme].get(level, theme_why_now[dominant_theme]["low"])
+    
+    # Generic fallback (still specific enough to add value)
+    if level == "high":
+        return "Multiple signals—your reflections and current timing—point to this moment as significant."
+    elif level == "medium":
         return "Something in your recent experience is activating this theme."
-    
-    # Fallback: timing-only (no user evidence)
-    timing_role = timing_amplifier.get("timing_role", "")
-    if timing_role == "fallback":
+    else:
         return "Current timing may be bringing this pattern into focus."
-    
-    return "This pattern is becoming visible right now."
 
 
 def _build_cross_lens_derivation(
@@ -2192,29 +2333,30 @@ def _get_astrology_derivation(transit_themes: Any, pattern_id: str = "") -> Opti
         "avoidant_autopilot": ["mars_active", "mercury_retrograde", "waning_crescent"],
     }
     
-    # V8: More specific, pattern-contextual driver translations
+    # V9: More specific, pattern-contextual driver translations
+    # These explain WHY the timing matters for THIS pattern
     DRIVER_TRANSLATIONS = {
         # === LUNAR (most actionable) ===
-        "new_moon": "New moon timing supports fresh starts—good for beginning something",
-        "full_moon": "Full moon brings things to the surface—what's hidden becomes visible",
-        "waxing_crescent": "Waxing moon supports forward motion—momentum is building",
-        "waning_crescent": "Waning moon supports release—letting go is easier now",
-        "first_quarter": "First quarter moon brings decision energy—crossroads moments",
-        "last_quarter": "Last quarter moon invites reflection—evaluating what worked",
-        "waxing_moon": "Moon is waxing—energy for action is building",
-        "waning_moon": "Moon is waning—energy for completion and release",
+        "new_moon": "New moon timing supports fresh starts—a good moment to begin something",
+        "full_moon": "Full moon brings things to the surface—what's been building becomes visible",
+        "waxing_crescent": "Waxing moon supports small forward steps—momentum is available",
+        "waning_crescent": "Waning moon supports release—easier to let go of what's finished",
+        "first_quarter": "First quarter moon brings decision energy—a natural crossroads",
+        "last_quarter": "Last quarter moon supports reflection—time to assess what's working",
+        "waxing_moon": "Moon is waxing—energy for forward motion is building",
+        "waning_moon": "Moon is waning—energy favors completion over initiation",
         
         # === PLANETARY (only high-impact) ===
-        "mercury_active": "Mercury timing supports clarity—thinking and decisions feel clearer",
-        "venus_active": "Venus timing supports warmth—connection feels more available",
-        "mars_active": "Mars timing adds activation—drive to act is stronger",
-        "saturn_active": "Saturn timing brings seriousness—commitments feel heavier",
+        "mercury_active": "Mercury timing supports clarity—easier to see and name things",
+        "venus_active": "Venus timing brings warmth—connection feels more available",
+        "mars_active": "Mars timing adds activation—easier to act on what you know",
+        "saturn_active": "Saturn timing brings seriousness—commitments feel weightier",
         
         # === SPECIAL WINDOWS (only if truly active) ===
-        "equinox_window": "Equinox window supports balance—transitions feel natural",
+        "equinox_window": "Equinox marks a balance point—transitions feel more natural",
         "solstice_window": "Solstice marks a turning point—thresholds are highlighted",
-        "eclipse_window": "Eclipse window creates revelation energy—what's hidden surfaces",
-        "mercury_retrograde": "Mercury retrograde invites review—reflection over action",
+        "eclipse_window": "Eclipse window creates revelation—hidden things surface",
+        "mercury_retrograde": "Mercury retrograde invites review—better for reflection than action",
     }
     
     drivers = []
