@@ -908,6 +908,387 @@ SIGNAL_COMBINATIONS = {
     "pressure_resistance": ["pressure", "resistance"],
 }
 
+
+# ============================================================================
+# V10.2: CROSS-SECTION COHERENCE SYSTEM
+# ============================================================================
+# Ensures all sections of a Mirror card follow the SAME underlying frame
+# and feel like one coherent narrative, not separately generated sections.
+#
+# Core shift: independent section generation >>> shared "thought frame" per card
+# ============================================================================
+
+# --- FRAME TYPES ---
+# Each frame type represents a coherent conceptual lens that guides all sections.
+# Frames are selected based on signal patterns and then passed to all generators.
+
+FRAME_TYPES = {
+    # --- Action-oriented frames ---
+    "edge_of_action": {
+        "description": "Standing at the verge of doing something different",
+        "tone": "present, forward-leaning, embodied",
+        "metaphors": ["edge", "step", "threshold", "brink", "verge"],
+        "signal_affinities": ["growth", "clarity"],
+    },
+    "testing_the_waters": {
+        "description": "Tentatively exploring whether something is safe",
+        "tone": "cautious, curious, protective",
+        "metaphors": ["testing", "checking", "watching", "feeling out"],
+        "signal_affinities": ["hesitation", "warmth"],
+    },
+    
+    # --- Protection-oriented frames ---
+    "walls_questioning": {
+        "description": "Defenses reconsidering their necessity",
+        "tone": "guarded but curious, self-protective",
+        "metaphors": ["walls", "shields", "armor", "guard", "protection"],
+        "signal_affinities": ["resistance", "hesitation"],
+    },
+    "grief_underneath": {
+        "description": "Loss or grief driving current experience",
+        "tone": "tender, heavy, honoring what was",
+        "metaphors": ["holding", "loss", "weight", "what was", "letting go"],
+        "signal_affinities": ["grief", "resistance"],
+    },
+    
+    # --- Emergence frames ---
+    "something_surfacing": {
+        "description": "Something unnamed is becoming visible",
+        "tone": "quiet, attentive, pre-verbal",
+        "metaphors": ["surfacing", "emerging", "rising", "appearing", "showing"],
+        "signal_affinities": ["confusion", "warmth"],
+    },
+    "clarity_arriving": {
+        "description": "Understanding is becoming available",
+        "tone": "clear, grounded, recognizing",
+        "metaphors": ["seeing", "knowing", "recognizing", "clear", "obvious"],
+        "signal_affinities": ["clarity", "growth"],
+    },
+    
+    # --- Pattern frames ---
+    "here_again": {
+        "description": "Recognizing a familiar pattern returning",
+        "tone": "aware, weary but wise, pattern-seeing",
+        "metaphors": ["again", "before", "pattern", "cycle", "familiar"],
+        "signal_affinities": ["repeated_cycles"],
+    },
+    "something_different": {
+        "description": "This time might be different",
+        "tone": "hopeful, aware of past, open to change",
+        "metaphors": ["different", "this time", "new", "shift", "change"],
+        "signal_affinities": ["growth", "repeated_cycles"],
+    },
+    
+    # --- Pressure frames ---
+    "pressing_forward": {
+        "description": "External or internal pressure to move",
+        "tone": "urgent, compressed, demanding",
+        "metaphors": ["pressing", "pushing", "must", "now", "time"],
+        "signal_affinities": ["pressure", "clarity"],
+    },
+    "weight_carried": {
+        "description": "Bearing too much, running low",
+        "tone": "heavy, depleted, acknowledging limits",
+        "metaphors": ["weight", "carrying", "heavy", "full", "too much"],
+        "signal_affinities": ["pressure", "grief"],
+    },
+    
+    # --- Movement frames ---
+    "ready_to_release": {
+        "description": "Something held is ready to move",
+        "tone": "releasing, allowing, surrendering",
+        "metaphors": ["release", "let go", "move through", "flow", "out"],
+        "signal_affinities": ["growth", "grief"],
+    },
+    "holding_back": {
+        "description": "Something wants to move but is being contained",
+        "tone": "constrained, full, containing",
+        "metaphors": ["holding", "back", "in", "contained", "stopped"],
+        "signal_affinities": ["resistance", "pressure"],
+    },
+}
+
+# --- FRAME MAPPING ---
+# Maps each structure's "framing" field to a coherent frame_type
+# This ensures that when we select a structure, we get its frame_type
+
+FRAMING_TO_FRAME_TYPE = {
+    # Opening/action framings
+    "opening": "edge_of_action",
+    "pull": "edge_of_action",
+    "readiness": "edge_of_action",
+    "small_moment": "edge_of_action",
+    "small_step": "edge_of_action",
+    
+    # Testing/cautious framings
+    "testing": "testing_the_waters",
+    "between": "testing_the_waters",
+    "uncertainty": "testing_the_waters",
+    "naming_fear": "testing_the_waters",
+    
+    # Protection framings
+    "protection": "walls_questioning",
+    "self_protection": "walls_questioning",
+    "proof_seeking": "walls_questioning",
+    "certainty_seeking": "walls_questioning",
+    "staying": "walls_questioning",
+    "risk": "walls_questioning",
+    
+    # Grief framings
+    "grief_aware": "grief_underneath",
+    "after_loss": "grief_underneath",
+    "grief_tinged": "grief_underneath",
+    "betrayal_fear": "grief_underneath",
+    "grief_honoring": "grief_underneath",
+    "fear": "grief_underneath",
+    "permission": "grief_underneath",
+    
+    # Emergence framings
+    "emergence": "something_surfacing",
+    "fog": "something_surfacing",
+    "unwilled": "something_surfacing",
+    "body": "something_surfacing",
+    "body_knowing": "something_surfacing",
+    "curiosity": "something_surfacing",
+    
+    # Clarity framings
+    "recognition": "clarity_arriving",
+    "decision": "clarity_arriving",
+    "unavoidable": "clarity_arriving",
+    "knowing": "clarity_arriving",
+    "naming": "clarity_arriving",
+    "receiving": "clarity_arriving",
+    "questioning": "clarity_arriving",
+    
+    # Pattern framings
+    "pattern": "here_again",
+    "pattern_recognition": "here_again",
+    "pattern_awareness": "here_again",
+    "pattern_breaking": "something_different",
+    
+    # Pressure framings
+    "timing": "pressing_forward",
+    "pressure": "pressing_forward",
+    "pressure_aware": "pressing_forward",
+    "urgency": "pressing_forward",
+    "control": "pressing_forward",
+    "perfectionism": "pressing_forward",
+    "honesty": "pressing_forward",
+    
+    # Weight framings
+    "weight": "weight_carried",
+    "depletion": "weight_carried",
+    "imbalance": "weight_carried",
+    "guilt": "weight_carried",
+    "identity": "weight_carried",
+    "worthiness": "weight_carried",
+    "good_enough": "weight_carried",
+    "not_doing": "weight_carried",
+    "asking": "weight_carried",
+    "rest": "weight_carried",
+    "saying_no": "weight_carried",
+    "priority": "weight_carried",
+    
+    # Release framings
+    "release": "ready_to_release",
+    "transition": "ready_to_release",
+    "softening": "ready_to_release",
+    "unguarded": "ready_to_release",
+    "witnessing": "ready_to_release",
+    "expression": "ready_to_release",
+    
+    # Holding framings
+    "containment": "holding_back",
+    "minimizing": "holding_back",
+    "rushing": "holding_back",
+    "pacing": "holding_back",
+    "avoidance": "holding_back",
+    "dismissing": "holding_back",
+    "loss_aversion": "holding_back",
+    "believing": "holding_back",
+    "bargaining": "holding_back",
+    "pausing": "holding_back",
+    "thanking": "holding_back",
+    "automatic": "holding_back",
+}
+
+# --- FRAME-COMPATIBLE FRAMINGS ---
+# For each frame_type, list which structural framings are compatible
+# Used to filter structure selection in subsequent sections
+
+FRAME_COMPATIBLE_FRAMINGS = {
+    "edge_of_action": [
+        "opening", "pull", "readiness", "small_moment", "small_step",
+        "receiving", "timing", "decision", "questioning", "honesty",
+    ],
+    "testing_the_waters": [
+        "testing", "between", "uncertainty", "naming_fear",
+        "staying", "small_moment", "body_knowing", "curiosity",
+    ],
+    "walls_questioning": [
+        "protection", "self_protection", "proof_seeking", "certainty_seeking",
+        "staying", "risk", "control", "timing",
+    ],
+    "grief_underneath": [
+        "grief_aware", "after_loss", "grief_tinged", "betrayal_fear",
+        "grief_honoring", "fear", "permission", "containment", "loss_aversion",
+    ],
+    "something_surfacing": [
+        "emergence", "fog", "unwilled", "body", "body_knowing",
+        "curiosity", "naming_fear", "pacing",
+    ],
+    "clarity_arriving": [
+        "recognition", "decision", "unavoidable", "knowing", "naming",
+        "receiving", "questioning", "witnessing",
+    ],
+    "here_again": [
+        "pattern", "pattern_recognition", "pattern_awareness",
+        "identity", "automatic", "guilt",
+    ],
+    "something_different": [
+        "pattern_breaking", "transition", "opening", "small_step",
+        "different", "questioning",
+    ],
+    "pressing_forward": [
+        "timing", "pressure", "pressure_aware", "urgency", "control",
+        "perfectionism", "honesty", "decision", "naming",
+    ],
+    "weight_carried": [
+        "weight", "depletion", "imbalance", "guilt", "identity",
+        "worthiness", "good_enough", "not_doing", "asking", "rest",
+        "saying_no", "priority",
+    ],
+    "ready_to_release": [
+        "release", "transition", "softening", "unguarded",
+        "witnessing", "expression", "permission", "pacing",
+    ],
+    "holding_back": [
+        "containment", "minimizing", "rushing", "pacing", "avoidance",
+        "dismissing", "loss_aversion", "believing", "bargaining",
+        "pausing", "thanking", "automatic",
+    ],
+}
+
+
+def determine_frame_type(
+    pattern_id: str,
+    active_signals: List[str],
+    selected_framing: str
+) -> str:
+    """
+    Determine the frame_type for this card based on the selected core insight framing.
+    
+    This frame_type will be passed to all subsequent section generators
+    to ensure cross-section coherence.
+    """
+    # First, try to map from the selected framing
+    if selected_framing in FRAMING_TO_FRAME_TYPE:
+        return FRAMING_TO_FRAME_TYPE[selected_framing]
+    
+    # Fallback: determine frame_type from dominant signals
+    if "repeated_cycles" in active_signals:
+        if "growth" in active_signals:
+            return "something_different"
+        return "here_again"
+    
+    if "grief" in active_signals:
+        if "growth" in active_signals:
+            return "ready_to_release"
+        return "grief_underneath"
+    
+    if "resistance" in active_signals:
+        if "pressure" in active_signals:
+            return "holding_back"
+        return "walls_questioning"
+    
+    if "clarity" in active_signals:
+        if "pressure" in active_signals:
+            return "pressing_forward"
+        return "clarity_arriving"
+    
+    if "warmth" in active_signals or "growth" in active_signals:
+        return "edge_of_action"
+    
+    if "confusion" in active_signals or "hesitation" in active_signals:
+        return "testing_the_waters"
+    
+    # Default
+    return "something_surfacing"
+
+
+def select_structure_with_frame(
+    structures_config: Dict[str, Any],
+    pattern_id: str,
+    active_signals: List[str],
+    frame_type: str,
+    user_id: str = "",
+    section: str = ""
+) -> Tuple[str, str]:
+    """
+    Select the best sentence structure that is COMPATIBLE with the given frame_type.
+    
+    Returns (selected_text, selected_framing).
+    Prioritizes structures whose framing is compatible with the frame_type.
+    """
+    config = structures_config.get(pattern_id, {})
+    structures = config.get("structures", [])
+    default_text = config.get("default", "")
+    
+    if not structures:
+        return (default_text, "default")
+    
+    # Get compatible framings for this frame_type
+    compatible_framings = FRAME_COMPATIBLE_FRAMINGS.get(frame_type, [])
+    
+    # Score each structure by affinity match AND frame compatibility
+    scored_structures = []
+    for struct in structures:
+        affinities = struct.get("affinities", [])
+        framing = struct.get("framing", "")
+        
+        # Base score from signal affinity match
+        affinity_score = sum(1 for sig in active_signals if sig in affinities)
+        
+        # Bonus for repeated_cycles match
+        if "repeated_cycles" in active_signals and "repeated_cycles" in affinities:
+            affinity_score += 0.5
+        
+        # Frame compatibility bonus (prioritize structures that match our frame)
+        frame_bonus = 2.0 if framing in compatible_framings else 0.0
+        
+        total_score = affinity_score + frame_bonus
+        scored_structures.append((struct, total_score, affinity_score))
+    
+    # Sort by total score (highest first)
+    scored_structures.sort(key=lambda x: x[1], reverse=True)
+    
+    # If top scorer has meaningful score, use it
+    if scored_structures[0][1] > 0:
+        top_score = scored_structures[0][1]
+        tied_structures = [s for s, score, _ in scored_structures if score == top_score]
+        
+        if len(tied_structures) > 1:
+            idx = get_deterministic_variation_index(pattern_id, user_id, section) % len(tied_structures)
+            selected = tied_structures[idx]
+        else:
+            selected = tied_structures[0]
+        
+        return (selected["text"], selected.get("framing", "default"))
+    
+    # No good match - use deterministic selection with frame preference
+    # First try frame-compatible structures
+    frame_compatible = [s for s in structures if s.get("framing", "") in compatible_framings]
+    if frame_compatible:
+        idx = get_deterministic_variation_index(pattern_id, user_id, section) % len(frame_compatible)
+        selected = frame_compatible[idx]
+        return (selected["text"], selected.get("framing", "default"))
+    
+    # Fallback to any structure
+    idx = get_deterministic_variation_index(pattern_id, user_id, section) % len(structures)
+    selected = structures[idx]
+    return (selected["text"], selected.get("framing", "default"))
+
+
 # --- STRUCTURAL SENTENCE PATTERNS ---
 # Multiple base structures per pattern, tagged with signal affinities
 # Format: { pattern_id: { "structures": [ { "text": ..., "affinities": [...], "framing": ... } ] } }
@@ -2132,13 +2513,14 @@ def generate_why_now(
     cluster_data: Dict[str, Any],
     transit_themes: Any,
     base_maps: Dict[str, Dict[str, str]],
-    user_id: str = ""
+    user_id: str = "",
+    frame_type: str = ""
 ) -> str:
     """
-    V10.1: Generate context-aware "why now" explanation using STRUCTURAL VARIATION.
+    V10.2: Generate context-aware "why now" explanation with CROSS-SECTION COHERENCE.
     
     1. Extract signal tones and lifeline patterns
-    2. Select appropriate sentence STRUCTURE based on signal affinities
+    2. Select structure COMPATIBLE with the frame_type (if provided)
     3. Apply contextual modifier as secondary layer
     """
     # Extract signal tones and lifeline patterns
@@ -2148,15 +2530,27 @@ def generate_why_now(
     # Get dominant signal combination
     combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
     
-    # V10.1: Select structure based on signals
+    # V10.2: Select structure with frame compatibility
     if pattern_id in WHY_NOW_STRUCTURES and active_signals:
-        base_text = select_structure(
-            WHY_NOW_STRUCTURES,
-            pattern_id,
-            active_signals,
-            user_id,
-            "why_now"
-        )
+        if frame_type:
+            # Use frame-aware selection
+            base_text, _ = select_structure_with_frame(
+                WHY_NOW_STRUCTURES,
+                pattern_id,
+                active_signals,
+                frame_type,
+                user_id,
+                "why_now"
+            )
+        else:
+            # Fallback to original selection
+            base_text = select_structure(
+                WHY_NOW_STRUCTURES,
+                pattern_id,
+                active_signals,
+                user_id,
+                "why_now"
+            )
     else:
         # Fallback to old map-based selection
         source_diversity = cluster_data.get("source_diversity_score", 0)
@@ -2179,7 +2573,6 @@ def generate_why_now(
             base_text = "Current timing may be bringing this pattern into focus."
     
     # V10.1: Apply contextual modifier as SECONDARY layer (only if strong signal)
-    # Reduced threshold to only apply when signal is very strong
     enhanced_text = apply_contextual_modifier(base_text, tones, pattern_id, user_id, threshold=0.5)
     
     return enhanced_text
@@ -2191,14 +2584,15 @@ def generate_friction(
     signals_extended: Dict[str, Any],
     cluster_data: Dict[str, Any],
     base_map: Dict[str, str],
-    user_id: str = ""
+    user_id: str = "",
+    frame_type: str = ""
 ) -> str:
     """
-    V10.1: Generate context-aware friction statement using STRUCTURAL VARIATION.
+    V10.2: Generate context-aware friction statement with CROSS-SECTION COHERENCE.
     
     1. Extract signal tones and lifeline patterns
-    2. Select appropriate sentence STRUCTURE based on signal affinities
-    3. Apply contextual modifier as secondary layer (only when very strong signal)
+    2. Select structure COMPATIBLE with the frame_type (if provided)
+    3. Apply contextual modifier as secondary layer
     """
     # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
@@ -2207,15 +2601,27 @@ def generate_friction(
     # Get dominant signal combination
     combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
     
-    # V10.1: Select structure based on signals
+    # V10.2: Select structure with frame compatibility
     if pattern_id in FRICTION_STRUCTURES and active_signals:
-        base_text = select_structure(
-            FRICTION_STRUCTURES,
-            pattern_id,
-            active_signals,
-            user_id,
-            "friction"
-        )
+        if frame_type:
+            # Use frame-aware selection
+            base_text, _ = select_structure_with_frame(
+                FRICTION_STRUCTURES,
+                pattern_id,
+                active_signals,
+                frame_type,
+                user_id,
+                "friction"
+            )
+        else:
+            # Fallback to original selection
+            base_text = select_structure(
+                FRICTION_STRUCTURES,
+                pattern_id,
+                active_signals,
+                user_id,
+                "friction"
+            )
     elif pattern_id in FRICTION_STRUCTURES:
         # No active signals - use default from structures
         base_text = FRICTION_STRUCTURES[pattern_id].get("default", "")
@@ -2251,13 +2657,14 @@ def generate_practical(
     signals_extended: Dict[str, Any],
     cluster_data: Dict[str, Any],
     base_map: Dict[str, str],
-    user_id: str = ""
+    user_id: str = "",
+    frame_type: str = ""
 ) -> str:
     """
-    V10.1: Generate context-aware practical suggestion using STRUCTURAL VARIATION.
+    V10.2: Generate context-aware practical suggestion with CROSS-SECTION COHERENCE.
     
     1. Extract signal tones and lifeline patterns
-    2. Select appropriate sentence STRUCTURE based on signal affinities
+    2. Select structure COMPATIBLE with the frame_type (if provided)
     3. Add lifeline-aware endings for repeated_cycles pattern
     """
     # Extract signal tones and lifeline patterns
@@ -2267,15 +2674,27 @@ def generate_practical(
     # Get dominant signal combination
     combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
     
-    # V10.1: Select structure based on signals
+    # V10.2: Select structure with frame compatibility
     if pattern_id in PRACTICAL_STRUCTURES and active_signals:
-        base_text = select_structure(
-            PRACTICAL_STRUCTURES,
-            pattern_id,
-            active_signals,
-            user_id,
-            "practical"
-        )
+        if frame_type:
+            # Use frame-aware selection
+            base_text, _ = select_structure_with_frame(
+                PRACTICAL_STRUCTURES,
+                pattern_id,
+                active_signals,
+                frame_type,
+                user_id,
+                "practical"
+            )
+        else:
+            # Fallback to original selection
+            base_text = select_structure(
+                PRACTICAL_STRUCTURES,
+                pattern_id,
+                active_signals,
+                user_id,
+                "practical"
+            )
     elif pattern_id in PRACTICAL_STRUCTURES:
         # No active signals - use default from structures
         base_text = PRACTICAL_STRUCTURES[pattern_id].get("default", "")
@@ -2316,11 +2735,12 @@ def generate_core_insight(
     pattern: Dict[str, Any],
     signals_extended: Dict[str, Any],
     user_id: str = ""
-) -> str:
+) -> Tuple[str, str]:
     """
-    V10.1 NEW: Generate context-aware core insight using STRUCTURAL VARIATION.
+    V10.2: Generate context-aware core insight with FRAME TYPE ASSIGNMENT.
     
-    Selects fundamentally different framings based on user signals.
+    Returns (insight_text, frame_type) so that frame_type can be passed
+    to subsequent section generators for cross-section coherence.
     """
     # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
@@ -2329,24 +2749,32 @@ def generate_core_insight(
     # Get dominant signal combination
     combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
     
-    # V10.1: Select structure based on signals
+    # V10.2: Select structure and get framing
     if pattern_id in CORE_INSIGHT_STRUCTURES and active_signals:
-        return select_structure(
+        text, framing = select_structure_with_frame(
             CORE_INSIGHT_STRUCTURES,
             pattern_id,
             active_signals,
+            "",  # No frame_type yet - this is where we determine it
             user_id,
             "core_insight"
         )
+        # Determine frame_type from the selected framing
+        frame_type = determine_frame_type(pattern_id, active_signals, framing)
+        return (text, frame_type)
     elif pattern_id in CORE_INSIGHT_STRUCTURES:
         # No active signals - use default
-        return CORE_INSIGHT_STRUCTURES[pattern_id].get(
+        default_text = CORE_INSIGHT_STRUCTURES[pattern_id].get(
             "default",
             pattern.get("summary", "Something is present that deserves your attention.")
         )
+        return (default_text, "something_surfacing")
     else:
         # Pattern not in structures - use pattern summary
-        return pattern.get("summary", "Something is present that deserves your attention.")
+        return (
+            pattern.get("summary", "Something is present that deserves your attention."),
+            "something_surfacing"
+        )
 
 
 def cluster_signal_themes(signals: Dict[str, Any]) -> Dict[str, Any]:
