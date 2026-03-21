@@ -9402,6 +9402,242 @@ async def get_keystone_pattern_for_user(user_id: str, force_refresh: bool = Fals
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# ASTROLOGY DETERMINISTIC CHART ENDPOINT (Full Data Exposure)
+# =============================================================================
+@api_router.get("/astrology/chart/{user_id}")
+async def get_astrology_full_chart(user_id: str, force_recompute: bool = False):
+    """
+    Return the FULL deterministic astrology chart data.
+    
+    This endpoint exposes ALL computed chart data including:
+    - All 11 planets (Sun-Pluto + Chiron) with sign, degree, house, retrograde
+    - North Node + South Node with full data
+    - All 4 angles (ASC/DC/MC/IC)
+    - All 12 house cusps
+    - All computed aspects with orb and type
+    - Element/Modality/Polarity balances
+    - Metadata (sidereal settings, node mode, house system)
+    
+    This is the raw deterministic layer - no interpretation.
+    """
+    try:
+        user, chart = await get_user_astrology_data(user_id)
+        
+        # If force_recompute or chart needs migration
+        astro = chart.get('astrology', {})
+        needs_recompute = force_recompute or not astro.get('planets', {}).get('Chiron')
+        
+        if needs_recompute:
+            # Recompute using canonical function
+            from calculations.timezone_utils import resolve_birth_utc_with_debug
+            from datetime import datetime
+            
+            birth_location = user.get('birth_location', {})
+            lat = birth_location.get('lat') or birth_location.get('latitude')
+            lon = birth_location.get('lon') or birth_location.get('lng') or birth_location.get('longitude')
+            
+            if not lat or not lon:
+                return {
+                    "success": False,
+                    "error": "MISSING_BIRTH_LOCATION",
+                    "message": "Birth location required for chart computation"
+                }
+            
+            birth_date = user.get('birth_date')
+            birth_time = user.get('birth_time')
+            user_timezone = user.get('timezone')
+            
+            if not all([birth_date, birth_time, user_timezone]):
+                return {
+                    "success": False,
+                    "error": "MISSING_BIRTH_DATA",
+                    "message": "Complete birth data required (date, time, timezone)"
+                }
+            
+            if isinstance(birth_date, datetime):
+                birth_date_str = birth_date.strftime("%Y-%m-%d")
+            else:
+                birth_date_str = str(birth_date).split()[0]
+            
+            result = resolve_birth_utc_with_debug(birth_date_str, birth_time, user_timezone)
+            birth_utc = result.get('birth_utc')
+            
+            if not birth_utc:
+                return {
+                    "success": False,
+                    "error": "BIRTH_UTC_RESOLUTION_FAILED",
+                    "message": result.get('error_message', 'Could not resolve birth UTC')
+                }
+            
+            try:
+                canonical_chart = get_full_natal_chart(
+                    birth_datetime=birth_utc,
+                    lat=lat,
+                    lon=lon,
+                    sidereal_settings={"mode": "true_sidereal_user_defined"},
+                    house_system="Equal",
+                    node_mode="true_node"
+                )
+                
+                # Save updated chart to DB
+                from datetime import timezone as tz_module
+                await db.charts.update_one(
+                    {"user_id": user_id},
+                    {"$set": {"astrology": canonical_chart, "updated_at": datetime.now(tz_module.utc)}},
+                    upsert=True
+                )
+                
+                astro = canonical_chart
+                
+            except ComputeIntegrityError as e:
+                return {
+                    "success": False,
+                    "error": "COMPUTE_INTEGRITY_ERROR",
+                    "missing": e.errors,
+                    "partial_data": e.partial_data
+                }
+        
+        # Calculate balances from planet data
+        planets = astro.get('planets', {})
+        
+        element_counts = {'Fire': 0, 'Earth': 0, 'Air': 0, 'Water': 0}
+        modality_counts = {'Cardinal': 0, 'Fixed': 0, 'Mutable': 0}
+        polarity_counts = {'Masculine': 0, 'Feminine': 0}
+        house_counts = {}
+        
+        SIGN_TO_ELEMENT = {
+            'Aries': 'Fire', 'Leo': 'Fire', 'Sagittarius': 'Fire',
+            'Taurus': 'Earth', 'Virgo': 'Earth', 'Capricorn': 'Earth',
+            'Gemini': 'Air', 'Libra': 'Air', 'Aquarius': 'Air',
+            'Cancer': 'Water', 'Scorpio': 'Water', 'Pisces': 'Water'
+        }
+        SIGN_TO_MODALITY = {
+            'Aries': 'Cardinal', 'Cancer': 'Cardinal', 'Libra': 'Cardinal', 'Capricorn': 'Cardinal',
+            'Taurus': 'Fixed', 'Leo': 'Fixed', 'Scorpio': 'Fixed', 'Aquarius': 'Fixed',
+            'Gemini': 'Mutable', 'Virgo': 'Mutable', 'Sagittarius': 'Mutable', 'Pisces': 'Mutable'
+        }
+        SIGN_TO_POLARITY = {
+            'Aries': 'Masculine', 'Gemini': 'Masculine', 'Leo': 'Masculine', 
+            'Libra': 'Masculine', 'Sagittarius': 'Masculine', 'Aquarius': 'Masculine',
+            'Taurus': 'Feminine', 'Cancer': 'Feminine', 'Virgo': 'Feminine',
+            'Scorpio': 'Feminine', 'Capricorn': 'Feminine', 'Pisces': 'Feminine'
+        }
+        
+        # Weight planets (Sun/Moon get extra weight)
+        PLANET_WEIGHTS = {
+            'Sun': 2, 'Moon': 2, 'Mercury': 1, 'Venus': 1, 'Mars': 1,
+            'Jupiter': 1, 'Saturn': 1, 'Uranus': 0.5, 'Neptune': 0.5, 'Pluto': 0.5,
+            'Chiron': 0.5, 'North Node': 0.5
+        }
+        
+        for planet_name, planet_data in planets.items():
+            if planet_name in ['Earth', 'South Node']:
+                continue
+            sign = planet_data.get('sign')
+            house = planet_data.get('house')
+            weight = PLANET_WEIGHTS.get(planet_name, 1)
+            
+            if sign:
+                element = SIGN_TO_ELEMENT.get(sign)
+                modality = SIGN_TO_MODALITY.get(sign)
+                polarity = SIGN_TO_POLARITY.get(sign)
+                
+                if element:
+                    element_counts[element] += weight
+                if modality:
+                    modality_counts[modality] += weight
+                if polarity:
+                    polarity_counts[polarity] += weight
+            
+            if house:
+                house_counts[house] = house_counts.get(house, [])
+                house_counts[house].append(planet_name)
+        
+        # Find dominant houses (2+ planets)
+        dominant_houses = sorted(
+            [(h, planets_list) for h, planets_list in house_counts.items() if len(planets_list) >= 2],
+            key=lambda x: len(x[1]),
+            reverse=True
+        )
+        
+        # Check for angular planets (houses 1, 4, 7, 10)
+        angular_planets = []
+        for h in [1, 4, 7, 10]:
+            if h in house_counts:
+                for p in house_counts[h]:
+                    angular_planets.append({'planet': p, 'house': h})
+        
+        # Build response
+        return {
+            "success": True,
+            "metadata": astro.get('metadata', {}),
+            "natal": {
+                "planets": {
+                    name: {
+                        "sign": data.get('sign'),
+                        "degree": round(data.get('degree', 0), 2),
+                        "longitude": round(data.get('longitude', 0), 2),
+                        "house": data.get('house'),
+                        "retrograde": data.get('retrograde', False),
+                        "formatted": data.get('formatted')
+                    }
+                    for name, data in planets.items()
+                    if name not in ['Earth']  # Exclude Earth
+                },
+                "nodes": astro.get('nodes', {}),
+                "angles": astro.get('angles', {}),
+                "houses": {
+                    "system": astro.get('houses', {}).get('system', 'Equal'),
+                    "cusps": [
+                        {
+                            "house": cusp.get('house'),
+                            "sign": cusp.get('sign'),
+                            "degree": round(cusp.get('degree', 0), 2),
+                            "formatted": cusp.get('formatted')
+                        }
+                        for cusp in astro.get('houses', {}).get('formatted_cusps', [])
+                    ]
+                },
+                "aspects": [
+                    {
+                        "point_a": asp.get('body1'),
+                        "point_b": asp.get('body2'),
+                        "aspect_type": asp.get('type'),
+                        "orb": round(asp.get('orb', 0), 2),
+                        "exact_angle": asp.get('exact_angle'),
+                        "applying": asp.get('applying', False)
+                    }
+                    for asp in astro.get('aspects', [])
+                ],
+                "balances": {
+                    "elements": element_counts,
+                    "modalities": modality_counts,
+                    "polarities": polarity_counts
+                },
+                "concentrations": {
+                    "dominant_elements": sorted(element_counts.items(), key=lambda x: x[1], reverse=True),
+                    "dominant_modalities": sorted(modality_counts.items(), key=lambda x: x[1], reverse=True),
+                    "dominant_houses": [{"house": h, "planets": p} for h, p in dominant_houses],
+                    "angular_planets": angular_planets
+                }
+            },
+            "sect": astro.get('sect'),
+            "debug": {
+                "source": "recomputed" if needs_recompute else "cached",
+                "chiron_present": 'Chiron' in planets,
+                "aspects_count": len(astro.get('aspects', [])),
+                "computation_version": astro.get('metadata', {}).get('computation_version')
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ASTRO_CHART] Error for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @api_router.get("/astrology/deep-dive/{user_id}")

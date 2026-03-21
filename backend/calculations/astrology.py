@@ -87,7 +87,8 @@ PLANETS = {
     'Neptune': swe.NEPTUNE,
     'Pluto': swe.PLUTO,
     'North Node': swe.TRUE_NODE,
-    'South Node': swe.TRUE_NODE  # Calculate as opposite of North Node
+    'South Node': swe.TRUE_NODE,  # Calculate as opposite of North Node
+    'Chiron': swe.CHIRON,  # Wound/Healer point
 }
 
 ZODIAC_SIGNS = [
@@ -473,7 +474,7 @@ def get_full_natal_chart(
     # CALCULATE ALL PLANETS WITH RETROGRADE STATUS
     # =========================================================================
     planets = {}
-    required_planets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+    required_planets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "Chiron"]
     
     for name, planet_id in PLANETS.items():
         if name == 'South Node':
