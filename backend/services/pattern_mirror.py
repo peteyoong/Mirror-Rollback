@@ -967,76 +967,97 @@ EMOTIONAL_FOCUS_MARKERS = {
 
 # --- SPECIFICITY INJECTORS ---
 # Light modifiers that add situational grounding without over-specifying
+# V10.7.1: Increased qualifier variation and context-specific phrasing
+
+# V10.7.1: VARIED QUALIFIERS - select based on context type
+VARIED_QUALIFIERS = {
+    "relational": {
+        "person": ["someone", "that person", "them", "a person in your life"],
+        "connection": ["that connection", "the relationship", "what's between you"],
+        "conversation": ["what you want to say", "what you've been holding", "the words"],
+    },
+    "action": {
+        "decision": ["a decision", "what to do next", "this choice"],
+        "words": ["what you want to say", "what's been unsaid", "the words"],
+        "situation": ["that situation", "what's happening", "this"],
+    },
+    "emotional": {
+        "feeling": ["what you're feeling", "this feeling", "what's present"],
+        "loss": ["what was", "what you had", "someone or something"],
+        "state": ["where things are", "how things stand", "the uncertainty"],
+    },
+}
 
 SPECIFICITY_INJECTORS = {
     "relational": {
         "someone_specific": {
-            "opening up": "opening up to someone",
-            "moving toward connection": "moving toward reconnecting with someone",
-            "reaching out": "reaching out to someone",
-            "holding back": "holding back from someone",
-            "letting in": "letting someone in",
-            "pushing away": "pushing someone away",
-            "feeling close": "feeling close to someone again",
-            "creating distance": "creating distance from someone",
+            # V10.7.1: Multiple variations for each injection
+            "opening up": ["opening up to someone", "opening up to them", "opening up to that person"],
+            "moving toward connection": ["moving toward reconnecting", "moving toward that connection", "moving toward them"],
+            "reaching out": ["reaching out to someone", "reaching out to them", "making contact"],
+            "holding back": ["holding back from someone", "holding back from them", "keeping distance"],
+            "letting in": ["letting someone in", "letting them in", "allowing that person closer"],
+            "pushing away": ["pushing someone away", "pushing them away", "creating distance"],
+            "feeling close": ["feeling close to someone again", "feeling close to them", "reconnecting"],
+            "creating distance": ["creating distance from someone", "pulling back from them", "stepping away"],
         },
         "conversation": {
-            "saying something": "saying what you've been holding",
-            "speaking up": "speaking up about something that matters",
-            "being honest": "being honest about what you're feeling",
-            "expressing": "expressing something you've held back",
+            "saying something": ["saying what you've been holding", "speaking what's unsaid", "voicing what matters"],
+            "speaking up": ["speaking up about what matters", "saying what needs to be said", "expressing this"],
+            "being honest": ["being honest about what you're feeling", "speaking your truth", "saying what's real"],
+            "expressing": ["expressing what you've held back", "letting it out", "saying it finally"],
         },
         "distance": {
-            "the distance": "the distance between you",
-            "feeling far": "feeling far from someone",
-            "the gap": "the gap that's grown",
+            "the distance": ["the distance between you", "the space that's grown", "the gap"],
+            "feeling far": ["feeling far from someone", "feeling distant from them", "the separation"],
+            "the gap": ["the gap that's grown", "the space between", "what's come between you"],
         },
         "reconnecting": {
-            "opening again": "opening toward reconnection",
-            "reaching back": "reaching back toward someone",
-            "rebuilding": "rebuilding what was there",
+            "opening again": ["opening toward reconnection", "opening back up", "reaching toward them again"],
+            "reaching back": ["reaching back toward someone", "reaching back toward them", "trying again"],
+            "rebuilding": ["rebuilding what was there", "restoring the connection", "coming back together"],
         },
     },
     "action": {
         "reaching_out": {
-            "taking action": "reaching out",
-            "making a move": "making the first move",
-            "initiating": "initiating contact",
+            "taking action": ["reaching out", "making contact", "initiating"],
+            "making a move": ["making the first move", "taking the step", "going first"],
+            "initiating": ["initiating contact", "starting the conversation", "breaking the silence"],
         },
         "deciding": {
-            "sitting with this": "sitting with a decision",
-            "processing": "processing what to do",
-            "threshold": "threshold of a choice",
+            "sitting with this": ["sitting with a decision", "sitting with this choice", "weighing what to do"],
+            "processing": ["processing what to do", "working through this choice", "figuring out the next step"],
+            "threshold": ["threshold of a choice", "edge of a decision", "a turning point"],
         },
         "holding_back": {
-            "not acting": "not saying something",
-            "containing": "containing what you want to say",
+            "not acting": ["not saying something", "keeping it in", "staying silent"],
+            "containing": ["containing what you want to say", "holding back the words", "not speaking yet"],
         },
         "waiting": {
-            "being patient": "waiting for something to shift",
-            "sitting still": "sitting in the in-between",
+            "being patient": ["waiting for something to shift", "waiting to see", "holding in the unknown"],
+            "sitting still": ["sitting in the in-between", "being in limbo", "waiting it out"],
         },
     },
     "emotional": {
         "missing": {
-            "grief": "missing what was",
-            "loss": "loss of what you had",
-            "letting go": "letting go of someone or something",
+            "grief": ["missing what was", "grieving what you had", "mourning the loss"],
+            "loss": ["loss of what you had", "what's no longer there", "what you've lost"],
+            "letting go": ["letting go of someone or something", "releasing what was", "saying goodbye to what's gone"],
         },
         "frustration": {
-            "friction": "friction with someone or something",
-            "tension": "tension around a situation",
-            "resistance": "resistance to how things are",
+            "friction": ["friction with someone or something", "tension around this", "frustration with the situation"],
+            "tension": ["tension around a situation", "the strain", "what's been building"],
+            "resistance": ["resistance to how things are", "pushing against this", "fighting what is"],
         },
         "uncertainty": {
-            "not knowing": "not knowing how this will go",
-            "unclear": "unclear where things stand",
-            "confusion": "confusion about someone or something",
+            "not knowing": ["not knowing how this will go", "uncertainty about what's next", "the unknown ahead"],
+            "unclear": ["unclear where things stand", "not knowing where you are", "confusion about the situation"],
+            "confusion": ["confusion about someone or something", "mixed feelings", "uncertainty"],
         },
         "longing": {
-            "wanting": "wanting something to be different",
-            "desire": "desire for connection or change",
-            "reaching": "reaching for what isn't quite there",
+            "wanting": ["wanting something to be different", "wishing things would change", "longing for more"],
+            "desire": ["desire for connection or change", "yearning for something", "reaching toward what you want"],
+            "reaching": ["reaching for what isn't quite there", "wanting what's out of reach", "longing"],
         },
     },
 }
@@ -1045,11 +1066,15 @@ SPECIFICITY_INJECTORS = {
 # Used when context is detected but specifics are uncertain
 
 SAFE_QUALIFIERS = {
-    "relational": ["someone", "a person", "someone close", "someone in your life"],
-    "situational": ["a situation", "something", "a circumstance", "what's happening"],
+    "relational": ["someone", "a person", "someone close", "someone in your life", "them", "that person"],
+    "situational": ["a situation", "something", "a circumstance", "what's happening", "this"],
     "temporal": ["recently", "lately", "in recent days", "this week"],
-    "emotional": ["a feeling", "something you're carrying", "what's present"],
+    "emotional": ["a feeling", "something you're carrying", "what's present", "this feeling"],
 }
+
+# V10.7.1: CONTEXT PRIORITY ORDER
+# When multiple contexts exist, prioritize in this order
+CONTEXT_PRIORITY = ["relational", "action", "emotional"]
 
 
 def extract_contextual_hints(signals_extended: Dict[str, Any]) -> Dict[str, Any]:
@@ -1133,91 +1158,184 @@ def extract_contextual_hints(signals_extended: Dict[str, Any]) -> Dict[str, Any]
 def inject_specificity(
     text: str, 
     contextual_hints: Dict[str, Any],
-    pattern_id: str = ""
-) -> str:
+    pattern_id: str = "",
+    confidence: str = "medium",
+    injection_count: int = 0,
+    max_injections: int = 2
+) -> Tuple[str, int]:
     """
-    V10.7: Inject light situational specificity into text based on contextual hints.
+    V10.7.1: Inject light situational specificity with variation and confidence alignment.
     
-    Rules:
-    1. Only inject if we have clear contextual signals (context_strength >= 2)
-    2. Use safe qualifiers, never invent specific names/events
-    3. Make at most ONE injection per text to avoid over-specification
-    4. Fallback to original if injection makes text awkward
+    V10.7.1 Improvements:
+    - Varied qualifiers instead of always "someone"
+    - Context priority: relational > action > emotional
+    - Confidence alignment: LOW = no specificity, MEDIUM = light, HIGH = full
+    - Card-level limit: max 1-2 injections total
     
-    Returns modified text or original if no suitable injection found.
+    Args:
+        text: Text to potentially modify
+        contextual_hints: Detected context info
+        pattern_id: Current pattern
+        confidence: Current confidence level
+        injection_count: How many injections already made this card
+        max_injections: Maximum injections per card
+    
+    Returns:
+        (modified_text, new_injection_count)
     """
+    # V10.7.1: Skip if already at injection limit
+    if injection_count >= max_injections:
+        return text, injection_count
+    
+    # V10.7.1: Skip specificity for LOW confidence
+    if confidence == "low":
+        return text, injection_count
+    
     if not contextual_hints.get("has_specificity"):
-        return text
+        return text, injection_count
     
     text_lower = text.lower()
     injection_made = False
     
-    # Try relational injections first (most impactful)
-    for rel_context in contextual_hints.get("relational_context", []):
+    # V10.7.1: Follow priority order - relational > action > emotional
+    for context_type in CONTEXT_PRIORITY:
         if injection_made:
             break
-        injectors = SPECIFICITY_INJECTORS.get("relational", {}).get(rel_context, {})
-        for generic, specific in injectors.items():
-            if generic in text_lower and specific not in text_lower:
+            
+        if context_type == "relational":
+            contexts = contextual_hints.get("relational_context", [])
+        elif context_type == "action":
+            contexts = contextual_hints.get("action_context", [])
+        else:
+            contexts = contextual_hints.get("emotional_focus", [])
+        
+        for context_name in contexts:
+            if injection_made:
+                break
+            injectors = SPECIFICITY_INJECTORS.get(context_type, {}).get(context_name, {})
+            
+            for generic, specific_options in injectors.items():
+                if generic not in text_lower:
+                    continue
+                    
+                # V10.7.1: Handle both list of variations and single string
+                if isinstance(specific_options, list):
+                    # Select variation based on context for variety
+                    specific = _select_varied_qualifier(
+                        specific_options, 
+                        text, 
+                        pattern_id,
+                        confidence
+                    )
+                else:
+                    specific = specific_options
+                
+                if specific.lower() in text_lower:
+                    continue
+                    
                 # Check if replacement would be natural
                 if _is_natural_replacement(text, generic, specific):
                     text = _replace_preserving_case(text, generic, specific)
                     injection_made = True
                     break
     
-    # Try action injections
-    if not injection_made:
-        for action_context in contextual_hints.get("action_context", []):
-            if injection_made:
-                break
-            injectors = SPECIFICITY_INJECTORS.get("action", {}).get(action_context, {})
-            for generic, specific in injectors.items():
-                if generic in text_lower and specific not in text_lower:
-                    if _is_natural_replacement(text, generic, specific):
-                        text = _replace_preserving_case(text, generic, specific)
-                        injection_made = True
-                        break
+    new_count = injection_count + 1 if injection_made else injection_count
+    return text, new_count
+
+
+def _select_varied_qualifier(
+    options: List[str], 
+    text: str, 
+    pattern_id: str,
+    confidence: str
+) -> str:
+    """
+    V10.7.1: Select a varied qualifier from options based on context.
     
-    # Try emotional injections
-    if not injection_made:
-        for emotional_focus in contextual_hints.get("emotional_focus", []):
-            if injection_made:
-                break
-            injectors = SPECIFICITY_INJECTORS.get("emotional", {}).get(emotional_focus, {})
-            for generic, specific in injectors.items():
-                if generic in text_lower and specific not in text_lower:
-                    if _is_natural_replacement(text, generic, specific):
-                        text = _replace_preserving_case(text, generic, specific)
-                        injection_made = True
-                        break
+    - Avoids "someone" if text already contains it
+    - Prefers simpler qualifiers for MEDIUM confidence
+    - Uses hash for consistent selection per context
+    """
+    if not options:
+        return ""
     
-    return text
+    # Filter out options that would create awkwardness
+    viable_options = []
+    text_lower = text.lower()
+    
+    for opt in options:
+        opt_lower = opt.lower()
+        # Skip if would duplicate "someone" or "them"
+        if "someone" in opt_lower and "someone" in text_lower:
+            continue
+        if "them" in opt_lower and "them" in text_lower:
+            continue
+        # Skip if already in text
+        if opt_lower in text_lower:
+            continue
+        viable_options.append(opt)
+    
+    if not viable_options:
+        # Fallback to first option if all filtered out
+        return options[0]
+    
+    # V10.7.1: For MEDIUM confidence, prefer simpler/shorter qualifiers
+    if confidence == "medium" and len(viable_options) > 1:
+        # Sort by length and pick shorter ones
+        sorted_opts = sorted(viable_options, key=len)
+        # Take from first half (shorter options)
+        shorter_opts = sorted_opts[:max(1, len(sorted_opts)//2 + 1)]
+        viable_options = shorter_opts
+    
+    # Use hash for consistent selection
+    from datetime import datetime
+    day_factor = datetime.now().day
+    selection_hash = hash(f"{pattern_id}_{text[:20]}_{day_factor}")
+    idx = selection_hash % len(viable_options)
+    
+    return viable_options[idx]
 
 
 def _is_natural_replacement(text: str, generic: str, specific: str) -> bool:
     """
-    V10.7: Check if replacing generic with specific would sound natural.
+    V10.7.1: Check if replacing generic with specific would sound natural.
     
-    Avoids awkward constructions like double qualifiers or broken grammar.
+    Enhanced checks for varied qualifiers.
     """
-    # Don't replace if the text already has a more specific version
-    if "someone" in text.lower() and "someone" in specific.lower():
-        return False
+    text_lower = text.lower()
+    specific_lower = specific.lower()
+    generic_lower = generic.lower()
+    
+    # Don't replace if the text already has any qualifier-like words
+    existing_qualifiers = ["someone", "them", "that person", "a person", "they", "him", "her"]
+    for qual in existing_qualifiers:
+        if qual in text_lower:
+            # Text already has a qualifier, skip injection
+            return False
     
     # Don't replace if it would create redundancy
-    if specific.lower() in text.lower():
+    if specific_lower in text_lower:
         return False
+    
+    # Don't replace if the generic phrase is part of a longer qualifier phrase
+    # e.g., "opening up to someone" already contains "opening up"
+    for qual in existing_qualifiers:
+        if f"{generic_lower} to {qual}" in text_lower:
+            return False
+        if f"{generic_lower} from {qual}" in text_lower:
+            return False
     
     # Check for common awkward patterns
     awkward_patterns = [
-        ("to to", False),
-        ("from from", False),
-        ("with with", False),
-        ("someone someone", False),
+        "to to", "from from", "with with", 
+        "someone someone", "them them",
+        "that person that person",
+        "the the", "to someone to",
+        "from someone from"
     ]
     
-    test_text = text.lower().replace(generic.lower(), specific.lower())
-    for pattern, _ in awkward_patterns:
+    test_text = text_lower.replace(generic_lower, specific_lower)
+    for pattern in awkward_patterns:
         if pattern in test_text:
             return False
     
@@ -6167,16 +6285,28 @@ def build_two_layer_mirror_output(
     # V10: Context-aware practical using signal tones and lifeline patterns
     practical = _build_practical_layer_v10(pattern, pattern_id, signals_extended, cluster_data, user_id)
     
-    # ===== V10.7: INJECT SITUATIONAL SPECIFICITY =====
-    # Apply light specificity to make language more grounded in user's actual situation
-    if contextual_hints.get("has_specificity"):
-        core_insight = inject_specificity(core_insight, contextual_hints, pattern_id)
-        why_showing_up = inject_specificity(why_showing_up, contextual_hints, pattern_id)
-        friction = inject_specificity(friction, contextual_hints, pattern_id)
-        practical = inject_specificity(practical, contextual_hints, pattern_id)
+    # ===== V10.7.1: INJECT SITUATIONAL SPECIFICITY =====
+    # Apply light specificity with variation, confidence alignment, and card-level limit
+    if contextual_hints.get("has_specificity") and confidence != "low":
+        injection_count = 0
+        max_injections = 2  # V10.7.1: Limit to 1-2 per card
         
-        if contextual_hints.get("primary_context"):
-            logger.info(f"[V10.7] Specificity injected: {contextual_hints['primary_context']}")
+        # Inject in priority order, tracking count
+        core_insight, injection_count = inject_specificity(
+            core_insight, contextual_hints, pattern_id, confidence, injection_count, max_injections
+        )
+        why_showing_up, injection_count = inject_specificity(
+            why_showing_up, contextual_hints, pattern_id, confidence, injection_count, max_injections
+        )
+        friction, injection_count = inject_specificity(
+            friction, contextual_hints, pattern_id, confidence, injection_count, max_injections
+        )
+        practical, injection_count = inject_specificity(
+            practical, contextual_hints, pattern_id, confidence, injection_count, max_injections
+        )
+        
+        if injection_count > 0:
+            logger.info(f"[V10.7.1] Specificity: {injection_count} injections, confidence={confidence}")
     
     return {
         "core_insight": {
