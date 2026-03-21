@@ -13,7 +13,8 @@ export { default as LifelinePatternSynthesisCard } from './LifelinePatternSynthe
 export { default as LifelineGapPrompt, type GapPromptData } from './LifelineGapPrompt';
 export { default as TimeDistanceTimeline } from './TimeDistanceTimeline';
 export { default as LifelineAddMenu } from './LifelineAddMenu';
-export { default as LifelineLeaderCard } from './LifelineLeaderCard';
+export { default as LifelineFramingCard } from './LifelineFramingCard';
+export { default as LifelineMiniMap } from './LifelineMiniMap';
 export { default as LifelineStarterPrompts } from './LifelineStarterPrompts';
 export { 
   default as MemoryEchoPrompt, 

@@ -40,7 +40,8 @@ import LifelineMemoryPrompt, {
 import TimeDistanceTimeline from './TimeDistanceTimeline';
 import { ChartResonance, ChartResonanceSection, PatternResonanceSummary } from './ChartResonance';
 import LifelineAddMenu from './LifelineAddMenu';
-import LifelineLeaderCard from './LifelineLeaderCard';
+import LifelineFramingCard from './LifelineFramingCard';
+import LifelineMiniMap from './LifelineMiniMap';
 import LifelineStarterPrompts from './LifelineStarterPrompts';
 
 interface Props {
@@ -77,6 +78,7 @@ interface LifelineSummaryResponse {
 export default function LifelineTimeline({ userId, forumId, isCompact = false, maxEvents }: Props) {
   const { theme } = useTheme();
   const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
   
   // Data state
   const [events, setEvents] = useState<LifelineEvent[]>([]);
@@ -84,6 +86,10 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   const [patterns, setPatterns] = useState<ExtendedPatternsData | null>(null);
   const [missingPeriods, setMissingPeriods] = useState<GapPromptData[]>([]);
   const [dismissedGaps, setDismissedGaps] = useState<Set<string>>(new Set());
+  const [birthYear, setBirthYear] = useState<number | null>(null);
+  
+  // Year-based scroll positions for mini-map navigation
+  const [yearPositions, setYearPositions] = useState<Record<number, number>>({});
   
   // Memory prompt state
   const [memoryPromptQueue, setMemoryPromptQueue] = useState<MemoryPrompt[]>([]);
@@ -123,6 +129,42 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
       Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
     ]).start(() => setToastMessage(null));
   };
+  
+  // Scroll to a specific year in the timeline
+  const scrollToYear = useCallback((year: number) => {
+    // Find the first event in or after this year
+    const targetEvent = events.find(e => e.year && e.year >= year);
+    if (targetEvent && yearPositions[targetEvent.year || 0]) {
+      scrollViewRef.current?.scrollTo({ 
+        y: yearPositions[targetEvent.year || 0] - 100, // 100px offset for header
+        animated: true 
+      });
+    } else if (Object.keys(yearPositions).length > 0) {
+      // Find closest year with a position
+      const years = Object.keys(yearPositions).map(Number).sort((a, b) => a - b);
+      const closestYear = years.reduce((prev, curr) => 
+        Math.abs(curr - year) < Math.abs(prev - year) ? curr : prev
+      );
+      scrollViewRef.current?.scrollTo({ 
+        y: yearPositions[closestYear] - 100,
+        animated: true 
+      });
+    }
+  }, [events, yearPositions]);
+  
+  // Handle gap press from mini-map
+  const handleGapPressFromMap = useCallback((gap: GapPromptData) => {
+    // Scroll to approximately where this gap would be
+    scrollToYear(gap.start_year);
+  }, [scrollToYear]);
+  
+  // Track event card positions for scroll navigation
+  const handleEventLayout = useCallback((year: number, y: number) => {
+    setYearPositions(prev => ({
+      ...prev,
+      [year]: y,
+    }));
+  }, []);
 
   // Load timeline data and patterns
   const loadTimeline = useCallback(async (refresh = false) => {
@@ -136,8 +178,8 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     console.log('[Lifeline] Loading all data for user:', userId, 'refresh:', refresh);
 
     try {
-      // Fetch events, summary (with patterns), resonances, and import stats in parallel
-      const [eventsRes, summaryRes, resonancesRes, importStatsRes] = await Promise.all([
+      // Fetch events, summary (with patterns), resonances, import stats, and user profile in parallel
+      const [eventsRes, summaryRes, resonancesRes, importStatsRes, userRes] = await Promise.all([
         api.get<LifelineResponse>(`/lifeline/${userId}`),
         api.get<LifelineSummaryResponse>(`/lifeline/${userId}/summary`),
         api.get<{
@@ -146,6 +188,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
           pattern_summary: PatternResonanceSummary[];
         }>(`/lifeline/${userId}/resonances`).catch(() => ({ data: { success: false, resonance_map: {}, pattern_summary: [] } })),
         api.get(`/lifeline/ingestion-stats/${userId}`).catch(() => ({ data: { import_sources: 0 } })),
+        api.get(`/users/${userId}`).catch(() => ({ data: null })),
       ]);
       
       if (eventsRes.data.success) {
@@ -156,6 +199,15 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         setEvents(loadedEvents);
         setStatistics(eventsRes.data.statistics);
         console.log('[Lifeline] Loaded', loadedEvents.length, 'canonical events');
+      }
+      
+      // Extract birth year from user profile
+      if (userRes.data?.birth_date) {
+        const birthYearFromProfile = parseInt(userRes.data.birth_date.substring(0, 4), 10);
+        if (!isNaN(birthYearFromProfile)) {
+          setBirthYear(birthYearFromProfile);
+          console.log('[Lifeline] Birth year:', birthYearFromProfile);
+        }
       }
       
       if (summaryRes.data.success && summaryRes.data.patterns) {
@@ -332,18 +384,31 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   // Render header with statistics and patterns
   const renderHeader = () => (
     <View style={styles.header}>
-      {/* Leader Card - ABOVE header for new/low-data users */}
-      <LifelineLeaderCard 
+      {/* 1. Framing Card - Smart collapsible for all users */}
+      <LifelineFramingCard 
         onAddMoment={handleAddEvent}
         eventCount={events.length}
+        birthYear={birthYear || undefined}
       />
       
-      {/* Starter Prompts - for users with < 5 moments */}
+      {/* 2. Mini Map - Life arc visualization (only if we have birth year) */}
+      {birthYear && (
+        <LifelineMiniMap
+          events={events}
+          birthYear={birthYear}
+          gaps={missingPeriods}
+          onYearPress={scrollToYear}
+          onGapPress={handleGapPressFromMap}
+        />
+      )}
+      
+      {/* 3. Starter Prompts - for users with < 5 moments */}
       <LifelineStarterPrompts
         eventCount={events.length}
         onSelectPrompt={handleStarterPromptSelect}
       />
       
+      {/* 4. Title + Add button */}
       <View style={styles.headerTop}>
         <View>
           <Text style={[styles.title, { color: theme.text }]}>Lifeline</Text>
@@ -359,7 +424,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         </TouchableOpacity>
       </View>
 
-      {/* Statistics summary */}
+      {/* 5. Statistics summary */}
       {statistics && events.length > 0 && (
         <View style={[styles.statsRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.statItem}>
@@ -383,10 +448,10 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         </View>
       )}
 
-      {/* Pattern Insights - appears above timeline */}
+      {/* 6. Pattern Insights - appears above timeline */}
       <LifelinePatterns patterns={patterns} eventCount={events.length} />
       
-      {/* Pattern Synthesis Card - LLM-generated insights for 5+ events */}
+      {/* 7. Pattern Synthesis Card - LLM-generated insights for 5+ events */}
       <LifelinePatternSynthesisCard userId={userId} eventCount={events.length} />
 
       {/* Memory Expansion Prompt - gentle prompt based on patterns/gaps */}
@@ -468,6 +533,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -489,6 +555,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
           isFirstReveal={false}
           showEarlyMessages={events.length <= 3}
           resonanceMap={resonanceMap}
+          onEventLayout={handleEventLayout}
         />
         
         {/* Chart Resonance Section for Pattern Lens */}

@@ -57,6 +57,7 @@ interface Props {
   showEarlyMessages?: boolean; // Show "Your life is becoming visible" for 1-3 events
   newEventAdded?: LifelineEvent | null; // Recently added event to trigger memory echo
   resonanceMap?: Record<string, ChartResonance[]>; // Resonance data keyed by event_id
+  onEventLayout?: (year: number, y: number) => void; // Callback for scroll navigation
 }
 
 interface TimelineNode {
@@ -134,6 +135,7 @@ export default function TimeDistanceTimeline({
   showEarlyMessages = true,
   newEventAdded = null,
   resonanceMap = {},
+  onEventLayout,
 }: Props) {
   const { theme } = useTheme();
   
@@ -315,7 +317,10 @@ export default function TimeDistanceTimeline({
               
               {/* Event card - with storm highlight if part of storm */}
               {eventStorm ? (
-                <View style={[styles.stormHighlight, { backgroundColor: `${theme.accent}05` }]}>
+                <View 
+                  style={[styles.stormHighlight, { backgroundColor: `${theme.accent}05` }]}
+                  onLayout={(e) => onEventLayout?.(node.event.year || 0, e.nativeEvent.layout.y)}
+                >
                   <LifelineEventCard
                     event={node.event}
                     onEdit={onEditEvent}
@@ -325,13 +330,15 @@ export default function TimeDistanceTimeline({
                   />
                 </View>
               ) : (
-                <LifelineEventCard
-                  event={node.event}
-                  onEdit={onEditEvent}
-                  onDelete={onDeleteEvent}
-                  isCompact={isCompact}
-                  resonances={resonanceMap[node.event.id] || []}
-                />
+                <View onLayout={(e) => onEventLayout?.(node.event.year || 0, e.nativeEvent.layout.y)}>
+                  <LifelineEventCard
+                    event={node.event}
+                    onEdit={onEditEvent}
+                    onDelete={onDeleteEvent}
+                    isCompact={isCompact}
+                    resonances={resonanceMap[node.event.id] || []}
+                  />
+                </View>
               )}
             </View>
           );
