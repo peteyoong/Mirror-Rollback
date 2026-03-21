@@ -136,30 +136,45 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   
   // Scroll to a specific year in the timeline
   const scrollToYear = useCallback((year: number) => {
-    console.log('[Lifeline] scrollToYear called:', year);
-    console.log('[Lifeline] Available years:', Object.keys(yearPositions));
+    console.log('==== SCROLL TO YEAR DEBUG ====');
+    console.log('[Lifeline] scrollToYear called with year:', year, 'type:', typeof year);
+    console.log('[Lifeline] yearPositions keys:', Object.keys(yearPositions));
+    console.log('[Lifeline] yearPositions full:', JSON.stringify(yearPositions));
     console.log('[Lifeline] headerHeight:', headerHeight);
     
     // Find exact year or closest year with events
     let targetYear = year;
-    if (!yearPositions[year]) {
+    let usedFallback = false;
+    
+    if (yearPositions[year] === undefined) {
+      console.log('[Lifeline] Exact year', year, 'not found in positions');
       const years = Object.keys(yearPositions).map(Number).sort((a, b) => a - b);
+      console.log('[Lifeline] Available years (sorted):', years);
+      
       if (years.length === 0) {
-        console.log('[Lifeline] No year positions available yet');
+        console.log('[Lifeline] ERROR: No year positions available yet');
         showToast(`Looking for ${year}...`);
         return;
       }
+      
       targetYear = years.reduce((prev, curr) => 
         Math.abs(curr - year) < Math.abs(prev - year) ? curr : prev
       );
-      console.log('[Lifeline] Using closest year:', targetYear);
+      usedFallback = true;
+      console.log('[Lifeline] FALLBACK: Using closest year:', targetYear, 'instead of', year);
     }
     
     const targetY = yearPositions[targetYear];
+    console.log('[Lifeline] Target year:', targetYear, 'has Y position:', targetY);
+    
     if (targetY !== undefined) {
       // Calculate scroll position: event Y position + header offset - some margin from top
-      const scrollOffset = targetY + headerHeight - 150; // Leave 150px from top for context
-      console.log('[Lifeline] Scrolling to Y:', scrollOffset, '(event Y:', targetY, '+ header:', headerHeight, ')');
+      const scrollOffset = targetY + headerHeight - 150;
+      console.log('[Lifeline] Final scroll calculation:');
+      console.log('  - Event Y:', targetY);
+      console.log('  - Header height:', headerHeight);
+      console.log('  - Offset (-150):', -150);
+      console.log('  - Final scrollTo Y:', Math.max(0, scrollOffset));
       
       scrollViewRef.current?.scrollTo({ 
         y: Math.max(0, scrollOffset),
@@ -168,11 +183,12 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
       
       // Highlight the target year for visual feedback
       setHighlightedYear(targetYear);
-      showToast(`Jumped to ${targetYear}`);
+      showToast(`Jumped to ${targetYear}${usedFallback ? ' (nearest)' : ''}`);
       setTimeout(() => setHighlightedYear(null), 2500);
     } else {
-      console.log('[Lifeline] No position found for year:', targetYear);
+      console.log('[Lifeline] ERROR: No position found for target year:', targetYear);
     }
+    console.log('==== END SCROLL DEBUG ====');
   }, [yearPositions, headerHeight]);
   
   // Handle gap press from mini-map
@@ -182,13 +198,17 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   }, [scrollToYear]);
   
   // Track event card positions for scroll navigation
+  // The Y position from onLayout is relative to the parent, we need cumulative position
   const handleEventLayout = useCallback((year: number, y: number) => {
+    console.log('[Lifeline] handleEventLayout called - year:', year, 'y:', y);
     setYearPositions(prev => {
-      // Only update if this is a new year or position changed significantly
-      if (prev[year] === undefined || Math.abs(prev[year] - y) > 20) {
-        console.log('[Lifeline] Recording position for year:', year, 'Y:', y);
+      // Only store the first event of each year (lowest position)
+      // This ensures we scroll to the top of a year's events
+      if (prev[year] === undefined || y < prev[year]) {
+        console.log('[Lifeline] Storing position for year:', year, 'Y:', y, prev[year] ? '(replacing)' : '(new)');
         return { ...prev, [year]: y };
       }
+      console.log('[Lifeline] Skipping position for year:', year, 'Y:', y, '(existing:', prev[year], ')');
       return prev;
     });
   }, []);

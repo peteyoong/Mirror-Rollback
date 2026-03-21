@@ -342,17 +342,25 @@ export default function LifelineMiniMap({
   
   // Handle node/year tap with larger hit area
   const handleTap = useCallback((year: number) => {
-    setSelectedYear(year);
+    console.log('==== MINIMAP TAP DEBUG ====');
+    console.log('[MiniMap] handleTap called with year:', year, 'type:', typeof year);
+    console.log('[MiniMap] yearDataMap has this year:', yearDataMap.has(year));
     const yearData = yearDataMap.get(year);
+    console.log('[MiniMap] yearData for', year, ':', yearData ? { eventCount: yearData.eventCount, isGap: yearData.isGap } : 'undefined');
+    
+    setSelectedYear(year);
     
     if (yearData?.isGap && yearData.gapData && onGapPress) {
+      console.log('[MiniMap] Calling onGapPress for gap');
       onGapPress(yearData.gapData);
     } else {
+      console.log('[MiniMap] Calling onYearPress with year:', year);
       onYearPress(year);
     }
     
     // Clear selection after animation
     setTimeout(() => setSelectedYear(null), 300);
+    console.log('==== END MINIMAP TAP DEBUG ====');
   }, [yearDataMap, onYearPress, onGapPress]);
   
   // Find nearest node to a touch position
@@ -566,7 +574,37 @@ export default function LifelineMiniMap({
           
           {/* Large invisible touch targets */}
           <View style={styles.touchLayer}>
-            {/* Node-specific touch targets (larger than visible nodes) */}
+            {/* Fallback touch layer for years without events - RENDERED FIRST (underneath) */}
+            <Pressable
+              style={styles.fallbackTouchLayer}
+              onPress={(e) => {
+                console.log('[MiniMap] Fallback layer touched at X:', e.nativeEvent.locationX);
+                const touchX = e.nativeEvent.locationX;
+                const nearestYear = findNearestNode(touchX);
+                console.log('[MiniMap] Fallback resolving to nearest year:', nearestYear);
+                handleTap(nearestYear);
+              }}
+            />
+            
+            {/* Gap touch targets - rendered second */}
+            {gapRegions.map((region, idx) => (
+              <Pressable
+                key={`touch-gap-${idx}`}
+                style={[
+                  styles.gapTouchTarget,
+                  {
+                    left: region.startX,
+                    width: region.endX - region.startX,
+                  }
+                ]}
+                onPress={() => {
+                  console.log('[MiniMap] Gap region touched, gap:', region.gap?.start_year, '-', region.gap?.end_year);
+                  region.gap && onGapPress?.(region.gap);
+                }}
+              />
+            ))}
+            
+            {/* Node-specific touch targets (larger than visible nodes) - rendered last (on top) */}
             {significantNodes.map((node) => {
               const touchSize = Math.max(MIN_TOUCH_SIZE, yearWidth * 2);
               return (
@@ -581,36 +619,14 @@ export default function LifelineMiniMap({
                       height: touchSize,
                     }
                   ]}
-                  onPress={() => handleTap(node.year)}
+                  onPress={() => {
+                    console.log('[MiniMap] Node touch target pressed for year:', node.year);
+                    handleTap(node.year);
+                  }}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 />
               );
             })}
-            
-            {/* Gap touch targets */}
-            {gapRegions.map((region, idx) => (
-              <Pressable
-                key={`touch-gap-${idx}`}
-                style={[
-                  styles.gapTouchTarget,
-                  {
-                    left: region.startX,
-                    width: region.endX - region.startX,
-                  }
-                ]}
-                onPress={() => region.gap && onGapPress?.(region.gap)}
-              />
-            ))}
-            
-            {/* Fallback touch layer for years without events */}
-            <Pressable
-              style={styles.fallbackTouchLayer}
-              onPress={(e) => {
-                const touchX = e.nativeEvent.locationX;
-                const nearestYear = findNearestNode(touchX);
-                handleTap(nearestYear);
-              }}
-            />
           </View>
         </View>
         
