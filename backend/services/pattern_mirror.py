@@ -1788,7 +1788,7 @@ def build_two_layer_mirror_output(
     bazi_chart: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    Build the Two-Layer Mirror Output structure.
+    Build the V6 Three-Layer Mirror Output structure.
     
     Layer A: CORE PATTERN (always visible)
     - One sharp, behaviorally meaningful sentence
@@ -1799,6 +1799,12 @@ def build_two_layer_mirror_output(
     Layer C: HOW THIS WAS DERIVED (collapsible)
     - Structured cross-lens proof with plain language translations
     - Only includes lenses that meaningfully contributed
+    
+    Layer D: WHERE THE FRICTION MAY BE (V6 - always visible)
+    - 1 short sentence describing likely tension/hesitation/blind spot
+    
+    Layer E: WHAT TO DO WITH IT (V6 - always visible)
+    - 1 short practical reflection or action sentence
     """
     
     # ===== LAYER A: CORE PATTERN (one sharp sentence) =====
@@ -1829,6 +1835,12 @@ def build_two_layer_mirror_output(
         pattern_id
     )
     
+    # ===== LAYER D: WHERE THE FRICTION MAY BE (V6) =====
+    friction = _build_friction_layer(pattern, pattern_id)
+    
+    # ===== LAYER E: WHAT TO DO WITH IT (V6) =====
+    practical = _build_practical_layer(pattern, pattern_id)
+    
     return {
         "core_insight": {
             "title": core_title,
@@ -1839,13 +1851,102 @@ def build_two_layer_mirror_output(
             "is_timing_driven": timing_amplifier.get("timing_role") == "fallback",
         },
         "cross_lens_derivation": cross_lens_derivation,
+        # V6 NEW: Usefulness layers
+        "friction": {
+            "text": friction,
+        },
+        "practical": {
+            "text": practical,
+        },
         "display_config": {
             "core_always_visible": True,
             "why_always_visible": True,
             "derivation_collapsed_by_default": True,
             "derivation_label": "How this was derived",
+            "friction_always_visible": True,
+            "practical_always_visible": True,
         }
     }
+
+
+def _build_friction_layer(pattern: Dict[str, Any], pattern_id: str) -> str:
+    """
+    Build the V6 friction layer - one short sentence describing the likely tension.
+    
+    This should describe the hesitation, blind spot, or internal resistance
+    that often accompanies this pattern.
+    """
+    # Pattern-specific friction statements (concise, one sentence)
+    friction_map = {
+        "relational_reopening": "You may still be watching for proof that opening up won't lead to disappointment again.",
+        "heart_thaw": "Part of you may still be waiting to see if this softening can be trusted.",
+        "safe_intimacy_returning": "You may hesitate to fully arrive, worried the safety could shift.",
+        "somethings_here": "You might feel something stirring but resist naming it too soon.",
+        "threshold_standing": "You may be waiting for more certainty before trusting what is already becoming clear.",
+        "closed_door_syndrome": "You might notice yourself scanning for reasons to step back or protect yourself.",
+        "over_functioning_hero": "You may find it hard to rest when there's still something you could be doing.",
+        "inner_critic_override": "You may be dismissing your own knowing before giving it space to speak.",
+        "waiting_for_permission": "You might be looking for external validation before trusting your own readiness.",
+        "perfectionist_paralysis": "You may be telling yourself it's not ready yet when it might be closer than you think.",
+        "emotional_flooding": "You may want to push through the discomfort rather than letting it move at its own pace.",
+        "avoidant_autopilot": "You might find yourself subtly steering away from what feels too close or too real.",
+        "control_grip": "You may be tightening your hold on things that actually need room to breathe.",
+        "boundary_blur": "You might feel pulled between your own needs and what others expect.",
+        "people_pleasing_loop": "You may notice yourself adjusting to fit others before checking what you actually want.",
+    }
+    
+    # Get pattern-specific friction or generate from challenge
+    if pattern_id in friction_map:
+        return friction_map[pattern_id]
+    
+    # Fallback: use first challenge sentence, simplified
+    challenge = pattern.get("challenge", [])
+    if challenge and len(challenge) > 0:
+        first_challenge = challenge[0]
+        # Convert to friction framing
+        if first_challenge:
+            return f"You may notice {first_challenge.lower()}"
+    
+    return "You may be waiting for the right moment instead of trusting the one that's here."
+
+
+def _build_practical_layer(pattern: Dict[str, Any], pattern_id: str) -> str:
+    """
+    Build the V6 practical layer - one short actionable sentence.
+    
+    This should be a simple, useful, concrete suggestion the user can actually do.
+    """
+    # Pattern-specific practical suggestions (concise, one sentence)
+    practical_map = {
+        "relational_reopening": "Let yourself notice one small moment of connection without immediately evaluating it.",
+        "heart_thaw": "Allow yourself one unguarded thought today without rushing to protect it.",
+        "safe_intimacy_returning": "Notice where you already feel safe, even if it's just for a moment.",
+        "somethings_here": "Name one feeling you notice right now, even if it's incomplete.",
+        "threshold_standing": "Let yourself notice what already feels true before asking for more proof.",
+        "closed_door_syndrome": "Try staying present one beat longer than your instinct to retreat.",
+        "over_functioning_hero": "Let one thing be good enough today without fixing it further.",
+        "inner_critic_override": "Notice what you'd say to a friend in your situation—and say it to yourself.",
+        "waiting_for_permission": "Ask yourself what you'd do if you already had permission.",
+        "perfectionist_paralysis": "Choose one thing that's ready and let it be done.",
+        "emotional_flooding": "Give the feeling a name and one minute of your attention without acting on it.",
+        "avoidant_autopilot": "Notice where you're steering away—and pause there for a breath.",
+        "control_grip": "Release your grip on one small thing today and notice what happens.",
+        "boundary_blur": "Check in with what you actually want before saying yes.",
+        "people_pleasing_loop": "Before adjusting, ask: what would I choose if no one were watching?",
+    }
+    
+    # Get pattern-specific practical or generate from micro_shifts
+    if pattern_id in practical_map:
+        return practical_map[pattern_id]
+    
+    # Fallback: use first micro_shift, simplified
+    micro_shifts = pattern.get("micro_shifts", [])
+    if micro_shifts and len(micro_shifts) > 0:
+        first_shift = micro_shifts[0]
+        if first_shift:
+            return first_shift
+    
+    return "Notice what already feels true and give it a moment of your attention."
 
 
 def _extract_sharp_insight(angle_summary: str, pattern: Dict[str, Any]) -> str:
@@ -1944,50 +2045,96 @@ def _build_cross_lens_derivation(
     """
     Build structured cross-lens derivation showing convergence.
     
+    V6: Enhanced to include Journal derivation and be more inclusive.
+    
     Format per lens:
     Lens Name → plain language signal
     
     Only includes lenses that meaningfully contributed.
     """
     derivations = []
+    debug_info = {"candidates": [], "included": [], "excluded": []}
     
-    # 1. ASTROLOGY lens
-    astrology_signal = _get_astrology_derivation(transit_themes)
-    if astrology_signal:
+    # 1. JOURNAL lens (NEW in V6 - check first since it's most personal)
+    journal_signal = _get_journal_derivation(signals_extended, cluster_data, pattern_id)
+    debug_info["candidates"].append({"lens": "Journal", "signal": journal_signal})
+    if journal_signal:
         derivations.append({
-            "lens": "Astrology",
-            "signal": astrology_signal,
+            "lens": "Journal",
+            "signal": journal_signal,
             "contributed": True,
         })
+        debug_info["included"].append("Journal")
+    else:
+        debug_info["excluded"].append({"lens": "Journal", "reason": "no matching entries"})
     
-    # 2. HUMAN DESIGN lens (if user has HD data)
-    hd_signal = _get_human_design_derivation(user_profile, pattern_id)
-    if hd_signal:
-        derivations.append({
-            "lens": "Human Design",
-            "signal": hd_signal,
-            "contributed": True,
-        })
-    
-    # 3. BAZI lens (if user has BaZi data)
-    bazi_signal = _get_bazi_derivation(bazi_chart, user_profile)
-    if bazi_signal:
-        derivations.append({
-            "lens": "BaZi",
-            "signal": bazi_signal,
-            "contributed": True,
-        })
-    
-    # 4. LIFELINE lens (from user's lifeline events)
+    # 2. LIFELINE lens (from user's lifeline events)
     lifeline_signal = _get_lifeline_derivation(signals_extended, cluster_data)
+    debug_info["candidates"].append({"lens": "Lifeline", "signal": lifeline_signal})
     if lifeline_signal:
         derivations.append({
             "lens": "Lifeline",
             "signal": lifeline_signal,
             "contributed": True,
         })
+        debug_info["included"].append("Lifeline")
+    else:
+        debug_info["excluded"].append({"lens": "Lifeline", "reason": "no lifeline events or matches"})
+    
+    # 3. ASTROLOGY lens (timing context)
+    astrology_signal = _get_astrology_derivation(transit_themes)
+    debug_info["candidates"].append({"lens": "Astrology", "signal": astrology_signal})
+    if astrology_signal:
+        derivations.append({
+            "lens": "Astrology",
+            "signal": astrology_signal,
+            "contributed": True,
+        })
+        debug_info["included"].append("Astrology")
+    else:
+        debug_info["excluded"].append({"lens": "Astrology", "reason": "no transit themes"})
+    
+    # 4. HUMAN DESIGN lens (if user has HD data)
+    hd_signal = _get_human_design_derivation(user_profile, pattern_id)
+    debug_info["candidates"].append({"lens": "Human Design", "signal": hd_signal})
+    if hd_signal:
+        derivations.append({
+            "lens": "Human Design",
+            "signal": hd_signal,
+            "contributed": True,
+        })
+        debug_info["included"].append("Human Design")
+    else:
+        debug_info["excluded"].append({"lens": "Human Design", "reason": "no HD data in profile"})
+    
+    # 5. BAZI lens (if user has BaZi data)
+    bazi_signal = _get_bazi_derivation(bazi_chart, user_profile)
+    debug_info["candidates"].append({"lens": "BaZi", "signal": bazi_signal})
+    if bazi_signal:
+        derivations.append({
+            "lens": "BaZi",
+            "signal": bazi_signal,
+            "contributed": True,
+        })
+        debug_info["included"].append("BaZi")
+    else:
+        debug_info["excluded"].append({"lens": "BaZi", "reason": "no BaZi chart data"})
     
     # Calculate convergence
+    contributing_count = len([d for d in derivations if d.get("contributed")])
+    
+    # Log debug info
+    print(f"[CrossLensDerivation] Candidates: {len(debug_info['candidates'])}")
+    print(f"[CrossLensDerivation] Included: {debug_info['included']}")
+    print(f"[CrossLensDerivation] Excluded: {[e['lens'] for e in debug_info['excluded']]}")
+    
+    return {
+        "lenses": derivations,
+        "convergence_count": contributing_count,
+        "shows_convergence": contributing_count >= 2,
+        "convergence_note": f"{contributing_count} system{'s' if contributing_count != 1 else ''} point{'s' if contributing_count == 1 else ''} to this theme" if contributing_count > 0 else None,
+        "debug": debug_info,
+    }
     contributing_count = len([d for d in derivations if d.get("contributed")])
     
     return {
@@ -2126,33 +2273,87 @@ def _get_lifeline_derivation(
     # Check for lifeline evidence in cluster data
     lifeline_evidence = cluster_data.get("matched_themes_by_source", {}).get("lifeline", [])
     
-    if not lifeline_evidence:
-        # Check signals_extended
-        memory = signals_extended.get("memory", {})
-        lifeline_events = memory.get("lifeline_events", [])
-        if not lifeline_events:
-            return None
+    # Also check signals_extended memory
+    memory = signals_extended.get("memory", {})
+    lifeline_events = memory.get("lifeline_events", [])
+    
+    if not lifeline_evidence and not lifeline_events:
+        return None
     
     # Check for pattern repetition
     repetition_score = cluster_data.get("repetition_score", 0)
     
     if repetition_score >= 0.5:
-        return translations.get("pattern_repeating")
+        return translations.get("pattern_repeating", "This pattern has appeared before in your life")
     
     # Check for multiple lifeline matches
     if len(lifeline_evidence) >= 2:
-        return translations.get("similar_themes")
+        return translations.get("similar_themes", "Similar themes show up across multiple experiences")
+    
+    # If we have lifeline events but no explicit matches, generate a generic signal
+    if lifeline_events and len(lifeline_events) > 0:
+        return "Your life experiences contain echoes of this pattern"
     
     # Check for emotional echo
     if lifeline_evidence:
         first_match = lifeline_evidence[0] if lifeline_evidence else {}
         themes = first_match.get("themes", [])
         if "emotion" in str(themes).lower() or "feel" in str(themes).lower():
-            return translations.get("emotional_echo")
+            return translations.get("emotional_echo", "Emotional tone matches previous significant moments")
     
     # Default if lifeline contributed
     if lifeline_evidence:
-        return translations.get("growth_edge")
+        return translations.get("growth_edge", "This touches a growth edge you've been working on")
+    
+    return None
+
+
+def _get_journal_derivation(
+    signals_extended: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    pattern_id: str
+) -> Optional[str]:
+    """
+    Get plain-language Journal signal (NEW in V6).
+    
+    Journal is often the most personal and relevant signal source.
+    """
+    # Check for journal evidence in cluster data
+    journal_evidence = cluster_data.get("matched_themes_by_source", {}).get("journal", [])
+    
+    # Also check signals_extended memory
+    memory = signals_extended.get("memory", {})
+    journal_entries = memory.get("journal_entries", [])
+    
+    # Get dominant theme from cluster data
+    dominant_theme = cluster_data.get("dominant_theme", "")
+    
+    if not journal_evidence and not journal_entries:
+        return None
+    
+    # Count journal matches
+    journal_count = len(journal_evidence) if journal_evidence else len(journal_entries)
+    
+    # Generate signal based on evidence
+    if journal_count >= 3:
+        # Strong journal signal
+        return "Your recent writing repeatedly touches on this theme"
+    elif journal_count >= 2:
+        # Moderate journal signal
+        if dominant_theme:
+            theme_phrases = {
+                "relational": "recent entries point to openness and connection",
+                "emotional": "recent writing reflects emotional processing",
+                "behavioral": "your reflections show awareness of this pattern",
+                "identity": "you've been exploring questions of purpose and direction",
+                "pressure": "recent entries mention feeling stretched or pressured",
+            }
+            phrase = theme_phrases.get(dominant_theme, "recent writing touches on this theme")
+            return phrase
+        return "Recent journal entries echo this theme"
+    elif journal_count >= 1 or journal_entries:
+        # Light journal signal
+        return "Something in your recent writing aligns with this"
     
     return None
 

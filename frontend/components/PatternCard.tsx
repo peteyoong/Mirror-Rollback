@@ -27,7 +27,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
 
-// ===== V5 TWO-LAYER INTERFACES =====
+// ===== V6 THREE-LAYER INTERFACES =====
 
 interface CoreInsight {
   title: string;
@@ -52,15 +52,29 @@ interface CrossLensDerivation {
   convergence_note: string | null;
 }
 
+// V6 NEW: Friction and Practical layers
+interface FrictionLayer {
+  text: string;
+}
+
+interface PracticalLayer {
+  text: string;
+}
+
 interface TwoLayerOutput {
   core_insight: CoreInsight;
   why_showing_up: WhyShowingUp;
   cross_lens_derivation: CrossLensDerivation;
+  // V6 NEW
+  friction?: FrictionLayer;
+  practical?: PracticalLayer;
   display_config: {
     core_always_visible: boolean;
     why_always_visible: boolean;
     derivation_collapsed_by_default: boolean;
     derivation_label: string;
+    friction_always_visible?: boolean;
+    practical_always_visible?: boolean;
   };
 }
 
@@ -357,14 +371,20 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
     return result;
   };
 
-  // ===== V5 TWO-LAYER RENDER (CLEAN - NO LEGACY ELEMENTS) =====
+  // ===== V6 THREE-LAYER RENDER (Insight + Proof + Usefulness) =====
   if (twoLayer) {
     const translatedWhyText = translateWhyShowingUp(whyShowingUp?.text || '');
     const contributingLenses = crossLensDerivation?.lenses?.filter(l => l.contributed && l.signal) || [];
     
-    // Debug logging for accordion
-    console.log('[PatternCard] V5 RENDER - contributingLenses count:', contributingLenses.length);
-    console.log('[PatternCard] V5 RENDER - derivationExpanded:', derivationExpanded);
+    // V6: Extract friction and practical layers
+    const frictionText = twoLayer.friction?.text || '';
+    const practicalText = twoLayer.practical?.text || '';
+    
+    // Debug logging for V6
+    console.log('[PatternCard] V6 RENDER - contributingLenses count:', contributingLenses.length);
+    console.log('[PatternCard] V6 RENDER - derivationExpanded:', derivationExpanded);
+    console.log('[PatternCard] V6 RENDER - frictionText:', frictionText?.substring(0, 50));
+    console.log('[PatternCard] V6 RENDER - practicalText:', practicalText?.substring(0, 50));
     
     return (
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>        
@@ -444,6 +464,30 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
           </View>
         ) : null}
 
+        {/* ===== D. WHERE THE FRICTION MAY BE (V6 - always visible) ===== */}
+        {frictionText ? (
+          <View style={[styles.frictionSection, { borderColor: theme.border }]}>
+            <Text style={[styles.frictionLabel, { color: theme.textTertiary }]}>
+              WHERE THE FRICTION MAY BE
+            </Text>
+            <Text style={[styles.frictionText, { color: theme.textSecondary }]}>
+              {frictionText}
+            </Text>
+          </View>
+        ) : null}
+
+        {/* ===== E. WHAT TO DO WITH IT (V6 - always visible) ===== */}
+        {practicalText ? (
+          <View style={[styles.practicalSection, { borderColor: theme.border }]}>
+            <Text style={[styles.practicalLabel, { color: theme.textTertiary }]}>
+              WHAT TO DO WITH IT
+            </Text>
+            <Text style={[styles.practicalText, { color: theme.text }]}>
+              {practicalText}
+            </Text>
+          </View>
+        ) : null}
+
         {/* ===== CTA: Reflect on this ===== */}
         <TouchableOpacity
           style={[styles.reflectButton, { backgroundColor: theme.accent }]}
@@ -455,8 +499,8 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
           </Text>
         </TouchableOpacity>
 
-        {/* V5 Two-Layer mode: NO challenge/genius, NO signals indicator */}
-        {/* These legacy elements are intentionally REMOVED from V5 render */}
+        {/* V6 Three-Layer mode: NO challenge/genius blocks, NO signals indicator */}
+        {/* Friction and Practical are lightweight usefulness layers, not legacy blocks */}
       </View>
     );
   }
@@ -1118,5 +1162,44 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     flex: 1,
+  },
+  
+  // ===== V6 USEFULNESS LAYER STYLES =====
+  
+  // Friction section (where the tension may be)
+  frictionSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+  },
+  frictionLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  frictionText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+  },
+  
+  // Practical section (what to do with it)
+  practicalSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    marginBottom: 8,
+  },
+  practicalLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  practicalText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: '500',
   },
 });
