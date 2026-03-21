@@ -726,6 +726,489 @@ PATTERN_TO_THEME_CATEGORY = {
 }
 
 
+# ============================================================================
+# V10: CONTEXT-AWARE LANGUAGE GENERATION LAYER
+# ============================================================================
+# This layer transforms static pattern templates into dynamic, signal-responsive
+# language. Maps remain as fallback/baseline, but outputs adapt to user signals.
+#
+# Core shift: pattern → fixed string  >>>  pattern + signals → generated sentence
+# ============================================================================
+
+# Note: Uses hashlib and datetime already imported at top of file
+
+# --- SIGNAL TONE DETECTION ---
+# Keywords that indicate emotional/behavioral tones in user signals
+
+SIGNAL_TONE_MARKERS = {
+    # Hesitation / caution tones
+    "hesitation": ["but", "though", "not sure", "maybe", "wonder", "afraid", "scared", 
+                   "worry", "uncertain", "hesitant", "cautious", "careful", "nervous"],
+    
+    # Warmth / opening tones
+    "warmth": ["grateful", "thankful", "love", "appreciate", "glad", "happy", "warm",
+               "close", "connected", "open", "ready", "excited", "hopeful"],
+    
+    # Clarity / insight tones
+    "clarity": ["realize", "understand", "see now", "clear", "obvious", "finally",
+                "makes sense", "figured", "know", "aware", "recognize", "notice"],
+    
+    # Confusion / overwhelm tones
+    "confusion": ["confused", "overwhelmed", "lost", "stuck", "don't know", "unclear",
+                  "fog", "can't see", "mixed", "torn", "scattered", "messy"],
+    
+    # Pressure / urgency tones
+    "pressure": ["must", "have to", "need to", "should", "deadline", "urgent", 
+                 "pressure", "stress", "overwhelm", "too much", "can't keep up"],
+    
+    # Resistance / guardedness tones
+    "resistance": ["don't want", "can't", "won't", "refuse", "no", "stop", "protect",
+                   "guard", "wall", "shield", "defensive", "closed", "shut"],
+    
+    # Grief / loss tones
+    "grief": ["miss", "lost", "gone", "ending", "goodbye", "grief", "sad", "mourn",
+              "letting go", "was", "used to", "before"],
+    
+    # Growth / momentum tones
+    "growth": ["growing", "learning", "changing", "becoming", "evolving", "shifting",
+               "moving", "progress", "forward", "new", "different", "transform"],
+}
+
+# --- LIFELINE PATTERN DETECTION ---
+# Patterns observable in lifeline/history that inform language
+
+LIFELINE_PATTERNS = {
+    "delayed_action": ["waited", "took time", "finally", "after", "eventually"],
+    "repeated_cycles": ["again", "same", "pattern", "before", "always", "every time"],
+    "breakthrough_moments": ["first time", "never before", "breakthrough", "finally did"],
+    "relational_themes": ["relationship", "partner", "friend", "family", "they", "we"],
+    "identity_shifts": ["became", "changed", "no longer", "used to be", "now I"],
+}
+
+# --- CONTEXTUAL MODIFIERS ---
+# Phrases that can be appended based on detected tones
+
+CONTEXTUAL_MODIFIERS = {
+    "hesitation": [
+        ", even if part of you is still cautious",
+        ", though something may still feel uncertain",
+        "—even with the hesitation that's also present",
+        ", while honoring the part that isn't fully sure yet",
+    ],
+    "warmth": [
+        ", and there's a softness present that supports this",
+        "—something in you is already moving toward this",
+        ", with a readiness that wasn't there before",
+        ", and you may feel more open to it than expected",
+    ],
+    "clarity": [
+        ", and you may already sense what this is about",
+        "—something is becoming clearer",
+        ", with a recognition that feels familiar",
+        ", and the knowing may already be present",
+    ],
+    "confusion": [
+        ", even when clarity feels hard to find",
+        "—the not-knowing is part of it right now",
+        ", even in the middle of the fog",
+        ", and that's okay while things settle",
+    ],
+    "pressure": [
+        ", especially under current pressures",
+        "—the intensity you're feeling makes sense",
+        ", and the urgency may be amplifying this",
+        ", even when everything feels like too much",
+    ],
+    "resistance": [
+        ", even with the part of you that wants to step back",
+        "—the guardedness makes sense given what you've experienced",
+        ", while respecting your need to protect",
+        ", honoring what the resistance might be telling you",
+    ],
+    "grief": [
+        ", even as you're processing what's been lost",
+        "—the weight of what's ending is real",
+        ", while holding space for what was",
+        ", and grief may be part of what's moving through",
+    ],
+    "growth": [
+        ", and something new is genuinely emerging",
+        "—you're not the same as you were",
+        ", and the change is real, even if subtle",
+        ", with momentum that's building",
+    ],
+}
+
+# --- SENTENCE VARIATION STRUCTURES ---
+# Different ways to begin similar sentences (for variation)
+
+SENTENCE_OPENERS = {
+    "timing": [
+        "Current timing may be",
+        "Right now, conditions may be",
+        "This moment seems to be",
+        "Something about now is",
+        "The present moment may be",
+    ],
+    "personal": [
+        "Something in you may be",
+        "Part of you might be",
+        "You may be finding yourself",
+        "There's a sense that you're",
+        "You might be noticing",
+    ],
+    "observation": [
+        "What's showing up is",
+        "What seems present is",
+        "What's emerging is",
+        "What may be true is",
+        "What's becoming visible is",
+    ],
+    "invitation": [
+        "Try noticing",
+        "See if you can",
+        "Consider",
+        "Let yourself",
+        "Give yourself permission to",
+    ],
+}
+
+# --- VERB VARIATIONS ---
+# Synonyms for common verbs to add natural variation
+
+VERB_VARIATIONS = {
+    "notice": ["notice", "observe", "see", "recognize", "sense"],
+    "allow": ["allow", "let", "permit", "give space for", "make room for"],
+    "try": ["try", "experiment with", "see what happens if you", "explore"],
+    "stay": ["stay", "remain", "linger", "rest", "settle"],
+    "soften": ["soften", "ease", "relax", "release", "loosen"],
+}
+
+
+def extract_signal_tones(signals_extended: Dict[str, Any]) -> Dict[str, float]:
+    """
+    Analyze signals to detect emotional/behavioral tones.
+    
+    Returns dict of tone -> strength (0-1) based on keyword matches.
+    """
+    tones = {tone: 0.0 for tone in SIGNAL_TONE_MARKERS}
+    
+    # Gather all signal text
+    all_text = []
+    
+    # Journal (most weighted - recent personal reflection)
+    memory = signals_extended.get("memory", signals_extended)
+    for entry in memory.get("journal_entries", []):
+        content = entry.get("content", "")
+        all_text.append(content.lower())
+    
+    # Chat (medium weighted)
+    for msg in memory.get("chat_messages", []):
+        content = msg.get("content", "")
+        all_text.append(content.lower())
+    
+    # Lifeline (lower weighted for immediate tone)
+    for event in memory.get("lifeline_events", []):
+        title = event.get("title", "") or ""
+        desc = event.get("description", "") or ""
+        all_text.append(f"{title} {desc}".lower())
+    
+    combined_text = " ".join(all_text)
+    
+    if not combined_text:
+        return tones
+    
+    # Count matches for each tone
+    total_matches = 0
+    for tone, markers in SIGNAL_TONE_MARKERS.items():
+        matches = sum(1 for marker in markers if marker in combined_text)
+        tones[tone] = matches
+        total_matches += matches
+    
+    # Normalize to 0-1 scores
+    if total_matches > 0:
+        for tone in tones:
+            tones[tone] = min(1.0, tones[tone] / 5)  # Cap at 5 matches = 1.0
+    
+    return tones
+
+
+def extract_lifeline_patterns(signals_extended: Dict[str, Any]) -> List[str]:
+    """
+    Detect patterns in lifeline events that can inform language.
+    
+    Returns list of detected pattern types.
+    """
+    detected = []
+    
+    memory = signals_extended.get("memory", signals_extended)
+    lifeline_events = memory.get("lifeline_events", [])
+    
+    # Combine lifeline text
+    lifeline_text = " ".join([
+        f"{e.get('title', '')} {e.get('description', '')}" 
+        for e in lifeline_events
+    ]).lower()
+    
+    if not lifeline_text:
+        return detected
+    
+    # Check for patterns
+    for pattern_name, markers in LIFELINE_PATTERNS.items():
+        if any(marker in lifeline_text for marker in markers):
+            detected.append(pattern_name)
+    
+    return detected
+
+
+def get_deterministic_variation_index(pattern_id: str, user_id: str = "", section: str = "") -> int:
+    """
+    Generate a stable variation index based on pattern, user, and date.
+    
+    This ensures:
+    - Same user + pattern + day = same variation (consistency)
+    - Different days = different variations (freshness)
+    - Different users = different variations (personalization)
+    """
+    today = datetime.now().strftime("%Y-%m-%d")
+    seed = f"{pattern_id}:{user_id}:{today}:{section}"
+    hash_val = int(hashlib.md5(seed.encode()).hexdigest(), 16)
+    return hash_val
+
+
+def select_variation(options: List[str], pattern_id: str, user_id: str = "", section: str = "") -> str:
+    """
+    Select a variation from options using deterministic randomness.
+    """
+    if not options:
+        return ""
+    idx = get_deterministic_variation_index(pattern_id, user_id, section) % len(options)
+    return options[idx]
+
+
+def apply_contextual_modifier(
+    base_text: str, 
+    tones: Dict[str, float], 
+    pattern_id: str,
+    user_id: str = "",
+    threshold: float = 0.3
+) -> str:
+    """
+    Append a contextual modifier to base text based on detected tones.
+    
+    Only applies modifier if a tone is above threshold.
+    Prioritizes strongest detected tone.
+    """
+    # Find strongest tone above threshold
+    strongest_tone = None
+    strongest_score = 0
+    
+    for tone, score in tones.items():
+        if score >= threshold and score > strongest_score:
+            strongest_tone = tone
+            strongest_score = score
+    
+    if not strongest_tone or strongest_tone not in CONTEXTUAL_MODIFIERS:
+        return base_text
+    
+    # Select a modifier deterministically
+    modifiers = CONTEXTUAL_MODIFIERS[strongest_tone]
+    modifier = select_variation(modifiers, pattern_id, user_id, f"modifier_{strongest_tone}")
+    
+    # Ensure base text doesn't already end with similar phrasing
+    base_lower = base_text.lower()
+    if any(m[:20].lower() in base_lower for m in modifiers):
+        return base_text
+    
+    # Clean up base text ending
+    base_text = base_text.rstrip(".")
+    
+    return f"{base_text}{modifier}."
+
+
+def vary_sentence_opener(base_text: str, opener_type: str, pattern_id: str, user_id: str = "") -> str:
+    """
+    Replace standard sentence openers with varied alternatives.
+    
+    V10: SIMPLIFIED - This function now only applies variation when it's safe.
+    The primary personalization comes from contextual modifiers, not opener variations.
+    Disabled aggressive opener replacement to maintain grammatical correctness.
+    """
+    # V10: Disable sentence opener variations for now
+    # The contextual modifiers provide sufficient personalization
+    # without risking grammatical errors
+    return base_text
+
+
+def generate_why_now(
+    pattern_id: str,
+    pattern: Dict[str, Any],
+    signals_extended: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    transit_themes: Any,
+    base_maps: Dict[str, Dict[str, str]],
+    user_id: str = ""
+) -> str:
+    """
+    Generate context-aware "why now" explanation.
+    
+    Uses base map as scaffold, then layers signal-responsive modifications.
+    """
+    # Get evidence level
+    source_diversity = cluster_data.get("source_diversity_score", 0)
+    evidence_count = cluster_data.get("total_evidence_count", 0)
+    
+    if evidence_count >= 3 and source_diversity >= 0.5:
+        level = "high"
+    elif evidence_count >= 2:
+        level = "medium"
+    else:
+        level = "low"
+    
+    # Get base text from map
+    pattern_map = base_maps.get(pattern_id, {})
+    if pattern_map:
+        base_text = pattern_map.get(level, pattern_map.get("low", ""))
+    else:
+        # Fallback to generic
+        base_text = "Current timing may be bringing this pattern into focus."
+    
+    if not base_text:
+        base_text = "Current timing may be bringing this pattern into focus."
+    
+    # Extract signal tones
+    tones = extract_signal_tones(signals_extended)
+    
+    # Apply contextual modifier based on strongest tone
+    enhanced_text = apply_contextual_modifier(base_text, tones, pattern_id, user_id, threshold=0.3)
+    
+    # Apply sentence variation
+    enhanced_text = vary_sentence_opener(enhanced_text, "timing", pattern_id, user_id)
+    
+    return enhanced_text
+
+
+def generate_friction(
+    pattern_id: str,
+    pattern: Dict[str, Any],
+    signals_extended: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    base_map: Dict[str, str],
+    user_id: str = ""
+) -> str:
+    """
+    Generate context-aware friction statement.
+    
+    Uses base map as scaffold, layers signal-responsive modifications.
+    """
+    # Get base text
+    base_text = base_map.get(pattern_id, "")
+    
+    if not base_text:
+        # Fallback
+        challenge = pattern.get("challenge", [])
+        if challenge:
+            base_text = f"You may notice a pull toward {challenge[0].lower()}."
+        else:
+            base_text = "You may be waiting for the right moment instead of trusting this one."
+    
+    # Extract signal tones
+    tones = extract_signal_tones(signals_extended)
+    
+    # For friction, hesitation and resistance are particularly relevant
+    # If user shows high warmth/growth, soften the friction slightly
+    if tones.get("warmth", 0) > 0.5 or tones.get("growth", 0) > 0.5:
+        # Add a gentler framing
+        softeners = [
+            "Even with the progress you're making, ",
+            "Alongside the opening, ",
+            "While something is shifting, ",
+        ]
+        softener = select_variation(softeners, pattern_id, user_id, "friction_softener")
+        base_text = softener + base_text[0].lower() + base_text[1:]
+    
+    # If user shows high confusion/pressure, validate the difficulty
+    elif tones.get("confusion", 0) > 0.4 or tones.get("pressure", 0) > 0.4:
+        validators = [
+            "It makes sense that ",
+            "Given what you're carrying, ",
+            "With everything that's present, ",
+        ]
+        validator = select_variation(validators, pattern_id, user_id, "friction_validator")
+        base_text = validator + base_text[0].lower() + base_text[1:]
+    
+    # Apply sentence variation
+    enhanced_text = vary_sentence_opener(base_text, "personal", pattern_id, user_id)
+    
+    return enhanced_text
+
+
+def generate_practical(
+    pattern_id: str,
+    pattern: Dict[str, Any],
+    signals_extended: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    base_map: Dict[str, str],
+    user_id: str = ""
+) -> str:
+    """
+    Generate context-aware practical suggestion.
+    
+    Uses base map as scaffold, layers signal-responsive modifications.
+    """
+    # Get base text
+    base_text = base_map.get(pattern_id, "")
+    
+    if not base_text:
+        # Fallback
+        micro_shifts = pattern.get("micro_shifts", [])
+        if micro_shifts:
+            base_text = micro_shifts[0]
+        else:
+            base_text = "Notice what already feels true and give it a moment of your attention."
+    
+    # Extract signal tones
+    tones = extract_signal_tones(signals_extended)
+    
+    # Extract lifeline patterns
+    lifeline_patterns = extract_lifeline_patterns(signals_extended)
+    
+    # Adjust practical based on detected state
+    enhanced_text = base_text
+    
+    # If user shows hesitation, make the practical gentler/smaller
+    if tones.get("hesitation", 0) > 0.4:
+        gentlers = [
+            "Start small: ",
+            "Just for today, ",
+            "Even a tiny step: ",
+            "Without pressure, ",
+        ]
+        gentler = select_variation(gentlers, pattern_id, user_id, "practical_gentler")
+        enhanced_text = gentler + enhanced_text[0].lower() + enhanced_text[1:]
+    
+    # If user shows clarity/growth, make practical more direct
+    elif tones.get("clarity", 0) > 0.4 or tones.get("growth", 0) > 0.4:
+        # Keep it direct, maybe even amplify
+        pass
+    
+    # If lifeline shows repeated cycles, acknowledge the pattern
+    if "repeated_cycles" in lifeline_patterns:
+        # Add acknowledgment that this isn't new
+        enders = [
+            " This time might be different.",
+            " Something may be ready to shift.",
+            " You've been here before—but you're not the same.",
+        ]
+        ender = select_variation(enders, pattern_id, user_id, "practical_cycle_ender")
+        enhanced_text = enhanced_text.rstrip(".") + "." + ender
+    
+    # Apply sentence variation (for invitation-style openers)
+    enhanced_text = vary_sentence_opener(enhanced_text, "invitation", pattern_id, user_id)
+    
+    return enhanced_text
+
+
 def cluster_signal_themes(signals: Dict[str, Any]) -> Dict[str, Any]:
     """
     Cluster signals across sources to find dominant themes.
@@ -1932,24 +2415,30 @@ def build_two_layer_mirror_output(
     bazi_chart: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    Build the V6 Three-Layer Mirror Output structure.
+    Build the V10 Three-Layer Mirror Output structure with CONTEXT-AWARE LANGUAGE.
+    
+    V10 Upgrade: Language now adapts to user signals instead of using static templates.
     
     Layer A: CORE PATTERN (always visible)
     - One sharp, behaviorally meaningful sentence
     
     Layer B: WHY THIS MAY BE SHOWING UP (always visible)
-    - 1-2 sentences explaining timing/activation (not abstract meaning)
+    - 1-2 sentences explaining timing/activation (context-aware)
     
     Layer C: HOW THIS WAS DERIVED (collapsible)
     - Structured cross-lens proof with plain language translations
     - Only includes lenses that meaningfully contributed
     
-    Layer D: WHERE THE FRICTION MAY BE (V6 - always visible)
-    - 1 short sentence describing likely tension/hesitation/blind spot
+    Layer D: WHERE THE FRICTION MAY BE (always visible)
+    - 1 short sentence describing likely tension/hesitation/blind spot (context-aware)
     
-    Layer E: WHAT TO DO WITH IT (V6 - always visible)
-    - 1 short practical reflection or action sentence
+    Layer E: WHAT TO DO WITH IT (always visible)
+    - 1 short practical reflection or action sentence (context-aware)
     """
+    # Get user_id for deterministic variation
+    user_id = ""
+    if user_profile:
+        user_id = str(user_profile.get("_id", ""))
     
     # ===== LAYER A: CORE PATTERN (one sharp sentence) =====
     # Extract the core insight from daily angle or pattern summary
@@ -1960,13 +2449,16 @@ def build_two_layer_mirror_output(
     core_insight = _extract_sharp_insight(core_summary, pattern)
     
     # ===== LAYER B: WHY THIS MAY BE SHOWING UP =====
-    # V9: Pattern-specific, human explanation
-    why_showing_up = _build_why_showing_up(
-        timing_amplifier, 
-        transit_themes, 
+    # V10: Context-aware explanation using signal tones
+    why_showing_up = _build_why_showing_up_v10(
+        pattern_id,
+        pattern,
+        signals_extended,
         cluster_data,
+        timing_amplifier,
+        transit_themes,
         daily_angle,
-        pattern_id  # V9: Pass pattern_id for specific explanations
+        user_id
     )
     
     # ===== LAYER C: HOW THIS WAS DERIVED (cross-lens proof) =====
@@ -1980,11 +2472,13 @@ def build_two_layer_mirror_output(
         pattern_id
     )
     
-    # ===== LAYER D: WHERE THE FRICTION MAY BE (V6) =====
-    friction = _build_friction_layer(pattern, pattern_id)
+    # ===== LAYER D: WHERE THE FRICTION MAY BE =====
+    # V10: Context-aware friction using signal tones
+    friction = _build_friction_layer_v10(pattern, pattern_id, signals_extended, cluster_data, user_id)
     
-    # ===== LAYER E: WHAT TO DO WITH IT (V6) =====
-    practical = _build_practical_layer(pattern, pattern_id)
+    # ===== LAYER E: WHAT TO DO WITH IT =====
+    # V10: Context-aware practical using signal tones and lifeline patterns
+    practical = _build_practical_layer_v10(pattern, pattern_id, signals_extended, cluster_data, user_id)
     
     return {
         "core_insight": {
@@ -2129,6 +2623,259 @@ def _build_practical_layer(pattern: Dict[str, Any], pattern_id: str) -> str:
             return first_shift
     
     return "Notice what already feels true and give it a moment of your attention."
+
+
+# ============================================================================
+# V10: CONTEXT-AWARE LAYER BUILDERS
+# ============================================================================
+# These functions replace static map lookups with context-aware generation
+# that adapts to user signals while using maps as fallback/baseline.
+# ============================================================================
+
+def _build_why_showing_up_v10(
+    pattern_id: str,
+    pattern: Dict[str, Any],
+    signals_extended: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    timing_amplifier: Dict[str, Any],
+    transit_themes: Any,
+    daily_angle: Dict[str, Any],
+    user_id: str = ""
+) -> str:
+    """
+    V10: Build context-aware "why now" explanation.
+    
+    Uses base maps as scaffold, layers signal-responsive modifications.
+    Two users with same pattern but different signals get different outputs.
+    """
+    # V10: Base maps for "why now" explanations (fallback)
+    PATTERN_WHY_NOW = {
+        # === Relational patterns ===
+        "relational_reopening": {
+            "high": "Something in you may be becoming more willing to let connection back in.",
+            "medium": "Momentum is building around connection—readiness is growing.",
+            "low": "Current timing may be making openness feel more possible.",
+        },
+        "heart_thaw": {
+            "high": "Walls that have been up are starting to soften.",
+            "medium": "Something is thawing—defensiveness is loosening.",
+            "low": "Conditions may be supporting a quiet softening.",
+        },
+        "safe_intimacy_returning": {
+            "high": "Safety in closeness is becoming more accessible again.",
+            "medium": "The conditions for safe connection are improving.",
+            "low": "Timing may be supporting a return to closeness.",
+        },
+        "relational_weight": {
+            "high": "A relationship dynamic you've been carrying is pressing for attention.",
+            "medium": "Something unspoken may be ready to surface.",
+            "low": "Current timing may be highlighting what's been held too long.",
+        },
+        "reconnection_window": {
+            "high": "An opening for repair or reconnection is becoming visible.",
+            "medium": "Conditions seem more favorable for reaching out.",
+            "low": "Timing may be supporting a gentle move toward connection.",
+        },
+        # === Emotional patterns ===
+        "somethings_here": {
+            "high": "Something has been stirring and is now ready to be noticed.",
+            "medium": "An awareness is emerging—something wants attention.",
+            "low": "Current timing may be bringing something into focus.",
+        },
+        "emotional_wave_riding": {
+            "high": "Emotional waves are moving through with more intensity right now.",
+            "medium": "Feelings may be arriving faster than you can process them.",
+            "low": "Current timing may be amplifying emotional fluctuations.",
+        },
+        "moving_through": {
+            "high": "Something you've been holding is ready to move through you.",
+            "medium": "Processing something old may feel more available now.",
+            "low": "Timing may be supporting release or completion.",
+        },
+        "emotional_integration": {
+            "high": "Pieces that felt separate are starting to come together.",
+            "medium": "Something about your experience is becoming clearer.",
+            "low": "Integration may be happening quietly beneath the surface.",
+        },
+        # === Threshold/identity patterns ===
+        "threshold_standing": {
+            "high": "You're at a decision point, and multiple signals are converging on it.",
+            "medium": "A choice is becoming more present—the moment feels ripe.",
+            "low": "Current timing may be highlighting a threshold.",
+        },
+        "expansion_resistance": {
+            "high": "Something bigger is calling, and the resistance to it is becoming clearer.",
+            "medium": "Growth pressure is building—the pull and the hesitation are both present.",
+            "low": "Timing may be revealing where expansion feels risky.",
+        },
+        "anticipating_impact": {
+            "high": "Future concerns are pressing more heavily than usual.",
+            "medium": "Your mind may be running ahead of present reality.",
+            "low": "Current timing may be amplifying anticipatory tension.",
+        },
+        # === Behavioral patterns ===
+        "duty_over_self": {
+            "high": "The gap between what you're giving and what you're receiving is becoming visible.",
+            "medium": "Self-sacrifice patterns may be surfacing for attention.",
+            "low": "Current pressures may be highlighting where you put yourself last.",
+        },
+        "over_functioning_hero": {
+            "high": "The weight of carrying so much is becoming harder to ignore.",
+            "medium": "Something about your current load is asking for attention.",
+            "low": "Current pressures may be revealing where you're overextended.",
+        },
+        "inner_critic_override": {
+            "high": "Self-critical voices are louder right now, asking to be worked with.",
+            "medium": "Your inner critic may be more active than usual.",
+            "low": "Timing may be amplifying self-judgment.",
+        },
+        "holding_the_line": {
+            "high": "Something you've been firm about is being tested again.",
+            "medium": "A boundary or position you hold may need reinforcement.",
+            "low": "Current timing may be highlighting where you're holding firm.",
+        },
+        # === Opening/positive patterns ===
+        "grounded_presence": {
+            "high": "A sense of stability is genuinely available right now.",
+            "medium": "Groundedness feels more accessible than usual.",
+            "low": "Conditions may be supporting a moment of stillness.",
+        },
+        "renewal_after_distance": {
+            "high": "Something that felt stuck or distant is opening again.",
+            "medium": "Fresh energy is entering where things felt stale.",
+            "low": "Timing may be supporting a new beginning.",
+        },
+    }
+    
+    # V10: Apply context-aware enhancements
+    # The generate_why_now function uses PATTERN_WHY_NOW as base map
+    # and layers signal-responsive modifications on top
+    return generate_why_now(
+        pattern_id,
+        pattern,
+        signals_extended,
+        cluster_data,
+        transit_themes,
+        PATTERN_WHY_NOW,
+        user_id
+    )
+
+
+def _build_friction_layer_v10(
+    pattern: Dict[str, Any], 
+    pattern_id: str,
+    signals_extended: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    user_id: str = ""
+) -> str:
+    """
+    V10: Build context-aware friction statement.
+    
+    Uses base map as scaffold, layers signal-responsive modifications.
+    Adapts based on user's detected emotional/behavioral tones.
+    """
+    # V10: Base friction map (fallback)
+    friction_map = {
+        # === Relational patterns ===
+        "relational_reopening": "Part of you may still want proof that openness is safe.",
+        "heart_thaw": "Part of you may still be testing whether softening is worth the risk.",
+        "safe_intimacy_returning": "You might hesitate to fully arrive, in case the safety shifts.",
+        "relational_weight": "Part of you may be carrying more of this than you need to.",
+        "reconnection_window": "You might be overthinking the right way to reach out.",
+        # === Emotional patterns ===
+        "somethings_here": "You might be resisting naming it too soon.",
+        "emotional_wave_riding": "You might want to fast-forward through the feeling instead of riding it.",
+        "moving_through": "Part of you may be minimizing what you're actually grieving.",
+        "emotional_integration": "You might be rushing to make sense of it before it's ready.",
+        # === Threshold/identity patterns ===
+        "threshold_standing": "You may still be waiting for certainty before stepping forward.",
+        "expansion_resistance": "Part of you may be finding reasons why now isn't the right time.",
+        "anticipating_impact": "You might be bracing for something that hasn't happened yet.",
+        # === Behavioral patterns ===
+        "duty_over_self": "You might be putting your own needs at the end of the list again.",
+        "over_functioning_hero": "You might find it hard to rest when there's still something you could do.",
+        "inner_critic_override": "You may be dismissing your own knowing before it has room to land.",
+        "waiting_for_permission": "You might be looking outside for permission you already have.",
+        "perfectionist_paralysis": "You may be telling yourself it's not ready when it might be.",
+        "avoidant_autopilot": "Part of you may be subtly steering away from what feels too close.",
+        "control_grip": "You may be tightening your hold on things that need room to breathe.",
+        "boundary_blur": "You might feel pulled between your needs and what others expect.",
+        "people_pleasing_loop": "You may be adjusting to fit others before checking what you want.",
+        "holding_the_line": "You might be repeating yourself in ways that aren't landing.",
+        "closed_door_syndrome": "Part of you may be scanning for reasons to step back.",
+        # === Opening/positive patterns ===
+        "grounded_presence": "You might be distrusting the calm, waiting for something to go wrong.",
+        "renewal_after_distance": "You might bring old expectations into what wants to be new.",
+    }
+    
+    # V10: Apply context-aware generation
+    return generate_friction(
+        pattern_id,
+        pattern,
+        signals_extended,
+        cluster_data,
+        friction_map,
+        user_id
+    )
+
+
+def _build_practical_layer_v10(
+    pattern: Dict[str, Any], 
+    pattern_id: str,
+    signals_extended: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    user_id: str = ""
+) -> str:
+    """
+    V10: Build context-aware practical suggestion.
+    
+    Uses base map as scaffold, layers signal-responsive modifications.
+    Adapts based on user's detected tones and lifeline patterns.
+    """
+    # V10: Base practical map (fallback)
+    practical_map = {
+        # === Relational patterns ===
+        "relational_reopening": "Let yourself notice one small moment of connection without immediately evaluating it.",
+        "heart_thaw": "Allow yourself one unguarded thought today without rushing to protect it.",
+        "safe_intimacy_returning": "Notice where you already feel safe, even if it's just for a moment.",
+        "relational_weight": "Name one thing you've been carrying that isn't yours to hold alone.",
+        "reconnection_window": "Send one small signal today—a text, a question—without needing to control the response.",
+        # === Emotional patterns ===
+        "somethings_here": "Name one feeling you notice right now, even if it's incomplete.",
+        "emotional_wave_riding": "Let one wave of feeling pass through without trying to stop it or figure it out.",
+        "moving_through": "Give yourself permission to feel what's actually here, not what you think you should feel.",
+        "emotional_integration": "Notice one thing that's starting to make sense, even if the whole picture isn't clear.",
+        # === Threshold/identity patterns ===
+        "threshold_standing": "Let yourself notice what already feels true before asking for more proof.",
+        "expansion_resistance": "Take one small step toward the thing you're resisting—just to see what happens.",
+        "anticipating_impact": "Ask yourself: what is actually happening right now, not what might happen?",
+        # === Behavioral patterns ===
+        "duty_over_self": "Put one of your own needs on the list today, even if it's small.",
+        "over_functioning_hero": "Let one thing be good enough today without fixing it further.",
+        "inner_critic_override": "Notice what you'd say to a friend in your situation—and say it to yourself.",
+        "waiting_for_permission": "Ask yourself what you'd do if you already had permission.",
+        "perfectionist_paralysis": "Choose one thing that's ready and let it be done.",
+        "emotional_flooding": "Give the feeling a name and one minute of your attention without acting on it.",
+        "avoidant_autopilot": "Notice where you're steering away—and pause there for a breath.",
+        "control_grip": "Release your grip on one small thing today and notice what happens.",
+        "boundary_blur": "Check in with what you actually want before saying yes.",
+        "people_pleasing_loop": "Before adjusting, ask: what would I choose if no one were watching?",
+        "holding_the_line": "Notice where you're holding tension and let your body soften, even slightly.",
+        "closed_door_syndrome": "Try staying present one beat longer than your instinct to retreat.",
+        # === Opening/positive patterns ===
+        "grounded_presence": "Let yourself rest in what's stable right now—no need to look for trouble.",
+        "renewal_after_distance": "Meet this moment fresh, without assuming it will repeat the past.",
+    }
+    
+    # V10: Apply context-aware generation
+    return generate_practical(
+        pattern_id,
+        pattern,
+        signals_extended,
+        cluster_data,
+        practical_map,
+        user_id
+    )
 
 
 def _extract_sharp_insight(angle_summary: str, pattern: Dict[str, Any]) -> str:
