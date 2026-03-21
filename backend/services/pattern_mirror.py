@@ -1674,36 +1674,162 @@ RELATED_FRAMES = {
 }
 
 # Continuity phrases - subtle, one-liner additions
-CONTINUITY_PHRASES = {
-    # Same pattern recurring
+# V10.6.1: SIGNAL-AWARE EXPERIENTIAL CONTINUITY
+# ============================================================================
+# Replaced generic phrases with specific, signal-driven language.
+# No meta language ("this pattern", "this energy", "this theme").
+# All phrases reference lived experience.
+# ============================================================================
+
+# Signal-specific continuity phrases - keyed by dominant signal
+SIGNAL_CONTINUITY_PHRASES = {
+    "warmth": [
+        "You were already starting to open…",
+        "That warmth you've been feeling may still be here.",
+        "The softening you noticed before seems to be continuing.",
+    ],
+    "hesitation": [
+        "That hesitation may still be here.",
+        "You were already pausing before stepping forward…",
+        "The caution you felt before is still present.",
+    ],
+    "grief": [
+        "What you've been grieving is still moving through you.",
+        "That loss you've been sitting with is still here.",
+        "The weight you've been carrying hasn't fully lifted yet.",
+    ],
+    "growth": [
+        "What was starting to shift is still shifting.",
+        "The movement you felt before seems to be continuing.",
+        "You were already beginning to expand…",
+    ],
+    "resistance": [
+        "That pull to hold back is still present.",
+        "You were already noticing some resistance…",
+        "The part of you that wanted to stay put is still here.",
+    ],
+    "clarity": [
+        "What was starting to make sense may be becoming clearer now.",
+        "The understanding you glimpsed before is still arriving.",
+        "You were already beginning to see this…",
+    ],
+    "pressure": [
+        "That sense of being stretched is still here.",
+        "The pressure you felt before hasn't fully eased.",
+        "You were already feeling the weight of this…",
+    ],
+    "confusion": [
+        "That uncertainty you noticed is still present.",
+        "The fog you were in before hasn't fully cleared.",
+        "You were already sitting with not-knowing…",
+    ],
+}
+
+# Frame-specific continuity phrases - keyed by frame_type
+FRAME_CONTINUITY_PHRASES = {
+    "edge_of_action": [
+        "You were already leaning toward movement…",
+        "That readiness you felt before is still here.",
+        "The pull to step forward continues.",
+    ],
+    "testing_the_waters": [
+        "You were already checking if this was safe…",
+        "That careful exploration seems to be continuing.",
+        "You're still testing the ground.",
+    ],
+    "grief_underneath": [
+        "What's underneath hasn't fully surfaced yet.",
+        "The feeling you glimpsed before is still there.",
+        "You were already noticing something deeper…",
+    ],
+    "holding_back": [
+        "You were already holding something back…",
+        "That containment you noticed is still present.",
+        "Part of you is still keeping this in.",
+    ],
+    "something_surfacing": [
+        "What was emerging before is still emerging.",
+        "You were already sensing something rising…",
+        "That feeling is still trying to surface.",
+    ],
+    "clarity_arriving": [
+        "The clarity you glimpsed is still arriving.",
+        "What was becoming clear continues to sharpen.",
+        "You were already starting to see this…",
+    ],
+    "here_again": [
+        "This familiar place showed up before too.",
+        "You've been here recently.",
+        "This ground may feel familiar from recent days.",
+    ],
+    "something_different": [
+        "You were already sensing a shift…",
+        "What felt different before is still different.",
+        "The newness you noticed is still here.",
+    ],
+}
+
+# Pattern-specific continuity phrases - for same-pattern recurrence
+PATTERN_CONTINUITY_PHRASES = {
+    "relational_reopening": [
+        "You were already starting to open again…",
+        "That pull toward connection you felt is still here.",
+    ],
+    "heart_thaw": [
+        "The softening you noticed continues.",
+        "You were already beginning to let something in…",
+    ],
+    "threshold_standing": [
+        "You were already at this edge…",
+        "That sense of standing between is still here.",
+    ],
+    "expansion_resistance": [
+        "You were already feeling the push and pull…",
+        "That tension between growth and staying small continues.",
+    ],
+    "moving_through": [
+        "What you were moving through is still moving.",
+        "The process you started before continues.",
+    ],
+    "somethings_here": [
+        "What you noticed before is still here.",
+        "That feeling you sensed hasn't gone away.",
+    ],
+    "emotional_wave_riding": [
+        "The wave you were riding is still in motion.",
+        "What was moving through you continues.",
+    ],
+    "over_functioning_hero": [
+        "You were already carrying a lot…",
+        "That drive to do more is still present.",
+    ],
+    "relational_weight": [
+        "You were already holding relational weight…",
+        "What you're carrying between you and others is still here.",
+    ],
+}
+
+# Default fallback phrases (minimal, experiential)
+DEFAULT_CONTINUITY_PHRASES = {
     "same_pattern": [
-        "This has been present for a few days now.",
-        "You've been sitting with this recently.",
-        "This continues to surface.",
+        "You've been here recently.",
+        "This is familiar from the past few days.",
     ],
-    # Related pattern emerging
     "related_pattern": [
-        "This connects to what you were noticing before.",
+        "This seems connected to what you were sitting with before.",
         "There's a thread here from recent days.",
-        "This seems to be building on something earlier.",
     ],
-    # Same frame type recurring
     "same_frame": [
-        "The same energy is still present.",
-        "This tone continues.",
-        "You're still in this space.",
+        "You're still in a similar space.",
+        "What you were feeling before is still present.",
     ],
-    # Related frame emerging
     "related_frame": [
-        "The feeling is shifting but connected.",
-        "This is moving from where you were.",
-        "Something is evolving from before.",
+        "This is shifting from where you were.",
+        "What you felt before is evolving.",
     ],
-    # Strong signal continuity (e.g., grief persisting)
     "signal_continuity": [
         "What you've been feeling is still here.",
-        "This continues to be present.",
-        "You're still holding this.",
+        "This continues from before.",
     ],
 }
 
@@ -1716,6 +1842,8 @@ def detect_continuity(
     """
     Detect if there's meaningful continuity with recent patterns.
     
+    V10.6.1: Enhanced to capture signal and frame details for experiential phrases.
+    
     Args:
         current_pattern_id: Today's selected pattern
         current_frame_type: Today's frame type
@@ -1727,7 +1855,10 @@ def detect_continuity(
             "has_continuity": bool,
             "continuity_type": str or None,
             "strength": float (0-1),
-            "details": str
+            "details": str,
+            "dominant_signal": str (for signal-aware phrasing),
+            "pattern_id": str (for pattern-specific phrasing),
+            "frame_type": str (for frame-specific phrasing),
         }
     """
     if not recent_history:
@@ -1737,13 +1868,23 @@ def detect_continuity(
     last_frame = recent_history.get("last_frame_type", "")
     last_tones = recent_history.get("last_tones", {})
     
+    # Find dominant current signal for phrase selection
+    dominant_signal = ""
+    if current_tones:
+        strongest = max(current_tones.items(), key=lambda x: x[1], default=(None, 0))
+        if strongest[0] and strongest[1] >= 0.25:
+            dominant_signal = strongest[0]
+    
     # Check for same pattern recurring
     if current_pattern_id in recent_patterns:
         return {
             "has_continuity": True,
             "continuity_type": "same_pattern",
             "strength": 0.9,
-            "details": f"Pattern '{current_pattern_id}' appeared recently"
+            "details": f"Pattern '{current_pattern_id}' appeared recently",
+            "dominant_signal": dominant_signal,
+            "pattern_id": current_pattern_id,
+            "frame_type": current_frame_type,
         }
     
     # Check for related pattern
@@ -1754,7 +1895,10 @@ def detect_continuity(
                 "has_continuity": True,
                 "continuity_type": "related_pattern",
                 "strength": 0.7,
-                "details": f"Pattern '{current_pattern_id}' relates to recent '{recent}'"
+                "details": f"Pattern '{current_pattern_id}' relates to recent '{recent}'",
+                "dominant_signal": dominant_signal,
+                "pattern_id": current_pattern_id,
+                "frame_type": current_frame_type,
             }
     
     # Check for same frame type
@@ -1763,7 +1907,10 @@ def detect_continuity(
             "has_continuity": True,
             "continuity_type": "same_frame",
             "strength": 0.8,
-            "details": f"Frame '{current_frame_type}' continues"
+            "details": f"Frame '{current_frame_type}' continues",
+            "dominant_signal": dominant_signal,
+            "pattern_id": current_pattern_id,
+            "frame_type": current_frame_type,
         }
     
     # Check for related frame
@@ -1773,7 +1920,10 @@ def detect_continuity(
             "has_continuity": True,
             "continuity_type": "related_frame",
             "strength": 0.6,
-            "details": f"Frame shifted from '{last_frame}' to related '{current_frame_type}'"
+            "details": f"Frame shifted from '{last_frame}' to related '{current_frame_type}'",
+            "dominant_signal": dominant_signal,
+            "pattern_id": current_pattern_id,
+            "frame_type": current_frame_type,
         }
     
     # Check for strong signal continuity
@@ -1788,17 +1938,34 @@ def detect_continuity(
                     "has_continuity": True,
                     "continuity_type": "signal_continuity",
                     "strength": 0.65,
-                    "details": f"Signal '{strongest_current[0]}' persists ({last_value:.1f} -> {strongest_current[1]:.1f})"
+                    "details": f"Signal '{strongest_current[0]}' persists ({last_value:.1f} -> {strongest_current[1]:.1f})",
+                    "dominant_signal": strongest_current[0],
+                    "pattern_id": current_pattern_id,
+                    "frame_type": current_frame_type,
                 }
     
     return {"has_continuity": False, "continuity_type": None, "strength": 0, "details": ""}
 
 
-def generate_continuity_phrase(continuity_info: Dict[str, Any], user_id: str = "") -> str:
+def generate_continuity_phrase(
+    continuity_info: Dict[str, Any], 
+    user_id: str = "",
+    confidence: str = "medium"  # V10.6.1: Only apply for medium+ confidence
+) -> str:
     """
-    Generate a subtle continuity phrase based on detected continuity.
+    V10.6.1: Generate a signal-aware, experiential continuity phrase.
     
-    Returns empty string if no continuity or to add variety.
+    Hierarchy for phrase selection:
+    1. Pattern-specific (for same_pattern)
+    2. Frame-specific (for same_frame)
+    3. Signal-specific (uses dominant_signal)
+    4. Default fallback
+    
+    Only applies when:
+    - Continuity strength >= 0.6
+    - Confidence >= medium
+    
+    Returns empty string if criteria not met.
     Max: 1 short phrase.
     """
     if not continuity_info.get("has_continuity"):
@@ -1806,18 +1973,41 @@ def generate_continuity_phrase(continuity_info: Dict[str, Any], user_id: str = "
     
     continuity_type = continuity_info.get("continuity_type", "")
     strength = continuity_info.get("strength", 0)
+    dominant_signal = continuity_info.get("dominant_signal", "")
+    pattern_id = continuity_info.get("pattern_id", "")
+    frame_type = continuity_info.get("frame_type", "")
     
-    # Only apply when strength is meaningful
-    if strength < 0.5:
+    # V10.6.1: Only apply when strength is meaningful (raised from 0.5)
+    if strength < 0.6:
         return ""
     
-    # Get phrase options for this type
-    phrases = CONTINUITY_PHRASES.get(continuity_type, [])
+    # V10.6.1: Skip for low confidence cases
+    if confidence == "low":
+        return ""
+    
+    phrases = []
+    
+    # 1. Try pattern-specific phrases first (most specific)
+    if continuity_type == "same_pattern" and pattern_id in PATTERN_CONTINUITY_PHRASES:
+        phrases = PATTERN_CONTINUITY_PHRASES[pattern_id]
+    
+    # 2. Try frame-specific phrases
+    elif continuity_type in ["same_frame", "related_frame"] and frame_type in FRAME_CONTINUITY_PHRASES:
+        phrases = FRAME_CONTINUITY_PHRASES[frame_type]
+    
+    # 3. Try signal-specific phrases
+    elif dominant_signal and dominant_signal in SIGNAL_CONTINUITY_PHRASES:
+        phrases = SIGNAL_CONTINUITY_PHRASES[dominant_signal]
+    
+    # 4. Fall back to default phrases
+    if not phrases:
+        phrases = DEFAULT_CONTINUITY_PHRASES.get(continuity_type, [])
+    
     if not phrases:
         return ""
     
-    # Select phrase based on user_id hash for consistency
-    idx = hash(f"{user_id}_{continuity_type}") % len(phrases)
+    # Select phrase based on user_id hash for consistency across sessions
+    idx = hash(f"{user_id}_{continuity_type}_{pattern_id}") % len(phrases)
     return phrases[idx]
 
 
@@ -5188,24 +5378,45 @@ def build_two_layer_mirror_output(
     if user_profile:
         user_id = str(user_profile.get("_id", ""))
     
-    # ===== V10.6: DETECT CONTINUITY =====
+    # ===== V10.6.1: DETECT CONTINUITY WITH CONFIDENCE GATING =====
     continuity_info = {"has_continuity": False}
     continuity_phrase = ""
     
-    if recent_history:
-        # Extract current tones for comparison
-        current_tones = extract_signal_tones(signals_extended)
-        
+    # Extract current tones and frame for continuity detection
+    current_tones = extract_signal_tones(signals_extended) if signals_extended else {}
+    
+    # Get frame_type from core insight generation (V10.3+)
+    # We need to extract this before continuity to use in phrase generation
+    detected_frame_type = frame_type
+    confidence = "medium"  # Default
+    
+    if recent_history and recent_history.get("history_count", 0) > 0:
         continuity_info = detect_continuity(
             current_pattern_id=pattern_id,
-            current_frame_type=frame_type,
+            current_frame_type=detected_frame_type,
             current_tones=current_tones,
             recent_history=recent_history
         )
         
         if continuity_info.get("has_continuity"):
-            continuity_phrase = generate_continuity_phrase(continuity_info, user_id)
-            logger.info(f"[V10.6] Continuity detected: {continuity_info.get('continuity_type')} - '{continuity_phrase}'")
+            # V10.6.1: Pass confidence to phrase generator (only applies for medium+)
+            # Estimate confidence from signal strength
+            signal_strength = signals_extended.get("signal_strength", "weak")
+            if signal_strength == "strong":
+                confidence = "high"
+            elif signal_strength == "medium":
+                confidence = "medium"
+            else:
+                confidence = "low"
+            
+            continuity_phrase = generate_continuity_phrase(
+                continuity_info, 
+                user_id,
+                confidence=confidence
+            )
+            
+            if continuity_phrase:
+                logger.info(f"[V10.6.1] Continuity: {continuity_info.get('continuity_type')} | Signal: {continuity_info.get('dominant_signal')} | Phrase: '{continuity_phrase}'")
     
     # ===== LAYER A: CORE PATTERN (one sharp sentence) =====
     # Extract the core insight from daily angle or pattern summary
