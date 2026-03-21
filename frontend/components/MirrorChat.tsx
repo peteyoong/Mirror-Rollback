@@ -28,9 +28,10 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'error' | 'system';
   content: string;
   timestamp: Date;
+  isError?: boolean;  // Legacy flag for backward compatibility
 }
 
 interface MemoryUpdate {
@@ -98,6 +99,87 @@ function generateSessionId(lens: string | null): string {
 // Format timestamp subtly
 function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+// ===== RESPONSE NORMALIZATION =====
+// Normalizes backend response to a consistent format, handling various edge cases
+interface NormalizedResponse {
+  text: string | null;
+  status: 'ok' | 'empty' | 'error';
+  errorMessage?: string;
+}
+
+function normalizeMirrorResponse(response: any): NormalizedResponse {
+  // Log raw response for debugging
+  console.log('[MIRROR_NORMALIZE] Raw response:', {
+    type: typeof response,
+    hasData: !!response?.data,
+    dataKeys: response?.data ? Object.keys(response.data) : [],
+  });
+  
+  // Handle null/undefined response
+  if (!response) {
+    console.log('[MIRROR_NORMALIZE] Response is null/undefined');
+    return { text: null, status: 'error', errorMessage: 'No response received from Mirror.' };
+  }
+  
+  // Handle axios response wrapper
+  const data = response.data || response;
+  
+  // Log response data shape
+  console.log('[MIRROR_NORMALIZE] Response data:', {
+    hasResponse: 'response' in data,
+    hasText: 'text' in data,
+    hasMessage: 'message' in data,
+    hasContent: 'content' in data,
+    hasAnswer: 'answer' in data,
+  });
+  
+  // Try multiple possible response fields (in order of priority)
+  let text: string | null = null;
+  
+  // Check for response field (primary)
+  if (typeof data.response === 'string') {
+    text = data.response;
+  }
+  // Fallback to other common field names
+  else if (typeof data.text === 'string') {
+    text = data.text;
+  }
+  else if (typeof data.message === 'string' && !data.error) {
+    text = data.message;
+  }
+  else if (typeof data.content === 'string') {
+    text = data.content;
+  }
+  else if (typeof data.answer === 'string') {
+    text = data.answer;
+  }
+  // Handle nested response structures
+  else if (data.data?.response) {
+    text = data.data.response;
+  }
+  
+  // Trim whitespace and validate
+  if (text) {
+    text = text.trim();
+  }
+  
+  // Check for empty content
+  if (!text || text.length === 0) {
+    console.log('[MIRROR_NORMALIZE] Response text is empty after normalization');
+    return { text: null, status: 'empty', errorMessage: 'Mirror returned an empty response.' };
+  }
+  
+  console.log('[MIRROR_NORMALIZE] Success:', { textLength: text.length, preview: text.substring(0, 50) });
+  return { text, status: 'ok' };
+}
+
+// Validate if a message should be rendered
+function isValidMessageContent(content: string | null | undefined): boolean {
+  if (!content) return false;
+  const trimmed = content.trim();
+  return trimmed.length > 0;
 }
 
 // Format inferred state for display
@@ -442,12 +524,50 @@ export default function MirrorChat({
         has_thread: !!response.data?.thread,
       });
 
+      // ===== NORMALIZE RESPONSE =====
+      const normalized = normalizeMirrorResponse(response);
+      console.log('[MIRROR_CHAT_NORMALIZED]', {
+        status: normalized.status,
+        hasText: !!normalized.text,
+        textLength: normalized.text?.length || 0,
+        errorMessage: normalized.errorMessage,
+      });
+      
+      // Handle empty/error responses - do NOT create blank bubbles
+      if (normalized.status === 'empty' || normalized.status === 'error') {
+        const errorMessage: Message = {
+          id: `error-${Date.now()}`,
+          role: 'error',
+          content: normalized.errorMessage || "Mirror couldn't respond just now. Please try again.",
+          timestamp: new Date(),
+          isError: true,
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        console.log('[MIRROR_CHAT] Empty/error response - showing error card instead of blank bubble');
+        return;
+      }
+
+      // Valid response - create assistant message
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: response.data.response,
-        timestamp: new Date(response.data.timestamp),
+        content: normalized.text!,
+        timestamp: new Date(response.data.timestamp || new Date()),
       };
+      
+      // Final validation before adding to messages
+      if (!isValidMessageContent(assistantMessage.content)) {
+        console.log('[MIRROR_CHAT] Content validation failed - not rendering message');
+        const errorMessage: Message = {
+          id: `error-${Date.now()}`,
+          role: 'error',
+          content: "Mirror's response couldn't be displayed. Please try again.",
+          timestamp: new Date(),
+          isError: true,
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        return;
+      }
 
       setMessages(prev => [...prev, assistantMessage]);
       setSessionId(response.data.session_id);
@@ -526,9 +646,10 @@ export default function MirrorChat({
       
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
-        role: 'assistant',
+        role: 'error',
         content: errorContent,
         timestamp: new Date(),
+        isError: true,
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -538,7 +659,57 @@ export default function MirrorChat({
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isUser = item.role === 'user';
+    const isError = item.role === 'error' || item.isError === true;
+    const isSystem = item.role === 'system';
     const isFirstMessage = index === 0;
+    
+    // ===== CONTENT VALIDATION =====
+    // Never render empty bubbles - this prevents the "blank white bubble" bug
+    const content = item.content?.trim() || '';
+    if (!content && !isError) {
+      console.log('[MIRROR_RENDER] Skipping empty message:', { id: item.id, role: item.role });
+      return null;
+    }
+    
+    // ===== ERROR MESSAGE RENDERING =====
+    // Error messages get a distinct visual treatment
+    if (isError) {
+      console.log('[MIRROR_RENDER] Rendering error message:', { id: item.id, content: content.substring(0, 50) });
+      return (
+        <View style={[
+          styles.messageWrapper,
+          styles.assistantWrapper,
+          isFirstMessage && styles.firstMessage,
+        ]}>
+          <View style={styles.errorBubble}>
+            <Text style={styles.errorIcon}>⚠️</Text>
+            <Text style={styles.errorText}>
+              {content || "Mirror couldn't respond just now. Please try again."}
+            </Text>
+          </View>
+          <Text style={[styles.timestamp, styles.timestampLeft]}>
+            {formatTime(item.timestamp)}
+          </Text>
+        </View>
+      );
+    }
+    
+    // ===== SYSTEM MESSAGE RENDERING =====
+    if (isSystem) {
+      return (
+        <View style={[styles.messageWrapper, styles.systemWrapper]}>
+          <Text style={styles.systemText}>{content}</Text>
+        </View>
+      );
+    }
+    
+    // ===== NORMAL MESSAGE RENDERING =====
+    console.log('[MIRROR_RENDER] Rendering message:', { 
+      id: item.id, 
+      role: item.role, 
+      contentLength: content.length,
+      isUser,
+    });
     
     return (
       <View style={[
@@ -554,7 +725,7 @@ export default function MirrorChat({
             styles.messageText,
             isUser ? styles.userText : styles.assistantText
           ]}>
-            {item.content}
+            {content}
           </Text>
         </View>
         <Text style={[
@@ -1145,13 +1316,12 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 6,
   },
   assistantBubble: {
-    backgroundColor: '#FDFCFA',
+    // FIXED: Use dark surface color for assistant bubbles in dark mode
+    // Previous: #FDFCFA (light cream) caused white-on-white text issue
+    backgroundColor: Colors.surface,
     borderBottomLeftRadius: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
   },
   messageText: {
     fontSize: 15,
@@ -1161,8 +1331,46 @@ const styles = StyleSheet.create({
     color: Colors.surface,
   },
   assistantText: {
+    // FIXED: Use readable text color on dark surface
     color: Colors.text,
   },
+  
+  // ===== ERROR MESSAGE STYLES =====
+  // Error messages get distinct visual treatment to avoid confusion with normal responses
+  errorBubble: {
+    backgroundColor: '#2C1A1A',  // Subtle red-tinted dark background
+    borderRadius: 18,
+    borderBottomLeftRadius: 6,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: Colors.error + '40',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  errorIcon: {
+    fontSize: 16,
+    marginTop: 2,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Colors.error,
+  },
+  
+  // ===== SYSTEM MESSAGE STYLES =====
+  systemWrapper: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  systemText: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  
   timestamp: {
     fontSize: 11,
     color: Colors.textTertiary,
@@ -1184,17 +1392,15 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   loadingBubble: {
-    backgroundColor: '#FDFCFA',
+    // FIXED: Use dark surface color to match assistant bubbles
+    backgroundColor: Colors.surface,
     borderRadius: 18,
     borderBottomLeftRadius: 6,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
   },
   loadingDots: {
     flexDirection: 'row',
