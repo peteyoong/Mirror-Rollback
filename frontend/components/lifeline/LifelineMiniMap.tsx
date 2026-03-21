@@ -1,20 +1,22 @@
 /**
- * LifelineMiniMap V2
+ * LifelineMiniMap V3
  * 
- * An expressive life-arc visualization showing the emotional rhythm of a life.
- * - Flowing curved path that rises/falls based on event intensity
- * - Nodes for recorded moments with size based on impact
- * - Visual distinction for quiet periods
- * - Tap-to-jump navigation preserved
+ * A true life-arc visualization with:
+ * - Meaningful centerline (supported vs challenged periods)
+ * - Arc moves above/below center based on life rhythm
+ * - Large invisible touch targets for reliable tapping
+ * - Elegant dark aesthetic preserved
  * 
- * Design: Emotionally legible, visually elegant, clean dark aesthetic
+ * Y-axis model:
+ * - Center (5) = balanced / neutral
+ * - Above center = more supported / expansive / resourced
+ * - Below center = more difficult / challenging / tested
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Dimensions,
   Pressable,
@@ -26,11 +28,12 @@ import { GapPromptData } from './LifelineGapPrompt';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CONTAINER_PADDING = 16;
-const GRAPH_HEIGHT = 100;
-const GRAPH_WIDTH = SCREEN_WIDTH - (CONTAINER_PADDING * 2) - 32; // Account for container padding
-const VERTICAL_PADDING = 20; // Space above and below the arc
+const GRAPH_HEIGHT = 120; // Slightly taller for better arc visibility
+const GRAPH_WIDTH = SCREEN_WIDTH - (CONTAINER_PADDING * 2) - 32;
+const VERTICAL_PADDING = 15;
 const ARC_HEIGHT = GRAPH_HEIGHT - (VERTICAL_PADDING * 2);
-const BASELINE_Y = GRAPH_HEIGHT - VERTICAL_PADDING; // Bottom of the arc area
+const CENTER_Y = VERTICAL_PADDING + (ARC_HEIGHT / 2); // Midpoint line
+const MIN_TOUCH_SIZE = 44; // Minimum touch target size for accessibility
 
 interface Props {
   events: LifelineEvent[];
@@ -45,53 +48,149 @@ interface YearData {
   year: number;
   eventCount: number;
   events: LifelineEvent[];
-  intensity: number; // 0-1 normalized intensity
+  score: number; // -1 to +1, where 0 is center
+  amplitude: number; // How far from center (0-1)
   isGap?: boolean;
   gapData?: GapPromptData;
-  x: number; // X position on graph
-  y: number; // Y position on graph (higher intensity = lower Y value)
+  x: number;
+  y: number;
 }
 
-// Life chapter definitions based on age
-interface LifeChapter {
-  label: string;
-  startAge: number;
-  endAge: number;
-}
-
-const LIFE_CHAPTERS: LifeChapter[] = [
-  { label: 'Early Life', startAge: 0, endAge: 12 },
-  { label: 'Formative', startAge: 13, endAge: 22 },
-  { label: 'Building', startAge: 23, endAge: 40 },
-  { label: 'Midlife', startAge: 41, endAge: 60 },
-  { label: 'Later', startAge: 61, endAge: 100 },
-];
+// Category valence mapping (heuristic when explicit data unavailable)
+// Positive valence = tends toward supported/expansive
+// Negative valence = tends toward challenged/difficult
+const CATEGORY_VALENCE: Record<string, number> = {
+  // Positive-leaning categories
+  'achievement': 0.6,
+  'joy': 0.7,
+  'love': 0.5,
+  'relationship': 0.3,
+  'connection': 0.4,
+  'growth': 0.5,
+  'success': 0.6,
+  'celebration': 0.7,
+  'milestone': 0.4,
+  'family': 0.2, // Neutral-positive
+  'work': 0.1, // Slightly positive
+  'education': 0.3,
+  'travel': 0.4,
+  'creative': 0.4,
+  
+  // Negative-leaning categories
+  'loss': -0.7,
+  'grief': -0.8,
+  'health': -0.3,
+  'challenge': -0.5,
+  'crisis': -0.7,
+  'trauma': -0.8,
+  'conflict': -0.5,
+  'difficulty': -0.6,
+  'failure': -0.5,
+  'fear': -0.4,
+  'anxiety': -0.4,
+  'depression': -0.6,
+  'illness': -0.5,
+  'accident': -0.6,
+  'separation': -0.5,
+  'divorce': -0.6,
+  'death': -0.8,
+  
+  // Neutral categories
+  'change': 0,
+  'transition': 0,
+  'move': 0.1,
+  'self': 0,
+  'reflection': 0.1,
+  'other': 0,
+};
 
 /**
- * Calculate event intensity for a year
- * Uses: event count, impact level, category diversity
+ * Calculate lifeline score for a year's events
+ * Returns value from -1 (most challenged) to +1 (most supported)
+ * 0 = center/balanced
  */
-function calculateIntensity(yearEvents: LifelineEvent[], maxEventsInYear: number): number {
-  if (yearEvents.length === 0) return 0;
+function calculateLifelineScore(yearEvents: LifelineEvent[]): { score: number; amplitude: number } {
+  if (yearEvents.length === 0) {
+    return { score: 0, amplitude: 0.05 }; // Quiet years hover near center with minimal amplitude
+  }
   
-  // Base intensity from event count (normalized)
-  const countIntensity = yearEvents.length / Math.max(maxEventsInYear, 1);
+  let totalValence = 0;
+  let totalWeight = 0;
+  let hasExplicitValence = false;
   
-  // Boost from impact levels if available
-  const impactBoost = yearEvents.reduce((sum, e) => {
-    const impact = (e as any).impact || (e as any).significance || 0;
-    return sum + (impact / 10); // Normalize impact to 0-1
-  }, 0) / yearEvents.length;
+  yearEvents.forEach(event => {
+    // Weight based on impact/significance if available
+    const impact = (event as any).impact || (event as any).significance || 5;
+    const weight = Math.max(1, impact / 5); // Normalize to 1-2 range
+    
+    // Try to get explicit emotional valence first
+    const explicitValence = (event as any).valence || (event as any).emotional_valence;
+    if (explicitValence !== undefined && explicitValence !== null) {
+      hasExplicitValence = true;
+      // Normalize explicit valence to -1 to +1
+      const normalizedValence = (explicitValence - 5) / 5; // Assuming 0-10 scale
+      totalValence += normalizedValence * weight;
+      totalWeight += weight;
+      return;
+    }
+    
+    // Fall back to category-based heuristic
+    const category = (event.category || '').toLowerCase();
+    const categoryValence = CATEGORY_VALENCE[category] ?? 0;
+    
+    // Also check title/description for emotional keywords
+    const title = (event.title || '').toLowerCase();
+    const description = (event.description || '').toLowerCase();
+    const text = `${title} ${description}`;
+    
+    let textValence = 0;
+    let textSignals = 0;
+    
+    // Positive signals
+    if (/\b(joy|happy|excit|wonderful|amazing|love|success|achiev|proud|celebrat|blessed|grateful)\b/.test(text)) {
+      textValence += 0.4;
+      textSignals++;
+    }
+    if (/\b(birth|married|wedding|promotion|graduat|award|won)\b/.test(text)) {
+      textValence += 0.5;
+      textSignals++;
+    }
+    
+    // Negative signals
+    if (/\b(loss|lost|grief|death|died|passed|tragic|trauma|crisis|difficult|hard|struggle)\b/.test(text)) {
+      textValence -= 0.5;
+      textSignals++;
+    }
+    if (/\b(divorce|separat|illness|sick|hospital|accident|fired|failed|fear|anxiety|depress)\b/.test(text)) {
+      textValence -= 0.4;
+      textSignals++;
+    }
+    
+    // Combine category and text signals
+    let eventValence = categoryValence;
+    if (textSignals > 0) {
+      eventValence = (categoryValence + textValence) / 2;
+    }
+    
+    // Clamp to -1 to +1
+    eventValence = Math.max(-1, Math.min(1, eventValence));
+    
+    totalValence += eventValence * weight;
+    totalWeight += weight;
+  });
   
-  // Boost from category diversity
-  const categories = new Set(yearEvents.map(e => e.category).filter(Boolean));
-  const diversityBoost = Math.min(categories.size / 3, 0.3); // Max 0.3 boost for 3+ categories
+  // Calculate final score
+  const rawScore = totalWeight > 0 ? totalValence / totalWeight : 0;
   
-  // Combine with weights
-  const rawIntensity = (countIntensity * 0.6) + (impactBoost * 0.25) + (diversityBoost * 0.15);
+  // Dampen extreme values for visual elegance
+  const score = rawScore * 0.8;
   
-  // Ensure minimum visibility for years with events
-  return Math.max(0.15, Math.min(1, rawIntensity));
+  // Amplitude based on event count and clarity of signal
+  const eventCountAmplitude = Math.min(yearEvents.length / 3, 1); // Max at 3 events
+  const signalClarity = hasExplicitValence ? 1 : 0.7; // More confident with explicit data
+  const amplitude = 0.15 + (eventCountAmplitude * signalClarity * 0.6);
+  
+  return { score, amplitude };
 }
 
 /**
@@ -106,29 +205,32 @@ function generateSmoothPath(points: { x: number; y: number }[]): string {
     const current = points[i];
     const next = points[i + 1];
     
-    // Calculate control points for smooth curve
-    const midX = (current.x + next.x) / 2;
+    // Control points for smooth curve
+    const tension = 0.3;
+    const dx = next.x - current.x;
     
-    // Use quadratic bezier for smoother, more organic feel
-    path += ` Q ${midX} ${current.y}, ${midX} ${(current.y + next.y) / 2}`;
-    path += ` Q ${midX} ${next.y}, ${next.x} ${next.y}`;
+    const cp1x = current.x + dx * tension;
+    const cp1y = current.y;
+    const cp2x = next.x - dx * tension;
+    const cp2y = next.y;
+    
+    path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${next.x} ${next.y}`;
   }
   
   return path;
 }
 
 /**
- * Generate path with closed area for gradient fill
+ * Generate closed area path for gradient fill
  */
-function generateAreaPath(points: { x: number; y: number }[]): string {
+function generateAreaPath(points: { x: number; y: number }[], fillToY: number): string {
   if (points.length < 2) return '';
   
   const linePath = generateSmoothPath(points);
   const lastPoint = points[points.length - 1];
   const firstPoint = points[0];
   
-  // Close the path to baseline for area fill
-  return `${linePath} L ${lastPoint.x} ${BASELINE_Y} L ${firstPoint.x} ${BASELINE_Y} Z`;
+  return `${linePath} L ${lastPoint.x} ${fillToY} L ${firstPoint.x} ${fillToY} Z`;
 }
 
 export default function LifelineMiniMap({
@@ -140,46 +242,49 @@ export default function LifelineMiniMap({
   onGapPress,
 }: Props) {
   const { theme, isDark } = useTheme();
-  const [hoveredYear, setHoveredYear] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   
   const totalYears = currentYear - birthYear + 1;
   const yearWidth = GRAPH_WIDTH / Math.max(totalYears, 1);
   
-  // Process year data with intensity calculations
-  const { yearDataMap, maxEventsInYear, pathPoints, significantNodes, gapRegions } = useMemo(() => {
+  // Process year data with lifeline scores
+  const { yearDataMap, pathPoints, significantNodes, gapRegions, abovePoints, belowPoints } = useMemo(() => {
     const dataMap = new Map<number, YearData>();
-    let maxEvents = 1;
     
-    // First pass: count events per year
+    // Group events by year
     const eventsByYear = new Map<number, LifelineEvent[]>();
     events.forEach(event => {
       if (event.year) {
         const existing = eventsByYear.get(event.year) || [];
         existing.push(event);
         eventsByYear.set(event.year, existing);
-        maxEvents = Math.max(maxEvents, existing.length);
       }
     });
     
-    // Second pass: build year data with positions
-    const points: { x: number; y: number; year: number; intensity: number }[] = [];
+    // Build year data with lifeline scores
+    const points: { x: number; y: number; year: number; score: number }[] = [];
     const nodes: YearData[] = [];
-    const gapRegs: { startX: number; endX: number; gap: GapPromptData }[] = [];
+    const above: { x: number; y: number }[] = [];
+    const below: { x: number; y: number }[] = [];
     
     for (let year = birthYear; year <= currentYear; year++) {
       const yearEvents = eventsByYear.get(year) || [];
-      const intensity = calculateIntensity(yearEvents, maxEvents);
-      const x = (year - birthYear) * yearWidth;
-      const y = BASELINE_Y - (intensity * ARC_HEIGHT);
+      const { score, amplitude } = calculateLifelineScore(yearEvents);
       
-      // Check if this year is in a gap
+      const x = (year - birthYear) * yearWidth;
+      // Y position: score moves us above (positive) or below (negative) center
+      // amplitude determines how far from center
+      const yOffset = score * amplitude * (ARC_HEIGHT / 2);
+      const y = CENTER_Y - yOffset;
+      
       const gapData = gaps.find(g => year >= g.start_year && year <= g.end_year);
       
       const yearData: YearData = {
         year,
         eventCount: yearEvents.length,
         events: yearEvents,
-        intensity,
+        score,
+        amplitude,
         isGap: !!gapData && yearEvents.length === 0,
         gapData,
         x,
@@ -187,15 +292,22 @@ export default function LifelineMiniMap({
       };
       
       dataMap.set(year, yearData);
-      points.push({ x, y, year, intensity });
+      points.push({ x, y, year, score });
       
-      // Track significant nodes (years with events)
+      // Track points for above/below gradient fills
+      if (y < CENTER_Y) {
+        above.push({ x, y });
+      } else {
+        below.push({ x, y });
+      }
+      
       if (yearEvents.length > 0) {
         nodes.push(yearData);
       }
     }
     
     // Build gap regions
+    const gapRegs: { startX: number; endX: number; gap: GapPromptData }[] = [];
     gaps.forEach(gap => {
       const startX = (gap.start_year - birthYear) * yearWidth;
       const endX = (gap.end_year - birthYear + 1) * yearWidth;
@@ -204,16 +316,16 @@ export default function LifelineMiniMap({
     
     return {
       yearDataMap: dataMap,
-      maxEventsInYear: maxEvents,
       pathPoints: points,
       significantNodes: nodes,
       gapRegions: gapRegs,
+      abovePoints: above,
+      belowPoints: below,
     };
   }, [events, gaps, birthYear, currentYear, yearWidth]);
   
   // Generate SVG paths
   const arcPath = useMemo(() => generateSmoothPath(pathPoints), [pathPoints]);
-  const areaPath = useMemo(() => generateAreaPath(pathPoints), [pathPoints]);
   
   // Calculate decade markers
   const decadeMarkers = useMemo(() => {
@@ -226,47 +338,59 @@ export default function LifelineMiniMap({
     return markers;
   }, [birthYear, currentYear]);
   
-  // Calculate life chapters that apply to this user's age range
-  const applicableChapters = useMemo(() => {
-    const userAge = currentYear - birthYear;
-    return LIFE_CHAPTERS.filter(ch => ch.startAge <= userAge).map(ch => ({
-      ...ch,
-      startYear: birthYear + ch.startAge,
-      endYear: Math.min(birthYear + ch.endAge, currentYear),
-    }));
-  }, [birthYear, currentYear]);
-  
-  const handleYearPress = (year: number) => {
+  // Handle node/year tap with larger hit area
+  const handleTap = useCallback((year: number) => {
+    setSelectedYear(year);
     const yearData = yearDataMap.get(year);
+    
     if (yearData?.isGap && yearData.gapData && onGapPress) {
       onGapPress(yearData.gapData);
     } else {
       onYearPress(year);
     }
-  };
+    
+    // Clear selection after animation
+    setTimeout(() => setSelectedYear(null), 300);
+  }, [yearDataMap, onYearPress, onGapPress]);
   
-  const handleNodePress = (yearData: YearData) => {
-    if (yearData.gapData && onGapPress) {
-      onGapPress(yearData.gapData);
-    } else {
-      onYearPress(yearData.year);
+  // Find nearest node to a touch position
+  const findNearestNode = useCallback((touchX: number): number => {
+    const touchYear = birthYear + Math.round(touchX / yearWidth);
+    
+    // Find nearest year with events
+    let nearestYear = touchYear;
+    let minDistance = Infinity;
+    
+    significantNodes.forEach(node => {
+      const distance = Math.abs(node.year - touchYear);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestYear = node.year;
+      }
+    });
+    
+    // If no nodes nearby, use the touched year
+    if (minDistance > 3) {
+      return Math.max(birthYear, Math.min(currentYear, touchYear));
     }
+    
+    return nearestYear;
+  }, [birthYear, currentYear, yearWidth, significantNodes]);
+  
+  // Get visual node size (smaller for elegance)
+  const getVisualNodeSize = (eventCount: number, amplitude: number): number => {
+    const base = 5;
+    const countBonus = Math.min(eventCount - 1, 2) * 2;
+    const amplitudeBonus = amplitude * 3;
+    return base + countBonus + amplitudeBonus;
   };
   
-  // Get node size based on event count and intensity
-  const getNodeSize = (eventCount: number, intensity: number): number => {
-    const base = 4;
-    const countBonus = Math.min(eventCount - 1, 3) * 2; // +2px per event, max +6
-    const intensityBonus = intensity * 4; // Up to +4px for high intensity
-    return base + countBonus + intensityBonus;
-  };
-  
-  // Accent color with opacity variations
+  // Colors
   const accentColor = theme.accent || '#6366F1';
-  const accentLight = `${accentColor}40`;
-  const accentVeryLight = `${accentColor}15`;
-  const lineColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)';
-  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  const supportedColor = isDark ? '#4ADE80' : '#22C55E'; // Soft green for above center
+  const challengedColor = isDark ? '#FB923C' : '#F97316'; // Soft orange for below center
+  const centerLineColor = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
   
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -276,167 +400,211 @@ export default function LifelineMiniMap({
           YOUR STORY AT A GLANCE
         </Text>
         <Text style={[styles.headerSubtext, { color: theme.textTertiary }]}>
-          From your earliest memories to now.
-          {events.length >= 3 && ' Tap anywhere to jump to that moment.'}
+          The rhythm of your life — supported periods, challenging stretches, and turning points.
         </Text>
       </View>
       
       {/* Life Arc Graph */}
       <View style={styles.graphContainer}>
-        <Svg width={GRAPH_WIDTH} height={GRAPH_HEIGHT} style={styles.svg}>
-          <Defs>
-            {/* Gradient for area fill */}
-            <LinearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={accentColor} stopOpacity="0.3" />
-              <Stop offset="1" stopColor={accentColor} stopOpacity="0.02" />
-            </LinearGradient>
+        {/* Y-axis labels */}
+        <View style={styles.yAxisLabels}>
+          <Text style={[styles.yAxisLabel, { color: supportedColor }]}>Supported</Text>
+          <Text style={[styles.yAxisLabel, styles.yAxisLabelBottom, { color: challengedColor }]}>Challenged</Text>
+        </View>
+        
+        <View style={styles.svgContainer}>
+          <Svg width={GRAPH_WIDTH} height={GRAPH_HEIGHT}>
+            <Defs>
+              {/* Gradient for area above center (supported) */}
+              <LinearGradient id="supportedGradient" x1="0" y1="1" x2="0" y2="0">
+                <Stop offset="0" stopColor={supportedColor} stopOpacity="0" />
+                <Stop offset="1" stopColor={supportedColor} stopOpacity="0.15" />
+              </LinearGradient>
+              
+              {/* Gradient for area below center (challenged) */}
+              <LinearGradient id="challengedGradient" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0" stopColor={challengedColor} stopOpacity="0" />
+                <Stop offset="1" stopColor={challengedColor} stopOpacity="0.12" />
+              </LinearGradient>
+              
+              {/* Line gradient */}
+              <LinearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                <Stop offset="0" stopColor={accentColor} stopOpacity="0.6" />
+                <Stop offset="0.5" stopColor={accentColor} stopOpacity="0.9" />
+                <Stop offset="1" stopColor={accentColor} stopOpacity="0.7" />
+              </LinearGradient>
+            </Defs>
             
-            {/* Gradient for the line itself */}
-            <LinearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-              <Stop offset="0" stopColor={accentColor} stopOpacity="0.5" />
-              <Stop offset="0.5" stopColor={accentColor} stopOpacity="0.9" />
-              <Stop offset="1" stopColor={accentColor} stopOpacity="0.7" />
-            </LinearGradient>
-          </Defs>
-          
-          {/* Baseline */}
-          <Line
-            x1={0}
-            y1={BASELINE_Y}
-            x2={GRAPH_WIDTH}
-            y2={BASELINE_Y}
-            stroke={gridColor}
-            strokeWidth={1}
-          />
-          
-          {/* Gap regions - subtle faded areas */}
-          {gapRegions.map((region, idx) => (
-            <G key={`gap-${idx}`}>
-              <Rect
-                x={region.startX}
-                y={VERTICAL_PADDING}
-                width={region.endX - region.startX}
-                height={ARC_HEIGHT}
-                fill={isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'}
-                rx={4}
-              />
-              {/* Dashed line through gap */}
-              <Line
-                x1={region.startX}
-                y1={BASELINE_Y - 5}
-                x2={region.endX}
-                y2={BASELINE_Y - 5}
-                stroke={theme.textTertiary}
-                strokeWidth={1}
-                strokeDasharray="4,4"
-                opacity={0.3}
-              />
-            </G>
-          ))}
-          
-          {/* Area fill under the curve */}
-          <Path
-            d={areaPath}
-            fill="url(#areaGradient)"
-          />
-          
-          {/* Main life arc line */}
-          <Path
-            d={arcPath}
-            stroke="url(#lineGradient)"
-            strokeWidth={2.5}
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          
-          {/* Decade markers */}
-          {decadeMarkers.map(year => {
-            const x = (year - birthYear) * yearWidth;
-            return (
-              <G key={`decade-${year}`}>
-                <Line
-                  x1={x}
-                  y1={BASELINE_Y}
-                  x2={x}
-                  y2={BASELINE_Y + 6}
-                  stroke={theme.textTertiary}
-                  strokeWidth={1}
-                  opacity={0.5}
+            {/* Subtle zone backgrounds */}
+            <Rect
+              x={0}
+              y={VERTICAL_PADDING}
+              width={GRAPH_WIDTH}
+              height={ARC_HEIGHT / 2}
+              fill="url(#supportedGradient)"
+            />
+            <Rect
+              x={0}
+              y={CENTER_Y}
+              width={GRAPH_WIDTH}
+              height={ARC_HEIGHT / 2}
+              fill="url(#challengedGradient)"
+            />
+            
+            {/* Center line (the midpoint) */}
+            <Line
+              x1={0}
+              y1={CENTER_Y}
+              x2={GRAPH_WIDTH}
+              y2={CENTER_Y}
+              stroke={centerLineColor}
+              strokeWidth={1.5}
+              strokeDasharray="6,4"
+            />
+            
+            {/* Gap regions */}
+            {gapRegions.map((region, idx) => (
+              <G key={`gap-${idx}`}>
+                <Rect
+                  x={region.startX}
+                  y={VERTICAL_PADDING}
+                  width={region.endX - region.startX}
+                  height={ARC_HEIGHT}
+                  fill={isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'}
+                  rx={4}
                 />
               </G>
-            );
-          })}
-          
-          {/* Event nodes */}
-          {significantNodes.map((node) => {
-            const nodeSize = getNodeSize(node.eventCount, node.intensity);
-            const isHovered = hoveredYear === node.year;
+            ))}
             
-            return (
-              <G key={`node-${node.year}`}>
-                {/* Glow effect for higher intensity */}
-                {node.intensity > 0.4 && (
+            {/* Main life arc line */}
+            <Path
+              d={arcPath}
+              stroke="url(#lineGradient)"
+              strokeWidth={2.5}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            
+            {/* Decade markers */}
+            {decadeMarkers.map(year => {
+              const x = (year - birthYear) * yearWidth;
+              return (
+                <Line
+                  key={`decade-${year}`}
+                  x1={x}
+                  y1={CENTER_Y - 4}
+                  x2={x}
+                  y2={CENTER_Y + 4}
+                  stroke={theme.textTertiary}
+                  strokeWidth={1}
+                  opacity={0.4}
+                />
+              );
+            })}
+            
+            {/* Event nodes */}
+            {significantNodes.map((node) => {
+              const visualSize = getVisualNodeSize(node.eventCount, node.amplitude);
+              const isSelected = selectedYear === node.year;
+              const nodeColor = node.score > 0.1 ? supportedColor : node.score < -0.1 ? challengedColor : accentColor;
+              
+              return (
+                <G key={`node-${node.year}`}>
+                  {/* Glow for higher amplitude */}
+                  {node.amplitude > 0.3 && (
+                    <Circle
+                      cx={node.x}
+                      cy={node.y}
+                      r={visualSize + 6}
+                      fill={nodeColor}
+                      opacity={0.15}
+                    />
+                  )}
+                  
+                  {/* Selection ring */}
+                  {isSelected && (
+                    <Circle
+                      cx={node.x}
+                      cy={node.y}
+                      r={visualSize + 4}
+                      fill="none"
+                      stroke={theme.text}
+                      strokeWidth={2}
+                      opacity={0.5}
+                    />
+                  )}
+                  
+                  {/* Main node */}
                   <Circle
                     cx={node.x}
                     cy={node.y}
-                    r={nodeSize + 4}
-                    fill={accentColor}
-                    opacity={0.15}
+                    r={isSelected ? visualSize + 1 : visualSize}
+                    fill={nodeColor}
+                    opacity={0.7 + (node.amplitude * 0.3)}
                   />
-                )}
-                
-                {/* Main node */}
-                <Circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={isHovered ? nodeSize + 2 : nodeSize}
-                  fill={accentColor}
-                  opacity={0.6 + (node.intensity * 0.4)}
-                />
-                
-                {/* Inner highlight */}
-                <Circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={nodeSize * 0.5}
-                  fill="#FFFFFF"
-                  opacity={0.3}
-                />
-                
-                {/* Event count indicator for years with 3+ events */}
-                {node.eventCount >= 3 && (
+                  
+                  {/* Inner highlight */}
                   <Circle
                     cx={node.x}
-                    cy={node.y - nodeSize - 6}
-                    r={8}
-                    fill={theme.surface}
-                    stroke={accentColor}
-                    strokeWidth={1}
+                    cy={node.y}
+                    r={visualSize * 0.4}
+                    fill="#FFFFFF"
+                    opacity={0.35}
                   />
-                )}
-              </G>
-            );
-          })}
-        </Svg>
-        
-        {/* Touch layer for interaction */}
-        <View style={styles.touchLayer}>
-          {pathPoints.map((point) => (
+                </G>
+              );
+            })}
+          </Svg>
+          
+          {/* Large invisible touch targets */}
+          <View style={styles.touchLayer}>
+            {/* Node-specific touch targets (larger than visible nodes) */}
+            {significantNodes.map((node) => {
+              const touchSize = Math.max(MIN_TOUCH_SIZE, yearWidth * 2);
+              return (
+                <Pressable
+                  key={`touch-node-${node.year}`}
+                  style={[
+                    styles.nodeTouchTarget,
+                    {
+                      left: node.x - (touchSize / 2),
+                      top: node.y - (touchSize / 2),
+                      width: touchSize,
+                      height: touchSize,
+                    }
+                  ]}
+                  onPress={() => handleTap(node.year)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                />
+              );
+            })}
+            
+            {/* Gap touch targets */}
+            {gapRegions.map((region, idx) => (
+              <Pressable
+                key={`touch-gap-${idx}`}
+                style={[
+                  styles.gapTouchTarget,
+                  {
+                    left: region.startX,
+                    width: region.endX - region.startX,
+                  }
+                ]}
+                onPress={() => region.gap && onGapPress?.(region.gap)}
+              />
+            ))}
+            
+            {/* Fallback touch layer for years without events */}
             <Pressable
-              key={`touch-${point.year}`}
-              style={[
-                styles.touchTarget,
-                {
-                  left: point.x - (yearWidth / 2),
-                  width: yearWidth,
-                }
-              ]}
-              onPress={() => handleYearPress(point.year)}
-              onPressIn={() => setHoveredYear(point.year)}
-              onPressOut={() => setHoveredYear(null)}
+              style={styles.fallbackTouchLayer}
+              onPress={(e) => {
+                const touchX = e.nativeEvent.locationX;
+                const nearestYear = findNearestNode(touchX);
+                handleTap(nearestYear);
+              }}
             />
-          ))}
+          </View>
         </View>
         
         {/* Year labels */}
@@ -444,12 +612,12 @@ export default function LifelineMiniMap({
           <Text style={[styles.yearLabel, { color: theme.textTertiary }]}>
             {birthYear}
           </Text>
-          {decadeMarkers.slice(0, 3).map(year => (
+          {decadeMarkers.slice(0, 4).map(year => (
             <Text 
               key={year} 
               style={[
                 styles.decadeLabel, 
-                { color: theme.textTertiary, left: (year - birthYear) * yearWidth - 15 }
+                { color: theme.textTertiary, left: (year - birthYear) * yearWidth - 12 }
               ]}
             >
               {year}
@@ -461,68 +629,37 @@ export default function LifelineMiniMap({
         </View>
       </View>
       
-      {/* Life chapters bar (subtle) */}
-      {applicableChapters.length > 2 && (
-        <View style={styles.chaptersContainer}>
-          {applicableChapters.map((chapter, idx) => {
-            const startX = (chapter.startYear - birthYear) / totalYears * 100;
-            const width = (chapter.endYear - chapter.startYear + 1) / totalYears * 100;
-            
-            return (
-              <View
-                key={chapter.label}
-                style={[
-                  styles.chapterSegment,
-                  {
-                    left: `${startX}%`,
-                    width: `${width}%`,
-                    backgroundColor: idx % 2 === 0 ? gridColor : 'transparent',
-                  }
-                ]}
-              >
-                {width > 15 && (
-                  <Text style={[styles.chapterLabel, { color: theme.textTertiary }]}>
-                    {chapter.label}
-                  </Text>
-                )}
-              </View>
-            );
-          })}
-        </View>
-      )}
-      
       {/* Legend */}
-      {events.length > 0 && (
-        <View style={styles.legend}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: accentColor }]} />
-            <Text style={[styles.legendText, { color: theme.textTertiary }]}>Recorded moments</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendArc, { borderColor: accentColor }]} />
-            <Text style={[styles.legendText, { color: theme.textTertiary }]}>Intensity of change</Text>
-          </View>
-          {gapRegions.length > 0 && (
-            <View style={styles.legendItem}>
-              <View style={[styles.legendGap, { backgroundColor: theme.textTertiary }]} />
-              <Text style={[styles.legendText, { color: theme.textTertiary }]}>Quiet periods</Text>
-            </View>
-          )}
+      <View style={styles.legend}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: accentColor }]} />
+          <Text style={[styles.legendText, { color: theme.textTertiary }]}>Moments</Text>
         </View>
-      )}
+        <View style={styles.legendItem}>
+          <View style={[styles.legendLine, { borderColor: centerLineColor }]} />
+          <Text style={[styles.legendText, { color: theme.textTertiary }]}>Balance point</Text>
+        </View>
+        {gapRegions.length > 0 && (
+          <View style={styles.legendItem}>
+            <View style={[styles.legendGap, { backgroundColor: theme.textTertiary }]} />
+            <Text style={[styles.legendText, { color: theme.textTertiary }]}>Quiet periods</Text>
+          </View>
+        )}
+      </View>
       
-      {/* Hovered year tooltip */}
-      {hoveredYear && (
-        <View style={[styles.tooltip, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.tooltipYear, { color: theme.text }]}>{hoveredYear}</Text>
-          {yearDataMap.get(hoveredYear)?.eventCount ? (
-            <Text style={[styles.tooltipCount, { color: theme.textSecondary }]}>
-              {yearDataMap.get(hoveredYear)?.eventCount} moment{yearDataMap.get(hoveredYear)?.eventCount !== 1 ? 's' : ''}
+      {/* Selected year indicator */}
+      {selectedYear && (
+        <View style={[styles.selectionIndicator, { backgroundColor: `${accentColor}15`, borderColor: accentColor }]}>
+          <Text style={[styles.selectionYear, { color: theme.text }]}>{selectedYear}</Text>
+          {yearDataMap.get(selectedYear)?.eventCount ? (
+            <Text style={[styles.selectionDetail, { color: theme.textSecondary }]}>
+              {yearDataMap.get(selectedYear)?.eventCount} moment{yearDataMap.get(selectedYear)?.eventCount !== 1 ? 's' : ''}
+              {' · Jumping...'}
             </Text>
-          ) : yearDataMap.get(hoveredYear)?.isGap ? (
-            <Text style={[styles.tooltipCount, { color: theme.textTertiary }]}>Quiet period</Text>
+          ) : yearDataMap.get(selectedYear)?.isGap ? (
+            <Text style={[styles.selectionDetail, { color: theme.textTertiary }]}>Quiet period · Jumping...</Text>
           ) : (
-            <Text style={[styles.tooltipCount, { color: theme.textTertiary }]}>No moments recorded</Text>
+            <Text style={[styles.selectionDetail, { color: theme.textTertiary }]}>Jumping...</Text>
           )}
         </View>
       )}
@@ -552,34 +689,63 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   graphContainer: {
-    position: 'relative',
-    height: GRAPH_HEIGHT + 20, // Extra space for labels
+    flexDirection: 'row',
     marginBottom: 8,
   },
-  svg: {
-    marginLeft: 0,
+  yAxisLabels: {
+    width: 28,
+    justifyContent: 'space-between',
+    paddingVertical: VERTICAL_PADDING,
+    marginRight: 4,
+  },
+  yAxisLabel: {
+    fontSize: 8,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    transform: [{ rotate: '-90deg' }],
+    width: 50,
+    marginLeft: -11,
+  },
+  yAxisLabelBottom: {
+    marginTop: 'auto',
+  },
+  svgContainer: {
+    flex: 1,
+    position: 'relative',
   },
   touchLayer: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: 20,
-    flexDirection: 'row',
+    bottom: 0,
   },
-  touchTarget: {
+  nodeTouchTarget: {
+    position: 'absolute',
+    zIndex: 10,
+  },
+  gapTouchTarget: {
+    position: 'absolute',
+    top: VERTICAL_PADDING,
+    height: ARC_HEIGHT,
+    zIndex: 5,
+  },
+  fallbackTouchLayer: {
     position: 'absolute',
     top: 0,
+    left: 0,
+    right: 0,
     bottom: 0,
+    zIndex: 1,
   },
   yearLabels: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
+    bottom: -18,
+    left: 32,
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 0,
   },
   yearLabel: {
     fontSize: 10,
@@ -590,38 +756,16 @@ const styles = StyleSheet.create({
   },
   decadeLabel: {
     position: 'absolute',
-    bottom: 0,
     fontSize: 9,
-    width: 30,
+    width: 26,
     textAlign: 'center',
-  },
-  chaptersContainer: {
-    height: 16,
-    position: 'relative',
-    marginTop: 4,
-    marginBottom: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  chapterSegment: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  chapterLabel: {
-    fontSize: 8,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 12,
-    marginTop: 8,
+    gap: 14,
+    marginTop: 20,
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: 'rgba(128,128,128,0.2)',
@@ -636,12 +780,11 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
-  legendArc: {
+  legendLine: {
     width: 16,
-    height: 8,
-    borderWidth: 2,
-    borderRadius: 4,
-    borderBottomWidth: 0,
+    height: 0,
+    borderWidth: 1,
+    borderStyle: 'dashed',
   },
   legendGap: {
     width: 16,
@@ -652,23 +795,21 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 11,
   },
-  tooltip: {
+  selectionIndicator: {
     position: 'absolute',
-    top: 45,
-    left: '50%',
-    transform: [{ translateX: -40 }],
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    top: 50,
+    alignSelf: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
-    minWidth: 80,
   },
-  tooltipYear: {
-    fontSize: 14,
+  selectionYear: {
+    fontSize: 16,
     fontWeight: '600',
   },
-  tooltipCount: {
+  selectionDetail: {
     fontSize: 11,
     marginTop: 2,
   },
