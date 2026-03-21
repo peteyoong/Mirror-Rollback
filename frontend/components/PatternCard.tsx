@@ -135,7 +135,7 @@ const SOURCE_LABELS: Record<string, string> = {
   journal: 'Your journal entries',
   mirror_chat: 'Mirror conversations',
   lifeline: 'Your lifeline events',
-  timing: 'Current timing',
+  timing: 'Current timing (amplifying)',
 };
 
 interface PatternCardProps {
@@ -285,11 +285,11 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </View>
       )}
 
-      {/* V2: Timing Context - DOWNGRADED to secondary */}
+      {/* V2: Timing Context - SECONDARY amplification context */}
       {timingAmplifier && timingAmplifier.active_timing_themes && timingAmplifier.active_timing_themes.length > 0 && (
         <View style={[styles.timingContextSecondary, { backgroundColor: theme.surfaceAlt || theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.timingContextTitleSecondary, { color: theme.textTertiary }]}>
-            CURRENT TIMING {isAmplifierMode ? '(amplifying)' : '(driving)'}
+            {isAmplifierMode ? 'WHY THIS MAY FEEL STRONGER RIGHT NOW' : 'CURRENT TIMING'}
           </Text>
           {timingAmplifier.timing_summary && (
             <Text style={[styles.timingContextText, { color: theme.textSecondary }]}>

@@ -433,35 +433,35 @@ def generate_timing_context(themes: TransitThemes) -> List[str]:
     
     Rules:
     - NOT about user identity
-    - Describes environment/conditions
+    - Describes environment/conditions as AMPLIFICATION
     - 2-4 lines max
-    - INCLUDES positive/opening context when relevant
+    - Reads as weather, not interpretation
     """
     context_lines = []
     
-    # Map themes to context statements (including POSITIVE themes)
+    # Map themes to SHORT amplification statements
     theme_to_context = {
-        # Challenge/Neutral themes
-        "emotional_sensitivity": "Emotional sensitivity may be elevated",
-        "clarity_vs_confusion": "Decision clarity may fluctuate",
-        "pressure": "External or internal pressure may feel intensified",
-        "urgency": "You may feel a push to act or decide quickly",
-        "transition_threshold": "This may feel like a transition or crossroads phase",
-        "reset_cycle": "This may be a natural ending-and-beginning moment",
-        "relational_sensitivity": "Relationships and connection may feel more prominent",
-        "identity_shift": "Questions about direction may be surfacing",
-        "expansion": "Opportunity and growth energy may be present",
-        "contraction": "This may be a period for consolidation and reflection",
+        # Challenge/Neutral themes - shortened, amplification tone
+        "emotional_sensitivity": "Emotional sensitivity may be heightened",
+        "clarity_vs_confusion": "Mental clarity may be fluctuating",
+        "pressure": "Pressure energy may be intensifying things",
+        "urgency": "Urgency may be amplifying decisions",
+        "transition_threshold": "Threshold energy may be present",
+        "reset_cycle": "Reset energy may be creating openings",
+        "relational_sensitivity": "Relational themes may feel amplified",
+        "identity_shift": "Questions of direction may feel louder",
+        "expansion": "Expansion energy may be amplifying possibilities",
+        "contraction": "Consolidation energy may be present",
         
-        # POSITIVE / OPENING themes
-        "relational_harmony": "Relational ease and connection may feel more accessible",
-        "emotional_openness": "Emotional openness and expression may flow more freely",
-        "receptivity": "This may be a time of openness to receiving",
-        "renewal_cycle": "Fresh energy and new beginnings may be emerging",
-        "reconnection_window": "Conditions may support reconnection and repair",
-        "softening_phase": "Defenses may be softening, allowing more in",
-        "integration_phase": "What was separate may be coming together",
-        "grounded_stability": "A sense of solid ground may be present",
+        # POSITIVE / OPENING themes - shortened, amplification tone
+        "relational_harmony": "Relational ease may be more accessible",
+        "emotional_openness": "Emotional openness may flow more freely",
+        "receptivity": "Receptive energy may be amplifying openness",
+        "renewal_cycle": "Fresh energy may be amplifying new beginnings",
+        "reconnection_window": "Reconnection energy may be supporting repair",
+        "softening_phase": "Softening energy may be allowing more in",
+        "integration_phase": "Integration energy may be bringing things together",
+        "grounded_stability": "Grounding energy may be present",
     }
     
     # Add context for top 3 active themes
@@ -469,13 +469,13 @@ def generate_timing_context(themes: TransitThemes) -> List[str]:
         if theme in theme_to_context:
             context_lines.append(theme_to_context[theme])
     
-    # Add lunar context if relevant
+    # Add lunar context if relevant - SHORT amplification tone
     lunar_context = {
-        "full_moon": "Full moon energy may amplify what's already present",
-        "new_moon": "New moon suggests a reset or fresh starting point",
-        "waning_crescent": "This may be a time for release before new beginnings",
-        "waxing_crescent": "New intentions may be gaining momentum",
-        "waxing_gibbous": "What you've been building may be coming into focus",
+        "full_moon": "Full moon may be amplifying what's present",
+        "new_moon": "New moon may be supporting fresh starts",
+        "waning_crescent": "Waning energy may be supporting release",
+        "waxing_crescent": "Waxing energy may be building momentum",
+        "waxing_gibbous": "Building energy may be bringing focus",
     }
     
     if themes.lunar_phase in lunar_context and len(context_lines) < 4:
