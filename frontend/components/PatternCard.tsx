@@ -158,6 +158,9 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
     
     setIsLoading(true);
     setError(null);
+    // ALWAYS reset details to collapsed when loading new pattern
+    setDetailsExpanded(false);
+    setSignalsExpanded(false);
     
     try {
       const response = await api.get(`/patterns/${userId}`);
@@ -175,6 +178,12 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   useEffect(() => {
     loadPattern();
   }, [loadPattern]);
+
+  // Reset expanded states when userId changes
+  useEffect(() => {
+    setDetailsExpanded(false);
+    setSignalsExpanded(false);
+  }, [userId]);
 
   // Handle "Reflect on this" button
   const handleReflect = useCallback(() => {
