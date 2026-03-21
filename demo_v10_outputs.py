@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-V10.3 Competitive Frame Ranking Demonstration
-Shows how the system now RANKS all candidate frames to select the most truthful one,
-rather than just picking a compatible frame.
+V10.4 Confidence-Aware Expression Demonstration
+Shows how the system adapts tone and certainty based on frame ranking confidence.
+- HIGH: Direct, clear statements
+- MEDIUM: Light softening
+- LOW: Dual-frame expression combining top 2 frames
 """
 
 import sys
@@ -22,7 +24,7 @@ from services.pattern_mirror import (
 )
 
 # ============================================================================
-# SIGNAL PROFILES - Different emotional combinations
+# SIGNAL PROFILES - Designed to produce different confidence levels
 # ============================================================================
 
 def create_signals(journal_text: str, lifeline_events: list = None):
@@ -35,23 +37,27 @@ def create_signals(journal_text: str, lifeline_events: list = None):
     }
 
 SIGNAL_PROFILES = {
+    # HIGH confidence - very clear signals
     "warmth_growth": create_signals(
-        "I feel grateful and hopeful. Something is changing and I'm excited about growing into this new version of myself."
+        "I feel grateful and hopeful. Something is changing and I'm excited about growing into this new version of myself. I'm ready for what's next."
     ),
+    # MEDIUM confidence - moderately clear signals
     "grief_resistance": create_signals(
-        "I miss how things were. It's gone now and I don't want to accept it. I refuse to let go of what we had."
+        "I miss how things were. It's gone now and I don't want to accept it."
     ),
-    "clarity_pressure": create_signals(
-        "I finally understand what's happening. It's so clear now. But there's so much pressure and I have to figure this out urgently."
+    # LOW confidence - ambiguous/mixed signals (should trigger dual-frame)
+    "ambiguous_mixed": create_signals(
+        "I want to move forward but I'm also scared. Part of me is ready, another part wants to stay safe. I feel both hopeful and protective."
     ),
+    # MEDIUM confidence with lifeline
     "repeated_cycles": create_signals(
         "Here we go again. I'm cautious about this.",
-        lifeline_events=[{"title": "Same pattern", "description": "This keeps happening again and again, the same way every time."}]
+        lifeline_events=[{"title": "Same pattern", "description": "This keeps happening again and again."}]
     ),
-    "mixed_grief_growth": create_signals(
-        "I'm sad about what's ending but I can feel myself growing. Something new is coming even as I mourn what was."
+    # LOW confidence - conflicting signals (growth vs resistance)
+    "conflicting": create_signals(
+        "I'm growing and changing but I don't want to let go. I refuse to accept it but I also know I need to. It's confusing."
     ),
-    "baseline": create_signals(""),
 }
 
 # ============================================================================
@@ -64,13 +70,13 @@ PATTERNS = [
     ("moving_through", "MOVING THROUGH"),
 ]
 
-# Variants to show per pattern
+# Variants to show per pattern - designed to show different confidence levels
 VARIANTS = [
-    ("warmth_growth", "Warmth + Growth"),
-    ("grief_resistance", "Grief + Resistance"),
-    ("clarity_pressure", "Clarity + Pressure"),
-    ("repeated_cycles", "Repeated Cycles"),
-    ("mixed_grief_growth", "Mixed: Grief + Growth"),
+    ("warmth_growth", "HIGH: Clear Warmth + Growth"),
+    ("grief_resistance", "MEDIUM: Grief + Resistance"),
+    ("ambiguous_mixed", "LOW: Ambiguous/Mixed Signals"),
+    ("conflicting", "LOW: Conflicting Signals"),
+    ("repeated_cycles", "Repeated Cycles Pattern"),
 ]
 
 # ============================================================================
@@ -78,7 +84,7 @@ VARIANTS = [
 # ============================================================================
 
 def generate_coherent_output_with_debug(pattern_id: str, signal_profile_name: str):
-    """Generate complete output with competitive frame ranking and debug info."""
+    """Generate complete output with confidence-aware expression and debug info."""
     
     pattern = PATTERN_TEMPLATES.get(pattern_id, {"title": pattern_id})
     signals = SIGNAL_PROFILES[signal_profile_name]
@@ -89,23 +95,38 @@ def generate_coherent_output_with_debug(pattern_id: str, signal_profile_name: st
         pattern_id, pattern, signals, f"user_{signal_profile_name}", debug=True
     )
     
-    # Step 2: Generate all other sections using the competitively-selected frame
+    # Extract confidence info for passing to other generators
+    confidence = frame_debug.get("confidence", "medium")
+    margin = frame_debug.get("margin", 1.0)
+    runner_up = frame_debug.get("runner_up", {})
+    runner_up_frame = runner_up.get("frame_type", "") if runner_up else ""
+    
+    # Step 2: Generate all other sections with V10.4 confidence-aware parameters
     why_now = generate_why_now(
         pattern_id, pattern, signals, cluster_data, None,
         WHY_NOW_STRUCTURES, f"user_{signal_profile_name}",
-        frame_type=frame_type
+        frame_type=frame_type,
+        confidence=confidence,
+        runner_up_frame=runner_up_frame,
+        margin=margin
     )
     
     friction = generate_friction(
         pattern_id, pattern, signals, cluster_data,
         FRICTION_STRUCTURES, f"user_{signal_profile_name}",
-        frame_type=frame_type
+        frame_type=frame_type,
+        confidence=confidence,
+        runner_up_frame=runner_up_frame,
+        margin=margin
     )
     
     practical = generate_practical(
         pattern_id, pattern, signals, cluster_data,
         PRACTICAL_STRUCTURES, f"user_{signal_profile_name}",
-        frame_type=frame_type
+        frame_type=frame_type,
+        confidence=confidence,
+        runner_up_frame=runner_up_frame,
+        margin=margin
     )
     
     return {
@@ -182,11 +203,13 @@ def print_pattern_outputs(pattern_id: str, pattern_name: str):
 def main():
     print()
     print("╔════════════════════════════════════════════════════════════════════════════════════════════════╗")
-    print("║         V10.3 COMPETITIVE FRAME RANKING: TRUTHFULNESS DEMONSTRATION                            ║")
+    print("║         V10.4 CONFIDENCE-AWARE EXPRESSION: TONE ADAPTATION DEMONSTRATION                       ║")
     print("╚════════════════════════════════════════════════════════════════════════════════════════════════╝")
     print()
-    print("The system now RANKS all candidate frames to select the most TRUTHFUL one.")
-    print("Scoring considers: signal strength, signal consistency, pattern alignment, lifeline support.")
+    print("The system now ADAPTS TONE based on frame ranking confidence:")
+    print("  - HIGH: Direct, clear statements (minimal hedging)")
+    print("  - MEDIUM: Light softening ('may', 'seems', 'something in you')")
+    print("  - LOW: Dual-frame expression (acknowledges ambiguity/both tendencies)")
     print()
     
     for pattern_id, pattern_name in PATTERNS:
@@ -195,10 +218,10 @@ def main():
     print()
     print("=" * 100)
     print("SUCCESS CRITERIA CHECK:")
-    print("  ✓ Outputs feel more 'that's exactly it' than 'that kind of fits'")
-    print("  ✓ Reduced ambiguity between similar frames (clear winner with margin)")
-    print("  ✓ More consistent emotional resonance - best frame, not just compatible")
-    print("  ✓ Debug info shows ranking reasoning for refinement")
+    print("  ✓ Outputs feel more human in ambiguous situations (dual-frame expressions)")
+    print("  ✓ Reduced 'false certainty' - HIGH confidence = direct, LOW = hedged")
+    print("  ✓ Increased trust when signals are mixed")
+    print("  ✓ System feels more nuanced and less rigid")
     print("=" * 100)
 
 

@@ -1552,7 +1552,363 @@ def select_best_frame(
     return (winner["frame_type"], debug_info)
 
 
-def determine_frame_type(
+# ============================================================================
+# V10.4: CONFIDENCE-AWARE EXPRESSION SYSTEM
+# ============================================================================
+# Adapts language tone and certainty based on frame ranking confidence.
+# HIGH = direct, MEDIUM = softened, LOW = dual-frame/ambiguous
+#
+# Core insight: Confidence shapes EXPRESSION, not just selection.
+# ============================================================================
+
+# --- HEDGING LANGUAGE BY CONFIDENCE ---
+
+CONFIDENCE_HEDGES = {
+    "high": {
+        # Direct, clear statements - minimal hedging
+        "prefixes": ["", "", ""],  # Often no prefix needed
+        "connectors": ["is", "are", "feels"],
+        "modals": [""],  # No modal needed
+    },
+    "medium": {
+        # Light softening
+        "prefixes": ["Something in you ", "Part of you ", "There's a sense that "],
+        "connectors": ["may be", "seems to be", "might be"],
+        "modals": ["may ", "might ", "could "],
+    },
+    "low": {
+        # Acknowledge duality - these are used differently
+        "prefixes": ["Part of you ", "Something in you ", "There's a pull "],
+        "connectors": ["may be", "seems to be", "could be"],
+        "modals": ["may ", "might ", ""],
+    },
+}
+
+# --- DUAL-FRAME TEMPLATES ---
+# Used when confidence is LOW to express both winning and runner-up frames
+
+DUAL_FRAME_TEMPLATES = {
+    # Core insight templates - combine two tendencies
+    "core_insight": [
+        "Part of you {frame1_verb}, while another part {frame2_verb}.",
+        "There's a pull toward {frame1_noun}, even as {frame2_clause}.",
+        "You may be {frame1_gerund}—and at the same time, {frame2_gerund}.",
+        "{frame1_sentence} And yet, {frame2_sentence_lower}",
+    ],
+    # Why now templates
+    "why_now": [
+        "This may be surfacing because {frame1_reason}—though {frame2_reason} is also present.",
+        "Something is stirring: {frame1_short}, but also {frame2_short}.",
+        "The timing seems to be highlighting both {frame1_noun} and {frame2_noun}.",
+    ],
+    # Friction templates
+    "friction": [
+        "You may be pulled between {frame1_friction} and {frame2_friction}.",
+        "Part of the difficulty is {frame1_friction}, while also {frame2_friction}.",
+        "The friction may be coming from {frame1_source}—but also from {frame2_source}.",
+    ],
+    # Practical templates  
+    "practical": [
+        "Notice both: {frame1_action}, and {frame2_action}.",
+        "Try holding both: {frame1_practice} while also {frame2_practice}.",
+        "Give space to {frame1_need}—without abandoning {frame2_need}.",
+    ],
+}
+
+# --- FRAME EXPRESSION COMPONENTS ---
+# Language components for each frame used in dual-frame expressions
+
+FRAME_EXPRESSION_COMPONENTS = {
+    "edge_of_action": {
+        "verb": "is ready to move forward",
+        "noun": "action",
+        "gerund": "stepping toward something new",
+        "sentence": "Something in you is ready to take a step.",
+        "reason": "readiness is building",
+        "short": "momentum toward action",
+        "friction": "wanting to act before you're certain",
+        "source": "the pull to move",
+        "action": "where you feel ready",
+        "practice": "letting yourself step forward",
+        "need": "the readiness",
+    },
+    "testing_the_waters": {
+        "verb": "wants to test whether this is safe",
+        "noun": "caution",
+        "gerund": "checking whether it's okay to proceed",
+        "sentence": "Part of you is testing whether this is safe.",
+        "reason": "you're checking the ground before stepping",
+        "short": "careful exploration",
+        "friction": "needing more certainty first",
+        "source": "wanting to be sure",
+        "action": "where you're hesitating",
+        "practice": "noticing what you're testing for",
+        "need": "the hesitation",
+    },
+    "walls_questioning": {
+        "verb": "is reconsidering its defenses",
+        "noun": "self-protection",
+        "gerund": "questioning whether the walls are still needed",
+        "sentence": "The walls you built may be asking if they're still necessary.",
+        "reason": "old protections are being reconsidered",
+        "short": "walls becoming uncertain",
+        "friction": "keeping your guard up out of habit",
+        "source": "the need to stay protected",
+        "action": "where you're guarding",
+        "practice": "noticing what you're protecting",
+        "need": "the protection",
+    },
+    "grief_underneath": {
+        "verb": "is holding something lost",
+        "noun": "grief",
+        "gerund": "carrying what's been lost",
+        "sentence": "There's grief underneath this—something missing.",
+        "reason": "loss is still present",
+        "short": "unprocessed grief",
+        "friction": "not wanting to feel the loss fully",
+        "source": "what's been lost",
+        "action": "what you're mourning",
+        "practice": "honoring what was",
+        "need": "the grief",
+    },
+    "something_surfacing": {
+        "verb": "is noticing something emerging",
+        "noun": "emergence",
+        "gerund": "sensing something not yet named",
+        "sentence": "Something is surfacing that doesn't have a name yet.",
+        "reason": "something unnamed is becoming visible",
+        "short": "something emerging",
+        "friction": "not being able to name it clearly",
+        "source": "the unknown",
+        "action": "what's trying to surface",
+        "practice": "staying with the unnamed",
+        "need": "the emergence",
+    },
+    "clarity_arriving": {
+        "verb": "is starting to see clearly",
+        "noun": "clarity",
+        "gerund": "recognizing what's been true",
+        "sentence": "Something is becoming clear that wasn't before.",
+        "reason": "understanding is arriving",
+        "short": "growing clarity",
+        "friction": "knowing but not acting yet",
+        "source": "what you now see",
+        "action": "what's becoming clear",
+        "practice": "trusting what you now know",
+        "need": "the clarity",
+    },
+    "here_again": {
+        "verb": "recognizes this territory",
+        "noun": "the familiar pattern",
+        "gerund": "recognizing you've been here before",
+        "sentence": "You've been here before—this feels familiar.",
+        "reason": "a known pattern is returning",
+        "short": "pattern recognition",
+        "friction": "doing what you've always done",
+        "source": "repeating what hasn't worked",
+        "action": "what's familiar",
+        "practice": "noticing what you usually do",
+        "need": "the awareness of repetition",
+    },
+    "something_different": {
+        "verb": "senses this time could be different",
+        "noun": "possibility of change",
+        "gerund": "feeling that something could shift",
+        "sentence": "This time might be different.",
+        "reason": "something new is possible",
+        "short": "hope for change",
+        "friction": "not trusting that change is real",
+        "source": "doubt about whether it will last",
+        "action": "what could change",
+        "practice": "trying something new",
+        "need": "the possibility",
+    },
+    "pressing_forward": {
+        "verb": "feels the urgency to move",
+        "noun": "pressure",
+        "gerund": "feeling pushed to act now",
+        "sentence": "There's pressure to move—time feels limited.",
+        "reason": "urgency is building",
+        "short": "pressing momentum",
+        "friction": "rushing before you're ready",
+        "source": "the urgency",
+        "action": "what feels urgent",
+        "practice": "distinguishing real urgency from anxiety",
+        "need": "the pressure",
+    },
+    "weight_carried": {
+        "verb": "is carrying too much",
+        "noun": "the weight",
+        "gerund": "bearing more than your share",
+        "sentence": "You may be carrying more than you realize.",
+        "reason": "the load has become heavy",
+        "short": "accumulated weight",
+        "friction": "not putting it down",
+        "source": "what you're holding",
+        "action": "what you're carrying",
+        "practice": "noticing the weight",
+        "need": "the burden",
+    },
+    "ready_to_release": {
+        "verb": "is ready to let something go",
+        "noun": "release",
+        "gerund": "feeling ready to let go",
+        "sentence": "Something you've been holding may be ready to move.",
+        "reason": "release is becoming possible",
+        "short": "readiness to release",
+        "friction": "holding on past when it's needed",
+        "source": "fear of letting go",
+        "action": "what's ready to move",
+        "practice": "allowing release",
+        "need": "the letting go",
+    },
+    "holding_back": {
+        "verb": "is containing something that wants to move",
+        "noun": "containment",
+        "gerund": "holding back what wants to come out",
+        "sentence": "Something is being held back that wants to move.",
+        "reason": "containment is becoming harder",
+        "short": "held-back energy",
+        "friction": "not letting it out",
+        "source": "what's being suppressed",
+        "action": "what you're containing",
+        "practice": "noticing what's held back",
+        "need": "the containment",
+    },
+}
+
+
+def apply_confidence_expression(
+    text: str,
+    confidence: str,
+    section: str = "general"
+) -> str:
+    """
+    Adjust text expression based on confidence level.
+    
+    HIGH: Keep as-is (direct)
+    MEDIUM: Add light softening if not already present
+    LOW: Text should already be dual-frame, just ensure softening
+    """
+    if confidence == "high":
+        # Direct expression - no changes needed
+        return text
+    
+    if confidence in ["medium", "low", "framing_tiebreak"]:
+        # Check if text already has softening language
+        soft_indicators = [
+            "may ", "might ", "could ", "seems ", "perhaps",
+            "part of you", "something in you", "there's a sense",
+            "you may be", "it's possible"
+        ]
+        
+        text_lower = text.lower()
+        has_softening = any(indicator in text_lower for indicator in soft_indicators)
+        
+        if has_softening:
+            return text
+        
+        # Add light softening for medium confidence
+        # Only modify if the sentence starts with a definitive statement
+        if text[0].isupper() and not text.startswith(("Part", "Something", "There", "You may", "It seems")):
+            # Convert to softer phrasing
+            if text.startswith("You "):
+                text = "You may " + text[4].lower() + text[5:]
+            elif text.startswith("The "):
+                text = "It seems like the " + text[4].lower() + text[5:]
+            elif text.startswith("A "):
+                text = "There may be a " + text[2].lower() + text[3:]
+        
+        return text
+    
+    return text
+
+
+def generate_dual_frame_insight(
+    pattern_id: str,
+    winner_frame: str,
+    runner_up_frame: str,
+    section: str,
+    user_id: str = ""
+) -> str:
+    """
+    Generate a dual-frame expression for LOW confidence situations.
+    
+    Combines the winning and runner-up frames to express ambiguity.
+    """
+    winner_components = FRAME_EXPRESSION_COMPONENTS.get(winner_frame, {})
+    runner_up_components = FRAME_EXPRESSION_COMPONENTS.get(runner_up_frame, {})
+    
+    if not winner_components or not runner_up_components:
+        return ""  # Can't generate dual-frame without components
+    
+    templates = DUAL_FRAME_TEMPLATES.get(section, DUAL_FRAME_TEMPLATES.get("core_insight", []))
+    
+    if not templates:
+        return ""
+    
+    # Select template deterministically
+    idx = get_deterministic_variation_index(pattern_id, user_id, f"dual_{section}") % len(templates)
+    template = templates[idx]
+    
+    # Fill in template with frame components
+    try:
+        if section == "core_insight":
+            result = template.format(
+                frame1_verb=winner_components.get("verb", ""),
+                frame2_verb=runner_up_components.get("verb", ""),
+                frame1_noun=winner_components.get("noun", ""),
+                frame2_clause=runner_up_components.get("sentence", "").lower(),
+                frame1_gerund=winner_components.get("gerund", ""),
+                frame2_gerund=runner_up_components.get("gerund", ""),
+                frame1_sentence=winner_components.get("sentence", ""),
+                frame2_sentence_lower=runner_up_components.get("sentence", "").lower() if runner_up_components.get("sentence") else "",
+            )
+        elif section == "why_now":
+            result = template.format(
+                frame1_reason=winner_components.get("reason", ""),
+                frame2_reason=runner_up_components.get("reason", ""),
+                frame1_short=winner_components.get("short", ""),
+                frame2_short=runner_up_components.get("short", ""),
+                frame1_noun=winner_components.get("noun", ""),
+                frame2_noun=runner_up_components.get("noun", ""),
+            )
+        elif section == "friction":
+            result = template.format(
+                frame1_friction=winner_components.get("friction", ""),
+                frame2_friction=runner_up_components.get("friction", ""),
+                frame1_source=winner_components.get("source", ""),
+                frame2_source=runner_up_components.get("source", ""),
+            )
+        elif section == "practical":
+            result = template.format(
+                frame1_action=winner_components.get("action", ""),
+                frame2_action=runner_up_components.get("action", ""),
+                frame1_practice=winner_components.get("practice", ""),
+                frame2_practice=runner_up_components.get("practice", ""),
+                frame1_need=winner_components.get("need", ""),
+                frame2_need=runner_up_components.get("need", ""),
+            )
+        else:
+            result = ""
+        
+        return result
+    except KeyError:
+        return ""
+
+
+def should_use_dual_frame(confidence: str, margin: float) -> bool:
+    """
+    Determine if we should use dual-frame expression.
+    
+    Use dual-frame when:
+    - Confidence is LOW
+    - Margin is very small (< 0.5)
+    - Both frames are genuinely relevant
+    """
+    if confidence == "low" and margin < 1.0:
+        return True
+    return False
     pattern_id: str,
     active_signals: List[str],
     selected_framing: str
@@ -2896,14 +3252,17 @@ def generate_why_now(
     transit_themes: Any,
     base_maps: Dict[str, Dict[str, str]],
     user_id: str = "",
-    frame_type: str = ""
+    frame_type: str = "",
+    confidence: str = "medium",
+    runner_up_frame: str = "",
+    margin: float = 1.0
 ) -> str:
     """
-    V10.2: Generate context-aware "why now" explanation with CROSS-SECTION COHERENCE.
+    V10.4: Generate context-aware "why now" explanation with CONFIDENCE-AWARE EXPRESSION.
     
     1. Extract signal tones and lifeline patterns
     2. Select structure COMPATIBLE with the frame_type (if provided)
-    3. Apply contextual modifier as secondary layer
+    3. Apply confidence-aware expression (dual-frame for LOW)
     """
     # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
@@ -2911,6 +3270,18 @@ def generate_why_now(
     
     # Get dominant signal combination
     combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
+    
+    # V10.4: Check for dual-frame expression on LOW confidence
+    if should_use_dual_frame(confidence, margin) and runner_up_frame:
+        dual_text = generate_dual_frame_insight(
+            pattern_id,
+            frame_type,
+            runner_up_frame,
+            "why_now",
+            user_id
+        )
+        if dual_text:
+            return dual_text
     
     # V10.2: Select structure with frame compatibility
     if pattern_id in WHY_NOW_STRUCTURES and active_signals:
@@ -2954,6 +3325,9 @@ def generate_why_now(
         if not base_text:
             base_text = "Current timing may be bringing this pattern into focus."
     
+    # V10.4: Apply confidence-aware expression
+    base_text = apply_confidence_expression(base_text, confidence, "why_now")
+    
     # V10.1: Apply contextual modifier as SECONDARY layer (only if strong signal)
     enhanced_text = apply_contextual_modifier(base_text, tones, pattern_id, user_id, threshold=0.5)
     
@@ -2967,14 +3341,17 @@ def generate_friction(
     cluster_data: Dict[str, Any],
     base_map: Dict[str, str],
     user_id: str = "",
-    frame_type: str = ""
+    frame_type: str = "",
+    confidence: str = "medium",
+    runner_up_frame: str = "",
+    margin: float = 1.0
 ) -> str:
     """
-    V10.2: Generate context-aware friction statement with CROSS-SECTION COHERENCE.
+    V10.4: Generate context-aware friction statement with CONFIDENCE-AWARE EXPRESSION.
     
     1. Extract signal tones and lifeline patterns
     2. Select structure COMPATIBLE with the frame_type (if provided)
-    3. Apply contextual modifier as secondary layer
+    3. Apply confidence-aware expression (dual-frame for LOW)
     """
     # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
@@ -2982,6 +3359,18 @@ def generate_friction(
     
     # Get dominant signal combination
     combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
+    
+    # V10.4: Check for dual-frame expression on LOW confidence
+    if should_use_dual_frame(confidence, margin) and runner_up_frame:
+        dual_text = generate_dual_frame_insight(
+            pattern_id,
+            frame_type,
+            runner_up_frame,
+            "friction",
+            user_id
+        )
+        if dual_text:
+            return dual_text
     
     # V10.2: Select structure with frame compatibility
     if pattern_id in FRICTION_STRUCTURES and active_signals:
@@ -3018,10 +3407,11 @@ def generate_friction(
             else:
                 base_text = "You may be waiting for the right moment instead of trusting this one."
     
+    # V10.4: Apply confidence-aware expression
+    base_text = apply_confidence_expression(base_text, confidence, "friction")
+    
     # V10.1: Modifiers only applied as secondary enhancement for very strong signals
-    # The structure itself now carries the emotional nuance
     if tones.get("warmth", 0) > 0.6 or tones.get("growth", 0) > 0.6:
-        # Add a gentler framing only for very strong warmth/growth
         softeners = [
             "Even with the progress you're making, ",
             "Alongside the opening, ",
@@ -3040,14 +3430,17 @@ def generate_practical(
     cluster_data: Dict[str, Any],
     base_map: Dict[str, str],
     user_id: str = "",
-    frame_type: str = ""
+    frame_type: str = "",
+    confidence: str = "medium",
+    runner_up_frame: str = "",
+    margin: float = 1.0
 ) -> str:
     """
-    V10.2: Generate context-aware practical suggestion with CROSS-SECTION COHERENCE.
+    V10.4: Generate context-aware practical suggestion with CONFIDENCE-AWARE EXPRESSION.
     
     1. Extract signal tones and lifeline patterns
     2. Select structure COMPATIBLE with the frame_type (if provided)
-    3. Add lifeline-aware endings for repeated_cycles pattern
+    3. Apply confidence-aware expression (dual-frame for LOW)
     """
     # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
@@ -3055,6 +3448,18 @@ def generate_practical(
     
     # Get dominant signal combination
     combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
+    
+    # V10.4: Check for dual-frame expression on LOW confidence
+    if should_use_dual_frame(confidence, margin) and runner_up_frame:
+        dual_text = generate_dual_frame_insight(
+            pattern_id,
+            frame_type,
+            runner_up_frame,
+            "practical",
+            user_id
+        )
+        if dual_text:
+            return dual_text
     
     # V10.2: Select structure with frame compatibility
     if pattern_id in PRACTICAL_STRUCTURES and active_signals:
@@ -3091,9 +3496,11 @@ def generate_practical(
             else:
                 base_text = "Notice what already feels true and give it a moment of your attention."
     
+    # V10.4: Apply confidence-aware expression
+    base_text = apply_confidence_expression(base_text, confidence, "practical")
+    
     # V10.1: For repeated_cycles, add pattern-breaking encouragement if not already in structure
     if "repeated_cycles" in lifeline_patterns:
-        # Check if the selected structure already addresses pattern breaking
         if "pattern_breaking" not in base_text.lower() and "this time" not in base_text.lower():
             enders = [
                 " This time might be different.",
@@ -3120,11 +3527,15 @@ def generate_core_insight(
     debug: bool = False
 ) -> Tuple[str, str, Dict[str, Any]]:
     """
-    V10.3: Generate context-aware core insight with COMPETITIVE FRAME RANKING.
+    V10.4: Generate context-aware core insight with CONFIDENCE-AWARE EXPRESSION.
     
     Returns (insight_text, frame_type, debug_info) so that:
     - frame_type can be passed to subsequent section generators
     - debug_info shows frame selection reasoning (for dev)
+    - Expression adapts to confidence level:
+      - HIGH: direct statements
+      - MEDIUM: light softening
+      - LOW: dual-frame expression combining top 2 frames
     """
     # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
@@ -3143,6 +3554,25 @@ def generate_core_insight(
         debug
     )
     
+    confidence = frame_debug.get("confidence", "medium")
+    margin = frame_debug.get("margin", 1.0)
+    runner_up = frame_debug.get("runner_up", {})
+    runner_up_frame = runner_up.get("frame_type", "") if runner_up else ""
+    
+    # V10.4: Check if we should use dual-frame expression for LOW confidence
+    if should_use_dual_frame(confidence, margin) and runner_up_frame:
+        dual_text = generate_dual_frame_insight(
+            pattern_id,
+            best_frame,
+            runner_up_frame,
+            "core_insight",
+            user_id
+        )
+        if dual_text:
+            # Successfully generated dual-frame expression
+            frame_debug["expression_mode"] = "dual_frame"
+            return (dual_text, best_frame, frame_debug)
+    
     # V10.3: Select structure compatible with the competitively-selected frame
     if pattern_id in CORE_INSIGHT_STRUCTURES and active_signals:
         text, framing = select_structure_with_frame(
@@ -3153,6 +3583,9 @@ def generate_core_insight(
             user_id,
             "core_insight"
         )
+        # V10.4: Apply confidence-aware expression
+        text = apply_confidence_expression(text, confidence, "core_insight")
+        frame_debug["expression_mode"] = f"single_frame_{confidence}"
         return (text, best_frame, frame_debug)
     elif pattern_id in CORE_INSIGHT_STRUCTURES:
         # No active signals - use default
@@ -3160,9 +3593,11 @@ def generate_core_insight(
             "default",
             pattern.get("summary", "Something is present that deserves your attention.")
         )
+        frame_debug["expression_mode"] = "default"
         return (default_text, "something_surfacing", frame_debug)
     else:
         # Pattern not in structures - use pattern summary
+        frame_debug["expression_mode"] = "fallback"
         return (
             pattern.get("summary", "Something is present that deserves your attention."),
             "something_surfacing",
