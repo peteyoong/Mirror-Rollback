@@ -231,12 +231,24 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
 
   const { pattern } = patternData;
   
-  // V2: Extract signals-first data
+  // V4: Extract two-timescale data (primary)
+  const v4 = (patternData as any).pattern_card_v4;
+  const coreMemory = v4?.core_pattern_memory;
+  const dailyAngle = v4?.daily_angle;
+  const evidencePanel = v4?.evidence_panel;
+  const v4TimingAmplifier = v4?.timing_amplifier;
+  
+  // V2 fallbacks
   const personalPattern = patternData.personal_pattern;
-  const timingAmplifier = patternData.timing_amplifier;
+  const timingAmplifier = v4TimingAmplifier || patternData.timing_amplifier;
   const narrative = patternData.narrative;
   const evidence = patternData.evidence;
   const isAmplifierMode = timingAmplifier?.timing_role === 'amplifier';
+  
+  // Log V4 status for debugging
+  console.log('[PatternCard] V4 present:', !!v4);
+  console.log('[PatternCard] Daily angle:', dailyAngle?.angle_title);
+  console.log('[PatternCard] Evidence snippets:', evidencePanel?.total_snippet_count);
 
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -248,53 +260,61 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </Text>
       </View>
 
-      {/* V2: Title from personal_pattern (primary) */}
+      {/* V4: Title from daily_angle (primary) or fallback */}
       <Text style={[styles.patternTitle, { color: theme.text }]}>
-        {personalPattern?.selected_pattern_title || pattern.title}
+        {dailyAngle?.angle_title || personalPattern?.selected_pattern_title || pattern.title}
       </Text>
 
-      {/* V2: SIGNALS-FIRST NARRATIVE */}
-      {narrative?.main_explanation ? (
+      {/* V4: Daily angle narrative */}
+      {dailyAngle?.angle_summary ? (
         <View style={styles.section}>
-          {/* Main explanation from personal signals */}
+          {/* Main explanation from daily angle */}
+          <Text style={[styles.unifiedNarrative, { color: theme.text }]}>
+            {dailyAngle.angle_summary}
+          </Text>
+          
+          {/* Core connection subline */}
+          {coreMemory?.title && dailyAngle.derived_from_core_pattern && (
+            <Text style={[styles.coreConnection, { color: theme.textSecondary }]}>
+              This seems connected to a broader pattern of {coreMemory.title.toLowerCase()}.
+            </Text>
+          )}
+          
+          {/* Timing note - SECONDARY */}
+          {isAmplifierMode && (narrative?.timing_note || timingAmplifier?.timing_summary) && (
+            <Text style={[styles.timingNote, { color: theme.textSecondary }]}>
+              {narrative?.timing_note || `This may feel stronger right now because ${timingAmplifier?.timing_summary?.toLowerCase() || 'of current timing'}.`}
+            </Text>
+          )}
+        </View>
+      ) : narrative?.main_explanation ? (
+        /* V2/V3 fallback */
+        <View style={styles.section}>
           <Text style={[styles.unifiedNarrative, { color: theme.text }]}>
             {narrative.main_explanation}
           </Text>
-          
-          {/* Timing note - SECONDARY, only if in amplifier mode */}
           {isAmplifierMode && narrative.timing_note && (
             <Text style={[styles.timingNote, { color: theme.textSecondary }]}>
               {narrative.timing_note}
             </Text>
           )}
-          
-          {/* Evidence summary */}
-          {narrative.evidence_summary && (
-            <Text style={[styles.evidenceSummary, { color: theme.textTertiary }]}>
-              {narrative.evidence_summary}
-            </Text>
-          )}
         </View>
       ) : patternData.unified_narrative ? (
-        /* Legacy fallback to unified_narrative */
+        /* Legacy fallback */
         <View style={styles.section}>
           <Text style={[styles.unifiedNarrative, { color: theme.text }]}>
             {patternData.unified_narrative}
           </Text>
         </View>
       ) : (
-        /* Fallback to separate sections if no narrative */
         <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-            WHAT YOU MAY BE
-          </Text>
           <Text style={[styles.whatYouMayBe, { color: theme.text }]}>
             {pattern.what_you_may_be}
           </Text>
         </View>
       )}
 
-      {/* V2: Timing Context - SECONDARY amplification context */}
+      {/* V4: Timing Context - SECONDARY */}
       {timingAmplifier && timingAmplifier.active_timing_themes && timingAmplifier.active_timing_themes.length > 0 && (
         <View style={[styles.timingContextSecondary, { backgroundColor: theme.surfaceAlt || theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.timingContextTitleSecondary, { color: theme.textTertiary }]}>
@@ -378,19 +398,22 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </Text>
       </TouchableOpacity>
 
-      {/* V2: Signal strength indicator with source info */}
-      {(personalPattern?.signal_strength || patternData.signal_strength) && (
+      {/* V4: Signal strength indicator with clustered evidence counts */}
+      {(evidencePanel || personalPattern?.signal_strength || patternData.signal_strength) && (
         <TouchableOpacity
           onPress={() => setSignalsExpanded(!signalsExpanded)}
           activeOpacity={0.7}
           style={styles.signalTrigger}
         >
           <Text style={[styles.signalIndicator, { color: theme.textTertiary }]}>
-            Based on {personalPattern?.signal_strength || patternData.signal_strength} signals
-            {personalPattern?.primary_signal_sources && personalPattern.primary_signal_sources.length > 0 && (
-              <Text style={styles.signalSourceHint}>
-                {' '}from {personalPattern.primary_signal_sources.slice(0, 2).map(s => SOURCE_LABELS[s] || s).join(', ')}
-              </Text>
+            {evidencePanel ? (
+              // V4: Show clustered evidence summary
+              `${evidencePanel.total_snippet_count} signals across ${
+                Object.keys(evidencePanel.snippet_count_by_source || {}).join(' and ')
+              }`
+            ) : (
+              // Fallback
+              `Based on ${personalPattern?.signal_strength || patternData.signal_strength} signals`
             )}
             <Text style={styles.signalExpandHint}>
               {signalsExpanded ? '  ▲' : '  ▼'}
@@ -399,18 +422,61 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </TouchableOpacity>
       )}
 
-      {/* V2: TRUE EVIDENCE PANEL - shows actual matched signals */}
+      {/* V4: CLUSTERED EVIDENCE PANEL */}
       {signalsExpanded && (
         <View style={[styles.signalsSection, { borderTopColor: theme.border }]}>
           <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>
             WHAT THIS IS BASED ON
           </Text>
           
-          {/* V2: Render true evidence from evidence object */}
-          {evidence?.matched_evidence && Object.entries(evidence.matched_evidence).map(([source, matches]) => {
-            if (!matches || matches.length === 0) return null;
+          {/* V4: Evidence summary line */}
+          {evidencePanel?.summary_line && (
+            <Text style={[styles.evidenceSummaryLine, { color: theme.textSecondary }]}>
+              {evidencePanel.summary_line}
+            </Text>
+          )}
+          
+          {/* V4: Render grouped evidence from source_sections */}
+          {evidencePanel?.source_sections?.map((section: any) => {
+            if (!section.sample_snippets || section.sample_snippets.length === 0) return null;
             
-            // Skip timing in evidence panel - it's shown separately
+            return (
+              <View key={section.source_name} style={styles.signalSourceGroup}>
+                <View style={styles.sourceHeader}>
+                  <Text style={[styles.signalSourceLabel, { color: theme.textSecondary }]}>
+                    {SOURCE_LABELS[section.source_name] || section.source_name} ({section.snippet_count})
+                  </Text>
+                  <Text style={[styles.contributionBadge, { color: theme.textTertiary }]}>
+                    {section.contribution_strength}
+                  </Text>
+                </View>
+                {section.sample_snippets.slice(0, 3).map((snippet: any, index: number) => (
+                  <View key={index} style={styles.evidenceItem}>
+                    <Text style={[styles.signalBullet, { color: theme.textTertiary }]}>•</Text>
+                    <View style={styles.evidenceContent}>
+                      <Text style={[styles.signalText, { color: theme.textSecondary }]}>
+                        {snippet.text}
+                      </Text>
+                      {snippet.date && (
+                        <Text style={[styles.snippetDate, { color: theme.textTertiary }]}>
+                          {snippet.date}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                ))}
+                {section.snippet_count > 3 && (
+                  <Text style={[styles.moreSnippets, { color: theme.textTertiary }]}>
+                    +{section.snippet_count - 3} more
+                  </Text>
+                )}
+              </View>
+            );
+          })}
+          
+          {/* Fallback to V2 evidence if no V4 */}
+          {!evidencePanel?.source_sections && evidence?.matched_evidence && Object.entries(evidence.matched_evidence).map(([source, matches]) => {
+            if (!matches || matches.length === 0) return null;
             if (source === 'timing') return null;
             
             return (
@@ -419,11 +485,6 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
                   <Text style={[styles.signalSourceLabel, { color: theme.textSecondary }]}>
                     {SOURCE_LABELS[source] || source}
                   </Text>
-                  {source === evidence.primary_source && (
-                    <Text style={[styles.primaryBadge, { color: theme.accent }]}>
-                      primary
-                    </Text>
-                  )}
                 </View>
                 {(matches as EvidenceMatch[]).map((match, index) => (
                   <View key={index} style={styles.evidenceItem}>
@@ -432,44 +493,12 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
                       <Text style={[styles.signalText, { color: theme.textSecondary }]}>
                         {match.text}
                       </Text>
-                      <Text style={[styles.matchedKeyword, { color: theme.textTertiary }]}>
-                        matched: "{match.matched_keyword}" ({match.strength})
-                      </Text>
                     </View>
                   </View>
                 ))}
               </View>
             );
           })}
-          
-          {/* Fallback to legacy signals_by_source if no V2 evidence */}
-          {!evidence?.matched_evidence && patternData.signals_by_source && Object.entries(patternData.signals_by_source).map(([source, signals]) => {
-            if (!signals || signals.length === 0) return null;
-            if (source === 'timing') return null; // Skip timing
-            
-            return (
-              <View key={source} style={styles.signalSourceGroup}>
-                <Text style={[styles.signalSourceLabel, { color: theme.textSecondary }]}>
-                  {SOURCE_LABELS[source] || source}
-                </Text>
-                {signals.map((signal, index) => (
-                  <View key={index} style={styles.signalItem}>
-                    <Text style={[styles.signalBullet, { color: theme.textTertiary }]}>•</Text>
-                    <Text style={[styles.signalText, { color: theme.textSecondary }]}>
-                      {signal}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            );
-          })}
-          
-          {/* V2: Total matches summary */}
-          {evidence?.total_matches !== undefined && (
-            <Text style={[styles.totalMatches, { color: theme.textTertiary }]}>
-              {evidence.total_matches} signal{evidence.total_matches !== 1 ? 's' : ''} matched this pattern
-            </Text>
-          )}
         </View>
       )}
     </View>
@@ -755,5 +784,41 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
+  },
+  
+  // V4: Core connection subline
+  coreConnection: {
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 12,
+    fontStyle: 'italic',
+  },
+  
+  // V4: Evidence summary line
+  evidenceSummaryLine: {
+    fontSize: 12,
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  
+  // V4: Contribution badge
+  contributionBadge: {
+    fontSize: 9,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+  },
+  
+  // V4: Snippet date
+  snippetDate: {
+    fontSize: 10,
+    marginTop: 2,
+  },
+  
+  // V4: More snippets indicator
+  moreSnippets: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 4,
+    paddingLeft: 16,
   },
 });
