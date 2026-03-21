@@ -1909,6 +1909,9 @@ def should_use_dual_frame(confidence: str, margin: float) -> bool:
     if confidence == "low" and margin < 1.0:
         return True
     return False
+
+
+def determine_frame_type(
     pattern_id: str,
     active_signals: List[str],
     selected_framing: str
