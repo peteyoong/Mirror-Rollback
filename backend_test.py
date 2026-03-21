@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL from frontend/.env
-BASE_URL = "https://mirror-v1.preview.emergentagent.com/api"
+BASE_URL = "https://signals-first-home.preview.emergentagent.com/api"
 
 class PatternMirrorTester:
     def __init__(self):
