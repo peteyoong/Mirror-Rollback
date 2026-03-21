@@ -40,6 +40,12 @@ interface CorePlacements {
   venus_house?: number;
   mars?: string;
   mars_house?: number;
+  jupiter?: string;
+  jupiter_house?: number;
+  saturn?: string;
+  saturn_house?: number;
+  north_node?: string;
+  north_node_house?: number;
 }
 
 interface AstrologyDeepDiveCard {
@@ -102,28 +108,45 @@ const SIGN_QUALITIES: { [key: string]: string[] } = {
 // SYNTHESIS HELPERS
 // ============================================
 
-const getSynthesis = (sun: string, moon: string, asc: string): string => {
-  const sunQualities = SIGN_QUALITIES[sun] || [];
-  const moonQualities = SIGN_QUALITIES[moon] || [];
+// Premium one-liner descriptor for the hero section
+const getHeroDescriptor = (sun: string, moon: string, asc: string): string => {
+  const sunElement = SIGN_ELEMENTS[sun];
+  const moonElement = SIGN_ELEMENTS[moon];
   const ascQualities = SIGN_QUALITIES[asc] || [];
   
+  // Build a bespoke descriptor based on element combinations
+  const coreWord = sunElement === 'Water' ? 'Sensitive' : 
+                   sunElement === 'Fire' ? 'Expressive' : 
+                   sunElement === 'Earth' ? 'Grounded' : 'Curious';
+  
+  const emotionalWord = moonElement === 'Fire' ? 'fast in feeling' : 
+                        moonElement === 'Water' ? 'deep in feeling' : 
+                        moonElement === 'Earth' ? 'steady in feeling' : 'quick to process';
+  
+  const approachWord = ascQualities[0] || 'open';
+  
+  return `${coreWord} at the core, ${emotionalWord}, ${approachWord} in approach.`;
+};
+
+const getSynthesis = (sun: string, moon: string, asc: string): string => {
   const sunElement = SIGN_ELEMENTS[sun] || 'Unknown';
   const moonElement = SIGN_ELEMENTS[moon] || 'Unknown';
+  const ascQualities = SIGN_QUALITIES[asc] || [];
   
-  // Create a unique synthesis based on element combinations
+  // Premium, bespoke synthesis that sounds less template-driven
   if (sunElement === 'Water' && moonElement === 'Fire') {
-    return `You carry depth and sensitivity at your core, but your emotional nature moves quickly and needs action. ${asc} rising means you meet life with ${ascQualities[0] || 'openness'} energy. This combination blends inner fluidity with outer motion.`;
+    return `In your chart, depth and immediacy coexist. The sensitivity of ${sun} grounds your identity in perception and feeling, while ${moon}'s fire moves emotion quickly—toward action, toward expression, toward honesty. ${asc} rising shapes how this meets the world: ${ascQualities[0] || 'openly'}, with room to breathe.`;
   } else if (sunElement === 'Fire' && moonElement === 'Earth') {
-    return `You have a bold, initiating core that's grounded by practical emotional needs. ${asc} rising gives you a ${ascQualities[0] || 'distinctive'} way of entering new situations. Vision meets stability in your chart.`;
+    return `Your chart holds vision and groundedness in tension. A ${sun} core reaches toward what's possible, while ${moon}'s earthy emotional nature prefers what's real and reliable. Through ${asc} rising, this combination enters life ${ascQualities[0] || 'distinctively'}—bold ideas meeting practical needs.`;
   } else if (sunElement === 'Air' && moonElement === 'Water') {
-    return `Your mind is quick and curious, but your emotional world runs deep and intuitive. ${asc} rising colors how others first experience you—${ascQualities[0] || 'uniquely'}. Thought and feeling weave together here.`;
+    return `This chart weaves thought and feeling together. ${sun}'s airy orientation keeps the mind curious and moving, but ${moon} in ${moonElement.toLowerCase()} runs deep—emotion that doesn't explain itself quickly. ${asc} rising adds ${ascQualities[0] || 'distinctive'} energy to how others first encounter you.`;
   } else if (sunElement === 'Earth' && moonElement === 'Air') {
-    return `You're practical and grounded at your core, but emotionally you need variety and mental stimulation. ${asc} rising brings ${ascQualities[0] || 'presence'} to how you meet the world. Stability and movement coexist.`;
+    return `Stability and movement trade places in your chart. ${sun}'s earthy core values what lasts, while ${moon}'s air-sign emotional nature needs variety and mental stimulation. ${asc} rising brings ${ascQualities[0] || 'presence'} energy to how you meet new situations—grounded but not static.`;
   } else if (sunElement === moonElement) {
-    return `Both your core identity and emotional nature share ${sunElement.toLowerCase()} energy—there's consistency between who you are and how you feel. ${asc} rising adds ${ascQualities[0] || 'dimension'} to how this expresses outwardly.`;
+    return `There's a coherence in your chart—both core identity (${sun}) and emotional nature (${moon}) share ${sunElement.toLowerCase()} energy. What you are and how you feel operate in the same register. ${asc} rising adds texture: a ${ascQualities[0] || 'distinctive'} way of meeting the world that complements this inner consistency.`;
   }
   
-  return `Your ${sun} Sun gives you a ${sunQualities[0] || 'distinctive'} core orientation, while your ${moon} Moon shapes how you process feeling—${moonQualities[0] || 'deeply'}. ${asc} rising means you approach life ${ascQualities[0] || 'openly'}. Together, these create your unique pattern.`;
+  return `Your chart blends ${sun}'s ${sunElement.toLowerCase()} orientation with ${moon}'s ${moonElement.toLowerCase()} emotional process—two different registers working together. ${asc} rising shapes how this combination meets life: ${ascQualities[0] || 'openly'}, bringing its own quality to every entrance.`;
 };
 
 const getThemeChips = (sun: string, moon: string, asc: string): string[] => {
@@ -149,34 +172,40 @@ const getCoreTensions = (sun: string, moon: string, asc: string): string[] => {
   const moonElement = SIGN_ELEMENTS[moon];
   const sunModality = SIGN_MODALITIES[sun];
   const moonModality = SIGN_MODALITIES[moon];
+  const ascModality = SIGN_MODALITIES[asc];
   
-  // Element-based tensions
+  // Core element tensions - psychologically sharp descriptions
   if (sunElement === 'Water' && moonElement === 'Fire') {
-    tensions.push('sensitivity vs. impulsiveness');
+    tensions.push('Your core absorbs everything, but your emotions want to act before processing finishes');
   }
   if (sunElement === 'Air' && moonElement === 'Earth') {
-    tensions.push('ideas vs. practicality');
+    tensions.push('Your mind moves faster than your emotional need for certainty allows');
   }
   if (sunElement === 'Fire' && moonElement === 'Water') {
-    tensions.push('action vs. reflection');
+    tensions.push('The urge to move forward meets a deeper pull to stay with what you feel');
   }
   if (sunElement === 'Earth' && moonElement === 'Air') {
-    tensions.push('stability vs. restlessness');
+    tensions.push('You want roots, but emotionally you need options');
   }
   
   // Modality-based tensions
   if (sunModality === 'Fixed' && moonModality === 'Mutable') {
-    tensions.push('consistency vs. adaptability');
+    tensions.push('Identity wants consistency; feelings keep shifting the frame');
   }
   if (sunModality === 'Cardinal' && moonModality === 'Fixed') {
-    tensions.push('initiating vs. maintaining');
+    tensions.push('The drive to initiate meets an emotional need to stay put');
+  }
+  if (sunModality === 'Mutable' && ascModality === 'Fixed') {
+    tensions.push('Inner flexibility vs. a presentation style that commits early');
   }
   
-  // Sign-specific tensions
-  if (sun === 'Pisces') tensions.push('boundaries vs. merging');
-  if (moon === 'Aries') tensions.push('patience vs. immediacy');
-  if (asc === 'Sagittarius') tensions.push('depth vs. breadth');
-  if (asc === 'Scorpio') tensions.push('openness vs. privacy');
+  // Sign-specific psychological tensions
+  if (sun === 'Pisces') tensions.push('Knowing where you end and others begin');
+  if (moon === 'Aries') tensions.push('Needing emotional immediacy in a world that moves slower');
+  if (asc === 'Sagittarius') tensions.push('Approaching life with optimism while carrying deeper complexity');
+  if (asc === 'Scorpio') tensions.push('Meeting the world guardedly while wanting to be truly known');
+  if (sun === 'Virgo' && moon !== 'Virgo') tensions.push('The perfectionist eye turned inward—never quite good enough');
+  if (sun === 'Leo' && moonElement === 'Water') tensions.push('Needing to be seen while protecting something private');
   
   return tensions.slice(0, 4);
 };
@@ -212,6 +241,79 @@ const getCoreGifts = (sun: string, moon: string, asc: string): string[] => {
   return gifts.slice(0, 4);
 };
 
+// Helper to analyze house concentration
+const getHouseConcentration = (placements: CorePlacements): { dominant: number[], emphasis: string, insight: string } => {
+  const houseCounts: { [key: number]: string[] } = {};
+  
+  // Count planets per house
+  if (placements.sun_house) {
+    houseCounts[placements.sun_house] = houseCounts[placements.sun_house] || [];
+    houseCounts[placements.sun_house].push('Sun');
+  }
+  if (placements.moon_house) {
+    houseCounts[placements.moon_house] = houseCounts[placements.moon_house] || [];
+    houseCounts[placements.moon_house].push('Moon');
+  }
+  if (placements.mercury_house) {
+    houseCounts[placements.mercury_house] = houseCounts[placements.mercury_house] || [];
+    houseCounts[placements.mercury_house].push('Mercury');
+  }
+  if (placements.venus_house) {
+    houseCounts[placements.venus_house] = houseCounts[placements.venus_house] || [];
+    houseCounts[placements.venus_house].push('Venus');
+  }
+  if (placements.mars_house) {
+    houseCounts[placements.mars_house] = houseCounts[placements.mars_house] || [];
+    houseCounts[placements.mars_house].push('Mars');
+  }
+  if (placements.saturn_house) {
+    houseCounts[placements.saturn_house] = houseCounts[placements.saturn_house] || [];
+    houseCounts[placements.saturn_house].push('Saturn');
+  }
+  
+  // Find dominant houses (2+ planets)
+  const dominant = Object.entries(houseCounts)
+    .filter(([_, planets]) => planets.length >= 2)
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([house]) => parseInt(house));
+  
+  // Build emphasis description
+  const HOUSE_THEMES: { [key: number]: string } = {
+    1: 'self-expression and identity',
+    2: 'resources, values, and security',
+    3: 'communication, learning, and daily environment',
+    4: 'home, roots, and emotional foundation',
+    5: 'creativity, pleasure, and self-expression',
+    6: 'work, health, and daily service',
+    7: 'relationships and partnerships',
+    8: 'transformation and shared resources',
+    9: 'beliefs, travel, and higher meaning',
+    10: 'career, reputation, and public role',
+    11: 'community, friends, and future vision',
+    12: 'spirituality, solitude, and the unconscious'
+  };
+  
+  if (dominant.length >= 2) {
+    return {
+      dominant,
+      emphasis: `Your chart concentrates in Houses ${dominant[0]} and ${dominant[1]}—${HOUSE_THEMES[dominant[0]]} and ${HOUSE_THEMES[dominant[1]]}.`,
+      insight: `Life keeps pulling you toward these domains. Other areas may feel less developed by comparison.`
+    };
+  } else if (dominant.length === 1) {
+    return {
+      dominant,
+      emphasis: `House ${dominant[0]} carries significant weight in your chart—${HOUSE_THEMES[dominant[0]]}.`,
+      insight: `This is where life concentrates. You may have developed real depth here, while other areas remain more peripheral.`
+    };
+  }
+  
+  return {
+    dominant: [],
+    emphasis: `Your chart is relatively distributed across houses—no single area dominates.`,
+    insight: `This can mean versatility, but also a tendency to spread attention rather than specialize.`
+  };
+};
+
 // ============================================
 // DEEP DIVE CARD GENERATOR
 // ============================================
@@ -226,42 +328,48 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
   const venusQualities = SIGN_QUALITIES[venus || moon] || ['receptive'];
   const marsQualities = SIGN_QUALITIES[mars || sun] || ['direct'];
   
+  // Get house concentration analysis
+  const houseAnalysis = getHouseConcentration(placements);
+  
+  // Get psychological tensions
+  const chartTensions = getCoreTensions(sun, moon, ascendant);
+  
   const cards: AstrologyDeepDiveCard[] = [
     {
       id: 'sun',
       title: 'Sun — Core Identity',
-      subtitle: 'The essential tone of who you are.',
-      preview: 'The core tone of your identity and orientation.',
-      whatThisIs: `Your Sun in ${sun}${sun_house ? ` (House ${sun_house})` : ''} represents your essential self—the part of you that seeks expression and recognition. This isn't your whole identity, but it's the thread that runs through everything.`,
+      subtitle: `${sun}${sun_house ? ` in the ${getHouseOrdinal(sun_house)} house` : ''}`,
+      preview: `In your chart, a ${sunQualities[0]} core that seeks ${sunQualities[2] || sunQualities[1]} expression.`,
+      whatThisIs: `In your chart, the Sun in ${sun}${sun_house ? ` placed in House ${sun_house}` : ''} establishes the essential frequency of who you are. This isn't your whole identity—but it's the thread that runs through everything, the part that seeks expression and recognition. ${sun_house ? `With this energy concentrated in ${getHouseTheme(sun_house)}, your sense of self develops through that domain.` : ''}`,
       whatYouMightNotice: [
-        `a ${sunQualities[0]} quality to how you express yourself`,
-        `natural draw toward ${sunQualities[2] || sunQualities[1]} activities`,
-        `feeling most yourself when you can be ${sunQualities[1]}`,
-        sun_house ? `this energy concentrated in ${getHouseTheme(sun_house)} areas of life` : `this as a general life orientation`
+        `A ${sunQualities[0]} quality running through how you express yourself`,
+        `Natural attraction toward ${sunQualities[2] || sunQualities[1]} activities and people`,
+        `Feeling most yourself when you can be genuinely ${sunQualities[1]}`,
+        sun_house ? `Identity themes playing out specifically through ${getHouseTheme(sun_house)}` : `This as your general life orientation`
       ],
-      tensionLabel: 'The shadow',
+      tensionLabel: 'The shadow side',
       tension: getSunTension(sun),
-      giftLabel: 'Your genius',
+      giftLabel: 'What you're here to express',
       gift: getSunGift(sun),
-      reflection: `When do you feel most like yourself? What conditions let your ${sunQualities[0]} nature shine?`
+      reflection: `When do you feel most like yourself? What conditions allow this ${sunQualities[0]} nature to come through naturally?`
     },
     {
       id: 'moon',
       title: 'Moon — Emotional Nature',
-      subtitle: 'How feelings move through you.',
-      preview: 'How feelings move through you before thought catches up.',
-      whatThisIs: `Your Moon in ${moon}${moon_house ? ` (House ${moon_house})` : ''} shapes your emotional instincts—what makes you feel safe, how you nurture yourself and others, and what you need when you're depleted.`,
+      subtitle: `${moon}${moon_house ? ` in the ${getHouseOrdinal(moon_house)} house` : ''}`,
+      preview: `In your chart, feelings that move ${moonQualities[0]}, needing ${getMoonNeed(moon)} to settle.`,
+      whatThisIs: `In your chart, the Moon in ${moon}${moon_house ? ` placed in House ${moon_house}` : ''} reveals your emotional substrate—what you need before you can think, what makes you feel safe, how you nurture and are nurtured. ${moon_house ? `With emotional energy concentrated around ${getHouseTheme(moon_house)}, this is where your inner life meets outer reality.` : ''} This is the part of you that responds before you've decided how to respond.`,
       whatYouMightNotice: [
-        `emotional responses that feel ${moonQualities[0]}`,
-        `needing ${getMoonNeed(moon)} to feel emotionally settled`,
-        `comfort patterns that involve ${moonQualities[2] || moonQualities[1]} activities`,
-        moon_house ? `emotional sensitivity concentrated around ${getHouseTheme(moon_house)}` : `a general emotional coloring`
+        `Emotional responses that feel ${moonQualities[0]}—before thought catches up`,
+        `A need for ${getMoonNeed(moon)} to feel genuinely settled`,
+        `Comfort patterns that involve ${moonQualities[2] || moonQualities[1]} activities`,
+        moon_house ? `Emotional sensitivity concentrated around ${getHouseTheme(moon_house)} matters` : `This emotional coloring present everywhere`
       ],
-      tensionLabel: 'What tightens',
+      tensionLabel: 'What tightens emotionally',
       tension: getMoonTension(moon),
-      giftLabel: 'Hidden gift',
+      giftLabel: 'The gift in how you feel',
       gift: getMoonGift(moon),
-      reflection: `What do you reach for when you need comfort? What does "feeling safe" actually mean to you?`
+      reflection: `What do you reach for when you need comfort? What does "feeling safe" actually require?`
     },
     {
       id: 'ascendant',
@@ -284,32 +392,32 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
     {
       id: 'mercury',
       title: 'Mercury — Mind & Communication',
-      subtitle: 'How you think, learn, and express.',
-      preview: 'How your mind sorts, connects, and communicates.',
-      whatThisIs: `Mercury in ${mercury || sun}${mercury_house ? ` (House ${mercury_house})` : ''} shapes how your mind works—your thinking style, how you learn best, and how you communicate what you know.`,
+      subtitle: `${mercury || sun}${mercury_house ? ` in the ${getHouseOrdinal(mercury_house)} house` : ''}`,
+      preview: `In your chart, a ${mercQualities[0]} mind that processes through ${getMercuryLearningStyle(mercury || sun)}.`,
+      whatThisIs: `In your chart, Mercury in ${mercury || sun}${mercury_house ? ` placed in House ${mercury_house}` : ''} reveals how your mind naturally operates—how you sort information, what kind of thinking comes easily, and how you express what you know. ${mercury_house && mercury_house !== sun_house ? `With mental energy concentrated in ${getHouseTheme(mercury_house)} while your identity operates through House ${sun_house || 'elsewhere'}, you may think about different things than you identify with.` : mercury_house ? `Your mind and identity share the same house—what you think about is closely linked to who you are.` : ''}`,
       whatYouMightNotice: [
-        `a ${mercQualities[0]} quality to your thinking`,
-        `learning best through ${getMercuryLearningStyle(mercury || sun)} methods`,
-        `communication that tends to be ${mercQualities[1]}`,
-        mercury_house ? `mental focus often on ${getHouseTheme(mercury_house)} topics` : `broad intellectual interests`
+        `A ${mercQualities[0]} quality to how you think and process`,
+        `Learning that works best through ${getMercuryLearningStyle(mercury || sun)} methods`,
+        `Communication that tends to be ${mercQualities[1]}—even when you try otherwise`,
+        mercury_house ? `Mental focus naturally gravitating toward ${getHouseTheme(mercury_house)} topics` : `Broad intellectual interests without a single focus`
       ],
-      tensionLabel: 'Mental trap',
+      tensionLabel: 'Where the mind gets stuck',
       tension: getMercuryTension(mercury || sun),
-      giftLabel: 'Cognitive strength',
+      giftLabel: 'Your cognitive edge',
       gift: getMercuryGift(mercury || sun),
-      reflection: `How do you process new information? What helps you think clearly?`
+      reflection: `How do you process new information? What conditions help you think most clearly?`
     },
     {
       id: 'venus',
       title: 'Venus — Love & Relating',
-      subtitle: 'What draws you and softens you.',
-      preview: 'What draws you, softens you, and matters in connection.',
-      whatThisIs: `Venus in ${venus || moon}${venus_house ? ` (House ${venus_house})` : ''} reveals what you find beautiful, how you attract and relate, and what you value in love and friendship.`,
+      subtitle: `${venus || moon}${venus_house ? ` in the ${getHouseOrdinal(venus_house)} house` : ''}`,
+      preview: `In your chart, drawn to ${venusQualities[0]} beauty, showing love through ${getVenusLoveLanguage(venus || moon)}.`,
+      whatThisIs: `In your chart, Venus in ${venus || moon}${venus_house ? ` placed in House ${venus_house}` : ''} reveals what you find genuinely beautiful, how you attract and are attracted, and what you value in love and friendship. ${venus_house ? `With relational energy concentrated in ${getHouseTheme(venus_house)}, connection and aesthetics play out through this domain.` : ''}`,
       whatYouMightNotice: [
-        `attraction to ${venusQualities[0]} people or environments`,
-        `showing love through ${getVenusLoveLanguage(venus || moon)}`,
-        `valuing ${venusQualities[2] || venusQualities[1]} in relationships`,
-        venus_house ? `relationship energy concentrated in ${getHouseTheme(venus_house)}` : `a general approach to relating`
+        `Attraction to ${venusQualities[0]} people, places, and experiences`,
+        `Showing love through ${getVenusLoveLanguage(venus || moon)}—sometimes before you realize it`,
+        `Valuing ${venusQualities[2] || venusQualities[1]} qualities in relationships`,
+        venus_house ? `Relationship themes concentrated in ${getHouseTheme(venus_house)} areas` : `A general approach to relating across contexts`
       ],
       tensionLabel: 'Relational blind spot',
       tension: getVenusTension(venus || moon),
@@ -320,14 +428,14 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
     {
       id: 'mars',
       title: 'Mars — Drive & Friction',
-      subtitle: 'How you assert and create friction.',
-      preview: 'How you act, push, defend, and create friction.',
-      whatThisIs: `Mars in ${mars || sun}${mars_house ? ` (House ${mars_house})` : ''} shows how you take action, what ignites your drive, and how you handle conflict and desire.`,
+      subtitle: `${mars || sun}${mars_house ? ` in the ${getHouseOrdinal(mars_house)} house` : ''}`,
+      preview: `In your chart, a ${marsQualities[0]} approach to action and conflict.`,
+      whatThisIs: `In your chart, Mars in ${mars || sun}${mars_house ? ` placed in House ${mars_house}` : ''} reveals how you take action, what ignites your drive, and how you handle conflict and desire. ${mars_house ? `With assertive energy concentrated in ${getHouseTheme(mars_house)}, this is where you push hardest and clash most easily.` : ''}`,
       whatYouMightNotice: [
-        `a ${marsQualities[0]} style of taking action`,
-        `anger that expresses as ${getMarsAngerStyle(mars || sun)}`,
-        `motivation fueled by ${marsQualities[2] || marsQualities[1]} pursuits`,
-        mars_house ? `drive concentrated in ${getHouseTheme(mars_house)} areas` : `general assertive energy`
+        `A ${marsQualities[0]} style when you take action or initiate`,
+        `Anger that tends to express as ${getMarsAngerStyle(mars || sun)}`,
+        `Motivation strongest when pursuing ${marsQualities[2] || marsQualities[1]} goals`,
+        mars_house ? `Drive and friction concentrated in ${getHouseTheme(mars_house)} areas` : `General assertive energy across contexts`
       ],
       tensionLabel: 'Where you clash',
       tension: getMarsTension(mars || sun),
@@ -338,36 +446,51 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
     {
       id: 'houses',
       title: 'House Emphasis',
-      subtitle: 'Where life concentrates most strongly.',
-      preview: 'Where life concentrates most strongly in your chart.',
-      whatThisIs: `The houses where your planets fall show where life's themes concentrate. ${sun_house ? `With Sun in House ${sun_house} and Moon in House ${moon_house || 'Unknown'}` : 'Your placements'}, certain areas of life naturally call more of your attention.`,
+      subtitle: 'Where life keeps pulling your attention.',
+      preview: houseAnalysis.emphasis,
+      whatThisIs: houseAnalysis.dominant.length > 0 
+        ? `${houseAnalysis.emphasis} ${houseAnalysis.insight}`
+        : `Your chart distributes energy across multiple life areas. While no single house dominates, certain themes still emerge from where key planets fall.`,
       whatYouMightNotice: [
-        sun_house ? `identity themes playing out through ${getHouseTheme(sun_house)}` : `a broad identity expression`,
-        moon_house ? `emotional needs tied to ${getHouseTheme(moon_house)}` : `emotional needs across many areas`,
-        `repeated lessons in certain life domains`,
-        `some areas of life feeling more "charged" than others`
+        sun_house ? `Your identity (Sun) operates through House ${sun_house}—${getHouseTheme(sun_house)}` : `A broad identity expression`,
+        moon_house ? `Your emotional needs (Moon) center on House ${moon_house}—${getHouseTheme(moon_house)}` : `Emotional needs spread across areas`,
+        houseAnalysis.dominant.length > 0 
+          ? `Houses ${houseAnalysis.dominant.join(' and ')} receiving disproportionate attention`
+          : `No single house dominates—but scattered focus has its own challenges`,
+        mercury_house && mercury_house === sun_house 
+          ? `Mind and identity share the same house—thinking and being are intertwined`
+          : mercury_house 
+            ? `Mental energy (Mercury) flows toward House ${mercury_house}—${getHouseTheme(mercury_house)}`
+            : `Mental energy follows your Sun sign's orientation`
       ],
-      tensionLabel: 'Over-concentration',
-      tension: `When too much energy flows to particular life areas, others may feel neglected. Balance across houses creates a fuller life experience.`,
-      giftLabel: 'Natural focus',
-      gift: `Your chart's concentration means you can develop real depth in specific areas. This isn't limitation—it's specialization.`,
-      reflection: `Which areas of life demand the most from you? Which feel underdeveloped?`
+      tensionLabel: 'What gets overdeveloped',
+      tension: houseAnalysis.dominant.length > 0
+        ? `When Houses ${houseAnalysis.dominant.join(' and ')} absorb most of your energy, other life areas may feel neglected or underdeveloped. The underused houses still exist—they're just waiting.`
+        : `With a distributed chart, the tension is dilution rather than concentration. You may struggle to specialize or go deep in any one domain.`,
+      giftLabel: 'Where you develop depth',
+      gift: houseAnalysis.dominant.length > 0
+        ? `Your concentration in specific houses means you can develop real mastery and depth in those life areas. This isn't limitation—it's specialization that builds over time.`
+        : `A distributed chart gives you versatility and the ability to engage with many life areas without fixation. You're less likely to over-identify with any single domain.`,
+      reflection: `Which area of life has demanded the most from you? Which feels like it's waiting for attention?`
     },
     {
       id: 'tensions',
       title: 'Core Chart Tensions',
-      subtitle: 'The inner pulls that shape your experience.',
-      preview: 'The inner pulls that shape your experience.',
-      whatThisIs: `Every chart contains productive tensions—places where different parts of you want different things. These aren't flaws; they're the creative friction that makes you complex.`,
-      whatYouMightNotice: [
-        ...getCoreTensions(sun, moon, ascendant).map(t => `a pull between ${t}`),
-        `these tensions showing up in decision-making`
-      ],
-      tensionLabel: 'The bind',
-      tension: `When these tensions feel like problems to solve, you may flip between extremes. The work is integration, not resolution.`,
-      giftLabel: 'Creative friction',
-      gift: `These tensions create range and flexibility. You can access multiple modes because you contain multitudes.`,
-      reflection: `Which inner contradiction feels most alive in you right now?`
+      subtitle: 'The contradictions that make you complex.',
+      preview: chartTensions.length > 0 ? chartTensions[0] : 'Inner pulls that shape your experience.',
+      whatThisIs: `Your chart holds tensions that don't resolve—they coexist. These are the places where different parts of you want different things. In your case: ${chartTensions.slice(0, 2).join('; ')}.`,
+      whatYouMightNotice: chartTensions.length > 0
+        ? chartTensions.map(t => t)
+        : [
+            `A general sense of inner contradiction`,
+            `Difficulty committing to one mode of being`,
+            `These tensions showing up in relationships and decisions`
+          ],
+      tensionLabel: 'The psychological bind',
+      tension: `When these tensions feel like problems to fix, you may flip between extremes—trying to be one thing, then overcorrecting to the other. The work isn't choosing one side. It's learning to hold both.`,
+      giftLabel: 'The range they create',
+      gift: `These tensions are why you have range. You can access different modes of being because you contain contradictory drives. Integration doesn't mean resolution—it means spaciousness.`,
+      reflection: `Which of these contradictions is loudest in your life right now? What would it look like to stop trying to fix it?`
     },
     {
       id: 'opens',
@@ -407,6 +530,14 @@ const getHouseTheme = (house: number): string => {
     12: 'spirituality and the unconscious'
   };
   return themes[house] || 'various life areas';
+};
+
+const getHouseOrdinal = (house: number): string => {
+  const ordinals: { [key: number]: string } = {
+    1: '1st', 2: '2nd', 3: '3rd', 4: '4th', 5: '5th', 6: '6th',
+    7: '7th', 8: '8th', 9: '9th', 10: '10th', 11: '11th', 12: '12th'
+  };
+  return ordinals[house] || `${house}th`;
 };
 
 const getSunTension = (sign: string): string => {
@@ -905,6 +1036,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
       );
     }
 
+    const heroDescriptor = getHeroDescriptor(sun, moon, asc);
     const synthesis = getSynthesis(sun, moon, asc);
     const themeChips = getThemeChips(sun, moon, asc);
     const tensions = getCoreTensions(sun, moon, asc);
@@ -912,9 +1044,8 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
 
     return (
       <View style={styles.atAGlanceContainer}>
-        {/* Big 3 Hero Strip */}
-        <View style={[styles.big3Card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.big3Label, { color: theme.textTertiary }]}>SUN · MOON · ASCENDANT</Text>
+        {/* Hero Section: Big 3 + Descriptor */}
+        <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.big3Row}>
             <View style={styles.big3Item}>
               <Text style={[styles.big3Symbol, { color: theme.accent }]}>☉</Text>
@@ -931,6 +1062,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
               <Text style={[styles.big3Sign, { color: theme.text }]}>{asc}</Text>
             </View>
           </View>
+          <Text style={[styles.heroDescriptor, { color: theme.textSecondary }]}>{heroDescriptor}</Text>
         </View>
 
         {/* Core Synthesis */}
@@ -941,7 +1073,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
         {/* Theme Chips */}
         <View style={styles.chipsContainer}>
           {themeChips.map((chip, i) => (
-            <View key={i} style={[styles.chip, { backgroundColor: theme.accent + '15', borderColor: theme.accent + '30' }]}>
+            <View key={i} style={[styles.chip, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '25' }]}>
               <Text style={[styles.chipText, { color: theme.accent }]}>{chip}</Text>
             </View>
           ))}
@@ -949,58 +1081,59 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
 
         {/* Structure Section */}
         <View style={[styles.structureCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.structureTitle, { color: theme.textSecondary }]}>STRUCTURE BEHIND YOUR CHART</Text>
+          <Text style={[styles.structureTitle, { color: theme.textTertiary }]}>CHART STRUCTURE</Text>
           <View style={styles.structureGrid}>
             <View style={styles.structureItem}>
-              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Dominant Element</Text>
+              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Core Element</Text>
               <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_ELEMENTS[sun] || 'Mixed'}</Text>
             </View>
             <View style={styles.structureItem}>
-              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Sun Modality</Text>
+              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Sun Mode</Text>
               <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_MODALITIES[sun] || 'Mixed'}</Text>
             </View>
             <View style={styles.structureItem}>
-              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Moon Element</Text>
+              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Emotional Element</Text>
               <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_ELEMENTS[moon] || 'Unknown'}</Text>
             </View>
             <View style={styles.structureItem}>
-              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Rising Quality</Text>
+              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Rising Mode</Text>
               <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_MODALITIES[asc] || 'Unknown'}</Text>
             </View>
           </View>
         </View>
 
-        {/* Core Tensions */}
-        {tensions.length > 0 && (
-          <View style={[styles.tensionsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.tensionsTitle, { color: '#E57373' }]}>CORE TENSIONS</Text>
-            {tensions.map((t, i) => (
-              <View key={i} style={styles.tensionItem}>
-                <Text style={[styles.tensionBullet, { color: '#E57373' }]}>•</Text>
-                <Text style={[styles.tensionText, { color: theme.textSecondary }]}>{t}</Text>
-              </View>
-            ))}
-          </View>
-        )}
+        {/* Core Tensions & Gifts Side by Side on larger screens, stacked on mobile */}
+        <View style={styles.tensionsGiftsRow}>
+          {/* Core Tensions */}
+          {tensions.length > 0 && (
+            <View style={[styles.tensionsCard, { backgroundColor: '#FEF3F2', borderColor: '#FECACA' }]}>
+              <Text style={[styles.tensionsTitle, { color: '#DC2626' }]}>TENSIONS</Text>
+              {tensions.map((t, i) => (
+                <View key={i} style={styles.tensionItem}>
+                  <Text style={[styles.tensionText, { color: '#7F1D1D' }]}>{t}</Text>
+                </View>
+              ))}
+            </View>
+          )}
 
-        {/* Core Gifts */}
-        {gifts.length > 0 && (
-          <View style={[styles.giftsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.giftsTitle, { color: '#81C784' }]}>CORE GIFTS</Text>
-            {gifts.map((g, i) => (
-              <View key={i} style={styles.giftItem}>
-                <Text style={[styles.giftBullet, { color: '#81C784' }]}>•</Text>
-                <Text style={[styles.giftText, { color: theme.textSecondary }]}>{g}</Text>
-              </View>
-            ))}
-          </View>
-        )}
+          {/* Core Gifts */}
+          {gifts.length > 0 && (
+            <View style={[styles.giftsCard, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
+              <Text style={[styles.giftsTitle, { color: '#16A34A' }]}>GIFTS</Text>
+              {gifts.map((g, i) => (
+                <View key={i} style={styles.giftItem}>
+                  <Text style={[styles.giftText, { color: '#14532D' }]}>{g}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
 
         {/* Reflection Prompt */}
-        <View style={[styles.reflectionCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
-          <Text style={[styles.reflectionLabel, { color: theme.accent }]}>A QUESTION TO SIT WITH</Text>
+        <View style={[styles.reflectionCard, { backgroundColor: theme.accent + '06', borderColor: theme.accent + '15' }]}>
+          <Text style={[styles.reflectionLabel, { color: theme.accent }]}>A QUESTION</Text>
           <Text style={[styles.reflectionText, { color: theme.text }]}>
-            When you feel most like yourself, which of these qualities are present?
+            When you feel most like yourself, which of these qualities are present—and which are conspicuously absent?
           </Text>
         </View>
 
@@ -1367,7 +1500,20 @@ const styles = StyleSheet.create({
 
   // At a Glance
   atAGlanceContainer: {
-    gap: 12,
+    gap: 16,
+  },
+  heroCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 20,
+    alignItems: 'center',
+  },
+  heroDescriptor: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginTop: 16,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   big3Card: {
     borderRadius: 12,
@@ -1388,38 +1534,40 @@ const styles = StyleSheet.create({
   },
   big3Item: {
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   big3Symbol: {
-    fontSize: 16,
-    marginBottom: 4,
+    fontSize: 18,
+    marginBottom: 6,
   },
   big3Sign: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
   },
   big3Divider: {
     width: 1,
-    height: 32,
+    height: 36,
   },
   synthesisCard: {
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
+    padding: 18,
   },
   synthesisText: {
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 24,
+    letterSpacing: 0.2,
   },
   chipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    paddingVertical: 4,
   },
   chip: {
     paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
   },
   chipText: {
@@ -1453,62 +1601,66 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  tensionsGiftsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   tensionsCard: {
+    flex: 1,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
+    padding: 14,
   },
   tensionsTitle: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 10,
   },
   tensionItem: {
-    flexDirection: 'row',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   tensionBullet: {
     fontSize: 14,
     marginRight: 8,
   },
   tensionText: {
-    fontSize: 14,
-    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
   },
   giftsCard: {
+    flex: 1,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
+    padding: 14,
   },
   giftsTitle: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 10,
   },
   giftItem: {
-    flexDirection: 'row',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   giftBullet: {
     fontSize: 14,
     marginRight: 8,
   },
   giftText: {
-    fontSize: 14,
-    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
   },
   reflectionCard: {
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 14,
+    padding: 16,
   },
   reflectionLabel: {
     fontSize: 9,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   reflectionText: {
     fontSize: 14,
