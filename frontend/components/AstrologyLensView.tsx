@@ -1635,10 +1635,6 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
       </View>
     );
   };
-        </Text>
-      </View>
-    );
-  };
 
   // ============================================
   // RENDER: DEEP DIVE CARDS
