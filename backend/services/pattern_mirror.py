@@ -1076,6 +1076,156 @@ SAFE_QUALIFIERS = {
 # When multiple contexts exist, prioritize in this order
 CONTEXT_PRIORITY = ["relational", "action", "emotional"]
 
+# ============================================================================
+# V10.7.2: RESONANCE CHECK SYSTEM
+# ============================================================================
+# Decides when NOT to inject specificity - some general phrasing creates
+# stronger emotional resonance than specific phrasing.
+#
+# Key principles:
+# 1. Emotionally complete sentences don't need specificity
+# 2. Universal truths resonate more broadly
+# 3. Action-clarifying specificity is high value
+# 4. Ambiguity-reducing specificity is high value
+# 5. Padding specificity is low value
+# ============================================================================
+
+# Phrases that are already emotionally complete and resonant
+# Adding specificity to these would REDUCE impact
+RESONANT_COMPLETE_PHRASES = [
+    "opening up again",
+    "letting go",
+    "holding back",
+    "moving forward",
+    "feeling the weight",
+    "sitting with this",
+    "softening",
+    "feeling close",
+    "creating distance",
+    "being honest",
+    "staying quiet",
+    "waiting",
+    "not knowing",
+    "grieving",
+    "hoping",
+    "reaching",
+    "trusting",
+    "releasing",
+]
+
+# Phrases where specificity adds HIGH value (clarifies action/reduces ambiguity)
+HIGH_VALUE_SPECIFICITY_TRIGGERS = {
+    "saying something": 2.0,        # "what you didn't say" is much clearer
+    "expressing": 1.8,              # What are you expressing?
+    "reaching out": 1.5,            # To whom?
+    "pushing away": 1.5,            # Who?
+    "not acting": 1.7,              # On what?
+    "taking action": 1.5,           # What action?
+    "the distance": 1.8,            # Between whom?
+    "the gap": 1.8,                 # What gap?
+    "friction": 1.6,                # With what/whom?
+    "tension": 1.5,                 # Around what?
+    "confusion": 1.6,               # About what?
+    "loss": 1.7,                    # Of what?
+}
+
+# Phrases where specificity adds LOW value (padding, reduces universality)
+LOW_VALUE_SPECIFICITY_TRIGGERS = {
+    "opening up": 0.4,              # Already clear, universal
+    "moving toward connection": 0.5, # Universal concept
+    "holding back": 0.3,            # Already resonant alone
+    "letting in": 0.5,              # Clear enough
+    "feeling close": 0.4,           # Universal
+    "creating distance": 0.5,       # Clear enough
+    "being patient": 0.4,           # Universal
+    "sitting still": 0.3,           # Resonant alone
+    "grief": 0.5,                   # Universal
+    "wanting": 0.4,                 # Universal desire
+}
+
+
+def calculate_resonance_score(text: str, generic_phrase: str, specific_phrase: str) -> float:
+    """
+    V10.7.2: Calculate resonance score to decide if specificity should be injected.
+    
+    Returns a score from 0.0 to 1.0:
+    - Score > 0.5: Inject specificity (high value)
+    - Score <= 0.5: Skip specificity (base is already resonant)
+    
+    Factors:
+    1. Is the generic phrase already emotionally complete?
+    2. Does specificity clarify action or reduce ambiguity?
+    3. Does the sentence context suggest specificity helps?
+    """
+    score = 0.5  # Neutral starting point
+    text_lower = text.lower()
+    generic_lower = generic_phrase.lower()
+    
+    # Factor 1: Check if phrase is already emotionally complete
+    for complete_phrase in RESONANT_COMPLETE_PHRASES:
+        if complete_phrase in text_lower:
+            # If the text is just the complete phrase (or close), reduce score
+            if len(text) < len(complete_phrase) + 30:
+                score -= 0.3  # Strong reduction for short, complete phrases
+            else:
+                score -= 0.15  # Mild reduction for longer context
+            break
+    
+    # Factor 2: Check HIGH value triggers
+    if generic_lower in HIGH_VALUE_SPECIFICITY_TRIGGERS:
+        score += HIGH_VALUE_SPECIFICITY_TRIGGERS[generic_lower] - 1.0  # Adjust relative to 1.0 baseline
+    
+    # Factor 3: Check LOW value triggers
+    if generic_lower in LOW_VALUE_SPECIFICITY_TRIGGERS:
+        score -= (1.0 - LOW_VALUE_SPECIFICITY_TRIGGERS[generic_lower])
+    
+    # Factor 4: Sentence position - mid-sentence specificity often more valuable
+    if generic_lower in text_lower:
+        pos = text_lower.index(generic_lower)
+        relative_pos = pos / max(len(text), 1)
+        # Mid-sentence = higher value, start/end = lower value
+        if 0.2 < relative_pos < 0.7:
+            score += 0.1
+        else:
+            score -= 0.05
+    
+    # Factor 5: If specific phrase adds meaningful length (clarification), boost score
+    length_diff = len(specific_phrase) - len(generic_phrase)
+    if 8 < length_diff < 25:
+        score += 0.1  # Good amount of clarification
+    elif length_diff > 30:
+        score -= 0.1  # Too wordy
+    
+    # Factor 6: Presence of other qualifiers suggests specificity less needed
+    existing_qualifiers = ["someone", "something", "a person", "them", "the situation"]
+    for qual in existing_qualifiers:
+        if qual in text_lower and qual not in generic_lower:
+            score -= 0.2
+            break
+    
+    # Clamp to 0.0 - 1.0
+    return max(0.0, min(1.0, score))
+
+
+def should_inject_specificity(text: str, generic_phrase: str, specific_phrase: str, confidence: str = "medium") -> bool:
+    """
+    V10.7.2: Decide whether to inject specificity based on resonance check.
+    
+    Returns True if injection would improve the text, False if base is better.
+    """
+    # Calculate resonance score
+    score = calculate_resonance_score(text, generic_phrase, specific_phrase)
+    
+    # Adjust threshold based on confidence
+    if confidence == "high":
+        threshold = 0.4  # Lower threshold - more likely to inject
+    elif confidence == "medium":
+        threshold = 0.5  # Standard threshold
+    else:
+        threshold = 0.7  # Higher threshold for low confidence (rarely inject)
+    
+    return score > threshold
+
 
 def extract_contextual_hints(signals_extended: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -1164,13 +1314,12 @@ def inject_specificity(
     max_injections: int = 2
 ) -> Tuple[str, int]:
     """
-    V10.7.1: Inject light situational specificity with variation and confidence alignment.
+    V10.7.2: Inject light situational specificity with resonance-based selection.
     
-    V10.7.1 Improvements:
-    - Varied qualifiers instead of always "someone"
-    - Context priority: relational > action > emotional
-    - Confidence alignment: LOW = no specificity, MEDIUM = light, HIGH = full
-    - Card-level limit: max 1-2 injections total
+    V10.7.2 Improvements:
+    - Resonance check: Skip injection if base sentence is already strong
+    - Score-based selection: Choose highest-value injection spots
+    - Only injects when it genuinely improves the text
     
     Args:
         text: Text to potentially modify
@@ -1183,11 +1332,11 @@ def inject_specificity(
     Returns:
         (modified_text, new_injection_count)
     """
-    # V10.7.1: Skip if already at injection limit
+    # Skip if already at injection limit
     if injection_count >= max_injections:
         return text, injection_count
     
-    # V10.7.1: Skip specificity for LOW confidence
+    # Skip specificity for LOW confidence
     if confidence == "low":
         return text, injection_count
     
@@ -1195,13 +1344,11 @@ def inject_specificity(
         return text, injection_count
     
     text_lower = text.lower()
-    injection_made = False
     
-    # V10.7.1: Follow priority order - relational > action > emotional
+    # V10.7.2: Collect all potential injection candidates with resonance scores
+    candidates = []
+    
     for context_type in CONTEXT_PRIORITY:
-        if injection_made:
-            break
-            
         if context_type == "relational":
             contexts = contextual_hints.get("relational_context", [])
         elif context_type == "action":
@@ -1210,37 +1357,50 @@ def inject_specificity(
             contexts = contextual_hints.get("emotional_focus", [])
         
         for context_name in contexts:
-            if injection_made:
-                break
             injectors = SPECIFICITY_INJECTORS.get(context_type, {}).get(context_name, {})
             
             for generic, specific_options in injectors.items():
                 if generic not in text_lower:
                     continue
-                    
-                # V10.7.1: Handle both list of variations and single string
+                
+                # Get specific phrase
                 if isinstance(specific_options, list):
-                    # Select variation based on context for variety
                     specific = _select_varied_qualifier(
-                        specific_options, 
-                        text, 
-                        pattern_id,
-                        confidence
+                        specific_options, text, pattern_id, confidence
                     )
                 else:
                     specific = specific_options
                 
                 if specific.lower() in text_lower:
                     continue
-                    
-                # Check if replacement would be natural
-                if _is_natural_replacement(text, generic, specific):
-                    text = _replace_preserving_case(text, generic, specific)
-                    injection_made = True
-                    break
+                
+                # Check natural replacement
+                if not _is_natural_replacement(text, generic, specific):
+                    continue
+                
+                # V10.7.2: Calculate resonance score
+                resonance_score = calculate_resonance_score(text, generic, specific)
+                
+                # V10.7.2: Only consider if passes resonance threshold
+                if should_inject_specificity(text, generic, specific, confidence):
+                    candidates.append({
+                        "generic": generic,
+                        "specific": specific,
+                        "score": resonance_score,
+                        "context_type": context_type,
+                    })
     
-    new_count = injection_count + 1 if injection_made else injection_count
-    return text, new_count
+    # V10.7.2: Sort by score and take best candidate
+    if candidates:
+        candidates.sort(key=lambda x: x["score"], reverse=True)
+        best = candidates[0]
+        
+        # Only inject if score is meaningfully positive
+        if best["score"] > 0.45:
+            text = _replace_preserving_case(text, best["generic"], best["specific"])
+            return text, injection_count + 1
+    
+    return text, injection_count
 
 
 def _select_varied_qualifier(
