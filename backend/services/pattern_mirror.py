@@ -1992,46 +1992,46 @@ def _build_why_showing_up(
     daily_angle: Dict[str, Any]
 ) -> str:
     """
-    Build 1-2 sentences explaining WHY this pattern is showing up NOW.
+    Build a concise, high-level explanation for WHY this pattern is showing up NOW.
     
-    Focus on timing/activation, not abstract meaning.
+    V8: Simplified to avoid repetition with Astrology derivation.
+    Keep this abstract; let derivation provide the specific evidence.
     """
-    parts = []
-    
-    # Check timing influence
-    active_themes = transit_themes.active_themes if transit_themes else []
-    timing_summary = timing_amplifier.get("timing_summary", "")
-    freshness_reason = daily_angle.get("freshness_reason", "")
-    
-    # Build timing-based explanation
-    if active_themes:
-        theme = active_themes[0]
-        translation = LENS_SIGNAL_TRANSLATIONS.get("astrology", {}).get(theme)
-        if translation:
-            parts.append(translation)
-    
-    # Add freshness reason if different
-    if freshness_reason and not any(freshness_reason.lower() in p.lower() for p in parts):
-        # Clean up the freshness reason
-        if "timing" in freshness_reason.lower() or "recent" in freshness_reason.lower():
-            parts.append(f"This facet is active because {freshness_reason}.")
-    
-    # Add signal diversity note if multi-source
+    # Get evidence-based signals
     source_diversity = cluster_data.get("source_diversity_score", 0)
     evidence_count = cluster_data.get("total_evidence_count", 0)
+    dominant_theme = cluster_data.get("dominant_theme", "")
     
-    if source_diversity >= 0.6 and evidence_count >= 3:
-        parts.append("This theme appears across multiple areas of your reflection.")
-    elif evidence_count >= 2:
-        parts.append("This has been showing up in your recent entries.")
+    # V8: Focus on convergence and user signals, not timing details
+    # (timing details now live in Astrology derivation)
     
-    # Combine (max 2 sentences)
-    if len(parts) >= 2:
-        return " ".join(parts[:2])
-    elif parts:
-        return parts[0]
-    else:
-        return "This pattern is surfacing from your recent reflections."
+    if evidence_count >= 3 and source_diversity >= 0.6:
+        # Strong multi-source signal
+        return "Multiple sources—your recent reflections and current timing—point to this moment as significant."
+    
+    if evidence_count >= 2:
+        # Moderate signal
+        theme_contexts = {
+            "relational": "connection and openness are in the air right now",
+            "emotional": "emotional processing is active right now",
+            "identity": "questions of direction and purpose are surfacing",
+            "behavioral": "patterns in how you respond are becoming visible",
+            "pressure": "a sense of being stretched is present",
+        }
+        if dominant_theme and dominant_theme in theme_contexts:
+            return f"This may feel more present because {theme_contexts[dominant_theme]}."
+        return "This theme is surfacing now because both your inner signals and current timing align."
+    
+    if evidence_count >= 1:
+        # Light signal
+        return "Something in your recent experience is activating this theme."
+    
+    # Fallback: timing-only (no user evidence)
+    timing_role = timing_amplifier.get("timing_role", "")
+    if timing_role == "fallback":
+        return "Current timing may be bringing this pattern into focus."
+    
+    return "This pattern is becoming visible right now."
 
 
 def _build_cross_lens_derivation(
@@ -2069,7 +2069,7 @@ def _build_cross_lens_derivation(
         debug_info["excluded"].append({"lens": "Journal", "reason": "no matching entries"})
     
     # 2. LIFELINE lens (from user's lifeline events)
-    lifeline_signal = _get_lifeline_derivation(signals_extended, cluster_data)
+    lifeline_signal = _get_lifeline_derivation(signals_extended, cluster_data, pattern_id)
     debug_info["candidates"].append({"lens": "Lifeline", "signal": lifeline_signal})
     if lifeline_signal:
         derivations.append({
@@ -2081,8 +2081,8 @@ def _build_cross_lens_derivation(
     else:
         debug_info["excluded"].append({"lens": "Lifeline", "reason": "no lifeline events or matches"})
     
-    # 3. ASTROLOGY lens (timing context) - V7: Now returns structured data with drivers
-    astrology_data = _get_astrology_derivation(transit_themes)
+    # 3. ASTROLOGY lens (timing context) - V8: Now pattern-specific with max 2 drivers
+    astrology_data = _get_astrology_derivation(transit_themes, pattern_id)
     debug_info["candidates"].append({"lens": "Astrology", "data": astrology_data})
     
     if astrology_data:
@@ -2159,16 +2159,16 @@ def _build_cross_lens_derivation(
     }
 
 
-def _get_astrology_derivation(transit_themes: Any) -> Optional[Dict[str, Any]]:
+def _get_astrology_derivation(transit_themes: Any, pattern_id: str = "") -> Optional[Dict[str, Any]]:
     """
     Get Astrology derivation with ACTUAL transit drivers (not generic summaries).
     
-    V7: Returns structured data with specific timing drivers in plain English.
+    V8: Tighter filtering, max 2 drivers, pattern-specific relevance.
     
     Returns:
         Dict with:
         - signal: The combined plain English sentence
-        - drivers: List of individual driver objects with details
+        - drivers: List of individual driver objects (max 2)
         - raw_indicators: The raw indicator keys for debugging
     """
     if not transit_themes:
@@ -2177,154 +2177,115 @@ def _get_astrology_derivation(transit_themes: Any) -> Optional[Dict[str, Any]]:
     # Get raw indicators from transit themes
     raw_indicators = transit_themes.raw_indicators if hasattr(transit_themes, 'raw_indicators') else []
     lunar_phase = transit_themes.lunar_phase if hasattr(transit_themes, 'lunar_phase') else None
-    seasonal_context = transit_themes.seasonal_context if hasattr(transit_themes, 'seasonal_context') else None
     
-    # Plain English translations for specific transit drivers
+    # V8: Pattern-specific driver relevance mapping
+    # Different patterns benefit from different timing contexts
+    PATTERN_TIMING_RELEVANCE = {
+        "relational_reopening": ["venus_active", "new_moon", "waxing_crescent"],
+        "heart_thaw": ["venus_active", "new_moon", "waning_moon"],
+        "threshold_standing": ["first_quarter", "equinox_window", "saturn_active"],
+        "somethings_here": ["waxing_crescent", "mercury_active", "new_moon"],
+        "safe_intimacy_returning": ["venus_active", "waxing_moon", "cancer_season"],
+        "over_functioning_hero": ["mars_active", "first_quarter", "saturn_active"],
+        "inner_critic_override": ["mercury_active", "waning_moon", "saturn_active"],
+        "emotional_flooding": ["full_moon", "water_season", "neptune_active"],
+        "avoidant_autopilot": ["mars_active", "mercury_retrograde", "waning_crescent"],
+    }
+    
+    # V8: More specific, pattern-contextual driver translations
     DRIVER_TRANSLATIONS = {
-        # === LUNAR PHASES ===
-        "new_moon": "A new moon is supporting fresh starts and reset energy",
-        "full_moon": "A full moon is bringing things to visibility and emotional peak",
-        "waxing_moon": "The waxing moon is building momentum and energy",
-        "waning_moon": "The waning moon is supporting release and completion",
-        "waxing_crescent": "Early momentum is gathering—something new is taking shape",
-        "waning_crescent": "A cycle is completing—time to let go of what's finished",
-        "first_quarter": "Decision energy is present—a crossroads moment",
-        "last_quarter": "Evaluation energy is active—assessing what worked",
-        "lunar_peak": "Lunar energy is at its strongest right now",
+        # === LUNAR (most actionable) ===
+        "new_moon": "New moon timing supports fresh starts—good for beginning something",
+        "full_moon": "Full moon brings things to the surface—what's hidden becomes visible",
+        "waxing_crescent": "Waxing moon supports forward motion—momentum is building",
+        "waning_crescent": "Waning moon supports release—letting go is easier now",
+        "first_quarter": "First quarter moon brings decision energy—crossroads moments",
+        "last_quarter": "Last quarter moon invites reflection—evaluating what worked",
+        "waxing_moon": "Moon is waxing—energy for action is building",
+        "waning_moon": "Moon is waning—energy for completion and release",
         
-        # === PLANETARY ACTIVATIONS ===
-        "mercury_active": "Mercury timing is supporting clarity and communication",
-        "venus_active": "Venus energy is bringing warmth and connection",
-        "mars_active": "Mars activation is adding drive and urgency",
-        "jupiter_active": "Jupiter is expanding possibilities and optimism",
-        "saturn_active": "Saturn is bringing structure and serious reflection",
-        "uranus_active": "Uranus energy is stirring change and breakthrough",
-        "neptune_active": "Neptune is heightening intuition and imagination",
-        "pluto_active": "Pluto is deepening transformation and renewal",
-        "sun_transit": "Solar energy is highlighting identity and direction",
+        # === PLANETARY (only high-impact) ===
+        "mercury_active": "Mercury timing supports clarity—thinking and decisions feel clearer",
+        "venus_active": "Venus timing supports warmth—connection feels more available",
+        "mars_active": "Mars timing adds activation—drive to act is stronger",
+        "saturn_active": "Saturn timing brings seriousness—commitments feel heavier",
         
-        # === SEASONAL / ZODIAC ===
-        "aries_season": "Spring energy is supporting new beginnings",
-        "taurus_season": "Earthy energy is supporting stability and presence",
-        "gemini_season": "Curious energy is supporting learning and connection",
-        "cancer_season": "Nurturing energy is supporting emotional depth",
-        "leo_season": "Expressive energy is supporting creativity and heart",
-        "virgo_season": "Practical energy is supporting refinement and service",
-        "libra_season": "Relational energy is supporting balance and partnership",
-        "scorpio_season": "Deep energy is supporting transformation and truth",
-        "sagittarius_season": "Expansive energy is supporting growth and meaning",
-        "capricorn_season": "Grounded energy is supporting commitment and goals",
-        "aquarius_season": "Innovative energy is supporting vision and change",
-        "pisces_season": "Fluid energy is supporting surrender and compassion",
-        
-        # === ELEMENTAL ===
-        "water_season": "Emotional and intuitive currents are stronger now",
-        "fire_season": "Action and passion energy is heightened",
-        "earth_element": "Grounding and stability are supported now",
-        "air_element": "Mental clarity and communication are supported",
-        
-        # === SPECIAL WINDOWS ===
-        "eclipse_window": "An eclipse window is creating turning point energy",
-        "equinox_window": "Equinox energy is supporting balance and transition",
-        "solstice_window": "Solstice energy is marking a threshold moment",
-        "mercury_retrograde": "Mercury retrograde is inviting review and reflection",
-        "mercury_direct": "Mercury direct is supporting forward momentum",
-        "saturn_return": "Saturn return energy is inviting maturity and commitment",
-        
-        # === MODALITIES ===
-        "cardinal_season": "Initiating energy is supporting new action",
-        "mutable_season": "Adaptive energy is supporting flexibility",
-        "fixed_season": "Stabilizing energy is supporting persistence",
+        # === SPECIAL WINDOWS (only if truly active) ===
+        "equinox_window": "Equinox window supports balance—transitions feel natural",
+        "solstice_window": "Solstice marks a turning point—thresholds are highlighted",
+        "eclipse_window": "Eclipse window creates revelation energy—what's hidden surfaces",
+        "mercury_retrograde": "Mercury retrograde invites review—reflection over action",
     }
     
     drivers = []
     
-    # 1. Check lunar phase FIRST (most impactful)
+    # V8: Get pattern-relevant timing keys
+    relevant_keys = PATTERN_TIMING_RELEVANCE.get(pattern_id, [])
+    
+    # 1. Check lunar phase FIRST (always relevant, max 1 lunar)
     if lunar_phase:
         lunar_key = lunar_phase.lower().replace(" ", "_")
         if lunar_key in DRIVER_TRANSLATIONS:
+            is_relevant = not relevant_keys or lunar_key in relevant_keys
             drivers.append({
                 "key": lunar_key,
                 "text": DRIVER_TRANSLATIONS[lunar_key],
                 "category": "lunar",
-                "priority": 1,
+                "priority": 1 if is_relevant else 2,
+                "relevance": "high" if is_relevant else "medium",
             })
     
-    # 2. Check planetary activations (high priority)
-    planetary_indicators = [
-        "mercury_active", "venus_active", "mars_active",
-        "jupiter_active", "saturn_active", "uranus_active",
-        "neptune_active", "pluto_active", "sun_transit"
-    ]
-    
-    for indicator in planetary_indicators:
-        if indicator in raw_indicators and indicator in DRIVER_TRANSLATIONS:
-            drivers.append({
-                "key": indicator,
-                "text": DRIVER_TRANSLATIONS[indicator],
-                "category": "planetary",
-                "priority": 2,
-            })
-    
-    # 3. Check special windows (eclipse, equinox, etc.)
+    # 2. Check special windows (only include if actually active)
     special_windows = ["eclipse_window", "equinox_window", "solstice_window", "mercury_retrograde"]
     for window in special_windows:
         if window in raw_indicators and window in DRIVER_TRANSLATIONS:
+            is_relevant = not relevant_keys or window in relevant_keys
             drivers.append({
                 "key": window,
                 "text": DRIVER_TRANSLATIONS[window],
                 "category": "special",
-                "priority": 1,  # High priority
+                "priority": 1 if is_relevant else 3,
+                "relevance": "high" if is_relevant else "low",
             })
     
-    # 4. Check seasonal context
-    if seasonal_context:
-        seasonal_key = seasonal_context.lower().replace(" ", "_")
-        # Handle variations
-        for key, translation in DRIVER_TRANSLATIONS.items():
-            if seasonal_key in key or key in seasonal_context.lower():
-                drivers.append({
-                    "key": key,
-                    "text": translation,
-                    "category": "seasonal",
-                    "priority": 3,
-                })
-                break
-    
-    # Also check raw indicators for seasonal markers
-    for indicator in raw_indicators:
-        if indicator.endswith("_season") and indicator in DRIVER_TRANSLATIONS:
-            # Avoid duplicates
-            if not any(d["key"] == indicator for d in drivers):
+    # 3. Check planetary (only if relevant to pattern)
+    planetary_indicators = ["mercury_active", "venus_active", "mars_active", "saturn_active"]
+    for indicator in planetary_indicators:
+        if indicator in raw_indicators and indicator in DRIVER_TRANSLATIONS:
+            is_relevant = not relevant_keys or indicator in relevant_keys
+            if is_relevant:  # V8: Only include planetary if pattern-relevant
                 drivers.append({
                     "key": indicator,
                     "text": DRIVER_TRANSLATIONS[indicator],
-                    "category": "seasonal",
-                    "priority": 3,
+                    "category": "planetary",
+                    "priority": 2,
+                    "relevance": "high",
                 })
     
     # If no drivers found, return None
     if not drivers:
         return None
     
-    # Sort by priority and take top 3
-    drivers.sort(key=lambda d: d["priority"])
-    top_drivers = drivers[:3]
+    # V8: Sort by priority AND relevance, take max 2
+    drivers.sort(key=lambda d: (d["priority"], 0 if d.get("relevance") == "high" else 1))
     
-    # Build combined signal
+    # V8: Filter out low-relevance drivers if we have high-relevance ones
+    high_relevance = [d for d in drivers if d.get("relevance") == "high"]
+    if high_relevance:
+        top_drivers = high_relevance[:2]
+    else:
+        top_drivers = drivers[:2]  # Max 2 drivers
+    
+    # Build combined signal (simpler when only 1-2 drivers)
     if len(top_drivers) == 1:
         combined_signal = top_drivers[0]["text"]
-    elif len(top_drivers) == 2:
-        # Combine two drivers more naturally
-        combined_signal = f"{top_drivers[0]['text']}; {top_drivers[1]['text'].lower()}"
     else:
-        # Combine three drivers
-        combined_signal = f"{top_drivers[0]['text']}; {top_drivers[1]['text'].lower()}"
+        combined_signal = f"{top_drivers[0]['text']}. {top_drivers[1]['text']}"
     
     return {
         "signal": combined_signal,
         "drivers": top_drivers,
-        "raw_indicators": raw_indicators[:10],  # Limit for debugging
+        "raw_indicators": raw_indicators[:5],  # Limit for debugging
         "driver_count": len(top_drivers),
     }
 
@@ -2414,9 +2375,14 @@ def _get_bazi_derivation(
 
 def _get_lifeline_derivation(
     signals_extended: Dict[str, Any],
-    cluster_data: Dict[str, Any]
+    cluster_data: Dict[str, Any],
+    pattern_id: str = ""
 ) -> Optional[str]:
-    """Get plain-language Lifeline signal."""
+    """
+    Get specific, pattern-based Lifeline derivation (V8).
+    
+    Lifeline = repeated life patterns - should feel like recognition of history.
+    """
     translations = LENS_SIGNAL_TRANSLATIONS.get("lifeline", {})
     
     # Check for lifeline evidence in cluster data
@@ -2429,30 +2395,77 @@ def _get_lifeline_derivation(
     if not lifeline_evidence and not lifeline_events:
         return None
     
-    # Check for pattern repetition
+    # V8: Analyze lifeline event themes if available
+    event_themes = []
+    event_periods = []
+    for event in lifeline_events[:5]:  # Look at recent significant events
+        if isinstance(event, dict):
+            title = event.get("title", "").lower()
+            description = event.get("description", "").lower()
+            combined = f"{title} {description}"
+            
+            # Extract recurring life themes
+            if any(w in combined for w in ["relationship", "love", "partner", "connect"]):
+                event_themes.append("relationships")
+            if any(w in combined for w in ["career", "work", "job", "project"]):
+                event_themes.append("work")
+            if any(w in combined for w in ["move", "change", "transition", "shift"]):
+                event_themes.append("transitions")
+            if any(w in combined for w in ["loss", "end", "grief", "goodbye"]):
+                event_themes.append("endings")
+            if any(w in combined for w in ["begin", "start", "new", "first"]):
+                event_themes.append("beginnings")
+            if any(w in combined for w in ["realiz", "clarity", "understand", "insight"]):
+                event_themes.append("insights")
+            if any(w in combined for w in ["wait", "hesitat", "uncertain", "unsure"]):
+                event_themes.append("waiting")
+    
+    # V8: Pattern-specific lifeline signals
+    pattern_lifeline_phrases = {
+        "relational_reopening": "Similar moments of opening up have preceded important connections before",
+        "heart_thaw": "Past softening moments have often led to meaningful change",
+        "threshold_standing": "You've stood at thresholds like this before—usually just before clarity arrived",
+        "somethings_here": "This quiet sense of emergence has shown up before significant shifts",
+        "safe_intimacy_returning": "Safety returning echoes earlier periods when walls came down",
+        "over_functioning_hero": "This pattern of carrying too much has appeared before—often before a needed boundary",
+        "inner_critic_override": "Your inner critic has surfaced at growth edges before",
+        "emotional_flooding": "Strong emotional waves have preceded breakthroughs in your history",
+        "avoidant_autopilot": "This pattern of stepping back resembles earlier protective responses",
+    }
+    
+    # Try pattern-specific phrase first
+    if pattern_id in pattern_lifeline_phrases and (lifeline_evidence or lifeline_events):
+        return pattern_lifeline_phrases[pattern_id]
+    
+    # Check for pattern repetition score
     repetition_score = cluster_data.get("repetition_score", 0)
     
     if repetition_score >= 0.5:
-        return translations.get("pattern_repeating", "This pattern has appeared before in your life")
+        return "This theme has appeared at key turning points in your life before"
+    
+    # V8: Build specific signal from detected themes
+    unique_themes = list(dict.fromkeys(event_themes))
+    if unique_themes:
+        theme_phrases = {
+            "relationships": "relationship shifts",
+            "work": "work or purpose questions",
+            "transitions": "major transitions",
+            "endings": "necessary endings",
+            "beginnings": "fresh starts",
+            "insights": "moments of clarity",
+            "waiting": "periods of waiting",
+        }
+        detected = [theme_phrases.get(t) for t in unique_themes[:2] if t in theme_phrases]
+        if detected:
+            return f"Your lifeline shows this pattern often emerges around {detected[0]}"
     
     # Check for multiple lifeline matches
     if len(lifeline_evidence) >= 2:
-        return translations.get("similar_themes", "Similar themes show up across multiple experiences")
+        return "Multiple life experiences echo this theme"
     
-    # If we have lifeline events but no explicit matches, generate a generic signal
+    # If we have lifeline events but no explicit matches
     if lifeline_events and len(lifeline_events) > 0:
-        return "Your life experiences contain echoes of this pattern"
-    
-    # Check for emotional echo
-    if lifeline_evidence:
-        first_match = lifeline_evidence[0] if lifeline_evidence else {}
-        themes = first_match.get("themes", [])
-        if "emotion" in str(themes).lower() or "feel" in str(themes).lower():
-            return translations.get("emotional_echo", "Emotional tone matches previous significant moments")
-    
-    # Default if lifeline contributed
-    if lifeline_evidence:
-        return translations.get("growth_edge", "This touches a growth edge you've been working on")
+        return "Your life history contains echoes of this moment"
     
     return None
 
@@ -2463,9 +2476,9 @@ def _get_journal_derivation(
     pattern_id: str
 ) -> Optional[str]:
     """
-    Get plain-language Journal signal (NEW in V6).
+    Get specific, content-based Journal derivation (V8).
     
-    Journal is often the most personal and relevant signal source.
+    Journal = current inner experience - should feel personal and specific.
     """
     # Check for journal evidence in cluster data
     journal_evidence = cluster_data.get("matched_themes_by_source", {}).get("journal", [])
@@ -2474,35 +2487,81 @@ def _get_journal_derivation(
     memory = signals_extended.get("memory", {})
     journal_entries = memory.get("journal_entries", [])
     
-    # Get dominant theme from cluster data
+    # Get dominant theme and matched keywords from cluster data
     dominant_theme = cluster_data.get("dominant_theme", "")
+    matched_keywords = cluster_data.get("matched_keywords", [])
     
     if not journal_evidence and not journal_entries:
         return None
     
-    # Count journal matches
+    # V8: Extract actual themes/keywords from entries if available
+    entry_themes = []
+    for entry in journal_entries[:3]:  # Look at last 3 entries
+        content = entry.get("content", "").lower() if isinstance(entry, dict) else str(entry).lower()
+        # Extract emotional signals
+        if any(w in content for w in ["open", "opening", "warmth", "warm"]):
+            entry_themes.append("openness")
+        if any(w in content for w in ["connect", "connection", "close", "closer"]):
+            entry_themes.append("connection")
+        if any(w in content for w in ["uncertain", "unsure", "hesitant", "cautious"]):
+            entry_themes.append("hesitation")
+        if any(w in content for w in ["clear", "clarity", "see", "understand"]):
+            entry_themes.append("clarity")
+        if any(w in content for w in ["feel", "feeling", "emotion", "emotional"]):
+            entry_themes.append("emotion")
+        if any(w in content for w in ["decide", "decision", "choice", "choosing"]):
+            entry_themes.append("decision")
+        if any(w in content for w in ["trust", "trusting", "faith", "believe"]):
+            entry_themes.append("trust")
+        if any(w in content for w in ["let go", "release", "letting go", "surrender"]):
+            entry_themes.append("release")
+    
+    # Deduplicate themes
+    unique_themes = list(dict.fromkeys(entry_themes))
+    
+    # V8: Generate specific signal based on detected themes
     journal_count = len(journal_evidence) if journal_evidence else len(journal_entries)
     
-    # Generate signal based on evidence
+    if unique_themes:
+        # Build specific signal from detected themes
+        theme_phrases = {
+            "openness": "warmth and openness",
+            "connection": "a pull toward connection",
+            "hesitation": "some caution or hesitation",
+            "clarity": "growing clarity",
+            "emotion": "emotional processing",
+            "decision": "decisions taking shape",
+            "trust": "questions around trust",
+            "release": "readiness to let go",
+        }
+        
+        detected_phrases = [theme_phrases.get(t) for t in unique_themes[:3] if t in theme_phrases]
+        
+        if len(detected_phrases) >= 2:
+            return f"Recent writing points to {detected_phrases[0]} alongside {detected_phrases[1]}"
+        elif detected_phrases:
+            return f"Recent writing reflects {detected_phrases[0]}"
+    
+    # V8: Pattern-specific fallbacks
+    pattern_journal_phrases = {
+        "relational_reopening": "Recent entries touch on connection and the possibility of opening up",
+        "heart_thaw": "Recent writing reflects softening and emotional availability",
+        "threshold_standing": "Recent entries show awareness of standing at a decision point",
+        "somethings_here": "Recent writing captures a sense of something emerging",
+        "safe_intimacy_returning": "Recent entries explore safety and closeness",
+        "over_functioning_hero": "Recent writing touches on doing too much or carrying others",
+        "inner_critic_override": "Recent entries show self-critical thoughts surfacing",
+        "emotional_flooding": "Recent writing reflects strong emotions moving through",
+    }
+    
+    if pattern_id in pattern_journal_phrases:
+        return pattern_journal_phrases[pattern_id]
+    
+    # Generic but still specific fallback
     if journal_count >= 3:
-        # Strong journal signal
-        return "Your recent writing repeatedly touches on this theme"
-    elif journal_count >= 2:
-        # Moderate journal signal
-        if dominant_theme:
-            theme_phrases = {
-                "relational": "recent entries point to openness and connection",
-                "emotional": "recent writing reflects emotional processing",
-                "behavioral": "your reflections show awareness of this pattern",
-                "identity": "you've been exploring questions of purpose and direction",
-                "pressure": "recent entries mention feeling stretched or pressured",
-            }
-            phrase = theme_phrases.get(dominant_theme, "recent writing touches on this theme")
-            return phrase
-        return "Recent journal entries echo this theme"
-    elif journal_count >= 1 or journal_entries:
-        # Light journal signal
-        return "Something in your recent writing aligns with this"
+        return "Your recent writing repeatedly explores themes that align with this"
+    elif journal_count >= 1:
+        return "Something in recent writing touches on this theme"
     
     return None
 
