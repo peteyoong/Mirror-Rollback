@@ -578,9 +578,20 @@ export default function LifelineMiniMap({
             <Pressable
               style={styles.fallbackTouchLayer}
               onPress={(e) => {
-                console.log('[MiniMap] Fallback layer touched at X:', e.nativeEvent.locationX);
-                const touchX = e.nativeEvent.locationX;
-                const nearestYear = findNearestNode(touchX);
+                // On web, locationX may be undefined, so we use pageX/clientX as fallback
+                let touchX = e.nativeEvent.locationX;
+                
+                // Web fallback: calculate relative position from pageX
+                if (touchX === undefined && 'pageX' in e.nativeEvent) {
+                  // Get the position relative to the graph container
+                  const pageX = (e.nativeEvent as any).pageX || (e.nativeEvent as any).clientX || 0;
+                  // Estimate graph left position (padding + yAxis width)
+                  const estimatedGraphLeft = 60;
+                  touchX = Math.max(0, pageX - estimatedGraphLeft);
+                }
+                
+                console.log('[MiniMap] Fallback layer touched at X:', touchX);
+                const nearestYear = findNearestNode(touchX || 0);
                 console.log('[MiniMap] Fallback resolving to nearest year:', nearestYear);
                 handleTap(nearestYear);
               }}
