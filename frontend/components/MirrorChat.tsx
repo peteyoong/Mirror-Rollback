@@ -357,18 +357,29 @@ export default function MirrorChat({
   }, [lens]);
 
   // Add initial greeting
+  // ===== GREETING MESSAGE INITIALIZATION =====
+  // Only set greeting on initial mount, NOT on every lens change
   useEffect(() => {
-    const greeting = lens
-      ? `I'm here to explore your ${lens === 'human_design' ? 'Human Design' : lens.charAt(0).toUpperCase() + lens.slice(1)} chart with you. What would you like to understand?`
-      : "I'm here as a companion for self-understanding. Share what's on your mind, and I'll reflect what I notice.";
+    console.log('[MIRROR_CHAT_DEBUG] Greeting useEffect triggered - lens:', lens, 'messages.length:', messages.length);
     
-    setMessages([{
-      id: 'greeting',
-      role: 'assistant',
-      content: greeting,
-      timestamp: new Date(),
-    }]);
-  }, [lens]);
+    // Only set greeting if messages is empty (first mount)
+    if (messages.length === 0) {
+      const greeting = lens
+        ? `I'm here to explore your ${lens === 'human_design' ? 'Human Design' : lens.charAt(0).toUpperCase() + lens.slice(1)} chart with you. What would you like to understand?`
+        : "I'm here as a companion for self-understanding. Share what's on your mind, and I'll reflect what I notice.";
+      
+      console.log('[MIRROR_CHAT_DEBUG] Setting greeting message (messages was empty)');
+      setMessages([{
+        id: 'greeting',
+        role: 'assistant',
+        content: greeting,
+        timestamp: new Date(),
+      }]);
+    } else {
+      console.log('[MIRROR_CHAT_DEBUG] Skipping greeting - messages already has', messages.length, 'items');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lens]); // Only run when lens changes, and check messages.length inside
 
   // ===== KEYSTONE CONTINUATION AUTO-TRIGGER =====
   // When keystoneContext is provided, automatically send continuation message
@@ -478,7 +489,17 @@ export default function MirrorChat({
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    // ===== DEBUG: Log current state before update =====
+    console.log('[MIRROR_CHAT_DEBUG] Before setMessages - current messages count:', messages.length);
+    console.log('[MIRROR_CHAT_DEBUG] Adding user message:', { id: userMessage.id, content: userMessage.content.substring(0, 50) });
+    
+    setMessages(prev => {
+      console.log('[MIRROR_CHAT_DEBUG] setMessages callback - prev count:', prev.length, 'adding user message');
+      const newMessages = [...prev, userMessage];
+      console.log('[MIRROR_CHAT_DEBUG] setMessages callback - new count:', newMessages.length);
+      return newMessages;
+    });
+    
     const sentText = inputText.trim();
     setInputText('');
     setIsLoading(true);
@@ -959,6 +980,7 @@ export default function MirrorChat({
       <FlatList
         ref={flatListRef}
         data={messages}
+        extraData={messages.length}  // Force re-render when messages change
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
         contentContainerStyle={[
