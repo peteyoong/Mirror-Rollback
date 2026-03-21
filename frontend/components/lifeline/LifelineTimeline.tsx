@@ -18,6 +18,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -39,6 +40,8 @@ import LifelineMemoryPrompt, {
 import TimeDistanceTimeline from './TimeDistanceTimeline';
 import { ChartResonance, ChartResonanceSection, PatternResonanceSummary } from './ChartResonance';
 import LifelineAddMenu from './LifelineAddMenu';
+import LifelineLeaderCard from './LifelineLeaderCard';
+import LifelineStarterPrompts from './LifelineStarterPrompts';
 
 interface Props {
   userId: string;
@@ -106,6 +109,20 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   const [prefillYear, setPrefillYear] = useState<number | null>(null);
   const [prefillDescription, setPrefillDescription] = useState<string | null>(null);
   const [prefillCategory, setPrefillCategory] = useState<string | null>(null);
+
+  // Toast state for progression feedback
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastOpacity] = useState(new Animated.Value(0));
+
+  // Show toast with auto-hide
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.delay(3000),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start(() => setToastMessage(null));
+  };
 
   // Load timeline data and patterns
   const loadTimeline = useCallback(async (refresh = false) => {
@@ -195,6 +212,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
 
   // Save event (create or update)
   const handleSaveEvent = async (eventData: Partial<LifelineEvent>) => {
+    const isNewEvent = !eventData.id;
     if (eventData.id) {
       // Update existing
       await api.put(`/lifeline/event/${eventData.id}`, eventData);
@@ -206,6 +224,11 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
       });
     }
     await loadTimeline();
+    
+    // Show progression feedback toast for new events
+    if (isNewEvent) {
+      showToast("Added. Over time, patterns will start to emerge.");
+    }
   };
 
   // Delete event with proper cleanup and refresh
@@ -297,14 +320,35 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     setShowEditor(true);
   };
 
+  // Handle starter prompt selection
+  const handleStarterPromptSelect = (prefillTitle: string, category?: string) => {
+    setEditingEvent(null);
+    setPrefillYear(null);
+    setPrefillDescription(prefillTitle);
+    setPrefillCategory(category || null);
+    setShowEditor(true);
+  };
+
   // Render header with statistics and patterns
   const renderHeader = () => (
     <View style={styles.header}>
+      {/* Leader Card - ABOVE header for new/low-data users */}
+      <LifelineLeaderCard 
+        onAddMoment={handleAddEvent}
+        eventCount={events.length}
+      />
+      
+      {/* Starter Prompts - for users with < 5 moments */}
+      <LifelineStarterPrompts
+        eventCount={events.length}
+        onSelectPrompt={handleStarterPromptSelect}
+      />
+      
       <View style={styles.headerTop}>
         <View>
           <Text style={[styles.title, { color: theme.text }]}>Lifeline</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            A place to map the moments that shaped you.
+            A place to map the moments that shaped you — and see the patterns behind them.
           </Text>
         </View>
         <TouchableOpacity
@@ -474,10 +518,23 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         visible={showEditor}
         event={editingEvent}
         prefillYear={prefillYear}
-        onClose={() => setShowEditor(false)}
+        prefillDescription={prefillDescription}
+        prefillCategory={prefillCategory}
+        onClose={() => {
+          setShowEditor(false);
+          setPrefillDescription(null);
+          setPrefillCategory(null);
+        }}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
       />
+      
+      {/* Toast notification */}
+      {toastMessage && (
+        <Animated.View style={[styles.toast, { opacity: toastOpacity, backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.toastText, { color: theme.text }]}>{toastMessage}</Text>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -575,5 +632,21 @@ const styles = StyleSheet.create({
   },
   memoryPromptContainer: {
     marginTop: 16,
+  },
+  toast: {
+    position: 'absolute',
+    bottom: 100,
+    left: 20,
+    right: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+  },
+  toastText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 });

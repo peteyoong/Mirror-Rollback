@@ -429,28 +429,16 @@ def generate_gap_prompts(gaps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         else:
             period_text = f"{start} to {end}"
         
-        # Generate the main prompt text (gentle, curious)
+        # Generate the main prompt text (gentle, curious, psychologically safe)
         if length <= 4:
-            main_text = f"Your timeline has a quiet period around {period_text}."
+            main_text = f"Sometimes the quiet periods matter just as much.\n\nWas there something subtle, difficult, or meaningful during {period_text}?"
         elif length <= 7:
-            main_text = f"There's an unexplored stretch in your story between {period_text}."
+            main_text = f"Sometimes the quiet periods matter just as much.\n\nWas there something subtle, difficult, or meaningful between {period_text}?"
         else:
-            main_text = f"A longer period of your life ({period_text}) hasn't been mapped yet."
+            main_text = f"Sometimes the quiet periods matter just as much.\n\nWas there something subtle, difficult, or meaningful during this time ({period_text})?"
         
-        # Generate the reflection invitation
-        reflection_options = [
-            "Was there something meaningful here that you haven't added yet?",
-            "This period may hold moments worth reflecting on.",
-            "You might find something worth remembering here.",
-        ]
-        
-        # Choose based on gap length
-        if length <= 4:
-            reflection = reflection_options[0]
-        elif length <= 7:
-            reflection = reflection_options[1]
-        else:
-            reflection = reflection_options[2]
+        # Generate the reflection invitation - small secondary line
+        reflection = "Not all important moments are obvious."
         
         prompts.append({
             "start_year": start,

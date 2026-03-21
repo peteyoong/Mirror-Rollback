@@ -46,12 +46,14 @@ interface Props {
   visible: boolean;
   event?: LifelineEvent | null;
   prefillYear?: number | null;
+  prefillDescription?: string | null;
+  prefillCategory?: string | null;
   onClose: () => void;
   onSave: (eventData: Partial<LifelineEvent>) => Promise<void>;
   onDelete?: (eventId: string) => Promise<void>;
 }
 
-export default function LifelineEventEditor({ visible, event, prefillYear, onClose, onSave, onDelete }: Props) {
+export default function LifelineEventEditor({ visible, event, prefillYear, prefillDescription, prefillCategory, onClose, onSave, onDelete }: Props) {
   const { theme } = useTheme();
   const isEditing = !!event;
 
@@ -107,8 +109,16 @@ export default function LifelineEventEditor({ visible, event, prefillYear, onClo
       if (prefillYear) {
         setYear(prefillYear.toString());
       }
+      // If prefillDescription is provided (from starter prompts), prefill the title
+      if (prefillDescription) {
+        setTitle(prefillDescription);
+      }
+      // If prefillCategory is provided, prefill the category
+      if (prefillCategory) {
+        setCategory(prefillCategory);
+      }
     }
-  }, [event, visible, prefillYear]);
+  }, [event, visible, prefillYear, prefillDescription, prefillCategory]);
 
   const resetForm = () => {
     setTitle('');
