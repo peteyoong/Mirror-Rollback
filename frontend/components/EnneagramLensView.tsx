@@ -1311,6 +1311,529 @@ const WING_FLAVORS: { [key: string]: { pattern: string; tradeoff: string; streng
 const BALANCED_WINGS_EXPLANATION = 'Your assessment suggests relatively equal access to both wings. This means you may draw on either flavor depending on context—neither has become a dominant default. Many Enneagram teachers consider this a flexibility that allows conscious choice: you can lean into whichever wing serves the situation.';
 const BALANCED_WINGS_GROWTH_NOTE = 'Over time, people often learn which wing supports them best in different moments.';
 
+// ============================================
+// DEEP DIVE MIRROR PATTERN CARDS
+// ============================================
+// Standardized card format for the refactored Deep Dive experience
+// Each card has: title, whatThisIs, whatYouMightNotice, tension, whenItWorks, tryThis
+
+interface DeepDiveCard {
+  id: string;
+  title: string;
+  whatThisIs: string;
+  whatYouMightNotice: string;
+  tension: string;
+  whenItWorks: string;
+  tryThis: string;
+}
+
+const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
+  1: [
+    {
+      id: 'core_pattern',
+      title: 'Core Pattern',
+      whatThisIs: 'You move toward what feels correct, aligned, and improvable. This is your primary strategy for navigating the world.',
+      whatYouMightNotice: 'An inner voice that evaluates constantly. A sense that things could always be better. Difficulty with "good enough." Frustration when others don\'t share your standards.',
+      tension: 'The drive to improve can become a prison of perfectionism. The inner critic that motivates also punishes.',
+      whenItWorks: 'Your conscientiousness creates trust. Your attention to quality raises the bar. Your integrity anchors others in chaos.',
+      tryThis: 'Notice when "should" appears in your thinking today. Replace one "should" with a conscious choice.'
+    },
+    {
+      id: 'how_shows_up',
+      title: 'How This Shows Up',
+      whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
+      whatYouMightNotice: 'Teaching or correcting others without being asked. Weighing options against internal standards. High-quality output paired with self-criticism. Difficulty relaxing until things are "right."',
+      tension: 'The desire to help through improvement can come across as criticism. Your internal standards may be invisible to others.',
+      whenItWorks: 'Your reliability and conscientiousness earn genuine respect. People trust your judgment because you\'ve thought it through.',
+      tryThis: 'Before offering improvement, ask yourself: "Did they ask for feedback, or do they need something else?"'
+    },
+    {
+      id: 'under_pressure',
+      title: 'Under Pressure',
+      whatThisIs: 'When stressed, you may take on qualities of Type 4—becoming moody, withdrawn, and emotionally volatile.',
+      whatYouMightNotice: 'Losing your usual composure. Feeling misunderstood. The inner critic turning inward destructively. Emotional intensity that surprises you.',
+      tension: 'Self-judgment may intensify rather than motivate. The feelings that surface can feel overwhelming.',
+      whenItWorks: 'This movement opens access to emotional depth and authenticity. The feelings carry important information about what matters.',
+      tryThis: 'When you notice yourself withdrawing, pause. What feeling is asking for attention beneath the surface?'
+    },
+    {
+      id: 'when_resourced',
+      title: 'When Resourced',
+      whatThisIs: 'When healthy and integrated, you access qualities of Type 7—spontaneity, joy, and acceptance.',
+      whatYouMightNotice: 'Permission to play and be imperfect. A loosening of the grip on standards. Enjoyment of what is, not just what could be.',
+      tension: 'Lightness may initially feel irresponsible. You might resist accepting imperfection even when it serves you.',
+      whenItWorks: 'This movement offers acceptance—the capacity to enjoy life without needing to fix it first.',
+      tryThis: 'Do something "imperfectly" on purpose today. What happens when good enough is actually good enough?'
+    },
+    {
+      id: 'your_edges',
+      title: 'Your Edges',
+      whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
+      whatYouMightNotice: 'Resentment building when your standards aren\'t met. Suppressed anger that leaks out as criticism. Difficulty acknowledging your own desires because they feel "selfish."',
+      tension: 'The pursuit of "right" can crowd out acceptance of what is. Your anger may be the most denied part of yourself.',
+      whenItWorks: 'When you befriend your anger, it becomes healthy assertion. When you accept imperfection, peace becomes possible.',
+      tryThis: 'Notice if you\'re holding an unspoken standard that others don\'t know about. What would happen if you named it?'
+    },
+    {
+      id: 'growth_path',
+      title: 'Growth Path',
+      whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
+      whatYouMightNotice: 'Moments of serenity and acceptance. Times when you can see goodness in what already exists. Permission to make mistakes without self-punishment.',
+      tension: 'Growth requires releasing the belief that improvement is always necessary. This can feel like abandoning your values.',
+      whenItWorks: 'You become wise rather than rigid. Your discernment serves without demanding. You hold standards and accept reality.',
+      tryThis: 'Where am I holding to a standard that serves my ego more than the situation?'
+    }
+  ],
+  2: [
+    {
+      id: 'core_pattern',
+      title: 'Core Pattern',
+      whatThisIs: 'You move toward connection through giving and being needed. This is your primary strategy for belonging.',
+      whatYouMightNotice: 'Anticipating what others need before they ask. Finding it easier to give than receive. Your value feeling tied to how helpful you are. Difficulty identifying your own needs.',
+      tension: 'The focus on others can erase your own needs. Giving can come with invisible strings attached.',
+      whenItWorks: 'Your attentiveness creates genuine warmth. Your ability to anticipate needs makes others feel truly seen.',
+      tryThis: 'Before helping today, pause and ask: "Do they want help, or presence?"'
+    },
+    {
+      id: 'how_shows_up',
+      title: 'How This Shows Up',
+      whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
+      whatYouMightNotice: 'Considering how choices affect others before yourself. Being the one who remembers birthdays and checks in. Struggling with boundaries. Feeling unappreciated after giving.',
+      tension: 'Over-helping can create dependency. Your generosity may make others feel obligated.',
+      whenItWorks: 'Your people skills and emotional intelligence create bridges others can\'t. You build real community.',
+      tryThis: 'Notice if you\'re earning love today. Try giving without tracking what comes back.'
+    },
+    {
+      id: 'under_pressure',
+      title: 'Under Pressure',
+      whatThisIs: 'When stressed, you may take on qualities of Type 8—becoming aggressive and demanding recognition.',
+      whatYouMightNotice: 'Insisting on appreciation. Pushing harder when feeling unrecognized. Generosity flipping into entitlement. Anger surprising you.',
+      tension: 'The energy usually flowing to others may redirect into demanding. Resentment may explode.',
+      whenItWorks: 'This movement offers access to your own needs and boundaries. The force you feel may be legitimate self-advocacy.',
+      tryThis: 'When you notice yourself demanding recognition, pause. What need of your own have you been neglecting?'
+    },
+    {
+      id: 'when_resourced',
+      title: 'When Resourced',
+      whatThisIs: 'When healthy and integrated, you access qualities of Type 4—self-care, emotional honesty, and honoring your own needs.',
+      whatYouMightNotice: 'Permission to receive without immediately giving back. Knowing what you actually feel. Caring for yourself without guilt.',
+      tension: 'Attending to yourself may feel selfish. Receiving what you freely give others can feel uncomfortable.',
+      whenItWorks: 'This movement offers authenticity—knowing and expressing what you actually need.',
+      tryThis: 'Let someone help you with something this week. Notice what arises when you receive without reciprocating.'
+    },
+    {
+      id: 'your_edges',
+      title: 'Your Edges',
+      whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
+      whatYouMightNotice: 'Pride in being needed that you don\'t acknowledge. Manipulation through helpfulness. Tracking what you\'ve given. Resentment when giving doesn\'t generate expected recognition.',
+      tension: 'The help can come with invisible strings. Your own needs may have disappeared beneath focus on others.',
+      whenItWorks: 'When you acknowledge your pride, it becomes healthy self-worth. When you own your needs, relationships become reciprocal.',
+      tryThis: 'Ask for one thing you need today—directly and simply, without explaining why you deserve it.'
+    },
+    {
+      id: 'growth_path',
+      title: 'Growth Path',
+      whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
+      whatYouMightNotice: 'Humility and freedom from needing to be needed. Giving that expects nothing. Receiving with grace.',
+      tension: 'Growth requires releasing the belief that love is earned. This can feel like losing your purpose.',
+      whenItWorks: 'You become unconditionally caring. Your generosity has no agenda. You matter whether or not you\'re helping.',
+      tryThis: 'What do I need right now that I\'m not asking for?'
+    }
+  ],
+  3: [
+    {
+      id: 'core_pattern',
+      title: 'Core Pattern',
+      whatThisIs: 'You move toward achievement, recognition, and presenting your best self. This is your primary strategy for being valued.',
+      whatYouMightNotice: 'Awareness of how you\'re being perceived. Drive to succeed and be seen as capable. Adapting your presentation to the audience. Difficulty with slowing down.',
+      tension: 'The drive to succeed can disconnect you from what you actually feel. Image management can replace authenticity.',
+      whenItWorks: 'Your ability to get things done is real. Your adaptability helps you navigate complex environments. Your energy inspires.',
+      tryThis: 'Notice where you\'re performing today. Name the real fear underneath.'
+    },
+    {
+      id: 'how_shows_up',
+      title: 'How This Shows Up',
+      whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
+      whatYouMightNotice: 'Evaluating which option leads to the best outcome or impression. Goal-driven efficiency. Adapting to context. Avoiding situations where failure feels possible.',
+      tension: 'Charm that wins people over may disconnect from what you actually feel. Depth may be sacrificed for achievement.',
+      whenItWorks: 'Your focus and drive create real results. You inspire others to raise their game.',
+      tryThis: 'Do one thing slowly and well today, even if no one sees it.'
+    },
+    {
+      id: 'under_pressure',
+      title: 'Under Pressure',
+      whatThisIs: 'When stressed, you may take on qualities of Type 9—disengaging, going through the motions, avoiding risk.',
+      whatYouMightNotice: 'The drive flatlines. Success feels meaningless. Going through motions. Avoiding situations where failure is possible.',
+      tension: 'The energy that propels achievement can disappear. You may feel stuck and passive.',
+      whenItWorks: 'This movement offers permission to rest and simply be. The pause may reveal what matters beyond accomplishment.',
+      tryThis: 'When you notice yourself going through the motions, pause. What would feel meaningful even without recognition?'
+    },
+    {
+      id: 'when_resourced',
+      title: 'When Resourced',
+      whatThisIs: 'When healthy and integrated, you access qualities of Type 6—commitment, loyalty, and valuing depth over image.',
+      whatYouMightNotice: 'Authentic connection over impression. Staying in relationships past the point of productivity. Being valued for who you are.',
+      tension: 'Slowing down may feel like falling behind. Intimacy that can\'t be optimized may feel uncomfortable.',
+      whenItWorks: 'This movement offers belonging—being valued for who you are, not what you achieve.',
+      tryThis: 'Stay in a conversation past the point of productivity. What opens up when you\'re not moving toward an outcome?'
+    },
+    {
+      id: 'your_edges',
+      title: 'Your Edges',
+      whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
+      whatYouMightNotice: 'Self-deception about your motivations. Not knowing what you actually feel. Confusing the role with the self. Fear of being seen as failing.',
+      tension: 'The image can become the identity. Authenticity may feel like a luxury you can\'t afford.',
+      whenItWorks: 'When you drop the performance, real connection becomes possible. Your true self is more interesting than any image.',
+      tryThis: 'Share one imperfect truth with someone safe today.'
+    },
+    {
+      id: 'growth_path',
+      title: 'Growth Path',
+      whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
+      whatYouMightNotice: 'Moments of authenticity. Success that comes from genuine value rather than image. Being seen for who you are.',
+      tension: 'Growth requires releasing the belief that you are what you accomplish. This can feel like losing your worth.',
+      whenItWorks: 'You become truly inspiring. Your success serves others. Your presence has depth.',
+      tryThis: 'Where am I performing rather than being honest about what I feel?'
+    }
+  ],
+  4: [
+    {
+      id: 'core_pattern',
+      title: 'Core Pattern',
+      whatThisIs: 'You move toward what feels authentic, meaningful, and emotionally true. This is your primary strategy for significance.',
+      whatYouMightNotice: 'Seeking depth in experiences and relationships. A sense that something meaningful is missing. Attention to what\'s unique and personal. Discomfort with the ordinary.',
+      tension: 'The search for depth can become attachment to melancholy. Comparing inner life to others\' surfaces creates pain.',
+      whenItWorks: 'Your emotional honesty creates permission for others to feel. Your depth reaches places others can\'t access.',
+      tryThis: 'Notice longing today. Name what you actually want beneath it.'
+    },
+    {
+      id: 'how_shows_up',
+      title: 'How This Shows Up',
+      whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
+      whatYouMightNotice: 'Seeking the authentic option. Struggling with routine tasks. Feeling misunderstood or different. Creative expression as necessity. Withdrawing when things feel flat.',
+      tension: 'The extraordinary can eclipse the ordinary. Deep connection valued may be hard to find.',
+      whenItWorks: 'Your aesthetic sense adds beauty. Your creativity transforms environments. Your authenticity is medicine.',
+      tryThis: 'Choose one ordinary moment today and make it meaningful through attention alone.'
+    },
+    {
+      id: 'under_pressure',
+      title: 'Under Pressure',
+      whatThisIs: 'When stressed, you may take on qualities of Type 2—becoming clingy and seeking external connection to fill internal voids.',
+      whatYouMightNotice: 'Reaching out excessively. Seeking others to validate your feelings. Independence giving way to neediness.',
+      tension: 'Connection may be sought to avoid rather than enrich. The reaching out may feel desperate.',
+      whenItWorks: 'This movement opens access to genuine interdependence. The reaching may reflect real need for support.',
+      tryThis: 'When you notice yourself seeking excessive connection, pause. What are you hoping someone else will provide?'
+    },
+    {
+      id: 'when_resourced',
+      title: 'When Resourced',
+      whatThisIs: 'When healthy and integrated, you access qualities of Type 1—objectivity, discipline, and using structure to channel emotion.',
+      whatYouMightNotice: 'Action from principle, not just feeling. Using structure to create. Following through despite mood.',
+      tension: 'Structure may feel constraining. Routines may seem to flatten emotional experience.',
+      whenItWorks: 'This movement offers groundedness—acting from principle creates real results from your depth.',
+      tryThis: 'Follow a simple routine this week without questioning it. What happens when you trust the container?'
+    },
+    {
+      id: 'your_edges',
+      title: 'Your Edges',
+      whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
+      whatYouMightNotice: 'Envy that compares your insides to others\' outsides. Romanticizing what\'s missing. Self-absorption in emotional experience. Pushing away what\'s available.',
+      tension: 'The search for what\'s missing can obscure what\'s present. Specialness can become isolation.',
+      whenItWorks: 'When you accept ordinariness, extraordinary peace becomes possible. Your uniqueness doesn\'t require suffering.',
+      tryThis: 'Practice "enoughness": List three things that are already true and good right now.'
+    },
+    {
+      id: 'growth_path',
+      title: 'Growth Path',
+      whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
+      whatYouMightNotice: 'Equanimity amidst emotion. Creating from presence rather than longing. Finding beauty in what is.',
+      tension: 'Growth requires releasing the belief that intensity equals meaning. This can feel like flattening.',
+      whenItWorks: 'You become a transformer of feeling into beauty. Your depth enriches rather than isolates.',
+      tryThis: 'What ordinary moment today could I receive as enough?'
+    }
+  ],
+  5: [
+    {
+      id: 'core_pattern',
+      title: 'Core Pattern',
+      whatThisIs: 'You move toward understanding, clarity, and preserving your inner resources. This is your primary strategy for navigating demands.',
+      whatYouMightNotice: 'Preference for observing before engaging. Protecting time, energy, and space. Seeking knowledge before action. Discomfort with unexpected demands.',
+      tension: 'The pull toward observation can become avoidance of participation. Knowledge can substitute for connection.',
+      whenItWorks: 'Your ability to see clearly without emotional distortion is rare. Your depth of understanding creates real expertise.',
+      tryThis: 'Notice where you\'re withholding today. Offer one small contribution.'
+    },
+    {
+      id: 'how_shows_up',
+      title: 'How This Shows Up',
+      whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
+      whatYouMightNotice: 'Gathering knowledge before committing. Needing space to recharge. Minimizing needs. Preferring deep expertise over broad engagement. Retreating when drained.',
+      tension: 'The pursuit of certainty can delay action indefinitely. Boundaries can become walls.',
+      whenItWorks: 'Your independence allows you to think freely. Your thoroughness catches what others miss.',
+      tryThis: 'Action can create clarity. Pick one tiny step before more research.'
+    },
+    {
+      id: 'under_pressure',
+      title: 'Under Pressure',
+      whatThisIs: 'When stressed, you may take on qualities of Type 7—becoming scattered, impulsive, and jumping from thing to thing.',
+      whatYouMightNotice: 'Acting without usual thoughtfulness. Scattered energy. The mind fragmenting rather than focusing.',
+      tension: 'Careful analysis may fragment. Action may outpace understanding.',
+      whenItWorks: 'This movement offers access to spontaneity and engagement. The energy wants expression, not containment.',
+      tryThis: 'When you notice scattered energy, pause. What are you avoiding by staying in motion?'
+    },
+    {
+      id: 'when_resourced',
+      title: 'When Resourced',
+      whatThisIs: 'When healthy and integrated, you access qualities of Type 8—confident engagement, moving from observation to participation.',
+      whatYouMightNotice: 'Sharing knowledge generously. Taking action before feeling fully prepared. Engaging with presence and power.',
+      tension: 'Engagement may feel exposing. Action before certainty can feel risky.',
+      whenItWorks: 'This movement offers impact—shaping the world, not just understanding it.',
+      tryThis: 'Share your perspective before someone asks for it. What happens when you offer rather than wait?'
+    },
+    {
+      id: 'your_edges',
+      title: 'Your Edges',
+      whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
+      whatYouMightNotice: 'Avarice with time and energy. Emotional detachment presented as objectivity. Excessive self-sufficiency. Difficulty asking for what you need.',
+      tension: 'Resources feel scarcer than they are. Protection can become isolation.',
+      whenItWorks: 'When you engage, you discover you have more to give than you thought. Connection replenishes rather than depletes.',
+      tryThis: 'If you feel drained, check: Are you actually depleted, or hoarding energy unnecessarily?'
+    },
+    {
+      id: 'growth_path',
+      title: 'Growth Path',
+      whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
+      whatYouMightNotice: 'Generous sharing of knowledge. Presence in the world, not just observation of it. Trust that resources will replenish.',
+      tension: 'Growth requires releasing the belief that you must conserve to survive. This can feel like exposure.',
+      whenItWorks: 'You become a visionary who engages. Your wisdom serves rather than hoards.',
+      tryThis: 'Where am I withholding time or energy out of fear of being depleted?'
+    }
+  ],
+  6: [
+    {
+      id: 'core_pattern',
+      title: 'Core Pattern',
+      whatThisIs: 'You move toward security, preparation, and reliable foundations. This is your primary strategy for navigating uncertainty.',
+      whatYouMightNotice: 'Questioning and testing before trusting. Scanning for potential problems. Loyalty to people and systems you\'ve vetted. Difficulty with ambiguity.',
+      tension: 'Vigilance against threat can create the very anxiety you\'re trying to prevent. Worst-case thinking can crowd out possibility.',
+      whenItWorks: 'Your ability to anticipate problems prevents real disasters. Your loyalty creates deep, durable bonds.',
+      tryThis: 'Notice the "what if" loop today. Name the most likely outcome instead.'
+    },
+    {
+      id: 'how_shows_up',
+      title: 'How This Shows Up',
+      whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
+      whatYouMightNotice: 'Testing loyalty before fully committing. Troubleshooting and thorough preparation. Seeking reassurance. Difficulty with decisions that can\'t be verified.',
+      tension: 'Testing can strain the relationships you value. Questioning can delay necessary action.',
+      whenItWorks: 'Your reliability earns genuine trust. Your questioning mind catches what others miss.',
+      tryThis: 'Separate facts from fears today: Write two facts and two worries about the same situation.'
+    },
+    {
+      id: 'under_pressure',
+      title: 'Under Pressure',
+      whatThisIs: 'When stressed, you may take on qualities of Type 3—becoming competitive and image-conscious, trying to prove worth through achievement.',
+      whatYouMightNotice: 'Performance anxiety. Seeking security through success. Trying to prove your worth visibly.',
+      tension: 'Vigilance may redirect into proving yourself. Security may be sought through image rather than substance.',
+      whenItWorks: 'This movement offers access to confidence and capability. The drive may reflect genuine ambition.',
+      tryThis: 'When you notice yourself performing, pause. What would feel secure even without proving yourself?'
+    },
+    {
+      id: 'when_resourced',
+      title: 'When Resourced',
+      whatThisIs: 'When healthy and integrated, you access qualities of Type 9—inner peace, trust, and acting from groundedness rather than fear.',
+      whatYouMightNotice: 'Relaxed vigilance. Acting from presence rather than anticipation. Trust in yourself and situations.',
+      tension: 'Trust may feel naive. Letting go of watchfulness can feel dangerous.',
+      whenItWorks: 'This movement offers presence—resting in what is rather than bracing for what might be.',
+      tryThis: 'Let something unfold without contingency planning. What happens when you trust the situation?'
+    },
+    {
+      id: 'your_edges',
+      title: 'Your Edges',
+      whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
+      whatYouMightNotice: 'Projecting your doubts onto others. Seeking authority externally rather than trusting yourself. Suspicion that strains relationships. Paralysis by analysis.',
+      tension: 'The mind can generate threats faster than resolve them. External validation can never fully satisfy.',
+      whenItWorks: 'When you trust your own authority, inner peace becomes possible. Your courage was always there.',
+      tryThis: 'Make one small decision today without polling others. Trust your own judgment.'
+    },
+    {
+      id: 'growth_path',
+      title: 'Growth Path',
+      whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
+      whatYouMightNotice: 'Courage and inner authority. Trust in yourself and life. Action from faith rather than fear.',
+      tension: 'Growth requires releasing the belief that vigilance keeps you safe. This can feel like letting your guard down.',
+      whenItWorks: 'You become grounded and courageous. Your loyalty includes yourself.',
+      tryThis: 'What authority am I seeking outside myself that I already have within?'
+    }
+  ],
+  7: [
+    {
+      id: 'core_pattern',
+      title: 'Core Pattern',
+      whatThisIs: 'You move toward what feels open, interesting, and full of possibility. This is your primary strategy for staying free.',
+      whatYouMightNotice: 'Mind naturally scanning for what could be interesting or enjoyable. Discomfort with limitation or negativity. Reframing pain into possibility. Many options open at once.',
+      tension: 'The draw toward options can prevent the satisfaction of completion. Reframing everything positively can bypass pain that needs attention.',
+      whenItWorks: 'Your enthusiasm is genuinely contagious. Your ability to reframe creates resilience. Your vision opens doors others don\'t see.',
+      tryThis: 'Notice what you\'re running from by staying busy today.'
+    },
+    {
+      id: 'how_shows_up',
+      title: 'How This Shows Up',
+      whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
+      whatYouMightNotice: 'Starting many projects. Future-focused planning. Reframing setbacks quickly. Difficulty with sustained attention on one thing. Avoiding negative emotions.',
+      tension: 'Innovation and energy may lack follow-through. Positivity can feel dismissive to others in pain.',
+      whenItWorks: 'Your quick mind generates genuine solutions. Your energy moves stuck situations.',
+      tryThis: 'Stay with one thing past the point of initial interest. What opens up when you resist the pull toward something new?'
+    },
+    {
+      id: 'under_pressure',
+      title: 'Under Pressure',
+      whatThisIs: 'When stressed, you may take on qualities of Type 1—becoming critical and rigid, fixating on what\'s wrong.',
+      whatYouMightNotice: 'Optimism hardening into judgment. Criticism replacing possibility. Feeling blocked and frustrated.',
+      tension: 'The usual flow of options may congeal into rigidity. You may become the critic you usually avoid.',
+      whenItWorks: 'This movement offers access to discernment and standards. The criticism may carry legitimate insight.',
+      tryThis: 'When you notice yourself becoming critical, pause. What standard are you holding, and is it serving you?'
+    },
+    {
+      id: 'when_resourced',
+      title: 'When Resourced',
+      whatThisIs: 'When healthy and integrated, you access qualities of Type 5—focused depth, staying with one thing, finding richness in completion.',
+      whatYouMightNotice: 'Sustained attention. Depth over breadth. Satisfaction in finishing rather than starting.',
+      tension: 'Focus may feel limiting. Depth requires giving up other options.',
+      whenItWorks: 'This movement offers mastery—going deep enough to find what breadth cannot reach.',
+      tryThis: 'Finish something before starting something new. What satisfaction lives on the other side of completion?'
+    },
+    {
+      id: 'your_edges',
+      title: 'Your Edges',
+      whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
+      whatYouMightNotice: 'Gluttony for experience that never satisfies. Using positivity to avoid necessary grief. Commitment feeling like a trap. Depth sacrificed for breadth.',
+      tension: 'The pursuit of more can create less satisfaction. Freedom from pain can become imprisonment in pleasure.',
+      whenItWorks: 'When you stay with discomfort, it passes and depth remains. Limits create form for your gifts.',
+      tryThis: 'Let something be difficult without fixing or leaving it. What happens when you stay present with discomfort?'
+    },
+    {
+      id: 'growth_path',
+      title: 'Growth Path',
+      whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
+      whatYouMightNotice: 'Presence without needing stimulation. Joy that includes all of life, not just the pleasant parts. Satisfaction in completion.',
+      tension: 'Growth requires releasing the belief that pain must be avoided. This can feel like losing your spark.',
+      whenItWorks: 'You become truly joyful rather than frantically positive. Your presence offers real inspiration.',
+      tryThis: 'What am I running from by staying busy?'
+    }
+  ],
+  8: [
+    {
+      id: 'core_pattern',
+      title: 'Core Pattern',
+      whatThisIs: 'You move toward strength, directness, and protecting your autonomy. This is your primary strategy for staying safe.',
+      whatYouMightNotice: 'Awareness of power dynamics. Direct communication. Discomfort with vulnerability. Protecting those you care about. Taking charge in uncertain situations.',
+      tension: 'The protection of strength can block the intimacy you actually want. Control can become domination.',
+      whenItWorks: 'Your ability to take charge creates safety for others. Your directness cuts through confusion.',
+      tryThis: 'Notice where you\'re taking control today. Ask: Is this protection, or is this dominance?'
+    },
+    {
+      id: 'how_shows_up',
+      title: 'How This Shows Up',
+      whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
+      whatYouMightNotice: 'Decisive action. Protecting territory and people. Direct confrontation when needed. Difficulty delegating. Intensity that can overwhelm others.',
+      tension: 'Strength can intimidate those you want close. Protection can feel controlling.',
+      whenItWorks: 'Your leadership creates clarity. Your protection is genuine and valued. Your truth-telling is respected.',
+      tryThis: 'Let someone else take charge of something you care about. Notice what arises when you\'re not in control.'
+    },
+    {
+      id: 'under_pressure',
+      title: 'Under Pressure',
+      whatThisIs: 'When stressed, you may take on qualities of Type 5—withdrawing, becoming secretive, pulling away from connection.',
+      whatYouMightNotice: 'Retreating into isolation. Becoming secretive. Using distance to protect vulnerability.',
+      tension: 'Direct engagement may retreat into hiding. Strength may feel like it requires distance.',
+      whenItWorks: 'This movement offers access to reflection and conservation. The withdrawal may be genuine self-protection.',
+      tryThis: 'When you notice yourself pulling away, pause. What vulnerability are you protecting?'
+    },
+    {
+      id: 'when_resourced',
+      title: 'When Resourced',
+      whatThisIs: 'When healthy and integrated, you access qualities of Type 2—openheartedness, vulnerability, and using strength to serve.',
+      whatYouMightNotice: 'Letting others in. Protecting without dominating. Showing tenderness. Strength that serves rather than controls.',
+      tension: 'Vulnerability may feel like weakness. Softening may seem to compromise your position.',
+      whenItWorks: 'This movement offers intimacy—being seen and known, not just respected.',
+      tryThis: 'Share something tender with someone you trust. What happens when strength includes softness?'
+    },
+    {
+      id: 'your_edges',
+      title: 'Your Edges',
+      whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
+      whatYouMightNotice: 'Lust for intensity that never satisfies. Denial of your own vulnerability and impact. Excess and force as default. Isolation at the top.',
+      tension: 'The denial of weakness can leave you alone. Force can destroy what you want to protect.',
+      whenItWorks: 'When you acknowledge vulnerability, true strength emerges. Your power becomes service.',
+      tryThis: 'Let someone see you at less than full strength. Notice what happens when you don\'t need to be the biggest presence.'
+    },
+    {
+      id: 'growth_path',
+      title: 'Growth Path',
+      whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
+      whatYouMightNotice: 'Magnanimous use of power. Vulnerability as strength. Protection that empowers rather than controls.',
+      tension: 'Growth requires releasing the belief that vulnerability invites harm. This can feel like exposure.',
+      whenItWorks: 'You become a just and generous leader. Your strength serves the vulnerable.',
+      tryThis: 'Where am I protecting myself by taking control instead of letting go?'
+    }
+  ],
+  9: [
+    {
+      id: 'core_pattern',
+      title: 'Core Pattern',
+      whatThisIs: 'You move toward harmony, comfort, and maintaining inner peace. This is your primary strategy for belonging.',
+      whatYouMightNotice: 'Seeing all sides of situations. Difficulty identifying your own preferences. Going along to maintain peace. Discomfort with conflict.',
+      tension: 'The maintenance of peace can mean the loss of yourself. Merging with others\' agendas can make your own voice disappear.',
+      whenItWorks: 'Your ability to see all sides creates real mediation. Your acceptance creates space where others can be themselves.',
+      tryThis: 'State a clear preference today without hedging. What happens when you simply say what you want?'
+    },
+    {
+      id: 'how_shows_up',
+      title: 'How This Shows Up',
+      whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
+      whatYouMightNotice: 'Difficulty saying no. Merging with others\' priorities. Procrastinating on decisions that reveal preference. Steady, calming presence.',
+      tension: 'Accommodation can erase you. Peace-keeping can delay necessary change.',
+      whenItWorks: 'Your steadiness anchors turbulent situations. Your inclusiveness builds real consensus.',
+      tryThis: 'Voice one opinion today without apologizing for it. Notice what it feels like to take a clear position.'
+    },
+    {
+      id: 'under_pressure',
+      title: 'Under Pressure',
+      whatThisIs: 'When stressed, you may take on qualities of Type 6—becoming anxious, reactive, and scanning for threats.',
+      whatYouMightNotice: 'Anxiety replacing calm. Worrying about worst-case scenarios. Vigilance instead of ease.',
+      tension: 'The peace usually maintained may fragment into worry. Calm may give way to contingency planning.',
+      whenItWorks: 'This movement offers access to alertness and engagement. The anxiety may carry important information.',
+      tryThis: 'When you notice anxiety rising, pause. What are you sensing that your usual calm might overlook?'
+    },
+    {
+      id: 'when_resourced',
+      title: 'When Resourced',
+      whatThisIs: 'When healthy and integrated, you access qualities of Type 3—assertive energy, clear priorities, and making your mark.',
+      whatYouMightNotice: 'Taking action on priorities. Letting your preferences be known. Energy and engagement.',
+      tension: 'Assertion may feel aggressive. Differentiation may seem to threaten harmony.',
+      whenItWorks: 'This movement offers presence—the capacity to matter, to take up space, to be fully here.',
+      tryThis: 'State a clear preference today without hedging. What happens when you simply say what you want?'
+    },
+    {
+      id: 'your_edges',
+      title: 'Your Edges',
+      whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
+      whatYouMightNotice: 'Sloth toward your own priorities. Passive resistance instead of direct refusal. Anger that surprises everyone. Your own agenda disappearing.',
+      tension: 'Avoiding conflict can create it. Your own anger may be the most denied part of yourself.',
+      whenItWorks: 'When you claim your presence, peace includes you. Your calm becomes anchoring rather than avoidant.',
+      tryThis: 'Express disagreement before it becomes urgent. What happens when you voice friction early?'
+    },
+    {
+      id: 'growth_path',
+      title: 'Growth Path',
+      whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
+      whatYouMightNotice: 'Engaged, self-assured presence. Action from clear priorities. Peace that includes your own voice.',
+      tension: 'Growth requires releasing the belief that your needs can always wait. This can feel like selfishness.',
+      whenItWorks: 'You become a grounded, present force. Your peace is active rather than passive.',
+      tryThis: 'What opinion or preference am I merging away to keep the peace?'
+    }
+  ]
+};
+
 // Type patterns for Deep Dive
 const TYPE_PATTERNS: { [key: number]: { strengths: string; blindSpot: string; defense: string; relational: string; work: string } } = {
   1: {
@@ -1636,7 +2159,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
   const [showRetakeModal, setShowRetakeModal] = useState(false);
   
   // Deep Dive accordion state
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['core_story']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['core_story', 'deep_dive_core_pattern', 'deep_dive_how_shows_up']));
   
   // Chat state
   const [chatExpanded, setChatExpanded] = useState(false);
@@ -2731,6 +3254,10 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
     const typeLabel = data?.type_label || (wing !== 'balanced' ? `${core}w${wing}` : `Type ${core}`);
     const typeName = data?.type_name || TYPE_NAMES[core];
     
+    // Get the cards for this type
+    const cards = DEEP_DIVE_CARDS[core] || [];
+    
+    // Toggle section expansion
     const toggleSection = (sectionId: string) => {
       setExpandedSections(prev => {
         const newSet = new Set(prev);
@@ -2743,61 +3270,138 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
       });
     };
 
-    // Accordion Section Component
-    const AccordionSection = ({ 
-      id, 
-      title, 
-      subtitle, 
-      children 
-    }: { 
-      id: string; 
-      title: string; 
-      subtitle: string; 
-      children: React.ReactNode;
-    }) => {
-      const isExpanded = expandedSections.has(id);
+    // Check if self-declared
+    const isSelfDeclared = result?.source === 'self_declared' || result?.method === 'self_declared';
+
+    // Handle action button presses
+    const handleReflect = (card: DeepDiveCard) => {
+      // Open a reflection prompt in the chat modal
+      setQaQuestion(`I'd like to reflect on "${card.title}": ${card.tryThis}`);
+      setShowQAModal(true);
+    };
+
+    const handleJournal = (card: DeepDiveCard) => {
+      // Navigate to journal with pre-filled content
+      const journalPrompt = `Reflecting on: ${card.title}\n\n"${card.tryThis}"\n\nMy thoughts:\n`;
+      router.push({
+        pathname: '/(tabs)/reflect',
+        params: { 
+          tab: 'journal',
+          prefill: journalPrompt 
+        }
+      });
+    };
+
+    const handleAskMirror = (card: DeepDiveCard) => {
+      // Navigate to Mirror chat with context
+      const mirrorContext = `I want to explore my ${card.title.toLowerCase()} pattern. ${card.whatThisIs}`;
+      router.push({
+        pathname: '/(tabs)/reflect',
+        params: { 
+          tab: 'mirror',
+          context: mirrorContext 
+        }
+      });
+    };
+
+    // Mirror Pattern Card Component
+    const MirrorPatternCard = ({ card, index }: { card: DeepDiveCard; index: number }) => {
+      const sectionId = `deep_dive_${card.id}`;
+      const isExpanded = expandedSections.has(sectionId);
+      
       return (
-        <View style={[styles.accordionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={[styles.mirrorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {/* Card Header - Always visible */}
           <TouchableOpacity 
-            style={styles.accordionHeader} 
-            onPress={() => toggleSection(id)}
+            style={styles.mirrorCardHeader} 
+            onPress={() => toggleSection(sectionId)}
             activeOpacity={0.7}
           >
-            <View style={styles.accordionHeaderText}>
-              <Text style={[styles.accordionTitle, { color: theme.text }]}>{title}</Text>
-              <Text style={[styles.accordionSubtitle, { color: theme.textTertiary }]}>{subtitle}</Text>
+            <View style={styles.mirrorCardHeaderContent}>
+              <View style={[styles.mirrorCardNumber, { backgroundColor: theme.accent + '20' }]}>
+                <Text style={[styles.mirrorCardNumberText, { color: theme.accent }]}>{index + 1}</Text>
+              </View>
+              <Text style={[styles.mirrorCardTitle, { color: theme.text }]}>{card.title}</Text>
             </View>
-            <Text style={[styles.accordionChevron, { color: theme.textSecondary }]}>
+            <Text style={[styles.mirrorCardChevron, { color: theme.textSecondary }]}>
               {isExpanded ? '▼' : '▶'}
             </Text>
           </TouchableOpacity>
+          
+          {/* Card Content - Collapsible */}
           {isExpanded && (
-            <View style={styles.accordionContent}>
-              {children}
+            <View style={styles.mirrorCardContent}>
+              {/* What this is */}
+              <View style={styles.mirrorCardSection}>
+                <Text style={[styles.mirrorCardSectionLabel, { color: theme.accent }]}>What this is</Text>
+                <Text style={[styles.mirrorCardSectionText, { color: theme.textSecondary }]}>{card.whatThisIs}</Text>
+              </View>
+              
+              {/* What you might notice */}
+              <View style={styles.mirrorCardSection}>
+                <Text style={[styles.mirrorCardSectionLabel, { color: theme.accent }]}>What you might notice</Text>
+                <Text style={[styles.mirrorCardSectionText, { color: theme.textSecondary }]}>{card.whatYouMightNotice}</Text>
+              </View>
+              
+              {/* The tension */}
+              <View style={styles.mirrorCardSection}>
+                <Text style={[styles.mirrorCardSectionLabel, { color: '#C62828' }]}>The tension</Text>
+                <Text style={[styles.mirrorCardSectionText, { color: theme.textSecondary }]}>{card.tension}</Text>
+              </View>
+              
+              {/* When it works */}
+              <View style={styles.mirrorCardSection}>
+                <Text style={[styles.mirrorCardSectionLabel, { color: '#2E7D32' }]}>When it works</Text>
+                <Text style={[styles.mirrorCardSectionText, { color: theme.textSecondary }]}>{card.whenItWorks}</Text>
+              </View>
+              
+              {/* Try this */}
+              <View style={[styles.mirrorCardTryThis, { backgroundColor: theme.surfaceAlt || theme.background, borderColor: theme.border }]}>
+                <Text style={[styles.mirrorCardTryThisLabel, { color: theme.accent }]}>Try this</Text>
+                <Text style={[styles.mirrorCardTryThisText, { color: theme.text }]}>{card.tryThis}</Text>
+              </View>
+              
+              {/* Action Buttons */}
+              <View style={styles.mirrorCardActions}>
+                <TouchableOpacity 
+                  style={[styles.mirrorCardActionButton, { borderColor: theme.border }]}
+                  onPress={() => handleReflect(card)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.mirrorCardActionIcon]}>💭</Text>
+                  <Text style={[styles.mirrorCardActionText, { color: theme.text }]}>Reflect</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.mirrorCardActionButton, { borderColor: theme.border }]}
+                  onPress={() => handleJournal(card)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.mirrorCardActionIcon]}>📝</Text>
+                  <Text style={[styles.mirrorCardActionText, { color: theme.text }]}>Journal</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.mirrorCardActionButton, { borderColor: theme.border }]}
+                  onPress={() => handleAskMirror(card)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.mirrorCardActionIcon]}>✨</Text>
+                  <Text style={[styles.mirrorCardActionText, { color: theme.text }]}>Ask Mirror</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>
       );
     };
 
-    // Section Divider Component
-    const SectionDivider = ({ title }: { title: string }) => (
-      <View style={styles.sectionDivider}>
-        <Text style={[styles.sectionDividerText, { color: theme.textTertiary }]}>{title}</Text>
-      </View>
-    );
-
-    // Check if self-declared
-    const isSelfDeclared = result?.source === 'self_declared' || result?.method === 'self_declared';
-
     return (
       <>
         {/* ═══════════════════════════════════════════════════════════════
-            SECTION 1 — IDENTITY BLOCK
-            Identity card + Core Story (expanded by default)
+            IDENTITY HEADER
         ═══════════════════════════════════════════════════════════════ */}
         
-        {/* Identity Card */}
         <View style={[styles.deepDiveHeader, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.deepDiveHeaderTop}>
             <View style={styles.identityTitleRow}>
@@ -2821,279 +3425,19 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
             )}
           </View>
           <Text style={[styles.deepDiveWingStance, { color: theme.textSecondary }]}>{typeName}</Text>
-          <Text style={[styles.deepDiveNote, { color: theme.textTertiary }]}>This lens reflects strategy, not identity.</Text>
+          <Text style={[styles.deepDiveNote, { color: theme.textTertiary }]}>Explore your patterns through these reflection cards.</Text>
         </View>
 
-        {/* Core Story - expanded by default */}
-        <AccordionSection
-          id="core_story"
-          title="Core Story"
-          subtitle="Your primary pattern and motivation"
-        >
-          {data?.sections && data.sections.map((section, index) => (
-            <View key={index} style={styles.accordionBodySection}>
-              {section?.label && section.label !== 'Core Story' && (
-                <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>{section.label}</Text>
-              )}
-              <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{section?.body || ''}</Text>
-            </View>
-          ))}
-        </AccordionSection>
-
         {/* ═══════════════════════════════════════════════════════════════
-            SECTION 2 — STRUCTURE BLOCK
-            Understanding your type structure
-        ═══════════════════════════════════════════════════════════════ */}
-
-        {/* Your Core Strategy */}
-        <AccordionSection
-          id="core_strategy"
-          title="Your Core Strategy"
-          subtitle="How you naturally approach the world"
-        >
-          <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
-            Type {core} moves through the world by {core === 7 
-              ? 'seeking variety, possibilities, and new experiences. Your mind naturally scans for what could be interesting, stimulating, or enjoyable next.'
-              : core === 1 ? 'striving to improve and perfect. Your attention naturally goes to what could be better, more correct, or more aligned with ideals.'
-              : core === 2 ? 'connecting with others and meeting their needs. Your attention naturally goes to what others want or require.'
-              : core === 3 ? 'achieving goals and earning recognition. Your attention naturally goes to what will create success and admiration.'
-              : core === 4 ? 'expressing individuality and seeking depth. Your attention naturally goes to what feels authentic and meaningful.'
-              : core === 5 ? 'observing and understanding. Your attention naturally goes to gathering knowledge and maintaining boundaries.'
-              : core === 6 ? 'anticipating problems and seeking security. Your attention naturally goes to potential risks and what could go wrong.'
-              : core === 8 ? 'taking charge and protecting territory. Your attention naturally goes to power dynamics and who is in control.'
-              : 'finding peace and avoiding conflict. Your attention naturally goes to maintaining harmony and inner calm.'}
-          </Text>
-          {(data?.computed_details || computedDetails) && (
-            <View style={styles.structureGridCompact}>
-              <View style={styles.structureGridRow}>
-                <View style={styles.structureGridItem}>
-                  <Text style={[styles.structureGridLabel, { color: theme.textTertiary }]}>Center</Text>
-                  <Text style={[styles.structureGridValue, { color: theme.text }]}>{formatGroupLabel((data?.computed_details || computedDetails)?.center)}</Text>
-                </View>
-                <View style={styles.structureGridItem}>
-                  <Text style={[styles.structureGridLabel, { color: theme.textTertiary }]}>Social Style</Text>
-                  <Text style={[styles.structureGridValue, { color: theme.text }]}>{formatGroupLabel((data?.computed_details || computedDetails)?.hornevian_group)}</Text>
-                </View>
-              </View>
-            </View>
-          )}
-        </AccordionSection>
-
-        {/* Your Wing */}
-        <AccordionSection
-          id="your_wing"
-          title={wing !== 'balanced' ? `Your Wing (${wing})` : `Your Wing Access`}
-          subtitle="How your dominant wing colors your expression"
-        >
-          {wing !== 'balanced' ? (
-            <>
-              <View style={styles.wingCard}>
-                <View style={styles.wingCardHeader}>
-                  <Text style={[styles.wingCardTitle, { color: theme.text }]}>Wing {wing} · {TYPE_NAMES[wing as number]}</Text>
-                </View>
-              </View>
-              
-              {/* Core Pattern */}
-              <View style={styles.accordionBodySection}>
-                <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Core Pattern</Text>
-                <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
-                  {WING_FLAVORS[`${core}w${wing}`]?.pattern || `Your ${wing}-wing adds the qualities of ${TYPE_NAMES[wing as number]} to your core pattern.`}
-                </Text>
-              </View>
-              
-              {/* The Tradeoff */}
-              <View style={styles.accordionBodySection}>
-                <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>The Tradeoff</Text>
-                <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
-                  {WING_FLAVORS[`${core}w${wing}`]?.tradeoff || ''}
-                </Text>
-              </View>
-              
-              {/* Potential Strength */}
-              <View style={styles.accordionBodySection}>
-                <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Potential Strength</Text>
-                <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
-                  {WING_FLAVORS[`${core}w${wing}`]?.strength || ''}
-                </Text>
-              </View>
-              
-              {/* Experiment */}
-              <View style={styles.experimentCard}>
-                <View style={styles.experimentHeader}>
-                  <Text style={[styles.experimentLabel, { color: theme.accent }]}>Try This</Text>
-                </View>
-                <Text style={[styles.experimentText, { color: theme.textSecondary }]}>
-                  {WING_FLAVORS[`${core}w${wing}`]?.experiment || ''}
-                </Text>
-              </View>
-            </>
-          ) : (
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
-              You show access to both wings. This flexibility lets you choose consciously based on context rather than defaulting to one pattern.
-            </Text>
-          )}
-        </AccordionSection>
-
-        {/* The Other Wing */}
-        <AccordionSection
-          id="other_wing"
-          title={`Other Wing (${otherWing})`}
-          subtitle="Untapped capacity for balance"
-        >
-          <View style={styles.wingCard}>
-            <View style={styles.wingCardHeader}>
-              <Text style={[styles.wingCardTitle, { color: theme.text }]}>Wing {otherWing} · {TYPE_NAMES[otherWing]}</Text>
-            </View>
-          </View>
-          
-          {/* Core Pattern */}
-          <View style={styles.accordionBodySection}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Core Pattern</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
-              {WING_FLAVORS[`${core}w${otherWing}`]?.pattern || `The ${otherWing}-wing offers access to ${TYPE_NAMES[otherWing]} qualities.`}
-            </Text>
-          </View>
-          
-          {/* Strength */}
-          <View style={styles.accordionBodySection}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Potential Strength</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
-              {WING_FLAVORS[`${core}w${otherWing}`]?.strength || ''}
-            </Text>
-          </View>
-          
-          {/* Experiment */}
-          <View style={styles.experimentCard}>
-            <View style={styles.experimentHeader}>
-              <Text style={[styles.experimentLabel, { color: theme.accent }]}>Try This</Text>
-            </View>
-            <Text style={[styles.experimentText, { color: theme.textSecondary }]}>
-              {WING_FLAVORS[`${core}w${otherWing}`]?.experiment || ''}
-            </Text>
-          </View>
-        </AccordionSection>
-
-        {/* ═══════════════════════════════════════════════════════════════
-            SECTION 3 — PATTERN BLOCK
-            Deeper patterns and tendencies to notice
+            MIRROR PATTERN CARDS
         ═══════════════════════════════════════════════════════════════ */}
         
-        <SectionDivider title="Patterns to Notice" />
-
-        {/* Deeper Patterns */}
-        <AccordionSection
-          id="deeper_patterns"
-          title="Deeper Patterns"
-          subtitle="Tradeoffs and tendencies to notice"
-        >
-          <View style={styles.accordionBodySection}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>The Core Tradeoff</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
-              {core === 1 ? 'Integrity vs. flexibility. The drive toward correctness can crowd out acceptance of what is.' :
-               core === 2 ? 'Giving vs. receiving. The focus on others\' needs can obscure your own.' :
-               core === 3 ? 'Achievement vs. authenticity. The drive to succeed can disconnect you from what you actually feel.' :
-               core === 4 ? 'Depth vs. presence. The search for meaning can obscure the ordinary beauty already here.' :
-               core === 5 ? 'Understanding vs. participating. The pull toward observation can become avoidance of engagement.' :
-               core === 6 ? 'Preparation vs. trust. Vigilance against threat can become the threat itself.' :
-               core === 7 ? 'Possibility vs. depth. The draw toward options can prevent the satisfaction of completion.' :
-               core === 8 ? 'Strength vs. vulnerability. The protection of power can block the intimacy you actually want.' :
-               'Harmony vs. assertion. The maintenance of peace can mean the loss of yourself.'}
-            </Text>
-          </View>
-          <View style={styles.accordionBodySection}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Daily Reflection</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{JOURNAL_PROMPTS[core]}</Text>
-          </View>
-        </AccordionSection>
-
-        {/* Energetic Flow */}
-        <AccordionSection
-          id="energetic_flow"
-          title="Energetic Flow"
-          subtitle="Movement under stress and when resourced"
-        >
-          <View style={styles.flowRow}>
-            <View style={styles.flowItem}>
-              <View style={styles.flowIconContainer}>
-                <Text style={[styles.flowIconText, { color: '#C62828' }]}>↓</Text>
-              </View>
-              <Text style={[styles.flowLabel, { color: theme.textSecondary }]}>Under Stress → Type {(data?.computed_details || computedDetails)?.stress_line_to || '—'}</Text>
-            </View>
-            <View style={styles.flowItem}>
-              <View style={styles.flowIconContainer}>
-                <Text style={[styles.flowIconText, { color: '#2E7D32' }]}>↑</Text>
-              </View>
-              <Text style={[styles.flowLabel, { color: theme.textSecondary }]}>When Resourced → Type {(data?.computed_details || computedDetails)?.growth_line_to || '—'}</Text>
-            </View>
-          </View>
-          
-          {/* Stress Section */}
-          <View style={styles.accordionBodySection}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Under Stress</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{STRESS_PATTERNS[core]?.pattern}</Text>
-          </View>
-          <View style={styles.accordionBodySection}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>The Tradeoff</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{STRESS_PATTERNS[core]?.tradeoff}</Text>
-          </View>
-          <View style={styles.accordionBodySection}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Potential Strength</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{STRESS_PATTERNS[core]?.strength}</Text>
-          </View>
-          <View style={styles.experimentCard}>
-            <View style={styles.experimentHeader}>
-              <Text style={[styles.experimentLabel, { color: theme.accent }]}>Try This</Text>
-            </View>
-            <Text style={[styles.experimentText, { color: theme.textSecondary }]}>{STRESS_PATTERNS[core]?.experiment}</Text>
-          </View>
-          
-          {/* Growth Section */}
-          <View style={[styles.accordionBodySection, { marginTop: 24 }]}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>When Resourced</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{GROWTH_PATTERNS[core]?.pattern}</Text>
-          </View>
-          <View style={styles.accordionBodySection}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>The Tradeoff</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{GROWTH_PATTERNS[core]?.tradeoff}</Text>
-          </View>
-          <View style={styles.accordionBodySection}>
-            <Text style={[styles.accordionBodyTitle, { color: theme.text }]}>Potential Strength</Text>
-            <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>{GROWTH_PATTERNS[core]?.strength}</Text>
-          </View>
-          <View style={styles.experimentCard}>
-            <View style={styles.experimentHeader}>
-              <Text style={[styles.experimentLabel, { color: theme.accent }]}>Try This</Text>
-            </View>
-            <Text style={[styles.experimentText, { color: theme.textSecondary }]}>{GROWTH_PATTERNS[core]?.experiment}</Text>
-          </View>
-        </AccordionSection>
-
-        {/* Top Alternatives */}
-        <AccordionSection
-          id="top_alternatives"
-          title="Top Alternatives"
-          subtitle="Other patterns worth exploring"
-        >
-          <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
-            Your responses showed resonance with these types. Worth exploring if your primary type doesn't fully land.
-          </Text>
-          {(result?.top_candidates || []).slice(0, 3).map((candidate, index) => (
-            <View key={candidate.type} style={[styles.alternativeRow, { borderBottomColor: theme.border }]}>
-              <Text style={[styles.alternativeRank, { color: theme.textSecondary }]}>{index + 1}</Text>
-              <View style={styles.alternativeInfo}>
-                <Text style={[styles.alternativeType, { color: theme.text }]}>Type {candidate.type}</Text>
-                <Text style={[styles.alternativeName, { color: theme.textTertiary }]}>{TYPE_NAMES[candidate.type]}</Text>
-              </View>
-              <Text style={[styles.alternativePercent, { color: theme.text }]}>
-                {Math.round(candidate.probability * 100)}%
-              </Text>
-            </View>
-          ))}
-        </AccordionSection>
+        {cards.map((card, index) => (
+          <MirrorPatternCard key={card.id} card={card} index={index} />
+        ))}
 
         {/* ═══════════════════════════════════════════════════════════════
-            WHY THIS KEEPS REPEATING — Moved to bottom of Deep Dive
-            Role: REPETITION_LOOP (after user sees structure, pattern, behavior)
+            KEYSTONE EXPLANATION
         ═══════════════════════════════════════════════════════════════ */}
         {renderKeystoneExplanation()}
 
@@ -3104,8 +3448,8 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
         {/* Disclaimer */}
         <View style={[styles.disclaimerCard, { backgroundColor: theme.surfaceAlt || theme.surface }]}>
           <Text style={[styles.disclaimerText, { color: theme.textTertiary }]}>
-            This isn't a rule—just a Type {core} pattern you might notice; you're free to take what resonates, 
-            leave the rest, and only engage it if it feels useful.
+            These cards reflect Type {core} patterns you might notice. Take what resonates, 
+            leave what doesn't, and use them only if they feel useful for your growth.
           </Text>
         </View>
         
@@ -5181,17 +5525,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   
-  loadingContainer: {
-    padding: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    fontSize: 14,
-    marginTop: 8,
-    color: "#FFFFFF",
-  },
   // Keystone Explanation Card styles
   keystoneExplanationCard: {
     borderRadius: 16,
@@ -5315,40 +5648,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
-  // ============================================
-  // STRUCTURE SUMMARY CARD STYLES
-  // ============================================
-  structureCard: {
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
-    marginBottom: 16,
-  },
-  structureHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
+  // Structure Summary (Summary Tab)
   structureType: {
     fontSize: 20,
     fontWeight: '700',
-    flex: 1,
-  },
-  confidenceBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  confidenceBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  structureSubtext: {
-    fontSize: 13,
-    fontStyle: 'italic',
-    marginBottom: 12,
   },
   structureBridge: {
     fontSize: 15,
@@ -5640,5 +5943,105 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: -12,
     marginBottom: 16,
+  },
+
+  // ============================================
+  // MIRROR PATTERN CARD STYLES (Deep Dive Refactor)
+  // ============================================
+  mirrorCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  mirrorCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  mirrorCardHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  mirrorCardNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  mirrorCardNumberText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  mirrorCardTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    flex: 1,
+  },
+  mirrorCardChevron: {
+    fontSize: 12,
+    marginLeft: 8,
+  },
+  mirrorCardContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  mirrorCardSection: {
+    marginBottom: 16,
+  },
+  mirrorCardSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  mirrorCardSectionText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  mirrorCardTryThis: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  mirrorCardTryThisLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  mirrorCardTryThisText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  mirrorCardActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  mirrorCardActionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 6,
+  },
+  mirrorCardActionIcon: {
+    fontSize: 14,
+  },
+  mirrorCardActionText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
