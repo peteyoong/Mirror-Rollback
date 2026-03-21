@@ -1914,6 +1914,7 @@ DEFAULT_CONTINUITY_PHRASES = {
 
 # V10.6.2: CONFIDENCE-BASED SOFTENERS
 # Applied to phrases when confidence is MEDIUM
+# V10.6.3: Limit to ONE softener max, prevent stacking
 CONFIDENCE_SOFTENERS = {
     "prefix": [
         "It seems like ",
@@ -1923,15 +1924,83 @@ CONFIDENCE_SOFTENERS = {
     ],
     "replacement_pairs": [
         # (direct phrase, softened phrase)
+        # V10.6.3: Removed overly aggressive replacements
         ("is still here", "may still be here"),
         ("is still present", "seems still present"),
         ("continues", "seems to continue"),
         ("hasn't", "may not have"),
         ("You were already", "You may have already been"),
         ("You're still", "You might still be"),
-        ("The ", "There may be a sense that the "),
+        # Removed: ("The ", "There may be a sense that the ") - too aggressive
     ],
 }
+
+# V10.6.3: SIGNAL-ALIGNED PHRASE SELECTION
+# ============================================================================
+# Different signals warrant different language tones:
+# - warmth → softer, open, inviting language
+# - hesitation → cautious, careful language  
+# - clarity → more direct, clear language
+# - grief → grounded, slower, heavier language
+# - growth → forward-moving, expansive language
+# - resistance → acknowledging, non-pushy language
+# - pressure → validating, relieving language
+# - confusion → gentle, accepting language
+# ============================================================================
+
+SIGNAL_LANGUAGE_STYLE = {
+    "warmth": {
+        "tone": "soft",
+        "prefer_softening": True,
+        "avoid_direct": False,
+        "preferred_phrases": [0, 1, 3],  # Indices of softer phrases
+    },
+    "hesitation": {
+        "tone": "cautious", 
+        "prefer_softening": True,
+        "avoid_direct": True,
+        "preferred_phrases": [1, 2, 4],  # Indices of more cautious phrases
+    },
+    "clarity": {
+        "tone": "direct",
+        "prefer_softening": False,  # Clarity warrants directness
+        "avoid_direct": False,
+        "preferred_phrases": [0, 2],  # Indices of clearer phrases
+    },
+    "grief": {
+        "tone": "grounded",
+        "prefer_softening": False,  # Grief is real, don't over-soften
+        "avoid_direct": False,
+        "preferred_phrases": [0, 1, 2],  # Grounded phrases
+    },
+    "growth": {
+        "tone": "forward",
+        "prefer_softening": False,
+        "avoid_direct": False,
+        "preferred_phrases": [0, 2, 3],  # Forward-moving phrases
+    },
+    "resistance": {
+        "tone": "acknowledging",
+        "prefer_softening": True,
+        "avoid_direct": True,
+        "preferred_phrases": [1, 2, 4],  # Non-pushy phrases
+    },
+    "pressure": {
+        "tone": "validating",
+        "prefer_softening": False,  # Pressure is real
+        "avoid_direct": False,
+        "preferred_phrases": [0, 1, 3],
+    },
+    "confusion": {
+        "tone": "gentle",
+        "prefer_softening": True,
+        "avoid_direct": False,
+        "preferred_phrases": [1, 3, 4],  # Gentle, accepting phrases
+    },
+}
+
+# V10.6.3: SOFTENER WORDS - used to detect already-softened phrases
+SOFTENER_WORDS = ["may", "might", "seems", "something", "part of", "sense", "perhaps", "could"]
 
 # V10.6.2: CORE INSIGHT CONTINUITY TEMPLATES
 # For integrating continuity directly into core insight
@@ -2078,24 +2147,18 @@ def generate_continuity_phrase(
     confidence: str = "medium"
 ) -> Dict[str, Any]:
     """
-    V10.6.2: Generate a natural, varied continuity phrase with confidence-based softening.
+    V10.6.3: Generate a natural, signal-aligned continuity phrase with controlled softening.
     
     Returns a dict with:
     - why_now_phrase: phrase for why_now section (may be empty)
     - core_insight_phrase: phrase for core insight (may be empty)
     - location: "why_now", "core_insight", or "none"
     
-    V10.6.2 Improvements:
-    - More phrase variations (4-5 per type)
-    - Confidence-based softening for MEDIUM
-    - Occasional core insight integration
-    - Better variation via multiple selection factors
-    
-    Hierarchy for phrase selection:
-    1. Pattern-specific (for same_pattern)
-    2. Frame-specific (for same_frame)
-    3. Signal-specific (uses dominant_signal)
-    4. Default fallback
+    V10.6.3 Improvements:
+    - Signal-aligned phrase selection (warmth=soft, clarity=direct, etc.)
+    - Maximum ONE softener per sentence (no stacking)
+    - Prioritize clarity over variation
+    - Skip softening for signals that warrant directness (grief, clarity, pressure)
     """
     result = {
         "why_now_phrase": "",
@@ -2141,19 +2204,27 @@ def generate_continuity_phrase(
     if not phrases:
         return result
     
-    # V10.6.2: Use multiple factors for varied selection
-    # Combines user_id, continuity_type, pattern_id, and day-of-week for variation
+    # V10.6.3: Signal-aligned phrase selection
+    selected_phrase = _select_signal_aligned_phrase(
+        phrases, 
+        dominant_signal, 
+        user_id, 
+        continuity_type, 
+        pattern_id
+    )
+    
+    # V10.6.3: Apply controlled softening for MEDIUM confidence
+    # But respect signal-specific preferences
+    if confidence == "medium":
+        signal_style = SIGNAL_LANGUAGE_STYLE.get(dominant_signal, {})
+        if signal_style.get("prefer_softening", True):
+            selected_phrase = _soften_phrase_controlled(selected_phrase)
+    
+    # V10.6.3: Decide location - occasionally use core insight for same_pattern with HIGH confidence
     from datetime import datetime
     day_factor = datetime.now().weekday()
     selection_hash = hash(f"{user_id}_{continuity_type}_{pattern_id}_{day_factor}")
-    idx = selection_hash % len(phrases)
-    selected_phrase = phrases[idx]
     
-    # V10.6.2: Apply confidence-based softening for MEDIUM confidence
-    if confidence == "medium":
-        selected_phrase = _soften_phrase(selected_phrase)
-    
-    # V10.6.2: Decide location - occasionally use core insight for same_pattern with HIGH confidence
     use_core_insight = False
     if (continuity_type == "same_pattern" and 
         confidence == "high" and 
@@ -2175,30 +2246,72 @@ def generate_continuity_phrase(
     return result
 
 
-def _soften_phrase(phrase: str) -> str:
+def _select_signal_aligned_phrase(
+    phrases: List[str],
+    dominant_signal: str,
+    user_id: str,
+    continuity_type: str,
+    pattern_id: str
+) -> str:
     """
-    V10.6.2: Apply confidence-based softening to a phrase.
-    Makes language more tentative for MEDIUM confidence.
+    V10.6.3: Select a phrase that aligns with the dominant signal's language style.
+    
+    Prioritizes:
+    1. Clarity - choose the clearest phrase when in doubt
+    2. Signal alignment - match tone to emotional context
+    3. Variation - still vary across users/days
     """
-    # Apply replacement pairs first
-    softened = phrase
+    from datetime import datetime
+    
+    if not phrases:
+        return ""
+    
+    # Get signal-specific preferences
+    signal_style = SIGNAL_LANGUAGE_STYLE.get(dominant_signal, {})
+    preferred_indices = signal_style.get("preferred_phrases", [])
+    
+    # If we have preferred indices and they're valid, prioritize those
+    if preferred_indices:
+        valid_preferred = [i for i in preferred_indices if i < len(phrases)]
+        if valid_preferred:
+            # Use hash to vary but within preferred set
+            day_factor = datetime.now().weekday()
+            selection_hash = hash(f"{user_id}_{continuity_type}_{pattern_id}_{day_factor}")
+            idx = valid_preferred[selection_hash % len(valid_preferred)]
+            return phrases[idx]
+    
+    # Fallback: standard selection with variation
+    day_factor = datetime.now().weekday()
+    selection_hash = hash(f"{user_id}_{continuity_type}_{pattern_id}_{day_factor}")
+    idx = selection_hash % len(phrases)
+    return phrases[idx]
+
+
+def _soften_phrase_controlled(phrase: str) -> str:
+    """
+    V10.6.3: Apply controlled softening - maximum ONE softener per sentence.
+    
+    Rules:
+    1. Check if phrase already has a softener - if so, don't add more
+    2. Apply only one replacement, never prefix (cleaner result)
+    3. Prioritize clarity over hedging
+    """
+    # Check if already softened
+    phrase_lower = phrase.lower()
+    softener_count = sum(1 for word in SOFTENER_WORDS if word in phrase_lower)
+    
+    if softener_count > 0:
+        # Already has softening, don't add more
+        return phrase
+    
+    # Try replacement (more natural than prefix)
     for direct, soft in CONFIDENCE_SOFTENERS["replacement_pairs"]:
-        if direct in softened:
-            softened = softened.replace(direct, soft)
-            return softened  # Only apply one softening
+        if direct in phrase:
+            return phrase.replace(direct, soft)
     
-    # If no replacement applied, consider adding a prefix (20% of the time)
-    # But only for phrases that don't already start with softening
-    soft_starters = ["may", "might", "seems", "something", "part of"]
-    if not any(softened.lower().startswith(s) for s in soft_starters):
-        # Don't add prefix if phrase ends with "…" (already trailing off)
-        if not softened.endswith("…"):
-            from datetime import datetime
-            if datetime.now().second % 5 == 0:  # 20% chance
-                prefix_idx = hash(softened) % len(CONFIDENCE_SOFTENERS["prefix"])
-                return CONFIDENCE_SOFTENERS["prefix"][prefix_idx] + softened.lower()
-    
-    return softened
+    # No replacement applied - phrase is naturally direct, keep it that way
+    # V10.6.3: Don't add prefix to maintain clarity
+    return phrase
 
 
 def apply_continuity_to_why_now(why_now_text: str, continuity_phrase: str) -> str:
