@@ -1172,7 +1172,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
     if (isSelfDeclared) {
       return (
         <View style={styles.sourceBadge}>
-          <Text style={styles.sourceBadgeText}>Self-declared</Text>
+          <Text style={[styles.sourceBadgeText, { color: theme.textSecondary }]}>Self-declared</Text>
         </View>
       );
     }
@@ -1859,7 +1859,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.textSecondary} />
-          <Text style={styles.loadingText}>Loading your Deep Dive...</Text>
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading your Deep Dive...</Text>
         </View>
       );
     }
@@ -1990,7 +1990,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
           title="Your Core Strategy"
           subtitle="How you naturally approach the world"
         >
-          <Text style={styles.accordionBodyText}>
+          <Text style={[styles.accordionBodyText, { color: theme.textSecondary }]}>
             Type {core} moves through the world by {core === 7 
               ? 'seeking variety, possibilities, and new experiences. Your mind naturally scans for what could be interesting, stimulating, or enjoyable next.'
               : core === 1 ? 'striving to improve and perfect. Your attention naturally goes to what could be better, more correct, or more aligned with ideals.'
@@ -2006,12 +2006,12 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
             <View style={styles.structureGridCompact}>
               <View style={styles.structureGridRow}>
                 <View style={styles.structureGridItem}>
-                  <Text style={styles.structureGridLabel}>Center</Text>
-                  <Text style={styles.structureGridValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.center)}</Text>
+                  <Text style={[styles.structureGridLabel, { color: theme.textTertiary }]}>Center</Text>
+                  <Text style={[styles.structureGridValue, { color: theme.text }]}>{formatGroupLabel((data?.computed_details || computedDetails)?.center)}</Text>
                 </View>
                 <View style={styles.structureGridItem}>
-                  <Text style={styles.structureGridLabel}>Social Style</Text>
-                  <Text style={styles.structureGridValue}>{formatGroupLabel((data?.computed_details || computedDetails)?.hornevian_group)}</Text>
+                  <Text style={[styles.structureGridLabel, { color: theme.textTertiary }]}>Social Style</Text>
+                  <Text style={[styles.structureGridValue, { color: theme.text }]}>{formatGroupLabel((data?.computed_details || computedDetails)?.hornevian_group)}</Text>
                 </View>
               </View>
             </View>
@@ -2217,13 +2217,13 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
             Your responses showed resonance with these types. Worth exploring if your primary type doesn't fully land.
           </Text>
           {(result?.top_candidates || []).slice(0, 3).map((candidate, index) => (
-            <View key={candidate.type} style={styles.alternativeRow}>
-              <Text style={styles.alternativeRank}>{index + 1}</Text>
+            <View key={candidate.type} style={[styles.alternativeRow, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.alternativeRank, { color: theme.textSecondary }]}>{index + 1}</Text>
               <View style={styles.alternativeInfo}>
-                <Text style={styles.alternativeType}>Type {candidate.type}</Text>
-                <Text style={styles.alternativeName}>{TYPE_NAMES[candidate.type]}</Text>
+                <Text style={[styles.alternativeType, { color: theme.text }]}>Type {candidate.type}</Text>
+                <Text style={[styles.alternativeName, { color: theme.textTertiary }]}>{TYPE_NAMES[candidate.type]}</Text>
               </View>
-              <Text style={styles.alternativePercent}>
+              <Text style={[styles.alternativePercent, { color: theme.text }]}>
                 {Math.round(candidate.probability * 100)}%
               </Text>
             </View>
@@ -2241,8 +2241,8 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
         ═══════════════════════════════════════════════════════════════ */}
 
         {/* Disclaimer */}
-        <View style={styles.disclaimerCard}>
-          <Text style={styles.disclaimerText}>
+        <View style={[styles.disclaimerCard, { backgroundColor: theme.surfaceAlt || theme.surface }]}>
+          <Text style={[styles.disclaimerText, { color: theme.textTertiary }]}>
             This isn't a rule—just a Type {core} pattern you might notice; you're free to take what resonates, 
             leave the rest, and only engage it if it feels useful.
           </Text>
@@ -2266,23 +2266,23 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
       onRequestClose={() => setShowRetakeModal(false)}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Retake Assessment?</Text>
-          <Text style={styles.modalText}>
+        <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.modalTitle, { color: theme.text }]}>Retake Assessment?</Text>
+          <Text style={[styles.modalText, { color: theme.textSecondary }]}>
             This will replace your current results. The assessment takes about 10-12 minutes.
           </Text>
           <View style={styles.modalActions}>
             <TouchableOpacity
-              style={styles.modalCancelButton}
+              style={[styles.modalCancelButton, { backgroundColor: theme.surfaceAlt || theme.border }]}
               onPress={() => setShowRetakeModal(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={[styles.modalCancelText, { color: theme.text }]}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.modalConfirmButton}
+              style={[styles.modalConfirmButton, { backgroundColor: theme.accent }]}
               onPress={handleRetakeConfirm}
             >
-              <Text style={styles.modalConfirmText}>Retake</Text>
+              <Text style={[styles.modalConfirmText, { color: theme.textInverse || '#FFFFFF' }]}>Retake</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -2305,10 +2305,10 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.qaModalOverlay}
       >
-        <View style={styles.qaModalContent}>
+        <View style={[styles.qaModalContent, { backgroundColor: theme.surface }]}>
           {/* Header */}
           <View style={styles.qaModalHeader}>
-            <Text style={styles.qaModalTitle}>Ask About Enneagram</Text>
+            <Text style={[styles.qaModalTitle, { color: theme.text }]}>Ask About Enneagram</Text>
             <TouchableOpacity onPress={() => setShowQAModal(false)}>
               <Text style={[styles.closeButtonText, { color: theme.textSecondary }]}>✕</Text>
             </TouchableOpacity>
@@ -2318,7 +2318,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
           {qaAnswer && (
             <View style={styles.qaAnswerContainer}>
               <ScrollView style={styles.qaAnswerScroll} showsVerticalScrollIndicator={false}>
-                <Text style={styles.qaAnswerText}>{qaAnswer}</Text>
+                <Text style={[styles.qaAnswerText, { color: theme.text }]}>{qaAnswer}</Text>
               </ScrollView>
             </View>
           )}
@@ -2326,14 +2326,14 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
           {qaLoading && (
             <View style={styles.qaLoadingContainer}>
               <ActivityIndicator size="small" color={theme.textSecondary} />
-              <Text style={styles.qaLoadingText}>Searching book knowledge...</Text>
+              <Text style={[styles.qaLoadingText, { color: theme.textSecondary }]}>Searching book knowledge...</Text>
             </View>
           )}
           
           {/* Input Area */}
-          <View style={styles.qaInputContainer}>
+          <View style={[styles.qaInputContainer, { backgroundColor: theme.surfaceAlt || theme.background, borderColor: theme.border }]}>
             <TextInput
-              style={styles.qaInput}
+              style={[styles.qaInput, { color: theme.text }]}
               value={qaQuestion}
               onChangeText={setQaQuestion}
               placeholder="Ask about your type, patterns, or the Enneagram..."
@@ -2345,6 +2345,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
             <TouchableOpacity 
               style={[
                 styles.qaSendButton,
+                { backgroundColor: theme.accent },
                 (!qaQuestion.trim() || qaLoading) && styles.qaSendButtonDisabled
               ]}
               onPress={() => handleAskQuestion()}
@@ -2352,14 +2353,14 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
             >
               <Text style={[
                 styles.sendButtonText,
-                { color: (!qaQuestion.trim() || qaLoading) ? theme.textTertiary : theme.background }
+                { color: (!qaQuestion.trim() || qaLoading) ? theme.textTertiary : theme.textInverse || '#FFFFFF' }
               ]}>
                 ➤
               </Text>
             </TouchableOpacity>
           </View>
           
-          <Text style={styles.qaDisclaimer}>
+          <Text style={[styles.qaDisclaimer, { color: theme.textTertiary }]}>
             Answers are drawn from Enneagram literature. Use as reflection, not prescription.
           </Text>
         </View>
@@ -2460,10 +2461,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   activeTabText: {
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Deep Dive Sub-Tabs
@@ -2487,10 +2488,10 @@ const styles = StyleSheet.create({
   deepDiveSubTabText: {
     fontSize: 12,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   deepDiveSubTabTextActive: {
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Verification Badge
@@ -2529,17 +2530,17 @@ const styles = StyleSheet.create({
   accordionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 1,
   },
   accordionSubtitle: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
     lineHeight: 16,
   },
   accordionChevron: {
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   accordionContent: {
     paddingHorizontal: 14,
@@ -2557,14 +2558,14 @@ const styles = StyleSheet.create({
   accordionBodyTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 4,
     letterSpacing: 0.1,
   },
   accordionBodyText: {
     fontSize: 14,
     lineHeight: 21,
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Wing Card (inside accordion)
@@ -2583,12 +2584,12 @@ const styles = StyleSheet.create({
   wingCardTitle: {
     fontSize: 13,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   wingCardName: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Structure Grid Compact
@@ -2607,13 +2608,13 @@ const styles = StyleSheet.create({
   },
   structureGridLabel: {
     fontSize: 11,
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   structureGridValue: {
     fontSize: 13,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Flow Row (stress/growth)
@@ -2639,7 +2640,7 @@ const styles = StyleSheet.create({
   },
   flowLabel: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Alternative Rows
@@ -2654,7 +2655,7 @@ const styles = StyleSheet.create({
     width: 22,
     fontSize: 13,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   alternativeInfo: {
     flex: 1,
@@ -2662,16 +2663,16 @@ const styles = StyleSheet.create({
   alternativeType: {
     fontSize: 13,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   alternativeName: {
     fontSize: 11,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   alternativePercent: {
     fontSize: 13,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Disclaimer Card
@@ -2684,7 +2685,7 @@ const styles = StyleSheet.create({
   disclaimerText: {
     fontSize: 12,
     lineHeight: 18,
-    color: "inherit",
+    color: "#FFFFFF",
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -2711,22 +2712,22 @@ const styles = StyleSheet.create({
   heroBadgeText: {
     fontSize: 28,
     fontWeight: '700',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   heroTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 4,
   },
   heroSubtitle: {
     fontSize: 16,
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 12,
   },
   heroDisclaimer: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
     marginTop: 8,
     fontStyle: 'italic',
   },
@@ -2752,16 +2753,16 @@ const styles = StyleSheet.create({
   identityType: {
     fontSize: 22,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   identityName: {
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   identityNote: {
     fontSize: 11,
-    color: "inherit",
+    color: "#FFFFFF",
     marginTop: 6,
     fontStyle: 'italic',
   },
@@ -2778,13 +2779,13 @@ const styles = StyleSheet.create({
   overviewCardTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 8,
   },
   overviewCardBody: {
     fontSize: 14,
     lineHeight: 21,
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Manifestation List (Where This Shows Up)
@@ -2799,13 +2800,13 @@ const styles = StyleSheet.create({
   manifestationLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 3,
   },
   manifestationText: {
     fontSize: 13,
     lineHeight: 19,
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Reflection Card
@@ -2820,14 +2821,14 @@ const styles = StyleSheet.create({
   reflectionLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     letterSpacing: 0.8,
     marginBottom: 8,
   },
   reflectionText: {
     fontSize: 14,
     lineHeight: 22,
-    color: "inherit",
+    color: "#FFFFFF",
     fontStyle: 'italic',
   },
 
@@ -2841,7 +2842,7 @@ const styles = StyleSheet.create({
   },
   subtleLinkText: {
     fontSize: 13,
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Cards
@@ -2862,23 +2863,23 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 8,
   },
   cardSubtitle: {
     fontSize: 13,
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 12,
   },
   cardBody: {
     fontSize: 15,
     lineHeight: 22,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   cardNote: {
     fontSize: 13,
     lineHeight: 19,
-    color: "inherit",
+    color: "#FFFFFF",
     marginTop: 12,
     fontStyle: 'italic',
   },
@@ -2903,13 +2904,13 @@ const styles = StyleSheet.create({
   },
   wingLabel: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 4,
   },
   wingValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Candidates
@@ -2924,17 +2925,17 @@ const styles = StyleSheet.create({
     width: 24,
     fontSize: 14,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   candidateType: {
     flex: 1,
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   candidatePercent: {
     fontSize: 14,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // CTA Row
@@ -2951,7 +2952,7 @@ const styles = StyleSheet.create({
   ctaButtonPrimaryText: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   ctaButtonSecondary: {
     backgroundColor: "transparent",
@@ -2964,7 +2965,7 @@ const styles = StyleSheet.create({
   ctaButtonSecondaryText: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Energy Buttons (Today tab)
@@ -2992,10 +2993,10 @@ const styles = StyleSheet.create({
   energyButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   energyButtonTextSelected: {
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Practice Card
@@ -3008,14 +3009,14 @@ const styles = StyleSheet.create({
   practiceLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     letterSpacing: 0.5,
     marginBottom: 8,
   },
   practiceBody: {
     fontSize: 15,
     lineHeight: 22,
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Prompt Card
@@ -3031,14 +3032,14 @@ const styles = StyleSheet.create({
   promptLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     letterSpacing: 0.5,
     marginBottom: 8,
   },
   promptBody: {
     fontSize: 16,
     lineHeight: 24,
-    color: "inherit",
+    color: "#FFFFFF",
     fontStyle: 'italic',
   },
 
@@ -3052,7 +3053,7 @@ const styles = StyleSheet.create({
   patternLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -3060,7 +3061,7 @@ const styles = StyleSheet.create({
   patternValue: {
     fontSize: 14,
     lineHeight: 20,
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Wing Flight Row
@@ -3080,13 +3081,13 @@ const styles = StyleSheet.create({
   },
   wingFlightLabel: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 4,
   },
   wingFlightValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Mastery Toggle
@@ -3111,10 +3112,10 @@ const styles = StyleSheet.create({
   masteryButtonText: {
     fontSize: 13,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   masteryButtonTextSelected: {
-    color: "inherit",
+    color: "#FFFFFF",
   },
   masteryDescription: {
     backgroundColor: "transparent",
@@ -3126,7 +3127,7 @@ const styles = StyleSheet.create({
   masteryDescriptionText: {
     fontSize: 14,
     lineHeight: 20,
-    color: "inherit",
+    color: "#FFFFFF",
     textAlign: 'center',
   },
   
@@ -3147,14 +3148,14 @@ const styles = StyleSheet.create({
   experimentLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   experimentText: {
     fontSize: 14,
     lineHeight: 21,
-    color: "inherit",
+    color: "#FFFFFF",
     fontStyle: 'italic',
   },
 
@@ -3169,12 +3170,12 @@ const styles = StyleSheet.create({
   },
   verificationType: {
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   verificationPercent: {
     fontSize: 14,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   retakeLink: {
     flexDirection: 'row',
@@ -3186,7 +3187,7 @@ const styles = StyleSheet.create({
   },
   retakeLinkText: {
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   editTypeLink: {
     flexDirection: 'row',
@@ -3212,7 +3213,7 @@ const styles = StyleSheet.create({
   sourceBadgeText: {
     fontSize: 12,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   
   // Identity card edit button
@@ -3245,11 +3246,11 @@ const styles = StyleSheet.create({
   patternMovementTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     flex: 1,
   },
   patternMovementTitleMuted: {
-    color: "inherit",
+    color: "#FFFFFF",
   },
   patternMovementContent: {
     gap: 10,
@@ -3294,10 +3295,10 @@ const styles = StyleSheet.create({
   typeCircleNumber: {
     fontSize: 18,
     fontWeight: '700',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   typeCircleNumberMuted: {
-    color: "inherit",
+    color: "#FFFFFF",
   },
   typeCircleNumberStress: {
     color: '#C62828',
@@ -3323,7 +3324,7 @@ const styles = StyleSheet.create({
   movementDirectionLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     textTransform: 'lowercase',
     letterSpacing: 0.5,
     marginTop: 10,
@@ -3336,7 +3337,7 @@ const styles = StyleSheet.create({
   },
   movementBaselineLabel: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
     marginTop: 8,
   },
   
@@ -3348,13 +3349,13 @@ const styles = StyleSheet.create({
   },
   driftLabel: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   driftValue: {
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   driftSignalValue: {
     flexDirection: 'row',
@@ -3381,12 +3382,12 @@ const styles = StyleSheet.create({
   },
   driftKeywordText: {
     fontSize: 11,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   driftSummary: {
     fontSize: 13,
     lineHeight: 19,
-    color: "inherit",
+    color: "#FFFFFF",
     fontStyle: 'italic',
     marginTop: 8,
     textAlign: 'center',
@@ -3394,13 +3395,13 @@ const styles = StyleSheet.create({
   driftSummaryNeutral: {
     fontSize: 13,
     lineHeight: 19,
-    color: "inherit",
+    color: "#FFFFFF",
     marginTop: 4,
     textAlign: 'center',
   },
   driftDisclaimer: {
     fontSize: 11,
-    color: "inherit",
+    color: "#FFFFFF",
     marginTop: 12,
     textAlign: 'center',
     opacity: 0.7,
@@ -3420,7 +3421,7 @@ const styles = StyleSheet.create({
   driftConfidenceText: {
     fontSize: 10,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
     textTransform: 'capitalize',
   },
   
@@ -3448,7 +3449,7 @@ const styles = StyleSheet.create({
   },
   footerActionText: {
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   footerDot: {
     width: 3,
@@ -3475,13 +3476,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 12,
   },
   modalText: {
     fontSize: 15,
     lineHeight: 22,
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 24,
   },
   modalActions: {
@@ -3500,7 +3501,7 @@ const styles = StyleSheet.create({
   modalCancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   modalConfirmButton: {
     flex: 1,
@@ -3512,7 +3513,7 @@ const styles = StyleSheet.create({
   modalConfirmText: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   
   // Chat Box
@@ -3545,12 +3546,12 @@ const styles = StyleSheet.create({
   },
   askLensText: {
     fontSize: 15,
-    color: "inherit",
+    color: "#FFFFFF",
     fontWeight: '500',
   },
   askLensDisclaimer: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
     textAlign: 'center',
     fontStyle: 'italic',
     opacity: 0.7,
@@ -3572,11 +3573,11 @@ const styles = StyleSheet.create({
   chatHeaderText: {
     fontSize: 14,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   chatExpandText: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   chatBody: {
     padding: 14,
@@ -3605,10 +3606,10 @@ const styles = StyleSheet.create({
   chatMessageText: {
     fontSize: 14,
     lineHeight: 20,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   chatMessageTextUser: {
-    color: "inherit",
+    color: "#FFFFFF",
   },
   chatInputContainer: {
     flexDirection: 'row',
@@ -3625,7 +3626,7 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
     fontSize: 14,
     maxHeight: 100,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   chatSendButton: {
     width: 40,
@@ -3641,22 +3642,22 @@ const styles = StyleSheet.create({
   sendButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   closeButtonText: {
     fontSize: 24,
     fontWeight: '400',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   flowIconText: {
     fontSize: 16,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   movementArrowText: {
     fontSize: 18,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginHorizontal: 4,
   },
   
@@ -3678,13 +3679,13 @@ const styles = StyleSheet.create({
   microLessonTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   microLessonSubtitle: {
     fontSize: 11,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -3694,11 +3695,11 @@ const styles = StyleSheet.create({
   microLessonBodyText: {
     fontSize: 15,
     lineHeight: 23,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   microLessonBoldText: {
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   microLessonFooter: {
     flexDirection: 'row',
@@ -3715,7 +3716,7 @@ const styles = StyleSheet.create({
   },
   microLessonRotatesText: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   microLessonAskButton: {
     flexDirection: 'row',
@@ -3729,7 +3730,7 @@ const styles = StyleSheet.create({
   microLessonAskText: {
     fontSize: 12,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Enneagram Structure Card (Deep Dive)
@@ -3744,7 +3745,7 @@ const styles = StyleSheet.create({
   structureTitle: {
     fontSize: 10,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     letterSpacing: 1.2,
     textAlign: 'center',
     marginBottom: 12,
@@ -3761,19 +3762,19 @@ const styles = StyleSheet.create({
   },
   structureLabel: {
     fontSize: 10,
-    color: "inherit",
+    color: "#FFFFFF",
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   structureValue: {
     fontSize: 13,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
     textAlign: 'center',
   },
   structureSubValue: {
     fontSize: 11,
-    color: "inherit",
+    color: "#FFFFFF",
     textAlign: 'center',
     marginTop: 2,
   },
@@ -3796,7 +3797,7 @@ const styles = StyleSheet.create({
   traitCardsTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   traitCardsSourceBadge: {
     flexDirection: 'row',
@@ -3809,7 +3810,7 @@ const styles = StyleSheet.create({
   },
   traitCardsSourceText: {
     fontSize: 10,
-    color: "inherit",
+    color: "#FFFFFF",
     fontWeight: '500',
   },
   traitCardsLoading: {
@@ -3827,17 +3828,17 @@ const styles = StyleSheet.create({
   traitCardTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 6,
   },
   traitCardBody: {
     fontSize: 14,
     lineHeight: 21,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   traitCardCitation: {
     fontSize: 11,
-    color: "inherit",
+    color: "#FFFFFF",
     marginTop: 8,
     fontStyle: 'italic',
   },
@@ -3854,7 +3855,7 @@ const styles = StyleSheet.create({
   traitCardAskText: {
     fontSize: 12,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
   },
 
   // Section Divider (text-based)
@@ -3866,7 +3867,7 @@ const styles = StyleSheet.create({
   sectionDividerText: {
     fontSize: 11,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     textAlign: 'center',
@@ -3895,7 +3896,7 @@ const styles = StyleSheet.create({
   qaModalTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   qaAnswerContainer: {
     backgroundColor: "transparent",
@@ -3912,7 +3913,7 @@ const styles = StyleSheet.create({
   qaAnswerText: {
     fontSize: 15,
     lineHeight: 23,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   qaLoadingContainer: {
     flexDirection: 'row',
@@ -3923,7 +3924,7 @@ const styles = StyleSheet.create({
   },
   qaLoadingText: {
     fontSize: 13,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   qaInputContainer: {
     flexDirection: 'row',
@@ -3940,7 +3941,7 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
     fontSize: 14,
     maxHeight: 100,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   qaSendButton: {
     width: 42,
@@ -3955,7 +3956,7 @@ const styles = StyleSheet.create({
   },
   qaDisclaimer: {
     fontSize: 11,
-    color: "inherit",
+    color: "#FFFFFF",
     textAlign: 'center',
     marginTop: 12,
     fontStyle: 'italic',
@@ -3981,17 +3982,17 @@ const styles = StyleSheet.create({
   deepDiveType: {
     fontSize: 22,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   deepDiveWingStance: {
     fontSize: 15,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 4,
   },
   deepDiveNote: {
     fontSize: 11,
-    color: "inherit",
+    color: "#FFFFFF",
     fontStyle: 'italic',
   },
 
@@ -4004,7 +4005,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   deepDiveSection: {
     backgroundColor: "transparent",
@@ -4017,13 +4018,13 @@ const styles = StyleSheet.create({
   deepDiveSectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 10,
   },
   deepDiveSectionBody: {
     fontSize: 15,
     lineHeight: 24,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   mirrorPromptCard: {
     backgroundColor: "transparent",
@@ -4039,13 +4040,13 @@ const styles = StyleSheet.create({
   mirrorPromptLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     letterSpacing: 0.5,
   },
   mirrorPromptText: {
     fontSize: 15,
     lineHeight: 22,
-    color: "inherit",
+    color: "#FFFFFF",
     fontStyle: 'italic',
   },
 
@@ -4058,12 +4059,12 @@ const styles = StyleSheet.create({
   confidenceBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   confidenceText: {
     fontSize: 13,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
   },
   confidenceHigh: {
     backgroundColor: '#E8F5E9',
@@ -4096,18 +4097,18 @@ const styles = StyleSheet.create({
   wingSectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 10,
   },
   wingSectionBody: {
     fontSize: 14,
     lineHeight: 21,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   wingGrowthNoteText: {
     fontSize: 13,
     lineHeight: 20,
-    color: "inherit",
+    color: "#FFFFFF",
     marginTop: 10,
     fontStyle: 'italic',
   },
@@ -4119,7 +4120,7 @@ const styles = StyleSheet.create({
   },
   wingAccessHintText: {
     fontSize: 13,
-    color: "inherit",
+    color: "#FFFFFF",
     textAlign: 'center',
   },
   wingGrowthHint: {
@@ -4133,7 +4134,7 @@ const styles = StyleSheet.create({
   },
   wingGrowthHintText: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
     fontStyle: 'italic',
   },
 
@@ -4166,19 +4167,19 @@ const styles = StyleSheet.create({
   },
   glanceLabel: {
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   glanceValue: {
     fontSize: 14,
     fontWeight: '500',
-    color: "inherit",
+    color: "#FFFFFF",
     textAlign: 'right',
   },
   glanceSectionTitle: {
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.5,
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 12,
   },
   glanceTagsContainer: {
@@ -4195,7 +4196,7 @@ const styles = StyleSheet.create({
   },
   glanceTagText: {
     fontSize: 13,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   glanceRefGrid: {
     flexDirection: 'row',
@@ -4206,12 +4207,12 @@ const styles = StyleSheet.create({
   },
   glanceRefLabel: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
     marginBottom: 4,
   },
   glanceRefValue: {
     fontSize: 14,
-    color: "inherit",
+    color: "#FFFFFF",
     lineHeight: 20,
   },
   glanceFooter: {
@@ -4222,7 +4223,7 @@ const styles = StyleSheet.create({
   },
   glanceFooterText: {
     fontSize: 12,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   loadingContainer: {
     padding: 24,
@@ -4233,7 +4234,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     marginTop: 8,
-    color: "inherit",
+    color: "#FFFFFF",
   },
   // Keystone Explanation Card styles
   keystoneExplanationCard: {
