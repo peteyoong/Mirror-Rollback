@@ -1170,6 +1170,388 @@ FRAME_COMPATIBLE_FRAMINGS = {
 }
 
 
+# ============================================================================
+# V10.3: COMPETITIVE FRAME RANKING SYSTEM
+# ============================================================================
+# Instead of just selecting a compatible frame, rank all candidate frames
+# to find the MOST TRUTHFUL one based on signal strength and context.
+#
+# Core shift: compatible frame selection >>> competitive frame ranking
+# ============================================================================
+
+# --- FRAME SIGNAL AFFINITIES ---
+# Primary and secondary signal affinities for each frame, with weights
+
+FRAME_SIGNAL_WEIGHTS = {
+    "edge_of_action": {
+        "primary": ["growth", "warmth"],        # Strong positive indicators
+        "secondary": ["clarity"],               # Supporting indicators
+        "negative": ["grief", "resistance"],    # Conflicting signals
+    },
+    "testing_the_waters": {
+        "primary": ["hesitation", "warmth"],
+        "secondary": ["confusion"],
+        "negative": ["clarity", "pressure"],
+    },
+    "walls_questioning": {
+        "primary": ["resistance", "hesitation"],
+        "secondary": ["grief"],
+        "negative": ["warmth", "growth"],
+    },
+    "grief_underneath": {
+        "primary": ["grief"],
+        "secondary": ["resistance", "confusion"],
+        "negative": ["growth", "clarity"],
+    },
+    "something_surfacing": {
+        "primary": ["confusion"],
+        "secondary": ["warmth", "hesitation"],
+        "negative": ["clarity", "pressure"],
+    },
+    "clarity_arriving": {
+        "primary": ["clarity"],
+        "secondary": ["growth", "warmth"],
+        "negative": ["confusion"],
+    },
+    "here_again": {
+        "primary": ["repeated_cycles"],
+        "secondary": ["hesitation", "resistance"],
+        "negative": [],
+    },
+    "something_different": {
+        "primary": ["repeated_cycles", "growth"],
+        "secondary": ["warmth", "clarity"],
+        "negative": ["resistance"],
+    },
+    "pressing_forward": {
+        "primary": ["pressure"],
+        "secondary": ["clarity"],
+        "negative": ["hesitation", "confusion"],
+    },
+    "weight_carried": {
+        "primary": ["pressure", "grief"],
+        "secondary": ["resistance"],
+        "negative": ["warmth", "growth"],
+    },
+    "ready_to_release": {
+        "primary": ["growth", "grief"],
+        "secondary": ["warmth", "clarity"],
+        "negative": ["resistance"],
+    },
+    "holding_back": {
+        "primary": ["resistance"],
+        "secondary": ["pressure", "confusion"],
+        "negative": ["growth", "clarity"],
+    },
+}
+
+# --- PATTERN ARCHETYPE AFFINITIES ---
+# Some patterns naturally align with certain frames
+
+PATTERN_FRAME_AFFINITIES = {
+    "relational_reopening": {
+        "strong": ["edge_of_action", "testing_the_waters", "walls_questioning"],
+        "moderate": ["grief_underneath", "here_again"],
+        "weak": ["pressing_forward", "weight_carried"],
+    },
+    "threshold_standing": {
+        "strong": ["edge_of_action", "clarity_arriving", "here_again"],
+        "moderate": ["testing_the_waters", "something_different"],
+        "weak": ["something_surfacing"],
+    },
+    "over_functioning_hero": {
+        "strong": ["weight_carried", "pressing_forward"],
+        "moderate": ["holding_back", "here_again"],
+        "weak": ["edge_of_action", "ready_to_release"],
+    },
+    "somethings_here": {
+        "strong": ["something_surfacing", "clarity_arriving"],
+        "moderate": ["testing_the_waters"],
+        "weak": ["pressing_forward", "weight_carried"],
+    },
+    "moving_through": {
+        "strong": ["ready_to_release", "grief_underneath"],
+        "moderate": ["holding_back", "something_surfacing"],
+        "weak": ["edge_of_action", "pressing_forward"],
+    },
+    "heart_thaw": {
+        "strong": ["testing_the_waters", "ready_to_release", "walls_questioning"],
+        "moderate": ["edge_of_action", "grief_underneath"],
+        "weak": ["pressing_forward"],
+    },
+    "inner_critic_override": {
+        "strong": ["holding_back", "something_surfacing"],
+        "moderate": ["walls_questioning", "here_again"],
+        "weak": ["edge_of_action", "ready_to_release"],
+    },
+    "duty_over_self": {
+        "strong": ["weight_carried", "holding_back"],
+        "moderate": ["here_again", "pressing_forward"],
+        "weak": ["ready_to_release", "edge_of_action"],
+    },
+    "safe_intimacy_returning": {
+        "strong": ["testing_the_waters", "edge_of_action"],
+        "moderate": ["walls_questioning", "grief_underneath"],
+        "weak": ["pressing_forward"],
+    },
+    "expansion_resistance": {
+        "strong": ["holding_back", "walls_questioning"],
+        "moderate": ["testing_the_waters", "here_again"],
+        "weak": ["ready_to_release"],
+    },
+}
+
+# --- SIGNAL CONSISTENCY PAIRS ---
+# Signals that reinforce each other (consistency bonus)
+
+REINFORCING_SIGNAL_PAIRS = [
+    ("grief", "resistance"),       # Grief often creates protective resistance
+    ("warmth", "growth"),          # Warmth supports growth
+    ("clarity", "growth"),         # Clarity enables growth
+    ("pressure", "confusion"),     # Pressure can create confusion
+    ("hesitation", "confusion"),   # Hesitation often comes with confusion
+    ("resistance", "hesitation"),  # Resistance manifests as hesitation
+]
+
+# Signals that conflict (consistency penalty)
+CONFLICTING_SIGNAL_PAIRS = [
+    ("warmth", "resistance"),      # Warmth and resistance are opposites
+    ("clarity", "confusion"),      # Can't have both
+    ("growth", "holding_back"),    # Growth vs holding back
+    ("grief", "warmth"),           # Grief dampens warmth (though can coexist)
+]
+
+
+def score_frame(
+    frame_type: str,
+    tones: Dict[str, float],
+    lifeline_patterns: List[str],
+    pattern_id: str,
+    transit_themes: Any = None,
+    debug: bool = False
+) -> Dict[str, Any]:
+    """
+    Calculate a competitive score for a frame based on signal strength and context.
+    
+    Scoring:
+    - +3.0 per strong primary signal match (tone > 0.4)
+    - +2.0 per moderate primary signal match (tone > 0.2)
+    - +1.5 per strong secondary signal match (tone > 0.4)
+    - +1.0 per moderate secondary signal match (tone > 0.2)
+    - -2.0 per strong negative signal (tone > 0.4)
+    - -1.0 per moderate negative signal (tone > 0.2)
+    - +2.0 if lifeline pattern strongly supports frame
+    - +2.0 if pattern archetype strongly aligns
+    - +1.0 if pattern archetype moderately aligns
+    - -1.0 if pattern archetype weakly aligns
+    - +1.0 per reinforcing signal pair present
+    - -0.5 per conflicting signal pair present
+    
+    Returns dict with score breakdown for debugging.
+    """
+    weights = FRAME_SIGNAL_WEIGHTS.get(frame_type, {})
+    primary_signals = weights.get("primary", [])
+    secondary_signals = weights.get("secondary", [])
+    negative_signals = weights.get("negative", [])
+    
+    score = 0.0
+    breakdown = {
+        "frame_type": frame_type,
+        "primary_matches": [],
+        "secondary_matches": [],
+        "negative_matches": [],
+        "lifeline_bonus": 0,
+        "pattern_alignment": 0,
+        "consistency_bonus": 0,
+        "total_score": 0,
+    }
+    
+    # --- Primary signal scoring ---
+    for signal in primary_signals:
+        tone_value = tones.get(signal, 0)
+        # Special handling for repeated_cycles (comes from lifeline_patterns)
+        if signal == "repeated_cycles" and "repeated_cycles" in lifeline_patterns:
+            tone_value = 0.6  # Treat as strong signal
+        
+        if tone_value > 0.4:
+            score += 3.0
+            breakdown["primary_matches"].append((signal, tone_value, 3.0))
+        elif tone_value > 0.2:
+            score += 2.0
+            breakdown["primary_matches"].append((signal, tone_value, 2.0))
+    
+    # --- Secondary signal scoring ---
+    for signal in secondary_signals:
+        tone_value = tones.get(signal, 0)
+        if signal == "repeated_cycles" and "repeated_cycles" in lifeline_patterns:
+            tone_value = 0.6
+        
+        if tone_value > 0.4:
+            score += 1.5
+            breakdown["secondary_matches"].append((signal, tone_value, 1.5))
+        elif tone_value > 0.2:
+            score += 1.0
+            breakdown["secondary_matches"].append((signal, tone_value, 1.0))
+    
+    # --- Negative signal scoring ---
+    for signal in negative_signals:
+        tone_value = tones.get(signal, 0)
+        if tone_value > 0.4:
+            score -= 2.0
+            breakdown["negative_matches"].append((signal, tone_value, -2.0))
+        elif tone_value > 0.2:
+            score -= 1.0
+            breakdown["negative_matches"].append((signal, tone_value, -1.0))
+    
+    # --- Lifeline pattern support ---
+    if "repeated_cycles" in lifeline_patterns:
+        if frame_type in ["here_again", "something_different"]:
+            score += 2.0
+            breakdown["lifeline_bonus"] = 2.0
+    
+    # Check for other lifeline patterns that support frames
+    if "delayed_action" in lifeline_patterns:
+        if frame_type in ["holding_back", "testing_the_waters"]:
+            score += 1.5
+            breakdown["lifeline_bonus"] += 1.5
+    
+    if "breakthrough_moments" in lifeline_patterns:
+        if frame_type in ["edge_of_action", "something_different", "clarity_arriving"]:
+            score += 1.5
+            breakdown["lifeline_bonus"] += 1.5
+    
+    # --- Pattern archetype alignment ---
+    affinities = PATTERN_FRAME_AFFINITIES.get(pattern_id, {})
+    if frame_type in affinities.get("strong", []):
+        score += 2.0
+        breakdown["pattern_alignment"] = 2.0
+    elif frame_type in affinities.get("moderate", []):
+        score += 1.0
+        breakdown["pattern_alignment"] = 1.0
+    elif frame_type in affinities.get("weak", []):
+        score -= 1.0
+        breakdown["pattern_alignment"] = -1.0
+    
+    # --- Signal consistency scoring ---
+    active_signals = [s for s, v in tones.items() if v > 0.2]
+    if "repeated_cycles" in lifeline_patterns:
+        active_signals.append("repeated_cycles")
+    
+    # Reinforcing pairs bonus
+    for pair in REINFORCING_SIGNAL_PAIRS:
+        if pair[0] in active_signals and pair[1] in active_signals:
+            score += 1.0
+            breakdown["consistency_bonus"] += 1.0
+    
+    # Conflicting pairs penalty (smaller than reinforcing bonus)
+    for pair in CONFLICTING_SIGNAL_PAIRS:
+        if pair[0] in active_signals and pair[1] in active_signals:
+            score -= 0.5
+            breakdown["consistency_bonus"] -= 0.5
+    
+    breakdown["total_score"] = round(score, 2)
+    
+    return breakdown
+
+
+def rank_candidate_frames(
+    pattern_id: str,
+    tones: Dict[str, float],
+    lifeline_patterns: List[str],
+    transit_themes: Any = None,
+    debug: bool = False
+) -> List[Dict[str, Any]]:
+    """
+    Rank all candidate frames by score to find the most truthful one.
+    
+    Returns list of frame scores, sorted by total_score descending.
+    """
+    all_frames = list(FRAME_TYPES.keys())
+    scored_frames = []
+    
+    for frame_type in all_frames:
+        score_breakdown = score_frame(
+            frame_type,
+            tones,
+            lifeline_patterns,
+            pattern_id,
+            transit_themes,
+            debug
+        )
+        scored_frames.append(score_breakdown)
+    
+    # Sort by total score descending
+    scored_frames.sort(key=lambda x: x["total_score"], reverse=True)
+    
+    return scored_frames
+
+
+def select_best_frame(
+    pattern_id: str,
+    tones: Dict[str, float],
+    lifeline_patterns: List[str],
+    selected_framing: str = "",
+    transit_themes: Any = None,
+    debug: bool = False
+) -> Tuple[str, Dict[str, Any]]:
+    """
+    Select the BEST frame using competitive ranking.
+    
+    Returns (best_frame_type, debug_info).
+    
+    Debug info includes:
+    - all_candidates: ranked list of all frame scores
+    - winner: the selected frame
+    - margin: score difference from second place
+    - confidence: "high" if margin > 2.0, "medium" if > 1.0, "low" otherwise
+    """
+    # Get ranked frames
+    ranked_frames = rank_candidate_frames(
+        pattern_id,
+        tones,
+        lifeline_patterns,
+        transit_themes,
+        debug
+    )
+    
+    # Select winner
+    winner = ranked_frames[0]
+    runner_up = ranked_frames[1] if len(ranked_frames) > 1 else None
+    
+    # Calculate margin and confidence
+    margin = winner["total_score"] - (runner_up["total_score"] if runner_up else 0)
+    
+    if margin > 2.0:
+        confidence = "high"
+    elif margin > 1.0:
+        confidence = "medium"
+    else:
+        confidence = "low"
+    
+    # If confidence is low and we have a selected_framing, use it as tiebreaker
+    if confidence == "low" and selected_framing:
+        framing_frame = FRAMING_TO_FRAME_TYPE.get(selected_framing, "")
+        if framing_frame:
+            # Boost the frame that matches the selected framing
+            for frame_data in ranked_frames:
+                if frame_data["frame_type"] == framing_frame:
+                    # If it's close to the winner, prefer the framing-matched frame
+                    if winner["total_score"] - frame_data["total_score"] < 1.5:
+                        winner = frame_data
+                        confidence = "framing_tiebreak"
+                    break
+    
+    debug_info = {
+        "all_candidates": ranked_frames[:5] if debug else [],  # Top 5 only for brevity
+        "winner": winner,
+        "runner_up": runner_up,
+        "margin": round(margin, 2),
+        "confidence": confidence,
+    }
+    
+    return (winner["frame_type"], debug_info)
+
+
 def determine_frame_type(
     pattern_id: str,
     active_signals: List[str],
@@ -2734,13 +3116,15 @@ def generate_core_insight(
     pattern_id: str,
     pattern: Dict[str, Any],
     signals_extended: Dict[str, Any],
-    user_id: str = ""
-) -> Tuple[str, str]:
+    user_id: str = "",
+    debug: bool = False
+) -> Tuple[str, str, Dict[str, Any]]:
     """
-    V10.2: Generate context-aware core insight with FRAME TYPE ASSIGNMENT.
+    V10.3: Generate context-aware core insight with COMPETITIVE FRAME RANKING.
     
-    Returns (insight_text, frame_type) so that frame_type can be passed
-    to subsequent section generators for cross-section coherence.
+    Returns (insight_text, frame_type, debug_info) so that:
+    - frame_type can be passed to subsequent section generators
+    - debug_info shows frame selection reasoning (for dev)
     """
     # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
@@ -2749,31 +3133,40 @@ def generate_core_insight(
     # Get dominant signal combination
     combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
     
-    # V10.2: Select structure and get framing
+    # V10.3: Use competitive frame ranking to select the BEST frame
+    best_frame, frame_debug = select_best_frame(
+        pattern_id,
+        tones,
+        lifeline_patterns,
+        "",  # No pre-selected framing - let the ranking decide
+        None,  # transit_themes
+        debug
+    )
+    
+    # V10.3: Select structure compatible with the competitively-selected frame
     if pattern_id in CORE_INSIGHT_STRUCTURES and active_signals:
         text, framing = select_structure_with_frame(
             CORE_INSIGHT_STRUCTURES,
             pattern_id,
             active_signals,
-            "",  # No frame_type yet - this is where we determine it
+            best_frame,  # Use the competitively-ranked frame
             user_id,
             "core_insight"
         )
-        # Determine frame_type from the selected framing
-        frame_type = determine_frame_type(pattern_id, active_signals, framing)
-        return (text, frame_type)
+        return (text, best_frame, frame_debug)
     elif pattern_id in CORE_INSIGHT_STRUCTURES:
         # No active signals - use default
         default_text = CORE_INSIGHT_STRUCTURES[pattern_id].get(
             "default",
             pattern.get("summary", "Something is present that deserves your attention.")
         )
-        return (default_text, "something_surfacing")
+        return (default_text, "something_surfacing", frame_debug)
     else:
         # Pattern not in structures - use pattern summary
         return (
             pattern.get("summary", "Something is present that deserves your attention."),
-            "something_surfacing"
+            "something_surfacing",
+            frame_debug
         )
 
 
