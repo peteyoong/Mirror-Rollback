@@ -298,18 +298,74 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   
   // ===== CRITICAL DEBUG LOGGING =====
   console.log('========================================');
-  console.log('[PatternCard] RENDER PATH DECISION');
-  console.log('========================================');
   console.log('[PatternCard] USING_TWO_LAYER_OUTPUT:', !!twoLayer);
   console.log('[PatternCard] RENDERING_LEGACY_PATTERN_CARD:', !twoLayer);
-  console.log('[PatternCard] twoLayer object:', twoLayer);
-  console.log('[PatternCard] coreInsight:', coreInsight);
-  console.log('[PatternCard] whyShowingUp:', whyShowingUp);
-  console.log('[PatternCard] crossLensDerivation:', crossLensDerivation);
+  if (twoLayer) {
+    console.log('[PatternCard] crossLensDerivation lenses count:', crossLensDerivation?.lenses?.length || 0);
+    console.log('[PatternCard] derivationExpanded state:', derivationExpanded);
+  }
   console.log('========================================');
 
-  // ===== V5 TWO-LAYER RENDER =====
+  // ===== HELPER: Translate timing themes to plain English =====
+  const translateWhyShowingUp = (text: string): string => {
+    if (!text) return '';
+    
+    // Map of internal keys to plain English
+    const translations: Record<string, string> = {
+      'identity_shift': 'a shift in how you see yourself',
+      'renewal_cycle': 'renewal and fresh beginnings',
+      'transition_threshold': 'a threshold moment between phases',
+      'emotional_sensitivity': 'heightened emotional awareness',
+      'relational_harmony': 'connection and relationship energy',
+      'relational_sensitivity': 'sensitivity in relationships',
+      'pressure': 'building pressure',
+      'expansion': 'expansion and growth',
+      'contraction': 'consolidation and pulling inward',
+      'reset_cycle': 'a natural reset',
+      'softening_phase': 'softening and opening',
+      'integration_phase': 'integration and bringing pieces together',
+    };
+    
+    let result = text;
+    
+    // Replace internal tokens with plain English
+    Object.entries(translations).forEach(([key, value]) => {
+      const regex = new RegExp(key, 'gi');
+      result = result.replace(regex, value);
+    });
+    
+    // Clean up patterns like "(renewal and fresh beginnings, a shift in how you see yourself)"
+    result = result.replace(/\(([^)]+)\)/g, (match, content) => {
+      // If it looks like a list of themes, convert to prose
+      const parts = content.split(/,\s*/);
+      if (parts.length === 2) {
+        return `${parts[0]} and ${parts[1]}`;
+      } else if (parts.length > 2) {
+        return parts.slice(0, -1).join(', ') + ', and ' + parts[parts.length - 1];
+      }
+      return content;
+    });
+    
+    // Clean up "current timing themes" phrasing
+    result = result.replace(/current timing themes?\s*/gi, 'current timing points to ');
+    result = result.replace(/highlight this facet/gi, '');
+    result = result.replace(/\s+/g, ' ').trim();
+    
+    // Remove trailing period if duplicated
+    result = result.replace(/\.\s*$/, '');
+    
+    return result;
+  };
+
+  // ===== V5 TWO-LAYER RENDER (CLEAN - NO LEGACY ELEMENTS) =====
   if (twoLayer) {
+    const translatedWhyText = translateWhyShowingUp(whyShowingUp?.text || '');
+    const contributingLenses = crossLensDerivation?.lenses?.filter(l => l.contributed && l.signal) || [];
+    
+    // Debug logging for accordion
+    console.log('[PatternCard] V5 RENDER - contributingLenses count:', contributingLenses.length);
+    console.log('[PatternCard] V5 RENDER - derivationExpanded:', derivationExpanded);
+    
     return (
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>        
         {/* Header */}
@@ -331,118 +387,64 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
           </Text>
         </View>
 
-        {/* ===== B. WHY THIS MAY BE SHOWING UP (always visible) ===== */}
-        {whyShowingUp?.text && (
+        {/* ===== B. WHY THIS MAY BE SHOWING UP (always visible, plain English) ===== */}
+        {translatedWhyText ? (
           <View style={[styles.whyShowingUpSection, { borderColor: theme.border }]}>
             <Text style={[styles.whyShowingUpLabel, { color: theme.textTertiary }]}>
               WHY THIS MAY BE SHOWING UP
             </Text>
             <Text style={[styles.whyShowingUpText, { color: theme.textSecondary }]}>
-              {whyShowingUp.text}
+              {translatedWhyText}
             </Text>
           </View>
-        )}
+        ) : null}
 
-        {/* ===== C. HOW THIS WAS DERIVED (collapsible) ===== */}
-        {crossLensDerivation && crossLensDerivation.lenses && crossLensDerivation.lenses.length > 0 && (
-          <>
+        {/* ===== C. HOW THIS WAS DERIVED (collapsible accordion) ===== */}
+        {contributingLenses.length > 0 ? (
+          <View style={styles.derivationContainer}>
             <TouchableOpacity
-              onPress={() => setDerivationExpanded(!derivationExpanded)}
-              activeOpacity={0.7}
+              onPress={() => {
+                console.log('[PatternCard] DERIVED_ACCORDION_TAPPED');
+                console.log('[PatternCard] DERIVED_ACCORDION_EXPANDED =', !derivationExpanded);
+                setDerivationExpanded(!derivationExpanded);
+              }}
+              activeOpacity={0.6}
               style={styles.derivationTrigger}
             >
-              <Text style={[styles.derivationTriggerText, { color: theme.textTertiary }]}>
-                {derivationExpanded ? 'Hide how this was derived ▲' : 'How this was derived ▼'}
-              </Text>
-              {crossLensDerivation.convergence_note && (
-                <Text style={[styles.convergenceBadge, { color: theme.accent }]}>
-                  {crossLensDerivation.convergence_note}
+              <View style={styles.derivationTriggerRow}>
+                <Text style={[styles.derivationTriggerText, { color: theme.textTertiary }]}>
+                  {derivationExpanded ? 'Hide how this was derived' : 'How this was derived'}
                 </Text>
-              )}
+                <Text style={[styles.derivationArrow, { color: theme.textTertiary }]}>
+                  {derivationExpanded ? '▲' : '▼'}
+                </Text>
+              </View>
+              <Text style={[styles.convergenceBadge, { color: theme.accent }]}>
+                {contributingLenses.length} {contributingLenses.length === 1 ? 'system points' : 'systems point'} to this theme
+              </Text>
             </TouchableOpacity>
 
             {derivationExpanded && (
               <View style={[styles.derivationSection, { borderTopColor: theme.border }]}>
-                {crossLensDerivation.lenses.map((lens, index) => (
-                  lens.contributed && lens.signal ? (
-                    <View key={index} style={styles.lensItem}>
-                      <Text style={[styles.lensName, { color: theme.textSecondary }]}>
-                        {lens.lens}
-                      </Text>
-                      <Text style={[styles.lensArrow, { color: theme.textTertiary }]}>
-                        →
-                      </Text>
-                      <Text style={[styles.lensSignal, { color: theme.text }]}>
-                        {lens.signal}
-                      </Text>
-                    </View>
-                  ) : null
-                ))}
-              </View>
-            )}
-          </>
-        )}
-
-        {/* Challenge & Genius - keep but collapsed */}
-        <TouchableOpacity
-          onPress={() => setDetailsExpanded(!detailsExpanded)}
-          activeOpacity={0.7}
-          style={styles.detailsTrigger}
-        >
-          <Text style={[styles.detailsTriggerText, { color: theme.textTertiary }]}>
-            {detailsExpanded ? 'Hide details ▲' : 'Show challenge & genius ▼'}
-          </Text>
-        </TouchableOpacity>
-
-        {detailsExpanded && (
-          <>
-            {/* Challenge */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-                WHAT'S YOUR CHALLENGE
-              </Text>
-              <View style={styles.challengeList}>
-                {pattern.challenge.map((item, index) => (
-                  <View key={index} style={styles.challengeItem}>
-                    <Text style={[styles.bulletPoint, { color: theme.textTertiary }]}>•</Text>
-                    <Text style={[styles.challengeText, { color: theme.textSecondary }]}>
-                      {item}
+                {contributingLenses.map((lens, index) => (
+                  <View key={index} style={styles.lensItem}>
+                    <Text style={[styles.lensName, { color: theme.textSecondary }]}>
+                      {lens.lens}
+                    </Text>
+                    <Text style={[styles.lensArrow, { color: theme.textTertiary }]}>
+                      →
+                    </Text>
+                    <Text style={[styles.lensSignal, { color: theme.text }]}>
+                      {lens.signal}
                     </Text>
                   </View>
                 ))}
               </View>
-            </View>
+            )}
+          </View>
+        ) : null}
 
-            {/* Genius */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-                WHAT'S YOUR GENIUS
-              </Text>
-              <Text style={[styles.geniusDescription, { color: theme.text }]}>
-                {pattern.genius.description}
-              </Text>
-              {pattern.genius.archetype && (
-                <Text style={[styles.archetype, { color: theme.accent }]}>
-                  {pattern.genius.archetype}
-                </Text>
-              )}
-            </View>
-
-            {/* Micro Shifts */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-                PRACTICAL WAYS TO THINK ABOUT IT
-              </Text>
-              {pattern.micro_shifts.map((shift, index) => (
-                <Text key={index} style={[styles.microShift, { color: theme.textSecondary }]}>
-                  {shift}
-                </Text>
-              ))}
-            </View>
-          </>
-        )}
-
-        {/* CTA: Reflect on this */}
+        {/* ===== CTA: Reflect on this ===== */}
         <TouchableOpacity
           style={[styles.reflectButton, { backgroundColor: theme.accent }]}
           onPress={handleReflect}
@@ -453,74 +455,8 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
           </Text>
         </TouchableOpacity>
 
-        {/* Signal strength indicator */}
-        {(evidencePanel || personalPattern?.signal_strength || patternData.signal_strength) && (
-          <TouchableOpacity
-            onPress={() => setSignalsExpanded(!signalsExpanded)}
-            activeOpacity={0.7}
-            style={styles.signalTrigger}
-          >
-            <Text style={[styles.signalIndicator, { color: theme.textTertiary }]}>
-              {evidencePanel ? (
-                `${evidencePanel.total_snippet_count} signals across ${
-                  Object.keys(evidencePanel.snippet_count_by_source || {}).join(' and ')
-                }`
-              ) : (
-                `Based on ${personalPattern?.signal_strength || patternData.signal_strength} signals`
-              )}
-              <Text style={styles.signalExpandHint}>
-                {signalsExpanded ? '  ▲' : '  ▼'}
-              </Text>
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Expanded evidence panel */}
-        {signalsExpanded && evidencePanel?.source_sections && (
-          <View style={[styles.signalsSection, { borderTopColor: theme.border }]}>
-            <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>
-              WHAT THIS IS BASED ON
-            </Text>
-            
-            {evidencePanel.summary_line && (
-              <Text style={[styles.evidenceSummaryLine, { color: theme.textSecondary }]}>
-                {evidencePanel.summary_line}
-              </Text>
-            )}
-            
-            {evidencePanel.source_sections.map((section: any) => {
-              if (!section.sample_snippets || section.sample_snippets.length === 0) return null;
-              
-              return (
-                <View key={section.source_name} style={styles.signalSourceGroup}>
-                  <View style={styles.sourceHeader}>
-                    <Text style={[styles.signalSourceLabel, { color: theme.textSecondary }]}>
-                      {SOURCE_LABELS[section.source_name] || section.source_name} ({section.snippet_count})
-                    </Text>
-                    <Text style={[styles.contributionBadge, { color: theme.textTertiary }]}>
-                      {section.contribution_strength}
-                    </Text>
-                  </View>
-                  {section.sample_snippets.slice(0, 3).map((snippet: any, index: number) => (
-                    <View key={index} style={styles.evidenceItem}>
-                      <Text style={[styles.signalBullet, { color: theme.textTertiary }]}>•</Text>
-                      <View style={styles.evidenceContent}>
-                        <Text style={[styles.signalText, { color: theme.textSecondary }]}>
-                          {snippet.text}
-                        </Text>
-                        {snippet.date && (
-                          <Text style={[styles.snippetDate, { color: theme.textTertiary }]}>
-                            {snippet.date}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              );
-            })}
-          </View>
-        )}
+        {/* V5 Two-Layer mode: NO challenge/genius, NO signals indicator */}
+        {/* These legacy elements are intentionally REMOVED from V5 render */}
       </View>
     );
   }
@@ -1130,23 +1066,37 @@ const styles = StyleSheet.create({
   },
   
   // Derivation section (collapsible cross-lens proof)
+  derivationContainer: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
   derivationTrigger: {
-    paddingVertical: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+  },
+  derivationTriggerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   derivationTriggerText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
   },
+  derivationArrow: {
+    fontSize: 12,
+    marginLeft: 8,
+  },
   convergenceBadge: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
-    marginTop: 4,
+    marginTop: 6,
+    textAlign: 'center',
   },
   derivationSection: {
     paddingTop: 16,
     borderTopWidth: 1,
-    marginBottom: 16,
+    marginTop: 8,
   },
   lensItem: {
     flexDirection: 'row',
