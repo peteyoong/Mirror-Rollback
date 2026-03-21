@@ -408,7 +408,7 @@ export default function MirrorScreen() {
             {/* Recent Reflection - feels like a note to self */}
             <TouchableOpacity 
               style={[styles.continuityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-              onPress={() => router.push('/(tabs)/journal')}
+              onPress={() => router.push('/(tabs)/reflect')}
               activeOpacity={0.7}
             >
               <Text style={[styles.continuityLabel, { color: theme.textTertiary }]}>

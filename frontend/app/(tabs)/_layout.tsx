@@ -38,7 +38,7 @@ export default function TabLayout() {
         }}
       />
       
-      {/* 2. Life - Contextual translation of patterns */}
+      {/* 2. Life - Lifeline & long-term patterns */}
       <Tabs.Screen
         name="life"
         options={{
@@ -49,13 +49,13 @@ export default function TabLayout() {
         }}
       />
       
-      {/* 3. Journal - User inputs and reflections */}
+      {/* 3. Reflect - Journal & Mirror tabs (renamed from Journal) */}
       <Tabs.Screen
-        name="journal"
+        name="reflect"
         options={{
-          title: 'Journal',
+          title: 'Reflect',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22, color }}>☰</Text>
+            <Text style={{ fontSize: 22, color }}>◇</Text>
           ),
         }}
       />

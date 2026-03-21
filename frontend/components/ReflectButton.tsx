@@ -72,7 +72,7 @@ export function ReflectButton({
     setShowOptions(false);
     // Navigate to journal with prefilled source
     router.push({
-      pathname: '/(tabs)/journal',
+      pathname: '/(tabs)/reflect',
       params: {
         prefillPrompt: `Reflecting on ${sourceName}${sourceValue ? `: ${sourceValue}` : ''}`,
         journalSource: `${sourceLens}_${sourceType}`,
