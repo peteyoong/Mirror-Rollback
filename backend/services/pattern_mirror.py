@@ -885,6 +885,1091 @@ VERB_VARIATIONS = {
 }
 
 
+# ============================================================================
+# V10.1: STRUCTURAL VARIATION SYSTEM
+# ============================================================================
+# Instead of always using the same base sentence with modifiers,
+# select fundamentally different sentence structures based on signal patterns.
+#
+# Core shift: base_sentence + modifier  >>>  signal-driven sentence selection
+# ============================================================================
+
+# --- SIGNAL COMBINATION TYPES ---
+# Named combinations that map to specific structural choices
+
+SIGNAL_COMBINATIONS = {
+    "grief_resistance": ["grief", "resistance"],
+    "growth_confusion": ["growth", "confusion"],
+    "warmth_hesitation": ["warmth", "hesitation"],
+    "clarity_pressure": ["clarity", "pressure"],
+    "grief_growth": ["grief", "growth"],
+    "hesitation_confusion": ["hesitation", "confusion"],
+    "warmth_clarity": ["warmth", "clarity"],
+    "pressure_resistance": ["pressure", "resistance"],
+}
+
+# --- STRUCTURAL SENTENCE PATTERNS ---
+# Multiple base structures per pattern, tagged with signal affinities
+# Format: { pattern_id: { "structures": [ { "text": ..., "affinities": [...], "framing": ... } ] } }
+
+WHY_NOW_STRUCTURES = {
+    "relational_reopening": {
+        "structures": [
+            {
+                "framing": "opening",
+                "affinities": ["warmth", "growth"],
+                "text": "Something in you may be becoming more willing to let connection back in.",
+            },
+            {
+                "framing": "protection",
+                "affinities": ["hesitation", "resistance"],
+                "text": "The walls you've built may be asking whether they're still needed.",
+            },
+            {
+                "framing": "grief_aware",
+                "affinities": ["grief"],
+                "text": "Even while holding what's been lost, something in you is reaching toward connection.",
+            },
+            {
+                "framing": "timing",
+                "affinities": ["clarity", "pressure"],
+                "text": "The question of closeness is pressing now—not because you've answered it, but because it won't wait.",
+            },
+            {
+                "framing": "pattern_recognition",
+                "affinities": ["repeated_cycles"],
+                "text": "You've been here before—at the edge of letting someone in. This time something feels different.",
+            },
+        ],
+        "default": "Current timing may be making openness feel more possible.",
+    },
+    "threshold_standing": {
+        "structures": [
+            {
+                "framing": "decision",
+                "affinities": ["clarity", "pressure"],
+                "text": "A decision is becoming unavoidable—not because you're ready, but because the moment is.",
+            },
+            {
+                "framing": "between",
+                "affinities": ["confusion", "hesitation"],
+                "text": "You're standing between what was and what could be, and neither feels fully real yet.",
+            },
+            {
+                "framing": "readiness",
+                "affinities": ["warmth", "growth"],
+                "text": "Something in you knows it's time to move—even if the path isn't fully visible.",
+            },
+            {
+                "framing": "resistance_aware",
+                "affinities": ["resistance", "grief"],
+                "text": "Part of you is holding back, and that hesitation might be worth listening to.",
+            },
+            {
+                "framing": "pattern_recognition",
+                "affinities": ["repeated_cycles"],
+                "text": "This threshold feels familiar. You've stood here before, but you're not the same person now.",
+            },
+        ],
+        "default": "Current timing may be highlighting a threshold.",
+    },
+    "over_functioning_hero": {
+        "structures": [
+            {
+                "framing": "weight",
+                "affinities": ["pressure", "grief"],
+                "text": "The weight of carrying so much is becoming harder to ignore.",
+            },
+            {
+                "framing": "questioning",
+                "affinities": ["clarity", "growth"],
+                "text": "You're starting to wonder whether all this holding is actually yours to do.",
+            },
+            {
+                "framing": "depletion",
+                "affinities": ["confusion", "resistance"],
+                "text": "Something is running low—not just energy, but the willingness to keep going this way.",
+            },
+            {
+                "framing": "identity",
+                "affinities": ["warmth", "hesitation"],
+                "text": "Being the one who holds things together has felt like who you are. Now you're not so sure.",
+            },
+            {
+                "framing": "pattern_recognition",
+                "affinities": ["repeated_cycles"],
+                "text": "You've done this before—carried more than your share. And here you are again.",
+            },
+        ],
+        "default": "Current pressures may be revealing where you're overextended.",
+    },
+    "somethings_here": {
+        "structures": [
+            {
+                "framing": "emergence",
+                "affinities": ["warmth", "growth"],
+                "text": "Something is present that wasn't there before—still forming, not yet named.",
+            },
+            {
+                "framing": "uncertainty",
+                "affinities": ["confusion", "hesitation"],
+                "text": "There's something here you can't quite see clearly yet, but you feel it.",
+            },
+            {
+                "framing": "recognition",
+                "affinities": ["clarity"],
+                "text": "You're noticing something that's been there awhile—it just became visible.",
+            },
+            {
+                "framing": "grief_tinged",
+                "affinities": ["grief", "resistance"],
+                "text": "Something is surfacing that you may have been avoiding. It's here now.",
+            },
+            {
+                "framing": "pressure_aware",
+                "affinities": ["pressure"],
+                "text": "Under the noise and demands, something quieter is trying to get your attention.",
+            },
+        ],
+        "default": "Current timing may be bringing something into focus.",
+    },
+    "moving_through": {
+        "structures": [
+            {
+                "framing": "release",
+                "affinities": ["growth", "warmth"],
+                "text": "Something you've been holding is ready to move through you.",
+            },
+            {
+                "framing": "containment",
+                "affinities": ["grief", "resistance"],
+                "text": "You might be holding more than you've let yourself feel.",
+            },
+            {
+                "framing": "transition",
+                "affinities": ["confusion", "hesitation"],
+                "text": "Something is shifting, even if you can't fully name it yet.",
+            },
+            {
+                "framing": "pattern_recognition",
+                "affinities": ["repeated_cycles"],
+                "text": "This feels like a moment where something wants to move, but hasn't before.",
+            },
+            {
+                "framing": "pressure_aware",
+                "affinities": ["pressure", "clarity"],
+                "text": "What's been building can't stay contained much longer. Something needs to move.",
+            },
+        ],
+        "default": "Timing may be supporting release or completion.",
+    },
+    "heart_thaw": {
+        "structures": [
+            {
+                "framing": "softening",
+                "affinities": ["warmth", "growth"],
+                "text": "Walls that have been up are starting to soften—not all at once, but noticeably.",
+            },
+            {
+                "framing": "testing",
+                "affinities": ["hesitation", "resistance"],
+                "text": "You're testing whether it's safe to feel again, one small moment at a time.",
+            },
+            {
+                "framing": "grief_aware",
+                "affinities": ["grief"],
+                "text": "The heart that closed to protect itself is wondering if it's time to open.",
+            },
+            {
+                "framing": "pressure",
+                "affinities": ["pressure", "clarity"],
+                "text": "Something is pressing against the walls—not forcing, but persistent.",
+            },
+            {
+                "framing": "confusion",
+                "affinities": ["confusion"],
+                "text": "You're not sure if you're ready, but something is thawing anyway.",
+            },
+        ],
+        "default": "Conditions may be supporting a quiet softening.",
+    },
+    "inner_critic_override": {
+        "structures": [
+            {
+                "framing": "volume",
+                "affinities": ["pressure", "confusion"],
+                "text": "The critical voice is louder than usual—drowning out other signals.",
+            },
+            {
+                "framing": "questioning",
+                "affinities": ["clarity", "growth"],
+                "text": "You're starting to notice the inner critic as a voice, not a truth.",
+            },
+            {
+                "framing": "protection",
+                "affinities": ["resistance", "hesitation"],
+                "text": "The harsh self-talk might be trying to protect you from something scarier.",
+            },
+            {
+                "framing": "grief_aware",
+                "affinities": ["grief", "warmth"],
+                "text": "The critic speaks loudest when something tender is trying to emerge.",
+            },
+            {
+                "framing": "pattern_recognition",
+                "affinities": ["repeated_cycles"],
+                "text": "You've heard this voice before. It says the same things every time you get close to something real.",
+            },
+        ],
+        "default": "Timing may be amplifying self-judgment.",
+    },
+    "duty_over_self": {
+        "structures": [
+            {
+                "framing": "imbalance",
+                "affinities": ["pressure", "clarity"],
+                "text": "The gap between what you're giving and what you're receiving is becoming visible.",
+            },
+            {
+                "framing": "questioning",
+                "affinities": ["growth", "warmth"],
+                "text": "You're starting to wonder where you fit on your own priority list.",
+            },
+            {
+                "framing": "depletion",
+                "affinities": ["grief", "resistance"],
+                "text": "Giving has become so automatic that you've forgotten what it's like to receive.",
+            },
+            {
+                "framing": "confusion",
+                "affinities": ["confusion", "hesitation"],
+                "text": "You're not sure anymore where responsibility ends and self-abandonment begins.",
+            },
+            {
+                "framing": "pattern_recognition",
+                "affinities": ["repeated_cycles"],
+                "text": "This isn't the first time you've put yourself last. But it might be the first time you've noticed.",
+            },
+        ],
+        "default": "Current pressures may be highlighting where you put yourself last.",
+    },
+}
+
+FRICTION_STRUCTURES = {
+    "relational_reopening": {
+        "structures": [
+            {
+                "framing": "proof_seeking",
+                "affinities": ["hesitation", "resistance"],
+                "text": "Part of you may still want proof that openness is safe before committing to it.",
+            },
+            {
+                "framing": "self_protection",
+                "affinities": ["grief", "resistance"],
+                "text": "The part of you that got hurt before is watching carefully, ready to retreat.",
+            },
+            {
+                "framing": "control",
+                "affinities": ["pressure", "clarity"],
+                "text": "You may be trying to control the terms of reconnection rather than letting it unfold.",
+            },
+            {
+                "framing": "worthiness",
+                "affinities": ["warmth", "confusion"],
+                "text": "A quiet voice may be asking whether you deserve the connection you're being offered.",
+            },
+            {
+                "framing": "timing",
+                "affinities": ["growth"],
+                "text": "You might be second-guessing the timing, even when the readiness is real.",
+            },
+        ],
+        "default": "Part of you may still want proof that openness is safe.",
+    },
+    "threshold_standing": {
+        "structures": [
+            {
+                "framing": "certainty_seeking",
+                "affinities": ["hesitation", "confusion"],
+                "text": "You may be waiting for a certainty that won't come until after you've moved.",
+            },
+            {
+                "framing": "loss_aversion",
+                "affinities": ["grief", "resistance"],
+                "text": "What you'd leave behind may feel more real than what you'd step into.",
+            },
+            {
+                "framing": "perfectionism",
+                "affinities": ["pressure", "clarity"],
+                "text": "You might be looking for the perfect moment to step forward—and it doesn't exist.",
+            },
+            {
+                "framing": "identity",
+                "affinities": ["growth", "warmth"],
+                "text": "Part of you may be wondering who you'll be on the other side of this decision.",
+            },
+            {
+                "framing": "pattern_awareness",
+                "affinities": ["repeated_cycles"],
+                "text": "You may be afraid of choosing wrong again, like you feel you have before.",
+            },
+        ],
+        "default": "You may still be waiting for certainty before stepping forward.",
+    },
+    "over_functioning_hero": {
+        "structures": [
+            {
+                "framing": "identity",
+                "affinities": ["warmth", "confusion"],
+                "text": "Not doing might feel like not being—like you'll disappear without the role.",
+            },
+            {
+                "framing": "guilt",
+                "affinities": ["grief", "hesitation"],
+                "text": "Resting may feel like abandoning the people who count on you.",
+            },
+            {
+                "framing": "control",
+                "affinities": ["pressure", "resistance"],
+                "text": "Letting go of control may feel more dangerous than burning out.",
+            },
+            {
+                "framing": "worthiness",
+                "affinities": ["growth", "clarity"],
+                "text": "Part of you may believe you only deserve rest after everything is handled.",
+            },
+            {
+                "framing": "pattern_awareness",
+                "affinities": ["repeated_cycles"],
+                "text": "You know this pattern, but knowing it hasn't been enough to stop it.",
+            },
+        ],
+        "default": "You might find it hard to rest when there's still something you could do.",
+    },
+    "somethings_here": {
+        "structures": [
+            {
+                "framing": "avoidance",
+                "affinities": ["resistance", "grief"],
+                "text": "You might be keeping this feeling at arm's length, afraid of what it means.",
+            },
+            {
+                "framing": "naming_fear",
+                "affinities": ["hesitation", "confusion"],
+                "text": "Naming it might make it real in a way you're not ready for.",
+            },
+            {
+                "framing": "rushing",
+                "affinities": ["pressure", "clarity"],
+                "text": "You may want to understand it before it's ready to be understood.",
+            },
+            {
+                "framing": "dismissing",
+                "affinities": ["warmth", "growth"],
+                "text": "Part of you may be tempted to dismiss this as nothing important.",
+            },
+            {
+                "framing": "pattern_awareness",
+                "affinities": ["repeated_cycles"],
+                "text": "You've felt this before and ignored it. Part of you wants to do that again.",
+            },
+        ],
+        "default": "You might be resisting naming it too soon.",
+    },
+    "moving_through": {
+        "structures": [
+            {
+                "framing": "minimizing",
+                "affinities": ["resistance", "pressure"],
+                "text": "Part of you may be minimizing what you're actually grieving.",
+            },
+            {
+                "framing": "rushing",
+                "affinities": ["growth", "clarity"],
+                "text": "You might be trying to rush through the feeling instead of letting it move at its own pace.",
+            },
+            {
+                "framing": "containment",
+                "affinities": ["hesitation", "confusion"],
+                "text": "You may be holding back tears, words, or truth that want to come out.",
+            },
+            {
+                "framing": "fear",
+                "affinities": ["grief", "warmth"],
+                "text": "You might be afraid that feeling it fully will overwhelm you.",
+            },
+            {
+                "framing": "pattern_awareness",
+                "affinities": ["repeated_cycles"],
+                "text": "You've held this before. The question is whether you're ready to let it go this time.",
+            },
+        ],
+        "default": "Part of you may be minimizing what you're actually grieving.",
+    },
+    "heart_thaw": {
+        "structures": [
+            {
+                "framing": "testing",
+                "affinities": ["hesitation", "resistance"],
+                "text": "Part of you may still be testing whether softening is worth the risk.",
+            },
+            {
+                "framing": "betrayal_fear",
+                "affinities": ["grief"],
+                "text": "Opening again might feel like betraying the pain that closed you in the first place.",
+            },
+            {
+                "framing": "control",
+                "affinities": ["pressure", "clarity"],
+                "text": "You might be trying to control the pace of thawing rather than letting it happen.",
+            },
+            {
+                "framing": "worthiness",
+                "affinities": ["warmth", "confusion"],
+                "text": "A part of you may wonder if you deserve the warmth that's becoming available.",
+            },
+            {
+                "framing": "identity",
+                "affinities": ["growth"],
+                "text": "Being guarded has become who you are. Softening feels like losing yourself.",
+            },
+        ],
+        "default": "Part of you may still be testing whether softening is worth the risk.",
+    },
+    "inner_critic_override": {
+        "structures": [
+            {
+                "framing": "believing",
+                "affinities": ["pressure", "confusion"],
+                "text": "The voice is loud enough that part of you believes it's telling the truth.",
+            },
+            {
+                "framing": "protection",
+                "affinities": ["resistance", "grief"],
+                "text": "Silencing the critic might feel dangerous—like removing a guard you've relied on.",
+            },
+            {
+                "framing": "identity",
+                "affinities": ["hesitation"],
+                "text": "Part of you may have come to see the harsh voice as the only honest one inside you.",
+            },
+            {
+                "framing": "bargaining",
+                "affinities": ["warmth", "growth"],
+                "text": "You might be negotiating with the critic instead of questioning its authority.",
+            },
+            {
+                "framing": "pattern_awareness",
+                "affinities": ["repeated_cycles", "clarity"],
+                "text": "You know this voice. You've fought it before. And here it is again.",
+            },
+        ],
+        "default": "You may be dismissing your own knowing before it has room to land.",
+    },
+    "duty_over_self": {
+        "structures": [
+            {
+                "framing": "guilt",
+                "affinities": ["warmth", "hesitation"],
+                "text": "Putting yourself on the list may feel selfish, even when you know it isn't.",
+            },
+            {
+                "framing": "identity",
+                "affinities": ["grief", "resistance"],
+                "text": "Taking care of others has become who you are. Stopping might feel like disappearing.",
+            },
+            {
+                "framing": "urgency",
+                "affinities": ["pressure"],
+                "text": "There's always something more urgent than your own needs, and there always will be.",
+            },
+            {
+                "framing": "worthiness",
+                "affinities": ["confusion", "growth"],
+                "text": "Part of you may feel you haven't earned the right to rest yet.",
+            },
+            {
+                "framing": "pattern_awareness",
+                "affinities": ["repeated_cycles", "clarity"],
+                "text": "You've told yourself 'just this once' so many times it's become a pattern.",
+            },
+        ],
+        "default": "You might be putting your own needs at the end of the list again.",
+    },
+}
+
+PRACTICAL_STRUCTURES = {
+    "relational_reopening": {
+        "structures": [
+            {
+                "framing": "small_moment",
+                "affinities": ["hesitation", "warmth"],
+                "text": "Notice one small moment of connection today without evaluating it.",
+            },
+            {
+                "framing": "staying",
+                "affinities": ["resistance", "grief"],
+                "text": "When you feel the urge to pull back, try staying one beat longer.",
+            },
+            {
+                "framing": "receiving",
+                "affinities": ["growth", "clarity"],
+                "text": "Let yourself receive something today—a compliment, help, or kindness—without deflecting.",
+            },
+            {
+                "framing": "honesty",
+                "affinities": ["pressure", "confusion"],
+                "text": "Tell someone one true thing about how you're feeling, even if it's small.",
+            },
+            {
+                "framing": "pattern_breaking",
+                "affinities": ["repeated_cycles"],
+                "text": "Do one thing differently than you did last time you were here.",
+            },
+        ],
+        "default": "Let yourself notice one small moment of connection without immediately evaluating it.",
+    },
+    "threshold_standing": {
+        "structures": [
+            {
+                "framing": "body_knowing",
+                "affinities": ["warmth", "hesitation"],
+                "text": "Check what your body already knows about this choice, before your mind weighs in.",
+            },
+            {
+                "framing": "small_step",
+                "affinities": ["resistance", "confusion"],
+                "text": "Take one step in the direction that scares you—small enough to be reversible.",
+            },
+            {
+                "framing": "naming",
+                "affinities": ["clarity", "pressure"],
+                "text": "Name what you're actually afraid of losing by moving forward.",
+            },
+            {
+                "framing": "grief_honoring",
+                "affinities": ["grief", "growth"],
+                "text": "Give yourself permission to grieve what you're leaving behind, even as you go.",
+            },
+            {
+                "framing": "pattern_breaking",
+                "affinities": ["repeated_cycles"],
+                "text": "Ask yourself what you'd do differently this time, even one small thing.",
+            },
+        ],
+        "default": "Let yourself notice what already feels true before asking for more proof.",
+    },
+    "over_functioning_hero": {
+        "structures": [
+            {
+                "framing": "good_enough",
+                "affinities": ["pressure", "growth"],
+                "text": "Let one thing be good enough today without fixing it further.",
+            },
+            {
+                "framing": "not_doing",
+                "affinities": ["hesitation", "confusion"],
+                "text": "Practice not doing one thing you usually would. See what happens.",
+            },
+            {
+                "framing": "asking",
+                "affinities": ["warmth", "resistance"],
+                "text": "Ask for help with one thing today, even if you could do it yourself.",
+            },
+            {
+                "framing": "rest",
+                "affinities": ["grief", "clarity"],
+                "text": "Rest before you're exhausted. Just once. See how it feels.",
+            },
+            {
+                "framing": "pattern_breaking",
+                "affinities": ["repeated_cycles"],
+                "text": "Let something fall that usually you'd catch. Watch what actually happens.",
+            },
+        ],
+        "default": "Let one thing be good enough today without fixing it further.",
+    },
+    "somethings_here": {
+        "structures": [
+            {
+                "framing": "naming",
+                "affinities": ["hesitation", "clarity"],
+                "text": "Name one feeling you notice right now, even if it's incomplete.",
+            },
+            {
+                "framing": "staying",
+                "affinities": ["resistance", "grief"],
+                "text": "Stay with the feeling for one minute without trying to change or understand it.",
+            },
+            {
+                "framing": "curiosity",
+                "affinities": ["warmth", "growth"],
+                "text": "Ask the feeling what it wants you to know, and listen without judging.",
+            },
+            {
+                "framing": "body",
+                "affinities": ["confusion", "pressure"],
+                "text": "Notice where in your body this feeling lives. Just locate it.",
+            },
+            {
+                "framing": "pattern_awareness",
+                "affinities": ["repeated_cycles"],
+                "text": "Ask yourself: when have I felt this before? What was true then?",
+            },
+        ],
+        "default": "Name one feeling you notice right now, even if it's incomplete.",
+    },
+    "moving_through": {
+        "structures": [
+            {
+                "framing": "permission",
+                "affinities": ["grief", "warmth"],
+                "text": "Give yourself permission to feel what's actually here, not what you think you should feel.",
+            },
+            {
+                "framing": "expression",
+                "affinities": ["resistance", "pressure"],
+                "text": "Let it out somehow—tears, words, movement. Don't hold it in one more day.",
+            },
+            {
+                "framing": "pacing",
+                "affinities": ["hesitation", "confusion"],
+                "text": "Let the feeling move at its own pace. You don't have to rush the release.",
+            },
+            {
+                "framing": "witnessing",
+                "affinities": ["clarity", "growth"],
+                "text": "Let someone witness what you're going through, even just one person.",
+            },
+            {
+                "framing": "pattern_breaking",
+                "affinities": ["repeated_cycles"],
+                "text": "This time, let yourself feel it all the way through. Don't stop at comfortable.",
+            },
+        ],
+        "default": "Give yourself permission to feel what's actually here, not what you think you should feel.",
+    },
+    "heart_thaw": {
+        "structures": [
+            {
+                "framing": "unguarded",
+                "affinities": ["warmth", "growth"],
+                "text": "Allow yourself one unguarded thought today without rushing to protect it.",
+            },
+            {
+                "framing": "risk",
+                "affinities": ["hesitation", "resistance"],
+                "text": "Let yourself be seen in one small way you usually hide.",
+            },
+            {
+                "framing": "receiving",
+                "affinities": ["grief", "clarity"],
+                "text": "Accept warmth from someone without explaining why you don't deserve it.",
+            },
+            {
+                "framing": "softening",
+                "affinities": ["pressure", "confusion"],
+                "text": "When you notice yourself hardening, pause and take one slow breath.",
+            },
+            {
+                "framing": "pattern_breaking",
+                "affinities": ["repeated_cycles"],
+                "text": "Do one soft thing you stopped doing when you built the walls.",
+            },
+        ],
+        "default": "Allow yourself one unguarded thought today without rushing to protect it.",
+    },
+    "inner_critic_override": {
+        "structures": [
+            {
+                "framing": "friend_voice",
+                "affinities": ["warmth", "clarity"],
+                "text": "Notice what you'd say to a friend in your situation—and say it to yourself.",
+            },
+            {
+                "framing": "questioning",
+                "affinities": ["growth", "pressure"],
+                "text": "Ask the critical voice: whose voice is this really? When did I first hear it?",
+            },
+            {
+                "framing": "pausing",
+                "affinities": ["hesitation", "confusion"],
+                "text": "When the critic speaks, pause before believing it. Just pause.",
+            },
+            {
+                "framing": "thanking",
+                "affinities": ["grief", "resistance"],
+                "text": "Thank the critic for trying to protect you, then do what you were going to do anyway.",
+            },
+            {
+                "framing": "pattern_breaking",
+                "affinities": ["repeated_cycles"],
+                "text": "This time, don't argue with the voice. Just don't obey it.",
+            },
+        ],
+        "default": "Notice what you'd say to a friend in your situation—and say it to yourself.",
+    },
+    "duty_over_self": {
+        "structures": [
+            {
+                "framing": "list",
+                "affinities": ["clarity", "growth"],
+                "text": "Put one of your own needs on the list today, even if it's small.",
+            },
+            {
+                "framing": "saying_no",
+                "affinities": ["hesitation", "resistance"],
+                "text": "Say no to one thing today that you would usually say yes to.",
+            },
+            {
+                "framing": "receiving",
+                "affinities": ["warmth", "grief"],
+                "text": "Let someone do something for you without reciprocating immediately.",
+            },
+            {
+                "framing": "priority",
+                "affinities": ["pressure", "confusion"],
+                "text": "Before saying yes, ask: what am I saying no to by doing this?",
+            },
+            {
+                "framing": "pattern_breaking",
+                "affinities": ["repeated_cycles"],
+                "text": "Do one thing for yourself first today. Just once. See if the world ends.",
+            },
+        ],
+        "default": "Put one of your own needs on the list today, even if it's small.",
+    },
+}
+
+CORE_INSIGHT_STRUCTURES = {
+    "relational_reopening": {
+        "structures": [
+            {
+                "framing": "pull",
+                "affinities": ["warmth", "growth"],
+                "text": "Something in you is reaching toward connection—not because it's safe, but because it's real.",
+            },
+            {
+                "framing": "testing",
+                "affinities": ["hesitation", "resistance"],
+                "text": "You're standing at the edge of letting someone in, testing whether you can.",
+            },
+            {
+                "framing": "after_loss",
+                "affinities": ["grief"],
+                "text": "After closing for good reasons, something in you is asking whether it's time to open again.",
+            },
+            {
+                "framing": "choice",
+                "affinities": ["clarity", "pressure"],
+                "text": "The question isn't whether to connect, but whether you'll let yourself.",
+            },
+            {
+                "framing": "pattern",
+                "affinities": ["repeated_cycles", "confusion"],
+                "text": "You've been here before—at the threshold of closeness. Something is different now.",
+            },
+        ],
+        "default": "Something in you may be becoming more willing to let connection back in.",
+    },
+    "threshold_standing": {
+        "structures": [
+            {
+                "framing": "unavoidable",
+                "affinities": ["clarity", "pressure"],
+                "text": "A decision is becoming unavoidable—not because you're ready, but because the moment is.",
+            },
+            {
+                "framing": "between",
+                "affinities": ["confusion", "hesitation"],
+                "text": "You're standing between what was and what might be, belonging fully to neither.",
+            },
+            {
+                "framing": "knowing",
+                "affinities": ["warmth", "growth"],
+                "text": "Part of you already knows which way to go. The rest of you is catching up.",
+            },
+            {
+                "framing": "grief_aware",
+                "affinities": ["grief", "resistance"],
+                "text": "Moving forward means leaving something behind. You're grieving before you've even gone.",
+            },
+            {
+                "framing": "pattern",
+                "affinities": ["repeated_cycles"],
+                "text": "You've stood at this kind of threshold before. This time you know more.",
+            },
+        ],
+        "default": "You may be standing at a decision point—not because the answer is clear, but because the question has become unavoidable.",
+    },
+    "over_functioning_hero": {
+        "structures": [
+            {
+                "framing": "weight",
+                "affinities": ["pressure", "grief"],
+                "text": "You've been carrying more than your share—and the weight is starting to show.",
+            },
+            {
+                "framing": "questioning",
+                "affinities": ["clarity", "growth"],
+                "text": "You're starting to wonder if all this holding is actually helping.",
+            },
+            {
+                "framing": "identity",
+                "affinities": ["warmth", "confusion"],
+                "text": "Being the one who holds things together has felt like who you are. Now you're not so sure.",
+            },
+            {
+                "framing": "depletion",
+                "affinities": ["resistance", "hesitation"],
+                "text": "The tank is running low, and filling it keeps getting postponed.",
+            },
+            {
+                "framing": "pattern",
+                "affinities": ["repeated_cycles"],
+                "text": "You've done this before—carried until you couldn't. Here you are again.",
+            },
+        ],
+        "default": "You may be carrying more than your share—doing the work others could do.",
+    },
+    "somethings_here": {
+        "structures": [
+            {
+                "framing": "emergence",
+                "affinities": ["warmth", "growth"],
+                "text": "Something is present that wasn't before—still forming, not yet named, but real.",
+            },
+            {
+                "framing": "fog",
+                "affinities": ["confusion", "hesitation"],
+                "text": "There's something here you can't quite see clearly yet, but you feel it.",
+            },
+            {
+                "framing": "recognition",
+                "affinities": ["clarity"],
+                "text": "You're noticing something that's been there awhile. It just became impossible to ignore.",
+            },
+            {
+                "framing": "avoided",
+                "affinities": ["grief", "resistance"],
+                "text": "Something you've been avoiding is making itself known.",
+            },
+            {
+                "framing": "underneath",
+                "affinities": ["pressure"],
+                "text": "Under everything else, something quieter is asking for your attention.",
+            },
+        ],
+        "default": "Something is present that wasn't before—a feeling, an awareness, a shift.",
+    },
+    "moving_through": {
+        "structures": [
+            {
+                "framing": "release",
+                "affinities": ["growth", "clarity"],
+                "text": "Something you've been holding is ready to move through you—not to be solved, but to be felt.",
+            },
+            {
+                "framing": "containment",
+                "affinities": ["grief", "resistance"],
+                "text": "You might be holding more than you've let yourself feel.",
+            },
+            {
+                "framing": "transition",
+                "affinities": ["confusion", "hesitation"],
+                "text": "Something is shifting. You can feel it moving even if you can't name it.",
+            },
+            {
+                "framing": "pressure",
+                "affinities": ["pressure", "warmth"],
+                "text": "What's been building can't stay contained much longer.",
+            },
+            {
+                "framing": "pattern",
+                "affinities": ["repeated_cycles"],
+                "text": "This feeling has come before, and you've held it back. This time it wants to move.",
+            },
+        ],
+        "default": "Something you've been holding is ready to move through you.",
+    },
+    "heart_thaw": {
+        "structures": [
+            {
+                "framing": "softening",
+                "affinities": ["warmth", "growth"],
+                "text": "The walls you built to protect yourself are starting to soften.",
+            },
+            {
+                "framing": "testing",
+                "affinities": ["hesitation", "resistance"],
+                "text": "You're testing whether it's safe to feel again, one small moment at a time.",
+            },
+            {
+                "framing": "grief_aware",
+                "affinities": ["grief"],
+                "text": "The heart that closed to survive is wondering if it's time to open.",
+            },
+            {
+                "framing": "unwilled",
+                "affinities": ["confusion", "clarity"],
+                "text": "Something is thawing whether you intended it to or not.",
+            },
+            {
+                "framing": "pressure",
+                "affinities": ["pressure"],
+                "text": "Something is pressing against the walls—not forcing, but persistent.",
+            },
+        ],
+        "default": "Walls that have been up are starting to soften.",
+    },
+    "inner_critic_override": {
+        "structures": [
+            {
+                "framing": "volume",
+                "affinities": ["pressure", "confusion"],
+                "text": "The critical voice inside is louder than usual, drowning out other signals.",
+            },
+            {
+                "framing": "questioning",
+                "affinities": ["clarity", "growth"],
+                "text": "You're starting to notice the inner critic as a voice, not a truth.",
+            },
+            {
+                "framing": "protection",
+                "affinities": ["resistance", "hesitation"],
+                "text": "The harsh self-talk might be trying to protect you from something scarier.",
+            },
+            {
+                "framing": "tender",
+                "affinities": ["warmth", "grief"],
+                "text": "The critic speaks loudest when something tender is trying to emerge.",
+            },
+            {
+                "framing": "pattern",
+                "affinities": ["repeated_cycles"],
+                "text": "This voice has visited before. It says the same things every time you get close.",
+            },
+        ],
+        "default": "Self-critical voices are louder right now, asking to be worked with.",
+    },
+    "duty_over_self": {
+        "structures": [
+            {
+                "framing": "visibility",
+                "affinities": ["clarity", "pressure"],
+                "text": "The gap between what you give and what you receive is becoming impossible to ignore.",
+            },
+            {
+                "framing": "questioning",
+                "affinities": ["growth", "warmth"],
+                "text": "You're starting to wonder where you fit on your own priority list.",
+            },
+            {
+                "framing": "automatic",
+                "affinities": ["confusion", "hesitation"],
+                "text": "Giving has become so automatic that you've forgotten what it's like to receive.",
+            },
+            {
+                "framing": "depletion",
+                "affinities": ["grief", "resistance"],
+                "text": "You've been running on empty, and the tank isn't refilling.",
+            },
+            {
+                "framing": "pattern",
+                "affinities": ["repeated_cycles"],
+                "text": "This isn't the first time you've put yourself last. But it might be the first time you've noticed.",
+            },
+        ],
+        "default": "The gap between what you're giving and what you're receiving is becoming visible.",
+    },
+}
+
+
+def get_dominant_signal_combination(tones: Dict[str, float], lifeline_patterns: List[str]) -> Tuple[str, List[str]]:
+    """
+    Determine the dominant signal combination from detected tones and lifeline patterns.
+    
+    Returns: (combination_name, list_of_active_signals)
+    """
+    # Get tones above threshold
+    active_tones = [tone for tone, score in tones.items() if score >= 0.3]
+    
+    # Add lifeline patterns as pseudo-tones
+    if "repeated_cycles" in lifeline_patterns:
+        active_tones.append("repeated_cycles")
+    
+    if not active_tones:
+        return ("baseline", [])
+    
+    # Check for specific named combinations
+    for combo_name, combo_tones in SIGNAL_COMBINATIONS.items():
+        if all(t in active_tones for t in combo_tones):
+            return (combo_name, active_tones)
+    
+    # No named combination - return the strongest signals
+    sorted_tones = sorted(
+        [(t, tones.get(t, 0.5 if t == "repeated_cycles" else 0)) for t in active_tones],
+        key=lambda x: x[1],
+        reverse=True
+    )
+    
+    top_signals = [t[0] for t in sorted_tones[:2]]
+    combo_name = "_".join(top_signals) if len(top_signals) > 1 else top_signals[0]
+    
+    return (combo_name, active_tones)
+
+
+def select_structure(
+    structures_config: Dict[str, Any],
+    pattern_id: str,
+    active_signals: List[str],
+    user_id: str = "",
+    section: str = ""
+) -> str:
+    """
+    Select the best sentence structure based on signal affinities.
+    
+    Returns the selected structure text, or default if no match.
+    """
+    config = structures_config.get(pattern_id, {})
+    structures = config.get("structures", [])
+    default_text = config.get("default", "")
+    
+    if not structures:
+        return default_text
+    
+    # Score each structure by affinity match
+    scored_structures = []
+    for struct in structures:
+        affinities = struct.get("affinities", [])
+        # Count how many of the user's active signals match this structure's affinities
+        match_count = sum(1 for sig in active_signals if sig in affinities)
+        # Bonus for repeated_cycles match (pattern recognition framings are valuable)
+        if "repeated_cycles" in active_signals and "repeated_cycles" in affinities:
+            match_count += 0.5
+        scored_structures.append((struct, match_count))
+    
+    # Sort by match count (highest first)
+    scored_structures.sort(key=lambda x: x[1], reverse=True)
+    
+    # If top scorer has matches, use it
+    if scored_structures[0][1] > 0:
+        # If there are ties, use deterministic selection among tied structures
+        top_score = scored_structures[0][1]
+        tied_structures = [s for s, score in scored_structures if score == top_score]
+        
+        if len(tied_structures) > 1:
+            # Deterministic selection among ties
+            idx = get_deterministic_variation_index(pattern_id, user_id, section) % len(tied_structures)
+            return tied_structures[idx]["text"]
+        else:
+            return tied_structures[0]["text"]
+    
+    # No affinity matches - use deterministic selection for variation
+    idx = get_deterministic_variation_index(pattern_id, user_id, section) % len(structures)
+    return structures[idx]["text"]
+
+
 def extract_signal_tones(signals_extended: Dict[str, Any]) -> Dict[str, float]:
     """
     Analyze signals to detect emotional/behavioral tones.
@@ -1050,40 +2135,52 @@ def generate_why_now(
     user_id: str = ""
 ) -> str:
     """
-    Generate context-aware "why now" explanation.
+    V10.1: Generate context-aware "why now" explanation using STRUCTURAL VARIATION.
     
-    Uses base map as scaffold, then layers signal-responsive modifications.
+    1. Extract signal tones and lifeline patterns
+    2. Select appropriate sentence STRUCTURE based on signal affinities
+    3. Apply contextual modifier as secondary layer
     """
-    # Get evidence level
-    source_diversity = cluster_data.get("source_diversity_score", 0)
-    evidence_count = cluster_data.get("total_evidence_count", 0)
-    
-    if evidence_count >= 3 and source_diversity >= 0.5:
-        level = "high"
-    elif evidence_count >= 2:
-        level = "medium"
-    else:
-        level = "low"
-    
-    # Get base text from map
-    pattern_map = base_maps.get(pattern_id, {})
-    if pattern_map:
-        base_text = pattern_map.get(level, pattern_map.get("low", ""))
-    else:
-        # Fallback to generic
-        base_text = "Current timing may be bringing this pattern into focus."
-    
-    if not base_text:
-        base_text = "Current timing may be bringing this pattern into focus."
-    
-    # Extract signal tones
+    # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
+    lifeline_patterns = extract_lifeline_patterns(signals_extended)
     
-    # Apply contextual modifier based on strongest tone
-    enhanced_text = apply_contextual_modifier(base_text, tones, pattern_id, user_id, threshold=0.3)
+    # Get dominant signal combination
+    combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
     
-    # Apply sentence variation
-    enhanced_text = vary_sentence_opener(enhanced_text, "timing", pattern_id, user_id)
+    # V10.1: Select structure based on signals
+    if pattern_id in WHY_NOW_STRUCTURES and active_signals:
+        base_text = select_structure(
+            WHY_NOW_STRUCTURES,
+            pattern_id,
+            active_signals,
+            user_id,
+            "why_now"
+        )
+    else:
+        # Fallback to old map-based selection
+        source_diversity = cluster_data.get("source_diversity_score", 0)
+        evidence_count = cluster_data.get("total_evidence_count", 0)
+        
+        if evidence_count >= 3 and source_diversity >= 0.5:
+            level = "high"
+        elif evidence_count >= 2:
+            level = "medium"
+        else:
+            level = "low"
+        
+        pattern_map = base_maps.get(pattern_id, {})
+        if pattern_map:
+            base_text = pattern_map.get(level, pattern_map.get("low", ""))
+        else:
+            base_text = "Current timing may be bringing this pattern into focus."
+        
+        if not base_text:
+            base_text = "Current timing may be bringing this pattern into focus."
+    
+    # V10.1: Apply contextual modifier as SECONDARY layer (only if strong signal)
+    # Reduced threshold to only apply when signal is very strong
+    enhanced_text = apply_contextual_modifier(base_text, tones, pattern_id, user_id, threshold=0.5)
     
     return enhanced_text
 
@@ -1097,50 +2194,55 @@ def generate_friction(
     user_id: str = ""
 ) -> str:
     """
-    Generate context-aware friction statement.
+    V10.1: Generate context-aware friction statement using STRUCTURAL VARIATION.
     
-    Uses base map as scaffold, layers signal-responsive modifications.
+    1. Extract signal tones and lifeline patterns
+    2. Select appropriate sentence STRUCTURE based on signal affinities
+    3. Apply contextual modifier as secondary layer (only when very strong signal)
     """
-    # Get base text
-    base_text = base_map.get(pattern_id, "")
-    
-    if not base_text:
-        # Fallback
-        challenge = pattern.get("challenge", [])
-        if challenge:
-            base_text = f"You may notice a pull toward {challenge[0].lower()}."
-        else:
-            base_text = "You may be waiting for the right moment instead of trusting this one."
-    
-    # Extract signal tones
+    # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
+    lifeline_patterns = extract_lifeline_patterns(signals_extended)
     
-    # For friction, hesitation and resistance are particularly relevant
-    # If user shows high warmth/growth, soften the friction slightly
-    if tones.get("warmth", 0) > 0.5 or tones.get("growth", 0) > 0.5:
-        # Add a gentler framing
+    # Get dominant signal combination
+    combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
+    
+    # V10.1: Select structure based on signals
+    if pattern_id in FRICTION_STRUCTURES and active_signals:
+        base_text = select_structure(
+            FRICTION_STRUCTURES,
+            pattern_id,
+            active_signals,
+            user_id,
+            "friction"
+        )
+    elif pattern_id in FRICTION_STRUCTURES:
+        # No active signals - use default from structures
+        base_text = FRICTION_STRUCTURES[pattern_id].get("default", "")
+    else:
+        # Fallback to old map-based selection
+        base_text = base_map.get(pattern_id, "")
+        
+        if not base_text:
+            challenge = pattern.get("challenge", [])
+            if challenge:
+                base_text = f"You may notice a pull toward {challenge[0].lower()}."
+            else:
+                base_text = "You may be waiting for the right moment instead of trusting this one."
+    
+    # V10.1: Modifiers only applied as secondary enhancement for very strong signals
+    # The structure itself now carries the emotional nuance
+    if tones.get("warmth", 0) > 0.6 or tones.get("growth", 0) > 0.6:
+        # Add a gentler framing only for very strong warmth/growth
         softeners = [
             "Even with the progress you're making, ",
             "Alongside the opening, ",
-            "While something is shifting, ",
         ]
         softener = select_variation(softeners, pattern_id, user_id, "friction_softener")
-        base_text = softener + base_text[0].lower() + base_text[1:]
+        if not base_text.startswith("Even") and not base_text.startswith("Alongside"):
+            base_text = softener + base_text[0].lower() + base_text[1:]
     
-    # If user shows high confusion/pressure, validate the difficulty
-    elif tones.get("confusion", 0) > 0.4 or tones.get("pressure", 0) > 0.4:
-        validators = [
-            "It makes sense that ",
-            "Given what you're carrying, ",
-            "With everything that's present, ",
-        ]
-        validator = select_variation(validators, pattern_id, user_id, "friction_validator")
-        base_text = validator + base_text[0].lower() + base_text[1:]
-    
-    # Apply sentence variation
-    enhanced_text = vary_sentence_opener(base_text, "personal", pattern_id, user_id)
-    
-    return enhanced_text
+    return base_text
 
 
 def generate_practical(
@@ -1152,61 +2254,99 @@ def generate_practical(
     user_id: str = ""
 ) -> str:
     """
-    Generate context-aware practical suggestion.
+    V10.1: Generate context-aware practical suggestion using STRUCTURAL VARIATION.
     
-    Uses base map as scaffold, layers signal-responsive modifications.
+    1. Extract signal tones and lifeline patterns
+    2. Select appropriate sentence STRUCTURE based on signal affinities
+    3. Add lifeline-aware endings for repeated_cycles pattern
     """
-    # Get base text
-    base_text = base_map.get(pattern_id, "")
-    
-    if not base_text:
-        # Fallback
-        micro_shifts = pattern.get("micro_shifts", [])
-        if micro_shifts:
-            base_text = micro_shifts[0]
-        else:
-            base_text = "Notice what already feels true and give it a moment of your attention."
-    
-    # Extract signal tones
+    # Extract signal tones and lifeline patterns
     tones = extract_signal_tones(signals_extended)
-    
-    # Extract lifeline patterns
     lifeline_patterns = extract_lifeline_patterns(signals_extended)
     
-    # Adjust practical based on detected state
-    enhanced_text = base_text
+    # Get dominant signal combination
+    combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
     
-    # If user shows hesitation, make the practical gentler/smaller
-    if tones.get("hesitation", 0) > 0.4:
-        gentlers = [
-            "Start small: ",
-            "Just for today, ",
-            "Even a tiny step: ",
-            "Without pressure, ",
-        ]
-        gentler = select_variation(gentlers, pattern_id, user_id, "practical_gentler")
-        enhanced_text = gentler + enhanced_text[0].lower() + enhanced_text[1:]
+    # V10.1: Select structure based on signals
+    if pattern_id in PRACTICAL_STRUCTURES and active_signals:
+        base_text = select_structure(
+            PRACTICAL_STRUCTURES,
+            pattern_id,
+            active_signals,
+            user_id,
+            "practical"
+        )
+    elif pattern_id in PRACTICAL_STRUCTURES:
+        # No active signals - use default from structures
+        base_text = PRACTICAL_STRUCTURES[pattern_id].get("default", "")
+    else:
+        # Fallback to old map-based selection
+        base_text = base_map.get(pattern_id, "")
+        
+        if not base_text:
+            micro_shifts = pattern.get("micro_shifts", [])
+            if micro_shifts:
+                base_text = micro_shifts[0]
+            else:
+                base_text = "Notice what already feels true and give it a moment of your attention."
     
-    # If user shows clarity/growth, make practical more direct
-    elif tones.get("clarity", 0) > 0.4 or tones.get("growth", 0) > 0.4:
-        # Keep it direct, maybe even amplify
-        pass
-    
-    # If lifeline shows repeated cycles, acknowledge the pattern
+    # V10.1: For repeated_cycles, add pattern-breaking encouragement if not already in structure
     if "repeated_cycles" in lifeline_patterns:
-        # Add acknowledgment that this isn't new
-        enders = [
-            " This time might be different.",
-            " Something may be ready to shift.",
-            " You've been here before—but you're not the same.",
-        ]
-        ender = select_variation(enders, pattern_id, user_id, "practical_cycle_ender")
-        enhanced_text = enhanced_text.rstrip(".") + "." + ender
+        # Check if the selected structure already addresses pattern breaking
+        if "pattern_breaking" not in base_text.lower() and "this time" not in base_text.lower():
+            enders = [
+                " This time might be different.",
+                " You've been here before—but you're not the same.",
+            ]
+            ender = select_variation(enders, pattern_id, user_id, "practical_cycle_ender")
+            base_text = base_text.rstrip(".") + "." + ender
     
-    # Apply sentence variation (for invitation-style openers)
-    enhanced_text = vary_sentence_opener(enhanced_text, "invitation", pattern_id, user_id)
+    # V10.1: For very strong hesitation, add gentler framing if not already present
+    if tones.get("hesitation", 0) > 0.5:
+        gentlers = ["Start small: ", "Just for today, "]
+        if not any(base_text.startswith(g) for g in gentlers):
+            gentler = select_variation(gentlers, pattern_id, user_id, "practical_gentler")
+            base_text = gentler + base_text[0].lower() + base_text[1:]
     
-    return enhanced_text
+    return base_text
+
+
+def generate_core_insight(
+    pattern_id: str,
+    pattern: Dict[str, Any],
+    signals_extended: Dict[str, Any],
+    user_id: str = ""
+) -> str:
+    """
+    V10.1 NEW: Generate context-aware core insight using STRUCTURAL VARIATION.
+    
+    Selects fundamentally different framings based on user signals.
+    """
+    # Extract signal tones and lifeline patterns
+    tones = extract_signal_tones(signals_extended)
+    lifeline_patterns = extract_lifeline_patterns(signals_extended)
+    
+    # Get dominant signal combination
+    combo_name, active_signals = get_dominant_signal_combination(tones, lifeline_patterns)
+    
+    # V10.1: Select structure based on signals
+    if pattern_id in CORE_INSIGHT_STRUCTURES and active_signals:
+        return select_structure(
+            CORE_INSIGHT_STRUCTURES,
+            pattern_id,
+            active_signals,
+            user_id,
+            "core_insight"
+        )
+    elif pattern_id in CORE_INSIGHT_STRUCTURES:
+        # No active signals - use default
+        return CORE_INSIGHT_STRUCTURES[pattern_id].get(
+            "default",
+            pattern.get("summary", "Something is present that deserves your attention.")
+        )
+    else:
+        # Pattern not in structures - use pattern summary
+        return pattern.get("summary", "Something is present that deserves your attention.")
 
 
 def cluster_signal_themes(signals: Dict[str, Any]) -> Dict[str, Any]:

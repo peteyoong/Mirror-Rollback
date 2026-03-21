@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-V10 Language Output Demonstration
-Generates side-by-side examples showing how the same pattern 
-produces different outputs with different signal profiles.
+V10.1 Structural Variation Language Demonstration
+Shows how different signal combinations produce FUNDAMENTALLY DIFFERENT
+sentence structures, not just modified versions of the same base sentence.
 """
 
 import sys
@@ -12,11 +12,16 @@ from services.pattern_mirror import (
     generate_why_now,
     generate_friction,
     generate_practical,
+    generate_core_insight,
     PATTERN_TEMPLATES,
+    WHY_NOW_STRUCTURES,
+    FRICTION_STRUCTURES,
+    PRACTICAL_STRUCTURES,
+    CORE_INSIGHT_STRUCTURES,
 )
 
 # ============================================================================
-# SIGNAL PROFILES
+# SIGNAL PROFILES - Different emotional combinations
 # ============================================================================
 
 def create_signals(journal_text: str, lifeline_events: list = None):
@@ -29,192 +34,133 @@ def create_signals(journal_text: str, lifeline_events: list = None):
     }
 
 SIGNAL_PROFILES = {
-    "warmth_hesitation": create_signals(
-        "I feel grateful and hopeful but I'm not sure if I should trust this feeling. Maybe it's too good to be true."
+    "warmth_growth": create_signals(
+        "I feel grateful and hopeful. Something is changing and I'm excited about growing into this new version of myself."
     ),
-    "clarity_pressure": create_signals(
-        "I finally understand what's been happening. It's so clear now. But there's so much pressure and I have to figure this out."
+    "hesitation_resistance": create_signals(
+        "I'm not sure about this. Maybe I shouldn't do it. I don't want to get hurt again. I need to protect myself."
     ),
     "grief_resistance": create_signals(
         "I miss how things were. It's gone now and I don't want to accept it. I refuse to let go of what we had."
     ),
-    "growth_confusion": create_signals(
-        "I'm changing and becoming someone different. But I'm confused about where this is going. Everything feels mixed up."
+    "clarity_pressure": create_signals(
+        "I finally understand what's happening. It's so clear now. But there's so much pressure and I have to figure this out urgently."
     ),
-    "repeated_cycles_hesitation": create_signals(
-        "I'm not sure about this. Maybe I'm being too cautious.",
-        lifeline_events=[{"title": "Here again", "description": "This same pattern keeps happening again and again"}]
+    "confusion_hesitation": create_signals(
+        "I'm confused about what to do. Everything feels mixed up. Maybe I should wait. I'm not sure."
     ),
-    "no_signals": create_signals(""),
+    "repeated_cycles": create_signals(
+        "Here we go again. I'm cautious about this.",
+        lifeline_events=[{"title": "Same pattern", "description": "This keeps happening again and again, the same way every time."}]
+    ),
+    "baseline": create_signals(""),
 }
 
 # ============================================================================
-# PATTERN CONFIGURATIONS
+# PATTERNS TO DEMONSTRATE
 # ============================================================================
 
-PATTERNS_TO_TEST = {
-    "relational_reopening": {
-        "title": "Relational Reopening",
-        "insight": "Something in you may be becoming more willing to let connection back in—not because the risk has gone away, but because the pull toward closeness has become harder to ignore.",
-        "variants": ["warmth_hesitation", "grief_resistance", "no_signals"],
-    },
-    "threshold_standing": {
-        "title": "Standing at a Threshold",
-        "insight": "You may be standing at a decision point—not because the answer is clear, but because the question has become unavoidable.",
-        "variants": ["clarity_pressure", "growth_confusion", "repeated_cycles_hesitation"],
-    },
-    "over_functioning_hero": {
-        "title": "The Over-Functioning Hero",
-        "insight": "You may be carrying more than your share—doing the work others could do, holding things together that aren't yours to hold.",
-        "variants": ["clarity_pressure", "grief_resistance", "no_signals"],
-    },
-    "somethings_here": {
-        "title": "Something's Here",
-        "insight": "Something is present that wasn't before—a feeling, an awareness, a shift. It may not have a name yet.",
-        "variants": ["warmth_hesitation", "growth_confusion", "no_signals"],
-    },
-    "moving_through": {
-        "title": "Moving Through",
-        "insight": "Something you've been holding is ready to move through you—not to be solved or fixed, but to be felt and released.",
-        "variants": ["grief_resistance", "growth_confusion", "repeated_cycles_hesitation"],
-    },
-}
+PATTERNS = [
+    ("relational_reopening", "RELATIONAL REOPENING"),
+    ("threshold_standing", "STANDING AT A THRESHOLD"),
+    ("over_functioning_hero", "THE OVER-FUNCTIONING HERO"),
+    ("somethings_here", "SOMETHING'S HERE"),
+    ("moving_through", "MOVING THROUGH"),
+]
+
+# Variants to show per pattern
+VARIANTS = [
+    ("warmth_growth", "Warmth + Growth"),
+    ("hesitation_resistance", "Hesitation + Resistance"),
+    ("grief_resistance", "Grief + Resistance"),
+    ("clarity_pressure", "Clarity + Pressure"),
+    ("repeated_cycles", "Repeated Cycles"),
+    ("baseline", "Baseline (no signals)"),
+]
 
 # ============================================================================
-# BASE MAPS (for generation)
+# GENERATE AND DISPLAY
 # ============================================================================
 
-WHY_NOW_MAP = {
-    "relational_reopening": {
-        "high": "Something in you may be becoming more willing to let connection back in.",
-        "medium": "Momentum is building around connection—readiness is growing.",
-        "low": "Current timing may be making openness feel more possible.",
-    },
-    "threshold_standing": {
-        "high": "You're at a decision point, and multiple signals are converging on it.",
-        "medium": "A choice is becoming more present—the moment feels ripe.",
-        "low": "Current timing may be highlighting a threshold.",
-    },
-    "over_functioning_hero": {
-        "high": "The weight of carrying so much is becoming harder to ignore.",
-        "medium": "Something about your current load is asking for attention.",
-        "low": "Current pressures may be revealing where you're overextended.",
-    },
-    "somethings_here": {
-        "high": "Something has been stirring and is now ready to be noticed.",
-        "medium": "An awareness is emerging—something wants attention.",
-        "low": "Current timing may be bringing something into focus.",
-    },
-    "moving_through": {
-        "high": "Something you've been holding is ready to move through you.",
-        "medium": "Processing something old may feel more available now.",
-        "low": "Timing may be supporting release or completion.",
-    },
-}
-
-FRICTION_MAP = {
-    "relational_reopening": "Part of you may still want proof that openness is safe.",
-    "threshold_standing": "You may still be waiting for certainty before stepping forward.",
-    "over_functioning_hero": "You might find it hard to rest when there's still something you could do.",
-    "somethings_here": "You might be resisting naming it too soon.",
-    "moving_through": "Part of you may be minimizing what you're actually grieving.",
-}
-
-PRACTICAL_MAP = {
-    "relational_reopening": "Let yourself notice one small moment of connection without immediately evaluating it.",
-    "threshold_standing": "Let yourself notice what already feels true before asking for more proof.",
-    "over_functioning_hero": "Let one thing be good enough today without fixing it further.",
-    "somethings_here": "Name one feeling you notice right now, even if it's incomplete.",
-    "moving_through": "Give yourself permission to feel what's actually here, not what you think you should feel.",
-}
-
-# ============================================================================
-# GENERATE OUTPUTS
-# ============================================================================
-
-def generate_variant_output(pattern_id: str, signal_profile_name: str):
+def generate_full_output(pattern_id: str, signal_profile_name: str):
     """Generate complete output for a pattern + signal combination."""
     
     pattern = PATTERN_TEMPLATES.get(pattern_id, {"title": pattern_id})
     signals = SIGNAL_PROFILES[signal_profile_name]
-    
-    # Simulate high evidence for consistent base text selection
     cluster_data = {"source_diversity_score": 0.6, "total_evidence_count": 3}
     
-    # Generate each layer
+    # Generate each section using structural variation
+    core_insight = generate_core_insight(pattern_id, pattern, signals, f"user_{signal_profile_name}")
+    
     why_now = generate_why_now(
         pattern_id, pattern, signals, cluster_data, None,
-        WHY_NOW_MAP, f"user_{signal_profile_name}"
+        WHY_NOW_STRUCTURES, f"user_{signal_profile_name}"
     )
     
     friction = generate_friction(
         pattern_id, pattern, signals, cluster_data,
-        FRICTION_MAP, f"user_{signal_profile_name}"
+        FRICTION_STRUCTURES, f"user_{signal_profile_name}"
     )
     
     practical = generate_practical(
         pattern_id, pattern, signals, cluster_data,
-        PRACTICAL_MAP, f"user_{signal_profile_name}"
+        PRACTICAL_STRUCTURES, f"user_{signal_profile_name}"
     )
     
     return {
+        "core_insight": core_insight,
         "why_now": why_now,
         "friction": friction,
         "practical": practical,
     }
 
 
-def print_pattern_comparison(pattern_id: str, config: dict):
-    """Print side-by-side comparison for a pattern."""
+def print_pattern_outputs(pattern_id: str, pattern_name: str):
+    """Print outputs for a pattern across different signal profiles."""
     
     print()
-    print("=" * 80)
-    print(f"PATTERN: {config['title'].upper()}")
-    print("=" * 80)
-    print()
-    print(f"Core Insight: {config['insight']}")
-    print()
+    print("=" * 90)
+    print(f"PATTERN: {pattern_name}")
+    print("=" * 90)
     
-    for i, variant_name in enumerate(config["variants"], 1):
-        output = generate_variant_output(pattern_id, variant_name)
+    for variant_key, variant_label in VARIANTS:
+        output = generate_full_output(pattern_id, variant_key)
         
-        # Format the signal profile name nicely
-        profile_label = variant_name.replace("_", " + ").upper()
-        if variant_name == "no_signals":
-            profile_label = "BASELINE (no signals)"
-        
-        print("-" * 80)
-        print(f"VARIANT {i}: {profile_label}")
-        print("-" * 80)
         print()
-        print(f"Why this may be showing up:")
-        print(f"  \"{output['why_now']}\"")
+        print("-" * 90)
+        print(f"SIGNAL: {variant_label.upper()}")
+        print("-" * 90)
         print()
-        print(f"Where the friction may be:")
-        print(f"  \"{output['friction']}\"")
+        print(f"  CORE INSIGHT:")
+        print(f"    \"{output['core_insight']}\"")
         print()
-        print(f"What to do with it:")
-        print(f"  \"{output['practical']}\"")
+        print(f"  WHY NOW:")
+        print(f"    \"{output['why_now']}\"")
         print()
+        print(f"  FRICTION:")
+        print(f"    \"{output['friction']}\"")
+        print()
+        print(f"  PRACTICAL:")
+        print(f"    \"{output['practical']}\"")
 
 
 def main():
     print()
-    print("╔══════════════════════════════════════════════════════════════════════════════╗")
-    print("║          V10 CONTEXT-AWARE LANGUAGE: SIDE-BY-SIDE OUTPUT EXAMPLES            ║")
-    print("╚══════════════════════════════════════════════════════════════════════════════╝")
+    print("╔════════════════════════════════════════════════════════════════════════════════════════╗")
+    print("║         V10.1 STRUCTURAL VARIATION: SIDE-BY-SIDE OUTPUT DEMONSTRATION                  ║")
+    print("╚════════════════════════════════════════════════════════════════════════════════════════╝")
     print()
-    print("Each pattern is generated 3 times with different signal profiles.")
-    print("Notice how the language adapts to the user's emotional context.")
+    print("Each pattern generates FUNDAMENTALLY DIFFERENT sentences based on signal combinations.")
+    print("This is NOT just 'same sentence + suffix'. The entire framing changes.")
     print()
     
-    for pattern_id, config in PATTERNS_TO_TEST.items():
-        print_pattern_comparison(pattern_id, config)
+    for pattern_id, pattern_name in PATTERNS:
+        print_pattern_outputs(pattern_id, pattern_name)
     
     print()
-    print("=" * 80)
-    print("END OF V10 LANGUAGE DEMONSTRATION")
-    print("=" * 80)
+    print("=" * 90)
+    print("END OF V10.1 STRUCTURAL VARIATION DEMONSTRATION")
+    print("=" * 90)
 
 
 if __name__ == "__main__":
