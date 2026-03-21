@@ -232,6 +232,270 @@ const getHeroDescriptor = (sun: string, moon: string, asc: string): string => {
   return `${coreWord} at the core, ${emotionalWord}, ${approachWord} in approach.`;
 };
 
+// Generate the Chart Spine - the backbone statements of the chart
+const getChartSpine = (placements: CorePlacements): string[] => {
+  const spine: string[] = [];
+  const sun = placements.sun || 'Unknown';
+  const moon = placements.moon || 'Unknown';
+  const asc = placements.ascendant || 'Unknown';
+  const saturn = placements.saturn;
+  const saturn_house = placements.saturn_house;
+  const north_node = placements.north_node;
+  const south_node = placements.south_node;
+  const chiron = placements.chiron;
+  
+  const sunElement = SIGN_ELEMENTS[sun];
+  const moonElement = SIGN_ELEMENTS[moon];
+  
+  // 1. Core tone (Sun)
+  if (sunElement === 'Water') {
+    spine.push('A sensitive core that perceives more than it says.');
+  } else if (sunElement === 'Fire') {
+    spine.push('An expressive core that leads with presence and warmth.');
+  } else if (sunElement === 'Earth') {
+    spine.push('A grounded core that builds through patience and tangible effort.');
+  } else if (sunElement === 'Air') {
+    spine.push('A curious core that connects through ideas and social exchange.');
+  }
+  
+  // 2. Emotional engine (Moon)
+  if (moonElement === 'Fire') {
+    spine.push('Emotion moves quickly and wants action before full processing.');
+  } else if (moonElement === 'Water') {
+    spine.push('Emotion runs deep and needs time to surface fully.');
+  } else if (moonElement === 'Earth') {
+    spine.push('Emotion is steady and seeks security before expression.');
+  } else if (moonElement === 'Air') {
+    spine.push('Emotion processes through thought and needs to be understood.');
+  }
+  
+  // 3. How life is approached (Ascendant)
+  if (asc === 'Sagittarius') {
+    spine.push('Life is approached with openness, scale, and forward motion.');
+  } else if (asc === 'Scorpio') {
+    spine.push('Life is approached with intensity, depth, and strategic awareness.');
+  } else if (asc === 'Capricorn') {
+    spine.push('Life is approached with seriousness, structure, and long-term vision.');
+  } else if (asc === 'Aquarius') {
+    spine.push('Life is approached with independence, originality, and social awareness.');
+  } else if (asc === 'Pisces') {
+    spine.push('Life is approached with receptivity, imagination, and fluid boundaries.');
+  } else if (asc === 'Aries') {
+    spine.push('Life is approached with directness, initiative, and competitive energy.');
+  } else if (asc === 'Taurus') {
+    spine.push('Life is approached with steadiness, sensuality, and practical grounding.');
+  } else if (asc === 'Gemini') {
+    spine.push('Life is approached with curiosity, adaptability, and verbal agility.');
+  } else if (asc === 'Cancer') {
+    spine.push('Life is approached with emotional attunement and protective care.');
+  } else if (asc === 'Leo') {
+    spine.push('Life is approached with warmth, creativity, and natural leadership.');
+  } else if (asc === 'Virgo') {
+    spine.push('Life is approached with precision, analysis, and service orientation.');
+  } else if (asc === 'Libra') {
+    spine.push('Life is approached with diplomacy, aesthetic sense, and relational awareness.');
+  }
+  
+  // 4. Developmental pressure (Saturn)
+  if (saturn && saturn_house) {
+    const houseThemes: { [key: number]: string } = {
+      1: 'self-definition and physical presence',
+      2: 'resources, values, and self-worth',
+      3: 'communication, thought, and self-expression',
+      4: 'home, roots, and emotional foundation',
+      5: 'creativity, pleasure, and authentic expression',
+      6: 'work, health, and daily discipline',
+      7: 'partnership and committed relationship',
+      8: 'intimacy, shared resources, and transformation',
+      9: 'belief, meaning, and worldview',
+      10: 'career, public role, and authority',
+      11: 'community, friendship, and future vision',
+      12: 'solitude, spirituality, and hidden patterns'
+    };
+    spine.push(`Maturity is being forced through ${houseThemes[saturn_house] || 'specific life themes'}.`);
+  }
+  
+  // 5. Growth direction (Nodes)
+  if (north_node && south_node) {
+    const southElement = SIGN_ELEMENTS[south_node];
+    const northElement = SIGN_ELEMENTS[north_node];
+    
+    if (southElement === 'Earth' && northElement === 'Water') {
+      spine.push('Growth asks a move away from over-control and toward trust.');
+    } else if (southElement === 'Air' && northElement === 'Fire') {
+      spine.push('Growth asks a move from thinking to doing, from analysis to action.');
+    } else if (southElement === 'Fire' && northElement === 'Earth') {
+      spine.push('Growth asks a move from impulse to patience, from vision to form.');
+    } else if (southElement === 'Water' && northElement === 'Air') {
+      spine.push('Growth asks a move from feeling to articulating, from merging to boundarying.');
+    } else if (southElement === northElement) {
+      spine.push(`Growth refines rather than reverses—staying in ${northElement?.toLowerCase()} but evolving how.`);
+    } else {
+      spine.push(`Growth pulls from ${south_node} familiarity toward ${north_node} unfamiliarity.`);
+    }
+  }
+  
+  return spine.slice(0, 5);
+};
+
+// Generate What Matters Most - ranked chart factors
+const getWhatMattersMost = (placements: CorePlacements, fullChartData: FullChartData | null): Array<{ label: string; why: string }> => {
+  const items: Array<{ label: string; why: string; weight: number }> = [];
+  
+  // Sun placement
+  if (placements.sun && placements.sun_house) {
+    const houseTheme = getHouseTheme(placements.sun_house);
+    items.push({
+      label: `${placements.sun} Sun in House ${placements.sun_house}`,
+      why: `Identity develops through ${houseTheme}`,
+      weight: 10
+    });
+  }
+  
+  // Moon placement
+  if (placements.moon && placements.moon_house) {
+    const moonElement = SIGN_ELEMENTS[placements.moon];
+    items.push({
+      label: `${placements.moon} Moon in House ${placements.moon_house}`,
+      why: `Emotional life is ${moonElement === 'Fire' ? 'fast, protective, and action-oriented' : moonElement === 'Water' ? 'deep, intuitive, and absorbing' : moonElement === 'Earth' ? 'steady, security-focused, and practical' : 'quick-moving, socially attuned, and idea-driven'}`,
+      weight: 9.5
+    });
+  }
+  
+  // Saturn placement (major developmental pressure)
+  if (placements.saturn && placements.saturn_house) {
+    items.push({
+      label: `Saturn in ${placements.saturn} in House ${placements.saturn_house}`,
+      why: `Pressure and maturation center on ${getHouseTheme(placements.saturn_house)}`,
+      weight: 9
+    });
+  }
+  
+  // Nodes (life direction)
+  if (placements.north_node && placements.north_node_house) {
+    items.push({
+      label: `North Node in ${placements.north_node}`,
+      why: `Growth requires moving toward ${SIGN_QUALITIES[placements.north_node]?.[0] || 'new'} territory`,
+      weight: 8.5
+    });
+  }
+  
+  // Chiron (wound/medicine)
+  if (placements.chiron && placements.chiron_house) {
+    items.push({
+      label: `Chiron in ${placements.chiron} in House ${placements.chiron_house}`,
+      why: `Core sensitivity and healing capacity around ${getHouseTheme(placements.chiron_house)}`,
+      weight: 7.5
+    });
+  }
+  
+  // House concentration if available
+  if (fullChartData?.natal?.concentrations?.dominant_houses?.length) {
+    const dominant = fullChartData.natal.concentrations.dominant_houses[0];
+    if (dominant && dominant.planets.length >= 2) {
+      items.push({
+        label: `House ${dominant.house} concentration`,
+        why: `${dominant.planets.join(', ')} cluster here—${getHouseTheme(dominant.house)} dominates`,
+        weight: 8
+      });
+    }
+  }
+  
+  // Angular planets
+  if (fullChartData?.natal?.concentrations?.angular_planets?.length) {
+    const angular = fullChartData.natal.concentrations.angular_planets;
+    if (angular.length >= 2) {
+      items.push({
+        label: `Angular emphasis`,
+        why: `${angular.map(a => a.planet).join(', ')} at chart angles—visible, active, defining`,
+        weight: 7
+      });
+    }
+  }
+  
+  // Sort by weight and return top 5
+  return items.sort((a, b) => b.weight - a.weight).slice(0, 5).map(({ label, why }) => ({ label, why }));
+};
+
+// Get key natal aspects for display
+const getKeyAspects = (fullChartData: FullChartData | null): Array<{ aspect: string; meaning: string; quality: 'ease' | 'friction' | 'complexity' }> => {
+  if (!fullChartData?.natal?.aspects) return [];
+  
+  const aspects = fullChartData.natal.aspects;
+  const keyAspects: Array<{ aspect: string; meaning: string; quality: 'ease' | 'friction' | 'complexity'; weight: number }> = [];
+  
+  // Aspect meanings
+  const getAspectMeaning = (pointA: string, pointB: string, type: string): { meaning: string; quality: 'ease' | 'friction' | 'complexity' } => {
+    // Sun aspects
+    if ((pointA === 'Sun' && pointB === 'Saturn') || (pointB === 'Sun' && pointA === 'Saturn')) {
+      return { meaning: 'identity and pressure are tightly linked', quality: type === 'conjunction' || type === 'square' || type === 'opposition' ? 'friction' : 'complexity' };
+    }
+    if ((pointA === 'Sun' && pointB === 'Moon') || (pointB === 'Sun' && pointA === 'Moon')) {
+      return { meaning: 'core self and emotional nature in dialogue', quality: type === 'trine' || type === 'sextile' ? 'ease' : 'friction' };
+    }
+    if ((pointA === 'Sun' && pointB === 'Jupiter') || (pointB === 'Sun' && pointA === 'Jupiter')) {
+      return { meaning: 'identity expands through faith and meaning', quality: 'ease' };
+    }
+    
+    // Moon aspects
+    if ((pointA === 'Moon' && pointB === 'Mars') || (pointB === 'Moon' && pointA === 'Mars')) {
+      return { meaning: 'feeling and action can collide quickly', quality: type === 'square' || type === 'opposition' ? 'friction' : 'complexity' };
+    }
+    if ((pointA === 'Moon' && pointB === 'Saturn') || (pointB === 'Moon' && pointA === 'Saturn')) {
+      return { meaning: 'emotional caution and containment', quality: 'friction' };
+    }
+    if ((pointA === 'Moon' && pointB === 'Neptune') || (pointB === 'Moon' && pointA === 'Neptune')) {
+      return { meaning: 'heightened emotional sensitivity and imagination', quality: 'complexity' };
+    }
+    
+    // Saturn aspects
+    if ((pointA === 'Saturn' && pointB === 'Chiron') || (pointB === 'Saturn' && pointA === 'Chiron')) {
+      return { meaning: 'wound and discipline intertwined', quality: 'complexity' };
+    }
+    
+    // Neptune/Chiron
+    if ((pointA === 'Neptune' && pointB === 'Chiron') || (pointB === 'Neptune' && pointA === 'Chiron')) {
+      return { meaning: 'sensitivity and healing themes amplified', quality: 'complexity' };
+    }
+    
+    // Pluto aspects
+    if (pointA === 'Pluto' || pointB === 'Pluto') {
+      const other = pointA === 'Pluto' ? pointB : pointA;
+      return { meaning: `${other} undergoes deep transformation`, quality: 'friction' };
+    }
+    
+    // Default
+    return { meaning: `${pointA} and ${pointB} interact`, quality: type === 'trine' || type === 'sextile' ? 'ease' : type === 'square' || type === 'opposition' ? 'friction' : 'complexity' };
+  };
+  
+  // Weight aspects by importance
+  const importantPlanets = ['Sun', 'Moon', 'Saturn', 'Chiron', 'North Node', 'Jupiter', 'Pluto'];
+  
+  for (const asp of aspects) {
+    const isImportant = importantPlanets.includes(asp.point_a) || importantPlanets.includes(asp.point_b);
+    const isHardAspect = ['conjunction', 'opposition', 'square'].includes(asp.aspect_type);
+    
+    if (isImportant || isHardAspect) {
+      const { meaning, quality } = getAspectMeaning(asp.point_a, asp.point_b, asp.aspect_type);
+      const symbol = asp.aspect_type === 'conjunction' ? '☌' : asp.aspect_type === 'opposition' ? '☍' : asp.aspect_type === 'square' ? '□' : asp.aspect_type === 'trine' ? '△' : asp.aspect_type === 'sextile' ? '⚹' : '•';
+      
+      let weight = isImportant ? 5 : 3;
+      if (isHardAspect) weight += 2;
+      if (asp.orb < 3) weight += 2; // Tight orb
+      
+      keyAspects.push({
+        aspect: `${asp.point_a} ${symbol} ${asp.point_b}`,
+        meaning,
+        quality,
+        weight
+      });
+    }
+  }
+  
+  // Sort and return top 5
+  return keyAspects.sort((a, b) => b.weight - a.weight).slice(0, 5).map(({ aspect, meaning, quality }) => ({ aspect, meaning, quality }));
+};
+
 const getSynthesis = (sun: string, moon: string, asc: string): string => {
   const sunElement = SIGN_ELEMENTS[sun] || 'Unknown';
   const moonElement = SIGN_ELEMENTS[moon] || 'Unknown';
@@ -585,43 +849,43 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       gift: `What Saturn touches, you eventually master through persistence. This isn't easy success—it's earned authority. Over time, you become the person others trust in this domain.`,
       reflection: `What do you take most seriously? Where do you feel you're still catching up?`
     },
-    // === NEW: Nodes ===
+    // === NEW: Nodes === (SHARPER DEVELOPMENTAL FRAMING)
     {
       id: 'nodes',
       title: 'Nodes — Direction & Pattern',
       subtitle: `☊ ${placements.north_node || 'Unknown'} · ☋ ${placements.south_node || 'Unknown'}`,
-      preview: `North Node in ${placements.north_node || 'Unknown'} calls you forward; South Node in ${placements.south_node || 'Unknown'} holds the familiar.`,
-      whatThisIs: `Your North Node in ${placements.north_node || 'Unknown'}${placements.north_node_house ? ` (House ${placements.north_node_house})` : ''} points toward growth territory—what you're here to develop. Your South Node in ${placements.south_node || 'Unknown'}${placements.south_node_house ? ` (House ${placements.south_node_house})` : ''} represents ingrained patterns—comfortable but limiting when overused.`,
+      preview: `Growth pulls from ${placements.south_node || 'Unknown'} familiarity toward ${placements.north_node || 'Unknown'} unfamiliarity.`,
+      whatThisIs: `The nodal axis is your developmental storyline. South Node in ${placements.south_node || 'Unknown'}${placements.south_node_house ? ` (House ${placements.south_node_house})` : ''} represents what you already know—your default competency, your comfort zone, your reliable pattern. North Node in ${placements.north_node || 'Unknown'}${placements.north_node_house ? ` (House ${placements.north_node_house})` : ''} is where life keeps pushing you—unfamiliar, less confident, but where growth actually happens.`,
       whatYouMightNotice: [
-        `Natural talent and comfort around South Node themes—but diminishing returns`,
-        `Resistance or unfamiliarity toward North Node territory`,
-        `Life events that push you toward the North Node direction`,
-        `The South Node as a fallback when stressed`
+        `WHAT FEELS FAMILIAR: ${placements.south_node || 'Unknown'} ways of operating—you're good at this, maybe too good`,
+        `WHERE LIFE PULLS YOU: Toward ${placements.north_node || 'Unknown'} territory—less practiced, more growth`,
+        `THE COMFORT TRAP: Defaulting to ${placements.south_node || 'Unknown'} competence when stressed`,
+        `WHAT GROWTH FEELS LIKE: Awkward, uncertain, but right`
       ],
-      tensionLabel: 'The pull backward',
-      tension: `The South Node is seductive because it's easy. In ${placements.south_node || 'Unknown'}, you already know how to operate. But staying there keeps you from the growth the North Node offers.`,
-      giftLabel: 'The direction forward',
-      gift: `The North Node in ${placements.north_node || 'Unknown'} isn't about abandoning the South—it's about using those gifts to grow into something new. The nodes are an axis, not a rejection.`,
-      reflection: `What familiar pattern do you keep returning to? What unfamiliar direction keeps calling?`
+      tensionLabel: 'The comfort trap',
+      tension: `${placements.south_node || 'The South Node'} is seductive because you're already competent there. You can coast on these skills indefinitely—but diminishing returns set in. The more you stay, the less alive it feels. The pattern that once protected you starts to confine you.`,
+      giftLabel: 'What growth actually asks',
+      gift: `${placements.north_node || 'The North Node'} isn't asking you to abandon your South Node gifts—it's asking you to use them in service of something new. Growth feels less like achievement and more like trust. Less control, more allowing.`,
+      reflection: `What familiar pattern do you keep returning to even when you know it's limiting? What would it mean to actually trust the unfamiliar direction?`
     },
-    // === NEW: Chiron ===
+    // === NEW: Chiron === (MORE PRECISE WOUND/MEDICINE FRAMING)
     {
       id: 'chiron',
       title: 'Chiron — Wound & Medicine',
       subtitle: `${placements.chiron || 'Unknown'}${placements.chiron_house ? ` in the ${getHouseOrdinal(placements.chiron_house)} house` : ''}`,
-      preview: `In your chart, a wound around ${getHouseTheme(placements.chiron_house || 1)} that becomes medicine.`,
-      whatThisIs: `In your chart, Chiron in ${placements.chiron || 'Unknown'}${placements.chiron_house ? ` placed in House ${placements.chiron_house}` : ''} marks a place of deep sensitivity—a wound that doesn't fully heal but becomes a source of wisdom and ability to help others. This is where you've been hurt, and where you develop healing capacity.`,
+      preview: `A wound in ${getHouseTheme(placements.chiron_house || 1)} that teaches rather than heals.`,
+      whatThisIs: `Chiron in ${placements.chiron || 'Unknown'}${placements.chiron_house ? ` (House ${placements.chiron_house})` : ''} marks where you carry a wound that doesn't fully close. This isn't failure—it's specificity. You're sensitized to ${getHouseTheme(placements.chiron_house || 1)} in ways others aren't. This sensitivity developed into adaptive intelligence.`,
       whatYouMightNotice: [
-        `Recurring sensitivity or pain around ${getHouseTheme(placements.chiron_house || 1)} themes`,
-        `An ability to understand others' struggles in this area`,
-        `A sense of being "different" or not quite fitting here`,
-        `Deeper wisdom that comes from having lived through difficulty`
+        `WHERE IT HURTS: ${getHouseTheme(placements.chiron_house || 1)} themes trigger you more than they should`,
+        `WHAT YOU LEARNED TO DO: Compensate, over-function, or avoid in this area`,
+        `THE MEDICINE INSIDE IT: You understand others' pain here because you've lived it`,
+        `WHEN IT OVER-IDENTIFIES: You may believe "this wound is who I am"`
       ],
-      tensionLabel: 'The wound that stays open',
-      tension: `Chiron wounds don't close completely. In House ${placements.chiron_house || '?'}, there's a tenderness that remains—a place where you can be triggered or feel inadequate. Accepting this is part of the medicine.`,
+      tensionLabel: 'Where it still hurts',
+      tension: `The Chiron wound stays tender. In ${getHouseTheme(placements.chiron_house || 1)}, you can be triggered by things that don't bother others. You may over-compensate, trying to prove the wound isn't there—or collapse into identifying with it completely.`,
       giftLabel: 'The medicine you carry',
-      gift: `What wounded you also taught you. Because you've struggled with ${getHouseTheme(placements.chiron_house || 1)} themes, you understand them from the inside. This is where you can guide others.`,
-      reflection: `What wound are you still trying to fix instead of accept? Where does your pain become useful to others?`
+      gift: `Because you've struggled here, you understand it from the inside. You can guide others through ${getHouseTheme(placements.chiron_house || 1)} difficulties—not as someone who's "healed" but as someone who knows the terrain. The wound becomes teaching, not in spite of the pain but through it.`,
+      reflection: `What wound are you still trying to fix instead of integrate? Where might your pain be useful to someone else?`
     },
     {
       id: 'houses',
@@ -1347,6 +1611,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
     const themeChips = getThemeChips(sun, moon, asc);
     const tensions = getCoreTensions(sun, moon, asc);
     const gifts = getCoreGifts(sun, moon, asc);
+    
+    // New interpretive hierarchy data
+    const chartSpine = getChartSpine(placements);
+    const whatMattersMost = getWhatMattersMost(placements, fullChartData);
+    const keyAspects = getKeyAspects(fullChartData);
 
     return (
       <View style={styles.atAGlanceContainer}>
@@ -1371,19 +1640,51 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           <Text style={[styles.heroDescriptor, { color: theme.textSecondary }]}>{heroDescriptor}</Text>
         </View>
 
-        {/* Core Synthesis */}
-        <View style={[styles.synthesisCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.synthesisText, { color: theme.text }]}>{synthesis}</Text>
+        {/* CHART SPINE - The backbone of the chart */}
+        <View style={[styles.chartSpineCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.chartSpineTitle, { color: theme.accent }]}>CHART SPINE</Text>
+          {chartSpine.map((statement, i) => (
+            <Text key={i} style={[styles.chartSpineStatement, { color: theme.text }]}>
+              {statement}
+            </Text>
+          ))}
         </View>
 
-        {/* Theme Chips */}
-        <View style={styles.chipsContainer}>
-          {themeChips.map((chip, i) => (
-            <View key={i} style={[styles.chip, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '25' }]}>
-              <Text style={[styles.chipText, { color: theme.accent }]}>{chip}</Text>
+        {/* WHAT MATTERS MOST IN THIS CHART */}
+        <View style={[styles.whatMattersCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.whatMattersTitle, { color: theme.accent }]}>WHAT MATTERS MOST IN THIS CHART</Text>
+          {whatMattersMost.map((item, i) => (
+            <View key={i} style={styles.whatMattersItem}>
+              <Text style={[styles.whatMattersRank, { color: theme.accent }]}>{i + 1}</Text>
+              <View style={styles.whatMattersContent}>
+                <Text style={[styles.whatMattersLabel, { color: theme.text }]}>{item.label}</Text>
+                <Text style={[styles.whatMattersWhy, { color: theme.textSecondary }]}>{item.why}</Text>
+              </View>
             </View>
           ))}
         </View>
+
+        {/* KEY ASPECT DYNAMICS */}
+        {keyAspects.length > 0 && (
+          <View style={[styles.keyAspectsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.keyAspectsTitle, { color: theme.accent }]}>KEY ASPECT DYNAMICS</Text>
+            {keyAspects.map((asp, i) => (
+              <View key={i} style={styles.keyAspectItem}>
+                <View style={styles.keyAspectHeader}>
+                  <Text style={[styles.keyAspectName, { color: theme.text }]}>{asp.aspect}</Text>
+                  <View style={[styles.keyAspectBadge, { 
+                    backgroundColor: asp.quality === 'ease' ? '#E8F5E9' : asp.quality === 'friction' ? '#FFEBEE' : '#FFF3E0'
+                  }]}>
+                    <Text style={[styles.keyAspectBadgeText, { 
+                      color: asp.quality === 'ease' ? '#2E7D32' : asp.quality === 'friction' ? '#C62828' : '#EF6C00'
+                    }]}>{asp.quality}</Text>
+                  </View>
+                </View>
+                <Text style={[styles.keyAspectMeaning, { color: theme.textSecondary }]}>{asp.meaning}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Key Planets: Jupiter, Saturn, Nodes, Chiron */}
         <View style={[styles.keyPlanetsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -1395,6 +1696,35 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
               <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.jupiter || '—'}</Text>
               {placements.jupiter_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.jupiter_house}</Text>}
             </View>
+            <View style={styles.keyPlanetItem}>
+              <Text style={[styles.keyPlanetSymbol, { color: '#FFA726' }]}>♄</Text>
+              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Saturn</Text>
+              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.saturn || '—'}</Text>
+              {placements.saturn_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.saturn_house}</Text>}
+            </View>
+            <View style={styles.keyPlanetItem}>
+              <Text style={[styles.keyPlanetSymbol, { color: '#81D4FA' }]}>☊</Text>
+              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>North Node</Text>
+              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.north_node || '—'}</Text>
+              {placements.north_node_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.north_node_house}</Text>}
+            </View>
+            <View style={styles.keyPlanetItem}>
+              <Text style={[styles.keyPlanetSymbol, { color: '#CE93D8' }]}>⚷</Text>
+              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Chiron</Text>
+              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.chiron || '—'}</Text>
+              {placements.chiron_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.chiron_house}</Text>}
+            </View>
+          </View>
+        </View>
+
+        {/* Theme Chips */}
+        <View style={styles.chipsContainer}>
+          {themeChips.map((chip, i) => (
+            <View key={i} style={[styles.chip, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '25' }]}>
+              <Text style={[styles.chipText, { color: theme.accent }]}>{chip}</Text>
+            </View>
+          ))}
+        </View>
             <View style={styles.keyPlanetItem}>
               <Text style={[styles.keyPlanetSymbol, { color: '#FFA726' }]}>♄</Text>
               <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Saturn</Text>
@@ -2464,5 +2794,105 @@ const styles = StyleSheet.create({
   keyPlanetHouse: {
     fontSize: 10,
     marginTop: 2,
+  },
+  // Chart Spine Styles
+  chartSpineCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+  },
+  chartSpineTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  chartSpineStatement: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 6,
+  },
+  // What Matters Most Styles
+  whatMattersCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+  },
+  whatMattersTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  whatMattersItem: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  whatMattersRank: {
+    fontSize: 14,
+    fontWeight: '700',
+    width: 20,
+    marginRight: 8,
+  },
+  whatMattersContent: {
+    flex: 1,
+  },
+  whatMattersLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  whatMattersWhy: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  // Key Aspects Styles
+  keyAspectsCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+  },
+  keyAspectsTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  keyAspectItem: {
+    marginBottom: 10,
+  },
+  keyAspectHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  keyAspectName: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  keyAspectBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  keyAspectBadgeText: {
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  keyAspectMeaning: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  // Deep Dive Section Header
+  deepDiveSectionHeader: {
+    paddingVertical: 8,
+    marginBottom: 4,
+    marginTop: 12,
+  },
+  deepDiveSectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
 });
