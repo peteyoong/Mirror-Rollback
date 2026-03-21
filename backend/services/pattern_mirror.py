@@ -3435,7 +3435,32 @@ async def generate_pattern_mirror(
                     transit_themes, cached_scores, timing_context
                 )
                 
+                # V5: Build two-layer output for cached response too
+                cached_two_layer = build_two_layer_mirror_output(
+                    pattern=cached["pattern"],
+                    pattern_id=cached_pattern_id,
+                    core_pattern_memory=cached.get("core_pattern_memory", {
+                        "pattern_id": cached_pattern_id,
+                        "pattern_title": cached["pattern"].get("title", ""),
+                        "persistence_score": 0.7,
+                        "memory_window_days": 60,
+                    }),
+                    daily_angle=cached.get("daily_angle", {
+                        "angle_title": cached["pattern"].get("title", ""),
+                        "angle_summary": cached["pattern"].get("what_you_may_be", ""),
+                    }),
+                    timing_amplifier=timing_amplifier,
+                    cluster_data=cached.get("cluster_data", {}),
+                    signals_extended={"memory": signals},
+                    transit_themes=transit_themes,
+                    user_profile=user_profile,
+                    bazi_chart=None
+                )
+                
                 return {
+                    # ===== V5 TWO-LAYER OUTPUT =====
+                    "two_layer_output": cached_two_layer,
+                    
                     # ===== V2 LAYERED STRUCTURE =====
                     "personal_pattern": personal_pattern,
                     "timing_amplifier": timing_amplifier,

@@ -205,6 +205,9 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
     
     try {
       const response = await api.get(`/patterns/${userId}`);
+      console.log('[PatternCard] RAW API RESPONSE:', JSON.stringify(response.data, null, 2).substring(0, 500));
+      console.log('[PatternCard] two_layer_output KEY EXISTS:', 'two_layer_output' in response.data);
+      console.log('[PatternCard] two_layer_output VALUE:', response.data?.two_layer_output);
       setPatternData(response.data);
       onPatternLoaded?.(response.data?.pattern || null);
     } catch (err: any) {
@@ -293,15 +296,22 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   const evidence = patternData.evidence;
   const isAmplifierMode = timingAmplifier?.timing_role === 'amplifier';
   
-  // Log V5 status for debugging
-  console.log('[PatternCard] V5 Two-Layer present:', !!twoLayer);
-  console.log('[PatternCard] Core insight:', coreInsight?.title);
-  console.log('[PatternCard] Cross-lens count:', crossLensDerivation?.convergence_count);
+  // ===== CRITICAL DEBUG LOGGING =====
+  console.log('========================================');
+  console.log('[PatternCard] RENDER PATH DECISION');
+  console.log('========================================');
+  console.log('[PatternCard] USING_TWO_LAYER_OUTPUT:', !!twoLayer);
+  console.log('[PatternCard] RENDERING_LEGACY_PATTERN_CARD:', !twoLayer);
+  console.log('[PatternCard] twoLayer object:', twoLayer);
+  console.log('[PatternCard] coreInsight:', coreInsight);
+  console.log('[PatternCard] whyShowingUp:', whyShowingUp);
+  console.log('[PatternCard] crossLensDerivation:', crossLensDerivation);
+  console.log('========================================');
 
   // ===== V5 TWO-LAYER RENDER =====
   if (twoLayer) {
     return (
-      <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>        
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.headerLabel, { color: theme.textTertiary }]}>PATTERN</Text>
@@ -516,6 +526,7 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
   }
 
   // ===== LEGACY RENDER (V4/V3/V2 fallback) =====
+  // This should NOT be used when two_layer_output is available!
 
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
