@@ -444,6 +444,152 @@ const OVERVIEW_REFLECTIONS: { [key: number]: string } = {
   9: 'Where is your peace genuine presence—and where might it be a way to avoid the clarity of your own voice?',
 };
 
+// ============================================
+// PATTERN LAYERS DATA (Deeper Enneagram Layers)
+// Translated from: Passion, Fixation, Avoidance, Anti-Self, Virtue, Holy Idea
+// into natural, human, reflective language (NO JARGON)
+// ============================================
+
+interface PatternLayersType {
+  // How the user tends to move/behave
+  howYouMove: string;
+  // What they subtly avoid or move away from
+  whatYouAvoid: string;
+  // What sits underneath the pattern
+  whatSitsUnderneath: string;
+  
+  // Collapsible: What's driving this
+  emotionalTendency: string;  // From Passion
+  thinkingTendency: string;   // From Fixation
+  
+  // Collapsible: What this protects you from
+  avoidancePattern: string;   // From Avoidance
+  antiSelfPattern: string;    // From Anti-Self (inner voice that reinforces the pattern)
+  
+  // Collapsible: When this opens
+  growthDirection: string;    // From Virtue + Holy Idea
+}
+
+const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
+  1: {
+    howYouMove: 'You tend to notice what could be better, more aligned, more correct. There\'s a natural pull toward improvement—in yourself, in situations, in how things are done.',
+    whatYouAvoid: 'You often move away from anything that feels sloppy, careless, or ethically questionable. There\'s a subtle vigilance against being seen as wrong or irresponsible.',
+    whatSitsUnderneath: 'Beneath the drive for correctness is a quiet tension: a sense that the world requires your constant attention to keep it from falling into disorder—and that letting up might mean becoming part of the problem.',
+    
+    emotionalTendency: 'A simmering frustration when things don\'t meet your internal standards. Not explosive, but always there—like a background hum of "this could be better."',
+    thinkingTendency: 'Comparing reality to how it should be. Your mind naturally evaluates, critiques, and imagines the improved version.',
+    
+    avoidancePattern: 'Making mistakes. Being criticized. Losing control of your own integrity.',
+    antiSelfPattern: 'A voice that says: "If you relax your standards, everything will fall apart. You can\'t trust yourself to be good without constant vigilance."',
+    
+    growthDirection: 'When this pattern softens, you access genuine acceptance—the ability to see that perfection isn\'t the point, and that what\'s already present is enough. Joy becomes possible without needing everything to be fixed first.',
+  },
+  2: {
+    howYouMove: 'You tend to notice what others need, often before they do. There\'s a natural pull toward connection, care, and being the one who helps.',
+    whatYouAvoid: 'You often move away from your own needs, from being the one who receives, from situations where you might be seen as selfish or unhelpful.',
+    whatSitsUnderneath: 'Beneath the giving is a quiet question: Am I loved for who I am, or only for what I provide? There\'s a fear that without usefulness, connection might disappear.',
+    
+    emotionalTendency: 'Pride in being needed, though it may not feel like pride. More like a warm glow when you\'ve made someone\'s life easier.',
+    thinkingTendency: 'Reading others—anticipating what they want, what they need, what would make them happy. Your attention flows outward.',
+    
+    avoidancePattern: 'Acknowledging your own needs. Asking directly for help. Being perceived as selfish.',
+    antiSelfPattern: 'A voice that says: "Your needs don\'t matter as much. If you stop giving, they\'ll forget about you."',
+    
+    growthDirection: 'When this pattern softens, you access genuine humility—the recognition that receiving is as valuable as giving. You discover that love doesn\'t depend on earning it.',
+  },
+  3: {
+    howYouMove: 'You tend to notice what leads to success, recognition, or progress. There\'s a natural pull toward achieving, presenting well, and making things happen.',
+    whatYouAvoid: 'You often move away from failure, from being seen as ineffective, from situations where you can\'t shine or succeed.',
+    whatSitsUnderneath: 'Beneath the achievement is a quiet uncertainty: Am I valuable for who I am, or only for what I accomplish? There\'s a fear that without success, you might disappear.',
+    
+    emotionalTendency: 'A subtle deceit—not lying to others, but adjusting who you appear to be. Becoming the version that\'s most likely to succeed in each context.',
+    thinkingTendency: 'Strategizing. Your mind naturally calculates the shortest path to the goal, the best presentation, the most effective approach.',
+    
+    avoidancePattern: 'Failure. Being ordinary. Stopping long enough to feel what\'s underneath the drive.',
+    antiSelfPattern: 'A voice that says: "You are what you achieve. Without accomplishment, you\'re nothing special."',
+    
+    growthDirection: 'When this pattern softens, you access genuine authenticity—the freedom to be seen as you actually are, not just as your achievements. You discover that being is enough, even without doing.',
+  },
+  4: {
+    howYouMove: 'You tend to notice what\'s missing, what\'s unique, what carries emotional depth. There\'s a natural pull toward authenticity, meaning, and the fullness of experience.',
+    whatYouAvoid: 'You often move away from ordinariness, from emotional flatness, from being like everyone else or settling for the mundane.',
+    whatSitsUnderneath: 'Beneath the search for meaning is a quiet longing: a sense that something essential is missing, and that finding it would finally make you feel complete.',
+    
+    emotionalTendency: 'A melancholic longing—not always sad, but always aware of what isn\'t here. The gap between the ideal and the real is vivid.',
+    thinkingTendency: 'Comparing yourself to others, often unfavorably. Romanticizing what\'s distant or lost while devaluing what\'s present.',
+    
+    avoidancePattern: 'Being ordinary. Losing your unique identity. Having your depth go unseen.',
+    antiSelfPattern: 'A voice that says: "No one truly understands you. What\'s wrong with you is too fundamental to fix."',
+    
+    growthDirection: 'When this pattern softens, you access genuine equanimity—the ability to see that nothing is actually missing. What you\'re searching for has been here all along, just overlooked.',
+  },
+  5: {
+    howYouMove: 'You tend to notice what you understand, what you can observe, what you can contain and preserve. There\'s a natural pull toward knowledge, privacy, and maintaining your inner resources.',
+    whatYouAvoid: 'You often move away from demands on your energy, from situations that deplete you, from engagement that feels overwhelming or intrusive.',
+    whatSitsUnderneath: 'Beneath the withdrawal is a quiet fear: a sense that the world takes more than it gives, and that your inner reserves must be carefully protected to survive.',
+    
+    emotionalTendency: 'A retracted quality—holding back, observing before engaging, minimizing your needs so you don\'t have to ask for much.',
+    thinkingTendency: 'Analyzing from a distance. Your mind naturally creates frameworks, categories, and understanding that doesn\'t require direct participation.',
+    
+    avoidancePattern: 'Being overwhelmed. Having your boundaries invaded. Not knowing enough.',
+    antiSelfPattern: 'A voice that says: "You don\'t have enough to offer. It\'s safer to watch than to participate."',
+    
+    growthDirection: 'When this pattern softens, you access genuine engagement—the trust that your resources are abundant and that giving doesn\'t mean losing. Participation becomes nourishing rather than depleting.',
+  },
+  6: {
+    howYouMove: 'You tend to notice what could go wrong, what needs to be prepared for, who can be trusted. There\'s a natural pull toward security, loyalty, and reliable foundations.',
+    whatYouAvoid: 'You often move away from uncertainty, from situations where you can\'t predict the outcome, from authority you haven\'t tested.',
+    whatSitsUnderneath: 'Beneath the vigilance is a quiet doubt: a sense that you can\'t fully trust your own judgment, and that external guidance or confirmation is needed to feel safe.',
+    
+    emotionalTendency: 'Anxiety that scans for danger—not always dramatic, but always slightly alert. Worry as a form of preparation.',
+    thinkingTendency: 'Questioning, testing, imagining worst-case scenarios. Your mind naturally plays devil\'s advocate, even with yourself.',
+    
+    avoidancePattern: 'Uncertainty. Being without support. Making decisions alone.',
+    antiSelfPattern: 'A voice that says: "You can\'t handle this alone. Something bad is probably coming that you haven\'t prepared for."',
+    
+    growthDirection: 'When this pattern softens, you access genuine inner courage—the discovery that you can trust yourself, that you already have the guidance you\'ve been seeking outside.',
+  },
+  7: {
+    howYouMove: 'You tend to notice what\'s possible, what\'s interesting, what opens up new horizons. There\'s a natural pull toward stimulation, options, and keeping the future bright.',
+    whatYouAvoid: 'You often move away from pain, limitation, boredom, and anything that might trap you in negativity or close down your options.',
+    whatSitsUnderneath: 'Beneath the enthusiasm is a quiet escape: a sense that if you slow down or face the difficult thing directly, you\'ll be stuck in discomfort with no way out.',
+    
+    emotionalTendency: 'A gluttony for experience—not always excess, but a constant reaching toward the next interesting thing. Avoiding satiation because that might mean stopping.',
+    thinkingTendency: 'Reframing, planning, ideating. Your mind naturally finds the silver lining, the escape route, the more exciting possibility.',
+    
+    avoidancePattern: 'Pain. Limitation. Being trapped in negative emotions or boring circumstances.',
+    antiSelfPattern: 'A voice that says: "If you stop and feel this, you\'ll get stuck. Keep moving, keep planning, keep the options open."',
+    
+    growthDirection: 'When this pattern softens, you access genuine presence—the discovery that this moment, even if painful, is sufficient. Depth becomes possible when you stop running toward the next thing.',
+  },
+  8: {
+    howYouMove: 'You tend to notice who has power, who can be trusted, who needs protection. There\'s a natural pull toward strength, directness, and taking charge of your own destiny.',
+    whatYouAvoid: 'You often move away from vulnerability, from being controlled, from situations where you might appear weak or dependent.',
+    whatSitsUnderneath: 'Beneath the strength is a quiet guardedness: a sense that the world is harsh, that weakness invites harm, and that only through power can you be safe.',
+    
+    emotionalTendency: 'A lustiness for intensity—not just physical, but a desire for aliveness, impact, and full engagement. Holding back feels like dying.',
+    thinkingTendency: 'Assessing power dynamics. Your mind naturally reads situations for who\'s in charge, who\'s trustworthy, and where the real power lies.',
+    
+    avoidancePattern: 'Vulnerability. Being controlled. Appearing weak.',
+    antiSelfPattern: 'A voice that says: "If you show your soft side, people will take advantage. Strength is survival."',
+    
+    growthDirection: 'When this pattern softens, you access genuine innocence—the ability to be open and tender without fear. Vulnerability becomes strength rather than weakness.',
+  },
+  9: {
+    howYouMove: 'You tend to notice what creates harmony, what avoids disruption, what keeps things comfortable and connected. There\'s a natural pull toward peace, stability, and merging with the flow.',
+    whatYouAvoid: 'You often move away from conflict, from asserting yourself in ways that might create tension, from anything that disrupts your inner calm.',
+    whatSitsUnderneath: 'Beneath the peacefulness is a quiet self-forgetting: a sense that your own presence might disturb things, and that it\'s easier to go along than to risk disconnection.',
+    
+    emotionalTendency: 'A comfortable numbness—not depression, but a gentle blurring of your own needs and desires in favor of maintaining equilibrium.',
+    thinkingTendency: 'Seeing all sides. Your mind naturally finds where everyone is right, making it hard to know where you actually stand.',
+    
+    avoidancePattern: 'Conflict. Being seen as difficult. Losing your sense of inner peace.',
+    antiSelfPattern: 'A voice that says: "Your needs aren\'t that important. It\'s not worth the disruption. Just go along."',
+    
+    growthDirection: 'When this pattern softens, you access genuine right action—the ability to know what you want and move toward it without losing connection. Your presence becomes a gift rather than a disturbance.',
+  },
+};
+
 // Wing flavor descriptions - structured format for Deep Dive
 // Format: Core Pattern | The Tradeoff | Potential Strength | Try This
 const WING_FLAVORS: { [key: string]: { pattern: string; tradeoff: string; strength: string; experiment: string } } = {
@@ -967,6 +1113,11 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
   const [qaQuestion, setQaQuestion] = useState('');
   const [qaAnswer, setQaAnswer] = useState<string | null>(null);
   const [qaLoading, setQaLoading] = useState(false);
+  
+  // At a Glance collapsible section states
+  const [drivingExpanded, setDrivingExpanded] = useState(false);
+  const [protectsExpanded, setProtectsExpanded] = useState(false);
+  const [opensExpanded, setOpensExpanded] = useState(false);
   
   // Send chat message
   const handleSendChat = useCallback(async () => {
@@ -1535,7 +1686,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
     // Social style tags
     const socialStyleTags = details?.social_style_tags || [];
     
-    // Basic fear and desire based on type
+    // Basic fear and desire based on type (with updated labels)
     const TYPE_BASIC_FEARS: { [key: number]: string } = {
       1: 'Being corrupt, evil, or defective',
       2: 'Being unwanted or unloved',
@@ -1559,6 +1710,9 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
       8: 'To protect themselves and control their destiny',
       9: 'To have inner peace and stability',
     };
+    
+    // Get pattern layers for this type
+    const patternLayers = PATTERN_LAYERS[core];
 
     return (
       <>
@@ -1570,9 +1724,129 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
           </View>
         )}
 
-        {/* Profile Grid */}
+        {/* ============================================ */}
+        {/* PATTERN SUMMARY CARD - NEW TOP SECTION */}
+        {/* ============================================ */}
+        {details && patternLayers && (
+          <View style={[styles.patternSummaryCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+            <Text style={[styles.patternSummaryTitle, { color: theme.text }]}>Your Pattern</Text>
+            
+            {/* Paragraph 1: How you tend to move */}
+            <Text style={[styles.patternSummaryBody, { color: theme.textSecondary }]}>
+              {patternLayers.howYouMove}
+            </Text>
+            
+            {/* Paragraph 2: What you subtly avoid */}
+            <Text style={[styles.patternSummaryBody, { color: theme.textSecondary }]}>
+              {patternLayers.whatYouAvoid}
+            </Text>
+            
+            {/* Paragraph 3: What sits underneath */}
+            <Text style={[styles.patternSummaryBody, styles.patternSummaryEmphasized, { color: theme.textTertiary }]}>
+              {patternLayers.whatSitsUnderneath}
+            </Text>
+          </View>
+        )}
+
+        {/* ============================================ */}
+        {/* COLLAPSIBLE SUB-SECTIONS */}
+        {/* ============================================ */}
+        {details && patternLayers && (
+          <>
+            {/* Section A: What's driving this */}
+            <TouchableOpacity 
+              style={[styles.collapsibleSection, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}
+              onPress={() => setDrivingExpanded(!drivingExpanded)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.collapsibleHeader}>
+                <Text style={[styles.collapsibleTitle, { color: theme.text }]}>What's driving this</Text>
+                <Text style={[styles.collapsibleChevron, { color: theme.textTertiary }]}>
+                  {drivingExpanded ? '▲' : '▼'}
+                </Text>
+              </View>
+              {drivingExpanded && (
+                <View style={styles.collapsibleContent}>
+                  <View style={styles.collapsibleItem}>
+                    <Text style={[styles.collapsibleItemLabel, { color: theme.textTertiary }]}>Emotional tendency</Text>
+                    <Text style={[styles.collapsibleItemText, { color: theme.textSecondary }]}>
+                      {patternLayers.emotionalTendency}
+                    </Text>
+                  </View>
+                  <View style={styles.collapsibleItem}>
+                    <Text style={[styles.collapsibleItemLabel, { color: theme.textTertiary }]}>Thinking tendency</Text>
+                    <Text style={[styles.collapsibleItemText, { color: theme.textSecondary }]}>
+                      {patternLayers.thinkingTendency}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            {/* Section B: What this protects you from */}
+            <TouchableOpacity 
+              style={[styles.collapsibleSection, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}
+              onPress={() => setProtectsExpanded(!protectsExpanded)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.collapsibleHeader}>
+                <Text style={[styles.collapsibleTitle, { color: theme.text }]}>What this protects you from</Text>
+                <Text style={[styles.collapsibleChevron, { color: theme.textTertiary }]}>
+                  {protectsExpanded ? '▲' : '▼'}
+                </Text>
+              </View>
+              {protectsExpanded && (
+                <View style={styles.collapsibleContent}>
+                  <View style={styles.collapsibleItem}>
+                    <Text style={[styles.collapsibleItemLabel, { color: theme.textTertiary }]}>What you avoid</Text>
+                    <Text style={[styles.collapsibleItemText, { color: theme.textSecondary }]}>
+                      {patternLayers.avoidancePattern}
+                    </Text>
+                  </View>
+                  <View style={styles.collapsibleItem}>
+                    <Text style={[styles.collapsibleItemLabel, { color: theme.textTertiary }]}>The inner voice</Text>
+                    <Text style={[styles.collapsibleItemText, styles.collapsibleItemQuote, { color: theme.textSecondary }]}>
+                      {patternLayers.antiSelfPattern}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            {/* Section C: When this opens */}
+            <TouchableOpacity 
+              style={[styles.collapsibleSection, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}
+              onPress={() => setOpensExpanded(!opensExpanded)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.collapsibleHeader}>
+                <Text style={[styles.collapsibleTitle, { color: theme.text }]}>When this opens</Text>
+                <Text style={[styles.collapsibleChevron, { color: theme.textTertiary }]}>
+                  {opensExpanded ? '▲' : '▼'}
+                </Text>
+              </View>
+              {opensExpanded && (
+                <View style={styles.collapsibleContent}>
+                  <Text style={[styles.collapsibleItemText, { color: theme.textSecondary }]}>
+                    {patternLayers.growthDirection}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* ============================================ */}
+        {/* STRUCTURE BEHIND YOUR PATTERN (Existing table) */}
+        {/* ============================================ */}
         {details && (
           <>
+            <View style={[styles.structureSectionHeader, { borderTopColor: theme.border }]}>
+              <Text style={[styles.structureSectionTitle, { color: theme.textTertiary }]}>
+                STRUCTURE BEHIND YOUR PATTERN
+              </Text>
+            </View>
+            
             {/* Profile Card */}
             <View style={[styles.glanceCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
               {/* Wing Stance Row */}
@@ -1624,10 +1898,10 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
               </View>
             </View>
 
-            {/* Social Style Card */}
+            {/* Social Style Card - Updated label */}
             {socialStyleTags.length > 0 && (
               <View style={[styles.glanceCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-                <Text style={[styles.glanceSectionTitle, { color: theme.textTertiary }]}>SOCIAL STYLE</Text>
+                <Text style={[styles.glanceSectionTitle, { color: theme.textTertiary }]}>HOW YOU TEND TO SHOW UP</Text>
                 <View style={styles.glanceTagsContainer}>
                   {socialStyleTags.map((tag, index) => (
                     <View key={index} style={[styles.glanceTag, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
@@ -1638,16 +1912,16 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
               </View>
             )}
 
-            {/* Quick Reference Card */}
+            {/* Quick Reference Card - Updated labels */}
             <View style={[styles.glanceCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
               <Text style={[styles.glanceSectionTitle, { color: theme.textTertiary }]}>QUICK REFERENCE</Text>
               <View style={styles.glanceRefGrid}>
                 <View style={styles.glanceRefItem}>
-                  <Text style={[styles.glanceRefLabel, { color: theme.textTertiary }]}>Basic Fear</Text>
+                  <Text style={[styles.glanceRefLabel, { color: theme.textTertiary }]}>What this pattern is trying to avoid</Text>
                   <Text style={[styles.glanceRefValue, { color: theme.text }]}>{TYPE_BASIC_FEARS[core]}</Text>
                 </View>
                 <View style={styles.glanceRefItem}>
-                  <Text style={[styles.glanceRefLabel, { color: theme.textTertiary }]}>Basic Desire</Text>
+                  <Text style={[styles.glanceRefLabel, { color: theme.textTertiary }]}>What this pattern is seeking</Text>
                   <Text style={[styles.glanceRefValue, { color: theme.text }]}>{TYPE_BASIC_DESIRES[core]}</Text>
                 </View>
               </View>
@@ -1659,7 +1933,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
                 {result?.confidence_tier === 'high' ? 'High' : result?.confidence_tier === 'medium' ? 'Moderate' : 'Low'} confidence
               </Text>
               <Text style={[styles.glanceFooterText, { color: theme.textTertiary }]}>
-                {' '}·{' '}Based on assessment_inference_v2 results
+                {' '}·{' '}Based on assessment results
               </Text>
             </View>
 
@@ -4225,6 +4499,101 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#FFFFFF",
   },
+  
+  // ============================================
+  // PATTERN SUMMARY CARD STYLES
+  // ============================================
+  patternSummaryCard: {
+    backgroundColor: "transparent",
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "transparent",
+    padding: 20,
+  },
+  patternSummaryTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: "#FFFFFF",
+    marginBottom: 16,
+  },
+  patternSummaryBody: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: "#FFFFFF",
+    marginBottom: 14,
+  },
+  patternSummaryEmphasized: {
+    fontStyle: 'italic',
+    marginBottom: 0,
+  },
+  
+  // ============================================
+  // COLLAPSIBLE SECTIONS STYLES
+  // ============================================
+  collapsibleSection: {
+    backgroundColor: "transparent",
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "transparent",
+    overflow: 'hidden',
+  },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  collapsibleTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: "#FFFFFF",
+  },
+  collapsibleChevron: {
+    fontSize: 10,
+  },
+  collapsibleContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  collapsibleItem: {
+    marginBottom: 16,
+  },
+  collapsibleItemLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    color: "#FFFFFF",
+    marginBottom: 6,
+  },
+  collapsibleItemText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: "#FFFFFF",
+  },
+  collapsibleItemQuote: {
+    fontStyle: 'italic',
+  },
+  
+  // ============================================
+  // STRUCTURE SECTION STYLES
+  // ============================================
+  structureSectionHeader: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(128, 128, 128, 0.2)",
+    paddingTop: 24,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  structureSectionTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    color: "#FFFFFF",
+  },
+  
   loadingContainer: {
     padding: 24,
     borderRadius: 12,
