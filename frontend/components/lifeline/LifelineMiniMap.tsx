@@ -28,12 +28,13 @@ import { GapPromptData } from './LifelineGapPrompt';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CONTAINER_PADDING = 16;
-const GRAPH_HEIGHT = 120; // Slightly taller for better arc visibility
+const GRAPH_HEIGHT = 140; // Taller for more expressive arc visibility
 const GRAPH_WIDTH = SCREEN_WIDTH - (CONTAINER_PADDING * 2) - 32;
-const VERTICAL_PADDING = 15;
-const ARC_HEIGHT = GRAPH_HEIGHT - (VERTICAL_PADDING * 2);
+const VERTICAL_PADDING = 12;
+const ARC_HEIGHT = GRAPH_HEIGHT - (VERTICAL_PADDING * 2); // More vertical space for ups and downs
 const CENTER_Y = VERTICAL_PADDING + (ARC_HEIGHT / 2); // Midpoint line
 const MIN_TOUCH_SIZE = 44; // Minimum touch target size for accessibility
+const AMPLITUDE_MULTIPLIER = 1.8; // Increase vertical movement for more expressive arc
 
 interface Props {
   events: LifelineEvent[];
@@ -182,13 +183,13 @@ function calculateLifelineScore(yearEvents: LifelineEvent[]): { score: number; a
   // Calculate final score
   const rawScore = totalWeight > 0 ? totalValence / totalWeight : 0;
   
-  // Dampen extreme values for visual elegance
-  const score = rawScore * 0.8;
+  // Less dampening for more expressive movement
+  const score = rawScore * 0.95;
   
-  // Amplitude based on event count and clarity of signal
-  const eventCountAmplitude = Math.min(yearEvents.length / 3, 1); // Max at 3 events
-  const signalClarity = hasExplicitValence ? 1 : 0.7; // More confident with explicit data
-  const amplitude = 0.15 + (eventCountAmplitude * signalClarity * 0.6);
+  // Amplitude based on event count and clarity of signal - increased for more visible variation
+  const eventCountAmplitude = Math.min(yearEvents.length / 2, 1); // Max at 2 events (was 3)
+  const signalClarity = hasExplicitValence ? 1 : 0.85; // Higher baseline for heuristic data
+  const amplitude = 0.35 + (eventCountAmplitude * signalClarity * 0.55); // Base 0.35 (was 0.15)
   
   return { score, amplitude };
 }
@@ -274,8 +275,9 @@ export default function LifelineMiniMap({
       const x = (year - birthYear) * yearWidth;
       // Y position: score moves us above (positive) or below (negative) center
       // amplitude determines how far from center
-      const yOffset = score * amplitude * (ARC_HEIGHT / 2);
-      const y = CENTER_Y - yOffset;
+      // Apply AMPLITUDE_MULTIPLIER for more expressive vertical movement
+      const yOffset = score * amplitude * (ARC_HEIGHT / 2) * AMPLITUDE_MULTIPLIER;
+      const y = Math.max(VERTICAL_PADDING, Math.min(GRAPH_HEIGHT - VERTICAL_PADDING, CENTER_Y - yOffset));
       
       const gapData = gaps.find(g => year >= g.start_year && year <= g.end_year);
       
@@ -406,36 +408,36 @@ export default function LifelineMiniMap({
       
       {/* Life Arc Graph */}
       <View style={styles.graphContainer}>
-        {/* Y-axis labels */}
+        {/* Simple Y-axis indicator - removed colored labels */}
         <View style={styles.yAxisLabels}>
-          <Text style={[styles.yAxisLabel, { color: supportedColor }]}>Supported</Text>
-          <Text style={[styles.yAxisLabel, styles.yAxisLabelBottom, { color: challengedColor }]}>Challenged</Text>
+          <Text style={[styles.yAxisLabel, { color: theme.textTertiary }]}>+</Text>
+          <Text style={[styles.yAxisLabel, styles.yAxisLabelBottom, { color: theme.textTertiary }]}>−</Text>
         </View>
         
         <View style={styles.svgContainer}>
           <Svg width={GRAPH_WIDTH} height={GRAPH_HEIGHT}>
             <Defs>
-              {/* Gradient for area above center (supported) */}
+              {/* Gradient for area above center (supported) - very subtle */}
               <LinearGradient id="supportedGradient" x1="0" y1="1" x2="0" y2="0">
                 <Stop offset="0" stopColor={supportedColor} stopOpacity="0" />
-                <Stop offset="1" stopColor={supportedColor} stopOpacity="0.15" />
+                <Stop offset="1" stopColor={supportedColor} stopOpacity="0.06" />
               </LinearGradient>
               
-              {/* Gradient for area below center (challenged) */}
+              {/* Gradient for area below center (challenged) - very subtle */}
               <LinearGradient id="challengedGradient" x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="0" stopColor={challengedColor} stopOpacity="0" />
-                <Stop offset="1" stopColor={challengedColor} stopOpacity="0.12" />
+                <Stop offset="1" stopColor={challengedColor} stopOpacity="0.05" />
               </LinearGradient>
               
               {/* Line gradient */}
               <LinearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
                 <Stop offset="0" stopColor={accentColor} stopOpacity="0.6" />
-                <Stop offset="0.5" stopColor={accentColor} stopOpacity="0.9" />
+                <Stop offset="0.5" stopColor={accentColor} stopOpacity="0.95" />
                 <Stop offset="1" stopColor={accentColor} stopOpacity="0.7" />
               </LinearGradient>
             </Defs>
             
-            {/* Subtle zone backgrounds */}
+            {/* Very subtle zone backgrounds - let the arc tell the story */}
             <Rect
               x={0}
               y={VERTICAL_PADDING}
@@ -451,15 +453,15 @@ export default function LifelineMiniMap({
               fill="url(#challengedGradient)"
             />
             
-            {/* Center line (the midpoint) */}
+            {/* Center line (the midpoint) - subtle but visible */}
             <Line
               x1={0}
               y1={CENTER_Y}
               x2={GRAPH_WIDTH}
               y2={CENTER_Y}
               stroke={centerLineColor}
-              strokeWidth={1.5}
-              strokeDasharray="6,4"
+              strokeWidth={1}
+              strokeDasharray="8,6"
             />
             
             {/* Gap regions */}

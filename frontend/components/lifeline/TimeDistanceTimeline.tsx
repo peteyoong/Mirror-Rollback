@@ -58,6 +58,7 @@ interface Props {
   newEventAdded?: LifelineEvent | null; // Recently added event to trigger memory echo
   resonanceMap?: Record<string, ChartResonance[]>; // Resonance data keyed by event_id
   onEventLayout?: (year: number, y: number) => void; // Callback for scroll navigation
+  highlightedYear?: number | null; // Year to highlight after scroll jump
 }
 
 interface TimelineNode {
@@ -136,6 +137,7 @@ export default function TimeDistanceTimeline({
   newEventAdded = null,
   resonanceMap = {},
   onEventLayout,
+  highlightedYear,
 }: Props) {
   const { theme } = useTheme();
   
@@ -318,7 +320,12 @@ export default function TimeDistanceTimeline({
               {/* Event card - with storm highlight if part of storm */}
               {eventStorm ? (
                 <View 
-                  style={[styles.stormHighlight, { backgroundColor: `${theme.accent}05` }]}
+                  style={[
+                    styles.stormHighlight, 
+                    { backgroundColor: `${theme.accent}05` },
+                    highlightedYear === node.event.year && styles.highlightedCard,
+                    highlightedYear === node.event.year && { borderColor: theme.accent }
+                  ]}
                   onLayout={(e) => onEventLayout?.(node.event.year || 0, e.nativeEvent.layout.y)}
                 >
                   <LifelineEventCard
@@ -330,7 +337,13 @@ export default function TimeDistanceTimeline({
                   />
                 </View>
               ) : (
-                <View onLayout={(e) => onEventLayout?.(node.event.year || 0, e.nativeEvent.layout.y)}>
+                <View 
+                  style={[
+                    highlightedYear === node.event.year && styles.highlightedCard,
+                    highlightedYear === node.event.year && { borderColor: theme.accent }
+                  ]}
+                  onLayout={(e) => onEventLayout?.(node.event.year || 0, e.nativeEvent.layout.y)}
+                >
                   <LifelineEventCard
                     event={node.event}
                     onEdit={onEditEvent}
@@ -459,5 +472,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     marginHorizontal: -4,
     paddingVertical: 2,
+  },
+  highlightedCard: {
+    borderWidth: 2,
+    borderRadius: 14,
+    padding: 2,
   },
 });

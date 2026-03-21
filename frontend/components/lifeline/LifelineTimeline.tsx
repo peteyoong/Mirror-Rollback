@@ -90,6 +90,10 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   
   // Year-based scroll positions for mini-map navigation
   const [yearPositions, setYearPositions] = useState<Record<number, number>>({});
+  const [headerHeight, setHeaderHeight] = useState(0);
+  
+  // Highlighted year for visual feedback after jump
+  const [highlightedYear, setHighlightedYear] = useState<number | null>(null);
   
   // Memory prompt state
   const [memoryPromptQueue, setMemoryPromptQueue] = useState<MemoryPrompt[]>([]);
@@ -132,39 +136,71 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   
   // Scroll to a specific year in the timeline
   const scrollToYear = useCallback((year: number) => {
-    // Find the first event in or after this year
-    const targetEvent = events.find(e => e.year && e.year >= year);
-    if (targetEvent && yearPositions[targetEvent.year || 0]) {
-      scrollViewRef.current?.scrollTo({ 
-        y: yearPositions[targetEvent.year || 0] - 100, // 100px offset for header
-        animated: true 
-      });
-    } else if (Object.keys(yearPositions).length > 0) {
-      // Find closest year with a position
+    console.log('[Lifeline] scrollToYear called:', year);
+    console.log('[Lifeline] Available years:', Object.keys(yearPositions));
+    console.log('[Lifeline] headerHeight:', headerHeight);
+    
+    // Find exact year or closest year with events
+    let targetYear = year;
+    if (!yearPositions[year]) {
       const years = Object.keys(yearPositions).map(Number).sort((a, b) => a - b);
-      const closestYear = years.reduce((prev, curr) => 
+      if (years.length === 0) {
+        console.log('[Lifeline] No year positions available yet');
+        showToast(`Looking for ${year}...`);
+        return;
+      }
+      targetYear = years.reduce((prev, curr) => 
         Math.abs(curr - year) < Math.abs(prev - year) ? curr : prev
       );
+      console.log('[Lifeline] Using closest year:', targetYear);
+    }
+    
+    const targetY = yearPositions[targetYear];
+    if (targetY !== undefined) {
+      // Calculate scroll position: event Y position + header offset - some margin from top
+      const scrollOffset = targetY + headerHeight - 150; // Leave 150px from top for context
+      console.log('[Lifeline] Scrolling to Y:', scrollOffset, '(event Y:', targetY, '+ header:', headerHeight, ')');
+      
       scrollViewRef.current?.scrollTo({ 
-        y: yearPositions[closestYear] - 100,
+        y: Math.max(0, scrollOffset),
         animated: true 
       });
+      
+      // Highlight the target year for visual feedback
+      setHighlightedYear(targetYear);
+      showToast(`Jumped to ${targetYear}`);
+      setTimeout(() => setHighlightedYear(null), 2500);
+    } else {
+      console.log('[Lifeline] No position found for year:', targetYear);
     }
-  }, [events, yearPositions]);
+  }, [yearPositions, headerHeight]);
   
   // Handle gap press from mini-map
   const handleGapPressFromMap = useCallback((gap: GapPromptData) => {
-    // Scroll to approximately where this gap would be
+    console.log('[Lifeline] Gap pressed:', gap.start_year, '-', gap.end_year);
     scrollToYear(gap.start_year);
   }, [scrollToYear]);
   
   // Track event card positions for scroll navigation
   const handleEventLayout = useCallback((year: number, y: number) => {
-    setYearPositions(prev => ({
-      ...prev,
-      [year]: y,
-    }));
+    setYearPositions(prev => {
+      // Only update if this is a new year or position changed significantly
+      if (prev[year] === undefined || Math.abs(prev[year] - y) > 20) {
+        console.log('[Lifeline] Recording position for year:', year, 'Y:', y);
+        return { ...prev, [year]: y };
+      }
+      return prev;
+    });
   }, []);
+  
+  // Track header height for accurate scroll calculation
+  const handleHeaderLayout = useCallback((e: any) => {
+    const height = e.nativeEvent.layout.height;
+    if (Math.abs(height - headerHeight) > 10) {
+      console.log('[Lifeline] Header height updated:', height);
+      setHeaderHeight(height);
+    }
+  }, [headerHeight]);
 
   // Load timeline data and patterns
   const loadTimeline = useCallback(async (refresh = false) => {
@@ -383,7 +419,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
 
   // Render header with statistics and patterns
   const renderHeader = () => (
-    <View style={styles.header}>
+    <View style={styles.header} onLayout={handleHeaderLayout}>
       {/* 1. Framing Card - Smart collapsible for all users */}
       <LifelineFramingCard 
         onAddMoment={handleAddEvent}
@@ -556,6 +592,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
           showEarlyMessages={events.length <= 3}
           resonanceMap={resonanceMap}
           onEventLayout={handleEventLayout}
+          highlightedYear={highlightedYear}
         />
         
         {/* Chart Resonance Section for Pattern Lens */}
