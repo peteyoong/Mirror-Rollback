@@ -1126,6 +1126,580 @@ def _combine_v3_narrative(
 
 
 # ============================================================================
+# V4: TWO-TIMESCALE MEMORY MODEL
+# ============================================================================
+
+# Daily angle facets that can be derived from core patterns
+DAILY_FACETS = {
+    "relational": [
+        {"tag": "trust", "label": "Trust & Safety", "desc": "What feels safe to open to"},
+        {"tag": "receiving", "label": "Receiving", "desc": "What you're allowing in"},
+        {"tag": "boundaries", "label": "Boundaries", "desc": "What needs protecting"},
+        {"tag": "reopening", "label": "Reopening", "desc": "What's thawing or reconnecting"},
+        {"tag": "vulnerability", "label": "Vulnerability", "desc": "Where you feel exposed"},
+    ],
+    "emotional": [
+        {"tag": "processing", "label": "Processing", "desc": "What emotions are moving"},
+        {"tag": "holding", "label": "Holding Space", "desc": "What needs gentle attention"},
+        {"tag": "releasing", "label": "Releasing", "desc": "What's ready to let go"},
+        {"tag": "feeling", "label": "Feeling", "desc": "What's present right now"},
+        {"tag": "sensitivity", "label": "Sensitivity", "desc": "What's heightened"},
+    ],
+    "behavioral": [
+        {"tag": "deciding", "label": "Deciding", "desc": "What's waiting for clarity"},
+        {"tag": "acting", "label": "Taking Action", "desc": "What's ready to move"},
+        {"tag": "pausing", "label": "Pausing", "desc": "What needs stillness"},
+        {"tag": "resisting", "label": "Resistance", "desc": "What you're pushing against"},
+        {"tag": "waiting", "label": "Waiting", "desc": "What's in limbo"},
+    ],
+    "identity": [
+        {"tag": "questioning", "label": "Questioning", "desc": "What identity is shifting"},
+        {"tag": "becoming", "label": "Becoming", "desc": "What's emerging"},
+        {"tag": "letting_go", "label": "Letting Go", "desc": "What role is ending"},
+        {"tag": "finding", "label": "Finding", "desc": "What's clarifying"},
+        {"tag": "integrating", "label": "Integrating", "desc": "What's coming together"},
+    ],
+    "pressure": [
+        {"tag": "managing", "label": "Managing Load", "desc": "What feels heavy"},
+        {"tag": "delegating", "label": "Delegating", "desc": "What can be shared"},
+        {"tag": "resting", "label": "Resting", "desc": "What needs recovery"},
+        {"tag": "pushing", "label": "Pushing Through", "desc": "What requires effort"},
+        {"tag": "accepting", "label": "Accepting Limits", "desc": "What can't change now"},
+    ],
+}
+
+# Timing themes mapped to facet preferences
+TIMING_TO_FACET_PREFERENCE = {
+    "renewal_cycle": ["reopening", "releasing", "becoming"],
+    "reset_cycle": ["releasing", "letting_go", "deciding"],
+    "emotional_sensitivity": ["sensitivity", "feeling", "processing"],
+    "emotional_openness": ["receiving", "trust", "vulnerability"],
+    "relational_harmony": ["reopening", "receiving", "trust"],
+    "transition_threshold": ["deciding", "questioning", "becoming"],
+    "pressure": ["managing", "pushing", "accepting"],
+    "identity_shift": ["questioning", "becoming", "finding"],
+    "expansion": ["acting", "becoming", "receiving"],
+    "contraction": ["pausing", "holding", "resting"],
+    "softening_phase": ["receiving", "trust", "reopening"],
+    "integration_phase": ["integrating", "finding", "processing"],
+}
+
+
+async def aggregate_user_signals_extended(
+    db: AsyncIOMotorDatabase,
+    user_id: str,
+    recent_days: int = 7,
+    memory_days: int = 60
+) -> Dict[str, Any]:
+    """
+    Aggregate signals with two timescales:
+    - Recent: last 7 days (for daily freshness)
+    - Memory: last 60 days (for core pattern stability)
+    
+    Memory policy:
+    - Journal: recency matters strongly (exponential decay)
+    - Chat: recency matters moderately
+    - Lifeline: persistent with lower daily weight
+    """
+    recent_cutoff = datetime.now(timezone.utc) - timedelta(days=recent_days)
+    memory_cutoff = datetime.now(timezone.utc) - timedelta(days=memory_days)
+    
+    signals = {
+        "recent": {
+            "journal_entries": [],
+            "chat_messages": [],
+            "lifeline_events": [],
+        },
+        "memory": {
+            "journal_entries": [],
+            "chat_messages": [],
+            "lifeline_events": [],
+        },
+        "signal_strength": "weak",
+        "memory_window_days": memory_days,
+    }
+    
+    # 1. Fetch journal entries with recency tracking
+    try:
+        # Fetch all recent entries, filter in Python to handle date format issues
+        journal_cursor = db.journal.find({
+            "user_id": user_id
+        }).sort("created_at", -1).limit(30)
+        
+        async for entry in journal_cursor:
+            created_at = entry.get("created_at")
+            
+            # Handle both datetime and string formats
+            if isinstance(created_at, str):
+                try:
+                    created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                except:
+                    created_at = datetime.now(timezone.utc) - timedelta(days=30)  # Default to 30 days ago
+            elif isinstance(created_at, datetime):
+                pass  # Already datetime
+            else:
+                created_at = datetime.now(timezone.utc) - timedelta(days=30)
+            
+            # Ensure timezone aware
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=timezone.utc)
+            
+            entry_data = {
+                "content": entry.get("content", ""),
+                "themes": entry.get("themes", []),
+                "created_at": created_at,
+            }
+            
+            # Add to memory if within memory window (compare both as aware)
+            memory_cutoff_aware = memory_cutoff if memory_cutoff.tzinfo else memory_cutoff.replace(tzinfo=timezone.utc)
+            recent_cutoff_aware = recent_cutoff if recent_cutoff.tzinfo else recent_cutoff.replace(tzinfo=timezone.utc)
+            
+            if created_at >= memory_cutoff_aware:
+                signals["memory"]["journal_entries"].append(entry_data)
+            
+            # Also add to recent if within recent window
+            if created_at >= recent_cutoff_aware:
+                signals["recent"]["journal_entries"].append(entry_data)
+                
+    except Exception as e:
+        logger.warning(f"[PatternMirror] Failed to fetch journal (extended): {e}")
+    
+    # 2. Fetch chat messages
+    try:
+        chat_cursor = db.mirror_chat.find({
+            "user_id": user_id,
+            "role": "user",
+            "timestamp": {"$gte": memory_cutoff}
+        }).sort("timestamp", -1).limit(30)
+        
+        async for msg in chat_cursor:
+            msg_data = {
+                "content": msg.get("content", ""),
+                "timestamp": msg.get("timestamp", datetime.now(timezone.utc)),
+            }
+            
+            signals["memory"]["chat_messages"].append(msg_data)
+            
+            if msg_data["timestamp"] >= recent_cutoff:
+                signals["recent"]["chat_messages"].append(msg_data)
+                
+    except Exception as e:
+        logger.warning(f"[PatternMirror] Failed to fetch chat (extended): {e}")
+    
+    # 3. Fetch lifeline events (all, since they're persistent)
+    try:
+        lifeline_cursor = db.lifeline_events.find({
+            "user_id": user_id,
+        }).sort("event_date", -1).limit(20)
+        
+        async for event in lifeline_cursor:
+            event_data = {
+                "title": event.get("title", ""),
+                "description": event.get("description", ""),
+                "emotional_tone": event.get("emotional_tone", "neutral"),
+                "event_date": event.get("event_date"),
+            }
+            
+            # Lifeline goes to memory (persistent)
+            signals["memory"]["lifeline_events"].append(event_data)
+            # Also add recent lifeline if relevant
+            signals["recent"]["lifeline_events"].append(event_data)
+                
+    except Exception as e:
+        logger.warning(f"[PatternMirror] Failed to fetch lifeline (extended): {e}")
+    
+    # 4. Calculate signal strength
+    recent_count = (len(signals["recent"]["journal_entries"]) + 
+                    len(signals["recent"]["chat_messages"]))
+    memory_count = (len(signals["memory"]["journal_entries"]) + 
+                    len(signals["memory"]["chat_messages"]) +
+                    len(signals["memory"]["lifeline_events"]))
+    
+    if recent_count >= 3:
+        signals["signal_strength"] = "strong"
+    elif recent_count >= 1 or memory_count >= 5:
+        signals["signal_strength"] = "moderate"
+    else:
+        signals["signal_strength"] = "weak"
+    
+    return signals
+
+
+def build_core_pattern_memory(
+    signals: Dict[str, Any],
+    cluster_data: Dict[str, Any],
+    pattern: Dict[str, Any],
+    pattern_id: str,
+    cluster_scores: Dict[str, float]
+) -> Dict[str, Any]:
+    """
+    Build CORE PATTERN MEMORY from the wider rolling window.
+    
+    This answers: "What broader personal pattern has been showing up lately?"
+    
+    This layer should be relatively stable across days.
+    """
+    memory = signals.get("memory", signals)  # Fallback to full signals if no memory key
+    
+    # Count entries in memory window
+    journal_count = len(memory.get("journal_entries", []))
+    chat_count = len(memory.get("chat_messages", []))
+    lifeline_count = len(memory.get("lifeline_events", []))
+    total_entries = journal_count + chat_count + lifeline_count
+    
+    # Determine source mix
+    source_mix = []
+    if journal_count > 0:
+        source_mix.append("journal")
+    if chat_count > 0:
+        source_mix.append("mirror_chat")
+    if lifeline_count > 0:
+        source_mix.append("lifeline")
+    
+    # Extract recurring themes from cluster data
+    theme_counts = cluster_data.get("theme_counts", {})
+    recurring_themes = [t for t, c in sorted(theme_counts.items(), key=lambda x: -x[1]) if c >= 2][:3]
+    
+    # Calculate confidence
+    evidence_count = cluster_data.get("total_evidence_count", 0)
+    diversity = cluster_data.get("source_diversity_score", 0)
+    
+    if evidence_count >= 5 and diversity >= 0.5:
+        confidence = "high"
+    elif evidence_count >= 3 or diversity >= 0.3:
+        confidence = "moderate"
+    else:
+        confidence = "low"
+    
+    return {
+        "title": pattern.get("title", ""),
+        "summary": pattern.get("what_you_may_be", ""),
+        "domain": cluster_data.get("dominant_theme", "general"),
+        "confidence": confidence,
+        "source_mix": source_mix,
+        "evidence_count": evidence_count,
+        "supporting_entries_count": total_entries,
+        "recurring_themes": recurring_themes,
+        "memory_window_days": signals.get("memory_window_days", 60),
+        "cluster_scores": cluster_scores,
+    }
+
+
+def select_daily_angle(
+    core_pattern_memory: Dict[str, Any],
+    transit_themes: Any,
+    recent_signals: Dict[str, Any],
+    archetypal_resonance: Optional[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """
+    Select the DAILY ANGLE - what facet of the core pattern is active today.
+    
+    This answers: "What facet of the broader pattern is most alive today?"
+    
+    Influenced by:
+    - Current timing themes
+    - Recent personal signals
+    - Existing lens resonance
+    """
+    core_domain = core_pattern_memory.get("domain", "general")
+    core_title = core_pattern_memory.get("title", "")
+    core_summary = core_pattern_memory.get("summary", "")
+    
+    # Get available facets for this domain
+    available_facets = DAILY_FACETS.get(core_domain, DAILY_FACETS.get("emotional", []))
+    
+    # Score facets based on timing preferences
+    active_themes = transit_themes.active_themes if transit_themes else []
+    
+    facet_scores = {}
+    for facet in available_facets:
+        score = 0.0
+        tag = facet["tag"]
+        
+        # Check timing preference
+        for theme in active_themes:
+            if theme in TIMING_TO_FACET_PREFERENCE:
+                if tag in TIMING_TO_FACET_PREFERENCE[theme]:
+                    score += 0.3
+        
+        # Check recent signals for facet keywords
+        recent_content = " ".join([
+            e.get("content", "") for e in recent_signals.get("journal_entries", [])
+        ] + [
+            m.get("content", "") for m in recent_signals.get("chat_messages", [])
+        ]).lower()
+        
+        facet_keywords = {
+            "trust": ["trust", "safe", "secure"],
+            "receiving": ["receive", "accept", "let in", "allow"],
+            "boundaries": ["boundary", "protect", "no", "limit"],
+            "reopening": ["reopen", "reconnect", "thaw", "warm"],
+            "vulnerability": ["vulnerable", "exposed", "open"],
+            "processing": ["process", "working through", "figuring"],
+            "releasing": ["release", "let go", "free"],
+            "deciding": ["decide", "choice", "unclear", "which"],
+            "waiting": ["wait", "limbo", "uncertain"],
+            "questioning": ["who am i", "purpose", "meaning"],
+        }
+        
+        if tag in facet_keywords:
+            for kw in facet_keywords[tag]:
+                if kw in recent_content:
+                    score += 0.2
+        
+        # Archetypal boost if resonance matches facet
+        if archetypal_resonance:
+            ar_label = (archetypal_resonance.get("primary_archetype_label") or "").lower()
+            if tag in ar_label or facet["label"].lower() in ar_label:
+                score += 0.15
+        
+        facet_scores[tag] = score
+    
+    # Select highest scoring facet, or default to first
+    if facet_scores:
+        selected_tag = max(facet_scores, key=facet_scores.get)
+        selected_facet = next((f for f in available_facets if f["tag"] == selected_tag), available_facets[0])
+    else:
+        selected_facet = available_facets[0] if available_facets else {"tag": "general", "label": "Today", "desc": ""}
+    
+    # Build daily angle summary
+    angle_title = f"{core_title}: {selected_facet['label']}"
+    
+    # Generate angle summary based on core + facet
+    angle_summary = _generate_angle_summary(core_summary, selected_facet, transit_themes)
+    
+    # Determine freshness reason
+    if facet_scores.get(selected_facet["tag"], 0) > 0.3:
+        freshness_reason = "timing and recent signals align on this facet"
+    elif active_themes:
+        freshness_reason = f"current timing themes ({', '.join(active_themes[:2])}) highlight this facet"
+    else:
+        freshness_reason = "this facet naturally surfaces from your recent patterns"
+    
+    return {
+        "angle_title": angle_title,
+        "angle_summary": angle_summary,
+        "facet_tag": selected_facet["tag"],
+        "facet_label": selected_facet["label"],
+        "facet_desc": selected_facet["desc"],
+        "related_core_pattern": core_title,
+        "derived_from_core_pattern": True,
+        "daily_facet_tags": [selected_facet["tag"]] + [f["tag"] for f in available_facets[:2] if f["tag"] != selected_facet["tag"]],
+        "freshness_reason": freshness_reason,
+        "facet_scores": {k: round(v, 2) for k, v in facet_scores.items()},
+    }
+
+
+def _generate_angle_summary(
+    core_summary: str,
+    facet: Dict[str, Any],
+    transit_themes: Any
+) -> str:
+    """Generate a daily angle summary that combines core pattern with today's facet."""
+    facet_tag = facet["tag"]
+    facet_label = facet["label"]
+    
+    # Template-based angle summaries
+    angle_templates = {
+        "trust": "Today the question may be about trust—what feels safe enough to open to, and what still needs more care.",
+        "receiving": "Today you may be noticing what you're willing to receive—where you're letting things in, and where you're still guarded.",
+        "boundaries": "Today the edge between self and other may be asking for attention—what needs protecting, what can soften.",
+        "reopening": "Today something that was distant may be wanting to come closer—a slow thaw, a gentle reconnection.",
+        "vulnerability": "Today what feels exposed may be more present—the tender places that want care.",
+        "processing": "Today emotions may be moving—not to be fixed, just witnessed.",
+        "holding": "Today something may need gentle attention—held without needing to change.",
+        "releasing": "Today something may be ready to let go—a weight that's been carried long enough.",
+        "deciding": "Today a decision may be quietly surfacing—not rushing, just becoming clearer.",
+        "waiting": "Today the in-between space may feel more present—uncertainty asking for patience.",
+        "questioning": "Today questions about direction or identity may feel louder—who you're becoming.",
+        "becoming": "Today something new may be emerging—slowly, in its own time.",
+    }
+    
+    if facet_tag in angle_templates:
+        return angle_templates[facet_tag]
+    
+    # Fallback: derive from core summary
+    return f"Today the {facet_label.lower()} aspect of this pattern may be more alive: {facet['desc'].lower()}."
+
+
+def build_evidence_panel_v4(
+    signals: Dict[str, Any],
+    cluster_data: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Build evidence panel showing clustered support, not just one snippet.
+    
+    V4 improvements:
+    - Shows multiple snippets per source (max 3)
+    - Includes snippet_count and evidence_weight per source
+    - Clearly indicates when only one entry exists
+    """
+    source_sections = []
+    memory = signals.get("memory", signals)
+    
+    # Single entry dominance detection
+    single_entry_dominated = False
+    why_single_dominated = None
+    
+    # Build journal section
+    journal_entries = memory.get("journal_entries", [])
+    if journal_entries:
+        # Get matched themes from cluster data
+        journal_evidence = cluster_data.get("matched_themes_by_source", {}).get("journal", [])
+        matched_themes = list(set([t for e in journal_evidence for t in e.get("themes", [])]))[:5]
+        
+        # Calculate evidence weight (higher for more entries)
+        evidence_weight = min(1.0, len(journal_entries) * 0.2)
+        
+        source_sections.append({
+            "source_name": "journal",
+            "contribution_strength": "high" if len(journal_entries) >= 2 else "moderate",
+            "matched_themes": matched_themes,
+            "snippet_count": len(journal_entries),
+            "sample_snippets": [
+                {"text": e.get("content", "")[:100], "date": str(e.get("created_at", ""))[:10]}
+                for e in journal_entries[:3]
+            ],
+            "evidence_weight": round(evidence_weight, 2),
+        })
+        
+        if len(journal_entries) == 1 and len(memory.get("chat_messages", [])) == 0:
+            single_entry_dominated = True
+            why_single_dominated = "Only one journal entry in memory window"
+    
+    # Build chat section
+    chat_messages = memory.get("chat_messages", [])
+    if chat_messages:
+        chat_evidence = cluster_data.get("matched_themes_by_source", {}).get("chat", [])
+        matched_themes = list(set([t for e in chat_evidence for t in e.get("themes", [])]))[:5]
+        
+        evidence_weight = min(0.8, len(chat_messages) * 0.15)
+        
+        source_sections.append({
+            "source_name": "mirror_chat",
+            "contribution_strength": "moderate" if len(chat_messages) >= 2 else "light",
+            "matched_themes": matched_themes,
+            "snippet_count": len(chat_messages),
+            "sample_snippets": [
+                {"text": m.get("content", "")[:80], "date": str(m.get("timestamp", ""))[:10]}
+                for m in chat_messages[:3]
+            ],
+            "evidence_weight": round(evidence_weight, 2),
+        })
+    
+    # Build lifeline section
+    lifeline_events = memory.get("lifeline_events", [])
+    if lifeline_events:
+        lifeline_evidence = cluster_data.get("matched_themes_by_source", {}).get("lifeline", [])
+        matched_themes = list(set([t for e in lifeline_evidence for t in e.get("themes", [])]))[:5]
+        
+        evidence_weight = min(0.6, len(lifeline_events) * 0.1)
+        
+        source_sections.append({
+            "source_name": "lifeline",
+            "contribution_strength": "moderate" if len(lifeline_events) >= 3 else "light",
+            "matched_themes": matched_themes,
+            "snippet_count": len(lifeline_events),
+            "sample_snippets": [
+                {"text": e.get("title", ""), "emotional_tone": e.get("emotional_tone")}
+                for e in lifeline_events[:3]
+            ],
+            "evidence_weight": round(evidence_weight, 2),
+        })
+    
+    # Build summary line
+    total_snippets = sum(s["snippet_count"] for s in source_sections)
+    sources = [s["source_name"] for s in source_sections]
+    
+    if single_entry_dominated:
+        summary_line = f"Based primarily on a recent journal entry."
+    elif total_snippets == 1:
+        summary_line = f"Based on one signal in your {sources[0] if sources else 'recent activity'}."
+    elif len(sources) == 1:
+        summary_line = f"This pattern emerged from {total_snippets} entries in your {sources[0]}."
+    elif len(sources) == 2:
+        summary_line = f"This pattern emerged from {total_snippets} signals across your {sources[0]} and {sources[1]}."
+    else:
+        summary_line = f"This pattern emerged from {total_snippets} signals across {len(sources)} sources."
+    
+    return {
+        "summary_line": summary_line,
+        "source_sections": source_sections,
+        "total_snippet_count": total_snippets,
+        "source_count": len(source_sections),
+        "single_entry_dominated": single_entry_dominated,
+        "why_single_dominated": why_single_dominated,
+        "snippet_count_by_source": {s["source_name"]: s["snippet_count"] for s in source_sections},
+    }
+
+
+def build_v4_narrative(
+    core_memory: Dict[str, Any],
+    daily_angle: Dict[str, Any],
+    timing_amplifier: Dict[str, Any],
+    archetypal_resonance: Optional[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """
+    Build V4 narrative with two-timescale model.
+    
+    Order:
+    A. Card title = DAILY ANGLE title
+    B. Main paragraph = DAILY ANGLE summary
+    C. Sub-line = "This seems connected to a broader pattern of …"
+    D. Timing note = "This may feel stronger now because …"
+    E. Archetypal note (optional)
+    """
+    # A: Title
+    title = daily_angle.get("angle_title", core_memory.get("title", ""))
+    
+    # B: Main paragraph
+    main_paragraph = daily_angle.get("angle_summary", "")
+    
+    # C: Connection to core
+    core_title = core_memory.get("title", "")
+    core_domain = core_memory.get("domain", "")
+    
+    if core_domain and core_title:
+        core_connection = f"This seems connected to a broader pattern of {core_domain} themes you've been exploring—{core_title.lower()}."
+    else:
+        core_connection = None
+    
+    # D: Timing note
+    timing_note = None
+    if timing_amplifier.get("timing_summary"):
+        timing_note = f"This may feel stronger right now because {timing_amplifier['timing_summary'].lower()}"
+        timing_note = timing_note.replace("because may be", "because").rstrip(".")
+    
+    # E: Archetypal note
+    archetypal_note = None
+    if archetypal_resonance and archetypal_resonance.get("resonance_summary"):
+        archetypal_note = archetypal_resonance["resonance_summary"]
+    
+    return {
+        "title": title,
+        "main_paragraph": main_paragraph,
+        "core_connection": core_connection,
+        "timing_note": timing_note,
+        "archetypal_note": archetypal_note,
+        "combined": _combine_v4_narrative(main_paragraph, core_connection, timing_note),
+    }
+
+
+def _combine_v4_narrative(
+    main: str,
+    core_connection: Optional[str],
+    timing: Optional[str]
+) -> str:
+    """Combine V4 narrative parts."""
+    parts = [main]
+    if core_connection:
+        parts.append(core_connection)
+    if timing:
+        parts.append(timing)
+    return "\n\n".join(parts)
+
+
+# ============================================================================
 # PATTERN MIRROR OUTPUT CONTRACT
 # ============================================================================
 
@@ -2426,14 +3000,24 @@ async def generate_pattern_mirror(
         except Exception as e:
             logger.warning(f"[PatternMirror] Cache check failed: {e}")
     
-    # STEP 2: Aggregate user signals
+    # STEP 2: Aggregate user signals (V4: extended with two timescales)
+    signals_extended = await aggregate_user_signals_extended(db, user_id, recent_days=7, memory_days=60)
+    
+    # Also get regular signals for backwards compatibility
     signals = await aggregate_user_signals(db, user_id)
     
-    # STEP 2b: Compute signal clustering (V3)
-    cluster_data = cluster_signal_themes(signals)
+    # STEP 2b: Compute signal clustering (V3/V4) using memory window
+    # Build combined signals for clustering
+    memory_signals = {
+        "journal_entries": signals_extended.get("memory", {}).get("journal_entries", []),
+        "chat_messages": signals_extended.get("memory", {}).get("chat_messages", []),
+        "lifeline_events": signals_extended.get("memory", {}).get("lifeline_events", []),
+        "signal_strength": signals_extended.get("signal_strength", "weak"),
+    }
+    cluster_data = cluster_signal_themes(memory_signals)
     
     # STEP 3: Select best pattern using SIGNALS-FIRST scoring with clustering (V3)
-    selected_pattern_id, scores, v3_data = select_best_pattern(signals, transit_themes, cluster_data)
+    selected_pattern_id, scores, v3_data = select_best_pattern(memory_signals, transit_themes, cluster_data)
     logger.info(
         f"[PatternMirror] Selected: {selected_pattern_id} "
         f"(final={scores['final']:.2f}, signal={scores['signal']:.2f}, transit={scores['transit']:.2f}, "
@@ -2538,13 +3122,36 @@ async def generate_pattern_mirror(
         pattern, signals, pattern_evidence, scores
     )
     
-    # STEP 12: Compute debug data and selection_debug (V3 enhanced)
-    signal_only_ranking = compute_signal_only_ranking(signals, transit_themes)
+    # STEP 12: Compute debug data and selection_debug (V3/V4 enhanced)
+    signal_only_ranking = compute_signal_only_ranking(memory_signals, transit_themes)
     final_ranking = scores.get("top_candidates", [])
     timing_impact = determine_timing_impact(signal_only_ranking, final_ranking, selected_pattern_id)
     
-    # Selection debug - V3 enhanced with clustering data
+    # V4: Build core pattern memory and daily angle
+    core_pattern_memory = build_core_pattern_memory(
+        signals_extended, cluster_data, pattern, selected_pattern_id, cluster_scores
+    )
+    
+    # V4: Select daily angle based on core + timing
+    recent_signals = signals_extended.get("recent", {})
+    daily_angle = select_daily_angle(
+        core_pattern_memory, transit_themes, recent_signals, archetypal_resonance
+    )
+    
+    # V4: Build evidence panel with multiple snippets
+    evidence_panel_v4 = build_evidence_panel_v4(signals_extended, cluster_data)
+    
+    # V4: Build narrative with two-timescale model
+    v4_narrative = build_v4_narrative(
+        core_pattern_memory, daily_angle, timing_amplifier, archetypal_resonance
+    )
+    
+    # Selection debug - V4 enhanced with two-timescale data
     selection_debug = {
+        "top_core_candidates_by_memory_score": signal_only_ranking[:3],
+        "selected_core_pattern": core_pattern_memory.get("title"),
+        "selected_daily_angle": daily_angle.get("angle_title"),
+        "timing_influence_on_daily_angle": daily_angle.get("facet_scores", {}),
         "top_candidates_by_personal_score": signal_only_ranking[:3],
         "top_candidates_by_final_score": final_ranking[:3],
         "source_diversity_score": cluster_data.get("source_diversity_score", 0),
@@ -2555,6 +3162,10 @@ async def generate_pattern_mirror(
         "timing_changed_rank": timing_impact.get("timing_changed_winner", False),
         "archetypal_resonance_used": archetypal_resonance is not None,
         "cluster_bonuses": scores.get("cluster_bonuses", {}),
+        "snippet_count_by_source": evidence_panel_v4.get("snippet_count_by_source", {}),
+        "did_single_entry_dominate": evidence_panel_v4.get("single_entry_dominated", False),
+        "why_single_entry_dominated": evidence_panel_v4.get("why_single_dominated"),
+        "memory_window_days": signals_extended.get("memory_window_days", 60),
     }
     
     debug_data = {
@@ -2562,7 +3173,7 @@ async def generate_pattern_mirror(
         "final_top3": final_ranking[:3],
         "timing_impact": timing_impact,
         "fallback_mode": fallback_mode,
-        "signal_strength": signals["signal_strength"],
+        "signal_strength": signals_extended.get("signal_strength", "weak"),
         "cluster_data": {
             "theme_counts": cluster_data.get("theme_counts", {}),
             "source_distribution": cluster_data.get("source_distribution", {}),
@@ -2576,13 +3187,15 @@ async def generate_pattern_mirror(
             {
                 "$set": {
                     "pattern": pattern,
-                    "signal_strength": signals["signal_strength"],
+                    "signal_strength": signals_extended.get("signal_strength", "weak"),
                     "generated_at": datetime.now(timezone.utc).isoformat(),
                     "pattern_id": selected_pattern_id,
                     "scores": scores,
                     "personal_activations": personal_activations,
                     "unified_narrative": unified_narrative,
                     "pattern_evidence": pattern_evidence,
+                    "core_pattern_memory": core_pattern_memory,
+                    "daily_angle": daily_angle,
                 }
             },
             upsert=True
@@ -2590,9 +3203,22 @@ async def generate_pattern_mirror(
     except Exception as e:
         logger.warning(f"[PatternMirror] Cache write failed: {e}")
     
-    # V3 RESPONSE: Three-layer structure with clustering and archetypal resonance
+    # V4 RESPONSE: Two-timescale structure with core memory and daily angle
     return {
-        # ===== V3 LAYERED STRUCTURE =====
+        # ===== V4 LAYERED STRUCTURE =====
+        "pattern_card_v4": {
+            "core_pattern_memory": core_pattern_memory,
+            "daily_angle": daily_angle,
+            "timing_amplifier": timing_amplifier,
+            "archetypal_resonance": archetypal_resonance,
+            "evidence_panel": evidence_panel_v4,
+            "selection_debug": selection_debug,
+        },
+        
+        # ===== V4 NARRATIVE =====
+        "narrative": v4_narrative,
+        
+        # ===== V3 COMPATIBILITY =====
         "pattern_card_v3": {
             "personal_pattern_core": personal_pattern_core,
             "timing_amplifier": timing_amplifier,
@@ -2600,9 +3226,6 @@ async def generate_pattern_mirror(
             "evidence_panel": evidence_panel,
             "selection_debug": selection_debug,
         },
-        
-        # ===== V3 NARRATIVE =====
-        "narrative": v3_narrative,
         
         # ===== V2 COMPATIBILITY =====
         "personal_pattern": personal_pattern,
@@ -2616,7 +3239,7 @@ async def generate_pattern_mirror(
         "pattern_id": selected_pattern_id,
         "cached": False,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "signal_strength": signals["signal_strength"],
+        "signal_strength": signals_extended.get("signal_strength", "weak"),
         "signals_by_source": signals_by_source,
         "timing_context": timing_context,
         "active_themes": transit_themes.active_themes[:3],
