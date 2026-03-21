@@ -8808,12 +8808,24 @@ Rising in {placements['rising_sign']}: Approach to new situations
             
             result["mirror_prompt"] = apply_astrology_guardrails(result.get("mirror_prompt", ""))
             
+            # Add core_placements for frontend consumption
+            result["core_placements"] = {
+                "sun": placements['sun_sign'],
+                "moon": placements['moon_sign'],
+                "ascendant": placements['rising_sign']
+            }
+            
             return result
             
         except json_module.JSONDecodeError as e:
             logger.error(f"Failed to parse astrology summary JSON: {e}")
             return {
                 "title": "Your Astrology Profile",
+                "core_placements": {
+                    "sun": placements['sun_sign'],
+                    "moon": placements['moon_sign'],
+                    "ascendant": placements['rising_sign']
+                },
                 "sections": [
                     {"label": "Your Orientation", "body": f"With {placements['sun_sign']} as your core orientation, there's a particular quality to how you express your sense of self."},
                     {"label": "How You Process", "body": f"Your {placements['moon_sign']} Moon suggests a specific way of moving through emotional experience."},

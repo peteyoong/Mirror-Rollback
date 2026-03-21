@@ -8,7 +8,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { useRouter } from 'expo-router';
 
@@ -742,14 +741,13 @@ const InlineReflectButton: React.FC<InlineReflectButtonProps> = ({ source, promp
 // ============================================
 
 interface AstrologyLensViewProps {
+  userId: string;
   onOpenChat: () => void;
 }
 
-export default function AstrologyLensView({ onOpenChat }: AstrologyLensViewProps) {
+export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensViewProps) {
   const { theme } = useTheme();
-  const { user } = useAuth();
   const router = useRouter();
-  const userId = user?.id;
 
   const [activeTab, setActiveTab] = useState<'at_a_glance' | 'today' | 'deep_dive'>('at_a_glance');
   const [isLoading, setIsLoading] = useState(false);
