@@ -1679,157 +1679,282 @@ RELATED_FRAMES = {
 # Replaced generic phrases with specific, signal-driven language.
 # No meta language ("this pattern", "this energy", "this theme").
 # All phrases reference lived experience.
+#
+# V10.6.2: NATURALNESS REFINEMENT
+# - 4-5 variations per signal/pattern/frame
+# - Confidence-based softening (MEDIUM adds "may", "seems")
+# - Core insight integration when appropriate
+# - Duplication avoidance between sections
 # ============================================================================
 
 # Signal-specific continuity phrases - keyed by dominant signal
+# V10.6.2: Expanded to 4-5 variations each, varied sentence starters
 SIGNAL_CONTINUITY_PHRASES = {
     "warmth": [
         "You were already starting to open…",
-        "That warmth you've been feeling may still be here.",
-        "The softening you noticed before seems to be continuing.",
+        "That warmth hasn't fully gone away.",
+        "The softening you noticed before is still here.",
+        "Something in you is still moving toward connection.",
+        "There's still warmth present from before.",
     ],
     "hesitation": [
-        "That hesitation may still be here.",
+        "That hesitation is still here.",
         "You were already pausing before stepping forward…",
         "The caution you felt before is still present.",
+        "Part of you is still holding back.",
+        "Something in you is still checking if it's safe.",
     ],
     "grief": [
         "What you've been grieving is still moving through you.",
         "That loss you've been sitting with is still here.",
-        "The weight you've been carrying hasn't fully lifted yet.",
+        "The weight hasn't fully lifted yet.",
+        "You're still carrying what you were carrying before.",
+        "Something heavy from before is still present.",
     ],
     "growth": [
         "What was starting to shift is still shifting.",
-        "The movement you felt before seems to be continuing.",
+        "The movement you felt before is continuing.",
         "You were already beginning to expand…",
+        "That growth hasn't stopped.",
+        "Something in you is still reaching.",
     ],
     "resistance": [
         "That pull to hold back is still present.",
         "You were already noticing some resistance…",
-        "The part of you that wanted to stay put is still here.",
+        "The part that wanted to stay put is still here.",
+        "Something in you is still pushing against this.",
+        "There's still some holding on.",
     ],
     "clarity": [
-        "What was starting to make sense may be becoming clearer now.",
-        "The understanding you glimpsed before is still arriving.",
+        "What was starting to make sense is becoming clearer.",
+        "The understanding you glimpsed is still arriving.",
         "You were already beginning to see this…",
+        "That clarity hasn't faded.",
+        "Something you noticed before is sharper now.",
     ],
     "pressure": [
         "That sense of being stretched is still here.",
-        "The pressure you felt before hasn't fully eased.",
+        "The pressure hasn't fully eased.",
         "You were already feeling the weight of this…",
+        "Something is still pressing.",
+        "The tightness from before remains.",
     ],
     "confusion": [
-        "That uncertainty you noticed is still present.",
-        "The fog you were in before hasn't fully cleared.",
+        "That uncertainty is still present.",
+        "The fog you were in hasn't fully cleared.",
         "You were already sitting with not-knowing…",
+        "Something is still unclear.",
+        "The confusion from before is still here.",
     ],
 }
 
 # Frame-specific continuity phrases - keyed by frame_type
+# V10.6.2: Expanded to 4-5 variations each
 FRAME_CONTINUITY_PHRASES = {
     "edge_of_action": [
         "You were already leaning toward movement…",
-        "That readiness you felt before is still here.",
+        "That readiness is still here.",
         "The pull to step forward continues.",
+        "Something in you is still poised to move.",
+        "You're still at the edge.",
     ],
     "testing_the_waters": [
         "You were already checking if this was safe…",
-        "That careful exploration seems to be continuing.",
+        "That careful exploration is continuing.",
         "You're still testing the ground.",
+        "Part of you is still gathering information.",
+        "The caution from before is still active.",
     ],
     "grief_underneath": [
         "What's underneath hasn't fully surfaced yet.",
         "The feeling you glimpsed before is still there.",
         "You were already noticing something deeper…",
+        "There's still something below the surface.",
+        "That deeper feeling is still present.",
     ],
     "holding_back": [
         "You were already holding something back…",
-        "That containment you noticed is still present.",
+        "That containment is still present.",
         "Part of you is still keeping this in.",
+        "Something is still being held.",
+        "The holding continues.",
     ],
     "something_surfacing": [
         "What was emerging before is still emerging.",
         "You were already sensing something rising…",
         "That feeling is still trying to surface.",
+        "Something is still coming up.",
+        "What you noticed is still rising.",
     ],
     "clarity_arriving": [
         "The clarity you glimpsed is still arriving.",
         "What was becoming clear continues to sharpen.",
         "You were already starting to see this…",
+        "That seeing is getting clearer.",
+        "The understanding is still coming.",
     ],
     "here_again": [
-        "This familiar place showed up before too.",
+        "This place showed up before too.",
         "You've been here recently.",
-        "This ground may feel familiar from recent days.",
+        "This ground feels familiar from recent days.",
+        "You've walked this terrain before.",
+        "This isn't the first time this week.",
     ],
     "something_different": [
         "You were already sensing a shift…",
         "What felt different before is still different.",
         "The newness you noticed is still here.",
+        "Something changed and it's still changed.",
+        "That shift from before is holding.",
     ],
 }
 
 # Pattern-specific continuity phrases - for same-pattern recurrence
+# V10.6.2: Expanded to 4-5 variations each
 PATTERN_CONTINUITY_PHRASES = {
     "relational_reopening": [
         "You were already starting to open again…",
-        "That pull toward connection you felt is still here.",
+        "That pull toward connection is still here.",
+        "The opening you began hasn't closed.",
+        "Something in you is still reaching out.",
+        "You're still moving toward someone.",
     ],
     "heart_thaw": [
         "The softening you noticed continues.",
         "You were already beginning to let something in…",
+        "That thaw hasn't refrozen.",
+        "Something is still melting.",
+        "The walls are still coming down.",
     ],
     "threshold_standing": [
         "You were already at this edge…",
         "That sense of standing between is still here.",
+        "You're still at the threshold.",
+        "The between-place hasn't changed.",
+        "You haven't stepped forward or back yet.",
     ],
     "expansion_resistance": [
         "You were already feeling the push and pull…",
-        "That tension between growth and staying small continues.",
+        "That tension between growing and staying small continues.",
+        "Part of you still wants to expand, part doesn't.",
+        "The resistance to your own growth is still here.",
+        "You're still wrestling with getting bigger.",
     ],
     "moving_through": [
         "What you were moving through is still moving.",
-        "The process you started before continues.",
+        "The process you started continues.",
+        "You're still in the middle of this.",
+        "What was passing through hasn't finished passing.",
+        "You're still letting this move.",
     ],
     "somethings_here": [
         "What you noticed before is still here.",
-        "That feeling you sensed hasn't gone away.",
+        "That feeling hasn't gone away.",
+        "Something is still present.",
+        "What you sensed is still around.",
+        "It's still here.",
     ],
     "emotional_wave_riding": [
         "The wave you were riding is still in motion.",
         "What was moving through you continues.",
+        "You're still on the wave.",
+        "The emotional movement hasn't stopped.",
+        "You're still riding this out.",
     ],
     "over_functioning_hero": [
         "You were already carrying a lot…",
         "That drive to do more is still present.",
+        "You're still holding too much.",
+        "The over-doing hasn't stopped.",
+        "Part of you is still trying to save it all.",
     ],
     "relational_weight": [
         "You were already holding relational weight…",
         "What you're carrying between you and others is still here.",
+        "The weight in your relationships is still present.",
+        "You're still holding something heavy with someone.",
+        "That relational burden hasn't lifted.",
     ],
 }
 
 # Default fallback phrases (minimal, experiential)
+# V10.6.2: Expanded variations
 DEFAULT_CONTINUITY_PHRASES = {
     "same_pattern": [
         "You've been here recently.",
         "This is familiar from the past few days.",
+        "You've been sitting with this.",
+        "This has been present.",
     ],
     "related_pattern": [
-        "This seems connected to what you were sitting with before.",
+        "This is connected to what you were sitting with before.",
         "There's a thread here from recent days.",
+        "This builds on something earlier.",
+        "Something similar was present before.",
     ],
     "same_frame": [
-        "You're still in a similar space.",
+        "You're still in a similar place.",
         "What you were feeling before is still present.",
+        "The tone hasn't changed much.",
+        "You're still in this space.",
     ],
     "related_frame": [
         "This is shifting from where you were.",
         "What you felt before is evolving.",
+        "The feeling is moving but connected.",
+        "Something is changing from before.",
     ],
     "signal_continuity": [
         "What you've been feeling is still here.",
         "This continues from before.",
+        "The feeling persists.",
+        "What was present is still present.",
+    ],
+}
+
+# V10.6.2: CONFIDENCE-BASED SOFTENERS
+# Applied to phrases when confidence is MEDIUM
+CONFIDENCE_SOFTENERS = {
+    "prefix": [
+        "It seems like ",
+        "There may be ",
+        "Part of you might notice that ",
+        "Something in you seems to sense that ",
+    ],
+    "replacement_pairs": [
+        # (direct phrase, softened phrase)
+        ("is still here", "may still be here"),
+        ("is still present", "seems still present"),
+        ("continues", "seems to continue"),
+        ("hasn't", "may not have"),
+        ("You were already", "You may have already been"),
+        ("You're still", "You might still be"),
+        ("The ", "There may be a sense that the "),
+    ],
+}
+
+# V10.6.2: CORE INSIGHT CONTINUITY TEMPLATES
+# For integrating continuity directly into core insight
+CORE_INSIGHT_CONTINUITY_TEMPLATES = {
+    "threshold_standing": [
+        "You're still at the edge of {action}…",
+        "You're still standing between {state1} and {state2}…",
+    ],
+    "heart_thaw": [
+        "The walls are still coming down…",
+        "You're still letting something in…",
+    ],
+    "relational_reopening": [
+        "You're still opening toward {target}…",
+        "The pull toward connection hasn't faded…",
+    ],
+    "moving_through": [
+        "You're still in the middle of {process}…",
+        "What was moving through you is still moving…",
+    ],
+    "expansion_resistance": [
+        "You're still caught between growing and holding back…",
+        "Part of you still wants to expand…",
     ],
 }
 
@@ -1950,26 +2075,36 @@ def detect_continuity(
 def generate_continuity_phrase(
     continuity_info: Dict[str, Any], 
     user_id: str = "",
-    confidence: str = "medium"  # V10.6.1: Only apply for medium+ confidence
-) -> str:
+    confidence: str = "medium"
+) -> Dict[str, Any]:
     """
-    V10.6.1: Generate a signal-aware, experiential continuity phrase.
+    V10.6.2: Generate a natural, varied continuity phrase with confidence-based softening.
+    
+    Returns a dict with:
+    - why_now_phrase: phrase for why_now section (may be empty)
+    - core_insight_phrase: phrase for core insight (may be empty)
+    - location: "why_now", "core_insight", or "none"
+    
+    V10.6.2 Improvements:
+    - More phrase variations (4-5 per type)
+    - Confidence-based softening for MEDIUM
+    - Occasional core insight integration
+    - Better variation via multiple selection factors
     
     Hierarchy for phrase selection:
     1. Pattern-specific (for same_pattern)
     2. Frame-specific (for same_frame)
     3. Signal-specific (uses dominant_signal)
     4. Default fallback
-    
-    Only applies when:
-    - Continuity strength >= 0.6
-    - Confidence >= medium
-    
-    Returns empty string if criteria not met.
-    Max: 1 short phrase.
     """
+    result = {
+        "why_now_phrase": "",
+        "core_insight_phrase": "",
+        "location": "none",
+    }
+    
     if not continuity_info.get("has_continuity"):
-        return ""
+        return result
     
     continuity_type = continuity_info.get("continuity_type", "")
     strength = continuity_info.get("strength", 0)
@@ -1977,13 +2112,13 @@ def generate_continuity_phrase(
     pattern_id = continuity_info.get("pattern_id", "")
     frame_type = continuity_info.get("frame_type", "")
     
-    # V10.6.1: Only apply when strength is meaningful (raised from 0.5)
+    # Only apply when strength is meaningful
     if strength < 0.6:
-        return ""
+        return result
     
-    # V10.6.1: Skip for low confidence cases
+    # Skip for low confidence cases
     if confidence == "low":
-        return ""
+        return result
     
     phrases = []
     
@@ -2004,27 +2139,118 @@ def generate_continuity_phrase(
         phrases = DEFAULT_CONTINUITY_PHRASES.get(continuity_type, [])
     
     if not phrases:
-        return ""
+        return result
     
-    # Select phrase based on user_id hash for consistency across sessions
-    idx = hash(f"{user_id}_{continuity_type}_{pattern_id}") % len(phrases)
-    return phrases[idx]
+    # V10.6.2: Use multiple factors for varied selection
+    # Combines user_id, continuity_type, pattern_id, and day-of-week for variation
+    from datetime import datetime
+    day_factor = datetime.now().weekday()
+    selection_hash = hash(f"{user_id}_{continuity_type}_{pattern_id}_{day_factor}")
+    idx = selection_hash % len(phrases)
+    selected_phrase = phrases[idx]
+    
+    # V10.6.2: Apply confidence-based softening for MEDIUM confidence
+    if confidence == "medium":
+        selected_phrase = _soften_phrase(selected_phrase)
+    
+    # V10.6.2: Decide location - occasionally use core insight for same_pattern with HIGH confidence
+    use_core_insight = False
+    if (continuity_type == "same_pattern" and 
+        confidence == "high" and 
+        strength >= 0.85 and
+        pattern_id in CORE_INSIGHT_CONTINUITY_TEMPLATES):
+        # 30% chance to use core insight integration (based on hash)
+        use_core_insight = (selection_hash % 10) < 3
+    
+    if use_core_insight:
+        # Select a core insight template
+        templates = CORE_INSIGHT_CONTINUITY_TEMPLATES[pattern_id]
+        template_idx = (selection_hash // 10) % len(templates)
+        result["core_insight_phrase"] = templates[template_idx]
+        result["location"] = "core_insight"
+    else:
+        result["why_now_phrase"] = selected_phrase
+        result["location"] = "why_now"
+    
+    return result
+
+
+def _soften_phrase(phrase: str) -> str:
+    """
+    V10.6.2: Apply confidence-based softening to a phrase.
+    Makes language more tentative for MEDIUM confidence.
+    """
+    # Apply replacement pairs first
+    softened = phrase
+    for direct, soft in CONFIDENCE_SOFTENERS["replacement_pairs"]:
+        if direct in softened:
+            softened = softened.replace(direct, soft)
+            return softened  # Only apply one softening
+    
+    # If no replacement applied, consider adding a prefix (20% of the time)
+    # But only for phrases that don't already start with softening
+    soft_starters = ["may", "might", "seems", "something", "part of"]
+    if not any(softened.lower().startswith(s) for s in soft_starters):
+        # Don't add prefix if phrase ends with "…" (already trailing off)
+        if not softened.endswith("…"):
+            from datetime import datetime
+            if datetime.now().second % 5 == 0:  # 20% chance
+                prefix_idx = hash(softened) % len(CONFIDENCE_SOFTENERS["prefix"])
+                return CONFIDENCE_SOFTENERS["prefix"][prefix_idx] + softened.lower()
+    
+    return softened
 
 
 def apply_continuity_to_why_now(why_now_text: str, continuity_phrase: str) -> str:
     """
     Apply continuity phrase to the why_now section.
-    Keeps it subtle - prepends as a short intro clause.
+    V10.6.2: Improved duplication detection.
     """
     if not continuity_phrase:
         return why_now_text
     
     # Don't duplicate if phrase is already similar
-    if any(word in why_now_text.lower() for word in ["continuing", "recent", "before", "earlier", "still"]):
+    continuity_words = ["continuing", "recent", "before", "earlier", "still", "already", "hasn't"]
+    if any(word in why_now_text.lower() for word in continuity_words):
+        return why_now_text
+    
+    # Don't duplicate if the why_now already starts similarly
+    if why_now_text.lower().startswith(continuity_phrase[:20].lower()):
         return why_now_text
     
     # Prepend continuity phrase
     return f"{continuity_phrase} {why_now_text}"
+
+
+def apply_continuity_to_core_insight(core_insight_text: str, continuity_template: str, pattern_id: str) -> str:
+    """
+    V10.6.2: Integrate continuity into core insight when appropriate.
+    
+    Returns modified core insight or original if integration not suitable.
+    """
+    if not continuity_template:
+        return core_insight_text
+    
+    # Check if core insight already has continuity language
+    continuity_words = ["still", "continuing", "hasn't", "already"]
+    if any(word in core_insight_text.lower() for word in continuity_words):
+        return core_insight_text
+    
+    # For templates with placeholders, try to extract relevant content from core insight
+    if "{" in continuity_template:
+        # Simple extraction - just use the template directly for now
+        # In future, could parse core_insight to fill placeholders
+        clean_template = continuity_template.split("{")[0].rstrip()
+        if clean_template:
+            return clean_template
+        return core_insight_text
+    
+    # If it's a complete phrase, check if it can replace or prepend
+    # Prefer prepending for now to avoid losing nuance
+    if len(continuity_template) < len(core_insight_text):
+        return f"{continuity_template} {core_insight_text}"
+    
+    return core_insight_text
 
 
 async def fetch_recent_pattern_history(db, user_id: str, days: int = 3) -> Dict[str, Any]:
@@ -5378,15 +5604,14 @@ def build_two_layer_mirror_output(
     if user_profile:
         user_id = str(user_profile.get("_id", ""))
     
-    # ===== V10.6.1: DETECT CONTINUITY WITH CONFIDENCE GATING =====
+    # ===== V10.6.2: DETECT CONTINUITY WITH CONFIDENCE GATING =====
     continuity_info = {"has_continuity": False}
-    continuity_phrase = ""
+    continuity_result = {"why_now_phrase": "", "core_insight_phrase": "", "location": "none"}
     
     # Extract current tones and frame for continuity detection
     current_tones = extract_signal_tones(signals_extended) if signals_extended else {}
     
     # Get frame_type from core insight generation (V10.3+)
-    # We need to extract this before continuity to use in phrase generation
     detected_frame_type = frame_type
     confidence = "medium"  # Default
     
@@ -5399,7 +5624,6 @@ def build_two_layer_mirror_output(
         )
         
         if continuity_info.get("has_continuity"):
-            # V10.6.1: Pass confidence to phrase generator (only applies for medium+)
             # Estimate confidence from signal strength
             signal_strength = signals_extended.get("signal_strength", "weak")
             if signal_strength == "strong":
@@ -5409,14 +5633,15 @@ def build_two_layer_mirror_output(
             else:
                 confidence = "low"
             
-            continuity_phrase = generate_continuity_phrase(
+            # V10.6.2: Get continuity result (may include core insight integration)
+            continuity_result = generate_continuity_phrase(
                 continuity_info, 
                 user_id,
                 confidence=confidence
             )
             
-            if continuity_phrase:
-                logger.info(f"[V10.6.1] Continuity: {continuity_info.get('continuity_type')} | Signal: {continuity_info.get('dominant_signal')} | Phrase: '{continuity_phrase}'")
+            if continuity_result.get("location") != "none":
+                logger.info(f"[V10.6.2] Continuity: {continuity_info.get('continuity_type')} | Signal: {continuity_info.get('dominant_signal')} | Location: {continuity_result['location']}")
     
     # ===== LAYER A: CORE PATTERN (one sharp sentence) =====
     # Extract the core insight from daily angle or pattern summary
@@ -5425,6 +5650,14 @@ def build_two_layer_mirror_output(
     
     # Simplify to one sharp sentence if needed
     core_insight = _extract_sharp_insight(core_summary, pattern)
+    
+    # V10.6.2: Apply continuity to core insight if appropriate
+    if continuity_result.get("location") == "core_insight":
+        core_insight = apply_continuity_to_core_insight(
+            core_insight, 
+            continuity_result.get("core_insight_phrase", ""),
+            pattern_id
+        )
     
     # ===== LAYER B: WHY THIS MAY BE SHOWING UP =====
     # V10: Context-aware explanation using signal tones
@@ -5439,9 +5672,12 @@ def build_two_layer_mirror_output(
         user_id
     )
     
-    # V10.6: Apply continuity phrase to why_showing_up
-    if continuity_phrase:
-        why_showing_up = apply_continuity_to_why_now(why_showing_up, continuity_phrase)
+    # V10.6.2: Apply continuity phrase to why_showing_up (if not in core insight)
+    if continuity_result.get("location") == "why_now":
+        why_showing_up = apply_continuity_to_why_now(
+            why_showing_up, 
+            continuity_result.get("why_now_phrase", "")
+        )
     
     # ===== LAYER C: HOW THIS WAS DERIVED (cross-lens proof) =====
     # Build structured derivation from each contributing lens
@@ -5470,8 +5706,9 @@ def build_two_layer_mirror_output(
         "why_showing_up": {
             "text": why_showing_up,
             "is_timing_driven": timing_amplifier.get("timing_role") == "fallback",
-            "has_continuity": continuity_info.get("has_continuity", False),  # V10.6
-            "continuity_type": continuity_info.get("continuity_type", None),  # V10.6
+            "has_continuity": continuity_info.get("has_continuity", False),
+            "continuity_type": continuity_info.get("continuity_type", None),
+            "continuity_location": continuity_result.get("location", "none"),  # V10.6.2
         },
         "cross_lens_derivation": cross_lens_derivation,
         # V6 NEW: Usefulness layers
