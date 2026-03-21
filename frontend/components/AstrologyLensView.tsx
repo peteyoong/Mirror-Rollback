@@ -547,6 +547,82 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       gift: getMarsGift(mars || sun),
       reflection: `What makes you want to fight for something? How do you handle frustration?`
     },
+    // === NEW: Jupiter ===
+    {
+      id: 'jupiter',
+      title: 'Jupiter — Growth & Faith',
+      subtitle: `${placements.jupiter || 'Unknown'}${placements.jupiter_house ? ` in the ${getHouseOrdinal(placements.jupiter_house)} house` : ''}`,
+      preview: `In your chart, growth and opportunity flow through ${getHouseTheme(placements.jupiter_house || 1)}.`,
+      whatThisIs: `In your chart, Jupiter in ${placements.jupiter || 'Unknown'}${placements.jupiter_house ? ` placed in House ${placements.jupiter_house}` : ''} reveals where you naturally expand, what you believe in, and where opportunity tends to find you. This is the part of your chart that says "yes" to life and reaches for more.`,
+      whatYouMightNotice: [
+        `Natural optimism and expansion around ${getHouseTheme(placements.jupiter_house || 1)} themes`,
+        `A tendency to over-promise or over-extend in this area`,
+        `Where you go when seeking meaning and adventure`,
+        `Generosity that flows most easily here`
+      ],
+      tensionLabel: 'Where excess happens',
+      tension: `Jupiter can over-expand. In House ${placements.jupiter_house || '?'}, you may promise too much, believe too readily, or assume growth is always possible. Sometimes the gift becomes the problem.`,
+      giftLabel: 'Source of faith',
+      gift: `This is where belief comes naturally. Even when life contracts elsewhere, this part of your chart remembers that expansion is possible.`,
+      reflection: `Where do you most naturally say yes? Where might you need more discernment?`
+    },
+    // === NEW: Saturn ===
+    {
+      id: 'saturn',
+      title: 'Saturn — Pressure & Maturation',
+      subtitle: `${placements.saturn || 'Unknown'}${placements.saturn_house ? ` in the ${getHouseOrdinal(placements.saturn_house)} house` : ''}`,
+      preview: `In your chart, pressure and mastery concentrate in ${getHouseTheme(placements.saturn_house || 1)}.`,
+      whatThisIs: `In your chart, Saturn in ${placements.saturn || 'Unknown'}${placements.saturn_house ? ` placed in House ${placements.saturn_house}` : ''} reveals where you face the most pressure, where you are asked to grow up, and where eventual mastery becomes possible. This is your assignment—what life keeps returning you to until you get serious about it.`,
+      whatYouMightNotice: [
+        `Recurring challenges around ${getHouseTheme(placements.saturn_house || 1)} themes`,
+        `A sense that this area requires more effort than it should`,
+        `Delayed rewards that eventually become the most solid`,
+        `Where your inner critic tends to focus`
+      ],
+      tensionLabel: 'Where fear lives',
+      tension: `Saturn points to where you feel inadequate or behind. In House ${placements.saturn_house || '?'}, you may avoid, over-control, or feel chronically not-good-enough. The pressure is real—and so is the growth potential.`,
+      giftLabel: 'Where mastery builds',
+      gift: `What Saturn touches, you eventually master through persistence. This isn't easy success—it's earned authority. Over time, you become the person others trust in this domain.`,
+      reflection: `What do you take most seriously? Where do you feel you're still catching up?`
+    },
+    // === NEW: Nodes ===
+    {
+      id: 'nodes',
+      title: 'Nodes — Direction & Pattern',
+      subtitle: `☊ ${placements.north_node || 'Unknown'} · ☋ ${placements.south_node || 'Unknown'}`,
+      preview: `North Node in ${placements.north_node || 'Unknown'} calls you forward; South Node in ${placements.south_node || 'Unknown'} holds the familiar.`,
+      whatThisIs: `Your North Node in ${placements.north_node || 'Unknown'}${placements.north_node_house ? ` (House ${placements.north_node_house})` : ''} points toward growth territory—what you're here to develop. Your South Node in ${placements.south_node || 'Unknown'}${placements.south_node_house ? ` (House ${placements.south_node_house})` : ''} represents ingrained patterns—comfortable but limiting when overused.`,
+      whatYouMightNotice: [
+        `Natural talent and comfort around South Node themes—but diminishing returns`,
+        `Resistance or unfamiliarity toward North Node territory`,
+        `Life events that push you toward the North Node direction`,
+        `The South Node as a fallback when stressed`
+      ],
+      tensionLabel: 'The pull backward',
+      tension: `The South Node is seductive because it's easy. In ${placements.south_node || 'Unknown'}, you already know how to operate. But staying there keeps you from the growth the North Node offers.`,
+      giftLabel: 'The direction forward',
+      gift: `The North Node in ${placements.north_node || 'Unknown'} isn't about abandoning the South—it's about using those gifts to grow into something new. The nodes are an axis, not a rejection.`,
+      reflection: `What familiar pattern do you keep returning to? What unfamiliar direction keeps calling?`
+    },
+    // === NEW: Chiron ===
+    {
+      id: 'chiron',
+      title: 'Chiron — Wound & Medicine',
+      subtitle: `${placements.chiron || 'Unknown'}${placements.chiron_house ? ` in the ${getHouseOrdinal(placements.chiron_house)} house` : ''}`,
+      preview: `In your chart, a wound around ${getHouseTheme(placements.chiron_house || 1)} that becomes medicine.`,
+      whatThisIs: `In your chart, Chiron in ${placements.chiron || 'Unknown'}${placements.chiron_house ? ` placed in House ${placements.chiron_house}` : ''} marks a place of deep sensitivity—a wound that doesn't fully heal but becomes a source of wisdom and ability to help others. This is where you've been hurt, and where you develop healing capacity.`,
+      whatYouMightNotice: [
+        `Recurring sensitivity or pain around ${getHouseTheme(placements.chiron_house || 1)} themes`,
+        `An ability to understand others' struggles in this area`,
+        `A sense of being "different" or not quite fitting here`,
+        `Deeper wisdom that comes from having lived through difficulty`
+      ],
+      tensionLabel: 'The wound that stays open',
+      tension: `Chiron wounds don't close completely. In House ${placements.chiron_house || '?'}, there's a tenderness that remains—a place where you can be triggered or feel inadequate. Accepting this is part of the medicine.`,
+      giftLabel: 'The medicine you carry',
+      gift: `What wounded you also taught you. Because you've struggled with ${getHouseTheme(placements.chiron_house || 1)} themes, you understand them from the inside. This is where you can guide others.`,
+      reflection: `What wound are you still trying to fix instead of accept? Where does your pain become useful to others?`
+    },
     {
       id: 'houses',
       title: 'House Emphasis',
@@ -1309,6 +1385,37 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           ))}
         </View>
 
+        {/* Key Planets: Jupiter, Saturn, Nodes, Chiron */}
+        <View style={[styles.keyPlanetsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.keyPlanetsTitle, { color: theme.textTertiary }]}>KEY DEVELOPMENTAL POINTS</Text>
+          <View style={styles.keyPlanetsGrid}>
+            <View style={styles.keyPlanetItem}>
+              <Text style={[styles.keyPlanetSymbol, { color: '#4CAF50' }]}>♃</Text>
+              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Jupiter</Text>
+              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.jupiter || '—'}</Text>
+              {placements.jupiter_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.jupiter_house}</Text>}
+            </View>
+            <View style={styles.keyPlanetItem}>
+              <Text style={[styles.keyPlanetSymbol, { color: '#FFA726' }]}>♄</Text>
+              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Saturn</Text>
+              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.saturn || '—'}</Text>
+              {placements.saturn_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.saturn_house}</Text>}
+            </View>
+            <View style={styles.keyPlanetItem}>
+              <Text style={[styles.keyPlanetSymbol, { color: '#81D4FA' }]}>☊</Text>
+              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>North Node</Text>
+              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.north_node || '—'}</Text>
+              {placements.north_node_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.north_node_house}</Text>}
+            </View>
+            <View style={styles.keyPlanetItem}>
+              <Text style={[styles.keyPlanetSymbol, { color: '#CE93D8' }]}>⚷</Text>
+              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Chiron</Text>
+              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.chiron || '—'}</Text>
+              {placements.chiron_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.chiron_house}</Text>}
+            </View>
+          </View>
+        </View>
+
         {/* Structure Section */}
         <View style={[styles.structureCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.structureTitle, { color: theme.textTertiary }]}>CHART STRUCTURE</Text>
@@ -1380,74 +1487,154 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   };
 
   // ============================================
-  // RENDER: TODAY SNAPSHOT
+  // RENDER: TODAY SNAPSHOT (Transit-Based)
   // ============================================
   const renderTodaySnapshot = () => {
-    if (snapshotData) {
-      const currentAltitude = snapshotData[activeAltitude];
-      if (!currentAltitude) {
-        return (
-          <View style={styles.emptyState}>
-            <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}>
-              Today's snapshot is still forming...
-            </Text>
-          </View>
-        );
-      }
-
-      return (
-        <View style={styles.todayContainer}>
-          {/* Altitude Selector */}
-          <View style={[styles.altitudeSelector, { backgroundColor: theme.surfaceLight }]}>
-            {['today', 'week', 'month'].map((alt) => (
-              <TouchableOpacity
-                key={alt}
-                style={[
-                  styles.altitudeTab,
-                  activeAltitude === alt && [styles.altitudeTabActive, { backgroundColor: theme.surface }]
-                ]}
-                onPress={() => setActiveAltitude(alt as 'today' | 'week' | 'month')}
-              >
-                <Text style={[
-                  styles.altitudeTabText,
-                  { color: activeAltitude === alt ? theme.text : theme.textTertiary }
-                ]}>
-                  {alt === 'today' ? 'Today' : alt === 'week' ? 'This Week' : 'This Month'}
+    // Use deterministic transit data from full chart
+    const transits = fullChartData?.transits;
+    
+    if (!transits || transits.error) {
+      // Fallback to old snapshot if transits not available
+      if (snapshotData) {
+        const currentAltitude = snapshotData[activeAltitude];
+        if (currentAltitude) {
+          return (
+            <View style={styles.todayContainer}>
+              <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <Text style={[styles.narrativeText, { color: theme.text }]}>
+                  {currentAltitude.body}
                 </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Narrative */}
-          <View style={[styles.narrativeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.narrativeText, { color: theme.text }]}>
-              {currentAltitude.body}
-            </Text>
-            {currentAltitude.cause && activeAltitude === 'today' && (
-              <Text style={[styles.causeText, { color: theme.textSecondary }]}>
-                {currentAltitude.cause}
-              </Text>
-            )}
-          </View>
-
-          <InlineReflectButton
-            source={{
-              lens: 'astrology',
-              type: `snapshot_${activeAltitude}`,
-              name: currentAltitude.title || 'Today',
-              id: `astrology_snapshot_${activeAltitude}`,
-            }}
-            prompt={`Reflect on today: ${currentAltitude.body?.slice(0, 150) || ''}...`}
-          />
+              </View>
+            </View>
+          );
+        }
+      }
+      return (
+        <View style={styles.emptyState}>
+          <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}>
+            Transit data is loading...
+          </Text>
         </View>
       );
     }
 
-    // Fallback
+    const windows = transits.windows;
+    const currentWindow = activeAltitude === 'today' ? windows.today :
+                          activeAltitude === 'week' ? windows.this_week :
+                          windows.this_month;
+
+    // Get symbol for aspect type
+    const getAspectSymbol = (type: string) => {
+      const symbols: { [key: string]: string } = {
+        'conjunction': '☌',
+        'opposition': '☍',
+        'square': '□',
+        'trine': '△',
+        'sextile': '⚹',
+        'quincunx': '⚻'
+      };
+      return symbols[type] || '•';
+    };
+
     return (
-      <View style={styles.emptyState}>
-        <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}>
-          Today's timing lens is still forming...
+      <View style={styles.todayContainer}>
+        {/* Altitude Selector */}
+        <View style={[styles.altitudeSelector, { backgroundColor: theme.surfaceLight }]}>
+          {['today', 'week', 'month'].map((alt) => (
+            <TouchableOpacity
+              key={alt}
+              style={[
+                styles.altitudeTab,
+                activeAltitude === alt && [styles.altitudeTabActive, { backgroundColor: theme.surface }]
+              ]}
+              onPress={() => setActiveAltitude(alt as 'today' | 'week' | 'month')}
+            >
+              <Text style={[
+                styles.altitudeTabText,
+                { color: activeAltitude === alt ? theme.text : theme.textTertiary }
+              ]}>
+                {alt === 'today' ? 'Today' : alt === 'week' ? 'This Week' : 'This Month'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Strongest Transit Hits */}
+        <View style={[styles.transitHitsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.transitHitsTitle, { color: theme.textTertiary }]}>ACTIVE TRANSITS</Text>
+          
+          {currentWindow?.strongest_hits?.slice(0, 4).map((hit: TransitHit, index: number) => (
+            <View key={index} style={styles.transitHitRow}>
+              <Text style={[styles.transitHitSymbol, { color: theme.accent }]}>
+                {getAspectSymbol(hit.aspect_type)}
+              </Text>
+              <Text style={[styles.transitHitText, { color: theme.text }]}>
+                {hit.transit_point} {hit.aspect_type} {hit.natal_point}
+              </Text>
+              <Text style={[styles.transitHitOrb, { color: theme.textTertiary }]}>
+                {hit.orb.toFixed(1)}°
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Activated Natal Points */}
+        <View style={[styles.activatedPointsCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+          <Text style={[styles.activatedTitle, { color: theme.accent }]}>NATAL POINTS ACTIVATED</Text>
+          <View style={styles.activatedChips}>
+            {currentWindow?.activated_natal_points?.slice(0, 5).map((point: string, i: number) => (
+              <View key={i} style={[styles.activatedChip, { backgroundColor: theme.accent + '15' }]}>
+                <Text style={[styles.activatedChipText, { color: theme.accent }]}>{point}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Emphasis Tags */}
+        <View style={[styles.emphasisCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.emphasisTitle, { color: theme.textTertiary }]}>THEMES</Text>
+          <View style={styles.emphasisChips}>
+            {currentWindow?.emphasis_tags?.slice(0, 4).map((tag: string, i: number) => (
+              <View key={i} style={[styles.emphasisChip, { borderColor: theme.border }]}>
+                <Text style={[styles.emphasisChipText, { color: theme.textSecondary }]}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Deterministic Summary */}
+        <View style={[styles.transitSummaryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.transitSummaryText, { color: theme.text }]}>
+            {currentWindow?.deterministic_summary || 'Transit patterns loading...'}
+          </Text>
+        </View>
+
+        {/* Transit Reflection Question */}
+        <View style={[styles.reflectionCard, { backgroundColor: theme.accent + '06', borderColor: theme.accent + '15' }]}>
+          <Text style={[styles.reflectionLabel, { color: theme.accent }]}>A QUESTION</Text>
+          <Text style={[styles.reflectionText, { color: theme.text }]}>
+            {currentWindow?.strongest_hits?.[0]?.transit_point === 'Saturn' 
+              ? 'Where is growth asking for maturity rather than speed?'
+              : currentWindow?.strongest_hits?.[0]?.transit_point === 'Jupiter'
+              ? 'Where might expansion meet resistance today?'
+              : currentWindow?.strongest_hits?.[0]?.transit_point === 'Pluto'
+              ? 'What is being transformed that you cannot control?'
+              : 'How are these transits showing up in your day?'}
+          </Text>
+        </View>
+
+        <InlineReflectButton
+          source={{
+            lens: 'astrology',
+            type: `transit_${activeAltitude}`,
+            name: `${activeAltitude} Transits`,
+            id: `astrology_transit_${activeAltitude}`,
+          }}
+          prompt={`Reflect on transits: ${currentWindow?.deterministic_summary || ''}`}
+        />
+      </View>
+    );
+  };
         </Text>
       </View>
     );
@@ -2157,5 +2344,129 @@ const styles = StyleSheet.create({
   debugText: {
     fontSize: 10,
     lineHeight: 14,
+  },
+  // Transit/Today Tab Styles
+  transitHitsCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+  },
+  transitHitsTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  transitHitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  transitHitSymbol: {
+    fontSize: 14,
+    width: 24,
+    textAlign: 'center',
+  },
+  transitHitText: {
+    flex: 1,
+    fontSize: 14,
+  },
+  transitHitOrb: {
+    fontSize: 11,
+  },
+  activatedPointsCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  activatedTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  activatedChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  activatedChip: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  activatedChipText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  emphasisCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  emphasisTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  emphasisChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  emphasisChip: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  emphasisChipText: {
+    fontSize: 12,
+  },
+  transitSummaryCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+  },
+  transitSummaryText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  // Key Planets Grid
+  keyPlanetsCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  keyPlanetsTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  keyPlanetsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  keyPlanetItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  keyPlanetSymbol: {
+    fontSize: 18,
+    marginBottom: 4,
+  },
+  keyPlanetLabel: {
+    fontSize: 9,
+    marginBottom: 2,
+  },
+  keyPlanetValue: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  keyPlanetHouse: {
+    fontSize: 10,
+    marginTop: 2,
   },
 });

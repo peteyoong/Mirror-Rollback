@@ -9911,6 +9911,9 @@ def _build_transit_summary(strongest_hits: list, window: str) -> str:
         base += f". Secondary: {second['transit_point']} {second['aspect_type']} {second['natal_point']}"
     
     return base
+
+
+@api_router.get("/astrology/deep-dive/{user_id}")
 async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
     """
     Generate Deep Dive - Sun, Moon, Ascendant only.
