@@ -1525,6 +1525,11 @@ def _build_natural_title(core_title: str, facet: Dict[str, Any]) -> str:
             "boundaries": "Finding Safe Ground",
             "_default": "Closeness Becoming Safer",
         },
+        "Relational Weight": {
+            "processing": "Carrying Relational Weight",
+            "boundaries": "Something Unspoken",
+            "_default": "Something Needs Attention",
+        },
         # Emotional patterns
         "Something's Here": {
             "emerging": "Something Is Stirring",
@@ -1538,6 +1543,12 @@ def _build_natural_title(core_title: str, facet: Dict[str, Any]) -> str:
             "releasing": "Letting It Move",
             "_default": "Moving Through Waves",
         },
+        "Moving Through": {
+            "processing": "Moving Through Loss",
+            "releasing": "Letting Go",
+            "grief": "Honoring What Was",
+            "_default": "Moving Through",
+        },
         # Threshold/decision patterns
         "Standing at Threshold": {
             "deciding": "Standing at a Choice",
@@ -1545,7 +1556,22 @@ def _build_natural_title(core_title: str, facet: Dict[str, Any]) -> str:
             "releasing": "Releasing the Old",
             "_default": "At a Threshold",
         },
+        "Expansion Resistance": {
+            "fear": "Noticing the Pull Back",
+            "growth": "Something Bigger Calling",
+            "_default": "At the Edge of More",
+        },
+        "Anticipating Impact": {
+            "anxiety": "Bracing for What's Next",
+            "processing": "Preparing for Impact",
+            "_default": "Getting Ahead of Yourself",
+        },
         # Behavioral patterns
+        "Duty Over Self": {
+            "boundaries": "Carrying Too Much",
+            "processing": "Noticing the Weight",
+            "_default": "Putting Others First",
+        },
         "Over-Functioning Hero": {
             "boundaries": "Carrying Too Much",
             "releasing": "Learning to Put It Down",
@@ -1561,6 +1587,11 @@ def _build_natural_title(core_title: str, facet: Dict[str, Any]) -> str:
             "deciding": "Ready Without Permission",
             "trust": "Learning to Trust Yourself",
             "_default": "Not Needing Permission",
+        },
+        "Holding the Line": {
+            "boundaries": "Holding Your Ground",
+            "processing": "Staying Firm",
+            "_default": "Holding Something Important",
         },
     }
     
@@ -1965,23 +1996,42 @@ def _build_friction_layer(pattern: Dict[str, Any], pattern_id: str) -> str:
     Describes the likely tension, hesitation, or blind spot.
     Tighter and more emotionally true.
     """
-    # V9: Polished, tighter friction statements
+    # V9: Polished, tighter friction statements - EXPANDED COVERAGE
     friction_map = {
+        # === Relational patterns ===
         "relational_reopening": "Part of you may still want proof that openness is safe.",
         "heart_thaw": "Part of you may still be testing whether softening is worth the risk.",
         "safe_intimacy_returning": "You might hesitate to fully arrive, in case the safety shifts.",
+        "relational_weight": "Part of you may be carrying more of this than you need to.",
+        "reconnection_window": "You might be overthinking the right way to reach out.",
+        
+        # === Emotional patterns ===
         "somethings_here": "You might be resisting naming it too soon.",
+        "emotional_wave_riding": "You might want to fast-forward through the feeling instead of riding it.",
+        "moving_through": "Part of you may be minimizing what you're actually grieving.",
+        "emotional_integration": "You might be rushing to make sense of it before it's ready.",
+        
+        # === Threshold/identity patterns ===
         "threshold_standing": "You may still be waiting for certainty before stepping forward.",
-        "closed_door_syndrome": "Part of you may still be scanning for reasons to step back.",
+        "expansion_resistance": "Part of you may be finding reasons why now isn't the right time.",
+        "anticipating_impact": "You might be bracing for something that hasn't happened yet.",
+        
+        # === Behavioral patterns ===
+        "duty_over_self": "You might be putting your own needs at the end of the list again.",
         "over_functioning_hero": "You might find it hard to rest when there's still something you could do.",
         "inner_critic_override": "You may be dismissing your own knowing before it has room to land.",
         "waiting_for_permission": "You might be looking outside for permission you already have.",
         "perfectionist_paralysis": "You may be telling yourself it's not ready when it might be.",
-        "emotional_flooding": "You might want to push through the feeling rather than let it move.",
         "avoidant_autopilot": "Part of you may be subtly steering away from what feels too close.",
         "control_grip": "You may be tightening your hold on things that need room to breathe.",
         "boundary_blur": "You might feel pulled between your needs and what others expect.",
         "people_pleasing_loop": "You may be adjusting to fit others before checking what you want.",
+        "holding_the_line": "You might be repeating yourself in ways that aren't landing.",
+        "closed_door_syndrome": "Part of you may be scanning for reasons to step back.",
+        
+        # === Opening/positive patterns ===
+        "grounded_presence": "You might be distrusting the calm, waiting for something to go wrong.",
+        "renewal_after_distance": "You might bring old expectations into what wants to be new.",
     }
     
     if pattern_id in friction_map:
@@ -1991,7 +2041,7 @@ def _build_friction_layer(pattern: Dict[str, Any], pattern_id: str) -> str:
     challenge = pattern.get("challenge", [])
     if challenge and len(challenge) > 0:
         first_challenge = challenge[0].lower()
-        return f"You may notice a tendency toward {first_challenge}."
+        return f"You may notice a pull toward {first_challenge}."
     
     return "You may be waiting for the right moment instead of trusting this one."
 
