@@ -4,6 +4,11 @@
  * Leader/framing card for the Mirror tab within Reflect.
  * Explains what Mirror does in a human, emotionally resonant tone.
  * 
+ * COLLAPSIBLE BEHAVIOR:
+ * - Expanded: Full intro shown when chat is empty (onboarding state)
+ * - Collapsed: Compact header when chat has messages (conversation focus)
+ * - User can manually expand/collapse with a tap
+ * 
  * Design language matches LifelineFramingCard - subtle, premium, not loud.
  */
 
@@ -12,13 +17,52 @@ import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function MirrorLeaderCard() {
+interface MirrorLeaderCardProps {
+  isExpanded: boolean;
+  onToggle: () => void;
+}
+
+export default function MirrorLeaderCard({ isExpanded, onToggle }: MirrorLeaderCardProps) {
   const { theme, isDark } = useTheme();
   
+  // Collapsed state - compact header
+  if (!isExpanded) {
+    return (
+      <TouchableOpacity 
+        activeOpacity={0.7}
+        onPress={onToggle}
+        style={[
+          styles.collapsedContainer,
+          { 
+            backgroundColor: theme.surface,
+            borderColor: theme.border,
+          }
+        ]}
+      >
+        <View style={styles.collapsedContent}>
+          <View style={styles.collapsedTextContainer}>
+            <Text style={[styles.collapsedTitle, { color: theme.text }]}>
+              Make sense of what you're going through
+            </Text>
+            <Text style={[styles.collapsedSubtext, { color: theme.textTertiary }]}>
+              Space to think clearly
+            </Text>
+          </View>
+          <Text style={[styles.chevron, { color: theme.textTertiary }]}>
+            ▼
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+  
+  // Expanded state - full intro
   return (
     <View style={[
       styles.container,
@@ -38,11 +82,20 @@ export default function MirrorLeaderCard() {
         style={styles.gradientOverlay}
       />
       
-      <View style={styles.content}>
-        {/* Title */}
-        <Text style={[styles.title, { color: theme.text }]}>
-          Make sense of what you're going through
-        </Text>
+      <TouchableOpacity 
+        activeOpacity={0.9}
+        onPress={onToggle}
+        style={styles.content}
+      >
+        {/* Header row with collapse hint */}
+        <View style={styles.headerRow}>
+          <Text style={[styles.title, { color: theme.text }]}>
+            Make sense of what you're going through
+          </Text>
+          <Text style={[styles.chevronExpanded, { color: theme.textTertiary }]}>
+            ▲
+          </Text>
+        </View>
         
         {/* Body */}
         <View style={styles.bodyContainer}>
@@ -66,12 +119,45 @@ export default function MirrorLeaderCard() {
         <Text style={[styles.subtlePrompt, { color: theme.textTertiary }]}>
           Start with something that's been on your mind.
         </Text>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // ===== COLLAPSED STATE =====
+  collapsedContainer: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  collapsedContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  collapsedTextContainer: {
+    flex: 1,
+  },
+  collapsedTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  collapsedSubtext: {
+    fontSize: 12,
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
+  chevron: {
+    fontSize: 10,
+    marginLeft: 12,
+  },
+  
+  // ===== EXPANDED STATE =====
   container: {
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
@@ -89,11 +175,22 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
   title: {
+    flex: 1,
     fontSize: 18,
     fontWeight: '600',
     lineHeight: 24,
-    marginBottom: 16,
+  },
+  chevronExpanded: {
+    fontSize: 10,
+    marginLeft: 12,
+    marginTop: 6,
   },
   bodyContainer: {
     gap: 12,

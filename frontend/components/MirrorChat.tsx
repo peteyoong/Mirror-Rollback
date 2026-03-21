@@ -20,6 +20,7 @@ import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import api, { createMirrorInsight } from '../services/api';
 import { storage, CHAT_SESSION_KEYS } from '../store';
+import MirrorLeaderCard from './journal/MirrorLeaderCard';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -262,6 +263,13 @@ export default function MirrorChat({
   const [isMemoryExpanded, setIsMemoryExpanded] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
   const [hasTriggeredKeystone, setHasTriggeredKeystone] = useState(false);
+  
+  // Leader card expansion state
+  // - Default expanded when chat is empty (onboarding state)
+  // - Auto-collapse when user sends first message
+  // - User can manually toggle
+  const [isLeaderExpanded, setIsLeaderExpanded] = useState(true);
+  const [userManuallyToggledLeader, setUserManuallyToggledLeader] = useState(false);
   
   // Thread state for "Today's thread" pill
   const [threadState, setThreadState] = useState<ThreadState | null>(null);
@@ -955,6 +963,32 @@ export default function MirrorChat({
     }, 100);
   }, []);
 
+  // ===== LEADER CARD AUTO-COLLAPSE LOGIC =====
+  // Auto-collapse when user sends first message (messages > greeting)
+  // If user manually toggled, respect their choice for this session
+  useEffect(() => {
+    const hasUserMessages = messages.some(m => m.role === 'user');
+    
+    // Only auto-collapse if:
+    // 1. There are user messages (conversation has started)
+    // 2. User hasn't manually toggled the leader card
+    if (hasUserMessages && !userManuallyToggledLeader) {
+      if (isLeaderExpanded) {
+        console.log('[MIRROR_LEADER] Auto-collapsing - user sent first message');
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setIsLeaderExpanded(false);
+      }
+    }
+  }, [messages, userManuallyToggledLeader, isLeaderExpanded]);
+
+  // Handler for manual leader card toggle
+  const handleLeaderToggle = useCallback(() => {
+    console.log('[MIRROR_LEADER] Manual toggle:', isLeaderExpanded ? 'collapsing' : 'expanding');
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsLeaderExpanded(prev => !prev);
+    setUserManuallyToggledLeader(true);
+  }, [isLeaderExpanded]);
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -989,6 +1023,17 @@ export default function MirrorChat({
 
       {/* Thread Modal */}
       {renderThreadModal()}
+
+      {/* Leader Card - Collapsible intro/framing */}
+      {/* Only show for generalist chat (no lens) */}
+      {!lens && (
+        <View style={styles.leaderCardWrapper}>
+          <MirrorLeaderCard
+            isExpanded={isLeaderExpanded}
+            onToggle={handleLeaderToggle}
+          />
+        </View>
+      )}
 
       {/* Messages */}
       <FlatList
@@ -1073,6 +1118,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  
+  // Leader Card (collapsible intro)
+  leaderCardWrapper: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
   },
   
   // Header

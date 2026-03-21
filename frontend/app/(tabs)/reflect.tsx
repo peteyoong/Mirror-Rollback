@@ -39,7 +39,7 @@ import LunarDecisionWheel from '../../components/journal/LunarDecisionWheel';
 import LunarCycleSynthesisCard from '../../components/journal/LunarCycleSynthesisCard';
 // Leader cards for Reflect tab
 import JournalLeaderCard from '../../components/journal/JournalLeaderCard';
-import MirrorLeaderCard from '../../components/journal/MirrorLeaderCard';
+// MirrorLeaderCard now integrated directly into MirrorChat with collapse behavior
 // Removed Ionicons - using text-based alternatives for web compatibility
 
 // Enable LayoutAnimation on Android
@@ -1245,11 +1245,7 @@ export default function JournalScreen() {
         <StatusBar style={isDark ? 'light' : 'dark'} />
         {renderModeToggle()}
         
-        {/* Mirror Leader Card - Emotional framing */}
-        <View style={styles.mirrorLeaderCardWrapper}>
-          <MirrorLeaderCard />
-        </View>
-        
+        {/* Mirror Leader Card now integrated inside MirrorChat with collapse behavior */}
         <MirrorChat
           userId={user.id}
           lens={null}
