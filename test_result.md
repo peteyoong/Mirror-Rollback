@@ -736,6 +736,61 @@ backend:
           📊 TEST RESULTS: 5/5 TESTS PASSED (100% SUCCESS RATE)
           
           🎉 **CONCLUSION**: Mirror Chat API successfully integrates astrology/transit context when user asks about "the stars". The API properly includes user's chart data (Pisces Sun/Aries Moon) in responses, maintains Mirror philosophy (reflective lens, not prediction), and provides meaningful astrological context for relationship questions. Both generalist mode and explicit astrology lens mode working correctly with proper context inclusion.
+      - working: true
+        agent: "testing"
+        comment: |
+          MIRROR CHAT API TRANSIT/TIMING QUESTION "ANSWER-FIRST" BEHAVIOR TESTING COMPLETE ✅
+          
+          🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+          
+          **Test Endpoint:** POST /api/mirror/chat
+          **Test User:** 697f0c6abf35c0528ff06954 (user with chart data - Pisces Sun, Aries Moon)
+          **Test Message:** "Are there any planetary alignments that are specifically coming up for me this month?"
+          
+          **1. ✅ BACKEND LOGS SHOW REQUIRED PATTERNS:**
+          - ✅ "[MIRROR_CHAT] Detected transit/timing question for user 697f0c6abf35c0528ff06954"
+          - ✅ "[MIRROR_CHAT] Added transit context: timezone=+07:00, date=2026-03-21"
+          - ✅ "mode=timeline" (confirmed in logs: "Starting LLM call: mode=timeline")
+          - ✅ NOT "mode=reflection_chat" (correctly switched to timeline mode)
+          
+          **2. ✅ RESPONSE ANSWERS FIRST (NO IMMEDIATE CLARIFYING QUESTIONS):**
+          - Response starts with: "Reading this for **March 2026** (Petaling Jaya, +07)..."
+          - Does NOT immediately ask "what month?" or "what timezone?"
+          - Provides 1-3 themes/signals upfront before any questions
+          - Response length: 1568 characters, 246 words
+          
+          **3. ✅ RESPONSE MENTIONS SPECIFIC TRANSIT THEMES RELEVANT TO USER'S CHART:**
+          - References user's chart: "sidereal Sun in Pisces, Moon in Aries, and Sagittarius rising"
+          - Specific themes mentioned:
+            * "Pisces season emphasis: sensitivity + reorientation"
+            * "Aries edge: quick ignition, quicker feedback" 
+            * "Sagittarius Rising gets activated by horizon energy"
+          - Astrological keywords found: ['pisces', 'aries', 'sun', 'moon', 'alignment']
+          
+          **4. ✅ RESPONSE TONE FEELS LIKE MIRROR (REFLECTIVE, GROUNDED):**
+          - No generic assistant language detected
+          - Uses Mirror-style language: "In lived experience, this can feel like..."
+          - Grounded, concrete descriptions: "less appetite for noise, more appetite for clarity-by-feeling"
+          - Maintains reflective, non-prescriptive approach
+          
+          **5. ✅ RESPONSE STRUCTURE PROVIDES THEMES/SIGNALS:**
+          - Theme 1: Pisces season emphasis (sensitivity + reorientation)
+          - Theme 2: Aries edge (quick ignition, quicker feedback)  
+          - Theme 3: Sagittarius Rising activation (horizon energy)
+          - Each theme includes practical, lived-experience descriptions
+          
+          **6. ✅ BACKEND INTEGRATION VERIFIED:**
+          - Status: 200 OK, Response time: 13.94 seconds
+          - Backend logs confirm successful processing with timeline mode
+          - User chart data properly accessed and integrated
+          - Transit context correctly added with timezone and date
+          
+          **Sample Response Excerpt:**
+          "Reading this for **March 2026** (Petaling Jaya, +07). In a transit/timing sense, the alignments that tend to feel the most 'personal' are the ones that **touch your natal Sun/Moon/Rising**—so I'm looking at your **sidereal Sun in Pisces, Moon in Aries, and Sagittarius rising** as the main receivers."
+          
+          📊 TEST RESULTS: 6/6 REQUIREMENTS PASSED (100% SUCCESS RATE)
+          
+          🎉 **CONCLUSION**: Mirror Chat API's new "answer-first" behavior for transit/timing questions is working perfectly. The system correctly detects transit/timing questions, switches to timeline mode, provides immediate answers with 1-3 relevant themes before asking any clarifying questions, and maintains the proper Mirror tone throughout. All backend logging patterns are present and the response quality meets all specified requirements.
 
   - task: "Astrology Auto-Migration (BUG #1 Fix)"
     implemented: true
@@ -4117,6 +4172,61 @@ agent_communication:
       - ✅ No errors in response
       
       🎯 CONCLUSION: Lifeline Ingestion Architecture is fully functional. The new 3-layer architecture successfully resolved the duplicate event issue. User 697f0c6abf35c0528ff06954 now has clean data with 10 canonical events and 0 duplicate groups after migration.
+
+  - agent: "testing"
+    message: |
+      MIRROR CHAT API TRANSIT/TIMING QUESTION "ANSWER-FIRST" BEHAVIOR TESTING COMPLETE ✅
+      
+      🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+      
+      Successfully tested the Mirror Chat API with the specific transit/timing question as requested:
+      
+      **Test Details:**
+      - Endpoint: POST /api/mirror/chat
+      - User ID: 697f0c6abf35c0528ff06954 (user with chart data)
+      - Message: "Are there any planetary alignments that are specifically coming up for me this month?"
+      - Payload: {"user_id": "697f0c6abf35c0528ff06954", "message": "Are there any planetary alignments that are specifically coming up for me this month?", "lens": null, "include_journal": false, "include_history": false}
+      
+      **✅ ALL VERIFICATION CRITERIA MET:**
+      
+      1. **Backend logs show required patterns:**
+         - ✅ "[MIRROR_CHAT] Detected transit/timing question for user 697f0c6abf35c0528ff06954"
+         - ✅ "[MIRROR_CHAT] Added transit context: timezone=+07:00, date=2026-03-21"
+         - ✅ "mode=timeline" (confirmed: "Starting LLM call: mode=timeline")
+         - ✅ NOT "mode=reflection_chat" (correctly switched modes)
+      
+      2. **Response ANSWERS FIRST with 1-3 themes/signals:**
+         - ✅ Starts with: "Reading this for **March 2026** (Petaling Jaya, +07)..."
+         - ✅ Provides 3 specific themes before any questions:
+           * Theme 1: "Pisces season emphasis: sensitivity + reorientation"
+           * Theme 2: "Aries edge: quick ignition, quicker feedback"
+           * Theme 3: "Sagittarius Rising gets activated by horizon energy"
+      
+      3. **Response does NOT immediately ask clarifying questions:**
+         - ✅ No "what month?" or "what timezone?" in response
+         - ✅ Provides immediate context and answers upfront
+      
+      4. **Response mentions specific transit themes relevant to user's chart:**
+         - ✅ References "sidereal Sun in Pisces, Moon in Aries, and Sagittarius rising"
+         - ✅ Chart-specific content for Pisces Sun/Aries Moon user
+         - ✅ Astrological keywords found: ['pisces', 'aries', 'sun', 'moon', 'alignment']
+      
+      5. **Response tone feels like Mirror (reflective, grounded):**
+         - ✅ No generic assistant language detected
+         - ✅ Uses Mirror-style phrasing: "In lived experience, this can feel like..."
+         - ✅ Grounded, concrete descriptions throughout
+      
+      6. **Technical verification:**
+         - ✅ Status: 200 OK, Response time: 13.94 seconds
+         - ✅ Response length: 1568 characters, 246 words
+         - ✅ Backend integration working correctly
+      
+      **Sample Response Quality:**
+      "Reading this for **March 2026** (Petaling Jaya, +07). In a transit/timing sense, the alignments that tend to feel the most 'personal' are the ones that **touch your natal Sun/Moon/Rising**—so I'm looking at your **sidereal Sun in Pisces, Moon in Aries, and Sagittarius rising** as the main receivers."
+      
+      📊 TEST RESULTS: 6/6 REQUIREMENTS PASSED (100% SUCCESS RATE)
+      
+      🎉 **CONCLUSION**: The new "answer-first" behavior for transit/timing questions is working perfectly. The Mirror Chat API correctly detects transit/timing questions, switches to timeline mode, provides immediate answers with relevant themes, and maintains proper Mirror tone throughout. All backend logging patterns are present and response quality exceeds expectations.
 
   - task: "Lifeline Delete and Resonance APIs (Task 67)"
     implemented: true

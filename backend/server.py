@@ -5034,11 +5034,27 @@ async def mirror_chat(request: MirrorChatRequest):
         # ===== LLM CALL VIA EMERGENT CONTRACT =====
         from emergent_contract import emergent_generate, validate_emergent_output, log_contract_event
         import asyncio
+        import re
         
         response_text = None
         llm_start = time.time()
         try:
-            # Determine mode based on lens
+            # ===== TRANSIT/TIMING QUESTION DETECTION =====
+            # Detect if user is asking about timing, transits, or "what the stars say"
+            transit_keywords = [
+                r'\bstars?\b', r'\bastrology\b', r'\btransit[s]?\b', r'\bplanetary\b',
+                r'\balignment[s]?\b', r'\bthis week\b', r'\bthis month\b', r'\bnext week\b',
+                r'\bnext month\b', r'\bcoming up\b', r'\bright now\b', r'\bcurrently\b',
+                r'\bwhat.*lenses? say\b', r'\bwhat do.*stars\b', r'\bcelestial\b',
+                r'\bretrograde\b', r'\beclipse\b', r'\bnew moon\b', r'\bfull moon\b'
+            ]
+            message_lower = request.message.lower()
+            is_transit_question = any(re.search(kw, message_lower) for kw in transit_keywords)
+            
+            if is_transit_question:
+                logger.info(f"[MIRROR_CHAT] Detected transit/timing question for user {request.user_id}")
+            
+            # Determine mode based on lens and question type
             if request.lens == "astrology":
                 mode = "deep_dive"  # Will add astrology-specific context
             elif request.lens == "human_design":
@@ -5047,10 +5063,51 @@ async def mirror_chat(request: MirrorChatRequest):
                 mode = "deep_dive"
             elif is_keystone_followup:
                 mode = "daily_insight"
+            elif is_transit_question:
+                mode = "timeline"  # Use timeline mode for transit questions
             else:
                 mode = "reflection_chat"
             
-            logger.info(f"[MIRROR_CHAT] Starting LLM call: mode={mode}, user={request.user_id}")
+            # ===== ADD CURRENT TRANSIT CONTEXT FOR TIMING QUESTIONS =====
+            if is_transit_question or request.lens == "astrology":
+                # Add user's timezone and current timing context
+                user_timezone = user.get('timezone', 'UTC')
+                tz_minutes = user.get('timezone_minutes', 0)
+                current_date = datetime.now().strftime("%Y-%m-%d")
+                current_month = datetime.now().strftime("%B %Y")
+                
+                transit_context = f"""
+--- CURRENT TIMING CONTEXT ---
+Current Date: {current_date}
+Current Month: {current_month}
+User's Timezone: {user_timezone} (offset: {tz_minutes} minutes)
+User's Location: {user.get('birth_location', {}).get('city', 'Not specified')}
+
+IMPORTANT INSTRUCTION FOR TRANSIT/TIMING QUESTIONS:
+When the user asks about "what the stars say", "this month", "this week", "planetary alignments", 
+or any timing-related question:
+
+1. ANSWER FIRST with the available context - do NOT immediately ask clarifying questions
+2. Use the current date/month provided above as the default timeframe
+3. Use the user's stored timezone as the default location context
+4. Structure your response as:
+   - FIRST: Share 1-3 strongest themes/signals relevant to the timeframe
+   - THEN: Explain what this might feel like in lived experience
+   - OPTIONAL: End with ONE reflective question (not a clarifying question)
+5. Only ask for clarification if you truly cannot proceed (e.g., if birth data is completely missing)
+6. DO NOT ask "what city are you in" or "which month do you mean" - use app context
+7. If you need to make an assumption, state it lightly: "Reading this for {current_month}..."
+
+RESPONSE TONE:
+- Reflective and grounded, not generic assistant-like
+- Specific without being absolute
+- NO "I need one detail to do it cleanly" helper language
+- Mirror holds space for exploration, not administrative questions
+"""
+                system_prompt += transit_context
+                logger.info(f"[MIRROR_CHAT] Added transit context: timezone={user_timezone}, date={current_date}")
+            
+            logger.info(f"[MIRROR_CHAT] Starting LLM call: mode={mode}, user={request.user_id}, is_transit_question={is_transit_question}")
             
             # Build context for emergent_generate
             emit_context = {
