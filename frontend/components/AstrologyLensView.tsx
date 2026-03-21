@@ -349,7 +349,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       ],
       tensionLabel: 'The shadow side',
       tension: getSunTension(sun),
-      giftLabel: 'What you're here to express',
+      giftLabel: 'What you are here to express',
       gift: getSunGift(sun),
       reflection: `When do you feel most like yourself? What conditions allow this ${sunQualities[0]} nature to come through naturally?`
     },
