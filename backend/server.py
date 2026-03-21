@@ -9623,6 +9623,7 @@ async def get_astrology_full_chart(user_id: str, force_recompute: bool = False):
                 }
             },
             "sect": astro.get('sect'),
+            "transits": await _calculate_transit_intelligence(astro, user_id),
             "debug": {
                 "source": "recomputed" if needs_recompute else "cached",
                 "chiron_present": 'Chiron' in planets,
@@ -9640,7 +9641,276 @@ async def get_astrology_full_chart(user_id: str, force_recompute: bool = False):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@api_router.get("/astrology/deep-dive/{user_id}")
+async def _calculate_transit_intelligence(natal_chart: dict, user_id: str) -> dict:
+    """
+    Calculate comprehensive transit intelligence for the astrology lens.
+    
+    Returns deterministic transit data including:
+    - Current transit positions
+    - Transit-to-natal aspects
+    - Strongest hits ranked by score
+    - Today/week/month windows with activation data
+    """
+    try:
+        from datetime import datetime, timezone, timedelta
+        from services.pattern_graph import (
+            calculate_current_planetary_positions,
+            calculate_transit_aspects_to_natal
+        )
+        
+        now = datetime.now(timezone.utc)
+        
+        # Get current transit positions
+        transit_positions = calculate_current_planetary_positions()
+        
+        if not transit_positions:
+            return {
+                "error": "TRANSIT_CALCULATION_FAILED",
+                "message": "Could not calculate current planetary positions"
+            }
+        
+        # Format transit positions for response
+        formatted_transits = {}
+        for planet, pos in transit_positions.items():
+            formatted_transits[planet.lower().replace(' ', '_')] = {
+                "sign": pos.get('sign'),
+                "degree": round(pos.get('degree', 0), 2),
+                "longitude": round(pos.get('longitude', 0), 2),
+                "retrograde": pos.get('retrograde', False)
+            }
+        
+        # Calculate transit-to-natal aspects
+        natal_planets = natal_chart.get('planets', {})
+        transit_to_natal = []
+        
+        # Aspect definitions with orbs
+        ASPECTS = {
+            'conjunction': {'angle': 0, 'orb': 8},
+            'opposition': {'angle': 180, 'orb': 8},
+            'square': {'angle': 90, 'orb': 7},
+            'trine': {'angle': 120, 'orb': 7},
+            'sextile': {'angle': 60, 'orb': 5},
+            'quincunx': {'angle': 150, 'orb': 3}
+        }
+        
+        # Planet weights for scoring
+        TRANSIT_WEIGHTS = {
+            'Saturn': 1.0,    # Highest - pressure/structure
+            'Pluto': 0.95,    # Transformation
+            'Uranus': 0.9,    # Disruption
+            'Neptune': 0.85,  # Dissolution
+            'Jupiter': 0.8,   # Expansion
+            'Mars': 0.7,      # Action/conflict
+            'Chiron': 0.65,   # Wound activation
+            'North Node': 0.6, # Direction
+            'Venus': 0.5,     # Relating
+            'Mercury': 0.4,   # Mind
+            'Sun': 0.35,      # Identity (fast)
+            'Moon': 0.25      # Emotional (very fast)
+        }
+        
+        NATAL_WEIGHTS = {
+            'Sun': 1.0,
+            'Moon': 0.95,
+            'Mercury': 0.7,
+            'Venus': 0.7,
+            'Mars': 0.7,
+            'Jupiter': 0.65,
+            'Saturn': 0.8,
+            'Uranus': 0.5,
+            'Neptune': 0.5,
+            'Pluto': 0.5,
+            'Chiron': 0.6,
+            'North Node': 0.7
+        }
+        
+        # Theme tags for transit combinations
+        TRANSIT_THEMES = {
+            'Saturn': ['pressure', 'discipline', 'restriction', 'maturation', 'responsibility'],
+            'Jupiter': ['expansion', 'opportunity', 'faith', 'growth', 'abundance'],
+            'Mars': ['action', 'drive', 'conflict', 'assertion', 'energy'],
+            'Venus': ['relating', 'values', 'pleasure', 'harmony', 'attraction'],
+            'Mercury': ['communication', 'thinking', 'learning', 'movement'],
+            'Uranus': ['disruption', 'awakening', 'liberation', 'surprise', 'breakthrough'],
+            'Neptune': ['dissolution', 'imagination', 'confusion', 'spirituality', 'idealism'],
+            'Pluto': ['transformation', 'power', 'death-rebirth', 'intensity', 'purging'],
+            'Chiron': ['wound activation', 'healing', 'sensitivity', 'teaching'],
+            'North Node': ['direction', 'destiny', 'growth edge', 'unfamiliar territory']
+        }
+        
+        NATAL_THEMES = {
+            'Sun': 'identity',
+            'Moon': 'emotions',
+            'Mercury': 'mind',
+            'Venus': 'relating',
+            'Mars': 'drive',
+            'Jupiter': 'meaning',
+            'Saturn': 'structure',
+            'Chiron': 'wound',
+            'North Node': 'direction'
+        }
+        
+        # Calculate all transit-to-natal aspects
+        for transit_name, transit_pos in transit_positions.items():
+            if transit_name == 'South Node':
+                continue
+                
+            transit_lon = transit_pos.get('longitude', 0)
+            transit_weight = TRANSIT_WEIGHTS.get(transit_name, 0.5)
+            
+            for natal_name, natal_data in natal_planets.items():
+                if natal_name in ['Earth', 'South Node']:
+                    continue
+                    
+                natal_lon = natal_data.get('longitude', 0)
+                if natal_lon is None:
+                    continue
+                
+                natal_weight = NATAL_WEIGHTS.get(natal_name, 0.5)
+                
+                # Calculate angular difference
+                diff = abs(transit_lon - natal_lon)
+                if diff > 180:
+                    diff = 360 - diff
+                
+                # Check each aspect type
+                for aspect_name, aspect_def in ASPECTS.items():
+                    orb = abs(diff - aspect_def['angle'])
+                    max_orb = aspect_def['orb']
+                    
+                    if orb <= max_orb:
+                        # Calculate exactness (1.0 = exact, 0.0 = at edge of orb)
+                        exactness = 1.0 - (orb / max_orb)
+                        
+                        # Calculate strength score
+                        base_score = transit_weight * natal_weight * exactness
+                        
+                        # Boost for hard aspects
+                        if aspect_name in ['conjunction', 'opposition', 'square']:
+                            base_score *= 1.2
+                        
+                        # Determine applying vs separating (simplified)
+                        transit_speed = transit_pos.get('speed', 1)
+                        applying = transit_speed > 0 and transit_lon < natal_lon
+                        
+                        # Get theme tags
+                        themes = TRANSIT_THEMES.get(transit_name, [transit_name.lower()])[:2]
+                        natal_area = NATAL_THEMES.get(natal_name, natal_name.lower())
+                        
+                        transit_to_natal.append({
+                            "transit_point": transit_name,
+                            "transit_sign": transit_pos.get('sign'),
+                            "natal_point": natal_name,
+                            "natal_sign": natal_data.get('sign'),
+                            "natal_house": natal_data.get('house'),
+                            "aspect_type": aspect_name,
+                            "orb": round(orb, 2),
+                            "exactness": round(exactness, 3),
+                            "applying": applying,
+                            "strength_score": round(base_score, 3),
+                            "theme_tags": themes + [natal_area],
+                            "transit_retrograde": transit_pos.get('retrograde', False)
+                        })
+        
+        # Sort by strength score
+        transit_to_natal.sort(key=lambda x: x['strength_score'], reverse=True)
+        
+        # Get strongest hits (top 10)
+        strongest_hits = transit_to_natal[:10]
+        
+        # Calculate emphasis tags from top hits
+        all_themes = []
+        for hit in strongest_hits[:5]:
+            all_themes.extend(hit.get('theme_tags', []))
+        
+        # Count theme frequency
+        theme_counts = {}
+        for theme in all_themes:
+            theme_counts[theme] = theme_counts.get(theme, 0) + 1
+        
+        emphasis_tags = sorted(theme_counts.keys(), key=lambda x: theme_counts[x], reverse=True)[:6]
+        
+        # Determine dominant transit energy
+        dominant_transit = strongest_hits[0]['transit_point'] if strongest_hits else None
+        dominant_natal = strongest_hits[0]['natal_point'] if strongest_hits else None
+        
+        # Build windows (today, this_week, this_month use same data with different framing)
+        windows = {
+            "today": {
+                "date": now.strftime("%Y-%m-%d"),
+                "strongest_hits": strongest_hits[:5],
+                "emphasis_tags": emphasis_tags[:4],
+                "activated_natal_points": list(set([h['natal_point'] for h in strongest_hits[:5]])),
+                "dominant_energy": {
+                    "transit": dominant_transit,
+                    "natal": dominant_natal,
+                    "aspect": strongest_hits[0]['aspect_type'] if strongest_hits else None
+                },
+                "deterministic_summary": _build_transit_summary(strongest_hits[:3], "today")
+            },
+            "this_week": {
+                "period": f"{now.strftime('%Y-%m-%d')} to {(now + timedelta(days=7)).strftime('%Y-%m-%d')}",
+                "strongest_hits": strongest_hits[:7],
+                "emphasis_tags": emphasis_tags,
+                "activated_natal_points": list(set([h['natal_point'] for h in strongest_hits[:7]])),
+                "deterministic_summary": _build_transit_summary(strongest_hits[:5], "this_week")
+            },
+            "this_month": {
+                "period": f"{now.strftime('%Y-%m')}",
+                "strongest_hits": strongest_hits[:10],
+                "emphasis_tags": emphasis_tags,
+                "outer_planet_transits": [h for h in strongest_hits if h['transit_point'] in ['Saturn', 'Jupiter', 'Uranus', 'Neptune', 'Pluto']],
+                "deterministic_summary": _build_transit_summary(strongest_hits[:7], "this_month")
+            }
+        }
+        
+        return {
+            "computed_at": now.isoformat(),
+            "current_transit_positions": formatted_transits,
+            "transit_to_natal_aspects": transit_to_natal,
+            "strongest_hits": strongest_hits,
+            "total_active_aspects": len(transit_to_natal),
+            "emphasis_tags": emphasis_tags,
+            "windows": windows
+        }
+        
+    except Exception as e:
+        logger.error(f"[TRANSIT_INTELLIGENCE] Error for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "error": "TRANSIT_CALCULATION_ERROR",
+            "message": str(e)
+        }
+
+
+def _build_transit_summary(strongest_hits: list, window: str) -> str:
+    """Build a deterministic summary of transit activations."""
+    if not strongest_hits:
+        return "No significant transits active."
+    
+    top_hit = strongest_hits[0]
+    transit = top_hit['transit_point']
+    natal = top_hit['natal_point']
+    aspect = top_hit['aspect_type']
+    
+    # Build deterministic description
+    summaries = {
+        'conjunction': f"{transit} on your natal {natal}",
+        'opposition': f"{transit} opposing your natal {natal}",
+        'square': f"{transit} squaring your natal {natal}",
+        'trine': f"{transit} trining your natal {natal}",
+        'sextile': f"{transit} sextiling your natal {natal}",
+        'quincunx': f"{transit} in quincunx to your natal {natal}"
+    }
+    
+    base = summaries.get(aspect, f"{transit} aspecting your natal {natal}")
+    
+    if len(strongest_hits) > 1:
+        second = strongest_hits[1]
+        base += f". Secondary: {second['transit_point']} {second['aspect_type']} {second['natal_point']}"
+    
+    return base
 async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
     """
     Generate Deep Dive - Sun, Moon, Ascendant only.

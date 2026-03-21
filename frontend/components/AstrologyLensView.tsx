@@ -28,6 +28,106 @@ interface ChartStructure {
   chart_shape?: string;
 }
 
+interface PlanetData {
+  sign: string;
+  degree: number;
+  longitude: number;
+  house: number;
+  retrograde: boolean;
+  formatted?: string;
+}
+
+interface TransitHit {
+  transit_point: string;
+  transit_sign: string;
+  natal_point: string;
+  natal_sign: string;
+  natal_house: number;
+  aspect_type: string;
+  orb: number;
+  exactness: number;
+  applying: boolean;
+  strength_score: number;
+  theme_tags: string[];
+  transit_retrograde: boolean;
+}
+
+interface TransitWindow {
+  date?: string;
+  period?: string;
+  strongest_hits: TransitHit[];
+  emphasis_tags: string[];
+  activated_natal_points: string[];
+  dominant_energy?: {
+    transit: string;
+    natal: string;
+    aspect: string;
+  };
+  deterministic_summary: string;
+}
+
+interface TransitData {
+  computed_at: string;
+  current_transit_positions: { [key: string]: PlanetData };
+  transit_to_natal_aspects: TransitHit[];
+  strongest_hits: TransitHit[];
+  total_active_aspects: number;
+  emphasis_tags: string[];
+  windows: {
+    today: TransitWindow;
+    this_week: TransitWindow;
+    this_month: TransitWindow;
+  };
+}
+
+interface FullChartData {
+  success: boolean;
+  metadata: {
+    node_mode: string;
+    house_system: string;
+    sidereal_mode: string;
+    svp_degrees: number;
+    computation_version: string;
+  };
+  natal: {
+    planets: { [key: string]: PlanetData };
+    nodes: {
+      north: PlanetData;
+      south: PlanetData;
+    };
+    angles: {
+      asc: PlanetData;
+      dc: PlanetData;
+      mc: PlanetData;
+      ic: PlanetData;
+    };
+    houses: {
+      system: string;
+      cusps: Array<{ house: number; sign: string; degree: number }>;
+    };
+    aspects: Array<{
+      point_a: string;
+      point_b: string;
+      aspect_type: string;
+      orb: number;
+      applying: boolean;
+    }>;
+    balances: {
+      elements: { [key: string]: number };
+      modalities: { [key: string]: number };
+      polarities: { [key: string]: number };
+    };
+    concentrations: {
+      dominant_elements: Array<[string, number]>;
+      dominant_modalities: Array<[string, number]>;
+      dominant_houses: Array<{ house: number; planets: string[] }>;
+      angular_planets: Array<{ planet: string; house: number }>;
+    };
+  };
+  transits: TransitData;
+  sect: string;
+}
+
 interface CorePlacements {
   sun: string;
   sun_house?: number;
@@ -44,8 +144,12 @@ interface CorePlacements {
   jupiter_house?: number;
   saturn?: string;
   saturn_house?: number;
+  chiron?: string;
+  chiron_house?: number;
   north_node?: string;
   north_node_house?: number;
+  south_node?: string;
+  south_node_house?: number;
 }
 
 interface AstrologyDeepDiveCard {
@@ -886,14 +990,38 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   const [summaryData, setSummaryData] = useState<AstrologySummaryData | null>(null);
   const [deepDiveData, setDeepDiveData] = useState<any>(null);
   const [snapshotData, setSnapshotData] = useState<any>(null);
+  const [fullChartData, setFullChartData] = useState<FullChartData | null>(null);
   const [activeAltitude, setActiveAltitude] = useState<'today' | 'week' | 'month'>('today');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set(['sun']));
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     if (userId) {
+      // Always fetch full chart data for deterministic astrology
+      loadFullChartData();
       loadTabData(activeTab);
     }
   }, [userId, activeTab]);
+
+  const loadFullChartData = async () => {
+    if (!userId) return;
+    try {
+      const response = await api.get(`/astrology/chart/${userId}`);
+      setFullChartData(response.data);
+      console.log('[AstrologyLens] Full chart data loaded:', {
+        success: response.data.success,
+        chiron_present: !!response.data.natal?.planets?.Chiron,
+        north_node_present: !!response.data.natal?.planets?.['North Node'],
+        jupiter_present: !!response.data.natal?.planets?.Jupiter,
+        saturn_present: !!response.data.natal?.planets?.Saturn,
+        aspects_count: response.data.natal?.aspects?.length,
+        transit_aspects_count: response.data.transits?.total_active_aspects,
+        strongest_hits: response.data.transits?.strongest_hits?.length
+      });
+    } catch (err) {
+      console.error('[AstrologyLens] Full chart data error:', err);
+    }
+  };
 
   const loadTabData = async (tab: string) => {
     if (!userId) return;
@@ -969,11 +1097,43 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
     });
   };
 
-  // Get placements from available data
+  // Get placements from available data - prefer full chart data
   const getPlacements = (): CorePlacements => {
+    // Use full chart data if available (most complete)
+    if (fullChartData?.natal?.planets) {
+      const planets = fullChartData.natal.planets;
+      const nodes = fullChartData.natal.nodes;
+      const angles = fullChartData.natal.angles;
+      
+      return {
+        sun: planets.Sun?.sign || 'Unknown',
+        sun_house: planets.Sun?.house,
+        moon: planets.Moon?.sign || 'Unknown',
+        moon_house: planets.Moon?.house,
+        ascendant: angles?.asc?.sign || 'Unknown',
+        mercury: planets.Mercury?.sign,
+        mercury_house: planets.Mercury?.house,
+        venus: planets.Venus?.sign,
+        venus_house: planets.Venus?.house,
+        mars: planets.Mars?.sign,
+        mars_house: planets.Mars?.house,
+        jupiter: planets.Jupiter?.sign,
+        jupiter_house: planets.Jupiter?.house,
+        saturn: planets.Saturn?.sign,
+        saturn_house: planets.Saturn?.house,
+        chiron: planets.Chiron?.sign,
+        chiron_house: planets.Chiron?.house,
+        north_node: planets['North Node']?.sign || nodes?.north?.sign,
+        north_node_house: planets['North Node']?.house || nodes?.north?.house,
+        south_node: planets['South Node']?.sign || nodes?.south?.sign,
+        south_node_house: planets['South Node']?.house || nodes?.south?.house
+      };
+    }
+    // Fallback to deep dive data
     if (deepDiveData?.core_placements) {
       return deepDiveData.core_placements;
     }
+    // Fallback to summary data
     if (summaryData?.core_placements) {
       return summaryData.core_placements;
     }
@@ -985,6 +1145,76 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   };
 
   const placements = getPlacements();
+
+  // ============================================
+  // RENDER: DEBUG PANEL
+  // ============================================
+  const renderDebugPanel = () => {
+    if (!showDebug || !fullChartData) return null;
+    
+    const { natal, transits, metadata } = fullChartData;
+    
+    return (
+      <View style={[styles.debugPanel, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={styles.debugHeader}>
+          <Text style={[styles.debugTitle, { color: theme.text }]}>🔍 CHART DATA DEBUG</Text>
+          <TouchableOpacity onPress={() => setShowDebug(false)}>
+            <Text style={{ color: theme.textSecondary }}>✕</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <Text style={[styles.debugSection, { color: theme.accent }]}>METADATA</Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          Sidereal: {metadata?.sidereal_mode} | SVP: {metadata?.svp_degrees}°
+        </Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          Houses: {metadata?.house_system} | Node: {metadata?.node_mode}
+        </Text>
+        
+        <Text style={[styles.debugSection, { color: theme.accent }]}>NATAL POINTS ({Object.keys(natal?.planets || {}).length})</Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          ☉ Sun: {natal?.planets?.Sun?.sign} {natal?.planets?.Sun?.degree?.toFixed(1)}° H{natal?.planets?.Sun?.house}
+        </Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          ☽ Moon: {natal?.planets?.Moon?.sign} {natal?.planets?.Moon?.degree?.toFixed(1)}° H{natal?.planets?.Moon?.house}
+        </Text>
+        <Text style={[styles.debugText, { color: '#4CAF50' }]}>
+          ♃ Jupiter: {natal?.planets?.Jupiter?.sign} H{natal?.planets?.Jupiter?.house}
+        </Text>
+        <Text style={[styles.debugText, { color: '#FFA726' }]}>
+          ♄ Saturn: {natal?.planets?.Saturn?.sign} H{natal?.planets?.Saturn?.house}
+        </Text>
+        <Text style={[styles.debugText, { color: '#CE93D8' }]}>
+          ⚷ Chiron: {natal?.planets?.Chiron?.sign} H{natal?.planets?.Chiron?.house} {natal?.planets?.Chiron ? '✓' : '✗'}
+        </Text>
+        <Text style={[styles.debugText, { color: '#81D4FA' }]}>
+          ☊ N.Node: {natal?.nodes?.north?.sign} H{natal?.nodes?.north?.house}
+        </Text>
+        <Text style={[styles.debugText, { color: '#81D4FA' }]}>
+          ☋ S.Node: {natal?.nodes?.south?.sign} H{natal?.nodes?.south?.house}
+        </Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          MC: {natal?.angles?.mc?.sign} | IC: {natal?.angles?.ic?.sign}
+        </Text>
+        
+        <Text style={[styles.debugSection, { color: theme.accent }]}>ASPECTS ({natal?.aspects?.length})</Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          {natal?.aspects?.slice(0, 3).map((a: any) => `${a.point_a} ${a.aspect_type} ${a.point_b}`).join(', ')}
+        </Text>
+        
+        <Text style={[styles.debugSection, { color: theme.accent }]}>TRANSITS ({transits?.total_active_aspects})</Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          Top hits: {transits?.strongest_hits?.slice(0, 3).map((h: any) => `${h.transit_point}→${h.natal_point}`).join(', ')}
+        </Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          Emphasis: {transits?.emphasis_tags?.slice(0, 4).join(', ')}
+        </Text>
+        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+          Today activated: {transits?.windows?.today?.activated_natal_points?.join(', ')}
+        </Text>
+      </View>
+    );
+  };
 
   // ============================================
   // RENDER: TABS
@@ -1417,6 +1647,21 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           </View>
         ) : (
           <>
+            {/* Debug Toggle */}
+            {fullChartData && (
+              <TouchableOpacity
+                style={[styles.debugToggle, { backgroundColor: showDebug ? theme.accent : theme.surface, borderColor: theme.border }]}
+                onPress={() => setShowDebug(!showDebug)}
+              >
+                <Text style={{ fontSize: 10, color: showDebug ? '#fff' : theme.textSecondary }}>
+                  🔍 {showDebug ? 'Hide' : 'Show'} Data
+                </Text>
+              </TouchableOpacity>
+            )}
+            
+            {/* Debug Panel */}
+            {renderDebugPanel()}
+            
             {activeTab === 'at_a_glance' && renderAtAGlance()}
             {activeTab === 'today' && renderTodaySnapshot()}
             {activeTab === 'deep_dive' && renderDeepDive()}
@@ -1875,5 +2120,42 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
+  },
+  // Debug Panel Styles
+  debugToggle: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    zIndex: 10,
+  },
+  debugPanel: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  debugHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  debugTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  debugSection: {
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  debugText: {
+    fontSize: 10,
+    lineHeight: 14,
   },
 });
