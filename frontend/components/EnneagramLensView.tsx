@@ -1315,12 +1315,13 @@ const BALANCED_WINGS_GROWTH_NOTE = 'Over time, people often learn which wing sup
 // DEEP DIVE MIRROR PATTERN CARDS
 // ============================================
 // Refined card format for Mirror-style reflective guidance
-// Each card has: title, subtitle, whatThisIs, whatYouMightNotice (bullets), tensionLabel, tension, strengthLabel, whenItWorks, tryThis
+// Each card has: title, subtitle, preview, whatThisIs, whatYouMightNotice (bullets), tensionLabel, tension, strengthLabel, whenItWorks, tryThis
 
 interface DeepDiveCard {
   id: string;
   title: string;
   subtitle: string;
+  preview: string;  // Short teaser line shown when collapsed
   whatThisIs: string;
   whatYouMightNotice: string[];
   tensionLabel: string;  // "The trap", "What tightens", "Core challenge", etc.
@@ -1336,6 +1337,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'core_pattern',
       title: 'Core Pattern',
       subtitle: 'Your foundational strategy for navigating the world.',
+      preview: 'The strategy that shapes how you move through life.',
       whatThisIs: 'You move toward what feels correct, aligned, and improvable. This is your primary strategy for navigating the world.',
       whatYouMightNotice: [
         'an inner voice that evaluates constantly',
@@ -1353,6 +1355,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'how_shows_up',
       title: 'How This Shows Up',
       subtitle: 'How this plays out in your daily life.',
+      preview: 'Where the pattern appears in your daily choices.',
       whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
       whatYouMightNotice: [
         'teaching or correcting others without being asked',
@@ -1370,6 +1373,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'under_pressure',
       title: 'Under Pressure',
       subtitle: 'What happens when you feel cornered or stuck.',
+      preview: 'What surfaces when you feel cornered or stuck.',
       whatThisIs: 'When stressed, you may take on qualities of Type 4—becoming moody, withdrawn, and emotionally volatile.',
       whatYouMightNotice: [
         'losing your usual composure',
@@ -1386,7 +1390,8 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
     {
       id: 'when_resourced',
       title: 'When Resourced',
-      subtitle: 'What becomes possible when you\'re grounded.',
+      subtitle: 'The ease that opens when you feel safe.',
+      preview: 'The ease that opens when urgency softens.',
       whatThisIs: 'When healthy and integrated, you access qualities of Type 7—spontaneity, joy, and acceptance.',
       whatYouMightNotice: [
         'permission to play and be imperfect',
@@ -1404,6 +1409,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'your_edges',
       title: 'Your Edges',
       subtitle: 'The blind spots worth knowing about.',
+      preview: 'What protects you can also keep you stuck.',
       whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
       whatYouMightNotice: [
         'resentment building when standards aren\'t met',
@@ -1421,6 +1427,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'growth_path',
       title: 'Growth Path',
       subtitle: 'What becomes possible as you grow.',
+      preview: 'What becomes possible when you stop gripping.',
       whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
       whatYouMightNotice: [
         'moments of serenity and acceptance',
@@ -1440,6 +1447,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'core_pattern',
       title: 'Core Pattern',
       subtitle: 'Your foundational strategy for navigating the world.',
+      preview: 'The strategy that shapes how you move through life.',
       whatThisIs: 'You move toward connection through giving and being needed. This is your primary strategy for belonging.',
       whatYouMightNotice: [
         'anticipating what others need before they ask',
@@ -1457,6 +1465,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'how_shows_up',
       title: 'How This Shows Up',
       subtitle: 'How this plays out in your daily life.',
+      preview: 'Where the pattern appears in your daily choices.',
       whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
       whatYouMightNotice: [
         'considering how choices affect others first',
@@ -1474,6 +1483,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'under_pressure',
       title: 'Under Pressure',
       subtitle: 'What happens when you feel cornered or stuck.',
+      preview: 'What surfaces when you feel cornered or stuck.',
       whatThisIs: 'When stressed, you may take on qualities of Type 8—becoming aggressive and demanding recognition.',
       whatYouMightNotice: [
         'insisting on appreciation',
@@ -1490,7 +1500,8 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
     {
       id: 'when_resourced',
       title: 'When Resourced',
-      subtitle: 'What becomes possible when you\'re grounded.',
+      subtitle: 'The ease that opens when you feel safe.',
+      preview: 'The ease that opens when urgency softens.',
       whatThisIs: 'When healthy and integrated, you access qualities of Type 4—self-care, emotional honesty, and honoring your own needs.',
       whatYouMightNotice: [
         'permission to receive without giving back',
@@ -1508,6 +1519,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'your_edges',
       title: 'Your Edges',
       subtitle: 'The blind spots worth knowing about.',
+      preview: 'What protects you can also keep you stuck.',
       whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
       whatYouMightNotice: [
         'pride in being needed you don\'t acknowledge',
@@ -1525,6 +1537,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'growth_path',
       title: 'Growth Path',
       subtitle: 'What becomes possible as you grow.',
+      preview: 'What becomes possible when you stop gripping.',
       whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
       whatYouMightNotice: [
         'humility and freedom from needing to be needed',
@@ -1544,6 +1557,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'core_pattern',
       title: 'Core Pattern',
       subtitle: 'Your foundational strategy for navigating the world.',
+      preview: 'The strategy that shapes how you move through life.',
       whatThisIs: 'You move toward achievement, recognition, and presenting your best self. This is your primary strategy for being valued.',
       whatYouMightNotice: [
         'awareness of how you\'re being perceived',
@@ -1561,6 +1575,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'how_shows_up',
       title: 'How This Shows Up',
       subtitle: 'How this plays out in your daily life.',
+      preview: 'Where the pattern appears in your daily choices.',
       whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
       whatYouMightNotice: [
         'evaluating which option creates best impression',
@@ -1578,6 +1593,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'under_pressure',
       title: 'Under Pressure',
       subtitle: 'What happens when you feel cornered or stuck.',
+      preview: 'What surfaces when you feel cornered or stuck.',
       whatThisIs: 'When stressed, you may take on qualities of Type 9—disengaging, going through the motions, avoiding risk.',
       whatYouMightNotice: [
         'the drive flatlines',
@@ -1594,7 +1610,8 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
     {
       id: 'when_resourced',
       title: 'When Resourced',
-      subtitle: 'What becomes possible when you\'re grounded.',
+      subtitle: 'The ease that opens when you feel safe.',
+      preview: 'The ease that opens when urgency softens.',
       whatThisIs: 'When healthy and integrated, you access qualities of Type 6—commitment, loyalty, and valuing depth over image.',
       whatYouMightNotice: [
         'authentic connection over impression',
@@ -1612,6 +1629,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'your_edges',
       title: 'Your Edges',
       subtitle: 'The blind spots worth knowing about.',
+      preview: 'What protects you can also keep you stuck.',
       whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
       whatYouMightNotice: [
         'self-deception about your motivations',
@@ -1629,6 +1647,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'growth_path',
       title: 'Growth Path',
       subtitle: 'What becomes possible as you grow.',
+      preview: 'What becomes possible when you stop gripping.',
       whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
       whatYouMightNotice: [
         'moments of authenticity',
@@ -1648,6 +1667,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'core_pattern',
       title: 'Core Pattern',
       subtitle: 'Your foundational strategy for navigating the world.',
+      preview: 'The strategy that shapes how you move through life.',
       whatThisIs: 'You move toward what feels authentic, meaningful, and emotionally true. This is your primary strategy for significance.',
       whatYouMightNotice: [
         'seeking depth in experiences and relationships',
@@ -1665,6 +1685,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'how_shows_up',
       title: 'How This Shows Up',
       subtitle: 'How this plays out in your daily life.',
+      preview: 'Where the pattern appears in your daily choices.',
       whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
       whatYouMightNotice: [
         'seeking the most authentic option',
@@ -1682,6 +1703,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'under_pressure',
       title: 'Under Pressure',
       subtitle: 'What happens when you feel cornered or stuck.',
+      preview: 'What surfaces when you feel cornered or stuck.',
       whatThisIs: 'When stressed, you may take on qualities of Type 2—becoming clingy and seeking external connection to fill internal voids.',
       whatYouMightNotice: [
         'reaching out excessively',
@@ -1698,7 +1720,8 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
     {
       id: 'when_resourced',
       title: 'When Resourced',
-      subtitle: 'What becomes possible when you\'re grounded.',
+      subtitle: 'The ease that opens when you feel safe.',
+      preview: 'The ease that opens when urgency softens.',
       whatThisIs: 'When healthy and integrated, you access qualities of Type 1—objectivity, discipline, and using structure to channel emotion.',
       whatYouMightNotice: [
         'action from principle, not just feeling',
@@ -1716,6 +1739,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'your_edges',
       title: 'Your Edges',
       subtitle: 'The blind spots worth knowing about.',
+      preview: 'What protects you can also keep you stuck.',
       whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
       whatYouMightNotice: [
         'envy comparing your insides to others\' outsides',
@@ -1733,6 +1757,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'growth_path',
       title: 'Growth Path',
       subtitle: 'What becomes possible as you grow.',
+      preview: 'What becomes possible when you stop gripping.',
       whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
       whatYouMightNotice: [
         'equanimity amidst emotion',
@@ -1752,6 +1777,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'core_pattern',
       title: 'Core Pattern',
       subtitle: 'Your foundational strategy for navigating the world.',
+      preview: 'The strategy that shapes how you move through life.',
       whatThisIs: 'You move toward understanding, clarity, and preserving your inner resources. This is your primary strategy for navigating demands.',
       whatYouMightNotice: [
         'preference for observing before engaging',
@@ -1769,6 +1795,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'how_shows_up',
       title: 'How This Shows Up',
       subtitle: 'How this plays out in your daily life.',
+      preview: 'Where the pattern appears in your daily choices.',
       whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
       whatYouMightNotice: [
         'gathering knowledge before committing',
@@ -1786,6 +1813,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'under_pressure',
       title: 'Under Pressure',
       subtitle: 'What happens when you feel cornered or stuck.',
+      preview: 'What surfaces when you feel cornered or stuck.',
       whatThisIs: 'When stressed, you may take on qualities of Type 7—becoming scattered, impulsive, and jumping from thing to thing.',
       whatYouMightNotice: [
         'acting without usual thoughtfulness',
@@ -1802,7 +1830,8 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
     {
       id: 'when_resourced',
       title: 'When Resourced',
-      subtitle: 'What becomes possible when you\'re grounded.',
+      subtitle: 'The ease that opens when you feel safe.',
+      preview: 'The ease that opens when urgency softens.',
       whatThisIs: 'When healthy and integrated, you access qualities of Type 8—confident engagement, moving from observation to participation.',
       whatYouMightNotice: [
         'sharing knowledge generously',
@@ -1820,6 +1849,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'your_edges',
       title: 'Your Edges',
       subtitle: 'The blind spots worth knowing about.',
+      preview: 'What protects you can also keep you stuck.',
       whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
       whatYouMightNotice: [
         'hoarding time and energy',
@@ -1837,6 +1867,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'growth_path',
       title: 'Growth Path',
       subtitle: 'What becomes possible as you grow.',
+      preview: 'What becomes possible when you stop gripping.',
       whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
       whatYouMightNotice: [
         'generous sharing of knowledge',
@@ -1856,6 +1887,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'core_pattern',
       title: 'Core Pattern',
       subtitle: 'Your foundational strategy for navigating the world.',
+      preview: 'The strategy that shapes how you move through life.',
       whatThisIs: 'You move toward security, preparation, and reliable foundations. This is your primary strategy for navigating uncertainty.',
       whatYouMightNotice: [
         'questioning and testing before trusting',
@@ -1873,6 +1905,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'how_shows_up',
       title: 'How This Shows Up',
       subtitle: 'How this plays out in your daily life.',
+      preview: 'Where the pattern appears in your daily choices.',
       whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
       whatYouMightNotice: [
         'testing loyalty before fully committing',
@@ -1890,6 +1923,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'under_pressure',
       title: 'Under Pressure',
       subtitle: 'What happens when you feel cornered or stuck.',
+      preview: 'What surfaces when you feel cornered or stuck.',
       whatThisIs: 'When stressed, you may take on qualities of Type 3—becoming competitive and image-conscious, trying to prove worth through achievement.',
       whatYouMightNotice: [
         'performance anxiety',
@@ -1906,7 +1940,8 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
     {
       id: 'when_resourced',
       title: 'When Resourced',
-      subtitle: 'What becomes possible when you\'re grounded.',
+      subtitle: 'The ease that opens when you feel safe.',
+      preview: 'The ease that opens when urgency softens.',
       whatThisIs: 'When healthy and integrated, you access qualities of Type 9—inner peace, trust, and acting from groundedness rather than fear.',
       whatYouMightNotice: [
         'relaxed vigilance',
@@ -1924,6 +1959,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'your_edges',
       title: 'Your Edges',
       subtitle: 'The blind spots worth knowing about.',
+      preview: 'What protects you can also keep you stuck.',
       whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
       whatYouMightNotice: [
         'projecting your doubts onto others',
@@ -1941,6 +1977,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'growth_path',
       title: 'Growth Path',
       subtitle: 'What becomes possible as you grow.',
+      preview: 'What becomes possible when you stop gripping.',
       whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
       whatYouMightNotice: [
         'courage and inner authority',
@@ -1960,6 +1997,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'core_pattern',
       title: 'Core Pattern',
       subtitle: 'Your foundational strategy for navigating the world.',
+      preview: 'The strategy that shapes how you move through life.',
       whatThisIs: 'You move toward what feels open, interesting, and full of possibility. This is your primary strategy for staying free.',
       whatYouMightNotice: [
         'scanning for the next interesting option',
@@ -1977,6 +2015,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'how_shows_up',
       title: 'How This Shows Up',
       subtitle: 'How this plays out in your daily life.',
+      preview: 'Where the pattern appears in your daily choices.',
       whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
       whatYouMightNotice: [
         'starting many projects at once',
@@ -1994,6 +2033,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'under_pressure',
       title: 'Under Pressure',
       subtitle: 'What happens when you feel cornered or stuck.',
+      preview: 'What surfaces when you feel cornered or stuck.',
       whatThisIs: 'When stressed, you may take on qualities of Type 1—becoming critical and rigid, fixating on what\'s wrong.',
       whatYouMightNotice: [
         'optimism hardening into judgment',
@@ -2010,7 +2050,8 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
     {
       id: 'when_resourced',
       title: 'When Resourced',
-      subtitle: 'What becomes possible when you\'re grounded.',
+      subtitle: 'The ease that opens when you feel safe.',
+      preview: 'The ease that opens when urgency softens.',
       whatThisIs: 'When healthy and integrated, you access qualities of Type 5—focused depth, staying with one thing, finding richness in completion.',
       whatYouMightNotice: [
         'sustained attention and depth',
@@ -2028,6 +2069,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'your_edges',
       title: 'Your Edges',
       subtitle: 'The blind spots worth knowing about.',
+      preview: 'What protects you can also keep you stuck.',
       whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
       whatYouMightNotice: [
         'appetite for experience that never satisfies',
@@ -2045,6 +2087,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'growth_path',
       title: 'Growth Path',
       subtitle: 'What becomes possible as you grow.',
+      preview: 'What becomes possible when you stop gripping.',
       whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
       whatYouMightNotice: [
         'presence without needing stimulation',
@@ -2064,6 +2107,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'core_pattern',
       title: 'Core Pattern',
       subtitle: 'Your foundational strategy for navigating the world.',
+      preview: 'The strategy that shapes how you move through life.',
       whatThisIs: 'You move toward strength, directness, and protecting your autonomy. This is your primary strategy for staying safe.',
       whatYouMightNotice: [
         'awareness of power dynamics',
@@ -2081,6 +2125,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'how_shows_up',
       title: 'How This Shows Up',
       subtitle: 'How this plays out in your daily life.',
+      preview: 'Where the pattern appears in your daily choices.',
       whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
       whatYouMightNotice: [
         'decisive, immediate action',
@@ -2098,6 +2143,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'under_pressure',
       title: 'Under Pressure',
       subtitle: 'What happens when you feel cornered or stuck.',
+      preview: 'What surfaces when you feel cornered or stuck.',
       whatThisIs: 'When stressed, you may take on qualities of Type 5—withdrawing, becoming secretive, pulling away from connection.',
       whatYouMightNotice: [
         'retreating into isolation',
@@ -2114,7 +2160,8 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
     {
       id: 'when_resourced',
       title: 'When Resourced',
-      subtitle: 'What becomes possible when you\'re grounded.',
+      subtitle: 'The ease that opens when you feel safe.',
+      preview: 'The ease that opens when urgency softens.',
       whatThisIs: 'When healthy and integrated, you access qualities of Type 2—openheartedness, vulnerability, and using strength to serve.',
       whatYouMightNotice: [
         'letting others in',
@@ -2132,6 +2179,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'your_edges',
       title: 'Your Edges',
       subtitle: 'The blind spots worth knowing about.',
+      preview: 'What protects you can also keep you stuck.',
       whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
       whatYouMightNotice: [
         'appetite for intensity that never satisfies',
@@ -2149,6 +2197,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'growth_path',
       title: 'Growth Path',
       subtitle: 'What becomes possible as you grow.',
+      preview: 'What becomes possible when you stop gripping.',
       whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
       whatYouMightNotice: [
         'magnanimous use of power',
@@ -2168,6 +2217,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'core_pattern',
       title: 'Core Pattern',
       subtitle: 'Your foundational strategy for navigating the world.',
+      preview: 'The strategy that shapes how you move through life.',
       whatThisIs: 'You move toward harmony, comfort, and maintaining inner peace. This is your primary strategy for belonging.',
       whatYouMightNotice: [
         'seeing all sides of situations',
@@ -2185,6 +2235,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'how_shows_up',
       title: 'How This Shows Up',
       subtitle: 'How this plays out in your daily life.',
+      preview: 'Where the pattern appears in your daily choices.',
       whatThisIs: 'The ways your pattern expresses itself in daily life—at work, in relationships, when making decisions.',
       whatYouMightNotice: [
         'difficulty saying no',
@@ -2202,6 +2253,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'under_pressure',
       title: 'Under Pressure',
       subtitle: 'What happens when you feel cornered or stuck.',
+      preview: 'What surfaces when you feel cornered or stuck.',
       whatThisIs: 'When stressed, you may take on qualities of Type 6—becoming anxious, reactive, and scanning for threats.',
       whatYouMightNotice: [
         'anxiety replacing calm',
@@ -2218,7 +2270,8 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
     {
       id: 'when_resourced',
       title: 'When Resourced',
-      subtitle: 'What becomes possible when you\'re grounded.',
+      subtitle: 'The ease that opens when you feel safe.',
+      preview: 'The ease that opens when urgency softens.',
       whatThisIs: 'When healthy and integrated, you access qualities of Type 3—assertive energy, clear priorities, and making your mark.',
       whatYouMightNotice: [
         'taking action on priorities',
@@ -2236,6 +2289,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'your_edges',
       title: 'Your Edges',
       subtitle: 'The blind spots worth knowing about.',
+      preview: 'What protects you can also keep you stuck.',
       whatThisIs: 'The deeper patterns and blind spots that can keep you stuck when unexamined.',
       whatYouMightNotice: [
         'sloth toward your own priorities',
@@ -2253,6 +2307,7 @@ const DEEP_DIVE_CARDS: { [key: number]: DeepDiveCard[] } = {
       id: 'growth_path',
       title: 'Growth Path',
       subtitle: 'What becomes possible as you grow.',
+      preview: 'What becomes possible when you stop gripping.',
       whatThisIs: 'The invitation for your type—what becomes possible when you integrate and grow.',
       whatYouMightNotice: [
         'engaged, self-assured presence',
@@ -3744,6 +3799,21 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
       const sectionId = `deep_dive_${card.id}`;
       const isExpanded = expandedSections.has(sectionId);
       
+      // Subtle badge color differentiation by card type
+      const getBadgeAccent = () => {
+        switch (card.id) {
+          case 'core_pattern': return theme.accent;  // foundational
+          case 'how_shows_up': return theme.accent;  // practical
+          case 'under_pressure': return '#E57373';   // cautionary
+          case 'when_resourced': return '#81C784';   // relieving
+          case 'your_edges': return '#FFB74D';       // confronting
+          case 'growth_path': return '#64B5F6';      // invitational
+          default: return theme.accent;
+        }
+      };
+      
+      const badgeAccent = getBadgeAccent();
+      
       return (
         <View style={[styles.mirrorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           {/* Card Header - Always visible */}
@@ -3753,12 +3823,16 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
             activeOpacity={0.7}
           >
             <View style={styles.mirrorCardHeaderContent}>
-              <View style={[styles.mirrorCardNumber, { backgroundColor: theme.accent + '12' }]}>
-                <Text style={[styles.mirrorCardNumberText, { color: theme.accent }]}>{index + 1}</Text>
+              <View style={[styles.mirrorCardNumber, { backgroundColor: badgeAccent + '15' }]}>
+                <Text style={[styles.mirrorCardNumberText, { color: badgeAccent }]}>{index + 1}</Text>
               </View>
               <View style={styles.mirrorCardTitleContainer}>
                 <Text style={[styles.mirrorCardTitle, { color: theme.text }]}>{card.title}</Text>
                 <Text style={[styles.mirrorCardSubtitle, { color: theme.textSecondary, opacity: 0.75 }]}>{card.subtitle}</Text>
+                {/* Preview line - shown in collapsed state */}
+                {!isExpanded && (
+                  <Text style={[styles.mirrorCardPreview, { color: theme.textTertiary }]}>{card.preview}</Text>
+                )}
               </View>
             </View>
             <Text style={[styles.mirrorCardChevron, { color: theme.textTertiary }]}>
@@ -3800,9 +3874,9 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
                 <Text style={[styles.mirrorCardSectionText, { color: theme.textSecondary }]}>{card.whenItWorks}</Text>
               </View>
               
-              {/* Try this - Action invite (lighter) */}
+              {/* Try this - Softer invitation */}
               <View style={[styles.mirrorCardTryThis, { backgroundColor: theme.accent + '06', borderColor: theme.border }]}>
-                <Text style={[styles.mirrorCardTryThisLabel, { color: theme.accent }]}>Try this</Text>
+                <Text style={[styles.mirrorCardTryThisLabel, { color: theme.accent }]}>A question to sit with</Text>
                 <Text style={[styles.mirrorCardTryThisText, { color: theme.textSecondary }]}>{card.tryThis}</Text>
               </View>
               
@@ -3870,7 +3944,7 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
             )}
           </View>
           <Text style={[styles.deepDiveWingStance, { color: theme.textSecondary }]}>{typeName}</Text>
-          <Text style={[styles.deepDiveNote, { color: theme.textTertiary }]}>Explore your pattern through six reflection cards.</Text>
+          <Text style={[styles.deepDiveNote, { color: theme.textTertiary }]}>A deeper look at what this pattern protects, drives, and opens.</Text>
         </View>
 
         {/* ═══════════════════════════════════════════════════════════════
@@ -6435,6 +6509,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 3,
     lineHeight: 16,
+  },
+  mirrorCardPreview: {
+    fontSize: 12,
+    marginTop: 6,
+    lineHeight: 16,
+    fontStyle: 'italic',
   },
   mirrorCardChevron: {
     fontSize: 10,
