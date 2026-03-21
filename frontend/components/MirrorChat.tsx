@@ -934,6 +934,20 @@ export default function MirrorChat({
 
   const canSend = inputText.trim().length > 0 && !isLoading && sessionId;
 
+  // ===== DEBUG: Log messages array on every render =====
+  useEffect(() => {
+    console.log('[MIRROR_DEBUG] Messages array updated:', {
+      count: messages.length,
+      ids: messages.map(m => m.id),
+      roles: messages.map(m => m.role),
+      lastMessage: messages.length > 0 ? {
+        id: messages[messages.length - 1].id,
+        role: messages[messages.length - 1].role,
+        content: messages[messages.length - 1].content?.substring(0, 50),
+      } : null,
+    });
+  }, [messages]);
+
   // Scroll to end helper
   const scrollToEnd = useCallback(() => {
     setTimeout(() => {
