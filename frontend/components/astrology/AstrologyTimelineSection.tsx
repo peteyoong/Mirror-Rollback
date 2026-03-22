@@ -84,13 +84,12 @@ function generateTimelineData(
   patternAnalysis: any,
   dominantTruth: any
 ): TimelineData | null {
-  if (!fullChartData) return null;
-
+  // Remove strict null check - always generate timeline with defaults
   try {
-    const planets = fullChartData.natal?.planets || {};
-    const sunSign = planets.Sun?.sign || 'Unknown';
-    const moonSign = planets.Moon?.sign || 'Unknown';
-    const risingSign = fullChartData.natal?.houses?.cusps?.[0]?.sign || 'Unknown';
+    const planets = fullChartData?.natal?.planets || {};
+    const sunSign = planets.Sun?.sign || 'Aries';
+    const moonSign = planets.Moon?.sign || 'Cancer';
+    const risingSign = fullChartData?.natal?.houses?.cusps?.[0]?.sign || 'Leo';
     
     // Extract life chapter info
     const chapterPhase = lifeChapterAnalysis?.phase || 'building';
@@ -325,13 +324,34 @@ export default function AstrologyTimelineSection({
     setExpandedPhaseId(expandedPhaseId === phaseId ? null : phaseId);
   };
 
-  // Fail gracefully if no data
+  // DEBUG: Temporary visible fallback when no data
   if (!timelineData) {
-    return null;
+    return (
+      <View style={[styles.container, { position: 'relative' }]}>
+        <View style={[styles.headerContainer, { borderColor: theme.border, backgroundColor: theme.surface }]}>
+          <View style={styles.headerTextContainer}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
+              THE YEAR AS IT UNFOLDS
+            </Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.textTertiary }]}>
+              Timeline is loading or unavailable.
+            </Text>
+          </View>
+          <Text style={{ position: 'absolute', top: 4, right: 8, fontSize: 8, color: theme.textTertiary }}>
+            timeline mounted
+          </Text>
+        </View>
+      </View>
+    );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { position: 'relative' }]}>
+      {/* DEBUG: Temporary marker */}
+      <Text style={{ position: 'absolute', top: 4, right: 8, fontSize: 8, color: theme.textTertiary, zIndex: 10 }}>
+        timeline mounted
+      </Text>
+      
       {/* Section Header - Always visible */}
       <TouchableOpacity
         style={[styles.headerContainer, { borderColor: theme.border }]}
