@@ -21,7 +21,7 @@ import {
   getPlanetImportanceLine,
   buildAspectPatternAnalysis,
   buildLifeChapterAnalysis,
-  buildDominantTruth,
+  getDominantTruth,
   getUnifiedPattern,
   UnifiedPattern,
 } from '../../services/astrology/astrologyInterpreter';
@@ -976,16 +976,24 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
     }
   };
 
-  // Build the unified pattern
+  // Build the unified pattern with defensive handling
   const lifeChapterAnalysis = buildLifeChapterAnalysis(fullChartData);
-  const dominantTruth = buildDominantTruth(fullChartData, patternAnalysis, lifeChapterAnalysis);
-  const unifiedPattern = getUnifiedPattern({
-    chartData: fullChartData,
-    placements,
-    dominantTruth,
-    aspectPatterns: patternAnalysis,
-    lifeChapter: lifeChapterAnalysis
-  });
+  let dominantTruth = null;
+  let unifiedPattern: UnifiedPattern | null = null;
+  
+  try {
+    dominantTruth = getDominantTruth(fullChartData, lifeChapterAnalysis, patternAnalysis, 'today');
+    unifiedPattern = getUnifiedPattern({
+      chartData: fullChartData,
+      placements,
+      dominantTruth,
+      aspectPatterns: patternAnalysis,
+      lifeChapter: lifeChapterAnalysis
+    });
+  } catch (error) {
+    console.warn('[AstrologyDeepDive] Could not build unified pattern:', error);
+    // Continue rendering without unified pattern - graceful degradation
+  }
 
   return (
     <View style={styles.deepDiveContainer}>
