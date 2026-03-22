@@ -11,7 +11,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://pattern-engine-8.preview.emergentagent.com/api"
+BACKEND_URL = "https://reflect-ai-25.preview.emergentagent.com/api"
 
 def test_get_journal_entries():
     """
@@ -307,7 +307,7 @@ def main():
     print("=" * 60)
     print(f"Timestamp: {datetime.now().isoformat()}")
     print(f"Backend URL: {BACKEND_URL}")
-    print(f"Base URL: https://pattern-engine-8.preview.emergentagent.com")
+    print(f"Base URL: https://reflect-ai-25.preview.emergentagent.com")
     print()
     
     user_id = "697f0c6abf35c0528ff06954"

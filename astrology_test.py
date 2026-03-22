@@ -11,7 +11,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://pattern-engine-8.preview.emergentagent.com/api"
+BACKEND_URL = "https://reflect-ai-25.preview.emergentagent.com/api"
 
 def test_astrology_summary(user_id):
     """

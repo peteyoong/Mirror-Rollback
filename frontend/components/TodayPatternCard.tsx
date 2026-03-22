@@ -2,12 +2,15 @@
  * TodayPatternCard
  * Home screen integration for Dominant Truth
  * Shows headline only - skimmable in <3 seconds
+ * 
+ * Now uses Mirror Response Engine for unified "light" intensity
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useDominantTruthForHome } from '../hooks/useDominantTruth';
+import { buildMirrorResponse, getHomeResponse } from '../services/mirrorResponseEngine';
 
 interface TodayPatternCardProps {
   userId: string;
@@ -18,6 +21,23 @@ interface TodayPatternCardProps {
 export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatternCardProps) {
   const router = useRouter();
   const { data, isLoading, hasPattern } = useDominantTruthForHome(userId);
+
+  // Build unified Mirror response using the engine (light intensity for Home)
+  const mirrorHomeData = useMemo(() => {
+    if (!data || !hasPattern) return null;
+    
+    // Use the engine to build a response with "light" intensity
+    const response = buildMirrorResponse({
+      dominantTruth: data.dominantTruth ? {
+        dominantTheme: data.dominantTruth,
+        confidenceScore: data.confidence || 60,
+      } : undefined,
+      variationSeed: new Date().getDate(), // Changes daily
+    });
+    
+    // Format for Home surface (light hook only)
+    return getHomeResponse(response);
+  }, [data, hasPattern]);
 
   // Don't render if no pattern detected
   if (!isLoading && !hasPattern) {
@@ -57,15 +77,15 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
       {/* Label */}
       <Text style={[styles.label, { color: theme.accent }]}>TODAY'S PATTERN</Text>
       
-      {/* Headline - the hook */}
+      {/* Headline - use engine response when available, fallback to original */}
       <Text style={[styles.headline, { color: theme.text }]}>
-        "{data?.headline}"
+        "{mirrorHomeData?.headline || data?.headline}"
       </Text>
       
-      {/* Supporting line (optional - only for high confidence) */}
-      {data?.supportingLine && (
+      {/* Supporting line - use engine response when available */}
+      {(mirrorHomeData?.supporting || data?.supportingLine) && (
         <Text style={[styles.supportingLine, { color: theme.textTertiary }]}>
-          {data.supportingLine}
+          {mirrorHomeData?.supporting || data?.supportingLine}
         </Text>
       )}
       

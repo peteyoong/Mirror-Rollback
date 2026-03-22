@@ -22,6 +22,7 @@ import api, { createMirrorInsight } from '../services/api';
 import { storage, CHAT_SESSION_KEYS } from '../store';
 import MirrorLeaderCard from './journal/MirrorLeaderCard';
 import { useDominantTruthForChat } from '../hooks/useDominantTruth';
+import { buildMirrorResponse, getAskMirrorContext, getAskMirrorOpener } from '../services/mirrorResponseEngine';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -524,6 +525,20 @@ export default function MirrorChat({
     // ============================================
     // DEBUG LOGGING - MIRROR CHAT REQUEST
     // ============================================
+    // Build unified Mirror context using the engine (for generalist chat only)
+    let mirrorEngineContext: string | undefined;
+    if (!lens && hasDominantPattern && dominantTruthData) {
+      const mirrorResponse = buildMirrorResponse({
+        dominantTruth: {
+          dominantTheme: dominantTruthData.systemContext?.split('\n')[0] || 'general',
+          confidenceScore: 70,
+        },
+        hasHistory: messages.length > 2,
+        variationSeed: Date.now(),
+      });
+      mirrorEngineContext = getAskMirrorContext(mirrorResponse);
+    }
+    
     const requestPayload = {
       user_id: userId,
       message: userMessage.content,
@@ -531,8 +546,8 @@ export default function MirrorChat({
       session_id: sessionId,
       include_journal: true,
       include_history: true,
-      // Master Layer Integration: Inject dominant truth system context
-      dominant_pattern_context: !lens && hasDominantPattern ? dominantTruthData?.systemContext : undefined,
+      // Master Layer Integration: Inject unified Mirror context
+      dominant_pattern_context: mirrorEngineContext || (!lens && hasDominantPattern ? dominantTruthData?.systemContext : undefined),
     };
     
     console.log('[MIRROR_CHAT_REQUEST]', {

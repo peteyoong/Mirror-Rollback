@@ -27,7 +27,7 @@ import MirrorChat from '../../components/MirrorChat';
 import MicroMirrorCard from '../../components/MicroMirrorCard';
 import { createJournalEntry, getJournalEntries, getCombinedTimeline, TimelineItem, updateJournalEntry, deleteJournalEntry } from '../../services/api';
 import api from '../../services/api';
-import { generateMicroMirrorResponse } from '../../services/microMirrorService';
+import { buildMirrorResponse, getJournalResponse, detectThemeFromText } from '../../services/mirrorResponseEngine';
 // Task 51: Lunar Decision Journal Components
 import LunarDecisionJournalCard, { LunarJournalStatus } from '../../components/journal/LunarDecisionJournalCard';
 import LunarTimelineView from '../../components/journal/LunarTimelineView';
@@ -612,10 +612,22 @@ export default function JournalScreen() {
       // Clear pattern metadata after successful submission
       setPatternMetadata(null);
 
-      // Generate and show Micro-Mirror response (non-blocking)
+      // Generate and show Micro-Mirror response using unified engine (non-blocking)
       if (entryText.length >= 10) {
-        const mirrorResponse = generateMicroMirrorResponse(entryText);
-        setMicroMirrorResponse(mirrorResponse);
+        // Build response using the unified Mirror Response Engine
+        const response = buildMirrorResponse({
+          journalText: entryText,
+          dominantTruth: dominantTruthData ? {
+            dominantTheme: detectThemeFromText(entryText),
+            confidenceScore: 60,
+          } : undefined,
+          hasHistory: journalEntries.length > 0,
+          variationSeed: Date.now(),
+        });
+        
+        // Format for journal surface (warm intensity)
+        const { text: journalText } = getJournalResponse(response);
+        setMicroMirrorResponse(journalText);
         setMicroMirrorEntryId(entry.id);
         setMicroMirrorVisible(true);
       }
