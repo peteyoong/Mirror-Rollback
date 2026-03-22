@@ -806,19 +806,19 @@ const generateVenusMirrorLayer = (sign: string): MirrorLayer => ({
 });
 
 const generateMarsMirrorLayer = (sign: string): MirrorLayer => ({
-  // Level 3 - Most confronting, "you're avoiding...", highest consequence awareness
-  recognition: sign === 'Aries' ? 'You\'re avoiding the cost of acting before you think—but it\'s already piling up.' :
-               sign === 'Taurus' ? 'You\'re avoiding the fight you know you need to have.' :
-               sign === 'Gemini' ? 'You\'re avoiding commitment by keeping all your options open—and it\'s costing you.' :
-               sign === 'Cancer' ? 'You\'re avoiding your own needs by protecting everyone else\'s.' :
-               sign === 'Leo' ? 'You\'re avoiding the question of what you\'d do if no one was watching.' :
-               sign === 'Virgo' ? 'You\'re avoiding action by perfecting the plan—and the moment keeps passing.' :
-               sign === 'Libra' ? 'You\'re avoiding the fight that would set you free.' :
-               sign === 'Scorpio' ? 'You\'re avoiding trust by staying three moves ahead—and it\'s exhausting.' :
-               sign === 'Sagittarius' ? 'You\'re avoiding what would happen if you actually stayed put.' :
-               sign === 'Capricorn' ? 'You\'re avoiding rest by calling relentless work "discipline."' :
-               sign === 'Aquarius' ? 'You\'re avoiding connection by rebelling against things that don\'t need rebellion.' :
-               'You\'re avoiding your own power by giving it away to everyone else.',
+  // Level 3 - Choice-based, fork in the road, implied cost of both paths
+  recognition: sign === 'Aries' ? 'You can keep moving before you\'re ready. Or you can stop—but that would mean facing what the motion was covering.' :
+               sign === 'Taurus' ? 'You can keep avoiding the fight. Or you can start it—but that would mean risking what you\'ve been protecting.' :
+               sign === 'Gemini' ? 'You can keep your options open forever. Or you can choose—but that would mean losing everything you didn\'t pick.' :
+               sign === 'Cancer' ? 'You can keep protecting everyone else. Or you can protect yourself—but that would mean letting them struggle.' :
+               sign === 'Leo' ? 'You can keep performing. Or you can stop—but that would mean finding out who you are without the audience.' :
+               sign === 'Virgo' ? 'You can keep perfecting the plan. Or you can act now—but that would mean risking imperfection.' :
+               sign === 'Libra' ? 'You can keep the peace. Or you can break it—but that would mean standing alone in the silence after.' :
+               sign === 'Scorpio' ? 'You can keep controlling the depth. Or you can let go—but that would mean trusting what happens without you steering.' :
+               sign === 'Sagittarius' ? 'You can keep exploring. Or you can stay—but that would mean building something you can\'t walk away from.' :
+               sign === 'Capricorn' ? 'You can keep achieving. Or you can rest—but that would mean sitting with who you are without the accomplishments.' :
+               sign === 'Aquarius' ? 'You can keep rebelling. Or you can belong—but that would mean giving up the identity of being different.' :
+               'You can keep giving your power away. Or you can claim it—but that would mean being responsible for what you do with it.',
   identity: `You are someone who takes action through ${SIGN_QUALITIES[sign]?.[0] || sign} patterns. How you fight, pursue, and assert—it\'s unmistakably ${sign}.`,
   tension: getMarsTension(sign).replace(/^Can be/, 'This can turn into being'),
   genius: `When this is working, ${getMarsGift(sign).toLowerCase()} You move in ways others can\'t match.`,
