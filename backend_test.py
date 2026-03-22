@@ -11,7 +11,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://chart-spine.preview.emergentagent.com/api"
+BACKEND_URL = "https://chart-spine-1.preview.emergentagent.com/api"
 
 def test_mirror_chat_transit_timing():
     """

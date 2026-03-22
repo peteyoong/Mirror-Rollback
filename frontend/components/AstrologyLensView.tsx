@@ -1157,7 +1157,7 @@ const getJupiterCard = (placements: CorePlacements): AstrologyDeepDiveCard => {
     id: 'jupiter',
     title: 'Jupiter — Growth & Faith',
     subtitle: `${jupiter} in House ${jupiter_house}`,
-    preview: `Believes ${signData.believes}. Growth shows up ${houseData.where_grows}.`,
+    preview: `You believe ${signData.believes}. This is both your fuel and your blind spot.`,
     whatThisIs: `Jupiter in ${jupiter} (House ${jupiter_house}) marks where you say yes to life—where optimism lives, where you believe more is possible. ${signData.believes.charAt(0).toUpperCase() + signData.believes.slice(1)}—this is what feels true to you, what generates hope. But Jupiter also inflates. What you believe in, you can over-believe in.`,
     whatYouMightNotice: [
       `Expansion ${houseData.where_grows}`,
@@ -1218,7 +1218,7 @@ const getSaturnCard = (placements: CorePlacements): AstrologyDeepDiveCard => {
     id: 'saturn',
     title: 'Saturn — Pressure & Maturation',
     subtitle: `${saturn} in House ${saturn_house}`,
-    preview: `Pressure concentrates in ${houseData.assignment}. The assignment is ${signData.maturity_through}.`,
+    preview: `Where you can't coast. This is your assignment, and your eventual mastery.`,
     whatThisIs: `Saturn in ${saturn} (House ${saturn_house}) is your assignment—where life won't let you coast. The pressure is real: ${houseData.assignment} is where you face the most friction, the most delay, the most need to get serious. But what Saturn touches, you eventually master. The question isn't whether you'll struggle here—you will. The question is whether you'll let the struggle teach you.`,
     whatYouMightNotice: [
       `Recurring challenges around ${houseData.assignment}—things that don't come easy`,
@@ -1331,7 +1331,7 @@ const getNodesCard = (placements: CorePlacements): AstrologyDeepDiveCard => {
     id: 'nodes',
     title: 'Nodes — Direction & Pattern',
     subtitle: `☋ ${south_node}${south_node_house ? ` H${south_node_house}` : ''} → ☊ ${north_node}${north_node_house ? ` H${north_node_house}` : ''}`,
-    preview: `${nodalData.south_familiar.split('.')[0]}. Growth asks: ${nodalData.north_asks.split('.')[0]}.`,
+    preview: `What you keep defaulting to. What you're being pulled toward.`,
     whatThisIs: `The nodal axis is your developmental storyline—not what you're good at, but where you're headed. South Node in ${south_node} is your default: ${nodalData.south_familiar} But this competence has diminishing returns. North Node in ${north_node} is where life keeps pulling you—uncomfortable, less practiced, but where actual evolution happens.`,
     whatYouMightNotice: [
       `WHAT FEELS FAMILIAR: ${nodalData.south_familiar.split('.')[0]}`,
@@ -1459,7 +1459,7 @@ const getChironCard = (placements: CorePlacements): AstrologyDeepDiveCard => {
     id: 'chiron',
     title: 'Chiron — Wound & Medicine',
     subtitle: `${chiron} in House ${chiron_house}`,
-    preview: `${signData.where_touched.split('.')[0]}. This wound concentrates in ${houseData.life_area}.`,
+    preview: `Where you're sensitized. Where your wound became wisdom.`,
     whatThisIs: `Chiron in ${chiron} (House ${chiron_house}) marks where you carry a wound that doesn't fully close. This isn't failure—it's specificity. ${signData.where_touched} Because you've been sensitized in ${houseData.life_area}, you notice things others miss. The wound became intelligence.`,
     whatYouMightNotice: [
       `WHERE YOU GET TOUCHED: ${houseData.triggers} affect you more than they "should"`,
@@ -1686,7 +1686,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'sun',
       title: 'Sun — Core Identity',
       subtitle: `${sun}${sun_house ? ` in the ${getHouseOrdinal(sun_house)} house` : ''}`,
-      preview: `In your chart, a ${sunQualities[0]} core that seeks ${sunQualities[2] || sunQualities[1]} expression.`,
+      preview: `Who you are when you're not performing. The thread that runs through everything.`,
       whatThisIs: `In your chart, the Sun in ${sun}${sun_house ? ` placed in House ${sun_house}` : ''} establishes the essential frequency of who you are. This isn't your whole identity—but it's the thread that runs through everything, the part that seeks expression and recognition. ${sun_house ? `With this energy concentrated in ${getHouseTheme(sun_house)}, your sense of self develops through that domain.` : ''}`,
       whatYouMightNotice: [
         `A ${sunQualities[0]} quality running through how you express yourself`,
@@ -1704,7 +1704,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'moon',
       title: 'Moon — Emotional Nature',
       subtitle: `${moon}${moon_house ? ` in the ${getHouseOrdinal(moon_house)} house` : ''}`,
-      preview: `In your chart, feelings that move ${moonQualities[0]}, needing ${getMoonNeed(moon)} to settle.`,
+      preview: `What you need before you can think. How you feel before you decide to feel.`,
       whatThisIs: `In your chart, the Moon in ${moon}${moon_house ? ` placed in House ${moon_house}` : ''} reveals your emotional substrate—what you need before you can think, what makes you feel safe, how you nurture and are nurtured. ${moon_house ? `With emotional energy concentrated around ${getHouseTheme(moon_house)}, this is where your inner life meets outer reality.` : ''} This is the part of you that responds before you've decided how to respond.`,
       whatYouMightNotice: [
         `Emotional responses that feel ${moonQualities[0]}—before thought catches up`,
@@ -1722,7 +1722,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'ascendant',
       title: 'Ascendant — How You Meet Life',
       subtitle: 'Your instinctive approach to new situations.',
-      preview: 'The way you naturally meet people, change, and new situations.',
+      preview: `The version of you that enters the room first. Not who you are—how you begin.`,
       whatThisIs: `${ascendant} rising colors the lens through which you approach everything new—first meetings, fresh starts, unfamiliar territory. It's not who you are inside, but how you instinctively engage.`,
       whatYouMightNotice: [
         `first impressions that come across as ${ascQualities[0]}`,
@@ -1740,7 +1740,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'mercury',
       title: 'Mercury — Mind & Communication',
       subtitle: `${mercury || sun}${mercury_house ? ` in the ${getHouseOrdinal(mercury_house)} house` : ''}`,
-      preview: `In your chart, a ${mercQualities[0]} mind that processes through ${getMercuryLearningStyle(mercury || sun)}.`,
+      preview: `How you think before you try to think. What your mind does on its own.`,
       whatThisIs: `In your chart, Mercury in ${mercury || sun}${mercury_house ? ` placed in House ${mercury_house}` : ''} reveals how your mind naturally operates—how you sort information, what kind of thinking comes easily, and how you express what you know. ${mercury_house && mercury_house !== sun_house ? `With mental energy concentrated in ${getHouseTheme(mercury_house)} while your identity operates through House ${sun_house || 'elsewhere'}, you may think about different things than you identify with.` : mercury_house ? `Your mind and identity share the same house—what you think about is closely linked to who you are.` : ''}`,
       whatYouMightNotice: [
         `A ${mercQualities[0]} quality to how you think and process`,
@@ -1758,7 +1758,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'venus',
       title: 'Venus — Love & Relating',
       subtitle: `${venus || moon}${venus_house ? ` in the ${getHouseOrdinal(venus_house)} house` : ''}`,
-      preview: `In your chart, drawn to ${venusQualities[0]} beauty, showing love through ${getVenusLoveLanguage(venus || moon)}.`,
+      preview: `What you find beautiful. How you love when you're not trying to be good at it.`,
       whatThisIs: `In your chart, Venus in ${venus || moon}${venus_house ? ` placed in House ${venus_house}` : ''} reveals what you find genuinely beautiful, how you attract and are attracted, and what you value in love and friendship. ${venus_house ? `With relational energy concentrated in ${getHouseTheme(venus_house)}, connection and aesthetics play out through this domain.` : ''}`,
       whatYouMightNotice: [
         `Attraction to ${venusQualities[0]} people, places, and experiences`,
@@ -1776,7 +1776,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'mars',
       title: 'Mars — Drive & Friction',
       subtitle: `${mars || sun}${mars_house ? ` in the ${getHouseOrdinal(mars_house)} house` : ''}`,
-      preview: `In your chart, a ${marsQualities[0]} approach to action and conflict.`,
+      preview: `How you fight. How you want. What wakes you up and what makes you dangerous.`,
       whatThisIs: `In your chart, Mars in ${mars || sun}${mars_house ? ` placed in House ${mars_house}` : ''} reveals how you take action, what ignites your drive, and how you handle conflict and desire. ${mars_house ? `With assertive energy concentrated in ${getHouseTheme(mars_house)}, this is where you push hardest and clash most easily.` : ''}`,
       whatYouMightNotice: [
         `A ${marsQualities[0]} style when you take action or initiate`,
@@ -2598,25 +2598,25 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
 
         {/* Core Tensions & Gifts Side by Side on larger screens, stacked on mobile */}
         <View style={styles.tensionsGiftsRow}>
-          {/* Core Tensions */}
+          {/* Core Tensions - Softer, premium colors */}
           {tensions.length > 0 && (
-            <View style={[styles.tensionsCard, { backgroundColor: '#FEF3F2', borderColor: '#FECACA' }]}>
-              <Text style={[styles.tensionsTitle, { color: '#DC2626' }]}>TENSIONS</Text>
+            <View style={[styles.tensionsCard, { backgroundColor: '#FDF6F5', borderColor: '#F5D5D0' }]}>
+              <Text style={[styles.tensionsTitle, { color: '#B85450' }]}>TENSIONS</Text>
               {tensions.map((t, i) => (
                 <View key={i} style={styles.tensionItem}>
-                  <Text style={[styles.tensionText, { color: '#7F1D1D' }]}>{t}</Text>
+                  <Text style={[styles.tensionText, { color: '#6B4544' }]}>{t}</Text>
                 </View>
               ))}
             </View>
           )}
 
-          {/* Core Gifts */}
+          {/* Core Gifts - Softer, premium colors */}
           {gifts.length > 0 && (
-            <View style={[styles.giftsCard, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
-              <Text style={[styles.giftsTitle, { color: '#16A34A' }]}>GIFTS</Text>
+            <View style={[styles.giftsCard, { backgroundColor: '#F5FAF6', borderColor: '#D0E8D5' }]}>
+              <Text style={[styles.giftsTitle, { color: '#5A8A62' }]}>GIFTS</Text>
               {gifts.map((g, i) => (
                 <View key={i} style={styles.giftItem}>
-                  <Text style={[styles.giftText, { color: '#14532D' }]}>{g}</Text>
+                  <Text style={[styles.giftText, { color: '#3D5A42' }]}>{g}</Text>
                 </View>
               ))}
             </View>
@@ -2688,9 +2688,10 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
       activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today'
     );
 
-    // Get refined content (max 3 items each)
-    const feelings = getWhatThisMayFeelLike(currentWindow?.strongest_hits || []).slice(0, 3);
-    const mistakes = getMistakeToWatch(currentWindow?.strongest_hits || []).slice(0, 3);
+    // Get refined content (max 3 items each) - PASS TIMEFRAME
+    const currentTimeframe = activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today';
+    const feelings = getWhatThisMayFeelLike(currentWindow?.strongest_hits || [], currentTimeframe).slice(0, 3);
+    const mistakes = getMistakeToWatch(currentWindow?.strongest_hits || [], currentTimeframe).slice(0, 3);
     const question = getReflectionQuestion(
       currentWindow?.strongest_hits || [],
       activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today'
@@ -2813,8 +2814,8 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           <View style={styles.signalsToggleContent}>
             <Text style={[styles.signalsToggleText, { color: theme.textTertiary }]}>
               {signalsExpanded 
-                ? (activeAltitude === 'today' ? 'Hide signals' : activeAltitude === 'week' ? "Hide this week's signals" : "Hide this month's signals")
-                : (activeAltitude === 'today' ? 'See signals' : activeAltitude === 'week' ? "See this week's signals" : "See this month's signals")
+                ? (activeAltitude === 'today' ? 'Hide what today is based on' : activeAltitude === 'week' ? "Hide what this week is based on" : "Hide what this month is based on")
+                : (activeAltitude === 'today' ? 'What today is based on' : activeAltitude === 'week' ? "What this week is based on" : "What this month is based on")
               }
             </Text>
             <Text style={[styles.signalsToggleIcon, { color: theme.textTertiary }]}>
@@ -4027,21 +4028,25 @@ const styles = StyleSheet.create({
   },
   // Today Question Card
   todayQuestionCard: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 18,
-    marginBottom: 12,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    padding: 24,
+    marginBottom: 16,
+    marginTop: 8,
   },
   todayQuestionLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 10,
+    letterSpacing: 1.2,
+    marginBottom: 14,
+    textAlign: 'center',
   },
   todayQuestionText: {
-    fontSize: 17,
-    fontWeight: '500',
-    lineHeight: 24,
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 28,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   // Signals Toggle
   signalsToggle: {
