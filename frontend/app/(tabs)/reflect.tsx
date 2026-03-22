@@ -224,6 +224,11 @@ export default function JournalScreen() {
   const [microMirrorResponse, setMicroMirrorResponse] = useState<string | null>(null);
   const [microMirrorEntryId, setMicroMirrorEntryId] = useState<string | null>(null);
   const [microMirrorVisible, setMicroMirrorVisible] = useState(false);
+  
+  // Post-save highlight state (for newest entry)
+  const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
+  const HIGHLIGHT_CLEAR_DELAY = 2500; // Clear after 2.5s (animation is 2s)
+  
   const router = useRouter();
 
   // Collapsible intro card state (Part 1 & 2) - DEFAULT TO COLLAPSED for write-first UX
@@ -642,6 +647,13 @@ export default function JournalScreen() {
       
       // Clear pattern metadata after successful submission
       setPatternMetadata(null);
+      
+      // HIGHLIGHT: Set the newly saved entry as highlighted
+      setHighlightedEntryId(entry.id);
+      // Clear highlight after animation completes
+      setTimeout(() => {
+        setHighlightedEntryId(null);
+      }, HIGHLIGHT_CLEAR_DELAY);
 
       // Generate and show Micro-Mirror response using unified engine (non-blocking)
       // ONLY after confirmed save
@@ -1616,7 +1628,7 @@ export default function JournalScreen() {
               <FlatList
                 ref={flatListRef}
                 data={journalEntries}
-                extraData={journalEntries.length} // Force re-render on length change
+                extraData={`${journalEntries.length}-${highlightedEntryId}`} // Force re-render on length or highlight change
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                   <JournalEntryItem
@@ -1628,6 +1640,7 @@ export default function JournalScreen() {
                     onEdit={handleEditEntry}
                     onDelete={handleDeleteEntry}
                     isReflectDisabled={reflectionModalVisible}
+                    isHighlighted={item.id === highlightedEntryId}
                   />
                 )}
                 contentContainerStyle={styles.listContent}

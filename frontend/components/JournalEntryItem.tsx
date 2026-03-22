@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -9,10 +9,15 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Animated,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { format } from 'date-fns';
 import { useTheme } from '../contexts/ThemeContext';
+
+// Highlight animation constants
+const HIGHLIGHT_DURATION = 2000; // 2 seconds
+const HIGHLIGHT_FADE_DURATION = 400;
 
 interface JournalEntryItemProps {
   id: string;
@@ -23,6 +28,7 @@ interface JournalEntryItemProps {
   onEdit?: (id: string, newContent: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   isReflectDisabled?: boolean;
+  isHighlighted?: boolean; // NEW: highlight state for newly saved entries
 }
 
 export default function JournalEntryItem({
@@ -34,8 +40,9 @@ export default function JournalEntryItem({
   onEdit,
   onDelete,
   isReflectDisabled = false,
+  isHighlighted = false,
 }: JournalEntryItemProps) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(content);
@@ -43,7 +50,55 @@ export default function JournalEntryItem({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
+  // Highlight animation
+  const highlightAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  
+  // Run highlight animation when isHighlighted becomes true
+  useEffect(() => {
+    if (isHighlighted) {
+      // Start highlight animation
+      highlightAnim.setValue(1);
+      scaleAnim.setValue(1.015); // Subtle scale bump
+      
+      // After HIGHLIGHT_DURATION, fade out
+      const fadeTimer = setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(highlightAnim, {
+            toValue: 0,
+            duration: HIGHLIGHT_FADE_DURATION,
+            useNativeDriver: false, // backgroundColor can't use native driver
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: HIGHLIGHT_FADE_DURATION,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, HIGHLIGHT_DURATION);
+      
+      return () => clearTimeout(fadeTimer);
+    }
+  }, [isHighlighted, highlightAnim, scaleAnim]);
+  
   const formattedDate = format(new Date(created_at), 'MMM d, yyyy');
+
+  // Interpolate highlight color
+  const highlightBackgroundColor = highlightAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      theme.surface, 
+      isDark ? 'rgba(139, 92, 246, 0.12)' : 'rgba(139, 92, 246, 0.08)'
+    ],
+  });
+  
+  const highlightBorderColor = highlightAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      'transparent',
+      isDark ? 'rgba(139, 92, 246, 0.4)' : 'rgba(139, 92, 246, 0.3)'
+    ],
+  });
 
   const handleEdit = () => {
     setShowMenu(false);
@@ -149,10 +204,25 @@ export default function JournalEntryItem({
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.surface }]}>
+    <Animated.View 
+      style={[
+        styles.container, 
+        { 
+          backgroundColor: isHighlighted ? highlightBackgroundColor : theme.surface,
+          borderWidth: isHighlighted ? 1.5 : 0,
+          borderColor: isHighlighted ? highlightBorderColor : 'transparent',
+          transform: [{ scale: scaleAnim }],
+        }
+      ]}
+    >
       {/* Header with date and actions */}
       <View style={styles.header}>
-        <Text style={[styles.date, { color: theme.textTertiary }]}>{formattedDate}</Text>
+        <View style={styles.headerLeft}>
+          <Text style={[styles.date, { color: theme.textTertiary }]}>{formattedDate}</Text>
+          {isHighlighted && (
+            <Text style={[styles.savedLabel, { color: Colors.accent }]}>✓ Saved</Text>
+          )}
+        </View>
         <View style={styles.headerActions}>
           {/* Reflect with Mirror button - primary visible action */}
           {onReflect && (
@@ -271,7 +341,7 @@ export default function JournalEntryItem({
           </View>
         </TouchableOpacity>
       </Modal>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -287,6 +357,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  savedLabel: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   date: {
     fontSize: 12,
