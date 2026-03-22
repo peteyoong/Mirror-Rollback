@@ -2,9 +2,9 @@
  * AstrologyTimelineTab.tsx
  * 
  * "THE YEAR AS IT UNFOLDS"
- * Dedicated tab for yearly strategic timeline view
+ * Master Astrologer Timeline - Personalized yearly strategic view
  * 
- * This shows a Master Astrologer level view of the year's arc.
+ * UPGRADED: Chart-specific, house-aware, behavioral language
  */
 
 import React, { useState, useMemo } from 'react';
@@ -16,7 +16,6 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
-  ScrollView,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
@@ -45,6 +44,7 @@ interface TimelinePhase {
 interface TurningPoint {
   id: string;
   date: string;
+  lifeArea: string;
   whyThisMatters: string;
   whatBecomesClear: string;
   whatHappensIfAvoided: string;
@@ -53,6 +53,7 @@ interface TurningPoint {
 interface DecisionWindow {
   id: string;
   dateRange: string;
+  context: string;
   prompt: string;
   ifYouAct: string;
   ifYouWait: string;
@@ -73,6 +74,139 @@ interface AstrologyTimelineTabProps {
 }
 
 // ============================================
+// HOUSE LIFE AREA MAPPING
+// ============================================
+
+const HOUSE_AREAS: { [key: number]: string } = {
+  1: 'identity and how you show up',
+  2: 'money, security, and self-worth',
+  3: 'communication, decisions, and daily routines',
+  4: 'home, family, and emotional foundation',
+  5: 'creativity, joy, and what you pour yourself into',
+  6: 'work, health, and daily habits',
+  7: 'relationships and partnerships',
+  8: 'intimacy, shared resources, and transformation',
+  9: 'beliefs, meaning, and long-term direction',
+  10: 'career, reputation, and public life',
+  11: 'community, future vision, and friendships',
+  12: 'rest, solitude, and what you hide from yourself',
+};
+
+const HOUSE_SHORT: { [key: number]: string } = {
+  1: 'identity',
+  2: 'security',
+  3: 'communication',
+  4: 'home',
+  5: 'creativity',
+  6: 'work',
+  7: 'relationships',
+  8: 'intimacy',
+  9: 'direction',
+  10: 'career',
+  11: 'community',
+  12: 'inner life',
+};
+
+// ============================================
+// TENSION PATTERNS BY SIGN
+// ============================================
+
+interface PatternData {
+  tension: string;
+  yearTheme: string;
+  arcDescription: string;
+  costOfAction: string;
+  costOfWaiting: string;
+}
+
+const SIGN_PATTERNS: { [key: string]: PatternData } = {
+  'Aries': {
+    tension: 'moving fast vs. moving right',
+    yearTheme: 'This year keeps asking whether speed is actually getting you closer—or just keeping you from feeling stuck.',
+    arcDescription: 'You\'ll notice the same friction between action and timing appearing in different contexts. The impulse to move shows up first; the question of whether it\'s time comes second. The year is teaching you that readiness isn\'t the same as restlessness.',
+    costOfAction: 'the conversation gets uncomfortable fast, but the uncertainty stops running the show',
+    costOfWaiting: 'you preserve momentum for now, but the question you\'re avoiding gets louder',
+  },
+  'Taurus': {
+    tension: 'holding on vs. letting go',
+    yearTheme: 'This year keeps showing you the difference between stability and stagnation—and which one you\'ve been calling the other.',
+    arcDescription: 'Across the year, you\'ll feel the weight of things you\'ve been carrying longer than necessary. The pattern isn\'t about loss—it\'s about recognizing when holding on has become the obstacle, not the anchor.',
+    costOfAction: 'the discomfort of releasing something familiar, but the relief of finally moving',
+    costOfWaiting: 'the comfort of keeping things as they are, but the growing sense that comfort isn\'t the same as peace',
+  },
+  'Gemini': {
+    tension: 'exploring options vs. choosing a path',
+    yearTheme: 'This year keeps narrowing your options until you discover which one you actually want—not which one sounds interesting.',
+    arcDescription: 'You\'ll notice the same tension between curiosity and commitment returning in different forms. The year isn\'t trying to limit you. It\'s showing you that depth requires staying somewhere long enough to see what\'s really there.',
+    costOfAction: 'closing doors feels limiting, but the focus brings clarity you couldn\'t find while juggling',
+    costOfWaiting: 'options remain open, but the energy stays scattered and nothing quite lands',
+  },
+  'Cancer': {
+    tension: 'protecting vs. connecting',
+    yearTheme: 'This year keeps asking whether your walls are keeping you safe—or keeping out what you actually need.',
+    arcDescription: 'Across the year, you\'ll notice the same pattern: the instinct to protect, followed by the cost of isolation. The year is teaching you that vulnerability isn\'t the opposite of safety—sometimes it\'s the only path to it.',
+    costOfAction: 'the exposure feels raw, but the connection becomes real instead of guarded',
+    costOfWaiting: 'the distance feels safer, but the loneliness underneath keeps growing',
+  },
+  'Leo': {
+    tension: 'being seen vs. being known',
+    yearTheme: 'This year keeps showing you the difference between the version of you that performs and the version that\'s actually real.',
+    arcDescription: 'You\'ll feel the gap between how you present and how you feel appearing in different contexts. The year isn\'t asking you to stop shining. It\'s asking whether the light is coming from somewhere authentic.',
+    costOfAction: 'the mask drops, and not everyone will recognize you—but the right ones will',
+    costOfWaiting: 'the performance continues smoothly, but the exhaustion of maintaining it grows',
+  },
+  'Virgo': {
+    tension: 'fixing vs. accepting',
+    yearTheme: 'This year keeps asking whether the problem is actually the thing you\'re trying to fix—or the fact that you can\'t stop fixing.',
+    arcDescription: 'Across the year, you\'ll notice the same impulse: something isn\'t right, and you\'re the one who sees it. The pattern isn\'t about lowering your standards. It\'s about recognizing when improvement has become avoidance.',
+    costOfAction: 'you let something be imperfect, and it doesn\'t collapse—the anxiety was the problem',
+    costOfWaiting: 'you keep refining, but the thing you\'re avoiding keeps waiting underneath the tasks',
+  },
+  'Libra': {
+    tension: 'pleasing vs. choosing',
+    yearTheme: 'This year keeps putting you in positions where harmony requires honesty—and you can\'t have both by staying silent.',
+    arcDescription: 'You\'ll feel the same tension between keeping the peace and stating your position appearing in different relationships. The year isn\'t asking you to become disagreeable. It\'s showing you that real connection requires knowing where you actually stand.',
+    costOfAction: 'the conversation gets tense, but they finally know who they\'re dealing with',
+    costOfWaiting: 'the relationship stays smooth on the surface, but you start disappearing from it',
+  },
+  'Scorpio': {
+    tension: 'controlling vs. trusting',
+    yearTheme: 'This year keeps asking you to loosen your grip—and discover what stays when you stop holding so tightly.',
+    arcDescription: 'Across the year, you\'ll notice the same pattern: the impulse to control outcomes, followed by the cost of never knowing what would have happened naturally. The year is teaching you that trust isn\'t weakness—it\'s a different kind of power.',
+    costOfAction: 'you let go, and it\'s terrifying—but you finally see what\'s real without your influence',
+    costOfWaiting: 'you maintain control, but you never know if what you have would have chosen you back',
+  },
+  'Sagittarius': {
+    tension: 'freedom vs. commitment',
+    yearTheme: 'This year keeps showing you that some kinds of freedom are actually just avoidance wearing adventure as a costume.',
+    arcDescription: 'You\'ll feel the pull between staying and going appearing in different contexts. The year isn\'t trying to cage you. It\'s asking whether the next horizon is actually calling—or just easier than being fully present here.',
+    costOfAction: 'you commit, and some doors close—but you finally find out what\'s behind the one you chose',
+    costOfWaiting: 'all options stay open, but you start noticing how shallow everything feels',
+  },
+  'Capricorn': {
+    tension: 'achieving vs. arriving',
+    yearTheme: 'This year keeps asking whether you\'re climbing toward something real—or just avoiding the emptiness that might be at the top.',
+    arcDescription: 'Across the year, you\'ll notice the same pattern: the drive to accomplish, followed by the question of what it\'s actually for. The year isn\'t asking you to stop working. It\'s asking whether the work is building something that matters to you.',
+    costOfAction: 'you pause the climb, and the identity question hits—but so does clarity about what\'s worth reaching',
+    costOfWaiting: 'you keep achieving, but the satisfaction keeps requiring the next achievement to feel real',
+  },
+  'Aquarius': {
+    tension: 'distance vs. belonging',
+    yearTheme: 'This year keeps asking whether your independence is freedom—or just a sophisticated way of staying alone.',
+    arcDescription: 'You\'ll feel the tension between standing apart and being part of something appearing in different contexts. The year isn\'t asking you to conform. It\'s asking whether the distance is protecting something valuable—or just preventing connection.',
+    costOfAction: 'you move closer, and it feels vulnerable—but you finally know what belonging actually feels like',
+    costOfWaiting: 'you maintain your position, but the loneliness you\'ve been calling freedom gets harder to ignore',
+  },
+  'Pisces': {
+    tension: 'absorbing vs. protecting',
+    yearTheme: 'This year keeps showing you the difference between compassion and losing yourself—and how often you\'ve confused them.',
+    arcDescription: 'Across the year, you\'ll notice the same pattern: feeling everything around you, followed by the cost of not knowing which feelings are actually yours. The year is teaching you that boundaries aren\'t walls—they\'re the shape of who you are.',
+    costOfAction: 'you draw a line, and it feels selfish—but you finally have energy that belongs to you',
+    costOfWaiting: 'you keep absorbing, but you start forgetting what you wanted before you felt what everyone else needed',
+  },
+};
+
+// ============================================
 // TIMELINE DATA GENERATOR
 // ============================================
 
@@ -80,114 +214,117 @@ function generateTimelineData(
   fullChartData: FullChartData | null
 ): TimelineData {
   const planets = fullChartData?.natal?.planets || {};
+  const houses = fullChartData?.natal?.houses?.cusps || [];
+  
   const sunSign = planets.Sun?.sign || 'Aries';
+  const moonSign = planets.Moon?.sign || 'Cancer';
+  const sunHouse = planets.Sun?.house || 5;
+  const moonHouse = planets.Moon?.house || 4;
+  const marsHouse = planets.Mars?.house || 1;
+  const venusHouse = planets.Venus?.house || 7;
+  const saturnHouse = planets.Saturn?.house || 10;
   
   const currentYear = new Date().getFullYear();
   
-  // Default pattern based on sun sign
-  const dominantPattern = sunSign === 'Aries' ? 'urgency vs patience' :
-                          sunSign === 'Taurus' ? 'holding vs releasing' :
-                          sunSign === 'Gemini' ? 'scattered vs focused' :
-                          sunSign === 'Cancer' ? 'protecting vs opening' :
-                          sunSign === 'Leo' ? 'performing vs being' :
-                          sunSign === 'Virgo' ? 'fixing vs accepting' :
-                          sunSign === 'Libra' ? 'pleasing vs choosing' :
-                          sunSign === 'Scorpio' ? 'controlling vs trusting' :
-                          sunSign === 'Sagittarius' ? 'escaping vs committing' :
-                          sunSign === 'Capricorn' ? 'working vs resting' :
-                          sunSign === 'Aquarius' ? 'detaching vs connecting' :
-                          'absorbing vs protecting';
-
-  const yearTheme = `This is a year where the tension between ${dominantPattern} keeps returning until you learn to hold both.`;
+  // Get pattern data for this chart
+  const patternData = SIGN_PATTERNS[sunSign] || SIGN_PATTERNS['Aries'];
   
-  const primaryArc = `Across the year, you'll notice the same pattern appearing in different contexts—${dominantPattern}. Each time it shows up, the question gets clearer. The year isn't trying to break this pattern. It's teaching you to work with it consciously.`;
+  // Build house-specific life areas
+  const sunArea = HOUSE_AREAS[sunHouse] || 'self-expression';
+  const moonArea = HOUSE_AREAS[moonHouse] || 'emotional life';
+  const marsArea = HOUSE_SHORT[marsHouse] || 'action';
+  const venusArea = HOUSE_SHORT[venusHouse] || 'relationships';
+  const saturnArea = HOUSE_SHORT[saturnHouse] || 'responsibility';
+  
+  const yearTheme = patternData.yearTheme;
+  const primaryArc = patternData.arcDescription;
 
   const phases: TimelinePhase[] = [
     {
       id: 'q1',
-      dateRange: `January - March ${currentYear}`,
-      phaseName: 'Seeds and Signals',
+      dateRange: `Jan – Mar ${currentYear}`,
+      phaseName: 'Recognition',
       whatsHappening: [
-        'The year\'s dominant pattern begins to emerge',
-        'Early signals you might dismiss or overlook',
+        `The ${patternData.tension} tension starts showing up in ${sunArea}`,
+        `Small moments in ${marsArea} and ${venusArea} that carry more weight than they look`,
       ],
       whatThisCreates: [
-        'A subtle sense that something familiar is returning',
-        'Opportunities to catch the pattern early',
+        'A nagging sense you\'ve been here before',
+        'Situations that feel minor but keep replaying in your head',
       ],
       wherePeopleGetItWrong: [
-        'Treating early signals as isolated incidents',
-        'Missing the connection between different situations',
+        'Treating these moments as coincidence instead of signal',
+        'Waiting for something bigger before paying attention',
       ],
       whatItsAskingOfYou: [
-        'Pay attention to what keeps coming up',
-        'Notice without rushing to fix',
+        `Notice what keeps echoing, especially around ${moonArea}`,
+        'Start asking "why does this keep happening?" instead of "when will this stop?"',
       ],
       isPrimary: false,
     },
     {
       id: 'q2',
-      dateRange: `April - June ${currentYear}`,
-      phaseName: 'Pressure Builds',
+      dateRange: `Apr – Jun ${currentYear}`,
+      phaseName: 'Confrontation',
       whatsHappening: [
-        'The pattern becomes harder to ignore',
-        'External situations mirror internal tensions',
+        `What you\'ve been tolerating in ${venusArea} and ${saturnArea} stops feeling tolerable`,
+        `The gap between how you present in ${sunArea} and how you feel in ${moonArea} gets harder to bridge`,
       ],
       whatThisCreates: [
-        'Moments of discomfort that demand attention',
-        'Choices that feel more consequential',
+        'Conversations you\'ve been putting off start demanding attention',
+        'Choices that feel more permanent than before',
       ],
       wherePeopleGetItWrong: [
-        'Blaming circumstances instead of seeing the pattern',
-        'Making reactive decisions to escape discomfort',
+        'Blaming the situation instead of seeing what you brought to it',
+        'Making a decision just to escape the pressure, then regretting the speed',
       ],
       whatItsAskingOfYou: [
-        'Acknowledge what you\'ve been avoiding',
-        'Choose from clarity, not reactivity',
+        'Name what you\'ve been pretending not to see',
+        `In ${saturnArea}, choose from clarity—not from wanting the discomfort to end`,
       ],
       isPrimary: true,
     },
     {
       id: 'q3',
-      dateRange: `July - September ${currentYear}`,
+      dateRange: `Jul – Sep ${currentYear}`,
       phaseName: 'The Crossroads',
       whatsHappening: [
-        'The year\'s central choice becomes visible',
-        'Old patterns and new possibilities coexist',
+        `In ${sunArea}, two versions of you become visible—the one you\'ve been and the one you could become`,
+        `The tension in ${venusArea} crystallizes into a clear choice`,
       ],
       whatThisCreates: [
-        'A clear before/after moment',
-        'The weight of choosing a direction',
+        'A sense that this period will be remembered as a before/after moment',
+        'The strange calm of knowing what you need to do, even if you haven\'t done it yet',
       ],
       wherePeopleGetItWrong: [
-        'Waiting for certainty that never comes',
-        'Choosing based on fear instead of alignment',
+        'Waiting for certainty that never comes—the information is already sufficient',
+        'Choosing based on what\'s comfortable instead of what\'s aligned',
       ],
       whatItsAskingOfYou: [
-        'Make the choice you\'ve been preparing for',
-        'Trust what you\'ve learned this year',
+        'Make the choice you\'ve been circling. The year has prepared you for this.',
+        'Trust what you\'ve learned about yourself since January',
       ],
       isPrimary: true,
     },
     {
       id: 'q4',
-      dateRange: `October - December ${currentYear}`,
+      dateRange: `Oct – Dec ${currentYear}`,
       phaseName: 'Integration',
       whatsHappening: [
-        'The consequences of earlier choices become visible',
-        'The year\'s lessons start to settle',
+        `The ripples from your Q3 choices start showing in ${saturnArea} and ${marsArea}`,
+        `What you decided in ${venusArea} either settles or requires one more honest conversation`,
       ],
       whatThisCreates: [
-        'Either: Earned clarity and new capacity',
-        'Or: Recognition that the lesson needs another cycle',
+        'Either: the relief of having finally moved, and the new ground beneath your feet',
+        'Or: the recognition that you\'re not done yet—and clarity about what next year needs to address',
       ],
       wherePeopleGetItWrong: [
-        'Forcing closure before it\'s ready',
-        'Dismissing what the year tried to teach',
+        'Forcing a sense of completion before it\'s earned',
+        'Dismissing what the year taught because it was uncomfortable',
       ],
       whatItsAskingOfYou: [
-        'Honest inventory of what changed',
-        'Gratitude for growth, acceptance for what remains',
+        `Honest inventory: what actually changed in ${sunArea}?`,
+        'Gratitude for the growth, acceptance for what remains',
       ],
       isPrimary: false,
     },
@@ -197,47 +334,53 @@ function generateTimelineData(
     {
       id: 'tp1',
       date: `Late April ${currentYear}`,
-      whyThisMatters: 'The pattern you\'ve been tolerating becomes impossible to ignore. Something makes it undeniably present.',
-      whatBecomesClear: 'What you\'ve been tolerating and why. The real cost of continuing as you have been.',
-      whatHappensIfAvoided: 'The pattern intensifies. What could be addressed now becomes a crisis later.',
+      lifeArea: `${HOUSE_AREAS[moonHouse] || 'emotional life'}`,
+      whyThisMatters: `Something happens in ${moonArea} that makes the ${patternData.tension} tension impossible to keep calling "manageable." The cost of continuing as you have been becomes clearer than the cost of changing.`,
+      whatBecomesClear: `What you\'ve been tolerating. Why you\'ve been tolerating it. And what it\'s actually been costing you in ${venusArea}.`,
+      whatHappensIfAvoided: 'The pattern doesn\'t go away—it goes underground. What could have been addressed as a conversation becomes a crisis by August.',
     },
     {
       id: 'tp2',
       date: `Mid-August ${currentYear}`,
-      whyThisMatters: 'This is the year\'s primary decision point. The options are clear. The information is sufficient.',
-      whatBecomesClear: 'Which direction aligns with who you\'re becoming, not just who you\'ve been.',
-      whatHappensIfAvoided: 'The choice gets made for you by circumstances. You lose authorship of your own direction.',
+      lifeArea: `${HOUSE_AREAS[sunHouse] || 'identity'}`,
+      whyThisMatters: `This is the year\'s primary choice point in ${sunArea}. The options are clear. The information is sufficient. What remains is whether you\'ll choose from who you\'re becoming—or retreat to who you\'ve been.`,
+      whatBecomesClear: 'Which direction matches the person you\'ve been growing into. The version of you that hesitates and the version that moves forward both become visible.',
+      whatHappensIfAvoided: `The choice gets made for you by circumstances. In ${saturnArea}, you lose authorship of your own direction.`,
     },
     {
       id: 'tp3',
       date: `Early November ${currentYear}`,
-      whyThisMatters: 'The year\'s arc reaches its natural conclusion point. What was started is ready to be named.',
-      whatBecomesClear: 'Whether the year\'s lesson landed or needs to repeat.',
-      whatHappensIfAvoided: 'You enter next year carrying what this year tried to resolve.',
+      lifeArea: `${HOUSE_AREAS[saturnHouse] || 'responsibility'}`,
+      whyThisMatters: `The year\'s arc reaches its natural conclusion in ${saturnArea}. What you started in Q1 is ready to be named: either as something that changed, or as something that needs another cycle.`,
+      whatBecomesClear: 'Whether the year\'s lesson landed. Whether you\'re entering next year with new ground beneath you—or carrying forward what this year tried to resolve.',
+      whatHappensIfAvoided: 'You enter next year still holding what this year asked you to put down. The same pattern returns, but with higher stakes.',
     },
   ];
 
   const decisionWindows: DecisionWindow[] = [
     {
       id: 'dw1',
-      dateRange: `March 15-31, ${currentYear}`,
-      prompt: 'You can commit early. Or you can keep gathering information.',
-      ifYouAct: 'You gain momentum but may need to adjust course later.',
-      ifYouWait: 'You gain clarity but certain options may no longer be available.',
+      dateRange: `Mar 15-31, ${currentYear}`,
+      context: `In ${HOUSE_SHORT[marsHouse] || 'action'}`,
+      prompt: 'You can name it now. Or you can wait until it names itself.',
+      ifYouAct: 'The conversation gets uncomfortable fast, but the uncertainty stops running the show. In two weeks, you\'ll be glad you didn\'t wait.',
+      ifYouWait: 'You preserve the surface peace for now, but the thing you\'re avoiding keeps growing underneath it. By May, it\'s bigger.',
     },
     {
       id: 'dw2',
-      dateRange: `June 1-15, ${currentYear}`,
-      prompt: 'You can have the conversation you\'ve been avoiding. Or you can let things continue.',
-      ifYouAct: 'Short-term discomfort, long-term clarity. Something transforms.',
-      ifYouWait: 'The tension remains but so does the situation. For now.',
+      dateRange: `Jun 1-15, ${currentYear}`,
+      context: `In ${HOUSE_SHORT[venusHouse] || 'relationships'}`,
+      prompt: 'You can say what\'s actually true. Or you can keep editing yourself for the room.',
+      ifYouAct: `${patternData.costOfAction}. The relationship changes—but at least now it\'s based on something real.`,
+      ifYouWait: `${patternData.costOfWaiting}. The connection stays familiar, but you start noticing how tired you are of managing it.`,
     },
     {
       id: 'dw3',
-      dateRange: `September 1-20, ${currentYear}`,
-      prompt: 'You can lock in the new direction. Or you can preserve your options.',
-      ifYouAct: 'Commitment creates momentum. Some doors close, others open.',
-      ifYouWait: 'Flexibility remains but focus diffuses. Energy spreads thin.',
+      dateRange: `Sep 1-20, ${currentYear}`,
+      context: `In ${HOUSE_SHORT[saturnHouse] || 'career'}`,
+      prompt: 'You can commit to the new direction. Or you can keep one foot in both worlds.',
+      ifYouAct: 'Some doors close. The grief is real. But so is the focus—and the energy that comes from finally choosing.',
+      ifYouWait: 'All options stay open, but your energy stays scattered. By November, you\'ll wish you\'d trusted yourself sooner.',
     },
   ];
 
@@ -277,19 +420,16 @@ export default function AstrologyTimelineTab({
       {/* Header */}
       <View style={styles.headerContainer}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>
-          THE YEAR AS IT UNFOLDS
+          The Year As It Unfolds
         </Text>
         <Text style={[styles.headerSubtitle, { color: theme.textTertiary }]}>
           Where things build, break, and shift
-        </Text>
-        <Text style={[styles.headerHelper, { color: theme.textSecondary }]}>
-          This is the longer arc behind what you're experiencing day to day.
         </Text>
       </View>
 
       {/* Year Theme */}
       <View style={[styles.yearThemeCard, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.05)', borderColor: Colors.accent + '30' }]}>
-        <Text style={[styles.yearThemeLabel, { color: Colors.accent }]}>YEAR THEME</Text>
+        <Text style={[styles.yearThemeLabel, { color: Colors.accent }]}>THIS YEAR'S QUESTION</Text>
         <Text style={[styles.yearThemeText, { color: theme.text }]}>
           {timelineData.yearTheme}
         </Text>
@@ -297,7 +437,7 @@ export default function AstrologyTimelineTab({
 
       {/* Primary Arc */}
       <View style={styles.primaryArcContainer}>
-        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>PRIMARY ARC</Text>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>THE ARC</Text>
         <Text style={[styles.primaryArcText, { color: theme.textSecondary }]}>
           {timelineData.primaryArc}
         </Text>
@@ -305,7 +445,7 @@ export default function AstrologyTimelineTab({
 
       {/* Key Phases */}
       <View style={styles.phasesContainer}>
-        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>KEY PHASES</Text>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>HOW IT UNFOLDS</Text>
         
         {timelineData.phases.map((phase) => (
           <TouchableOpacity
@@ -326,7 +466,7 @@ export default function AstrologyTimelineTab({
                 {phase.isPrimary && (
                   <Text style={[styles.primaryBadge, { color: Colors.accent }]}>⭐</Text>
                 )}
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={[styles.phaseDateRange, { color: theme.textTertiary }]}>
                     {phase.dateRange}
                   </Text>
@@ -344,7 +484,7 @@ export default function AstrologyTimelineTab({
               <View style={styles.phaseDetails}>
                 <View style={styles.phaseSection}>
                   <Text style={[styles.phaseSectionTitle, { color: theme.textSecondary }]}>
-                    What's actually happening
+                    What's happening
                   </Text>
                   {phase.whatsHappening.map((item, i) => (
                     <Text key={i} style={[styles.phaseBullet, { color: theme.text }]}>• {item}</Text>
@@ -353,7 +493,7 @@ export default function AstrologyTimelineTab({
 
                 <View style={styles.phaseSection}>
                   <Text style={[styles.phaseSectionTitle, { color: theme.textSecondary }]}>
-                    What this tends to create
+                    What this creates
                   </Text>
                   {phase.whatThisCreates.map((item, i) => (
                     <Text key={i} style={[styles.phaseBullet, { color: theme.text }]}>• {item}</Text>
@@ -361,7 +501,7 @@ export default function AstrologyTimelineTab({
                 </View>
 
                 <View style={styles.phaseSection}>
-                  <Text style={[styles.phaseSectionTitle, { color: '#FF6347' }]}>
+                  <Text style={[styles.phaseSectionTitle, { color: '#E57373' }]}>
                     Where people get it wrong
                   </Text>
                   {phase.wherePeopleGetItWrong.map((item, i) => (
@@ -371,7 +511,7 @@ export default function AstrologyTimelineTab({
 
                 <View style={styles.phaseSection}>
                   <Text style={[styles.phaseSectionTitle, { color: Colors.accent }]}>
-                    What this phase is asking of you
+                    What it's asking of you
                   </Text>
                   {phase.whatItsAskingOfYou.map((item, i) => (
                     <Text key={i} style={[styles.phaseBullet, { color: theme.text }]}>• {item}</Text>
@@ -386,17 +526,25 @@ export default function AstrologyTimelineTab({
       {/* Primary Turning Points */}
       <View style={styles.turningPointsContainer}>
         <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-          ⭐ PRIMARY TURNING POINTS
+          TURNING POINTS
+        </Text>
+        <Text style={[styles.sectionHelper, { color: theme.textTertiary }]}>
+          After these moments, pretending not to know stops working.
         </Text>
         
         {timelineData.turningPoints.map((tp) => (
           <View
             key={tp.id}
-            style={[styles.turningPointCard, { backgroundColor: isDark ? 'rgba(255, 215, 0, 0.06)' : 'rgba(255, 215, 0, 0.04)', borderColor: '#FFD70040' }]}
+            style={[styles.turningPointCard, { backgroundColor: isDark ? 'rgba(255, 193, 7, 0.06)' : 'rgba(255, 193, 7, 0.04)', borderColor: isDark ? 'rgba(255, 193, 7, 0.25)' : 'rgba(255, 193, 7, 0.2)' }]}
           >
-            <Text style={[styles.turningPointDate, { color: '#DAA520' }]}>
-              ⭐ {tp.date}
-            </Text>
+            <View style={styles.turningPointHeader}>
+              <Text style={[styles.turningPointDate, { color: isDark ? '#FFD54F' : '#F9A825' }]}>
+                ⭐ {tp.date}
+              </Text>
+              <Text style={[styles.turningPointArea, { color: theme.textTertiary }]}>
+                {tp.lifeArea}
+              </Text>
+            </View>
             
             <View style={styles.turningPointSection}>
               <Text style={[styles.turningPointSectionTitle, { color: theme.textSecondary }]}>
@@ -417,7 +565,7 @@ export default function AstrologyTimelineTab({
             </View>
 
             <View style={styles.turningPointSection}>
-              <Text style={[styles.turningPointSectionTitle, { color: '#FF6347' }]}>
+              <Text style={[styles.turningPointSectionTitle, { color: '#E57373' }]}>
                 What happens if avoided
               </Text>
               <Text style={[styles.turningPointText, { color: theme.textSecondary }]}>
@@ -431,7 +579,10 @@ export default function AstrologyTimelineTab({
       {/* Decision Windows */}
       <View style={styles.decisionWindowsContainer}>
         <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-          DECISION WINDOWS
+          CHOICE POINTS
+        </Text>
+        <Text style={[styles.sectionHelper, { color: theme.textTertiary }]}>
+          Windows where acting and waiting both carry distinct costs.
         </Text>
         
         {timelineData.decisionWindows.map((dw) => (
@@ -439,21 +590,26 @@ export default function AstrologyTimelineTab({
             key={dw.id}
             style={[styles.decisionWindowCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
-            <Text style={[styles.decisionWindowDateRange, { color: theme.textTertiary }]}>
-              {dw.dateRange}
-            </Text>
+            <View style={styles.decisionWindowHeader}>
+              <Text style={[styles.decisionWindowDateRange, { color: theme.textTertiary }]}>
+                {dw.dateRange}
+              </Text>
+              <Text style={[styles.decisionWindowContext, { color: Colors.accent }]}>
+                {dw.context}
+              </Text>
+            </View>
             
             <Text style={[styles.decisionWindowPrompt, { color: theme.text }]}>
               "{dw.prompt}"
             </Text>
 
             <View style={styles.decisionOutcomes}>
-              <View style={[styles.decisionOutcome, { backgroundColor: isDark ? 'rgba(76, 175, 80, 0.1)' : 'rgba(76, 175, 80, 0.05)' }]}>
-                <Text style={[styles.decisionOutcomeLabel, { color: '#4CAF50' }]}>If you act →</Text>
+              <View style={[styles.decisionOutcome, { backgroundColor: isDark ? 'rgba(76, 175, 80, 0.08)' : 'rgba(76, 175, 80, 0.05)' }]}>
+                <Text style={[styles.decisionOutcomeLabel, { color: '#66BB6A' }]}>If you act →</Text>
                 <Text style={[styles.decisionOutcomeText, { color: theme.textSecondary }]}>{dw.ifYouAct}</Text>
               </View>
-              <View style={[styles.decisionOutcome, { backgroundColor: isDark ? 'rgba(255, 152, 0, 0.1)' : 'rgba(255, 152, 0, 0.05)' }]}>
-                <Text style={[styles.decisionOutcomeLabel, { color: '#FF9800' }]}>If you wait →</Text>
+              <View style={[styles.decisionOutcome, { backgroundColor: isDark ? 'rgba(255, 167, 38, 0.08)' : 'rgba(255, 167, 38, 0.05)' }]}>
+                <Text style={[styles.decisionOutcomeLabel, { color: '#FFA726' }]}>If you wait →</Text>
                 <Text style={[styles.decisionOutcomeText, { color: theme.textSecondary }]}>{dw.ifYouWait}</Text>
               </View>
             </View>
@@ -483,28 +639,29 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   headerContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: 0.3,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 13,
     fontStyle: 'italic',
-    marginBottom: 8,
-  },
-  headerHelper: {
-    fontSize: 12,
-    lineHeight: 18,
   },
   sectionLabel: {
     fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  sectionHelper: {
+    fontSize: 12,
+    fontStyle: 'italic',
     marginBottom: 12,
+    marginTop: -4,
   },
   
   // Year Theme
@@ -515,15 +672,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   yearThemeLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
     marginBottom: 10,
   },
   yearThemeText: {
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '500',
+    fontStyle: 'italic',
   },
 
   // Primary Arc
@@ -540,16 +698,16 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   phaseCard: {
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 10,
     overflow: 'hidden',
   },
   phaseHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 14,
+    padding: 12,
   },
   phaseHeaderLeft: {
     flexDirection: 'row',
@@ -557,40 +715,42 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryBadge: {
-    fontSize: 14,
-    marginRight: 10,
+    fontSize: 12,
+    marginRight: 8,
   },
   phaseDateRange: {
     fontSize: 11,
+    fontWeight: '500',
   },
   phaseName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: 1,
   },
   phaseExpandIcon: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '300',
+    marginLeft: 8,
   },
   phaseDetails: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingBottom: 14,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0,0,0,0.1)',
-    paddingTop: 14,
+    borderTopColor: 'rgba(128,128,128,0.2)',
+    paddingTop: 12,
   },
   phaseSection: {
-    marginBottom: 14,
+    marginBottom: 12,
   },
   phaseSectionTitle: {
     fontSize: 11,
     fontWeight: '600',
-    marginBottom: 6,
+    marginBottom: 5,
   },
   phaseBullet: {
     fontSize: 13,
-    lineHeight: 20,
-    marginLeft: 4,
+    lineHeight: 19,
+    marginLeft: 2,
     marginBottom: 2,
   },
 
@@ -599,27 +759,38 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   turningPointCard: {
-    padding: 16,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 10,
     borderWidth: 1,
+    marginBottom: 10,
+  },
+  turningPointHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   turningPointDate: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    marginBottom: 14,
+  },
+  turningPointArea: {
+    fontSize: 11,
+    fontStyle: 'italic',
   },
   turningPointSection: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   turningPointSectionTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 3,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   turningPointText: {
     fontSize: 13,
-    lineHeight: 20,
+    lineHeight: 19,
   },
 
   // Decision Windows
@@ -627,36 +798,47 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   decisionWindowCard: {
-    padding: 16,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 10,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 10,
+  },
+  decisionWindowHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   decisionWindowDateRange: {
     fontSize: 11,
-    marginBottom: 8,
+    fontWeight: '500',
+  },
+  decisionWindowContext: {
+    fontSize: 10,
+    fontWeight: '600',
   },
   decisionWindowPrompt: {
-    fontSize: 15,
+    fontSize: 14,
     fontStyle: 'italic',
     fontWeight: '500',
-    marginBottom: 14,
+    marginBottom: 12,
+    lineHeight: 20,
   },
   decisionOutcomes: {
-    gap: 10,
+    gap: 8,
   },
   decisionOutcome: {
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
   },
   decisionOutcomeLabel: {
     fontSize: 11,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   decisionOutcomeText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 17,
   },
 
   // Ask Mirror Button

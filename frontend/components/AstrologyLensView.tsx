@@ -225,7 +225,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
         onPress={() => setActiveTab('at_a_glance')}
       >
         <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'at_a_glance' && { color: theme.text }]}>
-          At a Glance
+          Glance
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
