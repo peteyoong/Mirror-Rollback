@@ -122,13 +122,13 @@ export default function JournalLeaderCard({ isExpanded, onToggle }: JournalLeade
 }
 
 const styles = StyleSheet.create({
-  // Collapsed state styles
+  // Collapsed state styles - tighter
   collapsedContainer: {
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    marginBottom: 8, // Reduced from 12
+    paddingVertical: 10, // Reduced from 12
+    paddingHorizontal: 14,
   },
   collapsedContent: {
     flexDirection: 'row',
@@ -136,19 +136,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   collapsedText: {
-    fontSize: 14,
+    fontSize: 13, // Reduced from 14
     fontStyle: 'italic',
   },
   expandToggle: {
-    fontSize: 12,
+    fontSize: 11, // Reduced from 12
     fontWeight: '500',
   },
   
-  // Expanded state styles
+  // Expanded state styles - more compact
   container: {
-    borderRadius: 14,
+    borderRadius: 12, // Reduced from 14
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
+    marginBottom: 8, // Reduced from 12
     position: 'relative',
     overflow: 'hidden',
   },
@@ -160,35 +160,35 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   content: {
-    padding: 16,
+    padding: 14, // Reduced from 16
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 10, // Reduced from 12
   },
   title: {
-    fontSize: 16,
+    fontSize: 15, // Reduced from 16
     fontWeight: '600',
-    lineHeight: 22,
+    lineHeight: 20,
     flex: 1,
-    paddingRight: 12,
+    paddingRight: 10,
   },
   collapseButton: {
     paddingVertical: 2,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
   collapseText: {
-    fontSize: 12,
+    fontSize: 11, // Reduced from 12
     fontWeight: '500',
   },
   bodyContainer: {
-    gap: 8,
+    gap: 6, // Reduced from 8
   },
   bodyText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13, // Reduced from 14
+    lineHeight: 18, // Reduced from 20
   },
   lastParagraph: {
     fontStyle: 'italic',

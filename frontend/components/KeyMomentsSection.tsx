@@ -211,7 +211,7 @@ export default function KeyMomentsSection({
   }
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderTopColor: theme.border }]}>
       {/* Section Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: theme.textTertiary }]}>
@@ -281,65 +281,67 @@ export default function KeyMomentsSection({
 }
 
 // ============================================
-// STYLES
+// STYLES - Lower visual priority for demoted section
 // ============================================
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: 24, // More top margin since it's at bottom of list
+    marginBottom: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 10,
+    marginBottom: 10, // Reduced from 12
+    gap: 8,
   },
   headerTitle: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontSize: 9, // Reduced from 10 - smaller heading
+    fontWeight: '600',
+    letterSpacing: 0.8,
   },
   headerLine: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
   },
   momentsList: {
-    gap: 10,
+    gap: 8, // Reduced from 10
   },
   momentCard: {
-    padding: 12,
-    borderRadius: 10,
+    padding: 10, // Reduced from 12
+    borderRadius: 8, // Reduced from 10
     borderWidth: 1,
   },
   patternLabelContainer: {
-    marginBottom: 6,
+    marginBottom: 4, // Reduced from 6
   },
   patternLabel: {
-    fontSize: 10,
+    fontSize: 9, // Reduced from 10
     fontWeight: '600',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   extractedLine: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13, // Reduced from 14
+    lineHeight: 18, // Reduced from 20
     fontStyle: 'italic',
   },
   momentFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 8, // Reduced from 10
   },
   momentDate: {
-    fontSize: 11,
+    fontSize: 10, // Reduced from 11
   },
   reflectButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 3,
+    paddingHorizontal: 6,
   },
   reflectButtonText: {
-    fontSize: 12,
+    fontSize: 11, // Reduced from 12
     fontWeight: '500',
   },
 });

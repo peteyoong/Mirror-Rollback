@@ -226,11 +226,12 @@ export default function JournalScreen() {
   const [microMirrorVisible, setMicroMirrorVisible] = useState(false);
   const router = useRouter();
 
-  // Collapsible intro card state (Part 1 & 2)
-  const [introCardExpanded, setIntroCardExpanded] = useState(true);
+  // Collapsible intro card state (Part 1 & 2) - DEFAULT TO COLLAPSED for write-first UX
+  const [introCardExpanded, setIntroCardExpanded] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
   const [hasTypedInSession, setHasTypedInSession] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   // Auto-collapse intro card when user focuses input, types, or scrolls
   const handleInputFocus = () => {
@@ -1492,7 +1493,7 @@ export default function JournalScreen() {
             onToggle={handleToggleIntroCard}
           />
 
-          {/* Dominant Truth Prompt Suggestion (Master Layer Integration) - only show when intro collapsed */}
+          {/* Dominant Truth Prompt Suggestion (Master Layer Integration) - Compact inline version */}
           {!introCardExpanded && hasDominantPattern && dominantTruthData && !newEntry.trim() && !dominantTruthPrefilled && (
             <TouchableOpacity
               style={[styles.dominantTruthPromptCard, { backgroundColor: 'rgba(139, 92, 246, 0.06)', borderColor: Colors.accent + '30' }]}
@@ -1504,12 +1505,14 @@ export default function JournalScreen() {
               }}
               activeOpacity={0.7}
             >
-              <Text style={styles.dominantTruthPromptLabel}>TODAY'S REFLECTION PROMPT</Text>
-              <Text style={[styles.dominantTruthPromptQuestion, { color: theme.text }]}>
-                {dominantTruthData.question}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.dominantTruthPromptLabel}>TODAY'S PROMPT</Text>
+                <Text style={[styles.dominantTruthPromptQuestion, { color: theme.text }]} numberOfLines={2}>
+                  {dominantTruthData.question}
+                </Text>
+              </View>
               <Text style={[styles.dominantTruthPromptCTA, { color: Colors.accent }]}>
-                Tap to start writing →
+                Start →
               </Text>
             </TouchableOpacity>
           )}
@@ -1596,15 +1599,7 @@ export default function JournalScreen() {
               />
             )}
 
-            {/* Key Moments Section - between Micro-Mirror and Journal history */}
-            <KeyMomentsSection
-              journalEntries={journalEntries}
-              onMomentPress={(entry) => handleReflect(entry.id, entry.content)}
-              onReflectWithMirror={(entry) => handleReflect(entry.id, entry.content)}
-              maxMoments={3}
-            />
-
-            {/* Entries List */}
+            {/* Entries List - NOW BEFORE Key Moments */}
             {isLoading ? (
               <View style={styles.centered}>
                 <ActivityIndicator size="large" color={theme.textSecondary} />
@@ -1619,6 +1614,7 @@ export default function JournalScreen() {
               </View>
             ) : (
               <FlatList
+                ref={flatListRef}
                 data={journalEntries}
                 extraData={journalEntries.length} // Force re-render on length change
                 keyExtractor={(item) => item.id}
@@ -1640,6 +1636,17 @@ export default function JournalScreen() {
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
                 onTouchStart={handleEntriesAreaPress}
+                ListFooterComponent={
+                  // Key Moments Section - DEMOTED to footer, lower priority
+                  journalEntries.length >= 2 ? (
+                    <KeyMomentsSection
+                      journalEntries={journalEntries}
+                      onMomentPress={(entry) => handleReflect(entry.id, entry.content)}
+                      onReflectWithMirror={(entry) => handleReflect(entry.id, entry.content)}
+                      maxMoments={3}
+                    />
+                  ) : null
+                }
               />
             )}
           </View>
@@ -1674,54 +1681,59 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 8,
   },
-  // Dominant Truth Prompt Card (Master Layer Integration)
+  // Dominant Truth Prompt Card (Master Layer Integration) - COMPACT VERSION
   dominantTruthPromptCard: {
     marginHorizontal: 24,
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 12,
+    marginBottom: 10, // Reduced from 16
+    paddingVertical: 10, // Reduced from 16
+    paddingHorizontal: 14,
+    borderRadius: 10,
     borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   dominantTruthPromptLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
     color: Colors.accent,
-    marginBottom: 8,
+    marginBottom: 3, // Reduced from 8
   },
   dominantTruthPromptQuestion: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 13, // Reduced from 15
+    lineHeight: 18, // Reduced from 22
     fontStyle: 'italic',
-    marginBottom: 12,
+    flex: 1,
   },
   dominantTruthPromptCTA: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 12, // Reduced from 13
+    fontWeight: '600',
+    marginLeft: 10,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // Mode Toggle
+  // Mode Toggle - tighter spacing
   modeToggleContainer: {
     flexDirection: 'row',
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 4,
+    borderRadius: 10,
+    padding: 3,
     marginHorizontal: 24,
-    marginTop: 16,
-    marginBottom: 16,
+    marginTop: 10, // Reduced from 16
+    marginBottom: 10, // Reduced from 16
   },
   modeButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
+    paddingVertical: 8, // Reduced from 10
+    borderRadius: 8,
+    gap: 5,
   },
   modeButtonActive: {
     backgroundColor: Colors.accent + '15',
@@ -1749,7 +1761,7 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
   },
   inputSection: {
-    marginBottom: 24,
+    marginBottom: 12, // Reduced from 24 - tighter spacing
   },
   inputContainer: {
     flexDirection: 'row',
@@ -1762,8 +1774,8 @@ const styles = StyleSheet.create({
     padding: 16,
     fontSize: 15,
     color: Colors.text,
-    minHeight: 80,
-    maxHeight: 160,
+    minHeight: 120, // Increased from 80 - much larger writing area
+    maxHeight: 200, // Increased from 160
     marginRight: 12,
     textAlignVertical: 'top',
   },
