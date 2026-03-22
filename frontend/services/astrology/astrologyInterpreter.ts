@@ -3740,3 +3740,318 @@ const buildDominantTruthNarrativeInternal = (
     timeframeContext
   };
 };
+
+
+// ============================================
+// UNIFIED PATTERN ENGINE
+// Synthesizes the entire chart into ONE repeating pattern
+// ============================================
+
+export interface UnifiedPattern {
+  headline: string;
+  corePattern: string;
+  tension: string;
+  connectorPhrase: string; // Used to link individual cards
+}
+
+interface UnifiedPatternInput {
+  chartData: FullChartData | null;
+  placements: CorePlacements;
+  dominantTruth: DominantTruth | null;
+  aspectPatterns: AspectPatternAnalysis | null;
+  lifeChapter: LifeChapterAnalysis | null;
+}
+
+// Pattern archetype templates based on element/modality combinations
+const PATTERN_ARCHETYPES: { [key: string]: {
+  headline: string;
+  corePattern: string;
+  tension: string;
+  connectorPhrase: string;
+}} = {
+  // Fire-driven patterns
+  'fire_cardinal': {
+    headline: 'The pattern you keep repeating',
+    corePattern: 'You move before you\'re ready. Action feels safer than waiting, so you launch before the ground is stable—and then spend your energy managing the consequences.',
+    tension: 'This creates a loop: act first, understand later, then handle the fallout. The urgency that drives you forward also prevents the preparation that would make the forward motion stick.',
+    connectorPhrase: 'this is one part of how you move before you\'re ready'
+  },
+  'fire_fixed': {
+    headline: 'The pattern running through everything',
+    corePattern: 'You commit intensely but resist adjusting. Once you\'ve decided something matters, you hold on—even when holding on is costing more than letting go would.',
+    tension: 'This creates a loop: invest deeply, refuse to pivot, justify the sunk cost. Your loyalty to what you\'ve chosen can trap you in positions that no longer serve you.',
+    connectorPhrase: 'this is one part of how you hold on past the point of usefulness'
+  },
+  'fire_mutable': {
+    headline: 'The pattern you already recognize',
+    corePattern: 'You start things brilliantly but struggle to finish them. The spark of beginning is intoxicating; the work of completion feels like a prison.',
+    tension: 'This creates a loop: inspire yourself, get bored, chase the next spark. Your enthusiasm for beginnings creates a trail of incomplete projects.',
+    connectorPhrase: 'this is one part of how you start more than you finish'
+  },
+  // Earth-driven patterns
+  'earth_cardinal': {
+    headline: 'The pattern underneath everything',
+    corePattern: 'You build toward goals but struggle to celebrate arriving. Achievement creates a brief satisfaction before the next mountain appears.',
+    tension: 'This creates a loop: achieve, immediately re-focus, never fully arrive. Your drive for accomplishment can become a treadmill that never lets you rest.',
+    connectorPhrase: 'this is one part of how you never let yourself arrive'
+  },
+  'earth_fixed': {
+    headline: 'What keeps happening',
+    corePattern: 'You maintain stability by resisting change. What you\'ve built feels safer than what you could build—even when what exists has stopped working.',
+    tension: 'This creates a loop: hold on, resist necessary change, wait until crisis forces movement. Your need for security can keep you in situations that feel safe but aren\'t alive.',
+    connectorPhrase: 'this is one part of how you resist necessary change'
+  },
+  'earth_mutable': {
+    headline: 'The pattern you keep meeting',
+    corePattern: 'You analyze endlessly before acting. The search for the optimal choice prevents any choice from being made until circumstances force your hand.',
+    tension: 'This creates a loop: research, doubt, delay, react under pressure. Your desire to be prepared prevents the action that would actually prepare you.',
+    connectorPhrase: 'this is one part of how you analyze instead of act'
+  },
+  // Air-driven patterns
+  'air_cardinal': {
+    headline: 'The pattern in your relationships',
+    corePattern: 'You adapt to others so skillfully that you lose track of your own shape. Harmony becomes more important than honesty, and your needs disappear into accommodation.',
+    tension: 'This creates a loop: adapt, lose yourself, resent, repeat. Your gift for connection can become a way of avoiding the confrontation of having your own needs.',
+    connectorPhrase: 'this is one part of how you disappear to keep the peace'
+  },
+  'air_fixed': {
+    headline: 'What runs through everything',
+    corePattern: 'You think your way around feeling. Understanding replaces experiencing, and analysis becomes a way to stay at arm\'s length from what actually moves you.',
+    tension: 'This creates a loop: feel something, intellectualize it, maintain distance. Your mental clarity can become a shield against the emotional experiences that would change you.',
+    connectorPhrase: 'this is one part of how you think instead of feel'
+  },
+  'air_mutable': {
+    headline: 'The pattern you keep creating',
+    corePattern: 'You gather information instead of making decisions. Options multiply, perspectives accumulate, but the moment of choice keeps getting deferred.',
+    tension: 'This creates a loop: explore, discover complexity, defer choice. Your ability to see all sides can prevent you from standing on any of them.',
+    connectorPhrase: 'this is one part of how you stay curious instead of committed'
+  },
+  // Water-driven patterns
+  'water_cardinal': {
+    headline: 'The pattern you carry',
+    corePattern: 'You protect by controlling the emotional environment. Your sensitivity becomes a radar for danger, and safety means managing how others feel about you.',
+    tension: 'This creates a loop: sense threat, control surroundings, exhaust yourself. Your emotional intelligence can become a burden when it\'s always on duty.',
+    connectorPhrase: 'this is one part of how you manage everyone\'s feelings'
+  },
+  'water_fixed': {
+    headline: 'What keeps repeating',
+    corePattern: 'You feel everything at full intensity but show almost nothing. The gap between your internal experience and external expression creates a pressure that leaks out sideways.',
+    tension: 'This creates a loop: feel deeply, suppress expression, accumulate pressure. Your emotional depth becomes a weight when it can\'t find release.',
+    connectorPhrase: 'this is one part of how you hide what you\'re actually feeling'
+  },
+  'water_mutable': {
+    headline: 'The pattern in your psyche',
+    corePattern: 'You absorb more than you can process. Others\' emotions, the atmosphere of spaces, the weight of situations—it all moves through you without clear boundaries.',
+    tension: 'This creates a loop: absorb, become overwhelmed, escape, repeat. Your empathic capacity can become a form of self-abandonment.',
+    connectorPhrase: 'this is one part of how you take on what isn\'t yours'
+  }
+};
+
+// Theme-specific pattern overrides when dominant truth is clear
+const THEME_PATTERN_OVERRIDES: { [key in ThemeCategory]?: {
+  headline: string;
+  corePattern: string;
+  tension: string;
+  connectorPhrase: string;
+}} = {
+  overcommitment: {
+    headline: 'The pattern you keep repeating',
+    corePattern: 'You take on more than you can carry. Yes comes before you\'ve calculated the cost, and then you push through on willpower alone.',
+    tension: 'This creates a loop: overcommit, exhaust yourself, recover barely, overcommit again. Your capacity to handle pressure has become an excuse to create it.',
+    connectorPhrase: 'this is one part of how you overextend yourself'
+  },
+  avoidance: {
+    headline: 'What keeps happening',
+    corePattern: 'You see what needs to be faced but turn toward easier things. The problem grows in the periphery while you stay busy with what feels manageable.',
+    tension: 'This creates a loop: notice, avoid, watch it grow, notice again. Your awareness of what\'s wrong becomes torture when you don\'t act on it.',
+    connectorPhrase: 'this is one part of how you avoid what you can see'
+  },
+  premature_action: {
+    headline: 'The pattern running through everything',
+    corePattern: 'You move before the ground is ready. Waiting feels like weakness, so you launch before conditions support what you\'re trying to build.',
+    tension: 'This creates a loop: act too soon, manage consequences, wonder why things don\'t land. Your courage becomes recklessness when it doesn\'t include patience.',
+    connectorPhrase: 'this is one part of how you move before the ground is ready'
+  },
+  delayed_decision: {
+    headline: 'What you keep doing',
+    corePattern: 'You wait for certainty that will never come. The decision sits there while you gather more information, hoping clarity will eventually make choosing easy.',
+    tension: 'This creates a loop: consider, wait, watch options narrow, choose under pressure. Your desire for the right choice prevents any choice at all.',
+    connectorPhrase: 'this is one part of how you delay until circumstances decide'
+  },
+  emotional_suppression: {
+    headline: 'The pattern underneath',
+    corePattern: 'You contain what needs to move. Feelings get compressed, managed, scheduled—anything but simply felt and expressed.',
+    tension: 'This creates a loop: feel, suppress, accumulate, leak. What you won\'t let out directly finds indirect ways to surface.',
+    connectorPhrase: 'this is one part of how you suppress instead of express'
+  },
+  boundary_erosion: {
+    headline: 'What keeps happening',
+    corePattern: 'You give ground to avoid conflict. Each small accommodation seems harmless, but they accumulate into a territory that\'s no longer yours.',
+    tension: 'This creates a loop: get asked, say yes, resent, say yes again. Your desire for peace creates a war inside yourself.',
+    connectorPhrase: 'this is one part of how you give away what you need'
+  },
+  identity_confusion: {
+    headline: 'The pattern you\'re living',
+    corePattern: 'You become what the situation requires. Different versions of you for different contexts, until you\'ve forgotten which one is real.',
+    tension: 'This creates a loop: adapt, lose center, feel empty, adapt again. Your flexibility has become a form of self-erasure.',
+    connectorPhrase: 'this is one part of how you become what others need'
+  },
+  relationship_strain: {
+    headline: 'The pattern in connection',
+    corePattern: 'You repeat the same dynamic with different people. The faces change but the friction is familiar.',
+    tension: 'This creates a loop: connect, encounter the pattern, struggle, disconnect. What you\'re looking for keeps showing up as what you\'re trying to avoid.',
+    connectorPhrase: 'this is one part of how the same dynamic repeats'
+  },
+  control_grip: {
+    headline: 'What you keep doing',
+    corePattern: 'You hold things so tightly they can\'t breathe. Control feels like safety, but what you\'re protecting is being strangled.',
+    tension: 'This creates a loop: fear loss, grip tighter, create distance, fear more. Your security measures are creating the instability they\'re meant to prevent.',
+    connectorPhrase: 'this is one part of how you grip too tight'
+  },
+  trust_issues: {
+    headline: 'The pattern you carry',
+    corePattern: 'You test before you trust. People have to prove themselves repeatedly, and the tests never quite end.',
+    tension: 'This creates a loop: want closeness, test for safety, push away, want closeness again. Your protection prevents the very thing you\'re protecting yourself for.',
+    connectorPhrase: 'this is one part of how you test instead of trust'
+  },
+  people_pleasing: {
+    headline: 'What keeps happening',
+    corePattern: 'You shape yourself to fit what others want. Approval feels necessary, so you become whatever earns it.',
+    tension: 'This creates a loop: read others, adapt, lose self, resent. Your talent for attunement has become a trap.',
+    connectorPhrase: 'this is one part of how you become what they want'
+  },
+  perfectionism: {
+    headline: 'The pattern running through everything',
+    corePattern: 'Nothing is ever good enough. The standard keeps moving, and what you produce never reaches it.',
+    tension: 'This creates a loop: create, critique, perfect, exhaust. Your high standards have become impossible demands.',
+    connectorPhrase: 'this is one part of how you demand the impossible'
+  }
+};
+
+// Get dominant element and modality from chart
+const getChartElementModality = (placements: CorePlacements): { element: string; modality: string } => {
+  const elements: { [key: string]: number } = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
+  const modalities: { [key: string]: number } = { Cardinal: 0, Fixed: 0, Mutable: 0 };
+  
+  // Weight the big three more heavily
+  const signs = [
+    { sign: placements.sun, weight: 3 },
+    { sign: placements.moon, weight: 2 },
+    { sign: placements.ascendant, weight: 2 },
+    { sign: placements.mercury || placements.sun, weight: 1 },
+    { sign: placements.venus || placements.moon, weight: 1 },
+    { sign: placements.mars || placements.sun, weight: 1 }
+  ];
+  
+  for (const { sign, weight } of signs) {
+    const element = SIGN_ELEMENTS[sign];
+    const modality = SIGN_MODALITIES[sign];
+    if (element) elements[element] += weight;
+    if (modality) modalities[modality] += weight;
+  }
+  
+  const dominantElement = Object.entries(elements).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+  const dominantModality = Object.entries(modalities).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+  
+  return { element: dominantElement.toLowerCase(), modality: dominantModality.toLowerCase() };
+};
+
+// Enhance pattern based on aspect patterns
+const enhancePatternWithAspects = (
+  pattern: UnifiedPattern, 
+  aspectPatterns: AspectPatternAnalysis | null
+): UnifiedPattern => {
+  if (!aspectPatterns?.dominantPattern) return pattern;
+  
+  const dominant = aspectPatterns.dominantPattern;
+  
+  // Add specificity based on pattern type
+  if (dominant.patternType === 'pressure_triangle' || dominant.patternType === 't_square') {
+    return {
+      ...pattern,
+      tension: pattern.tension + ' The pressure doesn\'t resolve—it redirects. What can\'t go one way forces its way out another.'
+    };
+  }
+  
+  if (dominant.patternType === 'opposition_axis') {
+    return {
+      ...pattern,
+      tension: pattern.tension + ' Two parts of you pull in opposite directions. Progress in one feels like betrayal of the other.'
+    };
+  }
+  
+  if (dominant.patternType === 'stellium') {
+    return {
+      ...pattern,
+      corePattern: pattern.corePattern + ' Everything concentrates in one area. What should be distributed is instead focused—intensely, sometimes overwhelmingly.'
+    };
+  }
+  
+  return pattern;
+};
+
+// Enhance pattern based on life chapter
+const enhancePatternWithChapter = (
+  pattern: UnifiedPattern, 
+  chapterAnalysis: LifeChapterAnalysis | null
+): UnifiedPattern => {
+  if (!chapterAnalysis?.primaryChapter?.isActive) return pattern;
+  
+  const chapter = chapterAnalysis.primaryChapter;
+  
+  if (chapter.chapterType === 'saturn' && chapter.strengthScore >= 20) {
+    return {
+      ...pattern,
+      tension: pattern.tension + ' And this phase isn\'t letting you get away with it.'
+    };
+  }
+  
+  if (chapter.chapterType === 'chiron' && chapter.strengthScore >= 15) {
+    return {
+      ...pattern,
+      corePattern: pattern.corePattern + ' An old wound is being touched. The pattern connects to something that\'s been tender for a long time.'
+    };
+  }
+  
+  return pattern;
+};
+
+/**
+ * GET UNIFIED PATTERN
+ * Synthesizes the entire chart into ONE integrated pattern
+ */
+export const getUnifiedPattern = (input: UnifiedPatternInput): UnifiedPattern | null => {
+  const { chartData, placements, dominantTruth, aspectPatterns, lifeChapter } = input;
+  
+  // If we have a strong dominant truth, use its theme for the pattern
+  if (dominantTruth && dominantTruth.confidenceScore >= 55) {
+    const override = THEME_PATTERN_OVERRIDES[dominantTruth.dominantTheme];
+    if (override) {
+      let pattern = { ...override };
+      pattern = enhancePatternWithAspects(pattern, aspectPatterns);
+      pattern = enhancePatternWithChapter(pattern, lifeChapter);
+      return pattern;
+    }
+  }
+  
+  // Otherwise, derive from element/modality
+  const { element, modality } = getChartElementModality(placements);
+  const archetypeKey = `${element}_${modality}`;
+  const archetype = PATTERN_ARCHETYPES[archetypeKey];
+  
+  if (!archetype) {
+    // Fallback to a generic but meaningful pattern
+    return {
+      headline: 'The pattern running through this chart',
+      corePattern: 'There\'s a way you keep meeting yourself—in different situations, different relationships, different choices. The same thread runs through all of it.',
+      tension: 'This creates a loop that feels familiar even when the circumstances are new. You\'ve been here before, in some form.',
+      connectorPhrase: 'this is one part of a larger pattern'
+    };
+  }
+  
+  let pattern = { ...archetype };
+  pattern = enhancePatternWithAspects(pattern, aspectPatterns);
+  pattern = enhancePatternWithChapter(pattern, lifeChapter);
+  
+  return pattern;
+};

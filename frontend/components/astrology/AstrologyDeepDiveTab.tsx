@@ -2,6 +2,7 @@
 // ASTROLOGY DEEP DIVE TAB
 // Renders: Section groups, Deep Dive cards, expand/collapse, actions
 // MIRROR FRAMEWORK: Master Insight + Identity + Tension + Genius + Where This Shows Up + Practical Shift + Reflection
+// UNIFIED PATTERN: One integrated pattern that runs through the entire chart
 // ============================================
 
 import React from 'react';
@@ -19,6 +20,10 @@ import {
   getHouseTheme,
   getPlanetImportanceLine,
   buildAspectPatternAnalysis,
+  buildLifeChapterAnalysis,
+  buildDominantTruth,
+  getUnifiedPattern,
+  UnifiedPattern,
 } from '../../services/astrology/astrologyInterpreter';
 
 // ============================================
@@ -47,6 +52,7 @@ interface MirrorLayer {
   whereItShowsUp: string[]; // Real-life contexts
   practicalShift: string; // ONE behavioral nudge
   reflection: string;     // Upgraded reflection question
+  connectorPhrase?: string; // Optional link to unified pattern
 }
 
 // ============================================
@@ -970,8 +976,39 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
     }
   };
 
+  // Build the unified pattern
+  const lifeChapterAnalysis = buildLifeChapterAnalysis(fullChartData);
+  const dominantTruth = buildDominantTruth(fullChartData, patternAnalysis, lifeChapterAnalysis);
+  const unifiedPattern = getUnifiedPattern({
+    chartData: fullChartData,
+    placements,
+    dominantTruth,
+    aspectPatterns: patternAnalysis,
+    lifeChapter: lifeChapterAnalysis
+  });
+
   return (
     <View style={styles.deepDiveContainer}>
+      {/* UNIFIED PATTERN BLOCK - Top of Deep Dive */}
+      {unifiedPattern && (
+        <View style={[styles.unifiedPatternBlock, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.unifiedPatternLabel, { color: theme.textTertiary }]}>
+            THE PATTERN RUNNING THROUGH THIS CHART
+          </Text>
+          <Text style={[styles.unifiedPatternHeadline, { color: theme.text }]}>
+            {unifiedPattern.headline}
+          </Text>
+          <Text style={[styles.unifiedPatternCore, { color: theme.textSecondary }]}>
+            {unifiedPattern.corePattern}
+          </Text>
+          <View style={[styles.unifiedPatternTensionBox, { backgroundColor: theme.accent + '08' }]}>
+            <Text style={[styles.unifiedPatternTension, { color: theme.text }]}>
+              {unifiedPattern.tension}
+            </Text>
+          </View>
+        </View>
+      )}
+
       {CARD_GROUPS.map(group => {
         // Skip structure group if no pressure pattern
         if (group.id === 'structure' && !pressureCard) return null;
@@ -986,6 +1023,10 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
               
               const isExpanded = expandedCards.has(card.id);
               const mirrorLayer = getMirrorLayer(cardId);
+              // Add connector phrase from unified pattern to mirror layer
+              if (mirrorLayer && unifiedPattern) {
+                mirrorLayer.connectorPhrase = unifiedPattern.connectorPhrase;
+              }
               const importanceLine = cardId !== 'pressure' ? getPlanetImportanceLine(
                 card.id === 'sun' ? 'Sun' : 
                 card.id === 'moon' ? 'Moon' : 
@@ -1022,6 +1063,13 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                     
                     {isExpanded && (
                       <View style={styles.deepDiveCardContent}>
+                        {/* Pattern connector line */}
+                        {unifiedPattern && (
+                          <Text style={[styles.patternConnectorLine, { color: theme.accent }]}>
+                            This is one part of how pressure builds and redirects in your chart.
+                          </Text>
+                        )}
+                        
                         {/* The Pattern - Master Insight */}
                         <View style={styles.deepDiveSection}>
                           <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>MASTER INSIGHT</Text>
@@ -1130,6 +1178,13 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                   {/* Card Content - Mirror Framework */}
                   {isExpanded && (
                     <View style={styles.deepDiveCardContent}>
+                      {/* Pattern Connector Line - Links to Unified Pattern */}
+                      {mirrorLayer?.connectorPhrase && (
+                        <Text style={[styles.patternConnectorLine, { color: theme.accent }]}>
+                          {mirrorLayer.connectorPhrase.charAt(0).toUpperCase() + mirrorLayer.connectorPhrase.slice(1)}.
+                        </Text>
+                      )}
+
                       {/* Planet Importance Line */}
                       {importanceLine && (
                         <View style={[styles.deepDiveSection, { marginBottom: 8 }]}>
@@ -1243,6 +1298,52 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 16,
   },
+  
+  // Unified Pattern Block styles
+  unifiedPatternBlock: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 8,
+  },
+  unifiedPatternLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 12,
+  },
+  unifiedPatternHeadline: {
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 24,
+    marginBottom: 12,
+  },
+  unifiedPatternCore: {
+    fontSize: 15,
+    lineHeight: 23,
+    marginBottom: 16,
+  },
+  unifiedPatternTensionBox: {
+    padding: 14,
+    borderRadius: 10,
+  },
+  unifiedPatternTension: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+  },
+  
+  // Pattern connector line (links cards to unified pattern)
+  patternConnectorLine: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    fontWeight: '500',
+    marginBottom: 4,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(139, 92, 246, 0.2)',
+  },
+  
   cardGroup: {
     gap: 8,
   },
