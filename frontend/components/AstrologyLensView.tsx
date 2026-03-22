@@ -683,117 +683,138 @@ const getKeyAspects = (fullChartData: FullChartData | null, placements: CorePlac
 // RECOGNITION-BASED MIRROR VOICE
 // ============================================
 
-// Generate "What This May Feel Like" - RECOGNITION-BASED
-const getWhatThisMayFeelLike = (transits: TransitHit[]): string[] => {
+// Generate "What This May Feel Like" - TIMEFRAME DIFFERENTIATED
+const getWhatThisMayFeelLike = (transits: TransitHit[], timeframe: 'today' | 'week' | 'month' = 'today'): string[] => {
   const feelings: string[] = [];
   
-  for (const hit of transits.slice(0, 3)) {
+  for (const hit of transits.slice(0, 2)) {
     const { transit_point, natal_point, aspect_type } = hit;
     const isHard = ['square', 'opposition', 'conjunction'].includes(aspect_type);
     
-    // Saturn transits - real-life recognition
+    // Saturn transits
     if (transit_point === 'Saturn') {
-      if (natal_point === 'Sun') feelings.push('waking up tired even when you slept enough');
-      else if (natal_point === 'Moon') feelings.push('replaying an old memory you thought you were done with');
-      else if (natal_point === 'Mars') feelings.push('wanting to move but feeling like you\'re pushing through mud');
-      else if (natal_point === 'Venus') feelings.push('wondering if you\'re settling or just being realistic');
-      else if (natal_point === 'Jupiter') feelings.push('doubting something you believed in last week');
-      else feelings.push('everything taking longer than it should');
+      if (timeframe === 'today') {
+        if (natal_point === 'Sun') feelings.push('tired even when you slept enough');
+        else if (natal_point === 'Moon') feelings.push('an old feeling resurfacing');
+        else if (natal_point === 'Mars') feelings.push('stuck when you want to move');
+        else feelings.push('everything slower than it should be');
+      } else if (timeframe === 'week') {
+        feelings.push('keep hitting the same wall');
+      } else {
+        feelings.push('a longer pressure building');
+      }
     }
     
     // Jupiter transits
     if (transit_point === 'Jupiter') {
-      if (natal_point === 'Saturn') feelings.push('wanting to say yes to something you know needs more planning');
-      else if (natal_point === 'Sun') feelings.push('feeling like you could handle more than you\'re currently doing');
-      else if (natal_point === 'Moon') feelings.push('wanting to help everyone—even when you haven\'t been asked');
-      else feelings.push('getting impatient with anything that feels small');
+      if (timeframe === 'today') {
+        if (natal_point === 'Saturn') feelings.push('wanting to say yes too fast');
+        else feelings.push('restless for something bigger');
+      } else if (timeframe === 'week') {
+        feelings.push('recurring urge to overcommit');
+      } else {
+        feelings.push('month-long pull toward expansion');
+      }
     }
     
     // Pluto transits
     if (transit_point === 'Pluto') {
-      if (natal_point === 'Sun') feelings.push('not recognizing yourself in the mirror—not literally, but close');
-      else if (natal_point === 'Moon') feelings.push('crying at something that shouldn\'t make you cry');
-      else if (natal_point === 'Mars') feelings.push('wanting to fight something but not knowing what');
-      else feelings.push('noticing what you can\'t stop thinking about');
+      if (timeframe === 'today') {
+        feelings.push('intensity that doesn\'t match the trigger');
+      } else if (timeframe === 'week') {
+        feelings.push('same deep issue surfacing repeatedly');
+      } else {
+        feelings.push('slow transformation underway');
+      }
     }
     
     // Uranus transits
     if (transit_point === 'Uranus') {
-      if (natal_point === 'Sun') feelings.push('getting bored with your own life mid-sentence');
-      else if (natal_point === 'Moon') feelings.push('mood shifting before you can name why');
-      else if (natal_point === 'Venus') feelings.push('suddenly noticing what\'s been missing in a relationship');
-      else feelings.push('changing your mind about something you just decided');
+      if (timeframe === 'today') {
+        feelings.push('boredom with your own routines');
+      } else if (timeframe === 'week') {
+        feelings.push('restlessness that keeps returning');
+      } else {
+        feelings.push('wanting things to be different');
+      }
     }
     
     // Neptune transits
     if (transit_point === 'Neptune') {
-      if (natal_point === 'Sun') feelings.push('spacing out in the middle of something important');
-      else if (natal_point === 'Moon') feelings.push('absorbing someone else\'s mood and thinking it\'s yours');
-      else feelings.push('not being sure if you\'re tired or sad or just unclear');
+      if (timeframe === 'today') feelings.push('hard to find clarity');
+      else if (timeframe === 'week') feelings.push('fog that won\'t lift');
+      else feelings.push('a longer period of not-knowing');
     }
     
     // Mars transits
-    if (transit_point === 'Mars') {
-      if (isHard) feelings.push('snapping at someone and then wondering why');
-      else feelings.push('having more energy than you know what to do with');
+    if (transit_point === 'Mars' && isHard) {
+      if (timeframe === 'today') feelings.push('more reactive than usual');
+      else feelings.push('sustained frustration or drive');
     }
   }
   
-  // Dedupe and limit to 3
   return [...new Set(feelings)].slice(0, 3);
 };
 
-// Generate "The Mistake to Watch" - VERB-FIRST, BEHAVIOR-SPECIFIC
-const getMistakeToWatch = (transits: TransitHit[]): string[] => {
+// Generate "The Mistake to Watch" - TIMEFRAME DIFFERENTIATED
+const getMistakeToWatch = (transits: TransitHit[], timeframe: 'today' | 'week' | 'month' = 'today'): string[] => {
   const mistakes: string[] = [];
   
-  for (const hit of transits.slice(0, 3)) {
+  for (const hit of transits.slice(0, 2)) {
     const { transit_point, natal_point, aspect_type } = hit;
     const isHard = ['square', 'opposition'].includes(aspect_type);
     
     // Saturn transits
     if (transit_point === 'Saturn') {
-      if (natal_point === 'Sun') mistakes.push('calling yourself lazy when you\'re actually exhausted');
-      else if (natal_point === 'Moon') mistakes.push('shutting down a feeling because it\'s inconvenient right now');
-      else if (natal_point === 'Mars') mistakes.push('pushing harder when what you need is to wait');
-      else if (natal_point === 'Jupiter') mistakes.push('treating a temporary setback like a permanent verdict');
-      else mistakes.push('deciding you\'re behind when you\'re actually just slow');
+      if (timeframe === 'today') {
+        mistakes.push('treating today\'s heaviness as permanent');
+      } else if (timeframe === 'week') {
+        mistakes.push('letting this week\'s pressure define you');
+      } else {
+        mistakes.push('mistaking a growth phase for a life sentence');
+      }
     }
     
     // Jupiter transits
     if (transit_point === 'Jupiter') {
-      if (natal_point === 'Saturn') mistakes.push('saying yes because it feels exciting—and figuring out the details later');
-      if (isHard) mistakes.push('committing to more than you can actually hold');
-      else mistakes.push('skipping the boring parts because you\'re sure it\'ll work out');
+      if (timeframe === 'today') {
+        mistakes.push('saying yes and figuring it out later');
+      } else if (timeframe === 'week') {
+        mistakes.push('overcommitting across the week');
+      } else {
+        mistakes.push('inflating instead of growing');
+      }
     }
     
     // Pluto transits
     if (transit_point === 'Pluto') {
-      mistakes.push('holding tighter to something that\'s already leaving');
-      if (natal_point === 'Mars') mistakes.push('saying something you can\'t take back just to feel powerful');
-      if (natal_point === 'Sun') mistakes.push('pretending you\'re the same person you were six months ago');
+      if (timeframe === 'today') {
+        mistakes.push('holding onto what\'s leaving');
+      } else {
+        mistakes.push('resisting change that\'s already happening');
+      }
     }
     
     // Uranus transits
     if (transit_point === 'Uranus') {
-      mistakes.push('blowing something up because you\'re bored, not because it\'s wrong');
-      if (natal_point === 'Venus') mistakes.push('leaving what\'s good because you want what\'s new');
-      if (natal_point === 'Sun') mistakes.push('confusing rebellion with actually knowing what you want');
+      if (timeframe === 'today') {
+        mistakes.push('making sudden moves from boredom');
+      } else {
+        mistakes.push('confusing disruption with progress');
+      }
     }
     
     // Neptune transits
     if (transit_point === 'Neptune') {
-      mistakes.push('making a decision now that requires clarity you don\'t have');
-      if (natal_point === 'Sun') mistakes.push('going along with someone else\'s plan because yours feels foggy');
+      mistakes.push('deciding from confusion');
     }
     
     // Mars transits
     if (transit_point === 'Mars' && isHard) {
-      mistakes.push('acting now and cleaning up later');
+      mistakes.push('acting before you\'re ready');
     }
   }
   
-  // Dedupe and limit to 3
   return [...new Set(mistakes)].slice(0, 3);
 };
 
@@ -814,7 +835,7 @@ const getDailyEnergySynthesis = (
   if (!transits || transits.length === 0) {
     return {
       headline: 'A pause',
-      body: 'You\'re not being pushed right now. Part of you might be looking for the next thing to respond to—but there isn\'t one. This is space to work with what you already have, not to chase what\'s next.',
+      body: 'You\'re not being pushed right now. This is space to work with what you already have.',
       supporting: 'No significant transits detected'
     };
   }
@@ -832,60 +853,55 @@ const getDailyEnergySynthesis = (
     ? `Based on ${supportingParts[0]}.`
     : '';
 
-  // Tone variation by timeframe
-  const tone = timeframe === 'today' ? 'immediate' : timeframe === 'week' ? 'pattern' : 'arc';
-  
   const { transit_point: t1, natal_point: n1 } = primary;
   
   // === JUPITER PRIMARY ===
   if (t1 === 'Jupiter') {
     if (n1 === 'Saturn') {
-      if (tone === 'immediate') {
+      if (timeframe === 'today') {
         return {
           headline: 'Reaching past ready',
-          body: 'You\'re feeling pulled toward something bigger—but part of you knows you\'re not ready to hold it yet. The excitement is real. So is the gap between where you are and where you want to be.\n\nThis isn\'t about shutting down the want. It\'s about noticing where you\'re trying to skip steps because patience feels boring.',
+          body: 'You\'re feeling pulled toward something bigger—but part of you knows you\'re not ready to hold it yet.\n\nNotice where you\'re trying to skip steps because patience feels boring.',
           supporting
         };
-      } else if (tone === 'pattern') {
+      } else if (timeframe === 'week') {
         return {
-          headline: 'Reaching past ready',
-          body: 'You keep bumping into the same tension this week: wanting more than you\'ve built the container for. Part of you is ready to expand. Another part knows the structure isn\'t there yet.\n\nWatch for the pattern of saying yes first and figuring it out later. That\'s where this gets expensive.',
+          headline: 'The same reach',
+          body: 'You keep bumping into this tension: wanting more than you\'ve built the container for.\n\nThe pattern this week is saying yes first and figuring it out later.',
           supporting
         };
       } else {
         return {
-          headline: 'Growth meeting limits',
-          body: 'This month keeps asking the same question: how much of what you want is actually ready to happen? You\'re being stretched between possibility and reality—and both are valid.\n\nThe work isn\'t choosing one. It\'s learning to hold them at the same time without collapsing into either.',
+          headline: 'Growth meeting structure',
+          body: 'This month keeps asking: how much of what you want is actually ready to happen?\n\nThe longer arc here is learning to hold possibility and reality at the same time.',
           supporting
         };
       }
     }
     if (n1 === 'Sun') {
-      return {
-        headline: 'Bigger than usual',
-        body: tone === 'immediate' 
-          ? 'You\'re feeling more confident than you have in a while—like you could handle more, reach further, be more. Part of you wants to act on this. Another part wonders if you\'re getting ahead of yourself.\n\nBoth are probably right. The question is what this confidence is actually for.'
-          : 'You\'ve been feeling like there\'s more room in you than you\'ve been using. That sense of expansion is real—but so is the temptation to inflate rather than grow.\n\nNotice where the bigness is grounded and where it\'s just excitement wearing a costume.',
-        supporting
-      };
-    }
-    if (n1 === 'Moon') {
-      return {
-        headline: 'Giving more',
-        body: 'You want to be generous right now—with your time, your care, your belief in people. Part of you is genuinely open. Another part might be giving to avoid feeling something else.\n\nNotice if the generosity is flowing from overflow or from avoidance. They feel different if you slow down.',
-        supporting
-      };
-    }
-    if (n1 === 'Mars') {
-      return {
-        headline: 'Wanting more action',
-        body: 'Your drive is amplified right now. You want to move faster, do more, push further. Part of this is real capacity. Part of it is impatience dressed up as ambition.\n\nThe energy is available—the question is whether you\'re pointing it at something that actually matters.',
-        supporting
-      };
+      if (timeframe === 'today') {
+        return {
+          headline: 'Bigger than usual',
+          body: 'You\'re feeling more confident today—like you could handle more. Part of you wants to act on this.\n\nThe question is what this confidence is actually for.',
+          supporting
+        };
+      } else {
+        return {
+          headline: 'Expansion phase',
+          body: timeframe === 'week' 
+            ? 'You keep noticing more room in you than you\'ve been using.\n\nWatch where bigness is grounded versus just excitement.'
+            : 'This month is teaching you the difference between inflating and actually growing.',
+          supporting
+        };
+      }
     }
     return {
       headline: 'Something wants more',
-      body: 'There\'s a pull toward expansion right now—more possibility, more reach, more yes. Part of you is ready for it. Another part isn\'t sure where it\'s actually leading.\n\nThis isn\'t about saying no to growth. It\'s about noticing what the growth is actually for.',
+      body: timeframe === 'today'
+        ? 'There\'s a pull toward expansion right now. Part of you is ready. Another part isn\'t sure where it leads.'
+        : timeframe === 'week'
+        ? 'The recurring theme this week: wanting more than your current container holds.'
+        : 'This month is asking what your growth is actually for.',
       supporting
     };
   }
@@ -893,45 +909,44 @@ const getDailyEnergySynthesis = (
   // === SATURN PRIMARY ===
   if (t1 === 'Saturn') {
     if (n1 === 'Sun') {
-      return {
-        headline: 'Feeling tested',
-        body: tone === 'immediate'
-          ? 'You\'re more aware of your limits today than you want to be. Part of you feels like you should be further along, more together, more something. That voice is loud right now.\n\nWhat if the pressure isn\'t punishment? What if it\'s just asking you to get honest about what actually matters?'
-          : 'You keep running into the same wall this week: the gap between who you think you should be and who you actually are right now. That gap feels heavier than usual.\n\nThis isn\'t about trying harder. It\'s about getting clear on what\'s actually worth the effort.',
-        supporting
-      };
+      if (timeframe === 'today') {
+        return {
+          headline: 'Feeling tested',
+          body: 'You\'re more aware of your limits today than you want to be. That critical voice is loud.\n\nWhat if the pressure is asking you to get honest about what actually matters?',
+          supporting
+        };
+      } else if (timeframe === 'week') {
+        return {
+          headline: 'The same wall',
+          body: 'You keep running into the gap between who you think you should be and who you actually are.\n\nThis week isn\'t about trying harder. It\'s about getting clear on what\'s worth the effort.',
+          supporting
+        };
+      } else {
+        return {
+          headline: 'Identity under pressure',
+          body: 'This month is compressing something in you. What remains when the excess burns off will be more real.\n\nThe longer arc is about getting serious where it counts.',
+          supporting
+        };
+      }
     }
     if (n1 === 'Moon') {
       return {
         headline: 'Old feelings surfacing',
-        body: 'Something emotional is asking for attention—something you thought you were done with, or something you\'ve been successfully ignoring. It\'s heavier than it needs to be because you\'ve been carrying it without acknowledging it.\n\nYou don\'t have to fix it. You might just need to let yourself feel it.',
-        supporting
-      };
-    }
-    if (n1 === 'Jupiter') {
-      return {
-        headline: 'Hope meeting reality',
-        body: 'Part of you wants to believe something will work out. Another part keeps poking holes in that belief. Both voices are active right now, and neither one is willing to back down.\n\nThis isn\'t pessimism versus optimism. It\'s about figuring out what hope actually needs to become real.',
-        supporting
-      };
-    }
-    if (n1 === 'Mars') {
-      return {
-        headline: 'Blocked movement',
-        body: 'You want to act, but something keeps getting in the way. External obstacles, internal resistance, or both. The frustration is real—but pushing harder isn\'t working.\n\nPart of you knows this isn\'t the moment to force. Another part hates waiting. That tension is the work right now.',
-        supporting
-      };
-    }
-    if (n1 === 'Venus') {
-      return {
-        headline: 'Love under pressure',
-        body: 'A relationship or something you value is being tested right now. Part of you wants to protect it. Another part is wondering if it\'s worth the effort.\n\nThis pressure isn\'t trying to destroy anything—it\'s showing you what\'s actually solid and what was always more fragile than you admitted.',
+        body: timeframe === 'today'
+          ? 'Something emotional is asking for attention—something you\'ve been carrying without acknowledging.\n\nYou might just need to let yourself feel it.'
+          : timeframe === 'week'
+          ? 'The same emotional weight keeps returning this week.\n\nThe pattern is carrying something instead of feeling it.'
+          : 'This month is teaching you about emotional honesty.',
         supporting
       };
     }
     return {
       headline: 'Weight you didn\'t ask for',
-      body: 'Something feels heavier than it should. Not because you\'re doing it wrong—because life is asking more of you right now than feels fair.\n\nYou can\'t make the weight disappear. But you can stop pretending it\'s not there.',
+      body: timeframe === 'today'
+        ? 'Something feels heavier than it should. Not because you\'re doing it wrong—because life is asking more right now.'
+        : timeframe === 'week'
+        ? 'This week keeps asking for more seriousness somewhere.'
+        : 'This month is a maturation arc. The pressure has a purpose.',
       supporting
     };
   }
@@ -939,31 +954,29 @@ const getDailyEnergySynthesis = (
   // === PLUTO PRIMARY ===
   if (t1 === 'Pluto') {
     if (n1 === 'Sun') {
-      return {
-        headline: 'Not who you were',
-        body: tone === 'immediate'
-          ? 'Something in you is shifting—not adjusting, shifting. The version of yourself you\'ve been operating as doesn\'t quite fit anymore. Part of you wants to hold onto it anyway.\n\nYou\'re not falling apart. You\'re being rearranged. Fighting it just makes it take longer.'
-          : 'You\'ve been in an identity shift that doesn\'t announce itself—it just shows up in the way nothing feels quite right anymore. Old answers don\'t work. Old versions of you feel like costumes.\n\nThis isn\'t loss. It\'s something trying to become more honest.',
-        supporting
-      };
-    }
-    if (n1 === 'Moon') {
-      return {
-        headline: 'Feelings you\'ve been avoiding',
-        body: 'Something emotional is demanding attention—something you didn\'t invite and can\'t easily dismiss. It\'s bigger than the situation that triggered it.\n\nYou can keep trying to manage it, or you can let yourself actually feel it. Only one of those works.',
-        supporting
-      };
-    }
-    if (n1 === 'Mars') {
-      return {
-        headline: 'Intensity running high',
-        body: 'You\'re carrying more charge than usual—anger, desire, the need to control something. Part of you wants to act on it. Another part knows that acting from this place might create wreckage.\n\nThe intensity is real. What you do with it is the question.',
-        supporting
-      };
+      if (timeframe === 'today') {
+        return {
+          headline: 'Not who you were',
+          body: 'Something in you is shifting—not adjusting, shifting. The old version doesn\'t quite fit anymore.\n\nYou\'re not falling apart. You\'re being rearranged.',
+          supporting
+        };
+      } else {
+        return {
+          headline: 'Identity in transition',
+          body: timeframe === 'week'
+            ? 'You keep noticing that old answers don\'t work anymore. Old versions of you feel like costumes.'
+            : 'This month is teaching you that transformation isn\'t optional. What emerges will be more honest.',
+          supporting
+        };
+      }
     }
     return {
-      headline: 'Something ending',
-      body: 'Part of you knows something is over—even if it hasn\'t officially ended yet. You can feel the shift. The question isn\'t whether it\'s happening, but whether you\'re going to let it.\n\nHolding on doesn\'t stop the change. It just makes you the last one to know.',
+      headline: 'Deep change',
+      body: timeframe === 'today'
+        ? 'Something is demanding attention—something you can\'t easily dismiss.\n\nYou can keep managing it, or let yourself actually feel it.'
+        : timeframe === 'week'
+        ? 'The same deep pull keeps surfacing this week. Fighting it makes it take longer.'
+        : 'This month is a transformation arc. Something is ending so something else can begin.',
       supporting
     };
   }
@@ -973,50 +986,34 @@ const getDailyEnergySynthesis = (
     if (n1 === 'Sun') {
       return {
         headline: 'Restless with yourself',
-        body: 'The usual version of you feels too small right now. You want something to change—maybe everything. Part of you is ready. Another part just wants to escape what is.\n\nBefore you blow something up, ask: is this freedom or just boredom wearing a costume?',
-        supporting
-      };
-    }
-    if (n1 === 'Venus') {
-      return {
-        headline: 'Unsettled in love',
-        body: 'Something in your relationships or values is being questioned—not by anyone else, by you. The familiar feels boring. The new feels exciting but unproven.\n\nThis isn\'t about staying or leaving. It\'s about getting honest about what you actually want—not just what would feel different.',
-        supporting
-      };
-    }
-    if (n1 === 'Moon') {
-      return {
-        headline: 'Emotionally electric',
-        body: 'Your feelings are changeable right now—shifting before you can name them, surprising you mid-sentence. Part of you wants to trust every impulse. Another part knows they\'re not all equally true.\n\nLet yourself feel the movement without making it mean everything.',
+        body: timeframe === 'today'
+          ? 'The usual version of you feels too small today. Something wants to change—maybe everything.\n\nBefore you blow something up, ask: is this freedom or just boredom?'
+          : timeframe === 'week'
+          ? 'You keep wanting to break pattern this week.\n\nNotice what actually needs to shift versus what just feels uncomfortable.'
+          : 'This month is teaching you about authentic change versus restless disruption.',
         supporting
       };
     }
     return {
-      headline: 'Something wants to break',
-      body: 'You\'re restless with something—maybe you know what, maybe you don\'t yet. The status quo feels intolerable even when you can\'t name why.\n\nChange is available. But not all change is progress. Notice what actually needs to shift versus what just feels uncomfortable.',
+      headline: 'Change in the air',
+      body: timeframe === 'today'
+        ? 'Something wants to break free. The status quo feels intolerable even if you can\'t name why.'
+        : timeframe === 'week'
+        ? 'Restlessness keeps returning this week. Not all of it is signal.'
+        : 'This month is asking what actually needs to change.',
       supporting
     };
   }
 
   // === NEPTUNE PRIMARY ===
   if (t1 === 'Neptune') {
-    if (n1 === 'Sun') {
-      return {
-        headline: 'Less solid than usual',
-        body: 'You\'re not quite sure who you are right now—not in a dramatic way, but in a "can\'t find the edges" way. Part of you finds this disorienting. Another part is almost relieved.\n\nYou\'re not losing yourself. You\'re losing the version of yourself that was too rigid to begin with.',
-        supporting
-      };
-    }
-    if (n1 === 'Moon') {
-      return {
-        headline: 'Absorbing everything',
-        body: 'Your emotional boundaries are thinner than usual. You\'re picking up feelings that might not be yours—from people, from spaces, from things you can\'t name.\n\nThis isn\'t weakness. But it does mean you need to be more careful about what you let in.',
-        supporting
-      };
-    }
     return {
       headline: 'Unclear on purpose',
-      body: 'Clarity is hard to find right now. You keep reaching for certainty and coming up with mist. Part of you wants to force an answer. Another part knows the answer isn\'t ready yet.\n\nDon\'t make permanent decisions from this temporary fog.',
+      body: timeframe === 'today'
+        ? 'Clarity is hard to find right now. The answer isn\'t ready yet.\n\nDon\'t make permanent decisions from this temporary fog.'
+        : timeframe === 'week'
+        ? 'The same fog keeps rolling in this week. Trust slowly.'
+        : 'This month is teaching you to move without certainty.',
       supporting
     };
   }
@@ -1024,25 +1021,24 @@ const getDailyEnergySynthesis = (
   // === MARS PRIMARY ===
   if (t1 === 'Mars') {
     return {
-      headline: 'More energy than direction',
-      body: 'You have fuel right now—restlessness, drive, the urge to do something. The question is what. Part of you wants to act first and figure it out later.\n\nThe energy is real. Where you point it matters more than usual.',
-      supporting
-    };
-  }
-
-  // === VENUS PRIMARY ===
-  if (t1 === 'Venus') {
-    return {
-      headline: 'Wanting connection',
-      body: 'You\'re more aware of what you want right now—in relationships, in beauty, in the things you value. Part of you wants to reach for it. Another part wonders if you deserve it.\n\nNotice what you\'re drawn to. It\'s telling you something.',
+      headline: 'Energy running high',
+      body: timeframe === 'today'
+        ? 'You have fuel right now—restlessness, drive, the urge to act.\n\nWhere you point it matters more than usual.'
+        : timeframe === 'week'
+        ? 'Repeated activation this week. Notice if you\'re reacting or responding.'
+        : 'This month carries sustained drive or friction. Use it consciously.',
       supporting
     };
   }
 
   // === DEFAULT ===
   return {
-    headline: 'Multiple pulls',
-    body: 'You\'re being asked to hold more than one thing at once right now. Part of you wants clarity—one direction, one answer. But the situation isn\'t offering that.\n\nThis isn\'t confusion. It\'s complexity. The work is integration, not simplification.',
+    headline: 'Mixed signals',
+    body: timeframe === 'today'
+      ? 'Multiple pulls are active. The work is integration, not simplification.'
+      : timeframe === 'week'
+      ? 'Several tensions keep surfacing this week. They\'re connected.'
+      : 'This month asks you to hold complexity without collapsing into one answer.',
     supporting
   };
 };
