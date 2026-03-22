@@ -3410,50 +3410,210 @@ const buildDominantTruthNarrativeInternal = (
   chapterAnalysis: LifeChapterAnalysis | null,
   timeframe: Timeframe
 ): DominantTruthNarrative => {
-  const headlines: { [key in ThemeCategory]: string } = {
-    overcommitment: 'You\'re carrying more than you can sustain.',
-    avoidance: 'There\'s something you\'re not looking at.',
-    premature_action: 'You\'re moving before the ground is ready.',
-    delayed_decision: 'Something needs to be decided.',
-    emotional_suppression: 'Something is being held in that wants out.',
-    boundary_erosion: 'You\'re giving parts of yourself away.',
-    identity_confusion: 'You\'re not sure who you\'re being.',
-    relationship_strain: 'Something in how you\'re relating isn\'t working.',
-    financial_pressure: 'Resources are under pressure.',
-    health_neglect: 'Your body is asking for attention.',
-    communication_breakdown: 'Something isn\'t being said.',
-    control_grip: 'You\'re holding on too tight.',
-    trust_issues: 'Trust is being tested.',
-    purpose_drift: 'You\'ve lost sight of where you\'re headed.',
-    creative_block: 'Something that wants to come through is stuck.',
-    isolation: 'You\'ve pulled back from something you need.',
-    people_pleasing: 'You\'re shaping yourself for someone else.',
-    perfectionism: 'Nothing is good enough right now.',
-    procrastination: 'Something important keeps getting pushed back.',
-    overwhelm: 'There\'s more coming in than you can process.'
+  const headlines: { [key in ThemeCategory]: { today: string; week: string; month: string } } = {
+    overcommitment: {
+      today: 'You\'re carrying more than you can sustain.',
+      week: 'The weight keeps accumulating.',
+      month: 'This is a season of recalibrating what you carry.'
+    },
+    avoidance: {
+      today: 'There\'s something you\'re not looking at.',
+      week: 'The same thing keeps getting pushed aside.',
+      month: 'Avoidance is becoming a pattern.'
+    },
+    premature_action: {
+      today: 'You\'re moving before the ground is ready.',
+      week: 'Impatience keeps surfacing.',
+      month: 'This period is teaching you about timing.'
+    },
+    delayed_decision: {
+      today: 'Something needs to be decided.',
+      week: 'The same choice keeps circling back.',
+      month: 'Indecision is shaping this period.'
+    },
+    emotional_suppression: {
+      today: 'Something is being held in that wants out.',
+      week: 'The pressure keeps building.',
+      month: 'This is a phase of learning to express.'
+    },
+    boundary_erosion: {
+      today: 'You\'re giving parts of yourself away.',
+      week: 'Your boundaries keep getting tested.',
+      month: 'This period is redefining where you end and others begin.'
+    },
+    identity_confusion: {
+      today: 'You\'re not sure who you\'re being.',
+      week: 'The question of identity keeps arising.',
+      month: 'This is a phase of self-redefinition.'
+    },
+    relationship_strain: {
+      today: 'Something in how you\'re relating isn\'t working.',
+      week: 'The same tension keeps appearing in connection.',
+      month: 'Relationships are undergoing restructuring.'
+    },
+    financial_pressure: {
+      today: 'Resources are under pressure.',
+      week: 'Money stress keeps surfacing.',
+      month: 'This period is reshaping your relationship with resources.'
+    },
+    health_neglect: {
+      today: 'Your body is asking for attention.',
+      week: 'Physical signals keep repeating.',
+      month: 'This is a phase of reclaiming your body.'
+    },
+    communication_breakdown: {
+      today: 'Something isn\'t being said.',
+      week: 'The same unsaid thing keeps creating distance.',
+      month: 'This period is teaching you about speaking truth.'
+    },
+    control_grip: {
+      today: 'You\'re holding on too tight.',
+      week: 'The grip keeps tightening.',
+      month: 'This phase is about learning to release.'
+    },
+    trust_issues: {
+      today: 'Trust is being tested.',
+      week: 'The same fears keep surfacing.',
+      month: 'This period is rebuilding trust.'
+    },
+    purpose_drift: {
+      today: 'You\'ve lost sight of where you\'re headed.',
+      week: 'Direction keeps feeling unclear.',
+      month: 'This is a phase of purpose realignment.'
+    },
+    creative_block: {
+      today: 'Something that wants to come through is stuck.',
+      week: 'The same creative resistance keeps appearing.',
+      month: 'This period is unblocking something important.'
+    },
+    isolation: {
+      today: 'You\'ve pulled back from something you need.',
+      week: 'Withdrawal has become a pattern.',
+      month: 'This phase is about re-engaging.'
+    },
+    people_pleasing: {
+      today: 'You\'re shaping yourself for someone else.',
+      week: 'The same accommodations keep happening.',
+      month: 'This period is about reclaiming your own shape.'
+    },
+    perfectionism: {
+      today: 'Nothing is good enough right now.',
+      week: 'The same impossible standard keeps appearing.',
+      month: 'This phase is learning to accept good enough.'
+    },
+    procrastination: {
+      today: 'Something important keeps getting pushed back.',
+      week: 'The delay is becoming a pattern.',
+      month: 'This period is confronting what you\'ve been avoiding.'
+    },
+    overwhelm: {
+      today: 'There\'s more coming in than you can process.',
+      week: 'The same overwhelm keeps building.',
+      month: 'This phase is about creating space.'
+    }
   };
-  
-  const coreTruths: { [key in ThemeCategory]: string } = {
-    overcommitment: 'You\'ve taken on responsibilities that exceed your current capacity. This isn\'t about working harder—it\'s about recognizing that some commitments were made before you understood what they would actually cost.',
-    avoidance: 'There\'s something you already know needs attention, but looking at it feels harder than ignoring it. The avoidance isn\'t protecting you—it\'s preserving a problem that will grow.',
-    premature_action: 'You\'re ready to move, but the situation isn\'t. Acting now won\'t speed things up—it will create complications that slow everything down.',
-    delayed_decision: 'A decision has been waiting. The delay isn\'t giving you clarity—it\'s letting the pressure build while options narrow.',
-    emotional_suppression: 'Something is being compressed inside you that needs expression. The containment is costing more than the release would.',
-    boundary_erosion: 'You\'ve been agreeing to things that cost you. Each yes has been a small erosion of what you actually need.',
-    identity_confusion: 'You\'re showing up in ways that don\'t feel like you. The gap between who you are and who you\'re being is creating friction.',
-    relationship_strain: 'Something in how you\'re connecting with someone isn\'t working. The pattern keeps repeating because something isn\'t being addressed.',
-    financial_pressure: 'Resources are tighter than they should be. The pressure isn\'t random—it\'s pointing to something about how you\'ve been managing.',
-    health_neglect: 'Your body has been asking for something you haven\'t been giving. The signals are getting louder.',
-    communication_breakdown: 'What needs to be said isn\'t being said. The silence isn\'t keeping peace—it\'s creating distance.',
-    control_grip: 'You\'re holding something so tightly that it can\'t move. The grip isn\'t creating security—it\'s preventing what needs to happen.',
-    trust_issues: 'Something has made it hard to trust. The protection is keeping out what you need along with what you\'re avoiding.',
-    purpose_drift: 'You\'ve lost connection with why you\'re doing what you\'re doing. The motion continues but the meaning has faded.',
-    creative_block: 'Something wants to come through you but can\'t find its way out. The block isn\'t about ability—it\'s about what\'s in the way.',
-    isolation: 'You\'ve withdrawn from something you actually need. The distance that felt protective is now creating its own problem.',
-    people_pleasing: 'You\'ve been adjusting yourself to fit what others want. The shape you\'ve taken isn\'t sustainable.',
-    perfectionism: 'Your standards have become a barrier. Nothing can meet them, including you.',
-    procrastination: 'Something important keeps getting delayed. The postponement isn\'t buying time—it\'s spending it.',
-    overwhelm: 'More is coming in than you can process. The system is overloaded and signals are being missed.'
+
+  const coreTruths: { [key in ThemeCategory]: { today: string; week: string; month: string } } = {
+    overcommitment: {
+      today: 'You\'ve taken on responsibilities that exceed your current capacity. This isn\'t about working harder—it\'s about recognizing that some commitments were made before you understood what they would actually cost.',
+      week: 'A pattern of overextension is running through this week. Each day adds to a load that\'s already too heavy. The question isn\'t whether you can handle it—it\'s whether you should be trying to.',
+      month: 'This month is a reckoning with how much you\'ve been carrying. The accumulation isn\'t sustainable, and this period is forcing a choice about what actually matters versus what you\'ve agreed to out of obligation.'
+    },
+    avoidance: {
+      today: 'There\'s something you already know needs attention, but looking at it feels harder than ignoring it. The avoidance isn\'t protecting you—it\'s preserving a problem that will grow.',
+      week: 'The same thing keeps getting avoided this week. Each time you push it aside, it grows slightly larger. The pattern is becoming harder to ignore.',
+      month: 'This month, avoidance has become a theme. Something you\'ve been not-looking-at is demanding attention. The longer you wait, the more it shapes your choices.'
+    },
+    premature_action: {
+      today: 'You\'re ready to move, but the situation isn\'t. Acting now won\'t speed things up—it will create complications that slow everything down.',
+      week: 'Impatience keeps pushing you toward action this week. But the timing isn\'t right, and forcing it creates more work than waiting would.',
+      month: 'This period is teaching you about the cost of moving too fast. Actions taken before conditions are ready create problems that take longer to solve than the original waiting.'
+    },
+    delayed_decision: {
+      today: 'A decision has been waiting. The delay isn\'t giving you clarity—it\'s letting the pressure build while options narrow.',
+      week: 'The same decision keeps appearing this week in different forms. The avoidance of choosing is itself becoming a choice—and it\'s choosing stagnation.',
+      month: 'This month, indecision has become its own direction. The longer choices remain unmade, the more your path is being determined by default rather than intention.'
+    },
+    emotional_suppression: {
+      today: 'Something is being compressed inside you that needs expression. The containment is costing more than the release would.',
+      week: 'This week, emotions keep pushing against the walls you\'ve built. The pressure is building because something needs to move through.',
+      month: 'This period is about what you\'ve been holding. The suppression has been running long enough that release isn\'t just needed—it\'s overdue.'
+    },
+    boundary_erosion: {
+      today: 'You\'ve been agreeing to things that cost you. Each yes has been a small erosion of what you actually need.',
+      week: 'Your boundaries have been tested repeatedly this week. The pattern of giving ground is creating a deficit you\'ll have to address.',
+      month: 'This month is revealing where your boundaries have worn thin. What started as accommodation has become a pattern of self-betrayal.'
+    },
+    identity_confusion: {
+      today: 'You\'re showing up in ways that don\'t feel like you. The gap between who you are and who you\'re being is creating friction.',
+      week: 'This week keeps asking who you are. The answer keeps changing depending on who\'s asking, and the inconsistency is exhausting.',
+      month: 'This period is a renegotiation of identity. Who you\'ve been presenting isn\'t who you are becoming, and the transition is uncomfortable.'
+    },
+    relationship_strain: {
+      today: 'Something in how you\'re connecting with someone isn\'t working. The pattern keeps repeating because something isn\'t being addressed.',
+      week: 'The same relational tension keeps appearing this week. Different faces, same dynamic. Something in how you connect needs attention.',
+      month: 'This month, relationships are under reconstruction. Patterns that have been running are being exposed, and continuing as before isn\'t an option.'
+    },
+    financial_pressure: {
+      today: 'Resources are tighter than they should be. The pressure isn\'t random—it\'s pointing to something about how you\'ve been managing.',
+      week: 'Money stress keeps surfacing this week. The anxiety isn\'t just about numbers—it\'s about security and what you believe you deserve.',
+      month: 'This period is reshaping your relationship with resources. What you have, what you need, and what you believe about abundance are all under review.'
+    },
+    health_neglect: {
+      today: 'Your body has been asking for something you haven\'t been giving. The signals are getting louder.',
+      week: 'Physical messages keep repeating this week. Your body is not just communicating—it\'s insisting.',
+      month: 'This month, the body is having its say. What you\'ve been ignoring is now demanding attention. This is a phase of returning to the physical.'
+    },
+    communication_breakdown: {
+      today: 'What needs to be said isn\'t being said. The silence isn\'t keeping peace—it\'s creating distance.',
+      week: 'The same unsaid thing keeps creating problems this week. The gap between what\'s true and what\'s spoken is widening.',
+      month: 'This period is about communication debt. What hasn\'t been said is accumulating interest, and the cost of continued silence is growing.'
+    },
+    control_grip: {
+      today: 'You\'re holding something so tightly that it can\'t move. The grip isn\'t creating security—it\'s preventing what needs to happen.',
+      week: 'The need for control keeps intensifying this week. Each attempt to hold things in place creates more strain.',
+      month: 'This period is teaching you about release. What you\'ve been gripping is asking to move, and the holding is becoming its own burden.'
+    },
+    trust_issues: {
+      today: 'Something has made it hard to trust. The protection is keeping out what you need along with what you\'re avoiding.',
+      week: 'Trust keeps being tested this week. The same fears surface in different situations, revealing a pattern.',
+      month: 'This period is about rebuilding trust—with others, with life, with yourself. The walls that protected have also isolated.'
+    },
+    purpose_drift: {
+      today: 'You\'ve lost connection with why you\'re doing what you\'re doing. The motion continues but the meaning has faded.',
+      week: 'Purpose keeps slipping away this week. You\'re busy but not fulfilled. The doing continues but the why is missing.',
+      month: 'This month is a reckoning with direction. Where you\'ve been heading no longer feels like where you want to go.'
+    },
+    creative_block: {
+      today: 'Something wants to come through you but can\'t find its way out. The block isn\'t about ability—it\'s about what\'s in the way.',
+      week: 'Creative resistance keeps appearing this week. The same wall, different approaches, same result.',
+      month: 'This period is unblocking something that\'s been stuck for longer than this month. What wants to emerge has been waiting.'
+    },
+    isolation: {
+      today: 'You\'ve withdrawn from something you actually need. The distance that felt protective is now creating its own problem.',
+      week: 'Withdrawal has become a pattern this week. Each time you pull back, the gap widens.',
+      month: 'This month is about re-engagement. The isolation that served you is now limiting you.'
+    },
+    people_pleasing: {
+      today: 'You\'ve been adjusting yourself to fit what others want. The shape you\'ve taken isn\'t sustainable.',
+      week: 'The pattern of accommodation keeps running this week. Each adjustment takes you further from your own center.',
+      month: 'This period is about reclaiming your shape. Who you\'ve been for others is being asked to make room for who you are.'
+    },
+    perfectionism: {
+      today: 'Your standards have become a barrier. Nothing can meet them, including you.',
+      week: 'The same impossible standard keeps appearing this week. The goal post moves every time you approach.',
+      month: 'This period is learning to accept imperfection. What you\'ve been chasing doesn\'t exist, and the pursuit is costing you.'
+    },
+    procrastination: {
+      today: 'Something important keeps getting delayed. The postponement isn\'t buying time—it\'s spending it.',
+      week: 'The same task keeps being pushed this week. The avoidance is becoming expensive.',
+      month: 'This month, procrastination is reaching its limit. What you\'ve been putting off is demanding attention.'
+    },
+    overwhelm: {
+      today: 'More is coming in than you can process. The system is overloaded and signals are being missed.',
+      week: 'Overwhelm keeps building this week. Each day adds to a pile that doesn\'t shrink.',
+      month: 'This period is forcing triage. Not everything can be carried, and this month is teaching you what to put down.'
+    }
   };
   
   const whereItShowsUp: { [key in ThemeCategory]: string } = {
@@ -3550,9 +3710,10 @@ const buildDominantTruthNarrativeInternal = (
     }
   }
   
-  // Recognition line for high confidence
+  // Recognition line for moderate-to-high confidence
+  // Calibration: Lowered threshold from 70 to 60 for better emotional resonance
   let recognitionLine: string | null = null;
-  if (truth.confidenceScore >= 70) {
+  if (truth.confidenceScore >= 60) {
     const recognitionLines = [
       'You already know where this is happening.',
       'This isn\'t new.',
@@ -3560,12 +3721,18 @@ const buildDominantTruthNarrativeInternal = (
       'You know exactly what this is about.',
       'Something in you recognizes this.'
     ];
-    recognitionLine = recognitionLines[Math.floor(Math.random() * recognitionLines.length)];
+    // Use deterministic selection based on theme to avoid random flicker
+    const index = truth.dominantTheme.length % recognitionLines.length;
+    recognitionLine = recognitionLines[index];
   }
   
+  // Get timeframe-specific content
+  const headlineForTimeframe = headlines[truth.dominantTheme][timeframe];
+  const coreTruthForTimeframe = coreTruths[truth.dominantTheme][timeframe];
+  
   return {
-    headline: headlines[truth.dominantTheme],
-    coreTruth: coreTruths[truth.dominantTheme] + chapterAmplification,
+    headline: headlineForTimeframe,
+    coreTruth: coreTruthForTimeframe + chapterAmplification,
     whereThisShowsUp: whereItShowsUp[truth.dominantTheme],
     whatGoesWrong: whatGoesWrong[truth.dominantTheme],
     question: questions[truth.dominantTheme],
