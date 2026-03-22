@@ -5120,9 +5120,27 @@ async def mirror_chat(request: MirrorChatRequest):
             if is_analyst_mode:
                 logger.info(f"[MIRROR_CHAT] ANALYST MODE triggered for user {request.user_id}")
             
+            # ===== TIMELINE MODE DETECTION (for Astrology Lens) =====
+            timeline_keywords = [
+                r'\btimeline\b', r'\byear ahead\b', r'\bthis year\b', r'\bnext year\b',
+                r'\b2026\b', r'\b2027\b', r'\bkey dates\b', r'\bkey periods?\b',
+                r'\bwhen.*happen\b', r'\bwhat\'?s coming\b', r'\bupcoming\b',
+                r'\bimportant dates?\b', r'\bmajor events?\b', r'\bchronolog\b',
+                r'\bmap.*year\b', r'\byear overview\b', r'\bcalendar\b',
+                r'\bwindows?\b', r'\bpeaks?\b', r'\bturning points?\b'
+            ]
+            is_timeline_request = any(re.search(kw, message_lower) for kw in timeline_keywords)
+            
+            if is_timeline_request:
+                logger.info(f"[MIRROR_CHAT] TIMELINE MODE detected for user {request.user_id}")
+            
             # Determine mode based on lens and question type
-            if request.lens == "astrology":
-                mode = "deep_dive"  # Will add astrology-specific context
+            if request.lens == "astrology" and is_timeline_request:
+                mode = "astrology_timeline"  # NEW: Dedicated timeline mode for astrology
+            elif request.lens == "astrology" and is_analyst_mode:
+                mode = "astrology_analyst"  # Analyst mode within astrology lens
+            elif request.lens == "astrology":
+                mode = "deep_dive"  # Default astrology mode
             elif request.lens == "human_design":
                 mode = "deep_dive"
             elif request.lens == "numerology":
@@ -5130,7 +5148,7 @@ async def mirror_chat(request: MirrorChatRequest):
             elif is_keystone_followup:
                 mode = "daily_insight"
             elif is_analyst_mode:
-                mode = "analyst"  # NEW: Analyst mode for structured output
+                mode = "analyst"  # Analyst mode for structured output
             elif is_transit_question:
                 mode = "timeline"  # Use timeline mode for transit questions
             else:
@@ -5233,6 +5251,74 @@ NOT:
 """
                 system_prompt += analyst_prompt
                 logger.info(f"[MIRROR_CHAT] ANALYST MODE prompt injected for user {request.user_id}")
+            
+            # ===== ASTROLOGY TIMELINE MODE PROMPT =====
+            # Dedicated chronological map for astrology lens
+            if mode == "astrology_timeline":
+                current_year = datetime.now().year
+                next_year = current_year + 1
+                current_date = datetime.now().strftime("%Y-%m-%d")
+                
+                timeline_prompt = f"""
+--- ASTROLOGY TIMELINE MODE ACTIVATED ---
+Current Date: {current_date}
+Year Focus: {current_year} (or {next_year} if user specified)
+
+YOU ARE IN TIMELINE MODE. Provide a chronological map of key periods/events.
+
+OUTPUT STRUCTURE (STRICT):
+
+## YEAR OVERVIEW
+[1-2 lines maximum - the single dominant theme of the year]
+
+---
+
+## KEY WINDOWS
+
+For each period (provide 6-10 maximum):
+
+### [DATE or DATE RANGE]
+**Theme:** [2-4 words - e.g., "Career Crossroads", "Relationship Reset"]
+
+**What's happening:**
+- [Objective transit/aspect - one line]
+
+**What it may feel like:**
+- [Real-life behavioral description - grounded, specific]
+
+**What to watch:**
+- [Risk OR opportunity - one clear thing to pay attention to]
+
+---
+
+(Mark 2-3 as "⭐ PRIMARY EVENT" for the most significant windows)
+
+CRITICAL RULES:
+1. DO NOT make every date important - be selective
+2. HIGHLIGHT only real peaks (2-3 primary events max)
+3. NO vague spiritual language ("cosmic energy", "universe wants you to...")
+4. KEEP grounded and behavioral - what will they actually DO or FEEL
+5. USE specific date ranges (e.g., "March 15-22", "Late April", "First week of June")
+6. THEMES should be named clearly - not "transformation" but "Career Decision Point"
+7. PRIORITIZE: Quality over quantity - skip minor transits
+
+WHAT NOT TO DO:
+- Don't list every transit
+- Don't use astrology jargon without explaining effect
+- Don't make it sound like everything is equally important
+- Don't be vague about timing
+
+USER SHOULD FEEL:
+"I know when things matter this year"
+"I can see the structure of my year"
+"I know which periods need my attention"
+
+NOT:
+"Everything is significant"
+"I don't know what to focus on"
+"""
+                system_prompt += timeline_prompt
+                logger.info(f"[MIRROR_CHAT] ASTROLOGY TIMELINE MODE prompt injected for user {request.user_id}")
             
             logger.info(f"[MIRROR_CHAT] Starting LLM call: mode={mode}, user={request.user_id}, is_transit_question={is_transit_question}")
             
