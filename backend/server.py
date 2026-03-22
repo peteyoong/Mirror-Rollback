@@ -5106,6 +5106,20 @@ async def mirror_chat(request: MirrorChatRequest):
             if is_transit_question:
                 logger.info(f"[MIRROR_CHAT] Detected transit/timing question for user {request.user_id}")
             
+            # ===== ANALYST MODE DETECTION =====
+            # Detect if user wants structured, analytical output (not reflective)
+            analyst_keywords = [
+                r'\bdate breakdown\b', r'\bpoint form\b', r'\bbullet points?\b',
+                r'\bbullets?\b', r'\bbig events?\b', r'\btimeline\b', r'\bwhat\'?s coming\b',
+                r'\btransits?\b', r'\bsummary\b', r'\blist\b', r'\boverview\b',
+                r'\bkey dates?\b', r'\bkey moments?\b', r'\bwhen.*happen\b',
+                r'\bstructured\b', r'\bbreak.*down\b', r'\bclarity\b'
+            ]
+            is_analyst_mode = any(re.search(kw, message_lower) for kw in analyst_keywords)
+            
+            if is_analyst_mode:
+                logger.info(f"[MIRROR_CHAT] ANALYST MODE triggered for user {request.user_id}")
+            
             # Determine mode based on lens and question type
             if request.lens == "astrology":
                 mode = "deep_dive"  # Will add astrology-specific context
@@ -5115,6 +5129,8 @@ async def mirror_chat(request: MirrorChatRequest):
                 mode = "deep_dive"
             elif is_keystone_followup:
                 mode = "daily_insight"
+            elif is_analyst_mode:
+                mode = "analyst"  # NEW: Analyst mode for structured output
             elif is_transit_question:
                 mode = "timeline"  # Use timeline mode for transit questions
             else:
@@ -5158,6 +5174,65 @@ RESPONSE TONE:
 """
                 system_prompt += transit_context
                 logger.info(f"[MIRROR_CHAT] Added transit context: timezone={user_timezone}, date={current_date}")
+            
+            # ===== ANALYST MODE PROMPT =====
+            # When user wants structured, analytical output
+            if is_analyst_mode:
+                user_timezone = user.get('timezone', 'UTC')
+                current_date = datetime.now().strftime("%Y-%m-%d")
+                current_month = datetime.now().strftime("%B %Y")
+                
+                analyst_prompt = f"""
+--- ANALYST MODE ACTIVATED ---
+Current Date: {current_date}
+Current Month: {current_month}
+
+YOU ARE NOW IN ANALYST MODE. The user has requested structured, clear information.
+
+OUTPUT FORMAT (STRICT):
+Use this exact structure for your response:
+
+### [DATE RANGE or PERIOD]
+**Theme:** [2-5 word summary]
+
+- [specific transit or signal]
+- [specific transit or signal]
+
+**What this means:**
+- [clear bullet point - what they might feel/experience]
+- [clear bullet point - behavioral pattern to watch]
+- [clear bullet point - practical awareness]
+
+---
+
+(Repeat for 3-5 strongest windows/themes only)
+
+RULES:
+1. DO NOT ask clarifying questions first - answer with what you have
+2. DO NOT explain astrology theory - just name the transit and its effect
+3. DO NOT hedge excessively - be clear and direct
+4. DO NOT use long paragraphs - bullets only
+5. PRIORITIZE: Show only top 3-5 transit windows, strongest signals only
+6. DATE RANGES: Use actual date ranges (e.g., "March 22-28" or "Late March")
+7. THEMES: Name them clearly (e.g., "Career Pressure", "Relationship Reset", "Inner Conflict")
+
+OPTIONAL MIRROR LAYER:
+At the end, add ONE short reflective line. Examples:
+- "You'll recognize this when the same tension shows up in different situations."
+- "Watch for the moment when clarity comes—it'll be quieter than you expect."
+- "The choice you're avoiding will show up again around [date]."
+
+USER SHOULD FEEL:
+- "This is clear"
+- "I know what to expect"
+- "I can orient myself"
+
+NOT:
+- "What is this saying?"
+- "This is vague"
+"""
+                system_prompt += analyst_prompt
+                logger.info(f"[MIRROR_CHAT] ANALYST MODE prompt injected for user {request.user_id}")
             
             logger.info(f"[MIRROR_CHAT] Starting LLM call: mode={mode}, user={request.user_id}, is_transit_question={is_transit_question}")
             
