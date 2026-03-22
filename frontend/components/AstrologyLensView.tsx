@@ -843,8 +843,10 @@ const HOUSE_BEHAVIORS: { [key: number]: string[] } = {
   ],
   8: [
     "overreading power dynamics in a situation",
-    "feeling vulnerable but trying to stay in control",
-    "becoming preoccupied with what's shared, owed, hidden, or irreversible"
+    "feeling exposed but trying to stay in control",
+    "sensing something unspoken in a relationship",
+    "becoming preoccupied with what's owed, hidden, or irreversible",
+    "wanting to merge with something while also fearing it"
   ],
   9: [
     "questioning whether your beliefs actually hold up",
@@ -899,8 +901,10 @@ const HOUSE_MISTAKES: { [key: number]: string[] } = {
     "fighting for fairness when understanding is what's needed"
   ],
   8: [
-    "controlling harder when trust is what's required",
-    "escalating a shared issue because uncertainty feels intolerable"
+    "trying to control what requires trust",
+    "avoiding vulnerability by intellectualizing it",
+    "escalating a shared issue because uncertainty feels intolerable",
+    "treating depth as danger instead of doorway"
   ],
   9: [
     "running toward new meaning instead of integrating what you already know",
@@ -1041,6 +1045,206 @@ const getLifeAreaContext = (transits: TransitHit[]): string => {
   }
   
   return `This is most likely showing up in ${selected[0]}—and possibly in ${selected[1]}.`;
+};
+
+// ============================================
+// CHART RULER DETECTION
+// ============================================
+
+// Sign to ruling planet mapping
+const SIGN_RULERS: { [key: string]: string } = {
+  'aries': 'Mars',
+  'taurus': 'Venus',
+  'gemini': 'Mercury',
+  'cancer': 'Moon',
+  'leo': 'Sun',
+  'virgo': 'Mercury',
+  'libra': 'Venus',
+  'scorpio': 'Pluto', // Modern ruler
+  'sagittarius': 'Jupiter',
+  'capricorn': 'Saturn',
+  'aquarius': 'Uranus', // Modern ruler
+  'pisces': 'Neptune' // Modern ruler
+};
+
+// Get chart ruler from ascendant
+const getChartRuler = (chartData: FullChartData | null): {
+  planet: string;
+  sign: string;
+  house: number;
+} | null => {
+  if (!chartData?.natal?.ascendant?.sign) return null;
+  
+  const ascSign = chartData.natal.ascendant.sign.toLowerCase();
+  const ruler = SIGN_RULERS[ascSign];
+  if (!ruler) return null;
+  
+  // Find the ruler's placement
+  const placements = chartData.natal.placements || {};
+  const rulerKey = ruler.toLowerCase();
+  const rulerPlacement = placements[rulerKey] || placements[ruler];
+  
+  if (!rulerPlacement) return null;
+  
+  return {
+    planet: ruler,
+    sign: rulerPlacement.sign || '',
+    house: rulerPlacement.house || 0
+  };
+};
+
+// Check if transit touches chart ruler
+const isChartRulerActivated = (chartData: FullChartData | null, transits: TransitHit[]): boolean => {
+  const ruler = getChartRuler(chartData);
+  if (!ruler) return false;
+  
+  return transits.some(t => 
+    t.natal_point.toLowerCase() === ruler.planet.toLowerCase()
+  );
+};
+
+// ============================================
+// REPEAT PATTERN DETECTION
+// ============================================
+
+interface RepeatPattern {
+  theme: string;
+  label: string;
+  count: number;
+  sources: string[];
+}
+
+// Detect repeated themes in current activation
+const detectRepeatPatterns = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): RepeatPattern[] => {
+  if (!chartData || !transits || transits.length === 0) return [];
+  
+  const themeScores: { [key: string]: { count: number; sources: string[]; label: string } } = {
+    'communication': { count: 0, sources: [], label: 'Communication & Expression' },
+    'home': { count: 0, sources: [], label: 'Home & Emotional Foundation' },
+    'intimacy': { count: 0, sources: [], label: 'Trust & Transformation' },
+    'work': { count: 0, sources: [], label: 'Work & Discipline' },
+    'relationships': { count: 0, sources: [], label: 'Relationships & Partnership' },
+    'identity': { count: 0, sources: [], label: 'Identity & Self-Expression' },
+    'career': { count: 0, sources: [], label: 'Career & Public Role' },
+    'beliefs': { count: 0, sources: [], label: 'Meaning & Direction' }
+  };
+  
+  // House to theme mapping
+  const houseThemes: { [key: number]: string } = {
+    1: 'identity', 3: 'communication', 4: 'home', 5: 'identity',
+    6: 'work', 7: 'relationships', 8: 'intimacy', 9: 'beliefs', 10: 'career'
+  };
+  
+  // Planet to theme mapping
+  const planetThemes: { [key: string]: string } = {
+    'Mercury': 'communication',
+    'Moon': 'home',
+    'Venus': 'relationships',
+    'Mars': 'identity',
+    'Saturn': 'work',
+    'Pluto': 'intimacy',
+    'Jupiter': 'beliefs'
+  };
+  
+  // Count house activations
+  const dominantHouses = getDominantHouses(chartData);
+  for (const h of dominantHouses) {
+    const theme = houseThemes[h];
+    if (theme && themeScores[theme]) {
+      themeScores[theme].count++;
+      themeScores[theme].sources.push(`House ${h}`);
+    }
+  }
+  
+  // Count transit activations
+  for (const t of transits.slice(0, 5)) {
+    // By house
+    const houseTheme = houseThemes[t.natal_house];
+    if (houseTheme && themeScores[houseTheme]) {
+      themeScores[houseTheme].count++;
+      themeScores[houseTheme].sources.push(`Transit to H${t.natal_house}`);
+    }
+    
+    // By planet
+    const natalPlanetTheme = planetThemes[t.natal_point];
+    if (natalPlanetTheme && themeScores[natalPlanetTheme]) {
+      themeScores[natalPlanetTheme].count++;
+      themeScores[natalPlanetTheme].sources.push(`${t.natal_point} activated`);
+    }
+  }
+  
+  // Return themes that appear 2+ times
+  return Object.entries(themeScores)
+    .filter(([_, data]) => data.count >= 2)
+    .map(([theme, data]) => ({
+      theme,
+      label: data.label,
+      count: data.count,
+      sources: [...new Set(data.sources)]
+    }))
+    .sort((a, b) => b.count - a.count);
+};
+
+// Get repeat pattern line for injection
+const getRepeatPatternLine = (patterns: RepeatPattern[]): string => {
+  if (patterns.length === 0) return "";
+  const top = patterns[0];
+  return `This isn't random—${top.label.toLowerCase()} is a recurring theme in your chart right now.`;
+};
+
+// ============================================
+// CHAPTER AWARENESS (Slow Transit Detection)
+// ============================================
+
+// Detect if slow transits are active (longer chapter)
+const detectChapterTransits = (transits: TransitHit[]): {
+  isChapterActive: boolean;
+  chapterPlanet: string;
+  chapterType: string;
+} => {
+  const slowPlanets = ['Saturn', 'Jupiter', 'Pluto', 'Neptune', 'Uranus'];
+  
+  for (const t of transits.slice(0, 5)) {
+    if (slowPlanets.includes(t.transit_point)) {
+      let chapterType = 'development';
+      if (t.transit_point === 'Saturn') chapterType = 'maturation';
+      else if (t.transit_point === 'Jupiter') chapterType = 'expansion';
+      else if (t.transit_point === 'Pluto') chapterType = 'transformation';
+      else if (t.transit_point === 'Neptune') chapterType = 'dissolution';
+      else if (t.transit_point === 'Uranus') chapterType = 'liberation';
+      
+      return {
+        isChapterActive: true,
+        chapterPlanet: t.transit_point,
+        chapterType
+      };
+    }
+  }
+  
+  return { isChapterActive: false, chapterPlanet: '', chapterType: '' };
+};
+
+// Get chapter awareness line
+const getChapterLine = (chapter: { isChapterActive: boolean; chapterType: string }): string => {
+  if (!chapter.isChapterActive) return "";
+  
+  switch (chapter.chapterType) {
+    case 'maturation':
+      return "This isn't just today—this is part of a longer phase where you're being asked to grow up somewhere.";
+    case 'expansion':
+      return "This isn't just today—this is part of a longer growth cycle you're in.";
+    case 'transformation':
+      return "This isn't just today—this is part of a deeper change that's been building for a while.";
+    case 'dissolution':
+      return "This isn't just today—this is part of a longer period of not-knowing that has a purpose.";
+    case 'liberation':
+      return "This isn't just today—this is part of a longer cycle of breaking free from something.";
+    default:
+      return "";
+  }
 };
 
 // ============================================
@@ -3243,33 +3447,45 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           </View>
         )}
 
-        {/* Key Planets: Jupiter, Saturn, Nodes, Chiron */}
+        {/* DEVELOPMENTAL PRESSURE ROW - Short, punchy one-liners */}
         <View style={[styles.keyPlanetsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.keyPlanetsTitle, { color: theme.textTertiary }]}>KEY DEVELOPMENTAL POINTS</Text>
-          <View style={styles.keyPlanetsGrid}>
-            <View style={styles.keyPlanetItem}>
-              <Text style={[styles.keyPlanetSymbol, { color: '#4CAF50' }]}>♃</Text>
-              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Jupiter</Text>
-              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.jupiter || '—'}</Text>
-              {placements.jupiter_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.jupiter_house}</Text>}
+          <Text style={[styles.keyPlanetsTitle, { color: theme.textTertiary }]}>DEVELOPMENTAL PRESSURE</Text>
+          <View style={styles.developmentalGrid}>
+            <View style={styles.developmentalItem}>
+              <View style={styles.developmentalHeader}>
+                <Text style={[styles.keyPlanetSymbol, { color: '#FFA726' }]}>♄</Text>
+                <Text style={[styles.developmentalLabel, { color: theme.textTertiary }]}>Saturn</Text>
+              </View>
+              <Text style={[styles.developmentalDesc, { color: theme.text }]}>
+                Where you're forced to mature: {HOUSE_MEANINGS[placements.saturn_house]?.shortLabel || 'unknown territory'}
+              </Text>
             </View>
-            <View style={styles.keyPlanetItem}>
-              <Text style={[styles.keyPlanetSymbol, { color: '#FFA726' }]}>♄</Text>
-              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Saturn</Text>
-              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.saturn || '—'}</Text>
-              {placements.saturn_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.saturn_house}</Text>}
+            <View style={styles.developmentalItem}>
+              <View style={styles.developmentalHeader}>
+                <Text style={[styles.keyPlanetSymbol, { color: '#81D4FA' }]}>☊</Text>
+                <Text style={[styles.developmentalLabel, { color: theme.textTertiary }]}>North Node</Text>
+              </View>
+              <Text style={[styles.developmentalDesc, { color: theme.text }]}>
+                Where growth pulls you: {HOUSE_MEANINGS[placements.north_node_house]?.shortLabel || 'new direction'}
+              </Text>
             </View>
-            <View style={styles.keyPlanetItem}>
-              <Text style={[styles.keyPlanetSymbol, { color: '#81D4FA' }]}>☊</Text>
-              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>North Node</Text>
-              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.north_node || '—'}</Text>
-              {placements.north_node_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.north_node_house}</Text>}
+            <View style={styles.developmentalItem}>
+              <View style={styles.developmentalHeader}>
+                <Text style={[styles.keyPlanetSymbol, { color: '#CE93D8' }]}>⚷</Text>
+                <Text style={[styles.developmentalLabel, { color: theme.textTertiary }]}>Chiron</Text>
+              </View>
+              <Text style={[styles.developmentalDesc, { color: theme.text }]}>
+                Where sensitivity becomes usefulness: {HOUSE_MEANINGS[placements.chiron_house]?.shortLabel || 'wound-wisdom'}
+              </Text>
             </View>
-            <View style={styles.keyPlanetItem}>
-              <Text style={[styles.keyPlanetSymbol, { color: '#CE93D8' }]}>⚷</Text>
-              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Chiron</Text>
-              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.chiron || '—'}</Text>
-              {placements.chiron_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.chiron_house}</Text>}
+            <View style={styles.developmentalItem}>
+              <View style={styles.developmentalHeader}>
+                <Text style={[styles.keyPlanetSymbol, { color: '#4CAF50' }]}>♃</Text>
+                <Text style={[styles.developmentalLabel, { color: theme.textTertiary }]}>Jupiter</Text>
+              </View>
+              <Text style={[styles.developmentalDesc, { color: theme.text }]}>
+                Where expansion happens: {HOUSE_MEANINGS[placements.jupiter_house]?.shortLabel || 'growth zone'}
+              </Text>
             </View>
           </View>
         </View>
@@ -3423,6 +3639,20 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
     );
     const personalRelevanceLine = getPersonalRelevanceLine(personalRelevance, activatedHouses);
 
+    // Detect repeat patterns
+    const repeatPatterns = detectRepeatPatterns(fullChartData, currentWindow?.strongest_hits || []);
+    const repeatPatternLine = getRepeatPatternLine(repeatPatterns);
+
+    // Detect chapter awareness (slow transits)
+    const chapterInfo = detectChapterTransits(currentWindow?.strongest_hits || []);
+    const chapterLine = activeAltitude === 'month' ? getChapterLine(chapterInfo) : '';
+
+    // Detect chart ruler activation
+    const chartRulerActivated = isChartRulerActivated(fullChartData, currentWindow?.strongest_hits || []);
+    const chartRulerLine = chartRulerActivated 
+      ? "This matters more than usual because it touches how you naturally move through life."
+      : "";
+
     // Get refined content (max 3 items each) - PASS TIMEFRAME
     const currentTimeframe = activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today';
     const feelings = getWhatThisMayFeelLike(currentWindow?.strongest_hits || [], currentTimeframe).slice(0, 3);
@@ -3497,6 +3727,21 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           {personalRelevanceLine ? (
             <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
               {personalRelevanceLine}
+            </Text>
+          ) : null}
+          {repeatPatternLine ? (
+            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary, fontStyle: 'italic' }]}>
+              {repeatPatternLine}
+            </Text>
+          ) : null}
+          {chartRulerLine ? (
+            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
+              {chartRulerLine}
+            </Text>
+          ) : null}
+          {chapterLine ? (
+            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary, fontStyle: 'italic' }]}>
+              {chapterLine}
             </Text>
           ) : null}
           {energySynthesis.supporting && (
@@ -4554,6 +4799,29 @@ const styles = StyleSheet.create({
   keyPlanetHouse: {
     fontSize: 10,
     marginTop: 2,
+  },
+  // Developmental Grid Styles
+  developmentalGrid: {
+    flexDirection: 'column',
+    gap: 12,
+  },
+  developmentalItem: {
+    flexDirection: 'column',
+  },
+  developmentalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  developmentalLabel: {
+    fontSize: 11,
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  developmentalDesc: {
+    fontSize: 14,
+    lineHeight: 20,
+    paddingLeft: 24,
   },
   // Chart Spine Styles
   chartSpineCard: {
