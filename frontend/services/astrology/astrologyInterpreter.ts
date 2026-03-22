@@ -1,0 +1,1226 @@
+// ============================================
+// ASTROLOGY INTERPRETER - PURE INTERPRETATION LOGIC
+// No React, No JSX, No UI styles
+// Returns structured data only
+// ============================================
+
+import {
+  FullChartData,
+  CorePlacements,
+  TransitHit,
+  ChartRuler,
+  HouseRulerChain,
+  PlanetStrength,
+  PriorityPlanet,
+  TransitPriority,
+  PersonalRelevanceMatch,
+  ThemeConcentration,
+  ChapterInfo,
+  RepeatPattern,
+  LifeArena,
+  HouseMeaning,
+  HouseMistakes,
+  HouseBehaviors,
+  KeyAspect,
+  HouseAnalysis,
+  WhatMattersItem,
+  DevelopmentalPressureItem,
+  Timeframe,
+} from './astrologyTypes';
+
+// ============================================
+// STATIC DATA - Sign mappings
+// ============================================
+
+export const SIGN_ELEMENTS: { [key: string]: string } = {
+  'Aries': 'Fire', 'Leo': 'Fire', 'Sagittarius': 'Fire',
+  'Taurus': 'Earth', 'Virgo': 'Earth', 'Capricorn': 'Earth',
+  'Gemini': 'Air', 'Libra': 'Air', 'Aquarius': 'Air',
+  'Cancer': 'Water', 'Scorpio': 'Water', 'Pisces': 'Water'
+};
+
+export const SIGN_MODALITIES: { [key: string]: string } = {
+  'Aries': 'Cardinal', 'Cancer': 'Cardinal', 'Libra': 'Cardinal', 'Capricorn': 'Cardinal',
+  'Taurus': 'Fixed', 'Leo': 'Fixed', 'Scorpio': 'Fixed', 'Aquarius': 'Fixed',
+  'Gemini': 'Mutable', 'Virgo': 'Mutable', 'Sagittarius': 'Mutable', 'Pisces': 'Mutable'
+};
+
+export const SIGN_QUALITIES: { [key: string]: string[] } = {
+  'Aries': ['initiating', 'direct', 'pioneering', 'independent'],
+  'Taurus': ['grounded', 'sensual', 'steady', 'value-oriented'],
+  'Gemini': ['curious', 'versatile', 'communicative', 'adaptable'],
+  'Cancer': ['nurturing', 'protective', 'intuitive', 'emotionally attuned'],
+  'Leo': ['expressive', 'warm', 'creative', 'generous'],
+  'Virgo': ['analytical', 'service-oriented', 'precise', 'practical'],
+  'Libra': ['relational', 'harmonizing', 'aesthetic', 'diplomatic'],
+  'Scorpio': ['intense', 'penetrating', 'transformative', 'resourceful'],
+  'Sagittarius': ['expansive', 'truth-seeking', 'adventurous', 'philosophical'],
+  'Capricorn': ['structured', 'ambitious', 'responsible', 'enduring'],
+  'Aquarius': ['innovative', 'humanitarian', 'independent', 'visionary'],
+  'Pisces': ['imaginative', 'empathic', 'fluid', 'transcendent']
+};
+
+// ============================================
+// RULERSHIP SYSTEM
+// ============================================
+
+export const SIGN_RULERS: { [key: string]: string } = {
+  'aries': 'Mars',
+  'taurus': 'Venus',
+  'gemini': 'Mercury',
+  'cancer': 'Moon',
+  'leo': 'Sun',
+  'virgo': 'Mercury',
+  'libra': 'Venus',
+  'scorpio': 'Mars',
+  'sagittarius': 'Jupiter',
+  'capricorn': 'Saturn',
+  'aquarius': 'Saturn',
+  'pisces': 'Jupiter'
+};
+
+export const SIGN_RULERS_MODERN: { [key: string]: string } = {
+  'scorpio': 'Pluto',
+  'aquarius': 'Uranus',
+  'pisces': 'Neptune'
+};
+
+// ============================================
+// DIGNITY TABLES
+// ============================================
+
+export const PLANET_DOMICILE: { [key: string]: string[] } = {
+  'Sun': ['Leo'],
+  'Moon': ['Cancer'],
+  'Mercury': ['Gemini', 'Virgo'],
+  'Venus': ['Taurus', 'Libra'],
+  'Mars': ['Aries', 'Scorpio'],
+  'Jupiter': ['Sagittarius', 'Pisces'],
+  'Saturn': ['Capricorn', 'Aquarius']
+};
+
+export const PLANET_EXALTATION: { [key: string]: string } = {
+  'Sun': 'Aries',
+  'Moon': 'Taurus',
+  'Mercury': 'Virgo',
+  'Venus': 'Pisces',
+  'Mars': 'Capricorn',
+  'Jupiter': 'Cancer',
+  'Saturn': 'Libra'
+};
+
+export const PLANET_DETRIMENT: { [key: string]: string[] } = {
+  'Sun': ['Aquarius'],
+  'Moon': ['Capricorn'],
+  'Mercury': ['Sagittarius', 'Pisces'],
+  'Venus': ['Aries', 'Scorpio'],
+  'Mars': ['Taurus', 'Libra'],
+  'Jupiter': ['Gemini', 'Virgo'],
+  'Saturn': ['Cancer', 'Leo']
+};
+
+export const PLANET_FALL: { [key: string]: string } = {
+  'Sun': 'Libra',
+  'Moon': 'Scorpio',
+  'Mercury': 'Pisces',
+  'Venus': 'Virgo',
+  'Mars': 'Cancer',
+  'Jupiter': 'Capricorn',
+  'Saturn': 'Aries'
+};
+
+// House position classifications
+export const ANGULAR_HOUSES = [1, 4, 7, 10];
+export const SUCCEDENT_HOUSES = [2, 5, 8, 11];
+export const CADENT_HOUSES = [3, 6, 9, 12];
+
+// ============================================
+// HOUSE MEANINGS DATA
+// ============================================
+
+export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
+  1: {
+    label: "Identity & Self-Presentation",
+    shortLabel: "identity",
+    arena: "how you show up, first impressions, physical self",
+    theme: "self-definition and the way you meet life",
+    whenActivated: "questions about who you are and how you're being seen",
+    specialty: "This is one of the main places life keeps training you through how you present, what you project, and who you become when observed.",
+    developmentalPressure: "You're being asked to show up as yourself—without the costume, without the performance, without the defense.",
+    consequenceZone: "What you project gets reflected back. Misalignment here creates friction everywhere.",
+    whenIgnored: "You lose touch with who you actually are vs. who you've been performing."
+  },
+  2: {
+    label: "Values & Resources",
+    shortLabel: "values & money",
+    arena: "money, possessions, self-worth, what you hold onto",
+    theme: "security and what you truly value",
+    whenActivated: "questions about worth, money, or what you're holding onto",
+    specialty: "This is one of the main places life keeps training you through what you have, what you value, and whether you feel like enough.",
+    developmentalPressure: "You're being asked to clarify what actually matters—not what should matter, but what does.",
+    consequenceZone: "What you hold onto shapes what you become. Over-grip here and growth stops.",
+    whenIgnored: "Security gets confused with control. Self-worth collapses into net worth."
+  },
+  3: {
+    label: "Communication & Learning",
+    shortLabel: "communication",
+    arena: "thinking, speaking, learning, siblings, local environment",
+    theme: "how you process and express what you know",
+    whenActivated: "how you're thinking, what you're saying, and whether the words are landing",
+    specialty: "This is one of the main places life keeps training you through thought, language, interpretation, and how you make meaning from information.",
+    developmentalPressure: "You're being asked to clarify—not explain more, but clarify. What you say carries more weight than you realize.",
+    consequenceZone: "Miscommunication here ripples outward. What you can't articulate, you can't integrate.",
+    whenIgnored: "You keep explaining but not being understood. The same conversation keeps repeating."
+  },
+  4: {
+    label: "Home & Emotional Foundation",
+    shortLabel: "home & roots",
+    arena: "home, family, roots, private self, emotional baseline",
+    theme: "where you come from and what grounds you",
+    whenActivated: "your sense of safety, family dynamics, or inner emotional stability",
+    specialty: "This is where inner stability gets tested. When this area is unsettled, everything echoes. Growth here is non-negotiable.",
+    developmentalPressure: "You're being asked to find ground that doesn't depend on external conditions.",
+    consequenceZone: "Instability here makes everything else harder. You can't build on a shaky foundation.",
+    whenIgnored: "You keep looking for home in places that can't hold you. Inner restlessness persists."
+  },
+  5: {
+    label: "Creativity & Self-Expression",
+    shortLabel: "creativity & play",
+    arena: "creativity, romance, pleasure, children, risk-taking",
+    theme: "what you create and how you express yourself",
+    whenActivated: "desire for recognition, creative blocks, or romantic intensity",
+    specialty: "This is one of the main places life keeps training you through what you create, what brings you joy, and how you risk being seen.",
+    developmentalPressure: "You're being asked to create without guarantee of applause. Express for its own sake.",
+    consequenceZone: "Unexpressed creativity becomes bitterness. Joy deferred turns to resentment.",
+    whenIgnored: "Life feels flat. You're surviving but not creating. Something vital goes dormant."
+  },
+  6: {
+    label: "Work & Daily Systems",
+    shortLabel: "work & health",
+    arena: "daily work, health, routines, service, improvement",
+    theme: "how you maintain yourself and contribute through effort",
+    whenActivated: "work pressure, health awareness, or the quality of your daily systems",
+    specialty: "This is one of the main places life keeps training you through what you do every day—your craft, your discipline, your maintenance.",
+    developmentalPressure: "You're being asked to show up consistently, not just when inspired. Discipline is the teacher here.",
+    consequenceZone: "Neglect here accumulates silently. The body keeps score. Systems fail when you need them.",
+    whenIgnored: "You burn out. Health erodes. Work becomes something that happens to you, not through you."
+  },
+  7: {
+    label: "Relationships & Partnership",
+    shortLabel: "relationships",
+    arena: "committed relationships, partnerships, contracts, projection",
+    theme: "how you relate to others and what you project onto them",
+    whenActivated: "relationship dynamics, fairness, or what you keep seeing in others",
+    specialty: "This is one of the main places life keeps training you through who you attract, what you project, and what you see in the mirror of another.",
+    developmentalPressure: "You're being asked to see the other as they are—not as who you need them to be.",
+    consequenceZone: "What you can't see in yourself shows up in your relationships. Every projection has a cost.",
+    whenIgnored: "You keep attracting the same dynamic. The partner changes but the pattern doesn't."
+  },
+  8: {
+    label: "Intimacy & Transformation",
+    shortLabel: "trust & depth",
+    arena: "intimacy, shared resources, power, loss, regeneration",
+    theme: "what you merge with and what transforms you",
+    whenActivated: "trust issues, power dynamics, or emotional vulnerability",
+    specialty: "This is one of the main places life keeps training you through what you can't control—depth, loss, merging, and what forces you to change.",
+    developmentalPressure: "You're being asked to let go of something you're still gripping. Transformation requires surrender.",
+    consequenceZone: "Avoided depth becomes shadow. Control here backfires. What you won't face keeps returning.",
+    whenIgnored: "Intimacy stays shallow. Power dynamics run the show unconsciously. You repeat cycles of loss."
+  },
+  9: {
+    label: "Beliefs & Expansion",
+    shortLabel: "meaning & truth",
+    arena: "philosophy, travel, higher education, beliefs, truth-seeking",
+    theme: "what you believe and how your worldview expands",
+    whenActivated: "questions about meaning, direction, or whether you're on the right path",
+    specialty: "This is one of the main places life keeps training you through what you believe, what you're reaching toward, and whether your map matches the territory.",
+    developmentalPressure: "You're being asked to test your beliefs—not defend them, test them. Truth requires willingness to be wrong.",
+    consequenceZone: "Untested beliefs become prisons. A map that doesn't match reality leads you nowhere.",
+    whenIgnored: "Meaning collapses. You go through motions without conviction. Life feels like it's happening around you."
+  },
+  10: {
+    label: "Career & Public Role",
+    shortLabel: "vocation",
+    arena: "career, reputation, public life, responsibility, legacy",
+    theme: "what you're here to contribute and be known for",
+    whenActivated: "career pressure, visibility, or questions about your direction",
+    specialty: "This is one of the main places life keeps training you through what you build, what you contribute, and what remains after you're gone.",
+    developmentalPressure: "You're being asked to step into a role that requires more than you've given before. Growth here is public.",
+    consequenceZone: "What you build here outlasts you—for better or worse. Reputation is a slow-motion portrait.",
+    whenIgnored: "Work becomes meaningless. You climb ladders but don't know why. Achievement without satisfaction."
+  },
+  11: {
+    label: "Community & Future Vision",
+    shortLabel: "community",
+    arena: "friendships, groups, networks, hopes, future vision",
+    theme: "where you belong and what you're building toward",
+    whenActivated: "questions about belonging, friendship, or whether you fit",
+    specialty: "This is one of the main places life keeps training you through who you run with, what you hope for, and whether your people are really your people.",
+    developmentalPressure: "You're being asked to discern—not all communities are yours. Find the ones that actually fit.",
+    consequenceZone: "Wrong community, wrong future. The people around you shape what you become.",
+    whenIgnored: "Isolation increases. Future feels directionless. You perform belonging instead of actually fitting."
+  },
+  12: {
+    label: "Surrender & Unconscious",
+    shortLabel: "hidden self",
+    arena: "retreat, spirituality, unconscious patterns, endings, exile",
+    theme: "what you can't see yet and what needs release",
+    whenActivated: "need for retreat, confusion, or patterns you can't fully name",
+    specialty: "This is one of the main places life keeps training you through what you can't see, what you need to release, and what operates beneath your awareness.",
+    developmentalPressure: "You're being asked to let something end. Not everything can be fixed—some things need to be released.",
+    consequenceZone: "What you won't release follows you. Unconscious patterns run the show until you face them.",
+    whenIgnored: "Exhaustion without cause. The same pattern repeats with different faces. Something keeps leaking energy."
+  }
+};
+
+// House domain short labels
+export const HOUSE_DOMAINS: { [key: number]: string } = {
+  1: 'identity and how you show up',
+  2: 'money and what you value',
+  3: 'communication and thinking',
+  4: 'home and emotional foundation',
+  5: 'creativity and self-expression',
+  6: 'work and daily routines',
+  7: 'relationships and partnership',
+  8: 'intimacy and shared resources',
+  9: 'beliefs and meaning-making',
+  10: 'career and public role',
+  11: 'community and future vision',
+  12: 'unconscious patterns and release'
+};
+
+// ============================================
+// HOUSE BEHAVIORS (timeframe-specific)
+// ============================================
+
+export const HOUSE_BEHAVIORS: { [key: number]: HouseBehaviors } = {
+  1: {
+    today: [
+      "checking the mirror more than usual",
+      "adjusting how you present yourself mid-conversation",
+      "feeling visible in a way that makes you self-conscious"
+    ],
+    week: [
+      "catching yourself performing instead of just being",
+      "wondering if people see what you're actually trying to show",
+      "small identity adjustments that feel bigger than they should"
+    ],
+    month: [
+      "who you've been presenting no longer matches who you're becoming",
+      "wanting to be seen differently but not knowing what to change",
+      "outgrowing an image you didn't realize you'd built"
+    ]
+  },
+  2: {
+    today: [
+      "checking your account balance more than necessary",
+      "feeling slightly anxious about what you have—or don't",
+      "gripping something tighter than the situation requires"
+    ],
+    week: [
+      "money or security concerns popping up at odd moments",
+      "questioning whether you have enough—or are enough",
+      "small purchase decisions feeling heavier than they should"
+    ],
+    month: [
+      "reexamining what you actually value vs. what you thought you should",
+      "security patterns you built years ago no longer fitting",
+      "wanting more but unsure if more is what you actually need"
+    ]
+  },
+  3: {
+    today: [
+      "saying something and immediately wishing you'd said it differently",
+      "reading the same paragraph three times because it won't stick",
+      "a conversation playing on loop in your head"
+    ],
+    week: [
+      "the same topic coming up in completely unrelated conversations",
+      "explaining something multiple ways but still feeling misunderstood",
+      "mental restlessness that won't quite settle"
+    ],
+    month: [
+      "realizing you've been thinking about something for weeks without resolving it",
+      "a shift in how you process—old mental habits not working the same",
+      "what you used to believe about communication being tested"
+    ]
+  },
+  4: {
+    today: [
+      "feeling unsettled at home for no obvious reason",
+      "reacting more strongly to family tone or emotional atmosphere",
+      "wanting to be alone but also wanting comfort"
+    ],
+    week: [
+      "old family patterns surfacing in current situations",
+      "home feeling like it needs something you can't quite name",
+      "emotional weather that seems to come from nowhere"
+    ],
+    month: [
+      "questioning what 'home' actually means to you now",
+      "family dynamics demanding a different response than your usual one",
+      "the foundation you built feeling less solid than it did"
+    ]
+  },
+  5: {
+    today: [
+      "wanting attention you're not getting",
+      "creative restlessness without clear outlet",
+      "a flash of jealousy when someone else gets recognized"
+    ],
+    week: [
+      "feeling invisible even when you're being seen",
+      "creative blocks that feel personal rather than technical",
+      "joy requiring more effort than it used to"
+    ],
+    month: [
+      "what used to light you up no longer doing it",
+      "creative identity being restructured from the inside",
+      "risking being seen in a new way—or avoiding that risk entirely"
+    ]
+  },
+  6: {
+    today: [
+      "obsessing over a small detail that won't let go",
+      "body tension that mirrors mental pressure",
+      "feeling behind on maintenance you didn't know you were tracking"
+    ],
+    week: [
+      "systems breaking down in small, annoying ways",
+      "health awareness sharpening—something asking for attention",
+      "work feeling like a grind even when it's going fine"
+    ],
+    month: [
+      "your routines being redesigned by life rather than choice",
+      "capacity limits becoming clearer than you'd like",
+      "the gap between what you should do and what you actually do"
+    ]
+  },
+  7: {
+    today: [
+      "reading more into a partner's comment than is probably there",
+      "needing something from someone you haven't asked for",
+      "a small relationship friction staying with you longer than it should"
+    ],
+    week: [
+      "the same dynamic replaying with different people",
+      "wanting closeness but also feeling irritated by it",
+      "seeing something in others that you're not seeing in yourself"
+    ],
+    month: [
+      "relationship patterns you thought you'd resolved resurfacing",
+      "what you need from partnership shifting in ways you hadn't expected",
+      "the mirror showing you something you'd rather not see"
+    ]
+  },
+  8: {
+    today: [
+      "sensing something unspoken in a conversation",
+      "a slight power struggle you can't quite name",
+      "feeling exposed but trying to stay in control"
+    ],
+    week: [
+      "trust getting tested in small ways",
+      "intensity rising in situations that shouldn't be intense",
+      "something hidden wanting to surface—yours or someone else's"
+    ],
+    month: [
+      "old loss or betrayal echoing in current situations",
+      "control strategies that used to work no longer working",
+      "being asked to merge with something you're not sure you trust"
+    ]
+  },
+  9: {
+    today: [
+      "a belief getting quietly challenged",
+      "restless for meaning you can't quite reach",
+      "feeling stuck in a perspective that's too small"
+    ],
+    week: [
+      "questioning whether your map actually matches the territory",
+      "information that doesn't fit your framework arriving anyway",
+      "the urge to escape—travel, learn, anything but here"
+    ],
+    month: [
+      "worldview cracks that can't be papered over",
+      "what you believed about meaning being tested by reality",
+      "direction uncertainty that won't resolve by thinking harder"
+    ]
+  },
+  10: {
+    today: [
+      "work feeling heavier than the task actually is",
+      "wanting recognition for effort no one sees",
+      "a brief flash of 'is this what I'm doing with my life?'"
+    ],
+    week: [
+      "career pressure that isn't coming from the job itself",
+      "achievement feeling hollow even when you hit the mark",
+      "the weight of expectation—yours or someone else's—pressing"
+    ],
+    month: [
+      "questioning what you're actually building toward",
+      "professional identity shifting in ways you can't control",
+      "the gap between where you are and where you thought you'd be"
+    ]
+  },
+  11: {
+    today: [
+      "feeling out of place in a group you usually fit",
+      "a friend saying something that lands wrong",
+      "future plans feeling less certain than yesterday"
+    ],
+    week: [
+      "social energy fluctuating more than usual",
+      "questioning whether your people are really your people",
+      "hopes for the future getting quieter or louder without clear reason"
+    ],
+    month: [
+      "community shifts—who belongs is changing",
+      "vision for the future being rewritten by circumstance",
+      "discovering that some friendships were situational, not permanent"
+    ]
+  },
+  12: {
+    today: [
+      "tired for reasons you can't name",
+      "a dream or memory surfacing without invitation",
+      "wanting to disappear for a few hours"
+    ],
+    week: [
+      "something asking to be released that you're still holding",
+      "energy leaking somewhere you can't identify",
+      "the past showing up in unexpected places"
+    ],
+    month: [
+      "patterns you thought you'd moved past returning for review",
+      "something ending whether you're ready or not",
+      "the need to let go becoming less optional"
+    ]
+  }
+};
+
+// ============================================
+// HOUSE MISTAKES DATA
+// ============================================
+
+export const HOUSE_MISTAKES: { [key: number]: HouseMistakes } = {
+  1: {
+    primary: "changing yourself to fit the room instead of showing up as you actually are",
+    supporting: ["letting someone else's perception become your self-image", "performing a version of yourself that isn't sustainable"]
+  },
+  2: {
+    primary: "gripping something tighter because you're afraid of what losing it means",
+    supporting: ["confusing what you have with who you are", "spending to prove something to yourself"]
+  },
+  3: {
+    primary: "explaining more when what's needed is clarity, not volume",
+    supporting: ["saying it before you've actually thought it through", "using words to avoid the silence where truth lives"]
+  },
+  4: {
+    primary: "trying to fix outer circumstances when the instability is internal",
+    supporting: ["making family carry a weight they didn't create", "looking for home in a place that can't hold you"]
+  },
+  5: {
+    primary: "performing for approval instead of creating for expression",
+    supporting: ["seeking validation to fill a gap only your own work can fill", "avoiding creative risk because rejection feels existential"]
+  },
+  6: {
+    primary: "perfecting the wrong thing while the right thing waits",
+    supporting: ["burnout disguised as discipline", "fixing details to avoid the larger structural issue"]
+  },
+  7: {
+    primary: "expecting a partner to fill a gap that only you can address",
+    supporting: ["fighting for fairness when understanding is what's needed", "seeing in them what you won't see in yourself"]
+  },
+  8: {
+    primary: "trying to control what can only be surrendered to",
+    supporting: ["avoiding vulnerability by intellectualizing it", "escalating because uncertainty feels intolerable", "treating depth as danger instead of doorway"]
+  },
+  9: {
+    primary: "preaching what you haven't actually lived yet",
+    supporting: ["running toward new meaning instead of integrating what you already know", "defending your map instead of checking whether it matches the territory"]
+  },
+  10: {
+    primary: "sacrificing what matters for achievement that won't satisfy",
+    supporting: ["working harder instead of working smarter", "building toward a goal you inherited but never chose"]
+  },
+  11: {
+    primary: "performing belonging instead of testing whether you actually fit",
+    supporting: ["planning the future to avoid the present", "collecting people instead of choosing them"]
+  },
+  12: {
+    primary: "pushing through when the actual task is surrender",
+    supporting: ["ignoring what's asking to be released", "treating exhaustion as weakness instead of signal"]
+  }
+};
+
+// ============================================
+// CHART RULER DETECTION
+// ============================================
+
+export const getChartRuler = (chartData: FullChartData | null): ChartRuler | null => {
+  if (!chartData?.natal?.angles?.asc?.sign) return null;
+  
+  const ascSign = chartData.natal.angles.asc.sign.toLowerCase();
+  const ruler = SIGN_RULERS[ascSign];
+  if (!ruler) return null;
+  
+  const planets = chartData.natal.planets || {};
+  const rulerData = planets[ruler];
+  
+  if (!rulerData) return null;
+  
+  return {
+    planet: ruler,
+    sign: rulerData.sign || '',
+    house: rulerData.house || 0
+  };
+};
+
+export const isChartRulerActivated = (chartData: FullChartData | null, transits: TransitHit[]): boolean => {
+  const ruler = getChartRuler(chartData);
+  if (!ruler) return false;
+  
+  return transits.some(t => 
+    t.natal_point.toLowerCase() === ruler.planet.toLowerCase()
+  );
+};
+
+// ============================================
+// DOMINANT HOUSES
+// ============================================
+
+export const getDominantHouses = (chartData: FullChartData | null): number[] => {
+  if (!chartData?.natal?.concentrations?.dominant_houses) return [];
+  return chartData.natal.concentrations.dominant_houses
+    .slice(0, 3)
+    .map((h: { house: number }) => h.house);
+};
+
+// ============================================
+// RULERSHIP CHAINS
+// ============================================
+
+const getChainMeaning = (fromHouse: number, toHouse: number): string => {
+  const meanings: { [key: string]: string } = {
+    '1-8': 'identity is shaped by depth, trust, and what you can\'t control',
+    '1-7': 'identity is shaped through relationships and how others see you',
+    '1-10': 'identity is shaped through career and public contribution',
+    '2-3': 'security comes through communication and learning',
+    '2-8': 'resources are tied to shared power and what you merge with',
+    '3-8': 'communication carries more weight—it\'s about trust, not just information',
+    '3-9': 'daily thinking connects to bigger questions of meaning',
+    '3-12': 'thinking connects to what you can\'t fully see or name',
+    '4-10': 'home and career are directly linked—one affects the other',
+    '4-8': 'emotional foundation is tied to intimacy and transformation',
+    '5-11': 'self-expression connects to community and future vision',
+    '6-12': 'daily work connects to something larger—service or surrender',
+    '7-1': 'relationships shape who you become',
+    '7-4': 'partnership is tied to emotional security and home',
+    '8-2': 'transformation happens through what you value and hold',
+    '8-5': 'depth and creativity are intertwined',
+    '9-3': 'beliefs shape how you think and communicate',
+    '10-4': 'career is rooted in where you come from',
+    '10-7': 'public role is shaped by partnerships',
+    '11-5': 'future vision connects to creative self-expression',
+    '12-6': 'what\'s hidden affects daily functioning'
+  };
+  
+  const key = `${fromHouse}-${toHouse}`;
+  const reverseKey = `${toHouse}-${fromHouse}`;
+  
+  return meanings[key] || meanings[reverseKey] || 
+    `${HOUSE_MEANINGS[fromHouse]?.shortLabel || 'this area'} connects to ${HOUSE_MEANINGS[toHouse]?.shortLabel || 'another area'}`;
+};
+
+export const buildRulershipChains = (chartData: FullChartData | null): HouseRulerChain[] => {
+  if (!chartData?.natal?.houses?.cusps) return [];
+  
+  const chains: HouseRulerChain[] = [];
+  const planets = chartData.natal.planets || {};
+  
+  for (const cusp of chartData.natal.houses.cusps) {
+    const houseNumber = cusp.house;
+    const houseSign = cusp.sign;
+    
+    if (!houseSign) continue;
+    
+    const ruler = SIGN_RULERS[houseSign.toLowerCase()];
+    if (!ruler) continue;
+    
+    const rulerData = planets[ruler];
+    if (!rulerData) continue;
+    
+    chains.push({
+      house: houseNumber,
+      sign: houseSign,
+      ruler: ruler,
+      rulerHouse: rulerData.house || 0,
+      rulerSign: rulerData.sign || '',
+      meaningConnection: getChainMeaning(houseNumber, rulerData.house || 0)
+    });
+  }
+  
+  return chains;
+};
+
+// ============================================
+// DIGNITY / CONDITION WEIGHTING
+// ============================================
+
+export const getDignityScore = (planet: string, sign: string): number => {
+  if (PLANET_DOMICILE[planet]?.includes(sign)) return 2;
+  if (PLANET_EXALTATION[planet] === sign) return 1;
+  if (PLANET_FALL[planet] === sign) return -2;
+  if (PLANET_DETRIMENT[planet]?.includes(sign)) return -1;
+  return 0;
+};
+
+export const getHousePositionScore = (house: number): number => {
+  if (ANGULAR_HOUSES.includes(house)) return 1;
+  if (CADENT_HOUSES.includes(house)) return -1;
+  return 0;
+};
+
+const isConjunctLuminary = (planet: string, chartData: FullChartData | null): boolean => {
+  if (!chartData?.natal?.aspects) return false;
+  
+  return chartData.natal.aspects.some(asp => 
+    asp.aspect_type === 'conjunction' &&
+    ((asp.point_a === planet && (asp.point_b === 'Sun' || asp.point_b === 'Moon')) ||
+     (asp.point_b === planet && (asp.point_a === 'Sun' || asp.point_a === 'Moon')))
+  );
+};
+
+const countAspects = (planet: string, chartData: FullChartData | null): number => {
+  if (!chartData?.natal?.aspects) return 0;
+  
+  return chartData.natal.aspects.filter(asp => 
+    asp.point_a === planet || asp.point_b === planet
+  ).length;
+};
+
+export const buildPlanetStrengths = (chartData: FullChartData | null): PlanetStrength[] => {
+  if (!chartData?.natal?.planets) return [];
+  
+  const chartRuler = getChartRuler(chartData);
+  const strengths: PlanetStrength[] = [];
+  const planets = chartData.natal.planets;
+  
+  const planetNames = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'];
+  
+  for (const planetName of planetNames) {
+    const planetData = planets[planetName];
+    if (!planetData) continue;
+    
+    const dignityScore = getDignityScore(planetName, planetData.sign || '');
+    const houseScore = getHousePositionScore(planetData.house || 0);
+    const aspectCount = countAspects(planetName, chartData);
+    const isRuler = chartRuler?.planet === planetName;
+    const conjunctLum = isConjunctLuminary(planetName, chartData);
+    
+    let totalScore = dignityScore + houseScore;
+    if (aspectCount >= 3) totalScore += 1;
+    if (isRuler) totalScore += 2;
+    if (conjunctLum) totalScore += 1;
+    
+    let strengthLabel: 'strong' | 'moderate' | 'challenged' = 'moderate';
+    if (totalScore >= 3) strengthLabel = 'strong';
+    else if (totalScore <= -1) strengthLabel = 'challenged';
+    
+    strengths.push({
+      planet: planetName,
+      sign: planetData.sign || '',
+      house: planetData.house || 0,
+      dignityScore,
+      houseScore,
+      aspectCount,
+      isChartRuler: isRuler,
+      conjunctLuminary: conjunctLum,
+      totalScore,
+      strengthLabel
+    });
+  }
+  
+  return strengths;
+};
+
+// ============================================
+// PLANET PRIORITY RANKING
+// ============================================
+
+export const getDominantPlanets = (chartData: FullChartData | null): PriorityPlanet[] => {
+  const strengths = buildPlanetStrengths(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  
+  const sorted = [...strengths].sort((a, b) => b.totalScore - a.totalScore);
+  
+  return sorted.slice(0, 5).map((strength, index) => {
+    const reasons: string[] = [];
+    
+    if (strength.isChartRuler) reasons.push('shapes how you move through life');
+    if (strength.dignityScore >= 2) reasons.push('naturally at home');
+    if (strength.dignityScore === 1) reasons.push('elevated');
+    if (strength.houseScore === 1) reasons.push('prominent position');
+    if (strength.aspectCount >= 3) reasons.push('highly connected');
+    if (strength.conjunctLuminary) reasons.push('tied to core identity');
+    if (dominantHouses.includes(strength.house)) reasons.push('in a concentrated area');
+    
+    return {
+      planet: strength.planet,
+      rank: index + 1,
+      reasons,
+      strength
+    };
+  });
+};
+
+export const isPlanetDominant = (planet: string, chartData: FullChartData | null): boolean => {
+  const dominant = getDominantPlanets(chartData);
+  return dominant.slice(0, 3).some(p => p.planet === planet);
+};
+
+// ============================================
+// TRANSIT PRIORITY HIERARCHY
+// ============================================
+
+export const prioritizeTransits = (
+  transits: TransitHit[],
+  chartData: FullChartData | null
+): TransitPriority[] => {
+  const chartRuler = getChartRuler(chartData);
+  const dominantPlanets = getDominantPlanets(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  const chains = buildRulershipChains(chartData);
+  const planetStrengths = buildPlanetStrengths(chartData);
+  
+  return transits.map(transit => {
+    let score = 0;
+    const reasons: string[] = [];
+    
+    if (chartRuler && transit.natal_point === chartRuler.planet) {
+      score += 3;
+      reasons.push('touches how you naturally operate');
+    }
+    
+    if (dominantPlanets.slice(0, 3).some(p => p.planet === transit.natal_point)) {
+      score += 2;
+      reasons.push('hits a defining force in your chart');
+    }
+    
+    if (dominantHouses.includes(transit.natal_house)) {
+      score += 2;
+      reasons.push('lands in concentrated territory');
+    }
+    
+    const planetStrength = planetStrengths.find(p => p.planet === transit.natal_point);
+    if (planetStrength && ANGULAR_HOUSES.includes(planetStrength.house)) {
+      score += 1;
+      reasons.push('prominent position');
+    }
+    
+    const chainMatch = chains.find(c => c.ruler === transit.natal_point);
+    if (chainMatch && chainMatch.house !== chainMatch.rulerHouse) {
+      score += 1;
+      reasons.push('connects multiple life areas');
+    }
+    
+    if (planetStrength && planetStrength.strengthLabel === 'challenged') {
+      score -= 1;
+    }
+    
+    score += Math.floor(transit.strength_score / 3);
+    
+    let priorityLabel: 'primary' | 'supporting' | 'background' = 'background';
+    if (score >= 4) priorityLabel = 'primary';
+    else if (score >= 2) priorityLabel = 'supporting';
+    
+    return {
+      transit,
+      priorityScore: score,
+      priorityLabel,
+      boostReasons: reasons
+    };
+  }).sort((a, b) => b.priorityScore - a.priorityScore);
+};
+
+// ============================================
+// PERSONAL RELEVANCE DETECTION
+// ============================================
+
+export const detectPersonalRelevance = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): PersonalRelevanceMatch => {
+  if (!chartData?.natal?.concentrations || !transits || transits.length === 0) {
+    return { isHighRelevance: false, matchType: null };
+  }
+  
+  const concentrations = chartData.natal.concentrations;
+  const dominantHouses = concentrations.dominant_houses || [];
+  const angularPlanets = concentrations.angular_planets || [];
+  const dominantElements = concentrations.dominant_elements || [];
+  
+  const dominantHouseNumbers = dominantHouses.slice(0, 2).map((h: { house: number }) => h.house);
+  const angularPlanetNames = angularPlanets.map((p: { planet: string }) => p.planet.toLowerCase());
+  const topElement = dominantElements[0]?.[0]?.toLowerCase();
+  
+  const elementSigns: { [key: string]: string[] } = {
+    'fire': ['aries', 'leo', 'sagittarius'],
+    'earth': ['taurus', 'virgo', 'capricorn'],
+    'air': ['gemini', 'libra', 'aquarius'],
+    'water': ['cancer', 'scorpio', 'pisces']
+  };
+  
+  for (const hit of transits.slice(0, 3)) {
+    if (hit.natal_house && dominantHouseNumbers.includes(hit.natal_house)) {
+      return {
+        isHighRelevance: true,
+        matchType: 'house',
+        matchDetail: 'areas you spend a lot of time thinking about'
+      };
+    }
+    
+    if (angularPlanetNames.includes(hit.natal_point.toLowerCase())) {
+      return {
+        isHighRelevance: true,
+        matchType: 'angular',
+        matchDetail: 'a core part of how you move through life'
+      };
+    }
+    
+    if (topElement && elementSigns[topElement]) {
+      const natalSign = hit.natal_sign?.toLowerCase();
+      if (natalSign && elementSigns[topElement].includes(natalSign)) {
+        return {
+          isHighRelevance: true,
+          matchType: 'element',
+          matchDetail: 'how you naturally respond to things'
+        };
+      }
+    }
+  }
+  
+  return { isHighRelevance: false, matchType: null };
+};
+
+// ============================================
+// THEME CONCENTRATION DETECTION
+// ============================================
+
+export const detectThemeConcentration = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): ThemeConcentration[] => {
+  const chains = buildRulershipChains(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  
+  const themes: { [key: string]: { sources: string[]; label: string } } = {
+    'communication': { sources: [], label: 'how you think and express' },
+    'relationships': { sources: [], label: 'connection and partnership' },
+    'identity': { sources: [], label: 'who you are and how you show up' },
+    'security': { sources: [], label: 'safety and resources' },
+    'transformation': { sources: [], label: 'depth and change' },
+    'career': { sources: [], label: 'work and public role' },
+    'meaning': { sources: [], label: 'beliefs and direction' }
+  };
+  
+  for (const house of dominantHouses) {
+    if ([3].includes(house)) themes['communication'].sources.push('house concentration');
+    if ([7].includes(house)) themes['relationships'].sources.push('house concentration');
+    if ([1, 5].includes(house)) themes['identity'].sources.push('house concentration');
+    if ([2, 4].includes(house)) themes['security'].sources.push('house concentration');
+    if ([8].includes(house)) themes['transformation'].sources.push('house concentration');
+    if ([10, 6].includes(house)) themes['career'].sources.push('house concentration');
+    if ([9].includes(house)) themes['meaning'].sources.push('house concentration');
+  }
+  
+  for (const chain of chains) {
+    if ([3].includes(chain.house) || [3].includes(chain.rulerHouse)) {
+      themes['communication'].sources.push('house connection');
+    }
+    if ([8].includes(chain.house) || [8].includes(chain.rulerHouse)) {
+      themes['transformation'].sources.push('house connection');
+    }
+  }
+  
+  for (const transit of transits.slice(0, 5)) {
+    if (transit.natal_house === 3 || transit.natal_point === 'Mercury') {
+      themes['communication'].sources.push('transit');
+    }
+    if (transit.natal_house === 7 || transit.natal_point === 'Venus') {
+      themes['relationships'].sources.push('transit');
+    }
+    if (transit.natal_house === 8 || transit.natal_point === 'Pluto') {
+      themes['transformation'].sources.push('transit');
+    }
+  }
+  
+  return Object.entries(themes)
+    .filter(([_, data]) => data.sources.length >= 2)
+    .map(([theme, data]) => ({
+      theme,
+      sources: [...new Set(data.sources)],
+      count: data.sources.length,
+      collapsedLine: `This keeps showing up because ${data.label} is built into how your chart works.`
+    }))
+    .sort((a, b) => b.count - a.count);
+};
+
+// ============================================
+// CHAPTER / LONG-CYCLE DETECTION
+// ============================================
+
+export const detectChapterTransits = (transits: TransitHit[]): ChapterInfo => {
+  const slowTransits = ['Saturn', 'Uranus', 'Neptune', 'Pluto'];
+  
+  for (const hit of transits.slice(0, 3)) {
+    if (slowTransits.includes(hit.transit_point)) {
+      const themes: { [key: string]: string } = {
+        'Saturn': 'maturation and responsibility',
+        'Uranus': 'liberation and disruption',
+        'Neptune': 'dissolution and transcendence',
+        'Pluto': 'transformation and power'
+      };
+      
+      return {
+        hasChapterTransit: true,
+        transitPlanet: hit.transit_point,
+        natalPoint: hit.natal_point,
+        chapterTheme: themes[hit.transit_point] || 'longer-term development'
+      };
+    }
+  }
+  
+  return {
+    hasChapterTransit: false,
+    transitPlanet: null,
+    natalPoint: null,
+    chapterTheme: null
+  };
+};
+
+// ============================================
+// REPEAT PATTERN DETECTION
+// ============================================
+
+export const detectRepeatPatterns = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): RepeatPattern => {
+  const dominantHouses = getDominantHouses(chartData);
+  const dominantPlanets = getDominantPlanets(chartData);
+  
+  const activatedHouses = transits.slice(0, 3)
+    .map(t => t.natal_house)
+    .filter((h): h is number => h !== undefined);
+  
+  const repeatingHouses = activatedHouses.filter(h => dominantHouses.includes(h));
+  
+  if (repeatingHouses.length > 0) {
+    const house = repeatingHouses[0];
+    const meaning = HOUSE_MEANINGS[house];
+    
+    return {
+      isRepeating: true,
+      repeatedTheme: meaning?.shortLabel || 'this area',
+      count: repeatingHouses.length,
+      sources: ['natal concentration', 'current transit']
+    };
+  }
+  
+  const activatedPlanets = transits.slice(0, 3).map(t => t.natal_point);
+  const dominantPlanetNames = dominantPlanets.slice(0, 3).map(p => p.planet);
+  const repeatingPlanets = activatedPlanets.filter(p => dominantPlanetNames.includes(p));
+  
+  if (repeatingPlanets.length > 0) {
+    return {
+      isRepeating: true,
+      repeatedTheme: `${repeatingPlanets[0]} themes`,
+      count: repeatingPlanets.length,
+      sources: ['natal strength', 'current transit']
+    };
+  }
+  
+  return {
+    isRepeating: false,
+    repeatedTheme: null,
+    count: 0,
+    sources: []
+  };
+};
+
+// ============================================
+// MAIN LIFE ARENAS
+// ============================================
+
+export const getMainLifeArenas = (chartData: FullChartData | null): LifeArena[] => {
+  if (!chartData?.natal?.concentrations?.dominant_houses) return [];
+  
+  const dominantHouses = chartData.natal.concentrations.dominant_houses || [];
+  
+  const topHouses = dominantHouses.slice(0, 3).map((h: { house: number; planets: string[] }) => ({
+    house: h.house,
+    planets: h.planets || []
+  }));
+  
+  return topHouses.map(({ house, planets }) => {
+    const meaning = HOUSE_MEANINGS[house];
+    if (!meaning) return { label: '', shortLabel: '', explanation: '', whenIgnored: '' };
+    
+    const importantPlanets = ['Sun', 'Moon', 'Saturn', 'Chiron', 'North Node', 'South Node'];
+    const presentImportant = planets.filter((p: string) => importantPlanets.includes(p));
+    
+    let explanation = '';
+    if (presentImportant.length >= 2) {
+      explanation = `This is a crossroads. Identity, pressure, and growth all concentrate here. Life keeps pulling you back to this arena.`;
+    } else if (presentImportant.includes('Sun')) {
+      explanation = `Your sense of self lives here. What you experience in this arena shapes who you become.`;
+    } else if (presentImportant.includes('Moon')) {
+      explanation = `Your emotional baseline is here. When this area shakes, you feel it everywhere.`;
+    } else if (presentImportant.includes('Saturn')) {
+      explanation = `This is where life asks you to get serious. Maturation happens here—whether you're ready or not.`;
+    } else if (presentImportant.includes('Chiron')) {
+      explanation = `What hurt you here now makes you useful here. The wound and the gift share the same address.`;
+    } else if (presentImportant.includes('North Node')) {
+      explanation = `This is growth edge territory. It doesn't come naturally, but it's where you're being pulled.`;
+    } else if (planets.length >= 3) {
+      explanation = `Multiple parts of you meet here. This is high-traffic territory in your psychology.`;
+    } else {
+      explanation = meaning.specialty;
+    }
+    
+    return {
+      label: meaning.label,
+      shortLabel: meaning.shortLabel,
+      explanation,
+      whenIgnored: meaning.whenIgnored
+    };
+  }).filter(a => a.label);
+};
+
+// ============================================
+// PLACEMENTS EXTRACTION
+// ============================================
+
+export const extractPlacements = (chartData: FullChartData | null): CorePlacements => {
+  if (!chartData?.natal) {
+    return { sun: 'Unknown', moon: 'Unknown', ascendant: 'Unknown' };
+  }
+  
+  const { planets, angles, nodes } = chartData.natal;
+  
+  return {
+    sun: planets?.Sun?.sign || 'Unknown',
+    sun_house: planets?.Sun?.house,
+    moon: planets?.Moon?.sign || 'Unknown',
+    moon_house: planets?.Moon?.house,
+    ascendant: angles?.asc?.sign || 'Unknown',
+    mercury: planets?.Mercury?.sign,
+    mercury_house: planets?.Mercury?.house,
+    venus: planets?.Venus?.sign,
+    venus_house: planets?.Venus?.house,
+    mars: planets?.Mars?.sign,
+    mars_house: planets?.Mars?.house,
+    jupiter: planets?.Jupiter?.sign,
+    jupiter_house: planets?.Jupiter?.house,
+    saturn: planets?.Saturn?.sign,
+    saturn_house: planets?.Saturn?.house,
+    chiron: planets?.Chiron?.sign,
+    chiron_house: planets?.Chiron?.house,
+    north_node: nodes?.north?.sign,
+    north_node_house: nodes?.north?.house,
+    south_node: nodes?.south?.sign,
+    south_node_house: nodes?.south?.house,
+  };
+};
+
+// ============================================
+// ACTIVATED HOUSES
+// ============================================
+
+export const getActivatedHouses = (transits: TransitHit[]): number[] => {
+  return transits
+    .slice(0, 3)
+    .map(t => t.natal_house)
+    .filter((h): h is number => h !== undefined && h !== null);
+};
+
+// ============================================
+// HOUSE THEME HELPER
+// ============================================
+
+export const getHouseTheme = (house: number): string => {
+  return HOUSE_DOMAINS[house] || `House ${house}`;
+};
+
+// ============================================
+// PLANET IMPORTANCE LINE (for Deep Dive cards)
+// ============================================
+
+export const getPlanetImportanceLine = (
+  planet: string,
+  chartData: FullChartData | null
+): string => {
+  const chartRuler = getChartRuler(chartData);
+  const planetStrengths = buildPlanetStrengths(chartData);
+  const dominant = getDominantPlanets(chartData);
+  
+  const isRuler = chartRuler?.planet === planet;
+  const strength = planetStrengths.find(p => p.planet === planet);
+  const isDominant = dominant.slice(0, 3).some(p => p.planet === planet);
+  
+  // Check if part of major chain
+  const chains = buildRulershipChains(chartData);
+  const isInMajorChain = chains.filter(c => c.ruler === planet && c.house !== c.rulerHouse).length >= 2;
+  
+  if (isRuler && strength?.strengthLabel === 'strong') {
+    return "This is one of the most defining forces in your chart.";
+  }
+  if (isRuler) {
+    return "This shapes how you move through life more than most.";
+  }
+  if (isDominant && strength?.strengthLabel === 'strong') {
+    return "This carries particular weight in how you're built.";
+  }
+  if (isDominant) {
+    return "This plays a larger role than average in your patterns.";
+  }
+  if (isInMajorChain) {
+    return "This connects multiple areas of your life together.";
+  }
+  
+  return '';
+};
+
+// ============================================
+// DEBUG HELPERS
+// ============================================
+
+export const debugInterpretedChart = (chartData: FullChartData | null): void => {
+  if (process.env.NODE_ENV !== 'development') return;
+  
+  console.log('=== INTERPRETED CHART DEBUG ===');
+  console.log('Chart Ruler:', getChartRuler(chartData));
+  console.log('Dominant Houses:', getDominantHouses(chartData));
+  console.log('Dominant Planets:', getDominantPlanets(chartData));
+  console.log('Main Life Arenas:', getMainLifeArenas(chartData));
+  console.log('Planet Strengths:', buildPlanetStrengths(chartData));
+  console.log('Rulership Chains:', buildRulershipChains(chartData));
+  console.log('===============================');
+};
+
+export const validateChartInterpretation = (chartData: FullChartData | null): boolean => {
+  const chartRuler = getChartRuler(chartData);
+  const mainArenas = getMainLifeArenas(chartData);
+  const dominantPlanets = getDominantPlanets(chartData);
+  
+  const isValid = chartRuler !== null || mainArenas.length > 0 || dominantPlanets.length > 0;
+  
+  if (!isValid && process.env.NODE_ENV === 'development') {
+    console.warn('Chart interpretation validation failed - no key data available');
+  }
+  
+  return isValid;
+};
