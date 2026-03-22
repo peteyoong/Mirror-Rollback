@@ -723,6 +723,107 @@ const getLifeAreaContext = (transits: TransitHit[]): string => {
 };
 
 // ============================================
+// MOON PHASE → CYCLE AWARENESS (Natural language, not astrological)
+// ============================================
+
+type MoonPhase = 'new' | 'waxing' | 'first_quarter' | 'full' | 'waning' | 'last_quarter' | 'balsamic';
+
+// Calculate moon phase from Sun and Moon longitudes
+const getMoonPhaseFromLongitudes = (sunLongitude: number, moonLongitude: number): MoonPhase => {
+  // Calculate the angle between Moon and Sun (Moon's phase angle)
+  let angle = moonLongitude - sunLongitude;
+  if (angle < 0) angle += 360;
+  
+  // Map to phase categories (with 15° orb for named phases)
+  if (angle < 15 || angle >= 345) return 'new';
+  if (angle >= 15 && angle < 80) return 'waxing';
+  if (angle >= 80 && angle < 100) return 'first_quarter';
+  if (angle >= 100 && angle < 165) return 'waxing'; // Still building toward full
+  if (angle >= 165 && angle < 195) return 'full';
+  if (angle >= 195 && angle < 260) return 'waning';
+  if (angle >= 260 && angle < 280) return 'last_quarter';
+  return 'balsamic'; // 280-345
+};
+
+// Get moon phase message for different timeframes
+const getMoonPhaseMessage = (phase: MoonPhase, timeframe: 'today' | 'week' | 'month' = 'today'): string => {
+  if (timeframe === 'today') {
+    switch (phase) {
+      case 'new':
+        return "This is a beginning—clarity isn't fully here yet.";
+      case 'waxing':
+        return "This is building—momentum matters more than certainty.";
+      case 'first_quarter':
+        return "This is a push point—something needs to move forward.";
+      case 'full':
+        return "This is a peak—something is becoming clear.";
+      case 'waning':
+        return "This is unwinding—something is starting to shift.";
+      case 'last_quarter':
+        return "This is a turning point—something isn't sustainable as it is.";
+      case 'balsamic':
+        return "This is closing—not everything is meant to continue.";
+      default:
+        return "";
+    }
+  } else if (timeframe === 'week') {
+    switch (phase) {
+      case 'new':
+        return "This week starts something—don't expect full clarity yet.";
+      case 'waxing':
+        return "This week builds toward something—trust the momentum.";
+      case 'first_quarter':
+        return "This week asks for action—something needs to push through.";
+      case 'full':
+        return "This week brings things to a head—something becomes undeniable.";
+      case 'waning':
+        return "This week begins to release—some things are completing.";
+      case 'last_quarter':
+        return "This week turns a corner—what's unsustainable becomes obvious.";
+      case 'balsamic':
+        return "This week closes a chapter—make room for what's next.";
+      default:
+        return "";
+    }
+  } else {
+    // Month - softer, more developmental
+    switch (phase) {
+      case 'new':
+        return "This month plants seeds—what starts now will evolve.";
+      case 'waxing':
+        return "This month builds—what you invest in now compounds.";
+      case 'first_quarter':
+        return "This month tests commitment—what you push through becomes real.";
+      case 'full':
+        return "This month illuminates—what's been building becomes visible.";
+      case 'waning':
+        return "This month integrates—what matters will stay, what doesn't will fall away.";
+      case 'last_quarter':
+        return "This month restructures—old patterns are ready to change.";
+      case 'balsamic':
+        return "This month completes a cycle—rest and release are part of the work.";
+      default:
+        return "";
+    }
+  }
+};
+
+// Get moon phase context from chart data
+const getMoonPhaseContext = (chartData: FullChartData | null, timeframe: 'today' | 'week' | 'month' = 'today'): string => {
+  if (!chartData?.transits?.current_transit_positions) return "";
+  
+  const positions = chartData.transits.current_transit_positions;
+  // Check both uppercase and lowercase keys
+  const sunData = positions['Sun'] || positions['sun'];
+  const moonData = positions['Moon'] || positions['moon'];
+  
+  if (!sunData?.longitude || !moonData?.longitude) return "";
+  
+  const phase = getMoonPhaseFromLongitudes(sunData.longitude, moonData.longitude);
+  return getMoonPhaseMessage(phase, timeframe);
+};
+
+// ============================================
 // TODAY TAB EXPERIENTIAL CONTENT
 // RECOGNITION-BASED MIRROR VOICE
 // ============================================
@@ -2779,6 +2880,12 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
     // Get life area context (house-based)
     const lifeAreaContext = getLifeAreaContext(currentWindow?.strongest_hits || []);
 
+    // Get moon phase context (cycle awareness)
+    const moonPhaseContext = getMoonPhaseContext(
+      fullChartData,
+      activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today'
+    );
+
     // Get refined content (max 3 items each) - PASS TIMEFRAME
     const currentTimeframe = activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today';
     const feelings = getWhatThisMayFeelLike(currentWindow?.strongest_hits || [], currentTimeframe).slice(0, 3);
@@ -2838,6 +2945,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           {lifeAreaContext ? (
             <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
               {lifeAreaContext}
+            </Text>
+          ) : null}
+          {moonPhaseContext ? (
+            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
+              {moonPhaseContext}
             </Text>
           ) : null}
           {energySynthesis.supporting && (
