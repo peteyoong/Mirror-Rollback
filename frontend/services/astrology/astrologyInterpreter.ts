@@ -42,6 +42,13 @@ import {
   LifeChapter,
   LifeChapterAnalysis,
   LifeChapterNarrative,
+  // Dominant Truth Types (Master Astrologer v5)
+  PressureType,
+  ThemeCategory,
+  CandidateTheme,
+  DominantTruth,
+  DominantTruthNarrative,
+  CollapsedInsights,
 } from './astrologyTypes';
 
 // ============================================
@@ -3016,4 +3023,553 @@ export const getChapterContextLine = (
   } else {
     return `This month is part of ${narrative.shortContextLine}.`;
   }
+};
+
+// ============================================
+// DOMINANT TRUTH ENGINE (Master Astrologer v5)
+// ============================================
+
+// Theme detection based on house/planet combinations
+const THEME_INDICATORS: { [key in ThemeCategory]: {
+  houses: number[];
+  planets: string[];
+  aspects: string[];
+  chapters: ChapterType[];
+  patterns: string[];
+} } = {
+  overcommitment: {
+    houses: [6, 10, 1],
+    planets: ['Saturn', 'Mars', 'Jupiter'],
+    aspects: ['square', 'opposition'],
+    chapters: ['saturn'],
+    patterns: ['pressure_triangle', 'stellium']
+  },
+  avoidance: {
+    houses: [12, 4, 8],
+    planets: ['Neptune', 'Moon', 'Pluto'],
+    aspects: ['square', 'opposition'],
+    chapters: ['nodal', 'chiron'],
+    patterns: ['opposition_axis']
+  },
+  premature_action: {
+    houses: [1, 5, 9],
+    planets: ['Mars', 'Jupiter', 'Uranus'],
+    aspects: ['conjunction', 'square'],
+    chapters: ['jupiter'],
+    patterns: ['conjunction_chain']
+  },
+  delayed_decision: {
+    houses: [7, 4, 12],
+    planets: ['Saturn', 'Neptune', 'Moon'],
+    aspects: ['opposition', 'square'],
+    chapters: ['saturn', 'nodal'],
+    patterns: ['opposition_axis', 'pressure_triangle']
+  },
+  emotional_suppression: {
+    houses: [4, 8, 12],
+    planets: ['Moon', 'Saturn', 'Pluto'],
+    aspects: ['square', 'opposition', 'conjunction'],
+    chapters: ['saturn', 'chiron'],
+    patterns: ['pressure_triangle']
+  },
+  boundary_erosion: {
+    houses: [7, 1, 12],
+    planets: ['Neptune', 'Venus', 'Moon'],
+    aspects: ['conjunction', 'opposition'],
+    chapters: ['nodal', 'chiron'],
+    patterns: ['conjunction_chain', 'flow_pattern']
+  },
+  identity_confusion: {
+    houses: [1, 12, 4],
+    planets: ['Neptune', 'Sun', 'Moon'],
+    aspects: ['square', 'opposition', 'conjunction'],
+    chapters: ['nodal', 'chiron'],
+    patterns: ['opposition_axis']
+  },
+  relationship_strain: {
+    houses: [7, 8, 5],
+    planets: ['Venus', 'Mars', 'Saturn'],
+    aspects: ['square', 'opposition'],
+    chapters: ['saturn', 'chiron'],
+    patterns: ['pressure_triangle', 'opposition_axis']
+  },
+  financial_pressure: {
+    houses: [2, 8, 6],
+    planets: ['Saturn', 'Pluto', 'Jupiter'],
+    aspects: ['square', 'opposition'],
+    chapters: ['saturn'],
+    patterns: ['pressure_triangle']
+  },
+  health_neglect: {
+    houses: [6, 1, 12],
+    planets: ['Mars', 'Saturn', 'Neptune'],
+    aspects: ['square', 'opposition'],
+    chapters: ['saturn', 'chiron'],
+    patterns: ['stellium']
+  },
+  communication_breakdown: {
+    houses: [3, 7, 9],
+    planets: ['Mercury', 'Saturn', 'Pluto'],
+    aspects: ['square', 'opposition'],
+    chapters: ['saturn'],
+    patterns: ['pressure_triangle']
+  },
+  control_grip: {
+    houses: [8, 10, 1],
+    planets: ['Pluto', 'Saturn', 'Mars'],
+    aspects: ['conjunction', 'square'],
+    chapters: ['saturn'],
+    patterns: ['conjunction_chain', 'pressure_triangle']
+  },
+  trust_issues: {
+    houses: [8, 7, 12],
+    planets: ['Pluto', 'Saturn', 'Neptune'],
+    aspects: ['square', 'opposition'],
+    chapters: ['chiron', 'saturn'],
+    patterns: ['opposition_axis']
+  },
+  purpose_drift: {
+    houses: [9, 10, 12],
+    planets: ['Jupiter', 'Neptune', 'Saturn'],
+    aspects: ['square', 'opposition'],
+    chapters: ['nodal', 'jupiter'],
+    patterns: ['opposition_axis']
+  },
+  creative_block: {
+    houses: [5, 12, 10],
+    planets: ['Saturn', 'Neptune', 'Sun'],
+    aspects: ['square', 'opposition'],
+    chapters: ['saturn', 'chiron'],
+    patterns: ['pressure_triangle']
+  },
+  isolation: {
+    houses: [12, 4, 11],
+    planets: ['Saturn', 'Neptune', 'Moon'],
+    aspects: ['square', 'opposition'],
+    chapters: ['saturn', 'chiron'],
+    patterns: ['stellium']
+  },
+  people_pleasing: {
+    houses: [7, 1, 11],
+    planets: ['Venus', 'Neptune', 'Moon'],
+    aspects: ['conjunction', 'opposition'],
+    chapters: ['chiron', 'nodal'],
+    patterns: ['conjunction_chain', 'flow_pattern']
+  },
+  perfectionism: {
+    houses: [6, 10, 1],
+    planets: ['Saturn', 'Mercury', 'Pluto'],
+    aspects: ['conjunction', 'square'],
+    chapters: ['saturn'],
+    patterns: ['conjunction_chain', 'pressure_triangle']
+  },
+  procrastination: {
+    houses: [12, 6, 3],
+    planets: ['Neptune', 'Saturn', 'Mercury'],
+    aspects: ['square', 'opposition'],
+    chapters: ['saturn', 'nodal'],
+    patterns: ['opposition_axis']
+  },
+  overwhelm: {
+    houses: [6, 12, 4],
+    planets: ['Moon', 'Neptune', 'Saturn'],
+    aspects: ['square', 'opposition', 'conjunction'],
+    chapters: ['saturn', 'chiron'],
+    patterns: ['stellium', 'pressure_triangle']
+  }
+};
+
+// Life area translations
+const THEME_LIFE_AREAS: { [key in ThemeCategory]: string } = {
+  overcommitment: 'what you\'re carrying',
+  avoidance: 'what you\'re not looking at',
+  premature_action: 'where you\'re rushing',
+  delayed_decision: 'what you\'re putting off',
+  emotional_suppression: 'what you\'re holding in',
+  boundary_erosion: 'where you\'re giving yourself away',
+  identity_confusion: 'who you\'re trying to be',
+  relationship_strain: 'how you\'re relating',
+  financial_pressure: 'your resources and security',
+  health_neglect: 'your body and daily life',
+  communication_breakdown: 'what\'s not being said',
+  control_grip: 'what you\'re trying to control',
+  trust_issues: 'what you\'re not trusting',
+  purpose_drift: 'your sense of direction',
+  creative_block: 'what\'s not flowing',
+  isolation: 'where you\'ve withdrawn',
+  people_pleasing: 'whose approval you\'re seeking',
+  perfectionism: 'where nothing is good enough',
+  procrastination: 'what keeps getting delayed',
+  overwhelm: 'how much you\'re holding'
+};
+
+// Get dominant truth from all inputs
+export const getDominantTruth = (
+  chartData: FullChartData | null,
+  chapterAnalysis: LifeChapterAnalysis | null,
+  patternAnalysis: AspectPatternAnalysis | null,
+  timeframe: Timeframe = 'today'
+): DominantTruth | null => {
+  if (!chartData?.transits?.strongest_hits) return null;
+  
+  const transits = chartData.transits.strongest_hits;
+  const planets = chartData.natal?.planets || {};
+  const chartRuler = getChartRuler(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  const primaryChapter = chapterAnalysis?.primaryChapter || null;
+  const dominantPattern = patternAnalysis?.dominantPattern || null;
+  
+  // Score each theme category
+  const themeScores: { [key in ThemeCategory]?: CandidateTheme } = {};
+  
+  // Initialize all themes
+  for (const category of Object.keys(THEME_INDICATORS) as ThemeCategory[]) {
+    themeScores[category] = {
+      category,
+      score: 0,
+      sources: [],
+      lifeAreas: [],
+      houses: [],
+      chapterAlignment: false,
+      patternAlignment: false
+    };
+  }
+  
+  // Score based on transits
+  for (const hit of transits.slice(0, 10)) {
+    const natalHouse = hit.natal_house || planets[hit.natal_point]?.house || 0;
+    const transitPlanet = hit.transit_point;
+    const aspectType = hit.aspect_type;
+    
+    for (const [category, indicators] of Object.entries(THEME_INDICATORS)) {
+      const cat = category as ThemeCategory;
+      const theme = themeScores[cat]!;
+      
+      let hitScore = 0;
+      
+      // House match
+      if (indicators.houses.includes(natalHouse)) {
+        hitScore += 5;
+        if (!theme.houses.includes(natalHouse)) theme.houses.push(natalHouse);
+      }
+      
+      // Planet match (either transit or natal)
+      if (indicators.planets.includes(transitPlanet)) {
+        hitScore += 4;
+      }
+      if (indicators.planets.includes(hit.natal_point)) {
+        hitScore += 4;
+      }
+      
+      // Aspect match
+      if (indicators.aspects.includes(aspectType)) {
+        hitScore += 3;
+      }
+      
+      // Chart ruler involvement
+      if (chartRuler && (hit.natal_point === chartRuler.planet || transitPlanet === chartRuler.planet)) {
+        hitScore += 5;
+      }
+      
+      // Dominant house involvement
+      if (dominantHouses.includes(natalHouse)) {
+        hitScore += 3;
+      }
+      
+      // Orb tightness
+      if (hit.orb <= 2) hitScore += 3;
+      else if (hit.orb <= 5) hitScore += 1;
+      
+      if (hitScore > 0) {
+        theme.score += hitScore;
+        if (!theme.sources.includes(`${transitPlanet} ${aspectType} ${hit.natal_point}`)) {
+          theme.sources.push(`${transitPlanet} ${aspectType} ${hit.natal_point}`);
+        }
+      }
+    }
+  }
+  
+  // Boost themes that align with chapter
+  if (primaryChapter) {
+    for (const [category, indicators] of Object.entries(THEME_INDICATORS)) {
+      const cat = category as ThemeCategory;
+      if (indicators.chapters.includes(primaryChapter.chapterType)) {
+        themeScores[cat]!.score += 10;
+        themeScores[cat]!.chapterAlignment = true;
+        themeScores[cat]!.sources.push(`${primaryChapter.chapterType} chapter`);
+      }
+    }
+  }
+  
+  // Boost themes that align with aspect pattern
+  if (dominantPattern) {
+    for (const [category, indicators] of Object.entries(THEME_INDICATORS)) {
+      const cat = category as ThemeCategory;
+      if (indicators.patterns.includes(dominantPattern.patternType)) {
+        themeScores[cat]!.score += 8;
+        themeScores[cat]!.patternAlignment = true;
+        themeScores[cat]!.sources.push(`${dominantPattern.patternType} pattern`);
+      }
+    }
+  }
+  
+  // Add house-based life areas
+  for (const theme of Object.values(themeScores)) {
+    if (theme && theme.houses.length > 0) {
+      theme.lifeAreas = theme.houses.map(h => HOUSE_LIFE_AREAS[h] || '').filter(Boolean);
+    }
+  }
+  
+  // Sort themes by score
+  const sortedThemes = Object.values(themeScores)
+    .filter(t => t && t.score > 0)
+    .sort((a, b) => (b?.score || 0) - (a?.score || 0));
+  
+  if (sortedThemes.length === 0) return null;
+  
+  const dominant = sortedThemes[0]!;
+  const supporting = sortedThemes.slice(1, 4).map(t => t!.category);
+  
+  // Minimum threshold for confidence
+  if (dominant.score < 15) return null;
+  
+  // Determine pressure type
+  let pressureType: PressureType = 'tension';
+  if (['overcommitment', 'premature_action', 'control_grip'].includes(dominant.category)) {
+    pressureType = 'push';
+  } else if (['avoidance', 'procrastination', 'delayed_decision'].includes(dominant.category)) {
+    pressureType = 'pull';
+  } else if (['emotional_suppression', 'overwhelm', 'isolation'].includes(dominant.category)) {
+    pressureType = 'holding';
+  } else if (['creative_block', 'purpose_drift'].includes(dominant.category)) {
+    pressureType = 'release';
+  }
+  
+  // Calculate confidence
+  const confidence = Math.min(100, Math.round((dominant.score / 50) * 100));
+  
+  return {
+    dominantTheme: dominant.category,
+    supportingThemes: supporting,
+    confidenceScore: confidence,
+    lifeArea: THEME_LIFE_AREAS[dominant.category],
+    pressureType,
+    houses: dominant.houses,
+    sources: dominant.sources.slice(0, 5),
+    chapterType: primaryChapter?.chapterType || null,
+    patternType: dominantPattern?.patternType || null
+  };
+};
+
+// ============================================
+// COLLAPSED INSIGHTS BUILDER
+// ============================================
+
+export const buildCollapsedInsights = (
+  chartData: FullChartData | null,
+  chapterAnalysis: LifeChapterAnalysis | null,
+  patternAnalysis: AspectPatternAnalysis | null,
+  timeframe: Timeframe = 'today'
+): CollapsedInsights => {
+  const dominantTruth = getDominantTruth(chartData, chapterAnalysis, patternAnalysis, timeframe);
+  
+  const defaultResult: CollapsedInsights = {
+    dominantTruth: null,
+    narrative: null,
+    primaryFeeling: null,
+    primaryMistake: null,
+    secondaryMistake: null,
+    suppressedSignalCount: 0,
+    surfacedSignalCount: 0
+  };
+  
+  if (!dominantTruth) return defaultResult;
+  
+  // Build narrative (this will be enhanced in astrologyNarrative.ts)
+  const narrative = buildDominantTruthNarrativeInternal(dominantTruth, chapterAnalysis, timeframe);
+  
+  // Get collapsed feelings and mistakes
+  const transits = chartData?.transits?.strongest_hits || [];
+  const totalSignals = transits.length;
+  const surfacedSignals = Math.min(3, totalSignals);
+  
+  return {
+    dominantTruth,
+    narrative,
+    primaryFeeling: narrative?.whereThisShowsUp || null,
+    primaryMistake: narrative?.whatGoesWrong || null,
+    secondaryMistake: null, // Only show one mistake for clarity
+    suppressedSignalCount: Math.max(0, totalSignals - surfacedSignals),
+    surfacedSignalCount: surfacedSignals
+  };
+};
+
+// Internal narrative builder (basic version in interpreter)
+const buildDominantTruthNarrativeInternal = (
+  truth: DominantTruth,
+  chapterAnalysis: LifeChapterAnalysis | null,
+  timeframe: Timeframe
+): DominantTruthNarrative => {
+  const headlines: { [key in ThemeCategory]: string } = {
+    overcommitment: 'You\'re carrying more than you can sustain.',
+    avoidance: 'There\'s something you\'re not looking at.',
+    premature_action: 'You\'re moving before the ground is ready.',
+    delayed_decision: 'Something needs to be decided.',
+    emotional_suppression: 'Something is being held in that wants out.',
+    boundary_erosion: 'You\'re giving parts of yourself away.',
+    identity_confusion: 'You\'re not sure who you\'re being.',
+    relationship_strain: 'Something in how you\'re relating isn\'t working.',
+    financial_pressure: 'Resources are under pressure.',
+    health_neglect: 'Your body is asking for attention.',
+    communication_breakdown: 'Something isn\'t being said.',
+    control_grip: 'You\'re holding on too tight.',
+    trust_issues: 'Trust is being tested.',
+    purpose_drift: 'You\'ve lost sight of where you\'re headed.',
+    creative_block: 'Something that wants to come through is stuck.',
+    isolation: 'You\'ve pulled back from something you need.',
+    people_pleasing: 'You\'re shaping yourself for someone else.',
+    perfectionism: 'Nothing is good enough right now.',
+    procrastination: 'Something important keeps getting pushed back.',
+    overwhelm: 'There\'s more coming in than you can process.'
+  };
+  
+  const coreTruths: { [key in ThemeCategory]: string } = {
+    overcommitment: 'You\'ve taken on responsibilities that exceed your current capacity. This isn\'t about working harder—it\'s about recognizing that some commitments were made before you understood what they would actually cost.',
+    avoidance: 'There\'s something you already know needs attention, but looking at it feels harder than ignoring it. The avoidance isn\'t protecting you—it\'s preserving a problem that will grow.',
+    premature_action: 'You\'re ready to move, but the situation isn\'t. Acting now won\'t speed things up—it will create complications that slow everything down.',
+    delayed_decision: 'A decision has been waiting. The delay isn\'t giving you clarity—it\'s letting the pressure build while options narrow.',
+    emotional_suppression: 'Something is being compressed inside you that needs expression. The containment is costing more than the release would.',
+    boundary_erosion: 'You\'ve been agreeing to things that cost you. Each yes has been a small erosion of what you actually need.',
+    identity_confusion: 'You\'re showing up in ways that don\'t feel like you. The gap between who you are and who you\'re being is creating friction.',
+    relationship_strain: 'Something in how you\'re connecting with someone isn\'t working. The pattern keeps repeating because something isn\'t being addressed.',
+    financial_pressure: 'Resources are tighter than they should be. The pressure isn\'t random—it\'s pointing to something about how you\'ve been managing.',
+    health_neglect: 'Your body has been asking for something you haven\'t been giving. The signals are getting louder.',
+    communication_breakdown: 'What needs to be said isn\'t being said. The silence isn\'t keeping peace—it\'s creating distance.',
+    control_grip: 'You\'re holding something so tightly that it can\'t move. The grip isn\'t creating security—it\'s preventing what needs to happen.',
+    trust_issues: 'Something has made it hard to trust. The protection is keeping out what you need along with what you\'re avoiding.',
+    purpose_drift: 'You\'ve lost connection with why you\'re doing what you\'re doing. The motion continues but the meaning has faded.',
+    creative_block: 'Something wants to come through you but can\'t find its way out. The block isn\'t about ability—it\'s about what\'s in the way.',
+    isolation: 'You\'ve withdrawn from something you actually need. The distance that felt protective is now creating its own problem.',
+    people_pleasing: 'You\'ve been adjusting yourself to fit what others want. The shape you\'ve taken isn\'t sustainable.',
+    perfectionism: 'Your standards have become a barrier. Nothing can meet them, including you.',
+    procrastination: 'Something important keeps getting delayed. The postponement isn\'t buying time—it\'s spending it.',
+    overwhelm: 'More is coming in than you can process. The system is overloaded and signals are being missed.'
+  };
+  
+  const whereItShowsUp: { [key in ThemeCategory]: string } = {
+    overcommitment: 'in your schedule, in your energy levels, in the things that keep slipping',
+    avoidance: 'in the conversation you\'re not having, in the task you keep moving, in what you think about at 3am',
+    premature_action: 'in the impatience you feel, in the urge to just do something, in the restlessness',
+    delayed_decision: 'in the thing you keep circling, in the options you won\'t narrow, in the question you won\'t answer',
+    emotional_suppression: 'in your body, in unexpected reactions, in the fatigue that doesn\'t match your sleep',
+    boundary_erosion: 'in the resentment you don\'t voice, in the time that isn\'t yours, in the energy you don\'t have',
+    identity_confusion: 'in the discomfort when you\'re alone, in not knowing what you actually want, in performing',
+    relationship_strain: 'in the same conversation happening again, in distance that wasn\'t chosen, in what\'s not being said',
+    financial_pressure: 'in decisions being made from scarcity, in anxiety about numbers, in avoiding looking',
+    health_neglect: 'in how you feel in your body, in what you\'re ignoring, in symptoms that persist',
+    communication_breakdown: 'in assumptions filling gaps, in growing misunderstanding, in connection that\'s fading',
+    control_grip: 'in your body tension, in trying to manage what others do, in not being able to let go',
+    trust_issues: 'in checking, in waiting for the other shoe, in not being able to relax into connection',
+    purpose_drift: 'in going through motions, in feeling disconnected from outcomes, in nothing feeling worth it',
+    creative_block: 'in starting and stopping, in self-criticism before anything forms, in the gap between vision and output',
+    isolation: 'in not reaching out, in declining without reason, in loneliness that feels safer than connection',
+    people_pleasing: 'in saying yes when you mean no, in not knowing your own opinion, in exhaustion from performing',
+    perfectionism: 'in not finishing, in redoing, in criticism that outpaces accomplishment',
+    procrastination: 'in the same task on every list, in creative avoidance, in running out of runway',
+    overwhelm: 'in forgetting things, in short fuse, in not being able to prioritize'
+  };
+  
+  const whatGoesWrong: { [key in ThemeCategory]: string } = {
+    overcommitment: 'Continuing to add without subtracting. Believing you can handle what you couldn\'t handle yesterday.',
+    avoidance: 'Waiting until it becomes a crisis. Letting the thing you\'re avoiding grow into something worse.',
+    premature_action: 'Acting from impatience and having to undo it. Creating problems where none existed.',
+    delayed_decision: 'Letting circumstances decide for you. Losing options while you wait for certainty.',
+    emotional_suppression: 'Having it come out sideways. Letting the pressure build until something breaks.',
+    boundary_erosion: 'Continuing to give what you don\'t have. Building resentment you\'ll have to address.',
+    identity_confusion: 'Making decisions from a self that isn\'t you. Getting further from what you actually want.',
+    relationship_strain: 'Pretending it\'s fine. Letting distance become the new normal.',
+    financial_pressure: 'Making decisions from anxiety. Short-term fixes that create long-term problems.',
+    health_neglect: 'Waiting until your body forces the issue. Treating symptoms instead of causes.',
+    communication_breakdown: 'Letting the unsaid become unfixable. Filling silence with assumptions.',
+    control_grip: 'Pushing away what you\'re trying to keep. Breaking what you\'re trying to protect.',
+    trust_issues: 'Testing until you create what you feared. Making prophecy out of suspicion.',
+    purpose_drift: 'Continuing on momentum alone. Arriving somewhere you never wanted to be.',
+    creative_block: 'Judging before creating. Letting the critic win before the artist starts.',
+    isolation: 'Convincing yourself you\'re fine alone. Letting connection atrophy.',
+    people_pleasing: 'Losing yourself in maintenance of others. Not knowing what you want when you\'re finally asked.',
+    perfectionism: 'Never finishing. Never starting. Never being good enough.',
+    procrastination: 'Running out of time. Having the thing you avoided become the only thing.',
+    overwhelm: 'Missing what matters while managing what doesn\'t. Burning out before it gets better.'
+  };
+  
+  const questions: { [key in ThemeCategory]: string } = {
+    overcommitment: 'What would you need to put down to carry what actually matters?',
+    avoidance: 'What are you protecting by not looking?',
+    premature_action: 'What are you hoping to skip by moving now?',
+    delayed_decision: 'What would you have to accept to decide?',
+    emotional_suppression: 'What would happen if you let it out?',
+    boundary_erosion: 'What are you afraid will happen if you say no?',
+    identity_confusion: 'Who are you when no one is watching?',
+    relationship_strain: 'What do you need that you\'re not asking for?',
+    financial_pressure: 'What belief about money is running this?',
+    health_neglect: 'What is your body trying to tell you?',
+    communication_breakdown: 'What are you afraid will happen if you say it?',
+    control_grip: 'What are you afraid will happen if you let go?',
+    trust_issues: 'What would trust require you to risk?',
+    purpose_drift: 'What would make this feel worth it again?',
+    creative_block: 'What are you afraid to create?',
+    isolation: 'What would connection cost you?',
+    people_pleasing: 'Whose approval are you trying to earn?',
+    perfectionism: 'What would "good enough" look like?',
+    procrastination: 'What are you avoiding by delaying?',
+    overwhelm: 'What\'s the one thing that would create space?'
+  };
+  
+  // Build timeframe context
+  let timeframeContext = '';
+  if (timeframe === 'today') {
+    timeframeContext = 'This is what\'s most active today.';
+  } else if (timeframe === 'week') {
+    timeframeContext = 'This keeps showing up. It\'s the thread running through this week.';
+  } else {
+    timeframeContext = 'This is the theme of this period. It\'s shaping what comes next.';
+  }
+  
+  // Align with chapter if present
+  let chapterAmplification = '';
+  if (chapterAnalysis?.primaryChapter?.isActive) {
+    const chapter = chapterAnalysis.primaryChapter;
+    if (chapter.chapterType === 'saturn') {
+      chapterAmplification = ' And this phase won\'t let you get away with it.';
+    } else if (chapter.chapterType === 'jupiter') {
+      chapterAmplification = ' There\'s growth available here, but only if you address this.';
+    } else if (chapter.chapterType === 'nodal') {
+      chapterAmplification = ' Your direction depends on how you handle this.';
+    } else if (chapter.chapterType === 'chiron') {
+      chapterAmplification = ' This is touching something that\'s been tender for a long time.';
+    }
+  }
+  
+  // Recognition line for high confidence
+  let recognitionLine: string | null = null;
+  if (truth.confidenceScore >= 70) {
+    const recognitionLines = [
+      'You already know where this is happening.',
+      'This isn\'t new.',
+      'You\'ve felt this before.',
+      'You know exactly what this is about.',
+      'Something in you recognizes this.'
+    ];
+    recognitionLine = recognitionLines[Math.floor(Math.random() * recognitionLines.length)];
+  }
+  
+  return {
+    headline: headlines[truth.dominantTheme],
+    coreTruth: coreTruths[truth.dominantTheme] + chapterAmplification,
+    whereThisShowsUp: whereItShowsUp[truth.dominantTheme],
+    whatGoesWrong: whatGoesWrong[truth.dominantTheme],
+    question: questions[truth.dominantTheme],
+    recognitionLine,
+    timeframeContext
+  };
 };

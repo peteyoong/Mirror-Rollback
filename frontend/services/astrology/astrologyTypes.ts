@@ -454,3 +454,72 @@ export interface LifeChapterNarrative {
   whatHappensIfResisted: string;
   shortContextLine: string;
 }
+
+// === DOMINANT TRUTH TYPES (Master Astrologer v5) ===
+
+export type PressureType = 'push' | 'pull' | 'tension' | 'release' | 'holding';
+
+export type ThemeCategory = 
+  | 'overcommitment'
+  | 'avoidance'
+  | 'premature_action'
+  | 'delayed_decision'
+  | 'emotional_suppression'
+  | 'boundary_erosion'
+  | 'identity_confusion'
+  | 'relationship_strain'
+  | 'financial_pressure'
+  | 'health_neglect'
+  | 'communication_breakdown'
+  | 'control_grip'
+  | 'trust_issues'
+  | 'purpose_drift'
+  | 'creative_block'
+  | 'isolation'
+  | 'people_pleasing'
+  | 'perfectionism'
+  | 'procrastination'
+  | 'overwhelm';
+
+export interface CandidateTheme {
+  category: ThemeCategory;
+  score: number;
+  sources: string[];
+  lifeAreas: string[];
+  houses: number[];
+  chapterAlignment: boolean;
+  patternAlignment: boolean;
+}
+
+export interface DominantTruth {
+  dominantTheme: ThemeCategory;
+  supportingThemes: ThemeCategory[];
+  confidenceScore: number;
+  lifeArea: string;
+  pressureType: PressureType;
+  houses: number[];
+  sources: string[];
+  chapterType: ChapterType | null;
+  patternType: string | null;
+}
+
+export interface DominantTruthNarrative {
+  headline: string;
+  coreTruth: string;
+  whereThisShowsUp: string;
+  whatGoesWrong: string;
+  question: string;
+  recognitionLine: string | null;
+  timeframeContext: string;
+}
+
+export interface CollapsedInsights {
+  dominantTruth: DominantTruth | null;
+  narrative: DominantTruthNarrative | null;
+  primaryFeeling: string | null;
+  primaryMistake: string | null;
+  secondaryMistake: string | null;
+  suppressedSignalCount: number;
+  surfacedSignalCount: number;
+}
+

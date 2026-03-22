@@ -1,6 +1,7 @@
 // ============================================
 // ASTROLOGY TODAY TAB
-// Renders: Today/Week/Month content, Question, Signals Section
+// Renders: Today/Week/Month content with Dominant Truth
+// Master Astrologer v5: Narrative Collapse / One Dominant Truth
 // ============================================
 
 import React, { useState } from 'react';
@@ -11,6 +12,7 @@ import {
   TransitHit,
   TransitWindow,
   Timeframe,
+  CollapsedInsights,
 } from '../../services/astrology/astrologyTypes';
 
 import {
@@ -29,6 +31,7 @@ import {
   isPatternActivatedByTransit,
   buildLifeChapterAnalysis,
   getChapterContextLine,
+  buildCollapsedInsights,
 } from '../../services/astrology/astrologyInterpreter';
 
 import {
@@ -48,7 +51,7 @@ import {
 } from '../../services/astrology/astrologyNarrative';
 
 // ============================================
-// SIGNALS SECTION COMPONENT
+// SIGNALS SECTION COMPONENT (Now "Evidence" when dominant truth exists)
 // ============================================
 
 interface SignalsSectionProps {
@@ -56,6 +59,7 @@ interface SignalsSectionProps {
   expanded: boolean;
   onToggle: () => void;
   theme: any;
+  label?: string;
 }
 
 const getAspectSymbol = (aspectType: string): string => {
@@ -69,8 +73,10 @@ const getAspectSymbol = (aspectType: string): string => {
   return symbols[aspectType] || '•';
 };
 
-const SignalsSection: React.FC<SignalsSectionProps> = ({ transits, expanded, onToggle, theme }) => {
+const SignalsSection: React.FC<SignalsSectionProps> = ({ transits, expanded, onToggle, theme, label }) => {
   if (!transits || transits.length === 0) return null;
+
+  const displayLabel = label || 'What this is based on';
 
   return (
     <>
@@ -80,7 +86,7 @@ const SignalsSection: React.FC<SignalsSectionProps> = ({ transits, expanded, onT
         activeOpacity={0.7}
       >
         <Text style={[styles.signalsToggleText, { color: theme.textSecondary }]}>
-          What this is based on {expanded ? '▴' : '▾'}
+          {displayLabel} {expanded ? '▴' : '▾'}
         </Text>
       </TouchableOpacity>
 
@@ -227,7 +233,11 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
   const lifeChapterAnalysis = buildLifeChapterAnalysis(fullChartData);
   const lifeChapterContextLine = getChapterContextLine(lifeChapterAnalysis, activeAltitude);
 
-  // Get content based on timeframe
+  // DOMINANT TRUTH (Master Astrologer v5)
+  const collapsedInsights = buildCollapsedInsights(fullChartData, lifeChapterAnalysis, patternAnalysis, activeAltitude);
+  const hasDominantTruth = collapsedInsights.dominantTruth !== null && collapsedInsights.narrative !== null;
+
+  // Get content based on timeframe (fallback if no dominant truth)
   const feelings = getWhatThisMayFeelLike(transits, activeAltitude).slice(0, 3);
   const mistakes = getMistakeToWatch(transits, activeAltitude).slice(0, 3);
   const question = getReflectionQuestion(transits, activeAltitude);
@@ -262,101 +272,138 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* DAILY ENERGY - Core Reading Card */}
-      <View style={[styles.dailyEnergyCard, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
-        <Text style={[styles.dailyEnergyLabel, { color: theme.accent }]}>
-          {activeAltitude === 'today' ? "TODAY'S ENERGY" : activeAltitude === 'week' ? "THIS WEEK'S ENERGY" : "THIS MONTH'S ENERGY"}
-        </Text>
-        <Text style={[styles.dailyEnergyHeadline, { color: theme.text }]}>
-          {energySynthesis.headline}
-        </Text>
-        <Text style={[styles.dailyEnergyBody, { color: theme.text }]}>
-          {energySynthesis.body}
-        </Text>
-        
-        {/* Context Lines */}
-        <View style={styles.contextLinesContainer}>
-          {lifeAreaContext ? (
-            <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
-              ↳ {lifeAreaContext}
+      {/* DOMINANT TRUTH CARD - Master Astrologer v5 */}
+      {hasDominantTruth && collapsedInsights.narrative ? (
+        <View style={[styles.dominantTruthCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
+          {/* Headline */}
+          <Text style={[styles.dominantTruthHeadline, { color: theme.text }]}>
+            {collapsedInsights.narrative.headline}
+          </Text>
+          
+          {/* Recognition Line */}
+          {collapsedInsights.narrative.recognitionLine && (
+            <Text style={[styles.recognitionLine, { color: theme.accent }]}>
+              {collapsedInsights.narrative.recognitionLine}
             </Text>
-          ) : null}
-          {moonPhaseContext ? (
-            <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
-              ↳ {moonPhaseContext}
+          )}
+          
+          {/* Core Truth */}
+          <Text style={[styles.coreTruthText, { color: theme.text }]}>
+            {collapsedInsights.narrative.coreTruth}
+          </Text>
+          
+          {/* Where This Shows Up */}
+          <View style={[styles.whereShowsUp, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
+            <Text style={[styles.whereShowsUpLabel, { color: theme.textTertiary }]}>WHERE THIS SHOWS UP</Text>
+            <Text style={[styles.whereShowsUpText, { color: theme.textSecondary }]}>
+              {collapsedInsights.narrative.whereThisShowsUp}
             </Text>
-          ) : null}
-          {personalRelevanceLine ? (
-            <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
-              ↳ {personalRelevanceLine}
+          </View>
+          
+          {/* What Goes Wrong */}
+          <View style={[styles.whatGoesWrong, { backgroundColor: '#FF634708', borderColor: '#FF634720' }]}>
+            <Text style={[styles.whatGoesWrongLabel, { color: '#FF6347' }]}>WHAT GOES WRONG</Text>
+            <Text style={[styles.whatGoesWrongText, { color: theme.text }]}>
+              {collapsedInsights.narrative.whatGoesWrong}
             </Text>
-          ) : null}
-          {chartRulerLine ? (
-            <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500' }]}>
-              ↳ {chartRulerLine}
+          </View>
+          
+          {/* Question */}
+          <View style={[styles.questionContainer, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+            <Text style={[styles.questionText, { color: theme.text }]}>
+              {collapsedInsights.narrative.question}
             </Text>
-          ) : null}
-          {rulershipChainLine ? (
-            <Text style={[styles.contextLine, { color: theme.textSecondary, fontWeight: '500' }]}>
-              ↳ {rulershipChainLine}
+          </View>
+          
+          {/* Reflect Button */}
+          <TouchableOpacity
+            style={[styles.reflectButton, { backgroundColor: theme.accent }]}
+            onPress={() => onReflect(collapsedInsights.narrative?.question || question)}
+          >
+            <Text style={[styles.reflectButtonText, { color: theme.background }]}>Reflect on this</Text>
+          </TouchableOpacity>
+          
+          {/* Timeframe Context */}
+          <Text style={[styles.timeframeContext, { color: theme.textTertiary }]}>
+            {collapsedInsights.narrative.timeframeContext}
+          </Text>
+          
+          {/* Evidence Collapsed */}
+          {collapsedInsights.suppressedSignalCount > 0 && (
+            <Text style={[styles.evidenceNote, { color: theme.textTertiary }]}>
+              Based on {collapsedInsights.surfacedSignalCount + collapsedInsights.suppressedSignalCount} active signals ({collapsedInsights.suppressedSignalCount} supporting)
             </Text>
-          ) : null}
-          {dominantHouseRulerLine ? (
-            <Text style={[styles.contextLine, { color: theme.textSecondary }]}>
-              ↳ {dominantHouseRulerLine}
-            </Text>
-          ) : null}
-          {themeCollapseLine ? (
-            <Text style={[styles.contextLine, { color: theme.accent, fontStyle: 'italic' }]}>
-              ↳ {themeCollapseLine}
-            </Text>
-          ) : null}
-          {repeatPatternLine && !themeCollapseLine ? (
-            <Text style={[styles.contextLine, { color: theme.textSecondary, fontStyle: 'italic' }]}>
-              ↳ {repeatPatternLine}
-            </Text>
-          ) : null}
-          {chapterLine ? (
-            <Text style={[styles.contextLine, { color: theme.textSecondary, fontStyle: 'italic' }]}>
-              ↳ {chapterLine}
-            </Text>
-          ) : null}
-          {patternActivation.activated ? (
-            <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500' }]}>
-              ↳ {patternActivation.activationLine}
-            </Text>
-          ) : null}
-          {lifeChapterContextLine ? (
-            <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500', fontStyle: 'italic' }]}>
-              ↳ {lifeChapterContextLine}
-            </Text>
-          ) : null}
+          )}
         </View>
-      </View>
-
-      {/* COMPRESSED: WHAT TO NOTICE + WHAT TO AVOID */}
-      <View style={styles.compressedInsightsRow}>
-        {feelings.length > 0 && (
-          <View style={[styles.compressedInsightCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.compressedInsightTitle, { color: theme.textSecondary }]}>MAY FEEL LIKE</Text>
-            <Text style={[styles.compressedInsightText, { color: theme.text }]}>
-              {feelings[0]}
-            </Text>
+      ) : (
+        /* FALLBACK: Original structure when no dominant truth */
+        <View style={[styles.dailyEnergyCard, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
+          <Text style={[styles.dailyEnergyLabel, { color: theme.accent }]}>
+            {activeAltitude === 'today' ? "TODAY'S ENERGY" : activeAltitude === 'week' ? "THIS WEEK'S ENERGY" : "THIS MONTH'S ENERGY"}
+          </Text>
+          <Text style={[styles.dailyEnergyHeadline, { color: theme.text }]}>
+            {energySynthesis.headline}
+          </Text>
+          <Text style={[styles.dailyEnergyBody, { color: theme.text }]}>
+            {energySynthesis.body}
+          </Text>
+          
+          {/* Context Lines */}
+          <View style={styles.contextLinesContainer}>
+            {lifeAreaContext ? (
+              <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
+                ↳ {lifeAreaContext}
+              </Text>
+            ) : null}
+            {moonPhaseContext ? (
+              <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
+                ↳ {moonPhaseContext}
+              </Text>
+            ) : null}
+            {personalRelevanceLine ? (
+              <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
+                ↳ {personalRelevanceLine}
+              </Text>
+            ) : null}
+            {chartRulerLine ? (
+              <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500' }]}>
+                ↳ {chartRulerLine}
+              </Text>
+            ) : null}
+            {lifeChapterContextLine ? (
+              <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500', fontStyle: 'italic' }]}>
+                ↳ {lifeChapterContextLine}
+              </Text>
+            ) : null}
           </View>
-        )}
-        
-        {mistakes.length > 0 && (
-          <View style={[styles.compressedInsightCard, { backgroundColor: '#FF634705', borderColor: '#FF634715' }]}>
-            <Text style={[styles.compressedInsightTitle, { color: '#FF6347' }]}>WATCH FOR</Text>
-            <Text style={[styles.compressedInsightText, { color: theme.text }]}>
-              {mistakes[0]}
-            </Text>
-          </View>
-        )}
-      </View>
+        </View>
+      )}
 
-      {/* Additional feelings/mistakes if present */}
-      {(feelings.length > 1 || mistakes.length > 1) && (
+      {/* COMPRESSED: WHAT TO NOTICE + WHAT TO AVOID - Only show if no dominant truth */}
+      {!hasDominantTruth && (
+        <View style={styles.compressedInsightsRow}>
+          {feelings.length > 0 && (
+            <View style={[styles.compressedInsightCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.compressedInsightTitle, { color: theme.textSecondary }]}>MAY FEEL LIKE</Text>
+              <Text style={[styles.compressedInsightText, { color: theme.text }]}>
+                {feelings[0]}
+              </Text>
+            </View>
+          )}
+          
+          {mistakes.length > 0 && (
+            <View style={[styles.compressedInsightCard, { backgroundColor: '#FF634705', borderColor: '#FF634715' }]}>
+              <Text style={[styles.compressedInsightTitle, { color: '#FF6347' }]}>WATCH FOR</Text>
+              <Text style={[styles.compressedInsightText, { color: theme.text }]}>
+                {mistakes[0]}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* Additional feelings/mistakes if present - Only show if no dominant truth */}
+      {!hasDominantTruth && (feelings.length > 1 || mistakes.length > 1) && (
         <View style={[styles.additionalInsightsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           {feelings.length > 1 && (
             <View style={styles.additionalSection}>
@@ -377,24 +424,27 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
         </View>
       )}
 
-      {/* Reflection Question */}
-      <View style={[styles.reflectionCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
-        <Text style={[styles.reflectionLabel, { color: theme.accent }]}>A QUESTION</Text>
-        <Text style={[styles.reflectionText, { color: theme.text }]}>{question}</Text>
-        <TouchableOpacity
-          style={[styles.reflectButton, { borderColor: theme.accent }]}
-          onPress={() => onReflect(question)}
+      {/* Reflection Question - Only show if no dominant truth */}
+      {!hasDominantTruth && (
+        <View style={[styles.reflectionCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+          <Text style={[styles.reflectionLabel, { color: theme.accent }]}>A QUESTION</Text>
+          <Text style={[styles.reflectionText, { color: theme.text }]}>{question}</Text>
+          <TouchableOpacity
+            style={[styles.fallbackReflectButton, { borderColor: theme.accent }]}
+            onPress={() => onReflect(question)}
         >
-          <Text style={[styles.reflectButtonText, { color: theme.accent }]}>Reflect on this →</Text>
+          <Text style={[styles.fallbackReflectButtonText, { color: theme.accent }]}>Reflect on this →</Text>
         </TouchableOpacity>
       </View>
+      )}
 
-      {/* Signals Section */}
+      {/* Signals Section - Now labeled as "Evidence" when dominant truth exists */}
       <SignalsSection 
         transits={transits}
         expanded={signalsExpanded}
         onToggle={() => setSignalsExpanded(!signalsExpanded)}
         theme={theme}
+        label={hasDominantTruth ? "SUPPORTING EVIDENCE" : undefined}
       />
 
       {/* Ask Mirror Button */}
@@ -524,14 +574,14 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginBottom: 12,
   },
-  reflectButton: {
+  fallbackReflectButton: {
     alignSelf: 'flex-start',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 16,
     borderWidth: 1,
   },
-  reflectButtonText: {
+  fallbackReflectButtonText: {
     fontSize: 13,
     fontWeight: '500',
   },
@@ -594,6 +644,93 @@ const styles = StyleSheet.create({
   signalsLifeAreaText: {
     fontSize: 11,
     lineHeight: 16,
+  },
+  // DOMINANT TRUTH STYLES (Master Astrologer v5)
+  dominantTruthCard: {
+    borderRadius: 14,
+    padding: 18,
+    borderWidth: 1.5,
+  },
+  dominantTruthHeadline: {
+    fontSize: 19,
+    fontWeight: '600',
+    lineHeight: 26,
+    marginBottom: 8,
+  },
+  recognitionLine: {
+    fontSize: 13,
+    fontWeight: '500',
+    fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  coreTruthText: {
+    fontSize: 15,
+    lineHeight: 23,
+    marginBottom: 16,
+  },
+  whereShowsUp: {
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 12,
+  },
+  whereShowsUpLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  whereShowsUpText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  whatGoesWrong: {
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 12,
+  },
+  whatGoesWrongLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  whatGoesWrongText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  questionContainer: {
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  questionText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
+  },
+  reflectButton: {
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    marginBottom: 14,
+  },
+  reflectButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  timeframeContext: {
+    fontSize: 11,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  evidenceNote: {
+    fontSize: 10,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   askMirrorButton: {
     flexDirection: 'row',
