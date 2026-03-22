@@ -639,34 +639,11 @@ export default function JournalScreen() {
     }
   };
 
-  // Micro-Mirror action handlers
-  const handleMicroMirrorReflect = useCallback(() => {
-    if (microMirrorEntryId && journalEntries.length > 0) {
-      const entry = journalEntries.find(e => e.id === microMirrorEntryId);
-      if (entry) {
-        handleReflect(entry.id, entry.content);
-      }
-    }
-  }, [microMirrorEntryId, journalEntries, handleReflect]);
-
-  const handleMicroMirrorAskMirror = useCallback(() => {
-    // Navigate to Mirror chat with context
-    setActiveMode('mirror');
-  }, []);
-
-  // Reset Micro-Mirror when new entry is being typed
-  useEffect(() => {
-    if (newEntry.trim().length > 0 && microMirrorVisible) {
-      setMicroMirrorVisible(false);
-      setMicroMirrorResponse(null);
-      setMicroMirrorEntryId(null);
-    }
-  }, [newEntry, microMirrorVisible]);
-
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
 
+  // handleReflect must be declared BEFORE handlers that use it
   const handleReflect = useCallback((entryId: string, content: string) => {
     const cached = reflectionCache.get(entryId);
     const currentHash = hashText(content);
@@ -687,6 +664,30 @@ export default function JournalScreen() {
     setSelectedEntryId(entryId);
     setReflectionModalVisible(true);
   }, [reflectionCache]);
+
+  // Micro-Mirror action handlers (must come AFTER handleReflect declaration)
+  const handleMicroMirrorReflect = useCallback(() => {
+    if (microMirrorEntryId && journalEntries.length > 0) {
+      const entry = journalEntries.find(e => e.id === microMirrorEntryId);
+      if (entry) {
+        handleReflect(entry.id, entry.content);
+      }
+    }
+  }, [microMirrorEntryId, journalEntries, handleReflect]);
+
+  const handleMicroMirrorAskMirror = useCallback(() => {
+    // Navigate to Mirror chat with context
+    setViewMode('mirror');
+  }, []);
+
+  // Reset Micro-Mirror when new entry is being typed
+  useEffect(() => {
+    if (newEntry.trim().length > 0 && microMirrorVisible) {
+      setMicroMirrorVisible(false);
+      setMicroMirrorResponse(null);
+      setMicroMirrorEntryId(null);
+    }
+  }, [newEntry, microMirrorVisible]);
 
   const handleReflectCurrentEntry = useCallback(() => {
     if (newEntry.trim()) {
