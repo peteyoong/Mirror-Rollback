@@ -142,6 +142,10 @@ const getCyclePhase = (day: number): string => {
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
   const { theme, isDark } = useTheme();
+  
+  // DEBUG: Log render with journalEntries count
+  console.log('[JOURNAL_RENDER] Render triggered. journalEntries.length:', journalEntries.length);
+  
   const params = useLocalSearchParams<{ 
     view?: string; 
     fromKeystone?: string;
@@ -590,6 +594,10 @@ export default function JournalScreen() {
   const handleSubmit = async () => {
     if (!user || !newEntry.trim() || isSubmitting) return;
 
+    console.log('[JOURNAL_SAVE] === SUBMIT STARTED ===');
+    console.log('[JOURNAL_SAVE] Current journalEntries count:', journalEntries.length);
+    console.log('[JOURNAL_SAVE] Top 3 entry IDs before save:', journalEntries.slice(0, 3).map(e => e.id));
+
     Keyboard.dismiss();
     setIsSubmitting(true);
     setError('');
@@ -606,15 +614,38 @@ export default function JournalScreen() {
         prompt_text: patternMetadata.prompt_text
       } : undefined;
       
+      console.log('[JOURNAL_SAVE] Calling createJournalEntry API...');
       const entry = await createJournalEntry(user.id, entryText, metadata);
+      console.log('[JOURNAL_SAVE] API SUCCESS - Entry returned:', {
+        id: entry.id,
+        content: entry.content?.substring(0, 50),
+        created_at: entry.created_at,
+        themes: entry.themes,
+      });
+
+      // CRITICAL: Add entry to store BEFORE clearing input
+      console.log('[JOURNAL_SAVE] Adding entry to store...');
       addJournalEntry(entry);
+      
+      // Small delay to ensure store update propagates
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      // Get fresh state to verify
+      const currentEntries = useAppStore.getState().journalEntries;
+      console.log('[JOURNAL_SAVE] Store updated - New count:', currentEntries.length);
+      console.log('[JOURNAL_SAVE] Top 3 entry IDs after add:', currentEntries.slice(0, 3).map(e => e.id));
+      console.log('[JOURNAL_SAVE] New entry is first?', currentEntries[0]?.id === entry.id);
+
+      // Only clear input AFTER confirmed store update
       setNewEntry('');
       
       // Clear pattern metadata after successful submission
       setPatternMetadata(null);
 
       // Generate and show Micro-Mirror response using unified engine (non-blocking)
+      // ONLY after confirmed save
       if (entryText.length >= 10) {
+        console.log('[JOURNAL_SAVE] Generating Micro-Mirror response...');
         // Build response using the unified Mirror Response Engine
         const response = buildMirrorResponse({
           journalText: entryText,
@@ -632,9 +663,35 @@ export default function JournalScreen() {
         setMicroMirrorEntryId(entry.id);
         setMicroMirrorVisible(true);
       }
+
+      console.log('[JOURNAL_SAVE] === SUBMIT COMPLETE (SUCCESS) ===');
+      
+      // Background re-fetch to reconcile with backend truth
+      // This runs after the optimistic insert, so the user sees immediate feedback
+      setTimeout(async () => {
+        try {
+          console.log('[JOURNAL_SAVE] Background re-fetch starting...');
+          const freshEntries = await getJournalEntries(user.id);
+          console.log('[JOURNAL_SAVE] Background re-fetch complete. Count:', freshEntries.length);
+          console.log('[JOURNAL_SAVE] Fresh top 3 IDs:', freshEntries.slice(0, 3).map((e: any) => e.id));
+          
+          // Only update if the new entry is still in the fresh list
+          const newEntryExists = freshEntries.some((e: any) => e.id === entry.id);
+          if (newEntryExists) {
+            setJournalEntries(freshEntries);
+            console.log('[JOURNAL_SAVE] Store reconciled with backend');
+          } else {
+            console.warn('[JOURNAL_SAVE] WARNING: New entry not found in backend response!');
+          }
+        } catch (err) {
+          console.error('[JOURNAL_SAVE] Background re-fetch failed:', err);
+          // Keep optimistic data on failure
+        }
+      }, 1000);
     } catch (err: any) {
-      console.error('Create entry error:', err);
-      setError('Unable to save entry. Please try again.');
+      console.error('[JOURNAL_SAVE] === SUBMIT FAILED ===', err);
+      setError("Couldn't save this entry. Try again.");
+      // Do NOT clear input on failure - user can retry
     } finally {
       setIsSubmitting(false);
     }
@@ -1563,6 +1620,7 @@ export default function JournalScreen() {
             ) : (
               <FlatList
                 data={journalEntries}
+                extraData={journalEntries.length} // Force re-render on length change
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                   <JournalEntryItem
