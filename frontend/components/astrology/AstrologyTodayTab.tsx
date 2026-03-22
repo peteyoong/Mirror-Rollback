@@ -50,8 +50,6 @@ import {
   getThemeCollapseLineIfApplicable,
 } from '../../services/astrology/astrologyNarrative';
 
-import AstrologyTimelineSection from './AstrologyTimelineSection';
-
 // ============================================
 // SIGNALS SECTION COMPONENT (Now "Evidence" when dominant truth exists)
 // ============================================
@@ -439,15 +437,6 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
         </TouchableOpacity>
       </View>
       )}
-
-      {/* THE YEAR AS IT UNFOLDS - Timeline Section */}
-      <AstrologyTimelineSection
-        fullChartData={fullChartData}
-        lifeChapterAnalysis={lifeChapterAnalysis}
-        patternAnalysis={patternAnalysis}
-        dominantTruth={collapsedInsights?.dominantTruth}
-        activeAltitude={activeAltitude}
-      />
 
       {/* Signals Section - Now labeled as "Evidence" when dominant truth exists */}
       <SignalsSection 

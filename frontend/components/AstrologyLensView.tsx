@@ -23,6 +23,7 @@ import {
 import AstrologyAtAGlanceTab from './astrology/AstrologyAtAGlanceTab';
 import AstrologyTodayTab from './astrology/AstrologyTodayTab';
 import AstrologyDeepDiveTab from './astrology/AstrologyDeepDiveTab';
+import AstrologyTimelineTab from './astrology/AstrologyTimelineTab';
 
 // ============================================
 // MAIN COMPONENT
@@ -37,7 +38,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   const { theme } = useTheme();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<'at_a_glance' | 'today' | 'deep_dive'>('at_a_glance');
+  const [activeTab, setActiveTab] = useState<'at_a_glance' | 'today' | 'deep_dive' | 'timeline'>('at_a_glance');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summaryData, setSummaryData] = useState<AstrologySummaryData | null>(null);
@@ -243,6 +244,14 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           Deep Dive
         </Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.tab, activeTab === 'timeline' && styles.activeTab]}
+        onPress={() => setActiveTab('timeline')}
+      >
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'timeline' && { color: theme.text }]}>
+          Timeline
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -287,6 +296,16 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           onJournal={handleJournal}
           onAskMirror={handleAskMirror}
           theme={theme}
+        />
+      );
+    }
+    
+    if (activeTab === 'timeline') {
+      return (
+        <AstrologyTimelineTab
+          fullChartData={fullChartData}
+          theme={theme}
+          onOpenChat={onOpenChat}
         />
       );
     }
