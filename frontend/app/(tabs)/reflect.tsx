@@ -24,7 +24,7 @@ import { useAppStore, storage } from '../../store';
 import JournalEntryItem from '../../components/JournalEntryItem';
 import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import MirrorChat from '../../components/MirrorChat';
-import { createJournalEntry, getJournalEntries, getCombinedTimeline, TimelineItem } from '../../services/api';
+import { createJournalEntry, getJournalEntries, getCombinedTimeline, TimelineItem, updateJournalEntry, deleteJournalEntry } from '../../services/api';
 import api from '../../services/api';
 // Task 51: Lunar Decision Journal Components
 import LunarDecisionJournalCard, { LunarJournalStatus } from '../../components/journal/LunarDecisionJournalCard';
@@ -212,6 +212,96 @@ export default function JournalScreen() {
   // Dominant Truth for Journal prefill (Master Layer Integration)
   const { data: dominantTruthData, isLoading: isDominantTruthLoading, hasPattern: hasDominantPattern } = useDominantTruthForJournal(user?.id);
   const [dominantTruthPrefilled, setDominantTruthPrefilled] = useState(false);
+
+  // Collapsible intro card state (Part 1 & 2)
+  const [introCardExpanded, setIntroCardExpanded] = useState(true);
+  const [inputFocused, setInputFocused] = useState(false);
+  const [hasTypedInSession, setHasTypedInSession] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Auto-collapse intro card when user focuses input, types, or scrolls
+  const handleInputFocus = () => {
+    setInputFocused(true);
+    if (introCardExpanded) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setIntroCardExpanded(false);
+    }
+  };
+
+  const handleInputBlur = () => {
+    setInputFocused(false);
+  };
+
+  const handleTextChange = (text: string) => {
+    setNewEntry(text);
+    // Auto-collapse on first character typed
+    if (text.length === 1 && !hasTypedInSession) {
+      setHasTypedInSession(true);
+      if (introCardExpanded) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setIntroCardExpanded(false);
+      }
+    }
+  };
+
+  const handleScroll = (event: any) => {
+    // Auto-collapse when user scrolls down past threshold
+    const offsetY = event.nativeEvent.contentOffset.y;
+    if (offsetY > 50 && introCardExpanded) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setIntroCardExpanded(false);
+    }
+  };
+
+  const handleToggleIntroCard = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIntroCardExpanded(!introCardExpanded);
+  };
+
+  // Edit and Delete handlers for journal entries
+  const handleEditEntry = async (entryId: string, newContent: string) => {
+    try {
+      const updatedEntry = await updateJournalEntry(entryId, newContent);
+      // Update local state
+      if (journalEntries) {
+        const updatedEntries = journalEntries.map(entry =>
+          entry.id === entryId ? { ...entry, content: newContent } : entry
+        );
+        setJournalEntries(updatedEntries);
+      }
+      // Also update timeline if visible
+      setTimelineItems(prev => prev.map(item =>
+        item.id === entryId ? { ...item, content: newContent } : item
+      ));
+    } catch (error) {
+      console.error('[Journal] Edit error:', error);
+      throw error; // Let the component handle the error
+    }
+  };
+
+  const handleDeleteEntry = async (entryId: string) => {
+    try {
+      await deleteJournalEntry(entryId);
+      // Update local state
+      if (journalEntries) {
+        const filteredEntries = journalEntries.filter(entry => entry.id !== entryId);
+        setJournalEntries(filteredEntries);
+      }
+      // Also update timeline
+      setTimelineItems(prev => prev.filter(item => item.id !== entryId));
+    } catch (error) {
+      console.error('[Journal] Delete error:', error);
+      throw error;
+    }
+  };
+
+  // Collapse intro when tapping on entries area
+  const handleEntriesAreaPress = () => {
+    if (introCardExpanded) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setIntroCardExpanded(false);
+    }
+  };
 
   // Handle deep link from Mirror home (fromKeystone=true)
   useEffect(() => {
@@ -1275,11 +1365,14 @@ export default function JournalScreen() {
           {/* Mode Toggle */}
           {renderModeToggle()}
 
-          {/* Journal Leader Card - Emotional framing */}
-          <JournalLeaderCard />
+          {/* Collapsible Journal Leader Card - Emotional framing */}
+          <JournalLeaderCard 
+            isExpanded={introCardExpanded}
+            onToggle={handleToggleIntroCard}
+          />
 
-          {/* Dominant Truth Prompt Suggestion (Master Layer Integration) */}
-          {hasDominantPattern && dominantTruthData && !newEntry.trim() && !dominantTruthPrefilled && (
+          {/* Dominant Truth Prompt Suggestion (Master Layer Integration) - only show when intro collapsed */}
+          {!introCardExpanded && hasDominantPattern && dominantTruthData && !newEntry.trim() && !dominantTruthPrefilled && (
             <TouchableOpacity
               style={[styles.dominantTruthPromptCard, { backgroundColor: 'rgba(139, 92, 246, 0.06)', borderColor: Colors.accent + '30' }]}
               onPress={() => {
@@ -1307,12 +1400,9 @@ export default function JournalScreen() {
                 ref={inputRef}
                 style={[styles.input, { backgroundColor: theme.surface, color: theme.text }]}
                 value={newEntry}
-                onChangeText={(text) => {
-                  console.log('[JOURNAL_DEBUG] onChangeText:', text.length, 'chars');
-                  setNewEntry(text);
-                }}
-                onFocus={() => console.log('[JOURNAL_DEBUG] Input FOCUSED')}
-                onBlur={() => console.log('[JOURNAL_DEBUG] Input BLURRED')}
+                onChangeText={handleTextChange}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
                 placeholder="What's on your mind?"
                 placeholderTextColor={theme.textTertiary}
                 multiline
@@ -1336,10 +1426,7 @@ export default function JournalScreen() {
                     { backgroundColor: theme.text },
                     (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
                   ]}
-                  onPress={() => {
-                    console.log('[JOURNAL_DEBUG] Submit button pressed, entry length:', newEntry.trim().length);
-                    handleSubmit();
-                  }}
+                  onPress={handleSubmit}
                   disabled={!newEntry.trim() || isSubmitting}
                 >
                   {isSubmitting ? (
@@ -1395,16 +1482,22 @@ export default function JournalScreen() {
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                   <JournalEntryItem
+                    id={item.id}
                     content={item.content}
                     created_at={item.created_at}
                     themes={item.themes}
                     onReflect={(content) => handleReflect(item.id, content)}
+                    onEdit={handleEditEntry}
+                    onDelete={handleDeleteEntry}
                     isReflectDisabled={reflectionModalVisible}
                   />
                 )}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
                 keyboardDismissMode="on-drag"
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                onTouchStart={handleEntriesAreaPress}
               />
             )}
           </View>

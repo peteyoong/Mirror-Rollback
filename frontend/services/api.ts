@@ -309,6 +309,16 @@ export const getJournalEntries = async (userId: string) => {
   return response.data;
 };
 
+export const updateJournalEntry = async (entryId: string, content: string) => {
+  const response = await apiWithRetry.put(`/journal/${entryId}`, { content });
+  return response.data;
+};
+
+export const deleteJournalEntry = async (entryId: string) => {
+  const response = await apiWithRetry.delete(`/journal/${entryId}`);
+  return response.data;
+};
+
 // Reflection APIs
 export const getDailyReflection = async (userId: string) => {
   const response = await apiWithRetry.post('/reflections/daily', { user_id: userId });

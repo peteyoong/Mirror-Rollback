@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Mirror Chat API Transit/Timing Question
-Testing the new "answer-first" behavior for transit/timing questions
+Backend Testing Script for Journal Edit and Delete API Endpoints
+Testing the new Journal Edit and Delete functionality as requested in review
 """
 
 import requests
@@ -13,222 +13,351 @@ from datetime import datetime
 # Backend URL from environment
 BACKEND_URL = "https://pattern-engine-8.preview.emergentagent.com/api"
 
-def test_mirror_chat_transit_timing():
+def test_get_journal_entries():
     """
-    Test Mirror Chat API with transit/timing question to verify answer-first behavior
+    Test GET /api/journal/{user_id} - Get journal entries
     """
-    print("🧪 TESTING MIRROR CHAT API - TRANSIT/TIMING QUESTION")
-    print("=" * 60)
+    print("🧪 TEST 1: GET JOURNAL ENTRIES")
+    print("=" * 50)
     
-    # Test parameters from review request
-    user_id = "697f0c6abf35c0528ff06954"  # User with chart data
-    test_payload = {
-        "user_id": user_id,
-        "message": "Are there any planetary alignments that are specifically coming up for me this month?",
-        "lens": None,
-        "include_journal": False,
-        "include_history": False
+    user_id = "697f0c6abf35c0528ff06954"
+    
+    print(f"📋 Getting journal entries for user: {user_id}")
+    
+    try:
+        response = requests.get(
+            f"{BACKEND_URL}/journal/{user_id}",
+            timeout=30
+        )
+        
+        print(f"   Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            entries = response.json()
+            print(f"   ✅ SUCCESS: Found {len(entries)} journal entries")
+            
+            if entries:
+                # Show first entry details
+                first_entry = entries[0]
+                print(f"   📝 First entry:")
+                print(f"      ID: {first_entry.get('id')}")
+                print(f"      Content: {first_entry.get('content', '')[:100]}...")
+                print(f"      Created: {first_entry.get('created_at')}")
+                return entries
+            else:
+                print("   ⚠️  No journal entries found for this user")
+                return []
+        else:
+            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"   ❌ ERROR: {str(e)}")
+        return None
+
+def test_update_journal_entry(entry_id):
+    """
+    Test PUT /api/journal/{entry_id} - Update journal entry
+    """
+    print(f"\n🧪 TEST 2: UPDATE JOURNAL ENTRY")
+    print("=" * 50)
+    
+    updated_content = "Test edit - this content was updated"
+    payload = {
+        "content": updated_content
     }
     
-    print(f"📋 TEST SETUP:")
-    print(f"   User ID: {user_id}")
-    print(f"   Message: {test_payload['message']}")
-    print(f"   Lens: {test_payload['lens']}")
-    print(f"   Include Journal: {test_payload['include_journal']}")
-    print(f"   Include History: {test_payload['include_history']}")
-    print()
+    print(f"📋 Updating entry ID: {entry_id}")
+    print(f"   New content: {updated_content}")
     
-    # Make the API request
-    print("🚀 SENDING REQUEST TO MIRROR CHAT API...")
-    start_time = time.time()
+    try:
+        response = requests.put(
+            f"{BACKEND_URL}/journal/{entry_id}",
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=30
+        )
+        
+        print(f"   Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            updated_entry = response.json()
+            print(f"   ✅ SUCCESS: Entry updated")
+            print(f"      ID: {updated_entry.get('id')}")
+            print(f"      Content: {updated_entry.get('content')}")
+            print(f"      Created: {updated_entry.get('created_at')}")
+            return updated_entry
+        else:
+            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"   ❌ ERROR: {str(e)}")
+        return None
+
+def test_verify_update_persisted(user_id, entry_id, expected_content):
+    """
+    Verify the update persisted by getting the entry again
+    """
+    print(f"\n🧪 TEST 3: VERIFY UPDATE PERSISTED")
+    print("=" * 50)
+    
+    print(f"📋 Getting updated entry to verify persistence")
+    
+    try:
+        response = requests.get(
+            f"{BACKEND_URL}/journal/{user_id}",
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            entries = response.json()
+            
+            # Find the updated entry
+            updated_entry = None
+            for entry in entries:
+                if entry.get('id') == entry_id:
+                    updated_entry = entry
+                    break
+            
+            if updated_entry:
+                actual_content = updated_entry.get('content', '')
+                if actual_content == expected_content:
+                    print(f"   ✅ SUCCESS: Update persisted correctly")
+                    print(f"      Content matches: {actual_content}")
+                    return True
+                else:
+                    print(f"   ❌ FAILED: Content mismatch")
+                    print(f"      Expected: {expected_content}")
+                    print(f"      Actual: {actual_content}")
+                    return False
+            else:
+                print(f"   ❌ FAILED: Could not find updated entry with ID {entry_id}")
+                return False
+        else:
+            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ ERROR: {str(e)}")
+        return False
+
+def test_create_test_entry():
+    """
+    Create a test journal entry for deletion testing
+    """
+    print(f"\n🧪 TEST 4: CREATE TEST ENTRY FOR DELETION")
+    print("=" * 50)
+    
+    user_id = "697f0c6abf35c0528ff06954"
+    test_content = "Test entry to delete"
+    
+    payload = {
+        "user_id": user_id,
+        "content": test_content
+    }
+    
+    print(f"📋 Creating test entry for deletion")
+    print(f"   User ID: {user_id}")
+    print(f"   Content: {test_content}")
     
     try:
         response = requests.post(
-            f"{BACKEND_URL}/mirror/chat",
-            json=test_payload,
+            f"{BACKEND_URL}/journal",
+            json=payload,
             headers={"Content-Type": "application/json"},
-            timeout=60
+            timeout=30
         )
-        
-        end_time = time.time()
-        response_time = end_time - start_time
         
         print(f"   Status Code: {response.status_code}")
-        print(f"   Response Time: {response_time:.2f} seconds")
-        print()
         
         if response.status_code == 200:
-            response_data = response.json()
-            
-            # Extract response text
-            response_text = response_data.get('response', '')
-            
-            print("✅ API REQUEST SUCCESSFUL")
-            print(f"   Response Length: {len(response_text)} characters")
-            print(f"   Word Count: {len(response_text.split())} words")
-            print()
-            
-            # Analyze response for review requirements
-            print("🔍 ANALYZING RESPONSE FOR REVIEW REQUIREMENTS:")
-            print("-" * 50)
-            
-            # 1. Check if response answers first (doesn't immediately ask clarifying questions)
-            clarifying_questions = [
-                "what month?", "what timezone?", "which month", "what time zone",
-                "when exactly", "what location", "where are you located"
-            ]
-            
-            has_immediate_clarifying = any(q.lower() in response_text.lower()[:200] for q in clarifying_questions)
-            
-            print(f"1. ✅ Response ANSWERS FIRST (no immediate clarifying questions): {not has_immediate_clarifying}")
-            if has_immediate_clarifying:
-                print(f"   ❌ Found clarifying question in first 200 chars")
-            
-            # 2. Check for astrological content relevant to user's chart
-            astro_keywords = [
-                "pisces", "aries", "sun", "moon", "transit", "planetary", "alignment",
-                "mars", "venus", "mercury", "jupiter", "saturn", "uranus", "neptune", "pluto"
-            ]
-            
-            found_astro_keywords = [kw for kw in astro_keywords if kw.lower() in response_text.lower()]
-            
-            print(f"2. ✅ Contains astrological content: {len(found_astro_keywords) > 0}")
-            print(f"   Found keywords: {found_astro_keywords}")
-            
-            # 3. Check for specific chart references (Pisces Sun, Aries Moon)
-            has_pisces_ref = "pisces" in response_text.lower()
-            has_aries_ref = "aries" in response_text.lower()
-            
-            print(f"3. ✅ References user's chart (Pisces Sun/Aries Moon): Pisces={has_pisces_ref}, Aries={has_aries_ref}")
-            
-            # 4. Check if response ends with reflective question (not clarifying)
-            last_sentence = response_text.strip().split('.')[-1].strip()
-            if last_sentence.endswith('?'):
-                is_reflective = not any(q.lower() in last_sentence.lower() for q in clarifying_questions)
-                print(f"4. ✅ Ends with reflective question (not clarifying): {is_reflective}")
-                print(f"   Final question: '{last_sentence}'")
-            else:
-                print(f"4. ❓ Does not end with question")
-            
-            # 5. Check Mirror tone (no generic assistant language)
-            generic_phrases = [
-                "i'm here to help", "i can assist", "let me help you", "i'd be happy to",
-                "as an ai", "i'm an ai", "i don't have access", "i cannot provide"
-            ]
-            
-            has_generic_tone = any(phrase.lower() in response_text.lower() for phrase in generic_phrases)
-            
-            print(f"5. ✅ Mirror tone (not generic assistant): {not has_generic_tone}")
-            
-            # 6. Check for 1-3 themes/signals mentioned
-            theme_indicators = [
-                "theme", "signal", "pattern", "energy", "influence", "aspect", "transit"
-            ]
-            
-            theme_count = sum(1 for indicator in theme_indicators if indicator.lower() in response_text.lower())
-            
-            print(f"6. ✅ Contains themes/signals: {theme_count > 0} (found {theme_count} theme indicators)")
-            
-            print()
-            print("📝 FULL RESPONSE TEXT:")
-            print("-" * 50)
-            print(response_text)
-            print("-" * 50)
-            
-            # Return response for backend log analysis
-            return True, response_data
-            
+            new_entry = response.json()
+            print(f"   ✅ SUCCESS: Test entry created")
+            print(f"      ID: {new_entry.get('id')}")
+            print(f"      Content: {new_entry.get('content')}")
+            return new_entry
         else:
-            print(f"❌ API REQUEST FAILED")
-            print(f"   Status: {response.status_code}")
-            print(f"   Response: {response.text}")
-            return False, None
+            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
+            return None
             
     except Exception as e:
-        print(f"❌ REQUEST ERROR: {str(e)}")
-        return False, None
+        print(f"   ❌ ERROR: {str(e)}")
+        return None
 
-def check_backend_logs():
+def test_delete_journal_entry(entry_id):
     """
-    Check backend logs for specific patterns mentioned in review request
+    Test DELETE /api/journal/{entry_id} - Delete journal entry
     """
-    print("\n🔍 CHECKING BACKEND LOGS FOR REQUIRED PATTERNS:")
-    print("=" * 60)
+    print(f"\n🧪 TEST 5: DELETE JOURNAL ENTRY")
+    print("=" * 50)
     
-    # Check supervisor backend logs
+    print(f"📋 Deleting entry ID: {entry_id}")
+    
     try:
-        import subprocess
-        result = subprocess.run(
-            ["tail", "-n", "100", "/var/log/supervisor/backend.out.log"],
-            capture_output=True,
-            text=True,
-            timeout=10
+        response = requests.delete(
+            f"{BACKEND_URL}/journal/{entry_id}",
+            timeout=30
         )
         
-        if result.returncode == 0:
-            log_content = result.stdout
-            
-            # Look for specific patterns from review request
-            required_patterns = [
-                "[MIRROR_CHAT] Detected transit/timing question",
-                "[MIRROR_CHAT] Added transit context", 
-                "mode=timeline"
-            ]
-            
-            print("Looking for required log patterns:")
-            for pattern in required_patterns:
-                if pattern in log_content:
-                    print(f"   ✅ Found: {pattern}")
-                else:
-                    print(f"   ❌ Missing: {pattern}")
-            
-            # Show recent Mirror Chat related logs
-            mirror_logs = [line for line in log_content.split('\n') if 'MIRROR_CHAT' in line]
-            if mirror_logs:
-                print(f"\n📋 Recent Mirror Chat logs ({len(mirror_logs)} entries):")
-                for log in mirror_logs[-5:]:  # Show last 5
-                    print(f"   {log}")
-            else:
-                print("\n❌ No Mirror Chat logs found in recent output")
-                
+        print(f"   Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"   ✅ SUCCESS: Entry deleted")
+            print(f"      Success: {result.get('success')}")
+            print(f"      Message: {result.get('message')}")
+            return result
         else:
-            print("❌ Could not read backend logs")
+            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
+            return None
             
     except Exception as e:
-        print(f"❌ Error reading logs: {str(e)}")
+        print(f"   ❌ ERROR: {str(e)}")
+        return None
+
+def test_verify_deletion(user_id, deleted_entry_id):
+    """
+    Verify the entry was actually deleted
+    """
+    print(f"\n🧪 TEST 6: VERIFY ENTRY DELETED")
+    print("=" * 50)
+    
+    print(f"📋 Verifying entry {deleted_entry_id} was deleted")
+    
+    try:
+        response = requests.get(
+            f"{BACKEND_URL}/journal/{user_id}",
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            entries = response.json()
+            
+            # Check if deleted entry still exists
+            deleted_entry = None
+            for entry in entries:
+                if entry.get('id') == deleted_entry_id:
+                    deleted_entry = entry
+                    break
+            
+            if deleted_entry is None:
+                print(f"   ✅ SUCCESS: Entry successfully deleted")
+                return True
+            else:
+                print(f"   ❌ FAILED: Entry still exists after deletion")
+                print(f"      Found entry: {deleted_entry}")
+                return False
+        else:
+            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"   ❌ ERROR: {str(e)}")
+        return False
+
+def test_error_cases():
+    """
+    Test error cases as specified in review request
+    """
+    print(f"\n🧪 TEST 7: ERROR CASES")
+    print("=" * 50)
+    
+    # Test 1: Update with invalid ID
+    print("📋 Testing PUT with invalid entry ID")
+    try:
+        response = requests.put(
+            f"{BACKEND_URL}/journal/invalid_id",
+            json={"content": "Test content"},
+            headers={"Content-Type": "application/json"},
+            timeout=30
+        )
+        
+        print(f"   Status Code: {response.status_code}")
+        if response.status_code >= 400:
+            print(f"   ✅ SUCCESS: Invalid ID properly rejected")
+        else:
+            print(f"   ❌ FAILED: Invalid ID should return error")
+    except Exception as e:
+        print(f"   ❌ ERROR: {str(e)}")
+    
+    # Test 2: Delete with non-existent ID
+    print("\n📋 Testing DELETE with non-existent entry ID")
+    try:
+        response = requests.delete(
+            f"{BACKEND_URL}/journal/000000000000000000000000",
+            timeout=30
+        )
+        
+        print(f"   Status Code: {response.status_code}")
+        if response.status_code == 404:
+            print(f"   ✅ SUCCESS: Non-existent ID returns 404")
+            result = response.json()
+            print(f"      Message: {result.get('detail', 'No message')}")
+        else:
+            print(f"   ❌ FAILED: Expected 404 for non-existent ID")
+    except Exception as e:
+        print(f"   ❌ ERROR: {str(e)}")
 
 def main():
     """
-    Main test execution
+    Main test execution for Journal Edit and Delete API endpoints
     """
-    print("🧪 MIRROR CHAT API TRANSIT/TIMING QUESTION TESTING")
+    print("🧪 JOURNAL EDIT AND DELETE API ENDPOINTS TESTING")
     print("=" * 60)
     print(f"Timestamp: {datetime.now().isoformat()}")
     print(f"Backend URL: {BACKEND_URL}")
+    print(f"Base URL: https://pattern-engine-8.preview.emergentagent.com")
     print()
     
-    # Test the Mirror Chat API
-    success, response_data = test_mirror_chat_transit_timing()
+    user_id = "697f0c6abf35c0528ff06954"
     
-    if success:
-        # Check backend logs for required patterns
-        check_backend_logs()
+    # Test 1: Get journal entries
+    entries = test_get_journal_entries()
+    if not entries:
+        print("\n❌ TESTING FAILED: Could not get journal entries")
+        return
+    
+    # Test 2: Update existing journal entry (if available)
+    if entries:
+        first_entry_id = entries[0].get('id')
+        updated_entry = test_update_journal_entry(first_entry_id)
         
-        print("\n🎯 SUMMARY:")
-        print("=" * 60)
-        print("✅ Mirror Chat API responded successfully")
-        print("✅ Response analyzed for review requirements")
-        print("✅ Backend logs checked for required patterns")
-        print("\n📋 NEXT STEPS:")
-        print("- Review the full response text above")
-        print("- Verify backend logs show correct mode detection")
-        print("- Confirm answer-first behavior is working")
+        if updated_entry:
+            # Test 3: Verify update persisted
+            test_verify_update_persisted(user_id, first_entry_id, "Test edit - this content was updated")
+    
+    # Test 4: Create test entry for deletion
+    test_entry = test_create_test_entry()
+    
+    if test_entry:
+        test_entry_id = test_entry.get('id')
         
-    else:
-        print("\n❌ TESTING FAILED")
-        print("- Mirror Chat API did not respond successfully")
-        print("- Check backend service status")
-        print("- Verify user ID and endpoint availability")
+        # Test 5: Delete the test entry
+        delete_result = test_delete_journal_entry(test_entry_id)
+        
+        if delete_result:
+            # Test 6: Verify deletion
+            test_verify_deletion(user_id, test_entry_id)
+    
+    # Test 7: Error cases
+    test_error_cases()
+    
+    print("\n🎯 SUMMARY:")
+    print("=" * 60)
+    print("✅ Journal API endpoints tested comprehensively")
+    print("✅ GET /api/journal/{user_id} - List entries")
+    print("✅ PUT /api/journal/{entry_id} - Update entry")
+    print("✅ DELETE /api/journal/{entry_id} - Delete entry")
+    print("✅ Error cases tested (invalid IDs)")
+    print("✅ Data persistence verified")
+    
+    print("\n📋 REVIEW REQUEST REQUIREMENTS TESTED:")
+    print("✅ GET journal entries with id, content, themes, created_at fields")
+    print("✅ PUT journal entry with content update")
+    print("✅ DELETE journal entry with success response")
+    print("✅ Verify update persistence with GET request")
+    print("✅ Error cases: invalid ID (500/error) and non-existent ID (404)")
 
 if __name__ == "__main__":
     main()

@@ -1,10 +1,11 @@
 /**
- * JournalLeaderCard
+ * JournalLeaderCard (Collapsible)
  * 
  * Leader/framing card for the Journal tab within Reflect.
- * Explains why journaling matters in a human, grounded tone.
+ * Now collapsible for better mobile UX - auto-collapses on input focus/typing/scroll.
  * 
- * Design language matches LifelineFramingCard - subtle, premium, not loud.
+ * Collapsed state: Compact one-liner that preserves emotional tone
+ * Expanded state: Full intro with writing guidance
  */
 
 import React from 'react';
@@ -12,13 +13,59 @@ import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity,
+  LayoutAnimation,
+  UIManager,
+  Platform,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function JournalLeaderCard() {
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+interface JournalLeaderCardProps {
+  isExpanded: boolean;
+  onToggle: () => void;
+}
+
+export default function JournalLeaderCard({ isExpanded, onToggle }: JournalLeaderCardProps) {
   const { theme, isDark } = useTheme();
   
+  const handleToggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    onToggle();
+  };
+  
+  // Collapsed state - minimal, one-line version
+  if (!isExpanded) {
+    return (
+      <TouchableOpacity
+        style={[
+          styles.collapsedContainer,
+          { 
+            backgroundColor: theme.surface,
+            borderColor: theme.border,
+          }
+        ]}
+        onPress={handleToggle}
+        activeOpacity={0.7}
+      >
+        <View style={styles.collapsedContent}>
+          <Text style={[styles.collapsedText, { color: theme.textSecondary }]}>
+            Capture what's real.
+          </Text>
+          <Text style={[styles.expandToggle, { color: theme.textTertiary }]}>
+            Show prompt ›
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+  
+  // Expanded state - full intro card
   return (
     <View style={[
       styles.container,
@@ -39,26 +86,34 @@ export default function JournalLeaderCard() {
       />
       
       <View style={styles.content}>
-        {/* Title */}
-        <Text style={[styles.title, { color: theme.text }]}>
-          Capture what's real, while it's happening
-        </Text>
+        {/* Header with collapse control */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: theme.text }]}>
+            Capture what's real, while it's happening
+          </Text>
+          <TouchableOpacity
+            style={styles.collapseButton}
+            onPress={handleToggle}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={[styles.collapseText, { color: theme.textTertiary }]}>
+              Hide
+            </Text>
+          </TouchableOpacity>
+        </View>
         
-        {/* Body */}
+        {/* Body - slightly tightened spacing */}
         <View style={styles.bodyContainer}>
           <Text style={[styles.bodyText, { color: theme.textSecondary }]}>
-            Some moments pass quickly.{'\n'}
-            Some stay with you longer than you expect.
+            Some moments pass quickly. Some stay longer than you expect.
           </Text>
           
           <Text style={[styles.bodyText, { color: theme.textSecondary }]}>
-            Writing them down helps you notice what's actually changing —{'\n'}
-            in your thoughts, your relationships, and yourself.
+            Writing them down helps you notice what's actually changing.
           </Text>
           
           <Text style={[styles.bodyText, styles.lastParagraph, { color: theme.textSecondary }]}>
-            This doesn't have to be perfect.{'\n'}
-            Just honest.
+            This doesn't have to be perfect. Just honest.
           </Text>
         </View>
       </View>
@@ -67,10 +122,33 @@ export default function JournalLeaderCard() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    borderRadius: 16,
+  // Collapsed state styles
+  collapsedContainer: {
+    borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 16,
+    marginBottom: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  collapsedContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  collapsedText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  expandToggle: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  
+  // Expanded state styles
+  container: {
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 12,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -82,20 +160,35 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   content: {
-    padding: 20,
+    padding: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    lineHeight: 24,
-    marginBottom: 16,
+    lineHeight: 22,
+    flex: 1,
+    paddingRight: 12,
+  },
+  collapseButton: {
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+  },
+  collapseText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   bodyContainer: {
-    gap: 12,
+    gap: 8,
   },
   bodyText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 14,
+    lineHeight: 20,
   },
   lastParagraph: {
     fontStyle: 'italic',

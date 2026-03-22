@@ -3860,6 +3860,58 @@ async def get_journal_entries(user_id: str, limit: int = 20):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class JournalEntryUpdate(BaseModel):
+    content: str
+
+
+@api_router.put("/journal/{entry_id}")
+async def update_journal_entry(entry_id: str, update: JournalEntryUpdate):
+    """Update a journal entry"""
+    try:
+        result = await db.journal.update_one(
+            {"_id": ObjectId(entry_id)},
+            {"$set": {
+                "content": update.content,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Entry not found")
+        
+        # Get the updated entry
+        entry = await db.journal.find_one({"_id": ObjectId(entry_id)})
+        
+        return JournalEntryResponse(
+            id=str(entry["_id"]),
+            content=entry["content"],
+            themes=entry.get("themes", []),
+            created_at=entry["created_at"].isoformat()
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update journal error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.delete("/journal/{entry_id}")
+async def delete_journal_entry(entry_id: str):
+    """Delete a journal entry"""
+    try:
+        result = await db.journal.delete_one({"_id": ObjectId(entry_id)})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Entry not found")
+        
+        return {"success": True, "message": "Entry deleted"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete journal error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # =============================================================================
 # MIRROR INSIGHT ENDPOINTS
 # =============================================================================
