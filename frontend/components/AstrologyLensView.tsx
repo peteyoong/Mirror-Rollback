@@ -1048,10 +1048,10 @@ const getLifeAreaContext = (transits: TransitHit[]): string => {
 };
 
 // ============================================
-// CHART RULER DETECTION
+// MASTER ASTROLOGER LAYER V2 — RULERSHIP CHAINS + DIGNITY WEIGHTING
 // ============================================
 
-// Sign to ruling planet mapping
+// PART 1: Sign to ruling planet mapping (Traditional rulers for primary use)
 const SIGN_RULERS: { [key: string]: string } = {
   'aries': 'Mars',
   'taurus': 'Venus',
@@ -1060,12 +1060,67 @@ const SIGN_RULERS: { [key: string]: string } = {
   'leo': 'Sun',
   'virgo': 'Mercury',
   'libra': 'Venus',
-  'scorpio': 'Pluto', // Modern ruler
+  'scorpio': 'Mars',      // Traditional ruler (more grounded interpretation)
   'sagittarius': 'Jupiter',
   'capricorn': 'Saturn',
-  'aquarius': 'Uranus', // Modern ruler
-  'pisces': 'Neptune' // Modern ruler
+  'aquarius': 'Saturn',   // Traditional ruler
+  'pisces': 'Jupiter'     // Traditional ruler
 };
+
+// Modern rulers (for secondary reference)
+const SIGN_RULERS_MODERN: { [key: string]: string } = {
+  'scorpio': 'Pluto',
+  'aquarius': 'Uranus',
+  'pisces': 'Neptune'
+};
+
+// PART 3: Dignity Tables — Essential Dignities
+const PLANET_DOMICILE: { [key: string]: string[] } = {
+  'Sun': ['Leo'],
+  'Moon': ['Cancer'],
+  'Mercury': ['Gemini', 'Virgo'],
+  'Venus': ['Taurus', 'Libra'],
+  'Mars': ['Aries', 'Scorpio'],
+  'Jupiter': ['Sagittarius', 'Pisces'],
+  'Saturn': ['Capricorn', 'Aquarius']
+};
+
+const PLANET_EXALTATION: { [key: string]: string } = {
+  'Sun': 'Aries',
+  'Moon': 'Taurus',
+  'Mercury': 'Virgo',
+  'Venus': 'Pisces',
+  'Mars': 'Capricorn',
+  'Jupiter': 'Cancer',
+  'Saturn': 'Libra'
+};
+
+const PLANET_DETRIMENT: { [key: string]: string[] } = {
+  'Sun': ['Aquarius'],
+  'Moon': ['Capricorn'],
+  'Mercury': ['Sagittarius', 'Pisces'],
+  'Venus': ['Aries', 'Scorpio'],
+  'Mars': ['Taurus', 'Libra'],
+  'Jupiter': ['Gemini', 'Virgo'],
+  'Saturn': ['Cancer', 'Leo']
+};
+
+const PLANET_FALL: { [key: string]: string } = {
+  'Sun': 'Libra',
+  'Moon': 'Scorpio',
+  'Mercury': 'Pisces',
+  'Venus': 'Virgo',
+  'Mars': 'Cancer',
+  'Jupiter': 'Capricorn',
+  'Saturn': 'Aries'
+};
+
+// Angular houses (strongest position)
+const ANGULAR_HOUSES = [1, 4, 7, 10];
+// Succedent houses (moderate)
+const SUCCEDENT_HOUSES = [2, 5, 8, 11];
+// Cadent houses (weakest)
+const CADENT_HOUSES = [3, 6, 9, 12];
 
 // Get chart ruler from ascendant
 const getChartRuler = (chartData: FullChartData | null): {
@@ -1073,23 +1128,22 @@ const getChartRuler = (chartData: FullChartData | null): {
   sign: string;
   house: number;
 } | null => {
-  if (!chartData?.natal?.ascendant?.sign) return null;
+  if (!chartData?.natal?.angles?.asc?.sign) return null;
   
-  const ascSign = chartData.natal.ascendant.sign.toLowerCase();
+  const ascSign = chartData.natal.angles.asc.sign.toLowerCase();
   const ruler = SIGN_RULERS[ascSign];
   if (!ruler) return null;
   
-  // Find the ruler's placement
-  const placements = chartData.natal.placements || {};
-  const rulerKey = ruler.toLowerCase();
-  const rulerPlacement = placements[rulerKey] || placements[ruler];
+  // Find the ruler's placement in planets
+  const planets = chartData.natal.planets || {};
+  const rulerData = planets[ruler];
   
-  if (!rulerPlacement) return null;
+  if (!rulerData) return null;
   
   return {
     planet: ruler,
-    sign: rulerPlacement.sign || '',
-    house: rulerPlacement.house || 0
+    sign: rulerData.sign || '',
+    house: rulerData.house || 0
   };
 };
 
@@ -1101,6 +1155,573 @@ const isChartRulerActivated = (chartData: FullChartData | null, transits: Transi
   return transits.some(t => 
     t.natal_point.toLowerCase() === ruler.planet.toLowerCase()
   );
+};
+
+// ============================================
+// PART 2: RULERSHIP CHAINS — How Houses Connect
+// ============================================
+
+interface HouseRulerChain {
+  house: number;
+  sign: string;
+  ruler: string;
+  rulerHouse: number;
+  rulerSign: string;
+  meaningConnection: string;
+}
+
+// Generate human-readable chain meaning
+const getChainMeaning = (fromHouse: number, toHouse: number): string => {
+  const meanings: { [key: string]: string } = {
+    '1-8': 'identity is shaped by depth, trust, and what you can\'t control',
+    '1-7': 'identity is shaped through relationships and how others see you',
+    '1-10': 'identity is shaped through career and public contribution',
+    '2-3': 'security comes through communication and learning',
+    '2-8': 'resources are tied to shared power and what you merge with',
+    '3-8': 'communication carries more weight—it\'s about trust, not just information',
+    '3-9': 'daily thinking connects to bigger questions of meaning',
+    '3-12': 'thinking connects to what you can\'t fully see or name',
+    '4-10': 'home and career are directly linked—one affects the other',
+    '4-8': 'emotional foundation is tied to intimacy and transformation',
+    '5-11': 'self-expression connects to community and future vision',
+    '6-12': 'daily work connects to something larger—service or surrender',
+    '7-1': 'relationships shape who you become',
+    '7-4': 'partnership is tied to emotional security and home',
+    '8-2': 'transformation happens through what you value and hold',
+    '8-5': 'depth and creativity are intertwined',
+    '9-3': 'beliefs shape how you think and communicate',
+    '10-4': 'career is rooted in where you come from',
+    '10-7': 'public role is shaped by partnerships',
+    '11-5': 'future vision connects to creative self-expression',
+    '12-6': 'what\'s hidden affects daily functioning'
+  };
+  
+  const key = `${fromHouse}-${toHouse}`;
+  const reverseKey = `${toHouse}-${fromHouse}`;
+  
+  return meanings[key] || meanings[reverseKey] || 
+    `${HOUSE_MEANINGS[fromHouse]?.shortLabel || 'this area'} connects to ${HOUSE_MEANINGS[toHouse]?.shortLabel || 'another area'}`;
+};
+
+// Build rulership chains for the entire chart
+const buildRulershipChains = (chartData: FullChartData | null): HouseRulerChain[] => {
+  if (!chartData?.natal?.houses?.cusps) return [];
+  
+  const chains: HouseRulerChain[] = [];
+  const planets = chartData.natal.planets || {};
+  
+  for (const cusp of chartData.natal.houses.cusps) {
+    const houseNumber = cusp.house;
+    const houseSign = cusp.sign;
+    
+    if (!houseSign) continue;
+    
+    const ruler = SIGN_RULERS[houseSign.toLowerCase()];
+    if (!ruler) continue;
+    
+    // Find where the ruler is placed
+    const rulerData = planets[ruler];
+    if (!rulerData) continue;
+    
+    chains.push({
+      house: houseNumber,
+      sign: houseSign,
+      ruler: ruler,
+      rulerHouse: rulerData.house || 0,
+      rulerSign: rulerData.sign || '',
+      meaningConnection: getChainMeaning(houseNumber, rulerData.house || 0)
+    });
+  }
+  
+  return chains;
+};
+
+// Check if a rulership chain is activated by transits
+const isChainActivated = (
+  chains: HouseRulerChain[],
+  transits: TransitHit[]
+): { activated: boolean; chain: HouseRulerChain | null; description: string } => {
+  for (const transit of transits.slice(0, 5)) {
+    // Check if transit touches a ruler
+    for (const chain of chains) {
+      if (transit.natal_point === chain.ruler) {
+        return {
+          activated: true,
+          chain: chain,
+          description: chain.meaningConnection
+        };
+      }
+    }
+  }
+  return { activated: false, chain: null, description: '' };
+};
+
+// Get chain activation description for a specific house being transited
+const getChainDescriptionForHouse = (
+  chains: HouseRulerChain[],
+  house: number
+): string => {
+  const chain = chains.find(c => c.house === house || c.rulerHouse === house);
+  if (!chain) return '';
+  
+  if (chain.house !== chain.rulerHouse) {
+    return chain.meaningConnection;
+  }
+  return '';
+};
+
+// ============================================
+// PART 3: DIGNITY / CONDITION WEIGHTING
+// ============================================
+
+interface PlanetStrength {
+  planet: string;
+  sign: string;
+  house: number;
+  dignityScore: number;  // -2 to +2
+  houseScore: number;    // -1 to +1
+  aspectCount: number;
+  isChartRuler: boolean;
+  conjunctLuminary: boolean;
+  totalScore: number;
+  strengthLabel: string; // "strong", "moderate", "challenged"
+}
+
+// Calculate dignity score for a planet
+const getDignityScore = (planet: string, sign: string): number => {
+  // Domicile: +2
+  if (PLANET_DOMICILE[planet]?.includes(sign)) return 2;
+  // Exaltation: +1
+  if (PLANET_EXALTATION[planet] === sign) return 1;
+  // Fall: -2
+  if (PLANET_FALL[planet] === sign) return -2;
+  // Detriment: -1
+  if (PLANET_DETRIMENT[planet]?.includes(sign)) return -1;
+  // Neutral: 0
+  return 0;
+};
+
+// Calculate house position score
+const getHousePositionScore = (house: number): number => {
+  if (ANGULAR_HOUSES.includes(house)) return 1;
+  if (CADENT_HOUSES.includes(house)) return -1;
+  return 0; // Succedent
+};
+
+// Check if planet is conjunct Sun or Moon
+const isConjunctLuminary = (
+  planet: string,
+  chartData: FullChartData | null
+): boolean => {
+  if (!chartData?.natal?.aspects) return false;
+  
+  return chartData.natal.aspects.some(asp => 
+    asp.aspect_type === 'conjunction' &&
+    ((asp.point_a === planet && (asp.point_b === 'Sun' || asp.point_b === 'Moon')) ||
+     (asp.point_b === planet && (asp.point_a === 'Sun' || asp.point_a === 'Moon')))
+  );
+};
+
+// Count aspects for a planet
+const countAspects = (planet: string, chartData: FullChartData | null): number => {
+  if (!chartData?.natal?.aspects) return 0;
+  
+  return chartData.natal.aspects.filter(asp => 
+    asp.point_a === planet || asp.point_b === planet
+  ).length;
+};
+
+// Build complete planet strength profile
+const buildPlanetStrengths = (chartData: FullChartData | null): PlanetStrength[] => {
+  if (!chartData?.natal?.planets) return [];
+  
+  const chartRuler = getChartRuler(chartData);
+  const strengths: PlanetStrength[] = [];
+  const planets = chartData.natal.planets;
+  
+  const planetNames = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'];
+  
+  for (const planetName of planetNames) {
+    const planetData = planets[planetName];
+    if (!planetData) continue;
+    
+    const dignityScore = getDignityScore(planetName, planetData.sign || '');
+    const houseScore = getHousePositionScore(planetData.house || 0);
+    const aspectCount = countAspects(planetName, chartData);
+    const isRuler = chartRuler?.planet === planetName;
+    const conjunctLum = isConjunctLuminary(planetName, chartData);
+    
+    // Calculate total score
+    let totalScore = dignityScore + houseScore;
+    if (aspectCount >= 3) totalScore += 1;
+    if (isRuler) totalScore += 2;
+    if (conjunctLum) totalScore += 1;
+    
+    // Determine strength label
+    let strengthLabel = 'moderate';
+    if (totalScore >= 3) strengthLabel = 'strong';
+    else if (totalScore <= -1) strengthLabel = 'challenged';
+    
+    strengths.push({
+      planet: planetName,
+      sign: planetData.sign || '',
+      house: planetData.house || 0,
+      dignityScore,
+      houseScore,
+      aspectCount,
+      isChartRuler: isRuler,
+      conjunctLuminary: conjunctLum,
+      totalScore,
+      strengthLabel
+    });
+  }
+  
+  return strengths;
+};
+
+// ============================================
+// PART 4: PLANET PRIORITY RANKING
+// ============================================
+
+interface PriorityPlanet {
+  planet: string;
+  rank: number;
+  reasons: string[];
+  strength: PlanetStrength;
+}
+
+// Get ranked list of dominant planets
+const getDominantPlanets = (chartData: FullChartData | null): PriorityPlanet[] => {
+  const strengths = buildPlanetStrengths(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  
+  // Sort by total score
+  const sorted = [...strengths].sort((a, b) => b.totalScore - a.totalScore);
+  
+  return sorted.slice(0, 5).map((strength, index) => {
+    const reasons: string[] = [];
+    
+    if (strength.isChartRuler) reasons.push('shapes how you move through life');
+    if (strength.dignityScore >= 2) reasons.push('naturally at home');
+    if (strength.dignityScore === 1) reasons.push('elevated');
+    if (strength.houseScore === 1) reasons.push('prominent position');
+    if (strength.aspectCount >= 3) reasons.push('highly connected');
+    if (strength.conjunctLuminary) reasons.push('tied to core identity');
+    if (dominantHouses.includes(strength.house)) reasons.push('in a concentrated area');
+    
+    return {
+      planet: strength.planet,
+      rank: index + 1,
+      reasons,
+      strength
+    };
+  });
+};
+
+// Check if a planet is dominant (top 3)
+const isPlanetDominant = (planet: string, chartData: FullChartData | null): boolean => {
+  const dominant = getDominantPlanets(chartData);
+  return dominant.slice(0, 3).some(p => p.planet === planet);
+};
+
+// ============================================
+// PART 5: TRANSIT PRIORITY HIERARCHY
+// ============================================
+
+interface TransitPriority {
+  transit: TransitHit;
+  priorityScore: number;
+  priorityLabel: 'primary' | 'supporting' | 'background';
+  boostReasons: string[];
+}
+
+// Score and prioritize transits
+const prioritizeTransits = (
+  transits: TransitHit[],
+  chartData: FullChartData | null
+): TransitPriority[] => {
+  const chartRuler = getChartRuler(chartData);
+  const dominantPlanets = getDominantPlanets(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  const chains = buildRulershipChains(chartData);
+  const planetStrengths = buildPlanetStrengths(chartData);
+  
+  return transits.map(transit => {
+    let score = 0;
+    const reasons: string[] = [];
+    
+    // +3 if hits chart ruler
+    if (chartRuler && transit.natal_point === chartRuler.planet) {
+      score += 3;
+      reasons.push('touches how you naturally operate');
+    }
+    
+    // +2 if hits dominant planet (top 3)
+    if (dominantPlanets.slice(0, 3).some(p => p.planet === transit.natal_point)) {
+      score += 2;
+      reasons.push('hits a defining force in your chart');
+    }
+    
+    // +2 if hits dominant house
+    if (dominantHouses.includes(transit.natal_house)) {
+      score += 2;
+      reasons.push('lands in concentrated territory');
+    }
+    
+    // +1 if angular planet
+    const planetStrength = planetStrengths.find(p => p.planet === transit.natal_point);
+    if (planetStrength && ANGULAR_HOUSES.includes(planetStrength.house)) {
+      score += 1;
+      reasons.push('prominent position');
+    }
+    
+    // +1 if activates a rulership chain
+    const chainMatch = chains.find(c => c.ruler === transit.natal_point);
+    if (chainMatch && chainMatch.house !== chainMatch.rulerHouse) {
+      score += 1;
+      reasons.push('connects multiple life areas');
+    }
+    
+    // -1 if weak planet (challenged)
+    if (planetStrength && planetStrength.strengthLabel === 'challenged') {
+      score -= 1;
+    }
+    
+    // Use transit's own strength score as base
+    score += Math.floor(transit.strength_score / 3);
+    
+    // Determine priority label
+    let priorityLabel: 'primary' | 'supporting' | 'background' = 'background';
+    if (score >= 4) priorityLabel = 'primary';
+    else if (score >= 2) priorityLabel = 'supporting';
+    
+    return {
+      transit,
+      priorityScore: score,
+      priorityLabel,
+      boostReasons: reasons
+    };
+  }).sort((a, b) => b.priorityScore - a.priorityScore);
+};
+
+// ============================================
+// PART 6: CONTEXT INJECTION LINES
+// ============================================
+
+// Generate context line when chart ruler is activated
+const getChartRulerContextLine = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): string => {
+  const chartRuler = getChartRuler(chartData);
+  if (!chartRuler) return '';
+  
+  const isActivated = transits.some(t => t.natal_point === chartRuler.planet);
+  if (!isActivated) return '';
+  
+  return "This goes deeper than it first looks—it touches how you naturally move through life.";
+};
+
+// Generate context line when dominant house ruler is activated
+const getDominantHouseRulerLine = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): string => {
+  const chains = buildRulershipChains(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  
+  for (const transit of transits.slice(0, 3)) {
+    for (const chain of chains) {
+      if (chain.ruler === transit.natal_point && dominantHouses.includes(chain.house)) {
+        return "This connects directly to one of the main areas life keeps working on for you.";
+      }
+    }
+  }
+  return '';
+};
+
+// Generate context line when rulership chain is activated
+const getRulershipChainLine = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): string => {
+  const chains = buildRulershipChains(chartData);
+  
+  for (const transit of transits.slice(0, 3)) {
+    for (const chain of chains) {
+      if (chain.ruler === transit.natal_point && chain.house !== chain.rulerHouse) {
+        // Translate to human terms
+        const fromArea = HOUSE_MEANINGS[chain.house]?.shortLabel || 'one area';
+        const toArea = HOUSE_MEANINGS[chain.rulerHouse]?.shortLabel || 'another area';
+        
+        // Don't show technical chain, translate to behavior
+        if (chain.house === 3 && chain.rulerHouse === 8) {
+          return "This starts as a conversation—but it's really about something deeper underneath it.";
+        }
+        if (chain.house === 7 && chain.rulerHouse === 4) {
+          return "What's happening in a relationship is echoing something about home or emotional safety.";
+        }
+        if (chain.house === 10 && chain.rulerHouse === 4) {
+          return "Career pressure is stirring something about roots or where you come from.";
+        }
+        if (chain.house === 4 && chain.rulerHouse === 10) {
+          return "Home dynamics are affecting how you show up publicly.";
+        }
+        if (chain.house === 2 && chain.rulerHouse === 8) {
+          return "What you're holding onto is connected to what you're afraid to lose.";
+        }
+        
+        // Generic chain translation
+        return `This isn't isolated—${fromArea} and ${toArea} are linked in how you're built.`;
+      }
+    }
+  }
+  return '';
+};
+
+// ============================================
+// PART 8: DEEP DIVE ENHANCEMENT — Planet Importance Lines
+// ============================================
+
+// Get importance line for a planet (for Deep Dive cards)
+const getPlanetImportanceLine = (
+  planet: string,
+  chartData: FullChartData | null
+): string => {
+  const chartRuler = getChartRuler(chartData);
+  const planetStrengths = buildPlanetStrengths(chartData);
+  const dominant = getDominantPlanets(chartData);
+  
+  const isRuler = chartRuler?.planet === planet;
+  const strength = planetStrengths.find(p => p.planet === planet);
+  const isDominant = dominant.slice(0, 3).some(p => p.planet === planet);
+  
+  // Check if part of major chain
+  const chains = buildRulershipChains(chartData);
+  const isInMajorChain = chains.filter(c => c.ruler === planet && c.house !== c.rulerHouse).length >= 2;
+  
+  if (isRuler && strength?.strengthLabel === 'strong') {
+    return "This is one of the most defining forces in your chart.";
+  }
+  if (isRuler) {
+    return "This shapes how you move through life more than most.";
+  }
+  if (isDominant && strength?.strengthLabel === 'strong') {
+    return "This carries particular weight in how you're built.";
+  }
+  if (isDominant) {
+    return "This plays a larger role than average in your patterns.";
+  }
+  if (isInMajorChain) {
+    return "This connects multiple areas of your life together.";
+  }
+  
+  return '';
+};
+
+// ============================================
+// PART 9: REPETITION ENGINE — Theme Collapse
+// ============================================
+
+interface ThemeConcentration {
+  theme: string;
+  sources: string[];
+  count: number;
+  collapsedLine: string;
+}
+
+// Detect if same theme appears multiple times
+const detectThemeConcentration = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): ThemeConcentration[] => {
+  const chains = buildRulershipChains(chartData);
+  const dominantPlanets = getDominantPlanets(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  
+  const themes: { [key: string]: { sources: string[]; label: string } } = {
+    'communication': { sources: [], label: 'how you think and express' },
+    'relationships': { sources: [], label: 'connection and partnership' },
+    'identity': { sources: [], label: 'who you are and how you show up' },
+    'security': { sources: [], label: 'safety and resources' },
+    'transformation': { sources: [], label: 'depth and change' },
+    'career': { sources: [], label: 'work and public role' },
+    'meaning': { sources: [], label: 'beliefs and direction' }
+  };
+  
+  // Check dominant houses
+  for (const house of dominantHouses) {
+    if ([3].includes(house)) {
+      themes['communication'].sources.push('house concentration');
+    }
+    if ([7].includes(house)) {
+      themes['relationships'].sources.push('house concentration');
+    }
+    if ([1, 5].includes(house)) {
+      themes['identity'].sources.push('house concentration');
+    }
+    if ([2, 4].includes(house)) {
+      themes['security'].sources.push('house concentration');
+    }
+    if ([8].includes(house)) {
+      themes['transformation'].sources.push('house concentration');
+    }
+    if ([10, 6].includes(house)) {
+      themes['career'].sources.push('house concentration');
+    }
+    if ([9].includes(house)) {
+      themes['meaning'].sources.push('house concentration');
+    }
+  }
+  
+  // Check chains
+  for (const chain of chains) {
+    if ([3].includes(chain.house) || [3].includes(chain.rulerHouse)) {
+      themes['communication'].sources.push('house connection');
+    }
+    if ([8].includes(chain.house) || [8].includes(chain.rulerHouse)) {
+      themes['transformation'].sources.push('house connection');
+    }
+  }
+  
+  // Check transits
+  for (const transit of transits.slice(0, 5)) {
+    if (transit.natal_house === 3 || transit.natal_point === 'Mercury') {
+      themes['communication'].sources.push('transit');
+    }
+    if (transit.natal_house === 7 || transit.natal_point === 'Venus') {
+      themes['relationships'].sources.push('transit');
+    }
+    if (transit.natal_house === 8 || transit.natal_point === 'Pluto') {
+      themes['transformation'].sources.push('transit');
+    }
+  }
+  
+  // Filter themes with 2+ sources
+  return Object.entries(themes)
+    .filter(([_, data]) => data.sources.length >= 2)
+    .map(([theme, data]) => ({
+      theme,
+      sources: [...new Set(data.sources)],
+      count: data.sources.length,
+      collapsedLine: `This keeps showing up because ${data.label} is built into how your chart works.`
+    }))
+    .sort((a, b) => b.count - a.count);
+};
+
+// Get collapsed theme line if applicable
+const getThemeCollapseLineIfApplicable = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): string => {
+  const concentrations = detectThemeConcentration(chartData, transits);
+  if (concentrations.length === 0) return '';
+  
+  const top = concentrations[0];
+  if (top.count >= 3) {
+    return top.collapsedLine;
+  }
+  return '';
 };
 
 // ============================================
@@ -3661,10 +4282,31 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
     const chapterInfo = detectChapterTransits(currentWindow?.strongest_hits || []);
     const chapterLine = activeAltitude === 'month' ? getChapterLine(chapterInfo) : '';
 
-    // Detect chart ruler activation
+    // ============================================
+    // MASTER ASTROLOGER V2 — PRIORITY ENGINE CONTEXT
+    // ============================================
+    
+    // Get chart ruler context (Part 6)
+    const chartRulerContextLine = getChartRulerContextLine(fullChartData, currentWindow?.strongest_hits || []);
+    
+    // Get dominant house ruler context (Part 6)
+    const dominantHouseRulerLine = getDominantHouseRulerLine(fullChartData, currentWindow?.strongest_hits || []);
+    
+    // Get rulership chain context (Part 6)
+    const rulershipChainLine = getRulershipChainLine(fullChartData, currentWindow?.strongest_hits || []);
+    
+    // Get theme collapse line if themes are repeating (Part 9)
+    const themeCollapseLine = getThemeCollapseLineIfApplicable(fullChartData, currentWindow?.strongest_hits || []);
+    
+    // Prioritize transits using the new system (Part 5)
+    const prioritizedTransits = prioritizeTransits(currentWindow?.strongest_hits || [], fullChartData);
+    const primaryTransits = prioritizedTransits.filter(t => t.priorityLabel === 'primary');
+    const supportingTransits = prioritizedTransits.filter(t => t.priorityLabel === 'supporting');
+    
+    // Legacy chart ruler line (kept for compatibility)
     const chartRulerActivated = isChartRulerActivated(fullChartData, currentWindow?.strongest_hits || []);
     const chartRulerLine = chartRulerActivated 
-      ? "This matters more than usual because it touches how you naturally move through life."
+      ? "This goes deeper than it first looks—it touches how you naturally move through life."
       : "";
 
     // Get refined content (max 3 items each) - PASS TIMEFRAME
@@ -3746,7 +4388,22 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
                 ↳ {chartRulerLine}
               </Text>
             ) : null}
-            {repeatPatternLine ? (
+            {rulershipChainLine ? (
+              <Text style={[styles.contextLine, { color: theme.textSecondary, fontWeight: '500' }]}>
+                ↳ {rulershipChainLine}
+              </Text>
+            ) : null}
+            {dominantHouseRulerLine ? (
+              <Text style={[styles.contextLine, { color: theme.textSecondary }]}>
+                ↳ {dominantHouseRulerLine}
+              </Text>
+            ) : null}
+            {themeCollapseLine ? (
+              <Text style={[styles.contextLine, { color: theme.accent, fontStyle: 'italic' }]}>
+                ↳ {themeCollapseLine}
+              </Text>
+            ) : null}
+            {repeatPatternLine && !themeCollapseLine ? (
               <Text style={[styles.contextLine, { color: theme.textSecondary, fontStyle: 'italic' }]}>
                 ↳ {repeatPatternLine}
               </Text>
@@ -4050,6 +4707,26 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
               {/* Card Content */}
               {isExpanded && (
                 <View style={styles.deepDiveCardContent}>
+                  {/* Planet Importance Line (Part 8 - Master Astrologer V2) */}
+                  {(() => {
+                    const planetMap: { [key: string]: string } = {
+                      'sun': 'Sun', 'moon': 'Moon', 'ascendant': 'Ascendant',
+                      'mercury': 'Mercury', 'venus': 'Venus', 'mars': 'Mars',
+                      'jupiter': 'Jupiter', 'saturn': 'Saturn'
+                    };
+                    const planetName = planetMap[card.id];
+                    if (!planetName) return null;
+                    const importanceLine = getPlanetImportanceLine(planetName, fullChartData);
+                    if (!importanceLine) return null;
+                    return (
+                      <View style={[styles.deepDiveSection, { marginBottom: 8 }]}>
+                        <Text style={[styles.planetImportanceLine, { color: theme.accent }]}>
+                          {importanceLine}
+                        </Text>
+                      </View>
+                    );
+                  })()}
+
                   {/* What this is */}
                   <View style={styles.deepDiveSection}>
                     <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHAT THIS IS</Text>
@@ -5231,5 +5908,18 @@ const styles = StyleSheet.create({
   compressedInsightText: {
     fontSize: 13,
     lineHeight: 19,
+  },
+  // Planet Importance Line (Part 8 - Master Astrologer V2)
+  planetImportanceLine: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    fontWeight: '500',
+    lineHeight: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(139, 128, 99, 0.04)',
+    borderRadius: 6,
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(139, 128, 99, 0.3)',
   },
 });
