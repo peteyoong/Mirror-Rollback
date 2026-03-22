@@ -417,83 +417,753 @@ const getWhatMattersMost = (placements: CorePlacements, fullChartData: FullChart
   return items.sort((a, b) => b.weight - a.weight).slice(0, 5).map(({ label, why }) => ({ label, why }));
 };
 
-// Get key natal aspects for display
-const getKeyAspects = (fullChartData: FullChartData | null): Array<{ aspect: string; meaning: string; quality: 'ease' | 'friction' | 'complexity' }> => {
+// ============================================
+// ENHANCED ASPECT INTELLIGENCE
+// ============================================
+
+interface EnhancedAspect {
+  aspect: string;
+  meaning: string;
+  quality: 'ease' | 'friction' | 'complexity';
+  whyItMatters: string;
+  pointA: string;
+  pointB: string;
+  aspectType: string;
+}
+
+// Get key natal aspects for display - ENHANCED VERSION
+const getKeyAspects = (fullChartData: FullChartData | null, placements: CorePlacements): EnhancedAspect[] => {
   if (!fullChartData?.natal?.aspects) return [];
   
   const aspects = fullChartData.natal.aspects;
-  const keyAspects: Array<{ aspect: string; meaning: string; quality: 'ease' | 'friction' | 'complexity'; weight: number }> = [];
+  const keyAspects: Array<EnhancedAspect & { weight: number }> = [];
   
-  // Aspect meanings
-  const getAspectMeaning = (pointA: string, pointB: string, type: string): { meaning: string; quality: 'ease' | 'friction' | 'complexity' } => {
-    // Sun aspects
+  // Deep aspect interpretation with chart context
+  const getAspectInterpretation = (pointA: string, pointB: string, type: string): { meaning: string; quality: 'ease' | 'friction' | 'complexity'; whyItMatters: string } => {
+    const isHard = ['conjunction', 'square', 'opposition'].includes(type);
+    const isSoft = ['trine', 'sextile'].includes(type);
+    
+    // Mercury-Pluto: depth in thinking
+    if ((pointA === 'Mercury' && pointB === 'Pluto') || (pointB === 'Mercury' && pointA === 'Pluto')) {
+      return {
+        meaning: 'Creates depth, suspicion, and intensity in thinking and communication.',
+        quality: isHard ? 'friction' : 'complexity',
+        whyItMatters: 'Communication is never casual—perception tends to go beneath the obvious. You see what others miss, but may also see threat where none exists.'
+      };
+    }
+    
+    // Sun-Saturn: identity under pressure
     if ((pointA === 'Sun' && pointB === 'Saturn') || (pointB === 'Sun' && pointA === 'Saturn')) {
-      return { meaning: 'identity and pressure are tightly linked', quality: type === 'conjunction' || type === 'square' || type === 'opposition' ? 'friction' : 'complexity' };
+      return {
+        meaning: isHard ? 'Identity formed through restriction and early pressure.' : 'Disciplined self-expression that earns authority over time.',
+        quality: isHard ? 'friction' : 'complexity',
+        whyItMatters: 'You may have felt blocked, criticized, or burdened early. What develops is a self that earns its place—but self-doubt runs deep.'
+      };
     }
+    
+    // Sun-Moon: inner unity or division
     if ((pointA === 'Sun' && pointB === 'Moon') || (pointB === 'Sun' && pointA === 'Moon')) {
-      return { meaning: 'core self and emotional nature in dialogue', quality: type === 'trine' || type === 'sextile' ? 'ease' : 'friction' };
-    }
-    if ((pointA === 'Sun' && pointB === 'Jupiter') || (pointB === 'Sun' && pointA === 'Jupiter')) {
-      return { meaning: 'identity expands through faith and meaning', quality: 'ease' };
+      return {
+        meaning: isHard ? 'Core self and emotional nature pull in different directions.' : 'Who you are and what you need align naturally.',
+        quality: isHard ? 'friction' : 'ease',
+        whyItMatters: isHard 
+          ? 'Inner division between what you want to be and what you need to feel okay. You may feel split—acting one way, feeling another.'
+          : 'Less internal conflict—your identity and emotional life support each other. What fulfills you also expresses you.'
+      };
     }
     
-    // Moon aspects
-    if ((pointA === 'Moon' && pointB === 'Mars') || (pointB === 'Moon' && pointA === 'Mars')) {
-      return { meaning: 'feeling and action can collide quickly', quality: type === 'square' || type === 'opposition' ? 'friction' : 'complexity' };
-    }
+    // Moon-Saturn: emotional caution
     if ((pointA === 'Moon' && pointB === 'Saturn') || (pointB === 'Moon' && pointA === 'Saturn')) {
-      return { meaning: 'emotional caution and containment', quality: 'friction' };
+      return {
+        meaning: 'Emotional life carries weight, caution, or early deprivation.',
+        quality: 'friction',
+        whyItMatters: 'You may have learned to contain feelings early, to not need too much. Emotional expression requires trust you don\'t extend easily.'
+      };
     }
+    
+    // Moon-Pluto: emotional intensity
+    if ((pointA === 'Moon' && pointB === 'Pluto') || (pointB === 'Moon' && pointA === 'Pluto')) {
+      return {
+        meaning: 'Emotional life is intense, transformative, and hard to hide.',
+        quality: 'complexity',
+        whyItMatters: 'Feelings run deeper than you show. You may have experienced emotional overwhelm or manipulation that taught you to guard your vulnerability fiercely.'
+      };
+    }
+    
+    // Venus-Saturn: love with conditions
+    if ((pointA === 'Venus' && pointB === 'Saturn') || (pointB === 'Venus' && pointA === 'Saturn')) {
+      return {
+        meaning: isHard ? 'Love and worthiness feel earned, not given.' : 'Loyalty and commitment come naturally.',
+        quality: isHard ? 'friction' : 'ease',
+        whyItMatters: isHard 
+          ? 'You may hold back in relationships, waiting to feel "good enough." Love feels safer when you\'ve proven yourself first.'
+          : 'You take relationships seriously and build lasting bonds. Commitment isn\'t scary—it\'s where you thrive.'
+      };
+    }
+    
+    // Mars-Saturn: will under pressure
+    if ((pointA === 'Mars' && pointB === 'Saturn') || (pointB === 'Mars' && pointA === 'Saturn')) {
+      return {
+        meaning: isHard ? 'Drive meets obstruction; anger may turn inward.' : 'Disciplined action and controlled strength.',
+        quality: isHard ? 'friction' : 'complexity',
+        whyItMatters: isHard
+          ? 'You may feel blocked when you try to assert yourself. Frustration can build until it erupts, or turn into depression. Timing action is your lesson.'
+          : 'You have controlled strength—able to persist where others quit. Your discipline is a genuine advantage.'
+      };
+    }
+    
+    // Jupiter-Saturn: expansion vs. contraction
+    if ((pointA === 'Jupiter' && pointB === 'Saturn') || (pointB === 'Jupiter' && pointA === 'Saturn')) {
+      return {
+        meaning: 'Growth and restraint negotiate constantly.',
+        quality: isHard ? 'friction' : 'complexity',
+        whyItMatters: 'You feel both the urge to expand and the fear of overreaching. Success comes through timing—knowing when to push and when to consolidate.'
+      };
+    }
+    
+    // Sun-Pluto: identity transformation
+    if ((pointA === 'Sun' && pointB === 'Pluto') || (pointB === 'Sun' && pointA === 'Pluto')) {
+      return {
+        meaning: 'Identity undergoes repeated death and rebirth.',
+        quality: 'friction',
+        whyItMatters: 'You can\'t stay the same—life forces transformation whether you choose it or not. Power dynamics shape who you become.'
+      };
+    }
+    
+    // Venus-Pluto: intense relating
+    if ((pointA === 'Venus' && pointB === 'Pluto') || (pointB === 'Venus' && pointA === 'Pluto')) {
+      return {
+        meaning: 'Love and power intertwine; relationships transform you.',
+        quality: 'complexity',
+        whyItMatters: 'You don\'t do casual connection. Relationships involve depth, jealousy, transformation—and sometimes the fear of being consumed.'
+      };
+    }
+    
+    // Moon-Neptune: emotional porousness
     if ((pointA === 'Moon' && pointB === 'Neptune') || (pointB === 'Moon' && pointA === 'Neptune')) {
-      return { meaning: 'heightened emotional sensitivity and imagination', quality: 'complexity' };
+      return {
+        meaning: 'Emotional boundaries are fluid; empathy runs deep.',
+        quality: 'complexity',
+        whyItMatters: 'You absorb others\' feelings easily. Creativity and intuition are heightened, but so is confusion about what you actually feel versus what you\'re picking up.'
+      };
     }
     
-    // Saturn aspects
+    // Sun-Jupiter: natural confidence
+    if ((pointA === 'Sun' && pointB === 'Jupiter') || (pointB === 'Sun' && pointA === 'Jupiter')) {
+      return {
+        meaning: 'Identity expands through faith, optimism, and meaning.',
+        quality: 'ease',
+        whyItMatters: 'You believe in yourself and in possibility. This is a genuine gift—though it can sometimes mean overestimating what you can do.'
+      };
+    }
+    
+    // Moon-Mars: emotional fire
+    if ((pointA === 'Moon' && pointB === 'Mars') || (pointB === 'Moon' && pointA === 'Mars')) {
+      return {
+        meaning: isHard ? 'Feelings ignite quickly; emotional reactivity.' : 'Emotional honesty and direct feeling.',
+        quality: isHard ? 'friction' : 'ease',
+        whyItMatters: isHard
+          ? 'Your feelings want immediate expression. You can be reactive—anger and hurt move fast. Learning to pause before acting is ongoing work.'
+          : 'You know what you feel and you\'re not afraid to show it. Emotional directness is a strength.'
+      };
+    }
+    
+    // Saturn-Chiron: wound and structure
     if ((pointA === 'Saturn' && pointB === 'Chiron') || (pointB === 'Saturn' && pointA === 'Chiron')) {
-      return { meaning: 'wound and discipline intertwined', quality: 'complexity' };
+      return {
+        meaning: 'Wound and discipline intertwine; healing through structure.',
+        quality: 'complexity',
+        whyItMatters: 'Your sense of inadequacy may be real—but so is your capacity to build something lasting from that struggle. The wound becomes expertise.'
+      };
     }
     
-    // Neptune/Chiron
-    if ((pointA === 'Neptune' && pointB === 'Chiron') || (pointB === 'Neptune' && pointA === 'Chiron')) {
-      return { meaning: 'sensitivity and healing themes amplified', quality: 'complexity' };
+    // Chiron aspects to personal planets
+    if (pointA === 'Chiron' || pointB === 'Chiron') {
+      const other = pointA === 'Chiron' ? pointB : pointA;
+      return {
+        meaning: `${other} carries the wound—sensitized, potentially gifted.`,
+        quality: 'complexity',
+        whyItMatters: `Whatever ${other} represents is where you\'ve been hurt and where you\'ve developed unusual understanding. The sensitivity is both burden and gift.`
+      };
     }
     
-    // Pluto aspects
+    // Pluto aspects (general)
     if (pointA === 'Pluto' || pointB === 'Pluto') {
       const other = pointA === 'Pluto' ? pointB : pointA;
-      return { meaning: `${other} undergoes deep transformation`, quality: 'friction' };
+      return {
+        meaning: `${other} undergoes deep transformation; power themes present.`,
+        quality: 'friction',
+        whyItMatters: `${other} in your chart is intensified—more powerful but also more compulsive. Control issues may surface here.`
+      };
+    }
+    
+    // Neptune aspects (general)
+    if (pointA === 'Neptune' || pointB === 'Neptune') {
+      const other = pointA === 'Neptune' ? pointB : pointA;
+      return {
+        meaning: `${other} is idealized, spiritualized, or confused.`,
+        quality: 'complexity',
+        whyItMatters: `${other} in your chart dissolves into something less defined—potentially transcendent, potentially deceptive. Clarity takes work here.`
+      };
+    }
+    
+    // Uranus aspects (general)
+    if (pointA === 'Uranus' || pointB === 'Uranus') {
+      const other = pointA === 'Uranus' ? pointB : pointA;
+      return {
+        meaning: `${other} electrified—unconventional, restless, inventive.`,
+        quality: isHard ? 'friction' : 'ease',
+        whyItMatters: `${other} won\'t stay conventional. You need freedom and originality here, even when stability would be easier.`
+      };
     }
     
     // Default
-    return { meaning: `${pointA} and ${pointB} interact`, quality: type === 'trine' || type === 'sextile' ? 'ease' : type === 'square' || type === 'opposition' ? 'friction' : 'complexity' };
+    return {
+      meaning: `${pointA} and ${pointB} in ${type}—an active dynamic in your chart.`,
+      quality: isSoft ? 'ease' : isHard ? 'friction' : 'complexity',
+      whyItMatters: `These two chart factors interact meaningfully. How they express depends on houses and sign context.`
+    };
   };
   
-  // Weight aspects by importance
-  const importantPlanets = ['Sun', 'Moon', 'Saturn', 'Chiron', 'North Node', 'Jupiter', 'Pluto'];
+  // Weight aspects by importance - prioritize chart-defining aspects
+  const corePersonalPlanets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars'];
+  const developmentalPlanets = ['Saturn', 'Chiron', 'Pluto'];
+  const outerPlanets = ['Jupiter', 'Neptune', 'Uranus'];
   
   for (const asp of aspects) {
-    const isImportant = importantPlanets.includes(asp.point_a) || importantPlanets.includes(asp.point_b);
-    const isHardAspect = ['conjunction', 'opposition', 'square'].includes(asp.aspect_type);
+    // Skip very wide orbs
+    if (asp.orb > 8) continue;
     
-    if (isImportant || isHardAspect) {
-      const { meaning, quality } = getAspectMeaning(asp.point_a, asp.point_b, asp.aspect_type);
-      const symbol = asp.aspect_type === 'conjunction' ? '☌' : asp.aspect_type === 'opposition' ? '☍' : asp.aspect_type === 'square' ? '□' : asp.aspect_type === 'trine' ? '△' : asp.aspect_type === 'sextile' ? '⚹' : '•';
-      
-      let weight = isImportant ? 5 : 3;
-      if (isHardAspect) weight += 2;
-      if (asp.orb < 3) weight += 2; // Tight orb
-      
-      keyAspects.push({
-        aspect: `${asp.point_a} ${symbol} ${asp.point_b}`,
-        meaning,
-        quality,
-        weight
-      });
+    const isPersonalToPersonal = corePersonalPlanets.includes(asp.point_a) && corePersonalPlanets.includes(asp.point_b);
+    const isPersonalToDevelopmental = (corePersonalPlanets.includes(asp.point_a) && developmentalPlanets.includes(asp.point_b)) ||
+                                       (developmentalPlanets.includes(asp.point_a) && corePersonalPlanets.includes(asp.point_b));
+    const isHardAspect = ['conjunction', 'opposition', 'square'].includes(asp.aspect_type);
+    const isTightOrb = asp.orb < 3;
+    
+    // Only include significant aspects
+    if (!isPersonalToPersonal && !isPersonalToDevelopmental && !isTightOrb) continue;
+    
+    const { meaning, quality, whyItMatters } = getAspectInterpretation(asp.point_a, asp.point_b, asp.aspect_type);
+    const symbol = asp.aspect_type === 'conjunction' ? '☌' : asp.aspect_type === 'opposition' ? '☍' : asp.aspect_type === 'square' ? '□' : asp.aspect_type === 'trine' ? '△' : asp.aspect_type === 'sextile' ? '⚹' : '•';
+    
+    // Calculate weight
+    let weight = 0;
+    if (isPersonalToPersonal) weight += 10;
+    if (isPersonalToDevelopmental) weight += 8;
+    if (isHardAspect) weight += 5;
+    if (isTightOrb) weight += 6;
+    if (asp.orb < 1) weight += 3; // Very tight
+    if (asp.point_a === 'Sun' || asp.point_b === 'Sun') weight += 3;
+    if (asp.point_a === 'Moon' || asp.point_b === 'Moon') weight += 3;
+    if (asp.point_a === 'Saturn' || asp.point_b === 'Saturn') weight += 2;
+    if (asp.point_a === 'Chiron' || asp.point_b === 'Chiron') weight += 2;
+    
+    keyAspects.push({
+      aspect: `${asp.point_a} ${symbol} ${asp.point_b}`,
+      meaning,
+      quality,
+      whyItMatters,
+      pointA: asp.point_a,
+      pointB: asp.point_b,
+      aspectType: asp.aspect_type,
+      weight
+    });
+  }
+  
+  // Sort and return top 5 chart-defining aspects
+  return keyAspects
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, 5)
+    .map(({ aspect, meaning, quality, whyItMatters, pointA, pointB, aspectType }) => 
+      ({ aspect, meaning, quality, whyItMatters, pointA, pointB, aspectType }));
+};
+
+// ============================================
+// TODAY TAB EXPERIENTIAL CONTENT
+// ============================================
+
+// Generate "What This May Feel Like" based on transits
+const getWhatThisMayFeelLike = (transits: TransitHit[]): string[] => {
+  const feelings: string[] = [];
+  
+  for (const hit of transits.slice(0, 3)) {
+    const { transit_point, natal_point, aspect_type } = hit;
+    const isHard = ['square', 'opposition', 'conjunction'].includes(aspect_type);
+    
+    // Saturn transits
+    if (transit_point === 'Saturn') {
+      if (natal_point === 'Sun') feelings.push('pressure to prove yourself, fatigue around identity');
+      else if (natal_point === 'Moon') feelings.push('emotional heaviness, isolation, memories surfacing');
+      else if (natal_point === 'Mars') feelings.push('frustration, blocked action, anger without outlet');
+      else if (natal_point === 'Venus') feelings.push('loneliness in love, doubting your worth');
+      else if (natal_point === 'Jupiter') feelings.push('optimism meeting reality—growth that requires effort');
+      else feelings.push('weight, slowness, things taking longer than they should');
+    }
+    
+    // Jupiter transits
+    if (transit_point === 'Jupiter') {
+      if (natal_point === 'Saturn') feelings.push('opportunity pressing against your limits');
+      else if (natal_point === 'Sun') feelings.push('confidence expanding, restlessness for more');
+      else if (natal_point === 'Moon') feelings.push('emotional generosity, wanting to give more');
+      else feelings.push('restlessness, desire for expansion, impatience with the small');
+    }
+    
+    // Pluto transits
+    if (transit_point === 'Pluto') {
+      if (natal_point === 'Sun') feelings.push('old identity dying, not knowing who you\'re becoming');
+      else if (natal_point === 'Moon') feelings.push('emotional intensity surfacing from nowhere');
+      else if (natal_point === 'Mars') feelings.push('rage, power struggles, confrontation with what you can\'t control');
+      else feelings.push('intensity, compulsion, things you can\'t look away from');
+    }
+    
+    // Uranus transits
+    if (transit_point === 'Uranus') {
+      if (natal_point === 'Sun') feelings.push('restlessness, need for change, identity disruption');
+      else if (natal_point === 'Moon') feelings.push('emotional unpredictability, craving freedom');
+      else if (natal_point === 'Venus') feelings.push('boredom in relationships, attraction to the unconventional');
+      else feelings.push('electric restlessness, sudden changes of mind');
+    }
+    
+    // Neptune transits
+    if (transit_point === 'Neptune') {
+      if (natal_point === 'Sun') feelings.push('confusion about who you are, dissolving certainty');
+      else if (natal_point === 'Moon') feelings.push('heightened sensitivity, absorbing others\' feelings');
+      else feelings.push('fogginess, idealization, difficulty with boundaries');
+    }
+    
+    // Mars transits
+    if (transit_point === 'Mars') {
+      if (isHard) feelings.push('irritability, impatience, urge to act');
+      else feelings.push('energy available, motivation to move');
     }
   }
   
-  // Sort and return top 5
-  return keyAspects.sort((a, b) => b.weight - a.weight).slice(0, 5).map(({ aspect, meaning, quality }) => ({ aspect, meaning, quality }));
+  // Dedupe and limit
+  return [...new Set(feelings)].slice(0, 4);
+};
+
+// Generate "The Mistake to Watch" based on transits
+const getMistakeToWatch = (transits: TransitHit[]): string[] => {
+  const mistakes: string[] = [];
+  
+  for (const hit of transits.slice(0, 3)) {
+    const { transit_point, natal_point, aspect_type } = hit;
+    const isHard = ['square', 'opposition'].includes(aspect_type);
+    
+    // Saturn transits
+    if (transit_point === 'Saturn') {
+      if (natal_point === 'Sun') mistakes.push('defining yourself by your failures');
+      else if (natal_point === 'Moon') mistakes.push('suppressing feelings because they\'re inconvenient');
+      else if (natal_point === 'Mars') mistakes.push('giving up when action is blocked, or forcing through recklessly');
+      else if (natal_point === 'Jupiter') mistakes.push('mistaking pessimism for realism');
+      else mistakes.push('treating difficulty as permanent, letting fear make decisions');
+    }
+    
+    // Jupiter transits
+    if (transit_point === 'Jupiter') {
+      if (natal_point === 'Saturn') mistakes.push('overcommitting before structure is ready');
+      if (isHard) mistakes.push('overconfidence, promising what you can\'t deliver');
+      else mistakes.push('expanding without grounding, ignoring limits');
+    }
+    
+    // Pluto transits
+    if (transit_point === 'Pluto') {
+      mistakes.push('trying to control what needs to transform');
+      if (natal_point === 'Mars') mistakes.push('acting from rage instead of power');
+      if (natal_point === 'Sun') mistakes.push('clinging to an identity that\'s already gone');
+    }
+    
+    // Uranus transits
+    if (transit_point === 'Uranus') {
+      mistakes.push('changing everything at once, burning bridges you\'ll need');
+      if (natal_point === 'Venus') mistakes.push('abandoning good relationships for excitement');
+      if (natal_point === 'Sun') mistakes.push('confusing rebellion with authenticity');
+    }
+    
+    // Neptune transits
+    if (transit_point === 'Neptune') {
+      mistakes.push('making major decisions while confused');
+      if (natal_point === 'Sun') mistakes.push('losing yourself in others\' agendas');
+      if (natal_point === 'Moon') mistakes.push('mistaking someone else\'s feelings for your own');
+    }
+    
+    // Mars transits
+    if (transit_point === 'Mars' && isHard) {
+      mistakes.push('acting before timing is ready');
+      mistakes.push('treating activation as clarity');
+    }
+  }
+  
+  // Dedupe and limit
+  return [...new Set(mistakes)].slice(0, 3);
+};
+
+// ============================================
+// PSYCHOLOGICALLY PRECISE CARD GENERATORS
+// ============================================
+
+// Jupiter card - sign + house specific
+const getJupiterCard = (placements: CorePlacements): AstrologyDeepDiveCard => {
+  const jupiter = placements.jupiter || 'Unknown';
+  const jupiter_house = placements.jupiter_house || 1;
+  const jupiterQualities = SIGN_QUALITIES[jupiter] || ['expansive'];
+  const jupiterElement = SIGN_ELEMENTS[jupiter] || 'Unknown';
+  
+  // Sign-specific Jupiter expressions
+  const jupiterSignExpression: { [key: string]: { believes: string; overdoes: string; finds_meaning: string } } = {
+    'Aries': { believes: 'in action, in starting, in the self as capable of anything', overdoes: 'impulsiveness disguised as confidence', finds_meaning: 'through initiative and competition' },
+    'Taurus': { believes: 'in what can be built, touched, accumulated', overdoes: 'acquisition, comfort-seeking, resistance to change', finds_meaning: 'through material stability and sensory pleasure' },
+    'Gemini': { believes: 'in information, connections, the next interesting thing', overdoes: 'scattered attention, promising more than you can track', finds_meaning: 'through ideas, conversations, and variety' },
+    'Cancer': { believes: 'in family, belonging, emotional safety', overdoes: 'over-nurturing, clinging to the familiar', finds_meaning: 'through home, heritage, and caretaking' },
+    'Leo': { believes: 'in self-expression, recognition, creative confidence', overdoes: 'drama, attention-seeking, over-promising visibility', finds_meaning: 'through creation, performance, and being seen' },
+    'Virgo': { believes: 'in improvement, service, getting it right', overdoes: 'perfectionism, over-analysis, finding more to fix', finds_meaning: 'through usefulness and practical contribution' },
+    'Libra': { believes: 'in partnership, fairness, aesthetic harmony', overdoes: 'people-pleasing, over-committing to relationship', finds_meaning: 'through connection, beauty, and balance' },
+    'Scorpio': { believes: 'in depth, transformation, what\'s hidden', overdoes: 'intensity, obsession, assuming everything has a shadow', finds_meaning: 'through crisis, intimacy, and regeneration' },
+    'Sagittarius': { believes: 'in possibility, freedom, the bigger picture', overdoes: 'overreach, preaching, restlessness with details', finds_meaning: 'through adventure, philosophy, and expansion' },
+    'Capricorn': { believes: 'in structure, achievement, earning your place', overdoes: 'ambition without joy, confusing success with meaning', finds_meaning: 'through mastery, status, and lasting contribution' },
+    'Aquarius': { believes: 'in ideas, progress, what could be different', overdoes: 'detachment as ideology, contrarianism, intellectual arrogance', finds_meaning: 'through innovation, community, and being ahead' },
+    'Pisces': { believes: 'in transcendence, compassion, interconnection', overdoes: 'escapism, over-idealization, believing without discernment', finds_meaning: 'through spirituality, imagination, and dissolution of ego' }
+  };
+  
+  // House-specific manifestations
+  const houseManifestations: { [key: number]: { where_grows: string; where_overdoes: string } } = {
+    1: { where_grows: 'in how you present yourself—big presence, natural confidence', where_overdoes: 'self-promotion, overestimating your impact' },
+    2: { where_grows: 'in resources and values—money can come easily, or go easily', where_overdoes: 'overspending, over-acquiring, confusing abundance with security' },
+    3: { where_grows: 'in communication and learning—ideas come fast, connections multiply', where_overdoes: 'scattered thinking, promising more than you can deliver in words' },
+    4: { where_grows: 'in home and roots—generous family environment, or wanting more space than you have', where_overdoes: 'domestic over-extension, idealizing family' },
+    5: { where_grows: 'in creativity and pleasure—creative abundance, romantic optimism', where_overdoes: 'hedonism, gambling, over-investing in being special' },
+    6: { where_grows: 'in work and health—can do too much, generous in service', where_overdoes: 'overwork, taking on others\' tasks, health neglect through excess' },
+    7: { where_grows: 'in partnership—attracting growth through relationship, believing in others', where_overdoes: 'over-promising in commitment, projecting potential onto partners' },
+    8: { where_grows: 'in shared resources and intimacy—benefits from others, depth in merging', where_overdoes: 'expecting transformation without effort, over-relying on what others provide' },
+    9: { where_grows: 'in beliefs and travel—natural philosopher, drawn to expansion', where_overdoes: 'proselytizing, assuming your worldview is universal' },
+    10: { where_grows: 'in career and reputation—public success, visible abundance', where_overdoes: 'over-identifying with achievement, spreading too thin professionally' },
+    11: { where_grows: 'in community and future vision—many friends, big plans', where_overdoes: 'over-extending socially, confusing acquaintance with friendship' },
+    12: { where_grows: 'in solitude and spirituality—faith in the invisible, protected in crisis', where_overdoes: 'avoidance through spirituality, inflated private beliefs' }
+  };
+  
+  const signData = jupiterSignExpression[jupiter] || { believes: 'in growth', overdoes: 'expansion', finds_meaning: 'through experience' };
+  const houseData = houseManifestations[jupiter_house] || { where_grows: 'across various life areas', where_overdoes: 'in general over-extension' };
+  
+  return {
+    id: 'jupiter',
+    title: 'Jupiter — Growth & Faith',
+    subtitle: `${jupiter} in House ${jupiter_house}`,
+    preview: `Believes ${signData.believes}. Growth shows up ${houseData.where_grows}.`,
+    whatThisIs: `Jupiter in ${jupiter} (House ${jupiter_house}) marks where you say yes to life—where optimism lives, where you believe more is possible. ${signData.believes.charAt(0).toUpperCase() + signData.believes.slice(1)}—this is what feels true to you, what generates hope. But Jupiter also inflates. What you believe in, you can over-believe in.`,
+    whatYouMightNotice: [
+      `Expansion ${houseData.where_grows}`,
+      `A tendency toward ${signData.overdoes}`,
+      `Finding meaning ${signData.finds_meaning}`,
+      `This area of life where things "work out"—sometimes too easily`
+    ],
+    tensionLabel: 'Where excess happens',
+    tension: `Jupiter doesn't know when to stop. In House ${jupiter_house}, you may ${houseData.where_overdoes}. The optimism that opens doors can also prevent you from seeing limits. When things haven't worked, you may have believed yourself out of necessary reality-checks.`,
+    giftLabel: 'Where faith lives',
+    gift: `Even when life contracts elsewhere, this part of your chart remembers that more is possible. You regenerate through ${signData.finds_meaning}. Your genuine gift here isn't just luck—it's the capacity to believe when evidence is thin.`,
+    reflection: `Where do you most naturally say yes? Where has that yes led to over-extension? What would it look like to trust without inflating?`
+  };
+};
+
+// Saturn card - sign + house specific with psychological depth
+const getSaturnCard = (placements: CorePlacements): AstrologyDeepDiveCard => {
+  const saturn = placements.saturn || 'Unknown';
+  const saturn_house = placements.saturn_house || 1;
+  const saturnElement = SIGN_ELEMENTS[saturn] || 'Unknown';
+  
+  // Sign-specific Saturn expressions - what maturity asks for
+  const saturnSignExpression: { [key: string]: { maturity_through: string; fear: string; eventual_authority: string } } = {
+    'Aries': { maturity_through: 'learning to act with patience, to lead without dominating', fear: 'being first, being exposed, being alone in action', eventual_authority: 'disciplined initiative, earned confidence' },
+    'Taurus': { maturity_through: 'building slowly, earning stability, valuing correctly', fear: 'scarcity, instability, losing what you have', eventual_authority: 'material wisdom, reliable presence' },
+    'Gemini': { maturity_through: 'thinking precisely, communicating with weight', fear: 'being misunderstood, being seen as superficial', eventual_authority: 'intellectual rigor, trusted voice' },
+    'Cancer': { maturity_through: 'emotional containment, healthy boundaries in care', fear: 'abandonment, emotional exposure, not belonging', eventual_authority: 'mature nurturing, emotional stability' },
+    'Leo': { maturity_through: 'earning recognition, expressing with discipline', fear: 'being unseen, insignificant, or unspecial', eventual_authority: 'creative mastery, quiet confidence' },
+    'Virgo': { maturity_through: 'precision without perfectionism, service without self-erasure', fear: 'being flawed, being useless, getting it wrong', eventual_authority: 'true competence, practical wisdom' },
+    'Libra': { maturity_through: 'relationship with structure, commitment without losing self', fear: 'being alone, being rejected, being unfair', eventual_authority: 'relational wisdom, diplomatic skill' },
+    'Scorpio': { maturity_through: 'control that doesn\'t destroy, depth without drowning', fear: 'betrayal, loss of power, being seen through', eventual_authority: 'psychological insight, regenerative capacity' },
+    'Sagittarius': { maturity_through: 'grounding belief in practice, freedom with responsibility', fear: 'being trapped, being wrong about meaning', eventual_authority: 'lived wisdom, credible philosophy' },
+    'Capricorn': { maturity_through: 'ambition with integrity, authority earned not assumed', fear: 'failure, public shame, being seen as unsuccessful', eventual_authority: 'genuine achievement, respected leadership' },
+    'Aquarius': { maturity_through: 'individuality that contributes, ideas that build', fear: 'being ordinary, being controlled, selling out', eventual_authority: 'innovative structure, respected originality' },
+    'Pisces': { maturity_through: 'boundaries around sensitivity, groundedness in imagination', fear: 'being overwhelmed, losing yourself, reality being too harsh', eventual_authority: 'compassionate realism, structured intuition' }
+  };
+  
+  // House-specific Saturn work
+  const saturnHouseWork: { [key: number]: { assignment: string; inner_critic: string; mastery: string } } = {
+    1: { assignment: 'who you are—identity itself is the project', inner_critic: 'attacks your right to exist as you are', mastery: 'earned self-definition, presence that doesn\'t need approval' },
+    2: { assignment: 'resources, security, self-worth', inner_critic: 'says you don\'t have enough, aren\'t worth enough', mastery: 'genuine security, value that you\'ve built' },
+    3: { assignment: 'thinking, speaking, learning', inner_critic: 'doubts your intelligence, your voice, your ideas', mastery: 'intellectual authority, communication that lands' },
+    4: { assignment: 'home, roots, emotional foundation', inner_critic: 'says you don\'t belong, weren\'t nurtured right', mastery: 'creating the home you didn\'t have, emotional groundedness' },
+    5: { assignment: 'creativity, pleasure, self-expression', inner_critic: 'says your creations aren\'t good enough, joy is frivolous', mastery: 'disciplined creativity, earned joy' },
+    6: { assignment: 'work, health, daily function', inner_critic: 'says you\'re not productive enough, not healthy enough', mastery: 'real competence, sustainable routines' },
+    7: { assignment: 'partnership, commitment, relating', inner_critic: 'doubts your lovability, fears commitment', mastery: 'mature relationship, earned partnership' },
+    8: { assignment: 'intimacy, shared power, transformation', inner_critic: 'fears vulnerability, loss of control, being consumed', mastery: 'earned trust, mastered intensity' },
+    9: { assignment: 'belief, meaning, philosophy', inner_critic: 'questions your right to teach, your worldview', mastery: 'lived philosophy, credible vision' },
+    10: { assignment: 'career, public role, authority', inner_critic: 'says you haven\'t earned your place, will be exposed', mastery: 'genuine authority, earned reputation' },
+    11: { assignment: 'community, friendship, future vision', inner_critic: 'says you don\'t fit, your hopes are unrealistic', mastery: 'meaningful contribution, sustained community' },
+    12: { assignment: 'solitude, spirituality, what\'s hidden', inner_critic: 'haunts with unnamed fears, old failures', mastery: 'integrated shadow, conscious solitude' }
+  };
+  
+  const signData = saturnSignExpression[saturn] || { maturity_through: 'discipline', fear: 'inadequacy', eventual_authority: 'mastery' };
+  const houseData = saturnHouseWork[saturn_house] || { assignment: 'life challenges', inner_critic: 'attacks you', mastery: 'earned wisdom' };
+  
+  return {
+    id: 'saturn',
+    title: 'Saturn — Pressure & Maturation',
+    subtitle: `${saturn} in House ${saturn_house}`,
+    preview: `Pressure concentrates in ${houseData.assignment}. The assignment is ${signData.maturity_through}.`,
+    whatThisIs: `Saturn in ${saturn} (House ${saturn_house}) is your assignment—where life won't let you coast. The pressure is real: ${houseData.assignment} is where you face the most friction, the most delay, the most need to get serious. But what Saturn touches, you eventually master. The question isn't whether you'll struggle here—you will. The question is whether you'll let the struggle teach you.`,
+    whatYouMightNotice: [
+      `Recurring challenges around ${houseData.assignment}—things that don't come easy`,
+      `A fear underneath: ${signData.fear}`,
+      `Your inner critic ${houseData.inner_critic}`,
+      `Over time: ${houseData.mastery}`
+    ],
+    tensionLabel: 'Where fear lives',
+    tension: `Saturn points to where you feel inadequate, behind, or never-quite-good-enough. The fear is ${signData.fear}. You may avoid this area, over-control it, or work obsessively without ever feeling you've done enough. The pressure doesn't disappear—but your relationship to it can mature.`,
+    giftLabel: 'What mastery looks like',
+    gift: `What you've struggled with, you understand from the inside. ${houseData.mastery}. This isn't easy success or natural talent—it's competence that you've earned through persistence. Over time, you become the person others trust in this domain precisely because you've done the work.`,
+    reflection: `Where do you feel like you're still catching up? What would it mean to be "good enough" in this area—not perfect, just sufficient?`
+  };
+};
+
+// Nodes card - concrete developmental framing
+const getNodesCard = (placements: CorePlacements): AstrologyDeepDiveCard => {
+  const north_node = placements.north_node || 'Unknown';
+  const south_node = placements.south_node || 'Unknown';
+  const north_node_house = placements.north_node_house;
+  const south_node_house = placements.south_node_house;
+  
+  // Sign-specific nodal axis - concrete behavioral descriptions
+  const nodalExpressions: { [key: string]: { south_familiar: string; south_trap: string; north_asks: string; growth_feels_like: string } } = {
+    // South Node first
+    'Virgo_Pisces': {
+      south_familiar: 'Fixing, analyzing, finding the flaw, earning your place through usefulness. You know how to be helpful, how to improve things, how to serve.',
+      south_trap: 'Over-editing yourself before you start. Waiting until you have certainty before you move. Letting perfectionism become paralysis. Serving others to avoid your own unknowing.',
+      north_asks: 'Trust without proof. Allowing not-knowing. Letting things be imperfect and finding that acceptable. Faith that you belong even when you haven\'t earned it.',
+      growth_feels_like: 'Anxiety—like you\'re being irresponsible. The absence of your usual control mechanisms. Floating instead of fixing.'
+    },
+    'Pisces_Virgo': {
+      south_familiar: 'Going with the flow, merging, dissolving into whatever\'s happening. You know how to adapt, to let go, to transcend.',
+      south_trap: 'Avoiding practicality because it feels harsh. Escaping into vagueness when reality requires specificity. Compassion without discernment.',
+      north_asks: 'Practical embodiment. Getting specific. Showing up in the details instead of floating above them. Useful contribution, not just being.',
+      growth_feels_like: 'Constraining—like the poetry is getting edited out. Boring. But also more real, more grounded, more capable.'
+    },
+    'Aries_Libra': {
+      south_familiar: 'Acting, initiating, going first, being independent. You know how to start things, how to compete, how to survive alone.',
+      south_trap: 'Fighting battles that don\'t need fighting. Independence that becomes isolation. Always going first even when partnership would be wiser.',
+      north_asks: 'Learning to include others. Compromise as strength. Letting relationship shape you. Fairness over victory.',
+      growth_feels_like: 'Weak at first—like you\'re giving up your edge. Dependent. But eventually: supported, collaborative, less alone.'
+    },
+    'Libra_Aries': {
+      south_familiar: 'Partnering, harmonizing, considering others, keeping the peace. You know how to relate, how to balance, how to not rock the boat.',
+      south_trap: 'Waiting for permission. Over-compromising until you disappear. Avoiding conflict even when confrontation is exactly what\'s needed.',
+      north_asks: 'Acting without consensus. Going first even when others aren\'t ready. Risking disapproval. Trusting your own initiative.',
+      growth_feels_like: 'Selfish, rude, disconnected from relationship. But eventually: authentic, honest, actually present instead of performing.'
+    },
+    'Taurus_Scorpio': {
+      south_familiar: 'Stability, comfort, accumulation, staying with what you have. You know how to build, how to enjoy, how to make things last.',
+      south_trap: 'Holding on when it\'s time to release. Comfort that becomes stagnation. Avoiding the intensity that would actually transform you.',
+      north_asks: 'Letting go. Transformation through crisis. Sharing power, sharing resources. Depth over security.',
+      growth_feels_like: 'Destabilizing, scary, like the ground is moving. But eventually: renewed, transformed, alive in a way stability doesn\'t allow.'
+    },
+    'Scorpio_Taurus': {
+      south_familiar: 'Intensity, depth, control, seeing what\'s hidden. You know how to navigate crisis, how to hold power, how to survive transformation.',
+      south_trap: 'Creating crisis where there doesn\'t need to be one. Suspicion that prevents trust. Depth that becomes obsession.',
+      north_asks: 'Simplicity. Enjoying the surface. Letting things be what they are instead of probing beneath. Comfort without guilt.',
+      growth_feels_like: 'Shallow, naive, vulnerable to what you can\'t control. But eventually: peaceful, grounded, actually able to enjoy.'
+    },
+    'Gemini_Sagittarius': {
+      south_familiar: 'Gathering information, making connections, staying curious, keeping options open. You know how to learn, how to adapt, how to converse.',
+      south_trap: 'Scattered attention that never settles. Facts without meaning. Curiosity that avoids commitment to a perspective.',
+      north_asks: 'Taking a position. Having a philosophy. Speaking with conviction. Meaning over information.',
+      growth_feels_like: 'Presumptuous—like you\'re claiming more than you know. But eventually: purposeful, directed, actually going somewhere.'
+    },
+    'Sagittarius_Gemini': {
+      south_familiar: 'Big picture thinking, meaning-making, following belief. You know how to philosophize, how to teach, how to see the horizon.',
+      south_trap: 'Preaching without listening. Assuming your truth is universal. Avoiding details because they complicate the vision.',
+      north_asks: 'Listening. Asking questions. Staying curious instead of concluding. Letting others\' perspectives actually change you.',
+      growth_feels_like: 'Relativistic, groundless, like you\'ve lost your compass. But eventually: flexible, connected, actually in dialogue.'
+    },
+    'Cancer_Capricorn': {
+      south_familiar: 'Nurturing, protecting, staying home, emotional attunement. You know how to care, how to belong, how to create safety.',
+      south_trap: 'Hiding in family, using emotion to avoid achievement. Needing to be needed. Fear of the public world.',
+      north_asks: 'Building in the world. Career as meaningful. Structure that holds beyond family. Achievement without abandoning care.',
+      growth_feels_like: 'Cold, exposing, like leaving something precious unprotected. But eventually: accomplished, respected, mature.'
+    },
+    'Capricorn_Cancer': {
+      south_familiar: 'Achieving, building, being responsible, public competence. You know how to work, how to succeed, how to hold authority.',
+      south_trap: 'Work as avoidance. Achievement without connection. Responsibility that starves emotional life.',
+      north_asks: 'Vulnerability. Home. Letting yourself need. Emotion as valid as accomplishment.',
+      growth_feels_like: 'Soft, unproductive, like you\'re losing your edge. But eventually: supported, nurtured, actually at home somewhere.'
+    },
+    'Leo_Aquarius': {
+      south_familiar: 'Self-expression, creativity, being special, personal significance. You know how to shine, how to create, how to be seen.',
+      south_trap: 'Drama that demands attention. Creativity for approval. Specialness that isolates.',
+      north_asks: 'Contributing to the group. Ideas over identity. Being part of something larger than your personal story.',
+      growth_feels_like: 'Anonymous, unspecial, like you\'re disappearing into the crowd. But eventually: connected, useful, part of a vision.'
+    },
+    'Aquarius_Leo': {
+      south_familiar: 'Group identity, ideas, innovation, being different. You know how to think originally, how to belong to a vision, how to stay detached.',
+      south_trap: 'Hiding in ideas. Detachment as defense. Being contrarian instead of genuinely creative.',
+      north_asks: 'Personal expression. Heart over intellect. Creating from your own center, not from ideology.',
+      growth_feels_like: 'Exposed, embarrassing, like your individual self is too much or too little. But eventually: authentic, warm, genuinely creative.'
+    }
+  };
+  
+  // Get axis key
+  const axisKey = `${south_node}_${north_node}`;
+  const nodalData = nodalExpressions[axisKey] || {
+    south_familiar: `${south_node} competence—what you already know how to do.`,
+    south_trap: `Over-relying on ${south_node} patterns when they no longer serve growth.`,
+    north_asks: `Moving toward ${north_node} unfamiliarity—less practiced, more growth.`,
+    growth_feels_like: `Awkward, uncertain, but somehow right.`
+  };
+  
+  return {
+    id: 'nodes',
+    title: 'Nodes — Direction & Pattern',
+    subtitle: `☋ ${south_node}${south_node_house ? ` H${south_node_house}` : ''} → ☊ ${north_node}${north_node_house ? ` H${north_node_house}` : ''}`,
+    preview: `${nodalData.south_familiar.split('.')[0]}. Growth asks: ${nodalData.north_asks.split('.')[0]}.`,
+    whatThisIs: `The nodal axis is your developmental storyline—not what you're good at, but where you're headed. South Node in ${south_node} is your default: ${nodalData.south_familiar} But this competence has diminishing returns. North Node in ${north_node} is where life keeps pulling you—uncomfortable, less practiced, but where actual evolution happens.`,
+    whatYouMightNotice: [
+      `WHAT FEELS FAMILIAR: ${nodalData.south_familiar.split('.')[0]}`,
+      `THE COMFORT TRAP: ${nodalData.south_trap}`,
+      `WHERE LIFE PULLS YOU: ${nodalData.north_asks}`,
+      `WHAT GROWTH FEELS LIKE: ${nodalData.growth_feels_like}`
+    ],
+    tensionLabel: 'The comfort trap',
+    tension: nodalData.south_trap,
+    giftLabel: 'What growth actually asks',
+    gift: `The North Node isn't asking you to abandon your South Node gifts—it's asking you to use them in service of something new. ${nodalData.north_asks} This isn't about becoming someone else. It's about becoming more fully yourself by including what you've avoided.`,
+    reflection: `What familiar pattern do you reach for when stressed? What would it actually feel like to move toward ${north_node} instead?`
+  };
+};
+
+// Chiron card - precise wound/medicine framing
+const getChironCard = (placements: CorePlacements): AstrologyDeepDiveCard => {
+  const chiron = placements.chiron || 'Unknown';
+  const chiron_house = placements.chiron_house || 1;
+  
+  // Sign-specific Chiron wounds - precise psychological descriptions
+  const chironSignWounds: { [key: string]: { where_touched: string; learned_early: string; becomes_guidance: string; runs_system: string } } = {
+    'Aries': {
+      where_touched: 'Your right to exist, to act, to take up space. Something made self-assertion feel dangerous or wrong.',
+      learned_early: 'To hesitate before moving, to question your own impulses, to doubt whether you\'re allowed to want what you want.',
+      becomes_guidance: 'You understand what it costs to be unable to act. You can help others claim their own initiative because you know the fear of claiming yours.',
+      runs_system: 'When you start second-guessing every impulse, needing permission for everything, or compensating with reckless action.'
+    },
+    'Taurus': {
+      where_touched: 'Your worth, your body, your right to have and to enjoy. Something disrupted basic security or self-value.',
+      learned_early: 'That stability isn\'t guaranteed, that worth needs to be proven, that pleasure might be taken away.',
+      becomes_guidance: 'You understand embodiment struggles from the inside. You can help others reclaim their right to comfort because you know what it is to doubt your own.',
+      runs_system: 'When you hoard, grasp, or can never enjoy what you have because more is never enough.'
+    },
+    'Gemini': {
+      where_touched: 'Your mind, your voice, your intelligence. Something made thinking or speaking feel inadequate.',
+      learned_early: 'To doubt your own thoughts, to filter everything before speaking, to assume you\'re not understanding correctly.',
+      becomes_guidance: 'You understand communication struggles—being misheard, feeling stupid, thinking differently. You can help others find their voice because you know the fear of losing yours.',
+      runs_system: 'When you talk too much to compensate, go silent to avoid exposure, or can never trust your own thinking.'
+    },
+    'Cancer': {
+      where_touched: 'Your right to belong, to be nurtured, to have emotional needs. Something disrupted early care or family safety.',
+      learned_early: 'That home might not be safe, that needs might overwhelm others, that belonging has to be earned.',
+      becomes_guidance: 'You understand what it costs to feel homeless, emotionally orphaned. You can nurture others because you know what it is to have needed nurturing you didn\'t get.',
+      runs_system: 'When you mother everyone except yourself, when you can\'t receive care, when belonging feels impossible.'
+    },
+    'Leo': {
+      where_touched: 'Your right to be seen, to be special, to matter. Something shamed your self-expression or need for recognition.',
+      learned_early: 'That standing out is dangerous, that wanting attention is shameful, that your shine threatens others.',
+      becomes_guidance: 'You understand what it costs to dim yourself. You can help others reclaim their creative presence because you know the fear of being too much.',
+      runs_system: 'When you either hide completely or demand constant attention, when you can\'t just be seen without drama.'
+    },
+    'Virgo': {
+      where_touched: 'Your competence, your usefulness, your ability to get it right. Something made you feel fundamentally flawed.',
+      learned_early: 'That you need to fix yourself before you\'re acceptable, that there\'s always more wrong, that perfection is the price of belonging.',
+      becomes_guidance: 'You understand the tyranny of perfectionism from the inside. You can help others accept their imperfections because you know what it is to never feel good enough.',
+      runs_system: 'When you criticize everything including yourself, when improvement becomes compulsion, when nothing is ever finished.'
+    },
+    'Libra': {
+      where_touched: 'Your right to relationship, to fairness, to be loved as you are. Something disrupted partnership or made love conditional.',
+      learned_early: 'That you need to perform harmony to be wanted, that your needs upset balance, that love requires constant adjustment.',
+      becomes_guidance: 'You understand relationship wounds—rejection, imbalance, being left. You can help others with partnership because you know what it is to doubt your lovability.',
+      runs_system: 'When you can\'t be alone but also can\'t fully commit, when you shape-shift to keep the peace, when fairness becomes obsession.'
+    },
+    'Scorpio': {
+      where_touched: 'Your right to power, to depth, to be vulnerable. Something involved betrayal, trauma, or loss of control.',
+      learned_early: 'That intimacy is dangerous, that power can be used against you, that what you love can be destroyed.',
+      becomes_guidance: 'You understand crisis and transformation from the inside. You can guide others through their darkness because you\'ve survived yours.',
+      runs_system: 'When you trust no one, when you use power preemptively, when you can\'t let anyone fully in.'
+    },
+    'Sagittarius': {
+      where_touched: 'Your right to meaning, to truth, to believe. Something collapsed faith or made hope feel naive.',
+      learned_early: 'That truth might be a lie, that belief leads to disappointment, that horizons might be illusions.',
+      becomes_guidance: 'You understand the crisis of meaning from the inside. You can help others rebuild faith because you know what it is to lose yours.',
+      runs_system: 'When you either preach compulsively or can\'t believe in anything, when cynicism masquerades as wisdom.'
+    },
+    'Capricorn': {
+      where_touched: 'Your right to achieve, to be respected, to have authority. Something shamed ambition or made success feel dangerous.',
+      learned_early: 'That achievement doesn\'t protect you, that respect isn\'t reliable, that you can do everything right and still fail.',
+      becomes_guidance: 'You understand the burden of ambition from the inside. You can help others with their relationship to success because you know its cost.',
+      runs_system: 'When you work obsessively but never feel accomplished, when you sabotage success before it can be taken, when authority terrifies you.'
+    },
+    'Aquarius': {
+      where_touched: 'Your right to be different, to think independently, to belong while being yourself. Something made individuality feel isolating.',
+      learned_early: 'That different means alone, that original thinking separates you, that fitting in requires suppressing what makes you you.',
+      becomes_guidance: 'You understand outsider experience from the inside. You can help others claim their uniqueness because you know the cost of suppressing yours.',
+      runs_system: 'When you either conform completely or reject belonging entirely, when difference becomes identity rather than quality.'
+    },
+    'Pisces': {
+      where_touched: 'Your right to sensitivity, to imagination, to transcendence. Something overwhelmed your boundaries or made softness feel weak.',
+      learned_early: 'That feeling too much is a liability, that imagination isn\'t real, that sensitivity has to be hidden.',
+      becomes_guidance: 'You understand overwhelm and dissociation from the inside. You can help others with their sensitivity because you know what it costs to be porous.',
+      runs_system: 'When you escape instead of engage, when boundaries dissolve completely, when you lose yourself in others or substances.'
+    }
+  };
+  
+  // House-specific Chiron manifestations
+  const chironHouseManifestations: { [key: number]: { life_area: string; triggers: string } } = {
+    1: { life_area: 'identity and self-presentation', triggers: 'being seen, first impressions, asserting who you are' },
+    2: { life_area: 'self-worth and resources', triggers: 'money, possessions, valuing yourself' },
+    3: { life_area: 'communication and thinking', triggers: 'expressing ideas, being understood, intellectual confidence' },
+    4: { life_area: 'home and emotional foundation', triggers: 'family, belonging, emotional security' },
+    5: { life_area: 'creativity and self-expression', triggers: 'creating, performing, being spontaneous' },
+    6: { life_area: 'work and health', triggers: 'daily competence, usefulness, physical wellbeing' },
+    7: { life_area: 'partnership and relating', triggers: 'commitment, being chosen, intimate relationship' },
+    8: { life_area: 'intimacy and shared power', triggers: 'vulnerability, merging, trusting deeply' },
+    9: { life_area: 'belief and meaning', triggers: 'faith, teaching, having conviction' },
+    10: { life_area: 'career and public role', triggers: 'authority, achievement, being respected' },
+    11: { life_area: 'community and future vision', triggers: 'belonging to groups, friendship, hopes' },
+    12: { life_area: 'spirituality and the unconscious', triggers: 'isolation, surrender, facing what\'s hidden' }
+  };
+  
+  const signData = chironSignWounds[chiron] || { 
+    where_touched: 'a core area of sensitivity', 
+    learned_early: 'to protect this vulnerable place', 
+    becomes_guidance: 'understanding others\' similar wounds', 
+    runs_system: 'when the wound takes over' 
+  };
+  const houseData = chironHouseManifestations[chiron_house] || { 
+    life_area: 'certain life areas', 
+    triggers: 'specific situations' 
+  };
+  
+  return {
+    id: 'chiron',
+    title: 'Chiron — Wound & Medicine',
+    subtitle: `${chiron} in House ${chiron_house}`,
+    preview: `${signData.where_touched.split('.')[0]}. This wound concentrates in ${houseData.life_area}.`,
+    whatThisIs: `Chiron in ${chiron} (House ${chiron_house}) marks where you carry a wound that doesn't fully close. This isn't failure—it's specificity. ${signData.where_touched} Because you've been sensitized in ${houseData.life_area}, you notice things others miss. The wound became intelligence.`,
+    whatYouMightNotice: [
+      `WHERE YOU GET TOUCHED: ${houseData.triggers} affect you more than they "should"`,
+      `WHAT THIS MADE YOU LEARN EARLY: ${signData.learned_early}`,
+      `HOW THIS BECOMES GUIDANCE: ${signData.becomes_guidance}`,
+      `WHEN THE WOUND RUNS THE SYSTEM: ${signData.runs_system}`
+    ],
+    tensionLabel: 'When the wound takes over',
+    tension: signData.runs_system,
+    giftLabel: 'The medicine you carry',
+    gift: signData.becomes_guidance,
+    reflection: `What wound are you still trying to fix instead of integrate? Where might your specific sensitivity be exactly what someone else needs?`
+  };
 };
 
 const getSynthesis = (sun: string, moon: string, asc: string): string => {
@@ -811,82 +1481,14 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       gift: getMarsGift(mars || sun),
       reflection: `What makes you want to fight for something? How do you handle frustration?`
     },
-    // === NEW: Jupiter ===
-    {
-      id: 'jupiter',
-      title: 'Jupiter — Growth & Faith',
-      subtitle: `${placements.jupiter || 'Unknown'}${placements.jupiter_house ? ` in the ${getHouseOrdinal(placements.jupiter_house)} house` : ''}`,
-      preview: `In your chart, growth and opportunity flow through ${getHouseTheme(placements.jupiter_house || 1)}.`,
-      whatThisIs: `In your chart, Jupiter in ${placements.jupiter || 'Unknown'}${placements.jupiter_house ? ` placed in House ${placements.jupiter_house}` : ''} reveals where you naturally expand, what you believe in, and where opportunity tends to find you. This is the part of your chart that says "yes" to life and reaches for more.`,
-      whatYouMightNotice: [
-        `Natural optimism and expansion around ${getHouseTheme(placements.jupiter_house || 1)} themes`,
-        `A tendency to over-promise or over-extend in this area`,
-        `Where you go when seeking meaning and adventure`,
-        `Generosity that flows most easily here`
-      ],
-      tensionLabel: 'Where excess happens',
-      tension: `Jupiter can over-expand. In House ${placements.jupiter_house || '?'}, you may promise too much, believe too readily, or assume growth is always possible. Sometimes the gift becomes the problem.`,
-      giftLabel: 'Source of faith',
-      gift: `This is where belief comes naturally. Even when life contracts elsewhere, this part of your chart remembers that expansion is possible.`,
-      reflection: `Where do you most naturally say yes? Where might you need more discernment?`
-    },
-    // === NEW: Saturn ===
-    {
-      id: 'saturn',
-      title: 'Saturn — Pressure & Maturation',
-      subtitle: `${placements.saturn || 'Unknown'}${placements.saturn_house ? ` in the ${getHouseOrdinal(placements.saturn_house)} house` : ''}`,
-      preview: `In your chart, pressure and mastery concentrate in ${getHouseTheme(placements.saturn_house || 1)}.`,
-      whatThisIs: `In your chart, Saturn in ${placements.saturn || 'Unknown'}${placements.saturn_house ? ` placed in House ${placements.saturn_house}` : ''} reveals where you face the most pressure, where you are asked to grow up, and where eventual mastery becomes possible. This is your assignment—what life keeps returning you to until you get serious about it.`,
-      whatYouMightNotice: [
-        `Recurring challenges around ${getHouseTheme(placements.saturn_house || 1)} themes`,
-        `A sense that this area requires more effort than it should`,
-        `Delayed rewards that eventually become the most solid`,
-        `Where your inner critic tends to focus`
-      ],
-      tensionLabel: 'Where fear lives',
-      tension: `Saturn points to where you feel inadequate or behind. In House ${placements.saturn_house || '?'}, you may avoid, over-control, or feel chronically not-good-enough. The pressure is real—and so is the growth potential.`,
-      giftLabel: 'Where mastery builds',
-      gift: `What Saturn touches, you eventually master through persistence. This isn't easy success—it's earned authority. Over time, you become the person others trust in this domain.`,
-      reflection: `What do you take most seriously? Where do you feel you're still catching up?`
-    },
-    // === NEW: Nodes === (SHARPER DEVELOPMENTAL FRAMING)
-    {
-      id: 'nodes',
-      title: 'Nodes — Direction & Pattern',
-      subtitle: `☊ ${placements.north_node || 'Unknown'} · ☋ ${placements.south_node || 'Unknown'}`,
-      preview: `Growth pulls from ${placements.south_node || 'Unknown'} familiarity toward ${placements.north_node || 'Unknown'} unfamiliarity.`,
-      whatThisIs: `The nodal axis is your developmental storyline. South Node in ${placements.south_node || 'Unknown'}${placements.south_node_house ? ` (House ${placements.south_node_house})` : ''} represents what you already know—your default competency, your comfort zone, your reliable pattern. North Node in ${placements.north_node || 'Unknown'}${placements.north_node_house ? ` (House ${placements.north_node_house})` : ''} is where life keeps pushing you—unfamiliar, less confident, but where growth actually happens.`,
-      whatYouMightNotice: [
-        `WHAT FEELS FAMILIAR: ${placements.south_node || 'Unknown'} ways of operating—you're good at this, maybe too good`,
-        `WHERE LIFE PULLS YOU: Toward ${placements.north_node || 'Unknown'} territory—less practiced, more growth`,
-        `THE COMFORT TRAP: Defaulting to ${placements.south_node || 'Unknown'} competence when stressed`,
-        `WHAT GROWTH FEELS LIKE: Awkward, uncertain, but right`
-      ],
-      tensionLabel: 'The comfort trap',
-      tension: `${placements.south_node || 'The South Node'} is seductive because you're already competent there. You can coast on these skills indefinitely—but diminishing returns set in. The more you stay, the less alive it feels. The pattern that once protected you starts to confine you.`,
-      giftLabel: 'What growth actually asks',
-      gift: `${placements.north_node || 'The North Node'} isn't asking you to abandon your South Node gifts—it's asking you to use them in service of something new. Growth feels less like achievement and more like trust. Less control, more allowing.`,
-      reflection: `What familiar pattern do you keep returning to even when you know it's limiting? What would it mean to actually trust the unfamiliar direction?`
-    },
-    // === NEW: Chiron === (MORE PRECISE WOUND/MEDICINE FRAMING)
-    {
-      id: 'chiron',
-      title: 'Chiron — Wound & Medicine',
-      subtitle: `${placements.chiron || 'Unknown'}${placements.chiron_house ? ` in the ${getHouseOrdinal(placements.chiron_house)} house` : ''}`,
-      preview: `A wound in ${getHouseTheme(placements.chiron_house || 1)} that teaches rather than heals.`,
-      whatThisIs: `Chiron in ${placements.chiron || 'Unknown'}${placements.chiron_house ? ` (House ${placements.chiron_house})` : ''} marks where you carry a wound that doesn't fully close. This isn't failure—it's specificity. You're sensitized to ${getHouseTheme(placements.chiron_house || 1)} in ways others aren't. This sensitivity developed into adaptive intelligence.`,
-      whatYouMightNotice: [
-        `WHERE IT HURTS: ${getHouseTheme(placements.chiron_house || 1)} themes trigger you more than they should`,
-        `WHAT YOU LEARNED TO DO: Compensate, over-function, or avoid in this area`,
-        `THE MEDICINE INSIDE IT: You understand others' pain here because you've lived it`,
-        `WHEN IT OVER-IDENTIFIES: You may believe "this wound is who I am"`
-      ],
-      tensionLabel: 'Where it still hurts',
-      tension: `The Chiron wound stays tender. In ${getHouseTheme(placements.chiron_house || 1)}, you can be triggered by things that don't bother others. You may over-compensate, trying to prove the wound isn't there—or collapse into identifying with it completely.`,
-      giftLabel: 'The medicine you carry',
-      gift: `Because you've struggled here, you understand it from the inside. You can guide others through ${getHouseTheme(placements.chiron_house || 1)} difficulties—not as someone who's "healed" but as someone who knows the terrain. The wound becomes teaching, not in spite of the pain but through it.`,
-      reflection: `What wound are you still trying to fix instead of integrate? Where might your pain be useful to someone else?`
-    },
+    // === ENHANCED: Jupiter - using new psychologically precise generator ===
+    getJupiterCard(placements),
+    // === ENHANCED: Saturn - using new psychologically precise generator ===
+    getSaturnCard(placements),
+    // === ENHANCED: Nodes - concrete developmental framing ===
+    getNodesCard(placements),
+    // === ENHANCED: Chiron - precise wound/medicine framing ===
+    getChironCard(placements),
     {
       id: 'houses',
       title: 'House Emphasis',
@@ -1615,7 +2217,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
     // New interpretive hierarchy data
     const chartSpine = getChartSpine(placements);
     const whatMattersMost = getWhatMattersMost(placements, fullChartData);
-    const keyAspects = getKeyAspects(fullChartData);
+    const keyAspects = getKeyAspects(fullChartData, placements);
 
     return (
       <View style={styles.atAGlanceContainer}>
@@ -1664,12 +2266,15 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           ))}
         </View>
 
-        {/* KEY ASPECT DYNAMICS */}
+        {/* KEY ASPECT DYNAMICS - ENHANCED */}
         {keyAspects.length > 0 && (
           <View style={[styles.keyAspectsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.keyAspectsTitle, { color: theme.accent }]}>KEY ASPECT DYNAMICS</Text>
+            <Text style={[styles.keyAspectsSubtitle, { color: theme.textTertiary }]}>
+              The 3-5 most chart-defining natal aspects
+            </Text>
             {keyAspects.map((asp, i) => (
-              <View key={i} style={styles.keyAspectItem}>
+              <View key={i} style={[styles.keyAspectItem, { borderColor: theme.border }]}>
                 <View style={styles.keyAspectHeader}>
                   <Text style={[styles.keyAspectName, { color: theme.text }]}>{asp.aspect}</Text>
                   <View style={[styles.keyAspectBadge, { 
@@ -1680,7 +2285,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
                     }]}>{asp.quality}</Text>
                   </View>
                 </View>
-                <Text style={[styles.keyAspectMeaning, { color: theme.textSecondary }]}>{asp.meaning}</Text>
+                <Text style={[styles.keyAspectMeaning, { color: theme.text }]}>{asp.meaning}</Text>
+                <Text style={[styles.keyAspectWhyMatters, { color: theme.textSecondary }]}>
+                  <Text style={{ fontWeight: '600', color: theme.accent }}>Why this matters: </Text>
+                  {asp.whyItMatters}
+                </Text>
               </View>
             ))}
           </View>
@@ -1936,6 +2545,32 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
                 </View>
               );
             })}
+          </View>
+        )}
+
+        {/* NEW: What This May Feel Like */}
+        {currentWindow?.strongest_hits && currentWindow.strongest_hits.length > 0 && (
+          <View style={[styles.todayLifeAreas, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.lifeAreasTitle, { color: theme.accent }]}>WHAT THIS MAY FEEL LIKE</Text>
+            {getWhatThisMayFeelLike(currentWindow.strongest_hits).map((feeling: string, i: number) => (
+              <View key={i} style={styles.lifeAreaItem}>
+                <Text style={[styles.lifeAreaBullet, { color: theme.textTertiary }]}>•</Text>
+                <Text style={[styles.lifeAreaText, { color: theme.textSecondary }]}>{feeling}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* NEW: The Mistake to Watch */}
+        {currentWindow?.strongest_hits && currentWindow.strongest_hits.length > 0 && (
+          <View style={[styles.todayLifeAreas, { backgroundColor: '#FF634708', borderColor: '#FF634720' }]}>
+            <Text style={[styles.lifeAreasTitle, { color: '#FF6347' }]}>THE MISTAKE TO WATCH</Text>
+            {getMistakeToWatch(currentWindow.strongest_hits).map((mistake: string, i: number) => (
+              <View key={i} style={styles.lifeAreaItem}>
+                <Text style={[styles.lifeAreaBullet, { color: '#FF6347' }]}>⚠</Text>
+                <Text style={[styles.lifeAreaText, { color: theme.text }]}>{mistake}</Text>
+              </View>
+            ))}
           </View>
         )}
 
@@ -3002,9 +3637,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 12,
   },
-  keyAspectItem: {
-    marginBottom: 10,
-  },
   keyAspectHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -3025,8 +3657,24 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   keyAspectMeaning: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  keyAspectsSubtitle: {
+    fontSize: 11,
+    marginBottom: 12,
+  },
+  keyAspectWhyMatters: {
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: 17,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  keyAspectItem: {
+    marginBottom: 14,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   // Deep Dive Section Header
   deepDiveSectionHeader: {
