@@ -1725,26 +1725,6 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
             </View>
           ))}
         </View>
-            <View style={styles.keyPlanetItem}>
-              <Text style={[styles.keyPlanetSymbol, { color: '#FFA726' }]}>♄</Text>
-              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Saturn</Text>
-              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.saturn || '—'}</Text>
-              {placements.saturn_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.saturn_house}</Text>}
-            </View>
-            <View style={styles.keyPlanetItem}>
-              <Text style={[styles.keyPlanetSymbol, { color: '#81D4FA' }]}>☊</Text>
-              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>North Node</Text>
-              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.north_node || '—'}</Text>
-              {placements.north_node_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.north_node_house}</Text>}
-            </View>
-            <View style={styles.keyPlanetItem}>
-              <Text style={[styles.keyPlanetSymbol, { color: '#CE93D8' }]}>⚷</Text>
-              <Text style={[styles.keyPlanetLabel, { color: theme.textTertiary }]}>Chiron</Text>
-              <Text style={[styles.keyPlanetValue, { color: theme.text }]}>{placements.chiron || '—'}</Text>
-              {placements.chiron_house && <Text style={[styles.keyPlanetHouse, { color: theme.textSecondary }]}>H{placements.chiron_house}</Text>}
-            </View>
-          </View>
-        </View>
 
         {/* Structure Section */}
         <View style={[styles.structureCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -1920,6 +1900,45 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           </View>
         </View>
 
+        {/* Life Areas Affected - NEW */}
+        {currentWindow?.activated_natal_points && currentWindow.activated_natal_points.length > 0 && (
+          <View style={[styles.todayLifeAreas, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.lifeAreasTitle, { color: theme.textTertiary }]}>LIFE AREAS THIS MAY TOUCH</Text>
+            {currentWindow.activated_natal_points.slice(0, 4).map((point: string, i: number) => {
+              // Map natal points to life area descriptions
+              const getLifeAreaForPoint = (pt: string): string => {
+                const mapping: { [key: string]: string } = {
+                  'Sun': 'Your sense of purpose and how you show up as yourself',
+                  'Moon': 'Your emotional needs, comfort patterns, and inner life',
+                  'Mercury': 'How you think, communicate, and process information',
+                  'Venus': 'Relationships, values, what you find beautiful',
+                  'Mars': 'Drive, action, how you assert yourself and handle conflict',
+                  'Jupiter': 'Growth, expansion, where you seek meaning',
+                  'Saturn': 'Responsibility, structure, where you face pressure to mature',
+                  'Uranus': 'Change, disruption, where you crave freedom',
+                  'Neptune': 'Intuition, imagination, where boundaries blur',
+                  'Pluto': 'Power, transformation, what you cannot control',
+                  'North Node': 'Your growth edge and where life pulls you forward',
+                  'South Node': 'Old patterns, comfort zones, what feels familiar',
+                  'Chiron': 'Wounds and healing, where you can guide others',
+                  'ASC': 'How you meet the world and first impressions',
+                  'MC': 'Public role, career direction, reputation'
+                };
+                return mapping[pt] || `The part of your chart represented by ${pt}`;
+              };
+              
+              return (
+                <View key={i} style={styles.lifeAreaItem}>
+                  <Text style={[styles.lifeAreaBullet, { color: theme.accent }]}>→</Text>
+                  <Text style={[styles.lifeAreaText, { color: theme.text }]}>
+                    <Text style={{ fontWeight: '600' }}>{point}:</Text> {getLifeAreaForPoint(point)}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {/* Emphasis Tags */}
         <View style={[styles.emphasisCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.emphasisTitle, { color: theme.textTertiary }]}>THEMES</Text>
@@ -1939,17 +1958,75 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           </Text>
         </View>
 
-        {/* Transit Reflection Question */}
+        {/* Transit Reflection Question - Enhanced */}
         <View style={[styles.reflectionCard, { backgroundColor: theme.accent + '06', borderColor: theme.accent + '15' }]}>
-          <Text style={[styles.reflectionLabel, { color: theme.accent }]}>A QUESTION</Text>
+          <Text style={[styles.reflectionLabel, { color: theme.accent }]}>A QUESTION FOR THIS {activeAltitude.toUpperCase()}</Text>
           <Text style={[styles.reflectionText, { color: theme.text }]}>
-            {currentWindow?.strongest_hits?.[0]?.transit_point === 'Saturn' 
-              ? 'Where is growth asking for maturity rather than speed?'
-              : currentWindow?.strongest_hits?.[0]?.transit_point === 'Jupiter'
-              ? 'Where might expansion meet resistance today?'
-              : currentWindow?.strongest_hits?.[0]?.transit_point === 'Pluto'
-              ? 'What is being transformed that you cannot control?'
-              : 'How are these transits showing up in your day?'}
+            {(() => {
+              const hit = currentWindow?.strongest_hits?.[0];
+              if (!hit) return 'What is asking for your attention right now?';
+              
+              // Get reflection based on transit + natal combination
+              const transitPlanet = hit.transit_point;
+              const natalPlanet = hit.natal_point;
+              const aspectType = hit.aspect_type;
+              
+              // Saturn transits
+              if (transitPlanet === 'Saturn') {
+                if (natalPlanet === 'Sun') return 'Where is life asking you to take yourself more seriously?';
+                if (natalPlanet === 'Moon') return 'What emotional pattern is being tested or matured right now?';
+                if (natalPlanet === 'Venus') return 'What relationship or value is asking for more structure?';
+                return 'Where is growth asking for maturity rather than speed?';
+              }
+              
+              // Jupiter transits
+              if (transitPlanet === 'Jupiter') {
+                if (natalPlanet === 'Sun') return 'Where are you ready to expand beyond old limits?';
+                if (natalPlanet === 'Moon') return 'What feels more possible emotionally than it used to?';
+                if (natalPlanet === 'Saturn') return 'Where is opportunity meeting your sense of responsibility?';
+                return 'Where might expansion meet resistance today?';
+              }
+              
+              // Pluto transits
+              if (transitPlanet === 'Pluto') {
+                if (natalPlanet === 'Sun') return 'What part of your identity is being fundamentally reshaped?';
+                if (natalPlanet === 'Moon') return 'What deep emotional truth is surfacing?';
+                return 'What is being transformed that you cannot control?';
+              }
+              
+              // Uranus transits
+              if (transitPlanet === 'Uranus') {
+                if (natalPlanet === 'Sun') return 'Where is life disrupting your sense of who you are?';
+                if (natalPlanet === 'Venus') return 'What unexpected changes are happening in relationships or values?';
+                return 'Where is sudden change creating new possibilities?';
+              }
+              
+              // Neptune transits
+              if (transitPlanet === 'Neptune') {
+                if (natalPlanet === 'Sun') return 'What illusions about yourself are dissolving?';
+                if (natalPlanet === 'Moon') return 'Where are your emotional boundaries becoming more fluid?';
+                return 'What is asking to be surrendered rather than controlled?';
+              }
+              
+              // Mars transits
+              if (transitPlanet === 'Mars') {
+                return 'What is activating your drive or desire to act?';
+              }
+              
+              // Venus transits
+              if (transitPlanet === 'Venus') {
+                return 'What is inviting connection or appreciation?';
+              }
+              
+              // Default based on aspect type
+              if (aspectType === 'square' || aspectType === 'opposition') {
+                return `What tension is ${transitPlanet} creating with your natal ${natalPlanet}?`;
+              } else if (aspectType === 'conjunction') {
+                return `What is ${transitPlanet} intensifying in your ${natalPlanet}?`;
+              } else {
+                return `How is ${transitPlanet}'s energy supporting your ${natalPlanet}?`;
+              }
+            })()}
           </Text>
         </View>
 
@@ -1967,10 +2044,64 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   };
 
   // ============================================
-  // RENDER: DEEP DIVE CARDS
+  // RENDER: DEEP DIVE CARDS WITH SECTION HEADERS
   // ============================================
+  
+  // Define section groupings for cards
+  const CARD_SECTIONS = {
+    foundation: { 
+      title: 'FOUNDATION',
+      subtitle: 'Your core identity and emotional substrate',
+      cards: ['sun', 'moon', 'ascendant'],
+      color: '#7C3AED'
+    },
+    personal_style: { 
+      title: 'PERSONAL STYLE',
+      subtitle: 'How you think, connect, and act',
+      cards: ['mercury', 'venus', 'mars'],
+      color: '#EC4899'
+    },
+    developmental_axis: { 
+      title: 'DEVELOPMENTAL AXIS',
+      subtitle: 'Growth, pressure, and healing',
+      cards: ['jupiter', 'saturn', 'nodes', 'chiron'],
+      color: '#10B981'
+    },
+    structure: { 
+      title: 'STRUCTURE & INTEGRATION',
+      subtitle: 'Pattern, emphasis, and potential',
+      cards: ['houses', 'tensions', 'opens'],
+      color: '#F59E0B'
+    }
+  };
+  
   const renderDeepDive = () => {
     const cards = generateDeepDiveCards(placements);
+    
+    // Group cards by section
+    const getCardSection = (cardId: string): string => {
+      for (const [sectionKey, section] of Object.entries(CARD_SECTIONS)) {
+        if (section.cards.includes(cardId)) return sectionKey;
+      }
+      return 'structure';
+    };
+    
+    // Render a section header
+    const renderSectionHeader = (sectionKey: string) => {
+      const section = CARD_SECTIONS[sectionKey as keyof typeof CARD_SECTIONS];
+      return (
+        <View style={[styles.deepDiveSectionHeaderWrapper, { borderColor: section.color + '30' }]}>
+          <View style={[styles.deepDiveSectionHeaderLine, { backgroundColor: section.color + '20' }]} />
+          <View style={styles.deepDiveSectionHeaderContent}>
+            <Text style={[styles.deepDiveSectionHeaderTitle, { color: section.color }]}>{section.title}</Text>
+            <Text style={[styles.deepDiveSectionHeaderSubtitle, { color: theme.textTertiary }]}>{section.subtitle}</Text>
+          </View>
+        </View>
+      );
+    };
+    
+    // Track which sections we've rendered
+    let lastSection = '';
 
     return (
       <View style={styles.deepDiveContainer}>
@@ -1993,16 +2124,21 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
             </View>
           </View>
           <Text style={[styles.deepDiveNote, { color: theme.textTertiary }]}>
-            Nine reflection cards exploring your chart structure.
+            13 reflection cards organized by chart layer.
           </Text>
         </View>
 
-        {/* Cards */}
+        {/* Cards with Section Headers */}
         {cards.map((card, index) => {
           const isExpanded = expandedCards.has(card.id);
+          const currentSection = getCardSection(card.id);
+          const showSectionHeader = currentSection !== lastSection;
+          lastSection = currentSection;
           
           // Badge colors by card type
           const getBadgeColor = () => {
+            const section = CARD_SECTIONS[currentSection as keyof typeof CARD_SECTIONS];
+            if (section) return section.color;
             switch (card.id) {
               case 'sun': return theme.accent;
               case 'moon': return '#B39DDB';
@@ -2010,6 +2146,10 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
               case 'mercury': return '#FFD54F';
               case 'venus': return '#F48FB1';
               case 'mars': return '#E57373';
+              case 'jupiter': return '#4CAF50';
+              case 'saturn': return '#FFA726';
+              case 'nodes': return '#81D4FA';
+              case 'chiron': return '#CE93D8';
               case 'houses': return '#81C784';
               case 'tensions': return '#FFB74D';
               case 'opens': return '#4DD0E1';
@@ -2018,10 +2158,13 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           };
 
           return (
-            <View 
-              key={card.id} 
-              style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            >
+            <React.Fragment key={card.id}>
+              {/* Section Header (if entering new section) */}
+              {showSectionHeader && renderSectionHeader(currentSection)}
+              
+              <View 
+                style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              >
               {/* Card Header */}
               <TouchableOpacity
                 style={styles.deepDiveCardHeader}
@@ -2115,6 +2258,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
                 </View>
               )}
             </View>
+            </React.Fragment>
           );
         })}
 
@@ -2894,5 +3038,63 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
+  },
+  // Deep Dive Section Header Wrapper styles
+  deepDiveSectionHeaderWrapper: {
+    marginTop: 20,
+    marginBottom: 8,
+    paddingTop: 16,
+    borderTopWidth: 1,
+  },
+  deepDiveSectionHeaderLine: {
+    height: 3,
+    width: 40,
+    borderRadius: 2,
+    marginBottom: 8,
+  },
+  deepDiveSectionHeaderContent: {
+    paddingHorizontal: 4,
+  },
+  deepDiveSectionHeaderTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  deepDiveSectionHeaderSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  // Enhanced Today Tab styles
+  todayLifeAreas: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  lifeAreasTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  lifeAreaItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+    paddingLeft: 4,
+  },
+  lifeAreaBullet: {
+    fontSize: 14,
+    marginRight: 8,
+    marginTop: 2,
+  },
+  lifeAreaText: {
+    fontSize: 13,
+    lineHeight: 19,
+    flex: 1,
+  },
+  activatedPointDetail: {
+    fontSize: 11,
+    marginTop: 2,
   },
 });
