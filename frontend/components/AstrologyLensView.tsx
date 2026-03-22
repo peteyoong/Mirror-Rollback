@@ -679,7 +679,7 @@ const getKeyAspects = (fullChartData: FullChartData | null, placements: CorePlac
 };
 
 // ============================================
-// HOUSE → LIFE DOMAIN MAPPING (Natural language, not astrological)
+// HOUSE → LIFE DOMAIN MAPPING (Psychologically precise)
 // ============================================
 
 const HOUSE_DOMAINS: { [key: number]: string } = {
@@ -695,6 +695,327 @@ const HOUSE_DOMAINS: { [key: number]: string } = {
   10: "career, visibility, or responsibility others place on you",
   11: "friends, networks, or future plans",
   12: "something you're avoiding, suppressing, or not fully seeing"
+};
+
+// Extended house meanings for deeper interpretation
+const HOUSE_MEANINGS: { [key: number]: {
+  label: string;
+  shortLabel: string;
+  arena: string;
+  theme: string;
+  whenActivated: string;
+  specialty: string;
+}} = {
+  1: {
+    label: "Identity & Self-Presentation",
+    shortLabel: "identity",
+    arena: "how you show up, first impressions, physical self",
+    theme: "self-definition and the way you meet life",
+    whenActivated: "questions about who you are and how you're being seen",
+    specialty: "Self-awareness is not background noise here—it's one of the main arenas life keeps working on."
+  },
+  2: {
+    label: "Values & Resources",
+    shortLabel: "values & money",
+    arena: "money, possessions, self-worth, what you hold onto",
+    theme: "security and what you truly value",
+    whenActivated: "questions about worth, money, or what you're holding onto",
+    specialty: "Resources and self-worth are live territory—not just practical, but identity-shaping."
+  },
+  3: {
+    label: "Communication & Learning",
+    shortLabel: "communication",
+    arena: "thinking, speaking, learning, siblings, local environment",
+    theme: "how you process and express what you know",
+    whenActivated: "how you're thinking, what you're saying, and whether the words are landing",
+    specialty: "Communication is not a side skill here—it's one of the main places life keeps training you."
+  },
+  4: {
+    label: "Home & Emotional Foundation",
+    shortLabel: "home & roots",
+    arena: "home, family, roots, private self, emotional baseline",
+    theme: "where you come from and what grounds you",
+    whenActivated: "your sense of safety, family dynamics, or inner emotional stability",
+    specialty: "Home and emotional grounding are central territory—when this shakes, everything echoes."
+  },
+  5: {
+    label: "Creativity & Self-Expression",
+    shortLabel: "creativity & play",
+    arena: "creativity, romance, pleasure, children, risk-taking",
+    theme: "what you create and how you express yourself",
+    whenActivated: "desire for recognition, creative blocks, or romantic intensity",
+    specialty: "Self-expression and creative output are not hobbies—they're where you become more yourself."
+  },
+  6: {
+    label: "Work & Daily Systems",
+    shortLabel: "work & health",
+    arena: "daily work, health, routines, service, improvement",
+    theme: "how you maintain yourself and contribute through effort",
+    whenActivated: "work pressure, health awareness, or the quality of your daily systems",
+    specialty: "Work and maintenance are where discipline becomes real—one of the main arenas for growth."
+  },
+  7: {
+    label: "Relationships & Partnership",
+    shortLabel: "relationships",
+    arena: "committed relationships, partnerships, contracts, projection",
+    theme: "how you relate to others and what you project onto them",
+    whenActivated: "relationship dynamics, fairness, or what you keep seeing in others",
+    specialty: "Relationships are not just context—they're a primary mirror for self-knowledge."
+  },
+  8: {
+    label: "Intimacy & Transformation",
+    shortLabel: "trust & depth",
+    arena: "intimacy, shared resources, power, loss, regeneration",
+    theme: "what you merge with and what transforms you",
+    whenActivated: "trust issues, power dynamics, or emotional vulnerability",
+    specialty: "Depth and transformation are central—growth here is through what you can't keep at arm's length."
+  },
+  9: {
+    label: "Beliefs & Expansion",
+    shortLabel: "meaning & truth",
+    arena: "philosophy, travel, higher education, beliefs, truth-seeking",
+    theme: "what you believe and how your worldview expands",
+    whenActivated: "questions about meaning, direction, or whether you're on the right path",
+    specialty: "Meaning-making is not optional—it's one of the places life keeps asking you to clarify."
+  },
+  10: {
+    label: "Career & Public Role",
+    shortLabel: "vocation",
+    arena: "career, reputation, public life, responsibility, legacy",
+    theme: "what you're here to contribute and be known for",
+    whenActivated: "career pressure, visibility, or questions about your direction",
+    specialty: "Public contribution is central—who you become in the world is not separate from who you are."
+  },
+  11: {
+    label: "Community & Future Vision",
+    shortLabel: "community",
+    arena: "friendships, groups, networks, hopes, future vision",
+    theme: "where you belong and what you're building toward",
+    whenActivated: "questions about belonging, friendship, or whether you fit",
+    specialty: "Community and future vision are active territory—not just social, but developmental."
+  },
+  12: {
+    label: "Surrender & Unconscious",
+    shortLabel: "hidden self",
+    arena: "retreat, spirituality, unconscious patterns, endings, exile",
+    theme: "what you can't see yet and what needs release",
+    whenActivated: "need for retreat, confusion, or patterns you can't fully name",
+    specialty: "The unconscious is not dormant here—what you can't see keeps shaping what you do."
+  }
+};
+
+// House-specific behaviors for "What This May Feel Like"
+const HOUSE_BEHAVIORS: { [key: number]: string[] } = {
+  1: [
+    "questioning how you're coming across",
+    "feeling more self-conscious than usual",
+    "noticing how you're being perceived—and minding it more"
+  ],
+  2: [
+    "checking your account balance more than necessary",
+    "questioning whether you have enough—or are enough",
+    "holding onto something tighter than you need to"
+  ],
+  3: [
+    "overexplaining something that still isn't clear",
+    "revisiting the same conversation in your head",
+    "feeling like the right words are just out of reach"
+  ],
+  4: [
+    "feeling unsettled at home for no obvious reason",
+    "reacting more strongly to family tone or emotional atmosphere",
+    "wanting privacy while also craving reassurance"
+  ],
+  5: [
+    "wanting recognition you're not getting",
+    "creative restlessness without clear outlet",
+    "craving attention or feeling invisible"
+  ],
+  6: [
+    "obsessing over a small detail that won't let go",
+    "feeling like your systems are failing you",
+    "body tension that mirrors mental pressure"
+  ],
+  7: [
+    "reading more into a relationship dynamic than is there",
+    "needing something from someone you haven't asked for",
+    "projecting something onto a partner you haven't owned"
+  ],
+  8: [
+    "overreading power dynamics in a situation",
+    "feeling vulnerable but trying to stay in control",
+    "becoming preoccupied with what's shared, owed, hidden, or irreversible"
+  ],
+  9: [
+    "questioning whether your beliefs actually hold up",
+    "restless for meaning you can't quite reach",
+    "feeling stuck in a perspective that's too small"
+  ],
+  10: [
+    "questioning your direction even when things are working",
+    "feeling the weight of expectation—yours or others'",
+    "wanting to be seen for something you haven't shown yet"
+  ],
+  11: [
+    "feeling out of place in a group you usually fit",
+    "questioning whether your people are really your people",
+    "restless about the future without clarity on what you want"
+  ],
+  12: [
+    "tired for reasons you can't name",
+    "replaying something you thought you were done with",
+    "wanting to disappear from visibility for a while"
+  ]
+};
+
+// House-specific mistakes for "The Mistake to Watch"
+const HOUSE_MISTAKES: { [key: number]: string[] } = {
+  1: [
+    "making a decision based on how it looks rather than how it fits",
+    "changing yourself to match someone else's perception"
+  ],
+  2: [
+    "spending to fill a feeling instead of a need",
+    "confusing net worth with self-worth"
+  ],
+  3: [
+    "saying something before you've really clarified it",
+    "trying to explain your way out of uncertainty"
+  ],
+  4: [
+    "trying to fix externally what is actually an inner emotional instability",
+    "making home or family carry a pressure they didn't create"
+  ],
+  5: [
+    "seeking validation instead of creating what's true",
+    "performing instead of expressing"
+  ],
+  6: [
+    "perfecting the wrong thing",
+    "burning out on maintenance instead of stepping back"
+  ],
+  7: [
+    "expecting someone else to fill a gap only you can address",
+    "fighting for fairness when understanding is what's needed"
+  ],
+  8: [
+    "controlling harder when trust is what's required",
+    "escalating a shared issue because uncertainty feels intolerable"
+  ],
+  9: [
+    "running toward new meaning instead of integrating what you already know",
+    "preaching what you haven't lived"
+  ],
+  10: [
+    "sacrificing presence for progress",
+    "working toward recognition that won't satisfy"
+  ],
+  11: [
+    "performing belonging instead of testing whether you actually fit",
+    "planning the future to avoid the present"
+  ],
+  12: [
+    "pushing through when rest is the actual task",
+    "ignoring what's asking to be released"
+  ]
+};
+
+// Get dominant houses from chart data
+const getDominantHouses = (chartData: FullChartData | null): number[] => {
+  if (!chartData?.natal?.concentrations?.dominant_houses) return [];
+  return chartData.natal.concentrations.dominant_houses
+    .slice(0, 3)
+    .map((h: { house: number }) => h.house);
+};
+
+// Get house specialty interpretation for emphasized houses
+const getHouseSpecialtyInterpretation = (houses: number[]): string[] => {
+  return houses.slice(0, 3).map(h => HOUSE_MEANINGS[h]?.specialty || '').filter(Boolean);
+};
+
+// Get life arena summary for a set of houses
+const getLifeArenaSummary = (houses: number[], chartData: FullChartData | null): {
+  label: string;
+  explanation: string;
+}[] => {
+  const dominantHouses = getDominantHouses(chartData);
+  
+  return houses.slice(0, 3).map(h => {
+    const meaning = HOUSE_MEANINGS[h];
+    if (!meaning) return { label: '', explanation: '' };
+    
+    const isDominant = dominantHouses.includes(h);
+    const explanation = isDominant 
+      ? meaning.specialty
+      : `${meaning.theme.charAt(0).toUpperCase() + meaning.theme.slice(1)}—this area is actively shaping your experience.`;
+    
+    return {
+      label: meaning.label,
+      explanation
+    };
+  }).filter(a => a.label);
+};
+
+// Get the chart's main life arenas for At a Glance
+const getMainLifeArenas = (chartData: FullChartData | null): {
+  label: string;
+  shortLabel: string;
+  explanation: string;
+}[] => {
+  if (!chartData?.natal?.concentrations?.dominant_houses) return [];
+  
+  const dominantHouses = chartData.natal.concentrations.dominant_houses || [];
+  
+  // Get top 3 dominant houses
+  const topHouses = dominantHouses.slice(0, 3).map((h: { house: number; planets: string[] }) => ({
+    house: h.house,
+    planets: h.planets || []
+  }));
+  
+  return topHouses.map(({ house, planets }) => {
+    const meaning = HOUSE_MEANINGS[house];
+    if (!meaning) return { label: '', shortLabel: '', explanation: '' };
+    
+    // Check which important planets are in this house
+    const importantPlanets = ['Sun', 'Moon', 'Saturn', 'Chiron', 'North Node', 'South Node'];
+    const presentImportant = planets.filter((p: string) => importantPlanets.includes(p));
+    
+    let explanation = '';
+    if (presentImportant.length >= 2) {
+      explanation = `This is one of the main places identity, pressure, and growth all converge. Life keeps pulling you here.`;
+    } else if (presentImportant.includes('Sun')) {
+      explanation = `Identity and self-expression concentrate here. This arena shapes who you become.`;
+    } else if (presentImportant.includes('Moon')) {
+      explanation = `Your emotional baseline lives here. When this area shakes, everything echoes.`;
+    } else if (presentImportant.includes('Saturn')) {
+      explanation = `Pressure and maturation concentrate here. This is where life asks you to get serious.`;
+    } else if (presentImportant.includes('Chiron')) {
+      explanation = `Sensitivity and wisdom merge here. What hurt you once now makes you useful in this arena.`;
+    } else if (planets.length >= 3) {
+      explanation = `Multiple parts of you meet here. This is a crossroads of your psychology.`;
+    } else {
+      explanation = meaning.specialty;
+    }
+    
+    return {
+      label: meaning.label,
+      shortLabel: meaning.shortLabel,
+      explanation
+    };
+  }).filter(a => a.label);
+};
+
+// Get "Where life keeps working on you" block
+const getWhereLifeKeepsWorkingOnYou = (chartData: FullChartData | null): string[] => {
+  const arenas = getMainLifeArenas(chartData);
+  
+  return arenas.slice(0, 2).map((arena, i) => {
+    if (i === 0) {
+      return `${arena.shortLabel.charAt(0).toUpperCase() + arena.shortLabel.slice(1)} is not a background theme here—it's one of the main places life keeps trying to shape you.`;
+    } else {
+      return `${arena.shortLabel.charAt(0).toUpperCase() + arena.shortLabel.slice(1)} is live territory in this chart—what happens here matters more than it first appears.`;
+    }
+  });
 };
 
 // Generate life area context line from activated houses
@@ -823,6 +1144,38 @@ const getMoonPhaseContext = (chartData: FullChartData | null, timeframe: 'today'
   return getMoonPhaseMessage(phase, timeframe);
 };
 
+// Get lunation life area context - where in life the current cycle is concentrating
+const getLunationLifeAreaContext = (chartData: FullChartData | null): string => {
+  if (!chartData?.transits?.current_transit_positions || !chartData?.natal?.ascendant) return "";
+  
+  const positions = chartData.transits.current_transit_positions;
+  const moonData = positions['Moon'] || positions['moon'];
+  
+  if (!moonData?.longitude) return "";
+  
+  // Calculate which house the transiting moon is in relative to natal chart
+  // Using equal house system - each house is 30 degrees from the Ascendant
+  const ascendantLongitude = chartData.natal.ascendant.longitude || 0;
+  let moonHousePosition = moonData.longitude - ascendantLongitude;
+  if (moonHousePosition < 0) moonHousePosition += 360;
+  
+  const moonHouse = Math.floor(moonHousePosition / 30) + 1;
+  
+  // Get the house meaning
+  const meaning = HOUSE_MEANINGS[moonHouse];
+  if (!meaning) return "";
+  
+  // Check if this house is one of the user's dominant houses
+  const dominantHouses = getDominantHouses(chartData);
+  const isDominant = dominantHouses.includes(moonHouse);
+  
+  if (isDominant) {
+    return `This cycle is concentrating around ${meaning.shortLabel}—one of the main arenas life keeps training you in.`;
+  }
+  
+  return `This cycle may be concentrating around ${meaning.arena}.`;
+};
+
 // ============================================
 // PERSONAL RELEVANCE WEIGHTING
 // ============================================
@@ -900,13 +1253,22 @@ const detectPersonalRelevance = (
   return { isHighRelevance: false, matchType: null };
 };
 
-// Generate personal relevance line
-const getPersonalRelevanceLine = (match: PersonalRelevanceMatch): string => {
+// Generate personal relevance line with house-specific language
+const getPersonalRelevanceLine = (match: PersonalRelevanceMatch, activatedHouses: number[] = []): string => {
   if (!match.isHighRelevance) return "";
+  
+  // If we have a dominant house match, use house-specific language
+  if (match.matchType === 'house' && activatedHouses.length > 0) {
+    const primaryHouse = activatedHouses[0];
+    const meaning = HOUSE_MEANINGS[primaryHouse];
+    if (meaning) {
+      return `This may feel stronger for you than usual—because ${meaning.shortLabel} is one of the main arenas life keeps training you in.`;
+    }
+  }
   
   switch (match.matchType) {
     case 'house':
-      return "This may feel stronger for you than usual—especially in areas you already spend a lot of time thinking about.";
+      return "This may feel stronger for you than usual—it's pressing directly on one of the life areas your chart already spends a lot of time working on.";
     case 'angular':
       return "This may feel stronger for you than usual—because it touches a core part of how you move through life.";
     case 'element':
@@ -925,8 +1287,13 @@ const getPersonalRelevanceLine = (match: PersonalRelevanceMatch): string => {
 const getWhatThisMayFeelLike = (transits: TransitHit[], timeframe: 'today' | 'week' | 'month' = 'today'): string[] => {
   const feelings: string[] = [];
   
+  // Get activated houses for house-specific behaviors
+  const activatedHouses: number[] = transits.slice(0, 2)
+    .map(t => t.natal_house)
+    .filter((h): h is number => h !== undefined && h !== null);
+  
   for (const hit of transits.slice(0, 2)) {
-    const { transit_point, natal_point, aspect_type } = hit;
+    const { transit_point, natal_point, aspect_type, natal_house } = hit;
     const isHard = ['square', 'opposition', 'conjunction'].includes(aspect_type);
     
     // Saturn transits - REAL BEHAVIORS
@@ -991,8 +1358,19 @@ const getWhatThisMayFeelLike = (transits: TransitHit[], timeframe: 'today' | 'we
     }
   }
   
+  // ADD HOUSE-SPECIFIC BEHAVIOR if houses are activated
+  if (activatedHouses.length > 0) {
+    const primaryHouse = activatedHouses[0];
+    const houseBehaviors = HOUSE_BEHAVIORS[primaryHouse];
+    if (houseBehaviors && houseBehaviors.length > 0) {
+      // Pick one house-specific behavior
+      const behavior = houseBehaviors[Math.floor(Math.random() * houseBehaviors.length)];
+      feelings.push(behavior);
+    }
+  }
+  
   // ADD ONE SHARP HIT - slightly uncomfortable, emotionally honest
-  if (feelings.length > 0) {
+  if (feelings.length > 0 && feelings.length < 3) {
     const sharpHits: { [key: string]: string[] } = {
       'Jupiter': [
         'knowing it\'s probably too much—and doing it anyway',
@@ -1041,6 +1419,11 @@ const getWhatThisMayFeelLike = (transits: TransitHit[], timeframe: 'today' | 'we
 // Returns array where first item is PRIMARY, rest are supporting
 const getMistakeToWatch = (transits: TransitHit[], timeframe: 'today' | 'week' | 'month' = 'today'): string[] => {
   const mistakes: string[] = [];
+  
+  // Get activated houses for house-specific mistakes
+  const activatedHouses: number[] = transits.slice(0, 2)
+    .map(t => t.natal_house)
+    .filter((h): h is number => h !== undefined && h !== null);
   
   for (const hit of transits.slice(0, 2)) {
     const { transit_point, natal_point, aspect_type } = hit;
@@ -1094,6 +1477,16 @@ const getMistakeToWatch = (transits: TransitHit[], timeframe: 'today' | 'week' |
     // Mars transits - BEHAVIORAL MISTAKES
     if (transit_point === 'Mars' && isHard) {
       mistakes.push('starting a fight you don\'t actually want to win');
+    }
+  }
+  
+  // ADD HOUSE-SPECIFIC MISTAKE if houses are activated and we have room
+  if (activatedHouses.length > 0 && mistakes.length < 3) {
+    const primaryHouse = activatedHouses[0];
+    const houseMistakes = HOUSE_MISTAKES[primaryHouse];
+    if (houseMistakes && houseMistakes.length > 0) {
+      const mistake = houseMistakes[Math.floor(Math.random() * houseMistakes.length)];
+      mistakes.push(mistake);
     }
   }
   
@@ -2786,6 +3179,41 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           ))}
         </View>
 
+        {/* YOUR CHART'S MAIN LIFE ARENAS - NEW BLOCK */}
+        {(() => {
+          const mainArenas = getMainLifeArenas(fullChartData);
+          const whereLifeWorks = getWhereLifeKeepsWorkingOnYou(fullChartData);
+          
+          if (mainArenas.length === 0) return null;
+          
+          return (
+            <View style={[styles.whatMattersCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.whatMattersTitle, { color: theme.accent }]}>YOUR CHART'S MAIN LIFE ARENAS</Text>
+              <Text style={[styles.keyAspectsSubtitle, { color: theme.textTertiary, marginBottom: 12 }]}>
+                Where life keeps training you
+              </Text>
+              {mainArenas.map((arena, i) => (
+                <View key={i} style={styles.whatMattersItem}>
+                  <Text style={[styles.whatMattersRank, { color: theme.accent }]}>{i + 1}</Text>
+                  <View style={styles.whatMattersContent}>
+                    <Text style={[styles.whatMattersLabel, { color: theme.text }]}>{arena.label}</Text>
+                    <Text style={[styles.whatMattersWhy, { color: theme.textSecondary }]}>{arena.explanation}</Text>
+                  </View>
+                </View>
+              ))}
+              {whereLifeWorks.length > 0 && (
+                <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border }}>
+                  {whereLifeWorks.map((statement, i) => (
+                    <Text key={i} style={[styles.chartSpineStatement, { color: theme.textSecondary, fontStyle: 'italic' }]}>
+                      {statement}
+                    </Text>
+                  ))}
+                </View>
+              )}
+            </View>
+          );
+        })()}
+
         {/* KEY ASPECT DYNAMICS - ENHANCED */}
         {keyAspects.length > 0 && (
           <View style={[styles.keyAspectsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -2979,12 +3407,21 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
       activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today'
     );
 
+    // Get lunation life area context (where the cycle is concentrating)
+    const lunationLifeAreaContext = getLunationLifeAreaContext(fullChartData);
+
+    // Get activated houses from transits
+    const activatedHouses: number[] = (currentWindow?.strongest_hits || [])
+      .slice(0, 3)
+      .map((t: TransitHit) => t.natal_house)
+      .filter((h: number | undefined): h is number => h !== undefined && h !== null);
+
     // Get personal relevance (why this matters more for YOU)
     const personalRelevance = detectPersonalRelevance(
       fullChartData,
       currentWindow?.strongest_hits || []
     );
-    const personalRelevanceLine = getPersonalRelevanceLine(personalRelevance);
+    const personalRelevanceLine = getPersonalRelevanceLine(personalRelevance, activatedHouses);
 
     // Get refined content (max 3 items each) - PASS TIMEFRAME
     const currentTimeframe = activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today';
@@ -3050,6 +3487,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           {moonPhaseContext ? (
             <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
               {moonPhaseContext}
+            </Text>
+          ) : null}
+          {lunationLifeAreaContext ? (
+            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
+              {lunationLifeAreaContext}
             </Text>
           ) : null}
           {personalRelevanceLine ? (
