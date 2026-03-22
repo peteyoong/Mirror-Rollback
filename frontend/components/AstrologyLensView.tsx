@@ -2563,10 +2563,10 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
   const cards: AstrologyDeepDiveCard[] = [
     {
       id: 'sun',
-      title: 'Sun — Core Identity',
-      subtitle: `${sun}${sun_house ? ` in the ${getHouseOrdinal(sun_house)} house` : ''}`,
+      title: 'Core Identity',
+      subtitle: `Your essential nature`,
       preview: `The part of you that doesn't change when everything else does.`,
-      whatThisIs: `In your chart, the Sun in ${sun}${sun_house ? ` placed in House ${sun_house}` : ''} establishes the essential frequency of who you are. This isn't your whole identity—but it's the thread that runs through everything, the part that seeks expression and recognition. ${sun_house ? `With this energy concentrated in ${getHouseTheme(sun_house)}, your sense of self develops through that domain.` : ''}`,
+      whatThisIs: `There's a ${sunQualities[0]} quality at the center of who you are. This isn't your whole identity—but it's the thread that runs through everything, the part that seeks expression and recognition. ${sun_house ? `This sense of self develops most through ${getHouseTheme(sun_house)}.` : ''}`,
       whatYouMightNotice: [
         `A ${sunQualities[0]} quality running through how you express yourself`,
         `Natural attraction toward ${sunQualities[2] || sunQualities[1]} activities and people`,
@@ -2581,10 +2581,10 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
     },
     {
       id: 'moon',
-      title: 'Moon — Emotional Nature',
-      subtitle: `${moon}${moon_house ? ` in the ${getHouseOrdinal(moon_house)} house` : ''}`,
+      title: 'Emotional Nature',
+      subtitle: `How you feel before you think`,
       preview: `The feeling you have before you've decided how to feel.`,
-      whatThisIs: `In your chart, the Moon in ${moon}${moon_house ? ` placed in House ${moon_house}` : ''} reveals your emotional substrate—what you need before you can think, what makes you feel safe, how you nurture and are nurtured. ${moon_house ? `With emotional energy concentrated around ${getHouseTheme(moon_house)}, this is where your inner life meets outer reality.` : ''} This is the part of you that responds before you've decided how to respond.`,
+      whatThisIs: `Your emotional substrate has a ${moonQualities[0]} quality—what you need before you can think, what makes you feel safe, how you nurture and are nurtured. ${moon_house ? `Your inner life meets outer reality most intensely around ${getHouseTheme(moon_house)}.` : ''} This is the part of you that responds before you've decided how to respond.`,
       whatYouMightNotice: [
         `Emotional responses that feel ${moonQualities[0]}—before thought catches up`,
         `A need for ${getMoonNeed(moon)} to feel genuinely settled`,
@@ -2599,15 +2599,15 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
     },
     {
       id: 'ascendant',
-      title: 'Ascendant — How You Meet Life',
-      subtitle: 'Your instinctive approach to new situations.',
+      title: 'How You Meet Life',
+      subtitle: 'Your instinctive approach to new situations',
       preview: `Your first move in any new room. Not who you are—how you begin.`,
-      whatThisIs: `${ascendant} rising colors the lens through which you approach everything new—first meetings, fresh starts, unfamiliar territory. It's not who you are inside, but how you instinctively engage.`,
+      whatThisIs: `There's a ${ascQualities[0]} quality to how you approach everything new—first meetings, fresh starts, unfamiliar territory. It's not who you are inside, but how you instinctively engage with the world.`,
       whatYouMightNotice: [
-        `first impressions that come across as ${ascQualities[0]}`,
-        `an instinctive ${ascQualities[1]} approach to new situations`,
-        `others often perceive you as ${ascQualities[2] || ascQualities[0]} initially`,
-        `your physical presence and style reflecting ${ascQualities[0]} energy`
+        `First impressions that come across as ${ascQualities[0]}`,
+        `An instinctive ${ascQualities[1]} approach to new situations`,
+        `Others often perceive you as ${ascQualities[2] || ascQualities[0]} initially`,
+        `Your physical presence and style reflecting ${ascQualities[0]} energy`
       ],
       tensionLabel: 'The mask',
       tension: getAscTension(ascendant),
@@ -2617,10 +2617,10 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
     },
     {
       id: 'mercury',
-      title: 'Mercury — Mind & Communication',
-      subtitle: `${mercury || sun}${mercury_house ? ` in the ${getHouseOrdinal(mercury_house)} house` : ''}`,
+      title: 'Mind & Communication',
+      subtitle: `How you naturally think`,
       preview: `What your mind does when you're not steering it.`,
-      whatThisIs: `In your chart, Mercury in ${mercury || sun}${mercury_house ? ` placed in House ${mercury_house}` : ''} reveals how your mind naturally operates—how you sort information, what kind of thinking comes easily, and how you express what you know. ${mercury_house && mercury_house !== sun_house ? `With mental energy concentrated in ${getHouseTheme(mercury_house)} while your identity operates through House ${sun_house || 'elsewhere'}, you may think about different things than you identify with.` : mercury_house ? `Your mind and identity share the same house—what you think about is closely linked to who you are.` : ''}`,
+      whatThisIs: `Your mind has a ${mercQualities[0]} quality—how you sort information, what kind of thinking comes easily, and how you express what you know. ${mercury_house ? `Mental energy naturally gravitates toward ${getHouseTheme(mercury_house)}.` : ''}`,
       whatYouMightNotice: [
         `A ${mercQualities[0]} quality to how you think and process`,
         `Learning that works best through ${getMercuryLearningStyle(mercury || sun)} methods`,
@@ -2635,10 +2635,10 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
     },
     {
       id: 'venus',
-      title: 'Venus — Love & Relating',
-      subtitle: `${venus || moon}${venus_house ? ` in the ${getHouseOrdinal(venus_house)} house` : ''}`,
+      title: 'Love & Relating',
+      subtitle: `What you genuinely value`,
       preview: `How you love when you stop trying to love correctly.`,
-      whatThisIs: `In your chart, Venus in ${venus || moon}${venus_house ? ` placed in House ${venus_house}` : ''} reveals what you find genuinely beautiful, how you attract and are attracted, and what you value in love and friendship. ${venus_house ? `With relational energy concentrated in ${getHouseTheme(venus_house)}, connection and aesthetics play out through this domain.` : ''}`,
+      whatThisIs: `There's a ${venusQualities[0]} quality to what you find beautiful, how you attract and are attracted, and what you value in love and friendship. ${venus_house ? `Connection and aesthetics play out most intensely through ${getHouseTheme(venus_house)}.` : ''}`,
       whatYouMightNotice: [
         `Attraction to ${venusQualities[0]} people, places, and experiences`,
         `Showing love through ${getVenusLoveLanguage(venus || moon)}—sometimes before you realize it`,
@@ -2653,10 +2653,10 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
     },
     {
       id: 'mars',
-      title: 'Mars — Drive & Friction',
-      subtitle: `${mars || sun}${mars_house ? ` in the ${getHouseOrdinal(mars_house)} house` : ''}`,
+      title: 'Drive & Friction',
+      subtitle: `How you take action`,
       preview: `What wakes you up. What makes you dangerous.`,
-      whatThisIs: `In your chart, Mars in ${mars || sun}${mars_house ? ` placed in House ${mars_house}` : ''} reveals how you take action, what ignites your drive, and how you handle conflict and desire. ${mars_house ? `With assertive energy concentrated in ${getHouseTheme(mars_house)}, this is where you push hardest and clash most easily.` : ''}`,
+      whatThisIs: `You have a ${marsQualities[0]} way of taking action—how you go after what you want, what ignites your drive, and how you handle conflict and desire. ${mars_house ? `This assertive energy concentrates in ${getHouseTheme(mars_house)}—where you push hardest and clash most easily.` : ''}`,
       whatYouMightNotice: [
         `A ${marsQualities[0]} style when you take action or initiate`,
         `Anger that tends to express as ${getMarsAngerStyle(mars || sun)}`,
@@ -3123,6 +3123,8 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   const [fullChartData, setFullChartData] = useState<FullChartData | null>(null);
   const [activeAltitude, setActiveAltitude] = useState<'today' | 'week' | 'month'>('today');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set(['sun']));
+  const [aspectsExpanded, setAspectsExpanded] = useState(false);
+  const [tensionsGiftsExpanded, setTensionsGiftsExpanded] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -3418,33 +3420,44 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           );
         })()}
 
-        {/* KEY ASPECT DYNAMICS - ENHANCED */}
+        {/* KEY ASPECT DYNAMICS - COLLAPSIBLE (Demoted) */}
         {keyAspects.length > 0 && (
-          <View style={[styles.keyAspectsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.keyAspectsTitle, { color: theme.accent }]}>KEY ASPECT DYNAMICS</Text>
-            <Text style={[styles.keyAspectsSubtitle, { color: theme.textTertiary }]}>
-              The 3-5 most chart-defining natal aspects
-            </Text>
-            {keyAspects.map((asp, i) => (
-              <View key={i} style={[styles.keyAspectItem, { borderColor: theme.border }]}>
-                <View style={styles.keyAspectHeader}>
-                  <Text style={[styles.keyAspectName, { color: theme.text }]}>{asp.aspect}</Text>
-                  <View style={[styles.keyAspectBadge, { 
-                    backgroundColor: asp.quality === 'ease' ? '#E8F5E9' : asp.quality === 'friction' ? '#FFEBEE' : '#FFF3E0'
-                  }]}>
-                    <Text style={[styles.keyAspectBadgeText, { 
-                      color: asp.quality === 'ease' ? '#2E7D32' : asp.quality === 'friction' ? '#C62828' : '#EF6C00'
-                    }]}>{asp.quality}</Text>
+          <TouchableOpacity
+            style={[styles.collapsibleSection, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}
+            onPress={() => setAspectsExpanded(!aspectsExpanded)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.collapsibleHeader}>
+              <Text style={[styles.collapsibleTitle, { color: theme.textSecondary }]}>Key aspect dynamics</Text>
+              <Text style={[styles.collapsibleIcon, { color: theme.textTertiary }]}>
+                {aspectsExpanded ? '▴' : '▾'}
+              </Text>
+            </View>
+            {!aspectsExpanded && (
+              <Text style={[styles.collapsibleHint, { color: theme.textTertiary }]}>
+                {keyAspects.length} chart-defining aspects
+              </Text>
+            )}
+            {aspectsExpanded && (
+              <View style={styles.collapsibleContent}>
+                {keyAspects.map((asp, i) => (
+                  <View key={i} style={[styles.keyAspectItem, { borderColor: theme.border }]}>
+                    <View style={styles.keyAspectHeader}>
+                      <Text style={[styles.keyAspectName, { color: theme.text }]}>{asp.aspect}</Text>
+                      <View style={[styles.keyAspectBadge, { 
+                        backgroundColor: asp.quality === 'ease' ? '#E8F5E9' : asp.quality === 'friction' ? '#FFEBEE' : '#FFF3E0'
+                      }]}>
+                        <Text style={[styles.keyAspectBadgeText, { 
+                          color: asp.quality === 'ease' ? '#2E7D32' : asp.quality === 'friction' ? '#C62828' : '#EF6C00'
+                        }]}>{asp.quality}</Text>
+                      </View>
+                    </View>
+                    <Text style={[styles.keyAspectMeaning, { color: theme.text }]}>{asp.meaning}</Text>
                   </View>
-                </View>
-                <Text style={[styles.keyAspectMeaning, { color: theme.text }]}>{asp.meaning}</Text>
-                <Text style={[styles.keyAspectWhyMatters, { color: theme.textSecondary }]}>
-                  <Text style={{ fontWeight: '600', color: theme.accent }}>Why this matters: </Text>
-                  {asp.whyItMatters}
-                </Text>
+                ))}
               </View>
-            ))}
-          </View>
+            )}
+          </TouchableOpacity>
         )}
 
         {/* DEVELOPMENTAL PRESSURE ROW - Short, punchy one-liners */}
@@ -3490,64 +3503,65 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           </View>
         </View>
 
-        {/* Theme Chips */}
-        <View style={styles.chipsContainer}>
-          {themeChips.map((chip, i) => (
-            <View key={i} style={[styles.chip, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '25' }]}>
-              <Text style={[styles.chipText, { color: theme.accent }]}>{chip}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Structure Section */}
-        <View style={[styles.structureCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.structureTitle, { color: theme.textTertiary }]}>CHART STRUCTURE</Text>
-          <View style={styles.structureGrid}>
-            <View style={styles.structureItem}>
-              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Core Element</Text>
-              <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_ELEMENTS[sun] || 'Mixed'}</Text>
-            </View>
-            <View style={styles.structureItem}>
-              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Sun Mode</Text>
-              <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_MODALITIES[sun] || 'Mixed'}</Text>
-            </View>
-            <View style={styles.structureItem}>
-              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Emotional Element</Text>
-              <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_ELEMENTS[moon] || 'Unknown'}</Text>
-            </View>
-            <View style={styles.structureItem}>
-              <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Rising Mode</Text>
-              <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_MODALITIES[asc] || 'Unknown'}</Text>
-            </View>
+        {/* CHART STRUCTURE + TENSIONS/GIFTS - COLLAPSIBLE (Demoted) */}
+        <TouchableOpacity
+          style={[styles.collapsibleSection, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}
+          onPress={() => setTensionsGiftsExpanded(!tensionsGiftsExpanded)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.collapsibleHeader}>
+            <Text style={[styles.collapsibleTitle, { color: theme.textSecondary }]}>Chart structure & inner tensions</Text>
+            <Text style={[styles.collapsibleIcon, { color: theme.textTertiary }]}>
+              {tensionsGiftsExpanded ? '▴' : '▾'}
+            </Text>
           </View>
-        </View>
-
-        {/* Core Tensions & Gifts Side by Side on larger screens, stacked on mobile */}
-        <View style={styles.tensionsGiftsRow}>
-          {/* Core Tensions - Softer, premium colors */}
-          {tensions.length > 0 && (
-            <View style={[styles.tensionsCard, { backgroundColor: '#FDF6F5', borderColor: '#F5D5D0' }]}>
-              <Text style={[styles.tensionsTitle, { color: '#B85450' }]}>TENSIONS</Text>
-              {tensions.map((t, i) => (
-                <View key={i} style={styles.tensionItem}>
-                  <Text style={[styles.tensionText, { color: '#6B4544' }]}>{t}</Text>
+          {!tensionsGiftsExpanded && (
+            <Text style={[styles.collapsibleHint, { color: theme.textTertiary }]}>
+              {SIGN_ELEMENTS[sun]} core • {tensions.length} tensions • {gifts.length} gifts
+            </Text>
+          )}
+          {tensionsGiftsExpanded && (
+            <View style={styles.collapsibleContent}>
+              {/* Structure Section */}
+              <View style={styles.structureGridCompact}>
+                <View style={styles.structureItem}>
+                  <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Core Element</Text>
+                  <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_ELEMENTS[sun] || 'Mixed'}</Text>
                 </View>
-              ))}
+                <View style={styles.structureItem}>
+                  <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Sun Mode</Text>
+                  <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_MODALITIES[sun] || 'Mixed'}</Text>
+                </View>
+                <View style={styles.structureItem}>
+                  <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Emotional Element</Text>
+                  <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_ELEMENTS[moon] || 'Unknown'}</Text>
+                </View>
+                <View style={styles.structureItem}>
+                  <Text style={[styles.structureLabel, { color: theme.textTertiary }]}>Rising Mode</Text>
+                  <Text style={[styles.structureValue, { color: theme.text }]}>{SIGN_MODALITIES[asc] || 'Unknown'}</Text>
+                </View>
+              </View>
+              
+              {/* Tensions & Gifts */}
+              {tensions.length > 0 && (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={[styles.collapsibleSubtitle, { color: '#B85450' }]}>TENSIONS</Text>
+                  {tensions.map((t, i) => (
+                    <Text key={i} style={[styles.collapsibleBullet, { color: '#6B4544' }]}>• {t}</Text>
+                  ))}
+                </View>
+              )}
+              {gifts.length > 0 && (
+                <View style={{ marginTop: 10 }}>
+                  <Text style={[styles.collapsibleSubtitle, { color: '#5A8A62' }]}>GIFTS</Text>
+                  {gifts.map((g, i) => (
+                    <Text key={i} style={[styles.collapsibleBullet, { color: '#3D5A42' }]}>• {g}</Text>
+                  ))}
+                </View>
+              )}
             </View>
           )}
-
-          {/* Core Gifts - Softer, premium colors */}
-          {gifts.length > 0 && (
-            <View style={[styles.giftsCard, { backgroundColor: '#F5FAF6', borderColor: '#D0E8D5' }]}>
-              <Text style={[styles.giftsTitle, { color: '#5A8A62' }]}>GIFTS</Text>
-              {gifts.map((g, i) => (
-                <View key={i} style={styles.giftItem}>
-                  <Text style={[styles.giftText, { color: '#3D5A42' }]}>{g}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
+        </TouchableOpacity>
 
         {/* Reflection Prompt */}
         <View style={[styles.reflectionCard, { backgroundColor: theme.accent + '06', borderColor: theme.accent + '15' }]}>
@@ -3695,10 +3709,10 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
         </View>
 
         {/* ============================================ */}
-        {/* LAYER 1: PRIMARY DAILY EXPERIENCE */}
+        {/* LAYER 1: PRIMARY DAILY EXPERIENCE - COMPRESSED */}
         {/* ============================================ */}
 
-        {/* 1. DAILY ENERGY - Premium Primary Card */}
+        {/* 1. DAILY ENERGY - Core Reading Card */}
         <View style={[styles.dailyEnergyCard, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
           <Text style={[styles.dailyEnergyLabel, { color: theme.accent }]}>
             {activeAltitude === 'today' ? "TODAY'S ENERGY" : activeAltitude === 'week' ? "THIS WEEK'S ENERGY" : "THIS MONTH'S ENERGY"}
@@ -3709,81 +3723,64 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           <Text style={[styles.dailyEnergyBody, { color: theme.text }]}>
             {energySynthesis.body}
           </Text>
-          {lifeAreaContext ? (
-            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
-              {lifeAreaContext}
-            </Text>
-          ) : null}
-          {moonPhaseContext ? (
-            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
-              {moonPhaseContext}
-            </Text>
-          ) : null}
-          {lunationLifeAreaContext ? (
-            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
-              {lunationLifeAreaContext}
-            </Text>
-          ) : null}
-          {personalRelevanceLine ? (
-            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
-              {personalRelevanceLine}
-            </Text>
-          ) : null}
-          {repeatPatternLine ? (
-            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary, fontStyle: 'italic' }]}>
-              {repeatPatternLine}
-            </Text>
-          ) : null}
-          {chartRulerLine ? (
-            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
-              {chartRulerLine}
-            </Text>
-          ) : null}
-          {chapterLine ? (
-            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary, fontStyle: 'italic' }]}>
-              {chapterLine}
-            </Text>
-          ) : null}
-          {energySynthesis.supporting && (
-            <Text style={[styles.dailyEnergySupporting, { color: theme.textTertiary }]}>
-              {energySynthesis.supporting}
-            </Text>
-          )}
+          
+          {/* Compressed Context Lines - single-line style */}
+          <View style={styles.contextLinesContainer}>
+            {lifeAreaContext ? (
+              <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
+                ↳ {lifeAreaContext}
+              </Text>
+            ) : null}
+            {moonPhaseContext ? (
+              <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
+                ↳ {moonPhaseContext}
+              </Text>
+            ) : null}
+            {personalRelevanceLine ? (
+              <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
+                ↳ {personalRelevanceLine}
+              </Text>
+            ) : null}
+            {chartRulerLine ? (
+              <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500' }]}>
+                ↳ {chartRulerLine}
+              </Text>
+            ) : null}
+            {repeatPatternLine ? (
+              <Text style={[styles.contextLine, { color: theme.textSecondary, fontStyle: 'italic' }]}>
+                ↳ {repeatPatternLine}
+              </Text>
+            ) : null}
+            {chapterLine ? (
+              <Text style={[styles.contextLine, { color: theme.textSecondary, fontStyle: 'italic' }]}>
+                ↳ {chapterLine}
+              </Text>
+            ) : null}
+          </View>
         </View>
 
-        {/* 2. WHAT THIS MAY FEEL LIKE - 3 bullets max */}
-        {feelings.length > 0 && (
-          <View style={[styles.todayInsightBlock, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.todayInsightTitle, { color: theme.textSecondary }]}>WHAT THIS MAY FEEL LIKE</Text>
-            {feelings.map((feeling: string, i: number) => (
-              <View key={i} style={styles.todayInsightItem}>
-                <Text style={[styles.todayInsightBullet, { color: theme.textTertiary }]}>•</Text>
-                <Text style={[styles.todayInsightText, { color: theme.text }]}>{feeling}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* 3. THE MISTAKE TO WATCH - PRIMARY + SUPPORTING */}
-        {mistakes.length > 0 && (
-          <View style={[styles.todayInsightBlock, { backgroundColor: '#FF634705', borderColor: '#FF634715' }]}>
-            <Text style={[styles.todayInsightTitle, { color: '#FF6347' }]}>THE MISTAKE TO WATCH</Text>
-            {mistakes.map((mistake: string, i: number) => (
-              <View key={i} style={styles.todayInsightItem}>
-                <Text style={[styles.todayInsightBullet, { color: i === 0 ? '#FF6347' : theme.textTertiary }]}>
-                  {i === 0 ? '⚠️' : '•'}
-                </Text>
-                <Text style={[
-                  styles.todayInsightText, 
-                  { 
-                    color: i === 0 ? theme.text : theme.textSecondary,
-                    fontWeight: i === 0 ? '600' : '400'
-                  }
-                ]}>{mistake}</Text>
-              </View>
-            ))}
-          </View>
-        )}
+        {/* 2. COMPRESSED: WHAT TO NOTICE + WHAT TO AVOID */}
+        <View style={[styles.compressedInsightsRow]}>
+          {/* What this may feel like - compressed */}
+          {feelings.length > 0 && (
+            <View style={[styles.compressedInsightCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.compressedInsightTitle, { color: theme.textSecondary }]}>MAY FEEL LIKE</Text>
+              <Text style={[styles.compressedInsightText, { color: theme.text }]}>
+                {feelings[0]}
+              </Text>
+            </View>
+          )}
+          
+          {/* Mistake to watch - compressed */}
+          {mistakes.length > 0 && (
+            <View style={[styles.compressedInsightCard, { backgroundColor: '#FF634705', borderColor: '#FF634715' }]}>
+              <Text style={[styles.compressedInsightTitle, { color: '#FF6347' }]}>WATCH FOR</Text>
+              <Text style={[styles.compressedInsightText, { color: theme.text }]}>
+                {mistakes[0]}
+              </Text>
+            </View>
+          )}
+        </View>
 
         {/* 4. TODAY'S QUESTION - Large, prominent */}
         <View style={[styles.todayQuestionCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
@@ -3840,9 +3837,9 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
 
         {signalsExpanded && (
           <View style={[styles.signalsContainer, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
-            {/* Active Transits - Compact */}
+            {/* Timing Pressures (was: Active Transits) */}
             <View style={styles.signalsSection}>
-              <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>ACTIVE TRANSITS</Text>
+              <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>TIMING PRESSURES</Text>
               <View style={styles.signalsCompactList}>
                 {currentWindow?.strongest_hits?.slice(0, 4).map((hit: TransitHit, index: number) => (
                   <View key={index} style={styles.signalsTransitRow}>
@@ -3857,10 +3854,10 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
               </View>
             </View>
 
-            {/* Natal Points Activated - Chips */}
+            {/* What's Being Touched (was: Points Activated) */}
             {currentWindow?.activated_natal_points && currentWindow.activated_natal_points.length > 0 && (
               <View style={styles.signalsSection}>
-                <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>POINTS ACTIVATED</Text>
+                <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>WHAT'S BEING TOUCHED</Text>
                 <View style={styles.signalsChipsRow}>
                   {currentWindow.activated_natal_points.slice(0, 6).map((point: string, i: number) => (
                     <View key={i} style={[styles.signalsChip, { backgroundColor: theme.accent + '10' }]}>
@@ -3871,24 +3868,10 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
               </View>
             )}
 
-            {/* Themes - Chips */}
-            {currentWindow?.emphasis_tags && currentWindow.emphasis_tags.length > 0 && (
-              <View style={styles.signalsSection}>
-                <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>THEMES</Text>
-                <View style={styles.signalsChipsRow}>
-                  {currentWindow.emphasis_tags.slice(0, 4).map((tag: string, i: number) => (
-                    <View key={i} style={[styles.signalsChip, { backgroundColor: theme.border }]}>
-                      <Text style={[styles.signalsChipText, { color: theme.textSecondary }]}>{tag}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* Life Areas - Short bullets */}
+            {/* Where This Is Landing (was: Life Areas Touched) */}
             {currentWindow?.activated_natal_points && currentWindow.activated_natal_points.length > 0 && (
               <View style={styles.signalsSection}>
-                <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>LIFE AREAS TOUCHED</Text>
+                <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>WHERE THIS IS LANDING</Text>
                 <View style={styles.signalsLifeAreas}>
                   {currentWindow.activated_natal_points.slice(0, 4).map((point: string, i: number) => {
                     const shortAreaMap: { [key: string]: string } = {
@@ -5168,5 +5151,85 @@ const styles = StyleSheet.create({
   signalsLifeAreaText: {
     fontSize: 11,
     lineHeight: 16,
+  },
+  // Collapsible Section Styles (for demoted At a Glance sections)
+  collapsibleSection: {
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    marginBottom: 4,
+  },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  collapsibleTitle: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  collapsibleIcon: {
+    fontSize: 11,
+    marginLeft: 8,
+  },
+  collapsibleHint: {
+    fontSize: 11,
+    marginTop: 4,
+  },
+  collapsibleContent: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0,0,0,0.08)',
+  },
+  collapsibleSubtitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  collapsibleBullet: {
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 4,
+    paddingLeft: 4,
+  },
+  structureGridCompact: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  // Compressed Today View Styles
+  contextLinesContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0,0,0,0.08)',
+    gap: 4,
+  },
+  contextLine: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  compressedInsightsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  compressedInsightCard: {
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 12,
+  },
+  compressedInsightTitle: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  compressedInsightText: {
+    fontSize: 13,
+    lineHeight: 19,
   },
 });
