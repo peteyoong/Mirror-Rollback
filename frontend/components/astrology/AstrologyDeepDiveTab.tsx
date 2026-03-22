@@ -46,6 +46,7 @@ interface AstrologyDeepDiveTabProps {
 // ============================================
 
 interface MirrorLayer {
+  recognition: string;    // One-line emotional hook
   identity: string;       // "You are someone who..."
   tension: string;        // "This can turn into..."
   genius: string;         // "When this is working, you..."
@@ -442,8 +443,24 @@ const generateSunMirrorLayer = (sign: string, house?: number): MirrorLayer => {
     'Aquarius': 'What would change if being different stopped being your identity?',
     'Pisces': 'Where does your compassion for others turn into abandonment of yourself?'
   };
+
+  const recognitionMap: { [key: string]: string } = {
+    'Aries': 'You move before you fully understand what you\'re feeling.',
+    'Taurus': 'You hold on longer than you should—and you already know it.',
+    'Gemini': 'Your mind is always three steps ahead of the conversation.',
+    'Cancer': 'You feel what\'s happening in a room before anyone speaks.',
+    'Leo': 'You know when you\'re performing instead of being real.',
+    'Virgo': 'You notice what\'s wrong before you notice what\'s right.',
+    'Libra': 'You bend toward what others want without realizing you\'re doing it.',
+    'Scorpio': 'You see what people are hiding—even when you wish you didn\'t.',
+    'Sagittarius': 'You leave before you\'ve fully arrived.',
+    'Capricorn': 'You work through things that should be felt.',
+    'Aquarius': 'You stand slightly outside, even when you\'re in the middle of it.',
+    'Pisces': 'You absorb more than you realize you\'re carrying.'
+  };
   
   return {
+    recognition: recognitionMap[sign] || 'You already know where this shows up.',
     identity: identityMap[sign] || `You are someone defined by ${sign} qualities.`,
     tension: tensionMap[sign] || `This can turn into a shadow pattern when taken too far.`,
     genius: geniusMap[sign] || `When this is working, you express the highest form of ${sign}.`,
@@ -543,8 +560,24 @@ const generateMoonMirrorLayer = (sign: string, house?: number): MirrorLayer => {
     'Aquarius': 'What emotion scares you because it doesn\'t make sense?',
     'Pisces': 'Where do you end and the world begins?'
   };
+
+  const recognitionMap: { [key: string]: string } = {
+    'Aries': 'You react before you realize what you\'re actually feeling.',
+    'Taurus': 'You hold feelings in your body longer than you admit.',
+    'Gemini': 'You talk about emotions more easily than you sit inside them.',
+    'Cancer': 'You feel what\'s coming before it arrives.',
+    'Leo': 'You need your feelings witnessed to believe they\'re real.',
+    'Virgo': 'You try to fix your feelings instead of having them.',
+    'Libra': 'You adjust your emotions to match theirs.',
+    'Scorpio': 'You feel everything at an intensity others can\'t see.',
+    'Sagittarius': 'You turn pain into philosophy before you let yourself grieve.',
+    'Capricorn': 'You schedule your feelings for a time that never comes.',
+    'Aquarius': 'You observe your emotions from a safe distance.',
+    'Pisces': 'You carry feelings that aren\'t even yours.'
+  };
   
   return {
+    recognition: recognitionMap[sign] || 'You already know how your emotions work.',
     identity: identityMap[sign] || `You process emotions through ${sign} qualities.`,
     tension: tensionMap[sign] || `This can turn into an emotional shadow pattern.`,
     genius: geniusMap[sign] || `When this is working, you express emotional ${sign} at its best.`,
@@ -645,7 +678,23 @@ const generateAscendantMirrorLayer = (sign: string): MirrorLayer => {
     'Pisces': 'Where did your edges go?'
   };
   
+  const recognitionMap: { [key: string]: string } = {
+    'Aries': 'People react to you before you\'ve said a word.',
+    'Taurus': 'You take longer to warm up than people expect.',
+    'Gemini': 'You adapt to whoever\'s in front of you.',
+    'Cancer': 'You read the room before you enter it.',
+    'Leo': 'You take up more space than you realize.',
+    'Virgo': 'You notice what\'s wrong before you notice what\'s right.',
+    'Libra': 'You shape-shift to create harmony.',
+    'Scorpio': 'People sense your intensity before you speak.',
+    'Sagittarius': 'You promise more than you can deliver.',
+    'Capricorn': 'People assume you\'re in charge.',
+    'Aquarius': 'You stand slightly outside, even when you\'re in.',
+    'Pisces': 'You disappear a little in every interaction.'
+  };
+  
   return {
+    recognition: recognitionMap[sign] || 'You already know how you come across.',
     identity: identityMap[sign] || `You appear to the world with ${sign} qualities.`,
     tension: tensionMap[sign] || `This first impression can sometimes mislead.`,
     genius: geniusMap[sign] || `When this is working, your ${sign} presence opens doors.`,
@@ -656,6 +705,18 @@ const generateAscendantMirrorLayer = (sign: string): MirrorLayer => {
 };
 
 const generateMercuryMirrorLayer = (sign: string): MirrorLayer => ({
+  recognition: sign === 'Aries' ? 'You speak before you think—and you know it.' :
+               sign === 'Taurus' ? 'You take longer to process than others expect.' :
+               sign === 'Gemini' ? 'Your mind won\'t stop jumping between ideas.' :
+               sign === 'Cancer' ? 'You think with your feelings first.' :
+               sign === 'Leo' ? 'You need your ideas to be heard.' :
+               sign === 'Virgo' ? 'You overthink until the moment passes.' :
+               sign === 'Libra' ? 'You can argue any side—which makes choosing hard.' :
+               sign === 'Scorpio' ? 'You see what people aren\'t saying.' :
+               sign === 'Sagittarius' ? 'You skip the details to reach the meaning.' :
+               sign === 'Capricorn' ? 'You dismiss ideas that don\'t seem useful.' :
+               sign === 'Aquarius' ? 'You argue positions just to challenge them.' :
+               'You know things without knowing how you know them.',
   identity: `You are someone whose mind works through ${SIGN_QUALITIES[sign]?.[0] || sign} patterns. Information enters, processes, and exits in a distinctly ${sign} way.`,
   tension: getMercuryTension(sign).replace('Can be', 'This can turn into being').replace(/\.$/, ' when you\'re stressed or defensive.'),
   genius: `When this is working, ${getMercuryGift(sign).toLowerCase()} You think in ways others can\'t replicate.`,
@@ -692,6 +753,18 @@ const generateMercuryMirrorLayer = (sign: string): MirrorLayer => ({
 });
 
 const generateVenusMirrorLayer = (sign: string): MirrorLayer => ({
+  recognition: sign === 'Aries' ? 'You chase what you want with an intensity that surprises people.' :
+               sign === 'Taurus' ? 'You hold on to love longer than is always healthy.' :
+               sign === 'Gemini' ? 'You need variety to stay interested.' :
+               sign === 'Cancer' ? 'You show love by protecting—sometimes too much.' :
+               sign === 'Leo' ? 'You need to feel special to feel loved.' :
+               sign === 'Virgo' ? 'You show love by improving—and it doesn\'t always land.' :
+               sign === 'Libra' ? 'You lose yourself in what they want.' :
+               sign === 'Scorpio' ? 'You test loyalty before you give trust.' :
+               sign === 'Sagittarius' ? 'You need freedom more than comfort.' :
+               sign === 'Capricorn' ? 'You show love through commitment, not words.' :
+               sign === 'Aquarius' ? 'You need space even when you\'re close.' :
+               'You merge without realizing you\'ve disappeared.',
   identity: `You are someone who loves and values through ${SIGN_QUALITIES[sign]?.[0] || sign} patterns. What feels beautiful, who feels attractive, how connection works—it\'s all ${sign}.`,
   tension: getVenusTension(sign).replace(/^Love can/, 'This can turn into love that'),
   genius: `When this is working, ${getVenusGift(sign).toLowerCase().replace(/\.$/, '')}—and it transforms everyone it touches.`,
@@ -728,6 +801,18 @@ const generateVenusMirrorLayer = (sign: string): MirrorLayer => ({
 });
 
 const generateMarsMirrorLayer = (sign: string): MirrorLayer => ({
+  recognition: sign === 'Aries' ? 'You act before you think—and sometimes burn bridges doing it.' :
+               sign === 'Taurus' ? 'You don\'t start fights, but you finish them.' :
+               sign === 'Gemini' ? 'You win with words, not force.' :
+               sign === 'Cancer' ? 'You fight hardest when protecting someone else.' :
+               sign === 'Leo' ? 'You need to win to feel respected.' :
+               sign === 'Virgo' ? 'You attack with precision when you\'re hurt.' :
+               sign === 'Libra' ? 'You avoid conflict until you can\'t—then it all comes out.' :
+               sign === 'Scorpio' ? 'You wait before you strike.' :
+               sign === 'Sagittarius' ? 'You fight for ideas more than territory.' :
+               sign === 'Capricorn' ? 'You play the long game—and usually win.' :
+               sign === 'Aquarius' ? 'You fight against systems, not people.' :
+               'You fight by withdrawing.',
   identity: `You are someone who takes action through ${SIGN_QUALITIES[sign]?.[0] || sign} patterns. How you fight, pursue, and assert—it\'s unmistakably ${sign}.`,
   tension: getMarsTension(sign).replace(/^Can be/, 'This can turn into being'),
   genius: `When this is working, ${getMarsGift(sign).toLowerCase()} You move in ways others can\'t match.`,
@@ -1188,6 +1273,14 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                       </Text>
                     </View>
                     <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
+                    
+                    {/* Recognition Line - Emotional hook */}
+                    {mirrorLayer?.recognition && (
+                      <Text style={[styles.recognitionLine, { color: theme.text }]}>
+                        {mirrorLayer.recognition}
+                      </Text>
+                    )}
+                    
                     {!isExpanded && (
                       <Text style={[styles.deepDiveCardPreview, { color: theme.textSecondary }]}>
                         {card.preview}
@@ -1396,6 +1489,13 @@ const styles = StyleSheet.create({
   deepDiveCardSubtitle: {
     fontSize: 12,
     marginTop: 2,
+  },
+  recognitionLine: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    lineHeight: 20,
+    marginTop: 10,
+    opacity: 0.9,
   },
   deepDiveCardPreview: {
     fontSize: 14,
