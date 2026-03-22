@@ -445,18 +445,19 @@ const generateSunMirrorLayer = (sign: string, house?: number): MirrorLayer => {
   };
 
   const recognitionMap: { [key: string]: string } = {
-    'Aries': 'You move before you fully understand what you\'re feeling.',
-    'Taurus': 'You hold on longer than you should—and you already know it.',
-    'Gemini': 'Your mind is always three steps ahead of the conversation.',
-    'Cancer': 'You feel what\'s happening in a room before anyone speaks.',
-    'Leo': 'You know when you\'re performing instead of being real.',
-    'Virgo': 'You notice what\'s wrong before you notice what\'s right.',
-    'Libra': 'You bend toward what others want without realizing you\'re doing it.',
-    'Scorpio': 'You see what people are hiding—even when you wish you didn\'t.',
-    'Sagittarius': 'You leave before you\'ve fully arrived.',
-    'Capricorn': 'You work through things that should be felt.',
-    'Aquarius': 'You stand slightly outside, even when you\'re in the middle of it.',
-    'Pisces': 'You absorb more than you realize you\'re carrying.'
+    // Level 1 - Observational, soft recognition
+    'Aries': 'You tend to move before you fully understand what you\'re feeling.',
+    'Taurus': 'You tend to hold on longer than serves you.',
+    'Gemini': 'You notice your mind is usually three steps ahead.',
+    'Cancer': 'You often sense what\'s happening before anyone speaks.',
+    'Leo': 'You notice when you\'re performing instead of just being.',
+    'Virgo': 'You tend to see what\'s wrong before you see what\'s right.',
+    'Libra': 'You often find yourself bending toward what others want.',
+    'Scorpio': 'You tend to see what people are trying to hide.',
+    'Sagittarius': 'You notice you often leave before you\'ve fully arrived.',
+    'Capricorn': 'You tend to work through things that should be felt.',
+    'Aquarius': 'You notice you stand slightly outside, even when you\'re in.',
+    'Pisces': 'You tend to absorb more than you realize.'
   };
   
   return {
@@ -562,7 +563,8 @@ const generateMoonMirrorLayer = (sign: string, house?: number): MirrorLayer => {
   };
 
   const recognitionMap: { [key: string]: string } = {
-    'Aries': 'You react before you realize what you\'re actually feeling.',
+    // Level 1 - Soft recognition, observational but emotionally true
+    'Aries': 'You react before you fully know what you\'re feeling.',
     'Taurus': 'You hold feelings in your body longer than you admit.',
     'Gemini': 'You talk about emotions more easily than you sit inside them.',
     'Cancer': 'You feel what\'s coming before it arrives.',
@@ -679,18 +681,19 @@ const generateAscendantMirrorLayer = (sign: string): MirrorLayer => {
   };
   
   const recognitionMap: { [key: string]: string } = {
-    'Aries': 'People react to you before you\'ve said a word.',
-    'Taurus': 'You take longer to warm up than people expect.',
-    'Gemini': 'You adapt to whoever\'s in front of you.',
-    'Cancer': 'You read the room before you enter it.',
-    'Leo': 'You take up more space than you realize.',
-    'Virgo': 'You notice what\'s wrong before you notice what\'s right.',
-    'Libra': 'You shape-shift to create harmony.',
-    'Scorpio': 'People sense your intensity before you speak.',
-    'Sagittarius': 'You promise more than you can deliver.',
-    'Capricorn': 'People assume you\'re in charge.',
-    'Aquarius': 'You stand slightly outside, even when you\'re in.',
-    'Pisces': 'You disappear a little in every interaction.'
+    // Level 2 - Direct behavioral, clear pattern calling out
+    'Aries': 'You come on strong—and people react before you even realize it.',
+    'Taurus': 'You do this thing where you take longer to warm up than people expect.',
+    'Gemini': 'You adapt to whoever\'s in front of you—sometimes before you know you\'re doing it.',
+    'Cancer': 'You read the room before you enter it—every time.',
+    'Leo': 'You take up more space than you realize, and people notice.',
+    'Virgo': 'You scan for flaws before you relax—in yourself and in everything.',
+    'Libra': 'You shape-shift to create harmony, even when it costs you.',
+    'Scorpio': 'People sense your intensity before you speak—and they respond to it.',
+    'Sagittarius': 'You promise more than you can deliver, and part of you knows it.',
+    'Capricorn': 'People assume you\'re in charge—and you let them.',
+    'Aquarius': 'You stand slightly outside, even when you\'re fully in.',
+    'Pisces': 'You disappear a little in every interaction—and you feel it.'
   };
   
   return {
@@ -705,18 +708,19 @@ const generateAscendantMirrorLayer = (sign: string): MirrorLayer => {
 };
 
 const generateMercuryMirrorLayer = (sign: string): MirrorLayer => ({
-  recognition: sign === 'Aries' ? 'You speak before you think—and you know it.' :
-               sign === 'Taurus' ? 'You take longer to process than others expect.' :
-               sign === 'Gemini' ? 'Your mind won\'t stop jumping between ideas.' :
-               sign === 'Cancer' ? 'You think with your feelings first.' :
-               sign === 'Leo' ? 'You need your ideas to be heard.' :
-               sign === 'Virgo' ? 'You overthink until the moment passes.' :
-               sign === 'Libra' ? 'You can argue any side—which makes choosing hard.' :
-               sign === 'Scorpio' ? 'You see what people aren\'t saying.' :
-               sign === 'Sagittarius' ? 'You skip the details to reach the meaning.' :
-               sign === 'Capricorn' ? 'You dismiss ideas that don\'t seem useful.' :
-               sign === 'Aquarius' ? 'You argue positions just to challenge them.' :
-               'You know things without knowing how you know them.',
+  // Level 2 - Direct behavioral, clear pattern with consequence awareness
+  recognition: sign === 'Aries' ? 'You speak before you think—and you already know where this gets you.' :
+               sign === 'Taurus' ? 'You take longer to process than others expect, and they get impatient.' :
+               sign === 'Gemini' ? 'Your mind won\'t stop jumping between ideas—and you can\'t turn it off.' :
+               sign === 'Cancer' ? 'You think with your feelings first, even when you wish you didn\'t.' :
+               sign === 'Leo' ? 'You need your ideas to be heard—and it shows when they\'re not.' :
+               sign === 'Virgo' ? 'You overthink until the moment passes, and you know exactly when it happens.' :
+               sign === 'Libra' ? 'You can argue any side—which is why choosing feels impossible.' :
+               sign === 'Scorpio' ? 'You see what people aren\'t saying—and you can\'t unsee it.' :
+               sign === 'Sagittarius' ? 'You skip the details to reach the meaning, and details get you in trouble.' :
+               sign === 'Capricorn' ? 'You dismiss ideas that don\'t seem useful—even when they\'re true.' :
+               sign === 'Aquarius' ? 'You argue positions just to challenge them—and people stop engaging.' :
+               'You know things without knowing how you know them—and you\'ve learned not to explain.',
   identity: `You are someone whose mind works through ${SIGN_QUALITIES[sign]?.[0] || sign} patterns. Information enters, processes, and exits in a distinctly ${sign} way.`,
   tension: getMercuryTension(sign).replace('Can be', 'This can turn into being').replace(/\.$/, ' when you\'re stressed or defensive.'),
   genius: `When this is working, ${getMercuryGift(sign).toLowerCase()} You think in ways others can\'t replicate.`,
@@ -753,18 +757,19 @@ const generateMercuryMirrorLayer = (sign: string): MirrorLayer => ({
 });
 
 const generateVenusMirrorLayer = (sign: string): MirrorLayer => ({
-  recognition: sign === 'Aries' ? 'You chase what you want with an intensity that surprises people.' :
-               sign === 'Taurus' ? 'You hold on to love longer than is always healthy.' :
-               sign === 'Gemini' ? 'You need variety to stay interested.' :
-               sign === 'Cancer' ? 'You show love by protecting—sometimes too much.' :
-               sign === 'Leo' ? 'You need to feel special to feel loved.' :
-               sign === 'Virgo' ? 'You show love by improving—and it doesn\'t always land.' :
-               sign === 'Libra' ? 'You lose yourself in what they want.' :
-               sign === 'Scorpio' ? 'You test loyalty before you give trust.' :
-               sign === 'Sagittarius' ? 'You need freedom more than comfort.' :
-               sign === 'Capricorn' ? 'You show love through commitment, not words.' :
-               sign === 'Aquarius' ? 'You need space even when you\'re close.' :
-               'You merge without realizing you\'ve disappeared.',
+  // Level 3 - Confronting, consequence-aware, "you're already..."
+  recognition: sign === 'Aries' ? 'You\'re already chasing what you want with an intensity that pushes people away.' :
+               sign === 'Taurus' ? 'You\'re already holding on to love longer than is good for you.' :
+               sign === 'Gemini' ? 'You\'re already bored—and you\'re looking for variety to fill the gap.' :
+               sign === 'Cancer' ? 'You\'re already protecting instead of connecting—and calling it love.' :
+               sign === 'Leo' ? 'You\'re already needing to feel special to feel loved—and it\'s not enough.' :
+               sign === 'Virgo' ? 'You\'re already improving them instead of accepting them.' :
+               sign === 'Libra' ? 'You\'re already losing yourself in what they want—and you know it.' :
+               sign === 'Scorpio' ? 'You\'re already testing them—and wondering why they pull away.' :
+               sign === 'Sagittarius' ? 'You\'re already choosing freedom over the intimacy you actually want.' :
+               sign === 'Capricorn' ? 'You\'re already treating love like a project instead of letting it in.' :
+               sign === 'Aquarius' ? 'You\'re already keeping them at a distance you call "space."' :
+               'You\'re already merging without realizing you\'ve disappeared.',
   identity: `You are someone who loves and values through ${SIGN_QUALITIES[sign]?.[0] || sign} patterns. What feels beautiful, who feels attractive, how connection works—it\'s all ${sign}.`,
   tension: getVenusTension(sign).replace(/^Love can/, 'This can turn into love that'),
   genius: `When this is working, ${getVenusGift(sign).toLowerCase().replace(/\.$/, '')}—and it transforms everyone it touches.`,
@@ -801,18 +806,19 @@ const generateVenusMirrorLayer = (sign: string): MirrorLayer => ({
 });
 
 const generateMarsMirrorLayer = (sign: string): MirrorLayer => ({
-  recognition: sign === 'Aries' ? 'You act before you think—and sometimes burn bridges doing it.' :
-               sign === 'Taurus' ? 'You don\'t start fights, but you finish them.' :
-               sign === 'Gemini' ? 'You win with words, not force.' :
-               sign === 'Cancer' ? 'You fight hardest when protecting someone else.' :
-               sign === 'Leo' ? 'You need to win to feel respected.' :
-               sign === 'Virgo' ? 'You attack with precision when you\'re hurt.' :
-               sign === 'Libra' ? 'You avoid conflict until you can\'t—then it all comes out.' :
-               sign === 'Scorpio' ? 'You wait before you strike.' :
-               sign === 'Sagittarius' ? 'You fight for ideas more than territory.' :
-               sign === 'Capricorn' ? 'You play the long game—and usually win.' :
-               sign === 'Aquarius' ? 'You fight against systems, not people.' :
-               'You fight by withdrawing.',
+  // Level 3 - Most confronting, "you're avoiding...", highest consequence awareness
+  recognition: sign === 'Aries' ? 'You\'re avoiding the cost of acting before you think—but it\'s already piling up.' :
+               sign === 'Taurus' ? 'You\'re avoiding the fight you know you need to have.' :
+               sign === 'Gemini' ? 'You\'re avoiding commitment by keeping all your options open—and it\'s costing you.' :
+               sign === 'Cancer' ? 'You\'re avoiding your own needs by protecting everyone else\'s.' :
+               sign === 'Leo' ? 'You\'re avoiding the question of what you\'d do if no one was watching.' :
+               sign === 'Virgo' ? 'You\'re avoiding action by perfecting the plan—and the moment keeps passing.' :
+               sign === 'Libra' ? 'You\'re avoiding the fight that would set you free.' :
+               sign === 'Scorpio' ? 'You\'re avoiding trust by staying three moves ahead—and it\'s exhausting.' :
+               sign === 'Sagittarius' ? 'You\'re avoiding what would happen if you actually stayed put.' :
+               sign === 'Capricorn' ? 'You\'re avoiding rest by calling relentless work "discipline."' :
+               sign === 'Aquarius' ? 'You\'re avoiding connection by rebelling against things that don\'t need rebellion.' :
+               'You\'re avoiding your own power by giving it away to everyone else.',
   identity: `You are someone who takes action through ${SIGN_QUALITIES[sign]?.[0] || sign} patterns. How you fight, pursue, and assert—it\'s unmistakably ${sign}.`,
   tension: getMarsTension(sign).replace(/^Can be/, 'This can turn into being'),
   genius: `When this is working, ${getMarsGift(sign).toLowerCase()} You move in ways others can\'t match.`,
