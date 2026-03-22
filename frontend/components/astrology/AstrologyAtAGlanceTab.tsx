@@ -12,6 +12,8 @@ import {
   LifeArena,
   WhatMattersItem,
   KeyAspect,
+  EnhancedKeyAspect,
+  AspectPatternAnalysis,
 } from '../../services/astrology/astrologyTypes';
 
 import {
@@ -24,6 +26,8 @@ import {
   getMainLifeArenas,
   getDominantPlanets,
   buildPlanetStrengths,
+  buildAspectPatternAnalysis,
+  getEnhancedKeyAspects,
 } from '../../services/astrology/astrologyInterpreter';
 
 import {
@@ -298,6 +302,10 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
   const mainArenas = getMainLifeArenas(fullChartData);
   const whereLifeWorks = getWhereLifeKeepsWorkingOnYou(fullChartData);
   
+  // Aspect pattern analysis (Master Astrologer v3)
+  const patternAnalysis = buildAspectPatternAnalysis(fullChartData);
+  const enhancedAspects = getEnhancedKeyAspects(fullChartData, 4);
+  
   // Use local helpers for UI-specific calculations
   const synthesis = getSynthesis(sun, moon, asc);
   const themeChips = getThemeChips(sun, moon, asc);
@@ -357,7 +365,40 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
             </View>
           </View>
         ))}
+        {/* Aspect pattern integration in What Matters Most */}
+        {patternAnalysis.dominantPattern && (
+          <View style={[styles.whatMattersItem, { marginTop: 8, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border }]}>
+            <Text style={[styles.whatMattersRank, { color: theme.accent }]}>{whatMattersMost.length + 1}</Text>
+            <View style={styles.whatMattersContent}>
+              <Text style={[styles.whatMattersLabel, { color: theme.text }]}>
+                {patternAnalysis.dominantPattern.patternType === 'pressure_triangle' ? 'Pressure Pattern' :
+                 patternAnalysis.dominantPattern.patternType === 'stellium' ? 'Concentration Pattern' :
+                 patternAnalysis.dominantPattern.patternType === 'opposition_axis' ? 'Tension Axis' :
+                 'Structural Pattern'}
+              </Text>
+              <Text style={[styles.whatMattersDescriptor, { color: theme.textTertiary }]}>Chart-level organization</Text>
+              <Text style={[styles.whatMattersForce, { color: theme.textSecondary }]}>
+                {patternAnalysis.dominantPattern.plainLanguageSummary}
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
+
+      {/* HOW PRESSURE BUILDS IN THIS CHART - New Section */}
+      {patternAnalysis.howPressureBuilds.hasSignificantPattern && (
+        <View style={[styles.pressureCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.whatMattersTitle, { color: theme.accent }]}>HOW PRESSURE BUILDS IN THIS CHART</Text>
+          <Text style={[styles.pressureMainStatement, { color: theme.text }]}>
+            {patternAnalysis.howPressureBuilds.mainStatement}
+          </Text>
+          {patternAnalysis.howPressureBuilds.lifeAreaStatement && (
+            <Text style={[styles.pressureSubStatement, { color: theme.textSecondary }]}>
+              {patternAnalysis.howPressureBuilds.lifeAreaStatement}
+            </Text>
+          )}
+        </View>
+      )}
 
       {/* MAIN LIFE ARENAS */}
       {mainArenas.length > 0 && (
@@ -442,8 +483,8 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
         </View>
       )}
 
-      {/* KEY ASPECT DYNAMICS - COLLAPSIBLE */}
-      {keyAspects.length > 0 && (
+      {/* KEY ASPECT DYNAMICS - UPGRADED (Part 5) */}
+      {enhancedAspects.length > 0 && (
         <TouchableOpacity
           style={[styles.collapsibleSection, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}
           onPress={() => setAspectsExpanded(!aspectsExpanded)}
@@ -457,24 +498,29 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
           </View>
           {!aspectsExpanded && (
             <Text style={[styles.collapsibleHint, { color: theme.textTertiary }]}>
-              {keyAspects.length} chart-defining aspects
+              {enhancedAspects.length} most important aspect dynamics
             </Text>
           )}
           {aspectsExpanded && (
             <View style={styles.collapsibleContent}>
-              {keyAspects.map((asp, i) => (
-                <View key={i} style={[styles.keyAspectItem, { borderColor: theme.border }]}>
+              {enhancedAspects.map((asp, i) => (
+                <View key={i} style={[styles.enhancedAspectItem, { borderColor: theme.border }]}>
                   <View style={styles.keyAspectHeader}>
-                    <Text style={[styles.keyAspectName, { color: theme.text }]}>{asp.aspect}</Text>
+                    <Text style={[styles.keyAspectName, { color: theme.text }]}>{asp.aspectPair}</Text>
                     <View style={[styles.keyAspectBadge, { 
-                      backgroundColor: asp.quality === 'ease' ? '#E8F5E9' : asp.quality === 'friction' ? '#FFEBEE' : '#FFF3E0'
+                      backgroundColor: asp.pressureType === 'flow' ? '#E8F5E9' : asp.pressureType === 'pressure' ? '#FFEBEE' : '#FFF3E0'
                     }]}>
                       <Text style={[styles.keyAspectBadgeText, { 
-                        color: asp.quality === 'ease' ? '#2E7D32' : asp.quality === 'friction' ? '#C62828' : '#EF6C00'
-                      }]}>{asp.quality}</Text>
+                        color: asp.pressureType === 'flow' ? '#2E7D32' : asp.pressureType === 'pressure' ? '#C62828' : '#EF6C00'
+                      }]}>{asp.pressureType}</Text>
                     </View>
                   </View>
-                  <Text style={[styles.keyAspectMeaning, { color: theme.text }]}>{asp.meaning}</Text>
+                  <Text style={[styles.keyAspectMeaning, { color: theme.text }]}>{asp.humanSummary}</Text>
+                  {asp.whyItMattersHere && (
+                    <Text style={[styles.keyAspectWhy, { color: theme.textSecondary }]}>
+                      {asp.whyItMattersHere}
+                    </Text>
+                  )}
                 </View>
               ))}
             </View>
@@ -794,6 +840,33 @@ const styles = StyleSheet.create({
   keyAspectMeaning: {
     fontSize: 13,
     lineHeight: 19,
+  },
+  keyAspectWhy: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
+  enhancedAspectItem: {
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    marginBottom: 8,
+  },
+  pressureCard: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 4,
+  },
+  pressureMainStatement: {
+    fontSize: 15,
+    lineHeight: 23,
+    marginBottom: 10,
+  },
+  pressureSubStatement: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
   },
   reflectionCard: {
     borderRadius: 12,

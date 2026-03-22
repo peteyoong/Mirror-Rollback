@@ -318,3 +318,95 @@ export interface DevelopmentalPressureItem {
   house: number;
   pressure: string;
 }
+
+// === ASPECT PATTERN TYPES (Master Astrologer v3) ===
+
+export interface Stellium {
+  clusterType: 'sign_cluster' | 'house_cluster';
+  sign?: string;
+  house?: number;
+  planets: string[];
+  concentrationScore: number;
+  psychologicalSummary: string;
+  lifeAreas: string[];
+}
+
+export interface OppositionAxis {
+  axisPoints: { planet: string; house: number }[];
+  axisHouses: number[];
+  axisTheme: string;
+  pressureScore: number;
+  lifeAreas: string[];
+}
+
+export interface PressureTriangle {
+  focalPlanet: string;
+  focalHouse: number;
+  supportingPlanets: string[];
+  tensionTheme: string;
+  intensityScore: number;
+  lifeAreas: string[];
+  howItManifests: string;
+}
+
+export interface FlowPattern {
+  planetsInvolved: string[];
+  easeTheme: string;
+  giftScore: number;
+  possibleBlindSpot: string;
+  lifeAreas: string[];
+}
+
+export interface ConjunctionChain {
+  planetsInvolved: string[];
+  mergedTheme: string;
+  compressionScore: number;
+  lifeAreas: string[];
+  psychologicalEffect: string;
+}
+
+export interface AspectPatternAnalysis {
+  stelliums: Stellium[];
+  oppositionAxes: OppositionAxis[];
+  pressureTriangles: PressureTriangle[];
+  flowPatterns: FlowPattern[];
+  conjunctionChains: ConjunctionChain[];
+  
+  // Priority outputs
+  dominantPattern: DominantAspectPattern | null;
+  secondaryPatterns: DominantAspectPattern[];
+  
+  // Pressure synthesis
+  howPressureBuilds: HowPressureBuilds;
+}
+
+export interface DominantAspectPattern {
+  patternType: 'stellium' | 'opposition_axis' | 'pressure_triangle' | 'flow_pattern' | 'conjunction_chain';
+  patternData: Stellium | OppositionAxis | PressureTriangle | FlowPattern | ConjunctionChain;
+  priorityScore: number;
+  relevanceReason: string;
+  plainLanguageSummary: string;
+}
+
+export interface HowPressureBuilds {
+  mainStatement: string;
+  lifeAreaStatement: string;
+  hasSignificantPattern: boolean;
+  patternType: string | null;
+  whatKeepsTightening: string;
+  whereItCollects: string;
+  howItTriesToResolve: string;
+  giftInsideThePressure: string;
+  reflectionQuestion: string;
+}
+
+// === UPGRADED KEY ASPECT TYPE ===
+
+export interface EnhancedKeyAspect {
+  aspectPair: string;
+  humanSummary: string;
+  whyItMattersHere: string;
+  pressureType: 'pressure' | 'complexity' | 'flow';
+  involvedHouses: number[];
+  lifeAreas: string[];
+}

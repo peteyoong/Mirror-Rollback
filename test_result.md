@@ -5393,3 +5393,94 @@ backend:
           📊 TEST RESULTS: 7/7 TESTS PASSED (100% SUCCESS RATE)
           
           🎉 **CONCLUSION**: Pattern Mirror backend API is fully deploy-ready and production-ready. All core functionality working correctly including health monitoring, database connectivity, pattern generation endpoints, comprehensive error handling, and advanced V10 context-aware features. The API successfully generates high-quality contextual pattern mirrors with proper language compliance, excellent performance, and robust error handling suitable for production deployment.
+
+
+
+frontend:
+  - task: "Aspect Pattern Prioritization (Master Astrologer v3)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/services/astrology/astrologyInterpreter.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW FEATURE: Aspect Pattern Prioritization (Master Astrologer Layer v3)
+          
+          Implemented the following new functionality:
+          
+          PART 1 - PATTERN DETECTION (astrologyInterpreter.ts):
+          - detectStelliums(): Detects 3+ planets in same sign OR same house
+          - detectOppositionAxes(): Finds meaningful opposition axes
+          - detectPressureTriangles(): T-square detection with focal planet
+          - detectFlowPatterns(): Trine/sextile networks
+          - detectConjunctionChains(): Connected conjunction patterns
+          
+          PART 2 - PRIORITY ENGINE:
+          - buildAspectPatternAnalysis(): Scores and ranks all patterns
+          - Prioritizes by: Sun/Moon involvement, chart ruler, angular houses
+          - Returns: dominantPattern, secondaryPatterns, howPressureBuilds
+          
+          PART 3 - "HOW PRESSURE BUILDS" SECTION (AstrologyAtAGlanceTab.tsx):
+          - New card after "What Matters Most" showing pressure synthesis
+          - Plain language interpretation (no jargon)
+          - Life area statements
+          
+          PART 4 - "WHAT MATTERS MOST" UPGRADE:
+          - Now includes aspect pattern as ranked item when present
+          
+          PART 5 - KEY ASPECT DYNAMICS UPGRADE (AstrologyAtAGlanceTab.tsx):
+          - getEnhancedKeyAspects() replaces old aspect list
+          - Shows: aspect pair, human summary, why it matters, pressure type
+          - Limited to top 4 most important
+          
+          PART 6 - NEW DEEP DIVE CARD (AstrologyDeepDiveTab.tsx):
+          - "How This Chart Builds Pressure" card in STRUCTURE & INTEGRATION group
+          - Sections: THE PATTERN, WHAT KEEPS TIGHTENING, WHERE IT COLLECTS
+          - HOW IT TRIES TO RESOLVE, GIFT INSIDE THE PRESSURE, REFLECTION QUESTION
+          
+          PART 7 - HOUSE-BASED INTERPRETATION:
+          - All patterns translate houses to life areas
+          - getLifeAreasFromHouses() helper function
+          
+          PART 8 - TODAY TAB PATTERN CONTEXT (AstrologyTodayTab.tsx):
+          - isPatternActivatedByTransit() checks if current transits touch pattern
+          - Shows subtle line: "This is landing in area that carries pressure"
+          
+          New Types Added (astrologyTypes.ts):
+          - Stellium, OppositionAxis, PressureTriangle, FlowPattern, ConjunctionChain
+          - AspectPatternAnalysis, DominantAspectPattern, HowPressureBuilds
+          - EnhancedKeyAspect
+          
+          Files Changed:
+          - /app/frontend/services/astrology/astrologyTypes.ts (new types)
+          - /app/frontend/services/astrology/astrologyInterpreter.ts (detection + priority)
+          - /app/frontend/components/astrology/AstrologyAtAGlanceTab.tsx (UI updates)
+          - /app/frontend/components/astrology/AstrologyTodayTab.tsx (transit context)
+          - /app/frontend/components/astrology/AstrologyDeepDiveTab.tsx (pressure card)
+
+test_plan:
+  current_focus:
+    - "Aspect Pattern Prioritization (Master Astrologer v3)"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      Implemented Aspect Pattern Prioritization feature. Please test:
+      1. Login as peter@test.com to access the astrology lens
+      2. Navigate to Lens > Astrology > At a Glance tab
+      3. Check if "HOW PRESSURE BUILDS IN THIS CHART" section appears
+      4. Check if "What Matters Most" includes aspect pattern item
+      5. Expand "Key aspect dynamics" - should show enhanced version
+      6. Go to Deep Dive tab, scroll to "STRUCTURE & INTEGRATION"
+      7. Check for "How This Chart Builds Pressure" card
+      8. Go to Today tab and check for pattern activation lines
+      
+      The feature uses deterministic pattern detection on the full chart data.
+      No backend changes were made - all logic is in the frontend interpreter.

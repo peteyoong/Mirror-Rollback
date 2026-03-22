@@ -25,6 +25,8 @@ import {
   buildRulershipChains,
   detectThemeConcentration,
   prioritizeTransits,
+  buildAspectPatternAnalysis,
+  isPatternActivatedByTransit,
 } from '../../services/astrology/astrologyInterpreter';
 
 import {
@@ -215,6 +217,10 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
   const chapterInfo = detectChapterTransits(transits);
   const chapterLine = activeAltitude === 'month' ? getChapterLine(chapterInfo) : '';
 
+  // Pattern activation check (Part 8)
+  const patternAnalysis = buildAspectPatternAnalysis(fullChartData);
+  const patternActivation = isPatternActivatedByTransit(patternAnalysis, transits);
+
   // Get content based on timeframe
   const feelings = getWhatThisMayFeelLike(transits, activeAltitude).slice(0, 3);
   const mistakes = getMistakeToWatch(transits, activeAltitude).slice(0, 3);
@@ -307,6 +313,11 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
           {chapterLine ? (
             <Text style={[styles.contextLine, { color: theme.textSecondary, fontStyle: 'italic' }]}>
               ↳ {chapterLine}
+            </Text>
+          ) : null}
+          {patternActivation.activated ? (
+            <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500' }]}>
+              ↳ {patternActivation.activationLine}
             </Text>
           ) : null}
         </View>

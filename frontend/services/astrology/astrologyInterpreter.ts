@@ -26,6 +26,16 @@ import {
   WhatMattersItem,
   DevelopmentalPressureItem,
   Timeframe,
+  // Aspect Pattern Types (Master Astrologer v3)
+  Stellium,
+  OppositionAxis,
+  PressureTriangle,
+  FlowPattern,
+  ConjunctionChain,
+  AspectPatternAnalysis,
+  DominantAspectPattern,
+  HowPressureBuilds,
+  EnhancedKeyAspect,
 } from './astrologyTypes';
 
 // ============================================
@@ -1223,4 +1233,1037 @@ export const validateChartInterpretation = (chartData: FullChartData | null): bo
   }
   
   return isValid;
+};
+
+// ============================================
+// ASPECT PATTERN DETECTION (Master Astrologer v3)
+// ============================================
+
+// Planet weights for pattern significance
+const PLANET_WEIGHTS: { [key: string]: number } = {
+  'Sun': 10, 'Moon': 10, 'Mercury': 5, 'Venus': 5, 'Mars': 6,
+  'Jupiter': 6, 'Saturn': 8, 'Uranus': 4, 'Neptune': 4, 'Pluto': 5,
+  'North Node': 7, 'South Node': 5, 'Chiron': 6
+};
+
+// Aspect types and their qualities
+const ASPECT_QUALITIES: { [key: string]: 'tension' | 'flow' | 'dynamic' } = {
+  'conjunction': 'dynamic',
+  'opposition': 'tension',
+  'square': 'tension',
+  'trine': 'flow',
+  'sextile': 'flow',
+  'quincunx': 'tension'
+};
+
+// House life area translations
+const HOUSE_LIFE_AREAS: { [key: number]: string } = {
+  1: 'identity and self-presentation',
+  2: 'money, resources, and self-worth',
+  3: 'communication, thinking, and daily environment',
+  4: 'home, family, and emotional foundation',
+  5: 'creativity, romance, and self-expression',
+  6: 'work, health, and daily routines',
+  7: 'relationships and partnership',
+  8: 'intimacy, trust, and transformation',
+  9: 'beliefs, meaning, and expansion',
+  10: 'career, reputation, and public role',
+  11: 'community, friendships, and future vision',
+  12: 'unconscious patterns, surrender, and hidden matters'
+};
+
+// Get life areas from houses
+const getLifeAreasFromHouses = (houses: number[]): string[] => {
+  const uniqueHouses = [...new Set(houses)].filter(h => h >= 1 && h <= 12);
+  return uniqueHouses.map(h => HOUSE_LIFE_AREAS[h] || `house ${h}`);
+};
+
+// ============================================
+// STELLIUM / CLUSTER DETECTION
+// ============================================
+
+export const detectStelliums = (chartData: FullChartData | null): Stellium[] => {
+  if (!chartData?.natal?.planets) return [];
+  
+  const planets = chartData.natal.planets;
+  const stelliums: Stellium[] = [];
+  
+  // Group by sign
+  const bySign: { [sign: string]: { planet: string; house: number }[] } = {};
+  // Group by house
+  const byHouse: { [house: number]: { planet: string; sign: string }[] } = {};
+  
+  const relevantPlanets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'North Node', 'Chiron'];
+  
+  for (const planetName of relevantPlanets) {
+    const data = planets[planetName];
+    if (!data?.sign) continue;
+    
+    const sign = data.sign;
+    const house = data.house || 0;
+    
+    if (!bySign[sign]) bySign[sign] = [];
+    bySign[sign].push({ planet: planetName, house });
+    
+    if (house > 0) {
+      if (!byHouse[house]) byHouse[house] = [];
+      byHouse[house].push({ planet: planetName, sign });
+    }
+  }
+  
+  // Check sign clusters (3+ planets)
+  for (const [sign, planetList] of Object.entries(bySign)) {
+    if (planetList.length >= 3) {
+      const planetNames = planetList.map(p => p.planet);
+      const houses = planetList.map(p => p.house).filter(h => h > 0);
+      const uniqueHouses = [...new Set(houses)];
+      
+      // Calculate concentration score
+      let score = planetList.reduce((sum, p) => sum + (PLANET_WEIGHTS[p.planet] || 3), 0);
+      if (planetNames.includes('Sun') || planetNames.includes('Moon')) score += 5;
+      
+      // Psychological summary based on sign element and planets
+      const element = SIGN_ELEMENTS[sign] || 'unknown';
+      let summary = '';
+      
+      if (planetNames.includes('Sun') && planetNames.includes('Moon')) {
+        summary = `Your sense of self and emotional nature are fused in ${sign}. This creates intensity but also clarity about who you are.`;
+      } else if (planetNames.length >= 4) {
+        summary = `A significant part of your psychology concentrates through ${sign} ${element} energy. This is a dominant mode of operation.`;
+      } else {
+        summary = `Multiple parts of you express through ${sign} qualities. This sign isn't just a detail—it's a recurring theme.`;
+      }
+      
+      stelliums.push({
+        clusterType: 'sign_cluster',
+        sign,
+        planets: planetNames,
+        concentrationScore: score,
+        psychologicalSummary: summary,
+        lifeAreas: getLifeAreasFromHouses(uniqueHouses)
+      });
+    }
+  }
+  
+  // Check house clusters (3+ planets)
+  for (const [houseStr, planetList] of Object.entries(byHouse)) {
+    const house = parseInt(houseStr);
+    if (planetList.length >= 3) {
+      const planetNames = planetList.map(p => p.planet);
+      
+      let score = planetList.reduce((sum, p) => sum + (PLANET_WEIGHTS[p.planet] || 3), 0);
+      if (ANGULAR_HOUSES.includes(house)) score += 5;
+      
+      const houseMeaning = HOUSE_MEANINGS[house];
+      let summary = '';
+      
+      if (planetNames.includes('Sun') || planetNames.includes('Moon')) {
+        summary = `Your core identity concentrates in the area of ${houseMeaning?.shortLabel || 'this house'}. Life keeps pulling you back here.`;
+      } else {
+        summary = `Multiple psychological functions meet in the area of ${houseMeaning?.shortLabel || 'this house'}. This is high-traffic territory.`;
+      }
+      
+      stelliums.push({
+        clusterType: 'house_cluster',
+        house,
+        planets: planetNames,
+        concentrationScore: score,
+        psychologicalSummary: summary,
+        lifeAreas: [HOUSE_LIFE_AREAS[house] || `house ${house}`]
+      });
+    }
+  }
+  
+  return stelliums.sort((a, b) => b.concentrationScore - a.concentrationScore);
+};
+
+// ============================================
+// OPPOSITION AXIS DETECTION
+// ============================================
+
+export const detectOppositionAxes = (chartData: FullChartData | null): OppositionAxis[] => {
+  if (!chartData?.natal?.aspects) return [];
+  
+  const oppositions = chartData.natal.aspects.filter(a => a.aspect_type === 'opposition');
+  if (oppositions.length === 0) return [];
+  
+  const planets = chartData.natal.planets || {};
+  const axes: OppositionAxis[] = [];
+  const chartRuler = getChartRuler(chartData);
+  
+  // Group oppositions by house axis
+  const axisByHouses: { [key: string]: { points: string[]; aspects: typeof oppositions }[] } = {};
+  
+  for (const opp of oppositions) {
+    const houseA = planets[opp.point_a]?.house || 0;
+    const houseB = planets[opp.point_b]?.house || 0;
+    
+    // Normalize axis key (always smaller house first)
+    const axisKey = houseA < houseB ? `${houseA}-${houseB}` : `${houseB}-${houseA}`;
+    
+    if (!axisByHouses[axisKey]) axisByHouses[axisKey] = [];
+    axisByHouses[axisKey].push({
+      points: [opp.point_a, opp.point_b],
+      aspects: [opp]
+    });
+  }
+  
+  // Find meaningful opposition axes
+  for (const [axisKey, oppGroups] of Object.entries(axisByHouses)) {
+    const [h1, h2] = axisKey.split('-').map(Number);
+    const allPoints = oppGroups.flatMap(g => g.points);
+    const uniquePoints = [...new Set(allPoints)];
+    
+    // Check if axis involves important points
+    const importantPoints = ['Sun', 'Moon', 'Saturn', 'North Node', 'Chiron'];
+    const hasImportant = uniquePoints.some(p => importantPoints.includes(p));
+    const hasChartRuler = chartRuler && uniquePoints.includes(chartRuler.planet);
+    
+    if (uniquePoints.length >= 2 && (hasImportant || hasChartRuler || oppGroups.length >= 2)) {
+      // Calculate pressure score
+      let score = uniquePoints.reduce((sum, p) => sum + (PLANET_WEIGHTS[p] || 3), 0);
+      if (hasChartRuler) score += 5;
+      if (ANGULAR_HOUSES.includes(h1) || ANGULAR_HOUSES.includes(h2)) score += 3;
+      
+      // Determine axis theme
+      let theme = '';
+      const axisHouses = [h1, h2];
+      
+      if ((axisHouses.includes(1) && axisHouses.includes(7)) || axisHouses.includes(7)) {
+        theme = 'self vs. other—balancing personal needs with relationship demands';
+      } else if ((axisHouses.includes(4) && axisHouses.includes(10))) {
+        theme = 'private foundation vs. public role—what you need versus what you show';
+      } else if ((axisHouses.includes(2) && axisHouses.includes(8))) {
+        theme = 'holding vs. merging—security versus deep transformation';
+      } else if ((axisHouses.includes(3) && axisHouses.includes(9))) {
+        theme = 'details vs. meaning—local understanding versus big-picture truth';
+      } else if ((axisHouses.includes(5) && axisHouses.includes(11))) {
+        theme = 'self-expression vs. community—personal creativity versus collective belonging';
+      } else if ((axisHouses.includes(6) && axisHouses.includes(12))) {
+        theme = 'daily effort vs. surrender—what you control versus what you release';
+      } else {
+        theme = `tension between ${HOUSE_LIFE_AREAS[h1] || 'one area'} and ${HOUSE_LIFE_AREAS[h2] || 'another'}`;
+      }
+      
+      axes.push({
+        axisPoints: uniquePoints.map(p => ({
+          planet: p,
+          house: planets[p]?.house || 0
+        })),
+        axisHouses: [h1, h2],
+        axisTheme: theme,
+        pressureScore: score,
+        lifeAreas: getLifeAreasFromHouses([h1, h2])
+      });
+    }
+  }
+  
+  return axes.sort((a, b) => b.pressureScore - a.pressureScore);
+};
+
+// ============================================
+// PRESSURE TRIANGLE / T-SQUARE DETECTION
+// ============================================
+
+export const detectPressureTriangles = (chartData: FullChartData | null): PressureTriangle[] => {
+  if (!chartData?.natal?.aspects) return [];
+  
+  const aspects = chartData.natal.aspects;
+  const planets = chartData.natal.planets || {};
+  const triangles: PressureTriangle[] = [];
+  
+  // Find oppositions first
+  const oppositions = aspects.filter(a => a.aspect_type === 'opposition');
+  
+  // Find squares
+  const squares = aspects.filter(a => a.aspect_type === 'square');
+  
+  // Look for T-square pattern: two planets oppose, both square a third
+  for (const opp of oppositions) {
+    const oppPlanets = [opp.point_a, opp.point_b];
+    
+    // Find planets that square both opposition planets
+    const focalCandidates = new Set<string>();
+    
+    for (const sq of squares) {
+      if (oppPlanets.includes(sq.point_a)) {
+        focalCandidates.add(sq.point_b);
+      } else if (oppPlanets.includes(sq.point_b)) {
+        focalCandidates.add(sq.point_a);
+      }
+    }
+    
+    // Check if any candidate squares both opposition planets
+    for (const candidate of focalCandidates) {
+      const squaresToOpp = squares.filter(sq =>
+        (sq.point_a === candidate && oppPlanets.includes(sq.point_b)) ||
+        (sq.point_b === candidate && oppPlanets.includes(sq.point_a))
+      );
+      
+      if (squaresToOpp.length >= 2) {
+        // Found a T-square!
+        const focalHouse = planets[candidate]?.house || 0;
+        const oppHouses = oppPlanets.map(p => planets[p]?.house || 0);
+        
+        // Calculate intensity
+        let score = PLANET_WEIGHTS[candidate] || 3;
+        score += oppPlanets.reduce((sum, p) => sum + (PLANET_WEIGHTS[p] || 3), 0);
+        if (ANGULAR_HOUSES.includes(focalHouse)) score += 5;
+        
+        // Determine tension theme based on focal planet
+        const themes: { [key: string]: string } = {
+          'Sun': 'identity pressure—your sense of self is where the strain collects',
+          'Moon': 'emotional pressure—feelings become the release valve',
+          'Mercury': 'mental pressure—thinking becomes the focal point of tension',
+          'Venus': 'relationship/value pressure—connection and worth carry the strain',
+          'Mars': 'action pressure—doing becomes the outlet for accumulated tension',
+          'Jupiter': 'expansion pressure—growth and belief become the release point',
+          'Saturn': 'responsibility pressure—duty and structure carry the weight',
+          'Uranus': 'freedom pressure—the need to break free concentrates here',
+          'Neptune': 'dissolution pressure—confusion or transcendence becomes the focus',
+          'Pluto': 'transformation pressure—power and depth concentrate here'
+        };
+        
+        const tensionTheme = themes[candidate] || `pressure concentrates through ${candidate}`;
+        
+        // How it manifests
+        const manifestation = `When life activates this pattern, ${candidate.toLowerCase()} themes become the pressure point. ${oppPlanets.join(' and ')} create the underlying split, and ${candidate} is where you feel it most.`;
+        
+        // Check for duplicates
+        const isDuplicate = triangles.some(t => 
+          t.focalPlanet === candidate && 
+          t.supportingPlanets.sort().join() === oppPlanets.sort().join()
+        );
+        
+        if (!isDuplicate) {
+          triangles.push({
+            focalPlanet: candidate,
+            focalHouse,
+            supportingPlanets: oppPlanets,
+            tensionTheme,
+            intensityScore: score,
+            lifeAreas: getLifeAreasFromHouses([focalHouse, ...oppHouses]),
+            howItManifests: manifestation
+          });
+        }
+      }
+    }
+  }
+  
+  return triangles.sort((a, b) => b.intensityScore - a.intensityScore);
+};
+
+// ============================================
+// FLOW PATTERN / EASE LOOP DETECTION
+// ============================================
+
+export const detectFlowPatterns = (chartData: FullChartData | null): FlowPattern[] => {
+  if (!chartData?.natal?.aspects) return [];
+  
+  const aspects = chartData.natal.aspects;
+  const planets = chartData.natal.planets || {};
+  const flows: FlowPattern[] = [];
+  
+  // Find trines and sextiles
+  const easyAspects = aspects.filter(a => 
+    a.aspect_type === 'trine' || a.aspect_type === 'sextile'
+  );
+  
+  if (easyAspects.length < 2) return [];
+  
+  // Group connected easy aspects
+  const planetConnections: { [planet: string]: string[] } = {};
+  
+  for (const asp of easyAspects) {
+    if (!planetConnections[asp.point_a]) planetConnections[asp.point_a] = [];
+    if (!planetConnections[asp.point_b]) planetConnections[asp.point_b] = [];
+    
+    planetConnections[asp.point_a].push(asp.point_b);
+    planetConnections[asp.point_b].push(asp.point_a);
+  }
+  
+  // Find planets with multiple easy connections (part of a flow network)
+  const flowNetworks: string[][] = [];
+  const visited = new Set<string>();
+  
+  for (const [planet, connections] of Object.entries(planetConnections)) {
+    if (connections.length >= 2 && !visited.has(planet)) {
+      // BFS to find connected flow network
+      const network: string[] = [];
+      const queue = [planet];
+      
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (visited.has(current)) continue;
+        visited.add(current);
+        network.push(current);
+        
+        for (const connected of (planetConnections[current] || [])) {
+          if (!visited.has(connected)) {
+            queue.push(connected);
+          }
+        }
+      }
+      
+      if (network.length >= 3) {
+        flowNetworks.push(network);
+      }
+    }
+  }
+  
+  // Create flow patterns from networks
+  for (const network of flowNetworks) {
+    const houses = network.map(p => planets[p]?.house || 0).filter(h => h > 0);
+    
+    // Calculate gift score
+    let score = network.reduce((sum, p) => sum + (PLANET_WEIGHTS[p] || 3), 0);
+    const hasLuminary = network.includes('Sun') || network.includes('Moon');
+    if (hasLuminary) score += 5;
+    
+    // Determine ease theme
+    const elements = network.map(p => SIGN_ELEMENTS[planets[p]?.sign || ''] || '').filter(Boolean);
+    const dominantElement = elements.sort((a, b) =>
+      elements.filter(e => e === b).length - elements.filter(e => e === a).length
+    )[0];
+    
+    let easeTheme = '';
+    let blindSpot = '';
+    
+    if (dominantElement === 'Fire') {
+      easeTheme = 'action and inspiration flow naturally—initiative comes easily';
+      blindSpot = 'You may act before fully thinking things through, assuming momentum will carry you.';
+    } else if (dominantElement === 'Earth') {
+      easeTheme = 'practical grounding flows naturally—building and maintaining comes easily';
+      blindSpot = 'You may resist necessary change because stability feels so comfortable.';
+    } else if (dominantElement === 'Air') {
+      easeTheme = 'thinking and connection flow naturally—ideas and relationships come easily';
+      blindSpot = 'You may intellectualize emotions rather than feeling them directly.';
+    } else if (dominantElement === 'Water') {
+      easeTheme = 'emotional attunement flows naturally—feeling and intuition come easily';
+      blindSpot = 'You may absorb others\' emotions without realizing what\'s yours and what isn\'t.';
+    } else {
+      easeTheme = 'certain psychological functions work together smoothly';
+      blindSpot = 'Ease can become complacency—what comes naturally may not be what\'s needed.';
+    }
+    
+    flows.push({
+      planetsInvolved: network,
+      easeTheme,
+      giftScore: score,
+      possibleBlindSpot: blindSpot,
+      lifeAreas: getLifeAreasFromHouses(houses)
+    });
+  }
+  
+  return flows.sort((a, b) => b.giftScore - a.giftScore);
+};
+
+// ============================================
+// CONJUNCTION CHAIN DETECTION
+// ============================================
+
+export const detectConjunctionChains = (chartData: FullChartData | null): ConjunctionChain[] => {
+  if (!chartData?.natal?.aspects) return [];
+  
+  const aspects = chartData.natal.aspects;
+  const planets = chartData.natal.planets || {};
+  const chains: ConjunctionChain[] = [];
+  
+  // Find all conjunctions
+  const conjunctions = aspects.filter(a => a.aspect_type === 'conjunction');
+  if (conjunctions.length < 2) return [];
+  
+  // Build conjunction graph
+  const connections: { [planet: string]: string[] } = {};
+  
+  for (const conj of conjunctions) {
+    if (!connections[conj.point_a]) connections[conj.point_a] = [];
+    if (!connections[conj.point_b]) connections[conj.point_b] = [];
+    
+    connections[conj.point_a].push(conj.point_b);
+    connections[conj.point_b].push(conj.point_a);
+  }
+  
+  // Find connected chains
+  const visited = new Set<string>();
+  
+  for (const [planet, connected] of Object.entries(connections)) {
+    if (visited.has(planet)) continue;
+    
+    // BFS to find chain
+    const chain: string[] = [];
+    const queue = [planet];
+    
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+      chain.push(current);
+      
+      for (const next of (connections[current] || [])) {
+        if (!visited.has(next)) {
+          queue.push(next);
+        }
+      }
+    }
+    
+    if (chain.length >= 2) {
+      const houses = chain.map(p => planets[p]?.house || 0).filter(h => h > 0);
+      const uniqueHouses = [...new Set(houses)];
+      
+      // Calculate compression score
+      let score = chain.reduce((sum, p) => sum + (PLANET_WEIGHTS[p] || 3), 0);
+      if (chain.length >= 3) score += 5;
+      if (chain.includes('Sun') && chain.includes('Moon')) score += 8;
+      
+      // Determine merged theme based on planets involved
+      let theme = '';
+      let effect = '';
+      
+      if (chain.includes('Sun') && chain.includes('Moon')) {
+        theme = 'identity and emotions are deeply fused';
+        effect = 'What you want and what you feel become almost indistinguishable. This creates intensity but can make it hard to distinguish need from want.';
+      } else if (chain.includes('Mercury') && chain.includes('Venus')) {
+        theme = 'thinking and relating are merged';
+        effect = 'How you think affects your connections; how you connect affects your thinking. Communication and relationship are inseparable.';
+      } else if (chain.includes('Mars') && chain.includes('Saturn')) {
+        theme = 'action and restraint are bound together';
+        effect = 'Drive meets discipline. You may feel like you\'re driving with the brakes on, but this also creates focused, enduring effort.';
+      } else if (chain.includes('Sun') && chain.includes('Saturn')) {
+        theme = 'identity is bound to responsibility';
+        effect = 'Who you are is inseparable from what you must do. Self-worth may feel contingent on achievement.';
+      } else if (chain.includes('Moon') && chain.includes('Saturn')) {
+        theme = 'emotions are bound to duty';
+        effect = 'Feelings get filtered through responsibility. Emotional expression may feel earned rather than free.';
+      } else if (chain.includes('Venus') && chain.includes('Saturn')) {
+        theme = 'love is bound to commitment';
+        effect = 'Connection requires structure. Relationships tend to be serious, and frivolity in love doesn\'t come naturally.';
+      } else if (chain.includes('Mercury') && chain.includes('Mars')) {
+        theme = 'thinking and action are fused';
+        effect = 'Thoughts quickly become actions. This creates directness but may skip important reflection.';
+      } else if (chain.length >= 3) {
+        theme = 'multiple psychological functions merge into one complex';
+        effect = `${chain.join(', ')} operate as a unit. When one is activated, they all activate together.`;
+      } else {
+        theme = `${chain[0]} and ${chain[1]} are psychologically merged`;
+        effect = 'These functions don\'t operate independently—they\'re wired together.';
+      }
+      
+      chains.push({
+        planetsInvolved: chain,
+        mergedTheme: theme,
+        compressionScore: score,
+        lifeAreas: getLifeAreasFromHouses(uniqueHouses),
+        psychologicalEffect: effect
+      });
+    }
+  }
+  
+  return chains.sort((a, b) => b.compressionScore - a.compressionScore);
+};
+
+// ============================================
+// ASPECT PATTERN PRIORITY ENGINE
+// ============================================
+
+export const buildAspectPatternAnalysis = (chartData: FullChartData | null): AspectPatternAnalysis => {
+  const stelliums = detectStelliums(chartData);
+  const oppositionAxes = detectOppositionAxes(chartData);
+  const pressureTriangles = detectPressureTriangles(chartData);
+  const flowPatterns = detectFlowPatterns(chartData);
+  const conjunctionChains = detectConjunctionChains(chartData);
+  
+  const chartRuler = getChartRuler(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  
+  // Build all patterns with priority scores
+  const allPatterns: DominantAspectPattern[] = [];
+  
+  // Score stelliums
+  for (const stellium of stelliums) {
+    let score = stellium.concentrationScore;
+    if (stellium.planets.includes('Sun') || stellium.planets.includes('Moon')) score += 5;
+    if (chartRuler && stellium.planets.includes(chartRuler.planet)) score += 3;
+    if (stellium.house && dominantHouses.includes(stellium.house)) score += 3;
+    
+    const summary = stellium.clusterType === 'sign_cluster'
+      ? `A concentration of ${stellium.planets.length} planets in ${stellium.sign} creates a dominant mode of expression.`
+      : `${stellium.planets.length} planets cluster in the area of ${HOUSE_LIFE_AREAS[stellium.house || 0] || 'one life domain'}, making it a focal point.`;
+    
+    allPatterns.push({
+      patternType: 'stellium',
+      patternData: stellium,
+      priorityScore: score,
+      relevanceReason: stellium.psychologicalSummary,
+      plainLanguageSummary: summary
+    });
+  }
+  
+  // Score opposition axes
+  for (const axis of oppositionAxes) {
+    let score = axis.pressureScore;
+    const axisPoints = axis.axisPoints.map(p => p.planet);
+    if (axisPoints.includes('Sun') || axisPoints.includes('Moon')) score += 5;
+    if (chartRuler && axisPoints.includes(chartRuler.planet)) score += 3;
+    if (axis.axisHouses.some(h => ANGULAR_HOUSES.includes(h))) score += 3;
+    
+    const summary = `An opposition axis creates ongoing tension: ${axis.axisTheme}.`;
+    
+    allPatterns.push({
+      patternType: 'opposition_axis',
+      patternData: axis,
+      priorityScore: score,
+      relevanceReason: `This axis runs through ${axis.lifeAreas.join(' and ')}.`,
+      plainLanguageSummary: summary
+    });
+  }
+  
+  // Score pressure triangles (T-squares are very significant)
+  for (const triangle of pressureTriangles) {
+    let score = triangle.intensityScore + 10; // T-squares get a baseline boost
+    if (triangle.focalPlanet === 'Sun' || triangle.focalPlanet === 'Moon') score += 5;
+    if (chartRuler && triangle.focalPlanet === chartRuler.planet) score += 5;
+    if (ANGULAR_HOUSES.includes(triangle.focalHouse)) score += 3;
+    if (dominantHouses.includes(triangle.focalHouse)) score += 3;
+    
+    const summary = `A pressure pattern with ${triangle.focalPlanet} as the focal point—${triangle.tensionTheme}.`;
+    
+    allPatterns.push({
+      patternType: 'pressure_triangle',
+      patternData: triangle,
+      priorityScore: score,
+      relevanceReason: triangle.howItManifests,
+      plainLanguageSummary: summary
+    });
+  }
+  
+  // Score flow patterns
+  for (const flow of flowPatterns) {
+    let score = flow.giftScore;
+    if (flow.planetsInvolved.includes('Sun') || flow.planetsInvolved.includes('Moon')) score += 3;
+    if (chartRuler && flow.planetsInvolved.includes(chartRuler.planet)) score += 2;
+    
+    const summary = `A flow pattern where ${flow.easeTheme}.`;
+    
+    allPatterns.push({
+      patternType: 'flow_pattern',
+      patternData: flow,
+      priorityScore: score,
+      relevanceReason: flow.possibleBlindSpot,
+      plainLanguageSummary: summary
+    });
+  }
+  
+  // Score conjunction chains
+  for (const chain of conjunctionChains) {
+    let score = chain.compressionScore;
+    if (chain.planetsInvolved.includes('Sun') || chain.planetsInvolved.includes('Moon')) score += 5;
+    if (chartRuler && chain.planetsInvolved.includes(chartRuler.planet)) score += 3;
+    
+    const summary = `${chain.planetsInvolved.join(' and ')} are conjunct—${chain.mergedTheme}.`;
+    
+    allPatterns.push({
+      patternType: 'conjunction_chain',
+      patternData: chain,
+      priorityScore: score,
+      relevanceReason: chain.psychologicalEffect,
+      plainLanguageSummary: summary
+    });
+  }
+  
+  // Sort and select dominant patterns
+  allPatterns.sort((a, b) => b.priorityScore - a.priorityScore);
+  
+  const dominantPattern = allPatterns[0] || null;
+  const secondaryPatterns = allPatterns.slice(1, 4);
+  
+  // Build "How Pressure Builds" synthesis
+  const howPressureBuilds = buildPressureSynthesis(
+    dominantPattern,
+    secondaryPatterns,
+    stelliums,
+    oppositionAxes,
+    pressureTriangles,
+    flowPatterns,
+    conjunctionChains,
+    chartData
+  );
+  
+  return {
+    stelliums,
+    oppositionAxes,
+    pressureTriangles,
+    flowPatterns,
+    conjunctionChains,
+    dominantPattern,
+    secondaryPatterns,
+    howPressureBuilds
+  };
+};
+
+// ============================================
+// BUILD PRESSURE SYNTHESIS
+// ============================================
+
+const buildPressureSynthesis = (
+  dominant: DominantAspectPattern | null,
+  secondary: DominantAspectPattern[],
+  stelliums: Stellium[],
+  axes: OppositionAxis[],
+  triangles: PressureTriangle[],
+  flows: FlowPattern[],
+  chains: ConjunctionChain[],
+  chartData: FullChartData | null
+): HowPressureBuilds => {
+  const hasTriangle = triangles.length > 0;
+  const hasAxis = axes.length > 0;
+  const hasStellium = stelliums.length > 0;
+  const hasFlow = flows.length > 0;
+  const hasChain = chains.length > 0;
+  
+  const hasSignificantPattern = hasTriangle || (hasAxis && hasStellium) || (hasChain && axes.length > 0);
+  
+  // Collect all life areas involved in tension patterns
+  const tensionAreas = new Set<string>();
+  triangles.forEach(t => t.lifeAreas.forEach(a => tensionAreas.add(a)));
+  axes.forEach(a => a.lifeAreas.forEach(area => tensionAreas.add(area)));
+  chains.forEach(c => c.lifeAreas.forEach(a => tensionAreas.add(a)));
+  
+  // Collect all life areas involved in ease patterns
+  const easeAreas = new Set<string>();
+  flows.forEach(f => f.lifeAreas.forEach(a => easeAreas.add(a)));
+  
+  let mainStatement = '';
+  let lifeAreaStatement = '';
+  let whatKeepsTightening = '';
+  let whereItCollects = '';
+  let howItTriesToResolve = '';
+  let giftInsideThePressure = '';
+  let reflectionQuestion = '';
+  let patternType: string | null = null;
+  
+  if (hasTriangle) {
+    const triangle = triangles[0];
+    patternType = 'pressure_triangle';
+    
+    mainStatement = `This chart carries a repeating pressure pattern. When life activates one part of it, the whole configuration responds. The tension doesn't release quickly—it builds until something shifts.`;
+    
+    lifeAreaStatement = `Most of this pressure collects around ${triangle.lifeAreas.slice(0, 2).join(' and ')}.`;
+    
+    whatKeepsTightening = `The split between ${triangle.supportingPlanets.join(' and ')} creates ongoing tension. Neither side wins—they pull against each other.`;
+    
+    whereItCollects = `${triangle.focalPlanet} becomes the pressure point. This is where you feel it—in ${HOUSE_LIFE_AREAS[triangle.focalHouse] || 'this area of life'}.`;
+    
+    howItTriesToResolve = `Resolution comes through ${triangle.focalPlanet.toLowerCase()} expression—but forced resolution creates more strain. The pattern asks for integration, not elimination.`;
+    
+    const focalGifts: { [key: string]: string } = {
+      'Sun': 'The gift: clarity about what you actually want, forged through the pressure.',
+      'Moon': 'The gift: emotional wisdom that only comes from feeling everything.',
+      'Mercury': 'The gift: insight and communication depth born from mental pressure.',
+      'Venus': 'The gift: relationship wisdom and values clarity earned through strain.',
+      'Mars': 'The gift: focused action and courage tested by real resistance.',
+      'Saturn': 'The gift: structural integrity and maturity built under pressure.',
+      'Jupiter': 'The gift: genuine wisdom and growth that came the hard way.'
+    };
+    giftInsideThePressure = focalGifts[triangle.focalPlanet] || 'The gift: capacity and depth that only pressure can create.';
+    
+    reflectionQuestion = `When this pattern activates, do you try to force a resolution—or can you stay with the tension until it teaches you something?`;
+    
+  } else if (hasAxis && hasStellium) {
+    patternType = 'axis_stellium';
+    const axis = axes[0];
+    const stellium = stelliums[0];
+    
+    mainStatement = `This chart has concentrated energy in one area, but that concentration is held in tension by an opposition. The intensity doesn't spread evenly—it builds in specific places.`;
+    
+    lifeAreaStatement = `The concentration is in ${stellium.lifeAreas.join(' and ')}, but it's pulled by tension toward ${axis.lifeAreas.join(' and ')}.`;
+    
+    whatKeepsTightening = axis.axisTheme;
+    whereItCollects = stellium.psychologicalSummary;
+    howItTriesToResolve = `The chart keeps trying to balance the concentration with the pull of the opposition. Resolution isn't about choosing one—it's about integrating both.`;
+    giftInsideThePressure = `The gift: depth and intensity that comes from having so much energy organized in one pattern.`;
+    reflectionQuestion = `Where in your life do you feel pulled between concentration and balance?`;
+    
+  } else if (hasAxis) {
+    patternType = 'opposition_axis';
+    const axis = axes[0];
+    
+    mainStatement = `This chart carries a fundamental split—an opposition that runs through your psychology. The two sides don't naturally agree, and life keeps asking you to balance them.`;
+    
+    lifeAreaStatement = `This split runs through ${axis.lifeAreas.join(' and ')}.`;
+    
+    whatKeepsTightening = axis.axisTheme;
+    whereItCollects = `The tension concentrates wherever ${axis.axisPoints.map(p => p.planet).join(' and ')} are activated.`;
+    howItTriesToResolve = `The chart keeps trying to satisfy both ends. Resolution doesn't mean one side wins—it means you learn to hold both.`;
+    giftInsideThePressure = `The gift: perspective and balance that only comes from knowing both sides deeply.`;
+    reflectionQuestion = `Which end of this tension do you tend to identify with—and what would it mean to honor the other?`;
+    
+  } else if (hasChain) {
+    patternType = 'conjunction_chain';
+    const chain = chains[0];
+    
+    mainStatement = `This chart has planets fused together—${chain.mergedTheme}. They don't operate separately. When one activates, they all activate.`;
+    
+    lifeAreaStatement = `This fusion concentrates in ${chain.lifeAreas.join(' and ')}.`;
+    
+    whatKeepsTightening = chain.psychologicalEffect;
+    whereItCollects = `Wherever ${chain.planetsInvolved.join(' and ')} are touched, the whole complex responds.`;
+    howItTriesToResolve = `Resolution isn't about separating them—it's about working with them as a unit.`;
+    giftInsideThePressure = `The gift: intensity and focus that comes from having these functions merged.`;
+    reflectionQuestion = `Can you work with this combination rather than wishing the parts were separate?`;
+    
+  } else if (hasStellium) {
+    patternType = 'stellium';
+    const stellium = stelliums[0];
+    
+    mainStatement = `This chart concentrates energy rather than spreading it. ${stellium.planets.length} planets cluster together, creating intensity in one mode of operation.`;
+    
+    lifeAreaStatement = `The concentration is in ${stellium.lifeAreas.join(' and ')}.`;
+    
+    whatKeepsTightening = stellium.psychologicalSummary;
+    whereItCollects = `Pressure builds wherever ${stellium.sign || `house ${stellium.house}`} themes are activated.`;
+    howItTriesToResolve = `The chart expresses intensely through this concentration. Pressure releases through direct engagement with these themes.`;
+    giftInsideThePressure = `The gift: depth and mastery in the concentrated area that wouldn't be possible if energy were spread thin.`;
+    reflectionQuestion = `Do you embrace this concentration, or do you sometimes wish you were more balanced?`;
+    
+  } else if (hasFlow) {
+    patternType = 'flow_pattern';
+    const flow = flows[0];
+    
+    mainStatement = `This chart has natural ease in certain areas—${flow.easeTheme}. But ease can become avoidance if it's used to skip the harder work.`;
+    
+    lifeAreaStatement = `The flow concentrates in ${flow.lifeAreas.join(' and ')}.`;
+    
+    whatKeepsTightening = `Ironically, what comes easily can create subtle tension if you rely on it too much.`;
+    whereItCollects = flow.possibleBlindSpot;
+    howItTriesToResolve = `The gift works best when you also do the harder work that doesn't come naturally.`;
+    giftInsideThePressure = `The gift: ${flow.easeTheme}.`;
+    reflectionQuestion = `Is your ease a genuine strength, or are you using it to avoid something more difficult?`;
+    
+  } else {
+    mainStatement = `This chart doesn't have a single dominant pressure pattern. Energy is distributed rather than concentrated in one structure.`;
+    lifeAreaStatement = `Different areas of life carry different weights without one dominating the others.`;
+    whatKeepsTightening = `Without a dominant pattern, pressure tends to be situational rather than structural.`;
+    whereItCollects = `It varies depending on what's being activated.`;
+    howItTriesToResolve = `Flexibility rather than a fixed release point.`;
+    giftInsideThePressure = `The gift: adaptability and balance across different life areas.`;
+    reflectionQuestion = `How do you respond when pressure does build—without a natural release valve?`;
+  }
+  
+  return {
+    mainStatement,
+    lifeAreaStatement,
+    hasSignificantPattern,
+    patternType,
+    whatKeepsTightening,
+    whereItCollects,
+    howItTriesToResolve,
+    giftInsideThePressure,
+    reflectionQuestion
+  };
+};
+
+// ============================================
+// ENHANCED KEY ASPECTS
+// ============================================
+
+export const getEnhancedKeyAspects = (
+  chartData: FullChartData | null,
+  maxCount: number = 4
+): EnhancedKeyAspect[] => {
+  if (!chartData?.natal?.aspects) return [];
+  
+  const aspects = chartData.natal.aspects;
+  const planets = chartData.natal.planets || {};
+  const chartRuler = getChartRuler(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  const dominantPlanets = getDominantPlanets(chartData);
+  
+  // Score and enhance each aspect
+  const scored = aspects.map(asp => {
+    const planetA = asp.point_a;
+    const planetB = asp.point_b;
+    const houseA = planets[planetA]?.house || 0;
+    const houseB = planets[planetB]?.house || 0;
+    
+    let score = 0;
+    
+    // Luminaries get priority
+    if (planetA === 'Sun' || planetB === 'Sun') score += 10;
+    if (planetA === 'Moon' || planetB === 'Moon') score += 10;
+    
+    // Chart ruler involvement
+    if (chartRuler && (planetA === chartRuler.planet || planetB === chartRuler.planet)) score += 8;
+    
+    // Saturn/Nodes/Chiron involvement
+    const developmentalPlanets = ['Saturn', 'North Node', 'South Node', 'Chiron'];
+    if (developmentalPlanets.includes(planetA) || developmentalPlanets.includes(planetB)) score += 5;
+    
+    // Tightness of orb
+    if (asp.orb <= 2) score += 5;
+    else if (asp.orb <= 5) score += 2;
+    
+    // Angular house involvement
+    if (ANGULAR_HOUSES.includes(houseA) || ANGULAR_HOUSES.includes(houseB)) score += 3;
+    
+    // Dominant house involvement
+    if (dominantHouses.includes(houseA) || dominantHouses.includes(houseB)) score += 3;
+    
+    // Dominant planet involvement
+    const dominantNames = dominantPlanets.slice(0, 3).map(p => p.planet);
+    if (dominantNames.includes(planetA) || dominantNames.includes(planetB)) score += 2;
+    
+    return { aspect: asp, score, houseA, houseB };
+  });
+  
+  // Sort and take top N
+  scored.sort((a, b) => b.score - a.score);
+  const top = scored.slice(0, maxCount);
+  
+  return top.map(({ aspect, houseA, houseB }) => {
+    const houses = [houseA, houseB].filter(h => h > 0);
+    const lifeAreas = getLifeAreasFromHouses(houses);
+    const quality = ASPECT_QUALITIES[aspect.aspect_type] || 'dynamic';
+    
+    // Build human summary
+    const summaries: { [key: string]: { [key: string]: string } } = {
+      'Sun-Moon': {
+        'conjunction': 'Your sense of self and emotional nature are unified—what you want and what you need align.',
+        'opposition': 'Your identity and emotions pull in different directions, creating an inner dialogue between want and need.',
+        'square': 'Friction between who you are and how you feel. Your wants and needs don\'t easily agree.',
+        'trine': 'Your identity and emotions flow together naturally. Self-expression feels emotionally authentic.',
+        'sextile': 'Your sense of self and emotional nature support each other when you make the effort.'
+      },
+      'Mercury-Pluto': {
+        'conjunction': 'Thinking has unusual depth, intensity, and penetrating quality.',
+        'opposition': 'Mind is drawn to hidden truths but may also obsess or project suspicion.',
+        'square': 'Mental intensity that can become obsessive or paranoid under stress.',
+        'trine': 'Natural depth in thinking—you see beneath surfaces without trying.',
+        'sextile': 'Ability to access deeper understanding when you focus.'
+      },
+      'Venus-Saturn': {
+        'conjunction': 'Love and commitment are fused—relationships are serious matters.',
+        'opposition': 'Tension between desire for connection and fear of inadequacy.',
+        'square': 'Love feels earned rather than given. Relationship lessons come through difficulty.',
+        'trine': 'Loyalty and commitment come naturally. Love deepens over time.',
+        'sextile': 'Ability to build lasting relationships when you invest.'
+      },
+      'Mars-Saturn': {
+        'conjunction': 'Action and discipline are fused—drive meets restraint.',
+        'opposition': 'Tension between impulse and control. Feeling like you\'re driving with brakes on.',
+        'square': 'Frustration between wanting to act and feeling blocked.',
+        'trine': 'Focused, enduring effort. Discipline serves action.',
+        'sextile': 'Ability to channel drive into structured achievement.'
+      },
+      'Sun-Saturn': {
+        'conjunction': 'Identity is bound to responsibility. Self-worth tied to achievement.',
+        'opposition': 'Tension between self-expression and duty.',
+        'square': 'Self-doubt and pressure around identity and authority.',
+        'trine': 'Natural authority and self-discipline.',
+        'sextile': 'Ability to build identity through sustained effort.'
+      },
+      'Moon-Saturn': {
+        'conjunction': 'Emotions filtered through responsibility. Feelings feel earned.',
+        'opposition': 'Tension between emotional needs and duty.',
+        'square': 'Difficulty with emotional expression. Feelings may feel unsafe.',
+        'trine': 'Emotional maturity and stability.',
+        'sextile': 'Ability to mature emotionally through experience.'
+      }
+    };
+    
+    const key1 = `${aspect.point_a}-${aspect.point_b}`;
+    const key2 = `${aspect.point_b}-${aspect.point_a}`;
+    const aspectType = aspect.aspect_type;
+    
+    let humanSummary = summaries[key1]?.[aspectType] || 
+                        summaries[key2]?.[aspectType] ||
+                        `${aspect.point_a} and ${aspect.point_b} are in ${aspectType}—they ${quality === 'flow' ? 'support' : quality === 'tension' ? 'challenge' : 'intensify'} each other.`;
+    
+    // Build "why it matters here"
+    let whyItMatters = '';
+    
+    if (lifeAreas.length > 0) {
+      const areaStr = lifeAreas.join(' and ');
+      if (dominantHouses.includes(houseA) || dominantHouses.includes(houseB)) {
+        whyItMatters = `This matters especially because it lands in ${areaStr}—an area already emphasized in your chart.`;
+      } else if (ANGULAR_HOUSES.includes(houseA) || ANGULAR_HOUSES.includes(houseB)) {
+        whyItMatters = `This is prominent because it involves ${areaStr}—visible, angular territory.`;
+      } else {
+        whyItMatters = `This plays out in ${areaStr}.`;
+      }
+    }
+    
+    const pressureType = quality === 'tension' ? 'pressure' : 
+                         quality === 'flow' ? 'flow' : 'complexity';
+    
+    return {
+      aspectPair: `${aspect.point_a} ${aspect.aspect_type} ${aspect.point_b}`,
+      humanSummary,
+      whyItMattersHere: whyItMatters,
+      pressureType,
+      involvedHouses: houses,
+      lifeAreas
+    };
+  });
+};
+
+// ============================================
+// TRANSIT PATTERN ACTIVATION CHECK
+// ============================================
+
+export const isPatternActivatedByTransit = (
+  patternAnalysis: AspectPatternAnalysis,
+  transits: TransitHit[]
+): { activated: boolean; activationLine: string } => {
+  if (!patternAnalysis.dominantPattern) {
+    return { activated: false, activationLine: '' };
+  }
+  
+  const pattern = patternAnalysis.dominantPattern;
+  const transitPoints = transits.slice(0, 5).map(t => t.natal_point);
+  const transitHouses = transits.slice(0, 5).map(t => t.natal_house).filter(Boolean);
+  
+  let planetsInPattern: string[] = [];
+  let housesInPattern: number[] = [];
+  
+  if (pattern.patternType === 'pressure_triangle') {
+    const triangle = pattern.patternData as PressureTriangle;
+    planetsInPattern = [triangle.focalPlanet, ...triangle.supportingPlanets];
+    housesInPattern = [triangle.focalHouse];
+  } else if (pattern.patternType === 'stellium') {
+    const stellium = pattern.patternData as Stellium;
+    planetsInPattern = stellium.planets;
+    if (stellium.house) housesInPattern = [stellium.house];
+  } else if (pattern.patternType === 'opposition_axis') {
+    const axis = pattern.patternData as OppositionAxis;
+    planetsInPattern = axis.axisPoints.map(p => p.planet);
+    housesInPattern = axis.axisHouses;
+  } else if (pattern.patternType === 'conjunction_chain') {
+    const chain = pattern.patternData as ConjunctionChain;
+    planetsInPattern = chain.planetsInvolved;
+  }
+  
+  // Check for activation
+  const activatedPlanets = transitPoints.filter(p => planetsInPattern.includes(p));
+  const activatedHouses = transitHouses.filter(h => housesInPattern.includes(h));
+  
+  if (activatedPlanets.length > 0 || activatedHouses.length > 0) {
+    let line = '';
+    
+    if (pattern.patternType === 'pressure_triangle') {
+      line = 'This is landing in a part of your chart that already carries built-up pressure.';
+    } else if (pattern.patternType === 'opposition_axis') {
+      line = 'This is activating an existing tension line in your chart.';
+    } else if (pattern.patternType === 'stellium') {
+      line = 'This is waking up a concentrated part of your chart—expect amplification.';
+    } else if (pattern.patternType === 'conjunction_chain') {
+      line = 'This touches a psychological complex in your chart—multiple functions will respond.';
+    } else {
+      line = 'This is touching a structural pattern in your chart.';
+    }
+    
+    return { activated: true, activationLine: line };
+  }
+  
+  return { activated: false, activationLine: '' };
 };

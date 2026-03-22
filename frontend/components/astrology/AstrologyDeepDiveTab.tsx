@@ -17,6 +17,7 @@ import {
   HOUSE_MEANINGS,
   getHouseTheme,
   getPlanetImportanceLine,
+  buildAspectPatternAnalysis,
 } from '../../services/astrology/astrologyInterpreter';
 
 // ============================================
@@ -477,6 +478,7 @@ const CARD_GROUPS = [
   { id: 'core', label: 'CORE SELF', cards: ['sun', 'moon', 'ascendant'] },
   { id: 'mind', label: 'MIND & COMMUNICATION', cards: ['mercury'] },
   { id: 'relating', label: 'RELATING & ACTION', cards: ['venus', 'mars'] },
+  { id: 'structure', label: 'STRUCTURE & INTEGRATION', cards: ['pressure'] },
 ];
 
 // ============================================
@@ -495,127 +497,248 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
 }) => {
   const cards = generateDeepDiveCards(placements, fullChartData);
   
+  // Build pressure pattern analysis
+  const patternAnalysis = buildAspectPatternAnalysis(fullChartData);
+  const howPressureBuilds = patternAnalysis.howPressureBuilds;
+  
+  // Create a pressure card if there's a significant pattern
+  const pressureCard: AstrologyDeepDiveCard | null = howPressureBuilds.hasSignificantPattern ? {
+    id: 'pressure',
+    title: 'How This Chart Builds Pressure',
+    subtitle: 'The shape of tension in your psychology',
+    preview: 'What keeps tightening, where it collects, and what it asks of you.',
+    whatThisIs: howPressureBuilds.mainStatement,
+    whatYouMightNotice: [
+      howPressureBuilds.whatKeepsTightening,
+      howPressureBuilds.whereItCollects,
+      howPressureBuilds.howItTriesToResolve,
+    ].filter(Boolean),
+    tensionLabel: 'What keeps tightening',
+    tension: howPressureBuilds.whatKeepsTightening,
+    giftLabel: 'The gift inside the pressure',
+    gift: howPressureBuilds.giftInsideThePressure,
+    reflection: howPressureBuilds.reflectionQuestion
+  } : null;
+  
   // Create a map for quick card lookup
   const cardMap = new Map(cards.map(c => [c.id, c]));
+  if (pressureCard) {
+    cardMap.set('pressure', pressureCard);
+  }
 
   return (
     <View style={styles.deepDiveContainer}>
-      {CARD_GROUPS.map(group => (
-        <View key={group.id} style={styles.cardGroup}>
-          <Text style={[styles.groupLabel, { color: theme.textTertiary }]}>{group.label}</Text>
-          
-          {group.cards.map(cardId => {
-            const card = cardMap.get(cardId);
-            if (!card) return null;
+      {CARD_GROUPS.map(group => {
+        // Skip structure group if no pressure pattern
+        if (group.id === 'structure' && !pressureCard) return null;
+        
+        return (
+          <View key={group.id} style={styles.cardGroup}>
+            <Text style={[styles.groupLabel, { color: theme.textTertiary }]}>{group.label}</Text>
             
-            const isExpanded = expandedCards.has(card.id);
-            const importanceLine = getPlanetImportanceLine(
-              card.id === 'sun' ? 'Sun' : 
-              card.id === 'moon' ? 'Moon' : 
-              card.id === 'ascendant' ? 'Ascendant' :
-              card.id === 'mercury' ? 'Mercury' :
-              card.id === 'venus' ? 'Venus' :
-              card.id === 'mars' ? 'Mars' : '',
-              fullChartData
-            );
-            
-            return (
-              <TouchableOpacity
-                key={card.id}
-                style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                onPress={() => toggleCard(card.id)}
-                activeOpacity={0.7}
-              >
-                {/* Card Header */}
-                <View style={styles.deepDiveCardHeader}>
-                  <View style={styles.deepDiveCardTitleRow}>
-                    <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{card.title}</Text>
-                    <Text style={[styles.deepDiveExpandIcon, { color: theme.textTertiary }]}>
-                      {isExpanded ? '▴' : '▾'}
-                    </Text>
-                  </View>
-                  <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
-                  {!isExpanded && (
-                    <Text style={[styles.deepDiveCardPreview, { color: theme.textSecondary }]}>
-                      {card.preview}
-                    </Text>
-                  )}
-                </View>
-
-                {/* Card Content */}
-                {isExpanded && (
-                  <View style={styles.deepDiveCardContent}>
-                    {/* Planet Importance Line */}
-                    {importanceLine && (
-                      <View style={[styles.deepDiveSection, { marginBottom: 8 }]}>
-                        <Text style={[styles.planetImportanceLine, { color: theme.accent }]}>
-                          {importanceLine}
+            {group.cards.map(cardId => {
+              const card = cardMap.get(cardId);
+              if (!card) return null;
+              
+              const isExpanded = expandedCards.has(card.id);
+              const importanceLine = cardId !== 'pressure' ? getPlanetImportanceLine(
+                card.id === 'sun' ? 'Sun' : 
+                card.id === 'moon' ? 'Moon' : 
+                card.id === 'ascendant' ? 'Ascendant' :
+                card.id === 'mercury' ? 'Mercury' :
+                card.id === 'venus' ? 'Venus' :
+                card.id === 'mars' ? 'Mars' : '',
+                fullChartData
+              ) : '';
+              
+              // For pressure card, render a special version
+              if (cardId === 'pressure') {
+                return (
+                  <TouchableOpacity
+                    key={card.id}
+                    style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}
+                    onPress={() => toggleCard(card.id)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.deepDiveCardHeader}>
+                      <View style={styles.deepDiveCardTitleRow}>
+                        <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{card.title}</Text>
+                        <Text style={[styles.deepDiveExpandIcon, { color: theme.textTertiary }]}>
+                          {isExpanded ? '▴' : '▾'}
                         </Text>
+                      </View>
+                      <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
+                      {!isExpanded && (
+                        <Text style={[styles.deepDiveCardPreview, { color: theme.textSecondary }]}>
+                          {card.preview}
+                        </Text>
+                      )}
+                    </View>
+                    
+                    {isExpanded && (
+                      <View style={styles.deepDiveCardContent}>
+                        {/* What This Is */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>THE PATTERN</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{card.whatThisIs}</Text>
+                          {howPressureBuilds.lifeAreaStatement && (
+                            <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, fontStyle: 'italic', marginTop: 8 }]}>
+                              {howPressureBuilds.lifeAreaStatement}
+                            </Text>
+                          )}
+                        </View>
+                        
+                        {/* What Keeps Tightening */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHAT KEEPS TIGHTENING</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{howPressureBuilds.whatKeepsTightening}</Text>
+                        </View>
+                        
+                        {/* Where It Collects */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHERE IT COLLECTS</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{howPressureBuilds.whereItCollects}</Text>
+                        </View>
+                        
+                        {/* How It Tries to Resolve */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>HOW IT TRIES TO RESOLVE</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{howPressureBuilds.howItTriesToResolve}</Text>
+                        </View>
+                        
+                        {/* Gift */}
+                        <View style={[styles.deepDiveSection, { backgroundColor: '#E8F5E910', padding: 12, borderRadius: 8 }]}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: '#5A8A62' }]}>THE GIFT INSIDE THE PRESSURE</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{howPressureBuilds.giftInsideThePressure}</Text>
+                        </View>
+                        
+                        {/* Reflection Question */}
+                        <View style={[styles.deepDiveSection, { backgroundColor: theme.accent + '08', padding: 12, borderRadius: 8 }]}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: theme.accent }]}>A QUESTION TO SIT WITH</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text, fontStyle: 'italic' }]}>
+                            {howPressureBuilds.reflectionQuestion}
+                          </Text>
+                        </View>
+                        
+                        {/* Actions */}
+                        <View style={styles.deepDiveActions}>
+                          <TouchableOpacity
+                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent + '10' }]}
+                            onPress={() => onReflect(card)}
+                          >
+                            <Text style={[styles.deepDiveActionText, { color: theme.accent }]}>Reflect on this</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.deepDiveActionButton, { backgroundColor: theme.surfaceLight }]}
+                            onPress={() => onJournal(card)}
+                          >
+                            <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Journal</Text>
+                          </TouchableOpacity>
+                        </View>
                       </View>
                     )}
-
-                    {/* What this is */}
-                    <View style={styles.deepDiveSection}>
-                      <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHAT THIS IS</Text>
-                      <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary }]}>{card.whatThisIs}</Text>
+                  </TouchableOpacity>
+                );
+              }
+              
+              return (
+                <TouchableOpacity
+                  key={card.id}
+                  style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  onPress={() => toggleCard(card.id)}
+                  activeOpacity={0.7}
+                >
+                  {/* Card Header */}
+                  <View style={styles.deepDiveCardHeader}>
+                    <View style={styles.deepDiveCardTitleRow}>
+                      <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{card.title}</Text>
+                      <Text style={[styles.deepDiveExpandIcon, { color: theme.textTertiary }]}>
+                        {isExpanded ? '▴' : '▾'}
+                      </Text>
                     </View>
-
-                    {/* What you might notice */}
-                    <View style={styles.deepDiveSection}>
-                      <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHAT YOU MIGHT NOTICE</Text>
-                      {card.whatYouMightNotice.map((item, i) => (
-                        <Text key={i} style={[styles.deepDiveNoticeBullet, { color: theme.textSecondary }]}>
-                          • {item}
-                        </Text>
-                      ))}
-                    </View>
-
-                    {/* Tension & Gift */}
-                    <View style={styles.deepDiveTensionGiftRow}>
-                      <View style={[styles.deepDiveTensionCard, { backgroundColor: '#FFEBEE', borderColor: '#FFCDD2' }]}>
-                        <Text style={[styles.deepDiveTensionLabel, { color: '#B71C1C' }]}>{card.tensionLabel.toUpperCase()}</Text>
-                        <Text style={[styles.deepDiveTensionText, { color: '#6B3333' }]}>{card.tension}</Text>
-                      </View>
-                      <View style={[styles.deepDiveGiftCard, { backgroundColor: '#E8F5E9', borderColor: '#C8E6C9' }]}>
-                        <Text style={[styles.deepDiveGiftLabel, { color: '#1B5E20' }]}>{card.giftLabel.toUpperCase()}</Text>
-                        <Text style={[styles.deepDiveGiftText, { color: '#2E5932' }]}>{card.gift}</Text>
-                      </View>
-                    </View>
-
-                    {/* Reflection */}
-                    <View style={[styles.deepDiveReflection, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
-                      <Text style={[styles.deepDiveReflectionLabel, { color: theme.accent }]}>REFLECTION</Text>
-                      <Text style={[styles.deepDiveReflectionText, { color: theme.text }]}>{card.reflection}</Text>
-                    </View>
-
-                    {/* Actions */}
-                    <View style={styles.deepDiveActions}>
-                      <TouchableOpacity
-                        style={[styles.deepDiveActionButton, { borderColor: theme.border }]}
-                        onPress={() => onReflect(card)}
-                      >
-                        <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Reflect</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.deepDiveActionButton, { borderColor: theme.border }]}
-                        onPress={() => onJournal(card)}
-                      >
-                        <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Journal</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.deepDiveActionButton, { backgroundColor: theme.accent, borderColor: theme.accent }]}
-                        onPress={() => onAskMirror(card)}
-                      >
-                        <Text style={[styles.deepDiveActionText, { color: theme.background }]}>Ask Mirror</Text>
-                      </TouchableOpacity>
-                    </View>
+                    <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
+                    {!isExpanded && (
+                      <Text style={[styles.deepDiveCardPreview, { color: theme.textSecondary }]}>
+                        {card.preview}
+                      </Text>
+                    )}
                   </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      ))}
+
+                  {/* Card Content */}
+                  {isExpanded && (
+                    <View style={styles.deepDiveCardContent}>
+                      {/* Planet Importance Line */}
+                      {importanceLine && (
+                        <View style={[styles.deepDiveSection, { marginBottom: 8 }]}>
+                          <Text style={[styles.planetImportanceLine, { color: theme.accent }]}>
+                            {importanceLine}
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* What this is */}
+                      <View style={styles.deepDiveSection}>
+                        <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHAT THIS IS</Text>
+                        <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary }]}>{card.whatThisIs}</Text>
+                      </View>
+
+                      {/* What you might notice */}
+                      <View style={styles.deepDiveSection}>
+                        <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHAT YOU MIGHT NOTICE</Text>
+                        {card.whatYouMightNotice.map((item, i) => (
+                          <Text key={i} style={[styles.deepDiveNoticeBullet, { color: theme.textSecondary }]}>
+                            • {item}
+                          </Text>
+                        ))}
+                      </View>
+
+                      {/* Tension & Gift */}
+                      <View style={styles.deepDiveTensionGiftRow}>
+                        <View style={[styles.deepDiveTensionCard, { backgroundColor: '#FFEBEE', borderColor: '#FFCDD2' }]}>
+                          <Text style={[styles.deepDiveTensionLabel, { color: '#B71C1C' }]}>{card.tensionLabel.toUpperCase()}</Text>
+                          <Text style={[styles.deepDiveTensionText, { color: '#6B3333' }]}>{card.tension}</Text>
+                        </View>
+                        <View style={[styles.deepDiveGiftCard, { backgroundColor: '#E8F5E9', borderColor: '#C8E6C9' }]}>
+                          <Text style={[styles.deepDiveGiftLabel, { color: '#1B5E20' }]}>{card.giftLabel.toUpperCase()}</Text>
+                          <Text style={[styles.deepDiveGiftText, { color: '#2E5932' }]}>{card.gift}</Text>
+                        </View>
+                      </View>
+
+                      {/* Reflection */}
+                      <View style={[styles.deepDiveReflection, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+                        <Text style={[styles.deepDiveReflectionLabel, { color: theme.accent }]}>REFLECTION</Text>
+                        <Text style={[styles.deepDiveReflectionText, { color: theme.text }]}>{card.reflection}</Text>
+                      </View>
+
+                      {/* Actions */}
+                      <View style={styles.deepDiveActions}>
+                        <TouchableOpacity
+                          style={[styles.deepDiveActionButton, { borderColor: theme.border }]}
+                          onPress={() => onReflect(card)}
+                        >
+                          <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Reflect</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.deepDiveActionButton, { borderColor: theme.border }]}
+                          onPress={() => onJournal(card)}
+                        >
+                          <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Journal</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.deepDiveActionButton, { backgroundColor: theme.accent, borderColor: theme.accent }]}
+                          onPress={() => onAskMirror(card)}
+                        >
+                          <Text style={[styles.deepDiveActionText, { color: theme.background }]}>Ask Mirror</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        );
+      })}
     </View>
   );
 };
