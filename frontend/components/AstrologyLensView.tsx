@@ -679,6 +679,50 @@ const getKeyAspects = (fullChartData: FullChartData | null, placements: CorePlac
 };
 
 // ============================================
+// HOUSE → LIFE DOMAIN MAPPING (Natural language, not astrological)
+// ============================================
+
+const HOUSE_DOMAINS: { [key: number]: string } = {
+  1: "how you're showing up and being seen",
+  2: "money, value, or what you're holding onto",
+  3: "conversations, decisions, or things you're trying to explain",
+  4: "home, family, or your internal emotional state",
+  5: "creative expression, enjoyment, or attention",
+  6: "work, routines, or things that require discipline",
+  7: "relationships or ongoing dynamics with others",
+  8: "shared commitments, money, or emotional entanglements",
+  9: "beliefs, direction, or something expanding your perspective",
+  10: "career, visibility, or responsibility others place on you",
+  11: "friends, networks, or future plans",
+  12: "something you're avoiding, suppressing, or not fully seeing"
+};
+
+// Generate life area context line from activated houses
+const getLifeAreaContext = (transits: TransitHit[]): string => {
+  if (!transits || transits.length === 0) return "";
+  
+  // Extract unique houses from top transits
+  const houses: number[] = [];
+  for (const hit of transits.slice(0, 3)) {
+    if (hit.natal_house && !houses.includes(hit.natal_house)) {
+      houses.push(hit.natal_house);
+    }
+  }
+  
+  if (houses.length === 0) return "";
+  
+  const selected = houses.slice(0, 2).map(h => HOUSE_DOMAINS[h]).filter(Boolean);
+  
+  if (selected.length === 0) return "";
+  
+  if (selected.length === 1) {
+    return `This is most likely showing up in ${selected[0]}.`;
+  }
+  
+  return `This is most likely showing up in ${selected[0]}—and possibly in ${selected[1]}.`;
+};
+
+// ============================================
 // TODAY TAB EXPERIENTIAL CONTENT
 // RECOGNITION-BASED MIRROR VOICE
 // ============================================
@@ -2732,6 +2776,9 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
       activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today'
     );
 
+    // Get life area context (house-based)
+    const lifeAreaContext = getLifeAreaContext(currentWindow?.strongest_hits || []);
+
     // Get refined content (max 3 items each) - PASS TIMEFRAME
     const currentTimeframe = activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today';
     const feelings = getWhatThisMayFeelLike(currentWindow?.strongest_hits || [], currentTimeframe).slice(0, 3);
@@ -2788,6 +2835,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           <Text style={[styles.dailyEnergyBody, { color: theme.text }]}>
             {energySynthesis.body}
           </Text>
+          {lifeAreaContext ? (
+            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
+              {lifeAreaContext}
+            </Text>
+          ) : null}
           {energySynthesis.supporting && (
             <Text style={[styles.dailyEnergySupporting, { color: theme.textTertiary }]}>
               {energySynthesis.supporting}
@@ -4041,6 +4093,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 23,
     marginBottom: 12,
+  },
+  dailyEnergyContext: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 12,
+    fontStyle: 'normal',
   },
   dailyEnergySupporting: {
     fontSize: 11,
