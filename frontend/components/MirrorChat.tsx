@@ -1028,7 +1028,7 @@ export default function MirrorChat({
       {!lens && hasDominantPattern && dominantTruthData?.topChip && (
         <View style={styles.dominantTruthChip}>
           <Text style={styles.dominantTruthChipIcon}>✧</Text>
-          <Text style={styles.dominantTruthChipText} numberOfLines={1}>
+          <Text style={styles.dominantTruthChipText} numberOfLines={2}>
             {dominantTruthData.topChip}
           </Text>
         </View>
@@ -1317,27 +1317,29 @@ const styles = StyleSheet.create({
   // Dominant Truth Chip (Master Layer Integration)
   dominantTruthChip: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     alignSelf: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     backgroundColor: 'rgba(139, 92, 246, 0.08)',
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(139, 92, 246, 0.3)',
     marginBottom: 8,
-    gap: 6,
-    maxWidth: '90%',
+    marginHorizontal: 16,
+    gap: 8,
   },
   dominantTruthChipIcon: {
     fontSize: 12,
     color: Colors.accent,
+    marginTop: 2,
   },
   dominantTruthChipText: {
     fontSize: 12,
     fontWeight: '500',
     color: Colors.accent,
     flex: 1,
+    lineHeight: 18,
   },
 
   // Thread Modal
