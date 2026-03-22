@@ -17,15 +17,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 import { useAppStore, storage } from '../../store';
 import JournalEntryItem from '../../components/JournalEntryItem';
 import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import MirrorChat from '../../components/MirrorChat';
+import MicroMirrorCard from '../../components/MicroMirrorCard';
 import { createJournalEntry, getJournalEntries, getCombinedTimeline, TimelineItem, updateJournalEntry, deleteJournalEntry } from '../../services/api';
 import api from '../../services/api';
+import { generateMicroMirrorResponse } from '../../services/microMirrorService';
 // Task 51: Lunar Decision Journal Components
 import LunarDecisionJournalCard, { LunarJournalStatus } from '../../components/journal/LunarDecisionJournalCard';
 import LunarTimelineView from '../../components/journal/LunarTimelineView';
@@ -212,6 +214,12 @@ export default function JournalScreen() {
   // Dominant Truth for Journal prefill (Master Layer Integration)
   const { data: dominantTruthData, isLoading: isDominantTruthLoading, hasPattern: hasDominantPattern } = useDominantTruthForJournal(user?.id);
   const [dominantTruthPrefilled, setDominantTruthPrefilled] = useState(false);
+
+  // Micro-Mirror response state (inline response after journal save)
+  const [microMirrorResponse, setMicroMirrorResponse] = useState<string | null>(null);
+  const [microMirrorEntryId, setMicroMirrorEntryId] = useState<string | null>(null);
+  const [microMirrorVisible, setMicroMirrorVisible] = useState(false);
+  const router = useRouter();
 
   // Collapsible intro card state (Part 1 & 2)
   const [introCardExpanded, setIntroCardExpanded] = useState(true);
@@ -585,6 +593,9 @@ export default function JournalScreen() {
     setIsSubmitting(true);
     setError('');
 
+    // Capture the entry text for Micro-Mirror response generation
+    const entryText = newEntry.trim();
+
     try {
       // Include pattern metadata if present
       const metadata = patternMetadata ? {
@@ -594,12 +605,20 @@ export default function JournalScreen() {
         prompt_text: patternMetadata.prompt_text
       } : undefined;
       
-      const entry = await createJournalEntry(user.id, newEntry.trim(), metadata);
+      const entry = await createJournalEntry(user.id, entryText, metadata);
       addJournalEntry(entry);
       setNewEntry('');
       
       // Clear pattern metadata after successful submission
       setPatternMetadata(null);
+
+      // Generate and show Micro-Mirror response (non-blocking)
+      if (entryText.length >= 10) {
+        const mirrorResponse = generateMicroMirrorResponse(entryText);
+        setMicroMirrorResponse(mirrorResponse);
+        setMicroMirrorEntryId(entry.id);
+        setMicroMirrorVisible(true);
+      }
     } catch (err: any) {
       console.error('Create entry error:', err);
       setError('Unable to save entry. Please try again.');
@@ -607,6 +626,30 @@ export default function JournalScreen() {
       setIsSubmitting(false);
     }
   };
+
+  // Micro-Mirror action handlers
+  const handleMicroMirrorReflect = useCallback(() => {
+    if (microMirrorEntryId && journalEntries.length > 0) {
+      const entry = journalEntries.find(e => e.id === microMirrorEntryId);
+      if (entry) {
+        handleReflect(entry.id, entry.content);
+      }
+    }
+  }, [microMirrorEntryId, journalEntries, handleReflect]);
+
+  const handleMicroMirrorAskMirror = useCallback(() => {
+    // Navigate to Mirror chat with context
+    setActiveMode('mirror');
+  }, []);
+
+  // Reset Micro-Mirror when new entry is being typed
+  useEffect(() => {
+    if (newEntry.trim().length > 0 && microMirrorVisible) {
+      setMicroMirrorVisible(false);
+      setMicroMirrorResponse(null);
+      setMicroMirrorEntryId(null);
+    }
+  }, [newEntry, microMirrorVisible]);
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
@@ -1461,6 +1504,17 @@ export default function JournalScreen() {
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
               </View>
+            )}
+
+            {/* Micro-Mirror Response (appears after journal save) */}
+            {microMirrorVisible && microMirrorResponse && (
+              <MicroMirrorCard
+                text={microMirrorResponse}
+                visible={microMirrorVisible}
+                onReflect={handleMicroMirrorReflect}
+                onAskMirror={handleMicroMirrorAskMirror}
+                entryId={microMirrorEntryId || undefined}
+              />
             )}
 
             {/* Entries List */}
