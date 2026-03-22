@@ -281,6 +281,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           theme={theme}
           onOpenChat={onOpenChat}
           onReflect={handleTodayReflect}
+          onSwitchToTimeline={() => setActiveTab('timeline')}
         />
       );
     }

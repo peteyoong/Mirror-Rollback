@@ -164,6 +164,94 @@ interface AstrologyTodayTabProps {
   theme: any;
   onOpenChat: () => void;
   onReflect: (question: string) => void;
+  onSwitchToTimeline?: () => void;
+}
+
+// ============================================
+// TIMELINE PHASE DETECTION
+// ============================================
+
+interface CurrentPhase {
+  name: string;
+  dateRange: string;
+  summary: string;
+  isPrimary: boolean;
+  id: string;
+}
+
+function getCurrentTimelinePhase(): CurrentPhase | null {
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-11
+  const currentYear = now.getFullYear();
+  
+  // Q1: Jan-Mar (months 0-2)
+  if (currentMonth >= 0 && currentMonth <= 2) {
+    return {
+      id: 'q1',
+      name: 'Recognition',
+      dateRange: `Jan – Mar ${currentYear}`,
+      summary: 'The year\'s dominant tension is beginning to show itself in small, easy-to-dismiss moments.',
+      isPrimary: false,
+    };
+  }
+  
+  // Q2: Apr-Jun (months 3-5)
+  if (currentMonth >= 3 && currentMonth <= 5) {
+    return {
+      id: 'q2',
+      name: 'Confrontation',
+      dateRange: `Apr – Jun ${currentYear}`,
+      summary: 'What you\'ve been tolerating becomes harder to keep calling "manageable."',
+      isPrimary: true,
+    };
+  }
+  
+  // Q3: Jul-Sep (months 6-8)
+  if (currentMonth >= 6 && currentMonth <= 8) {
+    return {
+      id: 'q3',
+      name: 'The Crossroads',
+      dateRange: `Jul – Sep ${currentYear}`,
+      summary: 'Two versions of your direction become visible—the question is which one you\'ll commit to.',
+      isPrimary: true,
+    };
+  }
+  
+  // Q4: Oct-Dec (months 9-11)
+  if (currentMonth >= 9 && currentMonth <= 11) {
+    return {
+      id: 'q4',
+      name: 'Integration',
+      dateRange: `Oct – Dec ${currentYear}`,
+      summary: 'The year\'s lessons are settling—either as earned clarity or recognition of what needs another cycle.',
+      isPrimary: false,
+    };
+  }
+  
+  return null;
+}
+
+function getTimelineLinkingLine(phase: CurrentPhase | null, altitude: Timeframe): string | null {
+  if (!phase) return null;
+  
+  const phaseName = phase.name;
+  
+  if (altitude === 'today') {
+    if (phase.isPrimary) {
+      return `This isn't just today—this is part of your ${phaseName} phase.`;
+    }
+    return `This moment is connected to a larger ${phaseName.toLowerCase()} happening this quarter.`;
+  }
+  
+  if (altitude === 'week') {
+    return `This week sits inside your ${phaseName} phase.`;
+  }
+  
+  if (altitude === 'month') {
+    return `This month is where your ${phaseName} phase becomes more visible.`;
+  }
+  
+  return null;
 }
 
 // ============================================
@@ -175,9 +263,14 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
   theme,
   onOpenChat,
   onReflect,
+  onSwitchToTimeline,
 }) => {
   const [activeAltitude, setActiveAltitude] = useState<Timeframe>('today');
   const [signalsExpanded, setSignalsExpanded] = useState(false);
+
+  // Get current timeline phase
+  const currentPhase = getCurrentTimelinePhase();
+  const timelineLinkingLine = getTimelineLinkingLine(currentPhase, activeAltitude);
 
   // Get transit window based on timeframe
   const getTransitWindow = (): TransitWindow | null => {
@@ -272,6 +365,25 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
         </TouchableOpacity>
       </View>
 
+      {/* TIMELINE CONTEXT STRIP - Connects Today to larger arc */}
+      {currentPhase && onSwitchToTimeline && (
+        <TouchableOpacity
+          style={styles.timelineContextStrip}
+          onPress={onSwitchToTimeline}
+          activeOpacity={0.7}
+        >
+          <View style={styles.timelineContextLeft}>
+            <Text style={[styles.timelineContextPhase, { color: theme.textSecondary }]}>
+              {currentPhase.isPrimary ? '⭐ ' : ''}{currentPhase.name}
+            </Text>
+            <Text style={[styles.timelineContextDate, { color: theme.textTertiary }]}>
+              {currentPhase.dateRange}
+            </Text>
+          </View>
+          <Text style={[styles.timelineContextArrow, { color: theme.textTertiary }]}>→</Text>
+        </TouchableOpacity>
+      )}
+
       {/* DOMINANT TRUTH CARD - Master Astrologer v5 */}
       {hasDominantTruth && collapsedInsights.narrative ? (
         <View style={[styles.dominantTruthCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
@@ -291,6 +403,13 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
           <Text style={[styles.coreTruthText, { color: theme.text }]}>
             {collapsedInsights.narrative.coreTruth}
           </Text>
+          
+          {/* Timeline Linking Line - Micro context */}
+          {timelineLinkingLine && (
+            <Text style={[styles.timelineLinkingLine, { color: theme.textTertiary }]}>
+              {timelineLinkingLine}
+            </Text>
+          )}
           
           {/* Where This Shows Up */}
           <View style={[styles.whereShowsUp, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
@@ -744,6 +863,38 @@ const styles = StyleSheet.create({
   askMirrorText: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  // TIMELINE CONTEXT STRIP STYLES
+  timelineContextStrip: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+  },
+  timelineContextLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  timelineContextPhase: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  timelineContextDate: {
+    fontSize: 11,
+  },
+  timelineContextArrow: {
+    fontSize: 12,
+  },
+  timelineLinkingLine: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginBottom: 14,
+    marginTop: -4,
   },
 });
 
