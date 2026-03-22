@@ -10,7 +10,7 @@ import time
 from typing import Dict, Any, Optional
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://sidereal-lens-v2.preview.emergentagent.com/api"
+BACKEND_URL = "https://lens-rebuild.preview.emergentagent.com/api"
 
 # Test user ID from review request
 TEST_USER_ID = "6971c81f2b40fd5ef501d375"

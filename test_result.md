@@ -300,7 +300,7 @@ backend:
           - Response time under 5 seconds (0.23s) ✅
           
           📊 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Backend logs confirm successful processing with cross-lens derivation ✅
           - force_refresh parameter working correctly ✅
@@ -382,7 +382,7 @@ backend:
              - All optional fields present with correct data types
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1s for both requests)
           - Backend logs confirm successful processing
@@ -451,7 +451,7 @@ backend:
              - Summary endpoint correctly includes computed name-based numbers in narrative
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing and cache invalidation
@@ -905,7 +905,7 @@ backend:
                * incarnation_cross_gates: Consistent ✅ (null)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - JSON structure consistent between Summary and Deep Dive endpoints
@@ -966,7 +966,7 @@ backend:
              - Complete Payload: All nested objects preserved correctly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 5 seconds)
           - Backend logs confirm successful processing
@@ -1035,7 +1035,7 @@ backend:
              - Implementation matches review request specifications exactly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing
@@ -1062,7 +1062,7 @@ frontend:
           🚫 CRITICAL ISSUE: Unable to complete login process with peter@test.com
           
           📋 TESTING ATTEMPTED:
-          1. ✅ Successfully accessed Mirror app at https://sidereal-lens-v2.preview.emergentagent.com
+          1. ✅ Successfully accessed Mirror app at https://lens-rebuild.preview.emergentagent.com
           2. ✅ Found "Existing User" button and clicked it
           3. ✅ Found email input field and filled with peter@test.com
           4. ❌ Login process failed - unable to proceed to main app interface
@@ -1286,7 +1286,7 @@ frontend:
              - Backend Logs: "[Enneagram] Saved result for user 69819f1a1e4549392d7cb6d1: Type 7w8"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Backend service stable with proper logging
           - Response times acceptable (< 5 seconds)
@@ -1382,7 +1382,7 @@ frontend:
           🧪 COMPREHENSIVE TESTING PERFORMED (2/2 TESTS PASSED):
           
           **Test User:** 6971c81f2b40fd5ef501d375 (Sun=Pisces, Moon=Aries, Ascendant=Sagittarius)
-          **Base URL:** https://sidereal-lens-v2.preview.emergentagent.com/api
+          **Base URL:** https://lens-rebuild.preview.emergentagent.com/api
           
           1. ✅ **ASTROLOGY SUMMARY ENDPOINT** (GET /api/astrology/summary/{user_id}):
              - Status: 200 OK, Response time: 5.67 seconds
@@ -1731,7 +1731,7 @@ backend:
           - has_transit_emphasis flag working correctly for frontend highlighting
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing
@@ -1755,7 +1755,7 @@ backend:
              - Successfully parsed as datetime object
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - Gene Keys signals properly mapped to categories
@@ -1829,7 +1829,7 @@ backend:
              - Each signal has required fields: source, label (with optional sphere_name, detail)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - Human Design centers properly mapped to pattern categories
@@ -1893,7 +1893,7 @@ backend:
              - Mirror philosophy preserved: No "you should", maintains agency, reflective language present
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - Gene Keys matching algorithm working correctly with shadow/gift keyword detection
           - Debug logging functional: [GK_MATCH] and [GK_MATCH_DEBUG] entries present
           - Context awareness integration with Mirror Chat system prompt working
@@ -1959,7 +1959,7 @@ backend:
           - Template Content: Rich, reflective interpretations for both defined and undefined states
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -2029,7 +2029,7 @@ backend:
              - Excellent backend integration performance
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -2094,7 +2094,7 @@ backend:
              - Language Compliance: Meets review request specification for signal strength terminology ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing
@@ -2158,7 +2158,7 @@ agent_communication:
       - Content quality meets specifications: practical, reflective, non-jargon-heavy
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://sidereal-lens-v2.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://lens-rebuild.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (0.27 seconds)
       - ✅ Human Design computation and gates service integration working correctly
       - ✅ Template-based interpretations functioning properly
@@ -2205,7 +2205,7 @@ agent_communication:
       - Response format matches all specified requirements
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://sidereal-lens-v2.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://lens-rebuild.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (< 2 seconds)
       - ✅ Pattern graph service integration working correctly
       - ✅ Time bucket aggregation functioning properly
@@ -2249,7 +2249,7 @@ agent_communication:
       - Rich template-based interpretations for both defined and undefined states
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://sidereal-lens-v2.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://lens-rebuild.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (< 1 second)
       - ✅ Human Design computation and centers service integration working correctly
       - ✅ Template-based interpretations (no LLM dependency) functioning properly
@@ -2285,7 +2285,7 @@ agent_communication:
          - Subtle Gene Keys integration when relevant
       
       **Backend Integration Verified:**
-      - ✅ All endpoints accessible via https://sidereal-lens-v2.preview.emergentagent.com/api
+      - ✅ All endpoints accessible via https://lens-rebuild.preview.emergentagent.com/api
       - ✅ Gene Keys matching algorithm working correctly with shadow/gift detection
       - ✅ Debug logging functional: [GK_MATCH] and [GK_MATCH_DEBUG] entries present
       - ✅ Context awareness integration with Mirror Chat system prompt working
@@ -2465,7 +2465,7 @@ agent_communication:
       - Contract validation system working correctly
       
       🔧 BACKEND INTEGRATION VERIFIED:
-      - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+      - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
       - No HTTP errors or timeouts
       - Response times acceptable (1-3 seconds)
       - Backend logs confirm emergent_generate usage
@@ -2697,7 +2697,7 @@ agent_communication:
       ✅ BACKEND LOGS: Confirm caching working with "[DailyFocus] Returning cached focus" messages
       
       🔧 INTEGRATION VERIFICATION:
-      ✅ Both endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+      ✅ Both endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
       ✅ No HTTP errors or timeouts
       ✅ Backend service stable with no error logs
       ✅ Response times acceptable (< 2 seconds)
@@ -2914,7 +2914,7 @@ agent_communication:
       ❌ CRITICAL ISSUE IDENTIFIED - API ROUTING PROBLEM:
       - Summary tab shows "Unable to load this view right now" error
       - Frontend making requests to http://localhost:3000/api/* (404 errors)
-      - Backend running on port 8001, accessible via https://sidereal-lens-v2.preview.emergentagent.com/api/*
+      - Backend running on port 8001, accessible via https://lens-rebuild.preview.emergentagent.com/api/*
       - API service configured for relative URLs on web platform, but proxy routing not working
       - Console logs show: "Failed to load resource: the server responded with a status of 404 (Not Found)"
       
@@ -2964,7 +2964,7 @@ agent_communication:
       - Same API routing problem identified in previous testing sessions
       - Frontend API service uses relative URLs expecting proxy routing (/api/*)
       - Ingress/proxy not routing requests to backend (port 8001)
-      - Backend accessible directly via https://sidereal-lens-v2.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://lens-rebuild.preview.emergentagent.com/api/*
       - Affects all lens views (Astrology, Human Design, Numerology)
       
       📊 SHIP GATE TEST RESULTS:
@@ -3020,7 +3020,7 @@ agent_communication:
       🚨 ROOT CAUSE: API ROUTING ISSUE
       - Frontend API service uses relative URLs expecting proxy routing
       - Ingress/proxy not routing /api/* requests to backend (port 8001)
-      - Backend accessible directly via https://sidereal-lens-v2.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://lens-rebuild.preview.emergentagent.com/api/*
       - Same issue affects all lens views (Astrology, Human Design, Numerology)
       
       CONCLUSION: The Numerology Full Name Gate UI is implemented correctly and shows proper locked state, but the unlock flow cannot be verified due to API connectivity issues. The frontend correctly displays lock icons for name-based numbers (Expression, Soul Urge) while showing computed numbers for birth date-based calculations (Life Path).
@@ -3121,7 +3121,7 @@ agent_communication:
       ✅ Structure matches specification exactly
       
       **Backend Integration Verified:**
-      - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+      - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
       - Cross-lens derivation working: 3 lenses contributing (Journal, Lifeline, Astrology)
       - Backend logs confirm pattern selection: "relational_reopening" with moderate signal strength
       - force_refresh parameter working correctly for fresh data generation
@@ -3167,7 +3167,7 @@ agent_communication:
       🚫 CRITICAL FINDING: Unable to test Patterns tab accordion functionality due to authentication failure with peter@test.com user.
       
       📋 WHAT WAS TESTED:
-      - ✅ App loads correctly at https://sidereal-lens-v2.preview.emergentagent.com
+      - ✅ App loads correctly at https://lens-rebuild.preview.emergentagent.com
       - ✅ Mobile responsiveness confirmed (390x844 viewport)
       - ✅ "Existing User" flow initiates properly
       - ✅ Email input accepts peter@test.com
@@ -3356,7 +3356,7 @@ backend:
              - Exactly 4 weeks returned (within limit) ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.37s - well under requirements)
           - Backend logs confirm successful processing
@@ -3611,7 +3611,7 @@ agent_communication:
              - Response consistency: Identical data between requests ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 1s for all requests) ✅
           - Backend logs confirm successful processing and caching ✅
@@ -3913,7 +3913,7 @@ backend:
                * groups: [] ✅ (empty groups array)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second for all endpoints)
           - Backend logs confirm successful processing
@@ -4001,7 +4001,7 @@ backend:
           - **TOTAL: 48/48 (100% SUCCESS RATE)**
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.26s)
           - Backend logs confirm successful processing: "[BaZi V2] Generated full chart for user 6971c81f2b40fd5ef501d375: Day Master = Xin Metal (strong)"
@@ -4076,7 +4076,7 @@ backend:
              - All expected behavioral expressions present ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.52s) ✅
           - Backend logs confirm successful processing ✅
@@ -4370,7 +4370,7 @@ agent_communication:
              - ✅ Data Consistency: Event count updates properly reflect create/delete operations
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times acceptable (< 10 seconds)
           - Backend logs confirm successful processing:
@@ -4456,7 +4456,7 @@ agent_communication:
                * Year: Bing-Wu (Structure, pressure) - "This year may ask more of you—more structure, more responsibility"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.25s) ✅
           - Backend logs confirm successful processing: "[BaZi V2] Generated full chart for user 6971c81f2b40fd5ef501d375: Day Master = Xin Metal (strong)" ✅
@@ -4589,7 +4589,7 @@ backend:
                ✅ language_modifiers: Complete object with modifier sections for life_pattern and day_master ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.10-0.28s) ✅
           - Backend logs confirm successful feedback storage and processing ✅
@@ -4670,7 +4670,7 @@ backend:
           5. "Why do I still doubt myself when things are flowing?" (Timing-related question)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.25s)
           - Backend logs confirm successful processing
@@ -4708,7 +4708,7 @@ agent_communication:
       **Test User Verification:**
       - Used user_id: 6971c81f2b40fd5ef501d375 as specified
       - Confirmed chart data: Sun=Pisces, Moon=Aries, Ascendant=Sagittarius
-      - Base URL: https://sidereal-lens-v2.preview.emergentagent.com/api
+      - Base URL: https://lens-rebuild.preview.emergentagent.com/api
       
       **Backend Integration Verified:**
       - Both endpoints accessible via public URL
@@ -4852,7 +4852,7 @@ agent_communication:
              - Backend regenerates pattern when forced
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.12-0.29s)
           - Backend logs confirm pattern detection working: "Extracted 5 signals from ['astrology', 'enneagram']"
@@ -4930,7 +4930,7 @@ agent_communication:
              - Perfect pattern matching across both users ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (keystone: 0.17-0.31s, astrology: 17.98-48.54s)
           - Backend logs confirm integration: "[AstrologyDeepDive] Added keystone explanation for pattern: direction_shift"
@@ -5017,7 +5017,7 @@ agent_communication:
              - Verified: All responses now include signal_strength field ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://sidereal-lens-v2.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://lens-rebuild.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 10 seconds for LLM generation)
           - Backend logs confirm successful processing
@@ -5229,7 +5229,7 @@ agent_communication:
       
       **Performance & Integration:**
       - ✅ Response times: 0.11-0.21s (excellent performance)
-      - ✅ Backend URL: https://sidereal-lens-v2.preview.emergentagent.com/api
+      - ✅ Backend URL: https://lens-rebuild.preview.emergentagent.com/api
       - ✅ force_refresh parameter required for fresh data generation
       - ✅ All 8 structure validation tests passed
       
@@ -5284,7 +5284,7 @@ agent_communication:
       
       **Test 6: Performance & Integration** ✅
       - Response times excellent: 0.11-0.14s (well under 5s threshold)
-      - Backend URL: https://sidereal-lens-v2.preview.emergentagent.com/api
+      - Backend URL: https://lens-rebuild.preview.emergentagent.com/api
       - All endpoints accessible via public URL
       - No HTTP errors or timeouts
       - Backend logs confirm successful processing with no errors
@@ -5360,7 +5360,7 @@ backend:
           
           6. ✅ **PERFORMANCE & INTEGRATION**:
              - Response times: 0.11-0.14s (excellent, under 5s threshold)
-             - Public URL accessible: https://sidereal-lens-v2.preview.emergentagent.com/api
+             - Public URL accessible: https://lens-rebuild.preview.emergentagent.com/api
              - No HTTP errors or timeouts
              - Backend logs confirm successful processing
              - Pattern engine: normal mode + fallback mode working
