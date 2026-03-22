@@ -705,6 +705,9 @@ const HOUSE_MEANINGS: { [key: number]: {
   theme: string;
   whenActivated: string;
   specialty: string;
+  developmentalPressure: string;
+  consequenceZone: string;
+  whenIgnored: string;
 }} = {
   1: {
     label: "Identity & Self-Presentation",
@@ -712,7 +715,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "how you show up, first impressions, physical self",
     theme: "self-definition and the way you meet life",
     whenActivated: "questions about who you are and how you're being seen",
-    specialty: "Self-awareness is not background noise here—it's one of the main arenas life keeps working on."
+    specialty: "This is one of the main places life keeps training you through how you present, what you project, and who you become when observed.",
+    developmentalPressure: "You're being asked to show up as yourself—without the costume, without the performance, without the defense.",
+    consequenceZone: "What you project gets reflected back. Misalignment here creates friction everywhere.",
+    whenIgnored: "You lose touch with who you actually are vs. who you've been performing."
   },
   2: {
     label: "Values & Resources",
@@ -720,7 +726,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "money, possessions, self-worth, what you hold onto",
     theme: "security and what you truly value",
     whenActivated: "questions about worth, money, or what you're holding onto",
-    specialty: "Resources and self-worth are live territory—not just practical, but identity-shaping."
+    specialty: "This is one of the main places life keeps training you through what you have, what you value, and whether you feel like enough.",
+    developmentalPressure: "You're being asked to clarify what actually matters—not what should matter, but what does.",
+    consequenceZone: "What you hold onto shapes what you become. Over-grip here and growth stops.",
+    whenIgnored: "Security gets confused with control. Self-worth collapses into net worth."
   },
   3: {
     label: "Communication & Learning",
@@ -728,7 +737,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "thinking, speaking, learning, siblings, local environment",
     theme: "how you process and express what you know",
     whenActivated: "how you're thinking, what you're saying, and whether the words are landing",
-    specialty: "Communication is not a side skill here—it's one of the main places life keeps training you."
+    specialty: "This is one of the main places life keeps training you through thought, language, interpretation, and how you make meaning from information.",
+    developmentalPressure: "You're being asked to clarify—not explain more, but clarify. What you say carries more weight than you realize.",
+    consequenceZone: "Miscommunication here ripples outward. What you can't articulate, you can't integrate.",
+    whenIgnored: "You keep explaining but not being understood. The same conversation keeps repeating."
   },
   4: {
     label: "Home & Emotional Foundation",
@@ -736,7 +748,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "home, family, roots, private self, emotional baseline",
     theme: "where you come from and what grounds you",
     whenActivated: "your sense of safety, family dynamics, or inner emotional stability",
-    specialty: "Home and emotional grounding are central territory—when this shakes, everything echoes."
+    specialty: "This is where inner stability gets tested. When this area is unsettled, everything echoes. Growth here is non-negotiable.",
+    developmentalPressure: "You're being asked to find ground that doesn't depend on external conditions.",
+    consequenceZone: "Instability here makes everything else harder. You can't build on a shaky foundation.",
+    whenIgnored: "You keep looking for home in places that can't hold you. Inner restlessness persists."
   },
   5: {
     label: "Creativity & Self-Expression",
@@ -744,7 +759,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "creativity, romance, pleasure, children, risk-taking",
     theme: "what you create and how you express yourself",
     whenActivated: "desire for recognition, creative blocks, or romantic intensity",
-    specialty: "Self-expression and creative output are not hobbies—they're where you become more yourself."
+    specialty: "This is one of the main places life keeps training you through what you create, what brings you joy, and how you risk being seen.",
+    developmentalPressure: "You're being asked to create without guarantee of applause. Express for its own sake.",
+    consequenceZone: "Unexpressed creativity becomes bitterness. Joy deferred turns to resentment.",
+    whenIgnored: "Life feels flat. You're surviving but not creating. Something vital goes dormant."
   },
   6: {
     label: "Work & Daily Systems",
@@ -752,7 +770,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "daily work, health, routines, service, improvement",
     theme: "how you maintain yourself and contribute through effort",
     whenActivated: "work pressure, health awareness, or the quality of your daily systems",
-    specialty: "Work and maintenance are where discipline becomes real—one of the main arenas for growth."
+    specialty: "This is one of the main places life keeps training you through what you do every day—your craft, your discipline, your maintenance.",
+    developmentalPressure: "You're being asked to show up consistently, not just when inspired. Discipline is the teacher here.",
+    consequenceZone: "Neglect here accumulates silently. The body keeps score. Systems fail when you need them.",
+    whenIgnored: "You burn out. Health erodes. Work becomes something that happens to you, not through you."
   },
   7: {
     label: "Relationships & Partnership",
@@ -760,7 +781,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "committed relationships, partnerships, contracts, projection",
     theme: "how you relate to others and what you project onto them",
     whenActivated: "relationship dynamics, fairness, or what you keep seeing in others",
-    specialty: "Relationships are not just context—they're a primary mirror for self-knowledge."
+    specialty: "This is one of the main places life keeps training you through who you attract, what you project, and what you see in the mirror of another.",
+    developmentalPressure: "You're being asked to see the other as they are—not as who you need them to be.",
+    consequenceZone: "What you can't see in yourself shows up in your relationships. Every projection has a cost.",
+    whenIgnored: "You keep attracting the same dynamic. The partner changes but the pattern doesn't."
   },
   8: {
     label: "Intimacy & Transformation",
@@ -768,7 +792,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "intimacy, shared resources, power, loss, regeneration",
     theme: "what you merge with and what transforms you",
     whenActivated: "trust issues, power dynamics, or emotional vulnerability",
-    specialty: "Depth and transformation are central—growth here is through what you can't keep at arm's length."
+    specialty: "This is one of the main places life keeps training you through what you can't control—depth, loss, merging, and what forces you to change.",
+    developmentalPressure: "You're being asked to let go of something you're still gripping. Transformation requires surrender.",
+    consequenceZone: "Avoided depth becomes shadow. Control here backfires. What you won't face keeps returning.",
+    whenIgnored: "Intimacy stays shallow. Power dynamics run the show unconsciously. You repeat cycles of loss."
   },
   9: {
     label: "Beliefs & Expansion",
@@ -776,7 +803,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "philosophy, travel, higher education, beliefs, truth-seeking",
     theme: "what you believe and how your worldview expands",
     whenActivated: "questions about meaning, direction, or whether you're on the right path",
-    specialty: "Meaning-making is not optional—it's one of the places life keeps asking you to clarify."
+    specialty: "This is one of the main places life keeps training you through what you believe, what you're reaching toward, and whether your map matches the territory.",
+    developmentalPressure: "You're being asked to test your beliefs—not defend them, test them. Truth requires willingness to be wrong.",
+    consequenceZone: "Untested beliefs become prisons. A map that doesn't match reality leads you nowhere.",
+    whenIgnored: "Meaning collapses. You go through motions without conviction. Life feels like it's happening around you."
   },
   10: {
     label: "Career & Public Role",
@@ -784,7 +814,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "career, reputation, public life, responsibility, legacy",
     theme: "what you're here to contribute and be known for",
     whenActivated: "career pressure, visibility, or questions about your direction",
-    specialty: "Public contribution is central—who you become in the world is not separate from who you are."
+    specialty: "This is one of the main places life keeps training you through what you build, what you contribute, and what remains after you're gone.",
+    developmentalPressure: "You're being asked to step into a role that requires more than you've given before. Growth here is public.",
+    consequenceZone: "What you build here outlasts you—for better or worse. Reputation is a slow-motion portrait.",
+    whenIgnored: "Work becomes meaningless. You climb ladders but don't know why. Achievement without satisfaction."
   },
   11: {
     label: "Community & Future Vision",
@@ -792,7 +825,10 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "friendships, groups, networks, hopes, future vision",
     theme: "where you belong and what you're building toward",
     whenActivated: "questions about belonging, friendship, or whether you fit",
-    specialty: "Community and future vision are active territory—not just social, but developmental."
+    specialty: "This is one of the main places life keeps training you through who you run with, what you hope for, and whether your people are really your people.",
+    developmentalPressure: "You're being asked to discern—not all communities are yours. Find the ones that actually fit.",
+    consequenceZone: "Wrong community, wrong future. The people around you shape what you become.",
+    whenIgnored: "Isolation increases. Future feels directionless. You perform belonging instead of actually fitting."
   },
   12: {
     label: "Surrender & Unconscious",
@@ -800,128 +836,271 @@ const HOUSE_MEANINGS: { [key: number]: {
     arena: "retreat, spirituality, unconscious patterns, endings, exile",
     theme: "what you can't see yet and what needs release",
     whenActivated: "need for retreat, confusion, or patterns you can't fully name",
-    specialty: "The unconscious is not dormant here—what you can't see keeps shaping what you do."
+    specialty: "This is one of the main places life keeps training you through what you can't see, what you need to release, and what operates beneath your awareness.",
+    developmentalPressure: "You're being asked to let something end. Not everything can be fixed—some things need to be released.",
+    consequenceZone: "What you won't release follows you. Unconscious patterns run the show until you face them.",
+    whenIgnored: "Exhaustion without cause. The same pattern repeats with different faces. Something keeps leaking energy."
   }
 };
 
-// House-specific behaviors for "What This May Feel Like"
-const HOUSE_BEHAVIORS: { [key: number]: string[] } = {
-  1: [
-    "questioning how you're coming across",
-    "feeling more self-conscious than usual",
-    "noticing how you're being perceived—and minding it more"
-  ],
-  2: [
-    "checking your account balance more than necessary",
-    "questioning whether you have enough—or are enough",
-    "holding onto something tighter than you need to"
-  ],
-  3: [
-    "overexplaining something that still isn't clear",
-    "revisiting the same conversation in your head",
-    "feeling like the right words are just out of reach"
-  ],
-  4: [
-    "feeling unsettled at home for no obvious reason",
-    "reacting more strongly to family tone or emotional atmosphere",
-    "wanting privacy while also craving reassurance"
-  ],
-  5: [
-    "wanting recognition you're not getting",
-    "creative restlessness without clear outlet",
-    "craving attention or feeling invisible"
-  ],
-  6: [
-    "obsessing over a small detail that won't let go",
-    "feeling like your systems are failing you",
-    "body tension that mirrors mental pressure"
-  ],
-  7: [
-    "reading more into a relationship dynamic than is there",
-    "needing something from someone you haven't asked for",
-    "projecting something onto a partner you haven't owned"
-  ],
-  8: [
-    "overreading power dynamics in a situation",
-    "feeling exposed but trying to stay in control",
-    "sensing something unspoken in a relationship",
-    "becoming preoccupied with what's owed, hidden, or irreversible",
-    "wanting to merge with something while also fearing it"
-  ],
-  9: [
-    "questioning whether your beliefs actually hold up",
-    "restless for meaning you can't quite reach",
-    "feeling stuck in a perspective that's too small"
-  ],
-  10: [
-    "questioning your direction even when things are working",
-    "feeling the weight of expectation—yours or others'",
-    "wanting to be seen for something you haven't shown yet"
-  ],
-  11: [
-    "feeling out of place in a group you usually fit",
-    "questioning whether your people are really your people",
-    "restless about the future without clarity on what you want"
-  ],
-  12: [
-    "tired for reasons you can't name",
-    "replaying something you thought you were done with",
-    "wanting to disappear from visibility for a while"
-  ]
+// House-specific behaviors for "What This May Feel Like" - GROUNDED IN LIVED EXPERIENCE
+const HOUSE_BEHAVIORS: { [key: number]: { today: string[]; week: string[]; month: string[] } } = {
+  1: {
+    today: [
+      "checking the mirror more than usual",
+      "adjusting how you present yourself mid-conversation",
+      "feeling visible in a way that makes you self-conscious"
+    ],
+    week: [
+      "catching yourself performing instead of just being",
+      "wondering if people see what you're actually trying to show",
+      "small identity adjustments that feel bigger than they should"
+    ],
+    month: [
+      "who you've been presenting no longer matches who you're becoming",
+      "wanting to be seen differently but not knowing what to change",
+      "outgrowing an image you didn't realize you'd built"
+    ]
+  },
+  2: {
+    today: [
+      "checking your account balance more than necessary",
+      "feeling slightly anxious about what you have—or don't",
+      "gripping something tighter than the situation requires"
+    ],
+    week: [
+      "money or security concerns popping up at odd moments",
+      "questioning whether you have enough—or are enough",
+      "small purchase decisions feeling heavier than they should"
+    ],
+    month: [
+      "reexamining what you actually value vs. what you thought you should",
+      "security patterns you built years ago no longer fitting",
+      "wanting more but unsure if more is what you actually need"
+    ]
+  },
+  3: {
+    today: [
+      "saying something and immediately wishing you'd said it differently",
+      "reading the same paragraph three times because it won't stick",
+      "a conversation playing on loop in your head"
+    ],
+    week: [
+      "the same topic coming up in completely unrelated conversations",
+      "explaining something multiple ways but still feeling misunderstood",
+      "mental restlessness that won't quite settle"
+    ],
+    month: [
+      "realizing you've been thinking about something for weeks without resolving it",
+      "a shift in how you process—old mental habits not working the same",
+      "what you used to believe about communication being tested"
+    ]
+  },
+  4: {
+    today: [
+      "feeling unsettled at home for no obvious reason",
+      "reacting more strongly to family tone or emotional atmosphere",
+      "wanting to be alone but also wanting comfort"
+    ],
+    week: [
+      "old family patterns surfacing in current situations",
+      "home feeling like it needs something you can't quite name",
+      "emotional weather that seems to come from nowhere"
+    ],
+    month: [
+      "questioning what 'home' actually means to you now",
+      "family dynamics demanding a different response than your usual one",
+      "the foundation you built feeling less solid than it did"
+    ]
+  },
+  5: {
+    today: [
+      "wanting attention you're not getting",
+      "creative restlessness without clear outlet",
+      "a flash of jealousy when someone else gets recognized"
+    ],
+    week: [
+      "feeling invisible even when you're being seen",
+      "creative blocks that feel personal rather than technical",
+      "joy requiring more effort than it used to"
+    ],
+    month: [
+      "what used to light you up no longer doing it",
+      "creative identity being restructured from the inside",
+      "risking being seen in a new way—or avoiding that risk entirely"
+    ]
+  },
+  6: {
+    today: [
+      "obsessing over a small detail that won't let go",
+      "body tension that mirrors mental pressure",
+      "feeling behind on maintenance you didn't know you were tracking"
+    ],
+    week: [
+      "systems breaking down in small, annoying ways",
+      "health awareness sharpening—something asking for attention",
+      "work feeling like a grind even when it's going fine"
+    ],
+    month: [
+      "your routines being redesigned by life rather than choice",
+      "capacity limits becoming clearer than you'd like",
+      "the gap between what you should do and what you actually do"
+    ]
+  },
+  7: {
+    today: [
+      "reading more into a partner's comment than is probably there",
+      "needing something from someone you haven't asked for",
+      "a small relationship friction staying with you longer than it should"
+    ],
+    week: [
+      "the same dynamic replaying with different people",
+      "wanting closeness but also feeling irritated by it",
+      "seeing something in others that you're not seeing in yourself"
+    ],
+    month: [
+      "relationship patterns you thought you'd resolved resurfacing",
+      "what you need from partnership shifting in ways you hadn't expected",
+      "the mirror showing you something you'd rather not see"
+    ]
+  },
+  8: {
+    today: [
+      "sensing something unspoken in a conversation",
+      "a slight power struggle you can't quite name",
+      "feeling exposed but trying to stay in control"
+    ],
+    week: [
+      "trust getting tested in small ways",
+      "intensity rising in situations that shouldn't be intense",
+      "something hidden wanting to surface—yours or someone else's"
+    ],
+    month: [
+      "old loss or betrayal echoing in current situations",
+      "control strategies that used to work no longer working",
+      "being asked to merge with something you're not sure you trust"
+    ]
+  },
+  9: {
+    today: [
+      "a belief getting quietly challenged",
+      "restless for meaning you can't quite reach",
+      "feeling stuck in a perspective that's too small"
+    ],
+    week: [
+      "questioning whether your map actually matches the territory",
+      "information that doesn't fit your framework arriving anyway",
+      "the urge to escape—travel, learn, anything but here"
+    ],
+    month: [
+      "worldview cracks that can't be papered over",
+      "what you believed about meaning being tested by reality",
+      "direction uncertainty that won't resolve by thinking harder"
+    ]
+  },
+  10: {
+    today: [
+      "work feeling heavier than the task actually is",
+      "wanting recognition for effort no one sees",
+      "a brief flash of 'is this what I'm doing with my life?'"
+    ],
+    week: [
+      "career pressure that isn't coming from the job itself",
+      "achievement feeling hollow even when you hit the mark",
+      "the weight of expectation—yours or someone else's—pressing"
+    ],
+    month: [
+      "questioning what you're actually building toward",
+      "professional identity shifting in ways you can't control",
+      "the gap between where you are and where you thought you'd be"
+    ]
+  },
+  11: {
+    today: [
+      "feeling out of place in a group you usually fit",
+      "a friend saying something that lands wrong",
+      "future plans feeling less certain than yesterday"
+    ],
+    week: [
+      "social energy fluctuating more than usual",
+      "questioning whether your people are really your people",
+      "hopes for the future getting quieter or louder without clear reason"
+    ],
+    month: [
+      "community shifts—who belongs is changing",
+      "vision for the future being rewritten by circumstance",
+      "discovering that some friendships were situational, not permanent"
+    ]
+  },
+  12: {
+    today: [
+      "tired for reasons you can't name",
+      "a dream or memory surfacing without invitation",
+      "wanting to disappear for a few hours"
+    ],
+    week: [
+      "something asking to be released that you're still holding",
+      "energy leaking somewhere you can't identify",
+      "the past showing up in unexpected places"
+    ],
+    month: [
+      "patterns you thought you'd moved past returning for review",
+      "something ending whether you're ready or not",
+      "the need to let go becoming less optional"
+    ]
+  }
 };
 
-// House-specific mistakes for "The Mistake to Watch"
-const HOUSE_MISTAKES: { [key: number]: string[] } = {
-  1: [
-    "making a decision based on how it looks rather than how it fits",
-    "changing yourself to match someone else's perception"
-  ],
-  2: [
-    "spending to fill a feeling instead of a need",
-    "confusing net worth with self-worth"
-  ],
-  3: [
-    "saying something before you've really clarified it",
-    "trying to explain your way out of uncertainty"
-  ],
-  4: [
-    "trying to fix externally what is actually an inner emotional instability",
-    "making home or family carry a pressure they didn't create"
-  ],
-  5: [
-    "seeking validation instead of creating what's true",
-    "performing instead of expressing"
-  ],
-  6: [
-    "perfecting the wrong thing",
-    "burning out on maintenance instead of stepping back"
-  ],
-  7: [
-    "expecting someone else to fill a gap only you can address",
-    "fighting for fairness when understanding is what's needed"
-  ],
-  8: [
-    "trying to control what requires trust",
-    "avoiding vulnerability by intellectualizing it",
-    "escalating a shared issue because uncertainty feels intolerable",
-    "treating depth as danger instead of doorway"
-  ],
-  9: [
-    "running toward new meaning instead of integrating what you already know",
-    "preaching what you haven't lived"
-  ],
-  10: [
-    "sacrificing presence for progress",
-    "working toward recognition that won't satisfy"
-  ],
-  11: [
-    "performing belonging instead of testing whether you actually fit",
-    "planning the future to avoid the present"
-  ],
-  12: [
-    "pushing through when rest is the actual task",
-    "ignoring what's asking to be released"
-  ]
+// House-specific mistakes for "The Mistake to Watch" - SHARP, CONFRONTING, BEHAVIORAL
+const HOUSE_MISTAKES: { [key: number]: { primary: string; supporting: string[] } } = {
+  1: {
+    primary: "changing yourself to fit the room instead of showing up as you actually are",
+    supporting: ["letting someone else's perception become your self-image", "performing a version of yourself that isn't sustainable"]
+  },
+  2: {
+    primary: "gripping something tighter because you're afraid of what losing it means",
+    supporting: ["confusing what you have with who you are", "spending to prove something to yourself"]
+  },
+  3: {
+    primary: "explaining more when what's needed is clarity, not volume",
+    supporting: ["saying it before you've actually thought it through", "using words to avoid the silence where truth lives"]
+  },
+  4: {
+    primary: "trying to fix outer circumstances when the instability is internal",
+    supporting: ["making family carry a weight they didn't create", "looking for home in a place that can't hold you"]
+  },
+  5: {
+    primary: "performing for approval instead of creating for expression",
+    supporting: ["seeking validation to fill a gap only your own work can fill", "avoiding creative risk because rejection feels existential"]
+  },
+  6: {
+    primary: "perfecting the wrong thing while the right thing waits",
+    supporting: ["burnout disguised as discipline", "fixing details to avoid the larger structural issue"]
+  },
+  7: {
+    primary: "expecting a partner to fill a gap that only you can address",
+    supporting: ["fighting for fairness when understanding is what's needed", "seeing in them what you won't see in yourself"]
+  },
+  8: {
+    primary: "trying to control what can only be surrendered to",
+    supporting: ["avoiding vulnerability by intellectualizing it", "escalating because uncertainty feels intolerable", "treating depth as danger instead of doorway"]
+  },
+  9: {
+    primary: "preaching what you haven't actually lived yet",
+    supporting: ["running toward new meaning instead of integrating what you already know", "defending your map instead of checking whether it matches the territory"]
+  },
+  10: {
+    primary: "sacrificing what matters for achievement that won't satisfy",
+    supporting: ["working harder instead of working smarter", "building toward a goal you inherited but never chose"]
+  },
+  11: {
+    primary: "performing belonging instead of testing whether you actually fit",
+    supporting: ["planning the future to avoid the present", "collecting people instead of choosing them"]
+  },
+  12: {
+    primary: "pushing through when the actual task is surrender",
+    supporting: ["ignoring what's asking to be released", "treating exhaustion as weakness instead of signal"]
+  }
 };
 
 // Get dominant houses from chart data
@@ -960,11 +1139,12 @@ const getLifeArenaSummary = (houses: number[], chartData: FullChartData | null):
   }).filter(a => a.label);
 };
 
-// Get the chart's main life arenas for At a Glance
+// Get the chart's main life arenas for At a Glance - UPGRADED WITH SHARPER COPY
 const getMainLifeArenas = (chartData: FullChartData | null): {
   label: string;
   shortLabel: string;
   explanation: string;
+  whenIgnored: string;
 }[] => {
   if (!chartData?.natal?.concentrations?.dominant_houses) return [];
   
@@ -978,7 +1158,7 @@ const getMainLifeArenas = (chartData: FullChartData | null): {
   
   return topHouses.map(({ house, planets }) => {
     const meaning = HOUSE_MEANINGS[house];
-    if (!meaning) return { label: '', shortLabel: '', explanation: '' };
+    if (!meaning) return { label: '', shortLabel: '', explanation: '', whenIgnored: '' };
     
     // Check which important planets are in this house
     const importantPlanets = ['Sun', 'Moon', 'Saturn', 'Chiron', 'North Node', 'South Node'];
@@ -986,17 +1166,19 @@ const getMainLifeArenas = (chartData: FullChartData | null): {
     
     let explanation = '';
     if (presentImportant.length >= 2) {
-      explanation = `This is one of the main places identity, pressure, and growth all converge. Life keeps pulling you here.`;
+      explanation = `This is a crossroads. Identity, pressure, and growth all concentrate here. Life keeps pulling you back to this arena.`;
     } else if (presentImportant.includes('Sun')) {
-      explanation = `Identity and self-expression concentrate here. This arena shapes who you become.`;
+      explanation = `Your sense of self lives here. What you experience in this arena shapes who you become.`;
     } else if (presentImportant.includes('Moon')) {
-      explanation = `Your emotional baseline lives here. When this area shakes, everything echoes.`;
+      explanation = `Your emotional baseline is here. When this area shakes, you feel it everywhere.`;
     } else if (presentImportant.includes('Saturn')) {
-      explanation = `Pressure and maturation concentrate here. This is where life asks you to get serious.`;
+      explanation = `This is where life asks you to get serious. Maturation happens here—whether you're ready or not.`;
     } else if (presentImportant.includes('Chiron')) {
-      explanation = `Sensitivity and wisdom merge here. What hurt you once now makes you useful in this arena.`;
+      explanation = `What hurt you here now makes you useful here. The wound and the gift share the same address.`;
+    } else if (presentImportant.includes('North Node')) {
+      explanation = `This is growth edge territory. It doesn't come naturally, but it's where you're being pulled.`;
     } else if (planets.length >= 3) {
-      explanation = `Multiple parts of you meet here. This is a crossroads of your psychology.`;
+      explanation = `Multiple parts of you meet here. This is high-traffic territory in your psychology.`;
     } else {
       explanation = meaning.specialty;
     }
@@ -1004,7 +1186,8 @@ const getMainLifeArenas = (chartData: FullChartData | null): {
     return {
       label: meaning.label,
       shortLabel: meaning.shortLabel,
-      explanation
+      explanation,
+      whenIgnored: meaning.whenIgnored
     };
   }).filter(a => a.label);
 };
@@ -2078,29 +2261,45 @@ const detectPersonalRelevance = (
   return { isHighRelevance: false, matchType: null };
 };
 
-// Generate personal relevance line with house-specific language
-const getPersonalRelevanceLine = (match: PersonalRelevanceMatch, activatedHouses: number[] = []): string => {
+// Generate personal relevance line with house-specific language - UPGRADED FOR CHART SPECIFICITY
+const getPersonalRelevanceLine = (
+  match: PersonalRelevanceMatch, 
+  activatedHouses: number[] = [],
+  chartData: FullChartData | null = null
+): string => {
   if (!match.isHighRelevance) return "";
   
-  // If we have a dominant house match, use house-specific language
+  // Get chart ruler info for even more specificity
+  const chartRuler = chartData ? getChartRuler(chartData) : null;
+  
+  // If we have a dominant house match, use MUCH more specific language
   if (match.matchType === 'house' && activatedHouses.length > 0) {
     const primaryHouse = activatedHouses[0];
     const meaning = HOUSE_MEANINGS[primaryHouse];
     if (meaning) {
-      return `This may feel stronger for you than usual—because ${meaning.shortLabel} is one of the main arenas life keeps training you in.`;
+      // Check if this is THE dominant house (most concentrated)
+      const dominantHouses = getDominantHouses(chartData);
+      const isTopDominant = dominantHouses[0] === primaryHouse;
+      
+      if (isTopDominant) {
+        return `This hits harder because ${meaning.shortLabel} isn't a side theme in your chart—it's one of the main places life keeps training you.`;
+      }
+      return `This may land more personally—${meaning.shortLabel} is already sensitized territory for you.`;
     }
   }
   
-  switch (match.matchType) {
-    case 'house':
-      return "This may feel stronger for you than usual—it's pressing directly on one of the life areas your chart already spends a lot of time working on.";
-    case 'angular':
-      return "This may feel stronger for you than usual—because it touches a core part of how you move through life.";
-    case 'element':
-      return "This may feel stronger for you than usual—because this plays into how you naturally respond to things.";
-    default:
-      return "This may feel stronger for you than usual—you tend to experience a lot of your life in this area.";
+  // Angular planet match - these are foundational
+  if (match.matchType === 'angular') {
+    return "This lands closer to center—it touches a structural piece of how you move through life.";
   }
+  
+  // Element match - attunement
+  if (match.matchType === 'element') {
+    return "This resonates with how you naturally process things—you'll feel this more than most would.";
+  }
+  
+  // Default
+  return "This may feel louder than usual—this area is already highly active in your chart.";
 };
 
 // ============================================
@@ -2183,14 +2382,18 @@ const getWhatThisMayFeelLike = (transits: TransitHit[], timeframe: 'today' | 'we
     }
   }
   
-  // ADD HOUSE-SPECIFIC BEHAVIOR if houses are activated
+  // ADD HOUSE-SPECIFIC BEHAVIOR if houses are activated - NOW TIMEFRAME SPECIFIC
   if (activatedHouses.length > 0) {
     const primaryHouse = activatedHouses[0];
     const houseBehaviors = HOUSE_BEHAVIORS[primaryHouse];
-    if (houseBehaviors && houseBehaviors.length > 0) {
-      // Pick one house-specific behavior
-      const behavior = houseBehaviors[Math.floor(Math.random() * houseBehaviors.length)];
-      feelings.push(behavior);
+    if (houseBehaviors) {
+      // Get timeframe-specific behaviors
+      const timeframeBehaviors = houseBehaviors[timeframe] || houseBehaviors['today'];
+      if (timeframeBehaviors && timeframeBehaviors.length > 0) {
+        // Pick one house-specific behavior appropriate to the timeframe
+        const behavior = timeframeBehaviors[Math.floor(Math.random() * timeframeBehaviors.length)];
+        feelings.push(behavior);
+      }
     }
   }
   
@@ -2305,13 +2508,19 @@ const getMistakeToWatch = (transits: TransitHit[], timeframe: 'today' | 'week' |
     }
   }
   
-  // ADD HOUSE-SPECIFIC MISTAKE if houses are activated and we have room
+  // ADD HOUSE-SPECIFIC MISTAKE if houses are activated - NOW USING PRIMARY + SUPPORTING FORMAT
   if (activatedHouses.length > 0 && mistakes.length < 3) {
     const primaryHouse = activatedHouses[0];
-    const houseMistakes = HOUSE_MISTAKES[primaryHouse];
-    if (houseMistakes && houseMistakes.length > 0) {
-      const mistake = houseMistakes[Math.floor(Math.random() * houseMistakes.length)];
-      mistakes.push(mistake);
+    const houseMistakeData = HOUSE_MISTAKES[primaryHouse];
+    if (houseMistakeData) {
+      // Add primary mistake if we don't have one yet (make it first)
+      if (mistakes.length === 0) {
+        mistakes.unshift(houseMistakeData.primary);
+      } else {
+        // Add a supporting mistake
+        const supporting = houseMistakeData.supporting[Math.floor(Math.random() * houseMistakeData.supporting.length)];
+        mistakes.push(supporting);
+      }
     }
   }
   
@@ -2550,57 +2759,98 @@ const getReflectionQuestion = (transits: TransitHit[], timeframe: 'today' | 'wee
   }
   
   const hit = transits[0];
-  const { transit_point, natal_point } = hit;
+  const { transit_point, natal_point, natal_house } = hit;
   
-  // Saturn transits - confronting but safe
+  // House-specific question enhancement
+  const houseContext = natal_house ? HOUSE_MEANINGS[natal_house] : null;
+  
+  // Saturn transits - confronting but safe (TIMEFRAME DIFFERENTIATED)
   if (transit_point === 'Saturn') {
-    if (natal_point === 'Sun') return 'What are you pretending is fine—even though you think about it when you\'re alone?';
-    if (natal_point === 'Moon') return 'What feeling have you been managing instead of actually feeling—and for how long?';
-    if (natal_point === 'Venus') return 'What are you settling for and calling it "realistic"—even though it doesn\'t feel like enough?';
-    if (natal_point === 'Jupiter') return 'What are you quietly giving up on—even though you haven\'t admitted it out loud?';
-    if (natal_point === 'Mars') return 'What do you keep trying to force that isn\'t moving—and why can\'t you stop?';
-    return 'Where are you exhausted from pretending something is easier than it is?';
+    if (timeframe === 'today') {
+      if (natal_point === 'Sun') return 'What are you pretending is fine today—even though you thought about it before you got out of bed?';
+      if (natal_point === 'Moon') return 'What feeling are you managing right now instead of actually feeling?';
+      if (natal_house === 7) return 'What are you expecting from someone that you haven\'t been willing to ask for directly?';
+      if (natal_house === 10) return 'What are you avoiding at work today—and why does it feel so heavy?';
+      return 'Where are you bracing for something that might not actually be coming?';
+    } else if (timeframe === 'week') {
+      if (natal_point === 'Saturn') return 'What keeps getting harder this week—that you\'re pretending hasn\'t?';
+      return 'What pattern has shown up multiple times this week—and what is it actually trying to tell you?';
+    } else {
+      if (natal_point === 'Sun') return 'What part of who you thought you were is being quietly dismantled this month?';
+      if (natal_point === 'Moon') return 'What emotional truth are you finally being forced to sit with this month?';
+      return 'What can\'t be rushed right now—and what happens if you stop trying to rush it?';
+    }
   }
   
-  // Jupiter transits
+  // Jupiter transits (TIMEFRAME DIFFERENTIATED)
   if (transit_point === 'Jupiter') {
-    if (natal_point === 'Sun') return 'What are you ready for—that you haven\'t fully admitted to yourself yet?';
-    if (natal_point === 'Moon') return 'Who are you trying to save that didn\'t ask for help—and what would happen if you stopped?';
-    if (natal_point === 'Saturn') return 'What are you about to say yes to—even though you already know you don\'t have the capacity?';
-    return 'Where is your optimism getting ahead of your planning—and what are you avoiding by staying excited?';
+    if (timeframe === 'today') {
+      if (natal_point === 'Saturn') return 'What are you about to say yes to today—even though you already know you don\'t have the capacity?';
+      if (natal_house === 2) return 'What are you about to spend on today that\'s really about something else?';
+      return 'Where is your enthusiasm today outpacing your actual readiness?';
+    } else if (timeframe === 'week') {
+      return 'What did you commit to earlier this week that you\'re already regretting—and what does that tell you?';
+    } else {
+      if (natal_point === 'Sun') return 'What are you growing into this month—and are you sure it\'s the right direction?';
+      return 'Where is "more" actually the wrong answer this month—even though it feels right?';
+    }
   }
   
-  // Pluto transits
+  // Pluto transits (TIMEFRAME DIFFERENTIATED)
   if (transit_point === 'Pluto') {
-    if (natal_point === 'Sun') return 'What version of yourself are you holding onto—even though it stopped fitting a while ago?';
-    if (natal_point === 'Moon') return 'What are you feeling that you keep telling yourself you shouldn\'t feel—and who taught you that?';
-    if (natal_point === 'Mars') return 'What are you angry about that you haven\'t let yourself name yet—and what happens if you finally do?';
-    return 'What do you already know is over—that you haven\'t said out loud because then it becomes real?';
+    if (timeframe === 'today') {
+      if (natal_house === 8) return 'What unspoken power dynamic showed up today—and which side of it are you on?';
+      return 'What are you trying to control right now that actually can\'t be controlled?';
+    } else if (timeframe === 'week') {
+      return 'What keeps surfacing this week that you keep pushing back down—and what happens if you let it surface?';
+    } else {
+      if (natal_point === 'Sun') return 'What version of yourself are you being asked to release this month—even though it still feels like you?';
+      if (natal_point === 'Moon') return 'What emotional pattern is dying this month—and are you grieving it or fighting it?';
+      return 'What do you already know is over—that you haven\'t said out loud because then it becomes real?';
+    }
   }
   
-  // Uranus transits
+  // Uranus transits (TIMEFRAME DIFFERENTIATED)
   if (transit_point === 'Uranus') {
-    if (natal_point === 'Sun') return 'What would you change—if you weren\'t afraid of looking like you got it wrong before?';
-    if (natal_point === 'Venus') return 'What are you staying in because leaving feels like failure—even though staying feels worse?';
-    if (natal_point === 'Moon') return 'What would you feel if you stopped managing your feelings for one day?';
-    return 'What are you pretending to be okay with—that you\'re actually completely done with?';
+    if (timeframe === 'today') {
+      return 'What thought crossed your mind today that surprised you—and are you willing to follow it?';
+    } else if (timeframe === 'week') {
+      if (natal_point === 'Venus') return 'What have you been wanting to change in a relationship this week that you\'re afraid to name?';
+      return 'What keeps feeling suddenly unbearable this week—that you used to tolerate just fine?';
+    } else {
+      if (natal_point === 'Sun') return 'What would you change about your life this month—if you weren\'t afraid of looking like you got it wrong before?';
+      return 'What structure in your life is this month showing you no longer fits—even if it used to?';
+    }
   }
   
-  // Neptune transits
+  // Neptune transits (TIMEFRAME DIFFERENTIATED)
   if (transit_point === 'Neptune') {
-    if (natal_point === 'Sun') return 'What are you going along with because you don\'t know what you want—and are you sure you don\'t?';
-    if (natal_point === 'Moon') return 'Whose feelings are you carrying that aren\'t actually yours—and when did you pick them up?';
-    return 'What are you hoping is true—even though you already know it\'s not?';
+    if (timeframe === 'today') {
+      return 'What are you uncertain about today—that you\'re pretending to be certain about?';
+    } else if (timeframe === 'week') {
+      return 'What clarity are you waiting for this week—that might not come through thinking?';
+    } else {
+      if (natal_point === 'Sun') return 'Who have you been pretending to be this month—and who might you actually be underneath?';
+      return 'What are you hoping is true this month—even though you already sense it\'s not?';
+    }
   }
   
   // Mars transits
   if (transit_point === 'Mars') {
-    return 'What do you want to do that you keep talking yourself out of—and what are you really afraid of?';
+    if (timeframe === 'today') return 'What do you want to do today that you\'re talking yourself out of—and what are you really afraid of?';
+    if (timeframe === 'week') return 'Where has your frustration been pointing this week—and are you listening?';
+    return 'What have you been wanting to fight for this month—that you keep convincing yourself isn\'t worth it?';
   }
   
   // Venus transits
   if (transit_point === 'Venus') {
-    return 'What do you want that you\'ve been pretending you don\'t need—because needing it feels weak?';
+    if (timeframe === 'today') return 'What do you want right now that you\'re pretending you don\'t need—because needing it feels weak?';
+    return 'What in your relationships is this period asking you to be honest about—even if honesty feels risky?';
+  }
+  
+  // Default with house awareness
+  if (houseContext && timeframe === 'month') {
+    return `What about ${houseContext.shortLabel} is this month asking you to look at more honestly?`;
   }
   
   // Default
@@ -3186,7 +3436,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'sun',
       title: 'Core Identity',
       subtitle: `Your essential nature`,
-      preview: `The part of you that doesn't change when everything else does.`,
+      preview: `The part of you that doesn't change when everything else does. The thread that runs through all the versions.`,
       whatThisIs: `There's a ${sunQualities[0]} quality at the center of who you are. This isn't your whole identity—but it's the thread that runs through everything, the part that seeks expression and recognition. ${sun_house ? `This sense of self develops most through ${getHouseTheme(sun_house)}.` : ''}`,
       whatYouMightNotice: [
         `A ${sunQualities[0]} quality running through how you express yourself`,
@@ -3204,7 +3454,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'moon',
       title: 'Emotional Nature',
       subtitle: `How you feel before you think`,
-      preview: `The feeling you have before you've decided how to feel.`,
+      preview: `What you reach for when you want relief. The feeling you have before you've decided how to feel.`,
       whatThisIs: `Your emotional substrate has a ${moonQualities[0]} quality—what you need before you can think, what makes you feel safe, how you nurture and are nurtured. ${moon_house ? `Your inner life meets outer reality most intensely around ${getHouseTheme(moon_house)}.` : ''} This is the part of you that responds before you've decided how to respond.`,
       whatYouMightNotice: [
         `Emotional responses that feel ${moonQualities[0]}—before thought catches up`,
@@ -3222,7 +3472,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'ascendant',
       title: 'How You Meet Life',
       subtitle: 'Your instinctive approach to new situations',
-      preview: `Your first move in any new room. Not who you are—how you begin.`,
+      preview: `Your first move in any new room. The costume you didn't know you were wearing.`,
       whatThisIs: `There's a ${ascQualities[0]} quality to how you approach everything new—first meetings, fresh starts, unfamiliar territory. It's not who you are inside, but how you instinctively engage with the world.`,
       whatYouMightNotice: [
         `First impressions that come across as ${ascQualities[0]}`,
@@ -3240,7 +3490,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'mercury',
       title: 'Mind & Communication',
       subtitle: `How you naturally think`,
-      preview: `What your mind does when you're not steering it.`,
+      preview: `What your mind does when you're not steering it. The way you make sense of things.`,
       whatThisIs: `Your mind has a ${mercQualities[0]} quality—how you sort information, what kind of thinking comes easily, and how you express what you know. ${mercury_house ? `Mental energy naturally gravitates toward ${getHouseTheme(mercury_house)}.` : ''}`,
       whatYouMightNotice: [
         `A ${mercQualities[0]} quality to how you think and process`,
@@ -3258,7 +3508,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'venus',
       title: 'Love & Relating',
       subtitle: `What you genuinely value`,
-      preview: `How you love when you stop trying to love correctly.`,
+      preview: `How you love when you stop trying to love correctly. What you find beautiful without deciding to.`,
       whatThisIs: `There's a ${venusQualities[0]} quality to what you find beautiful, how you attract and are attracted, and what you value in love and friendship. ${venus_house ? `Connection and aesthetics play out most intensely through ${getHouseTheme(venus_house)}.` : ''}`,
       whatYouMightNotice: [
         `Attraction to ${venusQualities[0]} people, places, and experiences`,
@@ -3276,7 +3526,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'mars',
       title: 'Drive & Friction',
       subtitle: `How you take action`,
-      preview: `What wakes you up. What makes you dangerous.`,
+      preview: `What wakes you up. What makes you dangerous. How you move when you stop thinking.`,
       whatThisIs: `You have a ${marsQualities[0]} way of taking action—how you go after what you want, what ignites your drive, and how you handle conflict and desire. ${mars_house ? `This assertive energy concentrates in ${getHouseTheme(mars_house)}—where you push hardest and clash most easily.` : ''}`,
       whatYouMightNotice: [
         `A ${marsQualities[0]} style when you take action or initiate`,
@@ -3302,7 +3552,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'houses',
       title: 'House Emphasis',
       subtitle: 'Where life keeps pulling your attention.',
-      preview: houseAnalysis.emphasis,
+      preview: `Not all areas of life carry equal weight. Some keep training you whether you asked for it or not.`,
       whatThisIs: houseAnalysis.dominant.length > 0 
         ? `${houseAnalysis.emphasis} ${houseAnalysis.insight}`
         : `Your chart distributes energy across multiple life areas. While no single house dominates, certain themes still emerge from where key planets fall.`,
@@ -3332,7 +3582,7 @@ const generateDeepDiveCards = (placements: CorePlacements): AstrologyDeepDiveCar
       id: 'tensions',
       title: 'Core Chart Tensions',
       subtitle: 'The contradictions that make you complex.',
-      preview: chartTensions.length > 0 ? chartTensions[0] : 'Inner pulls that shape your experience.',
+      preview: `The pulls inside you that don't resolve. They coexist—and that's not a problem to fix.`,
       whatThisIs: `Your chart holds tensions that don't resolve—they coexist. These are the places where different parts of you want different things. In your case: ${chartTensions.slice(0, 2).join('; ')}.`,
       whatYouMightNotice: chartTensions.length > 0
         ? chartTensions.map(t => t)
@@ -4006,7 +4256,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           ))}
         </View>
 
-        {/* YOUR CHART'S MAIN LIFE ARENAS - NEW BLOCK */}
+        {/* YOUR CHART'S MAIN LIFE ARENAS - UPGRADED WITH IGNORE CONSEQUENCES */}
         {(() => {
           const mainArenas = getMainLifeArenas(fullChartData);
           const whereLifeWorks = getWhereLifeKeepsWorkingOnYou(fullChartData);
@@ -4025,11 +4275,22 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
                   <View style={styles.whatMattersContent}>
                     <Text style={[styles.whatMattersLabel, { color: theme.text }]}>{arena.label}</Text>
                     <Text style={[styles.whatMattersWhy, { color: theme.textSecondary }]}>{arena.explanation}</Text>
+                    {arena.whenIgnored && (
+                      <Text style={[styles.whatMattersIgnored, { color: theme.textTertiary }]}>
+                        If ignored: {arena.whenIgnored}
+                      </Text>
+                    )}
                   </View>
                 </View>
               ))}
+              {/* Synthesis statement */}
+              <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border }}>
+                <Text style={[styles.arenaSynthesis, { color: theme.textSecondary }]}>
+                  This chart does not spread life evenly. Certain arenas carry more consequence than others—what happens here echoes.
+                </Text>
+              </View>
               {whereLifeWorks.length > 0 && (
-                <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border }}>
+                <View style={{ marginTop: 8 }}>
                   {whereLifeWorks.map((statement, i) => (
                     <Text key={i} style={[styles.chartSpineStatement, { color: theme.textSecondary, fontStyle: 'italic' }]}>
                       {statement}
@@ -4272,7 +4533,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
       fullChartData,
       currentWindow?.strongest_hits || []
     );
-    const personalRelevanceLine = getPersonalRelevanceLine(personalRelevance, activatedHouses);
+    const personalRelevanceLine = getPersonalRelevanceLine(personalRelevance, activatedHouses, fullChartData);
 
     // Detect repeat patterns
     const repeatPatterns = detectRepeatPatterns(fullChartData, currentWindow?.strongest_hits || []);
@@ -5921,5 +6182,18 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderLeftWidth: 2,
     borderLeftColor: 'rgba(139, 128, 99, 0.3)',
+  },
+  // Master Astrologer V3 - Enhanced Arena & Relevance Styles
+  whatMattersIgnored: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  arenaSynthesis: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    lineHeight: 18,
+    textAlign: 'center',
   },
 });
