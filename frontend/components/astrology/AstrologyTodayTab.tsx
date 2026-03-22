@@ -27,6 +27,8 @@ import {
   prioritizeTransits,
   buildAspectPatternAnalysis,
   isPatternActivatedByTransit,
+  buildLifeChapterAnalysis,
+  getChapterContextLine,
 } from '../../services/astrology/astrologyInterpreter';
 
 import {
@@ -221,6 +223,10 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
   const patternAnalysis = buildAspectPatternAnalysis(fullChartData);
   const patternActivation = isPatternActivatedByTransit(patternAnalysis, transits);
 
+  // Life Chapter context (Master Astrologer v4)
+  const lifeChapterAnalysis = buildLifeChapterAnalysis(fullChartData);
+  const lifeChapterContextLine = getChapterContextLine(lifeChapterAnalysis, activeAltitude);
+
   // Get content based on timeframe
   const feelings = getWhatThisMayFeelLike(transits, activeAltitude).slice(0, 3);
   const mistakes = getMistakeToWatch(transits, activeAltitude).slice(0, 3);
@@ -318,6 +324,11 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
           {patternActivation.activated ? (
             <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500' }]}>
               ↳ {patternActivation.activationLine}
+            </Text>
+          ) : null}
+          {lifeChapterContextLine ? (
+            <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500', fontStyle: 'italic' }]}>
+              ↳ {lifeChapterContextLine}
             </Text>
           ) : null}
         </View>

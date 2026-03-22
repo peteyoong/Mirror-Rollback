@@ -14,6 +14,8 @@ import {
   KeyAspect,
   EnhancedKeyAspect,
   AspectPatternAnalysis,
+  LifeChapterAnalysis,
+  LifeChapterNarrative,
 } from '../../services/astrology/astrologyTypes';
 
 import {
@@ -28,6 +30,8 @@ import {
   buildPlanetStrengths,
   buildAspectPatternAnalysis,
   getEnhancedKeyAspects,
+  buildLifeChapterAnalysis,
+  buildLifeChapterNarrative,
 } from '../../services/astrology/astrologyInterpreter';
 
 import {
@@ -314,6 +318,12 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
   const whatMattersMost = getWhatMattersMost(placements, fullChartData);
   const keyAspects = getKeyAspects(fullChartData, placements);
   
+  // Life Chapter analysis (Master Astrologer v4)
+  const chapterAnalysis = buildLifeChapterAnalysis(fullChartData);
+  const chapterNarrative = chapterAnalysis.primaryChapter 
+    ? buildLifeChapterNarrative(chapterAnalysis.primaryChapter, patternAnalysis)
+    : null;
+  
   // Developmental pressure row data
   const saturnHouse = placements.saturn_house;
   const chironHouse = placements.chiron_house;
@@ -351,6 +361,22 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
           </Text>
         ))}
       </View>
+
+      {/* LIFE CHAPTER - Master Astrologer v4 */}
+      {chapterNarrative && chapterAnalysis.hasActiveChapter && (
+        <View style={[styles.lifeChapterCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+          <Text style={[styles.lifeChapterLabel, { color: theme.accent }]}>LIFE CHAPTER</Text>
+          <Text style={[styles.lifeChapterTitle, { color: theme.text }]}>{chapterNarrative.chapterTitle}</Text>
+          <Text style={[styles.lifeChapterDescription, { color: theme.textSecondary }]}>
+            {chapterNarrative.coreDescription}
+          </Text>
+          {chapterAnalysis.primaryChapter && chapterAnalysis.primaryChapter.lifeAreas.length > 0 && (
+            <Text style={[styles.lifeChapterAreas, { color: theme.textTertiary }]}>
+              This phase is especially active in {chapterAnalysis.primaryChapter.lifeAreas.slice(0, 2).join(' and ')}.
+            </Text>
+          )}
+        </View>
+      )}
 
       {/* WHAT MATTERS MOST */}
       <View style={[styles.whatMattersCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -674,6 +700,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     marginBottom: 8,
+  },
+  lifeChapterCard: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 4,
+  },
+  lifeChapterLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
+  lifeChapterTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  lifeChapterDescription: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 6,
+  },
+  lifeChapterAreas: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
   whatMattersCard: {
     borderRadius: 12,

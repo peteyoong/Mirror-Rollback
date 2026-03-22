@@ -410,3 +410,47 @@ export interface EnhancedKeyAspect {
   involvedHouses: number[];
   lifeAreas: string[];
 }
+
+// === LIFE CHAPTER TYPES (Master Astrologer v4) ===
+
+export type ChapterType = 'saturn' | 'jupiter' | 'nodal' | 'chiron';
+
+export interface ChapterActivation {
+  transitPoint: string;
+  natalPoint: string;
+  aspectType: string;
+  orb: number;
+  house: number;
+  isApplying: boolean;
+}
+
+export interface LifeChapter {
+  chapterType: ChapterType;
+  isActive: boolean;
+  strengthScore: number;
+  natalPointsInvolved: string[];
+  lifeAreas: string[];
+  housesInvolved: number[];
+  activations: ChapterActivation[];
+  themeSummary: string;
+}
+
+export interface LifeChapterAnalysis {
+  chapters: {
+    saturn: LifeChapter;
+    jupiter: LifeChapter;
+    nodal: LifeChapter;
+    chiron: LifeChapter;
+  };
+  primaryChapter: LifeChapter | null;
+  secondaryChapter: LifeChapter | null;
+  hasActiveChapter: boolean;
+}
+
+export interface LifeChapterNarrative {
+  chapterTitle: string;
+  coreDescription: string;
+  whatPhaseIsAsking: string;
+  whatHappensIfResisted: string;
+  shortContextLine: string;
+}

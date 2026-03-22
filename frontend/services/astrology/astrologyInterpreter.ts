@@ -36,6 +36,12 @@ import {
   DominantAspectPattern,
   HowPressureBuilds,
   EnhancedKeyAspect,
+  // Life Chapter Types (Master Astrologer v4)
+  ChapterType,
+  ChapterActivation,
+  LifeChapter,
+  LifeChapterAnalysis,
+  LifeChapterNarrative,
 } from './astrologyTypes';
 
 // ============================================
@@ -2266,4 +2272,748 @@ export const isPatternActivatedByTransit = (
   }
   
   return { activated: false, activationLine: '' };
+};
+
+// ============================================
+// LIFE CHAPTER DETECTION (Master Astrologer v4)
+// ============================================
+
+// Important natal points for chapter detection
+const PERSONAL_PLANETS = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars'];
+const CHAPTER_DRIVERS = {
+  saturn: ['Saturn'],
+  jupiter: ['Jupiter'],
+  nodal: ['North Node', 'South Node'],
+  chiron: ['Chiron']
+};
+
+// Aspect types that indicate strong activation
+const STRONG_ASPECTS = ['conjunction', 'opposition', 'square'];
+const MEDIUM_ASPECTS = ['trine', 'sextile'];
+
+// Get life areas from houses
+const getLifeAreasForChapter = (houses: number[]): string[] => {
+  const HOUSE_LIFE_AREAS: { [key: number]: string } = {
+    1: 'identity and self-presentation',
+    2: 'money, resources, and self-worth',
+    3: 'communication, thinking, and daily environment',
+    4: 'home, family, and emotional foundation',
+    5: 'creativity, romance, and self-expression',
+    6: 'work, health, and daily routines',
+    7: 'relationships and partnership',
+    8: 'intimacy, trust, and transformation',
+    9: 'beliefs, meaning, and expansion',
+    10: 'career, reputation, and public role',
+    11: 'community, friendships, and future vision',
+    12: 'unconscious patterns, surrender, and hidden matters'
+  };
+  
+  const uniqueHouses = [...new Set(houses)].filter(h => h >= 1 && h <= 12);
+  return uniqueHouses.map(h => HOUSE_LIFE_AREAS[h] || `house ${h}`);
+};
+
+// Detect Saturn Chapter
+const detectSaturnChapter = (chartData: FullChartData | null): LifeChapter => {
+  const defaultChapter: LifeChapter = {
+    chapterType: 'saturn',
+    isActive: false,
+    strengthScore: 0,
+    natalPointsInvolved: [],
+    lifeAreas: [],
+    housesInvolved: [],
+    activations: [],
+    themeSummary: ''
+  };
+  
+  if (!chartData?.transits?.strongest_hits) return defaultChapter;
+  
+  const transits = chartData.transits.strongest_hits;
+  const planets = chartData.natal?.planets || {};
+  const chartRuler = getChartRuler(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  
+  const activations: ChapterActivation[] = [];
+  const natalPointsInvolved: string[] = [];
+  const housesInvolved: number[] = [];
+  let score = 0;
+  
+  // Find Saturn transits
+  for (const hit of transits) {
+    if (hit.transit_point !== 'Saturn') continue;
+    
+    const natalPoint = hit.natal_point;
+    const house = hit.natal_house || planets[natalPoint]?.house || 0;
+    const isStrongAspect = STRONG_ASPECTS.includes(hit.aspect_type);
+    const isMediumAspect = MEDIUM_ASPECTS.includes(hit.aspect_type);
+    
+    // Calculate hit importance
+    let hitScore = 0;
+    
+    // Personal planets are high value
+    if (PERSONAL_PLANETS.includes(natalPoint)) {
+      hitScore += isStrongAspect ? 15 : isMediumAspect ? 8 : 5;
+    }
+    
+    // Chart ruler is very high value
+    if (chartRuler && natalPoint === chartRuler.planet) {
+      hitScore += isStrongAspect ? 20 : 12;
+    }
+    
+    // Dominant houses add significance
+    if (dominantHouses.includes(house)) {
+      hitScore += 5;
+    }
+    
+    // Angular houses (1, 4, 7, 10) are prominent
+    if (ANGULAR_HOUSES.includes(house)) {
+      hitScore += 5;
+    }
+    
+    // Orb tightness bonus
+    if (hit.orb <= 2) hitScore += 5;
+    else if (hit.orb <= 5) hitScore += 2;
+    
+    // Applying aspect bonus
+    if (hit.applying) hitScore += 3;
+    
+    if (hitScore > 0) {
+      activations.push({
+        transitPoint: 'Saturn',
+        natalPoint,
+        aspectType: hit.aspect_type,
+        orb: hit.orb,
+        house,
+        isApplying: hit.applying
+      });
+      
+      if (!natalPointsInvolved.includes(natalPoint)) {
+        natalPointsInvolved.push(natalPoint);
+      }
+      if (house > 0 && !housesInvolved.includes(house)) {
+        housesInvolved.push(house);
+      }
+      
+      score += hitScore;
+    }
+  }
+  
+  const isActive = score >= 10;
+  
+  // Build theme summary
+  let themeSummary = '';
+  if (isActive) {
+    if (natalPointsInvolved.includes('Sun')) {
+      themeSummary = 'Saturn is working on your core identity—testing what you claim to be.';
+    } else if (natalPointsInvolved.includes('Moon')) {
+      themeSummary = 'Saturn is working on your emotional life—asking what you truly need versus what you cling to.';
+    } else if (chartRuler && natalPointsInvolved.includes(chartRuler.planet)) {
+      themeSummary = 'Saturn is working on the core of your chart—pressing on how you meet life.';
+    } else if (housesInvolved.some(h => [4, 10].includes(h))) {
+      themeSummary = 'Saturn is restructuring your foundation and your place in the world.';
+    } else if (housesInvolved.some(h => [1, 7].includes(h))) {
+      themeSummary = 'Saturn is testing your sense of self and your closest relationships.';
+    } else {
+      themeSummary = 'Saturn is applying pressure to specific areas of your life, demanding maturation.';
+    }
+  }
+  
+  return {
+    chapterType: 'saturn',
+    isActive,
+    strengthScore: score,
+    natalPointsInvolved,
+    lifeAreas: getLifeAreasForChapter(housesInvolved),
+    housesInvolved,
+    activations,
+    themeSummary
+  };
+};
+
+// Detect Jupiter Chapter
+const detectJupiterChapter = (chartData: FullChartData | null): LifeChapter => {
+  const defaultChapter: LifeChapter = {
+    chapterType: 'jupiter',
+    isActive: false,
+    strengthScore: 0,
+    natalPointsInvolved: [],
+    lifeAreas: [],
+    housesInvolved: [],
+    activations: [],
+    themeSummary: ''
+  };
+  
+  if (!chartData?.transits?.strongest_hits) return defaultChapter;
+  
+  const transits = chartData.transits.strongest_hits;
+  const planets = chartData.natal?.planets || {};
+  const chartRuler = getChartRuler(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  
+  const activations: ChapterActivation[] = [];
+  const natalPointsInvolved: string[] = [];
+  const housesInvolved: number[] = [];
+  let score = 0;
+  
+  // Find Jupiter transits
+  for (const hit of transits) {
+    if (hit.transit_point !== 'Jupiter') continue;
+    
+    const natalPoint = hit.natal_point;
+    const house = hit.natal_house || planets[natalPoint]?.house || 0;
+    const isStrongAspect = STRONG_ASPECTS.includes(hit.aspect_type);
+    const isMediumAspect = MEDIUM_ASPECTS.includes(hit.aspect_type);
+    
+    let hitScore = 0;
+    
+    // Personal planets
+    if (PERSONAL_PLANETS.includes(natalPoint)) {
+      hitScore += isStrongAspect ? 12 : isMediumAspect ? 7 : 4;
+    }
+    
+    // Chart ruler
+    if (chartRuler && natalPoint === chartRuler.planet) {
+      hitScore += isStrongAspect ? 15 : 10;
+    }
+    
+    // Dominant houses
+    if (dominantHouses.includes(house)) {
+      hitScore += 5;
+    }
+    
+    // 9th house (Jupiter's natural home) or angular
+    if (house === 9) hitScore += 5;
+    if (ANGULAR_HOUSES.includes(house)) hitScore += 3;
+    
+    // Orb bonus
+    if (hit.orb <= 2) hitScore += 4;
+    else if (hit.orb <= 5) hitScore += 2;
+    
+    if (hit.applying) hitScore += 2;
+    
+    if (hitScore > 0) {
+      activations.push({
+        transitPoint: 'Jupiter',
+        natalPoint,
+        aspectType: hit.aspect_type,
+        orb: hit.orb,
+        house,
+        isApplying: hit.applying
+      });
+      
+      if (!natalPointsInvolved.includes(natalPoint)) {
+        natalPointsInvolved.push(natalPoint);
+      }
+      if (house > 0 && !housesInvolved.includes(house)) {
+        housesInvolved.push(house);
+      }
+      
+      score += hitScore;
+    }
+  }
+  
+  const isActive = score >= 8;
+  
+  let themeSummary = '';
+  if (isActive) {
+    if (natalPointsInvolved.includes('Sun')) {
+      themeSummary = 'Jupiter is expanding your sense of self—opportunities to grow into more of who you are.';
+    } else if (natalPointsInvolved.includes('Moon')) {
+      themeSummary = 'Jupiter is expanding your emotional world—more openness, more possibility in how you feel.';
+    } else if (chartRuler && natalPointsInvolved.includes(chartRuler.planet)) {
+      themeSummary = 'Jupiter is opening doors at the core of your chart—a period of expansion in how you meet life.';
+    } else if (housesInvolved.some(h => [9, 3].includes(h))) {
+      themeSummary = 'Jupiter is expanding your beliefs and understanding—a period of learning and meaning-making.';
+    } else if (housesInvolved.some(h => [2, 8].includes(h))) {
+      themeSummary = 'Jupiter is expanding your resources and depths—growth in what you have and what you share.';
+    } else {
+      themeSummary = 'Jupiter is bringing expansion and opportunity to specific areas of your life.';
+    }
+  }
+  
+  return {
+    chapterType: 'jupiter',
+    isActive,
+    strengthScore: score,
+    natalPointsInvolved,
+    lifeAreas: getLifeAreasForChapter(housesInvolved),
+    housesInvolved,
+    activations,
+    themeSummary
+  };
+};
+
+// Detect Nodal Chapter
+const detectNodalChapter = (chartData: FullChartData | null): LifeChapter => {
+  const defaultChapter: LifeChapter = {
+    chapterType: 'nodal',
+    isActive: false,
+    strengthScore: 0,
+    natalPointsInvolved: [],
+    lifeAreas: [],
+    housesInvolved: [],
+    activations: [],
+    themeSummary: ''
+  };
+  
+  if (!chartData?.transits?.strongest_hits) return defaultChapter;
+  
+  const transits = chartData.transits.strongest_hits;
+  const planets = chartData.natal?.planets || {};
+  const nodes = chartData.natal?.nodes;
+  const angles = chartData.natal?.angles;
+  
+  const activations: ChapterActivation[] = [];
+  const natalPointsInvolved: string[] = [];
+  const housesInvolved: number[] = [];
+  let score = 0;
+  
+  // Find Nodal transits (both North Node and South Node)
+  for (const hit of transits) {
+    if (hit.transit_point !== 'North Node' && hit.transit_point !== 'South Node') continue;
+    
+    const natalPoint = hit.natal_point;
+    const house = hit.natal_house || planets[natalPoint]?.house || 0;
+    const isStrongAspect = STRONG_ASPECTS.includes(hit.aspect_type);
+    
+    let hitScore = 0;
+    
+    // Nodal return or square (nodes touching natal nodes) is very significant
+    if (natalPoint === 'North Node' || natalPoint === 'South Node') {
+      hitScore += hit.aspect_type === 'conjunction' ? 25 : isStrongAspect ? 18 : 10;
+    }
+    
+    // Sun/Moon activation
+    if (natalPoint === 'Sun' || natalPoint === 'Moon') {
+      hitScore += isStrongAspect ? 20 : 12;
+    }
+    
+    // Angle activation (Asc, MC)
+    if (natalPoint === 'Ascendant' || natalPoint === 'MC') {
+      hitScore += isStrongAspect ? 15 : 8;
+    }
+    
+    // Personal planets
+    if (PERSONAL_PLANETS.includes(natalPoint) && natalPoint !== 'Sun' && natalPoint !== 'Moon') {
+      hitScore += isStrongAspect ? 10 : 5;
+    }
+    
+    // Orb bonus
+    if (hit.orb <= 2) hitScore += 5;
+    else if (hit.orb <= 5) hitScore += 2;
+    
+    if (hitScore > 0) {
+      activations.push({
+        transitPoint: hit.transit_point,
+        natalPoint,
+        aspectType: hit.aspect_type,
+        orb: hit.orb,
+        house,
+        isApplying: hit.applying
+      });
+      
+      if (!natalPointsInvolved.includes(natalPoint)) {
+        natalPointsInvolved.push(natalPoint);
+      }
+      if (house > 0 && !housesInvolved.includes(house)) {
+        housesInvolved.push(house);
+      }
+      
+      score += hitScore;
+    }
+  }
+  
+  const isActive = score >= 12;
+  
+  let themeSummary = '';
+  if (isActive) {
+    const hasNodalReturn = activations.some(a => 
+      (a.natalPoint === 'North Node' || a.natalPoint === 'South Node') && 
+      a.aspectType === 'conjunction'
+    );
+    const hasNodalSquare = activations.some(a => 
+      (a.natalPoint === 'North Node' || a.natalPoint === 'South Node') && 
+      a.aspectType === 'square'
+    );
+    
+    if (hasNodalReturn) {
+      themeSummary = 'A nodal return—a major pivot point where you are asked to realign with your deeper direction.';
+    } else if (hasNodalSquare) {
+      themeSummary = 'A nodal square—a crossroads where old patterns and new directions create tension.';
+    } else if (natalPointsInvolved.includes('Sun')) {
+      themeSummary = 'The nodes are activating your identity—questions about direction and purpose are front and center.';
+    } else if (natalPointsInvolved.includes('Moon')) {
+      themeSummary = 'The nodes are activating your emotional life—what you need is being asked to evolve.';
+    } else {
+      themeSummary = 'The nodes are activating key points in your chart—a phase of directional recalibration.';
+    }
+  }
+  
+  return {
+    chapterType: 'nodal',
+    isActive,
+    strengthScore: score,
+    natalPointsInvolved,
+    lifeAreas: getLifeAreasForChapter(housesInvolved),
+    housesInvolved,
+    activations,
+    themeSummary
+  };
+};
+
+// Detect Chiron Chapter
+const detectChironChapter = (chartData: FullChartData | null): LifeChapter => {
+  const defaultChapter: LifeChapter = {
+    chapterType: 'chiron',
+    isActive: false,
+    strengthScore: 0,
+    natalPointsInvolved: [],
+    lifeAreas: [],
+    housesInvolved: [],
+    activations: [],
+    themeSummary: ''
+  };
+  
+  if (!chartData?.transits?.strongest_hits) return defaultChapter;
+  
+  const transits = chartData.transits.strongest_hits;
+  const planets = chartData.natal?.planets || {};
+  const chartRuler = getChartRuler(chartData);
+  const dominantHouses = getDominantHouses(chartData);
+  
+  const activations: ChapterActivation[] = [];
+  const natalPointsInvolved: string[] = [];
+  const housesInvolved: number[] = [];
+  let score = 0;
+  
+  // Find Chiron transits
+  for (const hit of transits) {
+    if (hit.transit_point !== 'Chiron') continue;
+    
+    const natalPoint = hit.natal_point;
+    const house = hit.natal_house || planets[natalPoint]?.house || 0;
+    const isStrongAspect = STRONG_ASPECTS.includes(hit.aspect_type);
+    const isMediumAspect = MEDIUM_ASPECTS.includes(hit.aspect_type);
+    
+    let hitScore = 0;
+    
+    // Chiron return (natal Chiron) is very significant
+    if (natalPoint === 'Chiron') {
+      hitScore += hit.aspect_type === 'conjunction' ? 30 : isStrongAspect ? 20 : 10;
+    }
+    
+    // Personal planets
+    if (PERSONAL_PLANETS.includes(natalPoint)) {
+      hitScore += isStrongAspect ? 12 : isMediumAspect ? 7 : 4;
+    }
+    
+    // Chart ruler
+    if (chartRuler && natalPoint === chartRuler.planet) {
+      hitScore += isStrongAspect ? 15 : 8;
+    }
+    
+    // Dominant houses
+    if (dominantHouses.includes(house)) {
+      hitScore += 5;
+    }
+    
+    // Orb bonus
+    if (hit.orb <= 2) hitScore += 4;
+    else if (hit.orb <= 5) hitScore += 2;
+    
+    if (hitScore > 0) {
+      activations.push({
+        transitPoint: 'Chiron',
+        natalPoint,
+        aspectType: hit.aspect_type,
+        orb: hit.orb,
+        house,
+        isApplying: hit.applying
+      });
+      
+      if (!natalPointsInvolved.includes(natalPoint)) {
+        natalPointsInvolved.push(natalPoint);
+      }
+      if (house > 0 && !housesInvolved.includes(house)) {
+        housesInvolved.push(house);
+      }
+      
+      score += hitScore;
+    }
+  }
+  
+  const isActive = score >= 10;
+  
+  let themeSummary = '';
+  if (isActive) {
+    const hasChironReturn = activations.some(a => 
+      a.natalPoint === 'Chiron' && a.aspectType === 'conjunction'
+    );
+    
+    if (hasChironReturn) {
+      themeSummary = 'A Chiron return—a deep healing passage where old wounds can transform into wisdom.';
+    } else if (natalPointsInvolved.includes('Sun')) {
+      themeSummary = 'Chiron is working on your identity—bringing up old vulnerabilities to be understood differently.';
+    } else if (natalPointsInvolved.includes('Moon')) {
+      themeSummary = 'Chiron is working on your emotional life—sensitive places asking for integration, not fixing.';
+    } else if (natalPointsInvolved.includes('Venus')) {
+      themeSummary = 'Chiron is working on your relational life—old patterns of connection asking to be healed.';
+    } else {
+      themeSummary = 'Chiron is bringing something sensitive forward—a phase of integration and healing.';
+    }
+  }
+  
+  return {
+    chapterType: 'chiron',
+    isActive,
+    strengthScore: score,
+    natalPointsInvolved,
+    lifeAreas: getLifeAreasForChapter(housesInvolved),
+    housesInvolved,
+    activations,
+    themeSummary
+  };
+};
+
+// ============================================
+// BUILD LIFE CHAPTER ANALYSIS
+// ============================================
+
+export const buildLifeChapterAnalysis = (chartData: FullChartData | null): LifeChapterAnalysis => {
+  const saturnChapter = detectSaturnChapter(chartData);
+  const jupiterChapter = detectJupiterChapter(chartData);
+  const nodalChapter = detectNodalChapter(chartData);
+  const chironChapter = detectChironChapter(chartData);
+  
+  // Collect all active chapters
+  const allChapters = [saturnChapter, jupiterChapter, nodalChapter, chironChapter];
+  const activeChapters = allChapters.filter(c => c.isActive);
+  
+  // Sort by strength score
+  activeChapters.sort((a, b) => b.strengthScore - a.strengthScore);
+  
+  const primaryChapter = activeChapters[0] || null;
+  const secondaryChapter = activeChapters[1] || null;
+  
+  return {
+    chapters: {
+      saturn: saturnChapter,
+      jupiter: jupiterChapter,
+      nodal: nodalChapter,
+      chiron: chironChapter
+    },
+    primaryChapter,
+    secondaryChapter,
+    hasActiveChapter: activeChapters.length > 0
+  };
+};
+
+// ============================================
+// BUILD LIFE CHAPTER NARRATIVE
+// ============================================
+
+export const buildLifeChapterNarrative = (
+  chapter: LifeChapter | null,
+  patternAnalysis?: AspectPatternAnalysis | null
+): LifeChapterNarrative | null => {
+  if (!chapter || !chapter.isActive) return null;
+  
+  // Check for overlap with dominant aspect patterns
+  const hasPatternOverlap = patternAnalysis?.dominantPattern && 
+    chapter.lifeAreas.some(area => 
+      patternAnalysis.dominantPattern?.patternData && 
+      'lifeAreas' in patternAnalysis.dominantPattern.patternData &&
+      (patternAnalysis.dominantPattern.patternData as any).lifeAreas?.includes(area)
+    );
+  
+  // Saturn narratives
+  if (chapter.chapterType === 'saturn') {
+    const titles = [
+      'A phase of restructuring',
+      'A season of pressure and pruning',
+      'A time of necessary discipline'
+    ];
+    
+    const coreDescriptions = [
+      'This is a phase where life stops letting things slide. What used to work without structure now demands something more solid.',
+      'Saturn is moving through territory that matters to you—pressing on what needs to mature.',
+      'This is not a punishment; it is a construction phase. What gets built now will last.'
+    ];
+    
+    const askings = [
+      'This phase is asking you to take responsibility for what you\'ve been avoiding.',
+      'It wants you to commit to something real—not because it\'s easy, but because it\'s necessary.',
+      'You are being asked to show up as an adult in areas where you\'ve been coasting.'
+    ];
+    
+    const resistances = [
+      'If resisted, this phase tends to create delays, blockages, and a feeling of being stuck.',
+      'Resistance here usually shows up as increased pressure until you face what\'s being asked.',
+      'Avoiding Saturn typically means it returns later—harder.'
+    ];
+    
+    // Select based on what natal points are involved
+    let idx = 0;
+    if (chapter.natalPointsInvolved.includes('Sun')) idx = 0;
+    else if (chapter.natalPointsInvolved.includes('Moon')) idx = 1;
+    else idx = 2;
+    
+    return {
+      chapterTitle: titles[idx] || titles[0],
+      coreDescription: coreDescriptions[idx] || coreDescriptions[0],
+      whatPhaseIsAsking: askings[idx] || askings[0],
+      whatHappensIfResisted: resistances[idx] || resistances[0],
+      shortContextLine: 'a longer phase of restructuring'
+    };
+  }
+  
+  // Jupiter narratives
+  if (chapter.chapterType === 'jupiter') {
+    const titles = [
+      'A phase of expansion',
+      'A season of opportunity',
+      'A time of growth'
+    ];
+    
+    const coreDescriptions = [
+      'This is a phase where growth is available—but only if you\'re willing to step beyond what feels contained.',
+      'Jupiter is bringing expansion to areas that have been waiting for room to breathe.',
+      'Doors are opening. The question is whether you\'ll walk through them.'
+    ];
+    
+    const askings = [
+      'This phase is asking you to think bigger than you have been.',
+      'It wants you to say yes to something that stretches you.',
+      'You are being invited to believe in more than what\'s been safe.'
+    ];
+    
+    const resistances = [
+      'If resisted, this phase can feel like restlessness without direction.',
+      'Avoiding Jupiter\'s invitations can lead to a vague sense that something is passing you by.',
+      'Growth refused tends to show up as stagnation or missed timing.'
+    ];
+    
+    let idx = 0;
+    if (chapter.natalPointsInvolved.includes('Sun')) idx = 0;
+    else if (chapter.housesInvolved.some(h => [9, 3].includes(h))) idx = 1;
+    else idx = 2;
+    
+    return {
+      chapterTitle: titles[idx] || titles[0],
+      coreDescription: coreDescriptions[idx] || coreDescriptions[0],
+      whatPhaseIsAsking: askings[idx] || askings[0],
+      whatHappensIfResisted: resistances[idx] || resistances[0],
+      shortContextLine: 'a period of expansion'
+    };
+  }
+  
+  // Nodal narratives
+  if (chapter.chapterType === 'nodal') {
+    const hasReturn = chapter.activations.some(a => 
+      (a.natalPoint === 'North Node' || a.natalPoint === 'South Node') && 
+      a.aspectType === 'conjunction'
+    );
+    
+    const titles = hasReturn 
+      ? ['A major turning point', 'A pivot in your path']
+      : ['A shift in direction', 'A season of recalibration'];
+    
+    const coreDescriptions = hasReturn
+      ? [
+          'This is a nodal return—a rare recalibration of your life\'s direction. What once felt natural may no longer be enough.',
+          'You are at a pivot point. The nodes are asking: have you been moving toward what matters?'
+        ]
+      : [
+          'This is a phase of redirection. What once felt natural may no longer be enough.',
+          'The nodes are activating—your sense of where you\'re headed is being updated.'
+        ];
+    
+    const askings = [
+      'This phase is asking you to let go of patterns that have served their purpose.',
+      'It wants you to move toward what feels unfamiliar but right.'
+    ];
+    
+    const resistances = [
+      'If resisted, this phase can feel like being pulled in two directions at once.',
+      'Ignoring nodal shifts tends to create a growing sense of being off-track.'
+    ];
+    
+    return {
+      chapterTitle: titles[0] || 'A shift in direction',
+      coreDescription: coreDescriptions[0] || coreDescriptions[1],
+      whatPhaseIsAsking: askings[0] || askings[1],
+      whatHappensIfResisted: resistances[0] || resistances[1],
+      shortContextLine: 'a shift in direction'
+    };
+  }
+  
+  // Chiron narratives
+  if (chapter.chapterType === 'chiron') {
+    const hasReturn = chapter.activations.some(a => 
+      a.natalPoint === 'Chiron' && a.aspectType === 'conjunction'
+    );
+    
+    const titles = hasReturn
+      ? ['A deep healing passage', 'The Chiron return']
+      : ['A phase of healing', 'A time of integration'];
+    
+    const coreDescriptions = hasReturn
+      ? [
+          'This is a Chiron return—a rare passage where old wounds can transform into wisdom. What you\'ve carried can now become what you offer.',
+          'Chiron is returning to its natal position. This is about integrating what you\'ve learned from your pain.'
+        ]
+      : [
+          'This is a phase where something sensitive is being brought forward—not to weaken you, but to be understood differently.',
+          'Chiron is activating old patterns. This isn\'t about fixing; it\'s about holding what\'s always been tender.'
+        ];
+    
+    const askings = [
+      'This phase is asking you to be with what you\'ve been avoiding.',
+      'It wants you to stop trying to fix the wound and instead let it teach you.'
+    ];
+    
+    const resistances = [
+      'If resisted, this phase tends to surface the same patterns in louder ways.',
+      'Avoiding Chiron usually means the sensitivity shows up elsewhere, often through the body or relationships.'
+    ];
+    
+    return {
+      chapterTitle: titles[0] || 'A phase of healing',
+      coreDescription: coreDescriptions[0] || coreDescriptions[1],
+      whatPhaseIsAsking: askings[0] || askings[1],
+      whatHappensIfResisted: resistances[0] || resistances[1],
+      shortContextLine: 'an ongoing healing process'
+    };
+  }
+  
+  return null;
+};
+
+// ============================================
+// GET CHAPTER CONTEXT LINE FOR TODAY/WEEK/MONTH
+// ============================================
+
+export const getChapterContextLine = (
+  chapterAnalysis: LifeChapterAnalysis | null,
+  timeframe: 'today' | 'week' | 'month' = 'today'
+): string | null => {
+  if (!chapterAnalysis?.hasActiveChapter || !chapterAnalysis.primaryChapter) {
+    return null;
+  }
+  
+  const chapter = chapterAnalysis.primaryChapter;
+  const narrative = buildLifeChapterNarrative(chapter);
+  
+  if (!narrative) return null;
+  
+  // Only show for strong chapters
+  if (chapter.strengthScore < 15) return null;
+  
+  // Format based on timeframe
+  if (timeframe === 'today') {
+    return `This isn't just about today—this is part of ${narrative.shortContextLine} you're moving through.`;
+  } else if (timeframe === 'week') {
+    return `This week sits inside ${narrative.shortContextLine}—a larger phase of your life.`;
+  } else {
+    return `This month is part of ${narrative.shortContextLine}.`;
+  }
 };
