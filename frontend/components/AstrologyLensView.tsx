@@ -2248,7 +2248,6 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   const [fullChartData, setFullChartData] = useState<FullChartData | null>(null);
   const [activeAltitude, setActiveAltitude] = useState<'today' | 'week' | 'month'>('today');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set(['sun']));
-  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -2400,76 +2399,6 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
   };
 
   const placements = getPlacements();
-
-  // ============================================
-  // RENDER: DEBUG PANEL
-  // ============================================
-  const renderDebugPanel = () => {
-    if (!showDebug || !fullChartData) return null;
-    
-    const { natal, transits, metadata } = fullChartData;
-    
-    return (
-      <View style={[styles.debugPanel, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={styles.debugHeader}>
-          <Text style={[styles.debugTitle, { color: theme.text }]}>🔍 CHART DATA DEBUG</Text>
-          <TouchableOpacity onPress={() => setShowDebug(false)}>
-            <Text style={{ color: theme.textSecondary }}>✕</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <Text style={[styles.debugSection, { color: theme.accent }]}>METADATA</Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
-          Sidereal: {metadata?.sidereal_mode} | SVP: {metadata?.svp_degrees}°
-        </Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
-          Houses: {metadata?.house_system} | Node: {metadata?.node_mode}
-        </Text>
-        
-        <Text style={[styles.debugSection, { color: theme.accent }]}>NATAL POINTS ({Object.keys(natal?.planets || {}).length})</Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
-          ☉ Sun: {natal?.planets?.Sun?.sign} {natal?.planets?.Sun?.degree?.toFixed(1)}° H{natal?.planets?.Sun?.house}
-        </Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
-          ☽ Moon: {natal?.planets?.Moon?.sign} {natal?.planets?.Moon?.degree?.toFixed(1)}° H{natal?.planets?.Moon?.house}
-        </Text>
-        <Text style={[styles.debugText, { color: '#4CAF50' }]}>
-          ♃ Jupiter: {natal?.planets?.Jupiter?.sign} H{natal?.planets?.Jupiter?.house}
-        </Text>
-        <Text style={[styles.debugText, { color: '#FFA726' }]}>
-          ♄ Saturn: {natal?.planets?.Saturn?.sign} H{natal?.planets?.Saturn?.house}
-        </Text>
-        <Text style={[styles.debugText, { color: '#CE93D8' }]}>
-          ⚷ Chiron: {natal?.planets?.Chiron?.sign} H{natal?.planets?.Chiron?.house} {natal?.planets?.Chiron ? '✓' : '✗'}
-        </Text>
-        <Text style={[styles.debugText, { color: '#81D4FA' }]}>
-          ☊ N.Node: {natal?.nodes?.north?.sign} H{natal?.nodes?.north?.house}
-        </Text>
-        <Text style={[styles.debugText, { color: '#81D4FA' }]}>
-          ☋ S.Node: {natal?.nodes?.south?.sign} H{natal?.nodes?.south?.house}
-        </Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
-          MC: {natal?.angles?.mc?.sign} | IC: {natal?.angles?.ic?.sign}
-        </Text>
-        
-        <Text style={[styles.debugSection, { color: theme.accent }]}>ASPECTS ({natal?.aspects?.length})</Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
-          {natal?.aspects?.slice(0, 3).map((a: any) => `${a.point_a} ${a.aspect_type} ${a.point_b}`).join(', ')}
-        </Text>
-        
-        <Text style={[styles.debugSection, { color: theme.accent }]}>TRANSITS ({transits?.total_active_aspects})</Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
-          Top hits: {transits?.strongest_hits?.slice(0, 3).map((h: any) => `${h.transit_point}→${h.natal_point}`).join(', ')}
-        </Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
-          Emphasis: {transits?.emphasis_tags?.slice(0, 4).join(', ')}
-        </Text>
-        <Text style={[styles.debugText, { color: theme.textSecondary }]}>
-          Today activated: {transits?.windows?.today?.activated_natal_points?.join(', ')}
-        </Text>
-      </View>
-    );
-  };
 
   // ============================================
   // RENDER: TABS
@@ -2873,19 +2802,35 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
         />
 
         {/* ============================================ */}
-        {/* LAYER 2: SIGNALS (Collapsible, Secondary) */}
+        {/* LAYER 2: SIGNALS (Inline Collapsible, Secondary) */}
         {/* ============================================ */}
+        
+        {/* Subtle divider */}
+        <View style={[styles.signalsDivider, { backgroundColor: theme.border }]} />
+        
+        {/* Signals Toggle with Credibility Hint */}
         <TouchableOpacity
-          style={[styles.signalsToggle, { borderColor: theme.border }]}
+          style={[styles.signalsToggle, { borderColor: 'transparent' }]}
           onPress={() => setSignalsExpanded(!signalsExpanded)}
           activeOpacity={0.7}
         >
-          <Text style={[styles.signalsToggleText, { color: theme.textTertiary }]}>
-            {signalsExpanded ? 'Hide signals' : 'See signals'}
-          </Text>
-          <Text style={[styles.signalsToggleIcon, { color: theme.textTertiary }]}>
-            {signalsExpanded ? '▲' : '▼'}
-          </Text>
+          <View style={styles.signalsToggleContent}>
+            <Text style={[styles.signalsToggleText, { color: theme.textTertiary }]}>
+              {signalsExpanded 
+                ? (activeAltitude === 'today' ? 'Hide signals' : activeAltitude === 'week' ? "Hide this week's signals" : "Hide this month's signals")
+                : (activeAltitude === 'today' ? 'See signals' : activeAltitude === 'week' ? "See this week's signals" : "See this month's signals")
+              }
+            </Text>
+            <Text style={[styles.signalsToggleIcon, { color: theme.textTertiary }]}>
+              {signalsExpanded ? '▴' : '▾'}
+            </Text>
+          </View>
+          {/* Credibility hint when collapsed */}
+          {!signalsExpanded && currentWindow?.activated_natal_points && (
+            <Text style={[styles.signalsCredibilityHint, { color: theme.textTertiary }]}>
+              {currentWindow.activated_natal_points.slice(0, 5).join(', ')}
+            </Text>
+          )}
         </TouchableOpacity>
 
         {signalsExpanded && (
@@ -3230,21 +3175,6 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           </View>
         ) : (
           <>
-            {/* Debug Toggle */}
-            {fullChartData && (
-              <TouchableOpacity
-                style={[styles.debugToggle, { backgroundColor: showDebug ? theme.accent : theme.surface, borderColor: theme.border }]}
-                onPress={() => setShowDebug(!showDebug)}
-              >
-                <Text style={{ fontSize: 10, color: showDebug ? '#fff' : theme.textSecondary }}>
-                  🔍 {showDebug ? 'Hide' : 'Show'} Data
-                </Text>
-              </TouchableOpacity>
-            )}
-            
-            {/* Debug Panel */}
-            {renderDebugPanel()}
-            
             {activeTab === 'at_a_glance' && renderAtAGlance()}
             {activeTab === 'today' && renderTodaySnapshot()}
             {activeTab === 'deep_dive' && renderDeepDive()}
@@ -4119,13 +4049,16 @@ const styles = StyleSheet.create({
   },
   // Signals Toggle
   signalsToggle: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    marginTop: 8,
+    paddingVertical: 14,
+    marginTop: 4,
     marginBottom: 4,
-    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  signalsToggleContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   signalsToggleText: {
     fontSize: 12,
@@ -4134,6 +4067,18 @@ const styles = StyleSheet.create({
   signalsToggleIcon: {
     fontSize: 10,
     marginLeft: 6,
+  },
+  signalsCredibilityHint: {
+    fontSize: 11,
+    marginTop: 4,
+    opacity: 0.7,
+  },
+  signalsDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginTop: 16,
+    marginBottom: 4,
+    marginHorizontal: 20,
+    opacity: 0.3,
   },
   // Signals Container
   signalsContainer: {
