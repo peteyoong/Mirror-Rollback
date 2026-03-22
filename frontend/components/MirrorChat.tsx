@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api, { createMirrorInsight } from '../services/api';
 import { storage, CHAT_SESSION_KEYS } from '../store';
 import MirrorLeaderCard from './journal/MirrorLeaderCard';
+import { useDominantTruthForChat } from '../hooks/useDominantTruth';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -278,6 +279,9 @@ export default function MirrorChat({
   // Track if insight has been saved for this session
   const [insightSavedForSession, setInsightSavedForSession] = useState(false);
   
+  // Dominant Truth for contextual awareness (Master Layer Integration)
+  const { data: dominantTruthData, isLoading: isDominantTruthLoading, hasPattern: hasDominantPattern } = useDominantTruthForChat(userId);
+  
   // Keyboard state for better scroll handling
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   
@@ -527,6 +531,8 @@ export default function MirrorChat({
       session_id: sessionId,
       include_journal: true,
       include_history: true,
+      // Master Layer Integration: Inject dominant truth system context
+      dominant_pattern_context: !lens && hasDominantPattern ? dominantTruthData?.systemContext : undefined,
     };
     
     console.log('[MIRROR_CHAT_REQUEST]', {
@@ -1018,6 +1024,16 @@ export default function MirrorChat({
       {/* Thread Pill (only for generalist chat with active thread) */}
       {renderThreadPill()}
 
+      {/* Dominant Truth Chip (Master Layer Integration - only for generalist chat) */}
+      {!lens && hasDominantPattern && dominantTruthData?.topChip && (
+        <View style={styles.dominantTruthChip}>
+          <Text style={styles.dominantTruthChipIcon}>✧</Text>
+          <Text style={styles.dominantTruthChipText} numberOfLines={1}>
+            {dominantTruthData.topChip}
+          </Text>
+        </View>
+      )}
+
       {/* Memory Card (above messages) */}
       {renderMemoryCard()}
 
@@ -1296,6 +1312,32 @@ const styles = StyleSheet.create({
   threadPillDate: {
     fontSize: 11,
     color: Colors.textTertiary,
+  },
+
+  // Dominant Truth Chip (Master Layer Integration)
+  dominantTruthChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(139, 92, 246, 0.08)',
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+    marginBottom: 8,
+    gap: 6,
+    maxWidth: '90%',
+  },
+  dominantTruthChipIcon: {
+    fontSize: 12,
+    color: Colors.accent,
+  },
+  dominantTruthChipText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.accent,
+    flex: 1,
   },
 
   // Thread Modal

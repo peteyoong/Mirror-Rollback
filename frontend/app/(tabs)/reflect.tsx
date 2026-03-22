@@ -41,6 +41,7 @@ import LunarCycleSynthesisCard from '../../components/journal/LunarCycleSynthesi
 import JournalLeaderCard from '../../components/journal/JournalLeaderCard';
 // MirrorLeaderCard now integrated directly into MirrorChat with collapse behavior
 // Removed Ionicons - using text-based alternatives for web compatibility
+import { useDominantTruthForJournal } from '../../hooks/useDominantTruth';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -207,6 +208,10 @@ export default function JournalScreen() {
 
   // Keystone context for Mirror Chat continuation
   const [keystoneContext, setKeystoneContext] = useState<KeystoneContext | null>(null);
+
+  // Dominant Truth for Journal prefill (Master Layer Integration)
+  const { data: dominantTruthData, isLoading: isDominantTruthLoading, hasPattern: hasDominantPattern } = useDominantTruthForJournal(user?.id);
+  const [dominantTruthPrefilled, setDominantTruthPrefilled] = useState(false);
 
   // Handle deep link from Mirror home (fromKeystone=true)
   useEffect(() => {
@@ -1273,6 +1278,28 @@ export default function JournalScreen() {
           {/* Journal Leader Card - Emotional framing */}
           <JournalLeaderCard />
 
+          {/* Dominant Truth Prompt Suggestion (Master Layer Integration) */}
+          {hasDominantPattern && dominantTruthData && !newEntry.trim() && !dominantTruthPrefilled && (
+            <TouchableOpacity
+              style={[styles.dominantTruthPromptCard, { backgroundColor: 'rgba(139, 92, 246, 0.06)', borderColor: Colors.accent + '30' }]}
+              onPress={() => {
+                // Prefill the journal with the dominant truth question
+                setNewEntry(dominantTruthData.prefill);
+                setDominantTruthPrefilled(true);
+                inputRef.current?.focus();
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.dominantTruthPromptLabel}>TODAY'S REFLECTION PROMPT</Text>
+              <Text style={[styles.dominantTruthPromptQuestion, { color: theme.text }]}>
+                {dominantTruthData.question}
+              </Text>
+              <Text style={[styles.dominantTruthPromptCTA, { color: Colors.accent }]}>
+                Tap to start writing →
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {/* New Entry Input */}
           <View style={styles.inputSection}>
             <View style={styles.inputContainer}>
@@ -1411,6 +1438,31 @@ const styles = StyleSheet.create({
   mirrorLeaderCardWrapper: {
     paddingHorizontal: 24,
     paddingTop: 8,
+  },
+  // Dominant Truth Prompt Card (Master Layer Integration)
+  dominantTruthPromptCard: {
+    marginHorizontal: 24,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  dominantTruthPromptLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    color: Colors.accent,
+    marginBottom: 8,
+  },
+  dominantTruthPromptQuestion: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  dominantTruthPromptCTA: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   centered: {
     flex: 1,

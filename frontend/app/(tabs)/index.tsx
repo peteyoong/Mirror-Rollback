@@ -23,6 +23,7 @@ import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import PatternCard from '../../components/PatternCard';
+import TodayPatternCard from '../../components/TodayPatternCard';
 // KeystoneHeroCard REMOVED - replaced by PatternCard (Pattern Mirror V1)
 
 interface PatternCategory {
@@ -317,6 +318,21 @@ export default function MirrorScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
+        {/* ===================================================================
+            POSITION 0: TODAY'S DOMINANT PATTERN (Master Layer Integration)
+            Cross-Surface Reuse of Dominant Truth Engine
+            Shows headline only - skimmable in <3 seconds
+            =================================================================== */}
+        {user?.id && (
+          <View style={{ paddingHorizontal: 20, marginBottom: 4 }}>
+            <TodayPatternCard 
+              userId={user.id} 
+              theme={theme}
+              onReflect={() => router.push('/(tabs)/reflect?view=mirror')}
+            />
+          </View>
+        )}
+
         {/* ===================================================================
             POSITION 1: PATTERN MIRROR V1 - Single Pattern Surface
             This is the ONLY pattern card on Home. 
