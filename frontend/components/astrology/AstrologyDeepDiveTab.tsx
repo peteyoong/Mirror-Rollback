@@ -785,7 +785,9 @@ const generateDeepDiveCards = (placements: CorePlacements, fullChartData: FullCh
       title: 'Core Identity',
       subtitle: 'Who you are becoming',
       preview: `The ${sunQualities[0]} path you're here to walk. What lights you up when you stop pretending.`,
-      whatThisIs: `Your Sun in ${sun}${sun_house ? ` in the ${sun_house}${getOrdinalSuffix(sun_house)} house` : ''} defines the life path you're here to grow into. This isn't who you already are—it's who you're becoming. There's a ${sunQualities[0]} quality to your essential self: ${sunQualities[1]}, ${sunQualities[2] || sunQualities[0]}.`,
+      whatThisIs: `Your Sun in ${sun}${sun_house ? ` (${sun_house}${getOrdinalSuffix(sun_house)} house)` : ''} defines who you're growing into—not who you already are.
+
+There's a ${sunQualities[0]} quality to your essential self: ${sunQualities[1]}, ${sunQualities[2] || sunQualities[0]}.${sun_house ? ` This unfolds most visibly in ${getHouseTheme(sun_house)}.` : ''}`,
       whatYouMightNotice: [
         `Feeling most yourself when expressing ${sunQualities[0]} qualities`,
         `A natural pull toward ${sunQualities[1]} approaches to life`,
@@ -803,7 +805,9 @@ const generateDeepDiveCards = (placements: CorePlacements, fullChartData: FullCh
       title: 'Emotional Core',
       subtitle: 'What you actually need',
       preview: `What settles you when nothing else does. The feeling-self underneath the thinking-self.`,
-      whatThisIs: `Your Moon in ${moon}${moon_house ? ` in the ${moon_house}${getOrdinalSuffix(moon_house)} house` : ''} reveals your emotional nature—not what you show the world, but what you need to feel safe and nourished. There's a ${moonQualities[0]} quality to your emotional core, a need for ${getMoonNeed(moon)}.`,
+      whatThisIs: `Your Moon in ${moon}${moon_house ? ` (${moon_house}${getOrdinalSuffix(moon_house)} house)` : ''} reveals what you need to feel safe—not what you show the world.
+
+There's a ${moonQualities[0]} quality to your emotional core: a deep need for ${getMoonNeed(moon)}.${moon_house ? ` This plays out most intensely in ${getHouseTheme(moon_house)}.` : ''}`,
       whatYouMightNotice: [
         `Craving ${moonQualities[0]} environments when stressed`,
         `Feeling nourished by ${moonQualities[1]} experiences`,
@@ -819,14 +823,16 @@ const generateDeepDiveCards = (placements: CorePlacements, fullChartData: FullCh
     {
       id: 'ascendant',
       title: 'First Impression',
-      subtitle: 'The you people first meet',
+      subtitle: 'How life first meets you',
       preview: `Your first move in any new room. The costume you didn't know you were wearing.`,
-      whatThisIs: `There's a ${ascQualities[0]} quality to how you approach everything new—first meetings, fresh starts, unfamiliar territory. It's not who you are inside, but how you instinctively engage with the world.`,
+      whatThisIs: `Your Ascendant in ${ascendant} shapes how you instinctively engage with anything new—first meetings, fresh starts, unfamiliar territory.
+
+There's a ${ascQualities[0]} quality to your approach: ${ascQualities[1]}, ${ascQualities[2] || ascQualities[0]}. This isn't who you are inside—it's the doorway others walk through to reach you.`,
       whatYouMightNotice: [
         `First impressions that come across as ${ascQualities[0]}`,
         `An instinctive ${ascQualities[1]} approach to new situations`,
         `Others often perceive you as ${ascQualities[2] || ascQualities[0]} initially`,
-        `Your physical presence and style reflecting ${ascQualities[0]} energy`
+        `Your physical presence reflecting ${ascQualities[0]} energy`
       ],
       tensionLabel: 'The mask',
       tension: getAscTension(ascendant),
@@ -837,14 +843,16 @@ const generateDeepDiveCards = (placements: CorePlacements, fullChartData: FullCh
     {
       id: 'mercury',
       title: 'Mind & Communication',
-      subtitle: 'How you naturally think',
+      subtitle: 'How your mind naturally moves',
       preview: `What your mind does when you're not steering it. The way you make sense of things.`,
-      whatThisIs: `Your mind has a ${mercQualities[0]} quality—how you sort information, what kind of thinking comes easily, and how you express what you know. ${mercury_house ? `Mental energy naturally gravitates toward ${getHouseTheme(mercury_house)}.` : ''}`,
+      whatThisIs: `Your Mercury in ${mercury || sun}${mercury_house ? ` (${mercury_house}${getOrdinalSuffix(mercury_house)} house)` : ''} shapes how you think, process, and communicate.
+
+There's a ${mercQualities[0]} quality to your mental style: ${mercQualities[1]}, always reaching for understanding in ${mercQualities[2] || mercQualities[0]} ways.${mercury_house ? ` Your mind naturally gravitates toward ${getHouseTheme(mercury_house)}.` : ''}`,
       whatYouMightNotice: [
         `A ${mercQualities[0]} quality to how you think and process`,
-        `Learning that works best through ${getMercuryLearningStyle(mercury || sun)} methods`,
+        `Learning best through ${getMercuryLearningStyle(mercury || sun)}`,
         `Communication that tends to be ${mercQualities[1]}—even when you try otherwise`,
-        mercury_house ? `Mental focus naturally gravitating toward ${getHouseTheme(mercury_house)} topics` : `Broad intellectual interests without a single focus`
+        mercury_house ? `Mental focus gravitating toward ${getHouseTheme(mercury_house)}` : `Broad intellectual interests`
       ],
       tensionLabel: 'Where the mind gets stuck',
       tension: getMercuryTension(mercury || sun),
@@ -855,14 +863,16 @@ const generateDeepDiveCards = (placements: CorePlacements, fullChartData: FullCh
     {
       id: 'venus',
       title: 'Love & Relating',
-      subtitle: 'What you genuinely value',
+      subtitle: 'How you bond, want, and value',
       preview: `How you love when you stop trying to love correctly. What you find beautiful without deciding to.`,
-      whatThisIs: `There's a ${venusQualities[0]} quality to what you find beautiful, how you attract and are attracted, and what you value in love and friendship. ${venus_house ? `Connection and aesthetics play out most intensely through ${getHouseTheme(venus_house)}.` : ''}`,
+      whatThisIs: `Your Venus in ${venus || moon}${venus_house ? ` (${venus_house}${getOrdinalSuffix(venus_house)} house)` : ''} shapes what you find beautiful, how you attract and are attracted.
+
+There's a ${venusQualities[0]} quality to your relational style: ${venusQualities[1]}, drawn to ${venusQualities[2] || venusQualities[0]} connection.${venus_house ? ` This plays out most visibly in ${getHouseTheme(venus_house)}.` : ''}`,
       whatYouMightNotice: [
-        `Attraction to ${venusQualities[0]} people, places, and experiences`,
-        `Showing love through ${getVenusLoveLanguage(venus || moon)}—sometimes before you realize it`,
+        `Attraction to ${venusQualities[0]} people and experiences`,
+        `Showing love through ${getVenusLoveLanguage(venus || moon)}`,
         `Valuing ${venusQualities[2] || venusQualities[1]} qualities in relationships`,
-        venus_house ? `Relationship themes concentrated in ${getHouseTheme(venus_house)} areas` : `A general approach to relating across contexts`
+        venus_house ? `Relationship themes in ${getHouseTheme(venus_house)}` : `A general approach to relating`
       ],
       tensionLabel: 'Relational blind spot',
       tension: getVenusTension(venus || moon),
@@ -873,14 +883,16 @@ const generateDeepDiveCards = (placements: CorePlacements, fullChartData: FullCh
     {
       id: 'mars',
       title: 'Drive & Friction',
-      subtitle: 'How you take action',
+      subtitle: 'How you push, pursue, and react',
       preview: `What wakes you up. What makes you dangerous. How you move when you stop thinking.`,
-      whatThisIs: `You have a ${marsQualities[0]} way of taking action—how you go after what you want, what ignites your drive, and how you handle conflict and desire. ${mars_house ? `This assertive energy concentrates in ${getHouseTheme(mars_house)}—where you push hardest and clash most easily.` : ''}`,
+      whatThisIs: `Your Mars in ${mars || sun}${mars_house ? ` (${mars_house}${getOrdinalSuffix(mars_house)} house)` : ''} shapes how you go after what you want and how you handle conflict.
+
+There's a ${marsQualities[0]} way to your action: ${marsQualities[1]}, ${marsQualities[2] || marsQualities[0]} drive.${mars_house ? ` This assertive energy concentrates in ${getHouseTheme(mars_house)}—where you push hardest.` : ''}`,
       whatYouMightNotice: [
-        `A ${marsQualities[0]} style when you take action or initiate`,
-        `Anger that tends to express as ${getMarsAngerStyle(mars || sun)}`,
+        `A ${marsQualities[0]} style when you take action`,
+        `Anger expressing as ${getMarsAngerStyle(mars || sun)}`,
         `Motivation strongest when pursuing ${marsQualities[2] || marsQualities[1]} goals`,
-        mars_house ? `Drive and friction concentrated in ${getHouseTheme(mars_house)} areas` : `General assertive energy across contexts`
+        mars_house ? `Drive concentrated in ${getHouseTheme(mars_house)}` : `Assertive energy across contexts`
       ],
       tensionLabel: 'Where you clash',
       tension: getMarsTension(mars || sun),
@@ -935,7 +947,7 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
   const pressureCard: AstrologyDeepDiveCard | null = howPressureBuilds.hasSignificantPattern ? {
     id: 'pressure',
     title: 'How This Chart Builds Pressure',
-    subtitle: 'The shape of tension in your psychology',
+    subtitle: 'Where tension collects and what it asks of you',
     preview: 'What keeps tightening, where it collects, and what it asks of you.',
     whatThisIs: howPressureBuilds.mainStatement,
     whatYouMightNotice: [
@@ -1394,10 +1406,10 @@ const styles = StyleSheet.create({
   deepDiveCardContent: {
     padding: 16,
     paddingTop: 0,
-    gap: 16,
+    gap: 20,
   },
   deepDiveSection: {
-    gap: 6,
+    gap: 8,
   },
   deepDiveSectionLabel: {
     fontSize: 9,
@@ -1406,13 +1418,13 @@ const styles = StyleSheet.create({
   },
   deepDiveSectionText: {
     fontSize: 14,
-    lineHeight: 21,
+    lineHeight: 22,
   },
   
   // Master Insight styles
   masterInsightText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 14,
+    lineHeight: 22,
     fontWeight: '400',
   },
   
@@ -1421,17 +1433,17 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   mirrorSectionText: {
     fontSize: 14,
-    lineHeight: 21,
+    lineHeight: 22,
   },
   whereItShowsUpItem: {
     fontSize: 13,
     lineHeight: 20,
     paddingLeft: 4,
-    marginTop: 4,
+    marginTop: 6,
   },
   
   // Practical Shift styles
