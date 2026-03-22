@@ -25,6 +25,7 @@ import JournalEntryItem from '../../components/JournalEntryItem';
 import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import MirrorChat from '../../components/MirrorChat';
 import MicroMirrorCard from '../../components/MicroMirrorCard';
+import KeyMomentsSection from '../../components/KeyMomentsSection';
 import { createJournalEntry, getJournalEntries, getCombinedTimeline, TimelineItem, updateJournalEntry, deleteJournalEntry } from '../../services/api';
 import api from '../../services/api';
 import { buildMirrorResponse, getJournalResponse, detectThemeFromText } from '../../services/mirrorResponseEngine';
@@ -678,6 +679,13 @@ export default function JournalScreen() {
   const handleMicroMirrorAskMirror = useCallback(() => {
     // Navigate to Mirror chat with context
     setViewMode('mirror');
+  }, []);
+
+  // Dismiss handler for MicroMirrorCard
+  const handleMicroMirrorDismiss = useCallback(() => {
+    setMicroMirrorVisible(false);
+    setMicroMirrorResponse(null);
+    setMicroMirrorEntryId(null);
   }, []);
 
   // Reset Micro-Mirror when new entry is being typed
@@ -1526,9 +1534,18 @@ export default function JournalScreen() {
                 visible={microMirrorVisible}
                 onReflect={handleMicroMirrorReflect}
                 onAskMirror={handleMicroMirrorAskMirror}
+                onDismiss={handleMicroMirrorDismiss}
                 entryId={microMirrorEntryId || undefined}
               />
             )}
+
+            {/* Key Moments Section - between Micro-Mirror and Journal history */}
+            <KeyMomentsSection
+              journalEntries={journalEntries}
+              onMomentPress={(entry) => handleReflect(entry.id, entry.content)}
+              onReflectWithMirror={(entry) => handleReflect(entry.id, entry.content)}
+              maxMoments={3}
+            />
 
             {/* Entries List */}
             {isLoading ? (
