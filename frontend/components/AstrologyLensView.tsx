@@ -824,6 +824,99 @@ const getMoonPhaseContext = (chartData: FullChartData | null, timeframe: 'today'
 };
 
 // ============================================
+// PERSONAL RELEVANCE WEIGHTING
+// ============================================
+
+interface PersonalRelevanceMatch {
+  isHighRelevance: boolean;
+  matchType: 'house' | 'angular' | 'element' | null;
+  matchDetail?: string;
+}
+
+// Detect if current transits have high personal relevance for this user
+const detectPersonalRelevance = (
+  chartData: FullChartData | null,
+  transits: TransitHit[]
+): PersonalRelevanceMatch => {
+  if (!chartData?.natal?.concentrations || !transits || transits.length === 0) {
+    return { isHighRelevance: false, matchType: null };
+  }
+  
+  const concentrations = chartData.natal.concentrations;
+  const dominantHouses = concentrations.dominant_houses || [];
+  const angularPlanets = concentrations.angular_planets || [];
+  const dominantElements = concentrations.dominant_elements || [];
+  
+  // Extract dominant house numbers
+  const dominantHouseNumbers = dominantHouses.slice(0, 2).map((h: { house: number }) => h.house);
+  
+  // Extract angular planet names
+  const angularPlanetNames = angularPlanets.map((p: { planet: string }) => p.planet.toLowerCase());
+  
+  // Extract top dominant element
+  const topElement = dominantElements[0]?.[0]?.toLowerCase();
+  
+  // Element to sign mapping
+  const elementSigns: { [key: string]: string[] } = {
+    'fire': ['aries', 'leo', 'sagittarius'],
+    'earth': ['taurus', 'virgo', 'capricorn'],
+    'air': ['gemini', 'libra', 'aquarius'],
+    'water': ['cancer', 'scorpio', 'pisces']
+  };
+  
+  // Check each transit for matches
+  for (const hit of transits.slice(0, 3)) {
+    // Check if transit hits a dominant house
+    if (hit.natal_house && dominantHouseNumbers.includes(hit.natal_house)) {
+      return {
+        isHighRelevance: true,
+        matchType: 'house',
+        matchDetail: 'areas you spend a lot of time thinking about'
+      };
+    }
+    
+    // Check if transit hits an angular planet
+    if (angularPlanetNames.includes(hit.natal_point.toLowerCase())) {
+      return {
+        isHighRelevance: true,
+        matchType: 'angular',
+        matchDetail: 'a core part of how you move through life'
+      };
+    }
+    
+    // Check if transit matches dominant element theme
+    if (topElement && elementSigns[topElement]) {
+      const natalSign = hit.natal_sign?.toLowerCase();
+      if (natalSign && elementSigns[topElement].includes(natalSign)) {
+        return {
+          isHighRelevance: true,
+          matchType: 'element',
+          matchDetail: 'how you naturally respond to things'
+        };
+      }
+    }
+  }
+  
+  return { isHighRelevance: false, matchType: null };
+};
+
+// Generate personal relevance line
+const getPersonalRelevanceLine = (match: PersonalRelevanceMatch): string => {
+  if (!match.isHighRelevance) return "";
+  
+  switch (match.matchType) {
+    case 'house':
+      return "This may feel stronger for you than usual—especially in areas you already spend a lot of time thinking about.";
+    case 'angular':
+      return "This may feel stronger for you than usual—because it touches a core part of how you move through life.";
+    case 'element':
+      return "This may feel stronger for you than usual—because this plays into how you naturally respond to things.";
+    default:
+      return "This may feel stronger for you than usual—you tend to experience a lot of your life in this area.";
+  }
+};
+
+// ============================================
 // TODAY TAB EXPERIENTIAL CONTENT
 // RECOGNITION-BASED MIRROR VOICE
 // ============================================
@@ -2886,6 +2979,13 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
       activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today'
     );
 
+    // Get personal relevance (why this matters more for YOU)
+    const personalRelevance = detectPersonalRelevance(
+      fullChartData,
+      currentWindow?.strongest_hits || []
+    );
+    const personalRelevanceLine = getPersonalRelevanceLine(personalRelevance);
+
     // Get refined content (max 3 items each) - PASS TIMEFRAME
     const currentTimeframe = activeAltitude === 'week' ? 'week' : activeAltitude === 'month' ? 'month' : 'today';
     const feelings = getWhatThisMayFeelLike(currentWindow?.strongest_hits || [], currentTimeframe).slice(0, 3);
@@ -2950,6 +3050,11 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           {moonPhaseContext ? (
             <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
               {moonPhaseContext}
+            </Text>
+          ) : null}
+          {personalRelevanceLine ? (
+            <Text style={[styles.dailyEnergyContext, { color: theme.textSecondary }]}>
+              {personalRelevanceLine}
             </Text>
           ) : null}
           {energySynthesis.supporting && (
