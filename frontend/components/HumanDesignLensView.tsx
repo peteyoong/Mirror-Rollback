@@ -43,6 +43,11 @@ import {
   getCenterMirrorCard,
   getCrossMirrorCard,
 } from '../utils/humanDesignMirrorCards';
+import {
+  generateHDSynthesis,
+  HDSynthesisInput,
+  HDSynthesis,
+} from '../utils/humanDesignSynthesis';
 import { CrossLensPatternBridge } from './CrossLensPatternBridge';
 import GeneKeysView from './GeneKeysView';
 import CentersView, { CentersViewHandle } from './CentersView';
@@ -1874,7 +1879,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const renderOverviewTab = () => {
     if (!data?.core_mechanics) return null;
     
-    const { type, strategy, authority, profile } = data.core_mechanics;
+    const { type, strategy, authority, profile, definition } = data.core_mechanics;
     const hdType = type || 'Unknown';
     const manifestations = TYPE_MANIFESTATIONS[hdType] || TYPE_MANIFESTATIONS['Generator'];
     const authorityData = AUTHORITY_TRANSLATIONS[authority || ''] || AUTHORITY_TRANSLATIONS['None'];
@@ -1883,6 +1888,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const typePattern = TYPE_PATTERNS[hdType] || TYPE_PATTERNS['Generator'];
     const authorityPattern = AUTHORITY_PATTERNS[authority || 'Sacral'] || AUTHORITY_PATTERNS['Sacral'];
     const patternSynthesis = synthesizeHDPattern(hdType, authority || 'Sacral');
+    
+    // Generate MASTER SYNTHESIS - integrates Type × Authority × Profile into unified reading
+    const synthesisInput: HDSynthesisInput = {
+      type: hdType,
+      authority: authority || 'Sacral',
+      profile: profile || '1/3',
+      definition: definition,
+    };
+    const masterSynthesis = generateHDSynthesis(synthesisInput);
     
     // Format strategy for lookup
     const strategyKey = Object.keys(STRATEGY_TRANSLATIONS).find(
@@ -1903,9 +1917,95 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </View>
 
-        {/* NEW: CORE PATTERN SYNTHESIS - The behavioral tension */}
+        {/* ============================================
+            MASTER SYNTHESIS LAYER - Your Core Pattern
+            Integrates Type × Authority × Profile into unified reading
+            ============================================ */}
+        {masterSynthesis && (
+          <View style={[styles.hdMasterSynthesisContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={styles.hdMasterSynthesisHeader}>
+              <Text style={[styles.hdMasterSynthesisTitle, { color: theme.text }]}>Your Core Pattern</Text>
+              <Text style={[styles.hdMasterSynthesisSubtitle, { color: theme.textTertiary }]}>
+                The integration of your design mechanics
+              </Text>
+            </View>
+            
+            {/* Core Pattern - The main operating dynamic */}
+            <View style={[styles.hdSynthesisCoreCard, { borderColor: theme.accent }]}>
+              <Text style={[styles.hdSynthesisCoreText, { color: theme.text }]}>
+                {masterSynthesis.corePattern}
+              </Text>
+            </View>
+            
+            {/* Core Tension - The primary internal conflict */}
+            <View style={styles.hdSynthesisTensionSection}>
+              <Text style={[styles.hdSynthesisSectionLabel, { color: theme.warning || '#FF9800' }]}>
+                THE CORE TENSION
+              </Text>
+              <Text style={[styles.hdSynthesisSectionText, { color: theme.textSecondary }]}>
+                {masterSynthesis.coreTension}
+              </Text>
+            </View>
+            
+            {/* How This Plays Out - Real-life manifestations */}
+            {masterSynthesis.howThisPlaysOut.length > 0 && (
+              <View style={styles.hdSynthesisPlayOutSection}>
+                <Text style={[styles.hdSynthesisSectionLabel, { color: theme.textTertiary }]}>
+                  HOW THIS PLAYS OUT
+                </Text>
+                {masterSynthesis.howThisPlaysOut.map((pattern, idx) => (
+                  <View key={idx} style={styles.hdSynthesisPlayOutItem}>
+                    <Text style={[styles.hdSynthesisPlayOutBullet, { color: theme.accent }]}>•</Text>
+                    <Text style={[styles.hdSynthesisPlayOutText, { color: theme.textSecondary }]}>
+                      {pattern}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            
+            {/* Blind Spot - What you might miss */}
+            <View style={styles.hdSynthesisBlindSpotSection}>
+              <Text style={[styles.hdSynthesisSectionLabel, { color: theme.error || '#F44336' }]}>
+                BLIND SPOT
+              </Text>
+              <Text style={[styles.hdSynthesisSectionText, { color: theme.textSecondary }]}>
+                {masterSynthesis.blindSpot}
+              </Text>
+            </View>
+            
+            {/* Edge - Your unique advantage */}
+            <View style={styles.hdSynthesisEdgeSection}>
+              <Text style={[styles.hdSynthesisSectionLabel, { color: theme.success || '#4CAF50' }]}>
+                YOUR EDGE
+              </Text>
+              <Text style={[styles.hdSynthesisSectionText, { color: theme.textSecondary }]}>
+                {masterSynthesis.edge}
+              </Text>
+            </View>
+            
+            {/* What Supports You - Conditions for thriving */}
+            {masterSynthesis.whatSupportsYou.length > 0 && (
+              <View style={styles.hdSynthesisSupportsSection}>
+                <Text style={[styles.hdSynthesisSectionLabel, { color: theme.accent }]}>
+                  WHAT SUPPORTS YOU
+                </Text>
+                {masterSynthesis.whatSupportsYou.map((support, idx) => (
+                  <View key={idx} style={styles.hdSynthesisPlayOutItem}>
+                    <Text style={[styles.hdSynthesisPlayOutBullet, { color: theme.success || '#4CAF50' }]}>+</Text>
+                    <Text style={[styles.hdSynthesisPlayOutText, { color: theme.textSecondary }]}>
+                      {support}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* EXISTING: Type Pattern Card - Keeps showing the single-mechanic view */}
         <View style={[styles.hdCorePatternCard, { backgroundColor: theme.surface, borderColor: theme.accent, borderLeftWidth: 3 }]}>
-          <Text style={[styles.hdCorePatternLabel, { color: theme.accent }]}>THE PATTERN</Text>
+          <Text style={[styles.hdCorePatternLabel, { color: theme.accent }]}>THE TYPE PATTERN</Text>
           <Text style={[styles.hdCorePatternText, { color: theme.text }]}>
             {typePattern.compressedPatternLine}
           </Text>
@@ -5195,6 +5295,86 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontStyle: 'italic',
   },
+  
+  // ============================================
+  // MASTER SYNTHESIS LAYER STYLES
+  // ============================================
+  hdMasterSynthesisContainer: {
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+  },
+  hdMasterSynthesisHeader: {
+    marginBottom: 20,
+  },
+  hdMasterSynthesisTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  hdMasterSynthesisSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  hdSynthesisCoreCard: {
+    borderLeftWidth: 3,
+    paddingLeft: 14,
+    marginBottom: 20,
+  },
+  hdSynthesisCoreText: {
+    fontSize: 17,
+    lineHeight: 26,
+    fontWeight: '400',
+  },
+  hdSynthesisTensionSection: {
+    marginBottom: 18,
+  },
+  hdSynthesisSectionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  hdSynthesisSectionText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  hdSynthesisPlayOutSection: {
+    marginBottom: 18,
+  },
+  hdSynthesisPlayOutItem: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    paddingRight: 10,
+  },
+  hdSynthesisPlayOutBullet: {
+    fontSize: 14,
+    marginRight: 10,
+    marginTop: 1,
+  },
+  hdSynthesisPlayOutText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  hdSynthesisBlindSpotSection: {
+    marginBottom: 18,
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(128,128,128,0.2)',
+  },
+  hdSynthesisEdgeSection: {
+    marginBottom: 18,
+  },
+  hdSynthesisSupportsSection: {
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(128,128,128,0.2)',
+  },
+  // ============================================
+  // END MASTER SYNTHESIS STYLES
+  // ============================================
   
   // Tension + Genius section
   hdTensionGeniusRow: {
