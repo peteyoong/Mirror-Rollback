@@ -26,6 +26,15 @@ import {
   getSequenceRole,
   SEQUENCE_ROLES 
 } from '../utils/humanDesignContext';
+import {
+  TYPE_PATTERNS,
+  AUTHORITY_PATTERNS,
+  synthesizeHDPattern,
+  getHDTodayContent,
+  getHDWeekContent,
+  getHDMonthContent,
+  getCenterPattern,
+} from '../utils/humanDesignPatterns';
 import GeneKeysView from './GeneKeysView';
 import CentersView, { CentersViewHandle } from './CentersView';
 import DefinedGatesView from './DefinedGatesView';
@@ -1775,6 +1784,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const manifestations = TYPE_MANIFESTATIONS[hdType] || TYPE_MANIFESTATIONS['Generator'];
     const authorityData = AUTHORITY_TRANSLATIONS[authority || ''] || AUTHORITY_TRANSLATIONS['None'];
     
+    // Get pattern compression
+    const typePattern = TYPE_PATTERNS[hdType] || TYPE_PATTERNS['Generator'];
+    const authorityPattern = AUTHORITY_PATTERNS[authority || 'Sacral'] || AUTHORITY_PATTERNS['Sacral'];
+    const patternSynthesis = synthesizeHDPattern(hdType, authority || 'Sacral');
+    
     // Format strategy for lookup
     const strategyKey = Object.keys(STRATEGY_TRANSLATIONS).find(
       key => strategy?.toLowerCase().includes(key.toLowerCase().split(' ')[0])
@@ -1794,34 +1808,49 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </View>
 
-        {/* Your Energy Pattern Card */}
-        <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>Your Energy Pattern</Text>
-          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
-            {TYPE_ENERGY_PATTERNS[hdType] || TYPE_ENERGY_PATTERNS['Generator']}
+        {/* NEW: CORE PATTERN SYNTHESIS - The behavioral tension */}
+        <View style={[styles.hdCorePatternCard, { backgroundColor: theme.surface, borderColor: theme.accent, borderLeftWidth: 3 }]}>
+          <Text style={[styles.hdCorePatternLabel, { color: theme.accent }]}>THE PATTERN</Text>
+          <Text style={[styles.hdCorePatternText, { color: theme.text }]}>
+            {typePattern.compressedPatternLine}
+          </Text>
+          <Text style={[styles.hdCorePatternFacet, { color: theme.textSecondary }]}>
+            {typePattern.facetLine}
           </Text>
         </View>
 
-        {/* How You Engage Card (Strategy) */}
+        {/* NEW: TENSION + GENIUS - What can go wrong / What works */}
         <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>How You Engage</Text>
-          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
-            {strategyTranslation}
-          </Text>
+          <View style={styles.hdTensionGeniusRow}>
+            <View style={styles.hdTensionSection}>
+              <Text style={[styles.hdTensionLabel, { color: theme.warning || '#FF9800' }]}>WHEN IT GOES WRONG</Text>
+              <Text style={[styles.hdTensionText, { color: theme.textSecondary }]}>
+                {typePattern.tensionLine}
+              </Text>
+            </View>
+            <View style={styles.hdGeniusSection}>
+              <Text style={[styles.hdGeniusLabel, { color: theme.success || '#4CAF50' }]}>WHEN IT WORKS</Text>
+              <Text style={[styles.hdGeniusText, { color: theme.textSecondary }]}>
+                {typePattern.geniusLine}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        {/* How Clarity Comes Card (Authority) */}
+        {/* How Clarity Comes Card (Authority) - With pattern compression */}
         <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>How Clarity Comes</Text>
-          <Text style={[styles.hdOverviewCardSubtitle, { color: theme.textSecondary }]}>{authorityData.short}</Text>
-          <Text style={[styles.hdOverviewCardBody, { color: theme.text }]}>
-            {authorityData.expanded}
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>HOW YOU DECIDE</Text>
+          <Text style={[styles.hdCorePatternText, { color: theme.text, fontSize: 15, lineHeight: 22, marginBottom: 12 }]}>
+            {authorityPattern.compressedPatternLine}
+          </Text>
+          <Text style={[styles.hdOverviewCardBody, { color: theme.textSecondary }]}>
+            {authorityPattern.facetLine}
           </Text>
         </View>
 
         {/* Where This Helps Card */}
         <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>Where This Helps</Text>
+          <Text style={[styles.hdOverviewCardTitle, { color: theme.textTertiary }]}>WHERE THIS SHOWS UP</Text>
           <View style={styles.hdManifestationList}>
             <View style={[styles.hdManifestationItem, { borderBottomColor: theme.border }]}>
               <Text style={[styles.hdManifestationLabel, { color: theme.textTertiary }]}>Decisions</Text>
@@ -1844,7 +1873,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
         {/* Reflection Card */}
         <View style={[styles.hdReflectionCard, { backgroundColor: theme.surface, borderLeftColor: theme.accent }]}>
-          <Text style={[styles.hdReflectionLabel, { color: theme.textTertiary }]}>A REFLECTION</Text>
+          <Text style={[styles.hdReflectionLabel, { color: theme.textTertiary }]}>A QUESTION TO SIT WITH</Text>
           <Text style={[styles.hdReflectionText, { color: theme.text }]}>
             "{TYPE_REFLECTIONS[hdType] || TYPE_REFLECTIONS['Generator']}"
           </Text>
@@ -2050,100 +2079,22 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       };
     };
     
-    // Type fallbacks for TODAY - immediate posture, what to do RIGHT NOW
+    // Type fallbacks for TODAY - Use new pattern compression layer
     const getTypeFallbackToday = (type: string, emotional: boolean) => {
-      const defaults: Record<string, any> = {
-        'Generator': {
-          bestUse: emotional ? "You may feel pressure to decide. That pressure isn't clarity—sleep on it." : "You might feel pulled toward something. That pull is real—follow it.",
-          watchFor: "saying yes when your body says no",
-          reflectionPrompt: "What genuinely excited me today?"
-        },
-        'Manifesting Generator': {
-          bestUse: emotional ? "Part of you wants to commit now. That's the trap—sample first, decide later." : "You may feel the urge to move fast. Trust what resonates most.",
-          watchFor: "starting things just because you can",
-          reflectionPrompt: "Where did my energy want to go today?"
-        },
-        'Projector': {
-          bestUse: emotional ? "Part of you wants to answer quickly. That's the trap—take time." : "You may feel the urge to share what you see. Wait until asked.",
-          watchFor: "offering guidance that wasn't requested",
-          reflectionPrompt: "Where was I truly seen today?"
-        },
-        'Manifestor': {
-          bestUse: emotional ? "Part of you wants to act now. That's the trap—feel it fully first, then inform." : "You may feel something wants to start. Inform before you move.",
-          watchFor: "acting from the peak or valley of a feeling",
-          reflectionPrompt: "What wanted to be initiated today?"
-        },
-        'Reflector': {
-          bestUse: "You might notice some environments feel better than others. That's the data you need.",
-          watchFor: "mistaking others' energy for your own",
-          reflectionPrompt: "What am I reflecting from my environment?"
-        }
-      };
-      return defaults[type] || defaults['Generator'];
+      // Use the new pattern compression layer
+      return getHDTodayContent(type, emotional ? 'Emotional' : 'Sacral', false);
     };
     
-    // Type fallbacks for THIS WEEK - repeating pattern, what keeps RETURNING
+    // Type fallbacks for THIS WEEK - Use new pattern compression layer
     const getTypeFallbackWeek = (type: string, emotional: boolean) => {
-      const defaults: Record<string, any> = {
-        'Generator': {
-          theme: emotional ? "Notice what emotions keep surfacing—they're showing you what actually matters to your gut." : "Notice where your energy naturally builds or drains. That's the signal.",
-          frictionPattern: "accumulated frustration from saying yes when you meant no",
-          reflectionPrompt: "What have I been giving energy to this week?"
-        },
-        'Manifesting Generator': {
-          theme: emotional ? "Notice which excitement survives the wave—that's real." : "Pay attention to what keeps calling you back after the initial spark fades.",
-          frictionPattern: "forcing yourself to finish what lost its spark",
-          reflectionPrompt: "What started this week still has energy?"
-        },
-        'Projector': {
-          theme: emotional ? "Notice where recognition and clarity align—when they don't, nothing lands right." : "Notice the pattern of where your guidance lands and where it doesn't.",
-          frictionPattern: "giving too much to people who don't really see you",
-          reflectionPrompt: "Where was my guidance truly received?"
-        },
-        'Manifestor': {
-          theme: emotional ? "Notice which impulses survive the wave—those are the real ones." : "Notice what keeps wanting to be initiated. That's the pattern.",
-          frictionPattern: "anger from holding back what wanted to move",
-          reflectionPrompt: "What did I initiate this week?"
-        },
-        'Reflector': {
-          theme: "Notice which environments felt right and which felt off. That's your data.",
-          frictionPattern: "absorbing dysfunction without realizing it",
-          reflectionPrompt: "Which places felt nourishing this week?"
-        }
-      };
-      return defaults[type] || defaults['Generator'];
+      // Use the new pattern compression layer
+      return getHDWeekContent(type, emotional ? 'Emotional' : 'Sacral', false);
     };
     
-    // Type fallbacks for THIS MONTH - developmental lesson, what this PHASE teaches
+    // Type fallbacks for THIS MONTH - Use new pattern compression layer
     const getTypeFallbackMonth = (type: string, emotional: boolean) => {
-      const defaults: Record<string, any> = {
-        'Generator': {
-          theme: emotional ? "This phase is revealing what genuinely lights you up versus what you've been tolerating." : "This phase is teaching you where your energy actually wants to go.",
-          commonTrap: "staying committed to things that stopped feeling right",
-          reflectionPrompt: "What has my gut been telling me this month?"
-        },
-        'Manifesting Generator': {
-          theme: emotional ? "This phase is showing which interests survive beyond the initial spark." : "This phase is teaching you which paths actually go somewhere.",
-          commonTrap: "forcing yourself down dead tracks",
-          reflectionPrompt: "What pattern of interests is emerging?"
-        },
-        'Projector': {
-          theme: emotional ? "This phase is maturing your wisdom—knowing which invitations deserve your energy." : "This phase is teaching you where your guidance actually lands.",
-          commonTrap: "bitterness from giving wisdom to people who weren't ready",
-          reflectionPrompt: "Where has my insight been valued this month?"
-        },
-        'Manifestor': {
-          theme: emotional ? "This phase is testing which impulses survive the wave—those are real." : "This phase is clarifying your initiating pattern.",
-          commonTrap: "either exploding or imploding",
-          reflectionPrompt: "What pattern of initiation is emerging?"
-        },
-        'Reflector': {
-          theme: "This lunar cycle is showing you what's consistently true versus what shifts with your environment.",
-          commonTrap: "deciding too fast, taking on identities that aren't yours",
-          reflectionPrompt: "What has remained true throughout this lunar cycle?"
-        }
-      };
-      return defaults[type] || defaults['Generator'];
+      // Use the new pattern compression layer
+      return getHDMonthContent(type, emotional ? 'Emotional' : 'Sacral', false);
     };
 
     const todayContent = getTodayFromSignals();
@@ -5106,10 +5057,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   hdOverviewCardTitle: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
     color: "inherit",
     marginBottom: 8,
+    letterSpacing: 0.5,
   },
   hdOverviewCardSubtitle: {
     fontSize: 12,
@@ -5121,6 +5073,66 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     color: "inherit",
+  },
+
+  // HD Core Pattern Card (New pattern compression styles)
+  hdCorePatternCard: {
+    backgroundColor: "transparent",
+    borderRadius: 10,
+    padding: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 14,
+  },
+  hdCorePatternLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  hdCorePatternText: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
+    marginBottom: 10,
+  },
+  hdCorePatternFacet: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  
+  // Tension + Genius section
+  hdTensionGeniusRow: {
+    gap: 16,
+  },
+  hdTensionSection: {
+    marginBottom: 14,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  hdGeniusSection: {
+    marginBottom: 0,
+  },
+  hdTensionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  hdGeniusLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  hdTensionText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  hdGeniusText: {
+    fontSize: 13,
+    lineHeight: 19,
   },
 
   // HD Manifestation List
