@@ -42,11 +42,18 @@ import {
   getProfileMirrorCard,
   getCenterMirrorCard,
   getCrossMirrorCard,
+  CrossLinkContext,
+  getGateCrossLink,
+  getCenterCrossLink,
+  getTypeCrossLink,
+  getAuthorityCrossLink,
 } from '../utils/humanDesignMirrorCards';
 import {
   generateHDSynthesis,
   HDSynthesisInput,
   HDSynthesis,
+  generatePatternThread,
+  PatternThread,
 } from '../utils/humanDesignSynthesis';
 import { CrossLensPatternBridge } from './CrossLensPatternBridge';
 import { CollapsibleCard, NestedCollapsible, SectionHeader } from './CollapsibleCard';
@@ -1455,6 +1462,671 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             }}
             prompt={mirrorCard.truthShift}
           />
+        </View>
+      </CollapsibleCard>
+    );
+  };
+
+  // NEW: Render Pattern Thread - The unified narrative at the top
+  const renderPatternThread = (patternThread: PatternThread) => {
+    return (
+      <View style={[styles.patternThreadContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.patternThreadTitle, { color: theme.text }]}>
+          {patternThread.title}
+        </Text>
+        <Text style={[styles.patternThreadBody, { color: theme.textSecondary }]}>
+          {patternThread.body}
+        </Text>
+        <View style={[styles.patternThreadLoop, { backgroundColor: theme.background, borderLeftColor: theme.accent }]}>
+          <Text style={[styles.patternThreadLoopText, { color: theme.textTertiary }]}>
+            {patternThread.coreLoop}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // NEW: Render Core Mechanics with Cross-Link support
+  const renderMechanicCollapsibleCardWithCrossLink = (
+    key: string, 
+    mirrorCard: MirrorCard | null, 
+    sourceValue: string,
+    defaultOpen: boolean = false,
+    crossLink: string | null
+  ) => {
+    if (!mirrorCard) return null;
+    
+    return (
+      <CollapsibleCard
+        key={key}
+        title={mirrorCard.title}
+        subtitle={mirrorCard.subtitle}
+        defaultOpen={defaultOpen}
+        priority={defaultOpen ? 'high' : 'low'}
+        lazyRender={true}
+      >
+        <View style={{ gap: 16 }}>
+          {/* RECOGNITION - The opening hook */}
+          <Text style={[styles.mirrorRecognition, { color: theme.text }]}>
+            {mirrorCard.recognition}
+          </Text>
+          
+          {/* TENSION - The inner conflict */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+            <Text style={[styles.mirrorSectionText, { color: theme.text }]}>
+              {mirrorCard.tension}
+            </Text>
+          </View>
+          
+          {/* REAL LIFE MOMENTS */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>REAL LIFE MOMENTS</Text>
+            {mirrorCard.realLifeMoments.map((moment, i) => (
+              <View key={`moment-${i}`} style={styles.mirrorBulletRow}>
+                <Text style={[styles.mirrorBullet, { color: theme.textTertiary }]}>•</Text>
+                <Text style={[styles.mirrorBulletText, { color: theme.textSecondary }]}>{moment}</Text>
+              </View>
+            ))}
+          </View>
+          
+          {/* TRUTH SHIFT - The reframe */}
+          <View style={[styles.mirrorTruthShift, { backgroundColor: theme.background, borderLeftColor: theme.accent }]}>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>TRUTH SHIFT</Text>
+            <Text style={[styles.mirrorTruthShiftText, { color: theme.text }]}>
+              {mirrorCard.truthShift}
+            </Text>
+          </View>
+          
+          {/* CROSS-LINK - Subtle connection (before Try This Instead) */}
+          {crossLink && (
+            <Text style={[styles.crossLinkText, { color: theme.textTertiary }]}>
+              {crossLink}
+            </Text>
+          )}
+          
+          {/* TRY THIS INSTEAD - The practical tip */}
+          <View style={[styles.mirrorTryThis, { borderColor: theme.border }]}>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+            <Text style={[styles.mirrorTryThisText, { color: theme.text }]}>
+              {mirrorCard.tryThisInstead}
+            </Text>
+          </View>
+
+          {/* Reflect Button */}
+          <InlineReflectButton
+            source={{
+              lens: 'human_design',
+              type: key,
+              name: mirrorCard.title,
+              value: sourceValue,
+              id: `hd_${key}`,
+            }}
+            prompt={mirrorCard.truthShift}
+          />
+        </View>
+      </CollapsibleCard>
+    );
+  };
+
+  // NEW: Render Centers Cards with Cross-Links
+  const renderCentersCardsWithCrossLinks = (context: CrossLinkContext) => {
+    if (!centersData?.centers) return null;
+    
+    const definedCenters = centersData.centers.filter((c: any) => c.defined);
+    const undefinedCenters = centersData.centers.filter((c: any) => !c.defined);
+    
+    return (
+      <View style={{ gap: 8 }}>
+        {/* Defined Centers */}
+        {definedCenters.length > 0 && (
+          <View>
+            <SectionHeader title="Defined" count={definedCenters.length} icon="●" />
+            {definedCenters.map((center: any, idx: number) => 
+              renderCenterCardWithCrossLink(center, true, idx === 0, context)
+            )}
+          </View>
+        )}
+        
+        {/* Undefined Centers */}
+        {undefinedCenters.length > 0 && (
+          <View>
+            <SectionHeader title="Undefined" count={undefinedCenters.length} icon="○" />
+            {undefinedCenters.map((center: any, idx: number) => 
+              renderCenterCardWithCrossLink(center, false, false, context)
+            )}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  // Helper: Render single center card with cross-link
+  const renderCenterCardWithCrossLink = (center: any, isDefined: boolean, defaultOpen: boolean, context: CrossLinkContext) => {
+    const centerName = center.center || center.name;
+    const crossLink = getCenterCrossLink(centerName, isDefined, context);
+    
+    // Generate Mirror Language content for centers
+    const getRecognition = (): string => {
+      if (isDefined) {
+        return `This is consistent energy for you—always present, always running the same way.`;
+      }
+      return `This isn't fixed for you. It amplifies and shifts based on who's around you.`;
+    };
+    
+    const getTension = (): string => {
+      if (isDefined) {
+        return `You can't turn this off. The challenge is recognizing when this fixed way of operating doesn't serve the situation.`;
+      }
+      return `The trap is thinking this is your own energy. When it feels intense, you might be amplifying someone else's.`;
+    };
+    
+    const getRealLife = (): string => {
+      if (isDefined) {
+        return `You probably have a consistent way of processing this energy that others notice.`;
+      }
+      return `You've probably felt this more strongly in certain relationships or environments.`;
+    };
+    
+    const getTryThis = (): string => {
+      if (isDefined) {
+        return `Notice when your consistent way of operating creates friction. That's information.`;
+      }
+      return `Before reacting, pause and ask: is this mine, or am I picking it up from somewhere?`;
+    };
+    
+    return (
+      <NestedCollapsible
+        key={`center-${centerName}`}
+        title={`${centerName} Center`}
+        subtitle={isDefined ? 'Consistent, fixed energy' : 'Open, amplifying energy'}
+        defaultOpen={defaultOpen}
+        status={isDefined ? 'defined' : 'undefined'}
+        lazyRender={true}
+      >
+        <View style={{ gap: 12 }}>
+          {/* Recognition */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>RECOGNITION</Text>
+            <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+              {getRecognition()}
+            </Text>
+          </View>
+          
+          {/* Tension */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+            <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+              {getTension()}
+            </Text>
+          </View>
+          
+          {/* Real Life Moments */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>REAL LIFE MOMENTS</Text>
+            <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+              {getRealLife()}
+            </Text>
+          </View>
+          
+          {/* Cross-Link (before Try This Instead) */}
+          {crossLink && (
+            <Text style={[styles.crossLinkText, { color: theme.textTertiary }]}>
+              {crossLink}
+            </Text>
+          )}
+          
+          {/* Try This Instead */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+            <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+              {getTryThis()}
+            </Text>
+          </View>
+          
+          {/* Reflect CTA */}
+          <TouchableOpacity
+            style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+            onPress={() => openReflection(
+              `${isDefined ? 'Defined' : 'Undefined'} ${centerName}`,
+              'center',
+              getCenterReflectionPrompt(centerName, isDefined),
+              'deep_dive',
+              `center_${centerName.toLowerCase().replace(/\s/g, '_')}`,
+              isDefined ? 'defined' : 'undefined'
+            )}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+          </TouchableOpacity>
+        </View>
+      </NestedCollapsible>
+    );
+  };
+
+  // NEW: Render Gates Cards with Cross-Links
+  const renderGatesCardsWithCrossLinks = (context: CrossLinkContext) => {
+    if (!gatesData?.gates) return null;
+    
+    // Sort gates by priority
+    const sortedGates = [...gatesData.gates].sort((a: any, b: any) => {
+      const getPriority = (gate: any): number => {
+        const gateNum = gate.gate_number || gate.gate;
+        const pSunGate = typeof data?.personality_sun === 'object' ? data.personality_sun?.gate : data?.personality_sun;
+        const dSunGate = typeof data?.design_sun === 'object' ? data.design_sun?.gate : data?.design_sun;
+        
+        if (gateNum === pSunGate) return 0;
+        if (gateNum === dSunGate) return 1;
+        const isChannelGate = data?.channels?.some((ch: any) => {
+          const gatesInChannel = ch.gates?.split('-').map((g: string) => parseInt(g));
+          return gatesInChannel?.includes(gateNum);
+        });
+        if (isChannelGate) return 2;
+        return 3;
+      };
+      return getPriority(a) - getPriority(b);
+    });
+    
+    const topGates = sortedGates.slice(0, 12);
+    
+    return (
+      <View style={{ gap: 8 }}>
+        {topGates.map((gate: any, idx: number) => {
+          const gateNum = gate.gate_number || gate.gate;
+          const gateName = gate.name || gate.gate_name || gate.theme || `Gate ${gateNum}`;
+          const crossLink = getGateCrossLink(gateNum, context);
+          
+          const pSunGate = typeof data?.personality_sun === 'object' ? data.personality_sun?.gate : data?.personality_sun;
+          const dSunGate = typeof data?.design_sun === 'object' ? data.design_sun?.gate : data?.design_sun;
+          const isPriority = gateNum === pSunGate || gateNum === dSunGate;
+          
+          const getGateRole = (): string => {
+            if (gateNum === pSunGate) return 'Personality Sun - Your conscious expression';
+            if (gateNum === dSunGate) return 'Design Sun - Your unconscious drive';
+            const channel = data?.channels?.find((ch: any) => {
+              const gatesInChannel = ch.gates?.split('-').map((g: string) => parseInt(g));
+              return gatesInChannel?.includes(gateNum);
+            });
+            if (channel) return `Part of ${channel.name || 'Channel'}`;
+            return 'Activated energy';
+          };
+          
+          return (
+            <NestedCollapsible
+              key={`gate-${gateNum}`}
+              title={`Gate ${gateNum}: ${gateName}`}
+              subtitle={getGateRole()}
+              defaultOpen={idx < 3}
+              status={isPriority ? 'active' : 'defined'}
+              lazyRender={true}
+            >
+              {renderGateContentWithCrossLink(gate, crossLink)}
+            </NestedCollapsible>
+          );
+        })}
+      </View>
+    );
+  };
+
+  // Helper: Render gate content with cross-link
+  const renderGateContentWithCrossLink = (gate: any, crossLink: string | null) => {
+    const gateNum = gate.gate_number || gate.gate;
+    const gateName = gate.name || gate.gate_name || gate.theme || `Gate ${gateNum}`;
+    
+    // Recognition
+    const getGateRecognition = (): string => {
+      if (gate.what_this_means) {
+        const text = gate.what_this_means;
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
+      }
+      return `You keep coming back to this energy. It's part of your wiring—not something you chose.`;
+    };
+
+    // Tension
+    const getGateTension = (): string => {
+      if (gate.your_challenge) {
+        const text = gate.your_challenge;
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
+      }
+      if (gate.shadow) {
+        return `The trap is ${gate.shadow.toLowerCase()}—it shows up when you're stressed or unaware.`;
+      }
+      return "The challenge is staying conscious with this energy.";
+    };
+
+    // Real Life
+    const getGateRealLife = (): string => {
+      if (gate.gift) {
+        return `You tend toward ${gate.gift.toLowerCase()}—people probably notice this about you.`;
+      }
+      return 'In real life, this shows up in how you handle certain situations.';
+    };
+
+    // Try This Instead
+    const getGateTryThis = (): string => {
+      if (gate.practical_experiments?.[0]) return gate.practical_experiments[0];
+      if (gate.shadow && gate.gift) {
+        return `Catch ${gate.shadow.toLowerCase()} early. Then ask: what would ${gate.gift.toLowerCase()} do here?`;
+      }
+      return "Notice how this plays out in your daily life.";
+    };
+
+    return (
+      <View style={{ gap: 12 }}>
+        {/* Recognition */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>RECOGNITION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getGateRecognition()}
+          </Text>
+        </View>
+        
+        {/* Tension */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getGateTension()}
+          </Text>
+        </View>
+        
+        {/* Real Life Moments */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>REAL LIFE MOMENTS</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getGateRealLife()}
+          </Text>
+        </View>
+        
+        {/* Cross-Link (before Try This Instead) */}
+        {crossLink && (
+          <Text style={[styles.crossLinkText, { color: theme.textTertiary }]}>
+            {crossLink}
+          </Text>
+        )}
+        
+        {/* Try This Instead */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getGateTryThis()}
+          </Text>
+        </View>
+        
+        {/* Reflect CTA */}
+        <TouchableOpacity
+          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+          onPress={() => openReflection(
+            `Gate ${gateNum}: ${gateName}`,
+            'gate',
+            getGateReflectionPrompt(gateNum, gateName),
+            'deep_dive',
+            `gate_${gateNum}`,
+            gateName
+          )}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // NEW: Upgraded Gene Keys Section with Shadow/Gift/Siddhi structure
+  const renderGeneKeysUpgraded = () => {
+    const hasSequences = activationSequence || venusSequence || pearlSequence;
+    if (!hasSequences) return null;
+    
+    return (
+      <CollapsibleCard
+        title="Gene Keys"
+        subtitle="Your deeper purpose sequences"
+        badge="3 arcs"
+        defaultOpen={false}
+        priority="medium"
+      >
+        <View style={{ gap: 16 }}>
+          {/* Purpose Arc - Default OPEN (first sphere) */}
+          {activationSequence && (
+            <View>
+              <SectionHeader title="Purpose Arc" icon="◎" count={activationSequence.spheres?.length || 0} />
+              {(activationSequence.spheres || []).map((sphere: any, idx: number) => (
+                <NestedCollapsible
+                  key={`purpose-${idx}`}
+                  title={sphere.sphere_name}
+                  subtitle={sphere.gene_key ? `Gene Key ${sphere.gene_key}` : 'Core sequence'}
+                  defaultOpen={idx === 0}
+                  status="active"
+                  lazyRender={true}
+                >
+                  {renderSphereUpgraded(sphere)}
+                </NestedCollapsible>
+              ))}
+            </View>
+          )}
+          
+          {/* Love Arc */}
+          {venusSequence && (
+            <View>
+              <SectionHeader title="Love Arc" icon="♡" count={venusSequence.spheres?.length || 0} />
+              {(venusSequence.spheres || []).map((sphere: any, idx: number) => (
+                <NestedCollapsible
+                  key={`love-${idx}`}
+                  title={sphere.sphere_name}
+                  subtitle={sphere.gene_key ? `Gene Key ${sphere.gene_key}` : 'Relationship sequence'}
+                  defaultOpen={false}
+                  status="defined"
+                  lazyRender={true}
+                >
+                  {renderSphereUpgraded(sphere)}
+                </NestedCollapsible>
+              ))}
+            </View>
+          )}
+          
+          {/* Prosperity Arc */}
+          {pearlSequence && (
+            <View>
+              <SectionHeader title="Prosperity Arc" icon="◇" count={pearlSequence.spheres?.length || 0} />
+              {(pearlSequence.spheres || []).map((sphere: any, idx: number) => (
+                <NestedCollapsible
+                  key={`prosperity-${idx}`}
+                  title={sphere.sphere_name}
+                  subtitle={sphere.gene_key ? `Gene Key ${sphere.gene_key}` : 'Vocation sequence'}
+                  defaultOpen={false}
+                  status="defined"
+                  lazyRender={true}
+                >
+                  {renderSphereUpgraded(sphere)}
+                </NestedCollapsible>
+              ))}
+            </View>
+          )}
+        </View>
+      </CollapsibleCard>
+    );
+  };
+
+  // Helper: Render upgraded sphere content with Shadow/Gift/Siddhi
+  const renderSphereUpgraded = (sphere: any) => {
+    // Recognition (from Shadow - current pattern)
+    const getRecognition = (): string => {
+      if (sphere.shadow) {
+        const patterns = [
+          `You keep running into ${sphere.shadow.toLowerCase()}—especially when pressure builds.`,
+          `There's a pattern of ${sphere.shadow.toLowerCase()} that shows up when you're off-center.`,
+          `When things feel stuck, ${sphere.shadow.toLowerCase()} is often somewhere in the mix.`
+        ];
+        return patterns[Math.floor((sphere.gene_key || 1) % patterns.length)];
+      }
+      return "You have a pattern that shows up when you're not fully aligned.";
+    };
+    
+    // Tension (the pull between Shadow and Gift)
+    const getTension = (): string => {
+      if (sphere.shadow && sphere.gift) {
+        return `Part of you keeps falling into ${sphere.shadow.toLowerCase()}. Another part knows ${sphere.gift.toLowerCase()} is possible. The gap between them is where growth happens.`;
+      }
+      return "The tension is between where you are and where you're becoming.";
+    };
+    
+    // Truth Shift (Gift - the shift)
+    const getTruthShift = (): string => {
+      if (sphere.gift) {
+        const shifts = [
+          `When you catch ${sphere.shadow?.toLowerCase() || 'the pattern'}, ${sphere.gift.toLowerCase()} becomes accessible.`,
+          `The shift is toward ${sphere.gift.toLowerCase()}—not as effort, but as recognition.`,
+          `${sphere.gift} isn't something you do. It's what emerges when ${sphere.shadow?.toLowerCase() || 'the old pattern'} releases.`
+        ];
+        return shifts[Math.floor((sphere.gene_key || 1) % shifts.length)];
+      }
+      return "The shift happens when you stop pushing and start noticing.";
+    };
+    
+    // Try This Instead (practical movement toward Gift)
+    const getTryThis = (): string => {
+      if (sphere.shadow && sphere.gift) {
+        const tips = [
+          `When ${sphere.shadow.toLowerCase()} shows up, name it. That creates space for ${sphere.gift.toLowerCase()}.`,
+          `Notice the moment before ${sphere.shadow.toLowerCase()} takes over. That's where choice lives.`,
+          `Try: pause when you feel ${sphere.shadow.toLowerCase()} rising. Ask what ${sphere.gift.toLowerCase()} would look like here.`
+        ];
+        return tips[Math.floor((sphere.gene_key || 1) % tips.length)];
+      }
+      return "Start by noticing when the old pattern kicks in. That awareness is the first step.";
+    };
+    
+    return (
+      <View style={{ gap: 12 }}>
+        {/* Recognition (Shadow as current pattern) */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>RECOGNITION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getRecognition()}
+          </Text>
+        </View>
+        
+        {/* Tension (Shadow ↔ Gift) */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getTension()}
+          </Text>
+        </View>
+        
+        {/* Truth Shift (Gift as the shift) */}
+        <View style={[styles.mirrorTruthShift, { backgroundColor: theme.background, borderLeftColor: theme.accent }]}>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>TRUTH SHIFT</Text>
+          <Text style={[styles.mirrorTruthShiftText, { color: theme.text }]}>
+            {getTruthShift()}
+          </Text>
+        </View>
+        
+        {/* Try This Instead */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getTryThis()}
+          </Text>
+        </View>
+        
+        {/* Siddhi hint (subtle, not labeled) */}
+        {sphere.siddhi && (
+          <Text style={[styles.crossLinkText, { color: theme.textTertiary }]}>
+            At its deepest, this energy moves toward {sphere.siddhi.toLowerCase()}—not as achievement, but as natural unfolding.
+          </Text>
+        )}
+        
+        {/* Reflect CTA */}
+        <TouchableOpacity
+          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+          onPress={() => openReflection(
+            sphere.sphere_name,
+            'sphere',
+            getSphereReflectionPrompt(sphere.sphere_name, sphere.gene_key || 0),
+            'deep_dive',
+            `sphere_${sphere.gene_key}`,
+            `GK ${sphere.gene_key}`
+          )}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // NEW: Render Core Synthesis section
+  const renderCoreSynthesis = () => {
+    if (!data?.core_mechanics) return null;
+    
+    // Generate synthesis
+    const synthesisInput: HDSynthesisInput = {
+      type: data.core_mechanics.type || '',
+      authority: data.core_mechanics.authority || 'Sacral',
+      profile: data.core_mechanics.profile || '1/3',
+      definition: data.core_mechanics.definition,
+      incarnationCross: data.core_mechanics.incarnation_cross,
+      channels: data.channels,
+      definedCenters: data.defined_centers,
+      undefinedCenters: data.undefined_centers,
+      consciousGates: data.conscious_gates,
+      unconsciousGates: data.unconscious_gates,
+      personalitySun: data.personality_sun,
+      designSun: data.design_sun,
+    };
+    const synthesis = generateHDSynthesis(synthesisInput);
+    
+    if (!synthesis) return null;
+    
+    return (
+      <CollapsibleCard
+        title="Your Core Synthesis"
+        subtitle="How your design operates as one system"
+        defaultOpen={true}
+        priority="high"
+      >
+        <View style={{ gap: 16 }}>
+          {/* Core Pattern */}
+          <Text style={[styles.mirrorRecognition, { color: theme.text }]}>
+            {synthesis.corePattern}
+          </Text>
+          
+          {/* Core Tension */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>THE TENSION</Text>
+            <Text style={[styles.mirrorSectionText, { color: theme.text }]}>
+              {synthesis.coreTension}
+            </Text>
+          </View>
+          
+          {/* How This Plays Out */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>HOW THIS PLAYS OUT</Text>
+            {synthesis.howThisPlaysOut.map((item: string, i: number) => (
+              <View key={`plays-${i}`} style={styles.mirrorBulletRow}>
+                <Text style={[styles.mirrorBullet, { color: theme.textTertiary }]}>•</Text>
+                <Text style={[styles.mirrorBulletText, { color: theme.textSecondary }]}>{item}</Text>
+              </View>
+            ))}
+          </View>
+          
+          {/* Blind Spot */}
+          <View style={[styles.mirrorTruthShift, { backgroundColor: theme.background, borderLeftColor: theme.warning || '#FF9800' }]}>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>BLIND SPOT</Text>
+            <Text style={[styles.mirrorTruthShiftText, { color: theme.text }]}>
+              {synthesis.blindSpot}
+            </Text>
+          </View>
+          
+          {/* Edge */}
+          <View style={[styles.mirrorTruthShift, { backgroundColor: theme.background, borderLeftColor: theme.success || '#4CAF50' }]}>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>YOUR EDGE</Text>
+            <Text style={[styles.mirrorTruthShiftText, { color: theme.text }]}>
+              {synthesis.edge}
+            </Text>
+          </View>
         </View>
       </CollapsibleCard>
     );
@@ -3181,50 +3853,83 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const profileMirrorCard = getProfileMirrorCard(data.core_mechanics?.profile || '');
     const crossMirrorCard = getCrossMirrorCard(data.core_mechanics?.incarnation_cross || '');
     
+    // Generate Pattern Thread
+    const patternThread = generatePatternThread({
+      type: data.core_mechanics?.type || '',
+      authority: data.core_mechanics?.authority || '',
+      profile: data.core_mechanics?.profile || '',
+      personalitySun: data.personality_sun,
+      designSun: data.design_sun,
+      channels: data.channels,
+      definedCenters: centersData?.centers?.filter((c: any) => c.defined)?.map((c: any) => c.center) || [],
+      undefinedCenters: centersData?.centers?.filter((c: any) => !c.defined)?.map((c: any) => c.center) || [],
+    });
+    
+    // Build cross-link context for cards
+    const crossLinkContext: CrossLinkContext = {
+      type: data.core_mechanics?.type || '',
+      authority: data.core_mechanics?.authority || '',
+      profile: data.core_mechanics?.profile || '',
+      definedCenters: centersData?.centers?.filter((c: any) => c.defined)?.map((c: any) => c.center) || [],
+      undefinedCenters: centersData?.centers?.filter((c: any) => !c.defined)?.map((c: any) => c.center) || [],
+      channels: data.channels || [],
+      personalitySun: data.personality_sun,
+      designSun: data.design_sun,
+      consciousGates: gatesData?.gates?.filter((g: any) => g.is_conscious)?.map((g: any) => g.gate_number || g.gate) || [],
+      unconsciousGates: gatesData?.gates?.filter((g: any) => !g.is_conscious)?.map((g: any) => g.gate_number || g.gate) || [],
+    };
+    
     return (
       <>
-        {/* 1. TOP SUMMARY GRAPH - Visual design overview */}
-        {renderDesignSummaryGraph()}
+        {/* 1. PATTERN THREAD - The unified narrative (NEW - TOP POSITION) */}
+        {patternThread && renderPatternThread(patternThread)}
         
-        {/* 2. BODY GRAPH */}
+        {/* 2. CORE SYNTHESIS - The existing synthesis card */}
+        {renderCoreSynthesis()}
+        
+        {/* 3. BODY GRAPH - Visual overview */}
         {renderImprovedBodygraph()}
         
-        {/* 3. CORE MECHANICS - Using CollapsibleCard for progressive disclosure */}
+        {/* 4. TYPE / AUTHORITY / PROFILE - Core Mechanics */}
         <SectionHeader title="Core Mechanics" count={4} icon="◎" />
         
         {/* Type Card - Default OPEN (most important) */}
-        {typeMirrorCard && renderMechanicCollapsibleCard(
+        {typeMirrorCard && renderMechanicCollapsibleCardWithCrossLink(
           'type',
           typeMirrorCard,
           data.core_mechanics?.type || '',
-          true // Default open
+          true, // Default open
+          getTypeCrossLink(data.core_mechanics?.type || '', data.core_mechanics?.authority || '')
         )}
         
         {/* Authority Card - Default CLOSED */}
-        {authorityMirrorCard && renderMechanicCollapsibleCard(
+        {authorityMirrorCard && renderMechanicCollapsibleCardWithCrossLink(
           'authority',
           authorityMirrorCard,
           data.core_mechanics?.authority || '',
-          false
+          false,
+          getAuthorityCrossLink(data.core_mechanics?.authority || '', data.core_mechanics?.type || '')
         )}
         
         {/* Profile Card - Default CLOSED */}
-        {profileMirrorCard && renderMechanicCollapsibleCard(
+        {profileMirrorCard && renderMechanicCollapsibleCardWithCrossLink(
           'profile',
           profileMirrorCard,
           data.core_mechanics?.profile || '',
-          false
+          false,
+          null // No cross-link for profile
         )}
         
         {/* Incarnation Cross Card - Default CLOSED */}
-        {crossMirrorCard && renderMechanicCollapsibleCard(
+        {crossMirrorCard && renderMechanicCollapsibleCardWithCrossLink(
           'cross',
           crossMirrorCard,
           data.core_mechanics?.incarnation_cross || '',
-          false
+          false,
+          null // No cross-link for cross
         )}
         
-        {/* 4. CENTERS SECTION - Using CollapsibleCard wrapper */}
+        {/* 5. CENTERS SECTION */}
         {centersData && (
           <CollapsibleCard
             title="Centers"
@@ -3233,11 +3938,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             defaultOpen={false}
             priority="medium"
           >
-            {renderCentersCards()}
+            {renderCentersCardsWithCrossLinks(crossLinkContext)}
           </CollapsibleCard>
         )}
         
-        {/* 5. GATES SECTION - Using CollapsibleCard wrapper */}
+        {/* 6. GATES SECTION */}
         {gatesData && (
           <CollapsibleCard
             title="Gates"
@@ -3246,12 +3951,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             defaultOpen={false}
             priority="medium"
           >
-            {renderGatesCardsCollapsible()}
+            {renderGatesCardsWithCrossLinks(crossLinkContext)}
           </CollapsibleCard>
         )}
         
-        {/* 6. GENE KEYS SEQUENCES SECTION */}
-        {renderGeneKeysCollapsibleSection()}
+        {/* 7. GENE KEYS SEQUENCES SECTION */}
+        {renderGeneKeysUpgraded()}
       </>
     );
   };
@@ -7992,5 +8697,43 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 23,
     marginTop: 4,
+  },
+  // Pattern Thread styles
+  patternThreadContainer: {
+    padding: 20,
+    marginBottom: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  patternThreadTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 16,
+  },
+  patternThreadBody: {
+    fontSize: 16,
+    lineHeight: 26,
+    marginBottom: 16,
+  },
+  patternThreadLoop: {
+    paddingLeft: 16,
+    paddingVertical: 12,
+    borderLeftWidth: 3,
+    marginTop: 8,
+  },
+  patternThreadLoopText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    lineHeight: 20,
+  },
+  // Cross-Link styles (subtle, italic)
+  crossLinkText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    lineHeight: 21,
+    marginVertical: 8,
+    paddingLeft: 4,
   },
 });

@@ -12,6 +12,7 @@ export interface MirrorCard {
   realLifeMoments: string[];
   truthShift: string;
   tryThisInstead: string;
+  crossLink?: string; // Cross-linking to related elements (single sentence, subtle)
 }
 
 // ============================================
@@ -775,4 +776,226 @@ export function getCrossMirrorCard(crossType: string): MirrorCard | null {
     return CROSS_MIRROR_CARDS['Juxtaposition'];
   }
   return null;
+}
+
+// ============================================
+// CROSS-LINK GENERATION
+// ============================================
+// Creates subtle, single-sentence connections between HD elements
+// Max 1 cross-link per card
+
+export interface CrossLinkContext {
+  type?: string;
+  authority?: string;
+  profile?: string;
+  definedCenters?: string[];
+  undefinedCenters?: string[];
+  channels?: { gates?: string; name?: string }[];
+  personalitySun?: number | { gate: number };
+  designSun?: number | { gate: number };
+  consciousGates?: number[];
+  unconsciousGates?: number[];
+}
+
+// Generate cross-link for a gate based on context
+export function getGateCrossLink(gateNum: number, context: CrossLinkContext): string | null {
+  // Check if gate has a programming partner in their chart
+  const partnerGate = getProgrammingPartner(gateNum);
+  const hasPartner = partnerGate && (
+    context.consciousGates?.includes(partnerGate) ||
+    context.unconsciousGates?.includes(partnerGate)
+  );
+  
+  // Check if gate is part of a channel
+  const channelPartner = getChannelPartner(gateNum, context.channels || []);
+  
+  // Prioritize programming partner tension
+  if (hasPartner) {
+    return getProgrammingPartnerCrossLink(gateNum, partnerGate!);
+  }
+  
+  // Then channel connection
+  if (channelPartner) {
+    return getChannelCrossLink(gateNum, channelPartner);
+  }
+  
+  // Then authority tension
+  if (context.authority) {
+    return getGateAuthorityCrossLink(gateNum, context.authority);
+  }
+  
+  return null;
+}
+
+// Generate cross-link for a center based on context
+export function getCenterCrossLink(center: string, isDefined: boolean, context: CrossLinkContext): string | null {
+  const normalizedCenter = center.toLowerCase().replace(' center', '').replace('centre', '').trim();
+  
+  // Undefined centers → sensitivity to external influence
+  if (!isDefined) {
+    return getUndefinedCenterCrossLink(normalizedCenter, context.type || '');
+  }
+  
+  // Defined centers → consistent energy output
+  return getDefinedCenterCrossLink(normalizedCenter, context.authority || '');
+}
+
+// Generate cross-link for Type based on Authority
+export function getTypeCrossLink(type: string, authority: string): string | null {
+  const key = `${type}_${authority}`;
+  
+  const crossLinks: { [key: string]: string } = {
+    'Generator_Emotional': "Part of you responds instantly—but another part needs time. That tension is built in.",
+    'Generator_Sacral': "Your body knows before your mind. Learning to trust that is the work.",
+    'Manifesting Generator_Emotional': "You move fast, but your clarity unfolds slow. The mismatch is designed.",
+    'Manifesting Generator_Sacral': "Your energy shifts quickly—and that's correct, not inconsistent.",
+    'Projector_Emotional': "You see things clearly, but when to share isn't instant. The timing matters.",
+    'Projector_Splenic': "You sense the truth instantly—but speaking it uninvited still lands wrong.",
+    'Manifestor_Emotional': "You want to act now, but your wave isn't done. That friction shapes everything.",
+    'Manifestor_Splenic': "The knowing comes once. Catching it before doubt kicks in—that's the edge.",
+    'Reflector_Lunar': "You absorb everything. What's actually yours takes time to sort out."
+  };
+  
+  return crossLinks[key] || null;
+}
+
+// Generate cross-link for Authority based on Type
+export function getAuthorityCrossLink(authority: string, type: string): string | null {
+  const key = `${authority}_${type}`;
+  
+  const crossLinks: { [key: string]: string } = {
+    'Emotional_Projector': "Your clarity comes in waves—and trying to guide from peaks or valleys creates mismatch.",
+    'Emotional_Generator': "Your gut responds fast, but acting on the initial hit often misses what the wave reveals.",
+    'Emotional_Manifestor': "The urge to initiate comes before clarity settles. That gap is where friction lives.",
+    'Sacral_Generator': "Your response is the truth. The mind questioning it is the noise.",
+    'Sacral_Manifesting Generator': "Energy shifting isn't failure—it's the signal that something else is alive.",
+    'Splenic_Projector': "You know instantly, but speaking without invitation wastes the knowing.",
+    'Splenic_Manifestor': "The hit comes once. Missing it means reasoning your way to something that already passed."
+  };
+  
+  return crossLinks[key] || null;
+}
+
+// Helper: Get programming partner gate
+function getProgrammingPartner(gate: number): number | null {
+  const partners: { [key: number]: number } = {
+    1: 2, 2: 1, 3: 4, 4: 3, 5: 6, 6: 5, 7: 8, 8: 7,
+    9: 10, 10: 9, 11: 12, 12: 11, 13: 14, 14: 13,
+    15: 16, 16: 15, 17: 18, 18: 17, 19: 20, 20: 19,
+    21: 22, 22: 21, 23: 24, 24: 23, 25: 26, 26: 25,
+    27: 28, 28: 27, 29: 30, 30: 29, 31: 32, 32: 31,
+    33: 34, 34: 33, 35: 36, 36: 35, 37: 38, 38: 37,
+    39: 40, 40: 39, 41: 42, 42: 41, 43: 44, 44: 43,
+    45: 46, 46: 45, 47: 48, 48: 47, 49: 50, 50: 49,
+    51: 52, 52: 51, 53: 54, 54: 53, 55: 56, 56: 55,
+    57: 58, 58: 57, 59: 60, 60: 59, 61: 62, 62: 61,
+    63: 64, 64: 63
+  };
+  return partners[gate] || null;
+}
+
+// Helper: Get channel partner gate
+function getChannelPartner(gate: number, channels: { gates?: string; name?: string }[]): number | null {
+  for (const channel of channels) {
+    if (!channel.gates) continue;
+    const gatesInChannel = channel.gates.split('-').map(g => parseInt(g.trim()));
+    if (gatesInChannel.includes(gate)) {
+      const partner = gatesInChannel.find(g => g !== gate);
+      return partner || null;
+    }
+  }
+  return null;
+}
+
+// Programming partner cross-links (polarity tension)
+function getProgrammingPartnerCrossLink(gate: number, partnerGate: number): string {
+  const polarities: { [key: string]: string } = {
+    '1_2': "Part of you wants creative direction—another part needs receptivity. They pull against each other.",
+    '2_1': "You have receptive wisdom, but something in you keeps pushing for creative assertion.",
+    '3_4': "You experiment to learn, but there's pressure to have logical answers before you've tried.",
+    '4_3': "You want formulaic certainty, but growth comes from trial and error you can't skip.",
+    '5_6': "You sense timing, but emotional depth keeps complicating what feels 'right'.",
+    '6_5': "Emotional waves are teaching you, but part of you just wants fixed rhythms.",
+    '7_8': "You guide direction, but another energy wants unique individual expression.",
+    '8_7': "Your contribution is individual, but there's pull toward leading others.",
+    '9_10': "Focus and detail conflict with your need for authentic self-expression.",
+    '10_9': "Being yourself clashes with pressure to focus narrowly.",
+    '11_12': "Ideas flood in, but expressing them requires a different kind of stillness.",
+    '12_11': "Cautious expression battles with the overflow of mental stimulation.",
+    '17_18': "Opinions form easily, but correcting what's flawed takes different energy.",
+    '18_17': "You see what needs fixing, but that clashes with confident knowing.",
+    '21_22': "Control and emotional openness pull in opposite directions.",
+    '22_21': "Grace in emotion conflicts with will to control.",
+    '27_28': "Caring and meaning-seeking create different priorities.",
+    '28_27': "Struggling for purpose battles with nurturing instincts.",
+    '29_30': "Commitment conflicts with emotional hunger for experience.",
+    '30_29': "Desire for feeling burns against the pull of saying yes.",
+    '35_36': "Experience seeking clashes with emotional crisis navigation.",
+    '36_35': "Crisis moves you, but adventure calls differently.",
+    '39_40': "Provocation and rest don't naturally coexist.",
+    '40_39': "Your need for alone time conflicts with instinct to provoke.",
+    '47_48': "Realization and depth operate on different timescales.",
+    '48_47': "You go deep, but meaning hits in flashes you can't force.",
+    '57_58': "Intuition and joyful aliveness compete for attention.",
+    '58_57': "Vitality clashes with the quiet of intuitive knowing.",
+    '63_64': "Doubt and confusion overlap—one questions, one imagines."
+  };
+  
+  const key = `${gate}_${partnerGate}`;
+  const reverseKey = `${partnerGate}_${gate}`;
+  
+  return polarities[key] || polarities[reverseKey] || 
+    "There's built-in tension between different parts of how you're wired.";
+}
+
+// Channel cross-links (completed energy)
+function getChannelCrossLink(gate: number, partnerGate: number): string {
+  return `This connects to another active energy in you—together they form a consistent way you process life.`;
+}
+
+// Gate + Authority tension
+function getGateAuthorityCrossLink(gate: number, authority: string): string | null {
+  // Gates that specifically conflict with emotional authority (waiting)
+  const impulsiveGates = [3, 35, 36, 41, 51, 53];
+  if (authority === 'Emotional' && impulsiveGates.includes(gate)) {
+    return "This energy wants to move now—but your clarity takes time. That tension is real.";
+  }
+  
+  // Gates that want certainty (conflict with splenic authority's one-time knowing)
+  const certaintyGates = [4, 17, 48, 63];
+  if (authority === 'Splenic' && certaintyGates.includes(gate)) {
+    return "This wants logical certainty, but your knowing comes once and doesn't explain itself.";
+  }
+  
+  return null;
+}
+
+// Undefined center cross-links
+function getUndefinedCenterCrossLink(center: string, type: string): string | null {
+  const crossLinks: { [key: string]: string } = {
+    'g': "This is why your direction shifts depending on environment—it's sensitivity, not confusion.",
+    'heart': "This is why proving yourself feels urgent but draining—the pressure isn't naturally yours.",
+    'sacral': "Without consistent energy access, rest isn't laziness—it's necessary.",
+    'spleen': "Safety feels uncertain because you're amplifying others' fear, not your own.",
+    'root': "Urgency hits you from outside. The pressure you feel often isn't yours.",
+    'ajna': "Your mind picks up others' certainty. What you think can depend on who's around.",
+    'head': "Questions and inspiration flood in from everywhere. Not all of them are yours to solve.",
+    'throat': "Expression depends on who's in the room. Silence isn't failure—it's sensitivity.",
+    'solar plexus': "You feel others' emotions intensely. Distinguishing theirs from yours is the work."
+  };
+  
+  return crossLinks[center] || null;
+}
+
+// Defined center cross-links  
+function getDefinedCenterCrossLink(center: string, authority: string): string | null {
+  const crossLinks: { [key: string]: string } = {
+    'sacral': "This energy is consistent—but how you direct it still depends on response, not will.",
+    'heart': "Willpower is reliable here, but it only sustains what your heart actually wants.",
+    'g': "Direction is steady—but the right invitations still matter for where you go.",
+    'spleen': "Safety instincts are consistent—the knowing just comes once and doesn't repeat.",
+    'solar plexus': "Emotions are yours, and they wave. Clarity lives in the settling, not the peaks."
+  };
+  
+  return crossLinks[center] || null;
 }

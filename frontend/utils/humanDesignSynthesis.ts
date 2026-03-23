@@ -939,3 +939,221 @@ export function generateHDSynthesis(input: HDSynthesisInput): HDSynthesis | null
 export function canGenerateSynthesis(type: string, authority: string): boolean {
   return !!(type && authority);
 }
+
+// ============================================
+// PATTERN THREAD - THE UNIFIED NARRATIVE
+// ============================================
+// Combines Type + Authority + Top Gate into ONE dominant pattern
+// that runs through everything. Max 4-5 lines.
+// Mirror tone: observational, emotionally recognizable.
+
+export interface PatternThread {
+  title: string;
+  body: string;
+  coreLoop: string;
+}
+
+export function generatePatternThread(input: HDSynthesisInput): PatternThread | null {
+  const { type, authority, personalitySun, designSun, channels } = input;
+  
+  if (!type || !authority) return null;
+  
+  // Get the top gate - Personality Sun takes priority
+  const topGate = typeof personalitySun === 'object' 
+    ? personalitySun.gate 
+    : (typeof personalitySun === 'number' ? personalitySun : null);
+  
+  const secondGate = typeof designSun === 'object'
+    ? designSun.gate
+    : (typeof designSun === 'number' ? designSun : null);
+  
+  // Build the core pattern narrative from Type + Authority combination
+  const patterns = getPatternThreadTemplates(type, authority);
+  if (!patterns) return null;
+  
+  // Select variant based on top gate (or use default)
+  const gateInfluence = getGateInfluenceForThread(topGate, secondGate);
+  
+  // Build the body with gate-specific nuance if available
+  let body = patterns.body;
+  if (gateInfluence && patterns.gateVariant) {
+    body = patterns.gateVariant(gateInfluence);
+  }
+  
+  return {
+    title: "The Pattern Running Through You",
+    body: body,
+    coreLoop: patterns.coreLoop
+  };
+}
+
+interface ThreadTemplate {
+  body: string;
+  coreLoop: string;
+  gateVariant?: (influence: string) => string;
+}
+
+function getPatternThreadTemplates(type: string, authority: string): ThreadTemplate | null {
+  const key = `${type}_${authority}`;
+  
+  const templates: { [key: string]: ThreadTemplate } = {
+    // MANIFESTOR combinations
+    'Manifestor_Emotional': {
+      body: `You're wired to act on what you see. But your clarity doesn't come instantly.\n\nSo you move before you're fully sure—then feel the consequences after.\n\nThis creates a pattern: you initiate, things shift, and you're left processing what actually happened.`,
+      coreLoop: "You act, then feel, then question.",
+      gateVariant: (influence) => `You're wired to act on what you see. But your clarity doesn't come instantly.\n\nSo you move before you're fully sure${influence}—then feel the consequences after.\n\nThis creates a pattern: you initiate, things shift, and you're left processing what actually happened.`
+    },
+    'Manifestor_Splenic': {
+      body: `You know things instantly—before reasons arrive. But that knowing comes once, quietly, and doesn't wait.\n\nWhen you hesitate to trust it, the moment passes. Then you're left trying to logic your way to something that already came and went.`,
+      coreLoop: "You sense it, you doubt it, the window closes.",
+      gateVariant: (influence) => `You know things instantly${influence}—before reasons arrive. But that knowing comes once, quietly, and doesn't wait.\n\nWhen you hesitate to trust it, the moment passes. Then you're left trying to logic your way to something that already came and went.`
+    },
+    'Manifestor_Ego': {
+      body: `When your heart is genuinely in something, you're unstoppable. When it's not, nothing moves.\n\nThe pattern: you commit because you think you should want it. The energy drains. You blame discipline. But it was never about discipline—it was about desire.`,
+      coreLoop: "You promise, desire fades, you push through dry.",
+      gateVariant: (influence) => `When your heart is genuinely in something${influence}, you're unstoppable. When it's not, nothing moves.\n\nThe pattern: you commit because you think you should want it. The energy drains. You blame discipline. But it was never about discipline—it was about desire.`
+    },
+    'Manifestor_Self-Projected': {
+      body: `You don't know until you hear yourself say it. Waiting for internal certainty keeps you frozen.\n\nThe pattern: you stay silent, hoping clarity will come. But your truth lives in your voice—not before it.`,
+      coreLoop: "You wait, you stay silent, you stay stuck.",
+    },
+    'Manifestor_None': {
+      body: `Your clarity doesn't live inside you—it comes from where you are.\n\nThe pattern: you try to figure things out alone. Nothing resolves. You force a choice. It doesn't hold. Because your wisdom is place-dependent, and you keep looking in the wrong spot.`,
+      coreLoop: "You look inside, nothing's there, you force it anyway.",
+    },
+    
+    // GENERATOR combinations  
+    'Generator_Emotional': {
+      body: `Your gut says yes. But your wave says wait.\n\nSo you commit in the excitement—then time passes, the feeling shifts, and you're stuck with something that no longer feels right.\n\nThis creates a pattern: you respond, you commit, you question it later.`,
+      coreLoop: "You respond, you commit fast, the feeling changes.",
+      gateVariant: (influence) => `Your gut says yes. But your wave says wait.\n\nSo you commit${influence}—then time passes, the feeling shifts, and you're stuck with something that no longer feels right.\n\nThis creates a pattern: you respond, you commit, you question it later.`
+    },
+    'Generator_Sacral': {
+      body: `Your body knows before your mind catches up. There's a pull toward or away—and it happens before reasons.\n\nThe pattern: you feel the response, you override it with logic, you end up drained and stuck. The body knew. You just didn't listen.`,
+      coreLoop: "You sense it, you question it, you override.",
+      gateVariant: (influence) => `Your body knows before your mind catches up${influence}. There's a pull toward or away—and it happens before reasons.\n\nThe pattern: you feel the response, you override it with logic, you end up drained and stuck. The body knew. You just didn't listen.`
+    },
+    
+    // MANIFESTING GENERATOR combinations
+    'Manifesting Generator_Emotional': {
+      body: `You move fast. Your clarity doesn't.\n\nYou're already three steps ahead—but the wave hasn't settled. Excitement feels like truth, so you commit. Then time passes, the feeling shifts, and you're scattered across things that no longer feel right.`,
+      coreLoop: "You start fast, the wave shifts, you're stuck or scattered.",
+      gateVariant: (influence) => `You move fast${influence}. Your clarity doesn't.\n\nYou're already three steps ahead—but the wave hasn't settled. Excitement feels like truth, so you commit. Then time passes, the feeling shifts, and you're scattered across things that no longer feel right.`
+    },
+    'Manifesting Generator_Sacral': {
+      body: `You pivot faster than others understand. They call it inconsistent. You call it following what's alive.\n\nThe pattern: you engage fully, the energy shifts, guilt hits, you force yourself to finish something already dead. The real inconsistency is staying on dead tracks.`,
+      coreLoop: "You engage, energy dies, guilt keeps you stuck.",
+      gateVariant: (influence) => `You pivot faster than others understand${influence}. They call it inconsistent. You call it following what's alive.\n\nThe pattern: you engage fully, the energy shifts, guilt hits, you force yourself to finish something already dead. The real inconsistency is staying on dead tracks.`
+    },
+    
+    // PROJECTOR combinations
+    'Projector_Emotional': {
+      body: `You see what others miss. But your timing isn't about speed—it's about emotional clarity.\n\nThe pattern: you know the answer, you share it in a high, it lands wrong. Or you hold back in a low, and the moment passes. Recognition finds you when the wave has settled.`,
+      coreLoop: "You see it, share it too soon, it misses.",
+      gateVariant: (influence) => `You see what others miss${influence}. But your timing isn't about speed—it's about emotional clarity.\n\nThe pattern: you know the answer, you share it in a high, it lands wrong. Or you hold back in a low, and the moment passes. Recognition finds you when the wave has settled.`
+    },
+    'Projector_Splenic': {
+      body: `You see into systems, people, patterns—often better than they see themselves. And your knowing comes in a flash.\n\nThe pattern: you sense the truth instantly, but share it before you're invited. It falls flat. You wonder why no one listens.`,
+      coreLoop: "You know instantly, share uninvited, get ignored.",
+      gateVariant: (influence) => `You see into systems, people, patterns${influence}—often better than they see themselves. And your knowing comes in a flash.\n\nThe pattern: you sense the truth instantly, but share it before you're invited. It falls flat. You wonder why no one listens.`
+    },
+    'Projector_Ego': {
+      body: `You see what needs to happen. And when your heart is in it, you can guide powerfully.\n\nThe pattern: you commit your will to places that don't recognize you. Energy drains. Bitterness builds. Recognition only flows where your heart actually wants to be.`,
+      coreLoop: "You give to where you're not recognized, resentment builds.",
+    },
+    'Projector_Self-Projected': {
+      body: `You see patterns others miss. But your clarity comes through speaking, not thinking.\n\nThe pattern: you wait to be sure before sharing. But certainty lives in your voice—not before it. Speaking is how you find out what you know.`,
+      coreLoop: "You hold back, stay silent, stay unclear.",
+    },
+    'Projector_None': {
+      body: `You read people and systems with unusual depth. But your clarity doesn't live inside—it lives in environment.\n\nThe pattern: you try to figure things out alone. Nothing resolves. Change the setting, and suddenly you know.`,
+      coreLoop: "You analyze internally, get nowhere, force it.",
+    },
+    
+    // REFLECTOR combinations
+    'Reflector_Lunar': {
+      body: `You take in everything. You feel the room, the people, the energy—more intensely than most.\n\nThis creates a pattern: you make decisions too quickly, absorbing whatever energy is around you. Then days pass, the feeling changes, and you question everything.\n\nYour clarity needs time—about 28 days of it.`,
+      coreLoop: "You absorb, you decide fast, you regret later.",
+    },
+    'Reflector_None': {
+      body: `You reflect the world around you—deeply, continuously. That's not weakness. It's how you're built.\n\nThe pattern: you feel one way here, another way there. You think you're inconsistent. But you're actually reading each environment perfectly. The question isn't who you are—it's where you belong.`,
+      coreLoop: "You shift constantly, think you're lost, but you're reading.",
+    }
+  };
+  
+  return templates[key] || null;
+}
+
+function getGateInfluenceForThread(topGate: number | null, secondGate: number | null): string | null {
+  if (!topGate) return null;
+  
+  // Gate-specific flavor modifiers (subtle, not naming the gate)
+  const gateInfluences: { [key: number]: string } = {
+    1: ", especially around creative vision",
+    2: ", particularly when it comes to direction",
+    3: ", especially at the start of something new",
+    4: ", particularly around finding answers",
+    5: ", especially with timing and rhythm",
+    6: ", particularly in emotional situations",
+    7: ", especially around leadership",
+    8: ", particularly when contributing",
+    9: ", especially with details",
+    10: ", particularly around authenticity",
+    11: ", especially with ideas",
+    12: ", particularly in expression",
+    13: ", especially with past experiences",
+    14: ", particularly around resources",
+    15: ", especially with rhythms and timing",
+    16: ", particularly in mastery",
+    17: ", especially with opinions",
+    18: ", particularly around correction",
+    19: ", especially in sensing needs",
+    20: ", particularly in the now",
+    21: ", especially around control",
+    22: ", particularly in emotional expression",
+    23: ", especially with insights",
+    24: ", particularly in mental processing",
+    25: ", especially around innocence",
+    26: ", particularly in influence",
+    27: ", especially in caring",
+    28: ", particularly around meaning",
+    29: ", especially with commitment",
+    30: ", particularly with feelings",
+    31: ", especially around influence",
+    32: ", particularly with continuity",
+    33: ", especially in retreat",
+    34: ", particularly around power",
+    35: ", especially with experience",
+    36: ", particularly in emotional exploration",
+    37: ", especially in community",
+    38: ", particularly in struggle",
+    39: ", especially in provocation",
+    40: ", particularly around rest",
+    41: ", especially with new beginnings",
+    42: ", particularly in completion",
+    43: ", especially with unique perspectives",
+    44: ", particularly around patterns",
+    45: ", especially with resources",
+    46: ", particularly around the body",
+    47: ", especially in realization",
+    48: ", particularly around depth",
+    49: ", especially in principles",
+    50: ", particularly in responsibility",
+    51: ", especially with shock",
+    52: ", particularly in stillness",
+    53: ", especially at beginnings",
+    54: ", particularly with ambition",
+    55: ", especially emotionally",
+    56: ", particularly in storytelling",
+    57: ", especially intuitively",
+    58: ", particularly with joy",
+    59: ", especially in intimacy",
+    60: ", particularly with limits",
+    61: ", especially with mystery",
+    62: ", particularly in details",
+    63: ", especially with doubt",
+    64: ", particularly in confusion"
+  };
+  
+  return gateInfluences[topGate] || null;
+}
