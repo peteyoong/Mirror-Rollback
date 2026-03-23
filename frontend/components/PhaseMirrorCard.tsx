@@ -268,6 +268,15 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
         </View>
       )}
 
+      {/* V3.1: Facet Memory Line - Pattern over time */}
+      {facetMemoryLine && compressedPatternLine && (
+        <View style={styles.facetMemorySection}>
+          <Text style={[styles.facetMemoryText, { color: theme.textTertiary }]}>
+            {cleanText(facetMemoryLine)}
+          </Text>
+        </View>
+      )}
+
       {/* LEVEL 2.6 STEP 3: Recurring Patterns (PROOF - AFTER INSIGHT) */}
       {recurringPatterns.length > 0 && (
         <View style={styles.patternsSection}>
@@ -494,6 +503,16 @@ const styles = StyleSheet.create({
   facetLineText: {
     fontSize: 12,
     lineHeight: 18,
+  },
+  // V3.1: Facet Memory Line - Pattern over time
+  facetMemorySection: {
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
+  facetMemoryText: {
+    fontSize: 11,
+    lineHeight: 17,
+    fontStyle: 'italic',
   },
   // Level 3: Tension Insight
   tensionSection: {
