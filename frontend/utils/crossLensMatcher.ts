@@ -48,38 +48,38 @@ const THEME_KEYWORDS: { [theme: string]: string[] } = {
 const THEME_SIGNALS: { [combo: string]: string[] } = {
   // Single theme signals (when same theme appears in 2+ lenses)
   'action-impulse': [
-    'Part of you moves quickly—sometimes before the rest has caught up.',
-    'There's an urgency to act that doesn\'t always wait for full clarity.',
+    'Part of you moves quickly - sometimes before the rest has caught up.',
+    'There is an urgency to act that does not always wait for full clarity.',
     'The impulse to begin often arrives before the plan is complete.',
   ],
   'emotion-processing': [
     'Emotional clarity takes longer than the mind wants to wait.',
-    'What you feel isn't always what you know—the gap matters.',
+    'What you feel is not always what you know - the gap matters.',
     'Waves move through you that need time to settle into truth.',
   ],
   'pressure-control': [
-    'Something heavy is being carried—it may not all be yours.',
+    'Something heavy is being carried - it may not all be yours.',
     'Control is being tested, or asked to soften.',
     'The weight of responsibility keeps finding you.',
   ],
   'timing-patience': [
-    'Speed and slowness are in tension—both have something to teach.',
-    'Waiting isn't passive—it's where clarity grows.',
-    'The right pace isn't the fastest one.',
+    'Speed and slowness are in tension - both have something to teach.',
+    'Waiting is not passive - it is where clarity grows.',
+    'The right pace is not the fastest one.',
   ],
   'trust-surrender': [
-    'Part of you knows what to do but doesn't fully trust it yet.',
+    'Part of you knows what to do but does not fully trust it yet.',
     'Surrender and control are negotiating.',
     'What feels uncertain may be asking for faith, not answers.',
   ],
   'communication-expression': [
-    'Something wants to be said—the timing matters as much as the words.',
+    'Something wants to be said - the timing matters as much as the words.',
     'Expression and silence are both speaking.',
     'What you share and what you hold back are both choices.',
   ],
   'identity-self': [
     'Who you are and who you appear to be are in conversation.',
-    'The self you show isn't always the self you feel.',
+    'The self you show is not always the self you feel.',
     'Identity is being questioned or refined.',
   ],
   'relationship-connection': [
@@ -88,7 +88,7 @@ const THEME_SIGNALS: { [combo: string]: string[] } = {
     'Connection is asking for something real.',
   ],
   'growth-expansion': [
-    'Growth is calling—but not without friction.',
+    'Growth is calling - but not without friction.',
     'Expansion meets limits, and both are teachers.',
     'The pull toward more is testing what can hold it.',
   ],
@@ -111,21 +111,21 @@ const THEME_SIGNALS: { [combo: string]: string[] } = {
   ],
   'pressure-control+timing-patience': [
     'Pressure around timing and response.',
-    'Weight that wants release but isn't ready.',
+    'Weight that wants release but is not ready.',
     'Control and timing are testing each other.',
   ],
   'action-impulse+pressure-control': [
     'The drive to act meets something that holds back.',
     'Force and resistance are both present.',
-    'Power is being channeled—or blocked.',
+    'Power is being channeled - or blocked.',
   ],
   'trust-surrender+timing-patience': [
     'Trust is being asked before certainty arrives.',
-    'Letting go before you're ready.',
+    'Letting go before you are ready.',
     'Faith and timing are intertwined.',
   ],
   'communication-expression+timing-patience': [
-    'Something wants to be said—but the right moment hasn't arrived.',
+    'Something wants to be said - but the right moment has not arrived.',
     'Words and timing need to align.',
     'Expression is waiting for its opening.',
   ],
