@@ -2,8 +2,20 @@
 // HUMAN DESIGN MASTER SYNTHESIS LAYER
 // ============================================
 // COMPRESSION + PUNCH VERSION
+// Now enhanced with PROGRAMMING PARTNERS for deeper polarity tension
 // Sharp. Clear. Undeniable.
 // Names reality. Doesn't explain systems.
+
+import {
+  getDominantPolarities,
+  enhanceTensionWithPolarity,
+  enhanceBlindSpotWithPolarity,
+  enhanceEdgeWithPolarity,
+  getPolarityBehavioralBullet,
+  getPolarityRelationshipBullet,
+  RankedPolarity,
+  PolarityInput,
+} from './programmingPartners';
 
 export interface HDSynthesis {
   corePattern: string;
@@ -600,17 +612,16 @@ function getCrossPunch(crossName: string): { punch: string; tension: string } | 
 // ============================================
 // BEHAVIORAL BULLETS GENERATOR
 // Max 3-4, specific, different from each other
+// Now enhanced with PROGRAMMING PARTNER polarity swings
 // ============================================
 
 function generateBehavioralBullets(
   dominantPatterns: DominantPattern[],
-  input: HDSynthesisInput
+  input: HDSynthesisInput,
+  polarities: RankedPolarity[] = []
 ): string[] {
   const bullets: string[] = [];
   const { type, authority, profile, definition, channels, consciousGates, unconsciousGates, undefinedCenters } = input;
-  
-  // Get dominant pattern behavioral
-  const dominant = dominantPatterns[0];
   
   // Type × Authority specific behaviors
   if (type === 'Manifestor' && authority === 'Emotional') {
@@ -631,39 +642,40 @@ function generateBehavioralBullets(
     bullets.push("You feel different depending on who you're with");
   }
   
-  // Conscious/Unconscious (if we have the data)
-  if (consciousGates && unconsciousGates && consciousGates.length > 0 && unconsciousGates.length > 0) {
-    bullets.push("Your mind explains decisions your body already made");
+  // ADD POLARITY BEHAVIORAL SWING (high priority)
+  if (polarities.length > 0 && bullets.length < 3) {
+    const polarityBullet = getPolarityBehavioralBullet(polarities);
+    if (polarityBullet && !bullets.some(b => b.toLowerCase().includes(polarityBullet.toLowerCase().split(' ')[0]))) {
+      bullets.push(polarityBullet);
+    }
   }
   
-  // Channel behavioral (only if channel is secondary pattern)
-  if (channels && channels.length > 0 && dominantPatterns.length > 1) {
-    const channelPattern = getChannelConflict(channels[0]);
-    if (channelPattern && dominantPatterns[1]?.id?.startsWith('channel')) {
-      // Don't add if channel is primary - it's already in the core pattern
+  // ADD POLARITY RELATIONSHIP PATTERN (from second polarity if available)
+  if (polarities.length > 1 && bullets.length < 4) {
+    const relationshipBullet = getPolarityRelationshipBullet(polarities);
+    if (relationshipBullet && !bullets.some(b => b.toLowerCase().includes(relationshipBullet.toLowerCase().split(' ')[0]))) {
+      bullets.push(relationshipBullet);
     }
+  }
+  
+  // Conscious/Unconscious (if we have the data and room)
+  if (consciousGates && unconsciousGates && consciousGates.length > 0 && unconsciousGates.length > 0 && bullets.length < 4) {
+    bullets.push("Your mind explains decisions your body already made");
   }
   
   // Profile first line behavior
   const firstLine = profile?.split('/')[0];
-  if (firstLine === '5' && !bullets.some(b => b.includes('expect') && b.includes('solution'))) {
+  if (firstLine === '5' && bullets.length < 4 && !bullets.some(b => b.includes('expect') && b.includes('answer'))) {
     bullets.push("People expect answers before you've offered any");
-  } else if (firstLine === '1' && bullets.length < 3) {
+  } else if (firstLine === '1' && bullets.length < 4) {
     bullets.push("You research longer than others think necessary");
-  } else if (firstLine === '3' && bullets.length < 3) {
+  } else if (firstLine === '3' && bullets.length < 4) {
     bullets.push("You learn more from what went wrong than what went right");
   }
   
   // Split definition
   if (definition === 'Split' && bullets.length < 4) {
     bullets.push("You feel more complete around certain people—that's design, not dependency");
-  }
-  
-  // Undefined center wisdom (high impact)
-  if (undefinedCenters && bullets.length < 4) {
-    if (undefinedCenters.some(c => c.toLowerCase().includes('sacral'))) {
-      bullets.push("You don't have sustainable energy for everything");
-    }
   }
   
   // Limit to 4 max, remove duplicates
@@ -723,6 +735,7 @@ function generateSupports(input: HDSynthesisInput): string[] {
 // ============================================
 // MASTER SYNTHESIS GENERATOR
 // Compressed + Punchy version
+// Now enhanced with PROGRAMMING PARTNERS
 // ============================================
 
 export function generateHDSynthesis(input: HDSynthesisInput): HDSynthesis | null {
@@ -731,12 +744,32 @@ export function generateHDSynthesis(input: HDSynthesisInput): HDSynthesis | null
     authority, 
     profile, 
     incarnationCross,
-    channels
+    channels,
+    personalitySun,
+    personalityEarth,
+    designSun,
+    designEarth,
+    consciousGates,
+    unconsciousGates,
   } = input;
   
   if (!type || !authority) {
     return null;
   }
+  
+  // ============================================
+  // STEP 0: GET DOMINANT POLARITIES (Programming Partners)
+  // ============================================
+  const polarityInput: PolarityInput = {
+    personalitySun,
+    personalityEarth,
+    designSun,
+    designEarth,
+    consciousGates,
+    unconsciousGates,
+    channels,
+  };
+  const dominantPolarities = getDominantPolarities(polarityInput, 2);
   
   // ============================================
   // STEP 1: RANK DOMINANT PATTERNS
@@ -765,13 +798,16 @@ export function generateHDSynthesis(input: HDSynthesisInput): HDSynthesis | null
   }
   
   // ============================================
-  // STEP 3: BUILD CORE TENSION (tight contradiction)
+  // STEP 3: BUILD CORE TENSION (now enhanced with polarity)
   // ============================================
   let coreTension = primary.tension;
   
-  // Add secondary tension only if different enough
-  if (secondary && !secondary.id?.startsWith('channel') && secondary.tension !== primary.tension) {
-    // Only if it's short and adds real conflict
+  // ADD PROGRAMMING PARTNER TENSION if available
+  if (dominantPolarities.length > 0) {
+    coreTension = enhanceTensionWithPolarity(coreTension, dominantPolarities);
+  }
+  // Otherwise add secondary tension if different enough
+  else if (secondary && !secondary.id?.startsWith('channel') && secondary.tension !== primary.tension) {
     const secondaryTension = secondary.tension;
     if (secondaryTension.length < 60) {
       coreTension += ` ${secondaryTension}`;
@@ -779,30 +815,37 @@ export function generateHDSynthesis(input: HDSynthesisInput): HDSynthesis | null
   }
   
   // ============================================
-  // STEP 4: BUILD HOW THIS PLAYS OUT (3-4 max)
+  // STEP 4: BUILD HOW THIS PLAYS OUT (3-4 max, now with polarity)
   // ============================================
-  const howThisPlaysOut = generateBehavioralBullets(dominantPatterns, input);
+  const howThisPlaysOut = generateBehavioralBullets(dominantPatterns, input, dominantPolarities);
   
   // ============================================
-  // STEP 5: BUILD BLIND SPOT (punch line + unconscious)
+  // STEP 5: BUILD BLIND SPOT (now enhanced with polarity)
   // ============================================
   let blindSpot = primary.blindSpot;
   
-  // Add profile unconscious if different
-  if (secondary?.id === 'profile' && secondary.blindSpot !== primary.blindSpot) {
+  // ADD PROGRAMMING PARTNER BLIND SPOT
+  if (dominantPolarities.length > 0) {
+    blindSpot = enhanceBlindSpotWithPolarity(blindSpot, dominantPolarities);
+  }
+  // Otherwise add profile unconscious if different
+  else if (secondary?.id === 'profile' && secondary.blindSpot !== primary.blindSpot) {
     blindSpot += ` ${secondary.blindSpot}`;
   }
   
   // ============================================
-  // STEP 6: BUILD EDGE (relief + resolution)
+  // STEP 6: BUILD EDGE (now enhanced with polarity integration)
   // ============================================
   let edge = primary.edge;
   
-  // Add channel edge if relevant
-  if (channels && channels.length > 0) {
+  // ADD PROGRAMMING PARTNER INTEGRATION
+  if (dominantPolarities.length > 0) {
+    edge = enhanceEdgeWithPolarity(edge, dominantPolarities);
+  }
+  // Otherwise add channel edge if relevant
+  else if (channels && channels.length > 0) {
     const channelPattern = getChannelConflict(channels[0]);
     if (channelPattern && channelPattern.edge !== primary.edge) {
-      // Only add if short
       if (channelPattern.edge.length < 80) {
         edge += ` ${channelPattern.edge}`;
       }
