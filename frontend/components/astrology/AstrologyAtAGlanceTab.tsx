@@ -42,6 +42,8 @@ import {
   getWhereLifeKeepsWorkingOnYou,
 } from '../../services/astrology/astrologyNarrative';
 
+import { cleanText } from '../../utils/languageGuard';
+
 // ============================================
 // PROPS INTERFACE
 // ============================================
@@ -357,7 +359,7 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
             <Text style={[styles.big3Sign, { color: theme.text }]}>{asc}</Text>
           </View>
         </View>
-        <Text style={[styles.heroDescriptor, { color: theme.textSecondary }]}>{heroDescriptor}</Text>
+        <Text style={[styles.heroDescriptor, { color: theme.textSecondary }]}>{cleanText(heroDescriptor)}</Text>
       </View>
 
       {/* CHART SPINE */}

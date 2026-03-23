@@ -50,6 +50,8 @@ import {
   getThemeCollapseLineIfApplicable,
 } from '../../services/astrology/astrologyNarrative';
 
+import { cleanText } from '../../utils/languageGuard';
+
 // ============================================
 // SIGNALS SECTION COMPONENT (Now "Evidence" when dominant truth exists)
 // ============================================
@@ -389,25 +391,25 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
         <View style={[styles.dominantTruthCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
           {/* Headline */}
           <Text style={[styles.dominantTruthHeadline, { color: theme.text }]}>
-            {collapsedInsights.narrative.headline}
+            {cleanText(collapsedInsights.narrative.headline)}
           </Text>
           
           {/* Recognition Line */}
           {collapsedInsights.narrative.recognitionLine && (
             <Text style={[styles.recognitionLine, { color: theme.accent }]}>
-              {collapsedInsights.narrative.recognitionLine}
+              {cleanText(collapsedInsights.narrative.recognitionLine)}
             </Text>
           )}
           
           {/* Core Truth */}
           <Text style={[styles.coreTruthText, { color: theme.text }]}>
-            {collapsedInsights.narrative.coreTruth}
+            {cleanText(collapsedInsights.narrative.coreTruth)}
           </Text>
           
           {/* Timeline Linking Line - Micro context */}
           {timelineLinkingLine && (
             <Text style={[styles.timelineLinkingLine, { color: theme.textTertiary }]}>
-              {timelineLinkingLine}
+              {cleanText(timelineLinkingLine)}
             </Text>
           )}
           
@@ -415,7 +417,7 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
           <View style={[styles.whereShowsUp, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
             <Text style={[styles.whereShowsUpLabel, { color: theme.textTertiary }]}>WHERE THIS SHOWS UP</Text>
             <Text style={[styles.whereShowsUpText, { color: theme.textSecondary }]}>
-              {collapsedInsights.narrative.whereThisShowsUp}
+              {cleanText(collapsedInsights.narrative.whereThisShowsUp)}
             </Text>
           </View>
           
@@ -423,14 +425,14 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
           <View style={[styles.whatGoesWrong, { backgroundColor: '#FF634708', borderColor: '#FF634720' }]}>
             <Text style={[styles.whatGoesWrongLabel, { color: '#FF6347' }]}>WHAT GOES WRONG</Text>
             <Text style={[styles.whatGoesWrongText, { color: theme.text }]}>
-              {collapsedInsights.narrative.whatGoesWrong}
+              {cleanText(collapsedInsights.narrative.whatGoesWrong)}
             </Text>
           </View>
           
           {/* Question */}
           <View style={[styles.questionContainer, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
             <Text style={[styles.questionText, { color: theme.text }]}>
-              {collapsedInsights.narrative.question}
+              {cleanText(collapsedInsights.narrative.question)}
             </Text>
           </View>
           
@@ -444,7 +446,7 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
           
           {/* Timeframe Context */}
           <Text style={[styles.timeframeContext, { color: theme.textTertiary }]}>
-            {collapsedInsights.narrative.timeframeContext}
+            {cleanText(collapsedInsights.narrative.timeframeContext)}
           </Text>
           
           {/* Evidence Collapsed */}

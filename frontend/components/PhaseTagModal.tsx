@@ -26,6 +26,7 @@ import {
   getPhaseTagExplanation, 
   getPhaseIcon,
 } from '../services/timelinePhaseUtils';
+import { cleanText } from '../utils/languageGuard';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -139,7 +140,7 @@ const PhaseTagModal: React.FC<PhaseTagModalProps> = ({
             <Text style={[styles.phaseTagText, { color: accentColor }]}>{explanation.phaseName}</Text>
           </View>
           <Text style={[styles.humanMeaning, { color: theme.textSecondary }]}>
-            {explanation.humanMeaning}
+            {cleanText(explanation.humanMeaning)}
           </Text>
         </View>
 
@@ -155,13 +156,13 @@ const PhaseTagModal: React.FC<PhaseTagModalProps> = ({
 
         {/* Why Tagged - V2 observational language */}
         <Text style={[styles.whyTagged, { color: theme.text }]}>
-          {explanation.whyTagged}
+          {cleanText(explanation.whyTagged)}
         </Text>
 
         {/* Insight */}
         <View style={[styles.insightContainer, { borderLeftColor: accentColor }]}>
           <Text style={[styles.insight, { color: theme.textSecondary }]}>
-            {explanation.insight}
+            {cleanText(explanation.insight)}
           </Text>
         </View>
 
