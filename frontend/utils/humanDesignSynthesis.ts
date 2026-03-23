@@ -156,170 +156,170 @@ function getTypeAuthorityConflict(type: string, authority: string): TypeAuthPunc
     // MANIFESTOR
     'Manifestor_Emotional': {
       punchLine: "You move before you're clear—and deal with it after.",
-      tension: "The urge hits → you act → the wave shifts → now you're stuck with what you started.",
-      blindSpot: "You push → they resist → you push harder → they shut down → you feel blocked. Repeat.",
-      edge: "Feel the urge → inform first → wait for the wave → then move. Things land clean.",
-      flow: "You act → people react → you explain after → they've already decided.",
-      loop: "Move fast → meet resistance → withdraw without explaining → feel misunderstood → move faster next time. Repeat.",
-      correctedFlow: "Feel the pull → pause → let the wave settle → inform → then act.",
+      tension: "The urge hits and you act. But the wave hasn't settled. By the time it does, you're already committed to something that might not be true.",
+      blindSpot: "You think they're resisting you. But you pushed before the wave passed, so they pushed back. The harder you force, the more they shut down.",
+      edge: "When you feel the urge, pause. Let the wave settle. Inform before you move. Then act—and watch how cleanly it lands.",
+      flow: "You act first. By the time you explain, they've already reacted.",
+      loop: "Move fast → meet resistance → withdraw without explaining → feel misunderstood. Repeat.",
+      correctedFlow: "Feel the pull, pause, let clarity come. Then inform, then move.",
       conflictStrength: 9
     },
     'Manifestor_Splenic': {
       punchLine: "You know instantly—but explain it never.",
-      tension: "The knowing hits → you hesitate → it fades → you're left guessing.",
-      blindSpot: "You wait for logic → the moment passes → you act anyway → but the clarity is gone.",
-      edge: "The hit comes → you trust it → you move → understanding follows.",
-      flow: "You sense it → you doubt it → you wait → the window closes.",
-      loop: "Know instantly → look for reasons → miss the moment → regret → try to think faster next time. Repeat.",
-      correctedFlow: "Sense the knowing → trust immediately → act → let the reasons catch up later.",
+      tension: "The knowing comes once, quiet and fast. If you hesitate, it fades. Then you're left trying to reason your way to an answer that already came and went.",
+      blindSpot: "You wait for logic to confirm what your instincts already knew. By then, the moment has passed—and so has the clarity.",
+      edge: "Trust the first hit. Move before thinking talks you out of it. Understanding comes later, or it doesn't—but the knowing was real.",
+      flow: "You sense it. You doubt it. You wait. The window closes.",
+      loop: "Know instantly → look for reasons → miss the moment. Repeat.",
+      correctedFlow: "Sense the knowing, trust it, act. Let reasons catch up later.",
       conflictStrength: 7
     },
     'Manifestor_Ego': {
       punchLine: "When your heart's in it, you're unstoppable. When it's not, nothing moves.",
-      tension: "You commit → the desire fades → you force it → you burn out.",
-      blindSpot: "You promise → your heart wasn't in it → you can't deliver → you blame yourself for lacking discipline.",
-      edge: "Check your desire first → commit only to what's real → follow-through becomes effortless.",
-      flow: "You say yes → the excitement fades → you push through → you resent it.",
-      loop: "Commit without desire → run out of fuel → break the promise → feel guilty → overcommit next time to prove yourself. Repeat.",
-      correctedFlow: "Feel the want → verify it's real → then commit → energy stays.",
+      tension: "You commit because you think you should want it. But desire fades when it wasn't real. And you can't force what your heart never agreed to.",
+      blindSpot: "You promise things your heart didn't choose. When you can't deliver, you blame discipline. But it was never about discipline—it was about desire.",
+      edge: "Check your want first. If it's real, commit. If it's not, don't. When desire is genuine, follow-through takes care of itself.",
+      flow: "You say yes. The excitement fades. You push through. Resentment builds.",
+      loop: "Commit without desire → run dry → break promise → feel guilty → overcommit to prove yourself. Repeat.",
+      correctedFlow: "Feel the want, verify it's real, then commit. Energy stays.",
       conflictStrength: 8
     },
     'Manifestor_Self-Projected': {
       punchLine: "You don't know until you hear yourself say it.",
-      tension: "You wait to know → nothing comes → you stay silent → you stay stuck.",
-      blindSpot: "You hold back → waiting for certainty → but speaking IS how you'd find it.",
-      edge: "Start talking → the direction emerges → clarity comes through voice.",
-      flow: "You think in silence → nothing resolves → you stay frozen.",
+      tension: "You wait for internal certainty. But for you, certainty comes through voice, not thought. Silence keeps you stuck in loops that speaking would break.",
+      blindSpot: "You hold back waiting to be sure. But speaking is how you'd find out. Your clarity lives in your voice, not before it.",
+      edge: "Start talking. Even if you're not sure. The direction emerges as you speak. That's how you're designed to know.",
+      flow: "You think in silence. Nothing resolves. You stay frozen.",
       loop: "Wait to be sure → stay silent → feel unclear → wait longer. Repeat.",
-      correctedFlow: "Feel uncertain → speak anyway → hear yourself → know the direction.",
+      correctedFlow: "Feel uncertain, speak anyway, hear yourself, know.",
       conflictStrength: 6
     },
     'Manifestor_None': {
       punchLine: "Your clarity lives in place, not in your head.",
-      tension: "You look inside → nothing's there → you force a choice → it doesn't hold.",
-      blindSpot: "You try to figure it out alone → but your answers live in environments, not introspection.",
-      edge: "Change the setting → the answer appears → direction becomes obvious.",
-      flow: "You sit with it → nothing clears → you move locations → suddenly you know.",
-      loop: "Try to decide internally → get nowhere → force a choice → regret it → try harder to think next time. Repeat.",
-      correctedFlow: "Feel stuck → change environment → let the setting reveal → act from there.",
+      tension: "You look inside for answers that aren't there. You force a choice. It doesn't hold. Because your wisdom is place-dependent—and you keep trying to find it alone.",
+      blindSpot: "You think the answer is inside you somewhere. It's not. Your clarity emerges from environment, not introspection.",
+      edge: "Change the setting. Move to a different space. Watch how the right direction becomes obvious when you stop trying to figure it out internally.",
+      flow: "You sit with it. Nothing clears. You move somewhere else. Suddenly you know.",
+      loop: "Try to decide alone → get nowhere → force a choice → regret. Repeat.",
+      correctedFlow: "Feel stuck, change environment, let the setting reveal.",
       conflictStrength: 5
     },
     
     // GENERATOR
     'Generator_Emotional': {
       punchLine: "Your gut says yes. Your wave says wait.",
-      tension: "Response hits → you commit → the wave shifts → now you're locked in.",
-      blindSpot: "You say yes in the high → the wave drops → you're stuck → you call it commitment.",
-      edge: "Gut responds → you wait → wave settles → what's still lit is real.",
-      flow: "You feel the pull → you say yes → time passes → the feeling changes → but you already committed.",
-      loop: "Respond in excitement → commit fast → wave passes → feel trapped → blame yourself for poor choices. Repeat.",
-      correctedFlow: "Feel the response → acknowledge it → wait for emotional clarity → then commit.",
+      tension: "Response comes instantly—but it's not the whole truth. The wave takes time. You're caught between the pull of now and the clarity that only unfolds later.",
+      blindSpot: "You say yes in the high. The wave drops. Now you're stuck with something that no longer feels right—but you already committed.",
+      edge: "Let your gut respond. Then wait. Ride the wave. What's still lit when the emotional weather clears—that's what's real.",
+      flow: "You feel the pull. You say yes. Time passes. The feeling changes. But you already committed.",
+      loop: "Respond in excitement → commit fast → wave passes → feel trapped → blame your choices. Repeat.",
+      correctedFlow: "Feel the response, acknowledge it, wait for clarity, then commit.",
       conflictStrength: 9
     },
     'Generator_Sacral': {
       punchLine: "Your body knows. Your mind catches up later.",
-      tension: "The pull happens → mind intervenes → you override → frustration builds.",
-      blindSpot: "Your gut says no → you talk yourself into yes → then wonder why you're drained.",
-      edge: "Feel the pull → trust it → skip the reasons → satisfaction follows.",
-      flow: "You sense yes or no → you question it → you override → you regret.",
-      loop: "Body responds → mind doubts → you override → frustration → try to think better next time. Repeat.",
-      correctedFlow: "Body responds → you honor it → reasons come later or don't → energy stays clean.",
+      tension: "The pull happens before reasons. You've learned to override it with logic. Every override leads somewhere your body didn't want to go.",
+      blindSpot: "Your gut said no. You talked yourself into yes. Now you wonder why you're drained. The body knew—you just didn't listen.",
+      edge: "Trust the pull. Even without reasons. Especially without reasons. That's how your energy stays clean and your satisfaction stays real.",
+      flow: "You sense yes or no. You question it. You override. You regret.",
+      loop: "Body responds → mind doubts → override → frustration. Repeat.",
+      correctedFlow: "Body responds, you honor it, reasons come later or don't.",
       conflictStrength: 7
     },
     
     // MANIFESTING GENERATOR
     'Manifesting Generator_Emotional': {
       punchLine: "You move fast. Your clarity doesn't.",
-      tension: "You start → excitement peaks → wave shifts → now you're three things deep with none of them clear.",
-      blindSpot: "You begin in highs → wave drops → you're scattered → you call it being multi-passionate.",
-      edge: "Sample fast → commit slow → what survives the wave is yours.",
-      flow: "You get excited → you start → the feeling shifts → you're stuck or pivoting blind.",
-      loop: "Start fast → wave shifts → pivot or push through → exhaust → wonder why nothing sticks. Repeat.",
-      correctedFlow: "Feel the pull → try it → wait for emotional clarity → then commit or release.",
+      tension: "You're already three steps ahead—but the wave hasn't settled. Excitement feels like truth, but it's just a peak. The real answer takes time you rarely give it.",
+      blindSpot: "You start things in highs. The wave passes. Now you're scattered across commitments that no longer feel right—calling it 'multi-passionate' instead of 'moved too fast.'",
+      edge: "Sample quickly, commit slowly. Let the wave complete. What survives emotional weather is actually yours.",
+      flow: "You get excited. You start. The feeling shifts. You're stuck or pivoting blind.",
+      loop: "Start fast → wave shifts → force through or scatter → exhaust → wonder why nothing sticks. Repeat.",
+      correctedFlow: "Feel the pull, try it, wait for emotional clarity, then commit or release.",
       conflictStrength: 9
     },
     'Manifesting Generator_Sacral': {
       punchLine: "You pivot faster than others understand.",
-      tension: "You start → energy shifts → you pivot → they call it inconsistent.",
-      blindSpot: "You stay too long → out of guilt → the energy died long ago → but you 'should' finish.",
-      edge: "Follow the pull → pivot when it's done → completion is extraction, not endurance.",
-      flow: "You respond → you start → energy shifts → you're ready to move but feel guilty.",
-      loop: "Start with energy → energy dies → force yourself to finish → resent it → guilt over pivoting next time. Repeat.",
-      correctedFlow: "Respond → engage → energy shifts → pivot without guilt → find the real path.",
+      tension: "They call it inconsistent. You call it following what's alive. The guilt comes when you think completion means finishing—not extracting what was yours to take.",
+      blindSpot: "You stay too long because you think you should finish. But the energy died. Forcing yourself through dead tracks is the real inconsistency.",
+      edge: "Trust the pivot. Completion isn't about the end—it's about taking what's yours and moving when the energy does.",
+      flow: "You respond. You start. Energy shifts. You're stuck between guilt and pivot.",
+      loop: "Start with energy → energy dies → force through → resent it → guilt over next pivot. Repeat.",
+      correctedFlow: "Respond, engage, energy shifts, pivot without guilt, find the real path.",
       conflictStrength: 7
     },
     
     // PROJECTOR
     'Projector_Emotional': {
       punchLine: "You see deeply—but you don't know what to do with it until later.",
-      tension: "Insight comes → you share → wave shifts → now you'd say it differently.",
-      blindSpot: "You guide in highs → wave passes → your advice looks different → they're confused.",
-      edge: "See it → wait → wave settles → share when clear → it lands.",
-      flow: "You see the answer → you share immediately → the wave shifts → your guidance contradicts itself.",
+      tension: "Insight comes, but the wave hasn't settled. You share in a peak. The wave drops. Now you'd say it differently—but they already heard the first version.",
+      blindSpot: "You guide in emotional highs. When the wave passes, your advice looks different. They're confused because you were still finding your own clarity.",
+      edge: "See it. Hold it. Let the wave settle. When you share from emotional clarity, your insight doesn't just land—it transforms.",
+      flow: "You see the answer. You share immediately. The wave shifts. Your guidance contradicts itself.",
       loop: "See clearly → share in a high → wave shifts → wish you'd waited → feel misunderstood. Repeat.",
-      correctedFlow: "See the insight → hold it → let the wave settle → then offer → it transforms.",
+      correctedFlow: "See the insight, hold it, let the wave settle, then offer.",
       conflictStrength: 8
     },
     'Projector_Splenic': {
       punchLine: "You see the answer before anyone asks.",
-      tension: "Knowing hits → no one's asking → you wait → the knowing fades.",
-      blindSpot: "You see it → hold back → moment passes → the insight is gone when they finally ask.",
-      edge: "When recognition meets intuition, you cut through instantly.",
-      flow: "You know → you wait for invitation → the knowing fades → you're left with memory, not clarity.",
+      tension: "Insight comes instantly—but recognition takes time. You know, but no one's asking. If you wait too long, the knowing fades. It won't come back the same way.",
+      blindSpot: "You hold back the knowing, waiting to be asked. But intuition doesn't repeat. By the time they're ready, the clarity you had is gone.",
+      edge: "When recognition meets intuition, don't hesitate. Speak while the knowing is alive. That's when you cut through everything.",
+      flow: "You know. You wait for invitation. The knowing fades. You're left with memory, not clarity.",
       loop: "See instantly → wait to be asked → moment passes → insight fades → feel unrecognized. Repeat.",
-      correctedFlow: "Sense the knowing → find recognition → speak while it's alive → precision lands.",
+      correctedFlow: "Sense the knowing, find recognition, speak while it's alive.",
       conflictStrength: 7
     },
     'Projector_Self-Projected': {
       punchLine: "You understand others by hearing yourself describe them.",
-      tension: "You hold insight → wait for certainty → but speaking IS how you'd know.",
-      blindSpot: "You stay quiet → waiting to be sure → but your clarity lives in voice, not thought.",
-      edge: "When invited, speak. Truth emerges for everyone—including you.",
-      flow: "You sense something → you hold it → you wait → it never crystallizes internally.",
+      tension: "You hold the insight, waiting to be sure. But for you, speaking is knowing. Silence keeps you uncertain about things your voice would clarify instantly.",
+      blindSpot: "You stay quiet because you're not sure you're right. But speaking is how you'd find out. Your clarity lives in expression, not before it.",
+      edge: "When you're invited, speak. Truth emerges for everyone—including you. That's how your insight becomes real.",
+      flow: "You sense something. You hold it. You wait. It never crystallizes internally.",
       loop: "Have insight → wait to be sure → stay silent → feel unclear → wait longer. Repeat.",
-      correctedFlow: "Feel the insight → get invited → speak → hear yourself → now you know.",
+      correctedFlow: "Feel the insight, get invited, speak, hear yourself, now you know.",
       conflictStrength: 6
     },
     'Projector_Ego': {
       punchLine: "When your heart's in the invitation, your impact is undeniable.",
-      tension: "You accept → desire wasn't there → you give anyway → bitterness builds.",
-      blindSpot: "You guide without wanting to → call it service → but resentment is growing.",
-      edge: "Only accept what genuinely excites you. Your guidance has staying power.",
-      flow: "You're invited → you accept out of should → you give without heart → they sense it.",
-      loop: "Accept without desire → run dry → feel bitter → accept the next one hoping it's different. Repeat.",
-      correctedFlow: "Get invited → check your heart → accept only what's real → energy sustains.",
+      tension: "You accept because you feel you should. But desire wasn't there. The more you give without wanting to, the more bitterness builds.",
+      blindSpot: "You guide people your heart never chose. You call it service. But underneath, resentment is growing—because you're giving to the wrong invitations.",
+      edge: "Only accept what genuinely excites you. When your heart is in the invitation, your guidance has staying power and your energy sustains.",
+      flow: "You're invited. You accept out of should. You give without heart. They sense it.",
+      loop: "Accept without desire → run dry → feel bitter → accept the next hoping it's different. Repeat.",
+      correctedFlow: "Get invited, check your heart, accept only what's real, energy sustains.",
       conflictStrength: 7
     },
     'Projector_Mental': {
       punchLine: "Your clarity depends on who you're talking to and where.",
-      tension: "You try to know alone → nothing clears → you guess → it doesn't land.",
-      blindSpot: "You force answers in wrong settings → then wonder why your guidance misses.",
-      edge: "Find the right environment → insight becomes unusually clear.",
-      flow: "You think alone → it stays murky → you share anyway → it falls flat.",
+      tension: "You try to know alone. Nothing clears. Because your wisdom needs the right setting and the right conversation—it doesn't emerge in isolation.",
+      blindSpot: "You force answers in wrong environments, then wonder why your guidance misses. Your clarity is context-dependent. Some settings cloud, others clarify.",
+      edge: "Find the right environment, the right people. Discuss before deciding. Watch how your insight becomes unusually precise.",
+      flow: "You think alone. It stays murky. You share anyway. It falls flat.",
       loop: "Try to figure it out → stay isolated → offer unclear guidance → feel ineffective → try harder to think. Repeat.",
-      correctedFlow: "Feel uncertain → find right people/place → discuss → clarity emerges → guide precisely.",
+      correctedFlow: "Feel uncertain, find right people and place, discuss, clarity emerges.",
       conflictStrength: 5
     },
     'Projector_None': {
       punchLine: "You see into others deeply. Your own clarity shifts with place.",
-      tension: "You look inside → nothing stable → you keep searching → exhaustion.",
-      blindSpot: "You try to be consistent → but your wisdom genuinely shifts → that's not instability, it's design.",
-      edge: "Choose environments wisely. Your guidance becomes precisely attuned.",
-      flow: "You seek inner certainty → it moves → you doubt yourself → you try harder.",
-      loop: "Look for stable self-knowledge → find shifting clarity → feel unreliable → try to be more consistent. Repeat.",
-      correctedFlow: "Accept you shift → choose environments consciously → let place guide → offer what emerges.",
+      tension: "You look inside for stability that isn't there. Your wisdom genuinely shifts—that's design, not instability. Trying to be consistent fights how you work.",
+      blindSpot: "You want a fixed sense of self. But you're meant to shift with environment. Fighting that creates more confusion, not less.",
+      edge: "Accept that your clarity moves. Choose environments consciously. Let place guide what emerges. That's where your precision lives.",
+      flow: "You seek inner certainty. It moves. You doubt yourself. You try harder to be stable.",
+      loop: "Look for fixed self-knowledge → find shifting clarity → feel unreliable → try to be more consistent. Repeat.",
+      correctedFlow: "Accept you shift, choose environments wisely, offer what emerges.",
       conflictStrength: 5
     },
     
     // REFLECTOR
     'Reflector_Lunar': {
       punchLine: "You take in everything. You need time to know what's yours.",
-      tension: "You feel it → you decide → the cycle continues → it looks different now.",
-      blindSpot: "You choose in one phase → the moon moves → your truth shifts → you think you're inconsistent.",
-      edge: "Give yourself the full cycle. You access wisdom faster types can't reach.",
-      flow: "You sense something strongly → you decide → time passes → it no longer feels true.",
-      loop: "Feel strongly → decide quickly → moon shifts → regret → try to decide faster next time. Repeat.",
-      correctedFlow: "Feel it → note it → let 28 days pass → see what remains → then choose.",
+      tension: "You feel something strongly and act on it. The cycle continues. What felt true on Monday looks different by Friday. That's not inconsistency—it's incomplete information.",
+      blindSpot: "You decide from one day's reflection and call it clarity. But you need the full cycle. Fast decisions rarely survive the moon's complete rotation.",
+      edge: "Give yourself 28 days. Let the full cycle show you what remains true regardless of who you've been around. That's wisdom faster types can't access.",
+      flow: "You sense something strongly. You decide. Time passes. It no longer feels true.",
+      loop: "Feel certain → decide quickly → moon shifts → regret → try to decide faster next time. Repeat.",
+      correctedFlow: "Feel it, note it, let 28 days pass, see what remains, then choose.",
       conflictStrength: 8
     }
   };
@@ -331,52 +331,52 @@ function generateFallbackPunch(type: string, authority: string): TypeAuthPunch {
   const typePatterns: { [key: string]: TypeAuthPunch } = {
     'Generator': {
       punchLine: "Your body knows what lights you up. Your mind gets in the way.",
-      tension: "Response comes → mind intervenes → you override → frustration builds.",
-      blindSpot: "You talk yourself into yes → body said no → you wonder why you're drained.",
-      edge: "Trust the pull → skip the reasons → satisfaction follows.",
-      flow: "You sense the pull → you question it → you override → you regret.",
-      loop: "Body responds → mind doubts → override → frustration → try to think better next time. Repeat.",
-      correctedFlow: "Feel the pull → honor it → reasons come later or don't → energy stays clean.",
+      tension: "Response comes first. Then mind intervenes. You override the pull. Frustration builds—because you went against what you already knew.",
+      blindSpot: "You talked yourself into yes when your body said no. Now you're drained. The body knew. You just didn't listen.",
+      edge: "Trust the pull. Even without reasons. Especially without reasons. That's how satisfaction becomes real.",
+      flow: "You sense the pull. You question it. You override. You regret.",
+      loop: "Body responds → mind doubts → override → frustration. Repeat.",
+      correctedFlow: "Feel the pull, honor it, reasons come later or don't.",
       conflictStrength: 7
     },
     'Manifesting Generator': {
       punchLine: "You move in multiple directions. That's not scattered—it's how you work.",
-      tension: "You start → energy shifts → you want to pivot → guilt keeps you stuck.",
-      blindSpot: "You force yourself through dead tracks → call it discipline → but the energy died long ago.",
-      edge: "Follow the strongest pull → pivot when it's done → find the real path.",
-      flow: "You respond → you start → energy shifts → you're stuck between guilt and pivot.",
-      loop: "Start with energy → energy dies → force through → resent it → guilt over pivoting. Repeat.",
-      correctedFlow: "Respond → engage → energy shifts → pivot without guilt → efficiency emerges.",
+      tension: "You start with energy. Energy shifts. You want to pivot but guilt holds you. Forcing through dead tracks is the real waste.",
+      blindSpot: "You think you should finish. But the energy died. Staying out of obligation isn't completion—it's self-betrayal.",
+      edge: "Follow the strongest pull. Pivot when it's done. Completion is extracting what's yours, not enduring what isn't.",
+      flow: "You respond. You start. Energy shifts. You're stuck between guilt and pivot.",
+      loop: "Start with energy → energy dies → force through → resent. Repeat.",
+      correctedFlow: "Respond, engage, energy shifts, pivot without guilt.",
       conflictStrength: 7
     },
     'Projector': {
       punchLine: "You see what others miss. Your insight transforms when invited.",
-      tension: "You see it → you share without invitation → it falls flat → bitterness builds.",
-      blindSpot: "You offer guidance because you can see it → not because anyone asked → they resist.",
-      edge: "Wait for recognition → your seeing becomes your most valuable gift.",
-      flow: "You see clearly → you share → no one asked → it doesn't land.",
-      loop: "See the answer → share uninvited → get rejected → feel bitter → share faster next time. Repeat.",
-      correctedFlow: "See it → wait for invitation → share when asked → it transforms.",
+      tension: "You see it clearly. You share without being asked. It falls flat. Bitterness builds—because you gave something no one requested.",
+      blindSpot: "You offer guidance because you can see the answer. But no one asked. And uninvited insight rarely lands, no matter how accurate.",
+      edge: "Wait for recognition. When you're truly invited, your seeing becomes your most valuable gift.",
+      flow: "You see clearly. You share. No one asked. It doesn't land.",
+      loop: "See answer → share uninvited → rejected → bitter. Repeat.",
+      correctedFlow: "See it, wait for invitation, share when asked, it transforms.",
       conflictStrength: 7
     },
     'Manifestor': {
       punchLine: "You initiate what doesn't exist yet. The work is informing first.",
-      tension: "You act → no one knew it was coming → they resist → you resent their resistance.",
-      blindSpot: "You move without informing → then blame others for not keeping up.",
-      edge: "Inform before you move → power flows without friction.",
-      flow: "You feel the urge → you act → people are unprepared → they push back.",
-      loop: "Move without warning → meet resistance → resent them → move faster next time. Repeat.",
-      correctedFlow: "Feel the urge → inform → give them a moment → then move → they're with you.",
+      tension: "You act. No one knew it was coming. They resist. You resent the resistance—but they just weren't prepared.",
+      blindSpot: "You moved without informing. They pushed back. You blame their resistance. But the issue was the surprise, not their response.",
+      edge: "Inform before you move. Let them know what's coming. Watch how the resistance dissolves.",
+      flow: "You feel the urge. You act. People are unprepared. They push back.",
+      loop: "Move without warning → meet resistance → resent them. Repeat.",
+      correctedFlow: "Feel the urge, inform, give a moment, then move.",
       conflictStrength: 7
     },
     'Reflector': {
       punchLine: "You feel completely different depending on who you're with. That's design, not instability.",
-      tension: "You feel something strongly → you decide → time passes → it feels different now.",
-      blindSpot: "You try to hold a fixed identity → but you're meant to reflect → that's not instability.",
-      edge: "Choose your environments → you will become what you're around.",
-      flow: "You feel certain → you act → the cycle continues → truth shifts.",
-      loop: "Feel strongly → decide fast → moon moves → regret → try to be more consistent. Repeat.",
-      correctedFlow: "Feel it → note it → let the cycle complete → see what remains → then choose.",
+      tension: "You feel something strongly. You act on it. The cycle continues. What felt true shifts. That's not inconsistency—that's incomplete information.",
+      blindSpot: "You try to hold a fixed identity. But you're meant to reflect and shift. Fighting that creates more confusion, not stability.",
+      edge: "Choose your environments carefully. You become what you're around. That's not weakness—it's how you access wisdom.",
+      flow: "You feel certain. You act. Time passes. Truth shifts.",
+      loop: "Feel strongly → decide fast → moon moves → regret. Repeat.",
+      correctedFlow: "Feel it, note it, let the cycle complete, see what remains.",
       conflictStrength: 7
     }
   };
@@ -697,26 +697,28 @@ function generateBehavioralBulletsWithLoop(
     bullets.push(loopPattern);
   }
   
-  // Type × Authority specific flow behaviors
+  // Type × Authority specific flow behaviors (natural language)
   if (type === 'Manifestor' && authority === 'Emotional' && bullets.length < 4) {
-    if (!loopPattern) bullets.push("Move fast → meet resistance → withdraw → feel misunderstood → repeat");
-    bullets.push("You decide → wave shifts → you question → but you already committed");
+    if (!loopPattern) bullets.push("Move fast → meet resistance → withdraw → feel misunderstood. Repeat.");
+    bullets.push("You decide. Wave shifts. You question. But you already committed.");
   } else if (type === 'Manifestor' && bullets.length < 4) {
-    if (!loopPattern) bullets.push("Act → they're surprised → they resist → you resent → repeat");
-    bullets.push("You move → no one knew → they push back");
+    if (!loopPattern) bullets.push("Act → surprise them → they resist → you resent. Repeat.");
+    bullets.push("You move. No one knew. They push back.");
   } else if (type === 'Generator' && authority === 'Emotional' && bullets.length < 4) {
-    if (!loopPattern) bullets.push("Say yes in high → wave drops → feel stuck → blame your choices → repeat");
+    if (!loopPattern) bullets.push("Say yes in the high → wave drops → feel stuck. Repeat.");
+    bullets.push("You commit fast. The wave passes. Now you're locked into something that changed.");
   } else if (type === 'Generator' && bullets.length < 4) {
-    if (!loopPattern) bullets.push("Body responds → mind doubts → override → frustration → repeat");
-    bullets.push("Gut says no → you talk yourself in → energy drains");
+    if (!loopPattern) bullets.push("Body responds → mind doubts → override → frustration. Repeat.");
+    bullets.push("Gut said no. You talked yourself in. Energy drains.");
   } else if (type === 'Manifesting Generator' && bullets.length < 4) {
-    if (!loopPattern) bullets.push("Start with energy → energy shifts → guilt keeps you → repeat");
-    bullets.push("You pivot → they call it inconsistent → you doubt yourself");
+    if (!loopPattern) bullets.push("Start with energy → energy shifts → guilt keeps you. Repeat.");
+    bullets.push("You pivot. They call it inconsistent. You start to doubt yourself.");
   } else if (type === 'Projector' && bullets.length < 4) {
-    if (!loopPattern) bullets.push("See answer → share uninvited → rejected → bitter → repeat");
-    bullets.push("You see it clearly → no one asked → it falls flat");
+    if (!loopPattern) bullets.push("See the answer → share uninvited → rejected. Repeat.");
+    bullets.push("You see it clearly. No one asked. It doesn't land.");
   } else if (type === 'Reflector' && bullets.length < 4) {
-    if (!loopPattern) bullets.push("Feel certain → decide → moon moves → regret → repeat");
+    if (!loopPattern) bullets.push("Feel certain → decide → moon moves → regret. Repeat.");
+    bullets.push("What felt true on Monday looks different by Friday. That's not inconsistency—that's incomplete data.");
   }
   
   // ADD POLARITY swing if room
@@ -727,20 +729,20 @@ function generateBehavioralBulletsWithLoop(
     }
   }
   
-  // Conscious/Unconscious flow
+  // Conscious/Unconscious flow (natural language)
   if (consciousGates && unconsciousGates && consciousGates.length > 0 && unconsciousGates.length > 0 && bullets.length < 4) {
-    bullets.push("Mind explains → body already decided → you realize later");
+    bullets.push("Your mind explains decisions your body already made. You realize this later.");
   }
   
-  // Profile patterns
+  // Profile patterns (natural language)
   const firstLine = profile?.split('/')[0];
   if (firstLine === '5' && bullets.length < 4) {
-    bullets.push("They expect answers → you haven't offered → they're already disappointed");
+    bullets.push("They expect answers from you before you've even offered anything.");
   }
   
-  // Split definition
+  // Split definition (natural language)
   if (definition === 'Split' && bullets.length < 4) {
-    bullets.push("Feel incomplete → find the right person → suddenly whole → they leave → incomplete again");
+    bullets.push("Around certain people you feel whole. They leave and the incompleteness returns.");
   }
   
   // Limit to 4 max, remove duplicates
