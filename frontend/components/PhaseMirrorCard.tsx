@@ -149,6 +149,9 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
   // Get tension insight for this phase (Level 3)
   const tensionInsight = patternData?.phase_tensions?.[phaseId] || '';
   
+  // Get compressed pattern line for this phase (V2.5 - Emotional centerpiece)
+  const compressedPatternLine = patternData?.compressed_pattern_lines?.[phaseId] || '';
+  
   // Get identity tendency if threshold met (Level 4)
   const identityTendency = patternData?.identity_threshold_met ? patternData.identity_tendency : null;
   
@@ -211,6 +214,15 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
               • {pattern}
             </Text>
           ))}
+        </View>
+      )}
+
+      {/* LEVEL 2.5: Compressed Pattern Line (Emotional Centerpiece) */}
+      {compressedPatternLine && recurringPatterns.length > 0 && (
+        <View style={[styles.compressedPatternSection, { borderColor: accentColor + '30' }]}>
+          <Text style={[styles.compressedPatternLine, { color: theme.text }]}>
+            {compressedPatternLine}
+          </Text>
         </View>
       )}
 
@@ -368,6 +380,20 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginLeft: 4,
     marginBottom: 2,
+  },
+  // Level 2.5: Compressed Pattern Line (V2.5 Emotional Centerpiece)
+  compressedPatternSection: {
+    marginTop: 4,
+    marginBottom: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderLeftWidth: 2,
+  },
+  compressedPatternLine: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontStyle: 'italic',
+    fontWeight: '500',
   },
   // Level 3: Tension Insight
   tensionSection: {

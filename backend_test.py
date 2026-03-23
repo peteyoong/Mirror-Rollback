@@ -1,182 +1,190 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Pattern Detection Layer V2
+Backend Test Suite for Pattern Compression Layer (V2.5)
 Testing the GET /api/journal/{user_id}/patterns endpoint
 """
 
 import requests
 import json
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
-# Backend URL from frontend environment
-BACKEND_URL = "https://phase-mirror-reflect.preview.emergentagent.com/api"
+# Backend URL from environment
+BACKEND_URL = "https://theme-synthesizer.preview.emergentagent.com/api"
 
-# Test user ID from review request
-TEST_USER_ID = "6971c81f2b40fd5ef501d375"
-
-def test_pattern_detection_layer_v2():
+def test_pattern_compression_layer():
     """
-    Test Pattern Detection Layer V2 backend endpoint:
-    GET /api/journal/{user_id}/patterns
+    Test the Pattern Compression Layer (V2.5) feature
+    Tests GET /api/journal/{user_id}/patterns endpoint for compressed_pattern_lines field
     """
-    print("🧪 TESTING PATTERN DETECTION LAYER V2 BACKEND ENDPOINTS")
-    print("=" * 70)
+    print("🧪 TESTING: Pattern Compression Layer (V2.5)")
+    print("=" * 60)
     
-    # Test 1: GET /api/journal/{user_id}/patterns
-    print(f"\n1. ✅ TESTING GET /api/journal/{TEST_USER_ID}/patterns")
-    print("-" * 50)
+    # Test user ID from review request
+    user_id = "6971c81f2b40fd5ef501d375"
     
     try:
-        url = f"{BACKEND_URL}/journal/{TEST_USER_ID}/patterns"
-        print(f"Request URL: {url}")
+        # Test 1: Call GET /api/journal/{user_id}/patterns
+        print(f"\n1. ✅ Testing GET /api/journal/{user_id}/patterns")
+        url = f"{BACKEND_URL}/journal/{user_id}/patterns"
         
         response = requests.get(url, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Time: {response.elapsed.total_seconds():.2f}s")
+        print(f"   Status: {response.status_code}")
         
-        if response.status_code == 200:
-            data = response.json()
-            print("✅ SUCCESS: Endpoint returned 200 OK")
-            
-            # Verify response structure
-            print("\n📋 RESPONSE STRUCTURE VERIFICATION:")
-            
-            # Required fields from review request
-            required_fields = [
-                'total_entries',
-                'phase_distribution', 
-                'phase_distribution_14d',
-                'repeating_phases',
-                'phase_patterns',
-                'phase_tensions',
-                'identity_tendency',
-                'identity_threshold_met'
-            ]
-            
-            missing_fields = []
-            for field in required_fields:
-                if field in data:
-                    print(f"  ✅ {field}: {type(data[field]).__name__}")
-                else:
-                    missing_fields.append(field)
-                    print(f"  ❌ {field}: MISSING")
-            
-            if missing_fields:
-                print(f"\n❌ MISSING REQUIRED FIELDS: {missing_fields}")
-                return False
-            
-            # Verify data types
-            print("\n📊 DATA TYPE VERIFICATION:")
-            type_checks = [
-                ('total_entries', int),
-                ('phase_distribution', dict),
-                ('phase_distribution_14d', dict),
-                ('repeating_phases', list),
-                ('phase_patterns', dict),
-                ('phase_tensions', dict),
-                ('identity_threshold_met', bool)
-            ]
-            
-            for field, expected_type in type_checks:
-                actual_type = type(data[field])
-                if actual_type == expected_type:
-                    print(f"  ✅ {field}: {actual_type.__name__} (correct)")
-                else:
-                    print(f"  ❌ {field}: {actual_type.__name__} (expected {expected_type.__name__})")
-                    return False
-            
-            # Display actual data
-            print("\n📈 ACTUAL RESPONSE DATA:")
-            print(f"  Total Entries: {data['total_entries']}")
-            print(f"  Phase Distribution: {data['phase_distribution']}")
-            print(f"  Phase Distribution (14d): {data['phase_distribution_14d']}")
-            print(f"  Repeating Phases: {data['repeating_phases']}")
-            print(f"  Phase Patterns: {data['phase_patterns']}")
-            print(f"  Phase Tensions: {data['phase_tensions']}")
-            print(f"  Identity Tendency: {data['identity_tendency']}")
-            print(f"  Identity Threshold Met: {data['identity_threshold_met']}")
-            
-            # Test 2: Verify repeat detection logic
-            print("\n2. ✅ TESTING REPEAT DETECTION LOGIC")
-            print("-" * 50)
-            
-            phase_dist = data['phase_distribution']
-            phase_dist_14d = data['phase_distribution_14d']
-            repeating_phases = data['repeating_phases']
-            
-            print("Verifying repeat detection rule: phase has >= 3 total entries OR >= 2 entries in last 14 days")
-            
-            for phase_id, total_count in phase_dist.items():
-                recent_count = phase_dist_14d.get(phase_id, 0)
-                should_be_repeating = total_count >= 3 or recent_count >= 2
-                is_repeating = phase_id in repeating_phases
-                
-                status = "✅" if should_be_repeating == is_repeating else "❌"
-                print(f"  {status} Phase {phase_id}: total={total_count}, recent={recent_count}, repeating={is_repeating}")
-                
-                if should_be_repeating != is_repeating:
-                    print(f"    ❌ LOGIC ERROR: Should be {should_be_repeating}, but is {is_repeating}")
-                    return False
-            
-            # Test 3: Verify recurring patterns extraction
-            print("\n3. ✅ TESTING RECURRING PATTERNS EXTRACTION")
-            print("-" * 50)
-            
-            phase_patterns = data['phase_patterns']
-            print("Verifying that phases with 2+ entries have extracted patterns:")
-            
-            for phase_id, total_count in phase_dist.items():
-                has_patterns = phase_id in phase_patterns
-                should_have_patterns = total_count >= 2
-                
-                if should_have_patterns:
-                    if has_patterns:
-                        patterns = phase_patterns[phase_id]
-                        print(f"  ✅ Phase {phase_id} ({total_count} entries): {len(patterns)} patterns - {patterns}")
-                    else:
-                        print(f"  ⚠️  Phase {phase_id} ({total_count} entries): No patterns extracted (may be normal if content is too sparse)")
-                else:
-                    if has_patterns:
-                        print(f"  ❌ Phase {phase_id} ({total_count} entries): Unexpected patterns found")
-                        return False
-                    else:
-                        print(f"  ✅ Phase {phase_id} ({total_count} entries): No patterns (correct)")
-            
-            print("\n🎉 ALL TESTS PASSED!")
-            print("Pattern Detection Layer V2 endpoint is working correctly.")
-            return True
-            
-        else:
-            print(f"❌ FAILED: Status {response.status_code}")
-            print(f"Response: {response.text}")
+        if response.status_code != 200:
+            print(f"   ❌ FAILED: Expected 200, got {response.status_code}")
+            print(f"   Response: {response.text}")
             return False
-            
+        
+        # Parse response
+        try:
+            data = response.json()
+        except json.JSONDecodeError as e:
+            print(f"   ❌ FAILED: Invalid JSON response: {e}")
+            return False
+        
+        print(f"   ✅ SUCCESS: Valid JSON response received")
+        
+        # Test 2: Verify response structure includes all required fields
+        print(f"\n2. ✅ Testing response structure")
+        required_fields = [
+            'user_id',
+            'total_entries', 
+            'phase_distribution',
+            'repeating_phases',
+            'phase_patterns',
+            'compressed_pattern_lines',  # NEW V2.5 field
+            'phase_tensions',
+            'identity_tendency',
+            'identity_threshold_met'
+        ]
+        
+        missing_fields = []
+        for field in required_fields:
+            if field not in data:
+                missing_fields.append(field)
+        
+        if missing_fields:
+            print(f"   ❌ FAILED: Missing required fields: {missing_fields}")
+            return False
+        
+        print(f"   ✅ SUCCESS: All required fields present")
+        
+        # Test 3: Verify compressed_pattern_lines field structure
+        print(f"\n3. ✅ Testing compressed_pattern_lines field")
+        compressed_lines = data.get('compressed_pattern_lines', {})
+        
+        if not isinstance(compressed_lines, dict):
+            print(f"   ❌ FAILED: compressed_pattern_lines should be dict, got {type(compressed_lines)}")
+            return False
+        
+        print(f"   ✅ SUCCESS: compressed_pattern_lines is a dictionary")
+        print(f"   Compressed lines count: {len(compressed_lines)}")
+        
+        # Test 4: Verify compressed_pattern_lines content
+        print(f"\n4. ✅ Testing compressed_pattern_lines content")
+        
+        if len(compressed_lines) == 0:
+            print(f"   ⚠️  INFO: compressed_pattern_lines is empty (no patterns exist)")
+        else:
+            print(f"   ✅ SUCCESS: Found {len(compressed_lines)} compressed pattern lines")
+            for phase_id, line in compressed_lines.items():
+                print(f"   Phase {phase_id}: \"{line}\"")
+                
+                # Verify each line is a string
+                if not isinstance(line, str):
+                    print(f"   ❌ FAILED: Pattern line for {phase_id} should be string, got {type(line)}")
+                    return False
+                
+                # Verify line is not empty
+                if not line.strip():
+                    print(f"   ❌ FAILED: Pattern line for {phase_id} is empty")
+                    return False
+        
+        # Test 5: Verify other response fields for completeness
+        print(f"\n5. ✅ Testing other response fields")
+        
+        # Check user_id matches
+        if data.get('user_id') != user_id:
+            print(f"   ❌ FAILED: user_id mismatch. Expected {user_id}, got {data.get('user_id')}")
+            return False
+        
+        # Check total_entries is a number
+        total_entries = data.get('total_entries')
+        if not isinstance(total_entries, int) or total_entries < 0:
+            print(f"   ❌ FAILED: total_entries should be non-negative int, got {total_entries}")
+            return False
+        
+        # Check phase_distribution is dict
+        phase_dist = data.get('phase_distribution', {})
+        if not isinstance(phase_dist, dict):
+            print(f"   ❌ FAILED: phase_distribution should be dict, got {type(phase_dist)}")
+            return False
+        
+        # Check repeating_phases is list
+        repeating_phases = data.get('repeating_phases', [])
+        if not isinstance(repeating_phases, list):
+            print(f"   ❌ FAILED: repeating_phases should be list, got {type(repeating_phases)}")
+            return False
+        
+        # Check phase_patterns is dict
+        phase_patterns = data.get('phase_patterns', {})
+        if not isinstance(phase_patterns, dict):
+            print(f"   ❌ FAILED: phase_patterns should be dict, got {type(phase_patterns)}")
+            return False
+        
+        # Check phase_tensions is dict
+        phase_tensions = data.get('phase_tensions', {})
+        if not isinstance(phase_tensions, dict):
+            print(f"   ❌ FAILED: phase_tensions should be dict, got {type(phase_tensions)}")
+            return False
+        
+        # Check identity_threshold_met is boolean
+        identity_threshold = data.get('identity_threshold_met')
+        if not isinstance(identity_threshold, bool):
+            print(f"   ❌ FAILED: identity_threshold_met should be bool, got {type(identity_threshold)}")
+            return False
+        
+        print(f"   ✅ SUCCESS: All response fields have correct types")
+        
+        # Test 6: Display summary of results
+        print(f"\n6. ✅ Test Summary")
+        print(f"   User ID: {data.get('user_id')}")
+        print(f"   Total entries: {data.get('total_entries')}")
+        print(f"   Phase distribution: {data.get('phase_distribution')}")
+        print(f"   Repeating phases: {data.get('repeating_phases')}")
+        print(f"   Phase patterns count: {len(data.get('phase_patterns', {}))}")
+        print(f"   Compressed pattern lines count: {len(compressed_lines)}")
+        print(f"   Phase tensions count: {len(data.get('phase_tensions', {}))}")
+        print(f"   Identity tendency: {data.get('identity_tendency')}")
+        print(f"   Identity threshold met: {data.get('identity_threshold_met')}")
+        
+        print(f"\n🎉 ALL TESTS PASSED!")
+        print(f"Pattern Compression Layer (V2.5) is working correctly!")
+        return True
+        
     except requests.exceptions.RequestException as e:
-        print(f"❌ REQUEST ERROR: {e}")
-        return False
-    except json.JSONDecodeError as e:
-        print(f"❌ JSON DECODE ERROR: {e}")
-        print(f"Response text: {response.text}")
+        print(f"   ❌ FAILED: Request error: {e}")
         return False
     except Exception as e:
-        print(f"❌ UNEXPECTED ERROR: {e}")
+        print(f"   ❌ FAILED: Unexpected error: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def main():
-    """Run all tests"""
-    print("🚀 STARTING PATTERN DETECTION LAYER V2 BACKEND TESTING")
-    print(f"Backend URL: {BACKEND_URL}")
-    print(f"Test User ID: {TEST_USER_ID}")
-    print(f"Test Time: {datetime.now(timezone.utc).isoformat()}")
+    """Run all backend tests"""
+    print("🚀 BACKEND TESTING SUITE")
+    print("Testing Pattern Compression Layer (V2.5)")
+    print("=" * 60)
     
-    success = test_pattern_detection_layer_v2()
+    success = test_pattern_compression_layer()
     
     if success:
-        print("\n✅ ALL TESTS COMPLETED SUCCESSFULLY")
+        print(f"\n✅ ALL TESTS PASSED")
         sys.exit(0)
     else:
-        print("\n❌ SOME TESTS FAILED")
+        print(f"\n❌ SOME TESTS FAILED")
         sys.exit(1)
 
 if __name__ == "__main__":

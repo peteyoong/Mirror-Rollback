@@ -21,7 +21,7 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 import { FullChartData } from '../../services/astrology/astrologyTypes';
-import { getJournalEntriesByPhase, JournalEntryResponseWithPhase } from '../../services/api';
+import { getJournalEntriesByPhase, getJournalPatterns, JournalEntryResponseWithPhase, JournalPatternAnalysis } from '../../services/api';
 import { useAppStore } from '../../store';
 
 // Enable LayoutAnimation on Android
@@ -419,12 +419,22 @@ export default function AstrologyTimelineTab({
   // Journal evidence state (Journal ↔ Timeline connection)
   const [phaseEvidence, setPhaseEvidence] = useState<Record<string, JournalEntryResponseWithPhase[]>>({});
   const [evidenceLoading, setEvidenceLoading] = useState<Record<string, boolean>>({});
+  const [patternData, setPatternData] = useState<JournalPatternAnalysis | null>(null);
   const user = useAppStore(state => state.user);
 
   // Generate timeline data
   const timelineData = useMemo(() => {
     return generateTimelineData(fullChartData);
   }, [fullChartData]);
+
+  // Fetch pattern data (for compressed pattern lines)
+  useEffect(() => {
+    if (user?.id && !patternData) {
+      getJournalPatterns(user.id)
+        .then(data => setPatternData(data))
+        .catch(err => console.error('[Timeline] Failed to fetch patterns:', err));
+    }
+  }, [user?.id]);
 
   // Auto-expand phase if passed via URL param (Part 6)
   useEffect(() => {
@@ -601,6 +611,16 @@ export default function AstrologyTimelineTab({
                             </Text>
                           </View>
                         ))}
+                        
+                        {/* V2.5: Compressed Pattern Line (Emotional Centerpiece) */}
+                        {patternData?.compressed_pattern_lines?.[phase.id] && (
+                          <View style={[styles.compressedPatternContainer, { borderColor: Colors.accent + '30' }]}>
+                            <Text style={[styles.compressedPatternLine, { color: theme.text }]}>
+                              {patternData.compressed_pattern_lines[phase.id]}
+                            </Text>
+                          </View>
+                        )}
+                        
                         <Text style={[styles.evidenceContextLine, { color: theme.textTertiary }]}>
                           These entries were written during this phase.
                         </Text>
@@ -1000,5 +1020,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontStyle: 'italic',
     marginTop: 6,
+  },
+  // V2.5: Compressed Pattern Line (Emotional Centerpiece)
+  compressedPatternContainer: {
+    marginTop: 12,
+    marginBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderLeftWidth: 2,
+  },
+  compressedPatternLine: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+    fontWeight: '500',
   },
 });
