@@ -857,6 +857,284 @@ const generateMarsMirrorLayer = (sign: string): MirrorLayer => ({
 });
 
 // ============================================
+// NODES — DIRECTION & PATTERN (Mirror Language)
+// ============================================
+// Nodes represent movement, not traits
+// South Node = familiar patterns, comfort zone, overused strategies
+// North Node = growth edge, unfamiliar behaviors, expansion direction
+
+interface NodesContent {
+  // South Node (Your Pattern - Familiar)
+  southNodeBullets: string[];
+  southNodeClosing: string;
+  // North Node (Your Edge - Unfamiliar)
+  northNodeBullets: string[];
+  northNodeClosing: string;
+  // The Tension
+  tensionPrimary: string;
+  tensionSecondary: string;
+  // When It Shifts (Integration)
+  integrationBullets: string[];
+  // Reflection Question
+  reflectionQuestion: string;
+}
+
+// South Node patterns by sign - what feels familiar, practiced, default
+const SOUTH_NODE_PATTERNS: { [key: string]: string[] } = {
+  'Aries': [
+    'acting alone, moving first, leading without checking',
+    'charging ahead before considering impact on others',
+    'using conflict as a way to feel alive or clear'
+  ],
+  'Taurus': [
+    'seeking stability and security above all else',
+    'holding on to what feels solid, even past its time',
+    'building comfort zones that slowly become confining'
+  ],
+  'Gemini': [
+    'gathering information without arriving at meaning',
+    'staying curious as a way to avoid commitment',
+    'using cleverness to sidestep deeper questions'
+  ],
+  'Cancer': [
+    'nurturing others as a way to feel needed',
+    'seeking emotional safety in close bonds',
+    'protecting yourself by protecting everyone else'
+  ],
+  'Leo': [
+    'needing recognition to feel valid',
+    'creating drama to stay at the center',
+    'expressing yourself in ways that ask for applause'
+  ],
+  'Virgo': [
+    'analyzing, fixing, perfecting—endlessly',
+    'seeking control through small details',
+    'serving others as a way to earn your place'
+  ],
+  'Libra': [
+    'keeping peace by giving up parts of yourself',
+    'defining yourself through relationship',
+    'avoiding conflict even when it costs your truth'
+  ],
+  'Scorpio': [
+    'controlling through intensity or knowing',
+    'seeking safety through emotional vigilance',
+    'holding on to power as a form of protection'
+  ],
+  'Sagittarius': [
+    'seeking meaning as a way to escape presence',
+    'teaching or philosophizing instead of feeling',
+    'expanding outward to avoid what\'s right here'
+  ],
+  'Capricorn': [
+    'achieving as a way to prove your worth',
+    'building structure until it becomes a cage',
+    'working hard as a way to avoid vulnerability'
+  ],
+  'Aquarius': [
+    'staying detached to feel safe',
+    'being different as a form of belonging',
+    'choosing ideals over intimacy'
+  ],
+  'Pisces': [
+    'dissolving boundaries to merge with others',
+    'escaping into imagination, spirituality, or substances',
+    'sacrificing yourself as a way to feel connected'
+  ]
+};
+
+// North Node edges by sign - what feels unfamiliar but opens something
+const NORTH_NODE_EDGES: { [key: string]: string[] } = {
+  'Aries': [
+    'taking initiative without waiting for permission',
+    'learning to put yourself first, even when it feels selfish',
+    'developing the courage to stand alone when needed'
+  ],
+  'Taurus': [
+    'building something slow and lasting',
+    'learning to trust your own resources and body',
+    'staying present instead of seeking intensity'
+  ],
+  'Gemini': [
+    'staying curious without needing to arrive at truth',
+    'communicating without controlling the narrative',
+    'learning through variety instead of depth'
+  ],
+  'Cancer': [
+    'allowing yourself to need and be needed',
+    'building emotional safety from within',
+    'nurturing without losing yourself'
+  ],
+  'Leo': [
+    'expressing from center without needing applause',
+    'allowing your creativity to take up space',
+    'trusting that you matter—even when no one\'s watching'
+  ],
+  'Virgo': [
+    'developing discernment without judgment',
+    'being useful without erasing yourself',
+    'finding meaning through small, daily acts'
+  ],
+  'Libra': [
+    'finding balance through relationship, not in spite of it',
+    'learning to consider others without losing yourself',
+    'creating harmony without sacrificing truth'
+  ],
+  'Scorpio': [
+    'allowing intimacy and shared resources',
+    'learning to trust through vulnerability',
+    'letting go of control as a form of power'
+  ],
+  'Sagittarius': [
+    'seeking meaning beyond the immediate',
+    'trusting that the truth is somewhere, worth finding',
+    'expanding without running away'
+  ],
+  'Capricorn': [
+    'building something that outlasts you',
+    'developing authority you can respect',
+    'earning your place through work, not charm'
+  ],
+  'Aquarius': [
+    'belonging without losing your uniqueness',
+    'contributing to something larger than yourself',
+    'caring about the future, not just the present'
+  ],
+  'Pisces': [
+    'trusting what can\'t be proven',
+    'surrendering without drowning',
+    'connecting to something beyond yourself'
+  ]
+};
+
+// Integration signs - what happens when the axis starts to balance
+const NODE_INTEGRATION: { [key: string]: string[] } = {
+  // By North Node sign
+  'Aries': [
+    'taking action while still caring about impact',
+    'leading without needing to dominate',
+    'knowing when to move first and when to wait'
+  ],
+  'Taurus': [
+    'building stability that includes room for change',
+    'trusting your resources without hoarding',
+    'being present with what is, even when it\'s uncomfortable'
+  ],
+  'Gemini': [
+    'staying curious while still arriving at meaning',
+    'communicating truth without controlling it',
+    'learning lightly without avoiding depth'
+  ],
+  'Cancer': [
+    'nurturing without smothering',
+    'building emotional safety that includes others',
+    'needing people without losing yourself'
+  ],
+  'Leo': [
+    'shining without needing recognition',
+    'creating because you must, not for applause',
+    'taking up space without apology'
+  ],
+  'Virgo': [
+    'analyzing without obsessing',
+    'serving without erasing',
+    'finding perfection in good enough'
+  ],
+  'Libra': [
+    'relating without disappearing',
+    'keeping peace without losing truth',
+    'finding yourself through partnership'
+  ],
+  'Scorpio': [
+    'going deep without drowning',
+    'sharing power without losing it',
+    'trusting vulnerability as strength'
+  ],
+  'Sagittarius': [
+    'seeking meaning while staying present',
+    'teaching what you\'re still learning',
+    'expanding without escaping'
+  ],
+  'Capricorn': [
+    'achieving without proving',
+    'building structure that supports, not confines',
+    'working hard without working to avoid'
+  ],
+  'Aquarius': [
+    'belonging without conforming',
+    'caring about the collective while staying unique',
+    'visioning the future while living the present'
+  ],
+  'Pisces': [
+    'trusting without losing boundaries',
+    'merging without drowning',
+    'surrendering with eyes open'
+  ]
+};
+
+// Reflection questions by North Node sign
+const NODE_REFLECTIONS: { [key: string]: string } = {
+  'Aries': 'What might open if you moved before you felt ready?',
+  'Taurus': 'What could you build if you stopped chasing intensity?',
+  'Gemini': 'What might you learn if you stopped needing to be right?',
+  'Cancer': 'What would it feel like to let yourself need someone?',
+  'Leo': 'What would you create if no one was watching?',
+  'Virgo': 'What would be enough, if you let it be?',
+  'Libra': 'What might emerge if you stopped going it alone?',
+  'Scorpio': 'What could you receive if you stopped protecting yourself?',
+  'Sagittarius': 'What might you find if you kept searching?',
+  'Capricorn': 'What would you build if it didn\'t have to prove anything?',
+  'Aquarius': 'What could belonging look like without losing yourself?',
+  'Pisces': 'What might you find if you let yourself dissolve—just a little?'
+};
+
+// Generate the full nodes content
+const generateNodesContent = (
+  northNode: string,
+  southNode: string,
+  northNodeHouse?: number,
+  southNodeHouse?: number
+): NodesContent => {
+  const southPatterns = SOUTH_NODE_PATTERNS[southNode] || [
+    'returning to familiar ways of being',
+    'choosing comfort over growth',
+    'staying with what\'s known'
+  ];
+  
+  const northEdges = NORTH_NODE_EDGES[northNode] || [
+    'moving toward unfamiliar territory',
+    'developing new capacities',
+    'trusting what hasn\'t been tested'
+  ];
+  
+  const integration = NODE_INTEGRATION[northNode] || [
+    'balancing both sides of the axis',
+    'using the familiar to support the unfamiliar',
+    'finding rhythm between comfort and growth'
+  ];
+  
+  const reflection = NODE_REFLECTIONS[northNode] || 
+    'What might open if you moved slightly toward what feels less familiar?';
+  
+  // Build house context if available
+  const southHouseContext = southNodeHouse ? 
+    ` This tends to show up most clearly in ${getHouseTheme(southNodeHouse)}.` : '';
+  const northHouseContext = northNodeHouse ?
+    ` This edge tends to emerge in ${getHouseTheme(northNodeHouse)}.` : '';
+  
+  return {
+    southNodeBullets: southPatterns,
+    southNodeClosing: `This can feel natural—even right—but may also keep things contained in ways that are hard to see from the inside.${southHouseContext}`,
+    northNodeBullets: northEdges,
+    northNodeClosing: `This may not feel natural at first—but it tends to open something that the familiar pattern cannot.${northHouseContext}`,
+    tensionPrimary: 'There can be a tension between staying with what feels known and moving toward something that asks more of you.',
+    tensionSecondary: 'At times, the familiar may feel safer—even when it quietly limits what\'s possible.',
+    integrationBullets: integration,
+    reflectionQuestion: reflection
+  };
+};
+
+// ============================================
 // DEEP DIVE CARD GENERATOR
 // ============================================
 
@@ -1013,6 +1291,7 @@ const CARD_GROUPS = [
   { id: 'core', label: 'CORE SELF', cards: ['sun', 'moon', 'ascendant'] },
   { id: 'mind', label: 'MIND & COMMUNICATION', cards: ['mercury'] },
   { id: 'relating', label: 'RELATING & ACTION', cards: ['venus', 'mars'] },
+  { id: 'direction', label: 'DIRECTION & GROWTH', cards: ['nodes'] },
   { id: 'structure', label: 'STRUCTURE & INTEGRATION', cards: ['pressure'] },
 ];
 
@@ -1055,10 +1334,41 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
     reflection: howPressureBuilds.reflectionQuestion
   } : null;
   
+  // Create a nodes card if north_node and south_node are available
+  const { north_node, north_node_house, south_node, south_node_house } = placements;
+  const nodesContent = (north_node && south_node) ? 
+    generateNodesContent(north_node, south_node, north_node_house, south_node_house) : null;
+  
+  const nodesCard: AstrologyDeepDiveCard | null = (north_node && south_node && nodesContent) ? {
+    id: 'nodes',
+    title: 'Nodes — Direction & Pattern',
+    subtitle: 'The pull between what feels familiar and what life keeps asking of you',
+    preview: 'The pull between what feels familiar and what keeps asking for more.',
+    whatThisIs: `In your chart, there's a pull between two ways of moving through life.
+
+One side feels familiar, practiced, and often easier to fall back into.
+The other feels less certain—but tends to open something new.
+
+Your South Node in ${south_node}${south_node_house ? ` (${south_node_house}${getOrdinalSuffix(south_node_house)} house)` : ''} represents the familiar.
+Your North Node in ${north_node}${north_node_house ? ` (${north_node_house}${getOrdinalSuffix(north_node_house)} house)` : ''} represents the edge.`,
+    whatYouMightNotice: [
+      ...nodesContent.southNodeBullets.slice(0, 2),
+      ...nodesContent.northNodeBullets.slice(0, 2)
+    ],
+    tensionLabel: 'The axis of growth',
+    tension: nodesContent.tensionPrimary,
+    giftLabel: 'Integration',
+    gift: nodesContent.integrationBullets.join('. '),
+    reflection: nodesContent.reflectionQuestion
+  } : null;
+  
   // Create a map for quick card lookup
   const cardMap = new Map(cards.map(c => [c.id, c]));
   if (pressureCard) {
     cardMap.set('pressure', pressureCard);
+  }
+  if (nodesCard) {
+    cardMap.set('nodes', nodesCard);
   }
 
   // Function to get mirror layer for a card
@@ -1234,6 +1544,146 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                           <Text style={[styles.deepDiveReflectionLabel, { color: theme.accent }]}>REFLECTION</Text>
                           <Text style={[styles.deepDiveReflectionText, { color: theme.text }]}>
                             {cleanText(howPressureBuilds.reflectionQuestion)}
+                          </Text>
+                        </View>
+                        
+                        {/* Actions */}
+                        <View style={styles.deepDiveActions}>
+                          <TouchableOpacity
+                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent + '10' }]}
+                            onPress={() => onReflect(card)}
+                          >
+                            <Text style={[styles.deepDiveActionText, { color: theme.accent }]}>Reflect</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.deepDiveActionButton, { backgroundColor: theme.surfaceLight }]}
+                            onPress={() => onJournal(card)}
+                          >
+                            <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Journal</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent, borderColor: theme.accent }]}
+                            onPress={() => onAskMirror(card)}
+                          >
+                            <Text style={[styles.deepDiveActionText, { color: theme.background }]}>Ask Mirror</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              }
+              
+              // For nodes card, render the special Mirror Language version
+              if (cardId === 'nodes' && nodesContent) {
+                return (
+                  <TouchableOpacity
+                    key={card.id}
+                    style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: '#8B5CF630' }]}
+                    onPress={() => toggleCard(card.id)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.deepDiveCardHeader}>
+                      <View style={styles.deepDiveCardTitleRow}>
+                        <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{card.title}</Text>
+                        <Text style={[styles.deepDiveExpandIcon, { color: theme.textTertiary }]}>
+                          {isExpanded ? '▴' : '▾'}
+                        </Text>
+                      </View>
+                      <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
+                      {!isExpanded && (
+                        <Text style={[styles.deepDiveCardPreview, { color: theme.textSecondary }]}>
+                          {card.preview}
+                        </Text>
+                      )}
+                    </View>
+                    
+                    {isExpanded && (
+                      <View style={styles.deepDiveCardContent}>
+                        {/* WHAT THIS IS */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHAT THIS IS</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>
+                            {cleanText(card.whatThisIs)}
+                          </Text>
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* YOUR PATTERN (South Node) */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: '#9CA3AF' }]}>YOUR PATTERN (FAMILIAR)</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, marginBottom: 8 }]}>
+                            You may notice a tendency to:
+                          </Text>
+                          {nodesContent.southNodeBullets.map((bullet, i) => (
+                            <Text key={`sn-${i}`} style={[styles.bulletItem, { color: theme.text }]}>
+                              • {cleanText(bullet)}
+                            </Text>
+                          ))}
+                          <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, marginTop: 12, fontStyle: 'italic' }]}>
+                            {cleanText(nodesContent.southNodeClosing)}
+                          </Text>
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* YOUR EDGE (North Node) */}
+                        <View style={[styles.deepDiveSection, { backgroundColor: '#8B5CF608', padding: 12, borderRadius: 8 }]}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: '#8B5CF6' }]}>YOUR EDGE (GROWTH)</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, marginBottom: 8 }]}>
+                            Life may keep nudging you toward:
+                          </Text>
+                          {nodesContent.northNodeBullets.map((bullet, i) => (
+                            <Text key={`nn-${i}`} style={[styles.bulletItem, { color: theme.text }]}>
+                              • {cleanText(bullet)}
+                            </Text>
+                          ))}
+                          <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, marginTop: 12, fontStyle: 'italic' }]}>
+                            {cleanText(nodesContent.northNodeClosing)}
+                          </Text>
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* THE TENSION */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>THE TENSION</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>
+                            {cleanText(nodesContent.tensionPrimary)}
+                          </Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, marginTop: 8, fontStyle: 'italic' }]}>
+                            {cleanText(nodesContent.tensionSecondary)}
+                          </Text>
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* WHEN IT SHIFTS */}
+                        <View style={[styles.deepDiveSection, { backgroundColor: '#10B98108', padding: 12, borderRadius: 8 }]}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: '#10B981' }]}>WHEN IT SHIFTS</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, marginBottom: 8 }]}>
+                            As this begins to shift, you may notice:
+                          </Text>
+                          {nodesContent.integrationBullets.map((bullet, i) => (
+                            <Text key={`int-${i}`} style={[styles.bulletItem, { color: theme.text }]}>
+                              • {cleanText(bullet)}
+                            </Text>
+                          ))}
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* A QUESTION TO SIT WITH */}
+                        <View style={[styles.deepDiveReflection, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+                          <Text style={[styles.deepDiveReflectionLabel, { color: theme.accent }]}>A QUESTION TO SIT WITH</Text>
+                          <Text style={[styles.deepDiveReflectionText, { color: theme.text }]}>
+                            {cleanText(nodesContent.reflectionQuestion)}
                           </Text>
                         </View>
                         
@@ -1662,6 +2112,12 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderLeftWidth: 2,
     borderLeftColor: 'rgba(139, 128, 99, 0.3)',
+  },
+  bulletItem: {
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 6,
+    paddingLeft: 4,
   },
 });
 
