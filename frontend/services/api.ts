@@ -333,7 +333,7 @@ export const getJournalEntriesByPhase = async (
   return response.data;
 };
 
-// Pattern Detection Layer V2 - Journal pattern analysis
+// Pattern Detection Layer V2/V2.5 - Journal pattern analysis
 export interface JournalPatternAnalysis {
   user_id: string;
   total_entries: number;
@@ -341,6 +341,7 @@ export interface JournalPatternAnalysis {
   phase_distribution_14d: Record<string, number>;
   repeating_phases: string[];
   phase_patterns: Record<string, string[]>;
+  compressed_pattern_lines: Record<string, string>;  // V2.5: Emotional tension compression
   phase_tensions: Record<string, string>;
   identity_tendency: string | null;
   identity_threshold_met: boolean;

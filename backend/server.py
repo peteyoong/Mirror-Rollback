@@ -356,7 +356,7 @@ class JournalEntryResponse(BaseModel):
 
 
 class JournalPatternAnalysis(BaseModel):
-    """Pattern Detection Layer V2 - Analysis for a user's journal patterns"""
+    """Pattern Detection Layer V2/V2.5 - Analysis for a user's journal patterns"""
     user_id: str
     total_entries: int
     # Phase distribution
@@ -366,6 +366,8 @@ class JournalPatternAnalysis(BaseModel):
     repeating_phases: List[str]  # List of phase_ids that are repeating
     # Recurring themes (Level 2)
     phase_patterns: Dict[str, List[str]]  # {"q1": ["pattern1", "pattern2"], ...}
+    # Compressed Pattern Line (Level 2.5) - emotional tension compression
+    compressed_pattern_lines: Dict[str, str]  # {"q1": "You're trying to...", ...}
     # Tension insights (Level 3)
     phase_tensions: Dict[str, str]  # {"q1": "Something is becoming clear...", ...}
     # Identity pattern (Level 4) - only if enough data
@@ -4011,6 +4013,135 @@ def get_phase_tension_insight(phase_id: str, patterns: List[str]) -> str:
     return tension_templates.get(phase_id, "A pattern may be emerging here.")
 
 
+# ============================================
+# PATTERN COMPRESSION LAYER V2.5
+# Takes recurring themes and compresses them into one emotionally resonant tension line
+# ============================================
+
+# Theme category mappings for compression
+THEME_CATEGORIES = {
+    'connection': ['connection', 'relationship', 'together', 'close', 'intimacy', 'bond', 'partner', 'love', 'caring'],
+    'distance': ['distance', 'apart', 'separate', 'alone', 'isolated', 'away', 'space', 'gap', 'disconnected'],
+    'communication': ['communication', 'talk', 'speak', 'say', 'words', 'voice', 'express', 'tell', 'conversation'],
+    'stuck': ['stuck', 'trapped', 'blocked', 'stopped', 'frozen', 'unable', 'paralyzed', 'held', 'stagnant'],
+    'choice': ['choice', 'decision', 'choose', 'decide', 'option', 'path', 'direction', 'either', 'which'],
+    'uncertainty': ['uncertainty', 'unsure', 'unclear', 'doubt', 'confused', 'uncertain', 'maybe', 'ambivalent'],
+    'fatigue': ['fatigue', 'tired', 'exhausted', 'drained', 'worn', 'weary', 'depleted', 'burnout', 'spent'],
+    'pressure': ['pressure', 'stress', 'overwhelm', 'burden', 'weight', 'heavy', 'demand', 'push', 'strain'],
+    'effort': ['effort', 'trying', 'working', 'pushing', 'striving', 'forcing', 'struggle', 'hard', 'attempt'],
+    'relief': ['relief', 'ease', 'calm', 'peace', 'relax', 'lighter', 'breathe', 'release', 'settle'],
+    'change': ['change', 'shift', 'different', 'new', 'transform', 'move', 'evolve', 'transition', 'becoming'],
+    'control': ['control', 'manage', 'handle', 'grip', 'hold', 'contain', 'direct', 'order', 'regulate'],
+    'fear': ['fear', 'afraid', 'scared', 'worry', 'anxious', 'nervous', 'dread', 'panic', 'terror'],
+    'loss': ['loss', 'losing', 'gone', 'missing', 'ended', 'over', 'finished', 'leaving', 'left'],
+    'want': ['want', 'need', 'desire', 'wish', 'hope', 'crave', 'long', 'yearn', 'seek'],
+    'avoid': ['avoid', 'escape', 'hide', 'ignore', 'deny', 'pretend', 'suppress', 'resist', 'evade'],
+}
+
+# Compression templates by phase and theme combinations
+COMPRESSION_TEMPLATES = {
+    'q1': {  # Recognition - awareness without movement
+        ('connection', 'distance'): "You're trying to reach something—but part of you is still holding back.",
+        ('communication', 'avoid'): "There's something you want to say, but something else keeps it from forming.",
+        ('change', 'stuck'): "Something is becoming clear, but it still hasn't turned into action.",
+        ('want', 'fear'): "You're aware of what you want—but you're also aware of what might happen if you reach for it.",
+        ('control', 'uncertainty'): "You're noticing patterns you've been managing without fully seeing them.",
+        ('default',): "Something is starting to surface that wasn't fully visible before.",
+    },
+    'q2': {  # Confrontation - tension that can't be managed away
+        ('connection', 'distance'): "You're trying to stay connected—but something keeps slipping out of reach.",
+        ('pressure', 'effort'): "You keep pushing, but something in you is asking not to be managed this way anymore.",
+        ('fatigue', 'effort'): "The effort is real, but so is the signal that this can't keep going unchanged.",
+        ('avoid', 'pressure'): "What you've been managing around is starting to demand a different response.",
+        ('control', 'loss'): "What used to work is working less well. Something wants to move differently.",
+        ('communication', 'stuck'): "There's something that keeps wanting to be said but hasn't found its way out yet.",
+        ('default',): "Something keeps surfacing that doesn't want to be managed the same way anymore.",
+    },
+    'q3': {  # Crossroads - choice / split / indecision
+        ('choice', 'uncertainty'): "You're feeling the need for movement, but the next step still hasn't fully landed.",
+        ('stuck', 'change'): "Part of you is ready for change, while another part is still waiting for certainty.",
+        ('want', 'fear'): "You know what you want—but you're also holding space for what you might lose.",
+        ('connection', 'distance'): "You're weighing staying close against making room for something else.",
+        ('control', 'change'): "You're circling a choice that feels bigger than it first appears.",
+        ('pressure', 'relief'): "Part of you wants relief, while another part keeps holding the tension in place.",
+        ('default',): "You're circling something that hasn't fully landed yet.",
+    },
+    'q4': {  # Integration - settling, stabilizing
+        ('relief', 'change'): "Something is beginning to settle that used to feel more charged.",
+        ('fatigue', 'relief'): "What once felt urgent may be slowly becoming easier to hold.",
+        ('connection', 'change'): "What was uncertain is starting to take a steadier shape.",
+        ('pressure', 'relief'): "The intensity is fading into something more sustainable.",
+        ('want', 'relief'): "What you reached for is starting to become real—not just hoped for.",
+        ('default',): "Something is starting to settle into a new form.",
+    },
+}
+
+
+def categorize_themes(patterns: List[str]) -> List[str]:
+    """
+    Map raw pattern keywords to theme categories.
+    Returns list of category names found in the patterns.
+    """
+    found_categories = set()
+    pattern_text = " ".join(patterns).lower()
+    
+    for category, keywords in THEME_CATEGORIES.items():
+        for keyword in keywords:
+            if keyword in pattern_text:
+                found_categories.add(category)
+                break
+    
+    return list(found_categories)
+
+
+def generate_compressed_pattern_line(phase_id: str, patterns: List[str], entries: List[dict] = None) -> str:
+    """
+    Pattern Compression Layer V2.5
+    
+    Takes recurring themes and compresses them into ONE emotionally resonant tension line.
+    
+    Style rules:
+    - Max 1 sentence
+    - Reflects tension or contradiction
+    - Uses "You're trying to... but...", "Part of you wants... while...", etc.
+    - Observational, not deterministic
+    - Plain human language
+    
+    Returns:
+    - compressed_pattern_line (string)
+    """
+    if not patterns:
+        return ""
+    
+    # Categorize the themes
+    categories = categorize_themes(patterns)
+    
+    # Get templates for this phase
+    phase_templates = COMPRESSION_TEMPLATES.get(phase_id, COMPRESSION_TEMPLATES.get('q1'))
+    
+    # Try to find a matching template for the category combination
+    # Try pairs first
+    for cat1 in categories:
+        for cat2 in categories:
+            if cat1 != cat2:
+                key = (cat1, cat2)
+                if key in phase_templates:
+                    return phase_templates[key]
+                # Try reverse order
+                key_rev = (cat2, cat1)
+                if key_rev in phase_templates:
+                    return phase_templates[key_rev]
+    
+    # Try single category matches
+    for cat in categories:
+        for key, template in phase_templates.items():
+            if key != ('default',) and cat in key:
+                return template
+    
+    # Fall back to default for this phase
+    return phase_templates.get(('default',), "Something may be emerging here that hasn't fully formed yet.")
+
+
 def get_identity_tendency(phase_distribution: dict, total_entries: int) -> Optional[str]:
     """
     Generate soft identity tendency observation if enough data.
@@ -4110,6 +4241,18 @@ async def get_journal_patterns(user_id: str):
                 if patterns:
                     phase_patterns[phase_id] = patterns
         
+        # Generate compressed pattern lines for each phase (Level 2.5)
+        compressed_pattern_lines = {}
+        for phase_id, patterns in phase_patterns.items():
+            if patterns:
+                compressed_line = generate_compressed_pattern_line(
+                    phase_id, 
+                    patterns, 
+                    phase_entries.get(phase_id, [])
+                )
+                if compressed_line:
+                    compressed_pattern_lines[phase_id] = compressed_line
+        
         # Generate tension insights for each phase (Level 3)
         phase_tensions = {}
         for phase_id in phase_patterns:
@@ -4126,6 +4269,7 @@ async def get_journal_patterns(user_id: str):
             phase_distribution_14d=phase_distribution_14d,
             repeating_phases=repeating_phases,
             phase_patterns=phase_patterns,
+            compressed_pattern_lines=compressed_pattern_lines,
             phase_tensions=phase_tensions,
             identity_tendency=identity_tendency,
             identity_threshold_met=identity_threshold_met
