@@ -367,6 +367,14 @@ export interface JournalPatternAnalysis {
     total_entries: number;
   } | null;
   facet_memory_line: string | null;  // "This has been showing up more than once..."
+  // V3.2: Facet Progression Engine - movement over time
+  facet_progression: {
+    state: 'escalating' | 'deepening' | 'shifting' | 'resolving' | 'stable';
+    confidence: number;
+    previous_facet: string;
+    current_facet: string;
+  } | null;
+  facet_progression_line: string | null;  // "This seems to be becoming harder to ignore."
 }
 
 export const getJournalPatterns = async (userId: string): Promise<JournalPatternAnalysis> => {

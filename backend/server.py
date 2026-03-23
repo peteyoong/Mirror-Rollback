@@ -384,6 +384,9 @@ class JournalPatternAnalysis(BaseModel):
     # V3.1: Facet Memory + Progression Layer
     facet_memory: Optional[Dict[str, Any]] = None  # {"is_repeating": true, "streak_count": 3, ...}
     facet_memory_line: Optional[str] = None  # "This has been showing up more than once..."
+    # V3.2: Facet Progression Engine - movement over time
+    facet_progression: Optional[Dict[str, Any]] = None  # {"state": "escalating", "confidence": 0.8, "previous_facet": "...", "current_facet": "..."}
+    facet_progression_line: Optional[str] = None  # "This seems to be becoming harder to ignore."
 
 
 class MirrorInsightCreate(BaseModel):
@@ -4882,6 +4885,222 @@ def generate_facet_memory_line(facet_memory: Dict[str, Any], current_facet: str)
     return None
 
 
+# ============================================
+# V3.2: FACET PROGRESSION ENGINE
+# ============================================
+# Detects whether the pattern is evolving, intensifying, or resolving
+# Makes the system feel like it tracks movement over time
+
+# Integration facets (indicate resolution/settling)
+INTEGRATION_FACETS = {"steadiness", "relief", "surrender", "acceptance", "integration", "clarity", "peace", "grounding"}
+
+async def analyze_facet_progression(user_id: str) -> Dict[str, Any]:
+    """
+    Analyze facet progression over time.
+    
+    Inputs:
+    - last 5-8 facet_history entries
+    - timestamps
+    - facet_score trends
+    
+    Returns:
+    {
+        "state": "escalating | deepening | shifting | resolving | stable",
+        "confidence": 0.0-1.0,
+        "previous_facet": "communication",
+        "current_facet": "distance"
+    }
+    """
+    try:
+        # Get last 8 facet entries with full data
+        history = await db.facet_history.find(
+            {"user_id": user_id}
+        ).sort("timestamp", -1).limit(8).to_list(8)
+        
+        if len(history) < 3:
+            # Not enough data for progression analysis
+            return None
+        
+        # Extract facets, scores, timestamps, and phases
+        facets = [h.get("selected_facet") for h in history if h.get("selected_facet")]
+        scores = [h.get("facet_score", 0) for h in history]
+        timestamps = [h.get("timestamp") for h in history if h.get("timestamp")]
+        phases = [h.get("phase_id") for h in history if h.get("phase_id")]
+        
+        if len(facets) < 3:
+            return None
+        
+        current_facet = facets[0]
+        previous_facets = facets[1:5]  # Last 4 before current
+        
+        # Calculate dominant previous facet
+        prev_counts = {}
+        for f in previous_facets:
+            prev_counts[f] = prev_counts.get(f, 0) + 1
+        dominant_previous = max(prev_counts, key=prev_counts.get) if prev_counts else None
+        
+        # Count current facet occurrences in last 5
+        recent_5 = facets[:5]
+        current_count = sum(1 for f in recent_5 if f == current_facet)
+        
+        # Check unique phases for this facet
+        facet_phases = set()
+        for i, f in enumerate(facets[:5]):
+            if f == current_facet and i < len(phases):
+                facet_phases.add(phases[i])
+        
+        # Calculate score trend (if scores available)
+        recent_scores = [s for s in scores[:5] if s and s > 0]
+        score_increasing = False
+        score_decreasing = False
+        if len(recent_scores) >= 3:
+            # Compare first half vs second half
+            first_half_avg = sum(recent_scores[:len(recent_scores)//2]) / max(1, len(recent_scores)//2)
+            second_half_avg = sum(recent_scores[len(recent_scores)//2:]) / max(1, len(recent_scores) - len(recent_scores)//2)
+            score_increasing = first_half_avg > second_half_avg * 1.1  # 10% increase
+            score_decreasing = first_half_avg < second_half_avg * 0.9  # 10% decrease
+        
+        # Calculate time interval trend
+        interval_shrinking = False
+        if len(timestamps) >= 3:
+            intervals = []
+            for i in range(len(timestamps) - 1):
+                if timestamps[i] and timestamps[i + 1]:
+                    delta = (timestamps[i] - timestamps[i + 1]).total_seconds()
+                    intervals.append(delta)
+            
+            if len(intervals) >= 2:
+                # Compare recent intervals vs older intervals
+                recent_interval = sum(intervals[:len(intervals)//2]) / max(1, len(intervals)//2)
+                older_interval = sum(intervals[len(intervals)//2:]) / max(1, len(intervals) - len(intervals)//2)
+                interval_shrinking = recent_interval < older_interval * 0.8  # Getting faster
+        
+        # ============================================
+        # PROGRESSION STATE DETECTION
+        # ============================================
+        
+        state = "stable"
+        confidence = 0.0
+        
+        # 1. ESCALATING: Same facet repeating, score increasing OR shorter intervals
+        # Note: Only applies when facet is concentrated in same/similar phases
+        if current_count >= 3 and current_facet == dominant_previous:
+            if score_increasing or interval_shrinking:
+                # Check if this is actually DEEPENING (multiple phases)
+                if len(facet_phases) >= 2:
+                    # Multiple phases = DEEPENING takes priority
+                    state = "deepening"
+                    confidence = min(0.85, 0.5 + (len(facet_phases) * 0.15) + (current_count * 0.05))
+                else:
+                    # Same phase = ESCALATING
+                    state = "escalating"
+                    confidence = min(0.9, 0.5 + (current_count * 0.1) + (0.2 if score_increasing else 0) + (0.1 if interval_shrinking else 0))
+        
+        # 2. DEEPENING: Same facet appears across different phases/contexts (if not already set)
+        if state == "stable" and current_count >= 3 and len(facet_phases) >= 2:
+            state = "deepening"
+            confidence = min(0.85, 0.5 + (len(facet_phases) * 0.15) + (current_count * 0.05))
+        
+        # 3. SHIFTING: Facet changed from previous dominant facet
+        # Detect when current facet is different and has meaningful presence
+        if current_facet != dominant_previous and dominant_previous:
+            # Count current facet in recent entries
+            current_in_recent = sum(1 for f in recent_5[:3] if f == current_facet)  # Look at most recent 3
+            prev_in_recent = sum(1 for f in recent_5[:3] if f == dominant_previous)
+            
+            # SHIFTING: new facet has taken over recently (≥2 in last 3, prev ≤1 in last 3)
+            if current_in_recent >= 2 and prev_in_recent <= 1:
+                state = "shifting"
+                confidence = 0.7 if current_count >= 2 else 0.55
+        
+        # 4. RESOLVING: Previous dominant facet disappearing OR moving to integration facets
+        if dominant_previous and current_facet in INTEGRATION_FACETS:
+            state = "resolving"
+            confidence = 0.75
+        elif dominant_previous:
+            # Check if previous dominant is disappearing
+            last_2_facets = facets[:2]
+            if dominant_previous not in last_2_facets:
+                # Check if replaced by integration-type facets
+                if any(f in INTEGRATION_FACETS for f in last_2_facets):
+                    state = "resolving"
+                    confidence = 0.7
+        
+        # 5. STABLE: None of the above with high confidence
+        if state == "stable":
+            confidence = 0.4  # Low confidence = just showing stable state
+        
+        # Only return if meaningful (confidence >= 0.5 for non-stable states)
+        if state != "stable" and confidence < 0.5:
+            return None
+        
+        return {
+            "state": state,
+            "confidence": round(confidence, 2),
+            "previous_facet": dominant_previous,
+            "current_facet": current_facet
+        }
+        
+    except Exception as e:
+        logger.warning(f"[FacetProgression] Failed to analyze progression: {e}")
+        return None
+
+
+def generate_facet_progression_line(facet_progression: Dict[str, Any]) -> Optional[str]:
+    """
+    Generate a facet progression line based on progression state.
+    
+    Only generates when confidence > 0.6 for meaningful states.
+    
+    RULES:
+    - 1 sentence only
+    - subtle, observational
+    - no deterministic language
+    - no astrology terms
+    """
+    if not facet_progression:
+        return None
+    
+    state = facet_progression.get("state")
+    confidence = facet_progression.get("confidence", 0)
+    
+    # Only show progression line when confidence is meaningful
+    if confidence < 0.6:
+        return None
+    
+    # ESCALATING: Pattern becoming harder to ignore
+    if state == "escalating":
+        if confidence >= 0.8:
+            return "This seems to be becoming harder to ignore."
+        return "This may be building in a way that's asking for attention."
+    
+    # DEEPENING: Pattern showing up in more places
+    if state == "deepening":
+        if confidence >= 0.8:
+            return "This seems to be showing up in more places than before."
+        return "This may be spreading into new areas of your experience."
+    
+    # SHIFTING: Pattern changing form
+    if state == "shifting":
+        previous_facet = facet_progression.get("previous_facet", "").replace("_", " ")
+        current_facet = facet_progression.get("current_facet", "").replace("_", " ")
+        if previous_facet and current_facet:
+            return f"This may be changing form—what was about {previous_facet} may now be showing up around {current_facet}."
+        return "This may be changing form—what was one thing is now showing up differently."
+    
+    # RESOLVING: Something settling or loosening
+    if state == "resolving":
+        if confidence >= 0.8:
+            return "Something here may be starting to settle or loosen."
+        return "There may be a softening happening around this."
+    
+    # STABLE: Optional, only show if explicitly needed
+    if state == "stable" and confidence >= 0.5:
+        return None  # Don't show for stable—let it be quiet
+    
+    return None
+
+
 @api_router.get("/journal/{user_id}/patterns", response_model=JournalPatternAnalysis)
 async def get_journal_patterns(user_id: str):
     """
@@ -5024,6 +5243,18 @@ async def get_journal_patterns(user_id: str):
             if facet_memory:
                 facet_memory_line = generate_facet_memory_line(facet_memory, selected_facet.get("name"))
         
+        # V3.2: Facet Progression Engine - detect movement over time
+        facet_progression = None
+        facet_progression_line = None
+        
+        if selected_facet:
+            # Analyze progression (requires facet history)
+            facet_progression = await analyze_facet_progression(user_id)
+            
+            # Generate progression line (only if confidence > threshold)
+            if facet_progression:
+                facet_progression_line = generate_facet_progression_line(facet_progression)
+        
         return JournalPatternAnalysis(
             user_id=user_id,
             total_entries=total_entries,
@@ -5041,7 +5272,9 @@ async def get_journal_patterns(user_id: str):
             selected_facet=selected_facet,
             facet_line=facet_line,
             facet_memory=facet_memory,
-            facet_memory_line=facet_memory_line
+            facet_memory_line=facet_memory_line,
+            facet_progression=facet_progression,
+            facet_progression_line=facet_progression_line
         )
     except Exception as e:
         logger.error(f"Get journal patterns error: {e}")

@@ -165,6 +165,9 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
   // Get facet memory line (V3.1 - Facet Memory + Progression)
   const facetMemoryLine = patternData?.facet_memory_line || null;
   
+  // Get facet progression line (V3.2 - Facet Progression Engine)
+  const facetProgressionLine = patternData?.facet_progression_line || null;
+  
   // Get identity tendency if threshold met (Level 4)
   const identityTendency = patternData?.identity_threshold_met ? patternData.identity_tendency : null;
   
@@ -269,10 +272,20 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
       )}
 
       {/* V3.1: Facet Memory Line - Pattern over time */}
+      {/* V3.1: Facet Memory Line - Pattern over time */}
       {facetMemoryLine && compressedPatternLine && (
         <View style={styles.facetMemorySection}>
           <Text style={[styles.facetMemoryText, { color: theme.textTertiary }]}>
             {cleanText(facetMemoryLine)}
+          </Text>
+        </View>
+      )}
+
+      {/* V3.2: Facet Progression Line - Movement over time */}
+      {facetProgressionLine && compressedPatternLine && (
+        <View style={styles.facetProgressionSection}>
+          <Text style={[styles.facetProgressionText, { color: theme.textTertiary }]}>
+            {cleanText(facetProgressionLine)}
           </Text>
         </View>
       )}
@@ -510,6 +523,16 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
   },
   facetMemoryText: {
+    fontSize: 11,
+    lineHeight: 17,
+    fontStyle: 'italic',
+  },
+  // V3.2: Facet Progression Line - Movement over time
+  facetProgressionSection: {
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
+  facetProgressionText: {
     fontSize: 11,
     lineHeight: 17,
     fontStyle: 'italic',

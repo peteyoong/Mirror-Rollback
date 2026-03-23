@@ -656,6 +656,15 @@ export default function AstrologyTimelineTab({
                           </View>
                         )}
                         
+                        {/* V3.2: Facet Progression Line - Movement over time */}
+                        {patternData?.facet_progression_line && patternData?.compressed_pattern_lines?.[phase.id] && (
+                          <View style={styles.timelineFacetProgressionSection}>
+                            <Text style={[styles.timelineFacetProgressionText, { color: theme.textTertiary }]}>
+                              {cleanText(patternData.facet_progression_line)}
+                            </Text>
+                          </View>
+                        )}
+                        
                         {/* V2.6 STEP 3: Evidence Entries (SECOND - PROOF) */}
                         <Text style={[styles.evidenceIntro, { color: theme.textTertiary }]}>
                           This is how this phase has been showing up in your life:
@@ -1147,6 +1156,16 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
   },
   timelineFacetMemoryText: {
+    fontSize: 10,
+    lineHeight: 16,
+    fontStyle: 'italic',
+  },
+  // V3.2: Facet Progression Line - Movement over time
+  timelineFacetProgressionSection: {
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
+  timelineFacetProgressionText: {
     fontSize: 10,
     lineHeight: 16,
     fontStyle: 'italic',
