@@ -171,14 +171,14 @@ const getTransitHumanLine = (
 };
 
 // ============================================
-// PSYCHOLOGICAL ACTIVATION BULLETS
+// PSYCHOLOGICAL ACTIVATION BULLETS - Enhanced for timeframe differentiation
 // ============================================
 
-const getActivationBullets = (transits: TransitHit[], emphasisTags: string[]): string[] => {
+const getActivationBullets = (transits: TransitHit[], emphasisTags: string[], timeframe?: Timeframe): string[] => {
   const bullets: string[] = [];
   const seen = new Set<string>();
   
-  // From emphasis tags
+  // From emphasis tags - core themes
   if (emphasisTags.includes('expansion') && emphasisTags.includes('structure')) {
     bullets.push('growth meeting limits');
   } else if (emphasisTags.includes('expansion')) {
@@ -193,87 +193,170 @@ const getActivationBullets = (transits: TransitHit[], emphasisTags: string[]): s
     bullets.push('communication or expression asking for attention');
   }
   
-  // From specific transits
-  for (const t of transits.slice(0, 5)) {
+  if (emphasisTags.includes('drive') && !seen.has('drive')) {
+    bullets.push('forward momentum being tested or redirected');
+    seen.add('drive');
+  }
+  
+  if (emphasisTags.includes('opportunity') && !seen.has('opportunity')) {
+    bullets.push('doors opening that require discernment');
+    seen.add('opportunity');
+  }
+  
+  // From specific transits - deeper themes
+  for (const t of transits.slice(0, 6)) {
     const transit = t.transit_point || (t as any).transit_planet;
     const natal = t.natal_point || (t as any).natal_planet;
     const aspect = t.aspect_type;
     
     if (!transit || !natal) continue;
     
+    // Neptune + Chiron
     if (transit === 'Neptune' && natal === 'Chiron' && !seen.has('sensitivity')) {
       bullets.push('older sensitivity becoming easier to feel');
       seen.add('sensitivity');
     }
     
+    // Pluto + Mars
     if (transit === 'Pluto' && natal === 'Mars' && !seen.has('action-pressure')) {
       bullets.push('pressure on action and follow-through');
       seen.add('action-pressure');
     }
     
+    // Uranus transits
+    if (transit === 'Uranus' && !seen.has('change')) {
+      if (natal === 'Jupiter') {
+        bullets.push('unexpected shifts in growth or meaning');
+      } else {
+        bullets.push('unexpected shifts asking for flexibility');
+      }
+      seen.add('change');
+    }
+    
+    // Saturn involvement
     if ((transit === 'Saturn' || natal === 'Saturn') && !seen.has('responsibility')) {
       if (aspect === 'square' || aspect === 'opposition') {
         bullets.push('responsibility or delay requiring patience');
-        seen.add('responsibility');
+      } else {
+        bullets.push('structures being tested or refined');
       }
+      seen.add('responsibility');
     }
     
-    if (transit === 'Uranus' && !seen.has('change')) {
-      bullets.push('unexpected shifts asking for flexibility');
-      seen.add('change');
+    // Jupiter square Saturn - unique combination
+    if (transit === 'Jupiter' && natal === 'Saturn' && !seen.has('expansion-structure')) {
+      bullets.push('ambition and limitation in active dialogue');
+      seen.add('expansion-structure');
+    }
+    
+    // Venus activation
+    if (natal === 'Venus' && !seen.has('relating')) {
+      bullets.push('relationships or values coming into focus');
+      seen.add('relating');
+    }
+    
+    // Sun activation (identity)
+    if (natal === 'Sun' && (transit === 'Pluto' || transit === 'Saturn') && !seen.has('identity')) {
+      bullets.push('identity or self-definition under examination');
+      seen.add('identity');
+    }
+    
+    // Moon activation (emotional)
+    if (natal === 'Moon' && !seen.has('emotional')) {
+      bullets.push('emotional needs or patterns surfacing');
+      seen.add('emotional');
     }
   }
   
-  return bullets.slice(0, 4);
+  // Cap based on timeframe - today gets fewer, month gets more
+  const maxBullets = timeframe === 'today' ? 3 : timeframe === 'week' ? 4 : 4;
+  return bullets.slice(0, maxBullets);
 };
 
 // ============================================
-// LIFE DOMAIN EXTRACTION
+// LIFE DOMAIN EXTRACTION - Enhanced with richer mapping
 // ============================================
 
-const getLifeDomains = (transits: TransitHit[]): string[] => {
-  const domains = new Set<string>();
+interface LifeDomainResult {
+  domains: string[];
+  detailedDomains: string[];
+  primaryHouses: number[];
+}
+
+const getLifeDomainsEnhanced = (transits: TransitHit[]): LifeDomainResult => {
   const houseCounts: { [key: number]: number } = {};
+  const planetThemes = new Set<string>();
   
   for (const t of transits) {
     const house = t.natal_house;
     if (house) {
       houseCounts[house] = (houseCounts[house] || 0) + 1;
     }
-  }
-  
-  // Get top 3 houses by frequency
-  const sortedHouses = Object.entries(houseCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
-    .map(([h]) => parseInt(h));
-  
-  for (const house of sortedHouses) {
-    const domain = HOUSE_TO_LIFE_DOMAIN[house];
-    if (domain) {
-      // Extract just the first part for brevity
-      const shortDomain = domain.split(' / ')[0];
-      domains.add(shortDomain);
+    
+    // Also gather planetary themes
+    const natal = t.natal_point || (t as any).natal_planet;
+    if (natal && PLANET_TO_THEME[natal]) {
+      // Get first theme for planet
+      const theme = PLANET_TO_THEME[natal].split(' / ')[0];
+      planetThemes.add(theme);
     }
   }
   
-  return Array.from(domains);
+  // Get top 4 houses by frequency
+  const sortedHouses = Object.entries(houseCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 4)
+    .map(([h]) => parseInt(h));
+  
+  const domains: string[] = [];
+  const detailedDomains: string[] = [];
+  
+  for (const house of sortedHouses) {
+    const fullDomain = HOUSE_TO_LIFE_DOMAIN[house];
+    if (fullDomain) {
+      // Short version for compact display
+      const shortDomain = fullDomain.split(' / ')[0];
+      domains.push(shortDomain);
+      // Detailed version
+      detailedDomains.push(fullDomain);
+    }
+  }
+  
+  return {
+    domains,
+    detailedDomains,
+    primaryHouses: sortedHouses,
+  };
 };
 
-const getLifeDomainLine = (transits: TransitHit[]): string => {
-  const domains = getLifeDomains(transits);
+const getLifeDomainLine = (transits: TransitHit[], timeframe: Timeframe): string => {
+  const { domains, detailedDomains } = getLifeDomainsEnhanced(transits);
   if (domains.length === 0) return '';
   
+  // More specific phrasing based on timeframe
+  const prefix = timeframe === 'today' 
+    ? 'This may show up most today in'
+    : timeframe === 'week'
+    ? 'This week, watch for activity in'
+    : 'This month, themes may concentrate in';
+  
   if (domains.length === 1) {
-    return `This may land most in ${domains[0]}.`;
+    return `${prefix} ${domains[0]}.`;
   }
   
   if (domains.length === 2) {
-    return `This may land most in ${domains[0]} and ${domains[1]}.`;
+    return `${prefix} ${domains[0]} and ${domains[1]}.`;
   }
   
-  const last = domains.pop();
-  return `This may land most in ${domains.join(', ')}, and ${last}.`;
+  // For 3+, use the detailed first item and short for rest
+  const [first, ...rest] = domains;
+  const last = rest.pop();
+  return `${prefix} ${first}, ${rest.join(', ')}, and ${last}.`;
+};
+
+// Get compact domain list for context
+const getLifeDomains = (transits: TransitHit[]): string[] => {
+  return getLifeDomainsEnhanced(transits).domains;
 };
 
 // ============================================
@@ -388,16 +471,22 @@ const getTimingReflectionQuestion = (transits: TransitHit[], emphasisTags: strin
 };
 
 // ============================================
-// BUILD TIMING CONTEXT FOR ASK MIRROR
+// BUILD TIMING CONTEXT FOR ASK MIRROR - Enhanced
 // ============================================
 
 interface TimingContext {
   timeframe: Timeframe;
+  timeframeLabel: string;
   topTransits: string[];
+  topTransitDescriptions: string[];
   activatedNatalPoints: string[];
+  activatedNatalHouses: number[];
   lifeDomains: string[];
+  lifeDomainsSentence: string;
   questionToSitWith: string;
   supportLine: string;
+  emphasisTags: string[];
+  activationThemes: string[];
 }
 
 const buildTimingContext = (
@@ -411,21 +500,42 @@ const buildTimingContext = (
     return `${transit} ${t.aspect_type} ${natal}`;
   });
   
+  const topTransitDescriptions = transits.slice(0, 3).map(t => {
+    const transit = t.transit_point || (t as any).transit_planet || '?';
+    const natal = t.natal_point || (t as any).natal_planet || '?';
+    return getTransitHumanLine(transit, t.aspect_type, natal);
+  });
+  
   const activatedNatalPoints = [...new Set(transits.slice(0, 5).map(t => 
     t.natal_point || (t as any).natal_planet
   ).filter(Boolean))];
   
-  const lifeDomains = getLifeDomains(transits);
+  const activatedNatalHouses = [...new Set(transits.slice(0, 5).map(t => 
+    t.natal_house
+  ).filter(h => h !== undefined && h !== null))] as number[];
+  
+  const { domains, detailedDomains } = getLifeDomainsEnhanced(transits);
+  const lifeDomainsSentence = getLifeDomainLine(transits, timeframe);
   const questionToSitWith = getTimingReflectionQuestion(transits, emphasisTags, timeframe);
   const supportLine = getSupportLine(transits, emphasisTags, timeframe);
+  const activationThemes = getActivationBullets(transits, emphasisTags, timeframe);
+  
+  const timeframeLabel = timeframe === 'today' ? 'Today' : 
+                         timeframe === 'week' ? 'This Week' : 'This Month';
   
   return {
     timeframe,
+    timeframeLabel,
     topTransits,
+    topTransitDescriptions,
     activatedNatalPoints,
-    lifeDomains,
+    activatedNatalHouses,
+    lifeDomains: domains,
+    lifeDomainsSentence,
     questionToSitWith,
     supportLine,
+    emphasisTags,
+    activationThemes,
   };
 };
 
@@ -717,8 +827,8 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
   // NEW: Premium Timing Layer Content
   const emphasisTags = currentWindow?.emphasis_tags || [];
   const topTransits = transits.slice(0, 3);
-  const activationBullets = getActivationBullets(transits, emphasisTags);
-  const lifeDomainLine = getLifeDomainLine(transits);
+  const activationBullets = getActivationBullets(transits, emphasisTags, activeAltitude);
+  const lifeDomainLine = getLifeDomainLine(transits, activeAltitude);
   const supportLine = getSupportLine(transits, emphasisTags, activeAltitude);
   const timingReflectionQuestion = getTimingReflectionQuestion(transits, emphasisTags, activeAltitude);
   const timingContext = buildTimingContext(transits, emphasisTags, activeAltitude);
