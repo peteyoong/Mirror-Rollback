@@ -35,6 +35,14 @@ import {
   getHDMonthContent,
   getCenterPattern,
 } from '../utils/humanDesignPatterns';
+import {
+  MirrorCard,
+  getTypeMirrorCard,
+  getAuthorityMirrorCard,
+  getProfileMirrorCard,
+  getCenterMirrorCard,
+  getCrossMirrorCard,
+} from '../utils/humanDesignMirrorCards';
 import { CrossLensPatternBridge } from './CrossLensPatternBridge';
 import GeneKeysView from './GeneKeysView';
 import CentersView, { CentersViewHandle } from './CentersView';
@@ -1262,6 +1270,92 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // State for which Deep Dive accordion is expanded
   const [expandedDeepDive, setExpandedDeepDive] = useState<string | null>(null);
 
+  // NEW: Render Mirror Language card (Recognition, Tension, Real-life Moments, Truth Shift, Try This Instead)
+  const renderMirrorCard = (key: string, mirrorCard: MirrorCard | null, sourceValue: string) => {
+    const isExpanded = expandedDeepDive === key;
+    
+    if (!mirrorCard) return null;
+    
+    return (
+      <View key={key} style={[styles.deepDiveAccordion, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.deepDiveHeader,
+            pressed && { opacity: 0.7 }
+          ]}
+          onPress={() => {
+            setExpandedDeepDive(isExpanded ? null : key);
+          }}
+        >
+          <View style={styles.deepDiveHeaderText}>
+            <Text style={[styles.deepDiveTitle, { color: theme.text }]}>{mirrorCard.title}</Text>
+            <Text style={[styles.deepDiveSubtitle, { color: theme.textTertiary }]}>{mirrorCard.subtitle}</Text>
+          </View>
+          <Text style={[styles.deepDiveChevron, { color: theme.textTertiary }]}>
+            {isExpanded ? '▲' : '▼'}
+          </Text>
+        </Pressable>
+        
+        {isExpanded && (
+          <View style={styles.deepDiveContent}>
+            {/* RECOGNITION - The opening hook */}
+            <Text style={[styles.mirrorRecognition, { color: theme.text }]}>
+              {mirrorCard.recognition}
+            </Text>
+            
+            {/* TENSION - The inner conflict */}
+            <View style={[styles.mirrorSection, { borderTopColor: theme.border }]}>
+              <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>TENSION</Text>
+              <Text style={[styles.mirrorSectionText, { color: theme.text }]}>
+                {mirrorCard.tension}
+              </Text>
+            </View>
+            
+            {/* REAL LIFE MOMENTS */}
+            <View style={styles.mirrorSection}>
+              <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>REAL LIFE MOMENTS</Text>
+              {mirrorCard.realLifeMoments.map((moment, i) => (
+                <View key={`moment-${i}`} style={styles.mirrorBulletRow}>
+                  <Text style={[styles.mirrorBullet, { color: theme.textTertiary }]}>•</Text>
+                  <Text style={[styles.mirrorBulletText, { color: theme.textSecondary }]}>{moment}</Text>
+                </View>
+              ))}
+            </View>
+            
+            {/* TRUTH SHIFT - The reframe */}
+            <View style={[styles.mirrorTruthShift, { backgroundColor: theme.background, borderLeftColor: theme.accent }]}>
+              <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>TRUTH SHIFT</Text>
+              <Text style={[styles.mirrorTruthShiftText, { color: theme.text }]}>
+                {mirrorCard.truthShift}
+              </Text>
+            </View>
+            
+            {/* TRY THIS INSTEAD - The practical tip */}
+            <View style={[styles.mirrorTryThis, { borderColor: theme.border }]}>
+              <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+              <Text style={[styles.mirrorTryThisText, { color: theme.text }]}>
+                {mirrorCard.tryThisInstead}
+              </Text>
+            </View>
+
+            {/* Reflect Button */}
+            <InlineReflectButton
+              source={{
+                lens: 'human_design',
+                type: key,
+                name: mirrorCard.title,
+                value: sourceValue,
+                id: `hd_${key}`,
+              }}
+              prompt={mirrorCard.truthShift}
+            />
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  // Legacy render function for old format (fallback)
   const renderDeepDiveAccordion = (key: string, title: string, subtitle: string, story: MechanicStory | undefined) => {
     const isExpanded = expandedDeepDive === key;
     
@@ -2862,6 +2956,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const renderExploreMode = () => {
     if (!data) return null;
     
+    // Get Mirror cards for core mechanics
+    const typeMirrorCard = getTypeMirrorCard(data.core_mechanics?.type || '');
+    const authorityMirrorCard = getAuthorityMirrorCard(data.core_mechanics?.authority || '');
+    const profileMirrorCard = getProfileMirrorCard(data.core_mechanics?.profile || '');
+    const crossMirrorCard = getCrossMirrorCard(data.core_mechanics?.incarnation_cross || '');
+    
     return (
       <>
         {/* 1. TOP SUMMARY GRAPH - Visual design overview */}
@@ -2870,45 +2970,33 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* 2. BODY GRAPH */}
         {renderImprovedBodygraph()}
         
-        {/* 3. MECHANICS - Direct content, no wrapper header */}
-        {/* Type Accordion */}
-        {data.core_mechanics?.type && renderMechanicAccordion(
+        {/* 3. MECHANICS - Using new Mirror Language cards */}
+        {/* Type Card - Mirror Language */}
+        {typeMirrorCard && renderMirrorCard(
           'type',
-          data.core_mechanics.type,
-          'Your Energy Type',
-          getTypeCardContent(data.core_mechanics.type),
-          'Human Design Type',
-          getTypeReflectionPrompt(data.core_mechanics.type)
+          typeMirrorCard,
+          data.core_mechanics?.type || ''
         )}
         
-        {/* Authority Accordion */}
-        {data.core_mechanics?.authority && renderMechanicAccordion(
+        {/* Authority Card - Mirror Language */}
+        {authorityMirrorCard && renderMirrorCard(
           'authority',
-          data.core_mechanics.authority,
-          'Your Decision Authority',
-          getAuthorityCardContent(data.core_mechanics.authority),
-          'Human Design Authority',
-          getAuthorityReflectionPrompt(data.core_mechanics.authority)
+          authorityMirrorCard,
+          data.core_mechanics?.authority || ''
         )}
         
-        {/* Profile Accordion */}
-        {data.core_mechanics?.profile && renderMechanicAccordion(
+        {/* Profile Card - Mirror Language */}
+        {profileMirrorCard && renderMirrorCard(
           'profile',
-          data.core_mechanics.profile,
-          'Your Profile',
-          getProfileCardContent(data.core_mechanics.profile),
-          'Human Design Profile',
-          getProfileReflectionPrompt(data.core_mechanics.profile)
+          profileMirrorCard,
+          data.core_mechanics?.profile || ''
         )}
         
-        {/* Incarnation Cross Accordion */}
-        {data.core_mechanics?.incarnation_cross && renderMechanicAccordion(
+        {/* Incarnation Cross Card - Mirror Language */}
+        {crossMirrorCard && renderMirrorCard(
           'cross',
-          data.core_mechanics.incarnation_cross,
-          'Your Life Purpose',
-          getIncarnationCrossCardContent(data.core_mechanics.incarnation_cross),
-          'Incarnation Cross',
-          'What pattern of purpose keeps showing up in my life—even when I wasn\'t trying?'
+          crossMirrorCard,
+          data.core_mechanics?.incarnation_cross || ''
         )}
         
         {/* 4. CENTERS SECTION - Parent Accordion */}
@@ -6273,6 +6361,66 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontStyle: 'italic',
   },
+  
+  // Mirror Card Styles (New Pattern Recognition format)
+  mirrorRecognition: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
+    marginBottom: 16,
+  },
+  mirrorSection: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  mirrorSectionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  mirrorSectionText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  mirrorBulletRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    paddingRight: 8,
+  },
+  mirrorBullet: {
+    fontSize: 14,
+    marginRight: 10,
+    marginTop: 2,
+  },
+  mirrorBulletText: {
+    fontSize: 14,
+    lineHeight: 20,
+    flex: 1,
+  },
+  mirrorTruthShift: {
+    padding: 14,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    marginTop: 16,
+  },
+  mirrorTruthShiftText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  mirrorTryThis: {
+    padding: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 16,
+  },
+  mirrorTryThisText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  
   // Forum context: Reflect in Forum button
   reflectInForumButton: {
     marginTop: 14,
