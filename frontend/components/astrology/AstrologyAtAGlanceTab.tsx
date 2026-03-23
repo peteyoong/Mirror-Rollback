@@ -582,10 +582,10 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
                       }]}>{asp.pressureType}</Text>
                     </View>
                   </View>
-                  <Text style={[styles.keyAspectMeaning, { color: theme.text }]}>{asp.humanSummary}</Text>
+                  <Text style={[styles.keyAspectMeaning, { color: theme.text }]}>{cleanText(asp.humanSummary)}</Text>
                   {asp.whyItMattersHere && (
                     <Text style={[styles.keyAspectWhy, { color: theme.textSecondary }]}>
-                      {asp.whyItMattersHere}
+                      {cleanText(asp.whyItMattersHere)}
                     </Text>
                   )}
                 </View>

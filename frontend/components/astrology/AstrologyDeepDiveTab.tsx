@@ -1318,7 +1318,7 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                       {/* MASTER INSIGHT - Preserved original rich content */}
                       <View style={styles.deepDiveSection}>
                         <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>MASTER INSIGHT</Text>
-                        <Text style={[styles.masterInsightText, { color: theme.text }]}>{card.whatThisIs}</Text>
+                        <Text style={[styles.masterInsightText, { color: theme.text }]}>{cleanText(card.whatThisIs)}</Text>
                       </View>
 
                       {/* Divider */}
