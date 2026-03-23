@@ -171,35 +171,130 @@ const getTransitHumanLine = (
 };
 
 // ============================================
-// PSYCHOLOGICAL ACTIVATION BULLETS - Enhanced for timeframe differentiation
+// PSYCHOLOGICAL ACTIVATION BULLETS - Timeframe-Differentiated Perspectives
 // ============================================
 
-const getActivationBullets = (transits: TransitHit[], emphasisTags: string[], timeframe?: Timeframe): string[] => {
+// TODAY = immediate experience, reaction, urgency
+// WEEK = unfolding pattern, repetition, buildup
+// MONTH = developmental arc, behavioral shifts, direction
+
+interface ThemeVariants {
+  today: string;
+  week: string;
+  month: string;
+}
+
+// Theme variants by timeframe perspective
+const THEME_VARIANTS: { [key: string]: ThemeVariants } = {
+  'expansion-structure': {
+    today: 'growth bumping into limits right now',
+    week: 'a recurring tension between wanting more and needing to wait',
+    month: 'learning to hold ambition and patience in the same hand',
+  },
+  'expansion': {
+    today: 'a pull toward more—more space, more possibility',
+    week: 'optimism building but needing grounding',
+    month: 'an emerging sense of what you want to expand toward',
+  },
+  'transformation': {
+    today: 'something pressing beneath the surface',
+    week: 'intensity that may be asking for attention',
+    month: 'a slow transformation in how you relate to power or control',
+  },
+  'communication': {
+    today: 'words or ideas asking to come through',
+    week: 'conversations that keep circling back',
+    month: 'a shift in how you speak or what you say',
+  },
+  'drive': {
+    today: 'urgency in forward momentum',
+    week: 'action meeting repeated obstacles or redirections',
+    month: 'learning where your energy is most effective',
+  },
+  'opportunity': {
+    today: 'a door appearing that requires quick discernment',
+    week: 'opportunities asking which ones to take seriously',
+    month: 'clarity about which paths are worth following',
+  },
+  'sensitivity': {
+    today: 'an older sensitivity closer to the surface',
+    week: 'a wound getting re-touched in small ways',
+    month: 'something you carry becoming easier to name',
+  },
+  'action-pressure': {
+    today: 'pressure on how you act or react',
+    week: 'a pattern of friction around assertion or control',
+    month: 'redefining your relationship with force and patience',
+  },
+  'change': {
+    today: 'something unexpected disrupting the expected',
+    week: 'instability or restlessness recurring across days',
+    month: 'freedom and disruption reshaping familiar structures',
+  },
+  'responsibility': {
+    today: 'weight landing on your shoulders right now',
+    week: 'responsibility showing up in repetitive ways',
+    month: 'maturity being asked for across multiple fronts',
+  },
+  'relating': {
+    today: 'closeness or distance feeling sharper than usual',
+    week: 'relationship dynamics surfacing repeatedly',
+    month: 'values around connection becoming clearer',
+  },
+  'identity': {
+    today: 'who you are feeling more visible or questioned',
+    week: 'your sense of self being tested in different contexts',
+    month: 'a slow redefinition of how you see yourself',
+  },
+  'emotional': {
+    today: 'feelings arriving with more weight or urgency',
+    week: 'emotional patterns showing themselves more clearly',
+    month: 'learning what you actually need to feel safe',
+  },
+};
+
+const getActivationBullets = (transits: TransitHit[], emphasisTags: string[], timeframe: Timeframe = 'today'): string[] => {
   const bullets: string[] = [];
   const seen = new Set<string>();
   
+  const getVariant = (key: string): string | null => {
+    const variants = THEME_VARIANTS[key];
+    if (!variants) return null;
+    return variants[timeframe];
+  };
+  
   // From emphasis tags - core themes
   if (emphasisTags.includes('expansion') && emphasisTags.includes('structure')) {
-    bullets.push('growth meeting limits');
+    const bullet = getVariant('expansion-structure');
+    if (bullet) bullets.push(bullet);
+    seen.add('expansion-structure');
   } else if (emphasisTags.includes('expansion')) {
-    bullets.push('openness to new possibilities');
+    const bullet = getVariant('expansion');
+    if (bullet) bullets.push(bullet);
+    seen.add('expansion');
   }
   
-  if (emphasisTags.includes('transformation') || emphasisTags.includes('power')) {
-    bullets.push('intensity or pressure building beneath the surface');
+  if ((emphasisTags.includes('transformation') || emphasisTags.includes('power')) && !seen.has('transformation')) {
+    const bullet = getVariant('transformation');
+    if (bullet) bullets.push(bullet);
+    seen.add('transformation');
   }
   
-  if (emphasisTags.includes('communication')) {
-    bullets.push('communication or expression asking for attention');
+  if (emphasisTags.includes('communication') && !seen.has('communication')) {
+    const bullet = getVariant('communication');
+    if (bullet) bullets.push(bullet);
+    seen.add('communication');
   }
   
   if (emphasisTags.includes('drive') && !seen.has('drive')) {
-    bullets.push('forward momentum being tested or redirected');
+    const bullet = getVariant('drive');
+    if (bullet) bullets.push(bullet);
     seen.add('drive');
   }
   
   if (emphasisTags.includes('opportunity') && !seen.has('opportunity')) {
-    bullets.push('doors opening that require discernment');
+    const bullet = getVariant('opportunity');
+    if (bullet) bullets.push(bullet);
     seen.add('opportunity');
   }
   
@@ -213,63 +308,56 @@ const getActivationBullets = (transits: TransitHit[], emphasisTags: string[], ti
     
     // Neptune + Chiron
     if (transit === 'Neptune' && natal === 'Chiron' && !seen.has('sensitivity')) {
-      bullets.push('older sensitivity becoming easier to feel');
+      const bullet = getVariant('sensitivity');
+      if (bullet) bullets.push(bullet);
       seen.add('sensitivity');
     }
     
     // Pluto + Mars
     if (transit === 'Pluto' && natal === 'Mars' && !seen.has('action-pressure')) {
-      bullets.push('pressure on action and follow-through');
+      const bullet = getVariant('action-pressure');
+      if (bullet) bullets.push(bullet);
       seen.add('action-pressure');
     }
     
     // Uranus transits
     if (transit === 'Uranus' && !seen.has('change')) {
-      if (natal === 'Jupiter') {
-        bullets.push('unexpected shifts in growth or meaning');
-      } else {
-        bullets.push('unexpected shifts asking for flexibility');
-      }
+      const bullet = getVariant('change');
+      if (bullet) bullets.push(bullet);
       seen.add('change');
     }
     
     // Saturn involvement
     if ((transit === 'Saturn' || natal === 'Saturn') && !seen.has('responsibility')) {
-      if (aspect === 'square' || aspect === 'opposition') {
-        bullets.push('responsibility or delay requiring patience');
-      } else {
-        bullets.push('structures being tested or refined');
-      }
+      const bullet = getVariant('responsibility');
+      if (bullet) bullets.push(bullet);
       seen.add('responsibility');
-    }
-    
-    // Jupiter square Saturn - unique combination
-    if (transit === 'Jupiter' && natal === 'Saturn' && !seen.has('expansion-structure')) {
-      bullets.push('ambition and limitation in active dialogue');
-      seen.add('expansion-structure');
     }
     
     // Venus activation
     if (natal === 'Venus' && !seen.has('relating')) {
-      bullets.push('relationships or values coming into focus');
+      const bullet = getVariant('relating');
+      if (bullet) bullets.push(bullet);
       seen.add('relating');
     }
     
     // Sun activation (identity)
     if (natal === 'Sun' && (transit === 'Pluto' || transit === 'Saturn') && !seen.has('identity')) {
-      bullets.push('identity or self-definition under examination');
+      const bullet = getVariant('identity');
+      if (bullet) bullets.push(bullet);
       seen.add('identity');
     }
     
     // Moon activation (emotional)
     if (natal === 'Moon' && !seen.has('emotional')) {
-      bullets.push('emotional needs or patterns surfacing');
+      const bullet = getVariant('emotional');
+      if (bullet) bullets.push(bullet);
       seen.add('emotional');
     }
   }
   
-  // Cap based on timeframe - today gets fewer, month gets more
-  const maxBullets = timeframe === 'today' ? 3 : timeframe === 'week' ? 4 : 4;
+  // Cap based on timeframe - today is focused, month can be broader
+  const maxBullets = timeframe === 'today' ? 3 : 4;
   return bullets.slice(0, maxBullets);
 };
 
@@ -333,25 +421,44 @@ const getLifeDomainLine = (transits: TransitHit[], timeframe: Timeframe): string
   const { domains, detailedDomains } = getLifeDomainsEnhanced(transits);
   if (domains.length === 0) return '';
   
-  // More specific phrasing based on timeframe
-  const prefix = timeframe === 'today' 
-    ? 'This may show up most today in'
-    : timeframe === 'week'
-    ? 'This week, watch for activity in'
-    : 'This month, themes may concentrate in';
+  // Timeframe-differentiated phrasing
+  // TODAY = immediate location
+  // WEEK = unfolding areas
+  // MONTH = developmental zones
+  
+  let prefix: string;
+  let connector: string;
+  
+  switch (timeframe) {
+    case 'today':
+      prefix = 'This may show up most today in';
+      connector = 'and';
+      break;
+    case 'week':
+      prefix = 'Across this week, watch for recurring themes in';
+      connector = 'as well as';
+      break;
+    case 'month':
+      prefix = 'Over the month, these energies may reshape how you relate to';
+      connector = 'and';
+      break;
+    default:
+      prefix = 'This may land in';
+      connector = 'and';
+  }
   
   if (domains.length === 1) {
     return `${prefix} ${domains[0]}.`;
   }
   
   if (domains.length === 2) {
-    return `${prefix} ${domains[0]} and ${domains[1]}.`;
+    return `${prefix} ${domains[0]} ${connector} ${domains[1]}.`;
   }
   
-  // For 3+, use the detailed first item and short for rest
+  // For 3+, build a more natural sentence
   const [first, ...rest] = domains;
   const last = rest.pop();
-  return `${prefix} ${first}, ${rest.join(', ')}, and ${last}.`;
+  return `${prefix} ${first}, ${rest.join(', ')}, ${connector} ${last}.`;
 };
 
 // Get compact domain list for context
@@ -360,8 +467,56 @@ const getLifeDomains = (transits: TransitHit[]): string[] => {
 };
 
 // ============================================
-// SUPPORT LINE GENERATION
+// SUPPORT LINE GENERATION - Timeframe-Differentiated
 // ============================================
+
+// TODAY = grounding / immediate regulation
+// WEEK = noticing repetition
+// MONTH = holding longer tension / learning
+
+interface SupportLineVariants {
+  today: string;
+  week: string;
+  month: string;
+}
+
+const SUPPORT_LINE_VARIANTS: { [key: string]: SupportLineVariants } = {
+  'expansion-structure': {
+    today: 'Let clarity come before commitment right now.',
+    week: 'Notice where the same tension keeps appearing—it may be teaching you something.',
+    month: 'Growth this month may require holding two truths at once: the pull to expand and the need to wait.',
+  },
+  'saturn-pluto': {
+    today: 'If something feels overcharged, name it before acting on it.',
+    week: 'When pressure keeps returning, it may be pointing at something real.',
+    month: 'The intensity you\'re carrying may be reshaping something important. Let it.',
+  },
+  'saturn': {
+    today: 'Slowing the pace may reveal more than pushing through.',
+    week: 'The friction showing up repeatedly may be asking for a different approach.',
+    month: 'What feels like delay may be preparation. Trust the slower timeline.',
+  },
+  'pluto': {
+    today: 'What is surfacing may need witnessing before it needs solving.',
+    week: 'Power dynamics that keep appearing may deserve more attention.',
+    month: 'Something is being transformed. You don\'t have to understand it yet.',
+  },
+  'neptune': {
+    today: 'Let what is unclear remain unclear a little longer.',
+    week: 'If confusion keeps returning, it may not be a problem to fix.',
+    month: 'This month may ask you to trust without knowing exactly where you\'re going.',
+  },
+  'uranus': {
+    today: 'Flexibility may serve better than rigid planning right now.',
+    week: 'The disruptions have a pattern—watch for what they\'re all touching.',
+    month: 'Freedom is calling, even if it feels like instability. Let the shape emerge.',
+  },
+  'default-today': {
+    today: 'Notice what is being touched before trying to fix it.',
+    week: 'Let the week reveal its rhythm before over-scheduling.',
+    month: 'Let what is emerging become clearer before trying to resolve it.',
+  },
+};
 
 const getSupportLine = (transits: TransitHit[], emphasisTags: string[], timeframe: Timeframe): string => {
   const hasSaturn = transits.some(t => 
@@ -384,44 +539,74 @@ const getSupportLine = (transits: TransitHit[], emphasisTags: string[], timefram
   const hasExpansionStructure = emphasisTags.includes('expansion') && emphasisTags.includes('structure');
   
   if (hasExpansionStructure) {
-    return 'Let clarity come before commitment where possible.';
+    return SUPPORT_LINE_VARIANTS['expansion-structure'][timeframe];
   }
   
   if (hasSaturn && hasPluto) {
-    return 'If something feels overcharged, it may help to name it before acting on it.';
+    return SUPPORT_LINE_VARIANTS['saturn-pluto'][timeframe];
   }
   
   if (hasSaturn) {
-    return 'Slowing the pace may reveal more than pushing through.';
+    return SUPPORT_LINE_VARIANTS['saturn'][timeframe];
   }
   
   if (hasPluto) {
-    return 'What is surfacing may need witnessing before it needs solving.';
+    return SUPPORT_LINE_VARIANTS['pluto'][timeframe];
   }
   
   if (hasNeptune) {
-    return 'Let what is unclear remain unclear a little longer if needed.';
+    return SUPPORT_LINE_VARIANTS['neptune'][timeframe];
   }
   
   if (hasUranus) {
-    return 'Flexibility may serve better than rigid planning right now.';
+    return SUPPORT_LINE_VARIANTS['uranus'][timeframe];
   }
   
   // Timeframe-specific defaults
-  if (timeframe === 'today') {
-    return 'Notice what is being touched before trying to fix it.';
-  }
-  
-  if (timeframe === 'week') {
-    return 'Let the week reveal its rhythm before over-scheduling.';
-  }
-  
-  return 'Let what is emerging become clearer before trying to resolve it.';
+  return SUPPORT_LINE_VARIANTS['default-today'][timeframe];
 };
 
 // ============================================
-// REFLECTION QUESTION GENERATION
+// REFLECTION QUESTION GENERATION - Timeframe-Differentiated
 // ============================================
+
+// TODAY = situational (what's happening now?)
+// WEEK = pattern recognition (what keeps showing up?)
+// MONTH = identity / behavior shift (what's changing in me?)
+
+interface QuestionVariants {
+  today: string;
+  week: string;
+  month: string;
+}
+
+const QUESTION_VARIANTS: { [key: string]: QuestionVariants } = {
+  'expansion-structure': {
+    today: 'Where is impatience pulling you to act before you\'re ready?',
+    week: 'What pattern are you noticing between wanting more and hitting walls?',
+    month: 'How is your relationship with ambition and limitation evolving?',
+  },
+  'sensitivity': {
+    today: 'What is this moment touching that feels older than today?',
+    week: 'What keeps getting re-triggered—and what does that tell you?',
+    month: 'What wound are you learning to carry differently?',
+  },
+  'identity': {
+    today: 'Who are you trying to be right now—and is it working?',
+    week: 'Where does your sense of self keep getting challenged?',
+    month: 'What version of yourself is trying to emerge?',
+  },
+  'relating': {
+    today: 'What would shift if you stopped managing the impression you\'re making?',
+    week: 'What dynamic in your relationships keeps returning?',
+    month: 'How is your understanding of what you need from others changing?',
+  },
+  'default': {
+    today: 'What would shift if you stopped trying to control the outcome?',
+    week: 'What keeps showing up that you haven\'t fully acknowledged yet?',
+    month: 'What are you in the middle of learning—even if you can\'t name it?',
+  },
+};
 
 const getTimingReflectionQuestion = (transits: TransitHit[], emphasisTags: string[], timeframe: Timeframe): string => {
   const hasExpansionStructure = emphasisTags.includes('expansion') && emphasisTags.includes('structure');
@@ -443,31 +628,22 @@ const getTimingReflectionQuestion = (transits: TransitHit[], emphasisTags: strin
   });
   
   if (hasExpansionStructure) {
-    return 'Where is growth asking for maturity rather than speed?';
+    return QUESTION_VARIANTS['expansion-structure'][timeframe];
   }
   
   if (hasSensitivity) {
-    return 'What is being touched here that may be older than this moment?';
+    return QUESTION_VARIANTS['sensitivity'][timeframe];
   }
   
   if (hasIdentityPressure) {
-    return 'What are you trying to prove—and to whom?';
+    return QUESTION_VARIANTS['identity'][timeframe];
   }
   
   if (hasRelationshipActivation) {
-    return 'What becomes possible when you stop managing how others see you?';
+    return QUESTION_VARIANTS['relating'][timeframe];
   }
   
-  // Timeframe defaults
-  if (timeframe === 'today') {
-    return 'What would shift if you stopped trying to control the outcome?';
-  }
-  
-  if (timeframe === 'week') {
-    return 'What are you trying to solve before you\'ve fully named what is happening?';
-  }
-  
-  return 'What becomes clearer if you stop trying to force resolution?';
+  return QUESTION_VARIANTS['default'][timeframe];
 };
 
 // ============================================
