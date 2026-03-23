@@ -133,7 +133,8 @@ function rankDominantPatterns(input: HDSynthesisInput): DominantPattern[] {
 
 // ============================================
 // TYPE × AUTHORITY PUNCH PATTERNS
-// Sharp, compressed, immediate
+// Now with FLOW (cause → effect → consequence)
+// and LOOP patterns (A → B → C → repeat)
 // ============================================
 
 interface TypeAuthPunch {
@@ -141,6 +142,10 @@ interface TypeAuthPunch {
   tension: string;
   blindSpot: string;
   edge: string;
+  // NEW: Flow and Loop patterns
+  flow: string;           // cause → effect → consequence
+  loop: string;           // repeating pattern
+  correctedFlow: string;  // what breaks the loop
   conflictStrength: number;
 }
 
@@ -151,122 +156,170 @@ function getTypeAuthorityConflict(type: string, authority: string): TypeAuthPunc
     // MANIFESTOR
     'Manifestor_Emotional': {
       punchLine: "You move before you're clear—and deal with it after.",
-      tension: "The urge to act hits now. The truth takes time. You rarely wait.",
-      blindSpot: "You think others resist you. Often, you just moved too early.",
-      edge: "When you inform AND wait for clarity, your impact lands clean.",
+      tension: "The urge hits → you act → the wave shifts → now you're stuck with what you started.",
+      blindSpot: "You push → they resist → you push harder → they shut down → you feel blocked. Repeat.",
+      edge: "Feel the urge → inform first → wait for the wave → then move. Things land clean.",
+      flow: "You act → people react → you explain after → they've already decided.",
+      loop: "Move fast → meet resistance → withdraw without explaining → feel misunderstood → move faster next time. Repeat.",
+      correctedFlow: "Feel the pull → pause → let the wave settle → inform → then act.",
       conflictStrength: 9
     },
     'Manifestor_Splenic': {
       punchLine: "You know instantly—but explain it never.",
-      tension: "The hit comes once. You either catch it or lose it.",
-      blindSpot: "You wait for reasons that already came and went.",
-      edge: "Trust the first knowing. Act before thinking talks you out of it.",
+      tension: "The knowing hits → you hesitate → it fades → you're left guessing.",
+      blindSpot: "You wait for logic → the moment passes → you act anyway → but the clarity is gone.",
+      edge: "The hit comes → you trust it → you move → understanding follows.",
+      flow: "You sense it → you doubt it → you wait → the window closes.",
+      loop: "Know instantly → look for reasons → miss the moment → regret → try to think faster next time. Repeat.",
+      correctedFlow: "Sense the knowing → trust immediately → act → let the reasons catch up later.",
       conflictStrength: 7
     },
     'Manifestor_Ego': {
       punchLine: "When your heart's in it, you're unstoppable. When it's not, nothing moves.",
-      tension: "You commit to what you should want—then run out of fuel.",
-      blindSpot: "Broken promises aren't about discipline. Your heart never agreed.",
-      edge: "Only commit to what you actually want. Follow-through becomes effortless.",
+      tension: "You commit → the desire fades → you force it → you burn out.",
+      blindSpot: "You promise → your heart wasn't in it → you can't deliver → you blame yourself for lacking discipline.",
+      edge: "Check your desire first → commit only to what's real → follow-through becomes effortless.",
+      flow: "You say yes → the excitement fades → you push through → you resent it.",
+      loop: "Commit without desire → run out of fuel → break the promise → feel guilty → overcommit next time to prove yourself. Repeat.",
+      correctedFlow: "Feel the want → verify it's real → then commit → energy stays.",
       conflictStrength: 8
     },
     'Manifestor_Self-Projected': {
       punchLine: "You don't know until you hear yourself say it.",
-      tension: "You wait for internal clarity that only comes through speaking.",
-      blindSpot: "Silence keeps you stuck. Your voice IS your processing.",
-      edge: "Talk it through. The direction emerges as you speak.",
+      tension: "You wait to know → nothing comes → you stay silent → you stay stuck.",
+      blindSpot: "You hold back → waiting for certainty → but speaking IS how you'd find it.",
+      edge: "Start talking → the direction emerges → clarity comes through voice.",
+      flow: "You think in silence → nothing resolves → you stay frozen.",
+      loop: "Wait to be sure → stay silent → feel unclear → wait longer. Repeat.",
+      correctedFlow: "Feel uncertain → speak anyway → hear yourself → know the direction.",
       conflictStrength: 6
     },
     'Manifestor_None': {
       punchLine: "Your clarity lives in place, not in your head.",
-      tension: "You look inside for answers that live outside.",
-      blindSpot: "Forcing decisions in wrong environments. Your wisdom is location-dependent.",
-      edge: "Choose environments wisely. Direction becomes obvious.",
+      tension: "You look inside → nothing's there → you force a choice → it doesn't hold.",
+      blindSpot: "You try to figure it out alone → but your answers live in environments, not introspection.",
+      edge: "Change the setting → the answer appears → direction becomes obvious.",
+      flow: "You sit with it → nothing clears → you move locations → suddenly you know.",
+      loop: "Try to decide internally → get nowhere → force a choice → regret it → try harder to think next time. Repeat.",
+      correctedFlow: "Feel stuck → change environment → let the setting reveal → act from there.",
       conflictStrength: 5
     },
     
     // GENERATOR
     'Generator_Emotional': {
       punchLine: "Your gut says yes. Your wave says wait.",
-      tension: "Response is instant. Truth unfolds over time. You're caught between.",
-      blindSpot: "You say yes in highs—then feel trapped when the wave passes.",
-      edge: "Let your gut respond, then wait. What stays lit is real.",
+      tension: "Response hits → you commit → the wave shifts → now you're locked in.",
+      blindSpot: "You say yes in the high → the wave drops → you're stuck → you call it commitment.",
+      edge: "Gut responds → you wait → wave settles → what's still lit is real.",
+      flow: "You feel the pull → you say yes → time passes → the feeling changes → but you already committed.",
+      loop: "Respond in excitement → commit fast → wave passes → feel trapped → blame yourself for poor choices. Repeat.",
+      correctedFlow: "Feel the response → acknowledge it → wait for emotional clarity → then commit.",
       conflictStrength: 9
     },
     'Generator_Sacral': {
       punchLine: "Your body knows. Your mind catches up later.",
-      tension: "The pull happens before reasons. You've learned to override it.",
-      blindSpot: "Ignoring the first response because it doesn't explain itself.",
-      edge: "Trust the gut. Even without reasons. Especially without reasons.",
+      tension: "The pull happens → mind intervenes → you override → frustration builds.",
+      blindSpot: "Your gut says no → you talk yourself into yes → then wonder why you're drained.",
+      edge: "Feel the pull → trust it → skip the reasons → satisfaction follows.",
+      flow: "You sense yes or no → you question it → you override → you regret.",
+      loop: "Body responds → mind doubts → you override → frustration → try to think better next time. Repeat.",
+      correctedFlow: "Body responds → you honor it → reasons come later or don't → energy stays clean.",
       conflictStrength: 7
     },
     
     // MANIFESTING GENERATOR
     'Manifesting Generator_Emotional': {
       punchLine: "You move fast. Your clarity doesn't.",
-      tension: "Part of you is three steps ahead. Part needs to feel it through.",
-      blindSpot: "Speed without settling creates false starts. Excitement isn't clarity.",
-      edge: "Sample fast. Commit slow. What survives the wave is yours.",
+      tension: "You start → excitement peaks → wave shifts → now you're three things deep with none of them clear.",
+      blindSpot: "You begin in highs → wave drops → you're scattered → you call it being multi-passionate.",
+      edge: "Sample fast → commit slow → what survives the wave is yours.",
+      flow: "You get excited → you start → the feeling shifts → you're stuck or pivoting blind.",
+      loop: "Start fast → wave shifts → pivot or push through → exhaust → wonder why nothing sticks. Repeat.",
+      correctedFlow: "Feel the pull → try it → wait for emotional clarity → then commit or release.",
       conflictStrength: 9
     },
     'Manifesting Generator_Sacral': {
       punchLine: "You pivot faster than others understand.",
-      tension: "They call it inconsistent. You call it following what's alive.",
-      blindSpot: "Guilt over not finishing what lost its energy.",
-      edge: "Trust the pivot. Completion isn't the end—it's extracting what's yours.",
+      tension: "You start → energy shifts → you pivot → they call it inconsistent.",
+      blindSpot: "You stay too long → out of guilt → the energy died long ago → but you 'should' finish.",
+      edge: "Follow the pull → pivot when it's done → completion is extraction, not endurance.",
+      flow: "You respond → you start → energy shifts → you're ready to move but feel guilty.",
+      loop: "Start with energy → energy dies → force yourself to finish → resent it → guilt over pivoting next time. Repeat.",
+      correctedFlow: "Respond → engage → energy shifts → pivot without guilt → find the real path.",
       conflictStrength: 7
     },
     
     // PROJECTOR
     'Projector_Emotional': {
       punchLine: "You see deeply—but you don't know what to do with it until later.",
-      tension: "Invited to guide, but your clarity isn't instant.",
-      blindSpot: "Giving advice in peaks you'd word differently in neutral.",
-      edge: "Wait for the wave. Your insight transforms when it's settled.",
+      tension: "Insight comes → you share → wave shifts → now you'd say it differently.",
+      blindSpot: "You guide in highs → wave passes → your advice looks different → they're confused.",
+      edge: "See it → wait → wave settles → share when clear → it lands.",
+      flow: "You see the answer → you share immediately → the wave shifts → your guidance contradicts itself.",
+      loop: "See clearly → share in a high → wave shifts → wish you'd waited → feel misunderstood. Repeat.",
+      correctedFlow: "See the insight → hold it → let the wave settle → then offer → it transforms.",
       conflictStrength: 8
     },
     'Projector_Splenic': {
       punchLine: "You see the answer before anyone asks.",
-      tension: "Insight is instant. Recognition is slow.",
-      blindSpot: "Waiting to be asked when you already know. The knowing fades.",
-      edge: "When recognition and intuition align, you cut through noise.",
+      tension: "Knowing hits → no one's asking → you wait → the knowing fades.",
+      blindSpot: "You see it → hold back → moment passes → the insight is gone when they finally ask.",
+      edge: "When recognition meets intuition, you cut through instantly.",
+      flow: "You know → you wait for invitation → the knowing fades → you're left with memory, not clarity.",
+      loop: "See instantly → wait to be asked → moment passes → insight fades → feel unrecognized. Repeat.",
+      correctedFlow: "Sense the knowing → find recognition → speak while it's alive → precision lands.",
       conflictStrength: 7
     },
     'Projector_Self-Projected': {
       punchLine: "You understand others by hearing yourself describe them.",
-      tension: "You hold back insight because you're not sure. Speaking is how you'd know.",
-      blindSpot: "Waiting for certainty that only comes through voice.",
+      tension: "You hold insight → wait for certainty → but speaking IS how you'd know.",
+      blindSpot: "You stay quiet → waiting to be sure → but your clarity lives in voice, not thought.",
       edge: "When invited, speak. Truth emerges for everyone—including you.",
+      flow: "You sense something → you hold it → you wait → it never crystallizes internally.",
+      loop: "Have insight → wait to be sure → stay silent → feel unclear → wait longer. Repeat.",
+      correctedFlow: "Feel the insight → get invited → speak → hear yourself → now you know.",
       conflictStrength: 6
     },
     'Projector_Ego': {
       punchLine: "When your heart's in the invitation, your impact is undeniable.",
-      tension: "You accept based on should. Run out of energy because desire wasn't there.",
-      blindSpot: "Bitterness from giving to people your heart never chose.",
+      tension: "You accept → desire wasn't there → you give anyway → bitterness builds.",
+      blindSpot: "You guide without wanting to → call it service → but resentment is growing.",
       edge: "Only accept what genuinely excites you. Your guidance has staying power.",
+      flow: "You're invited → you accept out of should → you give without heart → they sense it.",
+      loop: "Accept without desire → run dry → feel bitter → accept the next one hoping it's different. Repeat.",
+      correctedFlow: "Get invited → check your heart → accept only what's real → energy sustains.",
       conflictStrength: 7
     },
     'Projector_Mental': {
       punchLine: "Your clarity depends on who you're talking to and where.",
-      tension: "You try to guide from your head alone. It only works in the right setting.",
-      blindSpot: "Forcing answers in wrong environments. Your wisdom is context-dependent.",
-      edge: "Find the right setting. Your insight becomes unusually clear.",
+      tension: "You try to know alone → nothing clears → you guess → it doesn't land.",
+      blindSpot: "You force answers in wrong settings → then wonder why your guidance misses.",
+      edge: "Find the right environment → insight becomes unusually clear.",
+      flow: "You think alone → it stays murky → you share anyway → it falls flat.",
+      loop: "Try to figure it out → stay isolated → offer unclear guidance → feel ineffective → try harder to think. Repeat.",
+      correctedFlow: "Feel uncertain → find right people/place → discuss → clarity emerges → guide precisely.",
       conflictStrength: 5
     },
     'Projector_None': {
       punchLine: "You see into others deeply. Your own clarity shifts with place.",
-      tension: "Looking inside when the answers live outside.",
-      blindSpot: "Trying to be consistent when your wisdom genuinely shifts.",
+      tension: "You look inside → nothing stable → you keep searching → exhaustion.",
+      blindSpot: "You try to be consistent → but your wisdom genuinely shifts → that's not instability, it's design.",
       edge: "Choose environments wisely. Your guidance becomes precisely attuned.",
+      flow: "You seek inner certainty → it moves → you doubt yourself → you try harder.",
+      loop: "Look for stable self-knowledge → find shifting clarity → feel unreliable → try to be more consistent. Repeat.",
+      correctedFlow: "Accept you shift → choose environments consciously → let place guide → offer what emerges.",
       conflictStrength: 5
     },
     
     // REFLECTOR
     'Reflector_Lunar': {
       punchLine: "You take in everything. You need time to know what's yours.",
-      tension: "The world rushes. Your clarity needs 28 days, not 28 minutes.",
-      blindSpot: "Deciding from one day's reflection. You need the whole cycle.",
+      tension: "You feel it → you decide → the cycle continues → it looks different now.",
+      blindSpot: "You choose in one phase → the moon moves → your truth shifts → you think you're inconsistent.",
       edge: "Give yourself the full cycle. You access wisdom faster types can't reach.",
+      flow: "You sense something strongly → you decide → time passes → it no longer feels true.",
+      loop: "Feel strongly → decide quickly → moon shifts → regret → try to decide faster next time. Repeat.",
+      correctedFlow: "Feel it → note it → let 28 days pass → see what remains → then choose.",
       conflictStrength: 8
     }
   };
@@ -278,37 +331,52 @@ function generateFallbackPunch(type: string, authority: string): TypeAuthPunch {
   const typePatterns: { [key: string]: TypeAuthPunch } = {
     'Generator': {
       punchLine: "Your body knows what lights you up. Your mind gets in the way.",
-      tension: "Response is simple. Conditioning made it complicated.",
-      blindSpot: "Overriding your gut with logic. Every override leads to frustration.",
-      edge: "Trust the pull. Even without understanding. Satisfaction follows.",
+      tension: "Response comes → mind intervenes → you override → frustration builds.",
+      blindSpot: "You talk yourself into yes → body said no → you wonder why you're drained.",
+      edge: "Trust the pull → skip the reasons → satisfaction follows.",
+      flow: "You sense the pull → you question it → you override → you regret.",
+      loop: "Body responds → mind doubts → override → frustration → try to think better next time. Repeat.",
+      correctedFlow: "Feel the pull → honor it → reasons come later or don't → energy stays clean.",
       conflictStrength: 7
     },
     'Manifesting Generator': {
       punchLine: "You move in multiple directions. That's not scattered—it's how you work.",
-      tension: "Others want you to pick one thing. Your design is multi-track.",
-      blindSpot: "Forcing yourself through dead tracks. Staying out of obligation.",
-      edge: "Follow the strongest pull. Pivot when it's done.",
+      tension: "You start → energy shifts → you want to pivot → guilt keeps you stuck.",
+      blindSpot: "You force yourself through dead tracks → call it discipline → but the energy died long ago.",
+      edge: "Follow the strongest pull → pivot when it's done → find the real path.",
+      flow: "You respond → you start → energy shifts → you're stuck between guilt and pivot.",
+      loop: "Start with energy → energy dies → force through → resent it → guilt over pivoting. Repeat.",
+      correctedFlow: "Respond → engage → energy shifts → pivot without guilt → efficiency emerges.",
       conflictStrength: 7
     },
     'Projector': {
       punchLine: "You see what others miss. Your insight transforms when invited.",
-      tension: "Seeing clearly but sharing without invitation leads to bitterness.",
-      blindSpot: "Offering guidance because you can see it—not because anyone asked.",
-      edge: "Wait for recognition. Your seeing becomes your most valuable gift.",
+      tension: "You see it → you share without invitation → it falls flat → bitterness builds.",
+      blindSpot: "You offer guidance because you can see it → not because anyone asked → they resist.",
+      edge: "Wait for recognition → your seeing becomes your most valuable gift.",
+      flow: "You see clearly → you share → no one asked → it doesn't land.",
+      loop: "See the answer → share uninvited → get rejected → feel bitter → share faster next time. Repeat.",
+      correctedFlow: "See it → wait for invitation → share when asked → it transforms.",
       conflictStrength: 7
     },
     'Manifestor': {
       punchLine: "You initiate what doesn't exist yet. The work is informing first.",
-      tension: "The urge to act meets resistance from people unprepared for your movement.",
-      blindSpot: "Moving without informing, then resenting the pushback.",
-      edge: "Inform before you move. Your power flows without friction.",
+      tension: "You act → no one knew it was coming → they resist → you resent their resistance.",
+      blindSpot: "You move without informing → then blame others for not keeping up.",
+      edge: "Inform before you move → power flows without friction.",
+      flow: "You feel the urge → you act → people are unprepared → they push back.",
+      loop: "Move without warning → meet resistance → resent them → move faster next time. Repeat.",
+      correctedFlow: "Feel the urge → inform → give them a moment → then move → they're with you.",
       conflictStrength: 7
     },
     'Reflector': {
       punchLine: "You feel completely different depending on who you're with. That's design, not instability.",
-      tension: "The world wants consistency. You're designed to reflect.",
-      blindSpot: "Trying to hold a fixed identity when you're meant to sample.",
-      edge: "Choose your environments. You will become what you're around.",
+      tension: "You feel something strongly → you decide → time passes → it feels different now.",
+      blindSpot: "You try to hold a fixed identity → but you're meant to reflect → that's not instability.",
+      edge: "Choose your environments → you will become what you're around.",
+      flow: "You feel certain → you act → the cycle continues → truth shifts.",
+      loop: "Feel strongly → decide fast → moon moves → regret → try to be more consistent. Repeat.",
+      correctedFlow: "Feel it → note it → let the cycle complete → see what remains → then choose.",
       conflictStrength: 7
     }
   };
@@ -610,72 +678,69 @@ function getCrossPunch(crossName: string): { punch: string; tension: string } | 
 }
 
 // ============================================
-// BEHAVIORAL BULLETS GENERATOR
+// BEHAVIORAL BULLETS GENERATOR WITH LOOP PATTERN
 // Max 3-4, specific, different from each other
-// Now enhanced with PROGRAMMING PARTNER polarity swings
+// Now includes at least ONE loop pattern
 // ============================================
 
-function generateBehavioralBullets(
+function generateBehavioralBulletsWithLoop(
   dominantPatterns: DominantPattern[],
   input: HDSynthesisInput,
-  polarities: RankedPolarity[] = []
+  polarities: RankedPolarity[] = [],
+  loopPattern?: string
 ): string[] {
   const bullets: string[] = [];
-  const { type, authority, profile, definition, channels, consciousGates, unconsciousGates, undefinedCenters } = input;
+  const { type, authority, profile, definition, consciousGates, unconsciousGates } = input;
   
-  // Type × Authority specific behaviors
-  if (type === 'Manifestor' && authority === 'Emotional') {
-    bullets.push("You decide, then question it when the wave passes");
-    bullets.push("People expect certainty before you feel it");
-  } else if (type === 'Manifestor') {
-    bullets.push("You act, then watch others catch up");
-  } else if (type === 'Generator' && authority === 'Emotional') {
-    bullets.push("You say yes in excitement, then feel stuck when it settles");
-  } else if (type === 'Generator') {
-    bullets.push("Your body knows before your mind catches up");
-  } else if (type === 'Manifesting Generator') {
-    bullets.push("You start fast, discover if it's right later");
-    bullets.push("What looks like quitting is your body finding the real path");
-  } else if (type === 'Projector') {
-    bullets.push("You see what others miss—and feel unseen when no one asks");
-  } else if (type === 'Reflector') {
-    bullets.push("You feel different depending on who you're with");
+  // FIRST BULLET: The LOOP PATTERN (most important)
+  if (loopPattern) {
+    bullets.push(loopPattern);
   }
   
-  // ADD POLARITY BEHAVIORAL SWING (high priority)
-  if (polarities.length > 0 && bullets.length < 3) {
+  // Type × Authority specific flow behaviors
+  if (type === 'Manifestor' && authority === 'Emotional' && bullets.length < 4) {
+    if (!loopPattern) bullets.push("Move fast → meet resistance → withdraw → feel misunderstood → repeat");
+    bullets.push("You decide → wave shifts → you question → but you already committed");
+  } else if (type === 'Manifestor' && bullets.length < 4) {
+    if (!loopPattern) bullets.push("Act → they're surprised → they resist → you resent → repeat");
+    bullets.push("You move → no one knew → they push back");
+  } else if (type === 'Generator' && authority === 'Emotional' && bullets.length < 4) {
+    if (!loopPattern) bullets.push("Say yes in high → wave drops → feel stuck → blame your choices → repeat");
+  } else if (type === 'Generator' && bullets.length < 4) {
+    if (!loopPattern) bullets.push("Body responds → mind doubts → override → frustration → repeat");
+    bullets.push("Gut says no → you talk yourself in → energy drains");
+  } else if (type === 'Manifesting Generator' && bullets.length < 4) {
+    if (!loopPattern) bullets.push("Start with energy → energy shifts → guilt keeps you → repeat");
+    bullets.push("You pivot → they call it inconsistent → you doubt yourself");
+  } else if (type === 'Projector' && bullets.length < 4) {
+    if (!loopPattern) bullets.push("See answer → share uninvited → rejected → bitter → repeat");
+    bullets.push("You see it clearly → no one asked → it falls flat");
+  } else if (type === 'Reflector' && bullets.length < 4) {
+    if (!loopPattern) bullets.push("Feel certain → decide → moon moves → regret → repeat");
+  }
+  
+  // ADD POLARITY swing if room
+  if (polarities.length > 0 && bullets.length < 4) {
     const polarityBullet = getPolarityBehavioralBullet(polarities);
     if (polarityBullet && !bullets.some(b => b.toLowerCase().includes(polarityBullet.toLowerCase().split(' ')[0]))) {
       bullets.push(polarityBullet);
     }
   }
   
-  // ADD POLARITY RELATIONSHIP PATTERN (from second polarity if available)
-  if (polarities.length > 1 && bullets.length < 4) {
-    const relationshipBullet = getPolarityRelationshipBullet(polarities);
-    if (relationshipBullet && !bullets.some(b => b.toLowerCase().includes(relationshipBullet.toLowerCase().split(' ')[0]))) {
-      bullets.push(relationshipBullet);
-    }
-  }
-  
-  // Conscious/Unconscious (if we have the data and room)
+  // Conscious/Unconscious flow
   if (consciousGates && unconsciousGates && consciousGates.length > 0 && unconsciousGates.length > 0 && bullets.length < 4) {
-    bullets.push("Your mind explains decisions your body already made");
+    bullets.push("Mind explains → body already decided → you realize later");
   }
   
-  // Profile first line behavior
+  // Profile patterns
   const firstLine = profile?.split('/')[0];
-  if (firstLine === '5' && bullets.length < 4 && !bullets.some(b => b.includes('expect') && b.includes('answer'))) {
-    bullets.push("People expect answers before you've offered any");
-  } else if (firstLine === '1' && bullets.length < 4) {
-    bullets.push("You research longer than others think necessary");
-  } else if (firstLine === '3' && bullets.length < 4) {
-    bullets.push("You learn more from what went wrong than what went right");
+  if (firstLine === '5' && bullets.length < 4) {
+    bullets.push("They expect answers → you haven't offered → they're already disappointed");
   }
   
   // Split definition
   if (definition === 'Split' && bullets.length < 4) {
-    bullets.push("You feel more complete around certain people—that's design, not dependency");
+    bullets.push("Feel incomplete → find the right person → suddenly whole → they leave → incomplete again");
   }
   
   // Limit to 4 max, remove duplicates
@@ -684,58 +749,65 @@ function generateBehavioralBullets(
 }
 
 // ============================================
-// SUPPORT CONDITIONS GENERATOR
-// Max 2-3, HIGH IMPACT only
+// SUPPORTS GENERATOR WITH LOOP BREAKERS
+// Focuses on what interrupts the pattern
 // ============================================
 
-function generateSupports(input: HDSynthesisInput): string[] {
+function generateSupportsWithLoopBreakers(input: HDSynthesisInput): string[] {
   const supports: string[] = [];
   const { type, authority, definition, undefinedCenters } = input;
   
-  // Authority-based (highest impact)
+  // Authority-based loop breakers (highest impact)
   if (authority === 'Emotional') {
-    supports.push("Time between impulse and commitment");
-    supports.push("People who don't rush your clarity");
+    supports.push("The pause between impulse and action—that's where the loop breaks");
+    supports.push("People who don't rush you through the wave");
   } else if (authority === 'Sacral') {
-    supports.push("Yes/no questions that let your gut respond");
+    supports.push("Questions that let your body respond before your mind intervenes");
   } else if (authority === 'Splenic') {
-    supports.push("Trust in the first knowing, without needing reasons");
+    supports.push("Trust the first hit—waiting for reasons restarts the loop");
   } else if (authority === 'Ego') {
-    supports.push("Freedom to follow desire without guilt");
+    supports.push("Only commit to what you actually want—forced desire starts the loop");
   } else if (authority === 'Lunar') {
-    supports.push("A full 28-day cycle before major decisions");
+    supports.push("A full cycle before deciding—shortcuts restart the pattern");
   } else if (authority === 'Self-Projected') {
-    supports.push("Sounding boards who listen without directing");
+    supports.push("Sounding boards—the loop breaks when you hear yourself");
   }
   
-  // Type-based (only if room)
+  // Type-based loop breakers
   if (type === 'Manifestor' && supports.length < 3) {
-    supports.push("Relationships that don't require constant explanation");
+    supports.push("Informing before acting—resistance stops before it starts");
   } else if (type === 'Projector' && supports.length < 3) {
-    supports.push("Invitations before contribution");
+    supports.push("Waiting for invitation—uninvited sharing feeds the loop");
   } else if (type === 'Reflector' && supports.length < 3) {
-    supports.push("Genuinely healthy environments—you become what you're around");
-  }
-  
-  // Undefined center (only highest impact)
-  if (undefinedCenters && supports.length < 3) {
-    if (undefinedCenters.some(c => c.toLowerCase().includes('root'))) {
-      supports.push("Release from artificial urgency");
-    }
+    supports.push("Healthy environments—you become what you're around");
   }
   
   // Split definition
   if (definition === 'Split' && supports.length < 3) {
-    supports.push("People who bridge your gaps without you trying");
+    supports.push("People who bridge your gaps—without them, incompleteness loops");
   }
   
   return supports.slice(0, 3);
 }
 
+// Keep the old function for compatibility
+function generateBehavioralBullets(
+  dominantPatterns: DominantPattern[],
+  input: HDSynthesisInput,
+  polarities: RankedPolarity[] = []
+): string[] {
+  return generateBehavioralBulletsWithLoop(dominantPatterns, input, polarities);
+}
+
+// Keep the old function for compatibility
+function generateSupports(input: HDSynthesisInput): string[] {
+  return generateSupportsWithLoopBreakers(input);
+}
+
 // ============================================
 // MASTER SYNTHESIS GENERATOR
-// Compressed + Punchy version
-// Now enhanced with PROGRAMMING PARTNERS
+// Compressed + Punchy + FLOW/LOOP version
+// Now patterns unfold and repeat
 // ============================================
 
 export function generateHDSynthesis(input: HDSynthesisInput): HDSynthesis | null {
@@ -780,82 +852,73 @@ export function generateHDSynthesis(input: HDSynthesisInput): HDSynthesis | null
   
   if (!primary) return null;
   
+  // Get the full TypeAuthPunch with flow/loop patterns
+  const typeAuthPattern = getTypeAuthorityConflict(type, authority);
+  
   // ============================================
-  // STEP 2: BUILD CORE PATTERN (1 dominant + 1 support max)
+  // STEP 2: BUILD CORE PATTERN (punch + flow sequence)
   // ============================================
   let corePattern = primary.punchLine;
   
-  // Add cross punch if it's powerful enough
-  if (incarnationCross) {
+  // Add FLOW sequence (cause → effect → consequence)
+  if (typeAuthPattern?.flow) {
+    corePattern += ` ${typeAuthPattern.flow}`;
+  }
+  // Or add cross punch if powerful
+  else if (incarnationCross) {
     const crossPunch = getCrossPunch(incarnationCross);
     if (crossPunch) {
       corePattern += ` ${crossPunch.punch}`;
     }
   }
-  // OR add channel punch if secondary
-  else if (secondary?.id?.startsWith('channel')) {
-    corePattern += ` ${secondary.punchLine}`;
-  }
   
   // ============================================
-  // STEP 3: BUILD CORE TENSION (now enhanced with polarity)
+  // STEP 3: BUILD CORE TENSION (contradiction in motion)
   // ============================================
-  let coreTension = primary.tension;
+  // Use the flow-based tension from TypeAuthPunch
+  let coreTension = typeAuthPattern?.tension || primary.tension;
   
   // ADD PROGRAMMING PARTNER TENSION if available
   if (dominantPolarities.length > 0) {
     coreTension = enhanceTensionWithPolarity(coreTension, dominantPolarities);
   }
-  // Otherwise add secondary tension if different enough
-  else if (secondary && !secondary.id?.startsWith('channel') && secondary.tension !== primary.tension) {
-    const secondaryTension = secondary.tension;
-    if (secondaryTension.length < 60) {
-      coreTension += ` ${secondaryTension}`;
-    }
-  }
   
   // ============================================
-  // STEP 4: BUILD HOW THIS PLAYS OUT (3-4 max, now with polarity)
+  // STEP 4: BUILD HOW THIS PLAYS OUT (with LOOP pattern)
   // ============================================
-  const howThisPlaysOut = generateBehavioralBullets(dominantPatterns, input, dominantPolarities);
+  const howThisPlaysOut = generateBehavioralBulletsWithLoop(
+    dominantPatterns, 
+    input, 
+    dominantPolarities,
+    typeAuthPattern?.loop
+  );
   
   // ============================================
-  // STEP 5: BUILD BLIND SPOT (now enhanced with polarity)
+  // STEP 5: BUILD BLIND SPOT (flow/loop format)
   // ============================================
-  let blindSpot = primary.blindSpot;
+  // Use the loop-style blind spot from TypeAuthPunch
+  let blindSpot = typeAuthPattern?.blindSpot || primary.blindSpot;
   
   // ADD PROGRAMMING PARTNER BLIND SPOT
   if (dominantPolarities.length > 0) {
     blindSpot = enhanceBlindSpotWithPolarity(blindSpot, dominantPolarities);
   }
-  // Otherwise add profile unconscious if different
-  else if (secondary?.id === 'profile' && secondary.blindSpot !== primary.blindSpot) {
-    blindSpot += ` ${secondary.blindSpot}`;
-  }
   
   // ============================================
-  // STEP 6: BUILD EDGE (now enhanced with polarity integration)
+  // STEP 6: BUILD EDGE (corrected flow)
   // ============================================
-  let edge = primary.edge;
+  // Use corrected flow from TypeAuthPunch
+  let edge = typeAuthPattern?.correctedFlow || typeAuthPattern?.edge || primary.edge;
   
   // ADD PROGRAMMING PARTNER INTEGRATION
   if (dominantPolarities.length > 0) {
     edge = enhanceEdgeWithPolarity(edge, dominantPolarities);
   }
-  // Otherwise add channel edge if relevant
-  else if (channels && channels.length > 0) {
-    const channelPattern = getChannelConflict(channels[0]);
-    if (channelPattern && channelPattern.edge !== primary.edge) {
-      if (channelPattern.edge.length < 80) {
-        edge += ` ${channelPattern.edge}`;
-      }
-    }
-  }
   
   // ============================================
-  // STEP 7: BUILD WHAT SUPPORTS YOU (2-3 max)
+  // STEP 7: BUILD WHAT SUPPORTS YOU (loop breakers)
   // ============================================
-  const whatSupportsYou = generateSupports(input);
+  const whatSupportsYou = generateSupportsWithLoopBreakers(input);
   
   return {
     corePattern,
