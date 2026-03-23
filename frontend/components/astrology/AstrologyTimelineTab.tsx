@@ -23,6 +23,7 @@ import { Colors } from '../../constants/colors';
 import { FullChartData } from '../../services/astrology/astrologyTypes';
 import { getJournalEntriesByPhase, getJournalPatterns, JournalEntryResponseWithPhase, JournalPatternAnalysis } from '../../services/api';
 import { useAppStore } from '../../store';
+import { cleanText } from '../../utils/languageGuard';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -601,7 +602,7 @@ export default function AstrologyTimelineTab({
                             </Text>
                             <View style={[styles.timelineCompressedContainer, { borderColor: Colors.accent + '40' }]}>
                               <Text style={[styles.timelineCompressedLine, { color: theme.text }]}>
-                                {patternData.compressed_pattern_lines[phase.id]}
+                                {cleanText(patternData.compressed_pattern_lines[phase.id])}
                               </Text>
                             </View>
                           </View>
@@ -617,7 +618,7 @@ export default function AstrologyTimelineTab({
                               A pattern in how you move:
                             </Text>
                             <Text style={[styles.timelineIdentityEchoText, { color: theme.text }]}>
-                              {patternData.identity_echo}
+                              {cleanText(patternData.identity_echo)}
                             </Text>
                           </View>
                         )}
@@ -629,7 +630,7 @@ export default function AstrologyTimelineTab({
                               Why this may feel stronger right now:
                             </Text>
                             <Text style={[styles.timelineAngleText, { color: theme.textSecondary }]}>
-                              {patternData.angle_line}
+                              {cleanText(patternData.angle_line)}
                             </Text>
                           </View>
                         )}

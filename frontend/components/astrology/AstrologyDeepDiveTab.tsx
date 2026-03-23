@@ -26,6 +26,8 @@ import {
   UnifiedPattern,
 } from '../../services/astrology/astrologyInterpreter';
 
+import { cleanText } from '../../utils/languageGuard';
+
 // ============================================
 // PROPS INTERFACE
 // ============================================
@@ -1184,10 +1186,10 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                         {/* The Pattern - Master Insight */}
                         <View style={styles.deepDiveSection}>
                           <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>MASTER INSIGHT</Text>
-                          <Text style={[styles.masterInsightText, { color: theme.text }]}>{card.whatThisIs}</Text>
+                          <Text style={[styles.masterInsightText, { color: theme.text }]}>{cleanText(card.whatThisIs)}</Text>
                           {howPressureBuilds.lifeAreaStatement && (
                             <Text style={[styles.masterInsightText, { color: theme.textSecondary, fontStyle: 'italic', marginTop: 8 }]}>
-                              {howPressureBuilds.lifeAreaStatement}
+                              {cleanText(howPressureBuilds.lifeAreaStatement)}
                             </Text>
                           )}
                         </View>
@@ -1198,19 +1200,19 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                         {/* What Keeps Tightening */}
                         <View style={styles.deepDiveSection}>
                           <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>TENSION</Text>
-                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{howPressureBuilds.whatKeepsTightening}</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{cleanText(howPressureBuilds.whatKeepsTightening)}</Text>
                         </View>
                         
                         {/* Where It Collects */}
                         <View style={styles.deepDiveSection}>
                           <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHERE IT SHOWS UP</Text>
-                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{howPressureBuilds.whereItCollects}</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{cleanText(howPressureBuilds.whereItCollects)}</Text>
                         </View>
                         
                         {/* Gift */}
                         <View style={[styles.deepDiveSection, { backgroundColor: '#E8F5E910', padding: 12, borderRadius: 8 }]}>
                           <Text style={[styles.deepDiveSectionLabel, { color: '#5A8A62' }]}>GENIUS</Text>
-                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{howPressureBuilds.giftInsideThePressure}</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>{cleanText(howPressureBuilds.giftInsideThePressure)}</Text>
                         </View>
                         
                         {/* Divider */}
@@ -1220,7 +1222,7 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                         <View style={[styles.practicalShiftSection, { backgroundColor: theme.accent + '08' }]}>
                           <Text style={[styles.practicalShiftLabel, { color: theme.accent }]}>PRACTICAL SHIFT</Text>
                           <Text style={[styles.practicalShiftText, { color: theme.text }]}>
-                            {howPressureBuilds.howItTriesToResolve.split('.')[0] + '.'}
+                            {cleanText(howPressureBuilds.howItTriesToResolve.split('.')[0] + '.')}
                           </Text>
                         </View>
                         
@@ -1231,7 +1233,7 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                         <View style={[styles.deepDiveReflection, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
                           <Text style={[styles.deepDiveReflectionLabel, { color: theme.accent }]}>REFLECTION</Text>
                           <Text style={[styles.deepDiveReflectionText, { color: theme.text }]}>
-                            {howPressureBuilds.reflectionQuestion}
+                            {cleanText(howPressureBuilds.reflectionQuestion)}
                           </Text>
                         </View>
                         
@@ -1328,19 +1330,19 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                           {/* IDENTITY */}
                           <View style={styles.deepDiveSection}>
                             <Text style={[styles.mirrorSectionLabel, { color: theme.text }]}>IDENTITY</Text>
-                            <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>{mirrorLayer.identity}</Text>
+                            <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>{cleanText(mirrorLayer.identity)}</Text>
                           </View>
 
                           {/* TENSION */}
                           <View style={[styles.deepDiveSection, { backgroundColor: '#FFEBEE10', padding: 12, borderRadius: 8 }]}>
                             <Text style={[styles.mirrorSectionLabel, { color: '#B71C1C' }]}>TENSION</Text>
-                            <Text style={[styles.mirrorSectionText, { color: theme.text }]}>{mirrorLayer.tension}</Text>
+                            <Text style={[styles.mirrorSectionText, { color: theme.text }]}>{cleanText(mirrorLayer.tension)}</Text>
                           </View>
 
                           {/* GENIUS */}
                           <View style={[styles.deepDiveSection, { backgroundColor: '#E8F5E910', padding: 12, borderRadius: 8 }]}>
                             <Text style={[styles.mirrorSectionLabel, { color: '#1B5E20' }]}>GENIUS</Text>
-                            <Text style={[styles.mirrorSectionText, { color: theme.text }]}>{mirrorLayer.genius}</Text>
+                            <Text style={[styles.mirrorSectionText, { color: theme.text }]}>{cleanText(mirrorLayer.genius)}</Text>
                           </View>
 
                           {/* WHERE THIS SHOWS UP */}
@@ -1348,7 +1350,7 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                             <Text style={[styles.mirrorSectionLabel, { color: theme.text }]}>WHERE THIS SHOWS UP</Text>
                             {mirrorLayer.whereItShowsUp.map((item, i) => (
                               <Text key={i} style={[styles.whereItShowsUpItem, { color: theme.textSecondary }]}>
-                                • {item}
+                                • {cleanText(item)}
                               </Text>
                             ))}
                           </View>
@@ -1359,7 +1361,7 @@ const AstrologyDeepDiveTab: React.FC<AstrologyDeepDiveTabProps> = ({
                           {/* PRACTICAL SHIFT - Highlighted */}
                           <View style={[styles.practicalShiftSection, { backgroundColor: theme.accent + '08' }]}>
                             <Text style={[styles.practicalShiftLabel, { color: theme.accent }]}>PRACTICAL SHIFT</Text>
-                            <Text style={[styles.practicalShiftText, { color: theme.text }]}>{mirrorLayer.practicalShift}</Text>
+                            <Text style={[styles.practicalShiftText, { color: theme.text }]}>{cleanText(mirrorLayer.practicalShift)}</Text>
                           </View>
 
                           {/* Divider */}

@@ -32,6 +32,7 @@ import {
 } from '../services/timelinePhaseUtils';
 import { getJournalPatterns, JournalPatternAnalysis } from '../services/api';
 import { useAppStore } from '../store';
+import { cleanText } from '../utils/languageGuard';
 
 // Timing
 const FADE_IN_DURATION = 350;
@@ -219,7 +220,7 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
           </Text>
           <View style={[styles.compressedPatternContainer, { borderColor: accentColor + '40' }]}>
             <Text style={[styles.compressedPatternLine, { color: theme.text }]}>
-              {compressedPatternLine}
+              {cleanText(compressedPatternLine)}
             </Text>
           </View>
         </View>
@@ -232,7 +233,7 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
             A pattern in how you move:
           </Text>
           <Text style={[styles.identityEchoText, { color: theme.text }]}>
-            {identityEcho}
+            {cleanText(identityEcho)}
           </Text>
         </View>
       )}
@@ -244,7 +245,7 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
             Why this may feel stronger right now:
           </Text>
           <Text style={[styles.angleLineText, { color: theme.textSecondary }]}>
-            {angleLine}
+            {cleanText(angleLine)}
           </Text>
         </View>
       )}
@@ -257,7 +258,7 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
           </Text>
           {recurringPatterns.map((pattern, i) => (
             <Text key={i} style={[styles.patternItem, { color: theme.textSecondary }]}>
-              • {pattern}
+              • {cleanText(pattern)}
             </Text>
           ))}
         </View>
@@ -270,7 +271,7 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
             What this might reflect:
           </Text>
           <Text style={[styles.tensionInsight, { color: theme.textSecondary }]}>
-            {tensionInsight}
+            {cleanText(tensionInsight)}
           </Text>
         </View>
       )}
