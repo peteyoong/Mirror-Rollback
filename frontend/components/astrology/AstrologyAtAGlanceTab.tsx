@@ -32,6 +32,8 @@ import {
   getEnhancedKeyAspects,
   buildLifeChapterAnalysis,
   buildLifeChapterNarrative,
+  generateChartAxis,
+  rankMostImportantFactors,
 } from '../../services/astrology/astrologyInterpreter';
 
 import {
@@ -306,6 +308,12 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
   const mainArenas = getMainLifeArenas(fullChartData);
   const whereLifeWorks = getWhereLifeKeepsWorkingOnYou(fullChartData);
   
+  // NEW: Chart Axis - the developmental spine of the chart
+  const chartAxis = generateChartAxis(placements, fullChartData);
+  
+  // NEW: Most Important Factors ranking
+  const mostImportantFactors = rankMostImportantFactors(placements, fullChartData);
+  
   // Aspect pattern analysis (Master Astrologer v3)
   const patternAnalysis = buildAspectPatternAnalysis(fullChartData);
   const enhancedAspects = getEnhancedKeyAspects(fullChartData, 4);
@@ -361,6 +369,37 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
           </Text>
         ))}
       </View>
+
+      {/* CHART AXIS - The developmental spine (NEW) */}
+      {chartAxis.lines.length > 0 && (
+        <View style={[styles.chartAxisCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '25' }]}>
+          <Text style={[styles.chartAxisTitle, { color: theme.accent }]}>CHART AXIS</Text>
+          <Text style={[styles.chartAxisSubtitle, { color: theme.textTertiary }]}>
+            The developmental spine of this chart
+          </Text>
+          {chartAxis.lines.map((line, i) => (
+            <Text key={i} style={[styles.chartAxisLine, { color: theme.text }]}>
+              {line}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {/* MOST IMPORTANT FACTORS (NEW) */}
+      {mostImportantFactors.length > 0 && (
+        <View style={[styles.whatMattersCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.whatMattersTitle, { color: theme.accent }]}>MOST IMPORTANT FACTORS IN THIS CHART</Text>
+          {mostImportantFactors.map((factor, i) => (
+            <View key={i} style={styles.whatMattersItem}>
+              <Text style={[styles.whatMattersRank, { color: theme.accent }]}>{factor.rank}</Text>
+              <View style={styles.whatMattersContent}>
+                <Text style={[styles.whatMattersLabel, { color: theme.text }]}>{factor.factorName}</Text>
+                <Text style={[styles.whatMattersForce, { color: theme.textSecondary }]}>{factor.whyItMatters}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* LIFE CHAPTER - Master Astrologer v4 */}
       {chapterNarrative && chapterAnalysis.hasActiveChapter && (
@@ -700,6 +739,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     marginBottom: 8,
+  },
+  // CHART AXIS STYLES (NEW)
+  chartAxisCard: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 4,
+  },
+  chartAxisTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  chartAxisSubtitle: {
+    fontSize: 11,
+    marginBottom: 14,
+    fontStyle: 'italic',
+  },
+  chartAxisLine: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 10,
+    paddingLeft: 0,
   },
   lifeChapterCard: {
     borderRadius: 12,

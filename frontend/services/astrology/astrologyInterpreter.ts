@@ -4055,3 +4055,225 @@ export const getUnifiedPattern = (input: UnifiedPatternInput): UnifiedPattern | 
   
   return pattern;
 };
+
+
+
+// ============================================
+// CHART AXIS - Developmental Spine Analysis
+// Part of Astrological Intelligence Hierarchy v1
+// ============================================
+
+export interface ChartAxisOutput {
+  lines: string[];
+  coreTension: string;
+  growthDirection: string;
+  woundMedicine: string;
+}
+
+export interface MostImportantFactor {
+  rank: number;
+  factorName: string;
+  whyItMatters: string;
+  factorType: 'placement' | 'aspect' | 'pattern' | 'emphasis';
+}
+
+export function generateChartAxis(
+  placements: CorePlacements,
+  fullChartData: FullChartData | null
+): ChartAxisOutput {
+  const lines: string[] = [];
+  
+  const sun = placements.sun || 'Unknown';
+  const moon = placements.moon || 'Unknown';
+  const asc = placements.ascendant || 'Unknown';
+  const saturn = placements.saturn;
+  const saturnHouse = placements.saturn_house;
+  const northNode = placements.north_node;
+  const northNodeHouse = placements.north_node_house;
+  const chiron = placements.chiron;
+  const chironHouse = placements.chiron_house;
+  
+  // 1. CORE ORIENTATION LINE
+  const sunElement = SIGN_ELEMENTS[sun];
+  const moonElement = SIGN_ELEMENTS[moon];
+  
+  const coreOrientationLines: { [key: string]: { [key: string]: string } } = {
+    'Fire': {
+      'Fire': 'A direct, expressive core that moves before it considers.',
+      'Earth': 'An expressive identity grounded by practical emotional needs.',
+      'Air': 'A warm presence whose emotions process through thought.',
+      'Water': 'Outer confidence paired with deep inner sensitivity.',
+    },
+    'Earth': {
+      'Fire': 'A steady nature with emotions that want to move quickly.',
+      'Earth': 'Double-grounded—consistent inside and out.',
+      'Air': 'Practical by nature, but emotionally restless.',
+      'Water': 'Solid on the surface, deep currents underneath.',
+    },
+    'Air': {
+      'Fire': 'A curious mind fueled by emotional enthusiasm.',
+      'Earth': 'Ideas that need practical emotional grounding.',
+      'Air': 'Pure thought—both identity and emotions live in the mind.',
+      'Water': 'A thinking nature with feeling depths that surprise.',
+    },
+    'Water': {
+      'Fire': 'A sensitive core with impulses that demand expression.',
+      'Earth': 'Emotional depth stabilized by practical needs.',
+      'Air': 'Deep feelings processed through mental frameworks.',
+      'Water': 'Feeling all the way down—boundaries are the work.',
+    },
+  };
+  
+  if (sunElement && moonElement && coreOrientationLines[sunElement]?.[moonElement]) {
+    lines.push(coreOrientationLines[sunElement][moonElement]);
+  } else {
+    lines.push('A mixed elemental signature—versatile, complex, less predictable.');
+  }
+  
+  // 2. MAIN TENSION LINE
+  const sunMod = SIGN_MODALITIES[sun];
+  const moonMod = SIGN_MODALITIES[moon];
+  
+  if (sunMod === 'Cardinal' && moonMod === 'Fixed') {
+    lines.push('Life is approached with initiative, but emotions resist the changes identity keeps starting.');
+  } else if (sunMod === 'Fixed' && moonMod === 'Cardinal') {
+    lines.push('Identity holds steady, but emotional impulses keep pushing for new beginnings.');
+  } else if (sunElement === 'Fire' && moonElement === 'Water') {
+    lines.push('What you show and what you feel live in different registers—confidence outside, sensitivity inside.');
+  } else if (sunElement === 'Earth' && moonElement === 'Air') {
+    lines.push('A practical nature with emotional restlessness—wanting both stability and variety.');
+  } else {
+    lines.push('Your Big 3 work relatively harmoniously—less internal conflict, more consistent expression.');
+  }
+  
+  // 3. SATURN LINE
+  if (saturn && saturnHouse) {
+    const saturnLines: { [key: number]: string } = {
+      1: 'Self-definition itself is where life keeps demanding more discipline and structure.',
+      2: 'Growth demands structure around resources, body, or material foundations.',
+      3: 'Maturation pressure concentrates on communication, thought, and mental containment.',
+      4: 'Home, roots, and inner foundation are where maturity keeps getting tested.',
+      5: 'Creative expression and visibility require more discipline than feels natural.',
+      6: 'Daily routines and service are where discipline builds character.',
+      7: 'Relationships are where you learn the hardest lessons about commitment and boundaries.',
+      8: 'Intimacy and shared resources require uncommon emotional discipline.',
+      9: 'Meaning-making and beliefs are where structure gets demanded.',
+      10: 'Career and public standing are where maturity gets tested hardest.',
+      11: 'Community and friendships require more intentional cultivation.',
+      12: 'The inner world and spiritual life demand structure that doesn\'t come naturally.',
+    };
+    lines.push(saturnLines[saturnHouse] || `Pressure and maturation concentrate around House ${saturnHouse}.`);
+  }
+  
+  // 4. NODAL LINE
+  if (northNode) {
+    const northElement = SIGN_ELEMENTS[northNode];
+    const nodalLines: { [key: string]: string } = {
+      'Fire': 'Growth asks for more courage, self-assertion, and willingness to be seen.',
+      'Earth': 'Growth asks for more grounding, patience, and building something lasting.',
+      'Air': 'Growth asks for more objectivity, communication, and mental flexibility.',
+      'Water': 'Growth asks for trust, surrender, and emotional intelligence.',
+    };
+    lines.push(nodalLines[northElement || ''] || 'Growth direction involves moving toward what feels less familiar.');
+  }
+  
+  // 5. CHIRON LINE
+  if (chiron && chironHouse) {
+    const chironLines: { [key: number]: string } = {
+      1: 'A wound around selfhood or visibility may become your medicine for helping others be seen.',
+      2: 'A wound around worth or resources may become your medicine for helping others value themselves.',
+      3: 'A wound around voice or communication may become your medicine for helping others be heard.',
+      4: 'A wound around belonging or family may become your medicine for helping others find home.',
+      5: 'A wound around creativity or being seen may become your medicine for helping others shine.',
+      6: 'A wound around health or usefulness may become your medicine for helping others serve.',
+      7: 'A wound around partnership may become your medicine for helping others relate.',
+      8: 'A wound around trust or intimacy may become your medicine for helping others transform.',
+      9: 'A wound around meaning or belonging may become your medicine for helping others find truth.',
+      10: 'A wound around achievement or authority may become your medicine for helping others lead.',
+      11: 'A wound around belonging or difference may become your medicine for helping others find their people.',
+      12: 'A wound around isolation or transcendence may become your medicine for helping others heal.',
+    };
+    lines.push(chironLines[chironHouse] || `A wound in House ${chironHouse} may become part of your medicine.`);
+  }
+  
+  return {
+    lines: lines.slice(0, 6),
+    coreTension: lines[1] || '',
+    growthDirection: lines.find(l => l.includes('Growth') || l.includes('growth')) || '',
+    woundMedicine: lines.find(l => l.includes('wound') || l.includes('medicine')) || '',
+  };
+}
+
+export function rankMostImportantFactors(
+  placements: CorePlacements,
+  fullChartData: FullChartData | null
+): MostImportantFactor[] {
+  const factors: MostImportantFactor[] = [];
+  
+  // 1. SUN
+  const sunHouse = placements.sun_house;
+  const sunElement = SIGN_ELEMENTS[placements.sun];
+  factors.push({
+    rank: 1,
+    factorName: `Sun in ${placements.sun}${sunHouse ? ` in House ${sunHouse}` : ''}`,
+    whyItMatters: sunHouse && HOUSE_MEANINGS[sunHouse]
+      ? `Identity develops through ${HOUSE_MEANINGS[sunHouse].shortLabel.toLowerCase()} and ${sunElement?.toLowerCase() || 'distinctive'} expression.`
+      : 'The essential frequency of who you are.',
+    factorType: 'placement',
+  });
+  
+  // 2. MOON
+  const moonHouse = placements.moon_house;
+  const moonElement = SIGN_ELEMENTS[placements.moon];
+  factors.push({
+    rank: 2,
+    factorName: `Moon in ${placements.moon}${moonHouse ? ` in House ${moonHouse}` : ''}`,
+    whyItMatters: moonHouse && HOUSE_MEANINGS[moonHouse]
+      ? `Emotional life anchors in ${HOUSE_MEANINGS[moonHouse].shortLabel.toLowerCase()} and processes through ${moonElement?.toLowerCase() || 'distinctive'} patterns.`
+      : 'How you feel when no one is watching.',
+    factorType: 'placement',
+  });
+  
+  // 3. SATURN
+  if (placements.saturn && placements.saturn_house) {
+    factors.push({
+      rank: 3,
+      factorName: `Saturn in ${placements.saturn} in House ${placements.saturn_house}`,
+      whyItMatters: HOUSE_MEANINGS[placements.saturn_house]
+        ? `Pressure and maturation concentrate around ${HOUSE_MEANINGS[placements.saturn_house].shortLabel.toLowerCase()}—this is where life keeps demanding growth.`
+        : 'Where maturation pressure concentrates.',
+      factorType: 'placement',
+    });
+  }
+  
+  // 4. NORTH NODE
+  if (placements.north_node) {
+    const nodeElement = SIGN_ELEMENTS[placements.north_node];
+    const nodeLines: { [key: string]: string } = {
+      'Fire': 'Growth asks for more courage, self-assertion, and willingness to be seen.',
+      'Earth': 'Growth asks for more grounding, patience, and building something lasting.',
+      'Air': 'Growth asks for more objectivity, communication, and mental flexibility.',
+      'Water': 'Growth asks for trust, surrender, and emotional intelligence.',
+    };
+    factors.push({
+      rank: 4,
+      factorName: `North Node in ${placements.north_node}${placements.north_node_house ? ` in House ${placements.north_node_house}` : ''}`,
+      whyItMatters: nodeLines[nodeElement || ''] || 'The direction life keeps pulling you toward.',
+      factorType: 'placement',
+    });
+  }
+  
+  // 5. CHIRON
+  if (placements.chiron && placements.chiron_house) {
+    factors.push({
+      rank: 5,
+      factorName: `Chiron in ${placements.chiron} in House ${placements.chiron_house}`,
+      whyItMatters: HOUSE_MEANINGS[placements.chiron_house]
+        ? `A wound in ${HOUSE_MEANINGS[placements.chiron_house].shortLabel.toLowerCase()} that becomes wisdom through lived experience.`
+        : 'A wound that becomes wisdom over time.',
+      factorType: 'placement',
+    });
+  }
+  
+  return factors.slice(0, 5);
+}
