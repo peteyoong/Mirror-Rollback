@@ -373,6 +373,8 @@ class JournalPatternAnalysis(BaseModel):
     # Identity pattern (Level 4) - only if enough data
     identity_tendency: Optional[str] = None
     identity_threshold_met: bool = False
+    # V2.6: Identity Echo - when threshold met, shown prominently in UI
+    identity_echo: Optional[str] = None  # "You tend to..." sentence for display
 
 
 class MirrorInsightCreate(BaseModel):
@@ -4039,40 +4041,51 @@ THEME_CATEGORIES = {
 }
 
 # Compression templates by phase and theme combinations
+# V2.6 - Compression Templates with Language Variety
+# Each phase has multiple sentence structures to reduce template feel
+# Uses 6 different opener patterns:
+#   1. "You're trying to… but…"
+#   2. "Part of you wants… while another part…"
+#   3. "You keep moving toward… but…"
+#   4. "Something is becoming clear, but…"
+#   5. "It matters to you, but…"
+#   6. "You can see what's true, but…"
+
 COMPRESSION_TEMPLATES = {
     'q1': {  # Recognition - awareness without movement
-        ('connection', 'distance'): "You're trying to reach something—but part of you is still holding back.",
-        ('communication', 'avoid'): "There's something you want to say, but something else keeps it from forming.",
-        ('change', 'stuck'): "Something is becoming clear, but it still hasn't turned into action.",
-        ('want', 'fear'): "You're aware of what you want—but you're also aware of what might happen if you reach for it.",
-        ('control', 'uncertainty'): "You're noticing patterns you've been managing without fully seeing them.",
-        ('default',): "Something is starting to surface that wasn't fully visible before.",
+        ('connection', 'distance'): "Part of you wants closeness, while another part keeps creating space.",
+        ('communication', 'avoid'): "Something in how you {theme_communication} keeps getting interrupted by the need to stay safe.",
+        ('change', 'stuck'): "You can see what's true about needing to shift, but the momentum hasn't arrived yet.",
+        ('want', 'fear'): "It matters to you—but the cost of reaching for it isn't clear yet.",
+        ('control', 'uncertainty'): "You keep moving toward {theme_control}—but something underneath keeps pulling back to familiar ground.",
+        ('effort', 'fatigue'): "Part of you wants to keep going, while another part is asking for something different.",
+        ('default',): "Something is becoming clear, but it hasn't fully landed in your body yet.",
     },
     'q2': {  # Confrontation - tension that can't be managed away
-        ('connection', 'distance'): "You're trying to stay connected—but something keeps slipping out of reach.",
-        ('pressure', 'effort'): "You keep pushing, but something in you is asking not to be managed this way anymore.",
-        ('fatigue', 'effort'): "The effort is real, but so is the signal that this can't keep going unchanged.",
-        ('avoid', 'pressure'): "What you've been managing around is starting to demand a different response.",
-        ('control', 'loss'): "What used to work is working less well. Something wants to move differently.",
-        ('communication', 'stuck'): "There's something that keeps wanting to be said but hasn't found its way out yet.",
-        ('default',): "Something keeps surfacing that doesn't want to be managed the same way anymore.",
+        ('connection', 'distance'): "You keep moving toward {theme_connection}—but something in how you {theme_distance} keeps pulling you back.",
+        ('pressure', 'effort'): "Part of you wants to push through, while another part is saying this can't continue unchanged.",
+        ('fatigue', 'effort'): "It matters to you to keep showing up, but the way you're doing it is starting to show its cost.",
+        ('avoid', 'pressure'): "You can see what's true about what you've been avoiding, but meeting it still feels like too much.",
+        ('control', 'loss'): "You're trying to hold things together—but something in how you manage is becoming less effective.",
+        ('communication', 'stuck'): "Something keeps wanting to be named, but the words for it haven't arrived yet.",
+        ('default',): "Part of you knows this can't stay the same, while another part keeps hoping it can.",
     },
     'q3': {  # Crossroads - choice / split / indecision
-        ('choice', 'uncertainty'): "You're feeling the need for movement, but the next step still hasn't fully landed.",
-        ('stuck', 'change'): "Part of you is ready for change, while another part is still waiting for certainty.",
-        ('want', 'fear'): "You know what you want—but you're also holding space for what you might lose.",
-        ('connection', 'distance'): "You're weighing staying close against making room for something else.",
-        ('control', 'change'): "You're circling a choice that feels bigger than it first appears.",
-        ('pressure', 'relief'): "Part of you wants relief, while another part keeps holding the tension in place.",
-        ('default',): "You're circling something that hasn't fully landed yet.",
+        ('choice', 'uncertainty'): "You can see what's true about needing to choose, but the path forward hasn't fully revealed itself.",
+        ('stuck', 'change'): "Part of you is ready to move, while another part is still waiting for the ground to feel solid.",
+        ('want', 'fear'): "It matters to you—but so does what you might lose by reaching for it.",
+        ('connection', 'distance'): "You're trying to stay connected—but something in you keeps needing to pull back.",
+        ('control', 'change'): "Part of you wants certainty, while another part knows that's not what's being offered.",
+        ('pressure', 'relief'): "You keep moving toward resolution—but something about the tension isn't ready to release.",
+        ('default',): "Something is becoming clear, but the choice it's asking for hasn't fully formed yet.",
     },
     'q4': {  # Integration - settling, stabilizing
-        ('relief', 'change'): "Something is beginning to settle that used to feel more charged.",
-        ('fatigue', 'relief'): "What once felt urgent may be slowly becoming easier to hold.",
-        ('connection', 'change'): "What was uncertain is starting to take a steadier shape.",
-        ('pressure', 'relief'): "The intensity is fading into something more sustainable.",
-        ('want', 'relief'): "What you reached for is starting to become real—not just hoped for.",
-        ('default',): "Something is starting to settle into a new form.",
+        ('relief', 'change'): "You can see what's true now—and something in you is starting to accept it.",
+        ('fatigue', 'relief'): "Part of you is still holding the effort, while another part is learning to let it go.",
+        ('connection', 'change'): "What was uncertain about {theme_connection} is starting to settle into something steadier.",
+        ('pressure', 'relief'): "You're trying to release what you've been carrying—and some of it is actually starting to lift.",
+        ('want', 'relief'): "It matters to you that this landed. And it did.",
+        ('default',): "Part of you is still adjusting, while another part already knows this is different now.",
     },
 }
 
@@ -4096,14 +4109,25 @@ def categorize_themes(patterns: List[str]) -> List[str]:
 
 def generate_compressed_pattern_line(phase_id: str, patterns: List[str], entries: List[dict] = None) -> str:
     """
-    Pattern Compression Layer V2.5
+    Pattern Compression Layer V2.6
     
     Takes recurring themes and compresses them into ONE emotionally resonant tension line.
+    
+    V2.6 Improvements:
+    - Multiple sentence structures (6 variations)
+    - Weaves actual recurring theme keywords naturally
+    - Phase-aware matching
     
     Style rules:
     - Max 1 sentence
     - Reflects tension or contradiction
-    - Uses "You're trying to... but...", "Part of you wants... while...", etc.
+    - Uses varied openers:
+      1. "You're trying to… but…"
+      2. "Part of you wants… while another part…"
+      3. "You keep moving toward… but…"
+      4. "Something is becoming clear, but…"
+      5. "It matters to you, but…"
+      6. "You can see what's true, but…"
     - Observational, not deterministic
     - Plain human language
     
@@ -4119,27 +4143,132 @@ def generate_compressed_pattern_line(phase_id: str, patterns: List[str], entries
     # Get templates for this phase
     phase_templates = COMPRESSION_TEMPLATES.get(phase_id, COMPRESSION_TEMPLATES.get('q1'))
     
+    # Extract actual theme words for natural weaving
+    theme_words = extract_theme_words_for_compression(patterns)
+    
     # Try to find a matching template for the category combination
+    template = None
+    
     # Try pairs first
     for cat1 in categories:
         for cat2 in categories:
             if cat1 != cat2:
                 key = (cat1, cat2)
                 if key in phase_templates:
-                    return phase_templates[key]
+                    template = phase_templates[key]
+                    break
                 # Try reverse order
                 key_rev = (cat2, cat1)
                 if key_rev in phase_templates:
-                    return phase_templates[key_rev]
+                    template = phase_templates[key_rev]
+                    break
+        if template:
+            break
     
     # Try single category matches
-    for cat in categories:
-        for key, template in phase_templates.items():
-            if key != ('default',) and cat in key:
-                return template
+    if not template:
+        for cat in categories:
+            for key, tpl in phase_templates.items():
+                if key != ('default',) and cat in key:
+                    template = tpl
+                    break
+            if template:
+                break
     
     # Fall back to default for this phase
-    return phase_templates.get(('default',), "Something may be emerging here that hasn't fully formed yet.")
+    if not template:
+        template = phase_templates.get(('default',), "Something may be emerging here that hasn't fully formed yet.")
+    
+    # Weave in specific theme words if template has placeholders
+    result = weave_themes_into_template(template, theme_words, categories)
+    
+    return result
+
+
+def extract_theme_words_for_compression(patterns: List[str]) -> Dict[str, str]:
+    """
+    Extract natural-sounding theme words from patterns.
+    Returns dict mapping category to a natural phrase.
+    """
+    theme_phrases = {}
+    pattern_text = " ".join(patterns).lower()
+    
+    # Connection-related words
+    if any(w in pattern_text for w in ['connect', 'close', 'together', 'relationship', 'love']):
+        if 'relationship' in pattern_text:
+            theme_phrases['connection'] = 'relationships'
+        elif 'love' in pattern_text:
+            theme_phrases['connection'] = 'love'
+        else:
+            theme_phrases['connection'] = 'connection'
+    
+    # Distance-related words
+    if any(w in pattern_text for w in ['distance', 'space', 'alone', 'withdraw', 'away']):
+        if 'space' in pattern_text:
+            theme_phrases['distance'] = 'create space'
+        elif 'withdraw' in pattern_text:
+            theme_phrases['distance'] = 'pull back'
+        else:
+            theme_phrases['distance'] = 'keep distance'
+    
+    # Communication-related words
+    if any(w in pattern_text for w in ['communicate', 'speak', 'express', 'say', 'voice', 'talk']):
+        if 'speak' in pattern_text or 'voice' in pattern_text:
+            theme_phrases['communication'] = 'speak up'
+        elif 'express' in pattern_text:
+            theme_phrases['communication'] = 'express yourself'
+        else:
+            theme_phrases['communication'] = 'communicate'
+    
+    # Control-related words
+    if any(w in pattern_text for w in ['control', 'manage', 'plan', 'organize', 'structure']):
+        if 'plan' in pattern_text:
+            theme_phrases['control'] = 'planning'
+        elif 'manage' in pattern_text:
+            theme_phrases['control'] = 'managing'
+        else:
+            theme_phrases['control'] = 'staying in control'
+    
+    return theme_phrases
+
+
+def weave_themes_into_template(template: str, theme_words: Dict[str, str], categories: List[str]) -> str:
+    """
+    Replace theme placeholders with actual theme words.
+    Falls back to generic phrasing if no specific theme available.
+    """
+    result = template
+    
+    # Replace placeholders like {theme_connection}, {theme_control}, etc.
+    for category in categories:
+        placeholder = f"{{theme_{category}}}"
+        if placeholder in result:
+            if category in theme_words:
+                result = result.replace(placeholder, theme_words[category])
+            else:
+                # Fallback generic phrases
+                fallbacks = {
+                    'connection': 'closeness',
+                    'distance': 'pull back',
+                    'communication': 'speak',
+                    'control': 'certainty',
+                    'change': 'shift',
+                    'stuck': 'stay',
+                    'want': 'reach',
+                    'fear': 'cost',
+                    'pressure': 'push',
+                    'effort': 'showing up',
+                    'fatigue': 'rest',
+                    'relief': 'release',
+                    'avoid': 'step back',
+                }
+                result = result.replace(placeholder, fallbacks.get(category, 'something'))
+    
+    # Clean up any remaining placeholders
+    import re
+    result = re.sub(r'\{theme_\w+\}', 'something', result)
+    
+    return result
 
 
 def get_identity_tendency(phase_distribution: dict, total_entries: int) -> Optional[str]:
@@ -4262,6 +4391,11 @@ async def get_journal_patterns(user_id: str):
         identity_tendency = get_identity_tendency(phase_distribution, total_entries)
         identity_threshold_met = identity_tendency is not None
         
+        # V2.6: Generate identity_echo for prominent display
+        identity_echo = None
+        if identity_threshold_met and identity_tendency:
+            identity_echo = identity_tendency  # Already uses "You tend to..." language
+        
         return JournalPatternAnalysis(
             user_id=user_id,
             total_entries=total_entries,
@@ -4272,7 +4406,8 @@ async def get_journal_patterns(user_id: str):
             compressed_pattern_lines=compressed_pattern_lines,
             phase_tensions=phase_tensions,
             identity_tendency=identity_tendency,
-            identity_threshold_met=identity_threshold_met
+            identity_threshold_met=identity_threshold_met,
+            identity_echo=identity_echo
         )
     except Exception as e:
         logger.error(f"Get journal patterns error: {e}")

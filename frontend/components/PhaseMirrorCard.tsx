@@ -152,6 +152,9 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
   // Get compressed pattern line for this phase (V2.5 - Emotional centerpiece)
   const compressedPatternLine = patternData?.compressed_pattern_lines?.[phaseId] || '';
   
+  // Get identity echo when threshold met (V2.6)
+  const identityEcho = patternData?.identity_echo || null;
+  
   // Get identity tendency if threshold met (Level 4)
   const identityTendency = patternData?.identity_threshold_met ? patternData.identity_tendency : null;
   
@@ -203,52 +206,61 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
         </View>
       )}
 
-      {/* LEVEL 2: Recurring Patterns */}
+      {/* ====== V2.6 PATTERN SECTION - INSIGHT FIRST, PROOF SECOND ====== */}
+      
+      {/* LEVEL 2.6 STEP 1: Compressed Pattern Line (EMOTIONAL CENTERPIECE - FIRST) */}
+      {compressedPatternLine && recurringPatterns.length > 0 && (
+        <View style={styles.compressedPatternSection}>
+          <Text style={[styles.compressedLeadIn, { color: theme.textTertiary }]}>
+            This might be what's underneath:
+          </Text>
+          <View style={[styles.compressedPatternContainer, { borderColor: accentColor + '40' }]}>
+            <Text style={[styles.compressedPatternLine, { color: theme.text }]}>
+              {compressedPatternLine}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/* LEVEL 2.6 STEP 2: Identity Echo (when threshold met) */}
+      {identityEcho && patternData?.identity_threshold_met && (
+        <View style={[styles.identityEchoSection, { backgroundColor: accentColor + '08', borderColor: accentColor + '20' }]}>
+          <Text style={[styles.identityEchoLabel, { color: accentColor }]}>
+            A pattern in how you move:
+          </Text>
+          <Text style={[styles.identityEchoText, { color: theme.text }]}>
+            {identityEcho}
+          </Text>
+        </View>
+      )}
+
+      {/* LEVEL 2.6 STEP 3: Recurring Patterns (PROOF - AFTER INSIGHT) */}
       {recurringPatterns.length > 0 && (
         <View style={styles.patternsSection}>
           <Text style={[styles.patternsSectionTitle, { color: theme.textTertiary }]}>
-            A similar thread keeps appearing:
+            Threads that keep appearing:
           </Text>
           {recurringPatterns.map((pattern, i) => (
-            <Text key={i} style={[styles.patternItem, { color: theme.text }]}>
+            <Text key={i} style={[styles.patternItem, { color: theme.textSecondary }]}>
               • {pattern}
             </Text>
           ))}
         </View>
       )}
 
-      {/* LEVEL 2.5: Compressed Pattern Line (Emotional Centerpiece) */}
-      {compressedPatternLine && recurringPatterns.length > 0 && (
-        <View style={[styles.compressedPatternSection, { borderColor: accentColor + '30' }]}>
-          <Text style={[styles.compressedPatternLine, { color: theme.text }]}>
-            {compressedPatternLine}
-          </Text>
-        </View>
-      )}
-
-      {/* LEVEL 3: Tension Insight */}
+      {/* LEVEL 2.6 STEP 4: Tension Insight */}
       {tensionInsight && recurringPatterns.length > 0 && (
         <View style={styles.tensionSection}>
           <Text style={[styles.tensionLabel, { color: theme.textTertiary }]}>
             What this might reflect:
           </Text>
-          <Text style={[styles.tensionInsight, { color: theme.text }]}>
+          <Text style={[styles.tensionInsight, { color: theme.textSecondary }]}>
             {tensionInsight}
           </Text>
         </View>
       )}
 
-      {/* LEVEL 4: Identity Tendency */}
-      {identityTendency && (
-        <View style={[styles.identitySection, { backgroundColor: accentColor + '08', borderColor: accentColor + '20' }]}>
-          <Text style={[styles.identityLabel, { color: accentColor }]}>
-            A pattern in how you move:
-          </Text>
-          <Text style={[styles.identityInsight, { color: theme.text }]}>
-            {identityTendency}
-          </Text>
-        </View>
-      )}
+      {/* ====== END V2.6 PATTERN SECTION ====== */}
 
       {/* Emotional Quote Line */}
       <View style={[styles.emotionalContainer, { borderLeftColor: accentColor }]}>
@@ -370,57 +382,70 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   patternsSectionTitle: {
-    fontSize: 11,
+    fontSize: 10,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   patternItem: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 12,
+    lineHeight: 18,
     marginLeft: 4,
     marginBottom: 2,
   },
-  // Level 2.5: Compressed Pattern Line (V2.5 Emotional Centerpiece)
+  // V2.6: Compressed Pattern Line (EMOTIONAL CENTERPIECE - FIRST)
   compressedPatternSection: {
-    marginTop: 4,
-    marginBottom: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderLeftWidth: 2,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  compressedLeadIn: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  compressedPatternContainer: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderLeftWidth: 3,
   },
   compressedPatternLine: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 16,
+    lineHeight: 24,
     fontStyle: 'italic',
     fontWeight: '500',
+  },
+  // V2.6: Identity Echo (when threshold met)
+  identityEchoSection: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  identityEchoLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  identityEchoText: {
+    fontSize: 13,
+    lineHeight: 19,
   },
   // Level 3: Tension Insight
   tensionSection: {
     marginBottom: 12,
   },
   tensionLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontStyle: 'italic',
     marginBottom: 4,
   },
   tensionInsight: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 12,
+    lineHeight: 18,
   },
-  // Level 4: Identity Tendency
-  identitySection: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  identityLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  identityInsight: {
+  // Emotional quote
     fontSize: 13,
     lineHeight: 19,
   },

@@ -582,7 +582,7 @@ export default function AstrologyTimelineTab({
                   ))}
                 </View>
 
-                {/* Journal Evidence Section - V2: "YOUR WORDS FROM THIS PHASE" */}
+                {/* Journal Evidence Section - V2.6: INSIGHT FIRST, PROOF SECOND */}
                 {user?.id && (
                   <View style={styles.phaseSection}>
                     <Text style={[styles.evidenceSectionTitle, { color: Colors.accent }]}>
@@ -592,8 +592,39 @@ export default function AstrologyTimelineTab({
                       <ActivityIndicator size="small" color={theme.textTertiary} style={{ marginTop: 8 }} />
                     ) : phaseEvidence[phase.id] && phaseEvidence[phase.id].length > 0 ? (
                       <View style={styles.evidenceContainer}>
+                        
+                        {/* V2.6 STEP 1: Compressed Pattern Line (FIRST - INSIGHT) */}
+                        {patternData?.compressed_pattern_lines?.[phase.id] && (
+                          <View style={styles.timelineCompressedSection}>
+                            <Text style={[styles.timelineCompressedLeadIn, { color: theme.textTertiary }]}>
+                              This might be what's underneath:
+                            </Text>
+                            <View style={[styles.timelineCompressedContainer, { borderColor: Colors.accent + '40' }]}>
+                              <Text style={[styles.timelineCompressedLine, { color: theme.text }]}>
+                                {patternData.compressed_pattern_lines[phase.id]}
+                              </Text>
+                            </View>
+                          </View>
+                        )}
+                        
+                        {/* V2.6 STEP 2: Identity Echo (when threshold met) */}
+                        {patternData?.identity_echo && patternData?.identity_threshold_met && (
+                          <View style={[styles.timelineIdentityEcho, { 
+                            backgroundColor: Colors.accent + '08', 
+                            borderColor: Colors.accent + '20' 
+                          }]}>
+                            <Text style={[styles.timelineIdentityEchoLabel, { color: Colors.accent }]}>
+                              A pattern in how you move:
+                            </Text>
+                            <Text style={[styles.timelineIdentityEchoText, { color: theme.text }]}>
+                              {patternData.identity_echo}
+                            </Text>
+                          </View>
+                        )}
+                        
+                        {/* V2.6 STEP 3: Evidence Entries (SECOND - PROOF) */}
                         <Text style={[styles.evidenceIntro, { color: theme.textTertiary }]}>
-                          This is how this phase has been showing up in your life.
+                          This is how this phase has been showing up in your life:
                         </Text>
                         {phaseEvidence[phase.id].map((entry) => (
                           <View 
@@ -612,18 +643,6 @@ export default function AstrologyTimelineTab({
                           </View>
                         ))}
                         
-                        {/* V2.5: Compressed Pattern Line (Emotional Centerpiece) */}
-                        {patternData?.compressed_pattern_lines?.[phase.id] && (
-                          <View style={[styles.compressedPatternContainer, { borderColor: Colors.accent + '30' }]}>
-                            <Text style={[styles.compressedPatternLine, { color: theme.text }]}>
-                              {patternData.compressed_pattern_lines[phase.id]}
-                            </Text>
-                          </View>
-                        )}
-                        
-                        <Text style={[styles.evidenceContextLine, { color: theme.textTertiary }]}>
-                          These entries were written during this phase.
-                        </Text>
                       </View>
                     ) : (
                       <Text style={[styles.noEvidenceText, { color: theme.textTertiary }]}>
@@ -1021,18 +1040,42 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 6,
   },
-  // V2.5: Compressed Pattern Line (Emotional Centerpiece)
-  compressedPatternContainer: {
-    marginTop: 12,
+  // V2.6: Compressed Pattern Line (INSIGHT FIRST)
+  timelineCompressedSection: {
+    marginBottom: 14,
+  },
+  timelineCompressedLeadIn: {
+    fontSize: 11,
+    fontStyle: 'italic',
     marginBottom: 8,
+  },
+  timelineCompressedContainer: {
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderLeftWidth: 2,
+    borderLeftWidth: 3,
   },
-  compressedPatternLine: {
-    fontSize: 14,
-    lineHeight: 21,
+  timelineCompressedLine: {
+    fontSize: 15,
+    lineHeight: 22,
     fontStyle: 'italic',
     fontWeight: '500',
+  },
+  // V2.6: Identity Echo (when threshold met)
+  timelineIdentityEcho: {
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  timelineIdentityEchoLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  timelineIdentityEchoText: {
+    fontSize: 12,
+    lineHeight: 18,
   },
 });

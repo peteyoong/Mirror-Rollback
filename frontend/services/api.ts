@@ -333,7 +333,7 @@ export const getJournalEntriesByPhase = async (
   return response.data;
 };
 
-// Pattern Detection Layer V2/V2.5 - Journal pattern analysis
+// Pattern Detection Layer V2/V2.5/V2.6 - Journal pattern analysis
 export interface JournalPatternAnalysis {
   user_id: string;
   total_entries: number;
@@ -345,6 +345,7 @@ export interface JournalPatternAnalysis {
   phase_tensions: Record<string, string>;
   identity_tendency: string | null;
   identity_threshold_met: boolean;
+  identity_echo: string | null;  // V2.6: Identity echo for prominent display
 }
 
 export const getJournalPatterns = async (userId: string): Promise<JournalPatternAnalysis> => {
