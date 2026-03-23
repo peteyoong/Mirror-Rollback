@@ -653,39 +653,6 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
         </View>
       )}
 
-      {/* WHAT MATTERS MOST */}
-      <View style={[styles.whatMattersCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.whatMattersTitle, { color: theme.accent }]}>WHAT MATTERS MOST IN THIS CHART</Text>
-        {whatMattersMost.map((item, i) => (
-          <View key={i} style={styles.whatMattersItem}>
-            <Text style={[styles.whatMattersRank, { color: theme.accent }]}>{item.rank}</Text>
-            <View style={styles.whatMattersContent}>
-              <Text style={[styles.whatMattersLabel, { color: theme.text }]}>{item.label}</Text>
-              <Text style={[styles.whatMattersDescriptor, { color: theme.textTertiary }]}>{item.descriptor}</Text>
-              <Text style={[styles.whatMattersForce, { color: theme.textSecondary }]}>{item.force}</Text>
-            </View>
-          </View>
-        ))}
-        {/* Aspect pattern integration in What Matters Most */}
-        {patternAnalysis.dominantPattern && (
-          <View style={[styles.whatMattersItem, { marginTop: 8, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border }]}>
-            <Text style={[styles.whatMattersRank, { color: theme.accent }]}>{whatMattersMost.length + 1}</Text>
-            <View style={styles.whatMattersContent}>
-              <Text style={[styles.whatMattersLabel, { color: theme.text }]}>
-                {patternAnalysis.dominantPattern.patternType === 'pressure_triangle' ? 'Pressure Pattern' :
-                 patternAnalysis.dominantPattern.patternType === 'stellium' ? 'Concentration Pattern' :
-                 patternAnalysis.dominantPattern.patternType === 'opposition_axis' ? 'Tension Axis' :
-                 'Structural Pattern'}
-              </Text>
-              <Text style={[styles.whatMattersDescriptor, { color: theme.textTertiary }]}>Chart-level organization</Text>
-              <Text style={[styles.whatMattersForce, { color: theme.textSecondary }]}>
-                {patternAnalysis.dominantPattern.plainLanguageSummary}
-              </Text>
-            </View>
-          </View>
-        )}
-      </View>
-
       {/* HOW PRESSURE BUILDS IN THIS CHART - New Section */}
       {patternAnalysis.howPressureBuilds.hasSignificantPattern && (
         <View style={[styles.pressureCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -782,51 +749,6 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
             )}
           </View>
         </View>
-      )}
-
-      {/* KEY ASPECT DYNAMICS - UPGRADED (Part 5) */}
-      {enhancedAspects.length > 0 && (
-        <TouchableOpacity
-          style={[styles.collapsibleSection, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}
-          onPress={() => setAspectsExpanded(!aspectsExpanded)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.collapsibleHeader}>
-            <Text style={[styles.collapsibleTitle, { color: theme.textSecondary }]}>Key aspect dynamics</Text>
-            <Text style={[styles.collapsibleIcon, { color: theme.textTertiary }]}>
-              {aspectsExpanded ? '▴' : '▾'}
-            </Text>
-          </View>
-          {!aspectsExpanded && (
-            <Text style={[styles.collapsibleHint, { color: theme.textTertiary }]}>
-              {enhancedAspects.length} most important aspect dynamics
-            </Text>
-          )}
-          {aspectsExpanded && (
-            <View style={styles.collapsibleContent}>
-              {enhancedAspects.map((asp, i) => (
-                <View key={i} style={[styles.enhancedAspectItem, { borderColor: theme.border }]}>
-                  <View style={styles.keyAspectHeader}>
-                    <Text style={[styles.keyAspectName, { color: theme.text }]}>{asp.aspectPair}</Text>
-                    <View style={[styles.keyAspectBadge, { 
-                      backgroundColor: asp.pressureType === 'flow' ? '#E8F5E9' : asp.pressureType === 'pressure' ? '#FFEBEE' : '#FFF3E0'
-                    }]}>
-                      <Text style={[styles.keyAspectBadgeText, { 
-                        color: asp.pressureType === 'flow' ? '#2E7D32' : asp.pressureType === 'pressure' ? '#C62828' : '#EF6C00'
-                      }]}>{asp.pressureType}</Text>
-                    </View>
-                  </View>
-                  <Text style={[styles.keyAspectMeaning, { color: theme.text }]}>{cleanText(asp.humanSummary)}</Text>
-                  {asp.whyItMattersHere && (
-                    <Text style={[styles.keyAspectWhy, { color: theme.textSecondary }]}>
-                      {cleanText(asp.whyItMattersHere)}
-                    </Text>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
-        </TouchableOpacity>
       )}
 
       {/* CHART STRUCTURE + TENSIONS/GIFTS - COLLAPSIBLE */}

@@ -1208,7 +1208,7 @@ export const getPlanetImportanceLine = (
     return "This carries particular weight in how you're built.";
   }
   if (isDominant) {
-    return "This plays a larger role than average in your patterns.";
+    return "This carries more structural weight than other factors.";
   }
   if (isInMajorChain) {
     return "This connects multiple areas of your life together.";
