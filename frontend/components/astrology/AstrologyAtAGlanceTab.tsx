@@ -191,6 +191,236 @@ const getCoreGifts = (sun: string, moon: string, asc: string): string[] => {
   return gifts;
 };
 
+// ============================================
+// KEY ASPECT DYNAMICS - Aspect Ranking & Selection
+// ============================================
+
+interface KeyAspectDynamic {
+  label: string;
+  category: 'EASE' | 'FRICTION' | 'COMPLEXITY';
+  humanSummary: string;
+  orb: number;
+  score: number;
+}
+
+interface NatalAspect {
+  point_a: string;
+  point_b: string;
+  aspect_type: string;
+  orb: number;
+  applying?: boolean;
+}
+
+// Priority points for determining chart-defining aspects
+const POINT_PRIORITY: { [key: string]: number } = {
+  'Sun': 10,
+  'Moon': 9,
+  'Ascendant': 8,
+  'MC': 7,
+  'Saturn': 7,
+  'North Node': 6,
+  'South Node': 6,
+  'Chiron': 6,
+  'Jupiter': 5,
+  'Mars': 5,
+  'Venus': 5,
+  'Mercury': 4,
+  'Pluto': 4,
+  'Neptune': 3,
+  'Uranus': 3,
+};
+
+// Aspect type priorities (more structurally meaningful = higher)
+const ASPECT_TYPE_PRIORITY: { [key: string]: number } = {
+  'conjunction': 10,
+  'opposition': 9,
+  'square': 8,
+  'trine': 6,
+  'sextile': 5,
+  'quincunx': 3,
+  'semi-sextile': 2,
+  'semi-square': 2,
+  'sesquiquadrate': 2,
+};
+
+// Aspect category mapping
+const getAspectCategory = (aspectType: string): 'EASE' | 'FRICTION' | 'COMPLEXITY' => {
+  const easeAspects = ['trine', 'sextile'];
+  const frictionAspects = ['square', 'opposition', 'semi-square', 'sesquiquadrate'];
+  const complexityAspects = ['conjunction', 'quincunx', 'semi-sextile'];
+  
+  if (easeAspects.includes(aspectType)) return 'EASE';
+  if (frictionAspects.includes(aspectType)) return 'FRICTION';
+  return 'COMPLEXITY';
+};
+
+// Human-readable aspect type names
+const ASPECT_TYPE_DISPLAY: { [key: string]: string } = {
+  'conjunction': 'conjunct',
+  'opposition': 'opposite',
+  'square': 'square',
+  'trine': 'trine',
+  'sextile': 'sextile',
+  'quincunx': 'quincunx',
+  'semi-sextile': 'semi-sextile',
+  'semi-square': 'semi-square',
+  'sesquiquadrate': 'sesquiquadrate',
+};
+
+// Generate human summary for aspect (chart-specific, not cookbook)
+const getAspectHumanSummary = (pointA: string, pointB: string, aspectType: string): string => {
+  const category = getAspectCategory(aspectType);
+  
+  // Sun aspects
+  if (pointA === 'Sun' || pointB === 'Sun') {
+    const other = pointA === 'Sun' ? pointB : pointA;
+    if (other === 'Moon') return category === 'EASE' 
+      ? 'Identity and emotional nature flow together here.'
+      : 'What you show and what you feel can pull in different directions.';
+    if (other === 'Saturn') return category === 'EASE'
+      ? 'A natural sense of structure supports your identity.'
+      : 'Identity and pressure are tightly linked in this chart.';
+    if (other === 'Jupiter') return category === 'EASE'
+      ? 'A natural expansiveness colors how you express yourself.'
+      : 'Confidence and over-reach can become entangled.';
+    if (other === 'Mars') return category === 'EASE'
+      ? 'Drive and identity are naturally aligned.'
+      : 'Will and action can clash with sense of self.';
+    if (other === 'Chiron') return 'Sensitivity around self-expression runs deep here.';
+    if (other === 'North Node') return 'Identity is closely tied to developmental direction.';
+    if (other === 'Pluto') return 'Intensity and transformation touch the core of who you are.';
+    if (other === 'Neptune') return 'Imagination and idealism color your sense of self.';
+    if (other === 'Uranus') return 'Individuality and unpredictability are woven into your identity.';
+  }
+  
+  // Moon aspects
+  if (pointA === 'Moon' || pointB === 'Moon') {
+    const other = pointA === 'Moon' ? pointB : pointA;
+    if (other === 'Mars') return category === 'EASE'
+      ? 'Feeling and action work together fluidly.'
+      : 'Feeling and action can collide quickly here.';
+    if (other === 'Saturn') return category === 'EASE'
+      ? 'Emotional stability comes from structure.'
+      : 'Emotional life carries developmental weight.';
+    if (other === 'Venus') return 'Emotional needs and relationship needs are intertwined.';
+    if (other === 'Jupiter') return category === 'EASE'
+      ? 'Emotional optimism and generosity flow naturally.'
+      : 'Emotional needs can inflate or overwhelm.';
+    if (other === 'Chiron') return 'Emotional sensitivity runs especially deep here.';
+    if (other === 'Pluto') return 'Emotional intensity and depth are amplified.';
+    if (other === 'Neptune') return 'Emotional life has a permeable, imaginative quality.';
+    if (other === 'North Node') return 'Emotional patterns are linked to growth direction.';
+  }
+  
+  // Saturn aspects
+  if (pointA === 'Saturn' || pointB === 'Saturn') {
+    const other = pointA === 'Saturn' ? pointB : pointA;
+    if (other === 'Jupiter') return category === 'EASE'
+      ? 'Expansion and restraint are in productive conversation.'
+      : 'Expansion and restraint are in active tension.';
+    if (other === 'Mars') return category === 'EASE'
+      ? 'Discipline and drive work well together.'
+      : 'Action and restriction create friction.';
+    if (other === 'Chiron') return 'Pressure and sensitivity are connected here.';
+    if (other === 'North Node') return 'Structure and life direction are tightly linked.';
+    if (other === 'Pluto') return 'Power, control, and maturation are intertwined.';
+  }
+  
+  // Venus aspects
+  if (pointA === 'Venus' || pointB === 'Venus') {
+    const other = pointA === 'Venus' ? pointB : pointA;
+    if (other === 'Mars') return category === 'EASE'
+      ? 'Desire and action are naturally aligned.'
+      : 'Desire and assertion can create tension.';
+    if (other === 'Pluto') return 'Relationships carry intensity and depth.';
+    if (other === 'Neptune') return 'Love and idealism are deeply connected.';
+    if (other === 'Uranus') return 'Relationships have an unconventional or unpredictable quality.';
+    if (other === 'Mercury') return 'Communication and connection are closely linked.';
+  }
+  
+  // Mercury aspects
+  if (pointA === 'Mercury' || pointB === 'Mercury') {
+    const other = pointA === 'Mercury' ? pointB : pointA;
+    if (other === 'Pluto') return 'Thinking runs deep—perception can be penetrating.';
+    if (other === 'Neptune') return 'Mind and imagination are closely connected.';
+    if (other === 'North Node') return 'Communication is linked to developmental direction.';
+  }
+  
+  // Chiron aspects
+  if (pointA === 'Chiron' || pointB === 'Chiron') {
+    const other = pointA === 'Chiron' ? pointB : pointA;
+    if (other === 'Neptune') return 'Sensitivity and healing themes are amplified.';
+    if (other === 'Uranus') return 'Sensitivity and individuality are connected.';
+    if (other === 'Pluto') return 'Deep transformation and healing are intertwined.';
+  }
+  
+  // Node aspects
+  if (pointA === 'North Node' || pointB === 'North Node' || pointA === 'South Node' || pointB === 'South Node') {
+    return 'This connects directly to your developmental axis.';
+  }
+  
+  // Outer planet connections
+  if ((pointA === 'Uranus' || pointB === 'Uranus') && (pointA === 'Pluto' || pointB === 'Pluto')) {
+    return 'Generational forces of disruption and transformation are linked.';
+  }
+  if ((pointA === 'Neptune' || pointB === 'Neptune') && (pointA === 'Pluto' || pointB === 'Pluto')) {
+    return 'Collective undercurrents of dissolution and power are connected.';
+  }
+  if ((pointA === 'Uranus' || pointB === 'Uranus') && (pointA === 'Neptune' || pointB === 'Neptune')) {
+    return 'Idealism and disruption are in conversation.';
+  }
+  
+  // Generic fallback
+  return `This links ${pointA.toLowerCase()} and ${pointB.toLowerCase()} themes in your chart.`;
+};
+
+// Calculate aspect score for ranking
+const calculateAspectScore = (aspect: NatalAspect): number => {
+  const pointAPriority = POINT_PRIORITY[aspect.point_a] || 1;
+  const pointBPriority = POINT_PRIORITY[aspect.point_b] || 1;
+  const aspectPriority = ASPECT_TYPE_PRIORITY[aspect.aspect_type] || 1;
+  
+  // Combined priority score
+  const priorityScore = pointAPriority + pointBPriority + aspectPriority;
+  
+  // Orb bonus: tighter orb = higher score (max 10 for exact, 0 for 10+ degree orb)
+  const orbBonus = Math.max(0, 10 - aspect.orb);
+  
+  return priorityScore + orbBonus;
+};
+
+// Get key aspect dynamics from natal aspects
+const getKeyAspectDynamics = (aspects: NatalAspect[] | undefined): KeyAspectDynamic[] => {
+  if (!aspects || aspects.length === 0) return [];
+  
+  // Filter to meaningful aspect types (exclude very minor aspects)
+  const meaningfulAspects = aspects.filter(a => 
+    ASPECT_TYPE_PRIORITY[a.aspect_type] !== undefined &&
+    ASPECT_TYPE_PRIORITY[a.aspect_type] >= 2
+  );
+  
+  // Score and rank all aspects
+  const scoredAspects = meaningfulAspects.map(aspect => ({
+    ...aspect,
+    score: calculateAspectScore(aspect),
+  }));
+  
+  // Sort by score descending
+  scoredAspects.sort((a, b) => b.score - a.score);
+  
+  // Take top 5
+  const topAspects = scoredAspects.slice(0, 5);
+  
+  // Build output
+  return topAspects.map(aspect => ({
+    label: `${aspect.point_a} ${ASPECT_TYPE_DISPLAY[aspect.aspect_type] || aspect.aspect_type} ${aspect.point_b}`,
+    category: getAspectCategory(aspect.aspect_type),
+    humanSummary: getAspectHumanSummary(aspect.point_a, aspect.point_b, aspect.aspect_type),
+    orb: aspect.orb,
+    score: aspect.score,
+  }));
+};
+
 // Get What Matters Most in chart
 const getWhatMattersMost = (placements: CorePlacements, chartData: FullChartData | null): WhatMattersItem[] => {
   const items: WhatMattersItem[] = [];
@@ -327,6 +557,10 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
   const gifts = getCoreGifts(sun, moon, asc);
   const whatMattersMost = getWhatMattersMost(placements, fullChartData);
   const keyAspects = getKeyAspects(fullChartData, placements);
+  
+  // NEW: Key Aspect Dynamics - top 5 chart-defining aspects
+  const natalAspects = fullChartData?.natal?.aspects || [];
+  const keyAspectDynamics = getKeyAspectDynamics(natalAspects);
   
   // Life Chapter analysis (Master Astrologer v4)
   const chapterAnalysis = buildLifeChapterAnalysis(fullChartData);
@@ -652,6 +886,46 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
           </View>
         )}
       </TouchableOpacity>
+
+      {/* KEY ASPECT DYNAMICS - Chart-defining internal mechanics */}
+      {keyAspectDynamics.length > 0 && (
+        <View style={[styles.aspectDynamicsSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.aspectDynamicsTitle, { color: theme.text }]}>KEY ASPECT DYNAMICS</Text>
+          <Text style={[styles.aspectDynamicsSubtitle, { color: theme.textTertiary }]}>
+            The internal mechanics shaping this chart most strongly
+          </Text>
+          
+          <View style={styles.aspectDynamicsList}>
+            {keyAspectDynamics.map((aspect, index) => (
+              <View key={index} style={[styles.aspectDynamicRow, { borderBottomColor: theme.border }]}>
+                <View style={styles.aspectDynamicHeader}>
+                  <Text style={[styles.aspectDynamicLabel, { color: theme.text }]}>{aspect.label}</Text>
+                  <View style={[
+                    styles.aspectDynamicTag,
+                    {
+                      backgroundColor: aspect.category === 'EASE' ? '#10B98115' :
+                                       aspect.category === 'FRICTION' ? '#EF444415' :
+                                       '#8B5CF615'
+                    }
+                  ]}>
+                    <Text style={[
+                      styles.aspectDynamicTagText,
+                      {
+                        color: aspect.category === 'EASE' ? '#10B981' :
+                               aspect.category === 'FRICTION' ? '#EF4444' :
+                               '#8B5CF6'
+                      }
+                    ]}>{aspect.category}</Text>
+                  </View>
+                </View>
+                <Text style={[styles.aspectDynamicSummary, { color: theme.textSecondary }]}>
+                  {aspect.humanSummary}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
 
       {/* Reflection Prompt */}
       <View style={[styles.reflectionCard, { backgroundColor: theme.accent + '06', borderColor: theme.accent + '15' }]}>
@@ -1002,6 +1276,56 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     fontStyle: 'italic',
+  },
+  // KEY ASPECT DYNAMICS styles
+  aspectDynamicsSection: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  aspectDynamicsTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  aspectDynamicsSubtitle: {
+    fontSize: 12,
+    marginBottom: 16,
+  },
+  aspectDynamicsList: {
+    gap: 12,
+  },
+  aspectDynamicRow: {
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+  },
+  aspectDynamicHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  aspectDynamicLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
+  aspectDynamicTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  aspectDynamicTagText: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  aspectDynamicSummary: {
+    fontSize: 13,
+    lineHeight: 19,
   },
   askMirrorButton: {
     flexDirection: 'row',
