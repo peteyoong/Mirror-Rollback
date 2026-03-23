@@ -12287,13 +12287,17 @@ def get_incarnation_cross_label(cross_string):
 @api_router.get("/human-design/mechanics/{user_id}")
 async def get_human_design_mechanics(user_id: str):
     """
-    Fast, deterministic endpoint returning only computed chart mechanics.
+    Fast, deterministic endpoint returning computed chart mechanics.
     NO LLM generation - instant response for Overview tabs.
     Frontend handles all reflective prose via deterministic templates.
+    
+    MASTER LEVEL: Now includes channels, conscious/unconscious gates, and variables
+    for deep synthesis.
     """
     try:
         user, chart = await get_user_astrology_data(user_id)
         hd_data = extract_human_design_data(chart)
+        hd_raw = chart.get('human_design', {})
         
         if hd_data['type'] == 'Unknown':
             raise HTTPException(status_code=404, detail="Human Design data not found")
@@ -12301,6 +12305,32 @@ async def get_human_design_mechanics(user_id: str):
         strategy_desc = HD_STRATEGY_DESCRIPTIONS.get(hd_data['type'], 'Unique engagement pattern')
         incarnation_cross = hd_data.get('incarnation_cross', 'Unknown')
         cross_gates_str = hd_data.get('incarnation_cross_gates')
+        
+        # Extract channels from raw HD data
+        defined_channels = hd_raw.get('defined_channels', [])
+        # Normalize channel format - handle both string and dict formats
+        channels_normalized = []
+        for channel in defined_channels:
+            if isinstance(channel, dict):
+                channels_normalized.append({
+                    "gates": channel.get('gates', channel.get('name', '')),
+                    "name": channel.get('name', ''),
+                    "circuit": channel.get('circuit', ''),
+                    "centers": channel.get('centers', [])
+                })
+            elif isinstance(channel, str):
+                channels_normalized.append({"gates": channel, "name": channel})
+        
+        # Extract conscious (personality) vs unconscious (design) gates
+        personality_gates = hd_raw.get('personality_gates', [])
+        design_gates = hd_raw.get('design_gates', [])
+        
+        # Extract personality and design planetary positions if available
+        personality_data = hd_raw.get('personality', {})
+        design_data = hd_raw.get('design', {})
+        
+        # Extract Variables if available
+        variables = hd_raw.get('variables', {})
         
         return {
             "core_mechanics": {
@@ -12312,6 +12342,28 @@ async def get_human_design_mechanics(user_id: str):
                 "incarnation_cross": hd_data.get('incarnation_cross_label', incarnation_cross),
                 "incarnation_cross_gates": cross_gates_str
             },
+            # MASTER LEVEL DATA
+            "channels": channels_normalized,
+            "defined_centers": hd_data.get('defined_centers', []),
+            "undefined_centers": [c for c in ['Head', 'Ajna', 'Throat', 'G', 'Heart', 'Sacral', 'Spleen', 'Solar Plexus', 'Root'] 
+                                  if c.lower() not in [x.lower() for x in hd_data.get('defined_centers', [])]],
+            "conscious_gates": personality_gates,
+            "unconscious_gates": design_gates,
+            "personality_sun": personality_data.get('Sun', {}).get('gate') if isinstance(personality_data.get('Sun'), dict) else None,
+            "personality_earth": personality_data.get('Earth', {}).get('gate') if isinstance(personality_data.get('Earth'), dict) else None,
+            "design_sun": design_data.get('Sun', {}).get('gate') if isinstance(design_data.get('Sun'), dict) else None,
+            "design_earth": design_data.get('Earth', {}).get('gate') if isinstance(design_data.get('Earth'), dict) else None,
+            # Variables (if available)
+            "variables": {
+                "environment": variables.get('environment'),
+                "cognition": variables.get('cognition'),
+                "determination": variables.get('determination'),
+                "motivation": variables.get('motivation'),
+                "transference": variables.get('transference'),
+                "perspective": variables.get('perspective'),
+                "view": variables.get('view')
+            } if variables else None,
+            # Version info
             "computation_version": hd_data.get('computation_version', 'mirror_compute_v1'),
             "astronomy_version": hd_data.get('astronomy_version', 'true_sidereal_m_swe_v1'),
             "human_design_version": hd_data.get('human_design_version', 'hd_sidereal_v1')

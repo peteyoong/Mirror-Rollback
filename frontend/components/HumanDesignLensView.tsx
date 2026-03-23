@@ -714,6 +714,30 @@ interface HumanDesignData {
     incarnation_cross?: string;
     incarnation_cross_gates?: string;
   };
+  // MASTER LEVEL DATA from enhanced mechanics endpoint
+  channels?: Array<{
+    gates?: string;
+    name?: string;
+    circuit?: string;
+    centers?: string[];
+  }>;
+  defined_centers?: string[];
+  undefined_centers?: string[];
+  conscious_gates?: number[];
+  unconscious_gates?: number[];
+  personality_sun?: number | { gate: number; line: number };
+  personality_earth?: number | { gate: number; line: number };
+  design_sun?: number | { gate: number; line: number };
+  design_earth?: number | { gate: number; line: number };
+  variables?: {
+    environment?: string;
+    cognition?: string;
+    determination?: string;
+    motivation?: string;
+    transference?: string;
+    perspective?: string;
+    view?: string;
+  } | null;
   // Structured Incarnation Cross (deterministic)
   incarnation_cross_structured?: IncarnationCrossStructured | null;
   // Gene Keys sequences (deterministic compute)
@@ -1889,12 +1913,31 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const authorityPattern = AUTHORITY_PATTERNS[authority || 'Sacral'] || AUTHORITY_PATTERNS['Sacral'];
     const patternSynthesis = synthesizeHDPattern(hdType, authority || 'Sacral');
     
-    // Generate MASTER SYNTHESIS - integrates Type × Authority × Profile into unified reading
+    // Generate MASTER SYNTHESIS - integrates ALL HD mechanics into unified reading
+    // Now includes: channels, conscious/unconscious, environment, motivation/transference
     const synthesisInput: HDSynthesisInput = {
       type: hdType,
       authority: authority || 'Sacral',
       profile: profile || '1/3',
       definition: definition,
+      incarnationCross: data.core_mechanics?.incarnation_cross,
+      incarnationCrossGates: data.core_mechanics?.incarnation_cross_gates,
+      // MASTER LEVEL DATA
+      channels: data.channels,
+      definedCenters: data.defined_centers,
+      undefinedCenters: data.undefined_centers,
+      consciousGates: data.conscious_gates,
+      unconsciousGates: data.unconscious_gates,
+      personalitySun: data.personality_sun,
+      personalityEarth: data.personality_earth,
+      designSun: data.design_sun,
+      designEarth: data.design_earth,
+      // Variables (if available)
+      environment: data.variables?.environment,
+      cognition: data.variables?.cognition,
+      determination: data.variables?.determination,
+      motivation: data.variables?.motivation,
+      transference: data.variables?.transference,
     };
     const masterSynthesis = generateHDSynthesis(synthesisInput);
     
