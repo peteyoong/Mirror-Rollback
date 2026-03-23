@@ -282,9 +282,14 @@ function normalizeVoice(text: string): string {
   result = result.replace(/This suggests you are\s+/gi, 'Part of you may be ');
   result = result.replace(/This suggests that you are\s+/gi, 'Part of you may be ');
   
-  // "You are inherently..." → "There can be..."
-  result = result.replace(/You are inherently\s+/gi, 'There can be ');
-  result = result.replace(/You're inherently\s+/gi, 'There can be ');
+  // "You are inherently..." → "There can be a ... quality"
+  // FIXED: Maintain noun structure for naturalness
+  result = result.replace(/You are inherently (\w+)/gi, (match, adj) => {
+    return `There can be a ${adj} quality in how you respond`;
+  });
+  result = result.replace(/You're inherently (\w+)/gi, (match, adj) => {
+    return `There can be a ${adj} quality in how you respond`;
+  });
   
   // "You are naturally..." → "You may naturally..."
   result = result.replace(/You are naturally\s+/gi, 'You may naturally ');
@@ -396,7 +401,83 @@ function normalizeVoice(text: string): string {
 }
 
 // ============================================
-// STEP 7: PUNCTUATION CLEANUP
+// STEP 7: SENTENCE COMPLETENESS (V1.5)
+// ============================================
+// Ensures no awkward fragments remain after voice normalization.
+// Fixes incomplete patterns to sound like natural spoken English.
+
+function fixSentenceCompleteness(text: string): string {
+  let result = text;
+  
+  // Common adjectives that need noun completion
+  const adjectives = [
+    'reactive', 'impulsive', 'defensive', 'sensitive', 'emotional',
+    'cautious', 'intense', 'restless', 'anxious', 'protective',
+    'stubborn', 'flexible', 'independent', 'dependent', 'passive',
+    'aggressive', 'withdrawn', 'expressive', 'reserved', 'dramatic',
+    'practical', 'idealistic', 'optimistic', 'pessimistic', 'analytical',
+    'intuitive', 'logical', 'creative', 'structured', 'chaotic'
+  ];
+  
+  // Fix "There can be [adjective]." → "There can be a [adjective] quality in how you respond."
+  for (const adj of adjectives) {
+    const pattern = new RegExp(`There can be ${adj}(\\.|\$)`, 'gi');
+    result = result.replace(pattern, `There can be a ${adj} quality in how you respond$1`);
+  }
+  
+  // Fix "There can be a [adjective]." → "There can be a [adjective] quality."
+  result = result.replace(/There can be a (\w+)\.(?!\s)/gi, 'There can be a $1 quality.');
+  
+  // Fix "Part of you may be [adjective]." → "Part of you may be [adjective] at times."
+  for (const adj of adjectives) {
+    const pattern = new RegExp(`Part of you may be ${adj}(\\.|\$)`, 'gi');
+    result = result.replace(pattern, `Part of you may be ${adj} at times$1`);
+  }
+  
+  // Fix "You may find it helpful to [verb]." → ensure complete
+  result = result.replace(/You may find it helpful to (\w+)\.(?!\s)/gi, (match, verb) => {
+    // If verb ends in a preposition-like word, it's likely complete
+    if (['to', 'for', 'with', 'about', 'on', 'in'].some(p => verb.endsWith(p))) {
+      return match;
+    }
+    return `You may find it helpful to ${verb}.`;
+  });
+  
+  // Fix "You may benefit from [verb]." → "You may benefit from [verb]ing this."
+  result = result.replace(/You may benefit from (\w+)\.(?!\s)/gi, (match, word) => {
+    // If already a gerund or noun, leave it
+    if (word.endsWith('ing') || word.endsWith('tion') || word.endsWith('ness')) {
+      return match;
+    }
+    // Convert to gerund if it's a verb
+    if (word.endsWith('e')) {
+      return `You may benefit from ${word.slice(0, -1)}ing.`;
+    }
+    return `You may benefit from ${word}ing.`;
+  });
+  
+  // Fix "This tends to show up as [adjective]." → "This tends to show up as [adjective] behavior."
+  for (const adj of adjectives) {
+    const pattern = new RegExp(`This tends to show up as ${adj}(\\.|\$)`, 'gi');
+    result = result.replace(pattern, `This tends to show up as ${adj} behavior$1`);
+  }
+  
+  // Fix bare "You may notice [adjective]" without context
+  result = result.replace(/You may notice (\w+)—/gi, (match, word) => {
+    if (adjectives.includes(word.toLowerCase())) {
+      return `You may notice moments of ${word}—`;
+    }
+    return match;
+  });
+  
+  // Ensure sentences don't end with dangling prepositions/articles
+  result = result.replace(/\s+(a|an|the|to|for|with|in|on|at|by)\.\s*/gi, '. ');
+  
+  return result;
+}
+
+// ============================================
+// STEP 8: PUNCTUATION CLEANUP
 // ============================================
 
 function cleanPunctuation(text: string): string {
@@ -455,8 +536,9 @@ function contextFixes(text: string): string {
  * 4. Fix verb conjugation
  * 5. Fix phrasing
  * 6. VOICE CONSISTENCY (Mirror Voice)
- * 7. Clean punctuation
- * 8. Context fixes
+ * 7. SENTENCE COMPLETENESS (V1.5) - ensure natural English
+ * 8. Clean punctuation
+ * 9. Context fixes
  */
 export function cleanText(text?: string | null): string {
   if (!text || typeof text !== 'string') {
@@ -469,7 +551,7 @@ export function cleanText(text?: string | null): string {
   // 1. Normalize quotes/spacing first
   result = normalizeQuotesAndSpacing(result);
   
-  // 2. Fix articles (a/an) 
+  // 2. Fix articles (a/an) - FIRST PASS
   result = fixArticles(result);
   
   // 3. Tone normalization BEFORE verb fix
@@ -487,10 +569,17 @@ export function cleanText(text?: string | null): string {
   //    Converts authoritative/clinical/dramatic → observational/grounded
   result = normalizeVoice(result);
   
-  // 7. Clean punctuation
+  // 7. SENTENCE COMPLETENESS (V1.5)
+  //    Fixes incomplete patterns like "There can be reactive" → "There can be a reactive quality"
+  result = fixSentenceCompleteness(result);
+  
+  // 8. Fix articles (a/an) - SECOND PASS (catch new patterns from voice normalization)
+  result = fixArticles(result);
+  
+  // 9. Clean punctuation
   result = cleanPunctuation(result);
   
-  // 8. Context fixes
+  // 10. Context fixes
   result = contextFixes(result);
   
   // Final trim
