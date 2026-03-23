@@ -282,18 +282,44 @@ function normalizeVoice(text: string): string {
   result = result.replace(/This suggests you are\s+/gi, 'Part of you may be ');
   result = result.replace(/This suggests that you are\s+/gi, 'Part of you may be ');
   
-  // "You are inherently..." → "There can be a ... quality"
-  // FIXED: Maintain noun structure for naturalness
+  // "You are inherently..." → varied templates for naturalness
+  // Uses deterministic selection based on adjective (same input = same output)
+  const inherentlyTemplates = [
+    (adj: string) => `There can be a ${adj} quality in how you respond`,
+    (adj: string) => `You may notice a ${adj} pattern in how you respond`,
+    (adj: string) => `At times, your responses can take on a more ${adj} quality`,
+    (adj: string) => `There's often a ${adj} edge to how you move through things`,
+  ];
+  
   result = result.replace(/You are inherently (\w+)/gi, (match, adj) => {
-    return `There can be a ${adj} quality in how you respond`;
+    // Deterministic template selection based on adjective hash
+    const hash = adj.toLowerCase().split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const templateIndex = hash % inherentlyTemplates.length;
+    return inherentlyTemplates[templateIndex](adj);
   });
   result = result.replace(/You're inherently (\w+)/gi, (match, adj) => {
-    return `There can be a ${adj} quality in how you respond`;
+    const hash = adj.toLowerCase().split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const templateIndex = hash % inherentlyTemplates.length;
+    return inherentlyTemplates[templateIndex](adj);
   });
   
-  // "You are naturally..." → "You may naturally..."
-  result = result.replace(/You are naturally\s+/gi, 'You may naturally ');
-  result = result.replace(/You're naturally\s+/gi, 'You may naturally ');
+  // "You are naturally..." → varied templates
+  const naturallyTemplates = [
+    (adj: string) => `You may naturally ${adj}`,
+    (adj: string) => `There's a natural tendency to ${adj}`,
+    (adj: string) => `You tend to naturally ${adj}`,
+  ];
+  
+  result = result.replace(/You are naturally (\w+)/gi, (match, adj) => {
+    const hash = adj.toLowerCase().split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const templateIndex = hash % naturallyTemplates.length;
+    return naturallyTemplates[templateIndex](adj);
+  });
+  result = result.replace(/You're naturally (\w+)/gi, (match, adj) => {
+    const hash = adj.toLowerCase().split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const templateIndex = hash % naturallyTemplates.length;
+    return naturallyTemplates[templateIndex](adj);
+  });
   
   // "You are fundamentally..." → "At your core, you tend to be..."
   result = result.replace(/You are fundamentally\s+/gi, 'At your core, you tend to be ');
