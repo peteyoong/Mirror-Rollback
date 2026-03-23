@@ -1,11 +1,11 @@
 // ============================================
 // ASTROLOGY TODAY TAB
-// Renders: Today/Week/Month content with Dominant Truth
-// Master Astrologer v5: Narrative Collapse / One Dominant Truth
+// Renders: Today/Week/Month content with live timing layer
+// Upgraded: Premium timing layer with real transit data
 // ============================================
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
 import {
   FullChartData,
@@ -51,6 +51,383 @@ import {
 } from '../../services/astrology/astrologyNarrative';
 
 import { cleanText } from '../../utils/languageGuard';
+
+// ============================================
+// LIFE DOMAIN MAPPING - Translate houses/planets to real life
+// ============================================
+
+const HOUSE_TO_LIFE_DOMAIN: { [key: number]: string } = {
+  1: 'identity / self-expression / physical presence',
+  2: 'money / resources / self-worth',
+  3: 'communication / thinking / voice / learning',
+  4: 'home / family / inner life / emotional roots',
+  5: 'creativity / self-expression / romance / joy',
+  6: 'work / health / daily routines / service',
+  7: 'partnership / relating / commitments / reciprocity',
+  8: 'intimacy / shared resources / emotional depth / transformation',
+  9: 'beliefs / meaning / travel / expansion',
+  10: 'career / public role / responsibility / achievement',
+  11: 'community / friendship / hopes / collective connection',
+  12: 'solitude / rest / spirituality / what operates beneath awareness',
+};
+
+const PLANET_TO_THEME: { [key: string]: string } = {
+  'Sun': 'core identity / vitality / self-expression',
+  'Moon': 'emotional life / needs / comfort / inner rhythms',
+  'Mercury': 'communication / thinking / perception',
+  'Venus': 'relationships / values / pleasure / closeness',
+  'Mars': 'action / drive / assertion / conflict',
+  'Jupiter': 'growth / expansion / opportunity / optimism',
+  'Saturn': 'pressure / responsibility / limits / maturity',
+  'Uranus': 'disruption / change / freedom / individuality',
+  'Neptune': 'imagination / idealism / dissolution / spirituality',
+  'Pluto': 'power / transformation / intensity / depth',
+  'Chiron': 'sensitivity / old wounds / healing / wisdom',
+  'North Node': 'growth direction / developmental edge',
+  'South Node': 'familiar patterns / comfort zone',
+};
+
+// ============================================
+// TRANSIT HUMAN TRANSLATIONS
+// ============================================
+
+interface TransitTranslation {
+  label: string;
+  humanLine: string;
+}
+
+const getTransitHumanLine = (
+  transitPoint: string,
+  aspectType: string,
+  natalPoint: string
+): string => {
+  const aspect = aspectType.toLowerCase();
+  const transit = transitPoint;
+  const natal = natalPoint;
+  
+  // Jupiter transits
+  if (transit === 'Jupiter') {
+    if (natal === 'Saturn') return aspect === 'square' || aspect === 'opposition' 
+      ? 'Expansion is meeting resistance—growth may require more patience than speed.'
+      : 'Growth and structure are finding productive alignment.';
+    if (natal === 'Sun') return aspect === 'square' || aspect === 'opposition'
+      ? 'Confidence may be stretching beyond current capacity.'
+      : 'A natural expansiveness is supporting self-expression.';
+    if (natal === 'Moon') return aspect === 'square' || aspect === 'opposition'
+      ? 'Emotional needs may be inflating or feeling harder to contain.'
+      : 'Emotional generosity and optimism are flowing more easily.';
+    if (natal === 'Mars') return 'Action and expansion are in active conversation.';
+    if (natal === 'Venus') return 'Relationships and pleasure may be amplified.';
+    if (natal === 'Mercury') return 'Thinking and communication are expanding.';
+  }
+  
+  // Saturn transits
+  if (transit === 'Saturn') {
+    if (natal === 'Sun') return 'Identity is being tested by responsibility and limits.';
+    if (natal === 'Moon') return 'Emotional life is carrying more weight than usual.';
+    if (natal === 'Mars') return 'Action is meeting friction—patience may be required.';
+    if (natal === 'Venus') return 'Relationships may be under pressure to mature.';
+    if (natal === 'Jupiter') return 'Optimism is being asked to get realistic.';
+    if (natal === 'Mercury') return 'Thinking is being asked to be more serious or precise.';
+  }
+  
+  // Pluto transits
+  if (transit === 'Pluto') {
+    if (natal === 'Mars') return 'Pressure may be intensifying how action and control are handled.';
+    if (natal === 'Sun') return 'Deep transformation is touching the core of identity.';
+    if (natal === 'Moon') return 'Emotional intensity is running higher than usual.';
+    if (natal === 'Venus') return 'Relationships are being pulled into deeper territory.';
+    if (natal === 'Saturn') return 'Power and structure are being renegotiated.';
+  }
+  
+  // Uranus transits
+  if (transit === 'Uranus') {
+    if (natal === 'Jupiter') return 'Sudden opportunities or disruptions to growth are possible.';
+    if (natal === 'Saturn') return 'Structures are being challenged to change or break.';
+    if (natal === 'Sun') return 'Identity is being pushed toward something less predictable.';
+    if (natal === 'Moon') return 'Emotional life may feel more erratic or restless.';
+    if (natal === 'Venus') return 'Relationships may be feeling unpredictable or changing.';
+    if (natal === 'Mars') return 'Action may be more impulsive or erratic.';
+  }
+  
+  // Neptune transits
+  if (transit === 'Neptune') {
+    if (natal === 'Chiron') return 'Older sensitivities may be closer to the surface.';
+    if (natal === 'Sun') return 'Identity may feel more diffuse or idealized.';
+    if (natal === 'Moon') return 'Emotional boundaries may be more permeable.';
+    if (natal === 'Venus') return 'Love and idealism are deeply connected right now.';
+    if (natal === 'Saturn') return 'Reality and imagination may be harder to distinguish.';
+    if (natal === 'Mercury') return 'Thinking may be more imaginative but less precise.';
+  }
+  
+  // Generic fallback based on aspect type
+  if (aspect === 'conjunction') return `${transit} is amplifying ${natal.toLowerCase()} themes.`;
+  if (aspect === 'square') return `${transit} is creating friction with ${natal.toLowerCase()} patterns.`;
+  if (aspect === 'opposition') return `${transit} is creating tension with ${natal.toLowerCase()} expression.`;
+  if (aspect === 'trine') return `${transit} is supporting ${natal.toLowerCase()} energy naturally.`;
+  if (aspect === 'sextile') return `${transit} is opening opportunities around ${natal.toLowerCase()}.`;
+  
+  return `${transit} is activating ${natal.toLowerCase()} themes.`;
+};
+
+// ============================================
+// PSYCHOLOGICAL ACTIVATION BULLETS
+// ============================================
+
+const getActivationBullets = (transits: TransitHit[], emphasisTags: string[]): string[] => {
+  const bullets: string[] = [];
+  const seen = new Set<string>();
+  
+  // From emphasis tags
+  if (emphasisTags.includes('expansion') && emphasisTags.includes('structure')) {
+    bullets.push('growth meeting limits');
+  } else if (emphasisTags.includes('expansion')) {
+    bullets.push('openness to new possibilities');
+  }
+  
+  if (emphasisTags.includes('transformation') || emphasisTags.includes('power')) {
+    bullets.push('intensity or pressure building beneath the surface');
+  }
+  
+  if (emphasisTags.includes('communication')) {
+    bullets.push('communication or expression asking for attention');
+  }
+  
+  // From specific transits
+  for (const t of transits.slice(0, 5)) {
+    const transit = t.transit_point || (t as any).transit_planet;
+    const natal = t.natal_point || (t as any).natal_planet;
+    const aspect = t.aspect_type;
+    
+    if (!transit || !natal) continue;
+    
+    if (transit === 'Neptune' && natal === 'Chiron' && !seen.has('sensitivity')) {
+      bullets.push('older sensitivity becoming easier to feel');
+      seen.add('sensitivity');
+    }
+    
+    if (transit === 'Pluto' && natal === 'Mars' && !seen.has('action-pressure')) {
+      bullets.push('pressure on action and follow-through');
+      seen.add('action-pressure');
+    }
+    
+    if ((transit === 'Saturn' || natal === 'Saturn') && !seen.has('responsibility')) {
+      if (aspect === 'square' || aspect === 'opposition') {
+        bullets.push('responsibility or delay requiring patience');
+        seen.add('responsibility');
+      }
+    }
+    
+    if (transit === 'Uranus' && !seen.has('change')) {
+      bullets.push('unexpected shifts asking for flexibility');
+      seen.add('change');
+    }
+  }
+  
+  return bullets.slice(0, 4);
+};
+
+// ============================================
+// LIFE DOMAIN EXTRACTION
+// ============================================
+
+const getLifeDomains = (transits: TransitHit[]): string[] => {
+  const domains = new Set<string>();
+  const houseCounts: { [key: number]: number } = {};
+  
+  for (const t of transits) {
+    const house = t.natal_house;
+    if (house) {
+      houseCounts[house] = (houseCounts[house] || 0) + 1;
+    }
+  }
+  
+  // Get top 3 houses by frequency
+  const sortedHouses = Object.entries(houseCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([h]) => parseInt(h));
+  
+  for (const house of sortedHouses) {
+    const domain = HOUSE_TO_LIFE_DOMAIN[house];
+    if (domain) {
+      // Extract just the first part for brevity
+      const shortDomain = domain.split(' / ')[0];
+      domains.add(shortDomain);
+    }
+  }
+  
+  return Array.from(domains);
+};
+
+const getLifeDomainLine = (transits: TransitHit[]): string => {
+  const domains = getLifeDomains(transits);
+  if (domains.length === 0) return '';
+  
+  if (domains.length === 1) {
+    return `This may land most in ${domains[0]}.`;
+  }
+  
+  if (domains.length === 2) {
+    return `This may land most in ${domains[0]} and ${domains[1]}.`;
+  }
+  
+  const last = domains.pop();
+  return `This may land most in ${domains.join(', ')}, and ${last}.`;
+};
+
+// ============================================
+// SUPPORT LINE GENERATION
+// ============================================
+
+const getSupportLine = (transits: TransitHit[], emphasisTags: string[], timeframe: Timeframe): string => {
+  const hasSaturn = transits.some(t => 
+    (t.transit_point || (t as any).transit_planet) === 'Saturn' ||
+    (t.natal_point || (t as any).natal_planet) === 'Saturn'
+  );
+  
+  const hasPluto = transits.some(t => 
+    (t.transit_point || (t as any).transit_planet) === 'Pluto'
+  );
+  
+  const hasNeptune = transits.some(t => 
+    (t.transit_point || (t as any).transit_planet) === 'Neptune'
+  );
+  
+  const hasUranus = transits.some(t => 
+    (t.transit_point || (t as any).transit_planet) === 'Uranus'
+  );
+  
+  const hasExpansionStructure = emphasisTags.includes('expansion') && emphasisTags.includes('structure');
+  
+  if (hasExpansionStructure) {
+    return 'Let clarity come before commitment where possible.';
+  }
+  
+  if (hasSaturn && hasPluto) {
+    return 'If something feels overcharged, it may help to name it before acting on it.';
+  }
+  
+  if (hasSaturn) {
+    return 'Slowing the pace may reveal more than pushing through.';
+  }
+  
+  if (hasPluto) {
+    return 'What is surfacing may need witnessing before it needs solving.';
+  }
+  
+  if (hasNeptune) {
+    return 'Let what is unclear remain unclear a little longer if needed.';
+  }
+  
+  if (hasUranus) {
+    return 'Flexibility may serve better than rigid planning right now.';
+  }
+  
+  // Timeframe-specific defaults
+  if (timeframe === 'today') {
+    return 'Notice what is being touched before trying to fix it.';
+  }
+  
+  if (timeframe === 'week') {
+    return 'Let the week reveal its rhythm before over-scheduling.';
+  }
+  
+  return 'Let what is emerging become clearer before trying to resolve it.';
+};
+
+// ============================================
+// REFLECTION QUESTION GENERATION
+// ============================================
+
+const getTimingReflectionQuestion = (transits: TransitHit[], emphasisTags: string[], timeframe: Timeframe): string => {
+  const hasExpansionStructure = emphasisTags.includes('expansion') && emphasisTags.includes('structure');
+  
+  const hasSensitivity = transits.some(t => {
+    const natal = t.natal_point || (t as any).natal_planet;
+    return natal === 'Chiron';
+  });
+  
+  const hasIdentityPressure = transits.some(t => {
+    const natal = t.natal_point || (t as any).natal_planet;
+    const transit = t.transit_point || (t as any).transit_planet;
+    return (natal === 'Sun' && (transit === 'Saturn' || transit === 'Pluto'));
+  });
+  
+  const hasRelationshipActivation = transits.some(t => {
+    const natal = t.natal_point || (t as any).natal_planet;
+    return natal === 'Venus';
+  });
+  
+  if (hasExpansionStructure) {
+    return 'Where is growth asking for maturity rather than speed?';
+  }
+  
+  if (hasSensitivity) {
+    return 'What is being touched here that may be older than this moment?';
+  }
+  
+  if (hasIdentityPressure) {
+    return 'What are you trying to prove—and to whom?';
+  }
+  
+  if (hasRelationshipActivation) {
+    return 'What becomes possible when you stop managing how others see you?';
+  }
+  
+  // Timeframe defaults
+  if (timeframe === 'today') {
+    return 'What would shift if you stopped trying to control the outcome?';
+  }
+  
+  if (timeframe === 'week') {
+    return 'What are you trying to solve before you\'ve fully named what is happening?';
+  }
+  
+  return 'What becomes clearer if you stop trying to force resolution?';
+};
+
+// ============================================
+// BUILD TIMING CONTEXT FOR ASK MIRROR
+// ============================================
+
+interface TimingContext {
+  timeframe: Timeframe;
+  topTransits: string[];
+  activatedNatalPoints: string[];
+  lifeDomains: string[];
+  questionToSitWith: string;
+  supportLine: string;
+}
+
+const buildTimingContext = (
+  transits: TransitHit[],
+  emphasisTags: string[],
+  timeframe: Timeframe
+): TimingContext => {
+  const topTransits = transits.slice(0, 3).map(t => {
+    const transit = t.transit_point || (t as any).transit_planet || '?';
+    const natal = t.natal_point || (t as any).natal_planet || '?';
+    return `${transit} ${t.aspect_type} ${natal}`;
+  });
+  
+  const activatedNatalPoints = [...new Set(transits.slice(0, 5).map(t => 
+    t.natal_point || (t as any).natal_planet
+  ).filter(Boolean))];
+  
+  const lifeDomains = getLifeDomains(transits);
+  const questionToSitWith = getTimingReflectionQuestion(transits, emphasisTags, timeframe);
+  const supportLine = getSupportLine(transits, emphasisTags, timeframe);
+  
+  return {
+    timeframe,
+    topTransits,
+    activatedNatalPoints,
+    lifeDomains,
+    questionToSitWith,
+    supportLine,
+  };
+};
 
 // ============================================
 // SIGNALS SECTION COMPONENT (Now "Evidence" when dominant truth exists)
@@ -336,9 +713,24 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
   const feelings = getWhatThisMayFeelLike(transits, activeAltitude).slice(0, 3);
   const mistakes = getMistakeToWatch(transits, activeAltitude).slice(0, 3);
   const question = getReflectionQuestion(transits, activeAltitude);
+  
+  // NEW: Premium Timing Layer Content
+  const emphasisTags = currentWindow?.emphasis_tags || [];
+  const topTransits = transits.slice(0, 3);
+  const activationBullets = getActivationBullets(transits, emphasisTags);
+  const lifeDomainLine = getLifeDomainLine(transits);
+  const supportLine = getSupportLine(transits, emphasisTags, activeAltitude);
+  const timingReflectionQuestion = getTimingReflectionQuestion(transits, emphasisTags, activeAltitude);
+  const timingContext = buildTimingContext(transits, emphasisTags, activeAltitude);
+  
+  // Handle Ask Mirror with timing context
+  const handleAskMirrorWithContext = () => {
+    console.log('[AstrologyTodayTab] Timing context for Ask Mirror:', timingContext);
+    onOpenChat();
+  };
 
   return (
-    <View style={styles.todayContainer}>
+    <ScrollView style={styles.todayContainer} showsVerticalScrollIndicator={false}>
       {/* Altitude Selector */}
       <View style={[styles.altitudeSelector, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
         <TouchableOpacity
@@ -386,197 +778,100 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
         </TouchableOpacity>
       )}
 
-      {/* DOMINANT TRUTH CARD - Master Astrologer v5 */}
-      {hasDominantTruth && collapsedInsights.narrative ? (
-        <View style={[styles.dominantTruthCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
-          {/* Headline */}
-          <Text style={[styles.dominantTruthHeadline, { color: theme.text }]}>
-            {cleanText(collapsedInsights.narrative.headline)}
-          </Text>
-          
-          {/* Recognition Line */}
-          {collapsedInsights.narrative.recognitionLine && (
-            <Text style={[styles.recognitionLine, { color: theme.accent }]}>
-              {cleanText(collapsedInsights.narrative.recognitionLine)}
-            </Text>
-          )}
-          
-          {/* Core Truth */}
-          <Text style={[styles.coreTruthText, { color: theme.text }]}>
-            {cleanText(collapsedInsights.narrative.coreTruth)}
-          </Text>
-          
-          {/* Timeline Linking Line - Micro context */}
-          {timelineLinkingLine && (
-            <Text style={[styles.timelineLinkingLine, { color: theme.textTertiary }]}>
-              {cleanText(timelineLinkingLine)}
-            </Text>
-          )}
-          
-          {/* Where This Shows Up */}
-          <View style={[styles.whereShowsUp, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
-            <Text style={[styles.whereShowsUpLabel, { color: theme.textTertiary }]}>WHERE THIS SHOWS UP</Text>
-            <Text style={[styles.whereShowsUpText, { color: theme.textSecondary }]}>
-              {cleanText(collapsedInsights.narrative.whereThisShowsUp)}
-            </Text>
-          </View>
-          
-          {/* What Goes Wrong */}
-          <View style={[styles.whatGoesWrong, { backgroundColor: '#FF634708', borderColor: '#FF634720' }]}>
-            <Text style={[styles.whatGoesWrongLabel, { color: '#FF6347' }]}>WHAT GOES WRONG</Text>
-            <Text style={[styles.whatGoesWrongText, { color: theme.text }]}>
-              {cleanText(collapsedInsights.narrative.whatGoesWrong)}
-            </Text>
-          </View>
-          
-          {/* Question */}
-          <View style={[styles.questionContainer, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
-            <Text style={[styles.questionText, { color: theme.text }]}>
-              {cleanText(collapsedInsights.narrative.question)}
-            </Text>
-          </View>
-          
-          {/* Reflect Button */}
-          <TouchableOpacity
-            style={[styles.reflectButton, { backgroundColor: theme.accent }]}
-            onPress={() => onReflect(collapsedInsights.narrative?.question || question)}
-          >
-            <Text style={[styles.reflectButtonText, { color: theme.background }]}>Reflect on this</Text>
-          </TouchableOpacity>
-          
-          {/* Timeframe Context */}
-          <Text style={[styles.timeframeContext, { color: theme.textTertiary }]}>
-            {cleanText(collapsedInsights.narrative.timeframeContext)}
-          </Text>
-          
-          {/* Evidence Collapsed */}
-          {collapsedInsights.suppressedSignalCount > 0 && (
-            <Text style={[styles.evidenceNote, { color: theme.textTertiary }]}>
-              Based on {collapsedInsights.surfacedSignalCount + collapsedInsights.suppressedSignalCount} active signals ({collapsedInsights.suppressedSignalCount} supporting)
-            </Text>
-          )}
-        </View>
-      ) : (
-        /* FALLBACK: Original structure when no dominant truth */
-        <View style={[styles.dailyEnergyCard, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
-          <Text style={[styles.dailyEnergyLabel, { color: theme.accent }]}>
-            {activeAltitude === 'today' ? "TODAY'S ENERGY" : activeAltitude === 'week' ? "THIS WEEK'S ENERGY" : "THIS MONTH'S ENERGY"}
-          </Text>
-          <Text style={[styles.dailyEnergyHeadline, { color: theme.text }]}>
-            {energySynthesis.headline}
-          </Text>
-          <Text style={[styles.dailyEnergyBody, { color: theme.text }]}>
-            {energySynthesis.body}
-          </Text>
-          
-          {/* Context Lines */}
-          <View style={styles.contextLinesContainer}>
-            {lifeAreaContext ? (
-              <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
-                ↳ {lifeAreaContext}
-              </Text>
-            ) : null}
-            {moonPhaseContext ? (
-              <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
-                ↳ {moonPhaseContext}
-              </Text>
-            ) : null}
-            {personalRelevanceLine ? (
-              <Text style={[styles.contextLine, { color: theme.textTertiary }]}>
-                ↳ {personalRelevanceLine}
-              </Text>
-            ) : null}
-            {chartRulerLine ? (
-              <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500' }]}>
-                ↳ {chartRulerLine}
-              </Text>
-            ) : null}
-            {lifeChapterContextLine ? (
-              <Text style={[styles.contextLine, { color: theme.accent, fontWeight: '500', fontStyle: 'italic' }]}>
-                ↳ {lifeChapterContextLine}
-              </Text>
-            ) : null}
+
+      {/* ============================================ */}
+      {/* SECTION 1: TOP ACTIVE TRANSITS */}
+      {/* ============================================ */}
+      {topTransits.length > 0 && (
+        <View style={[styles.topTransitsSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>TOP ACTIVE TRANSITS</Text>
+          <View style={styles.topTransitsList}>
+            {topTransits.map((t, index) => {
+              const transit = t.transit_point || (t as any).transit_planet || '?';
+              const natal = t.natal_point || (t as any).natal_planet || '?';
+              const aspectLabel = `${transit} ${t.aspect_type} ${natal}`;
+              const humanLine = getTransitHumanLine(transit, t.aspect_type, natal);
+              
+              return (
+                <View key={index} style={[styles.transitRow, index < topTransits.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.border }]}>
+                  <Text style={[styles.transitLabel, { color: theme.text }]}>{aspectLabel}</Text>
+                  <Text style={[styles.transitHumanLine, { color: theme.textSecondary }]}>{humanLine}</Text>
+                </View>
+              );
+            })}
           </View>
         </View>
       )}
 
-      {/* COMPRESSED: WHAT TO NOTICE + WHAT TO AVOID - Only show if no dominant truth */}
-      {!hasDominantTruth && (
-        <View style={styles.compressedInsightsRow}>
-          {feelings.length > 0 && (
-            <View style={[styles.compressedInsightCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.compressedInsightTitle, { color: theme.textSecondary }]}>MAY FEEL LIKE</Text>
-              <Text style={[styles.compressedInsightText, { color: theme.text }]}>
-                {feelings[0]}
+      {/* ============================================ */}
+      {/* SECTION 2: WHAT IS BEING ACTIVATED */}
+      {/* ============================================ */}
+      {activationBullets.length > 0 && (
+        <View style={[styles.activationSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>WHAT IS BEING ACTIVATED</Text>
+          <View style={styles.bulletList}>
+            {activationBullets.map((bullet, index) => (
+              <Text key={index} style={[styles.bulletItem, { color: theme.textSecondary }]}>
+                • {bullet}
               </Text>
-            </View>
-          )}
-          
-          {mistakes.length > 0 && (
-            <View style={[styles.compressedInsightCard, { backgroundColor: '#FF634705', borderColor: '#FF634715' }]}>
-              <Text style={[styles.compressedInsightTitle, { color: '#FF6347' }]}>WATCH FOR</Text>
-              <Text style={[styles.compressedInsightText, { color: theme.text }]}>
-                {mistakes[0]}
-              </Text>
-            </View>
-          )}
+            ))}
+          </View>
         </View>
       )}
 
-      {/* Additional feelings/mistakes if present - Only show if no dominant truth */}
-      {!hasDominantTruth && (feelings.length > 1 || mistakes.length > 1) && (
-        <View style={[styles.additionalInsightsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          {feelings.length > 1 && (
-            <View style={styles.additionalSection}>
-              <Text style={[styles.additionalTitle, { color: theme.textTertiary }]}>ALSO NOTICE</Text>
-              {feelings.slice(1).map((feeling, i) => (
-                <Text key={i} style={[styles.additionalBullet, { color: theme.textSecondary }]}>• {feeling}</Text>
-              ))}
-            </View>
-          )}
-          {mistakes.length > 1 && (
-            <View style={styles.additionalSection}>
-              <Text style={[styles.additionalTitle, { color: '#FF6347' }]}>ALSO WATCH</Text>
-              {mistakes.slice(1).map((mistake, i) => (
-                <Text key={i} style={[styles.additionalBullet, { color: theme.textSecondary }]}>• {mistake}</Text>
-              ))}
-            </View>
-          )}
+      {/* ============================================ */}
+      {/* SECTION 3: WHERE THIS MAY LAND */}
+      {/* ============================================ */}
+      {lifeDomainLine && (
+        <View style={[styles.domainSection, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>WHERE THIS MAY LAND</Text>
+          <Text style={[styles.domainLine, { color: theme.text }]}>{lifeDomainLine}</Text>
         </View>
       )}
 
-      {/* Reflection Question - Only show if no dominant truth */}
-      {!hasDominantTruth && (
-        <View style={[styles.reflectionCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
-          <Text style={[styles.reflectionLabel, { color: theme.accent }]}>A QUESTION</Text>
-          <Text style={[styles.reflectionText, { color: theme.text }]}>{question}</Text>
-          <TouchableOpacity
-            style={[styles.fallbackReflectButton, { borderColor: theme.accent }]}
-            onPress={() => onReflect(question)}
+      {/* ============================================ */}
+      {/* SECTION 4: WHAT HELPS NOW */}
+      {/* ============================================ */}
+      <View style={[styles.supportSection, { backgroundColor: '#10B98108', borderColor: '#10B98120' }]}>
+        <Text style={[styles.sectionTitleGreen, { color: '#10B981' }]}>WHAT HELPS NOW</Text>
+        <Text style={[styles.supportLine, { color: theme.text }]}>{supportLine}</Text>
+      </View>
+
+      {/* ============================================ */}
+      {/* SECTION 5: A QUESTION TO SIT WITH */}
+      {/* ============================================ */}
+      <View style={[styles.questionSection, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+        <Text style={[styles.sectionTitleAccent, { color: theme.accent }]}>A QUESTION TO SIT WITH</Text>
+        <Text style={[styles.questionLine, { color: theme.text }]}>{timingReflectionQuestion}</Text>
+        <TouchableOpacity
+          style={[styles.reflectButton, { backgroundColor: theme.accent }]}
+          onPress={() => onReflect(timingReflectionQuestion)}
         >
-          <Text style={[styles.fallbackReflectButtonText, { color: theme.accent }]}>Reflect on this →</Text>
+          <Text style={[styles.reflectButtonText, { color: theme.background }]}>Reflect on this</Text>
         </TouchableOpacity>
       </View>
-      )}
 
-      {/* Signals Section - Now labeled as "Evidence" when dominant truth exists */}
+      {/* Signals Section - Evidence */}
       <SignalsSection 
         transits={transits}
         expanded={signalsExpanded}
         onToggle={() => setSignalsExpanded(!signalsExpanded)}
         theme={theme}
-        label={hasDominantTruth ? "SUPPORTING EVIDENCE" : undefined}
+        label="ACTIVE SIGNALS"
       />
-
       {/* Ask Mirror Button */}
       <TouchableOpacity
         style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
-        onPress={onOpenChat}
+        onPress={handleAskMirrorWithContext}
       >
         <Text style={{ fontSize: 16, color: theme.background }}>💬</Text>
-        <Text style={[styles.askMirrorText, { color: theme.background }]}>Ask about today</Text>
+        <Text style={[styles.askMirrorText, { color: theme.background }]}>
+          {activeAltitude === 'today' ? 'Ask about today' : 
+           activeAltitude === 'week' ? 'Ask about this week' : 
+           'Ask about this month'}
+        </Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -587,14 +882,14 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
 const styles = StyleSheet.create({
   todayContainer: {
     padding: 16,
-    gap: 12,
+    flex: 1,
   },
   altitudeSelector: {
     flexDirection: 'row',
     borderRadius: 10,
     padding: 4,
     borderWidth: 1,
-    marginBottom: 4,
+    marginBottom: 12,
   },
   altitudeButton: {
     flex: 1,
@@ -606,6 +901,92 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
+  // NEW: Premium Timing Layer Styles
+  topTransitsSection: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 12,
+  },
+  sectionTitleGreen: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  sectionTitleAccent: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  topTransitsList: {
+    gap: 12,
+  },
+  transitRow: {
+    paddingBottom: 12,
+  },
+  transitLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  transitHumanLine: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  activationSection: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  bulletList: {
+    gap: 6,
+  },
+  bulletItem: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  domainSection: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  domainLine: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  supportSection: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  supportLine: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  questionSection: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  questionLine: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  // Legacy styles (kept for SignalsSection compatibility)
   dailyEnergyCard: {
     borderRadius: 14,
     padding: 18,
