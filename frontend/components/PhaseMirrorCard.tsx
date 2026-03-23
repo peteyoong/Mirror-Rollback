@@ -1,10 +1,16 @@
 /**
- * PhaseMirrorCard Component
+ * PhaseMirrorCard Component - UPGRADED
  * 
- * Displays after saving a journal entry, showing which timeline phase
- * the entry belongs to. Creates a visual bridge between Journal and Timeline.
+ * Appears after saving a journal entry, showing which timeline phase
+ * the entry belongs to. Creates an emotionally meaningful bridge 
+ * between Journal and Timeline.
  * 
- * Part of the "Journal ↔ Timeline Connection" feature.
+ * Design philosophy:
+ * - Feels like a reward, not an alert
+ * - Human-readable, not overly astrological
+ * - Reflects back what just happened
+ * - Shows why it matters
+ * - Provides clear next steps
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -17,35 +23,40 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/colors';
+import { 
+  getPhaseMirrorContent, 
+  getPhaseIcon,
+  getReversePrompt,
+} from '../services/timelinePhaseUtils';
 
 // ============================================
 // TIMING CONSTANTS
 // ============================================
-const FADE_IN_DURATION = 300;
-const FADE_IN_DELAY = 200; // Appears slightly after MicroMirrorCard
+const FADE_IN_DURATION = 350;
+const FADE_IN_DELAY = 300; // Appears after MicroMirrorCard
 
 // ============================================
-// PHASE ICONS MAPPING
+// PHASE COLORS
 // ============================================
-const PHASE_ICONS: { [key: string]: string } = {
-  q1: '🌱',  // Recognition - new growth
-  q2: '⚡',  // Confrontation - energy
-  q3: '🔀',  // The Crossroads - decision
-  q4: '🌊',  // Integration - flow
-};
-
 const PHASE_COLORS: { [key: string]: string } = {
-  q1: 'rgba(76, 175, 80, 0.15)',   // Green tint
-  q2: 'rgba(255, 152, 0, 0.15)',   // Orange tint
-  q3: 'rgba(139, 92, 246, 0.15)',  // Purple tint
-  q4: 'rgba(33, 150, 243, 0.15)',  // Blue tint
+  q1: 'rgba(76, 175, 80, 0.12)',   // Green tint
+  q2: 'rgba(255, 152, 0, 0.12)',   // Orange tint
+  q3: 'rgba(139, 92, 246, 0.12)',  // Purple tint
+  q4: 'rgba(33, 150, 243, 0.12)',  // Blue tint
 };
 
 const PHASE_BORDER_COLORS: { [key: string]: string } = {
-  q1: 'rgba(76, 175, 80, 0.3)',
-  q2: 'rgba(255, 152, 0, 0.3)',
-  q3: 'rgba(139, 92, 246, 0.3)',
-  q4: 'rgba(33, 150, 243, 0.3)',
+  q1: 'rgba(76, 175, 80, 0.25)',
+  q2: 'rgba(255, 152, 0, 0.25)',
+  q3: 'rgba(139, 92, 246, 0.25)',
+  q4: 'rgba(33, 150, 243, 0.25)',
+};
+
+const PHASE_ACCENT_COLORS: { [key: string]: string } = {
+  q1: '#4CAF50',
+  q2: '#FF9800',
+  q3: '#8B5CF6',
+  q4: '#2196F3',
 };
 
 interface PhaseMirrorCardProps {
@@ -53,6 +64,7 @@ interface PhaseMirrorCardProps {
   phaseName: string;
   visible: boolean;
   onViewTimeline?: () => void;
+  onWriteDeeper?: (prompt: string) => void;
   onDismiss?: () => void;
 }
 
@@ -61,56 +73,52 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
   phaseName,
   visible,
   onViewTimeline,
+  onWriteDeeper,
   onDismiss,
 }) => {
   const { theme, isDark } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(10)).current;
 
   useEffect(() => {
     if (visible) {
-      // Delay then fade in
       const timer = setTimeout(() => {
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: FADE_IN_DURATION,
-          useNativeDriver: true,
-        }).start();
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: FADE_IN_DURATION,
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: FADE_IN_DURATION,
+            useNativeDriver: true,
+          }),
+        ]).start();
       }, FADE_IN_DELAY);
 
       return () => clearTimeout(timer);
     } else {
-      // Fade out quickly
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 150,
         useNativeDriver: true,
       }).start();
     }
-  }, [visible, fadeAnim]);
+  }, [visible, fadeAnim, slideAnim]);
 
   if (!visible || !phaseId || !phaseName) {
     return null;
   }
 
-  const icon = PHASE_ICONS[phaseId] || '⭐';
+  const content = getPhaseMirrorContent(phaseId);
+  const icon = getPhaseIcon(phaseId);
   const bgColor = PHASE_COLORS[phaseId] || 'rgba(139, 92, 246, 0.1)';
   const borderColor = PHASE_BORDER_COLORS[phaseId] || 'rgba(139, 92, 246, 0.25)';
-
-  // Get a phase-appropriate message
-  const getPhaseMessage = (): string => {
-    switch (phaseId) {
-      case 'q1':
-        return 'This entry lands in Recognition—when patterns first reveal themselves.';
-      case 'q2':
-        return 'This entry lands in Confrontation—when what was tolerable stops being so.';
-      case 'q3':
-        return 'This entry lands in The Crossroads—the year\'s primary choice point.';
-      case 'q4':
-        return 'This entry lands in Integration—where your choices begin to settle.';
-      default:
-        return `This entry is part of your ${phaseName} phase.`;
-    }
-  };
+  const accentColor = PHASE_ACCENT_COLORS[phaseId] || Colors.accent;
+  
+  // Get a reverse prompt for the "Write deeper" CTA
+  const deeperPrompt = getReversePrompt(phaseId, Date.now());
 
   return (
     <Animated.View
@@ -120,58 +128,88 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
           backgroundColor: isDark ? bgColor : bgColor,
           borderColor: borderColor,
           opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
         },
       ]}
     >
-      {/* Phase Tag */}
-      <View style={styles.phaseTagRow}>
+      {/* Phase Landing Header */}
+      <View style={styles.headerRow}>
         <View style={[styles.phaseTag, { backgroundColor: borderColor }]}>
           <Text style={styles.phaseIcon}>{icon}</Text>
-          <Text style={[styles.phaseTagText, { color: theme.text }]}>{phaseName}</Text>
+          <Text style={[styles.phaseTagText, { color: theme.text }]}>{content.phaseName}</Text>
         </View>
+        <Text style={[styles.humanMeaning, { color: theme.textSecondary }]}>
+          {content.humanMeaning}
+        </Text>
       </View>
 
-      {/* Message */}
-      <Text style={[styles.message, { color: theme.textSecondary }]}>
-        {getPhaseMessage()}
+      {/* What Just Happened */}
+      <Text style={[styles.landingLine, { color: theme.text }]}>
+        This entry lands in <Text style={{ color: accentColor, fontWeight: '600' }}>{content.phaseName}</Text>.
       </Text>
 
-      {/* Actions */}
-      <View style={styles.actionsRow}>
+      {/* Why It Matters */}
+      <Text style={[styles.whyMatters, { color: theme.textSecondary }]}>
+        {content.whyItMatters}
+      </Text>
+
+      {/* Emotional Line */}
+      <View style={[styles.emotionalContainer, { borderLeftColor: accentColor }]}>
+        <Text style={[styles.emotionalLine, { color: theme.text }]}>
+          "{content.emotionalLine}"
+        </Text>
+      </View>
+
+      {/* CTAs */}
+      <View style={styles.ctaRow}>
         <TouchableOpacity
-          style={[styles.viewTimelineButton, { borderColor: theme.border }]}
+          style={[styles.primaryCta, { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}
           onPress={onViewTimeline}
           activeOpacity={0.7}
         >
-          <Text style={[styles.viewTimelineText, { color: theme.textSecondary }]}>
-            View Timeline
+          <Text style={[styles.primaryCtaText, { color: accentColor }]}>
+            View this phase
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.dismissButton}
-          onPress={onDismiss}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={[styles.secondaryCta, { borderColor: theme.border }]}
+          onPress={() => onWriteDeeper?.(deeperPrompt)}
+          activeOpacity={0.7}
         >
-          <Text style={[styles.dismissText, { color: theme.textTertiary }]}>dismiss</Text>
+          <Text style={[styles.secondaryCtaText, { color: theme.textSecondary }]}>
+            Write deeper
+          </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Dismiss */}
+      <TouchableOpacity
+        style={styles.dismissButton}
+        onPress={onDismiss}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Text style={[styles.dismissText, { color: theme.textTertiary }]}>dismiss</Text>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 8,
-    marginBottom: 8,
-    borderRadius: 12,
+    marginTop: 10,
+    marginBottom: 10,
+    borderRadius: 14,
     borderWidth: 1,
-    padding: 14,
+    padding: 16,
     overflow: 'hidden',
   },
-  phaseTagRow: {
+  headerRow: {
     flexDirection: 'row',
-    marginBottom: 10,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+    gap: 8,
   },
   phaseTag: {
     flexDirection: 'row',
@@ -188,28 +226,61 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  message: {
+  humanMeaning: {
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  landingLine: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  whyMatters: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 12,
+  },
+  emotionalContainer: {
+    borderLeftWidth: 2,
+    paddingLeft: 12,
+    marginBottom: 16,
+  },
+  emotionalLine: {
     fontSize: 13,
     lineHeight: 19,
     fontStyle: 'italic',
   },
-  actionsRow: {
+  ctaRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 12,
+    gap: 10,
+    marginBottom: 8,
   },
-  viewTimelineButton: {
-    paddingVertical: 8,
+  primaryCta: {
+    flex: 1,
+    paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
+    alignItems: 'center',
   },
-  viewTimelineText: {
-    fontSize: 12,
+  primaryCtaText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  secondaryCta: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  secondaryCtaText: {
+    fontSize: 13,
     fontWeight: '500',
   },
   dismissButton: {
+    alignSelf: 'center',
     paddingVertical: 6,
     paddingHorizontal: 12,
   },

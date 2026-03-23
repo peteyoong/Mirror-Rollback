@@ -26,11 +26,12 @@ import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import MirrorChat from '../../components/MirrorChat';
 import MicroMirrorCard from '../../components/MicroMirrorCard';
 import PhaseMirrorCard from '../../components/PhaseMirrorCard';
+import PhaseTagModal from '../../components/PhaseTagModal';
 import KeyMomentsSection from '../../components/KeyMomentsSection';
 import { createJournalEntry, getJournalEntries, getCombinedTimeline, TimelineItem, updateJournalEntry, deleteJournalEntry } from '../../services/api';
 import api from '../../services/api';
 import { buildMirrorResponse, getJournalResponse, detectThemeFromText } from '../../services/mirrorResponseEngine';
-import { getCurrentPhase, getReversePrompt } from '../../services/timelinePhaseUtils';
+import { getCurrentPhase, getReversePrompt, getPhaseById } from '../../services/timelinePhaseUtils';
 // Task 51: Lunar Decision Journal Components
 import LunarDecisionJournalCard, { LunarJournalStatus } from '../../components/journal/LunarDecisionJournalCard';
 import LunarTimelineView from '../../components/journal/LunarTimelineView';
@@ -232,6 +233,12 @@ export default function JournalScreen() {
   const [savedPhaseId, setSavedPhaseId] = useState<string | null>(null);
   const [savedPhaseName, setSavedPhaseName] = useState<string | null>(null);
   const [reversePromptText, setReversePromptText] = useState<string | null>(null);
+  
+  // Phase Tag Modal state (when user taps phase pill on an entry)
+  const [phaseTagModalVisible, setPhaseTagModalVisible] = useState(false);
+  const [selectedPhaseId, setSelectedPhaseId] = useState<string>('');
+  const [selectedPhaseName, setSelectedPhaseName] = useState<string>('');
+  const [selectedEntryDate, setSelectedEntryDate] = useState<string>('');
   
   // Post-save highlight state (for newest entry)
   const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
@@ -794,10 +801,23 @@ export default function JournalScreen() {
   }, []);
 
   const handleViewTimeline = useCallback(() => {
-    // Navigate to the astrology lens Timeline tab
-    router.push('/(tabs)/?lens=astrology&tab=timeline');
+    // Navigate to the astrology lens Timeline tab with the specific phase to expand
+    // Use URL params to tell the Timeline tab which phase to auto-expand
+    const phaseToExpand = savedPhaseId || 'q1';
+    router.push(`/(tabs)/?lens=astrology&tab=timeline&expandPhase=${phaseToExpand}`);
     setPhaseMirrorVisible(false);
-  }, [router]);
+  }, [router, savedPhaseId]);
+
+  // Handler for "Write deeper" CTA in Phase Mirror card
+  const handleWriteDeeper = useCallback((prompt: string) => {
+    setNewEntry(`${prompt}\n\n`);
+    setPhaseMirrorVisible(false);
+    setReversePromptText(null);
+    // Focus the input
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
 
   // Handler for reverse prompt - prefill journal with the prompt
   const handleReversePrompt = useCallback(() => {
@@ -811,6 +831,21 @@ export default function JournalScreen() {
       }, 100);
     }
   }, [reversePromptText]);
+
+  // Handler for when phase pill is tapped in journal entry
+  const handlePhaseTap = useCallback((phaseId: string, phaseName: string, entryDate: string) => {
+    setSelectedPhaseId(phaseId);
+    setSelectedPhaseName(phaseName);
+    setSelectedEntryDate(entryDate);
+    setPhaseTagModalVisible(true);
+  }, []);
+
+  // Handler for "See related entries" in PhaseTagModal
+  const handleSeeRelatedEntries = useCallback((phaseId: string) => {
+    setPhaseTagModalVisible(false);
+    // Navigate to timeline with that phase expanded
+    router.push(`/(tabs)/?lens=astrology&tab=timeline&expandPhase=${phaseId}`);
+  }, [router]);
 
   // Reset Micro-Mirror when new entry is being typed
   useEffect(() => {
@@ -1677,30 +1712,18 @@ export default function JournalScreen() {
                 phaseName={savedPhaseName}
                 visible={phaseMirrorVisible}
                 onViewTimeline={handleViewTimeline}
+                onWriteDeeper={handleWriteDeeper}
                 onDismiss={handlePhaseMirrorDismiss}
               />
             )}
 
-            {/* Reverse Prompt Card - Contextual prompt based on current phase */}
-            {reversePromptText && phaseMirrorVisible && (
-              <TouchableOpacity
-                style={[styles.reversePromptCard, { 
-                  backgroundColor: isDark ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.08)',
-                  borderColor: isDark ? 'rgba(139, 92, 246, 0.25)' : 'rgba(139, 92, 246, 0.2)',
-                }]}
-                onPress={handleReversePrompt}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.reversePromptLabel, { color: theme.textTertiary }]}>
-                  Continue reflecting?
-                </Text>
-                <Text style={[styles.reversePromptText, { color: theme.text }]}>
-                  "{reversePromptText}"
-                </Text>
-                <Text style={[styles.reversePromptHint, { color: theme.textTertiary }]}>
-                  tap to start a new entry
-                </Text>
-              </TouchableOpacity>
+            {/* Note: Reverse Prompt is now integrated into PhaseMirrorCard's "Write deeper" CTA */}
+
+            {/* Mini Connection Line - Part 7: subtle line explaining the Journal ↔ Timeline connection */}
+            {journalEntries.length > 0 && !phaseMirrorVisible && (
+              <Text style={[styles.connectionLine, { color: theme.textTertiary }]}>
+                Your entries can help reveal how a larger cycle is unfolding.
+              </Text>
             )}
 
             {/* Entries List - NOW BEFORE Key Moments */}
@@ -1733,6 +1756,7 @@ export default function JournalScreen() {
                     onReflect={(content) => handleReflect(item.id, content)}
                     onEdit={handleEditEntry}
                     onDelete={handleDeleteEntry}
+                    onPhaseTap={handlePhaseTap}
                     isReflectDisabled={reflectionModalVisible}
                     isHighlighted={item.id === highlightedEntryId}
                   />
@@ -1765,6 +1789,16 @@ export default function JournalScreen() {
         onClose={handleCloseModal}
         journalText={selectedJournalText}
         chart={chart}
+      />
+
+      {/* Phase Tag Modal - appears when user taps a phase pill on an entry */}
+      <PhaseTagModal
+        visible={phaseTagModalVisible}
+        phaseId={selectedPhaseId}
+        phaseName={selectedPhaseName}
+        entryDate={selectedEntryDate}
+        onClose={() => setPhaseTagModalVisible(false)}
+        onSeeRelated={handleSeeRelatedEntries}
       />
     </SafeAreaView>
   );
@@ -1945,6 +1979,14 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 120, // Extra padding for PWA banner overlay
+  },
+  // Mini connection line style
+  connectionLine: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 12,
+    marginTop: 4,
   },
   // Reverse Prompt Card styles (Journal ↔ Timeline connection)
   reversePromptCard: {

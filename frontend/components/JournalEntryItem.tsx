@@ -14,6 +14,7 @@ import {
 import { Colors } from '../constants/colors';
 import { format } from 'date-fns';
 import { useTheme } from '../contexts/ThemeContext';
+import { getPhaseById } from '../services/timelinePhaseUtils';
 
 // Highlight animation constants
 const HIGHLIGHT_DURATION = 2000; // 2 seconds
@@ -40,6 +41,12 @@ const getPhaseColor = (phaseId: string, isDark: boolean): string => {
   return colors[phaseId] || (isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.1)');
 };
 
+// Get human-readable meaning for phase
+const getPhaseHumanMeaning = (phaseId: string): string => {
+  const phase = getPhaseById(phaseId);
+  return phase?.humanMeaning || '';
+};
+
 interface JournalEntryItemProps {
   id: string;
   content: string;
@@ -50,6 +57,7 @@ interface JournalEntryItemProps {
   onReflect?: (content: string) => void;
   onEdit?: (id: string, newContent: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
+  onPhaseTap?: (phaseId: string, phaseName: string, entryDate: string) => void; // NEW: when phase pill is tapped
   isReflectDisabled?: boolean;
   isHighlighted?: boolean; // NEW: highlight state for newly saved entries
 }
@@ -64,6 +72,7 @@ export default function JournalEntryItem({
   onReflect,
   onEdit,
   onDelete,
+  onPhaseTap,
   isReflectDisabled = false,
   isHighlighted = false,
 }: JournalEntryItemProps) {
@@ -244,12 +253,16 @@ export default function JournalEntryItem({
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={[styles.date, { color: theme.textTertiary }]}>{formattedDate}</Text>
-          {/* Phase Pill Tag - Timeline connection */}
+          {/* Phase Pill Tag - Timeline connection - Now tappable */}
           {phase_id && phase_name && (
-            <View style={[styles.phasePill, { backgroundColor: getPhaseColor(phase_id, isDark) }]}>
+            <TouchableOpacity
+              style={[styles.phasePill, { backgroundColor: getPhaseColor(phase_id, isDark) }]}
+              onPress={() => onPhaseTap?.(phase_id, phase_name, created_at)}
+              activeOpacity={0.7}
+            >
               <Text style={styles.phaseIcon}>{getPhaseIcon(phase_id)}</Text>
               <Text style={[styles.phasePillText, { color: theme.text }]}>{phase_name}</Text>
-            </View>
+            </TouchableOpacity>
           )}
           {isHighlighted && (
             <Text style={[styles.savedLabel, { color: Colors.accent }]}>✓ Saved</Text>

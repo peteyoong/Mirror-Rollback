@@ -37,6 +37,7 @@ interface TimelinePhase {
   id: string;
   dateRange: string;
   phaseName: string;
+  humanMeaning: string; // Plain-English explanation (Part 1)
   whatsHappening: string[];
   whatThisCreates: string[];
   wherePeopleGetItWrong: string[];
@@ -74,6 +75,7 @@ interface AstrologyTimelineTabProps {
   fullChartData: FullChartData | null;
   theme: any;
   onOpenChat: () => void;
+  initialExpandPhase?: string; // Phase ID to auto-expand on mount (from URL param)
 }
 
 // ============================================
@@ -247,6 +249,7 @@ function generateTimelineData(
       id: 'q1',
       dateRange: `Jan – Mar ${currentYear}`,
       phaseName: 'Recognition',
+      humanMeaning: 'Something is becoming clear',
       whatsHappening: [
         `The ${patternData.tension} tension starts showing up in ${sunArea}`,
         `Small moments in ${marsArea} and ${venusArea} that carry more weight than they look`,
@@ -269,6 +272,7 @@ function generateTimelineData(
       id: 'q2',
       dateRange: `Apr – Jun ${currentYear}`,
       phaseName: 'Confrontation',
+      humanMeaning: 'Something can no longer be avoided',
       whatsHappening: [
         `What you\'ve been tolerating in ${venusArea} and ${saturnArea} stops feeling tolerable`,
         `The gap between how you present in ${sunArea} and how you feel in ${moonArea} gets harder to bridge`,
@@ -291,6 +295,7 @@ function generateTimelineData(
       id: 'q3',
       dateRange: `Jul – Sep ${currentYear}`,
       phaseName: 'The Crossroads',
+      humanMeaning: 'A choice, split, or redirection is active',
       whatsHappening: [
         `In ${sunArea}, two versions of you become visible—the one you\'ve been and the one you could become`,
         `The tension in ${venusArea} crystallizes into a clear choice`,
@@ -313,6 +318,7 @@ function generateTimelineData(
       id: 'q4',
       dateRange: `Oct – Dec ${currentYear}`,
       phaseName: 'Integration',
+      humanMeaning: 'Something is settling into a new form',
       whatsHappening: [
         `The ripples from your Q3 choices start showing in ${saturnArea} and ${marsArea}`,
         `What you decided in ${venusArea} either settles or requires one more honest conversation`,
@@ -404,9 +410,11 @@ export default function AstrologyTimelineTab({
   fullChartData,
   theme,
   onOpenChat,
+  initialExpandPhase,
 }: AstrologyTimelineTabProps) {
   const { isDark } = useTheme();
   const [expandedPhaseId, setExpandedPhaseId] = useState<string | null>(null);
+  const [highlightedPhaseId, setHighlightedPhaseId] = useState<string | null>(null);
   
   // Journal evidence state (Journal ↔ Timeline connection)
   const [phaseEvidence, setPhaseEvidence] = useState<Record<string, JournalEntryResponseWithPhase[]>>({});
@@ -417,6 +425,20 @@ export default function AstrologyTimelineTab({
   const timelineData = useMemo(() => {
     return generateTimelineData(fullChartData);
   }, [fullChartData]);
+
+  // Auto-expand phase if passed via URL param (Part 6)
+  useEffect(() => {
+    if (initialExpandPhase && !expandedPhaseId) {
+      setExpandedPhaseId(initialExpandPhase);
+      setHighlightedPhaseId(initialExpandPhase);
+      fetchPhaseEvidence(initialExpandPhase);
+      
+      // Clear highlight after 2 seconds
+      setTimeout(() => {
+        setHighlightedPhaseId(null);
+      }, 2000);
+    }
+  }, [initialExpandPhase]);
 
   // Fetch journal entries for a phase when expanded
   const fetchPhaseEvidence = async (phaseId: string) => {
@@ -502,6 +524,9 @@ export default function AstrologyTimelineTab({
                   <Text style={[styles.phaseName, { color: theme.text }]}>
                     {phase.phaseName}
                   </Text>
+                  <Text style={[styles.phaseHumanMeaning, { color: theme.textSecondary }]}>
+                    {phase.humanMeaning}
+                  </Text>
                 </View>
               </View>
               <Text style={[styles.phaseExpandIcon, { color: theme.textSecondary }]}>
@@ -550,13 +575,16 @@ export default function AstrologyTimelineTab({
                 {/* Journal Evidence Section - Your real-life moments in this phase */}
                 {user?.id && (
                   <View style={styles.phaseSection}>
-                    <Text style={[styles.phaseSectionTitle, { color: theme.textTertiary }]}>
-                      Your moments in this phase
+                    <Text style={[styles.evidenceSectionTitle, { color: Colors.accent }]}>
+                      YOUR WORDS FROM THIS PHASE
                     </Text>
                     {evidenceLoading[phase.id] ? (
                       <ActivityIndicator size="small" color={theme.textTertiary} style={{ marginTop: 8 }} />
                     ) : phaseEvidence[phase.id] && phaseEvidence[phase.id].length > 0 ? (
                       <View style={styles.evidenceContainer}>
+                        <Text style={[styles.evidenceIntro, { color: theme.textTertiary }]}>
+                          What you wrote here may show how this phase was actually lived.
+                        </Text>
                         {phaseEvidence[phase.id].map((entry) => (
                           <View 
                             key={entry.id} 
@@ -569,14 +597,14 @@ export default function AstrologyTimelineTab({
                               "{entry.content.substring(0, 100)}{entry.content.length > 100 ? '...' : ''}"
                             </Text>
                             <Text style={[styles.evidenceDate, { color: theme.textTertiary }]}>
-                              {new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              {new Date(entry.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                             </Text>
                           </View>
                         ))}
                       </View>
                     ) : (
                       <Text style={[styles.noEvidenceText, { color: theme.textTertiary }]}>
-                        No journal entries yet. What you write will appear here.
+                        No journal entries from this phase yet. What you write during this time will appear here.
                       </Text>
                     )}
                   </View>
@@ -791,6 +819,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 1,
   },
+  phaseHumanMeaning: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 2,
+    opacity: 0.8,
+  },
   phaseExpandIcon: {
     fontSize: 18,
     fontWeight: '300',
@@ -926,6 +960,17 @@ const styles = StyleSheet.create({
   evidenceContainer: {
     marginTop: 8,
     gap: 8,
+  },
+  evidenceSectionTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
+  evidenceIntro: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginBottom: 10,
   },
   evidenceCard: {
     padding: 10,
