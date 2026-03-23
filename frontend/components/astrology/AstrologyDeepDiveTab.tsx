@@ -1135,6 +1135,308 @@ const generateNodesContent = (
 };
 
 // ============================================
+// CHIRON — WOUND & MEDICINE (Mirror Language)
+// ============================================
+// Chiron represents where sensitivity runs deep
+// Sign = style of sensitivity / adaptation
+// House = life area where it tends to land
+
+interface ChironContent {
+  whereItHurts: string[];
+  whatYouLearnedToDo: string[];
+  medicineInside: string[];
+  overIdentification: string;
+  reflectionQuestion: string;
+}
+
+// Chiron sensitivity by sign - how the wound style manifests
+const CHIRON_SIGN_SENSITIVITY: { [key: string]: string[] } = {
+  'Aries': [
+    'asserting yourself, moving first, or taking up space',
+    'being seen as too much—or not enough',
+    'initiating, leading, or claiming what you want directly'
+  ],
+  'Taurus': [
+    'your body, worth, or sense of having enough',
+    'stability, security, or trusting that things will hold',
+    'pleasure, comfort, or allowing yourself to receive'
+  ],
+  'Gemini': [
+    'being understood, expressing clearly, or finding the right words',
+    'feeling like your mind works differently than others expect',
+    'communication, learning, or being taken seriously when you speak'
+  ],
+  'Cancer': [
+    'belonging, being needed, or feeling emotionally safe',
+    'nurturing—receiving it or offering it without losing yourself',
+    'home, family, or the feeling of having a place you fit'
+  ],
+  'Leo': [
+    'being seen, recognized, or taking up creative space',
+    'your worth being tied to whether you\'re appreciated',
+    'expressing from your center without needing validation'
+  ],
+  'Virgo': [
+    'being useful, competent, or doing things correctly',
+    'imperfection—yours or others\'—landing harder than it should',
+    'service, health, or feeling like you have to earn your place'
+  ],
+  'Libra': [
+    'partnership, fairness, or being valued in relationship',
+    'harmony—needing it, not getting it, or losing yourself in pursuit of it',
+    'balance, beauty, or feeling caught between opposing needs'
+  ],
+  'Scorpio': [
+    'trust, intimacy, or letting others close enough to hurt you',
+    'power dynamics—yours or others\'—that feel out of balance',
+    'vulnerability, loss, or what happens when control isn\'t possible'
+  ],
+  'Sagittarius': [
+    'meaning, truth, or being believed when you share what you know',
+    'freedom—losing it, restricting it, or not knowing how to hold it',
+    'expansion, faith, or the gap between what you believe and what you experience'
+  ],
+  'Capricorn': [
+    'achievement, authority, or whether your work matters',
+    'responsibility—carrying too much, or fearing you\'ll fail under it',
+    'structure, success, or the cost of building something lasting'
+  ],
+  'Aquarius': [
+    'belonging without losing your difference',
+    'being understood when your mind works in unusual ways',
+    'connection to groups—feeling like an outsider even when you\'re inside'
+  ],
+  'Pisces': [
+    'boundaries, or knowing where you end and others begin',
+    'trust, surrender, or staying present when things dissolve',
+    'merging—losing yourself, or being afraid to let go enough to connect'
+  ]
+};
+
+// Chiron adaptations by sign - what you learned to do to protect this place
+const CHIRON_SIGN_ADAPTATIONS: { [key: string]: string[] } = {
+  'Aries': [
+    'hold back your impulse to lead or move first',
+    'soften your directness until it almost disappears',
+    'let others take the initiative even when you know you could'
+  ],
+  'Taurus': [
+    'minimize your needs or pretend you don\'t have them',
+    'hold on tighter than necessary to what feels stable',
+    'stay in situations past their time to avoid the unknown'
+  ],
+  'Gemini': [
+    'over-explain, over-qualify, or second-guess what you say',
+    'stay quiet rather than risk being misunderstood',
+    'become overly cerebral to avoid being dismissed'
+  ],
+  'Cancer': [
+    'become the nurturer so you don\'t have to reveal your own need',
+    'protect yourself by staying emotionally self-contained',
+    'create family in other places when the original one hurts'
+  ],
+  'Leo': [
+    'dim yourself to avoid standing out too much',
+    'seek constant reassurance that what you create matters',
+    'perform brighter to cover the fear that you\'re not enough'
+  ],
+  'Virgo': [
+    'over-prepare, over-analyze, or over-perfect before you act',
+    'become hyper-critical—of yourself first, then others',
+    'serve compulsively to prove your worth'
+  ],
+  'Libra': [
+    'keep the peace at the cost of your own truth',
+    'define yourself through relationship rather than risking standing alone',
+    'avoid conflict even when confrontation is needed'
+  ],
+  'Scorpio': [
+    'control what you reveal to maintain emotional advantage',
+    'test others before letting them get close',
+    'stay vigilant against betrayal even when it\'s not coming'
+  ],
+  'Sagittarius': [
+    'stay in motion to avoid landing anywhere too long',
+    'teach instead of admitting you\'re still learning',
+    'expand outward rather than face what\'s uncomfortable right here'
+  ],
+  'Capricorn': [
+    'work harder than necessary to prove you deserve your place',
+    'build walls disguised as structure',
+    'achieve compulsively to fill a gap that achievement can\'t touch'
+  ],
+  'Aquarius': [
+    'intellectualize to avoid feeling the rejection',
+    'stay on the margins of groups rather than risk not fitting',
+    'prioritize being different over being connected'
+  ],
+  'Pisces': [
+    'merge too quickly to avoid the pain of separateness',
+    'escape into imagination, substances, or spiritual bypassing',
+    'sacrifice yourself hoping it will earn you belonging'
+  ]
+};
+
+// Chiron medicine by sign - what becomes possible when metabolized
+const CHIRON_SIGN_MEDICINE: { [key: string]: string[] } = {
+  'Aries': [
+    'unusual courage that doesn\'t need to prove itself',
+    'the ability to help others claim space without bulldozing',
+    'strength that includes vulnerability'
+  ],
+  'Taurus': [
+    'deep knowing of what real stability feels like—and isn\'t afraid of losing it',
+    'the ability to help others find ground without clinging',
+    'presence with the body that doesn\'t require perfection'
+  ],
+  'Gemini': [
+    'unusual sensitivity to what others struggle to articulate',
+    'the ability to translate what\'s hard to say into words',
+    'intelligence that includes emotional nuance'
+  ],
+  'Cancer': [
+    'care that doesn\'t collapse into codependence',
+    'emotional intelligence that includes appropriate boundaries',
+    'the ability to hold space without losing yourself'
+  ],
+  'Leo': [
+    'creativity that doesn\'t require an audience',
+    'the ability to help others shine without competing',
+    'presence that radiates without demanding recognition'
+  ],
+  'Virgo': [
+    'discernment without judgment',
+    'service that includes self-care',
+    'precision that allows room for imperfection'
+  ],
+  'Libra': [
+    'the ability to hold relational complexity without losing your center',
+    'fairness that doesn\'t sacrifice truth',
+    'partnership skills that include healthy conflict'
+  ],
+  'Scorpio': [
+    'intimacy that doesn\'t require control',
+    'the ability to meet others in deep places without drowning',
+    'power that includes surrender'
+  ],
+  'Sagittarius': [
+    'wisdom that admits it\'s still forming',
+    'faith that doesn\'t need to be proven',
+    'the ability to guide without preaching'
+  ],
+  'Capricorn': [
+    'authority that doesn\'t need external validation',
+    'the ability to help others build without judging their pace',
+    'accomplishment that includes rest'
+  ],
+  'Aquarius': [
+    'belonging that doesn\'t require conformity',
+    'the ability to help others feel less alone in their difference',
+    'community that includes the outsider'
+  ],
+  'Pisces': [
+    'compassion that doesn\'t lose itself',
+    'spiritual connection that stays grounded',
+    'the ability to dissolve enough to connect without drowning'
+  ]
+};
+
+// Chiron life areas by house - where sensitivity tends to land
+const CHIRON_HOUSE_THEMES: { [key: number]: string } = {
+  1: 'identity, body, or how you show up in the world',
+  2: 'self-worth, resources, or what you believe you deserve',
+  3: 'communication, learning, or being heard and understood',
+  4: 'home, family, or emotional foundations',
+  5: 'creativity, self-expression, or being seen for what you make',
+  6: 'work, health, daily routines, or service to others',
+  7: 'partnerships, one-on-one relationships, or commitments',
+  8: 'intimacy, shared resources, or what you let others see',
+  9: 'beliefs, meaning, or the search for truth',
+  10: 'career, public role, or how you\'re recognized',
+  11: 'community, friendship, or belonging to something larger',
+  12: 'solitude, spirituality, or what operates beneath awareness'
+};
+
+// Chiron over-identification patterns by sign
+const CHIRON_OVER_IDENTIFICATION: { [key: string]: string } = {
+  'Aries': 'When this takes over, you may start to see yourself as always needing to fight—or as someone who isn\'t allowed to.',
+  'Taurus': 'When this takes over, your sense of safety can become so central that any instability feels like total loss.',
+  'Gemini': 'When this takes over, you may start to believe you\'ll never be understood—or that something is fundamentally wrong with how you think.',
+  'Cancer': 'When this takes over, you may become the wound—the one who always needs, or the one who can never need.',
+  'Leo': 'When this takes over, your value can feel entirely dependent on whether you\'re being seen and appreciated.',
+  'Virgo': 'When this takes over, imperfection starts to feel intolerable—yours first, then everyone else\'s.',
+  'Libra': 'When this takes over, you may lose yourself so thoroughly in relationship that you forget you exist outside of it.',
+  'Scorpio': 'When this takes over, trust becomes impossible—and control becomes the only way to stay safe.',
+  'Sagittarius': 'When this takes over, you may keep seeking meaning in new places because nothing ever feels like enough.',
+  'Capricorn': 'When this takes over, your worth becomes entirely tied to what you\'ve built—and rest feels like failure.',
+  'Aquarius': 'When this takes over, you may become so identified with being different that belonging feels like betrayal.',
+  'Pisces': 'When this takes over, boundaries dissolve entirely—and you may lose track of where you end and others begin.'
+};
+
+// Chiron reflection questions by sign
+const CHIRON_REFLECTIONS: { [key: string]: string } = {
+  'Aries': 'What changes when you stop treating your directness like a problem?',
+  'Taurus': 'What might you allow yourself to receive if you believed you already had enough?',
+  'Gemini': 'What would you say if you trusted that the right people would understand?',
+  'Cancer': 'Where have you learned to give care instead of admitting you need it?',
+  'Leo': 'What would you create if no one was watching—and you didn\'t need them to?',
+  'Virgo': 'What would be enough, if you let it be?',
+  'Libra': 'What truth have you been avoiding to keep the peace?',
+  'Scorpio': 'What might happen if you let someone get close without testing them first?',
+  'Sagittarius': 'What if the meaning you\'re looking for is already here?',
+  'Capricorn': 'What would you do with your time if your worth wasn\'t tied to output?',
+  'Aquarius': 'What might belonging look like if it didn\'t require giving up your difference?',
+  'Pisces': 'Where have you been escaping when you could have been staying?'
+};
+
+// Generate the full Chiron content (blending sign + house)
+const generateChironContent = (
+  chironSign: string,
+  chironHouse?: number
+): ChironContent => {
+  const sensitivity = CHIRON_SIGN_SENSITIVITY[chironSign] || [
+    'sensitivity that runs deeper than expected',
+    'places where life tends to land harder',
+    'experiences that don\'t pass through easily'
+  ];
+  
+  const adaptations = CHIRON_SIGN_ADAPTATIONS[chironSign] || [
+    'protect yourself before you know if protection is needed',
+    'stay smaller or quieter than you actually are',
+    'avoid the places that touch this sensitivity'
+  ];
+  
+  const medicine = CHIRON_SIGN_MEDICINE[chironSign] || [
+    'unusual depth in this area',
+    'wisdom that can only come from lived experience',
+    'the ability to meet others in similar places'
+  ];
+  
+  const overIdentification = CHIRON_OVER_IDENTIFICATION[chironSign] || 
+    'When this takes over, it can start to feel like this part of you is the whole story.';
+  
+  const reflection = CHIRON_REFLECTIONS[chironSign] || 
+    'What changes when you stop treating this sensitivity like a flaw?';
+  
+  // Blend house theme into the content if available
+  const houseTheme = chironHouse ? CHIRON_HOUSE_THEMES[chironHouse] : null;
+  
+  // Modify first sensitivity bullet to include house context
+  let blendedSensitivity = [...sensitivity];
+  if (houseTheme) {
+    blendedSensitivity[0] = `${sensitivity[0]}—especially around ${houseTheme}`;
+  }
+  
+  return {
+    whereItHurts: blendedSensitivity,
+    whatYouLearnedToDo: adaptations,
+    medicineInside: medicine,
+    overIdentification,
+    reflectionQuestion: reflection
+  };
+};
+
+// ============================================
 // DEEP DIVE CARD GENERATOR
 // ============================================
 
@@ -1292,6 +1594,7 @@ const CARD_GROUPS = [
   { id: 'mind', label: 'MIND & COMMUNICATION', cards: ['mercury'] },
   { id: 'relating', label: 'RELATING & ACTION', cards: ['venus', 'mars'] },
   { id: 'direction', label: 'DIRECTION & GROWTH', cards: ['nodes'] },
+  { id: 'depth', label: 'DEPTH & SENSITIVITY', cards: ['chiron'] },
   { id: 'structure', label: 'STRUCTURE & INTEGRATION', cards: ['pressure'] },
 ];
 
@@ -1362,6 +1665,31 @@ Your North Node in ${north_node}${north_node_house ? ` (${north_node_house}${get
     reflection: nodesContent.reflectionQuestion
   } : null;
   
+  // Create a chiron card if chiron data is available
+  const { chiron, chiron_house } = placements;
+  const chironContent = chiron ? generateChironContent(chiron, chiron_house) : null;
+  const chironHouseTheme = chiron_house ? CHIRON_HOUSE_THEMES[chiron_house] : null;
+  
+  const chironCard: AstrologyDeepDiveCard | null = (chiron && chironContent) ? {
+    id: 'chiron',
+    title: 'Chiron — Wound & Medicine',
+    subtitle: 'The place where sensitivity runs deep—and where experience can slowly turn into wisdom',
+    preview: 'The place where sensitivity can become unusual intelligence.',
+    whatThisIs: `In your chart, this points to a place where experience tends to land more deeply.
+
+It can feel tender, exposed, or strangely overcharged at times—not because something is wrong, but because this part of life may be harder to move through unconsciously.
+
+Your Chiron in ${chiron}${chiron_house ? ` (${chiron_house}${getOrdinalSuffix(chiron_house)} house)` : ''} suggests sensitivity around ${chironHouseTheme || 'this area of life'}.
+
+Over time, it can also become a place of unusual depth, care, and understanding.`,
+    whatYouMightNotice: chironContent.whereItHurts,
+    tensionLabel: 'Adaptation',
+    tension: chironContent.whatYouLearnedToDo.join('. '),
+    giftLabel: 'Medicine',
+    gift: chironContent.medicineInside.join('. '),
+    reflection: chironContent.reflectionQuestion
+  } : null;
+  
   // Create a map for quick card lookup
   const cardMap = new Map(cards.map(c => [c.id, c]));
   if (pressureCard) {
@@ -1369,6 +1697,9 @@ Your North Node in ${north_node}${north_node_house ? ` (${north_node_house}${get
   }
   if (nodesCard) {
     cardMap.set('nodes', nodesCard);
+  }
+  if (chironCard) {
+    cardMap.set('chiron', chironCard);
   }
 
   // Function to get mirror layer for a card
@@ -1684,6 +2015,137 @@ Your North Node in ${north_node}${north_node_house ? ` (${north_node_house}${get
                           <Text style={[styles.deepDiveReflectionLabel, { color: theme.accent }]}>A QUESTION TO SIT WITH</Text>
                           <Text style={[styles.deepDiveReflectionText, { color: theme.text }]}>
                             {cleanText(nodesContent.reflectionQuestion)}
+                          </Text>
+                        </View>
+                        
+                        {/* Actions */}
+                        <View style={styles.deepDiveActions}>
+                          <TouchableOpacity
+                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent + '10' }]}
+                            onPress={() => onReflect(card)}
+                          >
+                            <Text style={[styles.deepDiveActionText, { color: theme.accent }]}>Reflect</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.deepDiveActionButton, { backgroundColor: theme.surfaceLight }]}
+                            onPress={() => onJournal(card)}
+                          >
+                            <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Journal</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent, borderColor: theme.accent }]}
+                            onPress={() => onAskMirror(card)}
+                          >
+                            <Text style={[styles.deepDiveActionText, { color: theme.background }]}>Ask Mirror</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              }
+              
+              // For chiron card, render the special Mirror Language version
+              if (cardId === 'chiron' && chironContent) {
+                return (
+                  <TouchableOpacity
+                    key={card.id}
+                    style={[styles.deepDiveCard, { backgroundColor: theme.surface, borderColor: '#EC489930' }]}
+                    onPress={() => toggleCard(card.id)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.deepDiveCardHeader}>
+                      <View style={styles.deepDiveCardTitleRow}>
+                        <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{card.title}</Text>
+                        <Text style={[styles.deepDiveExpandIcon, { color: theme.textTertiary }]}>
+                          {isExpanded ? '▴' : '▾'}
+                        </Text>
+                      </View>
+                      <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
+                      {!isExpanded && (
+                        <Text style={[styles.deepDiveCardPreview, { color: theme.textSecondary }]}>
+                          {card.preview}
+                        </Text>
+                      )}
+                    </View>
+                    
+                    {isExpanded && (
+                      <View style={styles.deepDiveCardContent}>
+                        {/* WHAT THIS IS */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHAT THIS IS</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>
+                            {cleanText(card.whatThisIs)}
+                          </Text>
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* WHERE IT HURTS */}
+                        <View style={[styles.deepDiveSection, { backgroundColor: '#EC489908', padding: 12, borderRadius: 8 }]}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: '#EC4899' }]}>WHERE IT HURTS</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, marginBottom: 8 }]}>
+                            You may notice sensitivity around:
+                          </Text>
+                          {chironContent.whereItHurts.map((bullet, i) => (
+                            <Text key={`hurt-${i}`} style={[styles.bulletItem, { color: theme.text }]}>
+                              • {cleanText(bullet)}
+                            </Text>
+                          ))}
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* WHAT YOU LEARNED TO DO */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: '#9CA3AF' }]}>WHAT YOU LEARNED TO DO</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, marginBottom: 8 }]}>
+                            To protect this place, you may have learned to:
+                          </Text>
+                          {chironContent.whatYouLearnedToDo.map((bullet, i) => (
+                            <Text key={`adapt-${i}`} style={[styles.bulletItem, { color: theme.text }]}>
+                              • {cleanText(bullet)}
+                            </Text>
+                          ))}
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* THE MEDICINE INSIDE IT */}
+                        <View style={[styles.deepDiveSection, { backgroundColor: '#10B98108', padding: 12, borderRadius: 8 }]}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: '#10B981' }]}>THE MEDICINE INSIDE IT</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.textSecondary, marginBottom: 8 }]}>
+                            As this deepens into wisdom, it may become:
+                          </Text>
+                          {chironContent.medicineInside.map((bullet, i) => (
+                            <Text key={`med-${i}`} style={[styles.bulletItem, { color: theme.text }]}>
+                              • {cleanText(bullet)}
+                            </Text>
+                          ))}
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* WHEN IT OVER-IDENTIFIES */}
+                        <View style={styles.deepDiveSection}>
+                          <Text style={[styles.deepDiveSectionLabel, { color: theme.textTertiary }]}>WHEN IT TAKES OVER</Text>
+                          <Text style={[styles.deepDiveSectionText, { color: theme.text }]}>
+                            {cleanText(chironContent.overIdentification)}
+                          </Text>
+                        </View>
+                        
+                        {/* Divider */}
+                        <View style={[styles.sectionDivider, { backgroundColor: theme.border }]} />
+                        
+                        {/* A QUESTION TO SIT WITH */}
+                        <View style={[styles.deepDiveReflection, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+                          <Text style={[styles.deepDiveReflectionLabel, { color: theme.accent }]}>A QUESTION TO SIT WITH</Text>
+                          <Text style={[styles.deepDiveReflectionText, { color: theme.text }]}>
+                            {cleanText(chironContent.reflectionQuestion)}
                           </Text>
                         </View>
                         
