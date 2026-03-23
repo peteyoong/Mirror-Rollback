@@ -635,6 +635,18 @@ export default function AstrologyTimelineTab({
                           </View>
                         )}
                         
+                        {/* V3: Facet Line - Where the pattern is most active */}
+                        {patternData?.facet_line && patternData?.compressed_pattern_lines?.[phase.id] && (
+                          <View style={styles.timelineFacetSection}>
+                            <Text style={[styles.timelineFacetLabel, { color: theme.textTertiary }]}>
+                              Where this may be landing:
+                            </Text>
+                            <Text style={[styles.timelineFacetText, { color: theme.textSecondary }]}>
+                              {cleanText(patternData.facet_line)}
+                            </Text>
+                          </View>
+                        )}
+                        
                         {/* V2.6 STEP 3: Evidence Entries (SECOND - PROOF) */}
                         <Text style={[styles.evidenceIntro, { color: theme.textTertiary }]}>
                           This is how this phase has been showing up in your life:
@@ -1105,5 +1117,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 17,
     fontStyle: 'italic',
+  },
+  // V3: Facet Line
+  timelineFacetSection: {
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
+  timelineFacetLabel: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  timelineFacetText: {
+    fontSize: 11,
+    lineHeight: 17,
   },
 });

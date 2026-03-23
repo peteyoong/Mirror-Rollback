@@ -159,6 +159,9 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
   // Get angle line from transits (V2.7 - Amplifier)
   const angleLine = patternData?.angle_line || null;
   
+  // Get facet line (V3 - Facet Selection Engine)
+  const facetLine = patternData?.facet_line || null;
+  
   // Get identity tendency if threshold met (Level 4)
   const identityTendency = patternData?.identity_threshold_met ? patternData.identity_tendency : null;
   
@@ -246,6 +249,18 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
           </Text>
           <Text style={[styles.angleLineText, { color: theme.textSecondary }]}>
             {cleanText(angleLine)}
+          </Text>
+        </View>
+      )}
+
+      {/* V3: Facet Line - Where the pattern is most active */}
+      {facetLine && compressedPatternLine && (
+        <View style={styles.facetLineSection}>
+          <Text style={[styles.facetLineLabel, { color: theme.textTertiary }]}>
+            Where this may be landing:
+          </Text>
+          <Text style={[styles.facetLineText, { color: theme.textSecondary }]}>
+            {cleanText(facetLine)}
           </Text>
         </View>
       )}
@@ -462,6 +477,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     fontStyle: 'italic',
+  },
+  // V3: Facet Line - Where the pattern is most active
+  facetLineSection: {
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
+  facetLineLabel: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  facetLineText: {
+    fontSize: 12,
+    lineHeight: 18,
   },
   // Level 3: Tension Insight
   tensionSection: {

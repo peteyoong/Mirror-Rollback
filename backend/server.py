@@ -378,6 +378,9 @@ class JournalPatternAnalysis(BaseModel):
     # V2.7: Angle Selector Layer - transit-based contextual modifier
     angle_line: Optional[str] = None  # "This may feel harder to ignore than usual."
     angle_role: Optional[str] = None  # "amplifier" - enforces this is modifier, not source
+    # V3: Facet Selection Engine - which part of the pattern is most active now
+    selected_facet: Optional[Dict[str, Any]] = None  # {"name": "communication", "label": "Communication", "score": 0.82, "reason": "..."}
+    facet_line: Optional[str] = None  # "This may be showing up most through how connection is spoken..."
 
 
 class MirrorInsightCreate(BaseModel):
@@ -4466,6 +4469,257 @@ async def generate_angle_line_from_transits(user_id: str) -> Tuple[Optional[str]
         return None, None
 
 
+# ============================================
+# FACET SELECTION ENGINE V1
+# ============================================
+# Determines which PART of a recurring pattern is most active right now
+# Pattern stays stable; facet changes based on themes + phase + timing
+
+# Facet vocabulary - maps keywords to facet names
+FACET_VOCABULARY = {
+    # Relationship facets
+    'communication': ['communication', 'talking', 'misunderstanding', 'silence', 'words', 'said', 'unsaid', 'express', 'speak', 'listen', 'hear'],
+    'closeness': ['closeness', 'close', 'together', 'intimacy', 'near', 'present', 'available'],
+    'distance': ['distance', 'apart', 'away', 'space', 'separate', 'withdraw', 'pull back', 'far'],
+    'trust': ['trust', 'doubt', 'uncertainty', 'reliable', 'depend', 'believe', 'faith'],
+    'boundaries': ['boundaries', 'limits', 'protect', 'guard', 'wall', 'barrier', 'defense'],
+    'longing': ['longing', 'missing', 'want', 'yearn', 'desire', 'wish', 'hope for'],
+    'repair': ['repair', 'fix', 'heal', 'mend', 'reconcile', 'restore', 'reconnect'],
+    
+    # Decision facets
+    'choice': ['choice', 'choose', 'decision', 'path', 'direction', 'option', 'either', 'or', 'which'],
+    'uncertainty': ['uncertain', 'unclear', 'unknown', 'ambiguous', 'confused', 'lost'],
+    'commitment': ['commitment', 'commit', 'dedicate', 'promise', 'stay', 'remain'],
+    'self_trust': ['self-trust', 'believe in', 'confidence', 'faith in self', 'intuition'],
+    
+    # Pressure facets
+    'pressure': ['pressure', 'stressed', 'overwhelmed', 'too much', 'burden', 'weight', 'heavy'],
+    'fatigue': ['tired', 'exhausted', 'depleted', 'drained', 'burned out', 'weary', 'fatigue'],
+    'control': ['control', 'manage', 'hold', 'grip', 'contain', 'organize', 'structure'],
+    'urgency': ['urgent', 'rush', 'hurry', 'fast', 'now', 'immediate', 'pressing'],
+    'avoidance': ['avoid', 'escape', 'run', 'hide', 'ignore', 'deny', 'postpone'],
+    'responsibility': ['responsibility', 'duty', 'obligation', 'should', 'must', 'have to'],
+    
+    # Integration facets
+    'steadiness': ['steady', 'stable', 'grounded', 'settled', 'calm', 'balanced'],
+    'relief': ['relief', 'release', 'let go', 'softer', 'easier', 'lighter'],
+    'surrender': ['surrender', 'accept', 'allow', 'stop fighting', 'give in', 'yield'],
+    'grief': ['grief', 'loss', 'mourn', 'sad', 'sorrow', 'miss'],
+    'hope': ['hope', 'optimism', 'possibility', 'maybe', 'could be', 'future'],
+}
+
+# Phase boosts - which facets get boosted by which phase
+PHASE_FACET_BOOSTS = {
+    'q1': ['awareness', 'truth', 'uncertainty', 'hope', 'longing'],  # Recognition
+    'q2': ['pressure', 'conflict', 'avoidance', 'fatigue', 'urgency', 'boundaries'],  # Confrontation
+    'q3': ['choice', 'uncertainty', 'commitment', 'self_trust', 'longing'],  # Crossroads
+    'q4': ['steadiness', 'relief', 'surrender', 'trust', 'repair'],  # Integration
+}
+
+# Transit theme boosts - which facets get boosted by which transit themes
+TRANSIT_FACET_BOOSTS = {
+    'Venus': ['closeness', 'trust', 'longing', 'repair', 'boundaries'],
+    'Saturn': ['responsibility', 'pressure', 'commitment', 'boundaries', 'control'],
+    'Chiron': ['grief', 'trust', 'boundaries', 'repair', 'longing'],
+    'Pluto': ['pressure', 'control', 'trust', 'surrender', 'boundaries'],
+    'Jupiter': ['hope', 'possibility', 'trust', 'relief'],
+    'Mars': ['urgency', 'pressure', 'choice', 'conflict'],
+    'Moon': ['closeness', 'longing', 'grief', 'fatigue'],
+    'Mercury': ['communication', 'uncertainty', 'choice'],
+    'Neptune': ['uncertainty', 'longing', 'surrender', 'hope'],
+    'Uranus': ['choice', 'uncertainty', 'relief'],
+}
+
+# Facet line templates - for generating the facet_line
+FACET_LINE_TEMPLATES = {
+    'communication': [
+        "This may be showing up most through how connection is spoken, missed, or misunderstood.",
+        "Right now, the tension may be living most in what is said, unsaid, or half-heard.",
+    ],
+    'closeness': [
+        "This may be showing up most in how closeness is wanted, reached for, or held at a distance.",
+        "Right now, this pattern may be strongest around the question of nearness.",
+    ],
+    'distance': [
+        "This may be showing up most through the space between—wanted or unwanted.",
+        "Right now, the pull toward distance may be where this lands most clearly.",
+    ],
+    'trust': [
+        "This may be showing up most through questions of trust—what opens, what withholds, what waits.",
+        "Right now, this pattern may be less about action and more about whether trust is possible.",
+    ],
+    'boundaries': [
+        "This may be showing up most where limits are tested, held, or crossed.",
+        "Right now, the question of what to protect may be at the center.",
+    ],
+    'longing': [
+        "This may be showing up most in the ache of wanting something not yet present.",
+        "Right now, this pattern may live strongest in what you're reaching toward.",
+    ],
+    'repair': [
+        "This may be showing up most in the question of what can be mended.",
+        "Right now, the tension may be around whether repair is possible or wanted.",
+    ],
+    'choice': [
+        "This may be showing up most through the tension of choosing before full clarity arrives.",
+        "Right now, this pattern may live most at the edge of decision.",
+    ],
+    'uncertainty': [
+        "This may be showing up most in what remains unclear or unresolved.",
+        "Right now, not knowing may be the hardest part.",
+    ],
+    'commitment': [
+        "This may be showing up most around what you're willing to stay with.",
+        "Right now, the question of what to commit to may be most alive.",
+    ],
+    'self_trust': [
+        "This may be showing up most in whether you trust your own sense of things.",
+        "Right now, trusting yourself may be what this pattern is asking for.",
+    ],
+    'pressure': [
+        "This may be showing up most where pressure is outpacing what you can honestly hold.",
+        "Right now, the weight of things may be where this lands most.",
+    ],
+    'fatigue': [
+        "This may be showing up most in the place where effort is no longer matching energy.",
+        "Right now, tiredness may be how this pattern is speaking.",
+    ],
+    'control': [
+        "This may be showing up most in what you're trying to manage or hold together.",
+        "Right now, the need for control may be where the tension lives.",
+    ],
+    'urgency': [
+        "This may be showing up most through the pressure to act before you're ready.",
+        "Right now, speed may be where this pattern gets loud.",
+    ],
+    'avoidance': [
+        "This may be showing up most in what you're moving away from.",
+        "Right now, what you're not facing may be where this lives.",
+    ],
+    'responsibility': [
+        "This may be showing up most in what you feel you owe or must carry.",
+        "Right now, obligation may be the sharpest edge of this pattern.",
+    ],
+    'steadiness': [
+        "This may be showing up most as something settling into place.",
+        "Right now, stability may be what this pattern is asking for.",
+    ],
+    'relief': [
+        "This may be showing up most as something finally releasing.",
+        "Right now, letting go may be the live edge of this pattern.",
+    ],
+    'surrender': [
+        "This may be showing up most in the invitation to stop fighting.",
+        "Right now, acceptance may be what this pattern is moving toward.",
+    ],
+    'grief': [
+        "This may be showing up most as something older being touched.",
+        "Right now, loss or sadness may be where this pattern lives.",
+    ],
+    'hope': [
+        "This may be showing up most as something opening toward possibility.",
+        "Right now, hope may be what this pattern is reaching for.",
+    ],
+}
+
+
+def select_facet(
+    phase_patterns: List[str],
+    phase_name: str,
+    compressed_pattern_line: str = None,
+    angle_planet: str = None
+) -> Tuple[Optional[Dict], Optional[str]]:
+    """
+    Facet Selection Engine V1
+    
+    Selects which part of the pattern is most active now based on:
+    - Recurring themes (primary weight: 0.6)
+    - Phase logic (secondary weight: 0.25)
+    - Transit angle themes (tertiary weight: 0.15)
+    
+    Returns:
+        Tuple of (selected_facet dict, facet_line string) or (None, None)
+    """
+    if not phase_patterns:
+        return None, None
+    
+    # STEP 1: Score facets based on recurring theme matches (primary)
+    facet_scores = {}
+    pattern_text = " ".join(phase_patterns).lower()
+    
+    for facet_name, keywords in FACET_VOCABULARY.items():
+        score = 0
+        for keyword in keywords:
+            if keyword.lower() in pattern_text:
+                score += 0.6  # Primary weight
+        if score > 0:
+            facet_scores[facet_name] = score
+    
+    # STEP 2: Boost based on phase (secondary)
+    phase_boosts = PHASE_FACET_BOOSTS.get(phase_name, [])
+    for facet in phase_boosts:
+        if facet in facet_scores:
+            facet_scores[facet] += 0.25
+        elif facet in FACET_VOCABULARY:
+            facet_scores[facet] = 0.25
+    
+    # STEP 3: Boost based on transit angle (tertiary)
+    if angle_planet:
+        transit_boosts = TRANSIT_FACET_BOOSTS.get(angle_planet, [])
+        for facet in transit_boosts:
+            if facet in facet_scores:
+                facet_scores[facet] += 0.15
+            elif facet in FACET_VOCABULARY:
+                facet_scores[facet] = 0.15
+    
+    # If no facets scored, return None
+    if not facet_scores:
+        return None, None
+    
+    # STEP 4: Select top facet
+    top_facet = max(facet_scores, key=facet_scores.get)
+    top_score = facet_scores[top_facet]
+    
+    # Normalize score to 0-1 range
+    normalized_score = min(1.0, top_score / 2.0)
+    
+    # Build reason string
+    reasons = []
+    if any(kw.lower() in pattern_text for kw in FACET_VOCABULARY.get(top_facet, [])):
+        reasons.append("recurring themes")
+    if top_facet in phase_boosts:
+        reasons.append("phase boost")
+    if angle_planet and top_facet in TRANSIT_FACET_BOOSTS.get(angle_planet, []):
+        reasons.append("timing emphasis")
+    
+    reason = " + ".join(reasons) if reasons else "theme match"
+    
+    # Build selected_facet object
+    selected_facet = {
+        "name": top_facet,
+        "label": top_facet.replace("_", " ").title(),
+        "score": round(normalized_score, 2),
+        "reason": reason
+    }
+    
+    # STEP 5: Generate facet_line
+    templates = FACET_LINE_TEMPLATES.get(top_facet, [])
+    if templates:
+        # Deterministic selection based on phase + facet
+        import hashlib
+        hash_input = f"{phase_name}{top_facet}"
+        hash_val = int(hashlib.md5(hash_input.encode()).hexdigest(), 16)
+        template_index = hash_val % len(templates)
+        facet_line = templates[template_index]
+    else:
+        # Fallback generic line
+        facet_line = f"This may be showing up most around {top_facet.replace('_', ' ')}."
+    
+    logger.info(f"[FacetEngine] Selected facet '{top_facet}' (score: {normalized_score:.2f}) - {reason}")
+    
+    return selected_facet, facet_line
+
+
 @api_router.get("/journal/{user_id}/patterns", response_model=JournalPatternAnalysis)
 async def get_journal_patterns(user_id: str):
     """
@@ -4562,6 +4816,37 @@ async def get_journal_patterns(user_id: str):
         # V2.7: Generate angle_line from current transits (Angle Selector Layer)
         angle_line, angle_role = await generate_angle_line_from_transits(user_id)
         
+        # V3: Facet Selection Engine - determine which part of pattern is most active
+        selected_facet = None
+        facet_line = None
+        
+        # Get the dominant phase for facet selection
+        dominant_phase = None
+        if repeating_phases:
+            # Use the most recent repeating phase
+            dominant_phase = repeating_phases[0]
+        elif phase_distribution:
+            # Fallback to phase with most entries
+            dominant_phase = max(phase_distribution, key=phase_distribution.get)
+        
+        if dominant_phase and dominant_phase in phase_patterns:
+            # Determine angle_planet for transit boost
+            angle_planet = None
+            if angle_line:
+                # Extract planet from angle_line generation (we need to track this)
+                # For now, try to infer from ANGLE_LINES content
+                for planet, lines in ANGLE_LINES.items():
+                    if any(line in (angle_line or '') for line in lines):
+                        angle_planet = planet
+                        break
+            
+            selected_facet, facet_line = select_facet(
+                phase_patterns=phase_patterns.get(dominant_phase, []),
+                phase_name=dominant_phase,
+                compressed_pattern_line=compressed_pattern_lines.get(dominant_phase),
+                angle_planet=angle_planet
+            )
+        
         return JournalPatternAnalysis(
             user_id=user_id,
             total_entries=total_entries,
@@ -4575,7 +4860,9 @@ async def get_journal_patterns(user_id: str):
             identity_threshold_met=identity_threshold_met,
             identity_echo=identity_echo,
             angle_line=angle_line,
-            angle_role=angle_role
+            angle_role=angle_role,
+            selected_facet=selected_facet,
+            facet_line=facet_line
         )
     except Exception as e:
         logger.error(f"Get journal patterns error: {e}")
