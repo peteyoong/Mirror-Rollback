@@ -1157,3 +1157,425 @@ function getGateInfluenceForThread(topGate: number | null, secondGate: number | 
   
   return gateInfluences[topGate] || null;
 }
+
+// ============================================
+// PATTERN STATE LAYER - REAL-TIME POSITIONING
+// ============================================
+// Transforms static insight into real-time awareness
+// User feels: "This is where I am RIGHT NOW in the pattern"
+
+export interface PatternState {
+  currentPhase: string;
+  whatThisLeadsTo: string;
+  shiftAvailable: string;
+}
+
+export interface PatternStateInput {
+  type: string;
+  authority: string;
+  dominantGate?: number | null;
+  transitData?: any; // Future: current transit overlay
+}
+
+export function generatePatternState(input: PatternStateInput): PatternState | null {
+  const { type, authority, dominantGate } = input;
+  
+  if (!type || !authority) return null;
+  
+  // Get phase detection based on Type + Authority combination
+  const phaseData = detectCurrentPhase(type, authority, dominantGate);
+  
+  if (!phaseData) return null;
+  
+  return phaseData;
+}
+
+// Phase detection logic - uses Type × Authority to identify current state
+function detectCurrentPhase(type: string, authority: string, dominantGate?: number | null): PatternState | null {
+  // Emotional Authority phases (applies to all types with Emotional)
+  if (authority === 'Emotional' || authority === 'Solar Plexus') {
+    return getEmotionalPhase(type, dominantGate);
+  }
+  
+  // Sacral Authority phases (Generator/MG)
+  if (authority === 'Sacral') {
+    return getSacralPhase(type, dominantGate);
+  }
+  
+  // Splenic Authority phases
+  if (authority === 'Splenic') {
+    return getSplenicPhase(type, dominantGate);
+  }
+  
+  // Ego/Heart Authority phases
+  if (authority === 'Ego' || authority === 'Heart') {
+    return getEgoPhase(type, dominantGate);
+  }
+  
+  // Self-Projected Authority
+  if (authority === 'Self-Projected' || authority === 'Self Projected') {
+    return getSelfProjectedPhase(type, dominantGate);
+  }
+  
+  // Mental/Environmental Authority
+  if (authority === 'Mental' || authority === 'None' || authority === 'Environmental') {
+    return getMentalPhase(type, dominantGate);
+  }
+  
+  // Lunar Authority (Reflector)
+  if (authority === 'Lunar') {
+    return getLunarPhase(dominantGate);
+  }
+  
+  // Fallback based on type
+  return getTypeBasedPhase(type, dominantGate);
+}
+
+// ============================================
+// EMOTIONAL AUTHORITY PHASES
+// ============================================
+function getEmotionalPhase(type: string, dominantGate?: number | null): PatternState {
+  // Determine which phase to show based on type and gate flavor
+  const gateNumber = dominantGate || 0;
+  
+  // Use gate number to pseudo-randomize which phase to show
+  // (In production, this could use time of day, lunar phase, etc.)
+  const phaseSelector = (gateNumber % 3);
+  
+  if (type === 'Manifestor') {
+    const phases: PatternState[] = [
+      {
+        currentPhase: "You're in the part of the pattern where the urge to move is strong—but the wave hasn't finished. It feels urgent, but it's not settled yet.",
+        whatThisLeadsTo: "If you act from here, you'll find yourself committed to something that looks different once the feeling changes. The resistance you'll meet isn't about them—it's about timing.",
+        shiftAvailable: "The pattern breaks when you let the wave complete before informing. Feel the pull, acknowledge it, but don't act until the urgency softens into clarity."
+      },
+      {
+        currentPhase: "You're in the middle of the wave—nothing feels certain. The impulse to initiate is there, but so is doubt. This in-between space is uncomfortable.",
+        whatThisLeadsTo: "Forcing a decision here means choosing from confusion. You'll either over-commit or pull back too hard. Both create friction you'll have to clean up later.",
+        shiftAvailable: "Stay in the discomfort a little longer. The wave is still moving. What feels unclear now will resolve—but only if you don't force it."
+      },
+      {
+        currentPhase: "The wave has settled. You have clarity, but you're hesitating—wondering if you should trust it. This is the moment where knowing meets the fear of acting.",
+        whatThisLeadsTo: "If you wait too long, the window closes. The clarity you have now won't stay forever. Others are waiting for you to move.",
+        shiftAvailable: "This is the moment to act. Inform and initiate. The clarity is real—trust it before the next wave begins."
+      }
+    ];
+    return phases[phaseSelector];
+  }
+  
+  if (type === 'Generator' || type === 'Manifesting Generator') {
+    const phases: PatternState[] = [
+      {
+        currentPhase: "You responded in the high of the wave—and now you're riding out a commitment that may or may not be right. The initial pull felt real, but it wasn't the full picture.",
+        whatThisLeadsTo: "If nothing changes, you'll find yourself either frustrated with what you agreed to, or questioning your own responses. The pattern repeats until you learn to wait.",
+        shiftAvailable: "Next time the gut says yes, acknowledge it—but don't commit. Let the wave move. What's still lit when you're calm is what's actually yours."
+      },
+      {
+        currentPhase: "You're in the dip. Nothing feels exciting. The things you committed to seem heavier than before. This isn't depression—it's the wave doing its work.",
+        whatThisLeadsTo: "If you make decisions from here, you'll say no to things that might actually be right. Or you'll drop commitments that would have been satisfying once the wave lifts.",
+        shiftAvailable: "Don't decide anything right now. The low is temporary. What feels dead now might be alive again tomorrow. Just ride it out."
+      },
+      {
+        currentPhase: "The wave has passed. You can feel the difference between what landed and what didn't. Some of what you said yes to still feels right—some doesn't.",
+        whatThisLeadsTo: "Clarity is available, but only if you're honest about what you're feeling now versus what you felt before.",
+        shiftAvailable: "This is the moment to assess. What still has energy? That's yours. What feels flat? That's where you overcommitted. Adjust now, not later."
+      }
+    ];
+    return phases[phaseSelector];
+  }
+  
+  if (type === 'Projector') {
+    const phases: PatternState[] = [
+      {
+        currentPhase: "You see what needs to happen—and the urge to share it is strong. But you're in a high, and that energy is coloring your perception. It might be right, but the timing isn't.",
+        whatThisLeadsTo: "If you guide from here, it lands wrong. People feel pushed instead of helped. The insight is correct, but the delivery misses.",
+        shiftAvailable: "Hold it. Let the wave settle. If the insight is real, it'll still be there when you're calm. And it'll land better when you're not charged up."
+      },
+      {
+        currentPhase: "You're in the low—and it's hard to see your value right now. The recognition you want feels far away. Everything feels effortful.",
+        whatThisLeadsTo: "Pushing from here creates bitterness. You'll give where you weren't asked, resent the lack of response, and pull back wounded.",
+        shiftAvailable: "Rest. Literally. This isn't the time to prove anything. Your clarity returns when the wave lifts. Wait for it."
+      },
+      {
+        currentPhase: "You're in a clear space—neither high nor low. You can see without distortion. This is when your guidance actually serves.",
+        whatThisLeadsTo: "If you're invited, this is the moment to speak. Your perception is clean right now.",
+        shiftAvailable: "Act on the invitations that came. Speak from this neutral place. Your seeing is accurate here—trust it."
+      }
+    ];
+    return phases[phaseSelector];
+  }
+  
+  // Reflector with Emotional definition (rare but possible in a reading context)
+  return {
+    currentPhase: "The wave is moving through you, amplified by everything around you. It's hard to tell what's yours and what belongs to the environment.",
+    whatThisLeadsTo: "Decisions made now reflect the current mood—not necessarily the deeper truth. What feels certain might change completely in days.",
+    shiftAvailable: "Give it time. A full cycle if possible. Watch how the feeling changes. What stays consistent across the whole wave is what's real."
+  };
+}
+
+// ============================================
+// SACRAL AUTHORITY PHASES
+// ============================================
+function getSacralPhase(type: string, dominantGate?: number | null): PatternState {
+  const gateNumber = dominantGate || 0;
+  const phaseSelector = (gateNumber % 3);
+  
+  if (type === 'Generator') {
+    const phases: PatternState[] = [
+      {
+        currentPhase: "Your gut just responded to something—and your mind is already questioning it. This is the gap where you usually override what you knew.",
+        whatThisLeadsTo: "If you talk yourself out of the response, you'll end up somewhere your body didn't agree to. The frustration that follows isn't random—it's the cost of not listening.",
+        shiftAvailable: "The body already answered. Stop looking for reasons. Act on the pull before the mind convinces you otherwise."
+      },
+      {
+        currentPhase: "You said yes to something logical that your body never actually responded to. Now you're in it, and the energy isn't there.",
+        whatThisLeadsTo: "Pushing through will drain you. You'll finish, but you'll resent it. And you'll wonder why you keep ending up in situations that don't feel right.",
+        shiftAvailable: "Notice what your body is telling you right now. Not what makes sense—what feels alive. The correction starts with acknowledging the mismatch."
+      },
+      {
+        currentPhase: "Nothing is lighting up. You're waiting for something to respond to, but the right thing hasn't shown up yet. This feels like stagnation, but it's not.",
+        whatThisLeadsTo: "If you force something just to feel productive, you'll create another situation that drains you. The waiting is uncomfortable but necessary.",
+        shiftAvailable: "Stay available. Don't fill the gap with noise. When the right thing appears, your body will tell you instantly. Until then, rest is correct."
+      }
+    ];
+    return phases[phaseSelector];
+  }
+  
+  // Manifesting Generator
+  const phases: PatternState[] = [
+    {
+      currentPhase: "You're mid-pivot. The energy shifted and you're already moving toward something new—but you haven't finished processing why the last thing died.",
+      whatThisLeadsTo: "If you keep going without pausing, you'll repeat the pattern. Start, energy dies, pivot, feel guilty, start again. The loop continues.",
+      shiftAvailable: "Pause. Just briefly. Ask: is this a real pivot or an escape? If the new thing survives a moment of stillness, it's real. If it doesn't, you're running."
+    },
+    {
+      currentPhase: "You responded to something, started fast, skipped steps—and now you're either stuck or backtracking. This is the friction that comes from not trusting the non-linear path.",
+      whatThisLeadsTo: "If you fight the backtrack, you'll waste energy. The steps you skipped weren't wrong to skip—but they need to be addressed now.",
+      shiftAvailable: "Accept the correction. The path isn't broken. You're just doing things in your order, not theirs. Keep going."
+    },
+    {
+      currentPhase: "Multiple things are pulling at you. You want to respond to all of them. The pressure to choose feels like a trap.",
+      whatThisLeadsTo: "If you try to do everything, you'll scatter. If you force yourself to pick one, you'll resent the constraint. Neither works.",
+      shiftAvailable: "Sample them all. Quickly. Your body will tell you which one has real energy behind it. Then go all in on that one—until the energy shifts again."
+    }
+  ];
+  return phases[phaseSelector];
+}
+
+// ============================================
+// SPLENIC AUTHORITY PHASES
+// ============================================
+function getSplenicPhase(type: string, dominantGate?: number | null): PatternState {
+  const gateNumber = dominantGate || 0;
+  const phaseSelector = (gateNumber % 3);
+  
+  const phases: PatternState[] = [
+    {
+      currentPhase: "You knew something a moment ago—but you didn't act on it. Now you're trying to remember what you knew, and it's gone. This is the pattern.",
+      whatThisLeadsTo: "If you try to reason your way back to the knowing, you won't find it. The insight came once. It doesn't repeat.",
+      shiftAvailable: "Next time, trust the first hit. Don't wait for confirmation. The knowing is quiet and fast—act before the mind starts analyzing."
+    },
+    {
+      currentPhase: "You're in the grip of second-guessing. Something felt clear, but now you're not sure. The mind is generating doubts that the body never had.",
+      whatThisLeadsTo: "If you keep questioning, you'll talk yourself into something your instincts already rejected. The doubt isn't wisdom—it's noise.",
+      shiftAvailable: "Return to the body. Not the thoughts about the body. The actual sensation. What does it say right now? That's the only data that matters."
+    },
+    {
+      currentPhase: "You caught it. The knowing came, you recognized it, and you're about to act. This is the moment before the window closes.",
+      whatThisLeadsTo: "If you wait to think it through, you'll lose it. The clarity is here now. It won't be here in five minutes.",
+      shiftAvailable: "Move. Now. Trust what you caught. Understanding can come later—or not at all. The knowing was real."
+    }
+  ];
+  return phases[phaseSelector];
+}
+
+// ============================================
+// EGO AUTHORITY PHASES
+// ============================================
+function getEgoPhase(type: string, dominantGate?: number | null): PatternState {
+  const gateNumber = dominantGate || 0;
+  const phaseSelector = (gateNumber % 3);
+  
+  const phases: PatternState[] = [
+    {
+      currentPhase: "You committed to something your heart wasn't actually in. Now you're running on fumes, wondering why this feels so hard.",
+      whatThisLeadsTo: "If you keep pushing, you'll either break the promise or break yourself. Willpower can't sustain what desire didn't choose.",
+      shiftAvailable: "Be honest about what you actually want. Not what you think you should want. If the desire isn't there, the commitment needs renegotiating."
+    },
+    {
+      currentPhase: "You're in a moment of genuine want. Something is pulling at you that feels real—not obligated, not reasoned. This is different.",
+      whatThisLeadsTo: "If you commit from here, you'll have the energy to follow through. This is how your willpower is meant to work.",
+      shiftAvailable: "Say yes. Make the promise. When desire is real, your word becomes unbreakable. This is the moment to commit."
+    },
+    {
+      currentPhase: "You're being asked to promise something, and you're not sure if you want it. The pressure to say yes is there, but the fire isn't.",
+      whatThisLeadsTo: "If you commit without the want, you'll add another broken promise to the pile. Or you'll exhaust yourself keeping a promise your heart didn't make.",
+      shiftAvailable: "Wait until you feel the pull. If it doesn't come, don't commit. Your integrity depends on honest desire, not good intentions."
+    }
+  ];
+  return phases[phaseSelector];
+}
+
+// ============================================
+// SELF-PROJECTED AUTHORITY PHASES
+// ============================================
+function getSelfProjectedPhase(type: string, dominantGate?: number | null): PatternState {
+  const gateNumber = dominantGate || 0;
+  const phaseSelector = (gateNumber % 3);
+  
+  const phases: PatternState[] = [
+    {
+      currentPhase: "You're stuck in your head, trying to figure something out through thinking. But the answer isn't in the thinking. It's in what you'd say if someone asked you right now.",
+      whatThisLeadsTo: "If you keep thinking without speaking, you'll stay stuck. The clarity you're looking for doesn't live in silence.",
+      shiftAvailable: "Talk. To someone, to a recording, to yourself out loud. Start before you're ready. The direction emerges as you speak."
+    },
+    {
+      currentPhase: "You said something out loud and heard yourself—and it wasn't what you expected. The truth surprised you.",
+      whatThisLeadsTo: "What you just heard is more accurate than what you've been thinking. Don't dismiss it because it didn't match the plan.",
+      shiftAvailable: "Follow what you heard yourself say. Even if it doesn't make sense yet. Your voice knows things your mind is still catching up to."
+    },
+    {
+      currentPhase: "You're holding back, waiting to be sure before you speak. But the certainty you're waiting for only comes through speaking.",
+      whatThisLeadsTo: "The longer you wait to be sure, the longer you stay unclear. Silence isn't helping you process—it's keeping you frozen.",
+      shiftAvailable: "Find someone to talk to. Not for advice—for witnessing. Say the thing. The clarity is on the other side of speaking."
+    }
+  ];
+  return phases[phaseSelector];
+}
+
+// ============================================
+// MENTAL/ENVIRONMENTAL AUTHORITY PHASES
+// ============================================
+function getMentalPhase(type: string, dominantGate?: number | null): PatternState {
+  const gateNumber = dominantGate || 0;
+  const phaseSelector = (gateNumber % 3);
+  
+  const phases: PatternState[] = [
+    {
+      currentPhase: "You're trying to decide from where you are—but this isn't the right place for clarity. The environment is affecting what you think you know.",
+      whatThisLeadsTo: "If you decide from here, you'll wonder later why it felt so clear then and so wrong now. The setting shaped the thinking.",
+      shiftAvailable: "Change the environment. Literally move. Go somewhere else and notice if the same choice still feels right. The clarity is place-dependent."
+    },
+    {
+      currentPhase: "You're hearing one thing from one person, something different from another. Each conversation shifts what feels true. This is how you're designed to process.",
+      whatThisLeadsTo: "If you try to integrate it all at once, you'll feel scattered. If you commit to what one person said, you'll miss what the others revealed.",
+      shiftAvailable: "Keep gathering. Talk to different people in different places. The answer emerges from the pattern across conversations, not any single one."
+    },
+    {
+      currentPhase: "Something is becoming clear—not from inside, but from outside. The right setting is revealing the right direction. This is your clarity arriving.",
+      whatThisLeadsTo: "This is the moment to note what's emerging. The environment is showing you something true.",
+      shiftAvailable: "Trust what's being revealed here. Not because you figured it out—because the right conditions made it obvious."
+    }
+  ];
+  return phases[phaseSelector];
+}
+
+// ============================================
+// LUNAR AUTHORITY PHASES (REFLECTOR)
+// ============================================
+function getLunarPhase(dominantGate?: number | null): PatternState {
+  const gateNumber = dominantGate || 0;
+  const phaseSelector = (gateNumber % 3);
+  
+  const phases: PatternState[] = [
+    {
+      currentPhase: "You're early in the cycle. Everything feels one way right now—but it won't stay this way. The Moon hasn't finished moving through your design.",
+      whatThisLeadsTo: "If you decide based on how things feel today, you'll have decided from only a fraction of the picture. The perspective will shift—maybe completely.",
+      shiftAvailable: "Note what you feel today. Then let it go. Come back to this decision in a week, and again in two. What stays true across the whole cycle is what's real."
+    },
+    {
+      currentPhase: "The cycle is halfway through. You've felt this decision from several angles now. Some days it felt right, some days wrong. That inconsistency isn't confusion—it's data.",
+      whatThisLeadsTo: "If you average out the feelings, you'll miss the point. It's not about which feeling wins. It's about what pattern is emerging across all of them.",
+      shiftAvailable: "Keep tracking. You're building a more complete picture than most people ever get. The clarity is coming—don't rush it."
+    },
+    {
+      currentPhase: "The cycle is complete, or nearly so. You've felt this from every angle. Something has become consistent—or consistently inconsistent. That's your answer.",
+      whatThisLeadsTo: "What stayed true across the whole cycle is genuinely yours. What kept changing belongs to the environments you passed through.",
+      shiftAvailable: "Decide now, if you're ready. You have the full picture. Trust what survived the whole cycle—it's the only thing that will hold."
+    }
+  ];
+  return phases[phaseSelector];
+}
+
+// ============================================
+// TYPE-BASED FALLBACK
+// ============================================
+function getTypeBasedPhase(type: string, dominantGate?: number | null): PatternState {
+  const gateNumber = dominantGate || 0;
+  const phaseSelector = (gateNumber % 3);
+  
+  const typePhases: { [key: string]: PatternState[] } = {
+    'Manifestor': [
+      {
+        currentPhase: "You're feeling the pull to initiate—to just do the thing. The impact you want to make feels close.",
+        whatThisLeadsTo: "If you move without informing, you'll create resistance you didn't intend. The power is real, but so is the pushback.",
+        shiftAvailable: "Pause to inform. Not ask—inform. Let people know what's coming. Then move with your full power."
+      },
+      {
+        currentPhase: "You're in withdrawal mode. The world feels like resistance. You're pulling back, not initiating.",
+        whatThisLeadsTo: "If you stay withdrawn too long, you lose touch with your power to create. Isolation becomes a pattern, not a rest.",
+        shiftAvailable: "When the next urge comes, engage. Inform, then act. The resistance you expect might not actually be there."
+      },
+      {
+        currentPhase: "You're meeting friction. People are reacting to something you did or said. This is the phase where your impact is landing—sometimes roughly.",
+        whatThisLeadsTo: "If you fight the friction, it escalates. If you withdraw completely, nothing gets resolved.",
+        shiftAvailable: "Let the impact settle. You don't have to fix their reaction. Just make sure they know what's happening. Clarity reduces resistance."
+      }
+    ],
+    'Projector': [
+      {
+        currentPhase: "You're seeing something clearly—a pattern, a solution, a truth about someone. The urge to share it is strong.",
+        whatThisLeadsTo: "If you share without being invited, it lands wrong. The insight is right, but the delivery misses. Bitterness follows.",
+        shiftAvailable: "Wait for the ask. If it doesn't come, ask if they want to hear it. The invitation changes everything."
+      },
+      {
+        currentPhase: "You're tired. The energy to guide isn't there. You've been giving without receiving, and it's showing.",
+        whatThisLeadsTo: "If you keep pushing, you'll deplete further. The bitterness will grow. Recognition will feel even further away.",
+        shiftAvailable: "Stop. Rest is not optional for you—it's essential. Your value doesn't depend on constant output."
+      },
+      {
+        currentPhase: "You're in a space of recognition. Someone sees you. The energy is right, the invitation is real.",
+        whatThisLeadsTo: "This is where your gifts land. Speak here. Guide here. This is why you wait.",
+        shiftAvailable: "Accept the recognition. Share what you see. This is the exchange working correctly."
+      }
+    ],
+    'Reflector': [
+      {
+        currentPhase: "You're absorbing everything around you. It's hard to tell what's yours and what belongs to the environment.",
+        whatThisLeadsTo: "Decisions made now reflect the current conditions, not necessarily your deeper truth. What feels certain might change completely.",
+        shiftAvailable: "Don't commit yet. Sample the experience. Let a full cycle pass before deciding anything permanent."
+      },
+      {
+        currentPhase: "Something feels consistently surprising—an environment, a person, a situation that keeps delighting you.",
+        whatThisLeadsTo: "Surprise is your signal that something is alive and healthy. Pay attention to what consistently surprises you.",
+        shiftAvailable: "Follow the surprise. Where you keep being delighted is where you belong. That's your navigation system."
+      },
+      {
+        currentPhase: "You're reflecting something back to the environment—and they're not ready to see it. You're showing them who they are, and it's uncomfortable.",
+        whatThisLeadsTo: "If you take on their discomfort, it becomes yours. If you hold your place as a mirror, they might eventually see.",
+        shiftAvailable: "Stay neutral. You're not responsible for what they see in you. Your job is to reflect accurately—not to manage their reactions."
+      }
+    ]
+  };
+  
+  // Default Generator fallback
+  const defaultPhases: PatternState[] = [
+    {
+      currentPhase: "You're in the middle of the pattern—engaged with something, not yet sure if it's right.",
+      whatThisLeadsTo: "Clarity will come. Whether it feels satisfying or frustrating will tell you everything you need to know.",
+      shiftAvailable: "Keep paying attention to how it feels. Not what you think—how it actually feels in your body."
+    },
+    {
+      currentPhase: "Something doesn't feel right. The energy isn't flowing. You're pushing through something that may not be yours.",
+      whatThisLeadsTo: "If the frustration continues, the signal is clear. This isn't aligned. The body is telling you.",
+      shiftAvailable: "Notice where the energy actually wants to go. Not where you think it should go. Follow the pull."
+    },
+    {
+      currentPhase: "You're in flow. Something is working. The energy is there without forcing.",
+      whatThisLeadsTo: "This is what alignment feels like. This is what you're looking for in every commitment.",
+      shiftAvailable: "Keep going. Trust this. Let satisfaction confirm that you're on the right track."
+    }
+  ];
+  
+  return typePhases[type]?.[phaseSelector] || defaultPhases[phaseSelector];
+}

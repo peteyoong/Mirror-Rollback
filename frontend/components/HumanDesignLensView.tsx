@@ -54,6 +54,8 @@ import {
   HDSynthesis,
   generatePatternThread,
   PatternThread,
+  generatePatternState,
+  PatternState,
 } from '../utils/humanDesignSynthesis';
 import { CrossLensPatternBridge } from './CrossLensPatternBridge';
 import { CollapsibleCard, NestedCollapsible, SectionHeader } from './CollapsibleCard';
@@ -1480,6 +1482,34 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={[styles.patternThreadLoop, { backgroundColor: theme.background, borderLeftColor: theme.accent }]}>
           <Text style={[styles.patternThreadLoopText, { color: theme.textTertiary }]}>
             {patternThread.coreLoop}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // NEW: Render Pattern State - Real-time positioning ("Where You Are Right Now")
+  const renderPatternState = (patternState: PatternState) => {
+    return (
+      <View style={[styles.patternStateContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.patternStateTitle, { color: theme.textTertiary }]}>
+          WHERE YOU ARE RIGHT NOW
+        </Text>
+        
+        {/* Current Phase - Primary text */}
+        <Text style={[styles.patternStateBody, { color: theme.text }]}>
+          {patternState.currentPhase}
+        </Text>
+        
+        {/* What This Leads To - Slightly dimmed */}
+        <Text style={[styles.patternStateSub, { color: theme.textSecondary }]}>
+          {patternState.whatThisLeadsTo}
+        </Text>
+        
+        {/* Shift Available - Accent highlight */}
+        <View style={[styles.patternStateShiftContainer, { backgroundColor: theme.background, borderLeftColor: theme.success || '#4CAF50' }]}>
+          <Text style={[styles.patternStateShift, { color: theme.success || '#4CAF50' }]}>
+            {patternState.shiftAvailable}
           </Text>
         </View>
       </View>
@@ -3853,6 +3883,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const profileMirrorCard = getProfileMirrorCard(data.core_mechanics?.profile || '');
     const crossMirrorCard = getCrossMirrorCard(data.core_mechanics?.incarnation_cross || '');
     
+    // Get dominant gate for Pattern State
+    const dominantGate = typeof data.personality_sun === 'object' 
+      ? data.personality_sun?.gate 
+      : (typeof data.personality_sun === 'number' ? data.personality_sun : null);
+    
     // Generate Pattern Thread
     const patternThread = generatePatternThread({
       type: data.core_mechanics?.type || '',
@@ -3863,6 +3898,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       channels: data.channels,
       definedCenters: centersData?.centers?.filter((c: any) => c.defined)?.map((c: any) => c.center) || [],
       undefinedCenters: centersData?.centers?.filter((c: any) => !c.defined)?.map((c: any) => c.center) || [],
+    });
+    
+    // Generate Pattern State (Real-Time Positioning)
+    const patternState = generatePatternState({
+      type: data.core_mechanics?.type || '',
+      authority: data.core_mechanics?.authority || '',
+      dominantGate: dominantGate,
     });
     
     // Build cross-link context for cards
@@ -3881,16 +3923,19 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     return (
       <>
-        {/* 1. PATTERN THREAD - The unified narrative (NEW - TOP POSITION) */}
+        {/* 1. PATTERN THREAD - The unified narrative */}
         {patternThread && renderPatternThread(patternThread)}
         
-        {/* 2. CORE SYNTHESIS - The existing synthesis card */}
+        {/* 2. PATTERN STATE - Where you are right now (NEW) */}
+        {patternState && renderPatternState(patternState)}
+        
+        {/* 3. CORE SYNTHESIS - The existing synthesis card */}
         {renderCoreSynthesis()}
         
-        {/* 3. BODY GRAPH - Visual overview */}
+        {/* 4. BODY GRAPH - Visual overview */}
         {renderImprovedBodygraph()}
         
-        {/* 4. TYPE / AUTHORITY / PROFILE - Core Mechanics */}
+        {/* 5. TYPE / AUTHORITY / PROFILE - Core Mechanics */}
         <SectionHeader title="Core Mechanics" count={4} icon="◎" />
         
         {/* Type Card - Default OPEN (most important) */}
@@ -8727,6 +8772,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
     lineHeight: 20,
+  },
+  // Pattern State styles - Real-time positioning
+  patternStateContainer: {
+    padding: 20,
+    marginBottom: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  patternStateTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: 16,
+  },
+  patternStateBody: {
+    fontSize: 16,
+    lineHeight: 26,
+    marginBottom: 16,
+  },
+  patternStateSub: {
+    fontSize: 15,
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+  patternStateShiftContainer: {
+    paddingLeft: 16,
+    paddingVertical: 12,
+    borderLeftWidth: 3,
+    marginTop: 4,
+  },
+  patternStateShift: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontWeight: '500',
   },
   // Cross-Link styles (subtle, italic)
   crossLinkText: {
