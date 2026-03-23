@@ -162,6 +162,9 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
   // Get facet line (V3 - Facet Selection Engine)
   const facetLine = patternData?.facet_line || null;
   
+  // Get facet memory line (V3.1 - Facet Memory + Progression)
+  const facetMemoryLine = patternData?.facet_memory_line || null;
+  
   // Get identity tendency if threshold met (Level 4)
   const identityTendency = patternData?.identity_threshold_met ? patternData.identity_tendency : null;
   

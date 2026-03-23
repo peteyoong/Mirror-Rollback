@@ -381,6 +381,9 @@ class JournalPatternAnalysis(BaseModel):
     # V3: Facet Selection Engine - which part of the pattern is most active now
     selected_facet: Optional[Dict[str, Any]] = None  # {"name": "communication", "label": "Communication", "score": 0.82, "reason": "..."}
     facet_line: Optional[str] = None  # "This may be showing up most through how connection is spoken..."
+    # V3.1: Facet Memory + Progression Layer
+    facet_memory: Optional[Dict[str, Any]] = None  # {"is_repeating": true, "streak_count": 3, ...}
+    facet_memory_line: Optional[str] = None  # "This has been showing up more than once..."
 
 
 class MirrorInsightCreate(BaseModel):
@@ -4720,6 +4723,165 @@ def select_facet(
     return selected_facet, facet_line
 
 
+# ============================================
+# FACET MEMORY + PROGRESSION LAYER (V3.1)
+# ============================================
+# Tracks how facets evolve over time
+# Makes the system feel like it "remembers" the user
+
+async def store_facet_history(user_id: str, phase_id: str, selected_facet: Dict[str, Any]):
+    """
+    Store a facet selection in history.
+    Keeps last 20 entries per user.
+    """
+    if not selected_facet:
+        return
+    
+    try:
+        # Store the facet entry
+        entry = {
+            "user_id": user_id,
+            "timestamp": datetime.now(timezone.utc),
+            "phase_id": phase_id,
+            "selected_facet": selected_facet.get("name"),
+            "facet_score": selected_facet.get("score"),
+            "source": "pattern_engine_v1"
+        }
+        
+        await db.facet_history.insert_one(entry)
+        
+        # Keep only last 20 entries per user
+        count = await db.facet_history.count_documents({"user_id": user_id})
+        if count > 20:
+            # Find and delete oldest entries
+            oldest = await db.facet_history.find(
+                {"user_id": user_id}
+            ).sort("timestamp", 1).limit(count - 20).to_list(count - 20)
+            
+            if oldest:
+                oldest_ids = [doc["_id"] for doc in oldest]
+                await db.facet_history.delete_many({"_id": {"$in": oldest_ids}})
+        
+        logger.debug(f"[FacetMemory] Stored facet '{selected_facet.get('name')}' for user {user_id}")
+        
+    except Exception as e:
+        logger.warning(f"[FacetMemory] Failed to store facet history: {e}")
+
+
+async def get_facet_memory(user_id: str) -> Dict[str, Any]:
+    """
+    Retrieve and analyze facet memory for a user.
+    
+    Returns:
+    {
+        "recent_facets": ["communication", "distance", "communication"],
+        "dominant_facet_last_5": "communication",
+        "is_repeating": true/false,
+        "streak_count": number,
+        "last_facet": "communication",
+        "first_seen_recently": true/false
+    }
+    """
+    try:
+        # Get last 5 facet entries
+        history = await db.facet_history.find(
+            {"user_id": user_id}
+        ).sort("timestamp", -1).limit(5).to_list(5)
+        
+        if not history:
+            return None
+        
+        recent_facets = [h.get("selected_facet") for h in history if h.get("selected_facet")]
+        
+        if not recent_facets:
+            return None
+        
+        # Calculate memory signals
+        last_facet = recent_facets[0] if recent_facets else None
+        
+        # STREAK: Count consecutive same facets from the start
+        streak_count = 1
+        if len(recent_facets) >= 2:
+            for i in range(1, len(recent_facets)):
+                if recent_facets[i] == recent_facets[0]:
+                    streak_count += 1
+                else:
+                    break
+        
+        # DOMINANCE: Most frequent facet in last 5
+        facet_counts = {}
+        for f in recent_facets:
+            facet_counts[f] = facet_counts.get(f, 0) + 1
+        
+        dominant_facet = max(facet_counts, key=facet_counts.get) if facet_counts else None
+        dominant_count = facet_counts.get(dominant_facet, 0)
+        
+        # RECURRENCE: Same facet appears 3+ times in last 5
+        is_repeating = streak_count >= 2 or dominant_count >= 3
+        
+        # FIRST SEEN: Only 1 entry exists
+        first_seen_recently = len(recent_facets) == 1
+        
+        memory = {
+            "recent_facets": recent_facets,
+            "dominant_facet_last_5": dominant_facet,
+            "is_repeating": is_repeating,
+            "streak_count": streak_count,
+            "last_facet": last_facet,
+            "first_seen_recently": first_seen_recently,
+            "total_entries": len(recent_facets)
+        }
+        
+        logger.debug(f"[FacetMemory] Retrieved memory for user {user_id}: streak={streak_count}, dominant={dominant_facet}")
+        
+        return memory
+        
+    except Exception as e:
+        logger.warning(f"[FacetMemory] Failed to get facet memory: {e}")
+        return None
+
+
+def generate_facet_memory_line(facet_memory: Dict[str, Any], current_facet: str) -> Optional[str]:
+    """
+    Generate a facet memory line based on memory signals.
+    
+    Cases:
+    1. REPEATING (streak ≥2): "This has been showing up more than once..."
+    2. DOMINANT (same facet frequent): "This seems to be a recurring thread..."
+    3. FIRST TIME: "This may be a newer way this pattern is starting to show up."
+    """
+    if not facet_memory:
+        return None
+    
+    total_entries = facet_memory.get("total_entries", 0)
+    streak_count = facet_memory.get("streak_count", 0)
+    is_repeating = facet_memory.get("is_repeating", False)
+    first_seen = facet_memory.get("first_seen_recently", False)
+    dominant = facet_memory.get("dominant_facet_last_5")
+    
+    # Don't show memory line if only 1 data point (need at least 2)
+    if total_entries < 2:
+        if first_seen:
+            return "This may be a newer way this pattern is starting to show up."
+        return None
+    
+    # CASE 1: REPEATING (streak ≥2)
+    if streak_count >= 2:
+        if streak_count >= 3:
+            return "This has been showing up consistently—there may be something here asking for attention."
+        return "This has been showing up more than once—there may be something here worth noticing."
+    
+    # CASE 2: DOMINANT (same facet appears frequently but not consecutively)
+    if is_repeating and dominant == current_facet:
+        return "This seems to be a recurring thread in how this pattern is unfolding."
+    
+    # CASE 3: Different facet than before
+    if total_entries >= 2 and not is_repeating:
+        return "This may be a different angle on a familiar pattern."
+    
+    return None
+
+
 @api_router.get("/journal/{user_id}/patterns", response_model=JournalPatternAnalysis)
 async def get_journal_patterns(user_id: str):
     """
@@ -4847,6 +5009,21 @@ async def get_journal_patterns(user_id: str):
                 angle_planet=angle_planet
             )
         
+        # V3.1: Facet Memory + Progression Layer
+        facet_memory = None
+        facet_memory_line = None
+        
+        if selected_facet:
+            # Store this facet in history
+            await store_facet_history(user_id, dominant_phase or "unknown", selected_facet)
+            
+            # Retrieve and analyze facet memory
+            facet_memory = await get_facet_memory(user_id)
+            
+            # Generate facet memory line
+            if facet_memory:
+                facet_memory_line = generate_facet_memory_line(facet_memory, selected_facet.get("name"))
+        
         return JournalPatternAnalysis(
             user_id=user_id,
             total_entries=total_entries,
@@ -4862,7 +5039,9 @@ async def get_journal_patterns(user_id: str):
             angle_line=angle_line,
             angle_role=angle_role,
             selected_facet=selected_facet,
-            facet_line=facet_line
+            facet_line=facet_line,
+            facet_memory=facet_memory,
+            facet_memory_line=facet_memory_line
         )
     except Exception as e:
         logger.error(f"Get journal patterns error: {e}")
