@@ -242,7 +242,161 @@ function normalizeTone(text: string): string {
 }
 
 // ============================================
-// STEP 6: PUNCTUATION CLEANUP
+// STEP 6: VOICE CONSISTENCY (MIRROR VOICE)
+// ============================================
+// Ensures all text feels like ONE consistent voice:
+// - Observational, not authoritative
+// - Grounded, not abstract
+// - Personal, but not intrusive
+// - Clear, not poetic for the sake of it
+
+function normalizeVoice(text: string): string {
+  let result = text;
+  
+  // ============================================
+  // FORBIDDEN PATTERNS → MIRROR VOICE
+  // ============================================
+  
+  // "This reveals that you are..." → "You may notice..."
+  result = result.replace(/This reveals that you are\s+/gi, 'You may notice ');
+  result = result.replace(/This reveals that you\s+/gi, 'You may notice that you ');
+  result = result.replace(/This reveals\s+/gi, 'You may notice ');
+  
+  // "This means you are..." → "This tends to show up as..."
+  result = result.replace(/This means you are\s+/gi, 'This tends to show up as ');
+  result = result.replace(/This means that you are\s+/gi, 'This tends to show up as ');
+  result = result.replace(/This means you\s+/gi, 'This suggests you ');
+  result = result.replace(/This means that you\s+/gi, 'This suggests you ');
+  
+  // "This indicates that..." → "This can feel like..."
+  result = result.replace(/This indicates that you\s+/gi, 'You may find that you ');
+  result = result.replace(/This indicates that\s+/gi, 'This can feel like ');
+  result = result.replace(/This indicates\s+/gi, 'This can show up as ');
+  
+  // "This shows that you are..." → "You may notice..."
+  result = result.replace(/This shows that you are\s+/gi, 'You may notice ');
+  result = result.replace(/This shows that you\s+/gi, 'You may notice that you ');
+  result = result.replace(/This shows that\s+/gi, 'This tends to show up when ');
+  
+  // "This suggests you are..." → "Part of you..."
+  result = result.replace(/This suggests you are\s+/gi, 'Part of you may be ');
+  result = result.replace(/This suggests that you are\s+/gi, 'Part of you may be ');
+  
+  // "You are inherently..." → "There can be..."
+  result = result.replace(/You are inherently\s+/gi, 'There can be ');
+  result = result.replace(/You're inherently\s+/gi, 'There can be ');
+  
+  // "You are naturally..." → "You may naturally..."
+  result = result.replace(/You are naturally\s+/gi, 'You may naturally ');
+  result = result.replace(/You're naturally\s+/gi, 'You may naturally ');
+  
+  // "You are fundamentally..." → "At your core, you tend to be..."
+  result = result.replace(/You are fundamentally\s+/gi, 'At your core, you tend to be ');
+  result = result.replace(/You're fundamentally\s+/gi, 'At your core, you tend to be ');
+  
+  // ============================================
+  // CLINICAL/FORMAL → GROUNDED
+  // ============================================
+  
+  // "It is important to note that..." → (remove)
+  result = result.replace(/It is important to note that\s+/gi, '');
+  result = result.replace(/It's important to note that\s+/gi, '');
+  
+  // "It should be noted that..." → (remove)
+  result = result.replace(/It should be noted that\s+/gi, '');
+  
+  // "It can be observed that..." → (remove)
+  result = result.replace(/It can be observed that\s+/gi, '');
+  
+  // "One might say that..." → (remove or simplify)
+  result = result.replace(/One might say that\s+/gi, '');
+  
+  // "In essence," → (remove)
+  result = result.replace(/In essence,\s+/gi, '');
+  
+  // "Essentially," → (remove)
+  result = result.replace(/Essentially,\s+/gi, '');
+  
+  // ============================================
+  // DRAMATIC/SPIRITUAL → OBSERVATIONAL
+  // ============================================
+  
+  // "Your soul craves..." → "Part of you may crave..."
+  result = result.replace(/Your soul craves\s+/gi, 'Part of you may crave ');
+  result = result.replace(/Your soul needs\s+/gi, 'Part of you may need ');
+  result = result.replace(/Your soul wants\s+/gi, 'Part of you may want ');
+  
+  // "You are destined to..." → "You may find yourself drawn to..."
+  result = result.replace(/You are destined to\s+/gi, 'You may find yourself drawn to ');
+  result = result.replace(/You're destined to\s+/gi, 'You may find yourself drawn to ');
+  
+  // "The universe is telling you..." → "There may be..."
+  result = result.replace(/The universe is telling you\s+/gi, 'There may be ');
+  result = result.replace(/The cosmos is\s+/gi, 'There may be ');
+  
+  // "Your higher self..." → "Part of you..."
+  result = result.replace(/Your higher self\s+/gi, 'Part of you ');
+  
+  // ============================================
+  // AUTHORITATIVE → OBSERVATIONAL
+  // ============================================
+  
+  // "You must..." → "You may find it helpful to..."
+  result = result.replace(/You must\s+/gi, 'You may find it helpful to ');
+  
+  // "You need to..." → "You may benefit from..."
+  result = result.replace(/You need to understand\s+/gi, 'It can help to notice ');
+  result = result.replace(/You need to realize\s+/gi, 'You may notice ');
+  result = result.replace(/You need to accept\s+/gi, 'There may be value in accepting ');
+  result = result.replace(/You need to\s+/gi, 'You may benefit from ');
+  
+  // "You should..." → "You might consider..."
+  result = result.replace(/You should always\s+/gi, 'You might consider ');
+  result = result.replace(/You should never\s+/gi, 'You may want to avoid ');
+  result = result.replace(/You should\s+/gi, 'You might ');
+  
+  // "You will always..." → "You may often..."
+  result = result.replace(/You will always\s+/gi, 'You may often ');
+  
+  // "You will never..." → "You may rarely..."
+  result = result.replace(/You will never\s+/gi, 'You may rarely ');
+  
+  // ============================================
+  // SMOOTH MIRROR VOICE PATTERNS
+  // ============================================
+  
+  // "Your X reveals..." → "You may notice..." (handles multi-word like "Moon in Aries")
+  result = result.replace(/Your [A-Z][a-zA-Z\s]+ reveals that\s+/gi, 'You may notice that ');
+  result = result.replace(/Your [A-Z][a-zA-Z\s]+ reveals\s+/gi, 'You may notice ');
+  
+  // "Your X indicates..." → "This can show up as..."
+  result = result.replace(/Your [A-Z][a-zA-Z\s]+ indicates that\s+/gi, 'This can feel like ');
+  result = result.replace(/Your [A-Z][a-zA-Z\s]+ indicates\s+/gi, 'This can show up as ');
+  
+  // "Your X shows..." → "You may notice..."
+  result = result.replace(/Your [A-Z][a-zA-Z\s]+ shows that\s+/gi, 'You may notice that ');
+  result = result.replace(/Your [A-Z][a-zA-Z\s]+ shows\s+/gi, 'You may notice ');
+  
+  // "Your X means..." → "This tends to..."
+  result = result.replace(/Your [A-Z][a-zA-Z\s]+ means that\s+/gi, 'This tends to show up as ');
+  result = result.replace(/Your [A-Z][a-zA-Z\s]+ means\s+/gi, 'This tends to ');
+  
+  // ============================================
+  // ENSURE CONSISTENT TRANSITIONS
+  // ============================================
+  
+  // Clean up double "You may" at start
+  result = result.replace(/^You may You may/gim, 'You may');
+  result = result.replace(/You may notice You may/gi, 'You may');
+  
+  // Fix capitalization after removals
+  result = result.replace(/\.\s+([a-z])/g, (match, char) => '. ' + char.toUpperCase());
+  
+  return result;
+}
+
+// ============================================
+// STEP 7: PUNCTUATION CLEANUP
 // ============================================
 
 function cleanPunctuation(text: string): string {
@@ -293,6 +447,16 @@ function contextFixes(text: string): string {
 /**
  * Main text cleaning function.
  * Apply to ALL user-facing generated text before rendering.
+ * 
+ * Pipeline:
+ * 1. Normalize quotes/spacing
+ * 2. Fix articles (a/an)
+ * 3. Tone normalization (identity → observational)
+ * 4. Fix verb conjugation
+ * 5. Fix phrasing
+ * 6. VOICE CONSISTENCY (Mirror Voice)
+ * 7. Clean punctuation
+ * 8. Context fixes
  */
 export function cleanText(text?: string | null): string {
   if (!text || typeof text !== 'string') {
@@ -319,10 +483,14 @@ export function cleanText(text?: string | null): string {
   // 5. Fix phrasing
   result = fixPhrasing(result);
   
-  // 6. Clean punctuation
+  // 6. VOICE CONSISTENCY (Mirror Voice)
+  //    Converts authoritative/clinical/dramatic → observational/grounded
+  result = normalizeVoice(result);
+  
+  // 7. Clean punctuation
   result = cleanPunctuation(result);
   
-  // 7. Context fixes
+  // 8. Context fixes
   result = contextFixes(result);
   
   // Final trim
