@@ -43,6 +43,7 @@ import {
 } from '../../services/astrology/astrologyNarrative';
 
 import { cleanText } from '../../utils/languageGuard';
+import { CrossLensPatternBridge } from '../CrossLensPatternBridge';
 
 // ============================================
 // PROPS INTERFACE
@@ -636,6 +637,13 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
           ))}
         </View>
       )}
+
+      {/* Cross-Lens Pattern Bridge - Shows patterns appearing across lenses */}
+      <CrossLensPatternBridge
+        astroAxisLines={chartAxis}
+        astroMostImportantFactors={mostImportantFactors.map(f => f.whyItMatters)}
+        astroChartSpine={chartSpine}
+      />
 
       {/* LIFE CHAPTER - Master Astrologer v4 */}
       {chapterNarrative && chapterAnalysis.hasActiveChapter && (

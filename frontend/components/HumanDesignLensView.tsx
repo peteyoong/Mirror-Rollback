@@ -35,6 +35,7 @@ import {
   getHDMonthContent,
   getCenterPattern,
 } from '../utils/humanDesignPatterns';
+import { CrossLensPatternBridge } from './CrossLensPatternBridge';
 import GeneKeysView from './GeneKeysView';
 import CentersView, { CentersViewHandle } from './CentersView';
 import DefinedGatesView from './DefinedGatesView';
@@ -1847,6 +1848,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             {authorityPattern.facetLine}
           </Text>
         </View>
+
+        {/* Cross-Lens Pattern Bridge - Shows patterns appearing across lenses */}
+        <CrossLensPatternBridge
+          hdTypePattern={typePattern.compressedPatternLine}
+          hdAuthorityPattern={authorityPattern.compressedPatternLine}
+        />
 
         {/* Where This Helps Card */}
         <View style={[styles.hdOverviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
