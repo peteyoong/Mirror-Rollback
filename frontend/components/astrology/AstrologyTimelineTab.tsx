@@ -7,7 +7,7 @@
  * UPGRADED: Chart-specific, house-aware, behavioral language
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,10 +16,13 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 import { FullChartData } from '../../services/astrology/astrologyTypes';
+import { getJournalEntriesByPhase, JournalEntryResponseWithPhase } from '../../services/api';
+import { useAppStore } from '../../store';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -404,15 +407,41 @@ export default function AstrologyTimelineTab({
 }: AstrologyTimelineTabProps) {
   const { isDark } = useTheme();
   const [expandedPhaseId, setExpandedPhaseId] = useState<string | null>(null);
+  
+  // Journal evidence state (Journal ↔ Timeline connection)
+  const [phaseEvidence, setPhaseEvidence] = useState<Record<string, JournalEntryResponseWithPhase[]>>({});
+  const [evidenceLoading, setEvidenceLoading] = useState<Record<string, boolean>>({});
+  const user = useAppStore(state => state.user);
 
   // Generate timeline data
   const timelineData = useMemo(() => {
     return generateTimelineData(fullChartData);
   }, [fullChartData]);
 
+  // Fetch journal entries for a phase when expanded
+  const fetchPhaseEvidence = async (phaseId: string) => {
+    if (!user?.id || phaseEvidence[phaseId]) return; // Already loaded or no user
+    
+    setEvidenceLoading(prev => ({ ...prev, [phaseId]: true }));
+    try {
+      const entries = await getJournalEntriesByPhase(user.id, phaseId, 3);
+      setPhaseEvidence(prev => ({ ...prev, [phaseId]: entries }));
+    } catch (err) {
+      console.error('[Timeline] Failed to fetch phase evidence:', err);
+    } finally {
+      setEvidenceLoading(prev => ({ ...prev, [phaseId]: false }));
+    }
+  };
+
   const togglePhase = (phaseId: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedPhaseId(expandedPhaseId === phaseId ? null : phaseId);
+    const newExpanded = expandedPhaseId === phaseId ? null : phaseId;
+    setExpandedPhaseId(newExpanded);
+    
+    // Fetch evidence when expanding a phase
+    if (newExpanded) {
+      fetchPhaseEvidence(newExpanded);
+    }
   };
 
   return (
@@ -517,6 +546,41 @@ export default function AstrologyTimelineTab({
                     <Text key={i} style={[styles.phaseBullet, { color: theme.text }]}>• {item}</Text>
                   ))}
                 </View>
+
+                {/* Journal Evidence Section - Your real-life moments in this phase */}
+                {user?.id && (
+                  <View style={styles.phaseSection}>
+                    <Text style={[styles.phaseSectionTitle, { color: theme.textTertiary }]}>
+                      Your moments in this phase
+                    </Text>
+                    {evidenceLoading[phase.id] ? (
+                      <ActivityIndicator size="small" color={theme.textTertiary} style={{ marginTop: 8 }} />
+                    ) : phaseEvidence[phase.id] && phaseEvidence[phase.id].length > 0 ? (
+                      <View style={styles.evidenceContainer}>
+                        {phaseEvidence[phase.id].map((entry) => (
+                          <View 
+                            key={entry.id} 
+                            style={[styles.evidenceCard, { 
+                              backgroundColor: isDark ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.05)',
+                              borderColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.15)',
+                            }]}
+                          >
+                            <Text style={[styles.evidenceSnippet, { color: theme.text }]} numberOfLines={2}>
+                              "{entry.content.substring(0, 100)}{entry.content.length > 100 ? '...' : ''}"
+                            </Text>
+                            <Text style={[styles.evidenceDate, { color: theme.textTertiary }]}>
+                              {new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    ) : (
+                      <Text style={[styles.noEvidenceText, { color: theme.textTertiary }]}>
+                        No journal entries yet. What you write will appear here.
+                      </Text>
+                    )}
+                  </View>
+                )}
               </View>
             )}
           </TouchableOpacity>
@@ -856,5 +920,31 @@ const styles = StyleSheet.create({
   askMirrorText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+
+  // Journal Evidence styles (Journal ↔ Timeline connection)
+  evidenceContainer: {
+    marginTop: 8,
+    gap: 8,
+  },
+  evidenceCard: {
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  evidenceSnippet: {
+    fontSize: 12,
+    lineHeight: 17,
+    fontStyle: 'italic',
+  },
+  evidenceDate: {
+    fontSize: 10,
+    marginTop: 6,
+    textAlign: 'right',
+  },
+  noEvidenceText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginTop: 6,
   },
 });

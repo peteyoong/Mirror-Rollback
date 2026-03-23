@@ -336,6 +336,9 @@ class JournalEntryCreate(BaseModel):
     source_domain: Optional[str] = None  # e.g., "energy_vitality" or specific insight ID
     source_name: Optional[str] = None  # Human-readable name of the source
     source_value: Optional[str] = None  # The specific value being reflected on
+    # Timeline phase metadata (auto-tagging with astrological timeline phase)
+    phase_id: Optional[str] = None  # e.g., "q1", "q2", "q3", "q4"
+    phase_name: Optional[str] = None  # e.g., "Recognition", "Confrontation", "The Crossroads", "Integration"
 
 
 class JournalEntryResponse(BaseModel):
@@ -343,6 +346,9 @@ class JournalEntryResponse(BaseModel):
     content: str
     themes: List[str]
     created_at: str
+    # Timeline phase data (for Journal ↔ Timeline connection)
+    phase_id: Optional[str] = None
+    phase_name: Optional[str] = None
 
 
 class MirrorInsightCreate(BaseModel):
@@ -3825,13 +3831,21 @@ async def create_journal_entry(entry: JournalEntryCreate):
         if entry.source_value:
             entry_data["source_value"] = entry.source_value
         
+        # Add timeline phase metadata (for Journal ↔ Timeline connection)
+        if entry.phase_id:
+            entry_data["phase_id"] = entry.phase_id
+        if entry.phase_name:
+            entry_data["phase_name"] = entry.phase_name
+        
         result = await db.journal.insert_one(entry_data)
         
         return JournalEntryResponse(
             id=str(result.inserted_id),
             content=entry.content,
             themes=entry_data["themes"],
-            created_at=entry_data["created_at"].isoformat()
+            created_at=entry_data["created_at"].isoformat(),
+            phase_id=entry_data.get("phase_id"),
+            phase_name=entry_data.get("phase_name")
         )
     except Exception as e:
         logger.error(f"Create journal error: {e}")
@@ -3851,12 +3865,38 @@ async def get_journal_entries(user_id: str, limit: int = 20):
                 id=str(entry["_id"]),
                 content=entry["content"],
                 themes=entry.get("themes", []),
-                created_at=entry["created_at"].isoformat()
+                created_at=entry["created_at"].isoformat(),
+                phase_id=entry.get("phase_id"),
+                phase_name=entry.get("phase_name")
             )
             for entry in entries
         ]
     except Exception as e:
         logger.error(f"Get journal error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/journal/{user_id}/by-phase/{phase_id}", response_model=List[JournalEntryResponse])
+async def get_journal_entries_by_phase(user_id: str, phase_id: str, limit: int = 3):
+    """Get user's journal entries for a specific timeline phase (for Timeline evidence)"""
+    try:
+        entries = await db.journal.find(
+            {"user_id": user_id, "phase_id": phase_id}
+        ).sort("created_at", -1).limit(limit).to_list(limit)
+        
+        return [
+            JournalEntryResponse(
+                id=str(entry["_id"]),
+                content=entry["content"],
+                themes=entry.get("themes", []),
+                created_at=entry["created_at"].isoformat(),
+                phase_id=entry.get("phase_id"),
+                phase_name=entry.get("phase_name")
+            )
+            for entry in entries
+        ]
+    except Exception as e:
+        logger.error(f"Get journal by phase error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

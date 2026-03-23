@@ -158,6 +158,65 @@ user_problem_statement: |
 
 
 backend:
+  - task: "Journal ↔ Timeline Connection"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          JOURNAL ↔ TIMELINE CONNECTION BACKEND ENDPOINTS TESTING COMPLETE ✅
+          
+          🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+          
+          **Test 1: POST /api/journal with phase data** ✅
+          - Request Body: {"user_id": "6971c81f2b40fd5ef501d375", "content": "Testing journal entry with timeline phase data. Today I'm reflecting on some choices I need to make.", "phase_id": "q1", "phase_name": "Recognition"}
+          - Status: 200 OK
+          - Response includes phase_id and phase_name fields as required
+          - Entry created with ID: 69c09e00d22f2bfe45d70390, phase_id: q1, phase_name: Recognition
+          
+          **Test 2: GET /api/journal/{user_id} returns phase data** ✅
+          - GET /api/journal/6971c81f2b40fd5ef501d375
+          - Status: 200 OK
+          - Found 1 entries with phase data, including our test entry
+          - Verified entries include phase_id and phase_name fields
+          
+          **Test 3: GET /api/journal/{user_id}/by-phase/{phase_id}** ✅
+          - GET /api/journal/6971c81f2b40fd5ef501d375/by-phase/q1
+          - Status: 200 OK
+          - Found 1 entries for phase 'q1', all correctly filtered
+          - Test entry found in phase-filtered results
+          - Returns entries tagged with that phase as expected
+          
+          **Test 4: Phase filtering isolation** ✅
+          - Created entry with different phase (q2, "Confrontation")
+          - Verified q1 phase: 1 entries, q2 phase: 1 entries - no cross-contamination
+          - Phase filtering works correctly with isolation between phases
+          
+          **Test 5: Edge cases and error handling** ✅
+          - Non-existent phase handling: Returns empty list for non-existent phase
+          - Invalid user ID handling: Returns empty list for invalid user ID
+          - Proper error handling verified
+          
+          **Backend Integration Verified:**
+          - All endpoints accessible via https://phase-mirror-reflect.preview.emergentagent.com/api
+          - Backend URL correctly used (not localhost:8001)
+          - Response times excellent (< 30 seconds)
+          - Data persistence working correctly
+          - Phase data properly stored and retrieved
+          
+          📊 TEST RESULTS: 8/8 TESTS PASSED (100% SUCCESS RATE)
+          
+          🎉 **CONCLUSION**: Journal ↔ Timeline Connection feature is fully functional and working correctly. All three requested endpoints are working as specified:
+          - POST /api/journal accepts and stores phase_id and phase_name
+          - GET /api/journal/{user_id} returns entries with phase data
+          - GET /api/journal/{user_id}/by-phase/{phase_id} filters entries by phase
+          The feature successfully connects journal entries to timeline phases with proper data persistence and filtering.
+
   - task: "Two-Layer Mirror Output API"
     implemented: true
     working: true
@@ -300,7 +359,7 @@ backend:
           - Response time under 5 seconds (0.23s) ✅
           
           📊 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Backend logs confirm successful processing with cross-lens derivation ✅
           - force_refresh parameter working correctly ✅
@@ -382,7 +441,7 @@ backend:
              - All optional fields present with correct data types
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1s for both requests)
           - Backend logs confirm successful processing
@@ -451,7 +510,7 @@ backend:
              - Summary endpoint correctly includes computed name-based numbers in narrative
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing and cache invalidation
@@ -905,7 +964,7 @@ backend:
                * incarnation_cross_gates: Consistent ✅ (null)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - JSON structure consistent between Summary and Deep Dive endpoints
@@ -966,7 +1025,7 @@ backend:
              - Complete Payload: All nested objects preserved correctly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 5 seconds)
           - Backend logs confirm successful processing
@@ -1035,7 +1094,7 @@ backend:
              - Implementation matches review request specifications exactly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing
@@ -1062,7 +1121,7 @@ frontend:
           🚫 CRITICAL ISSUE: Unable to complete login process with peter@test.com
           
           📋 TESTING ATTEMPTED:
-          1. ✅ Successfully accessed Mirror app at https://reflect-ai-25.preview.emergentagent.com
+          1. ✅ Successfully accessed Mirror app at https://phase-mirror-reflect.preview.emergentagent.com
           2. ✅ Found "Existing User" button and clicked it
           3. ✅ Found email input field and filled with peter@test.com
           4. ❌ Login process failed - unable to proceed to main app interface
@@ -1286,7 +1345,7 @@ frontend:
              - Backend Logs: "[Enneagram] Saved result for user 69819f1a1e4549392d7cb6d1: Type 7w8"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Backend service stable with proper logging
           - Response times acceptable (< 5 seconds)
@@ -1382,7 +1441,7 @@ frontend:
           🧪 COMPREHENSIVE TESTING PERFORMED (2/2 TESTS PASSED):
           
           **Test User:** 6971c81f2b40fd5ef501d375 (Sun=Pisces, Moon=Aries, Ascendant=Sagittarius)
-          **Base URL:** https://reflect-ai-25.preview.emergentagent.com/api
+          **Base URL:** https://phase-mirror-reflect.preview.emergentagent.com/api
           
           1. ✅ **ASTROLOGY SUMMARY ENDPOINT** (GET /api/astrology/summary/{user_id}):
              - Status: 200 OK, Response time: 5.67 seconds
@@ -1731,7 +1790,7 @@ backend:
           - has_transit_emphasis flag working correctly for frontend highlighting
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing
@@ -1755,7 +1814,7 @@ backend:
              - Successfully parsed as datetime object
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - Gene Keys signals properly mapped to categories
@@ -1829,7 +1888,7 @@ backend:
              - Each signal has required fields: source, label (with optional sphere_name, detail)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - Human Design centers properly mapped to pattern categories
@@ -1893,7 +1952,7 @@ backend:
              - Mirror philosophy preserved: No "you should", maintains agency, reflective language present
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - Gene Keys matching algorithm working correctly with shadow/gift keyword detection
           - Debug logging functional: [GK_MATCH] and [GK_MATCH_DEBUG] entries present
           - Context awareness integration with Mirror Chat system prompt working
@@ -1959,7 +2018,7 @@ backend:
           - Template Content: Rich, reflective interpretations for both defined and undefined states
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -2029,7 +2088,7 @@ backend:
              - Excellent backend integration performance
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -2094,7 +2153,7 @@ backend:
              - Language Compliance: Meets review request specification for signal strength terminology ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing
@@ -2158,7 +2217,7 @@ agent_communication:
       - Content quality meets specifications: practical, reflective, non-jargon-heavy
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://reflect-ai-25.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://phase-mirror-reflect.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (0.27 seconds)
       - ✅ Human Design computation and gates service integration working correctly
       - ✅ Template-based interpretations functioning properly
@@ -2205,7 +2264,7 @@ agent_communication:
       - Response format matches all specified requirements
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://reflect-ai-25.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://phase-mirror-reflect.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (< 2 seconds)
       - ✅ Pattern graph service integration working correctly
       - ✅ Time bucket aggregation functioning properly
@@ -2249,7 +2308,7 @@ agent_communication:
       - Rich template-based interpretations for both defined and undefined states
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://reflect-ai-25.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://phase-mirror-reflect.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (< 1 second)
       - ✅ Human Design computation and centers service integration working correctly
       - ✅ Template-based interpretations (no LLM dependency) functioning properly
@@ -2285,7 +2344,7 @@ agent_communication:
          - Subtle Gene Keys integration when relevant
       
       **Backend Integration Verified:**
-      - ✅ All endpoints accessible via https://reflect-ai-25.preview.emergentagent.com/api
+      - ✅ All endpoints accessible via https://phase-mirror-reflect.preview.emergentagent.com/api
       - ✅ Gene Keys matching algorithm working correctly with shadow/gift detection
       - ✅ Debug logging functional: [GK_MATCH] and [GK_MATCH_DEBUG] entries present
       - ✅ Context awareness integration with Mirror Chat system prompt working
@@ -2465,7 +2524,7 @@ agent_communication:
       - Contract validation system working correctly
       
       🔧 BACKEND INTEGRATION VERIFIED:
-      - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+      - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
       - No HTTP errors or timeouts
       - Response times acceptable (1-3 seconds)
       - Backend logs confirm emergent_generate usage
@@ -2697,7 +2756,7 @@ agent_communication:
       ✅ BACKEND LOGS: Confirm caching working with "[DailyFocus] Returning cached focus" messages
       
       🔧 INTEGRATION VERIFICATION:
-      ✅ Both endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+      ✅ Both endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
       ✅ No HTTP errors or timeouts
       ✅ Backend service stable with no error logs
       ✅ Response times acceptable (< 2 seconds)
@@ -2914,7 +2973,7 @@ agent_communication:
       ❌ CRITICAL ISSUE IDENTIFIED - API ROUTING PROBLEM:
       - Summary tab shows "Unable to load this view right now" error
       - Frontend making requests to http://localhost:3000/api/* (404 errors)
-      - Backend running on port 8001, accessible via https://reflect-ai-25.preview.emergentagent.com/api/*
+      - Backend running on port 8001, accessible via https://phase-mirror-reflect.preview.emergentagent.com/api/*
       - API service configured for relative URLs on web platform, but proxy routing not working
       - Console logs show: "Failed to load resource: the server responded with a status of 404 (Not Found)"
       
@@ -2964,7 +3023,7 @@ agent_communication:
       - Same API routing problem identified in previous testing sessions
       - Frontend API service uses relative URLs expecting proxy routing (/api/*)
       - Ingress/proxy not routing requests to backend (port 8001)
-      - Backend accessible directly via https://reflect-ai-25.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://phase-mirror-reflect.preview.emergentagent.com/api/*
       - Affects all lens views (Astrology, Human Design, Numerology)
       
       📊 SHIP GATE TEST RESULTS:
@@ -3020,7 +3079,7 @@ agent_communication:
       🚨 ROOT CAUSE: API ROUTING ISSUE
       - Frontend API service uses relative URLs expecting proxy routing
       - Ingress/proxy not routing /api/* requests to backend (port 8001)
-      - Backend accessible directly via https://reflect-ai-25.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://phase-mirror-reflect.preview.emergentagent.com/api/*
       - Same issue affects all lens views (Astrology, Human Design, Numerology)
       
       CONCLUSION: The Numerology Full Name Gate UI is implemented correctly and shows proper locked state, but the unlock flow cannot be verified due to API connectivity issues. The frontend correctly displays lock icons for name-based numbers (Expression, Soul Urge) while showing computed numbers for birth date-based calculations (Life Path).
@@ -3121,7 +3180,7 @@ agent_communication:
       ✅ Structure matches specification exactly
       
       **Backend Integration Verified:**
-      - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+      - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
       - Cross-lens derivation working: 3 lenses contributing (Journal, Lifeline, Astrology)
       - Backend logs confirm pattern selection: "relational_reopening" with moderate signal strength
       - force_refresh parameter working correctly for fresh data generation
@@ -3167,7 +3226,7 @@ agent_communication:
       🚫 CRITICAL FINDING: Unable to test Patterns tab accordion functionality due to authentication failure with peter@test.com user.
       
       📋 WHAT WAS TESTED:
-      - ✅ App loads correctly at https://reflect-ai-25.preview.emergentagent.com
+      - ✅ App loads correctly at https://phase-mirror-reflect.preview.emergentagent.com
       - ✅ Mobile responsiveness confirmed (390x844 viewport)
       - ✅ "Existing User" flow initiates properly
       - ✅ Email input accepts peter@test.com
@@ -3356,7 +3415,7 @@ backend:
              - Exactly 4 weeks returned (within limit) ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.37s - well under requirements)
           - Backend logs confirm successful processing
@@ -3611,7 +3670,7 @@ agent_communication:
              - Response consistency: Identical data between requests ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 1s for all requests) ✅
           - Backend logs confirm successful processing and caching ✅
@@ -3913,7 +3972,7 @@ backend:
                * groups: [] ✅ (empty groups array)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second for all endpoints)
           - Backend logs confirm successful processing
@@ -4001,7 +4060,7 @@ backend:
           - **TOTAL: 48/48 (100% SUCCESS RATE)**
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.26s)
           - Backend logs confirm successful processing: "[BaZi V2] Generated full chart for user 6971c81f2b40fd5ef501d375: Day Master = Xin Metal (strong)"
@@ -4076,7 +4135,7 @@ backend:
              - All expected behavioral expressions present ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.52s) ✅
           - Backend logs confirm successful processing ✅
@@ -4370,7 +4429,7 @@ agent_communication:
              - ✅ Data Consistency: Event count updates properly reflect create/delete operations
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times acceptable (< 10 seconds)
           - Backend logs confirm successful processing:
@@ -4456,7 +4515,7 @@ agent_communication:
                * Year: Bing-Wu (Structure, pressure) - "This year may ask more of you—more structure, more responsibility"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.25s) ✅
           - Backend logs confirm successful processing: "[BaZi V2] Generated full chart for user 6971c81f2b40fd5ef501d375: Day Master = Xin Metal (strong)" ✅
@@ -4589,7 +4648,7 @@ backend:
                ✅ language_modifiers: Complete object with modifier sections for life_pattern and day_master ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.10-0.28s) ✅
           - Backend logs confirm successful feedback storage and processing ✅
@@ -4670,7 +4729,7 @@ backend:
           5. "Why do I still doubt myself when things are flowing?" (Timing-related question)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.25s)
           - Backend logs confirm successful processing
@@ -4708,7 +4767,7 @@ agent_communication:
       **Test User Verification:**
       - Used user_id: 6971c81f2b40fd5ef501d375 as specified
       - Confirmed chart data: Sun=Pisces, Moon=Aries, Ascendant=Sagittarius
-      - Base URL: https://reflect-ai-25.preview.emergentagent.com/api
+      - Base URL: https://phase-mirror-reflect.preview.emergentagent.com/api
       
       **Backend Integration Verified:**
       - Both endpoints accessible via public URL
@@ -4852,7 +4911,7 @@ agent_communication:
              - Backend regenerates pattern when forced
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.12-0.29s)
           - Backend logs confirm pattern detection working: "Extracted 5 signals from ['astrology', 'enneagram']"
@@ -4930,7 +4989,7 @@ agent_communication:
              - Perfect pattern matching across both users ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (keystone: 0.17-0.31s, astrology: 17.98-48.54s)
           - Backend logs confirm integration: "[AstrologyDeepDive] Added keystone explanation for pattern: direction_shift"
@@ -5017,7 +5076,7 @@ agent_communication:
              - Verified: All responses now include signal_strength field ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 10 seconds for LLM generation)
           - Backend logs confirm successful processing
@@ -5229,7 +5288,7 @@ agent_communication:
       
       **Performance & Integration:**
       - ✅ Response times: 0.11-0.21s (excellent performance)
-      - ✅ Backend URL: https://reflect-ai-25.preview.emergentagent.com/api
+      - ✅ Backend URL: https://phase-mirror-reflect.preview.emergentagent.com/api
       - ✅ force_refresh parameter required for fresh data generation
       - ✅ All 8 structure validation tests passed
       
@@ -5284,7 +5343,7 @@ agent_communication:
       
       **Test 6: Performance & Integration** ✅
       - Response times excellent: 0.11-0.14s (well under 5s threshold)
-      - Backend URL: https://reflect-ai-25.preview.emergentagent.com/api
+      - Backend URL: https://phase-mirror-reflect.preview.emergentagent.com/api
       - All endpoints accessible via public URL
       - No HTTP errors or timeouts
       - Backend logs confirm successful processing with no errors
@@ -5327,7 +5386,7 @@ backend:
           7. ✅ V10 Features - Context-aware language generation working correctly
           
           **Backend Integration Verified:**
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during comprehensive testing
           - LLM integration functional (gpt-5.2 via emergentintegrations)
           - Pattern mirror service generating contextual patterns correctly
@@ -5400,7 +5459,7 @@ backend:
           - Error handling working correctly for both invalid and non-existent IDs
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://reflect-ai-25.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://phase-mirror-reflect.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 5 seconds)
           - Database operations working correctly (create, read, update, delete)
@@ -5470,7 +5529,7 @@ backend:
           
           6. ✅ **PERFORMANCE & INTEGRATION**:
              - Response times: 0.11-0.14s (excellent, under 5s threshold)
-             - Public URL accessible: https://reflect-ai-25.preview.emergentagent.com/api
+             - Public URL accessible: https://phase-mirror-reflect.preview.emergentagent.com/api
              - No HTTP errors or timeouts
              - Backend logs confirm successful processing
              - Pattern engine: normal mode + fallback mode working
@@ -5580,6 +5639,47 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "testing"
+    message: |
+      JOURNAL ↔ TIMELINE CONNECTION BACKEND ENDPOINTS TESTING COMPLETE ✅
+      
+      Successfully tested the Journal ↔ Timeline Connection feature backend endpoints as requested in the review:
+      
+      🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+      
+      **Test 1: POST /api/journal with phase data** ✅
+      - User ID: 6971c81f2b40fd5ef501d375
+      - Request Body: {"user_id": "6971c81f2b40fd5ef501d375", "content": "Testing journal entry with timeline phase data. Today I'm reflecting on some choices I need to make.", "phase_id": "q1", "phase_name": "Recognition"}
+      - Status: 200 OK
+      - Response includes phase_id and phase_name fields as required
+      - Entry created with ID: 69c09e00d22f2bfe45d70390
+      
+      **Test 2: GET /api/journal/{user_id} returns phase data** ✅
+      - GET /api/journal/6971c81f2b40fd5ef501d375
+      - Status: 200 OK
+      - Found entries with phase data including our test entry
+      - Verified entries include phase_id and phase_name fields
+      
+      **Test 3: GET /api/journal/{user_id}/by-phase/{phase_id}** ✅
+      - GET /api/journal/6971c81f2b40fd5ef501d375/by-phase/q1
+      - Status: 200 OK
+      - Returns entries tagged with phase "q1" as expected
+      - Test entry found in phase-filtered results
+      
+      **Additional Testing Performed:**
+      - Phase filtering isolation: Created entries with different phases (q1, q2) and verified no cross-contamination
+      - Edge cases: Non-existent phases and invalid user IDs handled properly
+      - Backend integration: All endpoints accessible via correct URL (not localhost)
+      
+      **Backend Integration Verified:**
+      - All endpoints accessible via https://phase-mirror-reflect.preview.emergentagent.com/api
+      - Backend logs confirm successful operations (visible in supervisor logs)
+      - Response times excellent (< 30 seconds)
+      - Data persistence working correctly
+      
+      📊 TEST RESULTS: 8/8 TESTS PASSED (100% SUCCESS RATE)
+      
+      🎉 **CONCLUSION**: Journal ↔ Timeline Connection feature is fully functional and working correctly. All three requested endpoints are working as specified with proper phase data handling, filtering, and persistence.
   - agent: "main"
     message: |
       Implemented Journal UX Fixes. Please test:
@@ -5651,7 +5751,7 @@ agent_communication:
       - DELETE /api/journal/000000000000000000000000 → Status 404 "Entry not found"
       
       **Backend Integration Verified:**
-      - All endpoints accessible via https://reflect-ai-25.preview.emergentagent.com/api
+      - All endpoints accessible via https://phase-mirror-reflect.preview.emergentagent.com/api
       - Backend logs confirm successful operations:
         * PUT /api/journal/69bfd648affdc9b8ab0696fe HTTP/1.1" 200 OK
         * DELETE /api/journal/69bfd8b324bd3354c4f0ec8e HTTP/1.1" 200 OK

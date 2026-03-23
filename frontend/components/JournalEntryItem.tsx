@@ -19,11 +19,34 @@ import { useTheme } from '../contexts/ThemeContext';
 const HIGHLIGHT_DURATION = 2000; // 2 seconds
 const HIGHLIGHT_FADE_DURATION = 400;
 
+// Phase pill helpers
+const getPhaseIcon = (phaseId: string): string => {
+  const icons: { [key: string]: string } = {
+    q1: '🌱',  // Recognition
+    q2: '⚡',  // Confrontation
+    q3: '🔀',  // The Crossroads
+    q4: '🌊',  // Integration
+  };
+  return icons[phaseId] || '⭐';
+};
+
+const getPhaseColor = (phaseId: string, isDark: boolean): string => {
+  const colors: { [key: string]: string } = {
+    q1: isDark ? 'rgba(76, 175, 80, 0.2)' : 'rgba(76, 175, 80, 0.15)',
+    q2: isDark ? 'rgba(255, 152, 0, 0.2)' : 'rgba(255, 152, 0, 0.15)',
+    q3: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.15)',
+    q4: isDark ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.15)',
+  };
+  return colors[phaseId] || (isDark ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.1)');
+};
+
 interface JournalEntryItemProps {
   id: string;
   content: string;
   created_at: string;
   themes?: string[];
+  phase_id?: string;  // Timeline phase ID
+  phase_name?: string;  // Timeline phase name
   onReflect?: (content: string) => void;
   onEdit?: (id: string, newContent: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
@@ -36,6 +59,8 @@ export default function JournalEntryItem({
   content,
   created_at,
   themes = [],
+  phase_id,
+  phase_name,
   onReflect,
   onEdit,
   onDelete,
@@ -219,6 +244,13 @@ export default function JournalEntryItem({
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={[styles.date, { color: theme.textTertiary }]}>{formattedDate}</Text>
+          {/* Phase Pill Tag - Timeline connection */}
+          {phase_id && phase_name && (
+            <View style={[styles.phasePill, { backgroundColor: getPhaseColor(phase_id, isDark) }]}>
+              <Text style={styles.phaseIcon}>{getPhaseIcon(phase_id)}</Text>
+              <Text style={[styles.phasePillText, { color: theme.text }]}>{phase_name}</Text>
+            </View>
+          )}
           {isHighlighted && (
             <Text style={[styles.savedLabel, { color: Colors.accent }]}>✓ Saved</Text>
           )}
@@ -370,6 +402,22 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 12,
     color: Colors.textTertiary,
+  },
+  // Phase pill tag styles
+  phasePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    gap: 3,
+  },
+  phaseIcon: {
+    fontSize: 10,
+  },
+  phasePillText: {
+    fontSize: 10,
+    fontWeight: '600',
   },
   headerActions: {
     flexDirection: 'row',

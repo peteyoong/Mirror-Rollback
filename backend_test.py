@@ -1,363 +1,312 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Journal Edit and Delete API Endpoints
-Testing the new Journal Edit and Delete functionality as requested in review
+Backend Testing Script for Journal ↔ Timeline Connection Feature
+Tests the integration between journal entries and timeline phases.
 """
 
 import requests
 import json
-import time
 import sys
 from datetime import datetime
+import os
 
-# Backend URL from environment
-BACKEND_URL = "https://reflect-ai-25.preview.emergentagent.com/api"
+# Get backend URL from environment
+BACKEND_URL = "https://phase-mirror-reflect.preview.emergentagent.com/api"
+TEST_USER_ID = "6971c81f2b40fd5ef501d375"
 
-def test_get_journal_entries():
-    """
-    Test GET /api/journal/{user_id} - Get journal entries
-    """
-    print("🧪 TEST 1: GET JOURNAL ENTRIES")
-    print("=" * 50)
-    
-    user_id = "697f0c6abf35c0528ff06954"
-    
-    print(f"📋 Getting journal entries for user: {user_id}")
-    
-    try:
-        response = requests.get(
-            f"{BACKEND_URL}/journal/{user_id}",
-            timeout=30
-        )
-        
-        print(f"   Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            entries = response.json()
-            print(f"   ✅ SUCCESS: Found {len(entries)} journal entries")
-            
-            if entries:
-                # Show first entry details
-                first_entry = entries[0]
-                print(f"   📝 First entry:")
-                print(f"      ID: {first_entry.get('id')}")
-                print(f"      Content: {first_entry.get('content', '')[:100]}...")
-                print(f"      Created: {first_entry.get('created_at')}")
-                return entries
-            else:
-                print("   ⚠️  No journal entries found for this user")
-                return []
-        else:
-            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
-            return None
-            
-    except Exception as e:
-        print(f"   ❌ ERROR: {str(e)}")
-        return None
+def log_test(test_name, status, details=""):
+    """Log test results with consistent formatting"""
+    status_symbol = "✅" if status == "PASS" else "❌"
+    print(f"{status_symbol} {test_name}")
+    if details:
+        print(f"   {details}")
+    print()
 
-def test_update_journal_entry(entry_id):
-    """
-    Test PUT /api/journal/{entry_id} - Update journal entry
-    """
-    print(f"\n🧪 TEST 2: UPDATE JOURNAL ENTRY")
-    print("=" * 50)
+def test_journal_timeline_connection():
+    """Test the Journal ↔ Timeline Connection feature backend endpoints"""
     
-    updated_content = "Test edit - this content was updated"
-    payload = {
-        "content": updated_content
+    print("🧪 TESTING: Journal ↔ Timeline Connection Feature Backend Endpoints")
+    print("=" * 80)
+    print()
+    
+    # Test data for journal entry with phase information
+    test_journal_entry = {
+        "user_id": TEST_USER_ID,
+        "content": "Testing journal entry with timeline phase data. Today I'm reflecting on some choices I need to make.",
+        "phase_id": "q1",
+        "phase_name": "Recognition"
     }
     
-    print(f"📋 Updating entry ID: {entry_id}")
-    print(f"   New content: {updated_content}")
-    
-    try:
-        response = requests.put(
-            f"{BACKEND_URL}/journal/{entry_id}",
-            json=payload,
-            headers={"Content-Type": "application/json"},
-            timeout=30
-        )
-        
-        print(f"   Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            updated_entry = response.json()
-            print(f"   ✅ SUCCESS: Entry updated")
-            print(f"      ID: {updated_entry.get('id')}")
-            print(f"      Content: {updated_entry.get('content')}")
-            print(f"      Created: {updated_entry.get('created_at')}")
-            return updated_entry
-        else:
-            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
-            return None
-            
-    except Exception as e:
-        print(f"   ❌ ERROR: {str(e)}")
-        return None
-
-def test_verify_update_persisted(user_id, entry_id, expected_content):
-    """
-    Verify the update persisted by getting the entry again
-    """
-    print(f"\n🧪 TEST 3: VERIFY UPDATE PERSISTED")
-    print("=" * 50)
-    
-    print(f"📋 Getting updated entry to verify persistence")
-    
-    try:
-        response = requests.get(
-            f"{BACKEND_URL}/journal/{user_id}",
-            timeout=30
-        )
-        
-        if response.status_code == 200:
-            entries = response.json()
-            
-            # Find the updated entry
-            updated_entry = None
-            for entry in entries:
-                if entry.get('id') == entry_id:
-                    updated_entry = entry
-                    break
-            
-            if updated_entry:
-                actual_content = updated_entry.get('content', '')
-                if actual_content == expected_content:
-                    print(f"   ✅ SUCCESS: Update persisted correctly")
-                    print(f"      Content matches: {actual_content}")
-                    return True
-                else:
-                    print(f"   ❌ FAILED: Content mismatch")
-                    print(f"      Expected: {expected_content}")
-                    print(f"      Actual: {actual_content}")
-                    return False
-            else:
-                print(f"   ❌ FAILED: Could not find updated entry with ID {entry_id}")
-                return False
-        else:
-            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
-            return False
-            
-    except Exception as e:
-        print(f"   ❌ ERROR: {str(e)}")
-        return False
-
-def test_create_test_entry():
-    """
-    Create a test journal entry for deletion testing
-    """
-    print(f"\n🧪 TEST 4: CREATE TEST ENTRY FOR DELETION")
-    print("=" * 50)
-    
-    user_id = "697f0c6abf35c0528ff06954"
-    test_content = "Test entry to delete"
-    
-    payload = {
-        "user_id": user_id,
-        "content": test_content
-    }
-    
-    print(f"📋 Creating test entry for deletion")
-    print(f"   User ID: {user_id}")
-    print(f"   Content: {test_content}")
+    # =========================================================================
+    # TEST 1: POST /api/journal with phase data
+    # =========================================================================
+    print("TEST 1: POST /api/journal with phase data")
+    print("-" * 50)
     
     try:
         response = requests.post(
             f"{BACKEND_URL}/journal",
-            json=payload,
+            json=test_journal_entry,
             headers={"Content-Type": "application/json"},
             timeout=30
         )
         
-        print(f"   Status Code: {response.status_code}")
-        
         if response.status_code == 200:
-            new_entry = response.json()
-            print(f"   ✅ SUCCESS: Test entry created")
-            print(f"      ID: {new_entry.get('id')}")
-            print(f"      Content: {new_entry.get('content')}")
-            return new_entry
+            data = response.json()
+            
+            # Verify response structure
+            required_fields = ["id", "content", "themes", "created_at", "phase_id", "phase_name"]
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if missing_fields:
+                log_test("POST /api/journal structure", "FAIL", f"Missing fields: {missing_fields}")
+                return False
+            
+            # Verify phase data is included
+            if data.get("phase_id") == "q1" and data.get("phase_name") == "Recognition":
+                log_test("POST /api/journal with phase data", "PASS", 
+                        f"Entry created with ID: {data['id']}, phase_id: {data['phase_id']}, phase_name: {data['phase_name']}")
+                created_entry_id = data["id"]
+            else:
+                log_test("POST /api/journal phase data", "FAIL", 
+                        f"Phase data not properly saved. Got phase_id: {data.get('phase_id')}, phase_name: {data.get('phase_name')}")
+                return False
+                
         else:
-            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
-            return None
+            log_test("POST /api/journal", "FAIL", f"HTTP {response.status_code}: {response.text}")
+            return False
             
     except Exception as e:
-        print(f"   ❌ ERROR: {str(e)}")
-        return None
-
-def test_delete_journal_entry(entry_id):
-    """
-    Test DELETE /api/journal/{entry_id} - Delete journal entry
-    """
-    print(f"\n🧪 TEST 5: DELETE JOURNAL ENTRY")
-    print("=" * 50)
+        log_test("POST /api/journal", "FAIL", f"Exception: {str(e)}")
+        return False
     
-    print(f"📋 Deleting entry ID: {entry_id}")
-    
-    try:
-        response = requests.delete(
-            f"{BACKEND_URL}/journal/{entry_id}",
-            timeout=30
-        )
-        
-        print(f"   Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            result = response.json()
-            print(f"   ✅ SUCCESS: Entry deleted")
-            print(f"      Success: {result.get('success')}")
-            print(f"      Message: {result.get('message')}")
-            return result
-        else:
-            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
-            return None
-            
-    except Exception as e:
-        print(f"   ❌ ERROR: {str(e)}")
-        return None
-
-def test_verify_deletion(user_id, deleted_entry_id):
-    """
-    Verify the entry was actually deleted
-    """
-    print(f"\n🧪 TEST 6: VERIFY ENTRY DELETED")
-    print("=" * 50)
-    
-    print(f"📋 Verifying entry {deleted_entry_id} was deleted")
+    # =========================================================================
+    # TEST 2: GET /api/journal/{user_id} returns phase data
+    # =========================================================================
+    print("TEST 2: GET /api/journal/{user_id} returns phase data")
+    print("-" * 50)
     
     try:
         response = requests.get(
-            f"{BACKEND_URL}/journal/{user_id}",
+            f"{BACKEND_URL}/journal/{TEST_USER_ID}",
             timeout=30
         )
         
         if response.status_code == 200:
             entries = response.json()
             
-            # Check if deleted entry still exists
-            deleted_entry = None
-            for entry in entries:
-                if entry.get('id') == deleted_entry_id:
-                    deleted_entry = entry
-                    break
-            
-            if deleted_entry is None:
-                print(f"   ✅ SUCCESS: Entry successfully deleted")
-                return True
-            else:
-                print(f"   ❌ FAILED: Entry still exists after deletion")
-                print(f"      Found entry: {deleted_entry}")
+            if not isinstance(entries, list):
+                log_test("GET /api/journal/{user_id} format", "FAIL", "Response is not a list")
                 return False
+            
+            if len(entries) == 0:
+                log_test("GET /api/journal/{user_id}", "FAIL", "No journal entries found")
+                return False
+            
+            # Find our test entry and verify phase data
+            test_entry_found = False
+            phase_data_entries = 0
+            
+            for entry in entries:
+                # Check if this entry has phase data
+                if entry.get("phase_id") and entry.get("phase_name"):
+                    phase_data_entries += 1
+                
+                # Check if this is our test entry
+                if (entry.get("content") == test_journal_entry["content"] and 
+                    entry.get("phase_id") == "q1" and 
+                    entry.get("phase_name") == "Recognition"):
+                    test_entry_found = True
+            
+            if test_entry_found:
+                log_test("GET /api/journal/{user_id} phase data", "PASS", 
+                        f"Found {phase_data_entries} entries with phase data, including our test entry")
+            else:
+                log_test("GET /api/journal/{user_id} phase data", "FAIL", 
+                        f"Test entry not found or missing phase data. Found {phase_data_entries} entries with phase data")
+                return False
+                
         else:
-            print(f"   ❌ FAILED: {response.status_code} - {response.text}")
+            log_test("GET /api/journal/{user_id}", "FAIL", f"HTTP {response.status_code}: {response.text}")
             return False
             
     except Exception as e:
-        print(f"   ❌ ERROR: {str(e)}")
+        log_test("GET /api/journal/{user_id}", "FAIL", f"Exception: {str(e)}")
         return False
-
-def test_error_cases():
-    """
-    Test error cases as specified in review request
-    """
-    print(f"\n🧪 TEST 7: ERROR CASES")
-    print("=" * 50)
     
-    # Test 1: Update with invalid ID
-    print("📋 Testing PUT with invalid entry ID")
+    # =========================================================================
+    # TEST 3: GET /api/journal/{user_id}/by-phase/{phase_id}
+    # =========================================================================
+    print("TEST 3: GET /api/journal/{user_id}/by-phase/{phase_id}")
+    print("-" * 50)
+    
     try:
-        response = requests.put(
-            f"{BACKEND_URL}/journal/invalid_id",
-            json={"content": "Test content"},
+        response = requests.get(
+            f"{BACKEND_URL}/journal/{TEST_USER_ID}/by-phase/q1",
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            entries = response.json()
+            
+            if not isinstance(entries, list):
+                log_test("GET /api/journal/{user_id}/by-phase/{phase_id} format", "FAIL", "Response is not a list")
+                return False
+            
+            # Verify all entries have the correct phase_id
+            correct_phase_entries = 0
+            test_entry_found = False
+            
+            for entry in entries:
+                if entry.get("phase_id") == "q1":
+                    correct_phase_entries += 1
+                    
+                    # Check if this is our test entry
+                    if (entry.get("content") == test_journal_entry["content"] and 
+                        entry.get("phase_name") == "Recognition"):
+                        test_entry_found = True
+                else:
+                    log_test("GET /api/journal by-phase filtering", "FAIL", 
+                            f"Entry with wrong phase_id found: {entry.get('phase_id')}")
+                    return False
+            
+            if len(entries) > 0 and correct_phase_entries == len(entries):
+                log_test("GET /api/journal/{user_id}/by-phase/{phase_id}", "PASS", 
+                        f"Found {len(entries)} entries for phase 'q1', all correctly filtered")
+                
+                if test_entry_found:
+                    log_test("Test entry in by-phase results", "PASS", "Our test entry found in phase-filtered results")
+                else:
+                    log_test("Test entry in by-phase results", "FAIL", "Our test entry not found in phase-filtered results")
+                    return False
+            else:
+                log_test("GET /api/journal/{user_id}/by-phase/{phase_id}", "FAIL", 
+                        f"Found {len(entries)} entries, {correct_phase_entries} with correct phase")
+                return False
+                
+        else:
+            log_test("GET /api/journal/{user_id}/by-phase/{phase_id}", "FAIL", f"HTTP {response.status_code}: {response.text}")
+            return False
+            
+    except Exception as e:
+        log_test("GET /api/journal/{user_id}/by-phase/{phase_id}", "FAIL", f"Exception: {str(e)}")
+        return False
+    
+    # =========================================================================
+    # TEST 4: Test with different phase (q2) to verify filtering works
+    # =========================================================================
+    print("TEST 4: Create entry with different phase and verify filtering")
+    print("-" * 50)
+    
+    test_journal_entry_q2 = {
+        "user_id": TEST_USER_ID,
+        "content": "Testing journal entry with phase q2. This is about confronting difficult truths.",
+        "phase_id": "q2",
+        "phase_name": "Confrontation"
+    }
+    
+    try:
+        # Create entry with q2 phase
+        response = requests.post(
+            f"{BACKEND_URL}/journal",
+            json=test_journal_entry_q2,
             headers={"Content-Type": "application/json"},
             timeout=30
         )
         
-        print(f"   Status Code: {response.status_code}")
-        if response.status_code >= 400:
-            print(f"   ✅ SUCCESS: Invalid ID properly rejected")
+        if response.status_code == 200:
+            # Now test that by-phase filtering works correctly
+            response_q1 = requests.get(f"{BACKEND_URL}/journal/{TEST_USER_ID}/by-phase/q1", timeout=30)
+            response_q2 = requests.get(f"{BACKEND_URL}/journal/{TEST_USER_ID}/by-phase/q2", timeout=30)
+            
+            if response_q1.status_code == 200 and response_q2.status_code == 200:
+                entries_q1 = response_q1.json()
+                entries_q2 = response_q2.json()
+                
+                # Verify q1 entries only have q1 phase
+                q1_correct = all(entry.get("phase_id") == "q1" for entry in entries_q1)
+                # Verify q2 entries only have q2 phase  
+                q2_correct = all(entry.get("phase_id") == "q2" for entry in entries_q2)
+                
+                if q1_correct and q2_correct:
+                    log_test("Phase filtering isolation", "PASS", 
+                            f"q1 phase: {len(entries_q1)} entries, q2 phase: {len(entries_q2)} entries - no cross-contamination")
+                else:
+                    log_test("Phase filtering isolation", "FAIL", "Phase filtering not working correctly")
+                    return False
+            else:
+                log_test("Phase filtering test", "FAIL", "Could not retrieve entries for phase comparison")
+                return False
         else:
-            print(f"   ❌ FAILED: Invalid ID should return error")
+            log_test("Create q2 entry", "FAIL", f"HTTP {response.status_code}: {response.text}")
+            return False
+            
     except Exception as e:
-        print(f"   ❌ ERROR: {str(e)}")
+        log_test("Phase filtering test", "FAIL", f"Exception: {str(e)}")
+        return False
     
-    # Test 2: Delete with non-existent ID
-    print("\n📋 Testing DELETE with non-existent entry ID")
+    # =========================================================================
+    # TEST 5: Test edge cases
+    # =========================================================================
+    print("TEST 5: Edge cases and error handling")
+    print("-" * 50)
+    
     try:
-        response = requests.delete(
-            f"{BACKEND_URL}/journal/000000000000000000000000",
-            timeout=30
-        )
-        
-        print(f"   Status Code: {response.status_code}")
-        if response.status_code == 404:
-            print(f"   ✅ SUCCESS: Non-existent ID returns 404")
-            result = response.json()
-            print(f"      Message: {result.get('detail', 'No message')}")
+        # Test non-existent phase
+        response = requests.get(f"{BACKEND_URL}/journal/{TEST_USER_ID}/by-phase/nonexistent", timeout=30)
+        if response.status_code == 200:
+            entries = response.json()
+            if len(entries) == 0:
+                log_test("Non-existent phase handling", "PASS", "Returns empty list for non-existent phase")
+            else:
+                log_test("Non-existent phase handling", "FAIL", f"Should return empty list, got {len(entries)} entries")
+                return False
         else:
-            print(f"   ❌ FAILED: Expected 404 for non-existent ID")
+            log_test("Non-existent phase handling", "FAIL", f"HTTP {response.status_code}: {response.text}")
+            return False
+        
+        # Test invalid user ID
+        response = requests.get(f"{BACKEND_URL}/journal/invalid_user_id/by-phase/q1", timeout=30)
+        if response.status_code == 200:
+            entries = response.json()
+            if len(entries) == 0:
+                log_test("Invalid user ID handling", "PASS", "Returns empty list for invalid user ID")
+            else:
+                log_test("Invalid user ID handling", "FAIL", f"Should return empty list, got {len(entries)} entries")
+                return False
+        else:
+            log_test("Invalid user ID handling", "FAIL", f"HTTP {response.status_code}: {response.text}")
+            return False
+            
     except Exception as e:
-        print(f"   ❌ ERROR: {str(e)}")
+        log_test("Edge cases test", "FAIL", f"Exception: {str(e)}")
+        return False
+    
+    return True
 
 def main():
-    """
-    Main test execution for Journal Edit and Delete API endpoints
-    """
-    print("🧪 JOURNAL EDIT AND DELETE API ENDPOINTS TESTING")
-    print("=" * 60)
-    print(f"Timestamp: {datetime.now().isoformat()}")
+    """Run all tests"""
+    print("🚀 Starting Journal ↔ Timeline Connection Backend Testing")
     print(f"Backend URL: {BACKEND_URL}")
-    print(f"Base URL: https://reflect-ai-25.preview.emergentagent.com")
+    print(f"Test User ID: {TEST_USER_ID}")
     print()
     
-    user_id = "697f0c6abf35c0528ff06954"
+    success = test_journal_timeline_connection()
     
-    # Test 1: Get journal entries
-    entries = test_get_journal_entries()
-    if not entries:
-        print("\n❌ TESTING FAILED: Could not get journal entries")
-        return
-    
-    # Test 2: Update existing journal entry (if available)
-    if entries:
-        first_entry_id = entries[0].get('id')
-        updated_entry = test_update_journal_entry(first_entry_id)
-        
-        if updated_entry:
-            # Test 3: Verify update persisted
-            test_verify_update_persisted(user_id, first_entry_id, "Test edit - this content was updated")
-    
-    # Test 4: Create test entry for deletion
-    test_entry = test_create_test_entry()
-    
-    if test_entry:
-        test_entry_id = test_entry.get('id')
-        
-        # Test 5: Delete the test entry
-        delete_result = test_delete_journal_entry(test_entry_id)
-        
-        if delete_result:
-            # Test 6: Verify deletion
-            test_verify_deletion(user_id, test_entry_id)
-    
-    # Test 7: Error cases
-    test_error_cases()
-    
-    print("\n🎯 SUMMARY:")
-    print("=" * 60)
-    print("✅ Journal API endpoints tested comprehensively")
-    print("✅ GET /api/journal/{user_id} - List entries")
-    print("✅ PUT /api/journal/{entry_id} - Update entry")
-    print("✅ DELETE /api/journal/{entry_id} - Delete entry")
-    print("✅ Error cases tested (invalid IDs)")
-    print("✅ Data persistence verified")
-    
-    print("\n📋 REVIEW REQUEST REQUIREMENTS TESTED:")
-    print("✅ GET journal entries with id, content, themes, created_at fields")
-    print("✅ PUT journal entry with content update")
-    print("✅ DELETE journal entry with success response")
-    print("✅ Verify update persistence with GET request")
-    print("✅ Error cases: invalid ID (500/error) and non-existent ID (404)")
+    print("=" * 80)
+    if success:
+        print("🎉 ALL TESTS PASSED - Journal ↔ Timeline Connection feature is working correctly!")
+        print()
+        print("✅ VERIFIED FUNCTIONALITY:")
+        print("   • POST /api/journal accepts and stores phase_id and phase_name")
+        print("   • GET /api/journal/{user_id} returns entries with phase data")
+        print("   • GET /api/journal/{user_id}/by-phase/{phase_id} filters entries by phase")
+        print("   • Phase filtering works correctly with isolation between phases")
+        print("   • Edge cases handled properly (non-existent phases, invalid users)")
+        sys.exit(0)
+    else:
+        print("❌ SOME TESTS FAILED - See details above")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

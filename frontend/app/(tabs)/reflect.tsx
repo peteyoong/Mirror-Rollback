@@ -25,10 +25,12 @@ import JournalEntryItem from '../../components/JournalEntryItem';
 import MirrorReflectionModal from '../../components/MirrorReflectionModal';
 import MirrorChat from '../../components/MirrorChat';
 import MicroMirrorCard from '../../components/MicroMirrorCard';
+import PhaseMirrorCard from '../../components/PhaseMirrorCard';
 import KeyMomentsSection from '../../components/KeyMomentsSection';
 import { createJournalEntry, getJournalEntries, getCombinedTimeline, TimelineItem, updateJournalEntry, deleteJournalEntry } from '../../services/api';
 import api from '../../services/api';
 import { buildMirrorResponse, getJournalResponse, detectThemeFromText } from '../../services/mirrorResponseEngine';
+import { getCurrentPhase, getReversePrompt } from '../../services/timelinePhaseUtils';
 // Task 51: Lunar Decision Journal Components
 import LunarDecisionJournalCard, { LunarJournalStatus } from '../../components/journal/LunarDecisionJournalCard';
 import LunarTimelineView from '../../components/journal/LunarTimelineView';
@@ -224,6 +226,12 @@ export default function JournalScreen() {
   const [microMirrorResponse, setMicroMirrorResponse] = useState<string | null>(null);
   const [microMirrorEntryId, setMicroMirrorEntryId] = useState<string | null>(null);
   const [microMirrorVisible, setMicroMirrorVisible] = useState(false);
+  
+  // Phase Mirror state (Journal ↔ Timeline connection)
+  const [phaseMirrorVisible, setPhaseMirrorVisible] = useState(false);
+  const [savedPhaseId, setSavedPhaseId] = useState<string | null>(null);
+  const [savedPhaseName, setSavedPhaseName] = useState<string | null>(null);
+  const [reversePromptText, setReversePromptText] = useState<string | null>(null);
   
   // Post-save highlight state (for newest entry)
   const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
@@ -610,23 +618,34 @@ export default function JournalScreen() {
 
     // Capture the entry text for Micro-Mirror response generation
     const entryText = newEntry.trim();
+    
+    // Get current timeline phase for auto-tagging
+    const currentPhase = getCurrentPhase();
+    console.log('[JOURNAL_SAVE] Current timeline phase:', currentPhase.id, currentPhase.name);
 
     try {
-      // Include pattern metadata if present
-      const metadata = patternMetadata ? {
-        journal_source: patternMetadata.journal_source,
-        pattern_category: patternMetadata.pattern_category,
-        pattern_tension_pair: patternMetadata.pattern_tension_pair,
-        prompt_text: patternMetadata.prompt_text
-      } : undefined;
+      // Include pattern metadata if present, plus phase data
+      const metadata = {
+        ...(patternMetadata ? {
+          journal_source: patternMetadata.journal_source,
+          pattern_category: patternMetadata.pattern_category,
+          pattern_tension_pair: patternMetadata.pattern_tension_pair,
+          prompt_text: patternMetadata.prompt_text
+        } : {}),
+        // Auto-tag with current timeline phase
+        phase_id: currentPhase.id,
+        phase_name: currentPhase.name,
+      };
       
-      console.log('[JOURNAL_SAVE] Calling createJournalEntry API...');
+      console.log('[JOURNAL_SAVE] Calling createJournalEntry API with phase:', metadata.phase_id);
       const entry = await createJournalEntry(user.id, entryText, metadata);
       console.log('[JOURNAL_SAVE] API SUCCESS - Entry returned:', {
         id: entry.id,
         content: entry.content?.substring(0, 50),
         created_at: entry.created_at,
         themes: entry.themes,
+        phase_id: entry.phase_id,
+        phase_name: entry.phase_name,
       });
 
       // CRITICAL: Add entry to store BEFORE clearing input
@@ -676,6 +695,16 @@ export default function JournalScreen() {
         setMicroMirrorEntryId(entry.id);
         setMicroMirrorVisible(true);
       }
+      
+      // Show Phase Mirror card with timeline phase info
+      setSavedPhaseId(currentPhase.id);
+      setSavedPhaseName(currentPhase.name);
+      setPhaseMirrorVisible(true);
+      
+      // Generate and show reverse prompt based on current phase
+      const reversePrompt = getReversePrompt(currentPhase.id, Date.now());
+      setReversePromptText(reversePrompt);
+      console.log('[JOURNAL_SAVE] Reverse prompt for phase:', currentPhase.id, reversePrompt);
 
       console.log('[JOURNAL_SAVE] === SUBMIT COMPLETE (SUCCESS) ===');
       
@@ -758,6 +787,31 @@ export default function JournalScreen() {
     setMicroMirrorEntryId(null);
   }, []);
 
+  // Phase Mirror handlers
+  const handlePhaseMirrorDismiss = useCallback(() => {
+    setPhaseMirrorVisible(false);
+    setReversePromptText(null);
+  }, []);
+
+  const handleViewTimeline = useCallback(() => {
+    // Navigate to the astrology lens Timeline tab
+    router.push('/(tabs)/?lens=astrology&tab=timeline');
+    setPhaseMirrorVisible(false);
+  }, [router]);
+
+  // Handler for reverse prompt - prefill journal with the prompt
+  const handleReversePrompt = useCallback(() => {
+    if (reversePromptText) {
+      setNewEntry(`Reflection prompt:\n${reversePromptText}\n\nYour reflection:\n`);
+      setPhaseMirrorVisible(false);
+      setReversePromptText(null);
+      // Focus the input
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [reversePromptText]);
+
   // Reset Micro-Mirror when new entry is being typed
   useEffect(() => {
     if (newEntry.trim().length > 0 && microMirrorVisible) {
@@ -765,7 +819,12 @@ export default function JournalScreen() {
       setMicroMirrorResponse(null);
       setMicroMirrorEntryId(null);
     }
-  }, [newEntry, microMirrorVisible]);
+    // Also reset Phase Mirror when typing
+    if (newEntry.trim().length > 0 && phaseMirrorVisible) {
+      setPhaseMirrorVisible(false);
+      setReversePromptText(null);
+    }
+  }, [newEntry, microMirrorVisible, phaseMirrorVisible]);
 
   const handleReflectCurrentEntry = useCallback(() => {
     if (newEntry.trim()) {
@@ -1611,6 +1670,39 @@ export default function JournalScreen() {
               />
             )}
 
+            {/* Phase Mirror Card - Timeline connection (appears after journal save) */}
+            {phaseMirrorVisible && savedPhaseId && savedPhaseName && (
+              <PhaseMirrorCard
+                phaseId={savedPhaseId}
+                phaseName={savedPhaseName}
+                visible={phaseMirrorVisible}
+                onViewTimeline={handleViewTimeline}
+                onDismiss={handlePhaseMirrorDismiss}
+              />
+            )}
+
+            {/* Reverse Prompt Card - Contextual prompt based on current phase */}
+            {reversePromptText && phaseMirrorVisible && (
+              <TouchableOpacity
+                style={[styles.reversePromptCard, { 
+                  backgroundColor: isDark ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.08)',
+                  borderColor: isDark ? 'rgba(139, 92, 246, 0.25)' : 'rgba(139, 92, 246, 0.2)',
+                }]}
+                onPress={handleReversePrompt}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.reversePromptLabel, { color: theme.textTertiary }]}>
+                  Continue reflecting?
+                </Text>
+                <Text style={[styles.reversePromptText, { color: theme.text }]}>
+                  "{reversePromptText}"
+                </Text>
+                <Text style={[styles.reversePromptHint, { color: theme.textTertiary }]}>
+                  tap to start a new entry
+                </Text>
+              </TouchableOpacity>
+            )}
+
             {/* Entries List - NOW BEFORE Key Moments */}
             {isLoading ? (
               <View style={styles.centered}>
@@ -1636,6 +1728,8 @@ export default function JournalScreen() {
                     content={item.content}
                     created_at={item.created_at}
                     themes={item.themes}
+                    phase_id={item.phase_id}
+                    phase_name={item.phase_name}
                     onReflect={(content) => handleReflect(item.id, content)}
                     onEdit={handleEditEntry}
                     onDelete={handleDeleteEntry}
@@ -1851,6 +1945,31 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 120, // Extra padding for PWA banner overlay
+  },
+  // Reverse Prompt Card styles (Journal ↔ Timeline connection)
+  reversePromptCard: {
+    marginTop: 10,
+    marginBottom: 10,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  reversePromptLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  reversePromptText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  reversePromptHint: {
+    fontSize: 11,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   emptyContainer: {
     flex: 1,

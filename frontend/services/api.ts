@@ -289,13 +289,26 @@ export interface PatternJournalMetadata {
   source_domain?: string;
   source_name?: string;
   source_value?: string;
+  // Timeline phase metadata (for Journal ↔ Timeline connection)
+  phase_id?: string;  // e.g., "q1", "q2", "q3", "q4"
+  phase_name?: string;  // e.g., "Recognition", "Confrontation", "The Crossroads", "Integration"
+}
+
+// Journal entry response with phase data
+export interface JournalEntryResponseWithPhase {
+  id: string;
+  content: string;
+  themes: string[];
+  created_at: string;
+  phase_id?: string;
+  phase_name?: string;
 }
 
 export const createJournalEntry = async (
   userId: string, 
   content: string,
   metadata?: PatternJournalMetadata
-) => {
+): Promise<JournalEntryResponseWithPhase> => {
   const response = await apiWithRetry.post('/journal', {
     user_id: userId,
     content,
@@ -304,8 +317,19 @@ export const createJournalEntry = async (
   return response.data;
 };
 
-export const getJournalEntries = async (userId: string) => {
+export const getJournalEntries = async (userId: string): Promise<JournalEntryResponseWithPhase[]> => {
   const response = await apiWithRetry.get(`/journal/${userId}`);
+  return response.data;
+};
+
+export const getJournalEntriesByPhase = async (
+  userId: string, 
+  phaseId: string, 
+  limit: number = 3
+): Promise<JournalEntryResponseWithPhase[]> => {
+  const response = await apiWithRetry.get(`/journal/${userId}/by-phase/${phaseId}`, {
+    params: { limit }
+  });
   return response.data;
 };
 
