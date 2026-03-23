@@ -375,6 +375,9 @@ class JournalPatternAnalysis(BaseModel):
     identity_threshold_met: bool = False
     # V2.6: Identity Echo - when threshold met, shown prominently in UI
     identity_echo: Optional[str] = None  # "You tend to..." sentence for display
+    # V2.7: Angle Selector Layer - transit-based contextual modifier
+    angle_line: Optional[str] = None  # "This may feel harder to ignore than usual."
+    angle_role: Optional[str] = None  # "amplifier" - enforces this is modifier, not source
 
 
 class MirrorInsightCreate(BaseModel):
@@ -4303,6 +4306,166 @@ def get_identity_tendency(phase_distribution: dict, total_entries: int) -> Optio
     return identity_templates.get(dominant_phase)
 
 
+# ============================================
+# ANGLE SELECTOR LAYER V1
+# ============================================
+# Uses transit data to select a contextual modifier that amplifies how the pattern feels TODAY
+# This is NOT astrological interpretation - just deterministic selection based on transit themes
+
+ANGLE_LINES = {
+    # Venus / relationship themes
+    "Venus": [
+        "Connection may feel more important right now.",
+        "Closeness may feel more noticeable than usual.",
+        "What you want from others may feel clearer today.",
+    ],
+    # Saturn / pressure themes
+    "Saturn": [
+        "There may be pressure to be more real or more honest here.",
+        "This may feel harder to ignore than usual.",
+        "Something here may be asking for more structure.",
+    ],
+    # Chiron / healing themes
+    "Chiron": [
+        "This may be touching something older than this moment.",
+        "There may be a deeper sensitivity underneath this.",
+        "Something here may be connected to an older pattern.",
+    ],
+    # Pluto / transformation themes
+    "Pluto": [
+        "Something here may be asking to change more deeply.",
+        "This may feel more intense than it first appears.",
+        "There may be something underneath that's ready to surface.",
+    ],
+    # Jupiter / expansion themes
+    "Jupiter": [
+        "This may be opening something new.",
+        "There may be more possibility here than usual.",
+        "Something here may feel more expansive today.",
+    ],
+    # Mars / action themes
+    "Mars": [
+        "There may be more urgency around this right now.",
+        "This may feel like it's pushing for movement.",
+        "Something here may feel more activating than usual.",
+    ],
+    # Moon / emotional amplification
+    "Moon": [
+        "This may feel more immediate or emotional right now.",
+        "Feelings around this may be closer to the surface today.",
+        "This may feel more personal than usual.",
+    ],
+    # Uranus / disruption themes
+    "Uranus": [
+        "Something unexpected may be moving through this.",
+        "This may feel more unpredictable than usual.",
+        "There may be a need for something different here.",
+    ],
+    # Neptune / uncertainty themes
+    "Neptune": [
+        "This may feel less clear than it usually does.",
+        "Something here may be harder to pin down right now.",
+        "There may be more to this than meets the eye.",
+    ],
+    # Sun / identity themes
+    "Sun": [
+        "This may feel more central to who you are right now.",
+        "Something here may be asking for your attention.",
+        "This may feel more visible than usual.",
+    ],
+    # Mercury / communication themes
+    "Mercury": [
+        "There may be something here that wants to be named.",
+        "Communication around this may feel more charged.",
+        "Something here may be clearer to articulate right now.",
+    ],
+}
+
+# Priority order for selecting which transit to use for angle
+ANGLE_PRIORITY = ["Pluto", "Chiron", "Saturn", "Uranus", "Neptune", "Jupiter", "Mars", "Venus", "Sun", "Mercury", "Moon"]
+
+
+async def generate_angle_line_from_transits(user_id: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Generate an angle_line based on current transits to the user's natal chart.
+    
+    Returns:
+        Tuple of (angle_line, angle_role) or (None, None) if no strong transits
+    """
+    try:
+        from services.pattern_graph import (
+            calculate_current_planetary_positions,
+            calculate_transit_aspects_to_natal
+        )
+        
+        # Get user's chart document
+        chart_doc = await db.charts.find_one({"user_id": user_id})
+        if not chart_doc:
+            logger.debug(f"[AngleSelector] No chart found for user {user_id}")
+            return None, None
+        
+        # Get the astrology data which contains natal chart
+        astrology_data = chart_doc.get("astrology", {})
+        if not astrology_data:
+            logger.debug(f"[AngleSelector] No astrology data for user {user_id}")
+            return None, None
+        
+        # Create natal_chart dict for transit calculation
+        natal_chart = {
+            "planets": astrology_data.get("planets", {}),
+            "angles": astrology_data.get("angles", {})
+        }
+        
+        if not natal_chart.get("planets"):
+            logger.debug(f"[AngleSelector] No planetary data for user {user_id}")
+            return None, None
+        
+        # Get current planetary positions
+        transit_positions = calculate_current_planetary_positions()
+        if not transit_positions:
+            logger.debug("[AngleSelector] Could not calculate current planetary positions")
+            return None, None
+        
+        # Calculate transit aspects to natal chart
+        active_transits = calculate_transit_aspects_to_natal(transit_positions, natal_chart)
+        if not active_transits:
+            logger.debug("[AngleSelector] No active transits found")
+            return None, None
+        
+        # Filter for tight/medium intensity transits only
+        strong_transits = [t for t in active_transits if t.get("intensity") in ["tight", "medium"]]
+        if not strong_transits:
+            logger.debug("[AngleSelector] No strong transits (tight/medium) found")
+            return None, None
+        
+        logger.info(f"[AngleSelector] Found {len(strong_transits)} strong transits for user {user_id}")
+        
+        # Find the highest priority planet with a strong transit
+        for planet in ANGLE_PRIORITY:
+            matching_transits = [t for t in strong_transits if t.get("transiting_planet") == planet]
+            if matching_transits:
+                # Pick a random angle line for this planet (based on day of year for consistency within a day)
+                import random
+                from datetime import datetime
+                day_seed = datetime.now().timetuple().tm_yday + hash(user_id) % 100
+                random.seed(day_seed)
+                
+                angle_lines = ANGLE_LINES.get(planet, [])
+                if angle_lines:
+                    angle_line = random.choice(angle_lines)
+                    logger.info(f"[AngleSelector] Selected angle from {planet}: {angle_line}")
+                    return angle_line, "amplifier"
+        
+        logger.debug("[AngleSelector] No matching angle lines for active transits")
+        return None, None
+        
+    except Exception as e:
+        logger.warning(f"[AngleSelector] Failed to generate angle: {e}")
+        import traceback
+        logger.debug(f"[AngleSelector] Traceback: {traceback.format_exc()}")
+        return None, None
+
+
 @api_router.get("/journal/{user_id}/patterns", response_model=JournalPatternAnalysis)
 async def get_journal_patterns(user_id: str):
     """
@@ -4396,6 +4559,9 @@ async def get_journal_patterns(user_id: str):
         if identity_threshold_met and identity_tendency:
             identity_echo = identity_tendency  # Already uses "You tend to..." language
         
+        # V2.7: Generate angle_line from current transits (Angle Selector Layer)
+        angle_line, angle_role = await generate_angle_line_from_transits(user_id)
+        
         return JournalPatternAnalysis(
             user_id=user_id,
             total_entries=total_entries,
@@ -4407,7 +4573,9 @@ async def get_journal_patterns(user_id: str):
             phase_tensions=phase_tensions,
             identity_tendency=identity_tendency,
             identity_threshold_met=identity_threshold_met,
-            identity_echo=identity_echo
+            identity_echo=identity_echo,
+            angle_line=angle_line,
+            angle_role=angle_role
         )
     except Exception as e:
         logger.error(f"Get journal patterns error: {e}")

@@ -622,6 +622,18 @@ export default function AstrologyTimelineTab({
                           </View>
                         )}
                         
+                        {/* V2.7: Angle Line - Transit-based amplifier */}
+                        {patternData?.angle_line && patternData?.compressed_pattern_lines?.[phase.id] && (
+                          <View style={styles.timelineAngleSection}>
+                            <Text style={[styles.timelineAngleLabel, { color: theme.textTertiary }]}>
+                              Why this may feel stronger right now:
+                            </Text>
+                            <Text style={[styles.timelineAngleText, { color: theme.textSecondary }]}>
+                              {patternData.angle_line}
+                            </Text>
+                          </View>
+                        )}
+                        
                         {/* V2.6 STEP 3: Evidence Entries (SECOND - PROOF) */}
                         <Text style={[styles.evidenceIntro, { color: theme.textTertiary }]}>
                           This is how this phase has been showing up in your life:
@@ -1077,5 +1089,20 @@ const styles = StyleSheet.create({
   timelineIdentityEchoText: {
     fontSize: 12,
     lineHeight: 18,
+  },
+  // V2.7: Angle Line - Transit-based amplifier
+  timelineAngleSection: {
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
+  timelineAngleLabel: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  timelineAngleText: {
+    fontSize: 11,
+    lineHeight: 17,
+    fontStyle: 'italic',
   },
 });

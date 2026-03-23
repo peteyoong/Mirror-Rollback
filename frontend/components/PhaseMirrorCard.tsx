@@ -155,6 +155,9 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
   // Get identity echo when threshold met (V2.6)
   const identityEcho = patternData?.identity_echo || null;
   
+  // Get angle line from transits (V2.7 - Amplifier)
+  const angleLine = patternData?.angle_line || null;
+  
   // Get identity tendency if threshold met (Level 4)
   const identityTendency = patternData?.identity_threshold_met ? patternData.identity_tendency : null;
   
@@ -230,6 +233,18 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
           </Text>
           <Text style={[styles.identityEchoText, { color: theme.text }]}>
             {identityEcho}
+          </Text>
+        </View>
+      )}
+
+      {/* LEVEL 2.7 STEP 3: Angle Line - Transit-based amplifier (V1) */}
+      {angleLine && compressedPatternLine && (
+        <View style={styles.angleLineSection}>
+          <Text style={[styles.angleLineLabel, { color: theme.textTertiary }]}>
+            Why this may feel stronger right now:
+          </Text>
+          <Text style={[styles.angleLineText, { color: theme.textSecondary }]}>
+            {angleLine}
           </Text>
         </View>
       )}
@@ -432,6 +447,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
   },
+  // V2.7: Angle Line - Transit-based amplifier
+  angleLineSection: {
+    marginBottom: 12,
+    paddingLeft: 8,
+  },
+  angleLineLabel: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  angleLineText: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
   // Level 3: Tension Insight
   tensionSection: {
     marginBottom: 12,
@@ -444,10 +474,6 @@ const styles = StyleSheet.create({
   tensionInsight: {
     fontSize: 12,
     lineHeight: 18,
-  },
-  // Emotional quote
-    fontSize: 13,
-    lineHeight: 19,
   },
   // Emotional quote
   emotionalContainer: {
