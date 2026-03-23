@@ -49,6 +49,7 @@ import {
   HDSynthesis,
 } from '../utils/humanDesignSynthesis';
 import { CrossLensPatternBridge } from './CrossLensPatternBridge';
+import { CollapsibleCard, NestedCollapsible, SectionHeader } from './CollapsibleCard';
 import GeneKeysView from './GeneKeysView';
 import CentersView, { CentersViewHandle } from './CentersView';
 import DefinedGatesView from './DefinedGatesView';
@@ -3937,9 +3938,107 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
   const renderCentersCards = () => {
     if (!centersData?.centers) return null;
     
+    // Separate defined and undefined centers
+    const definedCenters = centersData.centers.filter((c: any) => c.defined === true);
+    const undefinedCenters = centersData.centers.filter((c: any) => c.defined !== true);
+    
     return (
       <View style={{ gap: 8 }}>
-        {centersData.centers.map((center: any, idx: number) => renderCenterCard(center, idx))}
+        {/* Defined Centers First */}
+        {definedCenters.length > 0 && (
+          <>
+            <SectionHeader title="Defined Centers" count={definedCenters.length} icon="◉" />
+            {definedCenters.map((center: any, idx: number) => (
+              <NestedCollapsible
+                key={`def-${idx}`}
+                title={center.name || center.center_name}
+                subtitle="Consistent access to this energy"
+                defaultOpen={idx === 0} // First defined center open
+                status="defined"
+                lazyRender={true}
+              >
+                {renderCenterContent(center)}
+              </NestedCollapsible>
+            ))}
+          </>
+        )}
+        
+        {/* Undefined Centers */}
+        {undefinedCenters.length > 0 && (
+          <>
+            <SectionHeader title="Undefined Centers" count={undefinedCenters.length} icon="○" />
+            {undefinedCenters.map((center: any, idx: number) => (
+              <NestedCollapsible
+                key={`undef-${idx}`}
+                title={center.name || center.center_name}
+                subtitle="Amplifies energy from others"
+                defaultOpen={false} // All closed by default
+                status="undefined"
+                lazyRender={true}
+              >
+                {renderCenterContent(center)}
+              </NestedCollapsible>
+            ))}
+          </>
+        )}
+      </View>
+    );
+  };
+  
+  // Extracted center content for lazy rendering
+  const renderCenterContent = (center: any) => {
+    const centerName = center.name || center.center_name;
+    const isDefined = center.defined === true;
+    
+    return (
+      <View style={{ gap: 12 }}>
+        {/* Recognition */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>RECOGNITION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getShortCenterStory(center)}
+          </Text>
+        </View>
+        
+        {/* Tension */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getShortText(center.your_challenge) || getDefaultCenterChallenge(centerName, isDefined)}
+          </Text>
+        </View>
+        
+        {/* Real Life Moments */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>REAL LIFE MOMENTS</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {center.your_genius || getDefaultCenterShowsUp(centerName, isDefined)}
+          </Text>
+        </View>
+        
+        {/* Try This Instead */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {center.practical_experiments?.[0] || getDefaultCenterTip(centerName, isDefined)}
+          </Text>
+        </View>
+        
+        {/* Reflect CTA */}
+        <TouchableOpacity
+          style={[styles.reflectCtaCompact, { borderTopColor: theme.border }]}
+          onPress={() => openReflection(
+            `${isDefined ? 'Defined' : 'Undefined'} ${centerName}`,
+            'center',
+            getCenterReflectionPrompt(centerName, isDefined),
+            'deep_dive',
+            `center_${centerName.toLowerCase().replace(/\s/g, '_')}`,
+            isDefined ? 'defined' : 'undefined'
+          )}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.reflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+        </TouchableOpacity>
       </View>
     );
   };
