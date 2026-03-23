@@ -1385,6 +1385,81 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
 
+  // NEW: Render Core Mechanics using CollapsibleCard with Mirror Language
+  const renderMechanicCollapsibleCard = (
+    key: string, 
+    mirrorCard: MirrorCard | null, 
+    sourceValue: string,
+    defaultOpen: boolean = false
+  ) => {
+    if (!mirrorCard) return null;
+    
+    return (
+      <CollapsibleCard
+        key={key}
+        title={mirrorCard.title}
+        subtitle={mirrorCard.subtitle}
+        defaultOpen={defaultOpen}
+        priority={defaultOpen ? 'high' : 'low'}
+        lazyRender={true}
+      >
+        <View style={{ gap: 16 }}>
+          {/* RECOGNITION - The opening hook */}
+          <Text style={[styles.mirrorRecognition, { color: theme.text }]}>
+            {mirrorCard.recognition}
+          </Text>
+          
+          {/* TENSION - The inner conflict */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+            <Text style={[styles.mirrorSectionText, { color: theme.text }]}>
+              {mirrorCard.tension}
+            </Text>
+          </View>
+          
+          {/* REAL LIFE MOMENTS */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>REAL LIFE MOMENTS</Text>
+            {mirrorCard.realLifeMoments.map((moment, i) => (
+              <View key={`moment-${i}`} style={styles.mirrorBulletRow}>
+                <Text style={[styles.mirrorBullet, { color: theme.textTertiary }]}>•</Text>
+                <Text style={[styles.mirrorBulletText, { color: theme.textSecondary }]}>{moment}</Text>
+              </View>
+            ))}
+          </View>
+          
+          {/* TRUTH SHIFT - The reframe */}
+          <View style={[styles.mirrorTruthShift, { backgroundColor: theme.background, borderLeftColor: theme.accent }]}>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>TRUTH SHIFT</Text>
+            <Text style={[styles.mirrorTruthShiftText, { color: theme.text }]}>
+              {mirrorCard.truthShift}
+            </Text>
+          </View>
+          
+          {/* TRY THIS INSTEAD - The practical tip */}
+          <View style={[styles.mirrorTryThis, { borderColor: theme.border }]}>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+            <Text style={[styles.mirrorTryThisText, { color: theme.text }]}>
+              {mirrorCard.tryThisInstead}
+            </Text>
+          </View>
+
+          {/* Reflect Button */}
+          <InlineReflectButton
+            source={{
+              lens: 'human_design',
+              type: key,
+              name: mirrorCard.title,
+              value: sourceValue,
+              id: `hd_${key}`,
+            }}
+            prompt={mirrorCard.truthShift}
+          />
+        </View>
+      </CollapsibleCard>
+    );
+  };
+
   // Legacy render function for old format (fallback)
   const renderDeepDiveAccordion = (key: string, title: string, subtitle: string, story: MechanicStory | undefined) => {
     const isExpanded = expandedDeepDive === key;
@@ -3096,7 +3171,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     );
   };
   
-  // EXPLORE MODE - Current card/accordion system
+  // EXPLORE MODE - Using CollapsibleCard system for progressive disclosure
   const renderExploreMode = () => {
     if (!data) return null;
     
@@ -3114,55 +3189,69 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         {/* 2. BODY GRAPH */}
         {renderImprovedBodygraph()}
         
-        {/* 3. MECHANICS - Using new Mirror Language cards */}
-        {/* Type Card - Mirror Language */}
-        {typeMirrorCard && renderMirrorCard(
+        {/* 3. CORE MECHANICS - Using CollapsibleCard for progressive disclosure */}
+        <SectionHeader title="Core Mechanics" count={4} icon="◎" />
+        
+        {/* Type Card - Default OPEN (most important) */}
+        {typeMirrorCard && renderMechanicCollapsibleCard(
           'type',
           typeMirrorCard,
-          data.core_mechanics?.type || ''
+          data.core_mechanics?.type || '',
+          true // Default open
         )}
         
-        {/* Authority Card - Mirror Language */}
-        {authorityMirrorCard && renderMirrorCard(
+        {/* Authority Card - Default CLOSED */}
+        {authorityMirrorCard && renderMechanicCollapsibleCard(
           'authority',
           authorityMirrorCard,
-          data.core_mechanics?.authority || ''
+          data.core_mechanics?.authority || '',
+          false
         )}
         
-        {/* Profile Card - Mirror Language */}
-        {profileMirrorCard && renderMirrorCard(
+        {/* Profile Card - Default CLOSED */}
+        {profileMirrorCard && renderMechanicCollapsibleCard(
           'profile',
           profileMirrorCard,
-          data.core_mechanics?.profile || ''
+          data.core_mechanics?.profile || '',
+          false
         )}
         
-        {/* Incarnation Cross Card - Mirror Language */}
-        {crossMirrorCard && renderMirrorCard(
+        {/* Incarnation Cross Card - Default CLOSED */}
+        {crossMirrorCard && renderMechanicCollapsibleCard(
           'cross',
           crossMirrorCard,
-          data.core_mechanics?.incarnation_cross || ''
+          data.core_mechanics?.incarnation_cross || '',
+          false
         )}
         
-        {/* 4. CENTERS SECTION - Parent Accordion */}
-        {centersData && renderParentAccordion(
-          'Centers',
-          `${centersData.centers?.length || 0} centers in your design`,
-          centersAccordionExpanded,
-          () => setCentersAccordionExpanded(!centersAccordionExpanded),
-          renderCentersCards()
+        {/* 4. CENTERS SECTION - Using CollapsibleCard wrapper */}
+        {centersData && (
+          <CollapsibleCard
+            title="Centers"
+            subtitle="Your consistent vs. open energies"
+            badge={`${centersData.centers?.length || 0}`}
+            defaultOpen={false}
+            priority="medium"
+          >
+            {renderCentersCards()}
+          </CollapsibleCard>
         )}
         
-        {/* 5. GATES SECTION - Parent Accordion */}
-        {gatesData && renderParentAccordion(
-          'Gates',
-          `${gatesData.gates?.length || 0} gates activated`,
-          gatesAccordionExpanded,
-          () => setGatesAccordionExpanded(!gatesAccordionExpanded),
-          renderGatesCards()
+        {/* 5. GATES SECTION - Using CollapsibleCard wrapper */}
+        {gatesData && (
+          <CollapsibleCard
+            title="Gates"
+            subtitle="Your activated energies"
+            badge={`${gatesData.gates?.length || 0}`}
+            defaultOpen={false}
+            priority="medium"
+          >
+            {renderGatesCardsCollapsible()}
+          </CollapsibleCard>
         )}
         
-        {/* 6. SEQUENCES SECTION - LAST */}
-        {renderSequencesTabs()}
+        {/* 6. GENE KEYS SEQUENCES SECTION */}
+        {renderGeneKeysCollapsibleSection()}
       </>
     );
   };
@@ -4026,7 +4115,7 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
         
         {/* Reflect CTA */}
         <TouchableOpacity
-          style={[styles.reflectCtaCompact, { borderTopColor: theme.border }]}
+          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
           onPress={() => openReflection(
             `${isDefined ? 'Defined' : 'Undefined'} ${centerName}`,
             'center',
@@ -4037,7 +4126,7 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
           )}
           activeOpacity={0.7}
         >
-          <Text style={[styles.reflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
         </TouchableOpacity>
       </View>
     );
@@ -4205,6 +4294,389 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
     return (
       <View style={{ gap: 8 }}>
         {gatesData.gates.slice(0, 12).map((gate: any, idx: number) => renderGateCard(gate, idx))}
+      </View>
+    );
+  };
+
+  // NEW: Gates with NestedCollapsible, sorted by priority (Personality Sun, Design Sun, Channels, others)
+  const renderGatesCardsCollapsible = () => {
+    if (!gatesData?.gates) return null;
+    
+    // Sort gates by priority
+    const sortedGates = [...gatesData.gates].sort((a: any, b: any) => {
+      const getPriority = (gate: any): number => {
+        const gateNum = gate.gate_number || gate.gate;
+        const personalitySun = data?.personality_sun;
+        const designSun = data?.design_sun;
+        const pSunGate = typeof personalitySun === 'object' ? personalitySun?.gate : personalitySun;
+        const dSunGate = typeof designSun === 'object' ? designSun?.gate : designSun;
+        
+        // Priority: Personality Sun (0), Design Sun (1), Channel gates (2), others (3)
+        if (gateNum === pSunGate) return 0;
+        if (gateNum === dSunGate) return 1;
+        // Check if gate is part of a channel
+        const isChannelGate = data?.channels?.some((ch: any) => {
+          const gatesInChannel = ch.gates?.split('-').map((g: string) => parseInt(g));
+          return gatesInChannel?.includes(gateNum);
+        });
+        if (isChannelGate) return 2;
+        return 3;
+      };
+      return getPriority(a) - getPriority(b);
+    });
+    
+    // Only show top 12 gates
+    const topGates = sortedGates.slice(0, 12);
+    
+    return (
+      <View style={{ gap: 8 }}>
+        {topGates.map((gate: any, idx: number) => {
+          const gateName = gate.name || gate.gate_name || gate.theme || `Gate ${gate.gate_number || gate.gate}`;
+          const gateNum = gate.gate_number || gate.gate;
+          
+          // Determine if this is a priority gate
+          const personalitySun = data?.personality_sun;
+          const designSun = data?.design_sun;
+          const pSunGate = typeof personalitySun === 'object' ? personalitySun?.gate : personalitySun;
+          const dSunGate = typeof designSun === 'object' ? designSun?.gate : designSun;
+          const isPriority = gateNum === pSunGate || gateNum === dSunGate;
+          
+          // Subtitle based on role
+          const getGateRole = (): string => {
+            if (gateNum === pSunGate) return 'Personality Sun - Your conscious expression';
+            if (gateNum === dSunGate) return 'Design Sun - Your unconscious drive';
+            const channel = data?.channels?.find((ch: any) => {
+              const gatesInChannel = ch.gates?.split('-').map((g: string) => parseInt(g));
+              return gatesInChannel?.includes(gateNum);
+            });
+            if (channel) return `Part of ${channel.name || 'Channel'}`;
+            return 'Activated energy';
+          };
+          
+          return (
+            <NestedCollapsible
+              key={`gate-${gateNum}`}
+              title={`Gate ${gateNum}: ${gateName}`}
+              subtitle={getGateRole()}
+              defaultOpen={idx < 3} // Top 3 open by default
+              status={isPriority ? 'active' : 'defined'}
+              lazyRender={true}
+            >
+              {renderGateContentMirrorLanguage(gate)}
+            </NestedCollapsible>
+          );
+        })}
+      </View>
+    );
+  };
+
+  // Gate content with Mirror Language labels
+  const renderGateContentMirrorLanguage = (gate: any) => {
+    const gateName = gate.name || gate.gate_name || gate.theme || `Gate ${gate.gate_number || gate.gate}`;
+    const gateNum = gate.gate_number || gate.gate;
+    
+    // Recognition - The opening hook
+    const getGateRecognition = (): string => {
+      if (gate.what_this_means) {
+        const text = gate.what_this_means;
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
+      }
+      const fallbacks = [
+        `You keep coming back to ${gateName.toLowerCase()}. It's part of your wiring.`,
+        `There's something about ${gateName.toLowerCase()} that runs through you.`,
+        `${gateName} is built into you—not something you chose.`
+      ];
+      return fallbacks[gateNum % fallbacks.length];
+    };
+
+    // Tension - The challenge
+    const getGateTension = (): string => {
+      if (gate.your_challenge) {
+        const text = gate.your_challenge;
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
+      }
+      if (gate.shadow) {
+        const patterns = [
+          `The trap is ${gate.shadow.toLowerCase()}—it shows up when you're stressed or unaware.`,
+          `Watch for ${gate.shadow.toLowerCase()}. That's the signal something's off.`,
+          `When pressure builds, this can become ${gate.shadow.toLowerCase()}.`
+        ];
+        return patterns[gateNum % patterns.length];
+      }
+      return "The challenge is staying conscious with this energy.";
+    };
+
+    // Real Life Moments
+    const getGateRealLife = (): string => {
+      if (gate.your_genius) {
+        const text = gate.your_genius;
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
+      }
+      if (gate.gift) {
+        const patterns = [
+          `People probably notice your ${gate.gift.toLowerCase()} more than you do.`,
+          `In real life, you tend toward ${gate.gift.toLowerCase()}. It's your default.`,
+          `You do ${gate.gift.toLowerCase()} without thinking—it's just how you operate.`
+        ];
+        return patterns[gateNum % patterns.length];
+      }
+      return 'In real life, this shows up in how you handle certain situations.';
+    };
+
+    // Try This Instead
+    const getGateTryThis = (): string => {
+      if (gate.practical_experiments?.[0]) return gate.practical_experiments[0];
+      if (gate.shadow && gate.gift) {
+        const tips = [
+          `Catch ${gate.shadow.toLowerCase()} early. Then ask: what would ${gate.gift.toLowerCase()} do here?`,
+          `Try: name it when ${gate.shadow.toLowerCase()} shows up. That creates choice.`,
+          `When ${gate.shadow.toLowerCase()} appears, pause. ${gate.gift} is the alternative.`
+        ];
+        return tips[gateNum % tips.length];
+      }
+      return "Notice how this plays out in your daily life.";
+    };
+
+    return (
+      <View style={{ gap: 12 }}>
+        {/* Recognition */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>RECOGNITION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getGateRecognition()}
+          </Text>
+        </View>
+        
+        {/* Tension */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getGateTension()}
+          </Text>
+        </View>
+        
+        {/* Real Life Moments */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>REAL LIFE MOMENTS</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getGateRealLife()}
+          </Text>
+        </View>
+        
+        {/* Try This Instead */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getGateTryThis()}
+          </Text>
+        </View>
+        
+        {/* Reflect CTA */}
+        <TouchableOpacity
+          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+          onPress={() => openReflection(
+            `Gate ${gateNum}: ${gateName}`,
+            'gate',
+            getGateReflectionPrompt(gateNum, gateName),
+            'deep_dive',
+            `gate_${gateNum}`,
+            gateName
+          )}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // NEW: Gene Keys Sequences as Collapsible Section with NestedCollapsibles
+  const renderGeneKeysCollapsibleSection = () => {
+    const hasSequences = activationSequence || venusSequence || pearlSequence;
+    if (!hasSequences) return null;
+    
+    return (
+      <CollapsibleCard
+        title="Gene Keys"
+        subtitle="Your deeper purpose sequences"
+        badge="3 arcs"
+        defaultOpen={false}
+        priority="medium"
+      >
+        <View style={{ gap: 16 }}>
+          {/* Purpose Arc - Default OPEN */}
+          {activationSequence && (
+            <View>
+              <SectionHeader title="Purpose Arc" icon="◎" count={activationSequence.spheres?.length || 0} />
+              {(activationSequence.spheres || []).map((sphere: any, idx: number) => (
+                <NestedCollapsible
+                  key={`purpose-${idx}`}
+                  title={sphere.sphere_name}
+                  subtitle={sphere.gene_key ? `GK ${sphere.gene_key}` : 'Core sequence'}
+                  defaultOpen={idx === 0} // First sphere open
+                  status="active"
+                  lazyRender={true}
+                >
+                  {renderSphereContentMirrorLanguage(sphere)}
+                </NestedCollapsible>
+              ))}
+            </View>
+          )}
+          
+          {/* Love Arc - Default CLOSED */}
+          {venusSequence && (
+            <View>
+              <SectionHeader title="Love Arc" icon="♡" count={venusSequence.spheres?.length || 0} />
+              {(venusSequence.spheres || []).map((sphere: any, idx: number) => (
+                <NestedCollapsible
+                  key={`love-${idx}`}
+                  title={sphere.sphere_name}
+                  subtitle={sphere.gene_key ? `GK ${sphere.gene_key}` : 'Relationship sequence'}
+                  defaultOpen={false}
+                  status="defined"
+                  lazyRender={true}
+                >
+                  {renderSphereContentMirrorLanguage(sphere)}
+                </NestedCollapsible>
+              ))}
+            </View>
+          )}
+          
+          {/* Prosperity Arc - Default CLOSED */}
+          {pearlSequence && (
+            <View>
+              <SectionHeader title="Prosperity Arc" icon="◇" count={pearlSequence.spheres?.length || 0} />
+              {(pearlSequence.spheres || []).map((sphere: any, idx: number) => (
+                <NestedCollapsible
+                  key={`prosperity-${idx}`}
+                  title={sphere.sphere_name}
+                  subtitle={sphere.gene_key ? `GK ${sphere.gene_key}` : 'Vocation sequence'}
+                  defaultOpen={false}
+                  status="defined"
+                  lazyRender={true}
+                >
+                  {renderSphereContentMirrorLanguage(sphere)}
+                </NestedCollapsible>
+              ))}
+            </View>
+          )}
+        </View>
+      </CollapsibleCard>
+    );
+  };
+
+  // Sphere content with Mirror Language labels
+  const renderSphereContentMirrorLanguage = (sphere: any) => {
+    // Recognition
+    const getSphereRecognition = (): string => {
+      if (sphere.what_this_means) {
+        const text = sphere.what_this_means;
+        const firstSentence = text.split('.')[0] + '.';
+        return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
+      }
+      const fallbacks: Record<string, string> = {
+        "Life's Work": "This is where your core purpose tends to show up most clearly.",
+        "Evolution": "This shapes how you grow and transform over time.",
+        "Radiance": "This influences how others experience your presence.",
+        "Purpose": "This points to what you're really here to do.",
+        "Attraction": "This shapes who and what you draw into your life.",
+        "IQ": "This colors how you process and understand things.",
+        "EQ": "This influences how you navigate emotions and connection.",
+        "SQ": "This touches your sense of meaning and spirit.",
+        "Core": "This sits at the heart of your relational patterns.",
+        "Brand": "This shapes how others see and remember you.",
+        "Culture": "This influences the environments you create.",
+        "Vocation": "This points to work that feels genuinely meaningful.",
+        "Pearl": "This is about your lasting contribution."
+      };
+      return fallbacks[sphere.sphere_name] || "This energy shapes a key part of who you are.";
+    };
+
+    // Tension
+    const getSphereTension = (): string => {
+      if (!sphere.shadow) return "The trap is going unconscious with this energy.";
+      const patterns = [
+        `The trap is ${sphere.shadow.toLowerCase()}—especially when stressed.`,
+        `When you're off-center, ${sphere.shadow.toLowerCase()} tends to take over.`,
+        `Watch for ${sphere.shadow.toLowerCase()}. That's usually the sign something's off.`
+      ];
+      return patterns[Math.floor((sphere.gene_key || 1) % patterns.length)];
+    };
+
+    // Real Life Moments
+    const getSphereRealLife = (): string => {
+      if (sphere.gift) {
+        return `You tend toward ${sphere.gift.toLowerCase()}—people probably notice this about you.`;
+      }
+      return 'You have your own way of expressing this energy.';
+    };
+
+    // Try This Instead
+    const getSphereTryThis = (): string => {
+      if (sphere.practical_tips?.[0]) return sphere.practical_tips[0];
+      if (sphere.gift && sphere.shadow) {
+        const tips = [
+          `When you notice ${sphere.shadow.toLowerCase()}, pause. What would ${sphere.gift} look like here?`,
+          `Try: catch yourself in ${sphere.shadow.toLowerCase()} mode, then ask what ${sphere.gift} would do.`,
+          `Practice: name it when ${sphere.shadow.toLowerCase()} shows up. Just that creates space.`
+        ];
+        return tips[Math.floor((sphere.gene_key || 1) % tips.length)];
+      }
+      return "Notice when this energy feels off—that's useful information.";
+    };
+
+    return (
+      <View style={{ gap: 12 }}>
+        {/* Recognition */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>RECOGNITION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getSphereRecognition()}
+          </Text>
+        </View>
+        
+        {/* Tension */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getSphereTension()}
+          </Text>
+        </View>
+        
+        {/* Real Life Moments */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>REAL LIFE MOMENTS</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getSphereRealLife()}
+          </Text>
+        </View>
+        
+        {/* Try This Instead */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
+            {getSphereTryThis()}
+          </Text>
+        </View>
+        
+        {/* Reflect CTA */}
+        <TouchableOpacity
+          style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+          onPress={() => openReflection(
+            sphere.sphere_name,
+            'sphere',
+            getSphereReflectionPrompt(sphere.sphere_name, sphere.gene_key || 0),
+            'deep_dive',
+            `sphere_${sphere.gene_key}`,
+            `GK ${sphere.gene_key}`
+          )}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+        </TouchableOpacity>
       </View>
     );
   };
