@@ -1589,6 +1589,38 @@ const getOrdinalSuffix = (n: number): string => {
 // CARD GROUPS
 // ============================================
 
+// ============================================
+// SECTION HEADERS AND CARD GROUPINGS
+// ============================================
+
+// Organizational sections that group related card groups
+const SECTIONS = [
+  {
+    id: 'foundation',
+    title: 'The Basics',
+    subtitle: 'Who you are at your core',
+    groups: ['core']
+  },
+  {
+    id: 'expression',
+    title: 'How You Connect',
+    subtitle: 'Your mind, heart, and drive',
+    groups: ['mind', 'relating']
+  },
+  {
+    id: 'growth',
+    title: 'Your Growth Edge',
+    subtitle: 'Direction, sensitivity, and development',
+    groups: ['direction', 'depth']
+  },
+  {
+    id: 'dynamics',
+    title: 'Chart Dynamics',
+    subtitle: 'How the pieces interact',
+    groups: ['structure']
+  }
+];
+
 const CARD_GROUPS = [
   { id: 'core', label: 'CORE SELF', cards: ['sun', 'moon', 'ascendant'] },
   { id: 'mind', label: 'MIND & COMMUNICATION', cards: ['mercury'] },
@@ -1763,15 +1795,36 @@ Over time, it can also become a place of unusual depth, care, and understanding.
         </View>
       )}
 
-      {CARD_GROUPS.map(group => {
-        // Skip structure group if no pressure pattern
-        if (group.id === 'structure' && !pressureCard) return null;
+      {SECTIONS.map(section => {
+        // Get all groups for this section
+        const sectionGroups = CARD_GROUPS.filter(g => section.groups.includes(g.id));
+        
+        // Check if section has any content to show
+        const hasContent = sectionGroups.some(group => {
+          if (group.id === 'structure' && !pressureCard) return false;
+          return group.cards.some(cardId => cardMap.has(cardId));
+        });
+        
+        if (!hasContent) return null;
         
         return (
-          <View key={group.id} style={styles.cardGroup}>
-            <Text style={[styles.groupLabel, { color: theme.textTertiary }]}>{group.label}</Text>
+          <View key={section.id} style={styles.sectionContainer}>
+            {/* Section Header */}
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{section.title}</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.textTertiary }]}>{section.subtitle}</Text>
+            </View>
             
-            {group.cards.map(cardId => {
+            {/* Render groups within this section */}
+            {sectionGroups.map(group => {
+              // Skip structure group if no pressure pattern
+              if (group.id === 'structure' && !pressureCard) return null;
+              
+              return (
+                <View key={group.id} style={styles.cardGroup}>
+                  <Text style={[styles.groupLabel, { color: theme.textTertiary }]}>{group.label}</Text>
+                  
+                  {group.cards.map(cardId => {
               const card = cardMap.get(cardId);
               if (!card) return null;
               
@@ -2318,6 +2371,9 @@ Over time, it can also become a place of unusual depth, care, and understanding.
           </View>
         );
       })}
+          </View>
+        );
+      })}
     </View>
   );
 };
@@ -2375,6 +2431,30 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(139, 92, 246, 0.2)',
+  },
+  
+  // Section styles
+  sectionContainer: {
+    marginBottom: 24,
+    gap: 12,
+  },
+  sectionHeader: {
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    opacity: 0.7,
   },
   
   cardGroup: {
