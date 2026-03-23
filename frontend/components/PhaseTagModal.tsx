@@ -1,14 +1,12 @@
 /**
- * PhaseTagModal Component
+ * PhaseTagModal Component - V2 Pattern Detection Layer
  * 
- * Lightweight modal/drawer that appears when a user taps on a phase pill
- * in their journal entries. Provides context about the phase and why
- * the entry was tagged there.
+ * Lightweight modal that appears when a user taps on a phase pill
+ * in their journal entries.
  * 
- * Design philosophy:
- * - Informative but not preachy
- * - Explains the tag truthfully (based on date)
- * - Provides next action (see related entries)
+ * V2 Language Updates:
+ * - Uses "Entries like this often appear when..." (observational)
+ * - NOT "This entry was created during..." (declarative)
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -155,7 +153,7 @@ const PhaseTagModal: React.FC<PhaseTagModalProps> = ({
           </Text>
         </View>
 
-        {/* Why Tagged */}
+        {/* Why Tagged - V2 observational language */}
         <Text style={[styles.whyTagged, { color: theme.text }]}>
           {explanation.whyTagged}
         </Text>
@@ -203,7 +201,7 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 34, // Safe area
+    paddingBottom: 34,
     maxHeight: SCREEN_HEIGHT * 0.6,
   },
   handleContainer: {

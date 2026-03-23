@@ -333,6 +333,24 @@ export const getJournalEntriesByPhase = async (
   return response.data;
 };
 
+// Pattern Detection Layer V2 - Journal pattern analysis
+export interface JournalPatternAnalysis {
+  user_id: string;
+  total_entries: number;
+  phase_distribution: Record<string, number>;
+  phase_distribution_14d: Record<string, number>;
+  repeating_phases: string[];
+  phase_patterns: Record<string, string[]>;
+  phase_tensions: Record<string, string>;
+  identity_tendency: string | null;
+  identity_threshold_met: boolean;
+}
+
+export const getJournalPatterns = async (userId: string): Promise<JournalPatternAnalysis> => {
+  const response = await apiWithRetry.get(`/journal/${userId}/patterns`);
+  return response.data;
+};
+
 export const updateJournalEntry = async (entryId: string, content: string) => {
   const response = await apiWithRetry.put(`/journal/${entryId}`, { content });
   return response.data;

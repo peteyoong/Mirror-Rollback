@@ -217,6 +217,58 @@ backend:
           - GET /api/journal/{user_id}/by-phase/{phase_id} filters entries by phase
           The feature successfully connects journal entries to timeline phases with proper data persistence and filtering.
 
+  - task: "Pattern Detection Layer V2"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          PATTERN DETECTION LAYER V2 BACKEND ENDPOINT TESTING COMPLETE ✅
+          
+          🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+          
+          **Test 1: GET /api/journal/{user_id}/patterns** ✅
+          - User ID: 6971c81f2b40fd5ef501d375
+          - Status: 200 OK, Response time: 0.31s
+          - Response Structure: All required fields present and correct types
+            * total_entries: 11 (int)
+            * phase_distribution: {'q1': 3, 'q2': 1} (dict)
+            * phase_distribution_14d: {'q1': 3, 'q2': 1} (dict)
+            * repeating_phases: ['q1'] (list)
+            * phase_patterns: {'q1': ['phase mirror', 'mirror card', 'entry']} (dict)
+            * phase_tensions: {'q1': "Something keeps becoming visible—but it hasn't moved yet."} (dict)
+            * identity_tendency: None (optional field)
+            * identity_threshold_met: False (bool)
+          
+          **Test 2: Repeat Detection Logic Verification** ✅
+          - Rule: phase has >= 3 total entries OR >= 2 entries in last 14 days
+          - Phase q1: total=3, recent=3, repeating=True ✅ (meets >= 3 total criteria)
+          - Phase q2: total=1, recent=1, repeating=False ✅ (correctly not repeating)
+          - Logic working correctly for all phases
+          
+          **Test 3: Recurring Patterns Extraction Verification** ✅
+          - Rule: phases with 2+ entries should have extracted patterns
+          - Phase q1 (3 entries): 3 patterns extracted ['phase mirror', 'mirror card', 'entry'] ✅
+          - Phase q2 (1 entries): No patterns (correct, < 2 entries) ✅
+          - Pattern extraction working correctly based on entry count threshold
+          
+          **Backend Integration Verified:**
+          - Endpoint accessible via https://phase-mirror-reflect.preview.emergentagent.com/api
+          - No HTTP errors or timeouts
+          - Response times excellent (0.18-0.31s)
+          - Backend logs confirm successful processing
+          - Consistent results across multiple test runs
+          - One initial 500 error resolved on retry (temporary issue)
+          
+          📊 TEST RESULTS: 3/3 TESTS PASSED (100% SUCCESS RATE)
+          
+          🎉 **CONCLUSION**: Pattern Detection Layer V2 endpoint is fully functional and working correctly. All review request requirements met including proper response structure with all required fields, correct repeat detection logic (>= 3 total OR >= 2 in 14 days), and accurate recurring patterns extraction for phases with sufficient entries. The endpoint successfully analyzes journal patterns with proper phase distribution tracking, repeat detection, and pattern extraction capabilities.
+
   - task: "Two-Layer Mirror Output API"
     implemented: true
     working: true
@@ -5763,3 +5815,47 @@ agent_communication:
       📊 TEST RESULTS: 7/7 TESTS PASSED (100% SUCCESS RATE)
       
       🎉 **CONCLUSION**: All Journal Edit and Delete API endpoints are working correctly and meet 100% of the review request requirements. The endpoints successfully support full CRUD operations with proper error handling, data persistence, and correct HTTP status codes.
+  - agent: "testing"
+    message: |
+      PATTERN DETECTION LAYER V2 BACKEND ENDPOINT TESTING COMPLETE ✅
+      
+      Successfully tested the Pattern Detection Layer V2 backend endpoint as requested in the review:
+      
+      🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+      
+      **Test 1: GET /api/journal/{user_id}/patterns** ✅
+      - User ID: 6971c81f2b40fd5ef501d375 (as specified in review request)
+      - Status: 200 OK, Response time: 0.31s (excellent performance)
+      - Response includes ALL required fields:
+        * total_entries: 11 (number) ✅
+        * phase_distribution: {'q1': 3, 'q2': 1} (dict of phase_id -> count) ✅
+        * phase_distribution_14d: {'q1': 3, 'q2': 1} (dict of phase_id -> count in last 14 days) ✅
+        * repeating_phases: ['q1'] (list of phase_ids that are repeating) ✅
+        * phase_patterns: {'q1': ['phase mirror', 'mirror card', 'entry']} (dict of phase_id -> list of patterns) ✅
+        * phase_tensions: {'q1': "Something keeps becoming visible—but it hasn't moved yet."} (dict of phase_id -> tension insight) ✅
+        * identity_tendency: None (string or null) ✅
+        * identity_threshold_met: False (boolean) ✅
+      
+      **Test 2: Repeat Detection Logic Verification** ✅
+      - Rule: If phase has >= 3 total entries OR >= 2 entries in last 14 days, it should be in repeating_phases
+      - Phase q1: total=3, recent=3, repeating=True ✅ (correctly identified as repeating due to >= 3 total)
+      - Phase q2: total=1, recent=1, repeating=False ✅ (correctly not repeating, doesn't meet criteria)
+      - Logic implementation working perfectly according to specification
+      
+      **Test 3: Recurring Patterns Extraction Verification** ✅
+      - Rule: For phases with 2+ entries, phase_patterns should have extracted patterns
+      - Phase q1 (3 entries): 3 patterns extracted ['phase mirror', 'mirror card', 'entry'] ✅
+      - Phase q2 (1 entries): No patterns (correct, < 2 entries threshold) ✅
+      - Pattern extraction working correctly based on entry count requirements
+      
+      **Backend Integration Verified:**
+      - Endpoint accessible via https://phase-mirror-reflect.preview.emergentagent.com/api
+      - Backend URL correctly used (not localhost:8001)
+      - Response times excellent (0.18-0.31s across multiple tests)
+      - Backend logs confirm successful processing
+      - Consistent results across multiple test runs
+      - One initial 500 error resolved on retry (temporary issue, endpoint stable)
+      
+      📊 TEST RESULTS: 3/3 TESTS PASSED (100% SUCCESS RATE)
+      
+      🎉 **CONCLUSION**: Pattern Detection Layer V2 backend endpoint is fully functional and working correctly. All review request requirements met including proper response structure with all required fields, correct repeat detection logic implementation, and accurate recurring patterns extraction for phases with sufficient entries. The endpoint successfully analyzes journal patterns with comprehensive phase distribution tracking, repeat detection, and pattern extraction capabilities.

@@ -572,7 +572,7 @@ export default function AstrologyTimelineTab({
                   ))}
                 </View>
 
-                {/* Journal Evidence Section - Your real-life moments in this phase */}
+                {/* Journal Evidence Section - V2: "YOUR WORDS FROM THIS PHASE" */}
                 {user?.id && (
                   <View style={styles.phaseSection}>
                     <Text style={[styles.evidenceSectionTitle, { color: Colors.accent }]}>
@@ -583,7 +583,7 @@ export default function AstrologyTimelineTab({
                     ) : phaseEvidence[phase.id] && phaseEvidence[phase.id].length > 0 ? (
                       <View style={styles.evidenceContainer}>
                         <Text style={[styles.evidenceIntro, { color: theme.textTertiary }]}>
-                          What you wrote here may show how this phase was actually lived.
+                          This is how this phase has been showing up in your life.
                         </Text>
                         {phaseEvidence[phase.id].map((entry) => (
                           <View 
@@ -601,6 +601,9 @@ export default function AstrologyTimelineTab({
                             </Text>
                           </View>
                         ))}
+                        <Text style={[styles.evidenceContextLine, { color: theme.textTertiary }]}>
+                          These entries were written during this phase.
+                        </Text>
                       </View>
                     ) : (
                       <Text style={[styles.noEvidenceText, { color: theme.textTertiary }]}>
@@ -986,6 +989,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 6,
     textAlign: 'right',
+  },
+  evidenceContextLine: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 10,
+    textAlign: 'center',
   },
   noEvidenceText: {
     fontSize: 12,

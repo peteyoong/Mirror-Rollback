@@ -1719,10 +1719,10 @@ export default function JournalScreen() {
 
             {/* Note: Reverse Prompt is now integrated into PhaseMirrorCard's "Write deeper" CTA */}
 
-            {/* Mini Connection Line - Part 7: subtle line explaining the Journal ↔ Timeline connection */}
+            {/* Mini Connection Line - V2: Subtle line explaining the Journal ↔ Timeline connection */}
             {journalEntries.length > 0 && !phaseMirrorVisible && (
               <Text style={[styles.connectionLine, { color: theme.textTertiary }]}>
-                Your entries can help reveal how a larger cycle is unfolding.
+                What you write here may later become patterns you can see.
               </Text>
             )}
 

@@ -349,6 +349,28 @@ class JournalEntryResponse(BaseModel):
     # Timeline phase data (for Journal ↔ Timeline connection)
     phase_id: Optional[str] = None
     phase_name: Optional[str] = None
+    # Pattern Detection Layer V2 fields
+    phase_entry_count: Optional[int] = None  # Total entries in this phase
+    phase_entry_count_14d: Optional[int] = None  # Entries in this phase in last 14 days
+    is_repeating_phase: Optional[bool] = None  # True if phase has repeated
+
+
+class JournalPatternAnalysis(BaseModel):
+    """Pattern Detection Layer V2 - Analysis for a user's journal patterns"""
+    user_id: str
+    total_entries: int
+    # Phase distribution
+    phase_distribution: Dict[str, int]  # {"q1": 5, "q2": 3, ...}
+    phase_distribution_14d: Dict[str, int]  # Last 14 days
+    # Repeat detection
+    repeating_phases: List[str]  # List of phase_ids that are repeating
+    # Recurring themes (Level 2)
+    phase_patterns: Dict[str, List[str]]  # {"q1": ["pattern1", "pattern2"], ...}
+    # Tension insights (Level 3)
+    phase_tensions: Dict[str, str]  # {"q1": "Something is becoming clear...", ...}
+    # Identity pattern (Level 4) - only if enough data
+    identity_tendency: Optional[str] = None
+    identity_threshold_met: bool = False
 
 
 class MirrorInsightCreate(BaseModel):
@@ -3897,6 +3919,219 @@ async def get_journal_entries_by_phase(user_id: str, phase_id: str, limit: int =
         ]
     except Exception as e:
         logger.error(f"Get journal by phase error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================
+# PATTERN DETECTION LAYER V2 - Helper Functions
+# ============================================
+
+# Stop words for pattern extraction
+STOP_WORDS = {
+    'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", 
+    "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 
+    'him', 'his', 'himself', 'she', "she's", 'her', 'hers', 'herself', 'it', "it's", 
+    'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 
+    'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is', 'are', 
+    'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 
+    'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 
+    'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 
+    'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 
+    'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 
+    'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'each', 
+    'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 
+    'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 
+    'don', "don't", 'should', "should've", 'now', 'd', 'll', 'm', 'o', 're', 've', 
+    'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', 
+    "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't", 
+    'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', 
+    "shan't", 'shouldn', "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', 
+    "won't", 'wouldn', "wouldn't", 'like', 'really', 'think', 'know', 'feel', 
+    'want', 'need', 'get', 'got', 'going', 'thing', 'things', 'way', 'something',
+    'maybe', 'also', 'still', 'even', 'much', 'one', 'two', 'could', 'would',
+    'today', 'yesterday', 'tomorrow', 'time', 'day', 'week', 'month', 'year'
+}
+
+def extract_recurring_patterns(entries: List[dict], max_patterns: int = 3) -> List[str]:
+    """
+    Extract recurring themes/patterns from journal entries.
+    Uses simple frequency-based extraction with bigrams.
+    """
+    from collections import Counter
+    import re
+    
+    # Combine all entry content
+    all_text = " ".join([e.get("content", "") for e in entries])
+    
+    # Tokenize and clean
+    words = re.findall(r'\b[a-z]{3,}\b', all_text.lower())
+    
+    # Filter stop words
+    meaningful_words = [w for w in words if w not in STOP_WORDS]
+    
+    # Count word frequency
+    word_counts = Counter(meaningful_words)
+    
+    # Extract bigrams (two-word phrases)
+    bigrams = []
+    for i in range(len(meaningful_words) - 1):
+        bigram = f"{meaningful_words[i]} {meaningful_words[i+1]}"
+        bigrams.append(bigram)
+    
+    bigram_counts = Counter(bigrams)
+    
+    # Get top patterns (prefer bigrams that appear multiple times)
+    patterns = []
+    
+    # First add meaningful bigrams
+    for bigram, count in bigram_counts.most_common(10):
+        if count >= 2 and len(patterns) < max_patterns:
+            patterns.append(bigram)
+    
+    # Then add top single words if needed
+    for word, count in word_counts.most_common(10):
+        if count >= 2 and word not in " ".join(patterns) and len(patterns) < max_patterns:
+            patterns.append(word)
+    
+    return patterns[:max_patterns]
+
+
+def get_phase_tension_insight(phase_id: str, patterns: List[str]) -> str:
+    """
+    Generate tension insight based on phase and patterns.
+    Language is observational, not deterministic.
+    """
+    tension_templates = {
+        'q1': "Something keeps becoming visible—but it hasn't moved yet.",
+        'q2': "Something keeps surfacing that doesn't want to be managed anymore.",
+        'q3': "You're circling a choice that hasn't fully landed.",
+        'q4': "This is starting to settle into something more stable.",
+    }
+    
+    return tension_templates.get(phase_id, "A pattern may be emerging here.")
+
+
+def get_identity_tendency(phase_distribution: dict, total_entries: int) -> Optional[str]:
+    """
+    Generate soft identity tendency observation if enough data.
+    Returns None if threshold not met.
+    CRITICAL: Uses probabilistic language ("you tend to", never "you are")
+    """
+    # Threshold: minimum 5 entries
+    if total_entries < 5:
+        return None
+    
+    # Find dominant phase
+    if not phase_distribution:
+        return None
+    
+    sorted_phases = sorted(phase_distribution.items(), key=lambda x: x[1], reverse=True)
+    dominant_phase, dominant_count = sorted_phases[0]
+    
+    # Only generate if there's a clear dominant pattern (40%+ of entries)
+    if dominant_count / total_entries < 0.4:
+        return None
+    
+    # Identity tendency templates - probabilistic language
+    identity_templates = {
+        'q1': "You tend to stay in awareness before things shift. Noticing often comes before acting.",
+        'q2': "You often meet the same tension more than once before it moves. What's tolerable tends to stay tolerable—until it isn't.",
+        'q3': "You spend time weighing paths before committing. Choice points seem to hold your attention.",
+        'q4': "You're able to stabilize changes once they land. Integration comes more naturally than initiation.",
+    }
+    
+    return identity_templates.get(dominant_phase)
+
+
+@api_router.get("/journal/{user_id}/patterns", response_model=JournalPatternAnalysis)
+async def get_journal_patterns(user_id: str):
+    """
+    Pattern Detection Layer V2 - Analyze journal patterns for a user.
+    Returns repeat detection, recurring themes, tension insights, and identity patterns.
+    """
+    try:
+        # Get all journal entries for the user
+        all_entries = await db.journal.find(
+            {"user_id": user_id}
+        ).sort("created_at", -1).to_list(500)
+        
+        total_entries = len(all_entries)
+        
+        # Calculate phase distribution
+        phase_distribution = {}
+        phase_distribution_14d = {}
+        phase_entries = {}  # Store entries by phase for pattern extraction
+        
+        now = datetime.now(timezone.utc)
+        fourteen_days_ago = now - timedelta(days=14)
+        
+        for entry in all_entries:
+            phase_id = entry.get("phase_id")
+            if phase_id:
+                # Total count
+                phase_distribution[phase_id] = phase_distribution.get(phase_id, 0) + 1
+                
+                # Group entries by phase
+                if phase_id not in phase_entries:
+                    phase_entries[phase_id] = []
+                phase_entries[phase_id].append(entry)
+                
+                # 14-day count - handle timezone-aware/naive comparison
+                created_at = entry.get("created_at")
+                if created_at:
+                    try:
+                        # Handle string dates
+                        if isinstance(created_at, str):
+                            created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                        # Make sure we're comparing timezone-aware datetimes
+                        if created_at.tzinfo is None:
+                            # If naive, assume UTC
+                            created_at = created_at.replace(tzinfo=timezone.utc)
+                        if created_at >= fourteen_days_ago:
+                            phase_distribution_14d[phase_id] = phase_distribution_14d.get(phase_id, 0) + 1
+                    except Exception as e:
+                        # Skip this entry if date parsing fails
+                        logger.warning(f"Failed to parse date for entry: {e}")
+        
+        # Determine repeating phases
+        # Rule: is_repeating_phase = true if phase_entry_count >= 3 OR phase_entry_count_14d >= 2
+        repeating_phases = []
+        for phase_id in phase_distribution:
+            total_in_phase = phase_distribution.get(phase_id, 0)
+            recent_in_phase = phase_distribution_14d.get(phase_id, 0)
+            if total_in_phase >= 3 or recent_in_phase >= 2:
+                repeating_phases.append(phase_id)
+        
+        # Extract recurring patterns for each phase (Level 2)
+        phase_patterns = {}
+        for phase_id, entries in phase_entries.items():
+            if len(entries) >= 2:
+                patterns = extract_recurring_patterns(entries)
+                if patterns:
+                    phase_patterns[phase_id] = patterns
+        
+        # Generate tension insights for each phase (Level 3)
+        phase_tensions = {}
+        for phase_id in phase_patterns:
+            phase_tensions[phase_id] = get_phase_tension_insight(phase_id, phase_patterns.get(phase_id, []))
+        
+        # Generate identity tendency if threshold met (Level 4)
+        identity_tendency = get_identity_tendency(phase_distribution, total_entries)
+        identity_threshold_met = identity_tendency is not None
+        
+        return JournalPatternAnalysis(
+            user_id=user_id,
+            total_entries=total_entries,
+            phase_distribution=phase_distribution,
+            phase_distribution_14d=phase_distribution_14d,
+            repeating_phases=repeating_phases,
+            phase_patterns=phase_patterns,
+            phase_tensions=phase_tensions,
+            identity_tendency=identity_tendency,
+            identity_threshold_met=identity_threshold_met
+        )
+    except Exception as e:
+        logger.error(f"Get journal patterns error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

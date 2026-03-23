@@ -1,25 +1,26 @@
 /**
- * PhaseMirrorCard Component - UPGRADED
+ * PhaseMirrorCard Component - V2 Pattern Detection Layer
  * 
- * Appears after saving a journal entry, showing which timeline phase
- * the entry belongs to. Creates an emotionally meaningful bridge 
- * between Journal and Timeline.
+ * Appears after saving a journal entry.
+ * Mirror reflects, it does NOT declare.
+ * Uses observational language throughout.
  * 
- * Design philosophy:
+ * Design:
  * - Feels like a reward, not an alert
  * - Human-readable, not overly astrological
+ * - Shows repeat detection ("You've been here before")
  * - Reflects back what just happened
- * - Shows why it matters
  * - Provides clear next steps
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Animated,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/colors';
@@ -27,22 +28,21 @@ import {
   getPhaseMirrorContent, 
   getPhaseIcon,
   getReversePrompt,
+  getPhaseTensionInsight,
 } from '../services/timelinePhaseUtils';
+import { getJournalPatterns, JournalPatternAnalysis } from '../services/api';
+import { useAppStore } from '../store';
 
-// ============================================
-// TIMING CONSTANTS
-// ============================================
+// Timing
 const FADE_IN_DURATION = 350;
-const FADE_IN_DELAY = 300; // Appears after MicroMirrorCard
+const FADE_IN_DELAY = 300;
 
-// ============================================
-// PHASE COLORS
-// ============================================
+// Phase colors
 const PHASE_COLORS: { [key: string]: string } = {
-  q1: 'rgba(76, 175, 80, 0.12)',   // Green tint
-  q2: 'rgba(255, 152, 0, 0.12)',   // Orange tint
-  q3: 'rgba(139, 92, 246, 0.12)',  // Purple tint
-  q4: 'rgba(33, 150, 243, 0.12)',  // Blue tint
+  q1: 'rgba(76, 175, 80, 0.12)',
+  q2: 'rgba(255, 152, 0, 0.12)',
+  q3: 'rgba(139, 92, 246, 0.12)',
+  q4: 'rgba(33, 150, 243, 0.12)',
 };
 
 const PHASE_BORDER_COLORS: { [key: string]: string } = {
@@ -79,6 +79,28 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
   const { theme, isDark } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(10)).current;
+  
+  // Pattern detection state
+  const [patternData, setPatternData] = useState<JournalPatternAnalysis | null>(null);
+  const [loadingPatterns, setLoadingPatterns] = useState(false);
+  const user = useAppStore(state => state.user);
+
+  // Fetch pattern data
+  useEffect(() => {
+    if (visible && user?.id && !patternData) {
+      setLoadingPatterns(true);
+      getJournalPatterns(user.id)
+        .then(data => {
+          setPatternData(data);
+        })
+        .catch(err => {
+          console.error('[PhaseMirrorCard] Failed to fetch patterns:', err);
+        })
+        .finally(() => {
+          setLoadingPatterns(false);
+        });
+    }
+  }, [visible, user?.id, patternData]);
 
   useEffect(() => {
     if (visible) {
@@ -117,7 +139,20 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
   const borderColor = PHASE_BORDER_COLORS[phaseId] || 'rgba(139, 92, 246, 0.25)';
   const accentColor = PHASE_ACCENT_COLORS[phaseId] || Colors.accent;
   
-  // Get a reverse prompt for the "Write deeper" CTA
+  // Check if this is a repeating phase
+  const isRepeatingPhase = patternData?.repeating_phases?.includes(phaseId) || false;
+  const phaseEntryCount = patternData?.phase_distribution?.[phaseId] || 0;
+  
+  // Get recurring patterns for this phase (Level 2)
+  const recurringPatterns = patternData?.phase_patterns?.[phaseId] || [];
+  
+  // Get tension insight for this phase (Level 3)
+  const tensionInsight = patternData?.phase_tensions?.[phaseId] || '';
+  
+  // Get identity tendency if threshold met (Level 4)
+  const identityTendency = patternData?.identity_threshold_met ? patternData.identity_tendency : null;
+  
+  // Reverse prompt for "Write deeper"
   const deeperPrompt = getReversePrompt(phaseId, Date.now());
 
   return (
@@ -132,7 +167,7 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
         },
       ]}
     >
-      {/* Phase Landing Header */}
+      {/* Phase Header */}
       <View style={styles.headerRow}>
         <View style={[styles.phaseTag, { backgroundColor: borderColor }]}>
           <Text style={styles.phaseIcon}>{icon}</Text>
@@ -143,22 +178,79 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
         </Text>
       </View>
 
-      {/* What Just Happened */}
-      <Text style={[styles.landingLine, { color: theme.text }]}>
-        This entry lands in <Text style={{ color: accentColor, fontWeight: '600' }}>{content.phaseName}</Text>.
+      {/* "Sounds like" line - observational, not declarative */}
+      <Text style={[styles.soundsLikeLine, { color: theme.text }]}>
+        {content.soundsLikeLine}
       </Text>
 
-      {/* Why It Matters */}
-      <Text style={[styles.whyMatters, { color: theme.textSecondary }]}>
-        {content.whyItMatters}
+      {/* Larger context line */}
+      <Text style={[styles.largerContextLine, { color: theme.textSecondary }]}>
+        {content.largerContextLine}
       </Text>
 
-      {/* Emotional Line */}
+      {/* LEVEL 1: Repeat Detection */}
+      {isRepeatingPhase && (
+        <View style={[styles.repeatSection, { borderColor: accentColor + '30' }]}>
+          <Text style={[styles.repeatLine, { color: accentColor }]}>
+            {content.repeatLine}
+          </Text>
+          <Text style={[styles.repeatSubline, { color: theme.textSecondary }]}>
+            This phase has shown up more than once.
+          </Text>
+        </View>
+      )}
+
+      {/* LEVEL 2: Recurring Patterns */}
+      {recurringPatterns.length > 0 && (
+        <View style={styles.patternsSection}>
+          <Text style={[styles.patternsSectionTitle, { color: theme.textTertiary }]}>
+            A similar thread keeps appearing:
+          </Text>
+          {recurringPatterns.map((pattern, i) => (
+            <Text key={i} style={[styles.patternItem, { color: theme.text }]}>
+              • {pattern}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      {/* LEVEL 3: Tension Insight */}
+      {tensionInsight && recurringPatterns.length > 0 && (
+        <View style={styles.tensionSection}>
+          <Text style={[styles.tensionLabel, { color: theme.textTertiary }]}>
+            What this might reflect:
+          </Text>
+          <Text style={[styles.tensionInsight, { color: theme.text }]}>
+            {tensionInsight}
+          </Text>
+        </View>
+      )}
+
+      {/* LEVEL 4: Identity Tendency */}
+      {identityTendency && (
+        <View style={[styles.identitySection, { backgroundColor: accentColor + '08', borderColor: accentColor + '20' }]}>
+          <Text style={[styles.identityLabel, { color: accentColor }]}>
+            A pattern in how you move:
+          </Text>
+          <Text style={[styles.identityInsight, { color: theme.text }]}>
+            {identityTendency}
+          </Text>
+        </View>
+      )}
+
+      {/* Emotional Quote Line */}
       <View style={[styles.emotionalContainer, { borderLeftColor: accentColor }]}>
         <Text style={[styles.emotionalLine, { color: theme.text }]}>
           "{content.emotionalLine}"
         </Text>
       </View>
+
+      {/* CTA Prefix */}
+      {isRepeatingPhase && (
+        <Text style={[styles.ctaPrefix, { color: theme.textTertiary }]}>
+          {content.ctaPrefix}
+        </Text>
+      )}
 
       {/* CTAs */}
       <View style={styles.ctaRow}>
@@ -182,6 +274,11 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Loading indicator for patterns */}
+      {loadingPatterns && (
+        <ActivityIndicator size="small" color={theme.textTertiary} style={{ marginTop: 8 }} />
+      )}
 
       {/* Dismiss */}
       <TouchableOpacity
@@ -230,25 +327,94 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontStyle: 'italic',
   },
-  landingLine: {
+  soundsLikeLine: {
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  whyMatters: {
+  largerContextLine: {
     fontSize: 13,
     lineHeight: 19,
     marginBottom: 12,
   },
+  // Level 1: Repeat Detection
+  repeatSection: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  repeatLine: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  repeatSubline: {
+    fontSize: 12,
+  },
+  // Level 2: Recurring Patterns
+  patternsSection: {
+    marginBottom: 12,
+  },
+  patternsSectionTitle: {
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  patternItem: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginLeft: 4,
+    marginBottom: 2,
+  },
+  // Level 3: Tension Insight
+  tensionSection: {
+    marginBottom: 12,
+  },
+  tensionLabel: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  tensionInsight: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  // Level 4: Identity Tendency
+  identitySection: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  identityLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  identityInsight: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  // Emotional quote
   emotionalContainer: {
     borderLeftWidth: 2,
     paddingLeft: 12,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   emotionalLine: {
     fontSize: 13,
     lineHeight: 19,
     fontStyle: 'italic',
+  },
+  // CTA area
+  ctaPrefix: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   ctaRow: {
     flexDirection: 'row',
