@@ -330,6 +330,22 @@ export default function LunarDecisionWheel({
               {entryCount}
             </SvgText>
           )}
+          
+          {/* "You are here" indicator for today's gate */}
+          {isTodayGate && (
+            <>
+              {/* Outer glow ring */}
+              <Circle
+                cx={labelPos.x}
+                cy={labelPos.y - 6}
+                r={18}
+                fill="none"
+                stroke={LUNAR_COLORS.moonlight}
+                strokeWidth={1}
+                strokeOpacity={0.3}
+              />
+            </>
+          )}
         </G>
       );
     }

@@ -142,6 +142,83 @@ const getCyclePhase = (day: number): string => {
   return 'Cycle completion approaching';
 };
 
+// ============================================
+// REFLECTOR DECISION JOURNEY LAYER
+// ============================================
+// Transforms lunar wheel into a lived decision experience
+// Mirror Language: calm, reflective, no pressure
+
+interface JourneyPhase {
+  label: string;
+  hook: string;
+  guidance: string;
+}
+
+const getJourneyPhase = (day: number): JourneyPhase => {
+  // Days 1-9: Taking it in
+  if (day <= 9) {
+    const hooks = [
+      "Right now, you're noticing what feels right—and what doesn't stay that way.",
+      "Right now, you're absorbing. Nothing needs to be clear yet.",
+      "Right now, you're sensing the edges of this decision. Let them be fuzzy.",
+    ];
+    return {
+      label: "You're still taking this in.",
+      hook: hooks[Math.floor(day / 3) % hooks.length],
+      guidance: "Nothing is settled yet. That's how it's supposed to be.",
+    };
+  }
+  
+  // Days 10-20: Seeing different sides
+  if (day <= 20) {
+    const hooks = [
+      "Right now, you're seeing this from angles you hadn't considered before.",
+      "Right now, what felt certain yesterday might feel different today. That's information.",
+      "Right now, you're noticing what changes—and what keeps returning.",
+    ];
+    return {
+      label: "You're seeing different sides.",
+      hook: hooks[Math.floor((day - 10) / 4) % hooks.length],
+      guidance: "What changes matters. What stays consistent matters more.",
+    };
+  }
+  
+  // Days 21-28: Clarity forming
+  if (day <= 28) {
+    const hooks = [
+      "Right now, something is becoming clearer. You don't have to name it yet.",
+      "Right now, you're approaching the end of the cycle. What has stayed true?",
+      "Right now, the pieces are settling. Not forcing—settling.",
+    ];
+    return {
+      label: "Clarity is forming.",
+      hook: hooks[Math.floor((day - 21) / 3) % hooks.length],
+      guidance: "Notice what stays consistent across different days.",
+    };
+  }
+  
+  // Day 29+: Cycle completion
+  return {
+    label: "You've seen this across a full cycle.",
+    hook: "Right now, you have the full picture. Not because you figured it out—because you lived through it.",
+    guidance: "Whatever stayed true across this cycle is genuinely yours.",
+  };
+};
+
+// Daily journal prompt for Reflectors
+const getReflectorJournalPrompt = (day: number, topic: string): string => {
+  if (day <= 9) {
+    return `What felt true today about "${topic}"—and did it stay true?`;
+  }
+  if (day <= 20) {
+    return `How does "${topic}" look different today compared to earlier in the cycle?`;
+  }
+  if (day <= 28) {
+    return `What about "${topic}" has stayed consistent? What keeps changing?`;
+  }
+  return `Looking back at the full cycle—what do you know now about "${topic}"?`;
+};
+
 export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
   const { theme, isDark } = useTheme();
@@ -1131,6 +1208,73 @@ export default function JournalScreen() {
               )}
 
               {/* ═══════════════════════════════════════════════════════════════
+                  DECISION JOURNEY CARD - PRIMARY POSITION
+                  Shows current position in the cycle with Mirror Language
+                  ═══════════════════════════════════════════════════════════════ */}
+              {(() => {
+                const journeyPhase = getJourneyPhase(resolvedCycleState.cycle_day);
+                const cycleDay = Math.round(resolvedCycleState.cycle_day);
+                
+                return (
+                  <View style={[styles.journeyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    {/* Day Position */}
+                    <View style={styles.journeyDayRow}>
+                      <Text style={styles.journeyDayIcon}>🌙</Text>
+                      <Text style={[styles.journeyDayText, { color: theme.text }]}>
+                        Day {cycleDay} of 29
+                      </Text>
+                    </View>
+                    
+                    {/* Phase Label - The core statement */}
+                    <Text style={[styles.journeyPhaseLabel, { color: theme.text }]}>
+                      {journeyPhase.label}
+                    </Text>
+                    
+                    {/* Daily Hook - Mirror Language */}
+                    <Text style={[styles.journeyHook, { color: theme.textSecondary }]}>
+                      {journeyPhase.hook}
+                    </Text>
+                    
+                    {/* Decision Anchor */}
+                    {activeDecision ? (
+                      <View style={[styles.journeyDecisionAnchor, { borderTopColor: theme.border }]}>
+                        <Text style={[styles.journeyDecisionLabel, { color: theme.textTertiary }]}>
+                          YOU ARE CURRENTLY CONSIDERING
+                        </Text>
+                        <Text style={[styles.journeyDecisionTopic, { color: theme.text }]}>
+                          "{activeDecision.topic}"
+                        </Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity 
+                        style={[styles.journeyStartCta, { borderColor: theme.border }]}
+                        onPress={() => {
+                          // Scroll to the decision creation section
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.journeyStartCtaText, { color: theme.textSecondary }]}>
+                          Start a decision to track across your cycle →
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                    
+                    {/* Cycle Completion Message */}
+                    {cycleDay >= 29 && (
+                      <View style={[styles.journeyCompletionBanner, { backgroundColor: 'rgba(192, 200, 212, 0.08)' }]}>
+                        <Text style={[styles.journeyCompletionText, { color: theme.text }]}>
+                          You've seen this across a full cycle.
+                        </Text>
+                        <Text style={[styles.journeyCompletionSub, { color: theme.textTertiary }]}>
+                          Whatever stayed true is genuinely yours.
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                );
+              })()}
+
+              {/* ═══════════════════════════════════════════════════════════════
                   SECTION 1: DECISION SELECTOR (Task 68: Improved pill row)
                   ═══════════════════════════════════════════════════════════════ */}
               {lunarStatus?.active_considerations && lunarStatus.active_considerations.length > 1 && (
@@ -1296,7 +1440,10 @@ export default function JournalScreen() {
                     style={[styles.reflectionTextInput, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
                     value={newEntry}
                     onChangeText={setNewEntry}
-                    placeholder="What did you notice today about this decision?"
+                    placeholder={getReflectorJournalPrompt(
+                      Math.round(resolvedCycleState.cycle_day),
+                      activeDecision.topic
+                    )}
                     placeholderTextColor={theme.textTertiary}
                     multiline
                     numberOfLines={5}
@@ -2893,5 +3040,83 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'monospace',
     lineHeight: 16,
+  },
+  // ============================================
+  // DECISION JOURNEY CARD STYLES
+  // ============================================
+  journeyCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 16,
+  },
+  journeyDayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  journeyDayIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  journeyDayText: {
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  journeyPhaseLabel: {
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 28,
+    marginBottom: 12,
+  },
+  journeyHook: {
+    fontSize: 15,
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+  journeyDecisionAnchor: {
+    paddingTop: 16,
+    borderTopWidth: 1,
+    marginTop: 4,
+  },
+  journeyDecisionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  journeyDecisionTopic: {
+    fontSize: 16,
+    fontWeight: '500',
+    lineHeight: 24,
+    fontStyle: 'italic',
+  },
+  journeyStartCta: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  journeyStartCtaText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  journeyCompletionBanner: {
+    borderRadius: 10,
+    padding: 16,
+    marginTop: 16,
+  },
+  journeyCompletionText: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  journeyCompletionSub: {
+    fontSize: 13,
+    lineHeight: 20,
   },
 });
