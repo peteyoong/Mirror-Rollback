@@ -72,103 +72,81 @@ const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
 const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
 
 // ============================================
-// OVERVIEW DATA (Reflective Translations)
+// OVERVIEW DATA (Mirror Language - Recognition, Not Teaching)
 // ============================================
 
-// Energy pattern descriptions by Type (reflective, not technical)
-const TYPE_ENERGY_PATTERNS: { [key: string]: string } = {
-  'Generator': 'Your energy is designed to respond. When something genuinely excites you, your body lights up with sustainable energy to pursue it. Without that inner response, energy becomes forced and depleting.',
-  'Manifesting Generator': 'Your energy moves fast and multi-directionally. You\'re designed to respond to what excites you, then act quickly—sometimes skipping steps. Your vitality comes from engaging with multiple interests that truly call to you.',
-  'Projector': 'Your energy is focused and penetrating, designed to guide and see into others. Rather than initiating or generating, you thrive when recognized and invited into the spaces where your insight is valued.',
-  'Manifestor': 'Your energy is designed to initiate and impact. You carry a powerful force that starts things and sets change in motion. Your flow comes from acting on your own impulses while keeping others informed.',
-  'Reflector': 'Your energy mirrors the world around you. You\'re designed to sample and reflect the health of your environment, taking in experiences over time before gaining clarity. Your wisdom comes from this unique openness.',
+// YOUR CORE PATTERN - Type as lived behavior (2-3 lines max)
+const TYPE_CORE_PATTERNS: { [key: string]: string } = {
+  'Generator': 'You know something is right when your body lights up.\nWithout that pull, commitment drains you.',
+  'Manifesting Generator': 'You move quickly when something feels right—before everything is fully clear.\nBy the time you explain, others are already reacting.',
+  'Projector': 'You see what others miss.\nBut uninvited, that clarity lands nowhere.',
+  'Manifestor': 'You start things before others see the need.\nThe resistance you meet isn\'t always about you.',
+  'Reflector': 'You feel the room before anyone speaks.\nWhat seems like your mood is often theirs.',
 };
 
-// Strategy translations (everyday language)
+// HOW YOU DECIDE - Authority as lived experience (2-3 lines max)
+const AUTHORITY_LIVED: { [key: string]: string } = {
+  'Emotional': 'Clarity doesn\'t come immediately.\nWhat feels right now can shift later—something steadier forms over time.',
+  'Sacral': 'Your body responds before your mind catches up.\nThat first pull—toward or away—is the signal.',
+  'Splenic': 'It hits once and doesn\'t repeat.\nIf you waited to be sure, you already missed it.',
+  'Ego': 'If your heart isn\'t in it, the energy won\'t last.\nWhat you genuinely want sustains itself.',
+  'Self-Projected': 'You find clarity by hearing yourself speak.\nThe right words reveal what you actually think.',
+  'Mental': 'You process out loud, with the right people.\nThe answer comes through the conversation—not before.',
+  'Lunar': 'You can\'t rush knowing.\nThe full picture arrives in its own time.',
+  'None': 'Your clarity shifts with environment.\nDifferent places surface different truths.',
+};
+
+// YOUR LIFE THEME - Incarnation Cross as recurring pattern (2-3 lines)
+const CROSS_PATTERN_TEMPLATES: { [key: string]: string } = {
+  'right_angle': 'The same theme keeps surfacing:\nstepping into something larger—then wondering if you\'re ready.',
+  'left_angle': 'You find yourself drawn into other people\'s trajectories.\nThe question is what you take on vs. what belongs to them.',
+  'juxtaposition': 'Your path has a particular shape.\nThe resistance comes when you try to make it fit someone else\'s map.',
+};
+
+// Strategy translations - removed instructional tone
 const STRATEGY_TRANSLATIONS: { [key: string]: string } = {
-  'Wait to Respond': 'Wait for something in life to spark your inner "yes" before committing your energy. Your body knows before your mind—trust that gut response.',
-  'Wait for the Invitation': 'Wait to be recognized and invited before sharing your gifts. Unsolicited guidance often misses the mark; invited guidance transforms.',
-  'Inform Before Acting': 'Let others know what you\'re about to do before you do it. This isn\'t asking permission—it\'s reducing resistance and keeping peace.',
-  'Wait a Lunar Cycle': 'Give yourself a full moon cycle before making major decisions. Your clarity unfolds over time as you experience different energetic environments.',
+  'Wait to Respond': 'Something has to land first—then your body knows.',
+  'Wait for the Invitation': 'Recognition opens the door. Without it, you\'re pushing.',
+  'Inform Before Acting': 'Others react better when they see you coming.',
+  'Wait a Lunar Cycle': 'The full picture takes time to arrive.',
 };
 
-// Authority translations (decision-making in everyday terms)
-const AUTHORITY_TRANSLATIONS: { [key: string]: { short: string; expanded: string } } = {
-  'Emotional': {
-    short: 'Clarity comes through emotional waves',
-    expanded: 'Your decisions gain clarity over time as your emotions move through highs and lows. Never decide in the peak of excitement or the depth of frustration—wait for calm.'
-  },
-  'Sacral': {
-    short: 'Clarity comes from gut responses',
-    expanded: 'Your body responds with sounds or sensations: an "uh-huh" of yes or an "unh-uh" of no. Trust these visceral reactions—they know before your mind does.'
-  },
-  'Splenic': {
-    short: 'Clarity comes in the moment',
-    expanded: 'Your intuition speaks once, quietly, in the present moment. Learn to recognize that subtle knowing—if you hesitate, you may miss it.'
-  },
-  'Ego': {
-    short: 'Clarity comes from what you truly want',
-    expanded: 'Your decisions are clear when you ask: "Do I really want this? Is my heart in it?" If there\'s no genuine desire, the energy won\'t sustain.'
-  },
-  'Self-Projected': {
-    short: 'Clarity comes through hearing yourself speak',
-    expanded: 'Talk through your decisions with others. Not for their advice—but to hear your own voice and recognize what\'s true for you in the speaking.'
-  },
-  'Mental': {
-    short: 'Clarity comes from environment and sounding boards',
-    expanded: 'Discuss your decisions in different environments with trusted people. You\'re not looking for answers from them—you\'re finding clarity through the process.'
-  },
-  'Lunar': {
-    short: 'Clarity comes over a full moon cycle',
-    expanded: 'Major decisions need about 28 days. Experience your question through different energetic environments before settling into knowing.'
-  },
-  'None': {
-    short: 'Clarity comes through environment',
-    expanded: 'Your decisions are influenced by place and people around you. Take time in different settings and notice where you feel most clear.'
-  },
+// HOW THIS SHOWS UP - behavioral patterns as real scenarios (bullet format)
+const TYPE_BEHAVIORAL_PATTERNS: { [key: string]: string[] } = {
+  'Generator': [
+    'You commit to things that don\'t light you up—and wonder why you\'re exhausted.',
+    'Your body responds before you have reasons.',
+    'When it\'s right, the energy sustains itself.',
+  ],
+  'Manifesting Generator': [
+    'You start things quickly—then need space once others respond.',
+    'Skipping steps feels natural. Going back to fill them in doesn\'t.',
+    'Multiple directions at once isn\'t scattered—it\'s how you work.',
+  ],
+  'Projector': [
+    'You offer insight and it lands flat—no one asked.',
+    'When recognized, your perception sharpens.',
+    'You see the inefficiency before anyone explains it.',
+  ],
+  'Manifestor': [
+    'You act and others react—sometimes badly.',
+    'The urge to start comes before the explanation.',
+    'Informing feels unnecessary until you don\'t.',
+  ],
+  'Reflector': [
+    'Your mood shifts depending on who\'s around.',
+    'What seemed clear yesterday feels uncertain today.',
+    'The full picture takes longer than others expect.',
+  ],
 };
 
-// Where this helps - by Type
-const TYPE_MANIFESTATIONS: { [key: string]: { decisions: string; work: string; relationships: string; energy: string } } = {
-  'Generator': {
-    decisions: 'Wait for options to appear, then notice your gut response',
-    work: 'Most fulfilled when engaged in work that genuinely excites you',
-    relationships: 'Thrive with partners who understand your need to respond rather than be pushed',
-    energy: 'Sustainable when following satisfaction; draining when forcing through frustration',
-  },
-  'Manifesting Generator': {
-    decisions: 'Respond to what excites, then trust your quick moves',
-    work: 'Need variety and permission to change direction when mastery is reached',
-    relationships: 'Valued for your energy and speed; need space to pivot',
-    energy: 'High and multi-directional when engaged; scattered when bored',
-  },
-  'Projector': {
-    decisions: 'Wait to be asked; your insights land better when invited',
-    work: 'Excel in guiding, managing, and seeing others deeply',
-    relationships: 'Need recognition and appreciation for your unique perspective',
-    energy: 'Powerful in focused bursts; need rest and solitude to recharge',
-  },
-  'Manifestor': {
-    decisions: 'Act on your impulses; inform others before moving',
-    work: 'Best at initiating, starting projects, and catalyzing change',
-    relationships: 'Need independence; partners who don\'t try to control you',
-    energy: 'Comes in powerful surges; requires rest between initiations',
-  },
-  'Reflector': {
-    decisions: 'Take a full lunar cycle; let clarity emerge over time',
-    work: 'Natural evaluators of community and environment health',
-    relationships: 'Deeply affected by who you\'re with; choose environments carefully',
-    energy: 'Varies with the moon and surroundings; honor your fluctuations',
-  },
-};
-
-// Reflection prompts by Type
+// Reflection prompts by Type - Mirror language (recognition, not coaching)
 const TYPE_REFLECTIONS: { [key: string]: string } = {
-  'Generator': 'Where are you saying yes out of obligation rather than genuine excitement—and where might your true response be waiting?',
-  'Manifesting Generator': 'Where are you forcing yourself to finish what no longer calls you—and where might a new response be pulling your energy?',
-  'Projector': 'Where are you offering guidance that wasn\'t invited—and where might recognition be waiting if you simply wait?',
-  'Manifestor': 'Where are you holding back your impulse to avoid conflict—and where might informing others create more peace than hiding?',
-  'Reflector': 'Where are you rushing decisions that need more time—and where might the full cycle bring surprising clarity?',
+  'Generator': 'Where have you been saying yes when your body was saying no?',
+  'Manifesting Generator': 'Where are you forcing yourself to finish when the energy has already moved on?',
+  'Projector': 'Where are you offering something no one asked for?',
+  'Manifestor': 'Where are you holding back when the impulse is already there?',
+  'Reflector': 'What decision are you rushing that actually needs more time?',
 };
 
 // ============================================
@@ -1962,6 +1940,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   };
 
   // Helper: Render gate content with cross-link
+  // MIRROR LANGUAGE: Recognition → Tension → How This Shows Up
+  // NO advice, NO "try this", NO system explanation
   const renderGateContentWithCrossLink = (gate: any, crossLink: string | null) => {
     // DEFENSIVE GUARD: Validate gate
     if (!gate) {
@@ -1979,49 +1959,60 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const safeShadow = typeof gate.shadow === 'string' ? gate.shadow.toLowerCase() : '';
     const safeGift = typeof gate.gift === 'string' ? gate.gift.toLowerCase() : '';
     
-    // Recognition
+    // Recognition - lived pattern (1-2 lines)
     const getGateRecognition = (): string => {
       if (gate.what_this_means && typeof gate.what_this_means === 'string') {
         const text = gate.what_this_means;
         const firstSentence = text.split('.')[0] + '.';
         return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
       }
-      return `You keep coming back to this energy. It's part of your wiring—not something you chose.`;
+      return 'This energy keeps showing up in your life—it\'s wired into you.';
     };
 
-    // Tension
+    // How This Shows Up - real scenarios (2-3 bullets)
+    const getGateShowsUp = (): string[] => {
+      const scenarios: string[] = [];
+      
+      if (safeGift) {
+        scenarios.push(`People may notice ${safeGift} in you—even when you\'re not trying.`);
+      }
+      if (safeShadow) {
+        scenarios.push(`When stressed, ${safeShadow} tends to surface.`);
+      }
+      if (gate.practical_experiments?.[0]) {
+        // Reframe from advice to observation
+        const exp = gate.practical_experiments[0];
+        scenarios.push(exp.replace(/^(Try|Notice|Consider|You should)/i, 'You may find yourself'));
+      }
+      
+      // Fallback scenarios
+      if (scenarios.length === 0) {
+        scenarios.push('Others pick up on this energy before you explain it.');
+        scenarios.push('It surfaces in how you respond under pressure.');
+      }
+      
+      return scenarios.slice(0, 3);
+    };
+
+    // Tension - the pattern's edge (1-2 lines)
     const getGateTension = (): string => {
       if (gate.your_challenge && typeof gate.your_challenge === 'string') {
         const text = gate.your_challenge;
         const firstSentence = text.split('.')[0] + '.';
         return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
       }
-      if (safeShadow) {
-        return `The trap is ${safeShadow}—it shows up when you're stressed or unaware.`;
-      }
-      return "The challenge is staying conscious with this energy.";
-    };
-
-    // Real Life
-    const getGateRealLife = (): string => {
-      if (safeGift) {
-        return `You tend toward ${safeGift}—people probably notice this about you.`;
-      }
-      return 'In real life, this shows up in how you handle certain situations.';
-    };
-
-    // Try This Instead
-    const getGateTryThis = (): string => {
-      if (gate.practical_experiments?.[0]) return gate.practical_experiments[0];
       if (safeShadow && safeGift) {
-        return `Catch ${safeShadow} early. Then ask: what would ${safeGift} do here?`;
+        return `The space between ${safeShadow} and ${safeGift} is where you live.`;
       }
-      return "Notice how this plays out in your daily life.";
+      if (safeShadow) {
+        return `${safeShadow.charAt(0).toUpperCase() + safeShadow.slice(1)} shows up when awareness drops.`;
+      }
+      return 'The tension lives in how this plays out—not whether it does.';
     };
 
     return (
       <View style={{ gap: 12 }}>
-        {/* I Ching Trigram Visual - NEW */}
+        {/* I Ching Trigram Visual */}
         {trigramInfo && (
           <View style={[styles.trigramContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.trigramSymbols}>
@@ -2051,36 +2042,30 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </View>
         
+        {/* How This Shows Up - bullets */}
+        <View>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
+          {getGateShowsUp().map((scenario, idx) => (
+            <Text key={idx} style={[styles.mirrorSectionText, { color: theme.textSecondary, marginTop: idx > 0 ? 4 : 0 }]}>
+              • {scenario}
+            </Text>
+          ))}
+        </View>
+        
         {/* Tension */}
         <View>
-          <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+          <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>THE TENSION</Text>
           <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
             {getGateTension()}
           </Text>
         </View>
         
-        {/* Real Life Moments */}
-        <View>
-          <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>REAL LIFE MOMENTS</Text>
-          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
-            {getGateRealLife()}
-          </Text>
-        </View>
-        
-        {/* Cross-Link (before Try This Instead) */}
+        {/* Cross-Link if available */}
         {crossLink && (
           <Text style={[styles.crossLinkText, { color: theme.textTertiary }]}>
             {crossLink}
           </Text>
         )}
-        
-        {/* Try This Instead */}
-        <View>
-          <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
-          <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
-            {getGateTryThis()}
-          </Text>
-        </View>
         
         {/* Reflect CTA */}
         <TouchableOpacity
@@ -3115,13 +3100,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>PERSONALITY VS DESIGN</Text>
               <Text style={[styles.hdGlancePVDExplainer, { color: theme.textTertiary }]}>
-                Your chart has two layers: what you consciously think about yourself (Personality/black) and what your body does without your awareness (Design/red).
+                Your chart has two layers:{'\n'}what you know about yourself,{'\n'}and what your body does before you notice.
               </Text>
               
               {/* Personality - Conscious */}
               <View style={styles.hdGlancePVDSection}>
                 <Text style={[styles.hdGlancePVDLabel, { color: theme.text }]}>
-                  {personalityVsDesignContent.personalityLabel}
+                  THE CONSCIOUS YOU
                 </Text>
                 <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.textSecondary }]}>
                   {personalityVsDesignContent.personality}
@@ -3131,7 +3116,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               {/* Design - Unconscious */}
               <View style={[styles.hdGlancePVDSection, { marginTop: 12 }]}>
                 <Text style={[styles.hdGlancePVDLabel, { color: theme.text }]}>
-                  {personalityVsDesignContent.designLabel}
+                  THE UNCONSCIOUS YOU
                 </Text>
                 <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.textSecondary }]}>
                   {personalityVsDesignContent.design}
@@ -3141,52 +3126,52 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           );
         })()}
 
-        {/* SECTION 7: HOW THIS SHOWS UP - Varied Forward Pull types */}
+        {/* SECTION 7: HOW THIS SHOWS UP - Real scenarios, no advice */}
         <View style={[styles.hdGlanceCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
           <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>HOW THIS SHOWS UP</Text>
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
             • {hdType === 'Projector' 
-               ? 'You tend to wait for others to come to you—pushing often doesn\'t feel right. When recognition comes, things flow.'
+               ? 'You offer insight and it lands flat—no one asked. When recognition comes, things shift.'
                : hdType === 'Generator' || hdType === 'Manifesting Generator' 
-               ? 'You often know what\'s right by how your body responds—not your head. That signal gets clearer with practice, but it doesn\'t become automatic.'
+               ? 'You commit to things that don\'t light you up—and wonder why you\'re exhausted.'
                : hdType === 'Manifestor' 
-               ? 'You may find yourself starting things others won\'t—informing first tends to help. The resistance doesn\'t disappear, but it softens.'
-               : 'Big decisions usually need time to settle—a full cycle often brings more clarity. Rushing still tempts you.'}
+               ? 'You act and others react—sometimes badly. The urge comes before the explanation.'
+               : 'Your clarity shifts depending on who\'s around. What seemed clear yesterday feels different today.'}
           </Text>
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
             • {authority === 'Emotional' || authority === 'Solar Plexus' 
-               ? 'What feels right today may shift tomorrow—waiting for the wave to pass can help. The wave doesn\'t stop—you just learn to ride it.'
+               ? 'What feels right now can shift later. You\'ve made decisions you regretted when the wave passed.'
                : authority === 'Sacral' 
-               ? 'Your gut tends to respond quickly—the first response is often the clearest. Trust builds slowly, especially after ignoring it.'
+               ? 'Your body responds before your mind catches up. The first pull is usually right.'
                : authority === 'Splenic' 
-               ? 'Your instincts can hit fast and not repeat—catching them in the moment matters. Missing them still happens.'
+               ? 'It hits once and doesn\'t repeat. If you waited to be sure, you already missed it.'
                : authority === 'Self-Projected' || authority === 'Self Projected' 
-               ? 'You may need to hear yourself talk it through with others to find clarity. The right words come when the right ear is listening.'
+               ? 'You find clarity by hearing yourself speak. The right words reveal what you actually think.'
                : authority === 'Ego' || authority === 'Heart' 
-               ? 'When you don\'t genuinely want something, follow-through can be difficult. That filter sharpens with experience.'
+               ? 'When your heart isn\'t in it, the energy won\'t last. What you genuinely want sustains itself.'
                : authority === 'Mental' || authority === 'Sounding Board' 
-               ? 'You often process by bouncing ideas off trusted people. Finding the right sounding board takes time.'
+               ? 'You process out loud. The answer comes through conversation—not before.'
                : authority === 'Lunar' 
-               ? 'Major decisions tend to need more time—rushing can backfire. Patience doesn\'t come naturally, but the cost of impatience teaches.'
-               : 'Clarity often comes through the body rather than mental analysis. The body speaks quietly.'}
+               ? 'You can\'t rush knowing. The full picture takes longer than others expect.'
+               : 'Your clarity arrives through the body—not mental analysis.'}
           </Text>
           {definedCentersList.length > 0 && (
             <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
               • {definedCentersList.includes('Sacral') 
-                 ? 'You tend to have consistent work energy—though it helps when you love what you do. Misaligned work still drains you.'
+                 ? 'Your energy sustains when it\'s right. When it\'s not, forcing it costs more than stopping.'
                  : definedCentersList.includes('Heart') || definedCentersList.includes('Ego') 
-                 ? 'You can push through, but usually only for things that genuinely matter. The willpower runs out when the heart isn\'t in it.'
+                 ? 'Willpower runs out when the heart isn\'t in it. You\'ve felt this.'
                  : definedCentersList.includes('Root') 
-                 ? 'You may handle pressure well—though it can sometimes make you rush others. Your pace isn\'t their pace.'
+                 ? 'Your pace is your pace. Others feel rushed—that\'s not your responsibility to fix.'
                  : definedCentersList.includes('Solar Plexus') || definedCentersList.includes('Emotional') 
-                 ? 'Your moods tend to be real and powerful—they\'re not always about fixing. Some waves just need to pass.'
+                 ? 'Your waves are real and powerful. Some of them just need to pass.'
                  : definedCentersList.includes('Throat') 
-                 ? 'You often have a consistent voice—people tend to hear you. Being heard and being understood aren\'t the same thing.'
+                 ? 'You have a consistent voice. Being heard and being understood aren\'t the same thing.'
                  : definedCentersList.includes('Ajna') 
-                 ? 'You may think in consistent patterns—not everyone does. Your certainty can create distance.'
+                 ? 'You think in consistent patterns—not everyone does. Your certainty can create distance.'
                  : definedCentersList.includes('Head') 
-                 ? 'Questions often come to you naturally—they tend to drive your process. Not every question needs an answer.'
-                 : 'Your energy tends to be consistent in certain areas—others may feel it. That presence creates impact, wanted or not.'}
+                 ? 'Questions arrive naturally. Not every one needs an answer.'
+                 : 'Some of your energy stays consistent while others shift around you.'}
             </Text>
           )}
         </View>
@@ -4367,123 +4352,123 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const det = determinationType?.toLowerCase() || '';
     const cog = cognitionType?.toLowerCase() || '';
     
-    // Extended content for Deep Dive
+    // Extended content for Deep Dive - Mirror language (observation, not instruction)
     const envDeepDive: Record<string, { label: string; content: string }> = {
       'caves': { 
         label: 'Where you function best',
-        content: 'You need contained spaces where you can control input. Too much exposure scatters your thinking. Privacy isn\'t preference—it\'s how you process.'
+        content: 'Contained spaces where you control the input. Too much exposure scatters your thinking.'
       },
       'markets': {
         label: 'Where you function best', 
-        content: 'You think better when there\'s activity around you—but not directed at you. Silence can feel deadening. Background movement sharpens your focus.'
+        content: 'Activity around you—but not directed at you. Silence can feel deadening. Background movement sharpens focus.'
       },
       'kitchens': {
         label: 'Where you function best',
-        content: 'You need environments that feel nourishing and warm. Sterile settings drain you without you realizing. You function better where you can prepare or create.'
+        content: 'Environments that feel nourishing and warm. Sterile settings drain without you realizing.'
       },
       'mountains': {
         label: 'Where you function best',
-        content: 'You need perspective to think clearly—getting above the details. When you\'re stuck in minutiae, your clarity disappears. Overview brings you back.'
+        content: 'Perspective—getting above the details. When stuck in minutiae, clarity disappears.'
       },
       'valleys': {
         label: 'Where you function best',
-        content: 'Acoustics matter more to you than most. Wrong sound environments disrupt your processing in ways others don\'t understand. The right sound brings clarity.'
+        content: 'Acoustics matter more to you than most. Wrong sound environments disrupt your processing.'
       },
       'shores': {
         label: 'Where you function best',
-        content: 'You thrive at edges and transitions—where things meet or change. Being stuck in the middle of anything drains you. Boundaries and shifts suit you.'
+        content: 'Edges and transitions—where things meet or change. Being stuck in the middle drains you.'
       }
     };
     
     const detDeepDive: Record<string, { label: string; content: string }> = {
       'appetite': {
         label: 'How you take things in',
-        content: 'You absorb best when hungry for it—not when stuffed. Forcing information in kills retention. Wait for genuine appetite before consuming.'
+        content: 'You absorb when hungry for it—not when stuffed. Forcing input kills retention.'
       },
       'taste': {
         label: 'How you take things in',
-        content: 'You need to taste before committing. Selective intake serves you. You\'re wired to discriminate—honor that instead of forcing acceptance.'
+        content: 'You taste before committing. Selective intake serves you—you\'re wired to discriminate.'
       },
       'thirst': {
         label: 'How you take things in',
-        content: 'You take in what flows naturally. Forcing input depletes you. What you\'re thirsty for is what you\'ll actually absorb and use.'
+        content: 'What flows naturally is what you absorb. Forcing input depletes you.'
       },
       'touch': {
         label: 'How you take things in',
-        content: 'You absorb through direct contact. Texture and physical sensation matter. You need to feel things to truly take them in.'
+        content: 'Direct contact. Texture and physical sensation matter. You need to feel things.'
       },
       'sound': {
         label: 'How you take things in',
-        content: 'Acoustic environment affects your intake. You absorb better when sound conditions are right. Noise isn\'t just annoying—it blocks absorption.'
+        content: 'Acoustic environment affects your intake. Noise doesn\'t just annoy—it blocks absorption.'
       },
       'light': {
         label: 'How you take things in',
-        content: 'Lighting conditions affect how you take things in. Wrong light doesn\'t just feel bad—it blocks proper absorption. Environment matters.'
+        content: 'Lighting conditions affect how you take things in. Wrong light blocks proper absorption.'
       }
     };
     
     const cogDeepDive: Record<string, { label: string; content: string }> = {
       'smell': {
         label: 'How you know something is right',
-        content: 'You sense through atmosphere. If the vibe is off, you know—even when you can\'t explain why. Trust what you smell in situations.'
+        content: 'You sense through atmosphere. If the vibe is off, you know—even when you can\'t explain why.'
       },
       'taste': {
         label: 'How you know something is right',
-        content: 'You know through discrimination. You can taste when something fits versus when it\'s slightly off. Your selectivity is accurate—use it.'
+        content: 'You can taste when something fits versus when it\'s slightly off. Your selectivity catches what others miss.'
       },
       'outer_vision': {
         label: 'How you know something is right',
-        content: 'You see the whole picture. Peripheral awareness catches what focused attention misses. Trust what you see in your wider field of vision.'
+        content: 'You see the whole picture. Peripheral awareness catches what focused attention misses.'
       },
       'inner_vision': {
         label: 'How you know something is right',
-        content: 'Deep focus reveals truth to you. When you concentrate, you see what\'s really there. Scattered attention hides what\'s obvious when you look closely.'
+        content: 'Deep focus reveals truth to you. When you concentrate, you see what\'s really there.'
       },
       'feeling': {
         label: 'How you know something is right',
-        content: 'Proximity brings knowing. You feel clarity when close to something—distance creates uncertainty. Physical closeness reveals truth.'
+        content: 'Proximity brings knowing. You feel clarity when close—distance creates uncertainty.'
       },
       'touch': {
         label: 'How you know something is right',
-        content: 'You know through physical contact. If it doesn\'t land in your body, it\'s not yet true for you. Wait for the physical confirmation.'
+        content: 'You know through physical contact. If it doesn\'t land in your body, it\'s not yet true for you.'
       }
     };
     
     // Get specific content or type-based defaults
     const environmentContent = envDeepDive[env] || {
       label: 'Where you function best',
-      content: getTypeBasedEnvironment(hdType) + '. The impact of your setting accumulates over time—wrong environments cost you more than you realize.'
+      content: getTypeBasedEnvironment(hdType) + '. The impact of your setting accumulates.'
     };
     
     const determinationContent = detDeepDive[det] || {
       label: 'How you take things in',
-      content: getTypeBasedDetermination(hdType) + '. Your intake system is specific—honor it instead of overriding it.'
+      content: getTypeBasedDetermination(hdType) + '. Overriding it costs more than you notice.'
     };
     
     const cognitionContent = cogDeepDive[cog] || {
       label: 'How you know something is right',
-      content: getTypeBasedCognition(hdType) + '. Your knowing process is unique—learn to recognize when it\'s speaking.'
+      content: getTypeBasedCognition(hdType) + '. The signal is specific to you.'
     };
     
     // Recognition (universal opening)
-    const recognition = 'You have a specific way of functioning that works differently than most. Setting, intake, and knowing—they\'re wired together in you.';
+    const recognition = 'Setting, intake, and knowing—they\'re wired together in you.';
     
     // Tension (universal challenge)
-    const tension = 'You may operate in ways that fight your natural functioning—wrong settings, forced intake, overridden knowing. The cost isn\'t always obvious.';
+    const tension = 'Wrong settings, forced intake, overridden knowing. The cost isn\'t always obvious.';
     
     // Quiet Truth (varied)
     const quietTruths = [
       'This doesn\'t fully resolve—you feel it every time you override your natural way.',
-      'The misalignment doesn\'t go away on its own—it accumulates.',
+      'The misalignment accumulates.',
       'You\'ve probably felt this your whole life without having words for it.'
     ];
     const quietTruth = quietTruths[Math.floor(hdType.length % quietTruths.length)];
     
-    // Forward Pull (varied)
+    // Forward Pull (varied) - observation, not advice
     const forwardPulls = [
-      'You\'re starting to notice what actually works for you.', // OPENING
-      'The right conditions are becoming clearer over time.', // OPENING
-      'Something about how you\'ve been operating is asking to shift.' // TENSION HOLD
+      'What actually works for you is becoming clearer.',
+      'The right conditions are starting to surface.',
+      'Something about how you\'ve been operating is asking to shift.'
     ];
     const forwardPull = forwardPulls[Math.floor((env.length + det.length + cog.length) % forwardPulls.length)];
     
