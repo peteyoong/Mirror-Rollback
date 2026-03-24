@@ -284,24 +284,24 @@ const LUNAR_PHASE_THEMES: Record<string, { theme: string; shifting: string; hold
   'new': {
     theme: 'Beginning',
     shifting: 'A new cycle starts. What felt clear is resetting. Fresh impressions are arriving.',
-    holding: 'Nothing yet. The slate is wiped. This is where patterns begin to form.',
+    holding: 'Nothing yet. The slate is wiped clean.',
     guidance: 'The cycle is just beginning. What emerges will unfold over time.'
   },
   'waxing_crescent': {
     theme: 'Emerging',
-    shifting: 'Initial impressions are forming. You\'re starting to feel how this cycle will move.',
-    holding: 'First signals are appearing. Something might already be repeating from the start.',
+    shifting: 'Initial impressions are forming. The cycle is starting to take shape.',
+    holding: 'First signals are appearing. Something might already be repeating.',
     guidance: 'Still gathering. What surfaces now may or may not last.'
   },
   'first_quarter': {
     theme: 'Building',
     shifting: 'Momentum is growing. Some things are becoming clearer, others more complex.',
-    holding: 'What showed up in the first week and is still here—that\'s starting to mean something.',
+    holding: 'What showed up in the first week is still here. That\'s starting to mean something.',
     guidance: 'Halfway to having real information. The picture is incomplete.'
   },
   'waxing_gibbous': {
     theme: 'Clarifying',
-    shifting: 'Details are sharpening. What matters is starting to separate from what doesn\'t.',
+    shifting: 'Details are sharpening. What matters is separating from what doesn\'t.',
     holding: 'Some patterns have stayed consistent. Others have already dropped away.',
     guidance: 'Patterns are emerging. What\'s been consistent is becoming visible.'
   },
@@ -313,14 +313,14 @@ const LUNAR_PHASE_THEMES: Record<string, { theme: string; shifting: string; hold
   },
   'waning_gibbous': {
     theme: 'Integrating',
-    shifting: 'The peak has passed. Now you\'re processing what you learned.',
+    shifting: 'The peak has passed. Processing what came through.',
     holding: 'The real patterns are clear now. What wasn\'t real is fading.',
     guidance: 'What emerged is settling. The cycle is completing.'
   },
   'last_quarter': {
     theme: 'Releasing',
     shifting: 'Letting go of what doesn\'t serve. The cycle is winding down.',
-    holding: 'Only what\'s genuinely true is left. Everything else has released.',
+    holding: 'Only what\'s genuinely true remains. Everything else has released.',
     guidance: 'What isn\'t true is dropping. Clarity is settling.'
   },
   'waning_crescent': {
@@ -445,15 +445,15 @@ const REFLECTOR_MODE_CONTENT = {
       currentPhase: 'CURRENT PHASE',
       whatShifting: 'WHAT\'S SHIFTING',
       whatHolding: 'WHAT\'S HOLDING',
-      microReflection: 'A MOMENT TO NOTICE'
+      microReflection: 'A QUESTION'
     },
-    // Pattern-aware micro reflections (no instructional language)
+    // Pattern-aware micro reflections (purely observational)
     microReflections: [
       'What changed today that didn\'t match yesterday?',
       'What\'s been consistent across this cycle?',
-      'What keeps returning, even when your mood shifts?',
+      'What keeps returning, even when mood shifts?',
       'What felt true in week one that\'s still true now?',
-      'What dropped away that you thought would stay?',
+      'What dropped away that seemed like it would stay?',
       'Who affected you most today? How much of that was theirs?',
       'What pattern from earlier in the cycle showed up again?'
     ]
@@ -462,9 +462,9 @@ const REFLECTOR_MODE_CONTENT = {
   // "You've Been Noticing" - journal synthesis placeholder
   // This will be populated from journal entries when available
   youveBeenNoticing: {
-    title: 'YOU\'VE BEEN NOTICING',
+    title: 'WHAT\'S EMERGING',
     intro: 'Patterns from your reflections this cycle',
-    emptyState: 'As you reflect during this cycle, patterns will surface here.',
+    emptyState: 'Patterns will surface here as the cycle unfolds.',
     // Structure for journal-based synthesis
     synthesis: {
       earlyCycle: null as string | null, // "In the first week, you were noticing..."
@@ -3723,11 +3723,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         <View style={styles.todayIntroSection}>
           <Text style={[styles.todayIntroTitle, { color: theme.text }]}>Right Now</Text>
           <Text style={[styles.todayIntroSubtitle, { color: theme.textSecondary }]}>
-            Where you are in the cycle. How you might be feeling.
+            Where you are in the cycle
           </Text>
         </View>
         
-        {/* 1. CURRENT PHASE - The lunar position */}
+        {/* 1. CURRENT PHASE - The lunar anchor */}
         <View style={[styles.reflectorPhaseCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
           <View style={styles.reflectorPhaseHeader}>
             <Text style={[styles.reflectorPhaseIcon, { color: theme.accent }]}>◐</Text>
@@ -3748,7 +3748,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         </View>
         
-        {/* 2. WHAT'S SHIFTING */}
+        {/* 2. WHAT'S SHIFTING - Change in this phase */}
         <View style={[styles.reflectorShiftCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.reflectorSectionLabel, { color: theme.accent }]}>WHAT'S SHIFTING</Text>
           <Text style={[styles.reflectorShiftText, { color: theme.text }]}>
@@ -3756,43 +3756,59 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </View>
         
-        {/* 2.5 WHAT'S HOLDING - Pattern Memory Layer */}
-        <View style={[styles.reflectorHoldingCard, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
+        {/* 3. WHAT'S HOLDING - Consistency through change */}
+        <View style={[styles.reflectorHoldingCard, { backgroundColor: theme.surface, borderColor: theme.border + '80' }]}>
           <Text style={[styles.reflectorSectionLabel, { color: theme.textTertiary }]}>WHAT'S HOLDING</Text>
-          <Text style={[styles.reflectorHoldingText, { color: theme.text }]}>
+          <Text style={[styles.reflectorHoldingText, { color: theme.textSecondary }]}>
             {lunarInfo.whatHolding}
           </Text>
         </View>
         
-        {/* 3. DECISION GUIDANCE */}
-        <View style={[styles.reflectorDecisionCard, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
-          <Text style={[styles.reflectorSectionLabel, { color: theme.textTertiary }]}>FOR DECISIONS</Text>
-          <Text style={[styles.reflectorDecisionText, { color: theme.text }]}>
-            {lunarInfo.decisionGuidance}
-          </Text>
+        {/* Subtle transition */}
+        <View style={{ height: 16 }} />
+        
+        {/* 4. WHAT'S EMERGING - Journal Synthesis (The Payoff) */}
+        <View style={[styles.reflectorSynthesisCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+          <Text style={[styles.reflectorSynthesisTitle, { color: theme.accent }]}>WHAT'S EMERGING</Text>
+          
+          {reflectorSynthesisLoading ? (
+            <ActivityIndicator size="small" color={theme.accent} style={{ marginVertical: 16 }} />
+          ) : reflectorSynthesis?.has_enough_data ? (
+            <View style={styles.reflectorSynthesisContent}>
+              {reflectorSynthesis.synthesis.early_cycle && (
+                <Text style={[styles.reflectorSynthesisLine, { color: theme.text }]}>
+                  {reflectorSynthesis.synthesis.early_cycle}
+                </Text>
+              )}
+              {reflectorSynthesis.synthesis.mid_cycle && (
+                <Text style={[styles.reflectorSynthesisLine, { color: theme.text }]}>
+                  {reflectorSynthesis.synthesis.mid_cycle}
+                </Text>
+              )}
+              {reflectorSynthesis.synthesis.current_direction && (
+                <Text style={[styles.reflectorSynthesisLine, styles.reflectorSynthesisDirection, { color: theme.text }]}>
+                  {reflectorSynthesis.synthesis.current_direction}
+                </Text>
+              )}
+              <Text style={[styles.reflectorSynthesisMeta, { color: theme.textTertiary }]}>
+                {reflectorSynthesis.entries_in_cycle} reflections this cycle
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.reflectorSynthesisEmpty}>
+              <Text style={[styles.reflectorSynthesisEmptyText, { color: theme.textSecondary }]}>
+                {reflectorSynthesis?.message || reflectorContent.youveBeenNoticing.emptyState}
+              </Text>
+            </View>
+          )}
         </View>
         
         {/* Divider */}
         <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
         
-        {/* 4. ENVIRONMENT CHECK */}
-        <View style={[styles.reflectorEnvironmentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.reflectorSectionLabel, { color: theme.textTertiary }]}>THE ENVIRONMENT YOU'RE IN</Text>
-          <Text style={[styles.reflectorEnvironmentText, { color: theme.text }]}>
-            {reflectorContent.environment.recognition}
-          </Text>
-          <View style={styles.reflectorEnvironmentBullets}>
-            {reflectorContent.environment.howShows.map((item, idx) => (
-              <Text key={idx} style={[styles.reflectorBullet, { color: theme.textSecondary }]}>
-                • {item}
-              </Text>
-            ))}
-          </View>
-        </View>
-        
-        {/* 5. MICRO REFLECTION */}
+        {/* 5. A QUESTION - Micro Reflection */}
         <View style={[styles.reflectorMicroCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.reflectorSectionLabel, { color: theme.accent }]}>A MOMENT TO NOTICE</Text>
+          <Text style={[styles.reflectorSectionLabel, { color: theme.textTertiary }]}>A QUESTION</Text>
           <Text style={[styles.reflectorMicroText, { color: theme.text }]}>
             {todayReflection}
           </Text>
@@ -3812,52 +3828,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </TouchableOpacity>
         </View>
         
-        {/* Divider before journal synthesis */}
-        <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
-        
-        {/* 6. YOU'VE BEEN NOTICING - Journal Synthesis */}
-        <View style={[styles.reflectorSynthesisCard, { backgroundColor: theme.surface, borderColor: theme.accent + '25' }]}>
-          <Text style={[styles.reflectorSectionLabel, { color: theme.accent }]}>YOU'VE BEEN NOTICING</Text>
-          
-          {reflectorSynthesisLoading ? (
-            <ActivityIndicator size="small" color={theme.accent} style={{ marginVertical: 12 }} />
-          ) : reflectorSynthesis?.has_enough_data ? (
-            <View style={styles.reflectorSynthesisContent}>
-              {reflectorSynthesis.synthesis.early_cycle && (
-                <Text style={[styles.reflectorSynthesisLine, { color: theme.text }]}>
-                  {reflectorSynthesis.synthesis.early_cycle}
-                </Text>
-              )}
-              {reflectorSynthesis.synthesis.mid_cycle && (
-                <Text style={[styles.reflectorSynthesisLine, { color: theme.text }]}>
-                  {reflectorSynthesis.synthesis.mid_cycle}
-                </Text>
-              )}
-              {reflectorSynthesis.synthesis.current_direction && (
-                <Text style={[styles.reflectorSynthesisLine, { color: theme.text, fontStyle: 'italic' }]}>
-                  {reflectorSynthesis.synthesis.current_direction}
-                </Text>
-              )}
-              <Text style={[styles.reflectorSynthesisMeta, { color: theme.textTertiary }]}>
-                Day {reflectorSynthesis.cycle_day} · {reflectorSynthesis.entries_in_cycle} reflections this cycle
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.reflectorSynthesisEmpty}>
-              <Text style={[styles.reflectorSynthesisEmptyText, { color: theme.textSecondary }]}>
-                {reflectorSynthesis?.message || reflectorContent.youveBeenNoticing.emptyState}
-              </Text>
-              <Text style={[styles.reflectorSynthesisMeta, { color: theme.textTertiary }]}>
-                Day {reflectorSynthesis?.cycle_day || lunarInfo.dayInCycle} of this cycle
-              </Text>
-            </View>
-          )}
+        {/* 6. ENVIRONMENT - Contextual, lighter weight */}
+        <View style={[styles.reflectorEnvironmentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.reflectorSectionLabel, { color: theme.textTertiary }]}>WHERE YOU ARE</Text>
+          <Text style={[styles.reflectorEnvironmentText, { color: theme.textSecondary }]}>
+            {reflectorContent.environment.recognition}
+          </Text>
         </View>
         
-        {/* 7. CYCLE WISDOM */}
+        {/* 7. CYCLE CLOSING */}
         <View style={styles.reflectorCycleWisdom}>
           <Text style={[styles.reflectorWisdomText, { color: theme.textTertiary }]}>
-            You experience life differently every day. This isn't inconsistency—it's depth.
+            Every day brings a different experience. That's not inconsistency—that's range.
           </Text>
         </View>
       </View>
@@ -10606,24 +10588,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   reflectorSynthesisContent: {
-    gap: 8,
+    gap: 10,
+  },
+  reflectorSynthesisTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 8,
   },
   reflectorSynthesisLine: {
     fontSize: 14,
-    lineHeight: 21,
+    lineHeight: 22,
+  },
+  reflectorSynthesisDirection: {
+    fontStyle: 'italic',
+    marginTop: 4,
   },
   reflectorSynthesisMeta: {
     fontSize: 11,
-    marginTop: 10,
+    marginTop: 12,
     textAlign: 'center',
   },
   reflectorSynthesisEmpty: {
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
   reflectorSynthesisEmptyText: {
     fontSize: 13,
-    lineHeight: 19,
-    fontStyle: 'italic',
+    lineHeight: 20,
     textAlign: 'center',
   },
   reflectorCycleWisdom: {

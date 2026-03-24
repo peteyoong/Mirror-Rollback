@@ -5399,7 +5399,7 @@ async def get_reflector_journal_synthesis(user_id: str):
                     "current_direction": None
                 },
                 has_enough_data=False,
-                message="As you reflect during this cycle, patterns will surface here."
+                message="Patterns will surface here as the cycle unfolds."
             )
         
         # Group entries by cycle phase
@@ -5436,7 +5436,7 @@ async def get_reflector_journal_synthesis(user_id: str):
         if early_entries:
             early_themes = extract_simple_themes(early_entries)
             if early_themes:
-                synthesis["early_cycle"] = f"In the first week, you were noticing {early_themes[0].lower()}."
+                synthesis["early_cycle"] = f"Early in the cycle, {early_themes[0].lower()} was present."
         
         # Mid cycle synthesis (what shifted or deepened)
         if mid_entries:
@@ -5448,23 +5448,23 @@ async def get_reflector_journal_synthesis(user_id: str):
                 if early_themes and mid_themes[0] != early_themes[0]:
                     synthesis["mid_cycle"] = f"By mid-cycle, something shifted toward {mid_themes[0].lower()}."
                 else:
-                    synthesis["mid_cycle"] = f"As the cycle deepened, {mid_themes[0].lower()} stayed present."
+                    synthesis["mid_cycle"] = f"As the cycle deepened, {mid_themes[0].lower()} stayed."
         
         # Current direction synthesis (where things seem to be heading)
         if late_entries:
             late_themes = extract_simple_themes(late_entries)
             if late_themes:
-                synthesis["current_direction"] = f"Now, the pattern seems to be {late_themes[0].lower()}."
+                synthesis["current_direction"] = f"Now, {late_themes[0].lower()} seems to be the thread."
         elif mid_entries and day_in_cycle > 20:
             # If we're late in cycle but no late entries, use mid trends
             mid_themes = extract_simple_themes(mid_entries)
             if mid_themes:
-                synthesis["current_direction"] = f"The cycle is completing. {mid_themes[0]} is still settling."
+                synthesis["current_direction"] = f"The cycle is completing. {mid_themes[0].capitalize()} is settling."
         elif early_entries and day_in_cycle > 10:
             # We only have early entries but we're past first week
             early_themes = extract_simple_themes(early_entries)
             if early_themes:
-                synthesis["current_direction"] = f"What emerged early—{early_themes[0].lower()}—continues to unfold."
+                synthesis["current_direction"] = f"What emerged early—{early_themes[0].lower()}—continues."
         
         has_data = any(v is not None for v in synthesis.values())
         
@@ -5475,7 +5475,7 @@ async def get_reflector_journal_synthesis(user_id: str):
             entries_in_cycle=entries_count,
             synthesis=synthesis,
             has_enough_data=has_data,
-            message=None if has_data else "Keep reflecting. Patterns will emerge."
+            message=None if has_data else "Patterns will surface here as the cycle unfolds."
         )
         
     except Exception as e:
