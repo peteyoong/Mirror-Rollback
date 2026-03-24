@@ -283,49 +283,49 @@ interface LunarPhaseInfo {
 const LUNAR_PHASE_THEMES: Record<string, { theme: string; shifting: string; holding: string; guidance: string }> = {
   'new': {
     theme: 'Beginning',
-    shifting: 'A new cycle starts. What felt clear is resetting. Fresh impressions are arriving.',
+    shifting: 'Everything is resetting. What felt clear before doesn\'t feel the same now.',
     holding: 'Nothing yet. The slate is wiped clean.',
     guidance: 'The cycle is just beginning. What emerges will unfold over time.'
   },
   'waxing_crescent': {
     theme: 'Emerging',
-    shifting: 'Initial impressions are forming. The cycle is starting to take shape.',
-    holding: 'First signals are appearing. Something might already be repeating.',
+    shifting: 'First impressions are forming. You\'re responding differently than you did a few days ago.',
+    holding: 'Something is already repeating. Watch what shows up more than once.',
     guidance: 'Still gathering. What surfaces now may or may not last.'
   },
   'first_quarter': {
     theme: 'Building',
-    shifting: 'Momentum is growing. Some things are becoming clearer, others more complex.',
+    shifting: 'What felt certain earlier isn\'t holding the same way now.',
     holding: 'What showed up in the first week is still here. That\'s starting to mean something.',
     guidance: 'Halfway to having real information. The picture is incomplete.'
   },
   'waxing_gibbous': {
     theme: 'Clarifying',
-    shifting: 'Details are sharpening. What matters is separating from what doesn\'t.',
-    holding: 'Some patterns have stayed consistent. Others have already dropped away.',
+    shifting: 'Some things that felt important have dropped away. Others haven\'t.',
+    holding: 'Whatever keeps returning—that\'s not random. Some patterns have stayed.',
     guidance: 'Patterns are emerging. What\'s been consistent is becoming visible.'
   },
   'full': {
     theme: 'Illumination',
-    shifting: 'Maximum clarity for this cycle. What you\'re seeing now is the fullest picture.',
+    shifting: 'This is as clear as it gets this cycle. What you\'re seeing now is the fullest picture.',
     holding: 'What stayed true across the full cycle—that\'s real. That\'s yours.',
     guidance: 'If something has held from the beginning until now, it\'s probably not going anywhere.'
   },
   'waning_gibbous': {
     theme: 'Integrating',
-    shifting: 'The peak has passed. Processing what came through.',
-    holding: 'The real patterns are clear now. What wasn\'t real is fading.',
+    shifting: 'The intensity is fading. You\'re not responding the same way you were a week ago.',
+    holding: 'The real patterns are clear now. What wasn\'t real has dropped.',
     guidance: 'What emerged is settling. The cycle is completing.'
   },
   'last_quarter': {
     theme: 'Releasing',
-    shifting: 'Letting go of what doesn\'t serve. The cycle is winding down.',
-    holding: 'Only what\'s genuinely true remains. Everything else has released.',
+    shifting: 'Things that felt heavy are getting lighter. The cycle is winding down.',
+    holding: 'Only what\'s genuinely true remains. Everything else has let go.',
     guidance: 'What isn\'t true is dropping. Clarity is settling.'
   },
   'waning_crescent': {
     theme: 'Resting',
-    shifting: 'The cycle is nearly complete. Rest before the next one begins.',
+    shifting: 'Almost complete. You\'re not the same as you were at the start of this cycle.',
     holding: 'Whatever held through the entire cycle—that\'s the signal. The rest was noise.',
     guidance: 'Completion is near. The next cycle will bring new information.'
   }
@@ -447,15 +447,15 @@ const REFLECTOR_MODE_CONTENT = {
       whatHolding: 'WHAT\'S HOLDING',
       microReflection: 'A QUESTION'
     },
-    // Pattern-aware micro reflections (purely observational)
+    // Pattern-aware micro reflections (grounded, experience-based)
     microReflections: [
-      'What changed today that didn\'t match yesterday?',
-      'What\'s been consistent across this cycle?',
-      'What keeps returning, even when mood shifts?',
-      'What felt true in week one that\'s still true now?',
-      'What dropped away that seemed like it would stay?',
+      'What felt true earlier—but doesn\'t now?',
+      'What have you come back to more than once this cycle?',
+      'What changed—and what didn\'t?',
+      'What showed up in week one that\'s still showing up?',
+      'What dropped away that you thought would stay?',
       'Who affected you most today? How much of that was theirs?',
-      'What pattern from earlier in the cycle showed up again?'
+      'What keeps returning, even when everything else shifts?'
     ]
   },
   
@@ -464,12 +464,12 @@ const REFLECTOR_MODE_CONTENT = {
   youveBeenNoticing: {
     title: 'WHAT\'S EMERGING',
     intro: 'Patterns from your reflections this cycle',
-    emptyState: 'Patterns will surface here as the cycle unfolds.',
+    emptyState: 'As you reflect this cycle, patterns will show up here.',
     // Structure for journal-based synthesis
     synthesis: {
-      earlyCycle: null as string | null, // "In the first week, you were noticing..."
-      midCycle: null as string | null,   // "By mid-cycle, something shifted..."
-      currentDirection: null as string | null // "Now, the pattern seems to be..."
+      earlyCycle: null as string | null,
+      midCycle: null as string | null,
+      currentDirection: null as string | null
     }
   }
 };
