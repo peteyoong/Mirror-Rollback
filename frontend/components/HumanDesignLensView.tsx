@@ -172,6 +172,119 @@ const TYPE_REFLECTIONS: { [key: string]: string } = {
 };
 
 // ============================================
+// I CHING TRIGRAM DATA
+// ============================================
+// Each HD Gate corresponds to one of the 64 I Ching hexagrams, composed of an upper and lower trigram.
+// Trigram symbols: ☰ (Heaven/Creative), ☱ (Lake/Joyous), ☲ (Fire/Clinging), ☳ (Thunder/Arousing), 
+//                  ☴ (Wind/Gentle), ☵ (Water/Abysmal), ☶ (Mountain/Keeping Still), ☷ (Earth/Receptive)
+
+interface TrigramInfo {
+  upper: string;
+  lower: string;
+  upperName: string;
+  lowerName: string;
+  hexagramName: string;
+}
+
+const TRIGRAM_NAMES: Record<string, { name: string; quality: string }> = {
+  '☰': { name: 'Heaven', quality: 'Creative' },
+  '☱': { name: 'Lake', quality: 'Joyous' },
+  '☲': { name: 'Fire', quality: 'Clinging' },
+  '☳': { name: 'Thunder', quality: 'Arousing' },
+  '☴': { name: 'Wind', quality: 'Gentle' },
+  '☵': { name: 'Water', quality: 'Abysmal' },
+  '☶': { name: 'Mountain', quality: 'Still' },
+  '☷': { name: 'Earth', quality: 'Receptive' },
+};
+
+// Gate to I Ching hexagram mapping (gate number -> trigrams)
+// Format: [upper trigram, lower trigram, hexagram name]
+const GATE_TRIGRAMS: Record<number, [string, string, string]> = {
+  1:  ['☰', '☰', 'The Creative'],
+  2:  ['☷', '☷', 'The Receptive'],
+  3:  ['☵', '☳', 'Difficulty at the Beginning'],
+  4:  ['☶', '☵', 'Youthful Folly'],
+  5:  ['☵', '☰', 'Waiting'],
+  6:  ['☰', '☵', 'Conflict'],
+  7:  ['☷', '☵', 'The Army'],
+  8:  ['☵', '☷', 'Holding Together'],
+  9:  ['☴', '☰', 'Small Taming'],
+  10: ['☰', '☱', 'Treading'],
+  11: ['☷', '☰', 'Peace'],
+  12: ['☰', '☷', 'Standstill'],
+  13: ['☰', '☲', 'Fellowship'],
+  14: ['☲', '☰', 'Great Possession'],
+  15: ['☷', '☶', 'Modesty'],
+  16: ['☳', '☷', 'Enthusiasm'],
+  17: ['☱', '☳', 'Following'],
+  18: ['☶', '☴', 'Work on the Decayed'],
+  19: ['☷', '☱', 'Approach'],
+  20: ['☴', '☷', 'Contemplation'],
+  21: ['☲', '☳', 'Biting Through'],
+  22: ['☶', '☲', 'Grace'],
+  23: ['☶', '☷', 'Splitting Apart'],
+  24: ['☷', '☳', 'Return'],
+  25: ['☰', '☳', 'Innocence'],
+  26: ['☶', '☰', 'Great Taming'],
+  27: ['☶', '☳', 'Nourishment'],
+  28: ['☱', '☴', 'Great Preponderance'],
+  29: ['☵', '☵', 'The Abysmal'],
+  30: ['☲', '☲', 'The Clinging'],
+  31: ['☱', '☶', 'Influence'],
+  32: ['☳', '☴', 'Duration'],
+  33: ['☰', '☶', 'Retreat'],
+  34: ['☳', '☰', 'Great Power'],
+  35: ['☲', '☷', 'Progress'],
+  36: ['☷', '☲', 'Darkening of the Light'],
+  37: ['☴', '☲', 'The Family'],
+  38: ['☲', '☱', 'Opposition'],
+  39: ['☵', '☶', 'Obstruction'],
+  40: ['☳', '☵', 'Deliverance'],
+  41: ['☶', '☱', 'Decrease'],
+  42: ['☴', '☳', 'Increase'],
+  43: ['☱', '☰', 'Breakthrough'],
+  44: ['☰', '☴', 'Coming to Meet'],
+  45: ['☱', '☷', 'Gathering Together'],
+  46: ['☷', '☴', 'Pushing Upward'],
+  47: ['☱', '☵', 'Oppression'],
+  48: ['☵', '☴', 'The Well'],
+  49: ['☱', '☲', 'Revolution'],
+  50: ['☲', '☴', 'The Cauldron'],
+  51: ['☳', '☳', 'The Arousing'],
+  52: ['☶', '☶', 'Keeping Still'],
+  53: ['☴', '☶', 'Development'],
+  54: ['☳', '☱', 'The Marrying Maiden'],
+  55: ['☳', '☲', 'Abundance'],
+  56: ['☲', '☶', 'The Wanderer'],
+  57: ['☴', '☴', 'The Gentle'],
+  58: ['☱', '☱', 'The Joyous'],
+  59: ['☴', '☵', 'Dispersion'],
+  60: ['☵', '☱', 'Limitation'],
+  61: ['☴', '☱', 'Inner Truth'],
+  62: ['☳', '☶', 'Small Preponderance'],
+  63: ['☵', '☲', 'After Completion'],
+  64: ['☲', '☵', 'Before Completion'],
+};
+
+// Get trigram info for a gate
+const getGateTrigrams = (gateNum: number): TrigramInfo | null => {
+  const trigrams = GATE_TRIGRAMS[gateNum];
+  if (!trigrams) return null;
+  
+  const [upper, lower, hexagramName] = trigrams;
+  const upperInfo = TRIGRAM_NAMES[upper];
+  const lowerInfo = TRIGRAM_NAMES[lower];
+  
+  return {
+    upper,
+    lower,
+    upperName: upperInfo?.name || 'Unknown',
+    lowerName: lowerInfo?.name || 'Unknown',
+    hexagramName,
+  };
+};
+
+// ============================================
 // MECHANICS STORY CONTENT (for Explore modals)
 // ============================================
 
@@ -1859,6 +1972,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const gateNum = gate.gate_number || gate.gate || 0;
     const gateName = gate.name || gate.gate_name || gate.theme || `Gate ${gateNum}`;
     
+    // Get trigram info for this gate
+    const trigramInfo = getGateTrigrams(gateNum);
+    
     // DEFENSIVE GUARD: Safely get shadow and gift
     const safeShadow = typeof gate.shadow === 'string' ? gate.shadow.toLowerCase() : '';
     const safeGift = typeof gate.gift === 'string' ? gate.gift.toLowerCase() : '';
@@ -1905,6 +2021,28 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
     return (
       <View style={{ gap: 12 }}>
+        {/* I Ching Trigram Visual - NEW */}
+        {trigramInfo && (
+          <View style={[styles.trigramContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={styles.trigramSymbols}>
+              <View style={styles.trigramColumn}>
+                <Text style={[styles.trigramSymbol, { color: theme.accent }]}>{trigramInfo.upper}</Text>
+                <Text style={[styles.trigramLabel, { color: theme.textTertiary }]}>{trigramInfo.upperName}</Text>
+              </View>
+              <View style={styles.trigramDivider}>
+                <Text style={[styles.trigramDividerText, { color: theme.textTertiary }]}>over</Text>
+              </View>
+              <View style={styles.trigramColumn}>
+                <Text style={[styles.trigramSymbol, { color: theme.accent }]}>{trigramInfo.lower}</Text>
+                <Text style={[styles.trigramLabel, { color: theme.textTertiary }]}>{trigramInfo.lowerName}</Text>
+              </View>
+            </View>
+            <Text style={[styles.trigramHexagramName, { color: theme.textSecondary }]}>
+              I Ching #{gateNum}: {trigramInfo.hexagramName}
+            </Text>
+          </View>
+        )}
+        
         {/* Recognition */}
         <View>
           <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>RECOGNITION</Text>
@@ -2976,14 +3114,29 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           return (
             <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>PERSONALITY VS DESIGN</Text>
-              <Text style={[styles.hdGlancePVDLabel, { color: theme.textTertiary }]}>What you know about yourself</Text>
-              <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.text }]}>
-                {personalityVsDesignContent.personality}
+              <Text style={[styles.hdGlancePVDExplainer, { color: theme.textTertiary }]}>
+                Your chart has two layers: what you consciously think about yourself (Personality/black) and what your body does without your awareness (Design/red).
               </Text>
-              <Text style={[styles.hdGlancePVDLabel, { color: theme.textTertiary, marginTop: 10 }]}>What your body does first</Text>
-              <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.text }]}>
-                {personalityVsDesignContent.design}
-              </Text>
+              
+              {/* Personality - Conscious */}
+              <View style={styles.hdGlancePVDSection}>
+                <Text style={[styles.hdGlancePVDLabel, { color: theme.text }]}>
+                  {personalityVsDesignContent.personalityLabel}
+                </Text>
+                <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.textSecondary }]}>
+                  {personalityVsDesignContent.personality}
+                </Text>
+              </View>
+              
+              {/* Design - Unconscious */}
+              <View style={[styles.hdGlancePVDSection, { marginTop: 12 }]}>
+                <Text style={[styles.hdGlancePVDLabel, { color: theme.text }]}>
+                  {personalityVsDesignContent.designLabel}
+                </Text>
+                <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.textSecondary }]}>
+                  {personalityVsDesignContent.design}
+                </Text>
+              </View>
             </View>
           );
         })()}
@@ -4338,58 +4491,67 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   };
 
   // Personality vs Design content - conscious vs unconscious
+  // The Personality (black in chart) = what you consciously identify with, what you "think" you are
+  // The Design (red in chart) = what operates unconsciously, what your body does without thinking
   const getPersonalityVsDesign = (personalityLine: string | undefined, designLine: string | undefined, hdType: string): {
     personality: string;
     design: string;
+    personalityLabel: string;
+    designLabel: string;
   } => {
-    // Personality line translations (what you think you are)
+    // Personality line translations (CONSCIOUS - what you think you are, can describe about yourself)
     const personalityDescriptions: Record<string, string> = {
-      '1': 'You see yourself as someone who needs to understand things deeply before acting',
-      '2': 'You see yourself as naturally talented, often not understanding why others can\'t do what you do',
-      '3': 'You see yourself as someone who learns through trial and error—mistakes are your education',
-      '4': 'You see yourself as someone who needs the right connections to thrive',
-      '5': 'You see yourself as someone who solves problems others can\'t—a fixer',
-      '6': 'You see yourself as an observer who has learned through experience what works'
+      '1': 'You identify as someone who needs to research and understand things fully. You know this about yourself—you don\'t like guessing.',
+      '2': 'You see yourself as naturally capable at certain things, though you can\'t always explain why. Talent feels built-in.',
+      '3': 'You consciously view yourself as an experimenter. You know you learn through doing, even when things go sideways.',
+      '4': 'You think of yourself as relationship-oriented. You know you need the right people around you to function.',
+      '5': 'You see yourself as a practical problem-solver. People often come to you expecting solutions.',
+      '6': 'You view yourself as someone with perspective. You feel like you\'ve seen enough to know what works.'
     };
     
-    // Design line translations (what your body does first)
+    // Design line translations (UNCONSCIOUS - what your body does before you notice)
     const designDescriptions: Record<string, string> = {
-      '1': 'Your body hesitates until it feels secure—you investigate before you realize you\'re doing it',
-      '2': 'Your body waits to be called—you often act only when pulled by others',
-      '3': 'Your body experiments before your mind catches up—you\'re in motion before planning',
-      '4': 'Your body seeks familiar people and places—novelty exhausts you before you know why',
-      '5': 'Your body gets projected onto—others see solutions in you before you offer them',
-      '6': 'Your body holds back, observing—you\'re watching before you\'re participating'
+      '1': 'Before you realize it, your body has already started investigating. You don\'t choose to go deep—you\'re already there.',
+      '2': 'Your body naturally pulls back until something or someone draws you out. Waiting isn\'t a choice—it\'s how you\'re wired.',
+      '3': 'Your body is already experimenting before your mind catches up. You bump into things before you plan to.',
+      '4': 'Your body gravitates toward familiar people and places without you thinking about it. Strangers tire you out.',
+      '5': 'Others project solutions onto you before you speak. Your presence triggers expectation—that\'s not chosen.',
+      '6': 'Your body holds back and observes before engaging. You\'re watching before you know you\'re watching.'
     };
     
     // Type-based defaults if profile unavailable
     const typeDefaults: Record<string, { personality: string; design: string }> = {
       'Reflector': {
-        personality: 'You see yourself as someone who takes in everything—highly sensitive to environment',
-        design: 'Your body mirrors what\'s around you before you notice—you become the room'
+        personality: 'You know you\'re highly sensitive to your surroundings. Environment affects you—you\'ve always noticed this.',
+        design: 'Your body mirrors what\'s around you before you notice. You absorb the room without trying.'
       },
       'Projector': {
-        personality: 'You see yourself as someone with insight others might miss',
-        design: 'Your body waits for recognition—you\'re already reading the room before speaking'
+        personality: 'You see yourself as perceptive—someone who notices things others miss.',
+        design: 'Your body naturally reads the room. You\'re already assessing before you decide to.'
       },
       'Generator': {
-        personality: 'You see yourself as someone with energy to give when something lights you up',
-        design: 'Your body responds before your mind decides—the gut knows first'
+        personality: 'You know you have energy when something resonates. You recognize the feeling of being lit up.',
+        design: 'Your gut responds before your mind decides. The "yes" or "no" arrives before reasoning.'
       },
       'Manifesting Generator': {
-        personality: 'You see yourself as someone who moves fast and handles many things at once',
-        design: 'Your body skips steps and pivots—you\'re already changing direction before you explain why'
+        personality: 'You see yourself as someone who moves fast and juggles multiple things. Speed feels natural.',
+        design: 'Your body skips steps and changes direction before you consciously choose to. You\'re already pivoting.'
       },
       'Manifestor': {
-        personality: 'You see yourself as someone who initiates—waiting doesn\'t feel natural',
-        design: 'Your body moves before checking in—you\'ve already started before asking permission'
+        personality: 'You know you\'re someone who starts things. Initiating feels natural to you.',
+        design: 'Your body moves into action before asking anyone. You\'ve already begun before you notice.'
       }
     };
     
-    const personality = personalityDescriptions[personalityLine || ''] || typeDefaults[hdType]?.personality || 'You have a conscious sense of who you are that others can see';
-    const design = designDescriptions[designLine || ''] || typeDefaults[hdType]?.design || 'Your body operates on patterns you don\'t always notice';
+    const personality = personalityDescriptions[personalityLine || ''] || typeDefaults[hdType]?.personality || 'You have a conscious sense of who you are that you can describe to others';
+    const design = designDescriptions[designLine || ''] || typeDefaults[hdType]?.design || 'Your body operates on patterns you don\'t always notice—it moves before you think';
     
-    return { personality, design };
+    return { 
+      personality, 
+      design,
+      personalityLabel: 'THE CONSCIOUS YOU (Personality)',
+      designLabel: 'THE UNCONSCIOUS YOU (Design)'
+    };
   };
 
   // Render "How You Work Best" Card for Deep Dive - unified Environment + Determination + Cognition
@@ -9838,16 +10000,65 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     fontStyle: 'italic',
   },
+  hdGlancePVDExplainer: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  hdGlancePVDSection: {
+    marginTop: 4,
+  },
   hdGlancePVDLabel: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   hdGlanceInsight: {
     fontSize: 13,
     lineHeight: 19,
     marginBottom: 4,
+  },
+  // Trigram styles for I Ching visual
+  trigramContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 4,
+  },
+  trigramSymbols: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  trigramColumn: {
+    alignItems: 'center',
+  },
+  trigramSymbol: {
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  trigramLabel: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 4,
+  },
+  trigramDivider: {
+    paddingHorizontal: 8,
+  },
+  trigramDividerText: {
+    fontSize: 10,
+    fontStyle: 'italic',
+  },
+  trigramHexagramName: {
+    fontSize: 12,
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });

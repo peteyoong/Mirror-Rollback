@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any, List
 
 # Backend URL from environment
-BACKEND_URL = "https://lens-bridge-app.preview.emergentagent.com/api"
+BACKEND_URL = "https://trigram-visuals.preview.emergentagent.com/api"
 
 def test_astrology_chart_transits(user_id: str) -> Dict[str, Any]:
     """Test the astrology chart endpoint for transit differentiation"""
