@@ -45,29 +45,27 @@ import {
 } from './astrologyInterpreter';
 
 // ============================================
-// HERO DESCRIPTOR
+// HERO DESCRIPTOR - Real behavior, not traits
 // ============================================
 
 export const getHeroDescriptor = (sun: string, moon: string, asc: string): string => {
   const sunElement = SIGN_ELEMENTS[sun];
   const moonElement = SIGN_ELEMENTS[moon];
-  const ascQualities = SIGN_QUALITIES[asc] || [];
   
-  const coreWord = sunElement === 'Water' ? 'Sensitive' : 
-                   sunElement === 'Fire' ? 'Expressive' : 
-                   sunElement === 'Earth' ? 'Grounded' : 'Curious';
+  // Real behavioral descriptors - what they actually DO
+  const coreAction = sunElement === 'Water' ? 'You feel things before you can explain them' : 
+                     sunElement === 'Fire' ? 'You act first and process later' : 
+                     sunElement === 'Earth' ? 'You trust what you can see and touch' : 'You need to talk it through';
   
-  const emotionalWord = moonElement === 'Fire' ? 'fast in feeling' : 
-                        moonElement === 'Water' ? 'deep in feeling' : 
-                        moonElement === 'Earth' ? 'steady in feeling' : 'quick to process';
+  const emotionalAction = moonElement === 'Fire' ? 'emotions hit fast then pass' : 
+                          moonElement === 'Water' ? 'moods linger and build slowly' : 
+                          moonElement === 'Earth' ? 'you need physical comfort when stressed' : 'talking helps you feel better';
   
-  const approachWord = ascQualities[0] || 'open';
-  
-  return `${coreWord} at the core, ${emotionalWord}, ${approachWord} in approach.`;
+  return `${coreAction}—${emotionalAction}.`;
 };
 
 // ============================================
-// CHART SPINE
+// CHART SPINE - Observable behaviors
 // ============================================
 
 export const getChartSpine = (placements: CorePlacements): string[] => {
@@ -75,88 +73,47 @@ export const getChartSpine = (placements: CorePlacements): string[] => {
   const sun = placements.sun || 'Unknown';
   const moon = placements.moon || 'Unknown';
   const asc = placements.ascendant || 'Unknown';
-  const saturn = placements.saturn;
   const saturn_house = placements.saturn_house;
-  const north_node = placements.north_node;
-  const chiron = placements.chiron;
   
   const sunElement = SIGN_ELEMENTS[sun];
   const moonElement = SIGN_ELEMENTS[moon];
   
-  // 1. Core tone (Sun)
-  const sunDescriptors: { [key: string]: string } = {
-    'Fire': 'Expression and visibility feel central to who you are.',
-    'Earth': 'Stability and tangible results give you a sense of self.',
-    'Air': 'Ideas and connection shape your sense of identity.',
-    'Water': 'Feeling and intuition drive your sense of purpose.'
+  // 1. Core behavior (Sun) - what you actually do
+  const sunBehaviors: { [key: string]: string } = {
+    'Fire': 'You need to be seen and acknowledged—invisibility drains you.',
+    'Earth': 'You need results you can point to—vague progress frustrates you.',
+    'Air': 'You need mental stimulation—boredom makes you restless.',
+    'Water': 'You need emotional honesty—surface talk feels empty.'
   };
-  if (sunElement && sunDescriptors[sunElement]) spine.push(sunDescriptors[sunElement]);
+  if (sunElement && sunBehaviors[sunElement]) spine.push(sunBehaviors[sunElement]);
 
-  // 2. Emotional baseline (Moon)
-  const moonDescriptors: { [key: string]: string } = {
-    'Fire': 'Your emotional nature responds quickly and openly.',
-    'Earth': 'Your emotional nature is steady and needs tangible comfort.',
-    'Air': 'Your emotional nature processes through thought and conversation.',
-    'Water': 'Your emotional nature runs deep and absorbs atmosphere.'
+  // 2. Emotional pattern (Moon) - how stress actually shows
+  const moonBehaviors: { [key: string]: string } = {
+    'Fire': 'When stressed, you get louder or busier—not quieter.',
+    'Earth': 'When stressed, you slow down and get stubborn.',
+    'Air': 'When stressed, you overthink or go distant.',
+    'Water': 'When stressed, you withdraw or absorb others\' moods.'
   };
-  if (moonElement && moonDescriptors[moonElement]) spine.push(moonDescriptors[moonElement]);
+  if (moonElement && moonBehaviors[moonElement]) spine.push(moonBehaviors[moonElement]);
 
-  // 3. Approach (Ascendant)
-  const ascDescriptors: { [key: string]: string } = {
-    'Aries': 'You meet life directly—initiative and action come first.',
-    'Taurus': 'You meet life steadily—patience and reliability define your approach.',
-    'Gemini': 'You meet life with curiosity—asking questions before committing.',
-    'Cancer': 'You meet life protectively—testing emotional safety first.',
-    'Leo': 'You meet life warmly—seeking connection through self-expression.',
-    'Virgo': 'You meet life analytically—observing details before engaging.',
-    'Libra': 'You meet life relationally—seeking balance and beauty.',
-    'Scorpio': 'You meet life intensely—looking for what\'s beneath the surface.',
-    'Sagittarius': 'You meet life expansively—drawn to meaning and possibility.',
-    'Capricorn': 'You meet life seriously—responsibility shapes your approach.',
-    'Aquarius': 'You meet life independently—individuality guides your path.',
-    'Pisces': 'You meet life intuitively—boundaries are fluid and perception is wide.'
+  // 3. First impression (Ascendant) - how people read you
+  const ascBehaviors: { [key: string]: string } = {
+    'Aries': 'People see you as direct—you don\'t hide reactions well.',
+    'Taurus': 'People see you as calm—they may not notice your stress.',
+    'Gemini': 'People see you as curious—you ask a lot of questions.',
+    'Cancer': 'People see you as protective—walls go up around strangers.',
+    'Leo': 'People see you as warm—you light up in attention.',
+    'Virgo': 'People see you as observant—you notice what\'s off.',
+    'Libra': 'People see you as pleasant—you smooth over tension.',
+    'Scorpio': 'People see you as intense—you hold eye contact too long.',
+    'Sagittarius': 'People see you as optimistic—you downplay problems.',
+    'Capricorn': 'People see you as serious—humor takes you by surprise.',
+    'Aquarius': 'People see you as detached—but you\'re watching everything.',
+    'Pisces': 'People see you as gentle—you absorb the room\'s energy.'
   };
-  if (asc && ascDescriptors[asc]) spine.push(ascDescriptors[asc]);
+  if (asc && ascBehaviors[asc]) spine.push(ascBehaviors[asc]);
 
-  // 4. Saturn location (responsibility/pressure)
-  if (saturn_house) {
-    const saturnHouseLines: { [key: number]: string } = {
-      1: 'Pressure concentrates on identity and self-presentation.',
-      2: 'Pressure concentrates on resources, money, and self-worth.',
-      3: 'Pressure concentrates on communication and clarity.',
-      4: 'Pressure concentrates on home and emotional foundations.',
-      5: 'Pressure concentrates on creative expression and risk.',
-      6: 'Pressure concentrates on work and daily discipline.',
-      7: 'Pressure concentrates on relationships and partnership.',
-      8: 'Pressure concentrates on intimacy, trust, and shared resources.',
-      9: 'Pressure concentrates on beliefs and expanding perspective.',
-      10: 'Pressure concentrates on career and public contribution.',
-      11: 'Pressure concentrates on community and future vision.',
-      12: 'Pressure concentrates on surrender and unconscious patterns.'
-    };
-    if (saturnHouseLines[saturn_house]) spine.push(saturnHouseLines[saturn_house]);
-  }
-
-  // 5. North Node (growth direction)
-  if (north_node) {
-    const nnLines: { [key: string]: string } = {
-      'Aries': 'Growth moves toward independence and self-initiation.',
-      'Taurus': 'Growth moves toward stability and tangible value.',
-      'Gemini': 'Growth moves toward curiosity and open communication.',
-      'Cancer': 'Growth moves toward emotional vulnerability and nurturing.',
-      'Leo': 'Growth moves toward self-expression and creative risk.',
-      'Virgo': 'Growth moves toward service and practical refinement.',
-      'Libra': 'Growth moves toward relationship and collaboration.',
-      'Scorpio': 'Growth moves toward depth, trust, and transformation.',
-      'Sagittarius': 'Growth moves toward meaning, adventure, and expansion.',
-      'Capricorn': 'Growth moves toward responsibility and visible contribution.',
-      'Aquarius': 'Growth moves toward independence and collective vision.',
-      'Pisces': 'Growth moves toward surrender, intuition, and transcendence.'
-    };
-    if (nnLines[north_node]) spine.push(nnLines[north_node]);
-  }
-
-  return spine;
+  return spine.slice(0, 3); // Max 3 lines
 };
 
 // ============================================

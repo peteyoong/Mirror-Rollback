@@ -2916,23 +2916,40 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>IDENTITY AXIS</Text>
             <Text style={[styles.hdGlanceCrossName, { color: theme.text }]}>{incarnation_cross}</Text>
             <Text style={[styles.hdGlanceCrossDesc, { color: theme.textSecondary }]} numberOfLines={1}>
-              Your life theme and purpose direction.
+              The recurring theme life keeps bringing you back to.
             </Text>
           </View>
         )}
 
-        {/* SECTION 5: QUICK INSIGHT - 2-3 bullet observations */}
+        {/* SECTION 5: HOW THIS SHOWS UP - Real behavioral observations */}
         <View style={[styles.hdGlanceCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
-          <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>QUICK INSIGHT</Text>
+          <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>HOW THIS SHOWS UP</Text>
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
-            • {hdType} energy operates by {hdType === 'Projector' ? 'waiting for recognition' : hdType === 'Generator' || hdType === 'Manifesting Generator' ? 'responding to life' : hdType === 'Manifestor' ? 'initiating and informing' : 'sampling over time'}
+            • {hdType === 'Projector' ? 'You wait for people to come to you—pushing feels wrong' : 
+               hdType === 'Generator' || hdType === 'Manifesting Generator' ? 'You know what\'s right by how your body responds—not your head' : 
+               hdType === 'Manifestor' ? 'You start things others won\'t—but telling people first prevents blowback' : 
+               'You need a full month before big decisions feel clear'}
           </Text>
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
-            • {authority ? `${authority} authority` : 'Your authority'} guides decision clarity
+            • {authority === 'Emotional' || authority === 'Solar Plexus' ? 'What feels right today may feel wrong tomorrow—wait for the wave to pass' :
+               authority === 'Sacral' ? 'Your gut responds instantly—trust the first uh-huh or uh-uh' :
+               authority === 'Splenic' ? 'Your instincts hit fast and don\'t repeat—catch them in the moment' :
+               authority === 'Self-Projected' || authority === 'Self Projected' ? 'You need to hear yourself talk it through with others' :
+               authority === 'Ego' || authority === 'Heart' ? 'If you don\'t genuinely want it, you won\'t follow through' :
+               authority === 'Mental' || authority === 'Sounding Board' ? 'You process by bouncing ideas off trusted people' :
+               authority === 'Lunar' ? 'Big decisions need 28+ days to settle—rushing backfires' :
+               'Clarity comes through the body, not the mind'}
           </Text>
           {definedCentersList.length > 0 && (
             <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
-              • {definedCentersList.length} defined centers = consistent energy in {definedCentersList.slice(0, 2).join(' and ')}
+              • {definedCentersList.includes('Sacral') ? 'Consistent work energy—but you need to love what you do' :
+                 definedCentersList.includes('Heart') || definedCentersList.includes('Ego') ? 'You can push through, but only for what truly matters to you' :
+                 definedCentersList.includes('Root') ? 'You handle pressure well—but it can make you rush others' :
+                 definedCentersList.includes('Solar Plexus') || definedCentersList.includes('Emotional') ? 'Your moods are real and powerful—they\'re not about fixing' :
+                 definedCentersList.includes('Throat') ? 'You have a consistent voice—people hear you' :
+                 definedCentersList.includes('Ajna') ? 'You think in consistent patterns—not everyone does' :
+                 definedCentersList.includes('Head') ? 'Questions come to you naturally—they drive your process' :
+                 `Your energy is consistent in ${definedCentersList[0] || 'certain areas'}—others feel it`}
             </Text>
           )}
         </View>

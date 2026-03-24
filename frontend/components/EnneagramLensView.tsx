@@ -472,121 +472,121 @@ interface PatternLayersType {
 
 const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
   1: {
-    howYouMove: 'You tend to notice what could be better, more aligned, more correct. There\'s a natural pull toward improvement—in yourself, in situations, in how things are done.',
-    whatYouAvoid: 'You often move away from anything that feels sloppy, careless, or ethically questionable. There\'s a subtle vigilance against being seen as wrong or irresponsible.',
-    whatSitsUnderneath: 'Beneath the drive for correctness is a quiet tension: a sense that the world requires your constant attention to keep it from falling into disorder—and that letting up might mean becoming part of the problem.',
+    howYouMove: 'You notice what\'s wrong before you notice what\'s right. You fix things compulsively—even things no one asked you to fix.',
+    whatYouAvoid: 'You avoid looking messy, being wrong, or cutting corners. "Good enough" never feels good enough.',
+    whatSitsUnderneath: 'Deep down: if you stop fixing things, everything will fall apart—including you.',
     
-    emotionalTendency: 'A simmering frustration when things don\'t meet your internal standards. Not explosive, but always there—like a background hum of "this could be better."',
-    thinkingTendency: 'Comparing reality to how it should be. Your mind naturally evaluates, critiques, and imagines the improved version.',
+    emotionalTendency: 'A low-grade irritation that never fully goes away. Things should be better than they are.',
+    thinkingTendency: 'Constant comparison: what is vs. what should be. You\'re always editing.',
     
-    avoidancePattern: 'Making mistakes. Being criticized. Losing control of your own integrity.',
-    antiSelfPattern: 'A voice that says: "If you relax your standards, everything will fall apart. You can\'t trust yourself to be good without constant vigilance."',
+    avoidancePattern: 'Making mistakes. Being criticized. Losing your integrity.',
+    antiSelfPattern: '"If you relax, you\'ll become lazy, careless, or bad."',
     
-    growthDirection: 'When this pattern softens, you access genuine acceptance—the ability to see that perfection isn\'t the point, and that what\'s already present is enough. Joy becomes possible without needing everything to be fixed first.',
+    growthDirection: 'Growth comes when you stop fixing and start accepting. Joy doesn\'t require perfection.',
   },
   2: {
-    howYouMove: 'You tend to notice what others need, often before they do. There\'s a natural pull toward connection, care, and being the one who helps.',
-    whatYouAvoid: 'You often move away from your own needs, from being the one who receives, from situations where you might be seen as selfish or unhelpful.',
-    whatSitsUnderneath: 'Beneath the giving is a quiet question: Am I loved for who I am, or only for what I provide? There\'s a fear that without usefulness, connection might disappear.',
+    howYouMove: 'You notice what others need—often before they do. You help even when you\'re exhausted.',
+    whatYouAvoid: 'You avoid asking for help. You avoid being the burden. Saying "I need" feels selfish.',
+    whatSitsUnderneath: 'Deep down: if you stop being useful, will anyone stay?',
     
-    emotionalTendency: 'Pride in being needed, though it may not feel like pride. More like a warm glow when you\'ve made someone\'s life easier.',
-    thinkingTendency: 'Reading others—anticipating what they want, what they need, what would make them happy. Your attention flows outward.',
+    emotionalTendency: 'Pride in being needed—though you wouldn\'t call it pride. You feel good when you\'re giving.',
+    thinkingTendency: 'Reading the room. What do they need? How can I help? Your attention flows outward.',
     
-    avoidancePattern: 'Acknowledging your own needs. Asking directly for help. Being perceived as selfish.',
-    antiSelfPattern: 'A voice that says: "Your needs don\'t matter as much. If you stop giving, they\'ll forget about you."',
+    avoidancePattern: 'Your own needs. Being seen as selfish. Receiving without giving back.',
+    antiSelfPattern: '"Your needs don\'t matter. Stop being so demanding."',
     
-    growthDirection: 'When this pattern softens, you access genuine humility—the recognition that receiving is as valuable as giving. You discover that love doesn\'t depend on earning it.',
+    growthDirection: 'Growth comes when you let yourself receive. Love isn\'t earned.',
   },
   3: {
-    howYouMove: 'You tend to notice what leads to success, recognition, or progress. There\'s a natural pull toward achieving, presenting well, and making things happen.',
-    whatYouAvoid: 'You often move away from failure, from being seen as ineffective, from situations where you can\'t shine or succeed.',
-    whatSitsUnderneath: 'Beneath the achievement is a quiet uncertainty: Am I valuable for who I am, or only for what I accomplish? There\'s a fear that without success, you might disappear.',
+    howYouMove: 'You notice what wins. You shape-shift to fit the room. You do, achieve, produce.',
+    whatYouAvoid: 'You avoid failure. You avoid being ordinary. You avoid slowing down long enough to feel.',
+    whatSitsUnderneath: 'Deep down: without achievement, who are you? Maybe nothing.',
     
-    emotionalTendency: 'A subtle deceit—not lying to others, but adjusting who you appear to be. Becoming the version that\'s most likely to succeed in each context.',
-    thinkingTendency: 'Strategizing. Your mind naturally calculates the shortest path to the goal, the best presentation, the most effective approach.',
+    emotionalTendency: 'Automatic self-adjustment—becoming whatever version of yourself works best here.',
+    thinkingTendency: 'Strategy. What\'s the fastest path? What\'s the best presentation? How do I win?',
     
-    avoidancePattern: 'Failure. Being ordinary. Stopping long enough to feel what\'s underneath the drive.',
-    antiSelfPattern: 'A voice that says: "You are what you achieve. Without accomplishment, you\'re nothing special."',
+    avoidancePattern: 'Failure. Being ordinary. Sitting with difficult feelings.',
+    antiSelfPattern: '"You are your achievements. Without them, you disappear."',
     
-    growthDirection: 'When this pattern softens, you access genuine authenticity—the freedom to be seen as you actually are, not just as your achievements. You discover that being is enough, even without doing.',
+    growthDirection: 'Growth comes when you stop performing. You exist even when you\'re not winning.',
   },
   4: {
-    howYouMove: 'You tend to notice what\'s missing, what\'s unique, what carries emotional depth. There\'s a natural pull toward authenticity, meaning, and the fullness of experience.',
-    whatYouAvoid: 'You often move away from ordinariness, from emotional flatness, from being like everyone else or settling for the mundane.',
-    whatSitsUnderneath: 'Beneath the search for meaning is a quiet longing: a sense that something essential is missing, and that finding it would finally make you feel complete.',
+    howYouMove: 'You notice what\'s missing. You crave depth, meaning, and emotional truth.',
+    whatYouAvoid: 'You avoid being ordinary. You avoid emotional flatness. You avoid pretending everything\'s fine.',
+    whatSitsUnderneath: 'Deep down: something essential is missing from you that others seem to have.',
     
-    emotionalTendency: 'A melancholic longing—not always sad, but always aware of what isn\'t here. The gap between the ideal and the real is vivid.',
-    thinkingTendency: 'Comparing yourself to others, often unfavorably. Romanticizing what\'s distant or lost while devaluing what\'s present.',
+    emotionalTendency: 'Longing. The gap between what is and what could be stays vivid.',
+    thinkingTendency: 'Comparing yourself to others—usually unfavorably. Romanticizing what\'s gone.',
     
-    avoidancePattern: 'Being ordinary. Losing your unique identity. Having your depth go unseen.',
-    antiSelfPattern: 'A voice that says: "No one truly understands you. What\'s wrong with you is too fundamental to fix."',
+    avoidancePattern: 'Being like everyone else. Losing your uniqueness. Having your depth dismissed.',
+    antiSelfPattern: '"You\'re fundamentally flawed. No one really understands you."',
     
-    growthDirection: 'When this pattern softens, you access genuine equanimity—the ability to see that nothing is actually missing. What you\'re searching for has been here all along, just overlooked.',
+    growthDirection: 'Growth comes when you realize: nothing is actually missing. What you seek is already here.',
   },
   5: {
-    howYouMove: 'You tend to notice what you understand, what you can observe, what you can contain and preserve. There\'s a natural pull toward knowledge, privacy, and maintaining your inner resources.',
-    whatYouAvoid: 'You often move away from demands on your energy, from situations that deplete you, from engagement that feels overwhelming or intrusive.',
-    whatSitsUnderneath: 'Beneath the withdrawal is a quiet fear: a sense that the world takes more than it gives, and that your inner reserves must be carefully protected to survive.',
+    howYouMove: 'You notice what you understand. You conserve your energy. You watch before you engage.',
+    whatYouAvoid: 'You avoid demands on your time. You avoid situations that drain you. You avoid needing too much.',
+    whatSitsUnderneath: 'Deep down: the world takes more than it gives. Your reserves might run out.',
     
-    emotionalTendency: 'A retracted quality—holding back, observing before engaging, minimizing your needs so you don\'t have to ask for much.',
-    thinkingTendency: 'Analyzing from a distance. Your mind naturally creates frameworks, categories, and understanding that doesn\'t require direct participation.',
+    emotionalTendency: 'Withholding. Holding back. Minimizing needs so you don\'t have to ask for much.',
+    thinkingTendency: 'Analyzing from a distance. Creating frameworks. Understanding without participating.',
     
-    avoidancePattern: 'Being overwhelmed. Having your boundaries invaded. Not knowing enough.',
-    antiSelfPattern: 'A voice that says: "You don\'t have enough to offer. It\'s safer to watch than to participate."',
+    avoidancePattern: 'Overwhelm. Intrusion. Not knowing enough to act.',
+    antiSelfPattern: '"You don\'t have enough to offer. Stay back. Watch."',
     
-    growthDirection: 'When this pattern softens, you access genuine engagement—the trust that your resources are abundant and that giving doesn\'t mean losing. Participation becomes nourishing rather than depleting.',
+    growthDirection: 'Growth comes when you engage fully. Your resources are more abundant than you think.',
   },
   6: {
-    howYouMove: 'You tend to notice what could go wrong, what needs to be prepared for, who can be trusted. There\'s a natural pull toward security, loyalty, and reliable foundations.',
-    whatYouAvoid: 'You often move away from uncertainty, from situations where you can\'t predict the outcome, from authority you haven\'t tested.',
-    whatSitsUnderneath: 'Beneath the vigilance is a quiet doubt: a sense that you can\'t fully trust your own judgment, and that external guidance or confirmation is needed to feel safe.',
+    howYouMove: 'You notice what could go wrong. You scan for danger. You test before you trust.',
+    whatYouAvoid: 'You avoid uncertainty. You avoid authority you haven\'t verified. You avoid being unprepared.',
+    whatSitsUnderneath: 'Deep down: you can\'t fully trust your own judgment. You need backup.',
     
-    emotionalTendency: 'Anxiety that scans for danger—not always dramatic, but always slightly alert. Worry as a form of preparation.',
-    thinkingTendency: 'Questioning, testing, imagining worst-case scenarios. Your mind naturally plays devil\'s advocate, even with yourself.',
+    emotionalTendency: 'Low-grade anxiety. Worry as preparation. Alert but not panicked.',
+    thinkingTendency: 'Questioning everything. Playing devil\'s advocate. Imagining worst cases.',
     
-    avoidancePattern: 'Uncertainty. Being without support. Making decisions alone.',
-    antiSelfPattern: 'A voice that says: "You can\'t handle this alone. Something bad is probably coming that you haven\'t prepared for."',
+    avoidancePattern: 'Uncertainty. Making decisions alone. Being caught off guard.',
+    antiSelfPattern: '"You can\'t handle this. Something bad is coming that you\'re not ready for."',
     
-    growthDirection: 'When this pattern softens, you access genuine inner courage—the discovery that you can trust yourself, that you already have the guidance you\'ve been seeking outside.',
+    growthDirection: 'Growth comes when you trust yourself. You already have the guidance you\'ve been seeking outside.',
   },
   7: {
-    howYouMove: 'You tend to notice what\'s possible, what\'s interesting, what opens up new horizons. There\'s a natural pull toward stimulation, options, and keeping the future bright.',
-    whatYouAvoid: 'You often move away from pain, limitation, boredom, and anything that might trap you in negativity or close down your options.',
-    whatSitsUnderneath: 'Beneath the enthusiasm is a quiet escape: a sense that if you slow down or face the difficult thing directly, you\'ll be stuck in discomfort with no way out.',
+    howYouMove: 'You notice possibilities. You keep options open. You move toward what\'s interesting.',
+    whatYouAvoid: 'You avoid pain. You avoid boredom. You avoid anything that feels like a trap.',
+    whatSitsUnderneath: 'Deep down: if you slow down and feel the hard thing, you\'ll get stuck there.',
     
-    emotionalTendency: 'A gluttony for experience—not always excess, but a constant reaching toward the next interesting thing. Avoiding satiation because that might mean stopping.',
-    thinkingTendency: 'Reframing, planning, ideating. Your mind naturally finds the silver lining, the escape route, the more exciting possibility.',
+    emotionalTendency: 'Reaching for the next thing. Reframing negatives into positives. Escaping discomfort.',
+    thinkingTendency: 'Planning, ideating, finding silver linings. Your mind always knows the exit.',
     
-    avoidancePattern: 'Pain. Limitation. Being trapped in negative emotions or boring circumstances.',
-    antiSelfPattern: 'A voice that says: "If you stop and feel this, you\'ll get stuck. Keep moving, keep planning, keep the options open."',
+    avoidancePattern: 'Pain. Limitation. Being stuck in something you can\'t get out of.',
+    antiSelfPattern: '"If you stop moving, you\'ll sink. Keep planning. Keep going."',
     
-    growthDirection: 'When this pattern softens, you access genuine presence—the discovery that this moment, even if painful, is sufficient. Depth becomes possible when you stop running toward the next thing.',
+    growthDirection: 'Growth comes when you stay present—even when it hurts. Depth requires stillness.',
   },
   8: {
-    howYouMove: 'You tend to notice who has power, who can be trusted, who needs protection. There\'s a natural pull toward strength, directness, and taking charge of your own destiny.',
-    whatYouAvoid: 'You often move away from vulnerability, from being controlled, from situations where you might appear weak or dependent.',
-    whatSitsUnderneath: 'Beneath the strength is a quiet guardedness: a sense that the world is harsh, that weakness invites harm, and that only through power can you be safe.',
+    howYouMove: 'You notice who has power. You take charge. You push back against being controlled.',
+    whatYouAvoid: 'You avoid weakness. You avoid being manipulated. You avoid showing your soft side.',
+    whatSitsUnderneath: 'Deep down: the world is harsh. Softness invites harm. Only strength keeps you safe.',
     
-    emotionalTendency: 'A lustiness for intensity—not just physical, but a desire for aliveness, impact, and full engagement. Holding back feels like dying.',
-    thinkingTendency: 'Assessing power dynamics. Your mind naturally reads situations for who\'s in charge, who\'s trustworthy, and where the real power lies.',
+    emotionalTendency: 'Intensity. Full engagement. Holding back feels like dying.',
+    thinkingTendency: 'Reading power dynamics. Who\'s in charge? Who can I trust? Where\'s the real power?',
     
     avoidancePattern: 'Vulnerability. Being controlled. Appearing weak.',
-    antiSelfPattern: 'A voice that says: "If you show your soft side, people will take advantage. Strength is survival."',
+    antiSelfPattern: '"Show your soft side and they\'ll destroy you. Stay strong or die."',
     
-    growthDirection: 'When this pattern softens, you access genuine innocence—the ability to be open and tender without fear. Vulnerability becomes strength rather than weakness.',
+    growthDirection: 'Growth comes when you let yourself be tender. Vulnerability is not weakness—it\'s strength.',
   },
   9: {
-    howYouMove: 'You tend to notice what creates harmony, what avoids disruption, what keeps things comfortable and connected. There\'s a natural pull toward peace, stability, and merging with the flow.',
-    whatYouAvoid: 'You often move away from conflict, from asserting yourself in ways that might create tension, from anything that disrupts your inner calm.',
-    whatSitsUnderneath: 'Beneath the peacefulness is a quiet self-forgetting: a sense that your own presence might disturb things, and that it\'s easier to go along than to risk disconnection.',
+    howYouMove: 'You notice what keeps the peace. You merge with others. You avoid rocking the boat.',
+    whatYouAvoid: 'You avoid conflict. You avoid asserting yourself. You avoid making waves.',
+    whatSitsUnderneath: 'Deep down: your presence might disturb things. It\'s easier to disappear than risk disconnection.',
     
-    emotionalTendency: 'A comfortable numbness—not depression, but a gentle blurring of your own needs and desires in favor of maintaining equilibrium.',
-    thinkingTendency: 'Seeing all sides. Your mind naturally finds where everyone is right, making it hard to know where you actually stand.',
+    emotionalTendency: 'Going numb. Blurring your own needs. Settling into comfortable inaction.',
+    thinkingTendency: 'Seeing all sides. Losing track of where you actually stand.',
     
-    avoidancePattern: 'Conflict. Being seen as difficult. Losing your sense of inner peace.',
-    antiSelfPattern: 'A voice that says: "Your needs aren\'t that important. It\'s not worth the disruption. Just go along."',
+    avoidancePattern: 'Conflict. Being difficult. Disrupting your inner calm.',
+    antiSelfPattern: '"Your needs aren\'t important. Just go along. Don\'t make trouble."',
     
-    growthDirection: 'When this pattern softens, you access genuine right action—the ability to know what you want and move toward it without losing connection. Your presence becomes a gift rather than a disturbance.',
+    growthDirection: 'Growth comes when you show up. Your presence is a gift—not a disturbance.',
   },
 };
 
@@ -3286,29 +3286,29 @@ export default function EnneagramLensView({ result: propResult, userId, onOpenCh
     // Social style tags
     const socialStyleTags = details?.social_style_tags || [];
     
-    // Basic fear and desire based on type (with updated labels)
+    // Basic fear and desire based on type (behavioral language)
     const TYPE_BASIC_FEARS: { [key: number]: string } = {
-      1: 'Being corrupt, evil, or defective',
-      2: 'Being unwanted or unloved',
-      3: 'Being worthless or without value',
-      4: 'Having no identity or significance',
-      5: 'Being useless, incompetent, or incapable',
-      6: 'Being without support or guidance',
-      7: 'Being deprived or trapped in pain',
-      8: 'Being controlled or harmed by others',
-      9: 'Loss of connection or fragmentation',
+      1: 'Being the problem instead of the solution',
+      2: 'Being forgotten when you stop giving',
+      3: 'Being nobody without your achievements',
+      4: 'Being ordinary, just like everyone else',
+      5: 'Running out of inner resources',
+      6: 'Being caught unprepared when things go wrong',
+      7: 'Being trapped in pain with no escape',
+      8: 'Being controlled or taken advantage of',
+      9: 'Losing connection by causing conflict',
     };
     
     const TYPE_BASIC_DESIRES: { [key: number]: string } = {
-      1: 'To be good, balanced, and have integrity',
-      2: 'To be loved and appreciated',
-      3: 'To be valuable and worthwhile',
-      4: 'To find themselves and their significance',
-      5: 'To be capable and competent',
-      6: 'To have security and support',
-      7: 'To be satisfied and content',
-      8: 'To protect themselves and control their destiny',
-      9: 'To have inner peace and stability',
+      1: 'To do things the right way',
+      2: 'To be loved for who you are, not what you do',
+      3: 'To matter—to be valuable and recognized',
+      4: 'To be truly understood',
+      5: 'To understand and have enough',
+      6: 'To feel safe and supported',
+      7: 'To stay satisfied and free',
+      8: 'To protect yourself and those you care about',
+      9: 'To have inner peace and connection',
     };
     
     // Get pattern layers for this type
