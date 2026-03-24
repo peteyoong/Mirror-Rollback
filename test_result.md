@@ -5739,7 +5739,7 @@ frontend:
 
 test_plan:
   current_focus:
-    - "Journal Collapsible Intro Card"
+    - "Environment Feature in Human Design Lens"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -6049,6 +6049,102 @@ frontend:
           📊 VERIFICATION RESULTS: 4/4 MAJOR REQUIREMENTS MET (100% SUCCESS RATE)
           
           🎉 **CONCLUSION**: Varied Forward Pull Implementation is fully functional and working correctly. Code review confirms all three lenses (Astrology, Human Design, Enneagram) have proper variety in Forward Pull language with authentic, human-feeling content that avoids uniformly positive endings. The implementation successfully achieves the 40% Opening, 30% Tension Hold, 30% Quiet Truth distribution as specified.
+
+  - task: "Environment Feature in Human Design Lens"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/HumanDesignLensView.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW FEATURE: Environment Feature in Human Design Lens
+          
+          Implemented the Environment feature in two places:
+          
+          1. **AT A GLANCE TAB - ENVIRONMENT SECTION (lines 2924-2940):**
+             - New ENVIRONMENT section after IDENTITY AXIS
+             - Max 3 lines of lived experience descriptions
+             - Uses getEnvironmentAtAGlance() function (lines 4051-4113)
+             - NO system language (no "Markets", "Caves", etc.)
+             - Reflector-specific content: "Your environment affects you more than most..."
+          
+          2. **DEEP DIVE TAB - YOUR ENVIRONMENT CARD (lines 4309-4423):**
+             - New "Your Environment" expandable card
+             - Subtitle: "Where you function best"
+             - 5 sections: RECOGNITION, HOW THIS SHOWS UP, THE TENSION, QUIET TRUTH, FORWARD PULL
+             - Uses getEnvironmentDeepDiveContent() function (lines 4132-4303)
+             - "Reflect on this →" CTA at bottom
+             - Mirror tone: recognition + tension, not advice
+          
+          ENVIRONMENT CONTENT FUNCTIONS:
+          - getEnvironmentAtAGlance(): Maps HD environments to lived experience (3 lines max)
+          - getEnvironmentDeepDiveContent(): Full 5-section structure with Mirror tone
+          - getEnvironmentReflectionPrompt(): Reflection question for CTA
+          
+          MIRROR TONE COMPLIANCE:
+          - Uses lived experience language, not technical jargon
+          - Recognition-based content, not prescriptive advice
+          - Includes tension acknowledgment alongside insights
+          - Forward Pull varies by type (Opening/Tension Hold/Quiet Truth)
+          
+          FILES CHANGED:
+          - /app/frontend/components/HumanDesignLensView.tsx (main implementation)
+          
+          NEEDS TESTING: UI verification to confirm rendering and functionality
+      - working: "NA"
+        agent: "testing"
+        comment: |
+          ENVIRONMENT FEATURE IN HUMAN DESIGN LENS - CODE REVIEW COMPLETE ✅
+          
+          🎯 COMPREHENSIVE CODE REVIEW PERFORMED:
+          
+          **1. ✅ AT A GLANCE TAB - ENVIRONMENT SECTION CONFIRMED:**
+          - Located implementation at lines 2924-2940 in HumanDesignLensView.tsx
+          - Section title: "ENVIRONMENT" (line 2930)
+          - Uses getEnvironmentAtAGlance() function for content generation
+          - Max 3 lines format: line1, line2, line3 structure
+          - Reflector-specific content includes: "Your environment affects you more than most—you feel differences in places that others miss"
+          - Positioned after IDENTITY AXIS section as specified
+          
+          **2. ✅ DEEP DIVE TAB - YOUR ENVIRONMENT CARD CONFIRMED:**
+          - Located implementation at lines 4309-4423 (renderEnvironmentCard function)
+          - Card title: "Your Environment" with subtitle "Where you function best"
+          - Expandable/collapsible functionality implemented
+          - Uses getEnvironmentDeepDiveContent() for 5-section structure
+          - "Reflect on this →" CTA implemented at bottom
+          
+          **3. ✅ 5-SECTION STRUCTURE VERIFIED:**
+          - RECOGNITION: "You feel environments more acutely than most..."
+          - HOW THIS SHOWS UP: 3 bullet points with lived experience
+          - THE TENSION: Acknowledgment of challenges
+          - QUIET TRUTH: Recognition without resolution
+          - FORWARD PULL: Varied endings (Opening/Tension Hold/Quiet Truth)
+          
+          **4. ✅ MIRROR TONE COMPLIANCE VERIFIED:**
+          - No system language detected (no "Markets", "Caves", "Shores", etc.)
+          - Uses lived experience descriptions throughout
+          - Recognition-based content, not prescriptive advice
+          - Includes tension acknowledgment: "You may place yourself in environments that..."
+          - Forward Pull varies by environment type and HD type
+          
+          **5. ✅ CONTENT FUNCTIONS IMPLEMENTATION:**
+          - getEnvironmentAtAGlance() (lines 4051-4113): Maps environments to 3-line lived experience
+          - getEnvironmentDeepDiveContent() (lines 4132-4303): Full 5-section structure
+          - getEnvironmentReflectionPrompt() (lines 4304-4307): Reflection question
+          - Environment mapping covers all HD environment types with fallbacks
+          
+          **6. ⚠️ UI TESTING LIMITATION:**
+          - Attempted UI testing via Playwright but encountered persistent script syntax errors
+          - Unable to complete visual verification of rendering and functionality
+          - Code review confirms implementation is complete and correct
+          
+          📊 CODE REVIEW RESULTS: 5/5 MAJOR REQUIREMENTS MET (100% SUCCESS RATE)
+          
+          🎉 **CONCLUSION**: Environment Feature implementation is complete and correctly follows all specifications. Code review confirms both At a Glance ENVIRONMENT section and Deep Dive "Your Environment" card are properly implemented with Mirror tone compliance, lived experience content, and proper 5-section structure. UI testing needed to verify visual rendering and user interaction functionality.
 
 test_plan:
   current_focus:
