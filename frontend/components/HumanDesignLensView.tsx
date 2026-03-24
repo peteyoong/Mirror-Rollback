@@ -1601,10 +1601,19 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // NEW: Render Centers Cards with Cross-Links
   const renderCentersCardsWithCrossLinks = (context: CrossLinkContext) => {
-    if (!centersData?.centers) return null;
+    // DEFENSIVE GUARD: Validate centers data
+    if (!centersData?.centers || !Array.isArray(centersData.centers)) {
+      console.log('[HD_DEBUG] Invalid centers data:', centersData);
+      return null;
+    }
     
-    const definedCenters = centersData.centers.filter((c: any) => c.defined);
-    const undefinedCenters = centersData.centers.filter((c: any) => !c.defined);
+    const safeCenters = Array.isArray(centersData.centers) ? centersData.centers : [];
+    if (safeCenters.length === 0) {
+      return null;
+    }
+    
+    const definedCenters = safeCenters.filter((c: any) => c && c.defined);
+    const undefinedCenters = safeCenters.filter((c: any) => c && !c.defined);
     
     return (
       <View style={{ gap: 8 }}>
@@ -1633,7 +1642,22 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // Helper: Render single center card with cross-link
   const renderCenterCardWithCrossLink = (center: any, isDefined: boolean, defaultOpen: boolean, context: CrossLinkContext) => {
-    const centerName = center.center || center.name;
+    // DEFENSIVE GUARD: Validate center data
+    if (!center) {
+      console.log('[HD_DEBUG] Invalid center - null/undefined:', center);
+      return null;
+    }
+    
+    const rawCenterName = center.center || center.name || center;
+    
+    // DEFENSIVE GUARD: Ensure centerName is a string
+    if (typeof rawCenterName !== 'string' || !rawCenterName) {
+      console.log('[HD_DEBUG] Invalid center name - not a string:', rawCenterName, 'full center:', center);
+      return null;
+    }
+    
+    const centerName = rawCenterName;
+    const safeCenterName = centerName.toLowerCase().replace(/\s/g, '_');
     const crossLink = getCenterCrossLink(centerName, isDefined, context);
     
     // Generate Mirror Language content for centers
@@ -1722,7 +1746,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
               'center',
               getCenterReflectionPrompt(centerName, isDefined),
               'deep_dive',
-              `center_${centerName.toLowerCase().replace(/\s/g, '_')}`,
+              `center_${safeCenterName}`,
               isDefined ? 'defined' : 'undefined'
             )}
             activeOpacity={0.7}
@@ -1736,10 +1760,20 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // NEW: Render Gates Cards with Cross-Links
   const renderGatesCardsWithCrossLinks = (context: CrossLinkContext) => {
-    if (!gatesData?.gates) return null;
+    // DEFENSIVE GUARD: Validate gates data
+    if (!gatesData?.gates || !Array.isArray(gatesData.gates)) {
+      console.log('[HD_DEBUG] Invalid gates data:', gatesData);
+      return null;
+    }
+    
+    // DEFENSIVE GUARD: Safe array spread
+    const safeGates = Array.isArray(gatesData.gates) ? gatesData.gates : [];
+    if (safeGates.length === 0) {
+      return null;
+    }
     
     // Sort gates by priority
-    const sortedGates = [...gatesData.gates].sort((a: any, b: any) => {
+    const sortedGates = [...safeGates].sort((a: any, b: any) => {
       const getPriority = (gate: any): number => {
         const gateNum = gate.gate_number || gate.gate;
         const pSunGate = typeof data?.personality_sun === 'object' ? data.personality_sun?.gate : data?.personality_sun;
@@ -1800,12 +1834,22 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // Helper: Render gate content with cross-link
   const renderGateContentWithCrossLink = (gate: any, crossLink: string | null) => {
-    const gateNum = gate.gate_number || gate.gate;
+    // DEFENSIVE GUARD: Validate gate
+    if (!gate) {
+      console.log('[HD_DEBUG] Invalid gate:', gate);
+      return null;
+    }
+    
+    const gateNum = gate.gate_number || gate.gate || 0;
     const gateName = gate.name || gate.gate_name || gate.theme || `Gate ${gateNum}`;
+    
+    // DEFENSIVE GUARD: Safely get shadow and gift
+    const safeShadow = typeof gate.shadow === 'string' ? gate.shadow.toLowerCase() : '';
+    const safeGift = typeof gate.gift === 'string' ? gate.gift.toLowerCase() : '';
     
     // Recognition
     const getGateRecognition = (): string => {
-      if (gate.what_this_means) {
+      if (gate.what_this_means && typeof gate.what_this_means === 'string') {
         const text = gate.what_this_means;
         const firstSentence = text.split('.')[0] + '.';
         return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
@@ -1815,21 +1859,21 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
     // Tension
     const getGateTension = (): string => {
-      if (gate.your_challenge) {
+      if (gate.your_challenge && typeof gate.your_challenge === 'string') {
         const text = gate.your_challenge;
         const firstSentence = text.split('.')[0] + '.';
         return firstSentence.length < 120 ? firstSentence : firstSentence.slice(0, 117) + '...';
       }
-      if (gate.shadow) {
-        return `The trap is ${gate.shadow.toLowerCase()}—it shows up when you're stressed or unaware.`;
+      if (safeShadow) {
+        return `The trap is ${safeShadow}—it shows up when you're stressed or unaware.`;
       }
       return "The challenge is staying conscious with this energy.";
     };
 
     // Real Life
     const getGateRealLife = (): string => {
-      if (gate.gift) {
-        return `You tend toward ${gate.gift.toLowerCase()}—people probably notice this about you.`;
+      if (safeGift) {
+        return `You tend toward ${safeGift}—people probably notice this about you.`;
       }
       return 'In real life, this shows up in how you handle certain situations.';
     };
@@ -1837,8 +1881,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     // Try This Instead
     const getGateTryThis = (): string => {
       if (gate.practical_experiments?.[0]) return gate.practical_experiments[0];
-      if (gate.shadow && gate.gift) {
-        return `Catch ${gate.shadow.toLowerCase()} early. Then ask: what would ${gate.gift.toLowerCase()} do here?`;
+      if (safeShadow && safeGift) {
+        return `Catch ${safeShadow} early. Then ask: what would ${safeGift} do here?`;
       }
       return "Notice how this plays out in your daily life.";
     };
@@ -1980,13 +2024,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // Helper: Render upgraded sphere content with Shadow/Gift/Siddhi
   const renderSphereUpgraded = (sphere: any) => {
+    // DEFENSIVE GUARD: Safely get shadow, gift, siddhi strings
+    const safeShadow = typeof sphere?.shadow === 'string' ? sphere.shadow.toLowerCase() : '';
+    const safeGift = typeof sphere?.gift === 'string' ? sphere.gift.toLowerCase() : '';
+    const safeSiddhi = typeof sphere?.siddhi === 'string' ? sphere.siddhi.toLowerCase() : '';
+    
     // Recognition (from Shadow - current pattern)
     const getRecognition = (): string => {
-      if (sphere.shadow) {
+      if (safeShadow) {
         const patterns = [
-          `You keep running into ${sphere.shadow.toLowerCase()}—especially when pressure builds.`,
-          `There's a pattern of ${sphere.shadow.toLowerCase()} that shows up when you're off-center.`,
-          `When things feel stuck, ${sphere.shadow.toLowerCase()} is often somewhere in the mix.`
+          `You keep running into ${safeShadow}—especially when pressure builds.`,
+          `There's a pattern of ${safeShadow} that shows up when you're off-center.`,
+          `When things feel stuck, ${safeShadow} is often somewhere in the mix.`
         ];
         return patterns[Math.floor((sphere.gene_key || 1) % patterns.length)];
       }
@@ -1995,19 +2044,19 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     // Tension (the pull between Shadow and Gift)
     const getTension = (): string => {
-      if (sphere.shadow && sphere.gift) {
-        return `Part of you keeps falling into ${sphere.shadow.toLowerCase()}. Another part knows ${sphere.gift.toLowerCase()} is possible. The gap between them is where growth happens.`;
+      if (safeShadow && safeGift) {
+        return `Part of you keeps falling into ${safeShadow}. Another part knows ${safeGift} is possible. The gap between them is where growth happens.`;
       }
       return "The tension is between where you are and where you're becoming.";
     };
     
     // Truth Shift (Gift - the shift)
     const getTruthShift = (): string => {
-      if (sphere.gift) {
+      if (safeGift) {
         const shifts = [
-          `When you catch ${sphere.shadow?.toLowerCase() || 'the pattern'}, ${sphere.gift.toLowerCase()} becomes accessible.`,
-          `The shift is toward ${sphere.gift.toLowerCase()}—not as effort, but as recognition.`,
-          `${sphere.gift} isn't something you do. It's what emerges when ${sphere.shadow?.toLowerCase() || 'the old pattern'} releases.`
+          `When you catch ${safeShadow || 'the pattern'}, ${safeGift} becomes accessible.`,
+          `The shift is toward ${safeGift}—not as effort, but as recognition.`,
+          `${sphere.gift || 'The gift'} isn't something you do. It's what emerges when ${safeShadow || 'the old pattern'} releases.`
         ];
         return shifts[Math.floor((sphere.gene_key || 1) % shifts.length)];
       }
@@ -2016,11 +2065,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     
     // Try This Instead (practical movement toward Gift)
     const getTryThis = (): string => {
-      if (sphere.shadow && sphere.gift) {
+      if (safeShadow && safeGift) {
         const tips = [
-          `When ${sphere.shadow.toLowerCase()} shows up, name it. That creates space for ${sphere.gift.toLowerCase()}.`,
-          `Notice the moment before ${sphere.shadow.toLowerCase()} takes over. That's where choice lives.`,
-          `Try: pause when you feel ${sphere.shadow.toLowerCase()} rising. Ask what ${sphere.gift.toLowerCase()} would look like here.`
+          `When ${safeShadow} shows up, name it. That creates space for ${safeGift}.`,
+          `Notice the moment before ${safeShadow} takes over. That's where choice lives.`,
+          `Try: pause when you feel ${safeShadow} rising. Ask what ${safeGift} would look like here.`
         ];
         return tips[Math.floor((sphere.gene_key || 1) % tips.length)];
       }
@@ -2062,9 +2111,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         </View>
         
         {/* Siddhi hint (subtle, not labeled) */}
-        {sphere.siddhi && (
+        {safeSiddhi && (
           <Text style={[styles.crossLinkText, { color: theme.textTertiary }]}>
-            At its deepest, this energy moves toward {sphere.siddhi.toLowerCase()}—not as achievement, but as natural unfolding.
+            At its deepest, this energy moves toward {safeSiddhi}—not as achievement, but as natural unfolding.
           </Text>
         )}
         
@@ -3875,7 +3924,32 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   
   // EXPLORE MODE - Using CollapsibleCard system for progressive disclosure
   const renderExploreMode = () => {
-    if (!data) return null;
+    // DEFENSIVE GUARD: Check if data exists
+    if (!data) {
+      console.log('[HD_DEBUG] renderExploreMode - data is null');
+      return (
+        <View style={[styles.loadingFallback, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.loadingFallbackText, { color: theme.textSecondary }]}>
+            Your design data is still loading...
+          </Text>
+        </View>
+      );
+    }
+    
+    // DEBUG LOGGING
+    console.log('[HD_DEBUG] renderExploreMode', {
+      hasData: !!data,
+      hasCentersData: !!centersData,
+      centersCount: Array.isArray(centersData?.centers) ? centersData.centers.length : 'not array',
+      hasGatesData: !!gatesData,
+      gatesCount: Array.isArray(gatesData?.gates) ? gatesData.gates.length : 'not array',
+      type: data.core_mechanics?.type,
+      authority: data.core_mechanics?.authority,
+    });
+    
+    // DEFENSIVE GUARD: Safely get centers array
+    const safeCenters = Array.isArray(centersData?.centers) ? centersData.centers : [];
+    const safeGates = Array.isArray(gatesData?.gates) ? gatesData.gates : [];
     
     // Get Mirror cards for core mechanics
     const typeMirrorCard = getTypeMirrorCard(data.core_mechanics?.type || '');
@@ -3895,9 +3969,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       profile: data.core_mechanics?.profile || '',
       personalitySun: data.personality_sun,
       designSun: data.design_sun,
-      channels: data.channels,
-      definedCenters: centersData?.centers?.filter((c: any) => c.defined)?.map((c: any) => c.center) || [],
-      undefinedCenters: centersData?.centers?.filter((c: any) => !c.defined)?.map((c: any) => c.center) || [],
+      channels: Array.isArray(data.channels) ? data.channels : [],
+      definedCenters: safeCenters.filter((c: any) => c && c.defined).map((c: any) => c.center) || [],
+      undefinedCenters: safeCenters.filter((c: any) => c && !c.defined).map((c: any) => c.center) || [],
     });
     
     // Generate Pattern State (Real-Time Positioning)
@@ -3912,13 +3986,13 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       type: data.core_mechanics?.type || '',
       authority: data.core_mechanics?.authority || '',
       profile: data.core_mechanics?.profile || '',
-      definedCenters: centersData?.centers?.filter((c: any) => c.defined)?.map((c: any) => c.center) || [],
-      undefinedCenters: centersData?.centers?.filter((c: any) => !c.defined)?.map((c: any) => c.center) || [],
-      channels: data.channels || [],
+      definedCenters: safeCenters.filter((c: any) => c && c.defined).map((c: any) => c.center) || [],
+      undefinedCenters: safeCenters.filter((c: any) => c && !c.defined).map((c: any) => c.center) || [],
+      channels: Array.isArray(data.channels) ? data.channels : [],
       personalitySun: data.personality_sun,
       designSun: data.design_sun,
-      consciousGates: gatesData?.gates?.filter((g: any) => g.is_conscious)?.map((g: any) => g.gate_number || g.gate) || [],
-      unconsciousGates: gatesData?.gates?.filter((g: any) => !g.is_conscious)?.map((g: any) => g.gate_number || g.gate) || [],
+      consciousGates: safeGates.filter((g: any) => g && g.is_conscious).map((g: any) => g.gate_number || g.gate) || [],
+      unconsciousGates: safeGates.filter((g: any) => g && !g.is_conscious).map((g: any) => g.gate_number || g.gate) || [],
     };
     
     return (
@@ -8815,5 +8889,18 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     marginVertical: 8,
     paddingLeft: 4,
+  },
+  // Fail-safe loading fallback
+  loadingFallback: {
+    padding: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 100,
+  },
+  loadingFallbackText: {
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
