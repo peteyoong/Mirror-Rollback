@@ -19,7 +19,6 @@ import hashlib
 import uuid
 from typing import Tuple
 import re
-from datetime import timedelta
 
 # Import calculation engines
 from calculations.astrology import get_full_natal_chart, close_ephemeris, ComputeIntegrityError
@@ -2812,7 +2811,6 @@ Rewrite this response to:
 Respond with ONLY the rewritten text, no explanations."""
 
 
-import re
 
 # Guardrail violation counter (in-memory for this session)
 guardrail_violation_counts: Dict[str, int] = {
@@ -5334,6 +5332,193 @@ async def delete_journal_entry(entry_id: str):
 
 
 # =============================================================================
+# REFLECTOR JOURNAL SYNTHESIS ENDPOINT
+# =============================================================================
+
+class ReflectorJournalSynthesis(BaseModel):
+    """Response model for Reflector's 'You've Been Noticing' journal synthesis"""
+    user_id: str
+    cycle_start: str  # ISO date of lunar cycle start
+    cycle_day: int
+    entries_in_cycle: int
+    synthesis: Dict[str, Optional[str]]  # {early_cycle, mid_cycle, current_direction}
+    has_enough_data: bool
+    message: Optional[str] = None  # For empty state or context
+
+
+def get_lunar_cycle_dates() -> tuple:
+    """Calculate current lunar cycle start date and day"""
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    # Known new moon: January 29, 2025 (for reference point)
+    known_new_moon = datetime(2025, 1, 29, 12, 0, 0, tzinfo=timezone.utc)
+    lunar_cycle_length = 29.53  # days
+    
+    days_since = (now - known_new_moon).total_seconds() / (60 * 60 * 24)
+    cycles_since = int(days_since // lunar_cycle_length)
+    current_cycle_start = known_new_moon + timedelta(days=cycles_since * lunar_cycle_length)
+    day_in_cycle = int(days_since % lunar_cycle_length) + 1
+    
+    return current_cycle_start, day_in_cycle
+
+
+@api_router.get("/journal/{user_id}/reflector-synthesis", response_model=ReflectorJournalSynthesis)
+async def get_reflector_journal_synthesis(user_id: str):
+    """
+    Reflector Journal Synthesis - 'You've Been Noticing' feature
+    
+    Analyzes journal entries from the current lunar cycle and generates
+    a 3-line summary of the user's journey:
+    - early_cycle: First week pattern (days 1-10)
+    - mid_cycle: Mid-cycle shift (days 11-20)  
+    - current_direction: Where things are heading (days 21-28+)
+    
+    Uses observational Mirror language, no advice or instructions.
+    """
+    try:
+        cycle_start, day_in_cycle = get_lunar_cycle_dates()
+        
+        # Fetch journal entries for current lunar cycle
+        entries = await db.journal.find({
+            "user_id": user_id,
+            "created_at": {"$gte": cycle_start}
+        }).sort("created_at", 1).to_list(100)
+        
+        entries_count = len(entries)
+        
+        # Minimum threshold for meaningful synthesis
+        if entries_count < 2:
+            return ReflectorJournalSynthesis(
+                user_id=user_id,
+                cycle_start=cycle_start.isoformat(),
+                cycle_day=day_in_cycle,
+                entries_in_cycle=entries_count,
+                synthesis={
+                    "early_cycle": None,
+                    "mid_cycle": None,
+                    "current_direction": None
+                },
+                has_enough_data=False,
+                message="As you reflect during this cycle, patterns will surface here."
+            )
+        
+        # Group entries by cycle phase
+        early_entries = []  # Days 1-10
+        mid_entries = []    # Days 11-20
+        late_entries = []   # Days 21+
+        
+        for entry in entries:
+            entry_date = entry.get("created_at")
+            if entry_date:
+                if isinstance(entry_date, str):
+                    entry_date = datetime.fromisoformat(entry_date.replace('Z', '+00:00'))
+                if entry_date.tzinfo is None:
+                    entry_date = entry_date.replace(tzinfo=timezone.utc)
+                
+                days_since_start = (entry_date - cycle_start).days + 1
+                content = entry.get("content", "")
+                
+                if days_since_start <= 10:
+                    early_entries.append(content)
+                elif days_since_start <= 20:
+                    mid_entries.append(content)
+                else:
+                    late_entries.append(content)
+        
+        # Generate synthesis lines using pattern analysis
+        synthesis = {
+            "early_cycle": None,
+            "mid_cycle": None,
+            "current_direction": None
+        }
+        
+        # Early cycle synthesis (what was showing up at the start)
+        if early_entries:
+            early_themes = extract_simple_themes(early_entries)
+            if early_themes:
+                synthesis["early_cycle"] = f"In the first week, you were noticing {early_themes[0].lower()}."
+        
+        # Mid cycle synthesis (what shifted or deepened)
+        if mid_entries:
+            mid_themes = extract_simple_themes(mid_entries)
+            early_themes = extract_simple_themes(early_entries) if early_entries else []
+            
+            if mid_themes:
+                # Check if theme shifted from early
+                if early_themes and mid_themes[0] != early_themes[0]:
+                    synthesis["mid_cycle"] = f"By mid-cycle, something shifted toward {mid_themes[0].lower()}."
+                else:
+                    synthesis["mid_cycle"] = f"As the cycle deepened, {mid_themes[0].lower()} stayed present."
+        
+        # Current direction synthesis (where things seem to be heading)
+        if late_entries:
+            late_themes = extract_simple_themes(late_entries)
+            if late_themes:
+                synthesis["current_direction"] = f"Now, the pattern seems to be {late_themes[0].lower()}."
+        elif mid_entries and day_in_cycle > 20:
+            # If we're late in cycle but no late entries, use mid trends
+            mid_themes = extract_simple_themes(mid_entries)
+            if mid_themes:
+                synthesis["current_direction"] = f"The cycle is completing. {mid_themes[0]} is still settling."
+        elif early_entries and day_in_cycle > 10:
+            # We only have early entries but we're past first week
+            early_themes = extract_simple_themes(early_entries)
+            if early_themes:
+                synthesis["current_direction"] = f"What emerged early—{early_themes[0].lower()}—continues to unfold."
+        
+        has_data = any(v is not None for v in synthesis.values())
+        
+        return ReflectorJournalSynthesis(
+            user_id=user_id,
+            cycle_start=cycle_start.isoformat(),
+            cycle_day=day_in_cycle,
+            entries_in_cycle=entries_count,
+            synthesis=synthesis,
+            has_enough_data=has_data,
+            message=None if has_data else "Keep reflecting. Patterns will emerge."
+        )
+        
+    except Exception as e:
+        logger.error(f"[ReflectorSynthesis] Error for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def extract_simple_themes(entries: List[str]) -> List[str]:
+    """Extract dominant themes from journal entries using simple keyword analysis"""
+    if not entries:
+        return []
+    
+    # Theme patterns to detect (Mirror-friendly labels)
+    theme_patterns = {
+        "energy and rest": ["tired", "rest", "energy", "exhausted", "drained", "sleep", "fatigue"],
+        "relationships": ["someone", "they", "friend", "family", "partner", "relationship", "connection", "people"],
+        "decisions": ["decide", "choice", "should", "uncertain", "option", "weighing", "choosing"],
+        "clarity": ["clear", "clarity", "understand", "realize", "see", "notice", "insight"],
+        "change": ["change", "shift", "different", "new", "transition", "moving", "evolving"],
+        "emotions": ["feel", "feeling", "emotional", "sad", "happy", "anxious", "calm", "peaceful"],
+        "work and direction": ["work", "project", "purpose", "direction", "goal", "path", "career"],
+        "inner tension": ["conflict", "torn", "stuck", "confused", "overwhelmed", "pressure", "stress"],
+        "self-reflection": ["myself", "who I am", "identity", "self", "inner", "authentic", "true"],
+    }
+    
+    # Count theme occurrences
+    combined_text = " ".join(entries).lower()
+    theme_scores = {}
+    
+    for theme, keywords in theme_patterns.items():
+        score = sum(1 for kw in keywords if kw in combined_text)
+        if score > 0:
+            theme_scores[theme] = score
+    
+    if not theme_scores:
+        return ["something taking shape"]
+    
+    # Return themes sorted by score
+    sorted_themes = sorted(theme_scores.items(), key=lambda x: x[1], reverse=True)
+    return [theme for theme, score in sorted_themes[:3]]
+
+
+# =============================================================================
 # MIRROR INSIGHT ENDPOINTS
 # =============================================================================
 
@@ -6089,7 +6274,7 @@ async def mirror_chat(request: MirrorChatRequest):
         session_id = request.session_id or str(uuid.uuid4())
         
         # Get user's chart data for context
-        logger.info(f"[MIRROR_CHAT] Fetching user and chart data...")
+        logger.info("[MIRROR_CHAT] Fetching user and chart data...")
         user = await db.users.find_one({"_id": ObjectId(request.user_id)})
         chart = await db.charts.find_one({"user_id": request.user_id})
         
@@ -7626,19 +7811,19 @@ def _generate_sharper_echo_text(
     
     # Fallback with category context (when moment type isn't clear)
     if primary_category == "Turning Point":
-        templates.append(f"A similar tension showed up at turning points around {{years}}.")
-        templates.append(f"You may have navigated this during pivotal moments around {{years}}.")
+        templates.append("A similar tension showed up at turning points around {years}.")
+        templates.append("You may have navigated this during pivotal moments around {years}.")
     elif primary_category == "Career":
-        templates.append(f"This pattern echoes work moments around {{years}}.")
-        templates.append(f"A similar tension surfaced in your career around {{years}}.")
+        templates.append("This pattern echoes work moments around {years}.")
+        templates.append("A similar tension surfaced in your career around {years}.")
     elif primary_category == "Relationships":
-        templates.append(f"You may have felt this in relationship moments around {{years}}.")
+        templates.append("You may have felt this in relationship moments around {years}.")
     elif primary_category == "Identity":
-        templates.append(f"This echoes times of self-definition around {{years}}.")
+        templates.append("This echoes times of self-definition around {years}.")
     
     # Generic fallback (still recognition-focused)
-    templates.append(f"You may have seen this pattern before—around {{years}}.")
-    templates.append(f"A similar tension appeared in your timeline around {{years}}.")
+    templates.append("You may have seen this pattern before—around {years}.")
+    templates.append("A similar tension appeared in your timeline around {years}.")
     
     # Select template deterministically
     idx = (years[0] + confidence_score) % len(templates)
@@ -10229,13 +10414,13 @@ async def check_and_migrate_astrology_chart(user_id: str) -> Tuple[bool, str, di
     
     # Check required fields
     if not user.get('timezone'):
-        return (False, f"Cannot migrate: missing timezone", chart)
+        return (False, "Cannot migrate: missing timezone", chart)
     if not user.get('birth_time'):
-        return (False, f"Cannot migrate: missing birth_time", chart)
+        return (False, "Cannot migrate: missing birth_time", chart)
     if not user.get('birth_date'):
-        return (False, f"Cannot migrate: missing birth_date", chart)
+        return (False, "Cannot migrate: missing birth_date", chart)
     if not user.get('birth_location'):
-        return (False, f"Cannot migrate: missing birth_location", chart)
+        return (False, "Cannot migrate: missing birth_location", chart)
     
     # Trigger recalculation
     try:
@@ -11934,7 +12119,7 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
         logger.info(f"  metadata.node_mode: {node_mode}")
         logger.info(f"  nodes.north: {node_north.get('sign')}/{node_north.get('degree', 0):.2f}° (House {node_north.get('house')})")
         logger.info(f"  nodes.south: {node_south.get('sign')}/{node_south.get('degree', 0):.2f}° (House {node_south.get('house')})")
-        logger.info(f"  handoff_ok: true")
+        logger.info("  handoff_ok: true")
         
         # =====================================================================
         # PREPARE CANONICAL FULL CHART JSON FOR LLM CONTEXT
@@ -12361,7 +12546,7 @@ def get_incarnation_cross_label(cross_string):
                 return cross_name
             else:
                 return 'Unknown'
-        except Exception as e:
+        except Exception:
             # If there's any error processing the dict, return a safe fallback
             return cross_string.get('name', 'Unknown') if isinstance(cross_string, dict) else 'Unknown'
     
@@ -12396,7 +12581,7 @@ def get_incarnation_cross_label(cross_string):
         
         # Fallback: return as-is
         return cross_string
-    except Exception as e:
+    except Exception:
         # If there's any error, return the input as-is or 'Unknown'
         return cross_string if isinstance(cross_string, str) else 'Unknown'
 
@@ -12901,8 +13086,8 @@ Profile: {hd_data['profile']}
                 "title": "Today's Experiment",
                 "date": today_date,
                 "sections": [
-                    {"label": "Today's Focus", "body": f"Notice when decisions feel easy versus forced."},
-                    {"label": "A Small Experiment", "body": f"Before saying yes to something today, pause and notice what your body does."},
+                    {"label": "Today's Focus", "body": "Notice when decisions feel easy versus forced."},
+                    {"label": "A Small Experiment", "body": "Before saying yes to something today, pause and notice what your body does."},
                     {"label": "What to Notice", "body": "Is there an immediate pull toward or away? Does clarity come right away or need time?"}
                 ],
                 "mirror_prompt": "What did you notice about how decisions felt today?"
@@ -13251,7 +13436,7 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
         logger.info(f"  profile: {profile}")
         logger.info(f"  incarnation_cross: {incarnation_cross.get('name')}")
         logger.info(f"  defined_centers: {len(defined_centers)}")
-        logger.info(f"  handoff_ok: true")
+        logger.info("  handoff_ok: true")
         
         # =====================================================================
         # PREPARE CANONICAL HD JSON FOR ASSISTANT CONTEXT
@@ -13507,10 +13692,10 @@ You're essentially here for one thing. The specific gates of your cross describe
         
         fallback_content = {
             "type": ("Type: Your Energy Architecture", type_descriptions.get(hd_type, f"As a {hd_type}, there's a particular way energy tends to move through you.")),
-            "strategy": ("Strategy: Your Engagement Pattern", strategy_descriptions_rich.get(hd_type, f"Your strategy points to how you engage most effectively with life.")),
+            "strategy": ("Strategy: Your Engagement Pattern", strategy_descriptions_rich.get(hd_type, "Your strategy points to how you engage most effectively with life.")),
             "authority": ("Authority: Your Clarity Process", authority_descriptions.get(authority, f"With {authority} authority, there's a specific way clarity tends to emerge for you.")),
             "profile": ("Profile: Your Learning Style", profile_descriptions.get(profile, f"Your {profile} profile suggests a particular way you tend to learn and grow.")),
-            "cross": ("Incarnation Cross: Your Life Direction", cross_descriptions_rich.get("Right Angle Cross" if "Right" in incarnation_cross.get('name', '') else "Left Angle Cross" if "Left" in incarnation_cross.get('name', '') else "Juxtaposition Cross" if "Juxtaposition" in incarnation_cross.get('name', '') else "Right Angle Cross", f"Your incarnation cross points to a broad life theme.")),
+            "cross": ("Incarnation Cross: Your Life Direction", cross_descriptions_rich.get("Right Angle Cross" if "Right" in incarnation_cross.get('name', '') else "Left Angle Cross" if "Left" in incarnation_cross.get('name', '') else "Juxtaposition Cross" if "Juxtaposition" in incarnation_cross.get('name', '') else "Right Angle Cross", "Your incarnation cross points to a broad life theme.")),
             "definition": ("Definition & Centers", definition_desc)
         }
         
@@ -14102,7 +14287,7 @@ async def get_pattern_graph(user_id: str):
                                 "houses": natal_chart_data.get("houses", {}),
                                 "ascendant": natal_chart_data.get("ascendant")
                             }
-                            logger.debug(f"[PatternGraph] Loaded natal chart for transit calculations")
+                            logger.debug("[PatternGraph] Loaded natal chart for transit calculations")
                     except Exception as natal_err:
                         logger.debug(f"[PatternGraph] Could not load natal chart: {natal_err}")
                         
@@ -15672,7 +15857,7 @@ async def get_numerology_deep_dive(user_id: str, force_refresh: bool = False):
         logger.info(f"  birthday_number: {birthday_number}")
         logger.info(f"  personal_year: {personal_year}")
         logger.info(f"  has_name_numbers: {has_name}")
-        logger.info(f"  handoff_ok: true")
+        logger.info("  handoff_ok: true")
         
         # =====================================================================
         # PREPARE CANONICAL NUMEROLOGY JSON FOR ASSISTANT CONTEXT
@@ -16687,16 +16872,16 @@ def generate_today_connections(
     
     # Generate specific connections based on Ten God
     ten_god_connections = {
-        "Resource": f"Your tendency to think before acting may be stronger. Give yourself processing time.",
-        "Output": f"Your expressive side is amplified. Good for creating, but watch for over-sharing.",
-        "Opportunity": f"Practical opportunities may present. Stay grounded in priorities.",
-        "Stability": f"Responsibilities may feel heavier. Distinguish chosen from inherited duties.",
-        "Structure": f"External expectations may feel pressing. Choose your battles carefully.",
-        "Power": f"Intensity is heightened. Transform pressure into focused action.",
-        "Companion": f"Peer dynamics are activated. Competition or collaboration — notice which you default to.",
-        "Competitor": f"Comparison energy is high. Focus on your path, not others'.",
-        "Insight": f"Your intuitive side is active. Trust what surfaces without forcing answers.",
-        "Expression": f"Your need to be seen or heard is stronger. Channel it constructively.",
+        "Resource": "Your tendency to think before acting may be stronger. Give yourself processing time.",
+        "Output": "Your expressive side is amplified. Good for creating, but watch for over-sharing.",
+        "Opportunity": "Practical opportunities may present. Stay grounded in priorities.",
+        "Stability": "Responsibilities may feel heavier. Distinguish chosen from inherited duties.",
+        "Structure": "External expectations may feel pressing. Choose your battles carefully.",
+        "Power": "Intensity is heightened. Transform pressure into focused action.",
+        "Companion": "Peer dynamics are activated. Competition or collaboration — notice which you default to.",
+        "Competitor": "Comparison energy is high. Focus on your path, not others'.",
+        "Insight": "Your intuitive side is active. Trust what surfaces without forcing answers.",
+        "Expression": "Your need to be seen or heard is stronger. Channel it constructively.",
     }
     
     specific_connection = ten_god_connections.get(today_ten_god, "Notice how today's energy interacts with your patterns.")
@@ -17873,7 +18058,7 @@ async def save_enneagram_result(request: EnneagramResultSave):
         # INSTRUMENTATION: Log all Enneagram submission details
         # =====================================================
         raw_scores = request.debug_scores.raw_scores if request.debug_scores else {}
-        logger.info(f"[ENNEAGRAM_SUBMISSION] ========================================")
+        logger.info("[ENNEAGRAM_SUBMISSION] ========================================")
         logger.info(f"[ENNEAGRAM_SUBMISSION] user_id: {request.user_id}")
         logger.info(f"[ENNEAGRAM_SUBMISSION] raw_scores: {raw_scores}")
         logger.info(f"[ENNEAGRAM_SUBMISSION] primary_type: {request.inferred_core}")
@@ -17881,7 +18066,7 @@ async def save_enneagram_result(request: EnneagramResultSave):
         logger.info(f"[ENNEAGRAM_SUBMISSION] wing_scores: left={request.debug_scores.wing_scores.left if request.debug_scores and request.debug_scores.wing_scores else 0}, right={request.debug_scores.wing_scores.right if request.debug_scores and request.debug_scores.wing_scores else 0}")
         logger.info(f"[ENNEAGRAM_SUBMISSION] confidence: {request.confidence} ({request.confidence_tier})")
         logger.info(f"[ENNEAGRAM_SUBMISSION] top_candidates: {[(c.type, c.probability) for c in request.top_candidates]}")
-        logger.info(f"[ENNEAGRAM_SUBMISSION] ========================================")
+        logger.info("[ENNEAGRAM_SUBMISSION] ========================================")
         
         # Validate user exists
         user = await db.users.find_one({"_id": ObjectId(request.user_id)})
@@ -18129,7 +18314,7 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
         # =====================================================
         # INSTRUMENTATION: Log retrieval request
         # =====================================================
-        logger.info(f"[ENNEAGRAM_RETRIEVAL] ========================================")
+        logger.info("[ENNEAGRAM_RETRIEVAL] ========================================")
         logger.info(f"[ENNEAGRAM_RETRIEVAL] user_id: {user_id}")
         logger.info(f"[ENNEAGRAM_RETRIEVAL] debug_mode: {debug}")
         
@@ -18152,7 +18337,7 @@ async def get_enneagram_result(user_id: str, debug: bool = False):
         logger.info(f"[ENNEAGRAM_RETRIEVAL]   wing: {result.get('inferred_wing')}")
         logger.info(f"[ENNEAGRAM_RETRIEVAL]   raw_scores: {raw_scores}")
         logger.info(f"[ENNEAGRAM_RETRIEVAL]   confidence: {result.get('confidence_tier')}")
-        logger.info(f"[ENNEAGRAM_RETRIEVAL] ========================================")
+        logger.info("[ENNEAGRAM_RETRIEVAL] ========================================")
         
         if not result:
             return {"has_result": False, "result": None}
@@ -20306,7 +20491,7 @@ async def get_user_activation_sequence(user_id: str):
         # Compute Human Design chart
         from calculations.human_design import get_human_design_chart
         
-        logger.info(f"[GeneKeys] Calling get_human_design_chart...")
+        logger.info("[GeneKeys] Calling get_human_design_chart...")
         canonical_hd = get_human_design_chart(
             birth_datetime=birth_utc,
             lat=float(latitude),
@@ -20353,7 +20538,7 @@ async def get_user_activation_sequence(user_id: str):
             design_earth_line=d_earth_line,
         )
         
-        logger.info(f"[GeneKeys] Successfully built Activation Sequence")
+        logger.info("[GeneKeys] Successfully built Activation Sequence")
         return activation
         
     except HTTPException:
@@ -20469,7 +20654,7 @@ async def get_user_venus_sequence(user_id: str):
             personality_mars_line=p_mars_line,
         )
         
-        logger.info(f"[GeneKeys] Successfully built Venus Sequence")
+        logger.info("[GeneKeys] Successfully built Venus Sequence")
         return venus
         
     except HTTPException:
@@ -20580,7 +20765,7 @@ async def get_user_pearl_sequence(user_id: str):
             design_jupiter_line=d_jupiter_line,
         )
         
-        logger.info(f"[GeneKeys] Successfully built Pearl Sequence")
+        logger.info("[GeneKeys] Successfully built Pearl Sequence")
         return pearl
         
     except HTTPException:

@@ -1150,6 +1150,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const [fieldSignals, setFieldSignals] = useState<any>(null);
   const [fieldLoading, setFieldLoading] = useState(false);
   
+  // Reflector journal synthesis for "You've Been Noticing" feature
+  const [reflectorSynthesis, setReflectorSynthesis] = useState<any>(null);
+  const [reflectorSynthesisLoading, setReflectorSynthesisLoading] = useState(false);
+  
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
   
@@ -1161,8 +1165,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     if (activeTab === 'today' && userId) {
       loadTransitSignals();
       loadFieldSignals();
+      // Load reflector synthesis if user is a Reflector
+      if (data?.core_mechanics?.type === 'Reflector') {
+        loadReflectorSynthesis();
+      }
     }
-  }, [activeTab, userId]);
+  }, [activeTab, userId, data?.core_mechanics?.type]);
 
   const loadTransitSignals = async () => {
     try {
@@ -1185,6 +1193,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       console.error('[HD] Failed to load field signals:', error);
     } finally {
       setFieldLoading(false);
+    }
+  };
+
+  const loadReflectorSynthesis = async () => {
+    try {
+      setReflectorSynthesisLoading(true);
+      const response = await api.get(`/journal/${userId}/reflector-synthesis`);
+      setReflectorSynthesis(response.data);
+    } catch (error) {
+      console.error('[HD] Failed to load reflector synthesis:', error);
+    } finally {
+      setReflectorSynthesisLoading(false);
     }
   };
 
@@ -3736,6 +3756,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </View>
         
+        {/* 2.5 WHAT'S HOLDING - Pattern Memory Layer */}
+        <View style={[styles.reflectorHoldingCard, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
+          <Text style={[styles.reflectorSectionLabel, { color: theme.textTertiary }]}>WHAT'S HOLDING</Text>
+          <Text style={[styles.reflectorHoldingText, { color: theme.text }]}>
+            {lunarInfo.whatHolding}
+          </Text>
+        </View>
+        
         {/* 3. DECISION GUIDANCE */}
         <View style={[styles.reflectorDecisionCard, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
           <Text style={[styles.reflectorSectionLabel, { color: theme.textTertiary }]}>FOR DECISIONS</Text>
@@ -3784,7 +3812,49 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </TouchableOpacity>
         </View>
         
-        {/* 6. CYCLE WISDOM */}
+        {/* Divider before journal synthesis */}
+        <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
+        
+        {/* 6. YOU'VE BEEN NOTICING - Journal Synthesis */}
+        <View style={[styles.reflectorSynthesisCard, { backgroundColor: theme.surface, borderColor: theme.accent + '25' }]}>
+          <Text style={[styles.reflectorSectionLabel, { color: theme.accent }]}>YOU'VE BEEN NOTICING</Text>
+          
+          {reflectorSynthesisLoading ? (
+            <ActivityIndicator size="small" color={theme.accent} style={{ marginVertical: 12 }} />
+          ) : reflectorSynthesis?.has_enough_data ? (
+            <View style={styles.reflectorSynthesisContent}>
+              {reflectorSynthesis.synthesis.early_cycle && (
+                <Text style={[styles.reflectorSynthesisLine, { color: theme.text }]}>
+                  {reflectorSynthesis.synthesis.early_cycle}
+                </Text>
+              )}
+              {reflectorSynthesis.synthesis.mid_cycle && (
+                <Text style={[styles.reflectorSynthesisLine, { color: theme.text }]}>
+                  {reflectorSynthesis.synthesis.mid_cycle}
+                </Text>
+              )}
+              {reflectorSynthesis.synthesis.current_direction && (
+                <Text style={[styles.reflectorSynthesisLine, { color: theme.text, fontStyle: 'italic' }]}>
+                  {reflectorSynthesis.synthesis.current_direction}
+                </Text>
+              )}
+              <Text style={[styles.reflectorSynthesisMeta, { color: theme.textTertiary }]}>
+                Day {reflectorSynthesis.cycle_day} · {reflectorSynthesis.entries_in_cycle} reflections this cycle
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.reflectorSynthesisEmpty}>
+              <Text style={[styles.reflectorSynthesisEmptyText, { color: theme.textSecondary }]}>
+                {reflectorSynthesis?.message || reflectorContent.youveBeenNoticing.emptyState}
+              </Text>
+              <Text style={[styles.reflectorSynthesisMeta, { color: theme.textTertiary }]}>
+                Day {reflectorSynthesis?.cycle_day || lunarInfo.dayInCycle} of this cycle
+              </Text>
+            </View>
+          )}
+        </View>
+        
+        {/* 7. CYCLE WISDOM */}
         <View style={styles.reflectorCycleWisdom}>
           <Text style={[styles.reflectorWisdomText, { color: theme.textTertiary }]}>
             You experience life differently every day. This isn't inconsistency—it's depth.
@@ -10465,6 +10535,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
+  reflectorHoldingCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  reflectorHoldingText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
   reflectorDecisionCard: {
     marginHorizontal: 16,
     marginTop: 12,
@@ -10516,6 +10597,34 @@ const styles = StyleSheet.create({
   reflectorReflectCtaText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  reflectorSynthesisCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  reflectorSynthesisContent: {
+    gap: 8,
+  },
+  reflectorSynthesisLine: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  reflectorSynthesisMeta: {
+    fontSize: 11,
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  reflectorSynthesisEmpty: {
+    paddingVertical: 8,
+  },
+  reflectorSynthesisEmptyText: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   reflectorCycleWisdom: {
     marginHorizontal: 16,

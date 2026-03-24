@@ -6,7 +6,7 @@ Additional comprehensive test for Human Design Variables strict computation
 import requests
 import json
 
-BASE_URL = "https://trigram-visuals.preview.emergentagent.com/api"
+BASE_URL = "https://lunar-cycle-mirror.preview.emergentagent.com/api"
 
 def test_additional_scenarios():
     """Test additional scenarios to verify strict computation"""
