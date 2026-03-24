@@ -2921,34 +2921,35 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         )}
 
-        {/* SECTION 5: ENVIRONMENT - Only shown when backend computes Variables */}
+        {/* SECTION 5: HOW YOU WORK BEST - Unified Environment + Determination + Cognition */}
         {/* STRICT: Only display when deterministic backend data is available */}
         {(() => {
-          // Only show Environment section if backend returned computed Variables
+          // Only show section if backend returned computed Variables
           if (!data?.variables) return null;
           
-          // Get environment type from backend Variables (data.variables.environment.type)
-          const envType = data?.variables?.environment?.type || 
-                          (typeof data?.variables?.environment === 'string' ? data?.variables?.environment : null);
-          if (!envType) return null;
+          // Get variable types from backend
+          const envType = data?.variables?.environment?.type;
+          const detType = data?.variables?.determination?.type;
+          const cogType = data?.variables?.cognition?.type;
           
-          const envContent = getEnvironmentAtAGlance(envType, hdType);
-          if (!envContent) return null;
+          // Need at least one variable to show the section
+          if (!envType && !detType && !cogType) return null;
+          
+          const content = getHowYouWorkBestAtAGlance(envType, detType, cogType, hdType);
+          if (!content) return null;
           
           return (
             <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>ENVIRONMENT</Text>
+              <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>HOW YOU WORK BEST</Text>
               <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.text }]}>
-                {envContent.line1}
+                {content.line1}
               </Text>
-              <View style={styles.hdGlanceEnvironmentDetails}>
-                <Text style={[styles.hdGlanceEnvironmentDetail, { color: theme.textSecondary }]}>
-                  {envContent.line2}
-                </Text>
-                <Text style={[styles.hdGlanceEnvironmentDetail, { color: theme.textSecondary }]}>
-                  {envContent.line3}
-                </Text>
-              </View>
+              <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.text, marginTop: 6 }]}>
+                {content.line2}
+              </Text>
+              <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.text, marginTop: 6 }]}>
+                {content.line3}
+              </Text>
             </View>
           );
         })()}
@@ -4054,297 +4055,289 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   };
   
   // ============================================
-  // ENVIRONMENT CONTENT - Mirror tone, lived experience
+  // HOW YOU WORK BEST - Unified Environment + Determination + Cognition
+  // Mirror tone, lived experience, no system language
   // ============================================
   
-  // Get Environment At a Glance content - max 3 lines, lived experience
-  const getEnvironmentAtAGlance = (environment: string | undefined, hdType: string): { line1: string; line2: string; line3: string } | null => {
-    const env = environment?.toLowerCase() || '';
-    
-    // Map HD environments to lived experience descriptions (NO system language)
-    const environmentContent: Record<string, { line1: string; line2: string; line3: string }> = {
-      'caves': {
-        line1: 'You tend to think more clearly when you can retreat into a contained space—your own corner.',
-        line2: 'Too much exposure dulls you.',
-        line3: 'Too much input overwhelms you.'
-      },
-      'markets': {
-        line1: 'You tend to think more clearly when you\'re around activity—but not responsible for it.',
-        line2: 'Too much isolation dulls you.',
-        line3: 'Too much pressure overwhelms you.'
-      },
-      'kitchens': {
-        line1: 'You tend to function better when things feel warm, familiar, nourishing.',
-        line2: 'Cold or sterile environments drain you.',
-        line3: 'Somewhere you can prepare and create works best.'
-      },
-      'mountains': {
-        line1: 'You tend to function better when you have perspective—physical or mental elevation.',
-        line2: 'Being stuck in the details drains you.',
-        line3: 'A sense of overview helps you breathe.'
-      },
-      'valleys': {
-        line1: 'You tend to process better in acoustic environments—where sound carries or feels right.',
-        line2: 'Harsh or jarring noise drains you.',
-        line3: 'The right sound environment changes everything.'
-      },
-      'shores': {
-        line1: 'You tend to function better at edges—where things meet, change, or transition.',
-        line2: 'Being stuck in the middle drains you.',
-        line3: 'Boundaries and transitions suit you.'
-      }
-    };
-    
-    // Find matching environment if specified
-    if (env) {
-      for (const [key, content] of Object.entries(environmentContent)) {
-        if (env.includes(key)) return content;
-      }
-    }
-    
-    // Type-based fallbacks (always show something)
-    const typeDefaults: Record<string, { line1: string; line2: string; line3: string }> = {
-      'Reflector': {
-        line1: 'Your environment affects you more than most—you feel differences in places that others miss.',
-        line2: 'Wrong settings drain you faster than you realize.',
-        line3: 'Right settings unlock something others don\'t see.'
-      },
-      'Projector': {
-        line1: 'Where you place yourself matters—you function very differently depending on the setting.',
-        line2: 'The wrong room dulls your clarity.',
-        line3: 'The right room brings out your insight.'
-      },
-      'Generator': {
-        line1: 'Your energy responds differently depending on where you are—some places light you up, others drain you.',
-        line2: 'The wrong environment kills your motivation.',
-        line3: 'The right environment makes work feel like play.'
-      },
-      'Manifesting Generator': {
-        line1: 'You move fast, but where you move matters—some settings accelerate you, others slow you down.',
-        line2: 'Stuck environments frustrate you quickly.',
-        line3: 'Open, dynamic spaces let you thrive.'
-      },
-      'Manifestor': {
-        line1: 'You need space to initiate without resistance—some environments support this, others block it.',
-        line2: 'Controlling environments provoke you.',
-        line3: 'Autonomous settings let you flow.'
-      }
-    };
-    
-    return typeDefaults[hdType] || {
-      line1: 'You don\'t function the same in every setting—some places sharpen you, others drain you quickly.',
-      line2: 'The difference is often subtle.',
-      line3: 'But the impact accumulates over time.'
-    };
+  // Environment translations - where you function best (1 line each)
+  const ENVIRONMENT_TRANSLATIONS: Record<string, string> = {
+    'caves': 'You think more clearly when you can retreat into your own contained space',
+    'markets': 'You think more clearly when there\'s movement around you—but not when you\'re the center of it',
+    'kitchens': 'You function better when things feel warm, familiar, and nourishing',
+    'mountains': 'You function better when you have perspective—a sense of overview',
+    'valleys': 'You process better when the sound environment feels right—acoustics matter to you',
+    'shores': 'You function better at edges and transitions—where things meet or change'
   };
   
-  // Get Environment Deep Dive content - full card structure
-  const getEnvironmentDeepDiveContent = (environment: string | undefined, hdType: string): { 
-    recognition: string; 
-    showsUp: string[]; 
-    tension: string; 
-    quietTruth: string; 
+  // Determination translations - how you take things in (1 line each)
+  const DETERMINATION_TRANSLATIONS: Record<string, string> = {
+    'appetite': 'You take things in best when it\'s simple and immediate—overloading yourself shuts you down',
+    'taste': 'You take things in best when you can be selective—you need to taste before committing',
+    'thirst': 'You take things in best through what flows naturally—forcing input depletes you',
+    'touch': 'You take things in best through direct contact and texture—you need to feel it',
+    'sound': 'You take things in best when the acoustic environment supports you—noise disrupts your intake',
+    'light': 'You take things in best under the right lighting conditions—environment affects absorption'
+  };
+  
+  // Cognition translations - how you know something is right (1 line each)
+  const COGNITION_TRANSLATIONS: Record<string, string> = {
+    'smell': 'You know something is right when you can sense the atmosphere—if the vibe is off, trust it',
+    'taste': 'You know something is right through discrimination—you can taste when something fits',
+    'outer_vision': 'You know something is right when you can see the whole picture—peripheral awareness matters',
+    'inner_vision': 'You know something is right when you can focus deeply—concentration reveals truth',
+    'feeling': 'You know something is right when you can feel it in proximity—closeness brings clarity',
+    'touch': 'You know something is right when you can feel it physically—if it doesn\'t land, it\'s not it'
+  };
+  
+  // Get unified "How You Work Best" content for At a Glance
+  const getHowYouWorkBestAtAGlance = (
+    environmentType: string | undefined,
+    determinationType: string | undefined,
+    cognitionType: string | undefined,
+    hdType: string
+  ): { line1: string; line2: string; line3: string } | null => {
+    // Need at least one variable to show the section
+    if (!environmentType && !determinationType && !cognitionType) return null;
+    
+    const env = environmentType?.toLowerCase() || '';
+    const det = determinationType?.toLowerCase() || '';
+    const cog = cognitionType?.toLowerCase() || '';
+    
+    // Get translations or use type-based defaults
+    const line1 = ENVIRONMENT_TRANSLATIONS[env] || getTypeBasedEnvironment(hdType);
+    const line2 = DETERMINATION_TRANSLATIONS[det] || getTypeBasedDetermination(hdType);
+    const line3 = COGNITION_TRANSLATIONS[cog] || getTypeBasedCognition(hdType);
+    
+    return { line1, line2, line3 };
+  };
+  
+  // Type-based fallbacks (only used when specific variable data unavailable)
+  const getTypeBasedEnvironment = (hdType: string): string => {
+    const defaults: Record<string, string> = {
+      'Reflector': 'Your environment affects you more than most—you feel differences others miss',
+      'Projector': 'Where you place yourself matters—the wrong setting dulls your clarity',
+      'Generator': 'Some environments light you up, others drain you—you feel the difference in your body',
+      'Manifesting Generator': 'You need space to move between things—stuck environments frustrate you',
+      'Manifestor': 'You need environments where you can initiate without hitting walls'
+    };
+    return defaults[hdType] || 'You don\'t function the same in every setting—some sharpen you, others drain you';
+  };
+  
+  const getTypeBasedDetermination = (hdType: string): string => {
+    const defaults: Record<string, string> = {
+      'Reflector': 'You take things in by sampling—you need to test before absorbing',
+      'Projector': 'You take things in best when recognized—forcing input creates resistance',
+      'Generator': 'You take things in best when your body responds—override kills absorption',
+      'Manifesting Generator': 'You take things in best when it\'s alive—dead material doesn\'t stick',
+      'Manifestor': 'You take things in on your own terms—pushed input gets rejected'
+    };
+    return defaults[hdType] || 'You have a specific way of taking things in—forcing it doesn\'t work';
+  };
+  
+  const getTypeBasedCognition = (hdType: string): string => {
+    const defaults: Record<string, string> = {
+      'Reflector': 'You know something is right when it survives a full cycle—rushed knowing misleads',
+      'Projector': 'You know something is right when it\'s recognized in you—unacknowledged insight stays unclear',
+      'Generator': 'You know something is right when your body says yes—mental override confuses',
+      'Manifesting Generator': 'You know something is right when multiple signals align—one isn\'t enough',
+      'Manifestor': 'You know something is right when the urge is undeniable—subtle hints get ignored'
+    };
+    return defaults[hdType] || 'You have a specific way of knowing—learn to trust it';
+  };
+  
+  // Get detailed Deep Dive content for "How You Work Best" card
+  const getHowYouWorkBestDeepDive = (
+    environmentType: string | undefined,
+    determinationType: string | undefined,
+    cognitionType: string | undefined,
+    hdType: string
+  ): {
+    recognition: string;
+    environment: { label: string; content: string };
+    determination: { label: string; content: string };
+    cognition: { label: string; content: string };
+    tension: string;
+    quietTruth: string;
     forwardPull: string;
   } => {
-    const env = environment?.toLowerCase() || '';
+    const env = environmentType?.toLowerCase() || '';
+    const det = determinationType?.toLowerCase() || '';
+    const cog = cognitionType?.toLowerCase() || '';
     
-    // Base content that applies to all
-    const baseShowsUp = [
-      'You think better in certain settings than others',
-      'Being watched or evaluated changes how you show up',
-      'You often leave environments feeling off without knowing why'
-    ];
-    
-    const environmentDeepDive: Record<string, {
-      recognition: string;
-      showsUp: string[];
-      tension: string;
-      quietTruth: string;
-      forwardPull: string;
-    }> = {
-      'caves': {
-        recognition: 'You don\'t function the same in every setting—some places sharpen you, others drain you quickly.',
-        showsUp: [
-          'You think better when you can retreat to your own space',
-          'Too much stimulation scatters your focus',
-          'You often need to close a door—literal or metaphorical—to get clear'
-        ],
-        tension: 'You may place yourself in environments that demand constant exposure when you need containment.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time you\'re too visible for too long.',
-        forwardPull: 'You\'re starting to notice which environments actually work for you.' // OPENING
+    // Extended content for Deep Dive
+    const envDeepDive: Record<string, { label: string; content: string }> = {
+      'caves': { 
+        label: 'Where you function best',
+        content: 'You need contained spaces where you can control input. Too much exposure scatters your thinking. Privacy isn\'t preference—it\'s how you process.'
       },
       'markets': {
-        recognition: 'You don\'t function the same in every setting—some places sharpen you, others drain you quickly.',
-        showsUp: [
-          'You think better when there\'s movement around you',
-          'Too much silence can make you restless',
-          'You often do your best work where others are busy nearby'
-        ],
-        tension: 'You may place yourself in environments that expect stillness when you need activity.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time the energy around you goes flat.',
-        forwardPull: 'The right settings are becoming clearer over time.' // OPENING
+        label: 'Where you function best', 
+        content: 'You think better when there\'s activity around you—but not directed at you. Silence can feel deadening. Background movement sharpens your focus.'
       },
       'kitchens': {
-        recognition: 'You don\'t function the same in every setting—some places sharpen you, others drain you quickly.',
-        showsUp: [
-          'You function better in warm, nourishing environments',
-          'Cold or clinical settings drain you without you realizing',
-          'You often need to prepare or create to feel settled'
-        ],
-        tension: 'You may place yourself in environments that feel sterile when you need warmth.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time you\'re somewhere that doesn\'t feed you.',
-        forwardPull: 'Something about where you are is asking to shift.' // TENSION HOLD
+        label: 'Where you function best',
+        content: 'You need environments that feel nourishing and warm. Sterile settings drain you without you realizing. You function better where you can prepare or create.'
       },
       'mountains': {
-        recognition: 'You don\'t function the same in every setting—some places sharpen you, others drain you quickly.',
-        showsUp: [
-          'You think better when you have a sense of overview',
-          'Being trapped in details drains you',
-          'You often need physical or mental elevation to see clearly'
-        ],
-        tension: 'You may place yourself in environments that keep you stuck in minutiae when you need perspective.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time you can\'t see the bigger picture.',
-        forwardPull: 'You\'re starting to notice which environments actually work for you.' // OPENING
+        label: 'Where you function best',
+        content: 'You need perspective to think clearly—getting above the details. When you\'re stuck in minutiae, your clarity disappears. Overview brings you back.'
       },
       'valleys': {
-        recognition: 'You don\'t function the same in every setting—some places sharpen you, others drain you quickly.',
-        showsUp: [
-          'You process better when the sound environment feels right',
-          'Harsh noise or dead silence affects you more than others',
-          'You often need acoustic quality others don\'t notice'
-        ],
-        tension: 'You may place yourself in environments with wrong acoustics when you need the right sound.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time the sound around you is wrong.',
-        forwardPull: 'Something about where you are is asking to shift.' // TENSION HOLD
+        label: 'Where you function best',
+        content: 'Acoustics matter more to you than most. Wrong sound environments disrupt your processing in ways others don\'t understand. The right sound brings clarity.'
       },
       'shores': {
-        recognition: 'You don\'t function the same in every setting—some places sharpen you, others drain you quickly.',
-        showsUp: [
-          'You function better at edges and transitions',
-          'Being stuck in the middle of things drains you',
-          'You often need boundaries—places where things meet or change'
-        ],
-        tension: 'You may place yourself in environments that demand you stay central when you need the edge.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time you\'re stuck in the middle.',
-        forwardPull: 'The right settings are becoming clearer over time.' // OPENING
+        label: 'Where you function best',
+        content: 'You thrive at edges and transitions—where things meet or change. Being stuck in the middle of anything drains you. Boundaries and shifts suit you.'
       }
     };
     
-    // Find matching environment if specified
-    if (env) {
-      for (const [key, content] of Object.entries(environmentDeepDive)) {
-        if (env.includes(key)) return content;
-      }
-    }
-    
-    // Type-based fallbacks
-    const typeDefaults: Record<string, {
-      recognition: string;
-      showsUp: string[];
-      tension: string;
-      quietTruth: string;
-      forwardPull: string;
-    }> = {
-      'Reflector': {
-        recognition: 'You feel environments more acutely than most—where you are profoundly affects how you function.',
-        showsUp: [
-          'Your energy shifts dramatically depending on location',
-          'You absorb the quality of wherever you are',
-          'The right environment unlocks clarity; the wrong one creates confusion'
-        ],
-        tension: 'You may stay too long in places that don\'t serve you, not realizing they\'re the problem.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time you\'re in the wrong place.',
-        forwardPull: 'You\'re becoming more sensitive to what each environment does to you.' // OPENING
+    const detDeepDive: Record<string, { label: string; content: string }> = {
+      'appetite': {
+        label: 'How you take things in',
+        content: 'You absorb best when hungry for it—not when stuffed. Forcing information in kills retention. Wait for genuine appetite before consuming.'
       },
-      'Projector': {
-        recognition: 'Where you position yourself matters enormously—your insight sharpens or dulls based on setting.',
-        showsUp: [
-          'Some rooms bring out your wisdom; others mute it',
-          'You often know when you\'re in the wrong place before you understand why',
-          'Recognition flows more easily in certain environments'
-        ],
-        tension: 'You may accept invitations into environments that don\'t actually support you.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time your gifts aren\'t landing.',
-        forwardPull: 'The settings that work for you are becoming clearer over time.' // OPENING
+      'taste': {
+        label: 'How you take things in',
+        content: 'You need to taste before committing. Selective intake serves you. You\'re wired to discriminate—honor that instead of forcing acceptance.'
       },
-      'Generator': {
-        recognition: 'Your energy responds to environment—some places ignite you, others drain you quickly.',
-        showsUp: [
-          'Motivation rises or falls based on where you are',
-          'The right workspace can make you unstoppable',
-          'Wrong environments create frustration you might blame on yourself'
-        ],
-        tension: 'You may push through in settings that are actually working against you.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time your energy crashes.',
-        forwardPull: 'Something about where you spend your time is asking to shift.' // TENSION HOLD
+      'thirst': {
+        label: 'How you take things in',
+        content: 'You take in what flows naturally. Forcing input depletes you. What you\'re thirsty for is what you\'ll actually absorb and use.'
       },
-      'Manifesting Generator': {
-        recognition: 'Your multi-directional energy needs space that matches—some environments let you thrive, others box you in.',
-        showsUp: [
-          'You get restless quickly in limiting environments',
-          'Open, dynamic settings let you move between things',
-          'Too much structure in a place feels like prison'
-        ],
-        tension: 'You may force yourself to operate in settings built for linear people.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time you\'re stuck in one mode.',
-        forwardPull: 'You\'re starting to notice which environments actually work for you.' // OPENING
+      'touch': {
+        label: 'How you take things in',
+        content: 'You absorb through direct contact. Texture and physical sensation matter. You need to feel things to truly take them in.'
       },
-      'Manifestor': {
-        recognition: 'You need environments where you can initiate without hitting walls—some settings support this, others block it.',
-        showsUp: [
-          'Autonomous environments let you flow',
-          'Too much oversight or control creates resistance in you',
-          'You often need space that others would find isolating'
-        ],
-        tension: 'You may operate in environments that expect you to wait for permission.',
-        quietTruth: 'This doesn\'t resolve on its own—you feel it every time your impulse meets obstruction.',
-        forwardPull: 'The right settings are becoming clearer over time.' // OPENING
+      'sound': {
+        label: 'How you take things in',
+        content: 'Acoustic environment affects your intake. You absorb better when sound conditions are right. Noise isn\'t just annoying—it blocks absorption.'
+      },
+      'light': {
+        label: 'How you take things in',
+        content: 'Lighting conditions affect how you take things in. Wrong light doesn\'t just feel bad—it blocks proper absorption. Environment matters.'
       }
     };
     
-    return typeDefaults[hdType] || {
-      recognition: 'You don\'t function the same in every setting—some places sharpen you, others drain you quickly.',
-      showsUp: baseShowsUp,
-      tension: 'You may place yourself in environments that expect you to operate differently than you\'re wired for.',
-      quietTruth: 'This doesn\'t resolve on its own—you feel it every time you\'re in the wrong place.',
-      forwardPull: 'You\'re starting to notice which environments actually work for you.'
+    const cogDeepDive: Record<string, { label: string; content: string }> = {
+      'smell': {
+        label: 'How you know something is right',
+        content: 'You sense through atmosphere. If the vibe is off, you know—even when you can\'t explain why. Trust what you smell in situations.'
+      },
+      'taste': {
+        label: 'How you know something is right',
+        content: 'You know through discrimination. You can taste when something fits versus when it\'s slightly off. Your selectivity is accurate—use it.'
+      },
+      'outer_vision': {
+        label: 'How you know something is right',
+        content: 'You see the whole picture. Peripheral awareness catches what focused attention misses. Trust what you see in your wider field of vision.'
+      },
+      'inner_vision': {
+        label: 'How you know something is right',
+        content: 'Deep focus reveals truth to you. When you concentrate, you see what\'s really there. Scattered attention hides what\'s obvious when you look closely.'
+      },
+      'feeling': {
+        label: 'How you know something is right',
+        content: 'Proximity brings knowing. You feel clarity when close to something—distance creates uncertainty. Physical closeness reveals truth.'
+      },
+      'touch': {
+        label: 'How you know something is right',
+        content: 'You know through physical contact. If it doesn\'t land in your body, it\'s not yet true for you. Wait for the physical confirmation.'
+      }
+    };
+    
+    // Get specific content or type-based defaults
+    const environmentContent = envDeepDive[env] || {
+      label: 'Where you function best',
+      content: getTypeBasedEnvironment(hdType) + '. The impact of your setting accumulates over time—wrong environments cost you more than you realize.'
+    };
+    
+    const determinationContent = detDeepDive[det] || {
+      label: 'How you take things in',
+      content: getTypeBasedDetermination(hdType) + '. Your intake system is specific—honor it instead of overriding it.'
+    };
+    
+    const cognitionContent = cogDeepDive[cog] || {
+      label: 'How you know something is right',
+      content: getTypeBasedCognition(hdType) + '. Your knowing process is unique—learn to recognize when it\'s speaking.'
+    };
+    
+    // Recognition (universal opening)
+    const recognition = 'You have a specific way of functioning that works differently than most. Setting, intake, and knowing—they\'re wired together in you.';
+    
+    // Tension (universal challenge)
+    const tension = 'You may operate in ways that fight your natural functioning—wrong settings, forced intake, overridden knowing. The cost isn\'t always obvious.';
+    
+    // Quiet Truth (varied)
+    const quietTruths = [
+      'This doesn\'t fully resolve—you feel it every time you override your natural way.',
+      'The misalignment doesn\'t go away on its own—it accumulates.',
+      'You\'ve probably felt this your whole life without having words for it.'
+    ];
+    const quietTruth = quietTruths[Math.floor(hdType.length % quietTruths.length)];
+    
+    // Forward Pull (varied)
+    const forwardPulls = [
+      'You\'re starting to notice what actually works for you.', // OPENING
+      'The right conditions are becoming clearer over time.', // OPENING
+      'Something about how you\'ve been operating is asking to shift.' // TENSION HOLD
+    ];
+    const forwardPull = forwardPulls[Math.floor((env.length + det.length + cog.length) % forwardPulls.length)];
+    
+    return {
+      recognition,
+      environment: environmentContent,
+      determination: determinationContent,
+      cognition: cognitionContent,
+      tension,
+      quietTruth,
+      forwardPull
     };
   };
-  
+
   const getEnvironmentReflectionPrompt = (): string => {
     return 'Where do I feel most clear and capable—and what makes that setting different?';
   };
+  
+  const getHowYouWorkBestReflectionPrompt = (): string => {
+    return 'When do I feel most like myself—and what conditions are present when that happens?';
+  };
 
-  // Render Environment Card for Deep Dive - collapsible with 5-section structure
+  // Render "How You Work Best" Card for Deep Dive - unified Environment + Determination + Cognition
   // STRICT: Only render when backend Variables are computed (not null)
-  const renderEnvironmentCard = () => {
-    // Only show Environment card if backend returned computed Variables
+  const renderHowYouWorkBestCard = () => {
+    // Only show card if backend returned computed Variables
     if (!data?.variables) return null;
     
-    // Get environment type from backend Variables (data.variables.environment.type)
-    const envType = data?.variables?.environment?.type || 
-                    (typeof data?.variables?.environment === 'string' ? data?.variables?.environment : null);
-    if (!envType) return null;
+    // Get variable types from backend
+    const envType = data?.variables?.environment?.type;
+    const detType = data?.variables?.determination?.type;
+    const cogType = data?.variables?.cognition?.type;
     
-    const envContent = getEnvironmentDeepDiveContent(
+    // Need at least one variable to show the card
+    if (!envType && !detType && !cogType) return null;
+    
+    const content = getHowYouWorkBestDeepDive(
       envType,
+      detType,
+      cogType,
       data?.core_mechanics?.type || ''
     );
     
-    const isExpanded = expandedMechanic === 'environment';
+    const isExpanded = expandedMechanic === 'how_you_work_best';
     
     return (
       <View style={[styles.accordionCard, { backgroundColor: theme.surface, borderColor: theme.border, marginTop: 12 }]}>
         {/* Collapsed Header - always visible */}
         <TouchableOpacity
           style={styles.accordionHeader}
-          onPress={() => setExpandedMechanic(isExpanded ? null : 'environment')}
+          onPress={() => setExpandedMechanic(isExpanded ? null : 'how_you_work_best')}
           activeOpacity={0.7}
         >
           <View style={styles.accordionHeaderContent}>
-            <Text style={[styles.accordionTitle, { color: theme.text }]}>Your Environment</Text>
+            <Text style={[styles.accordionTitle, { color: theme.text }]}>How You Work Best</Text>
             <Text style={[styles.accordionSubtitle, { color: theme.textSecondary }]}>
-              Where you function best
+              Setting, intake, and knowing
             </Text>
           </View>
           <Ionicons 
@@ -4361,43 +4354,54 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <View style={styles.accordionSection}>
               <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>RECOGNITION</Text>
               <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>
-                {envContent.recognition}
+                {content.recognition}
               </Text>
             </View>
             
-            {/* 2. HOW THIS SHOWS UP */}
+            {/* 2. WHERE YOU FUNCTION BEST (Environment) */}
             <View style={styles.accordionSection}>
-              <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>HOW THIS SHOWS UP</Text>
-              {envContent.showsUp.map((item, index) => (
-                <Text 
-                  key={index} 
-                  style={[styles.accordionSectionText, { color: theme.textSecondary, marginBottom: 4 }]}
-                >
-                  • {item}
-                </Text>
-              ))}
+              <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>{content.environment.label.toUpperCase()}</Text>
+              <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>
+                {content.environment.content}
+              </Text>
             </View>
             
-            {/* 3. THE TENSION */}
+            {/* 3. HOW YOU TAKE THINGS IN (Determination) */}
+            <View style={styles.accordionSection}>
+              <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>{content.determination.label.toUpperCase()}</Text>
+              <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>
+                {content.determination.content}
+              </Text>
+            </View>
+            
+            {/* 4. HOW YOU KNOW SOMETHING IS RIGHT (Cognition) */}
+            <View style={styles.accordionSection}>
+              <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>{content.cognition.label.toUpperCase()}</Text>
+              <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>
+                {content.cognition.content}
+              </Text>
+            </View>
+            
+            {/* 5. THE TENSION */}
             <View style={styles.accordionSection}>
               <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>THE TENSION</Text>
               <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>
-                {envContent.tension}
+                {content.tension}
               </Text>
             </View>
             
-            {/* 4. QUIET TRUTH */}
+            {/* 6. QUIET TRUTH */}
             <View style={styles.accordionSection}>
               <Text style={[styles.accordionSectionLabel, { color: theme.textTertiary }]}>QUIET TRUTH</Text>
               <Text style={[styles.accordionSectionText, { color: theme.textSecondary }]}>
-                {envContent.quietTruth}
+                {content.quietTruth}
               </Text>
             </View>
             
-            {/* 5. FORWARD PULL - Varied */}
+            {/* 7. FORWARD PULL - Varied */}
             <View style={[styles.accordionSection, { backgroundColor: theme.accent + '08', padding: 12, borderRadius: 8, marginTop: 4 }]}>
               <Text style={[styles.accordionSectionText, { color: theme.text, fontStyle: 'italic' }]}>
-                {envContent.forwardPull}
+                {content.forwardPull}
               </Text>
             </View>
             
@@ -4405,11 +4409,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <TouchableOpacity
               style={[styles.accordionAskCta, { borderTopColor: theme.border }]}
               onPress={() => openReflection(
-                'Your Environment',
-                'environment',
-                getEnvironmentReflectionPrompt(),
+                'How You Work Best',
+                'how_you_work_best',
+                getHowYouWorkBestReflectionPrompt(),
                 'deep_dive',
-                'mechanic_environment',
+                'mechanic_how_you_work_best',
                 undefined
               )}
               activeOpacity={0.7}
@@ -4420,6 +4424,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         )}
       </View>
     );
+  };
+  
+  // Legacy function - keeping for compatibility
+  const renderEnvironmentCard = () => {
+    // Redirect to new unified card
+    return renderHowYouWorkBestCard();
   };
 
   const getCenterReflectionPrompt = (centerName: string, isDefined: boolean): string => {
