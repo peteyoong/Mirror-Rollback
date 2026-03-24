@@ -275,50 +275,59 @@ interface LunarPhaseInfo {
   percentComplete: number;
   phaseTheme: string;
   whatShifting: string;
+  whatHolding: string;
   decisionGuidance: string;
 }
 
 // Lunar phase themes for Reflector experience
-const LUNAR_PHASE_THEMES: Record<string, { theme: string; shifting: string; guidance: string }> = {
+const LUNAR_PHASE_THEMES: Record<string, { theme: string; shifting: string; holding: string; guidance: string }> = {
   'new': {
     theme: 'Beginning',
     shifting: 'A new cycle starts. What felt clear is resetting. Fresh impressions are arriving.',
-    guidance: 'Not the time to decide. The cycle is just beginning—let it unfold.'
+    holding: 'Nothing yet. The slate is wiped. This is where patterns begin to form.',
+    guidance: 'The cycle is just beginning. What emerges will unfold over time.'
   },
   'waxing_crescent': {
     theme: 'Emerging',
     shifting: 'Initial impressions are forming. You\'re starting to feel how this cycle will move.',
-    guidance: 'Still gathering. Notice what\'s surfacing without locking in.'
+    holding: 'First signals are appearing. Something might already be repeating from the start.',
+    guidance: 'Still gathering. What surfaces now may or may not last.'
   },
   'first_quarter': {
     theme: 'Building',
     shifting: 'Momentum is growing. Some things are becoming clearer, others more complex.',
-    guidance: 'You\'re halfway to having real information. Don\'t rush.'
+    holding: 'What showed up in the first week and is still here—that\'s starting to mean something.',
+    guidance: 'Halfway to having real information. The picture is incomplete.'
   },
   'waxing_gibbous': {
     theme: 'Clarifying',
     shifting: 'Details are sharpening. What matters is starting to separate from what doesn\'t.',
-    guidance: 'Patterns are emerging. Take note of what\'s consistent.'
+    holding: 'Some patterns have stayed consistent. Others have already dropped away.',
+    guidance: 'Patterns are emerging. What\'s been consistent is becoming visible.'
   },
   'full': {
     theme: 'Illumination',
     shifting: 'Maximum clarity for this cycle. What you\'re seeing now is the fullest picture.',
-    guidance: 'If something has stayed true across the cycle, it\'s probably real.'
+    holding: 'What stayed true across the full cycle—that\'s real. That\'s yours.',
+    guidance: 'If something has held from the beginning until now, it\'s probably not going anywhere.'
   },
   'waning_gibbous': {
     theme: 'Integrating',
     shifting: 'The peak has passed. Now you\'re processing what you learned.',
-    guidance: 'Reflect on what emerged. The cycle is completing.'
+    holding: 'The real patterns are clear now. What wasn\'t real is fading.',
+    guidance: 'What emerged is settling. The cycle is completing.'
   },
   'last_quarter': {
     theme: 'Releasing',
     shifting: 'Letting go of what doesn\'t serve. The cycle is winding down.',
-    guidance: 'Time to release what isn\'t true. Clarity is settling.'
+    holding: 'Only what\'s genuinely true is left. Everything else has released.',
+    guidance: 'What isn\'t true is dropping. Clarity is settling.'
   },
   'waning_crescent': {
     theme: 'Resting',
     shifting: 'The cycle is nearly complete. Rest before the next one begins.',
-    guidance: 'Allow completion. The next cycle will bring new information.'
+    holding: 'Whatever held through the entire cycle—that\'s the signal. The rest was noise.',
+    guidance: 'Completion is near. The next cycle will bring new information.'
   }
 };
 
@@ -373,6 +382,7 @@ const getLunarPhaseInfo = (): LunarPhaseInfo => {
     percentComplete,
     phaseTheme: phaseData.theme,
     whatShifting: phaseData.shifting,
+    whatHolding: phaseData.holding,
     decisionGuidance: phaseData.guidance
   };
 };
@@ -428,21 +438,39 @@ const REFLECTOR_MODE_CONTENT = {
     activeDecision: null as string | null
   },
   
-  // Today content for Reflectors
+  // Today content for Reflectors - UPGRADED micro reflections
   today: {
     title: 'RIGHT NOW',
     sections: {
       currentPhase: 'CURRENT PHASE',
       whatShifting: 'WHAT\'S SHIFTING',
+      whatHolding: 'WHAT\'S HOLDING',
       microReflection: 'A MOMENT TO NOTICE'
     },
+    // Pattern-aware micro reflections (no instructional language)
     microReflections: [
-      'Who have you been around today? How did they affect you?',
-      'Is your current mood yours—or did you pick it up somewhere?',
-      'What felt true this morning? Does it still feel true now?',
-      'Where are you right now? How is this place shaping your experience?',
-      'What decision is cycling through you? Where are you in the 28 days?'
+      'What changed today that didn\'t match yesterday?',
+      'What\'s been consistent across this cycle?',
+      'What keeps returning, even when your mood shifts?',
+      'What felt true in week one that\'s still true now?',
+      'What dropped away that you thought would stay?',
+      'Who affected you most today? How much of that was theirs?',
+      'What pattern from earlier in the cycle showed up again?'
     ]
+  },
+  
+  // "You've Been Noticing" - journal synthesis placeholder
+  // This will be populated from journal entries when available
+  youveBeenNoticing: {
+    title: 'YOU\'VE BEEN NOTICING',
+    intro: 'Patterns from your reflections this cycle',
+    emptyState: 'As you reflect during this cycle, patterns will surface here.',
+    // Structure for journal-based synthesis
+    synthesis: {
+      earlyCycle: null as string | null, // "In the first week, you were noticing..."
+      midCycle: null as string | null,   // "By mid-cycle, something shifted..."
+      currentDirection: null as string | null // "Now, the pattern seems to be..."
+    }
   }
 };
 
