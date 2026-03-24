@@ -77,29 +77,29 @@ const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
 
 // YOUR CORE PATTERN - Type as lived behavior (2-3 lines max)
 const TYPE_CORE_PATTERNS: { [key: string]: string } = {
-  'Generator': 'You say yes before checking if your body actually wants it.\nThen you\'re carrying something that was never yours to carry.',
+  'Generator': 'You say yes before checking if your body actually wants it.\nThen you\'re left carrying something that doesn\'t feel like yours.',
   'Manifesting Generator': 'You move before you\'re fully ready—then deal with it after.\nBy the time you explain, they\'ve often already reacted.',
-  'Projector': 'You see exactly what\'s off.\nBut if no one asked—it can land like criticism.',
-  'Manifestor': 'You act. Others react. It catches you off guard.\nThe resistance isn\'t always personal—but it can still hit.',
+  'Projector': 'You see exactly what\'s off—sometimes before they\'re ready to hear it.\nWithout the invitation, it can land differently than you meant.',
+  'Manifestor': 'You act. Others react. Sometimes it catches you off guard.\nThe resistance isn\'t always personal—but it still lands.',
   'Reflector': 'You walk into a room and start to feel it.\nWhat seems like your mood is often theirs.',
 };
 
 // HOW YOU DECIDE - Authority as lived experience (2-3 lines max)
 const AUTHORITY_LIVED: { [key: string]: string } = {
   'Emotional': 'You think you\'re clear—then it shifts.\nWhat felt right yesterday doesn\'t always hold today.',
-  'Sacral': 'Your body answers before your mind finishes weighing options.\nYou\'ve probably ignored it before.',
+  'Sacral': 'Your body answers before your mind finishes weighing options.\nYou\'ve probably overridden it before.',
   'Splenic': 'It came once. You hesitated. It didn\'t come again.\nThat was the knowing.',
   'Ego': 'You committed to something your heart wasn\'t fully in.\nThe follow-through tends to collapse.',
   'Self-Projected': 'You don\'t know what you think until you say it out loud.\nThe right words can surprise you.',
-  'Mental': 'Talking it through with the wrong person makes things worse.\nThe right ear changes everything.',
-  'Lunar': 'Deciding too fast leads to regret.\nThe clarity you need is often weeks away.',
-  'None': 'Your truth shifts when the room changes.\nYou weren\'t lying—you were somewhere else.',
+  'Mental': 'Talking it through with the wrong person makes things cloudier.\nThe right ear changes everything.',
+  'Lunar': 'Deciding too fast leads somewhere you didn\'t expect.\nThe clarity you need is often weeks away.',
+  'None': 'Your truth shifts when the room changes.\nYou weren\'t wrong—you were somewhere else.',
 };
 
 // YOUR LIFE THEME - Incarnation Cross as recurring pattern (2-3 lines)
 const CROSS_PATTERN_TEMPLATES: { [key: string]: string } = {
   'right_angle': 'The same theme keeps finding you:\nstepping into something bigger—then wondering what you signed up for.',
-  'left_angle': 'You get pulled into other people\'s stories.\nThe question is whether you\'re living yours or finishing theirs.',
+  'left_angle': 'You get pulled into other people\'s stories.\nThe question is whether you\'re living yours or helping finish theirs.',
   'juxtaposition': 'Your path doesn\'t bend easily.\nFriction tends to show up when you try to fit someone else\'s shape.',
 };
 
@@ -107,34 +107,34 @@ const CROSS_PATTERN_TEMPLATES: { [key: string]: string } = {
 const STRATEGY_TRANSLATIONS: { [key: string]: string } = {
   'Wait to Respond': 'Something has to land first—then your body knows.',
   'Wait for the Invitation': 'Pushing rarely lands well. Recognition opens what force can\'t.',
-  'Inform Before Acting': 'Moving without telling anyone causes friction. That\'s the pattern.',
-  'Wait a Lunar Cycle': 'Rushing backfires. The knowing needs more time.',
+  'Inform Before Acting': 'Moving without a heads-up creates friction. That\'s the pattern.',
+  'Wait a Lunar Cycle': 'Rushing tends to backfire. The knowing needs more time.',
 };
 
 // HOW THIS SHOWS UP - behavioral patterns as real scenarios (bullet format)
 const TYPE_BEHAVIORAL_PATTERNS: { [key: string]: string[] } = {
   'Generator': [
-    'You said yes out of guilt—then spent weeks wondering why you\'re drained.',
+    'You\'ve said yes out of guilt—then spent weeks wondering why you\'re drained.',
     'Your body knows the answer before you finish the question.',
     'When it\'s right, the energy shows up on its own.',
   ],
   'Manifesting Generator': [
-    'You started things quickly. Finished some. Dropped others without guilt.',
+    'You\'ve started things quickly. Finished some. Dropped others without guilt.',
     'Skipping steps feels natural. Going back to fill them in—less so.',
     'People call it scattered. You call it done.',
   ],
   'Projector': [
-    'You gave advice no one asked for. It landed like an attack.',
+    'You\'ve offered insight before realising they weren\'t ready. It landed differently than you meant.',
     'When someone finally sees you—things tend to unlock.',
     'You spot the problem in minutes. They take months.',
   ],
   'Manifestor': [
-    'You acted. They reacted. You didn\'t see it coming.',
+    'You acted. They reacted. It caught you off guard.',
     'The urge shows up—you\'re moving before you understand why.',
     'Informing once drops the resistance. It almost doesn\'t feel real.',
   ],
   'Reflector': [
-    'You left a room and felt lighter. It wasn\'t your heaviness.',
+    'You\'ve left a room and felt lighter. That weight wasn\'t yours.',
     'What felt certain yesterday dissolved overnight.',
     'You need longer than others expect.',
   ],
@@ -144,7 +144,7 @@ const TYPE_BEHAVIORAL_PATTERNS: { [key: string]: string[] } = {
 const TYPE_REFLECTIONS: { [key: string]: string } = {
   'Generator': 'Where did you say yes when your gut said no?',
   'Manifesting Generator': 'What are you forcing yourself to finish that\'s already done for you?',
-  'Projector': 'Where did you offer something no one asked for—and wonder why it landed wrong?',
+  'Projector': 'Where did you offer something before they were ready—and wonder why it landed differently?',
   'Manifestor': 'What impulse are you sitting on that\'s already trying to move?',
   'Reflector': 'What decision did you rush that your body is still processing?',
 };
@@ -3130,18 +3130,18 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>HOW THIS SHOWS UP</Text>
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
             • {hdType === 'Projector' 
-               ? 'You give advice no one asked for. It lands harder than you meant.'
+               ? 'You offer insight before realising they weren\'t ready. It lands differently than you meant.'
                : hdType === 'Generator' || hdType === 'Manifesting Generator' 
-               ? 'You say yes before checking with your body. Then you\'re carrying something that wasn\'t yours.'
+               ? 'You say yes before checking with your body. Then you\'re left carrying something that doesn\'t feel like yours.'
                : hdType === 'Manifestor' 
                ? 'You move—and only later realise what it caused. The reaction catches you off guard.'
-               : 'You leave a room and your certainty leaves with it. It wasn\'t your mood.'}
+               : 'You leave a room and your certainty leaves with it. That wasn\'t your mood.'}
           </Text>
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
             • {authority === 'Emotional' || authority === 'Solar Plexus' 
                ? 'You were certain yesterday. Today it feels different. You\'ve been here before.'
                : authority === 'Sacral' 
-               ? 'Your body said no. You overrode it. You\'re still paying for that.'
+               ? 'Your body said no. You overrode it. You can still feel the effects.'
                : authority === 'Splenic' 
                ? 'The knowing came once. You hesitated. It didn\'t come again.'
                : authority === 'Self-Projected' || authority === 'Self Projected' 
@@ -3149,25 +3149,25 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                : authority === 'Ego' || authority === 'Heart' 
                ? 'You commit to things before you\'re fully in. The follow-through tends to collapse.'
                : authority === 'Mental' || authority === 'Sounding Board' 
-               ? 'Talking it through with the wrong person makes things more confusing, not less.'
+               ? 'Talking it through with the wrong person makes things cloudier, not clearer.'
                : authority === 'Lunar' 
-               ? 'Deciding too fast leads somewhere you didn\'t want to go. The clarity needed more time.'
-               : 'Your body knows before your mind starts analyzing. You\'ve probably ignored it.'}
+               ? 'Deciding too fast leads somewhere you didn\'t expect. The clarity needed more time.'
+               : 'Your body knows before your mind starts analyzing. You\'ve probably overridden it.'}
           </Text>
           {definedCentersList.length > 0 && (
             <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
               • {definedCentersList.includes('Sacral') 
                  ? 'Your energy runs out mid-commitment. Forcing it costs more than stopping would have.'
                  : definedCentersList.includes('Heart') || definedCentersList.includes('Ego') 
-                 ? 'You promised things your heart wasn\'t in. The willpower ran out.'
+                 ? 'You\'ve promised things your heart wasn\'t in. The willpower ran out.'
                  : definedCentersList.includes('Root') 
-                 ? 'You rushed someone who couldn\'t keep up. Your pace isn\'t wrong—but it\'s yours.'
+                 ? 'You\'ve rushed someone who couldn\'t keep up. Your pace isn\'t wrong—but it\'s yours.'
                  : definedCentersList.includes('Solar Plexus') || definedCentersList.includes('Emotional') 
                  ? 'The wave hit. You reacted. Later you wondered what that was about.'
                  : definedCentersList.includes('Throat') 
                  ? 'You spoke and they heard you. But hearing and understanding aren\'t the same.'
                  : definedCentersList.includes('Ajna') 
-                 ? 'You were certain. They weren\'t. Your clarity created distance.'
+                 ? 'You were certain. They weren\'t. Your clarity created some distance.'
                  : definedCentersList.includes('Head') 
                  ? 'A question came. You chased it. Not every one needs an answer.'
                  : 'Something in you stays steady while everything else shifts.'}
@@ -4268,7 +4268,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   
   // Cognition translations - how you know something is right (1 line each)
   const COGNITION_TRANSLATIONS: Record<string, string> = {
-    'smell': 'The vibe was off. You knew. You didn\'t listen.',
+    'smell': 'The vibe was off. You knew—and still went ahead.',
     'taste': 'You sensed it was wrong before you could explain why. That\'s the signal.',
     'outer_vision': 'Narrow focus blinds you. You see more in your peripheral.',
     'inner_vision': 'Distraction hides truth. Focus reveals it.',
