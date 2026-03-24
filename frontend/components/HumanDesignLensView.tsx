@@ -781,7 +781,7 @@ interface Props {
   onOpenChat: (initialMessage?: string) => void;
 }
 
-type TabType = 'summary' | 'at_a_glance' | 'deep_dive';
+type TabType = 'summary' | 'at_a_glance' | 'deep_dive' | 'timeline';
 
 export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Theme support
@@ -1092,6 +1092,14 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             Deep Dive
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'timeline' && styles.activeTab]}
+          onPress={() => setActiveTab('timeline')}
+        >
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'timeline' && { color: theme.text }]}>
+            Timeline
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -1115,6 +1123,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         return "Tell me more about my design structure.";
       case 'deep_dive':
         return "What deeper Human Design pattern matters most for me to understand?";
+      case 'timeline':
+        return "What is my design asking me to pay attention to right now?";
       default:
         return "Tell me about my Human Design.";
     }
@@ -1140,6 +1150,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           "What does my profile reveal about how I learn?",
           "How do my centers work together?",
           "What patterns show up in my relationships?",
+        ];
+      case 'timeline':
+        return [
+          "What energy is most active for me today?",
+          "Where should I be patient right now?",
+          "What am I being asked to notice?",
         ];
       default:
         return [];
@@ -6554,6 +6570,14 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
                 {renderDeepDiveTab()}
                 {/* Global Ask CTA - page level */}
                 {renderDeepDiveAskSection()}
+              </>
+            )}
+
+            {/* TIMELINE TAB - Temporal/unfolding layer */}
+            {activeTab === 'timeline' && (
+              <>
+                {renderTodayTab()}
+                {/* Timeline has per-card reflection CTAs, no global Ask block */}
               </>
             )}
             
