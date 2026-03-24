@@ -2916,7 +2916,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>IDENTITY AXIS</Text>
             <Text style={[styles.hdGlanceCrossName, { color: theme.text }]}>{incarnation_cross}</Text>
             <Text style={[styles.hdGlanceCrossDesc, { color: theme.textSecondary }]} numberOfLines={1}>
-              The recurring theme life keeps bringing you back to.
+              The question life keeps bringing you back to.
             </Text>
           </View>
         )}

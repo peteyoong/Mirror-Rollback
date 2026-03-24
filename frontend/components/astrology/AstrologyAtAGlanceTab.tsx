@@ -213,7 +213,7 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
                   House {northNodeHouse}: {HOUSE_MEANINGS[northNodeHouse]?.shortLabel || 'Growth'}
                 </Text>
                 <Text style={[styles.pressureDesc, { color: theme.textTertiary }]} numberOfLines={2}>
-                  Growth edge—doesn't come naturally.
+                  This doesn't come naturally—you tend to avoid it until you can't.
                 </Text>
               </View>
             )}
