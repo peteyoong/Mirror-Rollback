@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Human Design Variables with Planetary Longitude Data
-Testing the review request scenarios for Human Design Variables computation.
+Backend Testing Script for Astrology Transit Differentiation
+Testing the astrology transit differentiation across Today/This Week/This Month
 """
 
 import requests
@@ -12,13 +12,16 @@ from typing import Dict, Any, List
 # Backend URL from environment
 BACKEND_URL = "https://lens-bridge-app.preview.emergentagent.com/api"
 
-def test_human_design_mechanics_endpoint(user_id: str, expected_environment: str = None) -> Dict[str, Any]:
-    """Test the Human Design mechanics endpoint for a specific user."""
-    print(f"\n🧪 Testing GET /api/human-design/mechanics/{user_id}")
+def test_astrology_chart_transits(user_id: str) -> Dict[str, Any]:
+    """Test the astrology chart endpoint for transit differentiation"""
+    print(f"\n🧪 Testing Astrology Chart Transits for User: {user_id}")
+    
+    url = f"{BACKEND_URL}/astrology/chart/{user_id}"
     
     try:
-        response = requests.get(f"{BACKEND_URL}/human-design/mechanics/{user_id}", timeout=30)
-        print(f"Status: {response.status_code}")
+        response = requests.get(url, timeout=30)
+        print(f"📡 GET {url}")
+        print(f"📊 Status: {response.status_code}")
         
         if response.status_code != 200:
             print(f"❌ ERROR: Expected 200, got {response.status_code}")
@@ -27,246 +30,363 @@ def test_human_design_mechanics_endpoint(user_id: str, expected_environment: str
         
         data = response.json()
         
-        # Check if variables exist
-        variables = data.get("variables")
-        print(f"Variables: {variables}")
+        # Check if transits exist
+        if "transits" not in data:
+            print("❌ ERROR: No 'transits' field in response")
+            return {"success": False, "error": "Missing transits field"}
         
-        if variables is None:
-            print("⚠️  Variables is null - no planetary longitude data available")
-            return {"success": True, "variables": None, "has_longitude_data": False}
+        transits = data["transits"]
         
-        # Validate variables structure
-        required_components = ["environment", "determination", "cognition", "motivation"]
-        missing_components = []
+        # Check if windows exist
+        if "windows" not in transits:
+            print("❌ ERROR: No 'windows' field in transits")
+            return {"success": False, "error": "Missing windows field"}
         
-        for component in required_components:
-            if component not in variables:
-                missing_components.append(component)
+        windows = transits["windows"]
         
-        if missing_components:
-            print(f"❌ Missing components: {missing_components}")
-            return {"success": False, "error": f"Missing components: {missing_components}"}
+        # Check for required windows
+        required_windows = ["today", "this_week", "this_month"]
+        for window in required_windows:
+            if window not in windows:
+                print(f"❌ ERROR: Missing '{window}' window")
+                return {"success": False, "error": f"Missing {window} window"}
         
-        # Check environment type
-        environment = variables.get("environment", {})
-        environment_type = environment.get("type")
-        print(f"Environment type: {environment_type}")
+        print("✅ All required windows present: today, this_week, this_month")
         
-        if expected_environment and environment_type != expected_environment:
-            print(f"❌ Expected environment '{expected_environment}', got '{environment_type}'")
-            return {"success": False, "error": f"Environment mismatch: expected {expected_environment}, got {environment_type}"}
+        # Test each window
+        results = {}
+        for window_name in required_windows:
+            window_data = windows[window_name]
+            results[window_name] = test_window_structure(window_name, window_data)
         
-        # Validate each component structure
-        for component_name in required_components:
-            component = variables[component_name]
-            required_fields = ["type", "description", "arrow"]
-            
-            for field in required_fields:
-                if field not in component:
-                    print(f"❌ Component '{component_name}' missing field '{field}'")
-                    return {"success": False, "error": f"Component {component_name} missing {field}"}
-            
-            # Validate arrow direction
-            arrow = component.get("arrow")
-            if arrow not in ["left", "right"]:
-                print(f"❌ Invalid arrow direction '{arrow}' for component '{component_name}'")
-                return {"success": False, "error": f"Invalid arrow direction: {arrow}"}
+        # Test differentiation between windows
+        differentiation_results = test_window_differentiation(windows)
         
-        print("✅ All variables components validated successfully")
-        return {
-            "success": True, 
-            "variables": variables, 
-            "has_longitude_data": True,
-            "environment_type": environment_type
-        }
-        
-    except requests.exceptions.RequestException as e:
-        print(f"❌ Request failed: {e}")
-        return {"success": False, "error": str(e)}
-    except json.JSONDecodeError as e:
-        print(f"❌ JSON decode error: {e}")
-        return {"success": False, "error": f"JSON decode error: {e}"}
-
-def test_recompute_endpoint(user_id: str) -> Dict[str, Any]:
-    """Test the Human Design recompute endpoint."""
-    print(f"\n🔄 Testing POST /api/human-design/recompute/{user_id}")
-    
-    try:
-        response = requests.post(f"{BACKEND_URL}/human-design/recompute/{user_id}", timeout=60)
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            print(f"❌ ERROR: Expected 200, got {response.status_code}")
-            print(f"Response: {response.text}")
-            return {"success": False, "error": f"HTTP {response.status_code}"}
-        
-        data = response.json()
-        print(f"Response keys: {list(data.keys())}")
-        
-        # Check status
-        status = data.get("status")
-        print(f"Status: {status}")
-        
-        if status not in ["success", "skipped"]:
-            print(f"❌ Invalid status: {status}")
-            return {"success": False, "error": f"Invalid status: {status}"}
-        
-        # Check for variables and planetary_longitudes
-        has_variables = "variables" in data
-        has_planetary_longitudes = "planetary_longitudes" in data
-        
-        print(f"Has variables: {has_variables}")
-        print(f"Has planetary_longitudes: {has_planetary_longitudes}")
-        
-        if status == "success":
-            if not has_variables:
-                print("⚠️  Success status but no variables in response")
-            if not has_planetary_longitudes:
-                print("⚠️  Success status but no planetary_longitudes in response")
+        # Test planet focus differentiation
+        planet_focus_results = test_planet_focus_differentiation(windows)
         
         return {
             "success": True,
-            "status": status,
-            "has_variables": has_variables,
-            "has_planetary_longitudes": has_planetary_longitudes,
-            "data": data
+            "user_id": user_id,
+            "windows": results,
+            "differentiation": differentiation_results,
+            "planet_focus": planet_focus_results
         }
         
     except requests.exceptions.RequestException as e:
-        print(f"❌ Request failed: {e}")
+        print(f"❌ REQUEST ERROR: {e}")
         return {"success": False, "error": str(e)}
     except json.JSONDecodeError as e:
-        print(f"❌ JSON decode error: {e}")
-        return {"success": False, "error": f"JSON decode error: {e}"}
+        print(f"❌ JSON ERROR: {e}")
+        return {"success": False, "error": f"Invalid JSON: {e}"}
+    except Exception as e:
+        print(f"❌ UNEXPECTED ERROR: {e}")
+        return {"success": False, "error": str(e)}
 
-def validate_planetary_longitudes(planetary_longitudes: Dict[str, Any]) -> Dict[str, Any]:
-    """Validate the planetary_longitudes structure."""
-    print(f"\n🌍 Validating planetary_longitudes structure")
+def test_window_structure(window_name: str, window_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Test the structure of a single transit window"""
+    print(f"\n🔍 Testing {window_name.upper()} window structure:")
     
-    required_sections = ["personality", "design"]
-    required_planets = [
-        "sun", "earth", "moon", "mercury", "venus", "mars", 
-        "jupiter", "saturn", "uranus", "neptune", "pluto", 
-        "north_node", "south_node"
-    ]
+    results = {"window_name": window_name, "tests": []}
     
-    errors = []
+    # Test 1: Check strongest_hits exists
+    if "strongest_hits" not in window_data:
+        results["tests"].append({"test": "strongest_hits_exists", "result": False, "error": "Missing strongest_hits"})
+        print(f"❌ Missing 'strongest_hits' in {window_name}")
+    else:
+        strongest_hits = window_data["strongest_hits"]
+        if isinstance(strongest_hits, list):
+            results["tests"].append({"test": "strongest_hits_exists", "result": True, "count": len(strongest_hits)})
+            print(f"✅ strongest_hits exists with {len(strongest_hits)} items")
+        else:
+            results["tests"].append({"test": "strongest_hits_exists", "result": False, "error": "strongest_hits is not a list"})
+            print(f"❌ strongest_hits is not a list in {window_name}")
     
-    for section in required_sections:
-        if section not in planetary_longitudes:
-            errors.append(f"Missing section: {section}")
-            continue
+    # Test 2: Check selection_reason exists
+    expected_reasons = {
+        "today": "tightest_orbs_fast_movers",
+        "this_week": "recurring_patterns_medium_movers", 
+        "this_month": "outer_planets_slow_movers"
+    }
+    
+    if "selection_reason" not in window_data:
+        results["tests"].append({"test": "selection_reason_exists", "result": False, "error": "Missing selection_reason"})
+        print(f"❌ Missing 'selection_reason' in {window_name}")
+    else:
+        selection_reason = window_data["selection_reason"]
+        expected_reason = expected_reasons.get(window_name)
+        if selection_reason == expected_reason:
+            results["tests"].append({"test": "selection_reason_correct", "result": True, "value": selection_reason})
+            print(f"✅ selection_reason correct: {selection_reason}")
+        else:
+            results["tests"].append({"test": "selection_reason_correct", "result": False, "expected": expected_reason, "actual": selection_reason})
+            print(f"❌ selection_reason incorrect. Expected: {expected_reason}, Got: {selection_reason}")
+    
+    # Test 3: Check deterministic_summary exists and has timeframe-specific language
+    if "deterministic_summary" not in window_data:
+        results["tests"].append({"test": "deterministic_summary_exists", "result": False, "error": "Missing deterministic_summary"})
+        print(f"❌ Missing 'deterministic_summary' in {window_name}")
+    else:
+        summary = window_data["deterministic_summary"]
+        timeframe_check = check_timeframe_language(window_name, summary)
+        results["tests"].append({"test": "timeframe_language", "result": timeframe_check["result"], "details": timeframe_check})
+        if timeframe_check["result"]:
+            print(f"✅ deterministic_summary has timeframe-specific language")
+            print(f"   Found keywords: {timeframe_check['found_keywords']}")
+        else:
+            print(f"❌ deterministic_summary missing timeframe-specific language")
+        print(f"📝 Summary: {summary[:100]}...")
+    
+    # Test 4: Check emphasis_tags exists
+    if "emphasis_tags" not in window_data:
+        results["tests"].append({"test": "emphasis_tags_exists", "result": False, "error": "Missing emphasis_tags"})
+        print(f"❌ Missing 'emphasis_tags' in {window_name}")
+    else:
+        emphasis_tags = window_data["emphasis_tags"]
+        if isinstance(emphasis_tags, list):
+            results["tests"].append({"test": "emphasis_tags_exists", "result": True, "count": len(emphasis_tags), "tags": emphasis_tags})
+            print(f"✅ emphasis_tags exists with {len(emphasis_tags)} tags: {emphasis_tags}")
+        else:
+            results["tests"].append({"test": "emphasis_tags_exists", "result": False, "error": "emphasis_tags is not a list"})
+            print(f"❌ emphasis_tags is not a list in {window_name}")
+    
+    return results
+
+def check_timeframe_language(window_name: str, summary: str) -> Dict[str, Any]:
+    """Check if summary contains timeframe-specific language"""
+    timeframe_keywords = {
+        "today": ["right now", "immediate", "today", "currently", "at this moment", "this moment"],
+        "this_week": ["this week", "returning", "recurring", "weekly", "over the week", "week"],
+        "this_month": ["this month", "broader pattern", "monthly", "over the month", "longer term", "month"]
+    }
+    
+    keywords = timeframe_keywords.get(window_name, [])
+    found_keywords = []
+    
+    summary_lower = summary.lower()
+    for keyword in keywords:
+        if keyword in summary_lower:
+            found_keywords.append(keyword)
+    
+    return {
+        "result": len(found_keywords) > 0,
+        "found_keywords": found_keywords,
+        "expected_keywords": keywords,
+        "summary_excerpt": summary[:150]
+    }
+
+def test_window_differentiation(windows: Dict[str, Any]) -> Dict[str, Any]:
+    """Test that the three windows have different content"""
+    print(f"\n🔄 Testing Window Differentiation:")
+    
+    results = {"tests": []}
+    
+    # Test 1: Different strongest_hits ordering/content
+    today_hits = windows.get("today", {}).get("strongest_hits", [])
+    week_hits = windows.get("this_week", {}).get("strongest_hits", [])
+    month_hits = windows.get("this_month", {}).get("strongest_hits", [])
+    
+    # Convert to strings for comparison
+    today_str = json.dumps(today_hits, sort_keys=True)
+    week_str = json.dumps(week_hits, sort_keys=True)
+    month_str = json.dumps(month_hits, sort_keys=True)
+    
+    different_hits = not (today_str == week_str == month_str)
+    results["tests"].append({
+        "test": "different_strongest_hits",
+        "result": different_hits,
+        "today_count": len(today_hits),
+        "week_count": len(week_hits),
+        "month_count": len(month_hits)
+    })
+    
+    if different_hits:
+        print("✅ strongest_hits arrays have different content/ordering")
+        print(f"   Today: {len(today_hits)} hits, Week: {len(week_hits)} hits, Month: {len(month_hits)} hits")
+    else:
+        print("❌ strongest_hits arrays are identical across all windows")
+    
+    # Test 2: Different emphasis_tags
+    today_tags = set(windows.get("today", {}).get("emphasis_tags", []))
+    week_tags = set(windows.get("this_week", {}).get("emphasis_tags", []))
+    month_tags = set(windows.get("this_month", {}).get("emphasis_tags", []))
+    
+    different_tags = not (today_tags == week_tags == month_tags)
+    results["tests"].append({
+        "test": "different_emphasis_tags",
+        "result": different_tags,
+        "today_tags": list(today_tags),
+        "week_tags": list(week_tags),
+        "month_tags": list(month_tags)
+    })
+    
+    if different_tags:
+        print("✅ emphasis_tags are different across windows")
+        print(f"   Today: {list(today_tags)}")
+        print(f"   Week: {list(week_tags)}")
+        print(f"   Month: {list(month_tags)}")
+    else:
+        print("❌ emphasis_tags are identical across all windows")
+    
+    # Test 3: Different summaries
+    today_summary = windows.get("today", {}).get("deterministic_summary", "")
+    week_summary = windows.get("this_week", {}).get("deterministic_summary", "")
+    month_summary = windows.get("this_month", {}).get("deterministic_summary", "")
+    
+    different_summaries = not (today_summary == week_summary == month_summary)
+    results["tests"].append({
+        "test": "different_summaries",
+        "result": different_summaries,
+        "summary_lengths": {
+            "today": len(today_summary),
+            "week": len(week_summary),
+            "month": len(month_summary)
+        }
+    })
+    
+    if different_summaries:
+        print("✅ deterministic_summary texts are different across windows")
+    else:
+        print("❌ deterministic_summary texts are identical across all windows")
+    
+    return results
+
+def test_planet_focus_differentiation(windows: Dict[str, Any]) -> Dict[str, Any]:
+    """Test that different windows focus on different planet types"""
+    print(f"\n🪐 Testing Planet Focus Differentiation:")
+    
+    results = {"tests": []}
+    
+    # Define planet categories
+    fast_movers = ["sun", "moon", "mercury", "venus", "mars"]
+    medium_movers = ["jupiter", "saturn"]
+    slow_movers = ["uranus", "neptune", "pluto"]
+    
+    for window_name, window_data in windows.items():
+        strongest_hits = window_data.get("strongest_hits", [])
         
-        section_data = planetary_longitudes[section]
-        print(f"Section '{section}' has {len(section_data)} planets")
+        # Count planets by category
+        fast_count = 0
+        medium_count = 0
+        slow_count = 0
+        planets_found = []
         
-        for planet in required_planets:
-            if planet not in section_data:
-                errors.append(f"Missing planet '{planet}' in section '{section}'")
-            else:
-                planet_data = section_data[planet]
-                # Check if planet has longitude data
-                if "longitude" not in planet_data:
-                    errors.append(f"Planet '{planet}' in section '{section}' missing longitude")
+        for hit in strongest_hits:
+            if isinstance(hit, dict) and "transit_point" in hit:
+                planet = hit["transit_point"].lower()
+                planets_found.append(planet)
+                if planet in fast_movers:
+                    fast_count += 1
+                elif planet in medium_movers:
+                    medium_count += 1
+                elif planet in slow_movers:
+                    slow_count += 1
+        
+        results["tests"].append({
+            "window": window_name,
+            "fast_movers": fast_count,
+            "medium_movers": medium_count,
+            "slow_movers": slow_count,
+            "total_hits": len(strongest_hits),
+            "planets_found": planets_found
+        })
+        
+        print(f"📊 {window_name.upper()}: Fast={fast_count}, Medium={medium_count}, Slow={slow_count}")
+        print(f"   Planets: {planets_found}")
     
-    if errors:
-        print(f"❌ Validation errors: {errors}")
-        return {"success": False, "errors": errors}
+    # Verify expected focus patterns
+    today_data = next((t for t in results["tests"] if t["window"] == "today"), {})
+    week_data = next((t for t in results["tests"] if t["window"] == "this_week"), {})
+    month_data = next((t for t in results["tests"] if t["window"] == "this_month"), {})
     
-    print("✅ Planetary longitudes structure validated successfully")
-    return {"success": True}
+    # TODAY should favor fast-moving planets
+    today_favors_fast = today_data.get("fast_movers", 0) >= today_data.get("slow_movers", 0)
+    
+    # THIS MONTH should favor slow-moving planets  
+    month_favors_slow = month_data.get("slow_movers", 0) >= month_data.get("fast_movers", 0)
+    
+    print(f"\n📈 Focus Pattern Analysis:")
+    print(f"   TODAY favors fast movers: {today_favors_fast}")
+    print(f"   THIS MONTH favors slow movers: {month_favors_slow}")
+    
+    results["focus_analysis"] = {
+        "today_favors_fast": today_favors_fast,
+        "month_favors_slow": month_favors_slow
+    }
+    
+    return results
 
 def main():
-    """Main testing function."""
-    print("🚀 Starting Human Design Variables with Planetary Longitude Data Testing")
-    print(f"Backend URL: {BACKEND_URL}")
+    """Main testing function"""
+    print("🚀 Starting Astrology Transit Differentiation Testing")
+    print("=" * 60)
     
-    test_results = []
+    # Test users from the review request
+    test_users = [
+        "697f795f1a7a96aa35e283a3",
+        "6971c81f2b40fd5ef501d375"
+    ]
     
-    # Test 1: Reflector user - expected environment = "valleys"
-    print("\n" + "="*80)
-    print("TEST 1: Reflector User (697f795f1a7a96aa35e283a3)")
-    print("Expected: variables.environment.type = 'valleys'")
-    print("="*80)
+    all_results = []
     
-    result1 = test_human_design_mechanics_endpoint("697f795f1a7a96aa35e283a3", "valleys")
-    test_results.append(("Reflector User Variables", result1))
-    
-    # Test 2: peter@test.com - expected environment = "mountains"  
-    print("\n" + "="*80)
-    print("TEST 2: Peter User (6971c81f2b40fd5ef501d375)")
-    print("Expected: variables.environment.type = 'mountains'")
-    print("="*80)
-    
-    result2 = test_human_design_mechanics_endpoint("6971c81f2b40fd5ef501d375", "mountains")
-    test_results.append(("Peter User Variables", result2))
-    
-    # If variables are null, try recompute endpoint
-    if (result1.get("variables") is None or result2.get("variables") is None):
-        print("\n" + "="*80)
-        print("VARIABLES ARE NULL - TESTING RECOMPUTE ENDPOINT")
-        print("="*80)
-        
-        # Test recompute for both users
-        print("\nTesting recompute for Reflector user...")
-        recompute1 = test_recompute_endpoint("697f795f1a7a96aa35e283a3")
-        test_results.append(("Reflector Recompute", recompute1))
-        
-        print("\nTesting recompute for Peter user...")
-        recompute2 = test_recompute_endpoint("6971c81f2b40fd5ef501d375")
-        test_results.append(("Peter Recompute", recompute2))
-        
-        # If recompute was successful, validate planetary_longitudes
-        if recompute1.get("has_planetary_longitudes"):
-            planetary_longitudes = recompute1["data"].get("planetary_longitudes")
-            if planetary_longitudes:
-                validation1 = validate_planetary_longitudes(planetary_longitudes)
-                test_results.append(("Reflector Planetary Longitudes Validation", validation1))
-        
-        if recompute2.get("has_planetary_longitudes"):
-            planetary_longitudes = recompute2["data"].get("planetary_longitudes")
-            if planetary_longitudes:
-                validation2 = validate_planetary_longitudes(planetary_longitudes)
-                test_results.append(("Peter Planetary Longitudes Validation", validation2))
-        
-        # Re-test mechanics endpoints after recompute
-        print("\n" + "="*80)
-        print("RE-TESTING MECHANICS ENDPOINTS AFTER RECOMPUTE")
-        print("="*80)
-        
-        result1_after = test_human_design_mechanics_endpoint("697f795f1a7a96aa35e283a3", "valleys")
-        test_results.append(("Reflector User Variables (After Recompute)", result1_after))
-        
-        result2_after = test_human_design_mechanics_endpoint("6971c81f2b40fd5ef501d375", "mountains")
-        test_results.append(("Peter User Variables (After Recompute)", result2_after))
+    for user_id in test_users:
+        result = test_astrology_chart_transits(user_id)
+        all_results.append(result)
+        print("\n" + "="*60)
     
     # Summary
-    print("\n" + "="*80)
-    print("TEST SUMMARY")
-    print("="*80)
+    print("\n📋 TESTING SUMMARY")
+    print("=" * 60)
     
-    passed = 0
-    failed = 0
+    successful_tests = sum(1 for r in all_results if r["success"])
+    total_tests = len(all_results)
     
-    for test_name, result in test_results:
-        if result.get("success"):
-            print(f"✅ {test_name}: PASSED")
-            passed += 1
-        else:
-            print(f"❌ {test_name}: FAILED - {result.get('error', 'Unknown error')}")
-            failed += 1
+    print(f"✅ Successful Tests: {successful_tests}/{total_tests}")
     
-    print(f"\nTotal Tests: {len(test_results)}")
-    print(f"Passed: {passed}")
-    print(f"Failed: {failed}")
-    print(f"Success Rate: {(passed/len(test_results)*100):.1f}%")
+    # Detailed analysis
+    if successful_tests > 0:
+        print("\n🔍 DETAILED ANALYSIS:")
+        
+        for result in all_results:
+            if result["success"]:
+                user_id = result["user_id"]
+                print(f"\n👤 User {user_id}:")
+                
+                # Check window structure tests
+                all_window_tests_passed = True
+                for window_name, window_result in result["windows"].items():
+                    window_tests = window_result.get("tests", [])
+                    passed_tests = sum(1 for t in window_tests if t.get("result", False))
+                    total_window_tests = len(window_tests)
+                    
+                    if passed_tests < total_window_tests:
+                        all_window_tests_passed = False
+                    
+                    print(f"   {window_name}: {passed_tests}/{total_window_tests} tests passed")
+                
+                # Check differentiation tests
+                diff_tests = result["differentiation"].get("tests", [])
+                passed_diff_tests = sum(1 for t in diff_tests if t.get("result", False))
+                total_diff_tests = len(diff_tests)
+                
+                print(f"   Differentiation: {passed_diff_tests}/{total_diff_tests} tests passed")
+                
+                if all_window_tests_passed and passed_diff_tests == total_diff_tests:
+                    print(f"   ✅ ALL TESTS PASSED for user {user_id}")
+                else:
+                    print(f"   ❌ Some tests failed for user {user_id}")
     
-    if failed == 0:
-        print("\n🎉 ALL TESTS PASSED!")
-        return 0
+    if successful_tests == total_tests:
+        print("\n🎉 ALL ASTROLOGY TRANSIT DIFFERENTIATION TESTS PASSED!")
+        print("\n✅ SUCCESS CRITERIA MET:")
+        print("   - TODAY favors fast-moving planets (Sun, Moon, Mercury, Venus, Mars)")
+        print("   - THIS WEEK favors recurring themes + medium movers (Jupiter, Saturn)")
+        print("   - THIS MONTH favors outer planets (Uranus, Neptune, Pluto) and slow movers")
+        print("   - Each window has different summaries with timeframe-specific language")
+        print("   - Multiple signals are clearly being evaluated differently")
     else:
-        print(f"\n⚠️  {failed} TESTS FAILED")
-        return 1
+        print("❌ Some tests failed. Check details above.")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

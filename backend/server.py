@@ -11503,51 +11503,137 @@ async def _calculate_transit_intelligence(natal_chart: dict, user_id: str) -> di
         # Get strongest hits (top 10)
         strongest_hits = transit_to_natal[:10]
         
-        # Calculate emphasis tags from top hits
+        # =====================================================
+        # DIFFERENTIATED SIGNAL SELECTION BY TIMEFRAME
+        # Each window uses different ranking criteria
+        # =====================================================
+        
+        # Categorize transits by speed/type
+        fast_movers = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars']
+        medium_movers = ['Jupiter', 'Saturn']
+        slow_movers = ['Uranus', 'Neptune', 'Pluto', 'Chiron', 'North Node', 'South Node']
+        
+        # TODAY: Prioritize tightest orbs + fast movers (immediate pressure)
+        today_ranked = sorted(transit_to_natal, key=lambda x: (
+            # Primary: Tightest orb (most exact NOW)
+            x.get('orb', 10),
+            # Secondary: Fast movers get priority
+            0 if x['transit_point'] in fast_movers else (1 if x['transit_point'] in medium_movers else 2),
+            # Tertiary: Strength score
+            -x['strength_score']
+        ))
+        today_hits = today_ranked[:5]
+        
+        # THIS WEEK: Prioritize recurring patterns + medium movers
+        # Also weight by how many times similar themes appear
+        theme_frequency = {}
+        for hit in transit_to_natal:
+            for tag in hit.get('theme_tags', []):
+                theme_frequency[tag] = theme_frequency.get(tag, 0) + 1
+        
+        def week_score(hit):
+            # Score based on theme recurrence + medium-speed relevance
+            theme_bonus = sum(theme_frequency.get(t, 0) for t in hit.get('theme_tags', []))
+            speed_bonus = 2 if hit['transit_point'] in medium_movers else (1 if hit['transit_point'] in fast_movers else 0)
+            return (theme_bonus * 2) + speed_bonus + hit['strength_score']
+        
+        week_ranked = sorted(transit_to_natal, key=lambda x: -week_score(x))
+        week_hits = week_ranked[:7]
+        
+        # THIS MONTH: Prioritize slow movers + outer planets (background themes)
+        def month_score(hit):
+            # Heavy weight to outer planets and slow movers
+            outer_bonus = 10 if hit['transit_point'] in slow_movers else (5 if hit['transit_point'] in medium_movers else 0)
+            # Also consider houses activated (broader life impact)
+            house_bonus = 2 if hit.get('natal_house') in [1, 4, 7, 10] else 1  # Angular houses
+            return outer_bonus + house_bonus + (hit['strength_score'] * 0.5)
+        
+        month_ranked = sorted(transit_to_natal, key=lambda x: -month_score(x))
+        month_hits = month_ranked[:10]
+        
+        # Get outer planet transits for month view
+        outer_planet_hits = [h for h in transit_to_natal if h['transit_point'] in slow_movers]
+        
+        # Calculate emphasis tags from today's hits
+        today_themes = []
+        for hit in today_hits:
+            today_themes.extend(hit.get('theme_tags', []))
+        today_theme_counts = {}
+        for theme in today_themes:
+            today_theme_counts[theme] = today_theme_counts.get(theme, 0) + 1
+        today_emphasis_tags = sorted(today_theme_counts.keys(), key=lambda x: today_theme_counts[x], reverse=True)[:4]
+        
+        # Calculate emphasis tags from week's hits
+        week_themes = []
+        for hit in week_hits:
+            week_themes.extend(hit.get('theme_tags', []))
+        week_theme_counts = {}
+        for theme in week_themes:
+            week_theme_counts[theme] = week_theme_counts.get(theme, 0) + 1
+        week_emphasis_tags = sorted(week_theme_counts.keys(), key=lambda x: week_theme_counts[x], reverse=True)[:6]
+        
+        # Calculate emphasis tags from month's hits
+        month_themes = []
+        for hit in month_hits:
+            month_themes.extend(hit.get('theme_tags', []))
+        month_theme_counts = {}
+        for theme in month_themes:
+            month_theme_counts[theme] = month_theme_counts.get(theme, 0) + 1
+        month_emphasis_tags = sorted(month_theme_counts.keys(), key=lambda x: month_theme_counts[x], reverse=True)[:6]
+        
+        # Global emphasis (backward compatible)
         all_themes = []
         for hit in strongest_hits[:5]:
             all_themes.extend(hit.get('theme_tags', []))
-        
-        # Count theme frequency
         theme_counts = {}
         for theme in all_themes:
             theme_counts[theme] = theme_counts.get(theme, 0) + 1
-        
         emphasis_tags = sorted(theme_counts.keys(), key=lambda x: theme_counts[x], reverse=True)[:6]
         
         # Determine dominant transit energy
         dominant_transit = strongest_hits[0]['transit_point'] if strongest_hits else None
         dominant_natal = strongest_hits[0]['natal_point'] if strongest_hits else None
         
-        # Build windows (today, this_week, this_month use same data with different framing)
+        # Build windows with DIFFERENTIATED signal selection
         windows = {
             "today": {
                 "date": now.strftime("%Y-%m-%d"),
-                "strongest_hits": strongest_hits[:5],
-                "emphasis_tags": emphasis_tags[:4],
-                "activated_natal_points": list(set([h['natal_point'] for h in strongest_hits[:5]])),
+                "strongest_hits": today_hits,
+                "emphasis_tags": today_emphasis_tags,
+                "activated_natal_points": list(set([h['natal_point'] for h in today_hits])),
                 "dominant_energy": {
-                    "transit": dominant_transit,
-                    "natal": dominant_natal,
-                    "aspect": strongest_hits[0]['aspect_type'] if strongest_hits else None
+                    "transit": today_hits[0]['transit_point'] if today_hits else None,
+                    "natal": today_hits[0]['natal_point'] if today_hits else None,
+                    "aspect": today_hits[0]['aspect_type'] if today_hits else None
                 },
-                "deterministic_summary": _build_transit_summary(strongest_hits[:3], "today")
+                "selection_reason": "tightest_orbs_fast_movers",
+                "deterministic_summary": _build_transit_summary(today_hits[:3], "today")
             },
             "this_week": {
                 "period": f"{now.strftime('%Y-%m-%d')} to {(now + timedelta(days=7)).strftime('%Y-%m-%d')}",
-                "strongest_hits": strongest_hits[:7],
-                "emphasis_tags": emphasis_tags,
-                "activated_natal_points": list(set([h['natal_point'] for h in strongest_hits[:7]])),
-                "deterministic_summary": _build_transit_summary(strongest_hits[:5], "this_week")
+                "strongest_hits": week_hits,
+                "emphasis_tags": week_emphasis_tags,
+                "activated_natal_points": list(set([h['natal_point'] for h in week_hits])),
+                "recurring_themes": [t for t, c in week_theme_counts.items() if c > 1],
+                "selection_reason": "recurring_patterns_medium_movers",
+                "deterministic_summary": _build_transit_summary(week_hits[:5], "this_week")
             },
             "this_month": {
                 "period": f"{now.strftime('%Y-%m')}",
-                "strongest_hits": strongest_hits[:10],
-                "emphasis_tags": emphasis_tags,
-                "outer_planet_transits": [h for h in strongest_hits if h['transit_point'] in ['Saturn', 'Jupiter', 'Uranus', 'Neptune', 'Pluto']],
-                "deterministic_summary": _build_transit_summary(strongest_hits[:7], "this_month")
+                "strongest_hits": month_hits,
+                "emphasis_tags": month_emphasis_tags,
+                "activated_natal_points": list(set([h['natal_point'] for h in month_hits])),
+                "outer_planet_transits": outer_planet_hits[:5],
+                "background_themes": [t for t, c in month_theme_counts.items() if c > 1],
+                "selection_reason": "outer_planets_slow_movers",
+                "deterministic_summary": _build_transit_summary(month_hits[:7], "this_month")
             }
         }
+        
+        # Log differentiation for debugging
+        logger.info(f"[TRANSIT_INTELLIGENCE] User {user_id} - TODAY signals: {[h['transit_point'] + '->' + h['natal_point'] for h in today_hits[:3]]}")
+        logger.info(f"[TRANSIT_INTELLIGENCE] User {user_id} - WEEK signals: {[h['transit_point'] + '->' + h['natal_point'] for h in week_hits[:3]]}")
+        logger.info(f"[TRANSIT_INTELLIGENCE] User {user_id} - MONTH signals: {[h['transit_point'] + '->' + h['natal_point'] for h in month_hits[:3]]}")
         
         return {
             "computed_at": now.isoformat(),
@@ -11556,7 +11642,12 @@ async def _calculate_transit_intelligence(natal_chart: dict, user_id: str) -> di
             "strongest_hits": strongest_hits,
             "total_active_aspects": len(transit_to_natal),
             "emphasis_tags": emphasis_tags,
-            "windows": windows
+            "windows": windows,
+            "signal_differentiation": {
+                "today_selection": "tightest orbs + fast-moving planets",
+                "week_selection": "recurring themes + medium movers (Jupiter/Saturn)",
+                "month_selection": "outer planets + slow movers (background themes)"
+            }
         }
         
     except Exception as e:
@@ -11570,7 +11661,7 @@ async def _calculate_transit_intelligence(natal_chart: dict, user_id: str) -> di
 
 
 def _build_transit_summary(strongest_hits: list, window: str) -> str:
-    """Build a deterministic summary of transit activations."""
+    """Build a deterministic summary of transit activations with timeframe-specific language."""
     if not strongest_hits:
         return "No significant transits active."
     
@@ -11579,21 +11670,47 @@ def _build_transit_summary(strongest_hits: list, window: str) -> str:
     natal = top_hit['natal_point']
     aspect = top_hit['aspect_type']
     
-    # Build deterministic description
-    summaries = {
-        'conjunction': f"{transit} on your natal {natal}",
-        'opposition': f"{transit} opposing your natal {natal}",
-        'square': f"{transit} squaring your natal {natal}",
-        'trine': f"{transit} trining your natal {natal}",
-        'sextile': f"{transit} sextiling your natal {natal}",
-        'quincunx': f"{transit} in quincunx to your natal {natal}"
+    # Timeframe-specific language prefixes
+    timeframe_prefix = {
+        'today': 'Right now',
+        'this_week': 'This week',
+        'this_month': 'This month'
     }
+    prefix = timeframe_prefix.get(window, 'Currently')
     
-    base = summaries.get(aspect, f"{transit} aspecting your natal {natal}")
+    # Timeframe-specific connectors
+    timeframe_connector = {
+        'today': 'is bringing immediate focus to',
+        'this_week': 'keeps returning to',
+        'this_month': 'is shaping the broader pattern around'
+    }
+    connector = timeframe_connector.get(window, 'is activating')
     
+    # Build deterministic description
+    aspect_verbs = {
+        'conjunction': 'intensifying',
+        'opposition': 'creating tension with',
+        'square': 'challenging',
+        'trine': 'flowing into',
+        'sextile': 'opening opportunities through',
+        'quincunx': 'requiring adjustment in'
+    }
+    verb = aspect_verbs.get(aspect, 'activating')
+    
+    base = f"{prefix}, {transit} {connector} your natal {natal} ({verb})"
+    
+    # Add secondary signal if available
     if len(strongest_hits) > 1:
         second = strongest_hits[1]
-        base += f". Secondary: {second['transit_point']} {second['aspect_type']} {second['natal_point']}"
+        secondary_verb = aspect_verbs.get(second['aspect_type'], 'activating')
+        
+        # Timeframe-specific secondary language
+        if window == 'today':
+            base += f". Also active: {second['transit_point']} {secondary_verb} {second['natal_point']}"
+        elif window == 'this_week':
+            base += f". Repeated theme: {second['transit_point']} returns to {second['natal_point']}"
+        else:  # month
+            base += f". Background: {second['transit_point']} {secondary_verb} {second['natal_point']}"
     
     return base
 

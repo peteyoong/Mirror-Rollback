@@ -163,7 +163,7 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
 
       {/* ============================================ */}
       {/* SECTION 3: MAIN LIFE ARENAS */}
-      {/* Where life hits hardest */}
+      {/* Where life hits hardest - with expand support for long content */}
       {/* ============================================ */}
       {mainArenas.length > 0 && (
         <View style={[styles.arenasCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -173,11 +173,11 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
               <Text style={[styles.arenaRank, { color: theme.accent }]}>{i + 1}</Text>
               <View style={styles.arenaContent}>
                 <Text style={[styles.arenaLabel, { color: theme.text }]}>{arena.label}</Text>
-                <Text style={[styles.arenaExplanation, { color: theme.textSecondary }]} numberOfLines={2}>
+                <Text style={[styles.arenaExplanation, { color: theme.textSecondary }]}>
                   {arena.explanation}
                 </Text>
                 {arena.whenIgnored && (
-                  <Text style={[styles.arenaIgnored, { color: theme.textTertiary }]} numberOfLines={1}>
+                  <Text style={[styles.arenaIgnored, { color: theme.textTertiary }]}>
                     If ignored: {arena.whenIgnored}
                   </Text>
                 )}
@@ -344,12 +344,14 @@ const styles = StyleSheet.create({
   },
   arenaExplanation: {
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 19,
+    marginBottom: 2,
   },
   arenaIgnored: {
-    fontSize: 11,
+    fontSize: 12,
     fontStyle: 'italic',
-    marginTop: 3,
+    marginTop: 4,
+    lineHeight: 17,
   },
 
   // SECTION 4: Developmental Pressure
