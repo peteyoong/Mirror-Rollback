@@ -168,8 +168,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "how you show up, first impressions, physical self",
     theme: "self-definition and the way you meet life",
     whenActivated: "questions about who you are and how you're being seen",
-    specialty: "You keep getting pulled back to questions about who you are—especially how others see you vs. who you actually feel like inside. Something is clarifying.",
-    developmentalPressure: "You're slowly learning to show up without hiding behind a role or image. That process is still unfolding.",
+    // QUIET TRUTH
+    specialty: "You keep getting pulled back to questions about who you are—especially how others see you vs. who you actually feel like inside. This doesn't fully resolve.",
+    // TENSION HOLD
+    developmentalPressure: "You're slowly learning to show up without hiding behind a role or image. That process keeps circling back.",
     consequenceZone: "What you project gets reflected back. Misalignment here creates friction everywhere.",
     whenIgnored: "You lose touch with who you actually are vs. who you've been performing."
   },
@@ -179,8 +181,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "money, possessions, self-worth, what you hold onto",
     theme: "security and what you truly value",
     whenActivated: "questions about worth, money, or what you're holding onto",
-    specialty: "Money, worth, and security keep showing up as themes. You're figuring out what actually matters vs. what you thought should matter. That's shifting.",
-    developmentalPressure: "You're learning to separate what you have from who you are. Something is loosening its grip.",
+    // OPENING
+    specialty: "Money, worth, and security keep showing up as themes. You're figuring out what actually matters vs. what you thought should matter. That's starting to clarify.",
+    // QUIET TRUTH
+    developmentalPressure: "You're learning to separate what you have from who you are. That distinction stays slippery.",
     consequenceZone: "What you hold onto shapes what you become. Over-grip here and growth stops.",
     whenIgnored: "Security gets confused with control. Self-worth collapses into net worth."
   },
@@ -190,7 +194,9 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "thinking, speaking, learning, siblings, local environment",
     theme: "how you process and express what you know",
     whenActivated: "how you're thinking, what you're saying, and whether the words are landing",
-    specialty: "You keep running into situations where communication matters more than you expected. Being understood—really understood—is becoming more important.",
+    // TENSION HOLD
+    specialty: "You keep running into situations where communication matters more than you expected. Being understood—really understood—stays an active edge.",
+    // OPENING
     developmentalPressure: "You're learning that clarity matters more than volume. Something is refining.",
     consequenceZone: "Miscommunication here ripples outward. What you can't articulate, you can't integrate.",
     whenIgnored: "You keep explaining but not being understood. The same conversation keeps repeating."
@@ -201,8 +207,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "home, family, roots, private self, emotional baseline",
     theme: "where you come from and what grounds you",
     whenActivated: "your sense of safety, family dynamics, or inner emotional stability",
-    specialty: "When things feel unstable at home or inside, everything else gets harder. This is where your sense of ground comes from—and it's being rebuilt.",
-    developmentalPressure: "You're learning to find stability that doesn't depend on external conditions. Inner ground is forming.",
+    // QUIET TRUTH
+    specialty: "When things feel unstable at home or inside, everything else gets harder. This is where your sense of ground comes from—and it never fully stops shifting.",
+    // TENSION HOLD
+    developmentalPressure: "You're learning to find stability that doesn't depend on external conditions. That work continues.",
     consequenceZone: "Instability here makes everything else harder. You can't build on a shaky foundation.",
     whenIgnored: "You keep looking for home in places that can't hold you. Inner restlessness persists."
   },
@@ -212,8 +220,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "creativity, romance, pleasure, children, risk-taking",
     theme: "what you create and how you express yourself",
     whenActivated: "desire for recognition, creative blocks, or romantic intensity",
+    // OPENING
     specialty: "You keep getting pulled toward creating, expressing, or putting yourself out there—even when it feels risky. Something wants to come through.",
-    developmentalPressure: "You're learning to express without needing applause. The joy in creating itself is becoming clearer.",
+    // QUIET TRUTH
+    developmentalPressure: "You're learning to express without needing applause. The need for recognition doesn't disappear—you just learn to work with it.",
     consequenceZone: "Unexpressed creativity becomes bitterness. Joy deferred turns to resentment.",
     whenIgnored: "Life feels flat. You're surviving but not creating. Something vital goes dormant."
   },
@@ -223,8 +233,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "daily work, health, routines, service, improvement",
     theme: "how you maintain yourself and contribute through effort",
     whenActivated: "work pressure, health awareness, or the quality of your daily systems",
-    specialty: "What you do every day matters more here than elsewhere. Your routines either support you or slowly wear you down. Something is asking for adjustment.",
-    developmentalPressure: "You're learning to show up consistently, not just when inspired. That rhythm is finding itself.",
+    // TENSION HOLD
+    specialty: "What you do every day matters more here than elsewhere. Your routines either support you or slowly wear you down. This stays sensitive.",
+    // QUIET TRUTH
+    developmentalPressure: "You're learning to show up consistently, not just when inspired. That discipline doesn't become effortless—it just becomes more familiar.",
     consequenceZone: "Neglect here accumulates silently. The body keeps score. Systems fail when you need them.",
     whenIgnored: "You burn out. Health erodes. Work becomes something that happens to you, not through you."
   },
@@ -234,8 +246,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "committed relationships, partnerships, contracts, projection",
     theme: "how you relate to others and what you project onto them",
     whenActivated: "relationship dynamics, fairness, or what you keep seeing in others",
-    specialty: "Relationships aren't just relationships for you—they're mirrors. What keeps showing up in others often points back to something in you. That reflection is sharpening.",
-    developmentalPressure: "You're learning to see people as they actually are—not as who you need them to be. Something is clarifying.",
+    // QUIET TRUTH
+    specialty: "Relationships aren't just relationships for you—they're mirrors. What keeps showing up in others often points back to something in you. That reflection doesn't stop.",
+    // TENSION HOLD
+    developmentalPressure: "You're learning to see people as they actually are—not as who you need them to be. That clarity comes and goes.",
     consequenceZone: "What you can't see in yourself shows up in your relationships. Every projection has a cost.",
     whenIgnored: "You keep attracting the same dynamic. The partner changes but the pattern doesn't."
   },
@@ -245,8 +259,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "intimacy, shared resources, power, loss, regeneration",
     theme: "what you merge with and what transforms you",
     whenActivated: "trust issues, power dynamics, or emotional vulnerability",
-    specialty: "Trust, vulnerability, and power keep coming up. You can't stay on the surface here—depth finds you whether you're ready or not. Something is transforming.",
-    developmentalPressure: "You're learning to let go of what you're still gripping. That release is already in motion.",
+    // TENSION HOLD
+    specialty: "Trust, vulnerability, and power keep coming up. You can't stay on the surface here—depth finds you whether you're ready or not. This doesn't let up.",
+    // OPENING
+    developmentalPressure: "You're learning to let go of what you're still gripping. Something is loosening.",
     consequenceZone: "Avoided depth becomes shadow. Control here backfires. What you won't face keeps returning.",
     whenIgnored: "Intimacy stays shallow. Power dynamics run the show unconsciously. You repeat cycles of loss."
   },
@@ -256,8 +272,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "philosophy, travel, higher education, beliefs, truth-seeking",
     theme: "what you believe and how your worldview expands",
     whenActivated: "questions about meaning, direction, or whether you're on the right path",
+    // OPENING
     specialty: "Questions about meaning and direction keep surfacing. You can't just go through the motions—you need to know why. Something is opening.",
-    developmentalPressure: "You're learning to test your beliefs rather than defend them. That willingness is growing.",
+    // QUIET TRUTH
+    developmentalPressure: "You're learning to test your beliefs rather than defend them. That willingness wavers—you keep having to find it again.",
     consequenceZone: "Untested beliefs become prisons. A map that doesn't match reality leads you nowhere.",
     whenIgnored: "Meaning collapses. You go through motions without conviction. Life feels like it's happening around you."
   },
@@ -267,8 +285,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "career, reputation, public life, responsibility, legacy",
     theme: "what you're here to contribute and be known for",
     whenActivated: "career pressure, visibility, or questions about your direction",
+    // OPENING
     specialty: "What you build and contribute matters more here. Work isn't just income—it's how you leave a mark. Something is taking shape.",
-    developmentalPressure: "You're stepping into roles that ask more of you than before. That capacity is still developing.",
+    // TENSION HOLD
+    developmentalPressure: "You're stepping into roles that ask more of you than before. That stretch doesn't become comfortable—you just get used to the weight.",
     consequenceZone: "What you build here outlasts you—for better or worse. Reputation is a slow-motion portrait.",
     whenIgnored: "Work becomes meaningless. You climb ladders but don't know why. Achievement without satisfaction."
   },
@@ -278,8 +298,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "friendships, groups, networks, hopes, future vision",
     theme: "where you belong and what you're building toward",
     whenActivated: "questions about belonging, friendship, or whether you fit",
-    specialty: "You keep running into questions about who your people are—and whether you actually belong where you've been trying to fit. Something is becoming clearer.",
-    developmentalPressure: "You're learning that not every community is yours. Finding where you actually fit is an active process.",
+    // TENSION HOLD
+    specialty: "You keep running into questions about who your people are—and whether you actually belong where you've been trying to fit. That question recurs.",
+    // QUIET TRUTH
+    developmentalPressure: "You're learning that not every community is yours. Finding where you actually fit takes longer than you'd like.",
     consequenceZone: "Wrong community, wrong future. The people around you shape what you become.",
     whenIgnored: "Isolation increases. Future feels directionless. You perform belonging instead of actually fitting."
   },
@@ -289,8 +311,10 @@ export const HOUSE_MEANINGS: { [key: number]: HouseMeaning } = {
     arena: "retreat, spirituality, unconscious patterns, endings, exile",
     theme: "what you can't see yet and what needs release",
     whenActivated: "need for retreat, confusion, or patterns you can't fully name",
-    specialty: "There's something running in the background that you can't quite name. Patterns repeat until you notice them. Something is surfacing.",
-    developmentalPressure: "You're learning to let things end. Not everything can be fixed—some things need to be released. That's already happening.",
+    // QUIET TRUTH
+    specialty: "There's something running in the background that you can't quite name. Patterns repeat until you notice them—and sometimes even after.",
+    // OPENING
+    developmentalPressure: "You're learning to let things end. Not everything can be fixed—some things need to be released. That release is finding its timing.",
     consequenceZone: "What you won't release follows you. Unconscious patterns run the show until you face them.",
     whenIgnored: "Exhaustion without cause. The same pattern repeats with different faces. Something keeps leaking energy."
   }
@@ -1097,19 +1121,26 @@ export const getMainLifeArenas = (chartData: FullChartData | null): LifeArena[] 
     
     let explanation = '';
     if (presentImportant.length >= 2) {
+      // OPENING
       explanation = `You keep getting pulled back here—especially when things don't work elsewhere. That's usually when something starts to shift.`;
     } else if (presentImportant.includes('Sun')) {
-      explanation = `Your sense of who you are lives here. What happens in this area shapes how you see yourself—and it's still forming.`;
+      // QUIET TRUTH
+      explanation = `Your sense of who you are lives here. What happens in this area shapes how you see yourself—and that never fully settles.`;
     } else if (presentImportant.includes('Moon')) {
-      explanation = `Your emotional baseline is here. When this area shakes, you feel it in ways others might not see. Something deeper is asking for attention.`;
+      // TENSION HOLD
+      explanation = `Your emotional baseline is here. When this area shakes, you feel it in ways others might not see. It stays active until you face it.`;
     } else if (presentImportant.includes('Saturn')) {
-      explanation = `You've had to grow up here—sometimes before you were ready. This is where you're still evolving.`;
+      // QUIET TRUTH
+      explanation = `You've had to grow up here—sometimes before you were ready. This doesn't resolve—you just get better at carrying it.`;
     } else if (presentImportant.includes('Chiron')) {
-      explanation = `Something hurt you here once. Now that same place is where you help others—and where healing continues.`;
+      // TENSION HOLD
+      explanation = `Something hurt you here once. Now that same place is where you help others—but the tenderness doesn't fully leave.`;
     } else if (presentImportant.includes('North Node')) {
+      // OPENING
       explanation = `This doesn't come naturally—you tend to avoid it until you can't. When it shows up, it usually matters.`;
     } else if (planets.length >= 3) {
-      explanation = `A lot of different parts of you show up here. You can't ignore this space for long—it's active.`;
+      // TENSION HOLD
+      explanation = `A lot of different parts of you show up here. You can't ignore this space for long—it keeps returning.`;
     } else {
       explanation = meaning.specialty;
     }

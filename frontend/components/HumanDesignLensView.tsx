@@ -2921,38 +2921,36 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         )}
 
-        {/* SECTION 5: HOW THIS SHOWS UP - Calibrated behavioral observations with Forward Pull */}
+        {/* SECTION 5: HOW THIS SHOWS UP - Varied Forward Pull types */}
         <View style={[styles.hdGlanceCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
           <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>HOW THIS SHOWS UP</Text>
-          {/* RECOGNITION tone (60%) with Forward Pull */}
+          {/* Mixed: OPENING / TENSION HOLD / QUIET TRUTH */}
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
-            • {hdType === 'Projector' ? 'You tend to wait for others to come to you—pushing often doesn\'t feel right. When recognition comes, things flow.' : 
-               hdType === 'Generator' || hdType === 'Manifesting Generator' ? 'You often know what\'s right by how your body responds—not your head. That signal is getting clearer.' : 
-               hdType === 'Manifestor' ? 'You may find yourself starting things others won\'t—informing first tends to help. Something is wanting to begin.' : 
-               'Big decisions usually need time to settle—a full cycle often brings more clarity. Something is forming.'}
+            • {hdType === 'Projector' ? 'You tend to wait for others to come to you—pushing often doesn\'t feel right. When recognition comes, things flow.' : // OPENING
+               hdType === 'Generator' || hdType === 'Manifesting Generator' ? 'You often know what\'s right by how your body responds—not your head. That signal gets clearer with practice, but it doesn\'t become automatic.' : // QUIET TRUTH
+               hdType === 'Manifestor' ? 'You may find yourself starting things others won\'t—informing first tends to help. The resistance doesn\'t disappear, but it softens.' : // QUIET TRUTH
+               'Big decisions usually need time to settle—a full cycle often brings more clarity. Rushing still tempts you.'}  // TENSION HOLD
           </Text>
-          {/* TENSION tone (30%) with Forward Pull */}
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
-            • {authority === 'Emotional' || authority === 'Solar Plexus' ? 'What feels right today may shift tomorrow—waiting for the wave to pass can help. The clarity is coming.' :
-               authority === 'Sacral' ? 'Your gut tends to respond quickly—the first response is often the clearest. That response is becoming more trustworthy.' :
-               authority === 'Splenic' ? 'Your instincts can hit fast and not repeat—catching them in the moment matters. You\'re learning to trust it.' :
-               authority === 'Self-Projected' || authority === 'Self Projected' ? 'You may need to hear yourself talk it through with others to find clarity. The right words are coming.' :
-               authority === 'Ego' || authority === 'Heart' ? 'When you don\'t genuinely want something, follow-through can be difficult. What you actually want is becoming clearer.' :
-               authority === 'Mental' || authority === 'Sounding Board' ? 'You often process by bouncing ideas off trusted people. The right sounding board is emerging.' :
-               authority === 'Lunar' ? 'Major decisions tend to need more time—rushing can backfire. Something is settling into place.' :
-               'Clarity often comes through the body rather than mental analysis. That channel is opening.'}
+            • {authority === 'Emotional' || authority === 'Solar Plexus' ? 'What feels right today may shift tomorrow—waiting for the wave to pass can help. The wave doesn\'t stop—you just learn to ride it.' : // QUIET TRUTH
+               authority === 'Sacral' ? 'Your gut tends to respond quickly—the first response is often the clearest. Trust builds slowly, especially after ignoring it.' : // TENSION HOLD
+               authority === 'Splenic' ? 'Your instincts can hit fast and not repeat—catching them in the moment matters. Missing them still happens.' : // TENSION HOLD
+               authority === 'Self-Projected' || authority === 'Self Projected' ? 'You may need to hear yourself talk it through with others to find clarity. The right words come when the right ear is listening.' : // OPENING
+               authority === 'Ego' || authority === 'Heart' ? 'When you don\'t genuinely want something, follow-through can be difficult. That filter sharpens with experience.' : // OPENING
+               authority === 'Mental' || authority === 'Sounding Board' ? 'You often process by bouncing ideas off trusted people. Finding the right sounding board takes time.' : // TENSION HOLD
+               authority === 'Lunar' ? 'Major decisions tend to need more time—rushing can backfire. Patience doesn\'t come naturally, but the cost of impatience teaches.' : // QUIET TRUTH
+               'Clarity often comes through the body rather than mental analysis. The body speaks quietly.'}  // OPENING
           </Text>
-          {/* RECOGNITION tone for centers with Forward Pull */}
           {definedCentersList.length > 0 && (
             <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
-              • {definedCentersList.includes('Sacral') ? 'You tend to have consistent work energy—though it helps when you love what you do. That alignment is developing.' :
-                 definedCentersList.includes('Heart') || definedCentersList.includes('Ego') ? 'You can push through, but usually only for things that genuinely matter to you. What matters is becoming clearer.' :
-                 definedCentersList.includes('Root') ? 'You may handle pressure well—though it can sometimes make you rush others. Your timing is refining.' :
-                 definedCentersList.includes('Solar Plexus') || definedCentersList.includes('Emotional') ? 'Your moods tend to be real and powerful—they\'re not always about fixing. Something is integrating.' :
-                 definedCentersList.includes('Throat') ? 'You often have a consistent voice—people tend to hear you. What you\'re saying is crystallizing.' :
-                 definedCentersList.includes('Ajna') ? 'You may think in consistent patterns—not everyone does. Your understanding is deepening.' :
-                 definedCentersList.includes('Head') ? 'Questions often come to you naturally—they tend to drive your process. An answer is forming.' :
-                 `Your energy tends to be consistent in certain areas—others may feel it. That presence is strengthening.`}
+              • {definedCentersList.includes('Sacral') ? 'You tend to have consistent work energy—though it helps when you love what you do. Misaligned work still drains you.' : // QUIET TRUTH
+                 definedCentersList.includes('Heart') || definedCentersList.includes('Ego') ? 'You can push through, but usually only for things that genuinely matter. The willpower runs out when the heart isn\'t in it.' : // TENSION HOLD
+                 definedCentersList.includes('Root') ? 'You may handle pressure well—though it can sometimes make you rush others. Your pace isn\'t their pace.' : // QUIET TRUTH
+                 definedCentersList.includes('Solar Plexus') || definedCentersList.includes('Emotional') ? 'Your moods tend to be real and powerful—they\'re not always about fixing. Some waves just need to pass.' : // QUIET TRUTH
+                 definedCentersList.includes('Throat') ? 'You often have a consistent voice—people tend to hear you. Being heard and being understood aren\'t the same thing.' : // TENSION HOLD
+                 definedCentersList.includes('Ajna') ? 'You may think in consistent patterns—not everyone does. Your certainty can create distance.' : // TENSION HOLD
+                 definedCentersList.includes('Head') ? 'Questions often come to you naturally—they tend to drive your process. Not every question needs an answer.' : // QUIET TRUTH
+                 `Your energy tends to be consistent in certain areas—others may feel it. That presence creates impact, wanted or not.`}  // QUIET TRUTH
             </Text>
           )}
         </View>
