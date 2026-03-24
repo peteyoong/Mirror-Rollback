@@ -263,6 +263,190 @@ const getGateTrigrams = (gateNum: number): TrigramInfo | null => {
 };
 
 // ============================================
+// REFLECTOR MODE - Time-Based Pattern Experience
+// ============================================
+// Reflectors are fundamentally different - they experience life through
+// environmental sampling and lunar cycles, not fixed identity
+
+interface LunarPhaseInfo {
+  phase: string;
+  phaseName: string;
+  dayInCycle: number;
+  percentComplete: number;
+  phaseTheme: string;
+  whatShifting: string;
+  decisionGuidance: string;
+}
+
+// Lunar phase themes for Reflector experience
+const LUNAR_PHASE_THEMES: Record<string, { theme: string; shifting: string; guidance: string }> = {
+  'new': {
+    theme: 'Beginning',
+    shifting: 'A new cycle starts. What felt clear is resetting. Fresh impressions are arriving.',
+    guidance: 'Not the time to decide. The cycle is just beginning—let it unfold.'
+  },
+  'waxing_crescent': {
+    theme: 'Emerging',
+    shifting: 'Initial impressions are forming. You\'re starting to feel how this cycle will move.',
+    guidance: 'Still gathering. Notice what\'s surfacing without locking in.'
+  },
+  'first_quarter': {
+    theme: 'Building',
+    shifting: 'Momentum is growing. Some things are becoming clearer, others more complex.',
+    guidance: 'You\'re halfway to having real information. Don\'t rush.'
+  },
+  'waxing_gibbous': {
+    theme: 'Clarifying',
+    shifting: 'Details are sharpening. What matters is starting to separate from what doesn\'t.',
+    guidance: 'Patterns are emerging. Take note of what\'s consistent.'
+  },
+  'full': {
+    theme: 'Illumination',
+    shifting: 'Maximum clarity for this cycle. What you\'re seeing now is the fullest picture.',
+    guidance: 'If something has stayed true across the cycle, it\'s probably real.'
+  },
+  'waning_gibbous': {
+    theme: 'Integrating',
+    shifting: 'The peak has passed. Now you\'re processing what you learned.',
+    guidance: 'Reflect on what emerged. The cycle is completing.'
+  },
+  'last_quarter': {
+    theme: 'Releasing',
+    shifting: 'Letting go of what doesn\'t serve. The cycle is winding down.',
+    guidance: 'Time to release what isn\'t true. Clarity is settling.'
+  },
+  'waning_crescent': {
+    theme: 'Resting',
+    shifting: 'The cycle is nearly complete. Rest before the next one begins.',
+    guidance: 'Allow completion. The next cycle will bring new information.'
+  }
+};
+
+// Calculate current lunar phase
+const getLunarPhaseInfo = (): LunarPhaseInfo => {
+  const now = new Date();
+  // Known new moon: January 29, 2025 (for reference point)
+  const knownNewMoon = new Date('2025-01-29T12:00:00Z');
+  const lunarCycleLength = 29.53; // days
+  
+  const daysSinceKnownNewMoon = (now.getTime() - knownNewMoon.getTime()) / (1000 * 60 * 60 * 24);
+  const cyclePosition = daysSinceKnownNewMoon % lunarCycleLength;
+  const dayInCycle = Math.floor(cyclePosition) + 1;
+  const percentComplete = Math.round((cyclePosition / lunarCycleLength) * 100);
+  
+  // Determine phase
+  let phase: string;
+  let phaseName: string;
+  
+  if (cyclePosition < 1.85) {
+    phase = 'new';
+    phaseName = 'New Moon';
+  } else if (cyclePosition < 7.38) {
+    phase = 'waxing_crescent';
+    phaseName = 'Waxing Crescent';
+  } else if (cyclePosition < 11.07) {
+    phase = 'first_quarter';
+    phaseName = 'First Quarter';
+  } else if (cyclePosition < 14.76) {
+    phase = 'waxing_gibbous';
+    phaseName = 'Waxing Gibbous';
+  } else if (cyclePosition < 16.61) {
+    phase = 'full';
+    phaseName = 'Full Moon';
+  } else if (cyclePosition < 22.14) {
+    phase = 'waning_gibbous';
+    phaseName = 'Waning Gibbous';
+  } else if (cyclePosition < 25.83) {
+    phase = 'last_quarter';
+    phaseName = 'Last Quarter';
+  } else {
+    phase = 'waning_crescent';
+    phaseName = 'Waning Crescent';
+  }
+  
+  const phaseData = LUNAR_PHASE_THEMES[phase] || LUNAR_PHASE_THEMES['new'];
+  
+  return {
+    phase,
+    phaseName,
+    dayInCycle,
+    percentComplete,
+    phaseTheme: phaseData.theme,
+    whatShifting: phaseData.shifting,
+    decisionGuidance: phaseData.guidance
+  };
+};
+
+// Reflector-specific content - reframed from identity to experience
+const REFLECTOR_MODE_CONTENT = {
+  // Core pattern reframed for change over time
+  corePattern: {
+    recognition: 'You don\'t have one fixed way of being.\nHow you feel today isn\'t how you\'ll feel next week.',
+    tension: 'People expect consistency. You deliver depth through variability.',
+    insight: 'What looks like inconsistency is actually a wider range of experience.'
+  },
+  
+  // Environment as primary
+  environment: {
+    title: 'THE ENVIRONMENT YOU\'RE IN',
+    recognition: 'Where you are shapes who you become—more than for most.',
+    howShows: [
+      'You feel different in different places. Dramatically different.',
+      'The people around you become part of your experience.',
+      'Wrong environments don\'t just feel bad—they make you someone you\'re not.'
+    ],
+    question: 'What environment have you been in lately? How has it been shaping you?'
+  },
+  
+  // Centers as amplification (not definition)
+  amplification: {
+    title: 'WHAT YOU AMPLIFY',
+    intro: 'With all centers open, you don\'t have fixed energy—you receive, sample, and magnify what\'s around you.',
+    centers: {
+      'Head': 'Mental pressure from others—you feel their questions as yours',
+      'Ajna': 'How people think—you can think in their patterns',
+      'Throat': 'Communication styles—you mirror how others express',
+      'G': 'Identity and direction—you can feel like many different people',
+      'Heart': 'Willpower and ego—you sense others\' drive as your own',
+      'Solar Plexus': 'Emotions—you feel the room, amplified',
+      'Sacral': 'Life force energy—you take in and magnify others\' vitality',
+      'Spleen': 'Survival instincts—you sense what others fear',
+      'Root': 'Pressure and stress—you feel external urgency as yours'
+    }
+  },
+  
+  // Decision journey (elevated lunar)
+  decisionJourney: {
+    title: 'YOUR DECISION JOURNEY',
+    intro: 'Major decisions need a full 28-day cycle. Not because you\'re slow—because you experience them from every angle.',
+    stages: [
+      { day: '1-7', name: 'Gathering', description: 'Initial impressions are unreliable. You\'re just starting to sample.' },
+      { day: '8-14', name: 'Deepening', description: 'The picture is forming. Some things are becoming clearer.' },
+      { day: '15-21', name: 'Illuminating', description: 'Maximum clarity. What\'s true has probably shown up by now.' },
+      { day: '22-28', name: 'Completing', description: 'Integration time. The cycle is finishing. Wisdom is settling.' }
+    ],
+    activeDecision: null as string | null
+  },
+  
+  // Today content for Reflectors
+  today: {
+    title: 'RIGHT NOW',
+    sections: {
+      currentPhase: 'CURRENT PHASE',
+      whatShifting: 'WHAT\'S SHIFTING',
+      microReflection: 'A MOMENT TO NOTICE'
+    },
+    microReflections: [
+      'Who have you been around today? How did they affect you?',
+      'Is your current mood yours—or did you pick it up somewhere?',
+      'What felt true this morning? Does it still feel true now?',
+      'Where are you right now? How is this place shaping your experience?',
+      'What decision is cycling through you? Where are you in the 28 days?'
+    ]
+  }
+};
+
+// ============================================
 // MECHANICS STORY CONTENT (for Explore modals)
 // ============================================
 
@@ -2999,22 +3183,39 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         </View>
 
-        {/* SECTION 2: ENERGY STRUCTURE */}
-        <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>ENERGY STRUCTURE</Text>
-          <View style={styles.hdGlanceCenterSection}>
-            <Text style={[styles.hdGlanceCenterLabel, { color: theme.success || '#4CAF50' }]}>Defined</Text>
-            <Text style={[styles.hdGlanceCenterList, { color: theme.text }]}>
-              {definedCentersList.length > 0 ? definedCentersList.join(', ') : 'None'}
+        {/* SECTION 2: ENERGY STRUCTURE / WHAT YOU AMPLIFY (Reflector) */}
+        {hdType === 'Reflector' ? (
+          <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>WHAT YOU AMPLIFY</Text>
+            <Text style={[styles.reflectorAmplifyIntro, { color: theme.textSecondary }]}>
+              {REFLECTOR_MODE_CONTENT.amplification.intro}
             </Text>
+            <View style={{ marginTop: 12, gap: 8 }}>
+              {Object.entries(REFLECTOR_MODE_CONTENT.amplification.centers).slice(0, 4).map(([center, desc], i) => (
+                <View key={i}>
+                  <Text style={[styles.reflectorAmplifyCenter, { color: theme.text }]}>{center}</Text>
+                  <Text style={[styles.reflectorAmplifyDesc, { color: theme.textSecondary }]}>{desc}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-          <View style={styles.hdGlanceCenterSection}>
-            <Text style={[styles.hdGlanceCenterLabel, { color: theme.textTertiary }]}>Undefined</Text>
-            <Text style={[styles.hdGlanceCenterList, { color: theme.textSecondary }]}>
-              {undefinedCentersList.length > 0 ? undefinedCentersList.join(', ') : 'None'}
-            </Text>
+        ) : (
+          <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>ENERGY STRUCTURE</Text>
+            <View style={styles.hdGlanceCenterSection}>
+              <Text style={[styles.hdGlanceCenterLabel, { color: theme.success || '#4CAF50' }]}>Defined</Text>
+              <Text style={[styles.hdGlanceCenterList, { color: theme.text }]}>
+                {definedCentersList.length > 0 ? definedCentersList.join(', ') : 'None'}
+              </Text>
+            </View>
+            <View style={styles.hdGlanceCenterSection}>
+              <Text style={[styles.hdGlanceCenterLabel, { color: theme.textTertiary }]}>Undefined</Text>
+              <Text style={[styles.hdGlanceCenterList, { color: theme.textSecondary }]}>
+                {undefinedCentersList.length > 0 ? undefinedCentersList.join(', ') : 'None'}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
 
         {/* SECTION 3: KEY ACTIVATIONS */}
         {topGates.length > 0 && (
@@ -3454,6 +3655,117 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // ============================================
   // TODAY TAB - TRANSIT SIGNAL DRIVEN
   // ============================================
+  
+  // ============================================
+  // REFLECTOR MODE TODAY TAB - Time-Based Experience
+  // ============================================
+  const renderReflectorTodayTab = () => {
+    if (!data) return null;
+    
+    const lunarInfo = getLunarPhaseInfo();
+    const reflectorContent = REFLECTOR_MODE_CONTENT;
+    
+    // Get a random micro reflection for today
+    const microReflections = reflectorContent.today.microReflections;
+    const todayReflection = microReflections[Math.floor(new Date().getDate() % microReflections.length)];
+    
+    return (
+      <View style={styles.todayTabContainer}>
+        {/* PAGE TITLE - Reflector-specific */}
+        <View style={styles.todayIntroSection}>
+          <Text style={[styles.todayIntroTitle, { color: theme.text }]}>Right Now</Text>
+          <Text style={[styles.todayIntroSubtitle, { color: theme.textSecondary }]}>
+            Where you are in the cycle. How you might be feeling.
+          </Text>
+        </View>
+        
+        {/* 1. CURRENT PHASE - The lunar position */}
+        <View style={[styles.reflectorPhaseCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
+          <View style={styles.reflectorPhaseHeader}>
+            <Text style={[styles.reflectorPhaseIcon, { color: theme.accent }]}>◐</Text>
+            <View style={styles.reflectorPhaseHeaderText}>
+              <Text style={[styles.reflectorPhaseName, { color: theme.text }]}>{lunarInfo.phaseName}</Text>
+              <Text style={[styles.reflectorPhaseTheme, { color: theme.textSecondary }]}>{lunarInfo.phaseTheme}</Text>
+            </View>
+          </View>
+          
+          {/* Progress bar */}
+          <View style={styles.reflectorCycleProgress}>
+            <View style={[styles.reflectorCycleProgressBar, { backgroundColor: theme.border }]}>
+              <View style={[styles.reflectorCycleProgressFill, { backgroundColor: theme.accent, width: `${lunarInfo.percentComplete}%` }]} />
+            </View>
+            <Text style={[styles.reflectorCycleDay, { color: theme.textTertiary }]}>
+              Day {lunarInfo.dayInCycle} of 28
+            </Text>
+          </View>
+        </View>
+        
+        {/* 2. WHAT'S SHIFTING */}
+        <View style={[styles.reflectorShiftCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.reflectorSectionLabel, { color: theme.accent }]}>WHAT'S SHIFTING</Text>
+          <Text style={[styles.reflectorShiftText, { color: theme.text }]}>
+            {lunarInfo.whatShifting}
+          </Text>
+        </View>
+        
+        {/* 3. DECISION GUIDANCE */}
+        <View style={[styles.reflectorDecisionCard, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
+          <Text style={[styles.reflectorSectionLabel, { color: theme.textTertiary }]}>FOR DECISIONS</Text>
+          <Text style={[styles.reflectorDecisionText, { color: theme.text }]}>
+            {lunarInfo.decisionGuidance}
+          </Text>
+        </View>
+        
+        {/* Divider */}
+        <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
+        
+        {/* 4. ENVIRONMENT CHECK */}
+        <View style={[styles.reflectorEnvironmentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.reflectorSectionLabel, { color: theme.textTertiary }]}>THE ENVIRONMENT YOU'RE IN</Text>
+          <Text style={[styles.reflectorEnvironmentText, { color: theme.text }]}>
+            {reflectorContent.environment.recognition}
+          </Text>
+          <View style={styles.reflectorEnvironmentBullets}>
+            {reflectorContent.environment.howShows.map((item, idx) => (
+              <Text key={idx} style={[styles.reflectorBullet, { color: theme.textSecondary }]}>
+                • {item}
+              </Text>
+            ))}
+          </View>
+        </View>
+        
+        {/* 5. MICRO REFLECTION */}
+        <View style={[styles.reflectorMicroCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.reflectorSectionLabel, { color: theme.accent }]}>A MOMENT TO NOTICE</Text>
+          <Text style={[styles.reflectorMicroText, { color: theme.text }]}>
+            {todayReflection}
+          </Text>
+          <TouchableOpacity
+            style={[styles.reflectorReflectCta, { borderTopColor: theme.border }]}
+            onPress={() => openReflection(
+              'Reflector Check-In',
+              'reflector_cycle',
+              todayReflection,
+              'today',
+              'reflector_micro',
+              lunarInfo.phaseName
+            )}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.reflectorReflectCtaText, { color: theme.accent }]}>Reflect on this →</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* 6. CYCLE WISDOM */}
+        <View style={styles.reflectorCycleWisdom}>
+          <Text style={[styles.reflectorWisdomText, { color: theme.textTertiary }]}>
+            You experience life differently every day. This isn't inconsistency—it's depth.
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   const renderTodayTab = () => {
     if (!data) return null;
     
@@ -7259,7 +7571,8 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
             {/* TODAY TAB - Short-term timing / today-week-month cards */}
             {activeTab === 'today' && (
               <>
-                {renderTodayTab()}
+                {/* Use Reflector-specific Today tab for Reflector types */}
+                {data?.core_mechanics?.type === 'Reflector' ? renderReflectorTodayTab() : renderTodayTab()}
                 {/* Today has per-card reflection CTAs, no global Ask block */}
               </>
             )}
@@ -10060,5 +10373,146 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 8,
     fontStyle: 'italic',
+  },
+  // ============================================
+  // REFLECTOR MODE STYLES
+  // ============================================
+  reflectorPhaseCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  reflectorPhaseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  reflectorPhaseIcon: {
+    fontSize: 28,
+  },
+  reflectorPhaseHeaderText: {
+    flex: 1,
+  },
+  reflectorPhaseName: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  reflectorPhaseTheme: {
+    fontSize: 14,
+    marginTop: 2,
+  },
+  reflectorCycleProgress: {
+    marginTop: 16,
+  },
+  reflectorCycleProgressBar: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  reflectorCycleProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  reflectorCycleDay: {
+    fontSize: 12,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  reflectorShiftCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  reflectorSectionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  reflectorShiftText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  reflectorDecisionCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  reflectorDecisionText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+  },
+  reflectorEnvironmentCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  reflectorEnvironmentText: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 12,
+  },
+  reflectorEnvironmentBullets: {
+    gap: 6,
+  },
+  reflectorBullet: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  reflectorMicroCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  reflectorMicroText: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  reflectorReflectCta: {
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  reflectorReflectCtaText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  reflectorCycleWisdom: {
+    marginHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 20,
+    paddingHorizontal: 8,
+  },
+  reflectorWisdomText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  reflectorAmplifyIntro: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+  reflectorAmplifyCenter: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  reflectorAmplifyDesc: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 2,
   },
 });
