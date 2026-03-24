@@ -2827,10 +2827,19 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const { type, strategy, authority, profile, definition, incarnation_cross } = data.core_mechanics;
     const hdType = type || 'Unknown';
     
-    // Safely get centers arrays
+    // Safely get centers arrays - fix field mapping (center_name vs center)
+    // Use centersData API if available, otherwise fallback to mechanics data
     const safeCenters = Array.isArray(centersData?.centers) ? centersData.centers : [];
-    const definedCentersList = safeCenters.filter((c: any) => c && c.defined).map((c: any) => c.center);
-    const undefinedCentersList = safeCenters.filter((c: any) => c && !c.defined).map((c: any) => c.center);
+    
+    // Try to get from centersData first
+    let definedCentersList = safeCenters.filter((c: any) => c && c.defined === true).map((c: any) => c.center_name || c.center || c.name);
+    let undefinedCentersList = safeCenters.filter((c: any) => c && c.defined !== true).map((c: any) => c.center_name || c.center || c.name);
+    
+    // Fallback to mechanics data if centersData not loaded yet
+    if (definedCentersList.length === 0 && undefinedCentersList.length === 0) {
+      definedCentersList = Array.isArray(data?.defined_centers) ? data.defined_centers : [];
+      undefinedCentersList = Array.isArray(data?.undefined_centers) ? data.undefined_centers : [];
+    }
     
     // Safely get gates
     const safeGates = Array.isArray(gatesData?.gates) ? gatesData.gates : [];
@@ -2954,7 +2963,32 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           );
         })()}
 
-        {/* SECTION 6: HOW THIS SHOWS UP - Varied Forward Pull types */}
+        {/* SECTION 6: PERSONALITY VS DESIGN - Conscious vs Unconscious */}
+        {(() => {
+          // Get profile for personality/design info
+          const profileParts = profile?.split('/') || [];
+          const personalityLine = profileParts[0];
+          const designLine = profileParts[1];
+          
+          // Personality vs Design content based on profile
+          const personalityVsDesignContent = getPersonalityVsDesign(personalityLine, designLine, hdType);
+          
+          return (
+            <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>PERSONALITY VS DESIGN</Text>
+              <Text style={[styles.hdGlancePVDLabel, { color: theme.textTertiary }]}>What you know about yourself</Text>
+              <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.text }]}>
+                {personalityVsDesignContent.personality}
+              </Text>
+              <Text style={[styles.hdGlancePVDLabel, { color: theme.textTertiary, marginTop: 10 }]}>What your body does first</Text>
+              <Text style={[styles.hdGlanceEnvironmentLine, { color: theme.text }]}>
+                {personalityVsDesignContent.design}
+              </Text>
+            </View>
+          );
+        })()}
+
+        {/* SECTION 7: HOW THIS SHOWS UP - Varied Forward Pull types */}
         <View style={[styles.hdGlanceCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
           <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>HOW THIS SHOWS UP</Text>
           {/* Mixed: OPENING / TENSION HOLD / QUIET TRUTH */}
@@ -4301,6 +4335,61 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   
   const getHowYouWorkBestReflectionPrompt = (): string => {
     return 'When do I feel most like myself—and what conditions are present when that happens?';
+  };
+
+  // Personality vs Design content - conscious vs unconscious
+  const getPersonalityVsDesign = (personalityLine: string | undefined, designLine: string | undefined, hdType: string): {
+    personality: string;
+    design: string;
+  } => {
+    // Personality line translations (what you think you are)
+    const personalityDescriptions: Record<string, string> = {
+      '1': 'You see yourself as someone who needs to understand things deeply before acting',
+      '2': 'You see yourself as naturally talented, often not understanding why others can\'t do what you do',
+      '3': 'You see yourself as someone who learns through trial and error—mistakes are your education',
+      '4': 'You see yourself as someone who needs the right connections to thrive',
+      '5': 'You see yourself as someone who solves problems others can\'t—a fixer',
+      '6': 'You see yourself as an observer who has learned through experience what works'
+    };
+    
+    // Design line translations (what your body does first)
+    const designDescriptions: Record<string, string> = {
+      '1': 'Your body hesitates until it feels secure—you investigate before you realize you\'re doing it',
+      '2': 'Your body waits to be called—you often act only when pulled by others',
+      '3': 'Your body experiments before your mind catches up—you\'re in motion before planning',
+      '4': 'Your body seeks familiar people and places—novelty exhausts you before you know why',
+      '5': 'Your body gets projected onto—others see solutions in you before you offer them',
+      '6': 'Your body holds back, observing—you\'re watching before you\'re participating'
+    };
+    
+    // Type-based defaults if profile unavailable
+    const typeDefaults: Record<string, { personality: string; design: string }> = {
+      'Reflector': {
+        personality: 'You see yourself as someone who takes in everything—highly sensitive to environment',
+        design: 'Your body mirrors what\'s around you before you notice—you become the room'
+      },
+      'Projector': {
+        personality: 'You see yourself as someone with insight others might miss',
+        design: 'Your body waits for recognition—you\'re already reading the room before speaking'
+      },
+      'Generator': {
+        personality: 'You see yourself as someone with energy to give when something lights you up',
+        design: 'Your body responds before your mind decides—the gut knows first'
+      },
+      'Manifesting Generator': {
+        personality: 'You see yourself as someone who moves fast and handles many things at once',
+        design: 'Your body skips steps and pivots—you\'re already changing direction before you explain why'
+      },
+      'Manifestor': {
+        personality: 'You see yourself as someone who initiates—waiting doesn\'t feel natural',
+        design: 'Your body moves before checking in—you\'ve already started before asking permission'
+      }
+    };
+    
+    const personality = personalityDescriptions[personalityLine || ''] || typeDefaults[hdType]?.personality || 'You have a conscious sense of who you are that others can see';
+    const design = designDescriptions[designLine || ''] || typeDefaults[hdType]?.design || 'Your body operates on patterns you don\'t always notice';
+    
+    return { personality, design };
   };
 
   // Render "How You Work Best" Card for Deep Dive - unified Environment + Determination + Cognition
@@ -9748,6 +9837,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     fontStyle: 'italic',
+  },
+  hdGlancePVDLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
   },
   hdGlanceInsight: {
     fontSize: 13,
