@@ -6290,9 +6290,79 @@ frontend:
           
           🎉 CONCLUSION: Human Design Variables strict computation is working perfectly. The system correctly returns `"variables": null` for all users without exact longitude data, enforces no heuristics/estimation, and maintains deterministic-only output as specified in the review request.
 
+  - task: "Human Design Variables with Stored Planetary Longitude Data"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          HUMAN DESIGN VARIABLES WITH STORED PLANETARY LONGITUDE DATA TESTING COMPLETE ✅
+          
+          🎯 ALL REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+          
+          **Test Scenario 1: GET /api/human-design/mechanics/697f795f1a7a96aa35e283a3 (Reflector user - recomputed)** ✅
+          - Status: 200 OK
+          - Expected: variables.environment.type = "valleys" ✅ CONFIRMED
+          - Variables has all 4 components: environment, determination, cognition, motivation ✅
+          - Each component has type, description, and arrow fields ✅
+          - Component Details:
+            * environment: valleys (right arrow) - "Acoustic, sound-sensitive spaces"
+            * determination: appetite (left arrow) - "Eating when hungry, following appetite"
+            * cognition: touch (right arrow) - "Direct contact awareness"
+            * motivation: innocence (right arrow) - "Motivated by purity and fresh perspective"
+          
+          **Test Scenario 2: GET /api/human-design/mechanics/6971c81f2b40fd5ef501d375 (peter@test.com - recomputed)** ✅
+          - Status: 200 OK
+          - Expected: variables.environment.type = "mountains" ✅ CONFIRMED
+          - Variables has all 4 components: environment, determination, cognition, motivation ✅
+          - Component Details:
+            * environment: mountains (right arrow) - "Elevated, overview perspectives"
+            * determination: light (right arrow) - "Light conditions affect nourishment"
+            * cognition: feeling (right arrow) - "Sensing through touch and proximity"
+            * motivation: guilt (right arrow) - "Motivated by responsibility and duty"
+          
+          **Test Scenario 3: POST /api/human-design/recompute/{user_id} - Verify recompute endpoint** ✅
+          - Both users return status: "skipped" (already have longitude data) ✅
+          - Force recompute (force=true) returns status: "success" ✅
+          - Response includes variables and planetary_longitudes ✅
+          - Backend logs confirm successful recomputation:
+            * "[HD Recompute] Variables: valleys" (Reflector user)
+            * "[HD Recompute] Variables: mountains" (Peter user)
+          
+          **Test Scenario 4: Verify planetary_longitudes structure** ✅
+          - Both personality and design sections present ✅
+          - All 13 planets present in each section ✅
+            * sun, earth, moon, mercury, venus, mars, jupiter, saturn, uranus, neptune, pluto, north_node, south_node
+          - All longitude values are valid numbers (0-360 degrees) ✅
+          - Sample planetary data verified for both users ✅
+          
+          **SUCCESS CRITERIA VERIFICATION:**
+          ✅ Variables are computed from exact longitude data (not estimated)
+          ✅ Environment type matches expected values (valleys/mountains)
+          ✅ API returns 200 status for all calls
+          ✅ No null variables for recomputed users
+          ✅ Planetary longitudes structure complete with all required planets
+          ✅ Recompute endpoint working with proper status responses
+          
+          **Backend Integration Verified:**
+          - All endpoints accessible via https://lens-bridge-app.preview.emergentagent.com/api
+          - Response times excellent (< 30 seconds)
+          - Backend logs confirm successful HD chart recomputation with planetary longitude data
+          - Variables computed from exact Design Sun and Personality Sun positions
+          - Complete planetary longitude data structure with 13 planets in both personality/design sections
+          
+          📊 TEST RESULTS: 6/6 TESTS PASSED (100% SUCCESS RATE)
+          
+          🎉 CONCLUSION: Human Design Variables with stored planetary longitude data is fully functional and working correctly. All review request requirements met including exact environment type matches (valleys/mountains), complete 4-component variables structure, working recompute endpoint, and comprehensive planetary longitudes validation with all 13 planets present in both personality and design sections.
+
 test_plan:
   current_focus:
-    - "Human Design Variables Strict Computation (No Heuristics)" # COMPLETED ✅
+    - "Human Design Variables with Stored Planetary Longitude Data" # COMPLETED ✅
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -6300,89 +6370,53 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: |
-      HUMAN DESIGN VARIABLES STRICT COMPUTATION (NO HEURISTICS) TESTING COMPLETE ✅
+      HUMAN DESIGN VARIABLES WITH STORED PLANETARY LONGITUDE DATA TESTING COMPLETE ✅
       
-      Successfully tested the Human Design Variables strict computation as requested in the review:
+      Successfully completed comprehensive testing of all review request requirements:
       
-      🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+      🎯 ALL REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
       
-      **Test Scenarios Completed Successfully:**
-      1. ✅ GET /api/human-design/mechanics/697f795f1a7a96aa35e283a3 (Reflector user)
-         - Status: 200 OK
-         - Expected: `"variables": null` (NOT estimated values)
-         - Result: ✅ Variables is exactly null
-         - Backend logs: "[HD Variables] No exact longitude data for user 697f795f1a7a96aa35e283a3 - returning null (no estimation)"
+      **Test Scenario 1: GET /api/human-design/mechanics/697f795f1a7a96aa35e283a3 (Reflector user - recomputed)** ✅
+      - Status: 200 OK
+      - Expected: variables.environment.type = "valleys" ✅ CONFIRMED
+      - Variables has all 4 components: environment, determination, cognition, motivation ✅
+      - Each component has type, description, and arrow fields ✅
       
-      2. ✅ GET /api/human-design/mechanics/6971c81f2b40fd5ef501d375 (peter@test.com)
-         - Status: 200 OK
-         - Expected: `"variables": null` if no longitude data
-         - Result: ✅ Variables is exactly null
-         - Backend logs: "[HD Variables] No exact longitude data for user 6971c81f2b40fd5ef501d375 - returning null (no estimation)"
+      **Test Scenario 2: GET /api/human-design/mechanics/6971c81f2b40fd5ef501d375 (peter@test.com - recomputed)** ✅
+      - Status: 200 OK
+      - Expected: variables.environment.type = "mountains" ✅ CONFIRMED
+      - Variables has all 4 components: environment, determination, cognition, motivation ✅
       
-      3. ✅ Verified NO estimation is happening:
-         - ✅ No variables.estimated field exists
-         - ✅ Response is exactly `"variables": null` (not estimated values)
-         - ✅ NOT `"variables": {..., "estimated": true}`
-         - ✅ System enforces deterministic-only output
+      **Test Scenario 3: POST /api/human-design/recompute/{user_id} - Verify recompute endpoint** ✅
+      - Both users return status: "skipped" (already have longitude data) ✅
+      - Force recompute (force=true) returns status: "success" ✅
+      - Response includes variables and planetary_longitudes ✅
+      - Backend logs confirm successful recomputation with exact environment types
       
-      **Additional Comprehensive Testing:**
-      - ✅ Tested additional users (69819f1a1e4549392d7cb6d1, 6984b4a4ce7b78080ce4853a): All return null variables
-      - ✅ Verified response structure: All required fields present, variables field is exactly null
-      - ✅ No estimation markers found in any responses
-      - ✅ Backend implementation correctly checks for exact longitude data before computing variables
+      **Test Scenario 4: Verify planetary_longitudes structure** ✅
+      - Both personality and design sections present ✅
+      - All 13 planets present in each section ✅
+        * sun, earth, moon, mercury, venus, mars, jupiter, saturn, uranus, neptune, pluto, north_node, south_node
+      - All longitude values are valid numbers (0-360 degrees) ✅
       
-      **SUCCESS CRITERIA MET:**
-      ✅ API returns `"variables": null` when exact longitude data unavailable
-      ✅ NO estimation/heuristic values are returned
-      ✅ System enforces deterministic-only output
-      ✅ No "estimated" fields or markers present anywhere
-      
-      📊 TEST RESULTS: 4/4 USERS PASSED (100% SUCCESS RATE)
-      
-      🎉 CONCLUSION: Human Design Variables strict computation is working perfectly. The system correctly returns `"variables": null` for all users without exact longitude data, enforces no heuristics/estimation, and maintains deterministic-only output as specified in the review request.
-      
-      Successfully tested the Human Design Variables computation backend as requested in the review:
-      
-      🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
-      
-      **Test Scenarios Completed Successfully:**
-      1. ✅ GET /api/human-design/mechanics/697f795f1a7a96aa35e283a3 (Reflector user)
-         - Status: 200 OK
-         - Variables object populated with all 4 components: environment, determination, cognition, motivation
-         - Environment: mountains (tone 4, right arrow) - "Elevated, overview perspectives"
-         - Determination: touch (color 4, right arrow) - "Texture and temperature awareness in food"
-         - Cognition: smell (color 1, left arrow) - "Sensing through atmosphere and mood"
-         - Motivation: desire (tone 3, left arrow) - "Motivated by attraction and want"
-      
-      2. ✅ GET /api/human-design/mechanics/6971c81f2b40fd5ef501d375 (peter@test.com)
-         - Status: 200 OK
-         - Variables object populated with all 4 components
-         - Environment: kitchens (tone 3, left arrow) - "Warm, nourishing spaces"
-         - Determination: appetite (color 1, left arrow) - "Eating when hungry, following appetite"
-         - Cognition: feeling (color 5, right arrow) - "Sensing through touch and proximity"
-         - Motivation: desire (tone 3, left arrow) - "Motivated by attraction and want"
-      
-      **All Success Criteria Met:**
-      ✅ API returns 200 status for both users
-      ✅ Variables object is populated (not null/empty)
-      ✅ Environment.type is one of: caves, markets, kitchens, mountains, valleys, shores
-      ✅ All arrow directions are 'left' or 'right'
-      ✅ Variables computed from Design Sun and Personality Sun positions as expected
-      ✅ Environment comes from Design Sun tone (1-6 maps to environment types)
-      ✅ Determination comes from Design Sun color (1-6)
-      ✅ Cognition comes from Personality Sun color (1-6)
-      ✅ Motivation comes from Personality Sun tone (1-6)
+      **SUCCESS CRITERIA VERIFICATION:**
+      ✅ Variables are computed from exact longitude data (not estimated)
+      ✅ Environment type matches expected values (valleys/mountains)
+      ✅ API returns 200 status for all calls
+      ✅ No null variables for recomputed users
+      ✅ Planetary longitudes structure complete with all required planets
+      ✅ Recompute endpoint working with proper status responses
       
       **Backend Integration Verified:**
-      - Endpoint accessible via https://lens-bridge-app.preview.emergentagent.com/api
-      - Backend logs confirm Variables computation: "[HD Variables] Estimated Variables from lines for user 697f795f1a7a96aa35e283a3: environment=mountains"
-      - Response times excellent (< 1 second)
-      - All tone/color values in valid range 1-6
-      - Complete Variables structure with type, description, and arrow for each component
+      - All endpoints accessible via https://lens-bridge-app.preview.emergentagent.com/api
+      - Response times excellent (< 30 seconds)
+      - Backend logs confirm successful HD chart recomputation with planetary longitude data
+      - Variables computed from exact Design Sun and Personality Sun positions
+      - Complete planetary longitude data structure with 13 planets in both personality/design sections
       
-      📊 TEST RESULTS: 2/2 TESTS PASSED (100% SUCCESS RATE)
+      📊 TEST RESULTS: 6/6 TESTS PASSED (100% SUCCESS RATE)
       
-      🎉 CONCLUSION: Human Design Variables (Environment) backend computation is fully functional and working correctly. The endpoint successfully computes Variables from Design Sun and Personality Sun positions, returns valid environment types, and provides complete response structure with all 4 Variable components populated as specified in the review request.
+      🎉 CONCLUSION: Human Design Variables with stored planetary longitude data is fully functional and working correctly. All review request requirements met including exact environment type matches (valleys/mountains), complete 4-component variables structure, working recompute endpoint, and comprehensive planetary longitudes validation with all 13 planets present in both personality and design sections.
   - agent: "main"
     message: |
       FRONTEND TESTING REQUIRED: Verify Varied Forward Pull on At a Glance Tabs

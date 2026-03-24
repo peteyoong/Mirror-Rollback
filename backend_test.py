@@ -1,218 +1,272 @@
 #!/usr/bin/env python3
 """
-Backend Test for Human Design Variables Strict Computation
-Testing the specific review request requirements for no heuristics/estimation.
+Backend Testing Script for Human Design Variables with Planetary Longitude Data
+Testing the review request scenarios for Human Design Variables computation.
 """
 
 import requests
 import json
 import sys
-from typing import Dict, Any
+from typing import Dict, Any, List
 
-# Use the public URL from frontend/.env
-BASE_URL = "https://lens-bridge-app.preview.emergentagent.com/api"
+# Backend URL from environment
+BACKEND_URL = "https://lens-bridge-app.preview.emergentagent.com/api"
 
-def test_human_design_variables_strict_computation():
-    """
-    Test Human Design Variables strict computation (no heuristics).
+def test_human_design_mechanics_endpoint(user_id: str, expected_environment: str = None) -> Dict[str, Any]:
+    """Test the Human Design mechanics endpoint for a specific user."""
+    print(f"\n🧪 Testing GET /api/human-design/mechanics/{user_id}")
     
-    SUCCESS CRITERIA:
-    - API returns `"variables": null` when exact longitude data unavailable
-    - NO estimation/heuristic values are returned
-    - System enforces deterministic-only output
-    """
-    print("🧪 TESTING: Human Design Variables Strict Computation (No Heuristics)")
-    print("=" * 80)
-    
-    # Test scenarios from review request
-    test_cases = [
-        {
-            "name": "Reflector user (should NOT have exact longitude data)",
-            "user_id": "697f795f1a7a96aa35e283a3",
-            "expected_variables": None,
-            "description": "This user does NOT have exact longitude data stored"
-        },
-        {
-            "name": "peter@test.com (test if also returns null)",
-            "user_id": "6971c81f2b40fd5ef501d375", 
-            "expected_variables": None,
-            "description": "Test if this user also returns null if no longitude data"
+    try:
+        response = requests.get(f"{BACKEND_URL}/human-design/mechanics/{user_id}", timeout=30)
+        print(f"Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ ERROR: Expected 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return {"success": False, "error": f"HTTP {response.status_code}"}
+        
+        data = response.json()
+        
+        # Check if variables exist
+        variables = data.get("variables")
+        print(f"Variables: {variables}")
+        
+        if variables is None:
+            print("⚠️  Variables is null - no planetary longitude data available")
+            return {"success": True, "variables": None, "has_longitude_data": False}
+        
+        # Validate variables structure
+        required_components = ["environment", "determination", "cognition", "motivation"]
+        missing_components = []
+        
+        for component in required_components:
+            if component not in variables:
+                missing_components.append(component)
+        
+        if missing_components:
+            print(f"❌ Missing components: {missing_components}")
+            return {"success": False, "error": f"Missing components: {missing_components}"}
+        
+        # Check environment type
+        environment = variables.get("environment", {})
+        environment_type = environment.get("type")
+        print(f"Environment type: {environment_type}")
+        
+        if expected_environment and environment_type != expected_environment:
+            print(f"❌ Expected environment '{expected_environment}', got '{environment_type}'")
+            return {"success": False, "error": f"Environment mismatch: expected {expected_environment}, got {environment_type}"}
+        
+        # Validate each component structure
+        for component_name in required_components:
+            component = variables[component_name]
+            required_fields = ["type", "description", "arrow"]
+            
+            for field in required_fields:
+                if field not in component:
+                    print(f"❌ Component '{component_name}' missing field '{field}'")
+                    return {"success": False, "error": f"Component {component_name} missing {field}"}
+            
+            # Validate arrow direction
+            arrow = component.get("arrow")
+            if arrow not in ["left", "right"]:
+                print(f"❌ Invalid arrow direction '{arrow}' for component '{component_name}'")
+                return {"success": False, "error": f"Invalid arrow direction: {arrow}"}
+        
+        print("✅ All variables components validated successfully")
+        return {
+            "success": True, 
+            "variables": variables, 
+            "has_longitude_data": True,
+            "environment_type": environment_type
         }
+        
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Request failed: {e}")
+        return {"success": False, "error": str(e)}
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON decode error: {e}")
+        return {"success": False, "error": f"JSON decode error: {e}"}
+
+def test_recompute_endpoint(user_id: str) -> Dict[str, Any]:
+    """Test the Human Design recompute endpoint."""
+    print(f"\n🔄 Testing POST /api/human-design/recompute/{user_id}")
+    
+    try:
+        response = requests.post(f"{BACKEND_URL}/human-design/recompute/{user_id}", timeout=60)
+        print(f"Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ ERROR: Expected 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return {"success": False, "error": f"HTTP {response.status_code}"}
+        
+        data = response.json()
+        print(f"Response keys: {list(data.keys())}")
+        
+        # Check status
+        status = data.get("status")
+        print(f"Status: {status}")
+        
+        if status not in ["success", "skipped"]:
+            print(f"❌ Invalid status: {status}")
+            return {"success": False, "error": f"Invalid status: {status}"}
+        
+        # Check for variables and planetary_longitudes
+        has_variables = "variables" in data
+        has_planetary_longitudes = "planetary_longitudes" in data
+        
+        print(f"Has variables: {has_variables}")
+        print(f"Has planetary_longitudes: {has_planetary_longitudes}")
+        
+        if status == "success":
+            if not has_variables:
+                print("⚠️  Success status but no variables in response")
+            if not has_planetary_longitudes:
+                print("⚠️  Success status but no planetary_longitudes in response")
+        
+        return {
+            "success": True,
+            "status": status,
+            "has_variables": has_variables,
+            "has_planetary_longitudes": has_planetary_longitudes,
+            "data": data
+        }
+        
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Request failed: {e}")
+        return {"success": False, "error": str(e)}
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON decode error: {e}")
+        return {"success": False, "error": f"JSON decode error: {e}"}
+
+def validate_planetary_longitudes(planetary_longitudes: Dict[str, Any]) -> Dict[str, Any]:
+    """Validate the planetary_longitudes structure."""
+    print(f"\n🌍 Validating planetary_longitudes structure")
+    
+    required_sections = ["personality", "design"]
+    required_planets = [
+        "sun", "earth", "moon", "mercury", "venus", "mars", 
+        "jupiter", "saturn", "uranus", "neptune", "pluto", 
+        "north_node", "south_node"
     ]
     
-    results = []
+    errors = []
     
-    for i, test_case in enumerate(test_cases, 1):
-        print(f"\n📋 TEST {i}: {test_case['name']}")
-        print(f"User ID: {test_case['user_id']}")
-        print(f"Description: {test_case['description']}")
-        print(f"Expected variables: {test_case['expected_variables']}")
+    for section in required_sections:
+        if section not in planetary_longitudes:
+            errors.append(f"Missing section: {section}")
+            continue
         
-        try:
-            # Make API request
-            url = f"{BASE_URL}/human-design/mechanics/{test_case['user_id']}"
-            print(f"🌐 GET {url}")
-            
-            response = requests.get(url, timeout=30)
-            print(f"📊 Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                variables = data.get('variables')
-                
-                print(f"📋 Response variables: {variables}")
-                
-                # Check if variables is null (as expected)
-                if variables is None:
-                    print("✅ PASS: Variables is null (no estimation/heuristics)")
-                    results.append({
-                        "test": test_case['name'],
-                        "status": "PASS",
-                        "variables": variables,
-                        "reason": "Variables correctly null - no estimation"
-                    })
-                else:
-                    # Variables is not null - check if it contains estimated field
-                    if isinstance(variables, dict):
-                        has_estimated_field = 'estimated' in variables
-                        print(f"📋 Variables structure: {json.dumps(variables, indent=2)}")
-                        
-                        if has_estimated_field:
-                            print("❌ FAIL: Variables contains 'estimated' field (heuristics detected)")
-                            results.append({
-                                "test": test_case['name'],
-                                "status": "FAIL",
-                                "variables": variables,
-                                "reason": "Variables contains 'estimated' field - heuristics used"
-                            })
-                        else:
-                            print("⚠️  UNEXPECTED: Variables populated but no 'estimated' field")
-                            print("    This suggests exact longitude data IS available for this user")
-                            results.append({
-                                "test": test_case['name'],
-                                "status": "UNEXPECTED",
-                                "variables": variables,
-                                "reason": "Variables populated with actual computed data (exact longitude available)"
-                            })
-                    else:
-                        print(f"❌ FAIL: Variables is not null but not a dict: {type(variables)}")
-                        results.append({
-                            "test": test_case['name'],
-                            "status": "FAIL",
-                            "variables": variables,
-                            "reason": f"Variables is {type(variables)}, not null or dict"
-                        })
-                        
+        section_data = planetary_longitudes[section]
+        print(f"Section '{section}' has {len(section_data)} planets")
+        
+        for planet in required_planets:
+            if planet not in section_data:
+                errors.append(f"Missing planet '{planet}' in section '{section}'")
             else:
-                print(f"❌ FAIL: HTTP {response.status_code}")
-                print(f"Response: {response.text}")
-                results.append({
-                    "test": test_case['name'],
-                    "status": "FAIL",
-                    "variables": None,
-                    "reason": f"HTTP {response.status_code}: {response.text}"
-                })
-                
-        except Exception as e:
-            print(f"❌ ERROR: {e}")
-            results.append({
-                "test": test_case['name'],
-                "status": "ERROR",
-                "variables": None,
-                "reason": str(e)
-            })
+                planet_data = section_data[planet]
+                # Check if planet has longitude data
+                if "longitude" not in planet_data:
+                    errors.append(f"Planet '{planet}' in section '{section}' missing longitude")
+    
+    if errors:
+        print(f"❌ Validation errors: {errors}")
+        return {"success": False, "errors": errors}
+    
+    print("✅ Planetary longitudes structure validated successfully")
+    return {"success": True}
+
+def main():
+    """Main testing function."""
+    print("🚀 Starting Human Design Variables with Planetary Longitude Data Testing")
+    print(f"Backend URL: {BACKEND_URL}")
+    
+    test_results = []
+    
+    # Test 1: Reflector user - expected environment = "valleys"
+    print("\n" + "="*80)
+    print("TEST 1: Reflector User (697f795f1a7a96aa35e283a3)")
+    print("Expected: variables.environment.type = 'valleys'")
+    print("="*80)
+    
+    result1 = test_human_design_mechanics_endpoint("697f795f1a7a96aa35e283a3", "valleys")
+    test_results.append(("Reflector User Variables", result1))
+    
+    # Test 2: peter@test.com - expected environment = "mountains"  
+    print("\n" + "="*80)
+    print("TEST 2: Peter User (6971c81f2b40fd5ef501d375)")
+    print("Expected: variables.environment.type = 'mountains'")
+    print("="*80)
+    
+    result2 = test_human_design_mechanics_endpoint("6971c81f2b40fd5ef501d375", "mountains")
+    test_results.append(("Peter User Variables", result2))
+    
+    # If variables are null, try recompute endpoint
+    if (result1.get("variables") is None or result2.get("variables") is None):
+        print("\n" + "="*80)
+        print("VARIABLES ARE NULL - TESTING RECOMPUTE ENDPOINT")
+        print("="*80)
+        
+        # Test recompute for both users
+        print("\nTesting recompute for Reflector user...")
+        recompute1 = test_recompute_endpoint("697f795f1a7a96aa35e283a3")
+        test_results.append(("Reflector Recompute", recompute1))
+        
+        print("\nTesting recompute for Peter user...")
+        recompute2 = test_recompute_endpoint("6971c81f2b40fd5ef501d375")
+        test_results.append(("Peter Recompute", recompute2))
+        
+        # If recompute was successful, validate planetary_longitudes
+        if recompute1.get("has_planetary_longitudes"):
+            planetary_longitudes = recompute1["data"].get("planetary_longitudes")
+            if planetary_longitudes:
+                validation1 = validate_planetary_longitudes(planetary_longitudes)
+                test_results.append(("Reflector Planetary Longitudes Validation", validation1))
+        
+        if recompute2.get("has_planetary_longitudes"):
+            planetary_longitudes = recompute2["data"].get("planetary_longitudes")
+            if planetary_longitudes:
+                validation2 = validate_planetary_longitudes(planetary_longitudes)
+                test_results.append(("Peter Planetary Longitudes Validation", validation2))
+        
+        # Re-test mechanics endpoints after recompute
+        print("\n" + "="*80)
+        print("RE-TESTING MECHANICS ENDPOINTS AFTER RECOMPUTE")
+        print("="*80)
+        
+        result1_after = test_human_design_mechanics_endpoint("697f795f1a7a96aa35e283a3", "valleys")
+        test_results.append(("Reflector User Variables (After Recompute)", result1_after))
+        
+        result2_after = test_human_design_mechanics_endpoint("6971c81f2b40fd5ef501d375", "mountains")
+        test_results.append(("Peter User Variables (After Recompute)", result2_after))
     
     # Summary
-    print("\n" + "=" * 80)
-    print("📊 TEST SUMMARY")
-    print("=" * 80)
+    print("\n" + "="*80)
+    print("TEST SUMMARY")
+    print("="*80)
     
-    pass_count = sum(1 for r in results if r['status'] == 'PASS')
-    fail_count = sum(1 for r in results if r['status'] == 'FAIL')
-    unexpected_count = sum(1 for r in results if r['status'] == 'UNEXPECTED')
-    error_count = sum(1 for r in results if r['status'] == 'ERROR')
+    passed = 0
+    failed = 0
     
-    for result in results:
-        status_emoji = {
-            'PASS': '✅',
-            'FAIL': '❌', 
-            'UNEXPECTED': '⚠️',
-            'ERROR': '💥'
-        }.get(result['status'], '❓')
-        
-        print(f"{status_emoji} {result['test']}: {result['status']}")
-        print(f"   Reason: {result['reason']}")
-        if result['variables'] is not None:
-            print(f"   Variables: {result['variables']}")
+    for test_name, result in test_results:
+        if result.get("success"):
+            print(f"✅ {test_name}: PASSED")
+            passed += 1
+        else:
+            print(f"❌ {test_name}: FAILED - {result.get('error', 'Unknown error')}")
+            failed += 1
     
-    print(f"\n📈 RESULTS: {pass_count} PASS, {fail_count} FAIL, {unexpected_count} UNEXPECTED, {error_count} ERROR")
+    print(f"\nTotal Tests: {len(test_results)}")
+    print(f"Passed: {passed}")
+    print(f"Failed: {failed}")
+    print(f"Success Rate: {(passed/len(test_results)*100):.1f}%")
     
-    # Determine overall test result
-    if fail_count > 0 or error_count > 0:
-        print("🚨 OVERALL: FAILED - Issues detected with strict computation")
-        return False
-    elif unexpected_count > 0:
-        print("⚠️  OVERALL: UNEXPECTED - Users may have exact longitude data available")
-        print("    This means the system is working correctly but test assumptions may be wrong")
-        return True
+    if failed == 0:
+        print("\n🎉 ALL TESTS PASSED!")
+        return 0
     else:
-        print("🎉 OVERALL: PASSED - Strict computation working correctly")
-        return True
-
-def test_no_estimation_verification():
-    """
-    Additional test to verify NO estimation is happening anywhere.
-    """
-    print("\n🔍 ADDITIONAL TEST: Verify NO estimation fields exist")
-    print("=" * 80)
-    
-    test_users = ["697f795f1a7a96aa35e283a3", "6971c81f2b40fd5ef501d375"]
-    
-    for user_id in test_users:
-        try:
-            url = f"{BASE_URL}/human-design/mechanics/{user_id}"
-            response = requests.get(url, timeout=30)
-            
-            if response.status_code == 200:
-                data = response.json()
-                variables = data.get('variables')
-                
-                if variables and isinstance(variables, dict):
-                    # Check for any estimation-related fields
-                    estimation_fields = ['estimated', 'heuristic', 'approximated', 'fallback']
-                    found_estimation = []
-                    
-                    def check_dict_for_estimation(obj, path=""):
-                        if isinstance(obj, dict):
-                            for key, value in obj.items():
-                                current_path = f"{path}.{key}" if path else key
-                                if key.lower() in estimation_fields:
-                                    found_estimation.append(current_path)
-                                check_dict_for_estimation(value, current_path)
-                        elif isinstance(obj, list):
-                            for i, item in enumerate(obj):
-                                check_dict_for_estimation(item, f"{path}[{i}]")
-                    
-                    check_dict_for_estimation(variables)
-                    
-                    if found_estimation:
-                        print(f"❌ User {user_id}: Found estimation fields: {found_estimation}")
-                    else:
-                        print(f"✅ User {user_id}: No estimation fields detected")
-                        
-        except Exception as e:
-            print(f"❌ Error checking user {user_id}: {e}")
+        print(f"\n⚠️  {failed} TESTS FAILED")
+        return 1
 
 if __name__ == "__main__":
-    print("🚀 Starting Human Design Variables Strict Computation Test")
-    print(f"🌐 Backend URL: {BASE_URL}")
-    
-    success = test_human_design_variables_strict_computation()
-    test_no_estimation_verification()
-    
-    if success:
-        print("\n🎉 All tests completed successfully!")
-        sys.exit(0)
-    else:
-        print("\n🚨 Tests failed!")
-        sys.exit(1)
+    sys.exit(main())

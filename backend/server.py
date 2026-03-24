@@ -12337,6 +12337,12 @@ async def get_human_design_mechanics(user_id: str):
         if not variables and personality_data and design_data:
             try:
                 from calculations.human_design import calculate_variables, longitude_to_gate
+                
+                # Check for new planetary_longitudes field (preferred)
+                planetary_longitudes = hd_raw.get('planetary_longitudes', {})
+                p_longitudes = planetary_longitudes.get('personality', {})
+                d_longitudes = planetary_longitudes.get('design', {})
+                
                 p_sun = personality_data.get('Sun', {})
                 d_sun = design_data.get('Sun', {})
                 
@@ -12352,7 +12358,17 @@ async def get_human_design_mechanics(user_id: str):
                     )
                     logger.info(f"[HD Variables] Computed Variables for user {user_id}: environment={variables.get('environment', {}).get('type')}")
                 
-                # OPTION 2: Raw longitude available - compute deterministically
+                # OPTION 2: New planetary_longitudes field available
+                elif p_longitudes.get('sun') and d_longitudes.get('sun'):
+                    p_gate_computed = longitude_to_gate(p_longitudes['sun'])
+                    d_gate_computed = longitude_to_gate(d_longitudes['sun'])
+                    variables = calculate_variables(
+                        personality_sun_data=p_gate_computed,
+                        design_sun_data=d_gate_computed
+                    )
+                    logger.info(f"[HD Variables] Computed Variables from planetary_longitudes for user {user_id}: environment={variables.get('environment', {}).get('type')}")
+                
+                # OPTION 3: Raw longitude in personality/design data
                 elif p_sun.get('longitude') and d_sun.get('longitude'):
                     p_gate_computed = longitude_to_gate(p_sun['longitude'])
                     d_gate_computed = longitude_to_gate(d_sun['longitude'])
@@ -12360,7 +12376,7 @@ async def get_human_design_mechanics(user_id: str):
                         personality_sun_data=p_gate_computed,
                         design_sun_data=d_gate_computed
                     )
-                    logger.info(f"[HD Variables] Computed Variables from longitude for user {user_id}: environment={variables.get('environment', {}).get('type')}")
+                    logger.info(f"[HD Variables] Computed Variables from personality.Sun.longitude for user {user_id}: environment={variables.get('environment', {}).get('type')}")
                 
                 # NO FALLBACK: If exact data unavailable, return null
                 else:
@@ -12411,6 +12427,127 @@ async def get_human_design_mechanics(user_id: str):
         raise
     except Exception as e:
         logger.error(f"Human Design mechanics error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/human-design/recompute/{user_id}")
+async def recompute_human_design_chart(user_id: str, force: bool = False):
+    """
+    Recompute Human Design chart with full planetary longitude storage.
+    
+    This endpoint is needed for:
+    1. Migrating existing charts to include planetary_longitudes
+    2. Enabling Variables computation for legacy charts
+    
+    Args:
+        user_id: User ID to recompute chart for
+        force: If True, recompute even if chart already has longitude data
+        
+    Returns:
+        Updated chart data with variables computed
+    """
+    try:
+        from calculations.human_design import get_human_design_chart
+        from datetime import datetime
+        import pytz
+        
+        # Get user data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        chart = await db.charts.find_one({"user_id": user_id})
+        if not chart:
+            raise HTTPException(status_code=404, detail="Chart not found. Complete onboarding first.")
+        
+        # Check if already has longitude data (skip if not forced)
+        existing_hd = chart.get('human_design', {})
+        has_longitudes = existing_hd.get('planetary_longitudes') is not None
+        
+        if has_longitudes and not force:
+            return {
+                "status": "skipped",
+                "message": "Chart already has planetary longitude data. Use force=true to recompute.",
+                "variables": existing_hd.get('variables')
+            }
+        
+        # Try multiple sources for birth data
+        birth_datetime = None
+        lat = None
+        lon = None
+        
+        # Source 1: user.birth_data
+        birth_data = user.get('birth_data', {})
+        if birth_data:
+            birth_datetime_str = birth_data.get('datetime') or birth_data.get('birth_datetime')
+            lat = birth_data.get('latitude') or birth_data.get('lat')
+            lon = birth_data.get('longitude') or birth_data.get('lon')
+            if birth_datetime_str:
+                if isinstance(birth_datetime_str, str):
+                    if 'T' in birth_datetime_str:
+                        birth_datetime = datetime.fromisoformat(birth_datetime_str.replace('Z', '+00:00'))
+                    else:
+                        birth_datetime = datetime.strptime(birth_datetime_str, '%Y-%m-%d %H:%M:%S')
+                else:
+                    birth_datetime = birth_datetime_str
+        
+        # Source 2: chart.astrology.metadata (computed from onboarding)
+        if not birth_datetime:
+            astro = chart.get('astrology', {})
+            metadata = astro.get('metadata', {})
+            if metadata:
+                birth_datetime_str = metadata.get('input_datetime_utc')
+                coords = metadata.get('coordinates', {})
+                if birth_datetime_str:
+                    birth_datetime = datetime.fromisoformat(birth_datetime_str)
+                if coords:
+                    lat = coords.get('lat')
+                    lon = coords.get('lon')
+        
+        # Source 3: chart.birth_datetime (legacy field)
+        if not birth_datetime:
+            birth_datetime_str = chart.get('birth_datetime')
+            if birth_datetime_str:
+                if isinstance(birth_datetime_str, str):
+                    birth_datetime = datetime.fromisoformat(birth_datetime_str.replace('Z', '+00:00'))
+                else:
+                    birth_datetime = birth_datetime_str
+            lat = lat or chart.get('latitude') or chart.get('lat', 0)
+            lon = lon or chart.get('longitude') or chart.get('lon', 0)
+        
+        if not birth_datetime:
+            raise HTTPException(status_code=400, detail="Cannot determine birth datetime from user or chart data")
+        
+        if lat is None or lon is None:
+            raise HTTPException(status_code=400, detail="Cannot determine birth coordinates from user or chart data")
+        
+        logger.info(f"[HD Recompute] Recomputing HD chart for user {user_id} with birth: {birth_datetime}, lat: {lat}, lon: {lon}")
+        
+        # Compute new HD chart with full longitude storage
+        new_hd_chart = get_human_design_chart(birth_datetime, float(lat), float(lon))
+        
+        # Update the chart in database
+        await db.charts.update_one(
+            {"user_id": user_id},
+            {"$set": {"human_design": new_hd_chart}}
+        )
+        
+        logger.info(f"[HD Recompute] Successfully recomputed HD chart for user {user_id}")
+        logger.info(f"[HD Recompute] Variables: {new_hd_chart.get('variables', {}).get('environment', {}).get('type', 'N/A')}")
+        
+        return {
+            "status": "success",
+            "message": "Human Design chart recomputed with planetary longitude data",
+            "variables": new_hd_chart.get('variables'),
+            "planetary_longitudes": new_hd_chart.get('planetary_longitudes'),
+            "type": new_hd_chart.get('type'),
+            "profile": new_hd_chart.get('profile')
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[HD Recompute] Error recomputing chart for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

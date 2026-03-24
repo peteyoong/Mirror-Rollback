@@ -1406,18 +1406,22 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         p_pos = personality_chart['planets'].get(planet)
         if not p_pos:
             raise ComputeIntegrityError([f"HD Personality: {planet} missing"])
+        p_longitude = p_pos['longitude']
         personality_data[planet] = {
             'position': p_pos,
-            'gate': longitude_to_gate(p_pos['longitude'])
+            'longitude': p_longitude,  # Store longitude directly for Variables computation
+            'gate': longitude_to_gate(p_longitude)
         }
         
         # Design
         d_pos = design_chart['planets'].get(planet)
         if not d_pos:
             raise ComputeIntegrityError([f"HD Design: {planet} missing"])
+        d_longitude = d_pos['longitude']
         design_data[planet] = {
             'position': d_pos,
-            'gate': longitude_to_gate(d_pos['longitude'])
+            'longitude': d_longitude,  # Store longitude directly for Variables computation
+            'gate': longitude_to_gate(d_longitude)
         }
     
     # Get all gates (gate numbers only)
@@ -1596,6 +1600,40 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         'defined_channels': defined_channels_formatted,
         'active_gates': list(all_gates),
         'variables': variables,  # Computed from Sun positions (PHS/Environment)
+        
+        # Planetary longitudes for Variables computation (deterministic data)
+        'planetary_longitudes': {
+            'personality': {
+                'sun': personality_data['Sun']['longitude'],
+                'earth': personality_data['Earth']['longitude'],
+                'moon': personality_data['Moon']['longitude'],
+                'mercury': personality_data['Mercury']['longitude'],
+                'venus': personality_data['Venus']['longitude'],
+                'mars': personality_data['Mars']['longitude'],
+                'jupiter': personality_data['Jupiter']['longitude'],
+                'saturn': personality_data['Saturn']['longitude'],
+                'uranus': personality_data['Uranus']['longitude'],
+                'neptune': personality_data['Neptune']['longitude'],
+                'pluto': personality_data['Pluto']['longitude'],
+                'north_node': personality_data['North Node']['longitude'],
+                'south_node': personality_data['South Node']['longitude'],
+            },
+            'design': {
+                'sun': design_data['Sun']['longitude'],
+                'earth': design_data['Earth']['longitude'],
+                'moon': design_data['Moon']['longitude'],
+                'mercury': design_data['Mercury']['longitude'],
+                'venus': design_data['Venus']['longitude'],
+                'mars': design_data['Mars']['longitude'],
+                'jupiter': design_data['Jupiter']['longitude'],
+                'saturn': design_data['Saturn']['longitude'],
+                'uranus': design_data['Uranus']['longitude'],
+                'neptune': design_data['Neptune']['longitude'],
+                'pluto': design_data['Pluto']['longitude'],
+                'north_node': design_data['North Node']['longitude'],
+                'south_node': design_data['South Node']['longitude'],
+            }
+        },
         
         # Extended data
         'personality': personality_data,
