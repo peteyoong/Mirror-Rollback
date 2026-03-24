@@ -45,27 +45,28 @@ import {
 } from './astrologyInterpreter';
 
 // ============================================
-// HERO DESCRIPTOR - Real behavior, not traits
+// HERO DESCRIPTOR - Real behavior, calibrated tone
 // ============================================
 
 export const getHeroDescriptor = (sun: string, moon: string, asc: string): string => {
   const sunElement = SIGN_ELEMENTS[sun];
   const moonElement = SIGN_ELEMENTS[moon];
   
-  // Real behavioral descriptors - what they actually DO
-  const coreAction = sunElement === 'Water' ? 'You feel things before you can explain them' : 
-                     sunElement === 'Fire' ? 'You act first and process later' : 
-                     sunElement === 'Earth' ? 'You trust what you can see and touch' : 'You need to talk it through';
+  // RECOGNITION tone (60%) - softer, relatable
+  const coreAction = sunElement === 'Water' ? 'You often feel things before you can name them' : 
+                     sunElement === 'Fire' ? 'You tend to act first and process later' : 
+                     sunElement === 'Earth' ? 'You usually trust what you can see and measure' : 'You often need to talk things through to know what you think';
   
-  const emotionalAction = moonElement === 'Fire' ? 'emotions hit fast then pass' : 
-                          moonElement === 'Water' ? 'moods linger and build slowly' : 
-                          moonElement === 'Earth' ? 'you need physical comfort when stressed' : 'talking helps you feel better';
+  // TENSION tone (30%) - moderate, conditional
+  const emotionalAction = moonElement === 'Fire' ? 'emotions can hit fast and move through quickly' : 
+                          moonElement === 'Water' ? 'moods may linger longer than you expect' : 
+                          moonElement === 'Earth' ? 'you may need physical comfort when things get hard' : 'talking usually helps you feel clearer';
   
   return `${coreAction}—${emotionalAction}.`;
 };
 
 // ============================================
-// CHART SPINE - Observable behaviors
+// CHART SPINE - Observable behaviors, calibrated
 // ============================================
 
 export const getChartSpine = (placements: CorePlacements): string[] => {
@@ -78,38 +79,38 @@ export const getChartSpine = (placements: CorePlacements): string[] => {
   const sunElement = SIGN_ELEMENTS[sun];
   const moonElement = SIGN_ELEMENTS[moon];
   
-  // 1. Core behavior (Sun) - what you actually do
+  // 1. Core behavior (Sun) - RECOGNITION tone
   const sunBehaviors: { [key: string]: string } = {
-    'Fire': 'You need to be seen and acknowledged—invisibility drains you.',
-    'Earth': 'You need results you can point to—vague progress frustrates you.',
-    'Air': 'You need mental stimulation—boredom makes you restless.',
-    'Water': 'You need emotional honesty—surface talk feels empty.'
+    'Fire': 'You tend to need acknowledgment—being overlooked can drain you.',
+    'Earth': 'You often need tangible progress—vague outcomes can frustrate you.',
+    'Air': 'You usually need mental stimulation—routine without novelty may leave you restless.',
+    'Water': 'You tend to need emotional honesty—surface talk can feel hollow.'
   };
   if (sunElement && sunBehaviors[sunElement]) spine.push(sunBehaviors[sunElement]);
 
-  // 2. Emotional pattern (Moon) - how stress actually shows
+  // 2. Emotional pattern (Moon) - TENSION tone
   const moonBehaviors: { [key: string]: string } = {
-    'Fire': 'When stressed, you get louder or busier—not quieter.',
-    'Earth': 'When stressed, you slow down and get stubborn.',
-    'Air': 'When stressed, you overthink or go distant.',
-    'Water': 'When stressed, you withdraw or absorb others\' moods.'
+    'Fire': 'When stressed, you may get louder or busier rather than quieter.',
+    'Earth': 'Under pressure, you can slow down and become more fixed.',
+    'Air': 'When overwhelmed, you might overthink or create distance.',
+    'Water': 'In difficult moments, you may withdraw or absorb the mood around you.'
   };
   if (moonElement && moonBehaviors[moonElement]) spine.push(moonBehaviors[moonElement]);
 
-  // 3. First impression (Ascendant) - how people read you
+  // 3. First impression (Ascendant) - RECOGNITION tone
   const ascBehaviors: { [key: string]: string } = {
-    'Aries': 'People see you as direct—you don\'t hide reactions well.',
-    'Taurus': 'People see you as calm—they may not notice your stress.',
-    'Gemini': 'People see you as curious—you ask a lot of questions.',
-    'Cancer': 'People see you as protective—walls go up around strangers.',
-    'Leo': 'People see you as warm—you light up in attention.',
-    'Virgo': 'People see you as observant—you notice what\'s off.',
-    'Libra': 'People see you as pleasant—you smooth over tension.',
-    'Scorpio': 'People see you as intense—you hold eye contact too long.',
-    'Sagittarius': 'People see you as optimistic—you downplay problems.',
-    'Capricorn': 'People see you as serious—humor takes you by surprise.',
-    'Aquarius': 'People see you as detached—but you\'re watching everything.',
-    'Pisces': 'People see you as gentle—you absorb the room\'s energy.'
+    'Aries': 'You often come across as direct—your reactions tend to show.',
+    'Taurus': 'You can appear calm—others may not notice when you\'re stressed.',
+    'Gemini': 'You often seem curious—you tend to ask questions before committing.',
+    'Cancer': 'You may come across as guarded—trust can take time.',
+    'Leo': 'You often appear warm—attention tends to energize you.',
+    'Virgo': 'You can seem observant—you may notice what others miss.',
+    'Libra': 'You often come across as easygoing—you tend to smooth over friction.',
+    'Scorpio': 'You can come across as intense—especially when you\'re fully focused on someone.',
+    'Sagittarius': 'You often seem optimistic—you may downplay difficulties.',
+    'Capricorn': 'You can appear serious—humor might catch you off guard.',
+    'Aquarius': 'You may seem detached—though you\'re often observing more than people realize.',
+    'Pisces': 'You often come across as gentle—you tend to pick up on the energy around you.'
   };
   if (asc && ascBehaviors[asc]) spine.push(ascBehaviors[asc]);
 

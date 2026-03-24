@@ -2921,35 +2921,38 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         )}
 
-        {/* SECTION 5: HOW THIS SHOWS UP - Real behavioral observations */}
+        {/* SECTION 5: HOW THIS SHOWS UP - Calibrated behavioral observations */}
         <View style={[styles.hdGlanceCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
           <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>HOW THIS SHOWS UP</Text>
+          {/* RECOGNITION tone (60%) */}
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
-            • {hdType === 'Projector' ? 'You wait for people to come to you—pushing feels wrong' : 
-               hdType === 'Generator' || hdType === 'Manifesting Generator' ? 'You know what\'s right by how your body responds—not your head' : 
-               hdType === 'Manifestor' ? 'You start things others won\'t—but telling people first prevents blowback' : 
-               'You need a full month before big decisions feel clear'}
+            • {hdType === 'Projector' ? 'You tend to wait for others to come to you—pushing often doesn\'t feel right' : 
+               hdType === 'Generator' || hdType === 'Manifesting Generator' ? 'You often know what\'s right by how your body responds—not your head' : 
+               hdType === 'Manifestor' ? 'You may find yourself starting things others won\'t—informing first tends to help' : 
+               'Big decisions usually need time to settle—a full cycle often brings more clarity'}
           </Text>
+          {/* TENSION tone (30%) */}
           <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
-            • {authority === 'Emotional' || authority === 'Solar Plexus' ? 'What feels right today may feel wrong tomorrow—wait for the wave to pass' :
-               authority === 'Sacral' ? 'Your gut responds instantly—trust the first uh-huh or uh-uh' :
-               authority === 'Splenic' ? 'Your instincts hit fast and don\'t repeat—catch them in the moment' :
-               authority === 'Self-Projected' || authority === 'Self Projected' ? 'You need to hear yourself talk it through with others' :
-               authority === 'Ego' || authority === 'Heart' ? 'If you don\'t genuinely want it, you won\'t follow through' :
-               authority === 'Mental' || authority === 'Sounding Board' ? 'You process by bouncing ideas off trusted people' :
-               authority === 'Lunar' ? 'Big decisions need 28+ days to settle—rushing backfires' :
-               'Clarity comes through the body, not the mind'}
+            • {authority === 'Emotional' || authority === 'Solar Plexus' ? 'What feels right today may shift tomorrow—waiting for the wave to pass can help' :
+               authority === 'Sacral' ? 'Your gut tends to respond quickly—the first response is often the clearest' :
+               authority === 'Splenic' ? 'Your instincts can hit fast and not repeat—catching them in the moment matters' :
+               authority === 'Self-Projected' || authority === 'Self Projected' ? 'You may need to hear yourself talk it through with others to find clarity' :
+               authority === 'Ego' || authority === 'Heart' ? 'When you don\'t genuinely want something, follow-through can be difficult' :
+               authority === 'Mental' || authority === 'Sounding Board' ? 'You often process by bouncing ideas off trusted people' :
+               authority === 'Lunar' ? 'Major decisions tend to need more time—rushing can backfire' :
+               'Clarity often comes through the body rather than mental analysis'}
           </Text>
+          {/* RECOGNITION tone for centers */}
           {definedCentersList.length > 0 && (
             <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
-              • {definedCentersList.includes('Sacral') ? 'Consistent work energy—but you need to love what you do' :
-                 definedCentersList.includes('Heart') || definedCentersList.includes('Ego') ? 'You can push through, but only for what truly matters to you' :
-                 definedCentersList.includes('Root') ? 'You handle pressure well—but it can make you rush others' :
-                 definedCentersList.includes('Solar Plexus') || definedCentersList.includes('Emotional') ? 'Your moods are real and powerful—they\'re not about fixing' :
-                 definedCentersList.includes('Throat') ? 'You have a consistent voice—people hear you' :
-                 definedCentersList.includes('Ajna') ? 'You think in consistent patterns—not everyone does' :
-                 definedCentersList.includes('Head') ? 'Questions come to you naturally—they drive your process' :
-                 `Your energy is consistent in ${definedCentersList[0] || 'certain areas'}—others feel it`}
+              • {definedCentersList.includes('Sacral') ? 'You tend to have consistent work energy—though it helps when you love what you do' :
+                 definedCentersList.includes('Heart') || definedCentersList.includes('Ego') ? 'You can push through, but usually only for things that genuinely matter to you' :
+                 definedCentersList.includes('Root') ? 'You may handle pressure well—though it can sometimes make you rush others' :
+                 definedCentersList.includes('Solar Plexus') || definedCentersList.includes('Emotional') ? 'Your moods tend to be real and powerful—they\'re not always about fixing' :
+                 definedCentersList.includes('Throat') ? 'You often have a consistent voice—people tend to hear you' :
+                 definedCentersList.includes('Ajna') ? 'You may think in consistent patterns—not everyone does' :
+                 definedCentersList.includes('Head') ? 'Questions often come to you naturally—they tend to drive your process' :
+                 `Your energy tends to be consistent in certain areas—others may feel it`}
             </Text>
           )}
         </View>

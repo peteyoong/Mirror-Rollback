@@ -472,121 +472,166 @@ interface PatternLayersType {
 
 const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
   1: {
-    howYouMove: 'You notice what\'s wrong before you notice what\'s right. You fix things compulsively—even things no one asked you to fix.',
-    whatYouAvoid: 'You avoid looking messy, being wrong, or cutting corners. "Good enough" never feels good enough.',
-    whatSitsUnderneath: 'Deep down: if you stop fixing things, everything will fall apart—including you.',
+    // RECOGNITION (60%)
+    howYouMove: 'You tend to notice what could be improved—in yourself, situations, and how things are done.',
+    // TENSION (30%)
+    whatYouAvoid: 'You often move away from things that feel sloppy or careless. "Good enough" can be hard to accept.',
+    // PRECISION (10%)
+    whatSitsUnderneath: 'Deep down: if you stop fixing things, they might fall apart—including you.',
     
-    emotionalTendency: 'A low-grade irritation that never fully goes away. Things should be better than they are.',
-    thinkingTendency: 'Constant comparison: what is vs. what should be. You\'re always editing.',
+    // RECOGNITION
+    emotionalTendency: 'A quiet frustration that things aren\'t quite right. It\'s often in the background.',
+    // TENSION
+    thinkingTendency: 'Comparing what is to what should be. Your mind tends to evaluate and improve.',
     
-    avoidancePattern: 'Making mistakes. Being criticized. Losing your integrity.',
-    antiSelfPattern: '"If you relax, you\'ll become lazy, careless, or bad."',
+    avoidancePattern: 'Making mistakes. Being criticized. Losing your sense of integrity.',
+    antiSelfPattern: '"If you relax, things will slip. You can\'t trust yourself without vigilance."',
     
-    growthDirection: 'Growth comes when you stop fixing and start accepting. Joy doesn\'t require perfection.',
+    growthDirection: 'Growth comes when you can accept that perfection isn\'t the point—and find joy in what\'s already here.',
   },
   2: {
-    howYouMove: 'You notice what others need—often before they do. You help even when you\'re exhausted.',
-    whatYouAvoid: 'You avoid asking for help. You avoid being the burden. Saying "I need" feels selfish.',
-    whatSitsUnderneath: 'Deep down: if you stop being useful, will anyone stay?',
+    // RECOGNITION (60%)
+    howYouMove: 'You tend to notice what others need—sometimes before they do. Helping often feels natural.',
+    // TENSION (30%)
+    whatYouAvoid: 'You may find it hard to ask for help or acknowledge your own needs. It can feel selfish.',
+    // PRECISION (10%)
+    whatSitsUnderneath: 'Deep down: if you stop being useful, will they forget about you?',
     
-    emotionalTendency: 'Pride in being needed—though you wouldn\'t call it pride. You feel good when you\'re giving.',
-    thinkingTendency: 'Reading the room. What do they need? How can I help? Your attention flows outward.',
+    // RECOGNITION
+    emotionalTendency: 'A warm feeling when you\'ve made someone\'s life easier. You may not call it pride.',
+    // TENSION
+    thinkingTendency: 'Reading the room—anticipating what people want. Your attention tends to flow outward.',
     
-    avoidancePattern: 'Your own needs. Being seen as selfish. Receiving without giving back.',
-    antiSelfPattern: '"Your needs don\'t matter. Stop being so demanding."',
+    avoidancePattern: 'Your own needs. Being seen as demanding. Receiving without giving back.',
+    antiSelfPattern: '"Your needs don\'t matter as much. If you stop giving, they\'ll leave."',
     
-    growthDirection: 'Growth comes when you let yourself receive. Love isn\'t earned.',
+    growthDirection: 'Growth comes when you let yourself receive—and discover that love doesn\'t have to be earned.',
   },
   3: {
-    howYouMove: 'You notice what wins. You shape-shift to fit the room. You do, achieve, produce.',
-    whatYouAvoid: 'You avoid failure. You avoid being ordinary. You avoid slowing down long enough to feel.',
+    // RECOGNITION (60%)
+    howYouMove: 'You tend to notice what leads to success. You often adapt to fit the situation.',
+    // TENSION (30%)
+    whatYouAvoid: 'Failure can be hard to face. You may avoid situations where you can\'t succeed.',
+    // PRECISION (10%)
     whatSitsUnderneath: 'Deep down: without achievement, who are you? Maybe nothing.',
     
-    emotionalTendency: 'Automatic self-adjustment—becoming whatever version of yourself works best here.',
-    thinkingTendency: 'Strategy. What\'s the fastest path? What\'s the best presentation? How do I win?',
+    // RECOGNITION
+    emotionalTendency: 'Adjusting who you appear to be—becoming the version most likely to work here.',
+    // TENSION
+    thinkingTendency: 'Strategizing. Your mind tends to find the shortest path to the goal.',
     
-    avoidancePattern: 'Failure. Being ordinary. Sitting with difficult feelings.',
-    antiSelfPattern: '"You are your achievements. Without them, you disappear."',
+    avoidancePattern: 'Failure. Being ordinary. Sitting still long enough to feel.',
+    antiSelfPattern: '"You are what you achieve. Without accomplishment, you\'re nothing."',
     
-    growthDirection: 'Growth comes when you stop performing. You exist even when you\'re not winning.',
+    growthDirection: 'Growth comes when you stop performing—and realize you exist even when you\'re not winning.',
   },
   4: {
-    howYouMove: 'You notice what\'s missing. You crave depth, meaning, and emotional truth.',
-    whatYouAvoid: 'You avoid being ordinary. You avoid emotional flatness. You avoid pretending everything\'s fine.',
-    whatSitsUnderneath: 'Deep down: something essential is missing from you that others seem to have.',
+    // RECOGNITION (60%)
+    howYouMove: 'You tend to notice what\'s missing—and what carries emotional depth. Meaning matters to you.',
+    // TENSION (30%)
+    whatYouAvoid: 'Being ordinary can feel threatening. You may push back against emotional flatness.',
+    // PRECISION (10%)
+    whatSitsUnderneath: 'Deep down: something essential feels missing—something others seem to have.',
     
-    emotionalTendency: 'Longing. The gap between what is and what could be stays vivid.',
-    thinkingTendency: 'Comparing yourself to others—usually unfavorably. Romanticizing what\'s gone.',
+    // RECOGNITION
+    emotionalTendency: 'A longing—not always sad, but aware of what isn\'t here.',
+    // TENSION
+    thinkingTendency: 'Comparing yourself to others—sometimes unfavorably. Romanticizing what\'s gone.',
     
     avoidancePattern: 'Being like everyone else. Losing your uniqueness. Having your depth dismissed.',
-    antiSelfPattern: '"You\'re fundamentally flawed. No one really understands you."',
+    antiSelfPattern: '"You\'re fundamentally different. No one really understands."',
     
-    growthDirection: 'Growth comes when you realize: nothing is actually missing. What you seek is already here.',
+    growthDirection: 'Growth comes when you realize nothing is actually missing—it\'s been here all along.',
   },
   5: {
-    howYouMove: 'You notice what you understand. You conserve your energy. You watch before you engage.',
-    whatYouAvoid: 'You avoid demands on your time. You avoid situations that drain you. You avoid needing too much.',
-    whatSitsUnderneath: 'Deep down: the world takes more than it gives. Your reserves might run out.',
+    // RECOGNITION (60%)
+    howYouMove: 'You tend to notice what you understand. You often conserve energy and watch before engaging.',
+    // TENSION (30%)
+    whatYouAvoid: 'Demands on your time can feel draining. You may need more space than others.',
+    // PRECISION (10%)
+    whatSitsUnderneath: 'Deep down: the world takes more than it gives. You have to protect your reserves.',
     
-    emotionalTendency: 'Withholding. Holding back. Minimizing needs so you don\'t have to ask for much.',
-    thinkingTendency: 'Analyzing from a distance. Creating frameworks. Understanding without participating.',
+    // RECOGNITION
+    emotionalTendency: 'Holding back. Observing before engaging. Minimizing needs so you don\'t have to ask.',
+    // TENSION
+    thinkingTendency: 'Analyzing from a distance. Understanding without needing to participate.',
     
-    avoidancePattern: 'Overwhelm. Intrusion. Not knowing enough to act.',
-    antiSelfPattern: '"You don\'t have enough to offer. Stay back. Watch."',
+    avoidancePattern: 'Overwhelm. Intrusion. Not knowing enough before acting.',
+    antiSelfPattern: '"You don\'t have enough to offer. It\'s safer to watch."',
     
-    growthDirection: 'Growth comes when you engage fully. Your resources are more abundant than you think.',
+    growthDirection: 'Growth comes when you engage fully—and discover your resources are more abundant than you thought.',
   },
   6: {
-    howYouMove: 'You notice what could go wrong. You scan for danger. You test before you trust.',
-    whatYouAvoid: 'You avoid uncertainty. You avoid authority you haven\'t verified. You avoid being unprepared.',
-    whatSitsUnderneath: 'Deep down: you can\'t fully trust your own judgment. You need backup.',
+    // RECOGNITION (60%)
+    howYouMove: 'You tend to notice what could go wrong. You often scan for danger and test before trusting.',
+    // TENSION (30%)
+    whatYouAvoid: 'Uncertainty can be uncomfortable. You may seek reassurance or prepare for worst cases.',
+    // PRECISION (10%)
+    whatSitsUnderneath: 'Deep down: you may not fully trust your own judgment. You need backup.',
     
-    emotionalTendency: 'Low-grade anxiety. Worry as preparation. Alert but not panicked.',
-    thinkingTendency: 'Questioning everything. Playing devil\'s advocate. Imagining worst cases.',
+    // RECOGNITION
+    emotionalTendency: 'A quiet alertness—not panic, but always slightly watchful.',
+    // TENSION
+    thinkingTendency: 'Questioning. Playing devil\'s advocate. Imagining what could go wrong.',
     
-    avoidancePattern: 'Uncertainty. Making decisions alone. Being caught off guard.',
-    antiSelfPattern: '"You can\'t handle this. Something bad is coming that you\'re not ready for."',
+    avoidancePattern: 'Uncertainty. Making decisions alone. Being caught unprepared.',
+    antiSelfPattern: '"You can\'t handle this. Something bad is coming."',
     
-    growthDirection: 'Growth comes when you trust yourself. You already have the guidance you\'ve been seeking outside.',
+    growthDirection: 'Growth comes when you trust yourself—and realize you already have the guidance you\'ve been seeking.',
   },
   7: {
-    howYouMove: 'You notice possibilities. You keep options open. You move toward what\'s interesting.',
-    whatYouAvoid: 'You avoid pain. You avoid boredom. You avoid anything that feels like a trap.',
-    whatSitsUnderneath: 'Deep down: if you slow down and feel the hard thing, you\'ll get stuck there.',
+    // RECOGNITION (60%)
+    howYouMove: 'You tend to notice possibilities. You often keep options open and move toward what\'s interesting.',
+    // TENSION (30%)
+    whatYouAvoid: 'Pain and limitation can trigger escape. Boredom may feel like a threat.',
+    // PRECISION (10%)
+    whatSitsUnderneath: 'Deep down: if you slow down and feel the hard thing, you might get stuck there.',
     
-    emotionalTendency: 'Reaching for the next thing. Reframing negatives into positives. Escaping discomfort.',
-    thinkingTendency: 'Planning, ideating, finding silver linings. Your mind always knows the exit.',
+    // RECOGNITION
+    emotionalTendency: 'Reaching for the next thing. Reframing negatives. Keeping things light.',
+    // TENSION
+    thinkingTendency: 'Planning, ideating. Your mind tends to find the exit or the silver lining.',
     
-    avoidancePattern: 'Pain. Limitation. Being stuck in something you can\'t get out of.',
-    antiSelfPattern: '"If you stop moving, you\'ll sink. Keep planning. Keep going."',
+    avoidancePattern: 'Pain. Limitation. Being trapped in something you can\'t get out of.',
+    antiSelfPattern: '"If you stop moving, you\'ll sink. Keep planning."',
     
-    growthDirection: 'Growth comes when you stay present—even when it hurts. Depth requires stillness.',
+    growthDirection: 'Growth comes when you stay present—even when it\'s uncomfortable. Depth requires stillness.',
   },
   8: {
-    howYouMove: 'You notice who has power. You take charge. You push back against being controlled.',
-    whatYouAvoid: 'You avoid weakness. You avoid being manipulated. You avoid showing your soft side.',
+    // RECOGNITION (60%)
+    howYouMove: 'You tend to notice power dynamics. You often take charge and push back against control.',
+    // TENSION (30%)
+    whatYouAvoid: 'Vulnerability can feel dangerous. You may protect your soft side.',
+    // PRECISION (10%)
     whatSitsUnderneath: 'Deep down: the world is harsh. Softness invites harm. Only strength keeps you safe.',
     
-    emotionalTendency: 'Intensity. Full engagement. Holding back feels like dying.',
-    thinkingTendency: 'Reading power dynamics. Who\'s in charge? Who can I trust? Where\'s the real power?',
+    // RECOGNITION
+    emotionalTendency: 'Intensity. Full engagement. Holding back can feel like dying.',
+    // TENSION
+    thinkingTendency: 'Reading power dynamics. Who\'s in charge? Who\'s trustworthy?',
     
     avoidancePattern: 'Vulnerability. Being controlled. Appearing weak.',
-    antiSelfPattern: '"Show your soft side and they\'ll destroy you. Stay strong or die."',
+    antiSelfPattern: '"Show your soft side and they\'ll use it against you."',
     
-    growthDirection: 'Growth comes when you let yourself be tender. Vulnerability is not weakness—it\'s strength.',
+    growthDirection: 'Growth comes when you let yourself be tender—and discover vulnerability is strength.',
   },
   9: {
-    howYouMove: 'You notice what keeps the peace. You merge with others. You avoid rocking the boat.',
-    whatYouAvoid: 'You avoid conflict. You avoid asserting yourself. You avoid making waves.',
-    whatSitsUnderneath: 'Deep down: your presence might disturb things. It\'s easier to disappear than risk disconnection.',
+    // RECOGNITION (60%)
+    howYouMove: 'You tend to notice what keeps the peace. You often go along to maintain harmony.',
+    // TENSION (30%)
+    whatYouAvoid: 'Conflict can feel threatening. You may avoid asserting yourself if it might create tension.',
+    // PRECISION (10%)
+    whatSitsUnderneath: 'Deep down: your presence might disturb things. It\'s easier to disappear.',
     
-    emotionalTendency: 'Going numb. Blurring your own needs. Settling into comfortable inaction.',
+    // RECOGNITION
+    emotionalTendency: 'A gentle blurring of your own needs. Settling into comfort.',
+    // TENSION
     thinkingTendency: 'Seeing all sides. Losing track of where you actually stand.',
     
-    avoidancePattern: 'Conflict. Being difficult. Disrupting your inner calm.',
-    antiSelfPattern: '"Your needs aren\'t important. Just go along. Don\'t make trouble."',
+    avoidancePattern: 'Conflict. Being difficult. Disrupting inner peace.',
+    antiSelfPattern: '"Your needs aren\'t important. Just go along."',
     
-    growthDirection: 'Growth comes when you show up. Your presence is a gift—not a disturbance.',
+    growthDirection: 'Growth comes when you show up fully—and realize your presence is a gift, not a disturbance.',
   },
 };
 
