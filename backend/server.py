@@ -12329,8 +12329,55 @@ async def get_human_design_mechanics(user_id: str):
         personality_data = hd_raw.get('personality', {})
         design_data = hd_raw.get('design', {})
         
-        # Extract Variables if available
+        # Compute Variables if available personality/design Sun data exists
+        # This ensures we always have Variables even for legacy stored charts
         variables = hd_raw.get('variables', {})
+        
+        # If no variables but we have personality/design data, compute them
+        if not variables and personality_data and design_data:
+            try:
+                from calculations.human_design import calculate_variables, longitude_to_gate, estimate_color_tone_from_line
+                p_sun = personality_data.get('Sun', {})
+                d_sun = design_data.get('Sun', {})
+                
+                # Check if we have gate data with color/tone
+                p_gate_data = p_sun.get('gate', {}) if isinstance(p_sun, dict) else {}
+                d_gate_data = d_sun.get('gate', {}) if isinstance(d_sun, dict) else {}
+                
+                # If we have the required color/tone data, compute Variables
+                if p_gate_data.get('color') and d_gate_data.get('color'):
+                    variables = calculate_variables(
+                        personality_sun_data=p_gate_data,
+                        design_sun_data=d_gate_data
+                    )
+                    logger.info(f"[HD Variables] Computed Variables for user {user_id}: environment={variables.get('environment', {}).get('type')}")
+                elif p_sun.get('longitude') and d_sun.get('longitude'):
+                    # Recompute from raw longitude data
+                    p_gate_computed = longitude_to_gate(p_sun['longitude'])
+                    d_gate_computed = longitude_to_gate(d_sun['longitude'])
+                    variables = calculate_variables(
+                        personality_sun_data=p_gate_computed,
+                        design_sun_data=d_gate_computed
+                    )
+                    logger.info(f"[HD Variables] Computed Variables from longitude for user {user_id}: environment={variables.get('environment', {}).get('type')}")
+                else:
+                    # Final fallback: estimate from line numbers
+                    p_line = p_gate_data.get('line') if p_gate_data else None
+                    d_line = d_gate_data.get('line') if d_gate_data else None
+                    
+                    if p_line and d_line:
+                        p_estimated = estimate_color_tone_from_line(p_line)
+                        d_estimated = estimate_color_tone_from_line(d_line)
+                        variables = calculate_variables(
+                            personality_sun_data=p_estimated,
+                            design_sun_data=d_estimated
+                        )
+                        variables['estimated'] = True  # Flag as estimation
+                        logger.info(f"[HD Variables] Estimated Variables from lines for user {user_id}: environment={variables.get('environment', {}).get('type')}")
+                    else:
+                        logger.info(f"[HD Variables] Insufficient data for user {user_id}")
+            except Exception as e:
+                logger.warning(f"[HD Variables] Could not compute Variables for user {user_id}: {e}")
         
         return {
             "core_mechanics": {

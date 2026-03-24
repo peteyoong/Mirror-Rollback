@@ -2922,8 +2922,12 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         )}
 
         {/* SECTION 5: ENVIRONMENT - Lived experience, no system language */}
+        {/* Now using backend-computed Variables from HD calculation */}
         {(() => {
-          const envContent = getEnvironmentAtAGlance(data?.variables?.environment, hdType);
+          // Get environment type from backend Variables (data.variables.environment.type)
+          const envType = data?.variables?.environment?.type || 
+                          (typeof data?.variables?.environment === 'string' ? data?.variables?.environment : null);
+          const envContent = getEnvironmentAtAGlance(envType, hdType);
           if (!envContent) return null;
           return (
             <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -4307,8 +4311,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
   // Render Environment Card for Deep Dive - collapsible with 5-section structure
   const renderEnvironmentCard = () => {
+    // Get environment type from backend Variables (data.variables.environment.type)
+    const envType = data?.variables?.environment?.type || 
+                    (typeof data?.variables?.environment === 'string' ? data?.variables?.environment : null);
     const envContent = getEnvironmentDeepDiveContent(
-      data?.variables?.environment,
+      envType,
       data?.core_mechanics?.type || ''
     );
     

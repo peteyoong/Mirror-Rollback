@@ -668,11 +668,214 @@ def longitude_to_gate(longitude: float) -> Dict:
     if line < 1:
         line = 1
     
+    # Calculate color (1-6) within line
+    # Each line is divided into 6 colors
+    line_size = gate_size / 6
+    pos_in_line = pos_in_gate % line_size
+    color = int((pos_in_line / line_size) * 6) + 1
+    if color > 6:
+        color = 6
+    if color < 1:
+        color = 1
+    
+    # Calculate tone (1-6) within color
+    # Each color is divided into 6 tones
+    color_size = line_size / 6
+    pos_in_color = pos_in_line % color_size
+    tone = int((pos_in_color / color_size) * 6) + 1
+    if tone > 6:
+        tone = 6
+    if tone < 1:
+        tone = 1
+    
+    # Calculate base (1-5) within tone
+    # Each tone is divided into 5 bases
+    tone_size = color_size / 5
+    pos_in_tone = pos_in_color % tone_size
+    base = int((pos_in_tone / tone_size) * 5) + 1
+    if base > 5:
+        base = 5
+    if base < 1:
+        base = 1
+    
     return {
         'gate': gate,
         'line': line,
-        'formatted': f"{gate}.{line}"
+        'color': color,
+        'tone': tone,
+        'base': base,
+        'formatted': f"{gate}.{line}",
+        'full_formatted': f"{gate}.{line}.{color}.{tone}.{base}"
     }
+
+
+# ============================================================================
+# VARIABLES (PHS) COMPUTATION
+# Variables are the "arrows" in HD - they come from Sun positions
+# ============================================================================
+
+# Environment types based on Design Sun tone
+ENVIRONMENT_TYPES = {
+    1: {'type': 'caves', 'description': 'Selective, enclosed spaces'},
+    2: {'type': 'markets', 'description': 'Active, busy environments'},
+    3: {'type': 'kitchens', 'description': 'Warm, nourishing spaces'},
+    4: {'type': 'mountains', 'description': 'Elevated, overview perspectives'},
+    5: {'type': 'valleys', 'description': 'Acoustic, sound-sensitive spaces'},
+    6: {'type': 'shores', 'description': 'Transitional, edge spaces'}
+}
+
+# Determination (Digestion) based on Design Sun color
+DETERMINATION_TYPES = {
+    1: {'type': 'appetite', 'arrow': 'left', 'description': 'Eating when hungry, following appetite'},
+    2: {'type': 'taste', 'arrow': 'left', 'description': 'Specific taste preferences guide nutrition'},
+    3: {'type': 'thirst', 'arrow': 'left', 'description': 'Hydration and liquid-based nourishment'},
+    4: {'type': 'touch', 'arrow': 'right', 'description': 'Texture and temperature awareness in food'},
+    5: {'type': 'sound', 'arrow': 'right', 'description': 'Acoustic environment affects digestion'},
+    6: {'type': 'light', 'arrow': 'right', 'description': 'Light conditions affect nourishment'}
+}
+
+# Cognition (Perspective) based on Personality Sun color
+COGNITION_TYPES = {
+    1: {'type': 'smell', 'arrow': 'left', 'description': 'Sensing through atmosphere and mood'},
+    2: {'type': 'taste', 'arrow': 'left', 'description': 'Discriminating through experience'},
+    3: {'type': 'outer_vision', 'arrow': 'left', 'description': 'Peripheral, wide-angle awareness'},
+    4: {'type': 'inner_vision', 'arrow': 'right', 'description': 'Focused, concentrated perception'},
+    5: {'type': 'feeling', 'arrow': 'right', 'description': 'Sensing through touch and proximity'},
+    6: {'type': 'touch', 'arrow': 'right', 'description': 'Direct contact awareness'}
+}
+
+# Motivation based on Personality Sun tone
+MOTIVATION_TYPES = {
+    1: {'type': 'fear', 'description': 'Motivated by survival and security'},
+    2: {'type': 'hope', 'description': 'Motivated by possibility and optimism'},
+    3: {'type': 'desire', 'description': 'Motivated by attraction and want'},
+    4: {'type': 'need', 'description': 'Motivated by necessity and requirement'},
+    5: {'type': 'guilt', 'description': 'Motivated by responsibility and duty'},
+    6: {'type': 'innocence', 'description': 'Motivated by purity and fresh perspective'}
+}
+
+# Arrow direction mapping (for the 4 arrows in HD chart)
+def get_arrow_direction(color: int) -> str:
+    """Determine arrow direction based on color
+    Colors 1-3 = Left arrow (passive/receptive)
+    Colors 4-6 = Right arrow (active/focused)
+    """
+    return 'left' if color <= 3 else 'right'
+
+
+def estimate_color_tone_from_line(line: int) -> dict:
+    """Estimate color and tone from line number when full data unavailable.
+    
+    This is an approximation used for legacy charts that don't have 
+    the full color/tone data computed. It distributes colors evenly
+    across lines as a reasonable estimation.
+    
+    Args:
+        line: Line number (1-6)
+        
+    Returns:
+        Dict with estimated color and tone
+    """
+    # Approximate mapping: each line spans ~1 color on average
+    # Lines 1-2 → Colors 1-2 (left arrow)
+    # Lines 3-4 → Colors 3-4 (middle)  
+    # Lines 5-6 → Colors 5-6 (right arrow)
+    color = line
+    
+    # Tone is harder to estimate - default to middle value (3 or 4)
+    # Use line parity to create some variation
+    tone = 3 if line % 2 == 1 else 4
+    
+    return {
+        'gate': None,  # Unknown
+        'line': line,
+        'color': color,
+        'tone': tone,
+        'base': 3,  # Default middle value
+        'estimated': True  # Flag that this is an estimation
+    }
+
+
+def calculate_variables(personality_sun_data: dict, design_sun_data: dict) -> dict:
+    """Calculate Human Design Variables (the 4 arrows) from Sun positions
+    
+    The Variables are:
+    - Top Left Arrow: Digestion/Determination (Design Sun color) - how you take in nourishment
+    - Bottom Left Arrow: Environment (Design Sun tone) - where you thrive
+    - Top Right Arrow: Perspective/Cognition (Personality Sun color) - how you see
+    - Bottom Right Arrow: Motivation (Personality Sun tone) - why you act
+    
+    Args:
+        personality_sun_data: Dict with gate, line, color, tone, base for Personality Sun
+        design_sun_data: Dict with gate, line, color, tone, base for Design Sun
+        
+    Returns:
+        Dict with complete Variables data
+    """
+    # Extract values
+    p_color = personality_sun_data.get('color', 1)
+    p_tone = personality_sun_data.get('tone', 1)
+    d_color = design_sun_data.get('color', 1)
+    d_tone = design_sun_data.get('tone', 1)
+    
+    # Calculate each Variable
+    determination = DETERMINATION_TYPES.get(d_color, DETERMINATION_TYPES[1])
+    environment = ENVIRONMENT_TYPES.get(d_tone, ENVIRONMENT_TYPES[1])
+    cognition = COGNITION_TYPES.get(p_color, COGNITION_TYPES[1])
+    motivation = MOTIVATION_TYPES.get(p_tone, MOTIVATION_TYPES[1])
+    
+    # Calculate arrow directions
+    digestion_arrow = get_arrow_direction(d_color)  # Top left
+    environment_arrow = 'left' if d_tone <= 3 else 'right'  # Bottom left
+    perspective_arrow = get_arrow_direction(p_color)  # Top right
+    awareness_arrow = 'left' if p_tone <= 3 else 'right'  # Bottom right
+    
+    # Build the canonical Variables payload
+    return {
+        # Environment - where you function best
+        'environment': {
+            'type': environment['type'],
+            'tone': d_tone,
+            'description': environment['description'],
+            'arrow': environment_arrow
+        },
+        # Determination - how you take in nourishment
+        'determination': {
+            'type': determination['type'],
+            'color': d_color,
+            'description': determination['description'],
+            'arrow': digestion_arrow
+        },
+        # Cognition - how you perceive
+        'cognition': {
+            'type': cognition['type'],
+            'color': p_color,
+            'description': cognition['description'],
+            'arrow': perspective_arrow
+        },
+        # Motivation - what drives you
+        'motivation': {
+            'type': motivation['type'],
+            'tone': p_tone,
+            'description': motivation['description'],
+            'arrow': awareness_arrow
+        },
+        # Raw values for reference
+        'raw': {
+            'personality_sun_color': p_color,
+            'personality_sun_tone': p_tone,
+            'design_sun_color': d_color,
+            'design_sun_tone': d_tone
+        },
+        # Arrow summary (for visual representation)
+        'arrows': {
+            'top_left': digestion_arrow,      # Digestion
+            'bottom_left': environment_arrow,  # Environment
+            'top_right': perspective_arrow,    # Perspective
+            'bottom_right': awareness_arrow    # Awareness
+        }
+    }
+
 
 def calculate_design_date(birth_datetime: datetime, lat: float = 0, lon: float = 0, 
                           svp_degrees: float = 31.2836) -> Tuple[datetime, float, Dict]:
@@ -1274,6 +1477,13 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     design_sun_line = design_data['Sun']['gate']['line']
     profile = calculate_profile(personality_sun_line, design_sun_line)
     
+    # Calculate Variables (PHS/Environment) from Sun positions
+    # Variables come from color and tone of Personality Sun and Design Sun
+    variables = calculate_variables(
+        personality_sun_data=personality_data['Sun']['gate'],
+        design_sun_data=design_data['Sun']['gate']
+    )
+    
     # Calculate Incarnation Cross with proper naming
     p_sun_gate = personality_data['Sun']['gate']['gate']
     p_earth_gate = personality_data['Earth']['gate']['gate']
@@ -1413,7 +1623,7 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
         'undefined_centers': undefined_centers,
         'defined_channels': defined_channels_formatted,
         'active_gates': list(all_gates),
-        'variables': {},  # Reserved for future PHS/Environment variables
+        'variables': variables,  # Computed from Sun positions (PHS/Environment)
         
         # Extended data
         'personality': personality_data,

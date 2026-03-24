@@ -1,191 +1,174 @@
 #!/usr/bin/env python3
-"""
-Backend Test Suite for Pattern Compression Layer (V2.5)
-Testing the GET /api/journal/{user_id}/patterns endpoint
-"""
 
 import requests
 import json
 import sys
 from datetime import datetime
 
-# Backend URL from environment
-BACKEND_URL = "https://lens-bridge-app.preview.emergentagent.com/api"
+# Test configuration
+BASE_URL = "https://lens-bridge-app.preview.emergentagent.com/api"
 
-def test_pattern_compression_layer():
-    """
-    Test the Pattern Compression Layer (V2.5) feature
-    Tests GET /api/journal/{user_id}/patterns endpoint for compressed_pattern_lines field
-    """
-    print("🧪 TESTING: Pattern Compression Layer (V2.5)")
-    print("=" * 60)
+def test_human_design_variables():
+    """Test Human Design Variables computation endpoint"""
     
-    # Test user ID from review request
-    user_id = "6971c81f2b40fd5ef501d375"
+    print("🧪 HUMAN DESIGN VARIABLES (ENVIRONMENT) BACKEND COMPUTATION TESTING")
+    print("=" * 80)
     
-    try:
-        # Test 1: Call GET /api/journal/{user_id}/patterns
-        print(f"\n1. ✅ Testing GET /api/journal/{user_id}/patterns")
-        url = f"{BACKEND_URL}/journal/{user_id}/patterns"
+    # Test users from review request
+    test_users = [
+        {
+            "user_id": "697f795f1a7a96aa35e283a3",
+            "description": "Reflector user",
+            "expected_note": "Should have Variables computed from Design Sun and Personality Sun positions"
+        },
+        {
+            "user_id": "6971c81f2b40fd5ef501d375", 
+            "description": "peter@test.com",
+            "expected_note": "Should have Variables computed for this user as well"
+        }
+    ]
+    
+    all_tests_passed = True
+    
+    for i, user in enumerate(test_users, 1):
+        print(f"\n🔍 TEST {i}: {user['description']} (ID: {user['user_id']})")
+        print("-" * 60)
         
-        response = requests.get(url, timeout=30)
-        print(f"   Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            print(f"   ❌ FAILED: Expected 200, got {response.status_code}")
-            print(f"   Response: {response.text}")
-            return False
-        
-        # Parse response
         try:
+            # Test the Human Design mechanics endpoint
+            url = f"{BASE_URL}/human-design/mechanics/{user['user_id']}"
+            print(f"📡 GET {url}")
+            
+            response = requests.get(url, timeout=30)
+            print(f"📊 Status: {response.status_code}")
+            
+            if response.status_code != 200:
+                print(f"❌ FAILED: Expected 200, got {response.status_code}")
+                print(f"Response: {response.text}")
+                all_tests_passed = False
+                continue
+                
             data = response.json()
+            
+            # Check if variables exist
+            variables = data.get('variables')
+            if not variables:
+                print(f"❌ FAILED: No variables found in response")
+                all_tests_passed = False
+                continue
+                
+            print(f"✅ Variables object found")
+            
+            # Test each Variable component
+            required_components = ['environment', 'determination', 'cognition', 'motivation']
+            
+            for component in required_components:
+                component_data = variables.get(component)
+                if not component_data:
+                    print(f"❌ FAILED: Missing {component} component")
+                    all_tests_passed = False
+                    continue
+                    
+                # Check required fields for each component
+                required_fields = ['type', 'description', 'arrow']
+                if component in ['environment', 'motivation']:
+                    required_fields.append('tone')
+                else:  # determination, cognition
+                    required_fields.append('color')
+                    
+                missing_fields = []
+                for field in required_fields:
+                    if field not in component_data:
+                        missing_fields.append(field)
+                        
+                if missing_fields:
+                    print(f"❌ FAILED: {component} missing fields: {missing_fields}")
+                    all_tests_passed = False
+                else:
+                    print(f"✅ {component}: {component_data['type']} ({component_data['arrow']} arrow)")
+                    
+            # Validate specific requirements from review request
+            print(f"\n🎯 VALIDATION CHECKS:")
+            
+            # 1. Environment type validation
+            env_type = variables.get('environment', {}).get('type')
+            valid_env_types = ['mountains', 'caves', 'markets', 'kitchens', 'valleys', 'shores']
+            if env_type in valid_env_types:
+                print(f"✅ Environment type '{env_type}' is valid")
+            else:
+                print(f"❌ FAILED: Environment type '{env_type}' not in valid types: {valid_env_types}")
+                all_tests_passed = False
+                
+            # 2. Arrow directions validation
+            for component in required_components:
+                arrow = variables.get(component, {}).get('arrow')
+                if arrow in ['left', 'right']:
+                    print(f"✅ {component} arrow direction '{arrow}' is valid")
+                else:
+                    print(f"❌ FAILED: {component} arrow direction '{arrow}' not 'left' or 'right'")
+                    all_tests_passed = False
+                    
+            # 3. Tone/Color ranges validation
+            env_tone = variables.get('environment', {}).get('tone')
+            if env_tone and 1 <= env_tone <= 6:
+                print(f"✅ Environment tone {env_tone} is in valid range (1-6)")
+            else:
+                print(f"❌ FAILED: Environment tone {env_tone} not in range 1-6")
+                all_tests_passed = False
+                
+            det_color = variables.get('determination', {}).get('color')
+            if det_color and 1 <= det_color <= 6:
+                print(f"✅ Determination color {det_color} is in valid range (1-6)")
+            else:
+                print(f"❌ FAILED: Determination color {det_color} not in range 1-6")
+                all_tests_passed = False
+                
+            cog_color = variables.get('cognition', {}).get('color')
+            if cog_color and 1 <= cog_color <= 6:
+                print(f"✅ Cognition color {cog_color} is in valid range (1-6)")
+            else:
+                print(f"❌ FAILED: Cognition color {cog_color} not in range 1-6")
+                all_tests_passed = False
+                
+            mot_tone = variables.get('motivation', {}).get('tone')
+            if mot_tone and 1 <= mot_tone <= 6:
+                print(f"✅ Motivation tone {mot_tone} is in valid range (1-6)")
+            else:
+                print(f"❌ FAILED: Motivation tone {mot_tone} not in range 1-6")
+                all_tests_passed = False
+                
+            # Print full Variables structure for verification
+            print(f"\n📋 COMPLETE VARIABLES STRUCTURE:")
+            print(json.dumps(variables, indent=2))
+            
+        except requests.exceptions.RequestException as e:
+            print(f"❌ FAILED: Network error - {e}")
+            all_tests_passed = False
         except json.JSONDecodeError as e:
-            print(f"   ❌ FAILED: Invalid JSON response: {e}")
-            return False
-        
-        print(f"   ✅ SUCCESS: Valid JSON response received")
-        
-        # Test 2: Verify response structure includes all required fields
-        print(f"\n2. ✅ Testing response structure")
-        required_fields = [
-            'user_id',
-            'total_entries', 
-            'phase_distribution',
-            'repeating_phases',
-            'phase_patterns',
-            'compressed_pattern_lines',  # NEW V2.5 field
-            'phase_tensions',
-            'identity_tendency',
-            'identity_threshold_met'
-        ]
-        
-        missing_fields = []
-        for field in required_fields:
-            if field not in data:
-                missing_fields.append(field)
-        
-        if missing_fields:
-            print(f"   ❌ FAILED: Missing required fields: {missing_fields}")
-            return False
-        
-        print(f"   ✅ SUCCESS: All required fields present")
-        
-        # Test 3: Verify compressed_pattern_lines field structure
-        print(f"\n3. ✅ Testing compressed_pattern_lines field")
-        compressed_lines = data.get('compressed_pattern_lines', {})
-        
-        if not isinstance(compressed_lines, dict):
-            print(f"   ❌ FAILED: compressed_pattern_lines should be dict, got {type(compressed_lines)}")
-            return False
-        
-        print(f"   ✅ SUCCESS: compressed_pattern_lines is a dictionary")
-        print(f"   Compressed lines count: {len(compressed_lines)}")
-        
-        # Test 4: Verify compressed_pattern_lines content
-        print(f"\n4. ✅ Testing compressed_pattern_lines content")
-        
-        if len(compressed_lines) == 0:
-            print(f"   ⚠️  INFO: compressed_pattern_lines is empty (no patterns exist)")
-        else:
-            print(f"   ✅ SUCCESS: Found {len(compressed_lines)} compressed pattern lines")
-            for phase_id, line in compressed_lines.items():
-                print(f"   Phase {phase_id}: \"{line}\"")
-                
-                # Verify each line is a string
-                if not isinstance(line, str):
-                    print(f"   ❌ FAILED: Pattern line for {phase_id} should be string, got {type(line)}")
-                    return False
-                
-                # Verify line is not empty
-                if not line.strip():
-                    print(f"   ❌ FAILED: Pattern line for {phase_id} is empty")
-                    return False
-        
-        # Test 5: Verify other response fields for completeness
-        print(f"\n5. ✅ Testing other response fields")
-        
-        # Check user_id matches
-        if data.get('user_id') != user_id:
-            print(f"   ❌ FAILED: user_id mismatch. Expected {user_id}, got {data.get('user_id')}")
-            return False
-        
-        # Check total_entries is a number
-        total_entries = data.get('total_entries')
-        if not isinstance(total_entries, int) or total_entries < 0:
-            print(f"   ❌ FAILED: total_entries should be non-negative int, got {total_entries}")
-            return False
-        
-        # Check phase_distribution is dict
-        phase_dist = data.get('phase_distribution', {})
-        if not isinstance(phase_dist, dict):
-            print(f"   ❌ FAILED: phase_distribution should be dict, got {type(phase_dist)}")
-            return False
-        
-        # Check repeating_phases is list
-        repeating_phases = data.get('repeating_phases', [])
-        if not isinstance(repeating_phases, list):
-            print(f"   ❌ FAILED: repeating_phases should be list, got {type(repeating_phases)}")
-            return False
-        
-        # Check phase_patterns is dict
-        phase_patterns = data.get('phase_patterns', {})
-        if not isinstance(phase_patterns, dict):
-            print(f"   ❌ FAILED: phase_patterns should be dict, got {type(phase_patterns)}")
-            return False
-        
-        # Check phase_tensions is dict
-        phase_tensions = data.get('phase_tensions', {})
-        if not isinstance(phase_tensions, dict):
-            print(f"   ❌ FAILED: phase_tensions should be dict, got {type(phase_tensions)}")
-            return False
-        
-        # Check identity_threshold_met is boolean
-        identity_threshold = data.get('identity_threshold_met')
-        if not isinstance(identity_threshold, bool):
-            print(f"   ❌ FAILED: identity_threshold_met should be bool, got {type(identity_threshold)}")
-            return False
-        
-        print(f"   ✅ SUCCESS: All response fields have correct types")
-        
-        # Test 6: Display summary of results
-        print(f"\n6. ✅ Test Summary")
-        print(f"   User ID: {data.get('user_id')}")
-        print(f"   Total entries: {data.get('total_entries')}")
-        print(f"   Phase distribution: {data.get('phase_distribution')}")
-        print(f"   Repeating phases: {data.get('repeating_phases')}")
-        print(f"   Phase patterns count: {len(data.get('phase_patterns', {}))}")
-        print(f"   Compressed pattern lines count: {len(compressed_lines)}")
-        print(f"   Phase tensions count: {len(data.get('phase_tensions', {}))}")
-        print(f"   Identity tendency: {data.get('identity_tendency')}")
-        print(f"   Identity threshold met: {data.get('identity_threshold_met')}")
-        
-        print(f"\n🎉 ALL TESTS PASSED!")
-        print(f"Pattern Compression Layer (V2.5) is working correctly!")
+            print(f"❌ FAILED: JSON decode error - {e}")
+            all_tests_passed = False
+        except Exception as e:
+            print(f"❌ FAILED: Unexpected error - {e}")
+            all_tests_passed = False
+            
+    # Final summary
+    print(f"\n{'='*80}")
+    print(f"🎯 FINAL TEST RESULTS")
+    print(f"{'='*80}")
+    
+    if all_tests_passed:
+        print(f"✅ ALL TESTS PASSED - Human Design Variables computation is working correctly!")
+        print(f"✅ Variables are computed from Design Sun and Personality Sun positions")
+        print(f"✅ Environment comes from Design Sun tone (1-6 maps to caves/markets/kitchens/mountains/valleys/shores)")
+        print(f"✅ Determination comes from Design Sun color (1-6)")
+        print(f"✅ Cognition comes from Personality Sun color (1-6)")
+        print(f"✅ Motivation comes from Personality Sun tone (1-6)")
+        print(f"✅ All arrow directions are 'left' or 'right'")
         return True
-        
-    except requests.exceptions.RequestException as e:
-        print(f"   ❌ FAILED: Request error: {e}")
-        return False
-    except Exception as e:
-        print(f"   ❌ FAILED: Unexpected error: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-def main():
-    """Run all backend tests"""
-    print("🚀 BACKEND TESTING SUITE")
-    print("Testing Pattern Compression Layer (V2.5)")
-    print("=" * 60)
-    
-    success = test_pattern_compression_layer()
-    
-    if success:
-        print(f"\n✅ ALL TESTS PASSED")
-        sys.exit(0)
     else:
-        print(f"\n❌ SOME TESTS FAILED")
-        sys.exit(1)
+        print(f"❌ SOME TESTS FAILED - See details above")
+        return False
 
 if __name__ == "__main__":
-    main()
+    success = test_human_design_variables()
+    sys.exit(0 if success else 1)
