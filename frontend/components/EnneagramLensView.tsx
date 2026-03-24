@@ -487,7 +487,7 @@ const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
     avoidancePattern: 'Making mistakes. Being criticized. Losing your sense of integrity.',
     antiSelfPattern: '"If you relax, things will slip. You can\'t trust yourself without vigilance."',
     
-    growthDirection: 'Growth comes when you can accept that perfection isn\'t the point—and find joy in what\'s already here.',
+    growthDirection: 'Growth comes when you can accept that perfection isn\'t the point—and find joy in what\'s already here. That acceptance is forming.',
   },
   2: {
     // RECOGNITION (60%)
@@ -505,7 +505,7 @@ const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
     avoidancePattern: 'Your own needs. Being seen as demanding. Receiving without giving back.',
     antiSelfPattern: '"Your needs don\'t matter as much. If you stop giving, they\'ll leave."',
     
-    growthDirection: 'Growth comes when you let yourself receive—and discover that love doesn\'t have to be earned.',
+    growthDirection: 'Growth comes when you let yourself receive—and discover that love doesn\'t have to be earned. That receiving is becoming more possible.',
   },
   3: {
     // RECOGNITION (60%)
@@ -523,7 +523,7 @@ const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
     avoidancePattern: 'Failure. Being ordinary. Sitting still long enough to feel.',
     antiSelfPattern: '"You are what you achieve. Without accomplishment, you\'re nothing."',
     
-    growthDirection: 'Growth comes when you stop performing—and realize you exist even when you\'re not winning.',
+    growthDirection: 'Growth comes when you stop performing—and realize you exist even when you\'re not winning. That sense of being is emerging.',
   },
   4: {
     // RECOGNITION (60%)
@@ -541,7 +541,7 @@ const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
     avoidancePattern: 'Being like everyone else. Losing your uniqueness. Having your depth dismissed.',
     antiSelfPattern: '"You\'re fundamentally different. No one really understands."',
     
-    growthDirection: 'Growth comes when you realize nothing is actually missing—it\'s been here all along.',
+    growthDirection: 'Growth comes when you realize nothing is actually missing—it\'s been here all along. That recognition is approaching.',
   },
   5: {
     // RECOGNITION (60%)
@@ -559,7 +559,7 @@ const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
     avoidancePattern: 'Overwhelm. Intrusion. Not knowing enough before acting.',
     antiSelfPattern: '"You don\'t have enough to offer. It\'s safer to watch."',
     
-    growthDirection: 'Growth comes when you engage fully—and discover your resources are more abundant than you thought.',
+    growthDirection: 'Growth comes when you engage fully—and discover your resources are more abundant than you thought. That engagement is building.',
   },
   6: {
     // RECOGNITION (60%)
@@ -577,7 +577,7 @@ const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
     avoidancePattern: 'Uncertainty. Making decisions alone. Being caught unprepared.',
     antiSelfPattern: '"You can\'t handle this. Something bad is coming."',
     
-    growthDirection: 'Growth comes when you trust yourself—and realize you already have the guidance you\'ve been seeking.',
+    growthDirection: 'Growth comes when you trust yourself—and realize you already have the guidance you\'ve been seeking. That trust is strengthening.',
   },
   7: {
     // RECOGNITION (60%)
@@ -595,7 +595,7 @@ const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
     avoidancePattern: 'Pain. Limitation. Being trapped in something you can\'t get out of.',
     antiSelfPattern: '"If you stop moving, you\'ll sink. Keep planning."',
     
-    growthDirection: 'Growth comes when you stay present—even when it\'s uncomfortable. Depth requires stillness.',
+    growthDirection: 'Growth comes when you stay present—even when it\'s uncomfortable. Depth requires stillness. That stillness is becoming available.',
   },
   8: {
     // RECOGNITION (60%)
@@ -613,7 +613,7 @@ const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
     avoidancePattern: 'Vulnerability. Being controlled. Appearing weak.',
     antiSelfPattern: '"Show your soft side and they\'ll use it against you."',
     
-    growthDirection: 'Growth comes when you let yourself be tender—and discover vulnerability is strength.',
+    growthDirection: 'Growth comes when you let yourself be tender—and discover vulnerability is strength. That openness is becoming safer.',
   },
   9: {
     // RECOGNITION (60%)
@@ -631,7 +631,7 @@ const PATTERN_LAYERS: { [key: number]: PatternLayersType } = {
     avoidancePattern: 'Conflict. Being difficult. Disrupting inner peace.',
     antiSelfPattern: '"Your needs aren\'t important. Just go along."',
     
-    growthDirection: 'Growth comes when you show up fully—and realize your presence is a gift, not a disturbance.',
+    growthDirection: 'Growth comes when you show up fully—and realize your presence is a gift, not a disturbance. That showing up is starting.',
   },
 };
 
