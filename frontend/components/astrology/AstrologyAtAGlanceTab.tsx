@@ -521,58 +521,133 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
   tensionsGiftsExpanded,
   setTensionsGiftsExpanded,
 }) => {
-  const sun = placements.sun || 'Unknown';
-  const moon = placements.moon || 'Unknown';
-  const asc = placements.ascendant || 'Unknown';
+  // DEBUG LOGGING
+  console.log('[ASTRO_GLANCE_DEBUG] Component mount', {
+    hasPlcements: !!placements,
+    hasFullChartData: !!fullChartData,
+    placementKeys: placements ? Object.keys(placements) : 'none',
+  });
+
+  // DEFENSIVE GUARD: Ensure placements exists
+  const safePlacements = placements && typeof placements === 'object' ? placements : {};
+  
+  const sun = safePlacements.sun || 'Unknown';
+  const moon = safePlacements.moon || 'Unknown';
+  const asc = safePlacements.ascendant || 'Unknown';
   
   if (sun === 'Unknown' && moon === 'Unknown' && asc === 'Unknown') {
     return (
       <View style={styles.emptyState}>
         <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}>
-          Your chart data is still loading or incomplete.
+          Your astrology snapshot is still loading.
+        </Text>
+        <Text style={[styles.emptyStateSubtext, { color: theme.textTertiary }]}>
+          Some timing signals haven't loaded yet. Pull to refresh or try again in a moment.
         </Text>
       </View>
     );
   }
 
-  // Use services for data
+  // DEFENSIVE GUARD: Safe fullChartData
+  const safeFullChartData = fullChartData && typeof fullChartData === 'object' ? fullChartData : null;
+
+  // Use services for data with defensive guards
   const heroDescriptor = getHeroDescriptor(sun, moon, asc);
-  const chartSpine = getChartSpine(placements);
-  const mainArenas = getMainLifeArenas(fullChartData);
-  const whereLifeWorks = getWhereLifeKeepsWorkingOnYou(fullChartData);
+  
+  // DEFENSIVE GUARD: chartSpine must be array
+  const rawChartSpine = getChartSpine(safePlacements);
+  const chartSpine = Array.isArray(rawChartSpine) ? rawChartSpine : [];
+  
+  // DEFENSIVE GUARD: mainArenas must be array
+  const rawMainArenas = getMainLifeArenas(safeFullChartData);
+  const mainArenas = Array.isArray(rawMainArenas) ? rawMainArenas : [];
+  
+  // DEFENSIVE GUARD: whereLifeWorks must be array
+  const rawWhereLifeWorks = getWhereLifeKeepsWorkingOnYou(safeFullChartData);
+  const whereLifeWorks = Array.isArray(rawWhereLifeWorks) ? rawWhereLifeWorks : [];
   
   // NEW: Chart Axis - the developmental spine of the chart
-  const chartAxis = generateChartAxis(placements, fullChartData);
+  // DEFENSIVE GUARD: chartAxis must be object with lines array
+  const rawChartAxis = generateChartAxis(safePlacements, safeFullChartData);
+  const chartAxis = rawChartAxis && typeof rawChartAxis === 'object' 
+    ? { ...rawChartAxis, lines: Array.isArray(rawChartAxis.lines) ? rawChartAxis.lines : [] }
+    : { lines: [] };
   
   // NEW: Most Important Factors ranking
-  const mostImportantFactors = rankMostImportantFactors(placements, fullChartData);
+  // DEFENSIVE GUARD: mostImportantFactors must be array
+  const rawMostImportantFactors = rankMostImportantFactors(safePlacements, safeFullChartData);
+  const mostImportantFactors = Array.isArray(rawMostImportantFactors) ? rawMostImportantFactors : [];
   
   // Aspect pattern analysis (Master Astrologer v3)
-  const patternAnalysis = buildAspectPatternAnalysis(fullChartData);
-  const enhancedAspects = getEnhancedKeyAspects(fullChartData, 4);
+  // DEFENSIVE GUARD: patternAnalysis must be object
+  const rawPatternAnalysis = buildAspectPatternAnalysis(safeFullChartData);
+  const patternAnalysis = rawPatternAnalysis && typeof rawPatternAnalysis === 'object'
+    ? rawPatternAnalysis
+    : { howPressureBuilds: { hasSignificantPattern: false, mainStatement: '' } };
+  
+  // DEFENSIVE GUARD: enhancedAspects must be array
+  const rawEnhancedAspects = getEnhancedKeyAspects(safeFullChartData, 4);
+  const enhancedAspects = Array.isArray(rawEnhancedAspects) ? rawEnhancedAspects : [];
   
   // Use local helpers for UI-specific calculations
   const synthesis = getSynthesis(sun, moon, asc);
-  const themeChips = getThemeChips(sun, moon, asc);
-  const tensions = getCoreTensions(sun, moon, asc);
-  const gifts = getCoreGifts(sun, moon, asc);
-  const whatMattersMost = getWhatMattersMost(placements, fullChartData);
-  const keyAspects = getKeyAspects(fullChartData, placements);
+  
+  // DEFENSIVE GUARD: themeChips must be array
+  const rawThemeChips = getThemeChips(sun, moon, asc);
+  const themeChips = Array.isArray(rawThemeChips) ? rawThemeChips : [];
+  
+  // DEFENSIVE GUARD: tensions and gifts must be arrays
+  const rawTensions = getCoreTensions(sun, moon, asc);
+  const tensions = Array.isArray(rawTensions) ? rawTensions : [];
+  
+  const rawGifts = getCoreGifts(sun, moon, asc);
+  const gifts = Array.isArray(rawGifts) ? rawGifts : [];
+  
+  // DEFENSIVE GUARD: whatMattersMost must be array
+  const rawWhatMattersMost = getWhatMattersMost(safePlacements, safeFullChartData);
+  const whatMattersMost = Array.isArray(rawWhatMattersMost) ? rawWhatMattersMost : [];
+  
+  // DEFENSIVE GUARD: keyAspects must be array
+  const rawKeyAspects = getKeyAspects(safeFullChartData, safePlacements);
+  const keyAspects = Array.isArray(rawKeyAspects) ? rawKeyAspects : [];
   
   // NEW: Key Aspect Dynamics - top 5 chart-defining aspects
-  const natalAspects = fullChartData?.natal?.aspects || [];
-  const keyAspectDynamics = getKeyAspectDynamics(natalAspects);
+  // DEFENSIVE GUARD: natalAspects must be array
+  const natalAspects = Array.isArray(safeFullChartData?.natal?.aspects) 
+    ? safeFullChartData.natal.aspects 
+    : [];
+  
+  // DEFENSIVE GUARD: keyAspectDynamics must be array
+  const rawKeyAspectDynamics = getKeyAspectDynamics(natalAspects);
+  const keyAspectDynamics = Array.isArray(rawKeyAspectDynamics) ? rawKeyAspectDynamics : [];
   
   // Life Chapter analysis (Master Astrologer v4)
-  const chapterAnalysis = buildLifeChapterAnalysis(fullChartData);
+  // DEFENSIVE GUARD: chapterAnalysis must be object
+  const rawChapterAnalysis = buildLifeChapterAnalysis(safeFullChartData);
+  const chapterAnalysis = rawChapterAnalysis && typeof rawChapterAnalysis === 'object'
+    ? rawChapterAnalysis
+    : { hasActiveChapter: false, primaryChapter: null };
+  
   const chapterNarrative = chapterAnalysis.primaryChapter 
     ? buildLifeChapterNarrative(chapterAnalysis.primaryChapter, patternAnalysis)
     : null;
   
   // Developmental pressure row data
-  const saturnHouse = placements.saturn_house;
-  const chironHouse = placements.chiron_house;
-  const northNodeHouse = placements.north_node_house;
+  const saturnHouse = safePlacements.saturn_house;
+  const chironHouse = safePlacements.chiron_house;
+  const northNodeHouse = safePlacements.north_node_house;
+
+  // DEBUG LOGGING - processed data
+  console.log('[ASTRO_GLANCE_DEBUG] Processed data', {
+    chartSpineLength: chartSpine.length,
+    chartAxisLinesLength: chartAxis.lines.length,
+    mostImportantFactorsLength: mostImportantFactors.length,
+    mainArenasLength: mainArenas.length,
+    whereLifeWorksLength: whereLifeWorks.length,
+    tensionsLength: tensions.length,
+    giftsLength: gifts.length,
+    keyAspectDynamicsLength: keyAspectDynamics.length,
+  });
 
   return (
     <View style={styles.atAGlanceContainer}>
@@ -640,8 +715,8 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
 
       {/* Cross-Lens Pattern Bridge - Shows patterns appearing across lenses */}
       <CrossLensPatternBridge
-        astroAxisLines={chartAxis}
-        astroMostImportantFactors={mostImportantFactors.map(f => f.whyItMatters)}
+        astroAxisLines={chartAxis.lines}
+        astroMostImportantFactors={mostImportantFactors.map(f => f.whyItMatters || '')}
         astroChartSpine={chartSpine}
       />
 
@@ -653,7 +728,9 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
           <Text style={[styles.lifeChapterDescription, { color: theme.textSecondary }]}>
             {chapterNarrative.coreDescription}
           </Text>
-          {chapterAnalysis.primaryChapter && chapterAnalysis.primaryChapter.lifeAreas.length > 0 && (
+          {chapterAnalysis.primaryChapter && 
+           Array.isArray(chapterAnalysis.primaryChapter.lifeAreas) && 
+           chapterAnalysis.primaryChapter.lifeAreas.length > 0 && (
             <Text style={[styles.lifeChapterAreas, { color: theme.textTertiary }]}>
               This phase is especially active in {chapterAnalysis.primaryChapter.lifeAreas.slice(0, 2).join(' and ')}.
             </Text>
