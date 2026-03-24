@@ -781,7 +781,7 @@ interface Props {
   onOpenChat: (initialMessage?: string) => void;
 }
 
-type TabType = 'overview' | 'today' | 'deep_dive';
+type TabType = 'summary' | 'at_a_glance' | 'deep_dive';
 
 export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Theme support
@@ -791,7 +791,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   const { isInForumContext, forumId, forumName, setPrefilledSource } = useForumContext();
   const router = useRouter();
   
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [data, setData] = useState<HumanDesignData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1069,19 +1069,19 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     <View style={[styles.tabSection, { borderBottomColor: theme.border }]}>
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'overview' && styles.activeTab]}
-          onPress={() => setActiveTab('overview')}
+          style={[styles.tab, activeTab === 'summary' && styles.activeTab]}
+          onPress={() => setActiveTab('summary')}
         >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'overview' && { color: theme.text }]}>
-            Overview
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'summary' && { color: theme.text }]}>
+            Summary
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'today' && styles.activeTab]}
-          onPress={() => setActiveTab('today')}
+          style={[styles.tab, activeTab === 'at_a_glance' && styles.activeTab]}
+          onPress={() => setActiveTab('at_a_glance')}
         >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text }]}>
-            Today
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'at_a_glance' && { color: theme.text }]}>
+            At a Glance
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -1109,10 +1109,10 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Default prompts per tab for Ask CTA
   const getDefaultPromptForTab = (tab: TabType): string => {
     switch (tab) {
-      case 'overview':
+      case 'summary':
         return "What stands out most in my Human Design?";
-      case 'today':
-        return "What is my design asking me to pay attention to right now?";
+      case 'at_a_glance':
+        return "Tell me more about my design structure.";
       case 'deep_dive':
         return "What deeper Human Design pattern matters most for me to understand?";
       default:
@@ -1123,17 +1123,17 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Suggested questions for each tab
   const getSuggestedQuestions = (tab: TabType): string[] => {
     switch (tab) {
-      case 'overview':
+      case 'summary':
         return [
           "How should I approach major decisions?",
           "Why do I feel drained in certain situations?",
           "What's my natural way of engaging with others?",
         ];
-      case 'today':
+      case 'at_a_glance':
         return [
-          "What energy is most active for me today?",
-          "Where should I be patient right now?",
-          "What am I being asked to notice?",
+          "What do my defined centers tell me?",
+          "How do I use my authority correctly?",
+          "What does my profile mean?",
         ];
       case 'deep_dive':
         return [
@@ -2724,7 +2724,217 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   };
 
   // ============================================
-  // OVERVIEW TAB (Reflective Summary)
+  // SUMMARY TAB - Emotional hook, fast recognition
+  // Purpose: User feels seen in 5 seconds
+  // Max 2 cards visible
+  // ============================================
+  
+  const renderSummaryTab = () => {
+    if (!data?.core_mechanics) return null;
+    
+    const { type, authority, profile, definition } = data.core_mechanics;
+    const hdType = type || 'Unknown';
+    
+    // Get pattern synthesis for emotional hook
+    const typePattern = TYPE_PATTERNS[hdType] || TYPE_PATTERNS['Generator'];
+    
+    // Generate master synthesis for core pattern
+    const synthesisInput: HDSynthesisInput = {
+      type: hdType,
+      authority: authority || 'Sacral',
+      profile: profile || '1/3',
+      definition: definition,
+      channels: data.channels,
+      definedCenters: data.defined_centers,
+      undefinedCenters: data.undefined_centers,
+    };
+    const masterSynthesis = generateHDSynthesis(synthesisInput);
+    
+    return (
+      <>
+        {/* Identity Card - Type + Profile */}
+        <View style={[styles.hdSummaryIdentityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdSummaryType, { color: theme.text }]}>{hdType}</Text>
+          {profile && <Text style={[styles.hdSummaryProfile, { color: theme.textSecondary }]}>{profile} Profile</Text>}
+          <Text style={[styles.hdSummaryNote, { color: theme.textTertiary }]}>
+            This lens reflects energy patterns, not identity.
+          </Text>
+        </View>
+
+        {/* Core Pattern Card - The emotional hook */}
+        {masterSynthesis && (
+          <View style={[styles.hdSummaryPatternCard, { backgroundColor: theme.surface, borderColor: theme.accent, borderLeftWidth: 3 }]}>
+            <Text style={[styles.hdSummaryPatternLabel, { color: theme.accent }]}>YOUR CORE PATTERN</Text>
+            <Text style={[styles.hdSummaryPatternText, { color: theme.text }]}>
+              {masterSynthesis.corePattern}
+            </Text>
+            
+            {/* Core Tension - 1 line */}
+            <View style={styles.hdSummaryTensionSection}>
+              <Text style={[styles.hdSummaryTensionLabel, { color: theme.warning || '#FF9800' }]}>THE TENSION</Text>
+              <Text style={[styles.hdSummaryTensionText, { color: theme.textSecondary }]} numberOfLines={2}>
+                {masterSynthesis.coreTension}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Reflection Question */}
+        <View style={[styles.hdSummaryReflectionCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+          <Text style={[styles.hdSummaryReflectionLabel, { color: theme.accent }]}>A QUESTION</Text>
+          <Text style={[styles.hdSummaryReflectionText, { color: theme.text }]}>
+            "{TYPE_REFLECTIONS[hdType] || TYPE_REFLECTIONS['Generator']}"
+          </Text>
+        </View>
+
+        {/* Link to At a Glance */}
+        <TouchableOpacity
+          style={styles.hdSummaryLink}
+          onPress={() => setActiveTab('at_a_glance')}
+        >
+          <Text style={[styles.hdSummaryLinkText, { color: theme.textTertiary }]}>See full design snapshot</Text>
+          <Text style={{ fontSize: 12, color: theme.textTertiary }}>›</Text>
+        </TouchableOpacity>
+      </>
+    );
+  };
+
+  // ============================================
+  // AT A GLANCE TAB - Structured data snapshot
+  // Purpose: Scannable in <5 seconds
+  // NO paragraphs, max 1 line per item
+  // ============================================
+  
+  const renderAtAGlanceTab = () => {
+    if (!data?.core_mechanics) return null;
+    
+    const { type, strategy, authority, profile, definition, incarnation_cross } = data.core_mechanics;
+    const hdType = type || 'Unknown';
+    
+    // Safely get centers arrays
+    const safeCenters = Array.isArray(centersData?.centers) ? centersData.centers : [];
+    const definedCentersList = safeCenters.filter((c: any) => c && c.defined).map((c: any) => c.center);
+    const undefinedCentersList = safeCenters.filter((c: any) => c && !c.defined).map((c: any) => c.center);
+    
+    // Safely get gates
+    const safeGates = Array.isArray(gatesData?.gates) ? gatesData.gates : [];
+    const topGates = safeGates.slice(0, 5);
+    
+    // Safely get channels
+    const channels = Array.isArray(data.channels) ? data.channels : [];
+    
+    return (
+      <>
+        {/* SECTION 1: CORE */}
+        <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>CORE</Text>
+          <View style={styles.hdGlanceGrid}>
+            <View style={styles.hdGlanceRow}>
+              <Text style={[styles.hdGlanceLabel, { color: theme.textTertiary }]}>Type</Text>
+              <Text style={[styles.hdGlanceValue, { color: theme.text }]}>{hdType}</Text>
+            </View>
+            <View style={styles.hdGlanceRow}>
+              <Text style={[styles.hdGlanceLabel, { color: theme.textTertiary }]}>Strategy</Text>
+              <Text style={[styles.hdGlanceValue, { color: theme.text }]} numberOfLines={1}>{strategy || '—'}</Text>
+            </View>
+            <View style={styles.hdGlanceRow}>
+              <Text style={[styles.hdGlanceLabel, { color: theme.textTertiary }]}>Authority</Text>
+              <Text style={[styles.hdGlanceValue, { color: theme.text }]}>{authority || '—'}</Text>
+            </View>
+            <View style={styles.hdGlanceRow}>
+              <Text style={[styles.hdGlanceLabel, { color: theme.textTertiary }]}>Profile</Text>
+              <Text style={[styles.hdGlanceValue, { color: theme.text }]}>{profile || '—'}</Text>
+            </View>
+            <View style={styles.hdGlanceRow}>
+              <Text style={[styles.hdGlanceLabel, { color: theme.textTertiary }]}>Definition</Text>
+              <Text style={[styles.hdGlanceValue, { color: theme.text }]}>{definition || '—'}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* SECTION 2: ENERGY STRUCTURE */}
+        <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>ENERGY STRUCTURE</Text>
+          <View style={styles.hdGlanceCenterSection}>
+            <Text style={[styles.hdGlanceCenterLabel, { color: theme.success || '#4CAF50' }]}>Defined</Text>
+            <Text style={[styles.hdGlanceCenterList, { color: theme.text }]}>
+              {definedCentersList.length > 0 ? definedCentersList.join(', ') : 'None'}
+            </Text>
+          </View>
+          <View style={styles.hdGlanceCenterSection}>
+            <Text style={[styles.hdGlanceCenterLabel, { color: theme.textTertiary }]}>Undefined</Text>
+            <Text style={[styles.hdGlanceCenterList, { color: theme.textSecondary }]}>
+              {undefinedCentersList.length > 0 ? undefinedCentersList.join(', ') : 'None'}
+            </Text>
+          </View>
+        </View>
+
+        {/* SECTION 3: KEY ACTIVATIONS */}
+        {topGates.length > 0 && (
+          <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>KEY ACTIVATIONS</Text>
+            {topGates.map((gate: any, i: number) => (
+              <View key={i} style={styles.hdGlanceGateRow}>
+                <Text style={[styles.hdGlanceGateNumber, { color: theme.accent }]}>
+                  Gate {gate.gate_number || gate.gate}
+                </Text>
+                <Text style={[styles.hdGlanceGateName, { color: theme.text }]} numberOfLines={1}>
+                  {gate.name || getGateTheme(gate.gate_number || gate.gate) || ''}
+                </Text>
+              </View>
+            ))}
+            {channels.length > 0 && (
+              <View style={styles.hdGlanceChannelSection}>
+                <Text style={[styles.hdGlanceChannelLabel, { color: theme.textTertiary }]}>Channels</Text>
+                <Text style={[styles.hdGlanceChannelList, { color: theme.textSecondary }]} numberOfLines={2}>
+                  {channels.map((c: any) => c.name || `${c.gate_1}-${c.gate_2}`).join(', ')}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* SECTION 4: IDENTITY AXIS */}
+        {incarnation_cross && (
+          <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>IDENTITY AXIS</Text>
+            <Text style={[styles.hdGlanceCrossName, { color: theme.text }]}>{incarnation_cross}</Text>
+            <Text style={[styles.hdGlanceCrossDesc, { color: theme.textSecondary }]} numberOfLines={1}>
+              Your life theme and purpose direction.
+            </Text>
+          </View>
+        )}
+
+        {/* SECTION 5: QUICK INSIGHT - 2-3 bullet observations */}
+        <View style={[styles.hdGlanceCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+          <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>QUICK INSIGHT</Text>
+          <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
+            • {hdType} energy operates by {hdType === 'Projector' ? 'waiting for recognition' : hdType === 'Generator' || hdType === 'Manifesting Generator' ? 'responding to life' : hdType === 'Manifestor' ? 'initiating and informing' : 'sampling over time'}
+          </Text>
+          <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
+            • {authority ? `${authority} authority` : 'Your authority'} guides decision clarity
+          </Text>
+          {definedCentersList.length > 0 && (
+            <Text style={[styles.hdGlanceInsight, { color: theme.text }]}>
+              • {definedCentersList.length} defined centers = consistent energy in {definedCentersList.slice(0, 2).join(' and ')}
+            </Text>
+          )}
+        </View>
+
+        {/* Link to Deep Dive */}
+        <TouchableOpacity
+          style={styles.hdSummaryLink}
+          onPress={() => setActiveTab('deep_dive')}
+        >
+          <Text style={[styles.hdSummaryLinkText, { color: theme.textTertiary }]}>Explore in depth</Text>
+          <Text style={{ fontSize: 12, color: theme.textTertiary }}>›</Text>
+        </TouchableOpacity>
+      </>
+    );
+  };
+
+  // ============================================
+  // OVERVIEW TAB (OLD - keeping for reference, not used)
   // ============================================
   
   const renderOverviewTab = () => {
@@ -6322,23 +6532,19 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
             {/* Navigates to Home where the full Keystone card lives */}
             <KeystoneReferenceLink patternLabel={data?.keystone_explanation?.keystone_label} />
             
-            {/* Tab Blurb - Show at top of each tab EXCEPT Today and Deep Dive */}
-            {/* Deep Dive uses KeystoneExplanation as its intro - no competing header */}
-            {activeTab !== 'today' && activeTab !== 'deep_dive' && renderTabBlurb()}
-            
-            {/* OVERVIEW TAB */}
-            {activeTab === 'overview' && (
+            {/* SUMMARY TAB - Emotional hook, fast recognition */}
+            {activeTab === 'summary' && (
               <>
-                {renderOverviewTab()}
-                {renderUnifiedAskSection('overview')}
+                {renderSummaryTab()}
+                {renderUnifiedAskSection('summary')}
               </>
             )}
 
-            {/* TODAY TAB */}
-            {activeTab === 'today' && (
+            {/* AT A GLANCE TAB - Structured data snapshot */}
+            {activeTab === 'at_a_glance' && (
               <>
-                {renderTodayTab()}
-                {/* No global Ask block in Today - only per-card "Reflect on this →" CTAs */}
+                {renderAtAGlanceTab()}
+                {renderUnifiedAskSection('at_a_glance')}
               </>
             )}
 
@@ -8902,5 +9108,181 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  // ============================================
+  // SUMMARY TAB STYLES - Emotional hook
+  // ============================================
+  hdSummaryIdentityCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 12,
+    padding: 18,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  hdSummaryType: {
+    fontSize: 26,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  hdSummaryProfile: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  hdSummaryNote: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  hdSummaryPatternCard: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  hdSummaryPatternLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  hdSummaryPatternText: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  hdSummaryTensionSection: {
+    marginTop: 4,
+  },
+  hdSummaryTensionLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  hdSummaryTensionText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  hdSummaryReflectionCard: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  hdSummaryReflectionLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  hdSummaryReflectionText: {
+    fontSize: 15,
+    fontStyle: 'italic',
+    lineHeight: 22,
+  },
+  hdSummaryLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    gap: 4,
+  },
+  hdSummaryLinkText: {
+    fontSize: 13,
+  },
+  // ============================================
+  // AT A GLANCE TAB STYLES - Structured data
+  // ============================================
+  hdGlanceCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  hdGlanceTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+  },
+  hdGlanceGrid: {
+    gap: 6,
+  },
+  hdGlanceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  hdGlanceLabel: {
+    fontSize: 13,
+    flex: 0.4,
+  },
+  hdGlanceValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 0.6,
+    textAlign: 'right',
+  },
+  hdGlanceCenterSection: {
+    marginBottom: 10,
+  },
+  hdGlanceCenterLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  hdGlanceCenterList: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  hdGlanceGateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    gap: 10,
+  },
+  hdGlanceGateNumber: {
+    fontSize: 12,
+    fontWeight: '600',
+    width: 55,
+  },
+  hdGlanceGateName: {
+    fontSize: 13,
+    flex: 1,
+  },
+  hdGlanceChannelSection: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  hdGlanceChannelLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  hdGlanceChannelList: {
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  hdGlanceCrossName: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  hdGlanceCrossDesc: {
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  hdGlanceInsight: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 4,
   },
 });
