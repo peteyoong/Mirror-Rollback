@@ -781,7 +781,7 @@ interface Props {
   onOpenChat: (initialMessage?: string) => void;
 }
 
-type TabType = 'summary' | 'at_a_glance' | 'deep_dive' | 'timeline';
+type TabType = 'summary' | 'at_a_glance' | 'deep_dive' | 'today';
 
 export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Theme support
@@ -1093,11 +1093,11 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'timeline' && styles.activeTab]}
-          onPress={() => setActiveTab('timeline')}
+          style={[styles.tab, activeTab === 'today' && styles.activeTab]}
+          onPress={() => setActiveTab('today')}
         >
-          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'timeline' && { color: theme.text }]}>
-            Timeline
+          <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text }]}>
+            Today
           </Text>
         </TouchableOpacity>
       </View>
@@ -1123,7 +1123,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
         return "Tell me more about my design structure.";
       case 'deep_dive':
         return "What deeper Human Design pattern matters most for me to understand?";
-      case 'timeline':
+      case 'today':
         return "What is my design asking me to pay attention to right now?";
       default:
         return "Tell me about my Human Design.";
@@ -1151,7 +1151,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           "How do my centers work together?",
           "What patterns show up in my relationships?",
         ];
-      case 'timeline':
+      case 'today':
         return [
           "What energy is most active for me today?",
           "Where should I be patient right now?",
@@ -6573,11 +6573,11 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
               </>
             )}
 
-            {/* TIMELINE TAB - Temporal/unfolding layer */}
-            {activeTab === 'timeline' && (
+            {/* TODAY TAB - Short-term timing / today-week-month cards */}
+            {activeTab === 'today' && (
               <>
                 {renderTodayTab()}
-                {/* Timeline has per-card reflection CTAs, no global Ask block */}
+                {/* Today has per-card reflection CTAs, no global Ask block */}
               </>
             )}
             
