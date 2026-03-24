@@ -2921,14 +2921,20 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
         )}
 
-        {/* SECTION 5: ENVIRONMENT - Lived experience, no system language */}
-        {/* Now using backend-computed Variables from HD calculation */}
+        {/* SECTION 5: ENVIRONMENT - Only shown when backend computes Variables */}
+        {/* STRICT: Only display when deterministic backend data is available */}
         {(() => {
+          // Only show Environment section if backend returned computed Variables
+          if (!data?.variables) return null;
+          
           // Get environment type from backend Variables (data.variables.environment.type)
           const envType = data?.variables?.environment?.type || 
                           (typeof data?.variables?.environment === 'string' ? data?.variables?.environment : null);
+          if (!envType) return null;
+          
           const envContent = getEnvironmentAtAGlance(envType, hdType);
           if (!envContent) return null;
+          
           return (
             <View style={[styles.hdGlanceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <Text style={[styles.hdGlanceTitle, { color: theme.accent }]}>ENVIRONMENT</Text>
@@ -4310,10 +4316,16 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   };
 
   // Render Environment Card for Deep Dive - collapsible with 5-section structure
+  // STRICT: Only render when backend Variables are computed (not null)
   const renderEnvironmentCard = () => {
+    // Only show Environment card if backend returned computed Variables
+    if (!data?.variables) return null;
+    
     // Get environment type from backend Variables (data.variables.environment.type)
     const envType = data?.variables?.environment?.type || 
                     (typeof data?.variables?.environment === 'string' ? data?.variables?.environment : null);
+    if (!envType) return null;
+    
     const envContent = getEnvironmentDeepDiveContent(
       envType,
       data?.core_mechanics?.type || ''

@@ -763,37 +763,9 @@ def get_arrow_direction(color: int) -> str:
     return 'left' if color <= 3 else 'right'
 
 
-def estimate_color_tone_from_line(line: int) -> dict:
-    """Estimate color and tone from line number when full data unavailable.
-    
-    This is an approximation used for legacy charts that don't have 
-    the full color/tone data computed. It distributes colors evenly
-    across lines as a reasonable estimation.
-    
-    Args:
-        line: Line number (1-6)
-        
-    Returns:
-        Dict with estimated color and tone
-    """
-    # Approximate mapping: each line spans ~1 color on average
-    # Lines 1-2 → Colors 1-2 (left arrow)
-    # Lines 3-4 → Colors 3-4 (middle)  
-    # Lines 5-6 → Colors 5-6 (right arrow)
-    color = line
-    
-    # Tone is harder to estimate - default to middle value (3 or 4)
-    # Use line parity to create some variation
-    tone = 3 if line % 2 == 1 else 4
-    
-    return {
-        'gate': None,  # Unknown
-        'line': line,
-        'color': color,
-        'tone': tone,
-        'base': 3,  # Default middle value
-        'estimated': True  # Flag that this is an estimation
-    }
+# REMOVED: estimate_color_tone_from_line()
+# Variables must ONLY be computed from exact longitude data.
+# Estimation/heuristics are not acceptable for deterministic output.
 
 
 def calculate_variables(personality_sun_data: dict, design_sun_data: dict) -> dict:

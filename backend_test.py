@@ -1,174 +1,218 @@
 #!/usr/bin/env python3
+"""
+Backend Test for Human Design Variables Strict Computation
+Testing the specific review request requirements for no heuristics/estimation.
+"""
 
 import requests
 import json
 import sys
-from datetime import datetime
+from typing import Dict, Any
 
-# Test configuration
+# Use the public URL from frontend/.env
 BASE_URL = "https://lens-bridge-app.preview.emergentagent.com/api"
 
-def test_human_design_variables():
-    """Test Human Design Variables computation endpoint"""
+def test_human_design_variables_strict_computation():
+    """
+    Test Human Design Variables strict computation (no heuristics).
     
-    print("🧪 HUMAN DESIGN VARIABLES (ENVIRONMENT) BACKEND COMPUTATION TESTING")
+    SUCCESS CRITERIA:
+    - API returns `"variables": null` when exact longitude data unavailable
+    - NO estimation/heuristic values are returned
+    - System enforces deterministic-only output
+    """
+    print("🧪 TESTING: Human Design Variables Strict Computation (No Heuristics)")
     print("=" * 80)
     
-    # Test users from review request
-    test_users = [
+    # Test scenarios from review request
+    test_cases = [
         {
+            "name": "Reflector user (should NOT have exact longitude data)",
             "user_id": "697f795f1a7a96aa35e283a3",
-            "description": "Reflector user",
-            "expected_note": "Should have Variables computed from Design Sun and Personality Sun positions"
+            "expected_variables": None,
+            "description": "This user does NOT have exact longitude data stored"
         },
         {
+            "name": "peter@test.com (test if also returns null)",
             "user_id": "6971c81f2b40fd5ef501d375", 
-            "description": "peter@test.com",
-            "expected_note": "Should have Variables computed for this user as well"
+            "expected_variables": None,
+            "description": "Test if this user also returns null if no longitude data"
         }
     ]
     
-    all_tests_passed = True
+    results = []
     
-    for i, user in enumerate(test_users, 1):
-        print(f"\n🔍 TEST {i}: {user['description']} (ID: {user['user_id']})")
-        print("-" * 60)
+    for i, test_case in enumerate(test_cases, 1):
+        print(f"\n📋 TEST {i}: {test_case['name']}")
+        print(f"User ID: {test_case['user_id']}")
+        print(f"Description: {test_case['description']}")
+        print(f"Expected variables: {test_case['expected_variables']}")
         
         try:
-            # Test the Human Design mechanics endpoint
-            url = f"{BASE_URL}/human-design/mechanics/{user['user_id']}"
-            print(f"📡 GET {url}")
+            # Make API request
+            url = f"{BASE_URL}/human-design/mechanics/{test_case['user_id']}"
+            print(f"🌐 GET {url}")
             
             response = requests.get(url, timeout=30)
             print(f"📊 Status: {response.status_code}")
             
-            if response.status_code != 200:
-                print(f"❌ FAILED: Expected 200, got {response.status_code}")
-                print(f"Response: {response.text}")
-                all_tests_passed = False
-                continue
+            if response.status_code == 200:
+                data = response.json()
+                variables = data.get('variables')
                 
-            data = response.json()
-            
-            # Check if variables exist
-            variables = data.get('variables')
-            if not variables:
-                print(f"❌ FAILED: No variables found in response")
-                all_tests_passed = False
-                continue
+                print(f"📋 Response variables: {variables}")
                 
-            print(f"✅ Variables object found")
-            
-            # Test each Variable component
-            required_components = ['environment', 'determination', 'cognition', 'motivation']
-            
-            for component in required_components:
-                component_data = variables.get(component)
-                if not component_data:
-                    print(f"❌ FAILED: Missing {component} component")
-                    all_tests_passed = False
-                    continue
-                    
-                # Check required fields for each component
-                required_fields = ['type', 'description', 'arrow']
-                if component in ['environment', 'motivation']:
-                    required_fields.append('tone')
-                else:  # determination, cognition
-                    required_fields.append('color')
-                    
-                missing_fields = []
-                for field in required_fields:
-                    if field not in component_data:
-                        missing_fields.append(field)
+                # Check if variables is null (as expected)
+                if variables is None:
+                    print("✅ PASS: Variables is null (no estimation/heuristics)")
+                    results.append({
+                        "test": test_case['name'],
+                        "status": "PASS",
+                        "variables": variables,
+                        "reason": "Variables correctly null - no estimation"
+                    })
+                else:
+                    # Variables is not null - check if it contains estimated field
+                    if isinstance(variables, dict):
+                        has_estimated_field = 'estimated' in variables
+                        print(f"📋 Variables structure: {json.dumps(variables, indent=2)}")
                         
-                if missing_fields:
-                    print(f"❌ FAILED: {component} missing fields: {missing_fields}")
-                    all_tests_passed = False
-                else:
-                    print(f"✅ {component}: {component_data['type']} ({component_data['arrow']} arrow)")
-                    
-            # Validate specific requirements from review request
-            print(f"\n🎯 VALIDATION CHECKS:")
-            
-            # 1. Environment type validation
-            env_type = variables.get('environment', {}).get('type')
-            valid_env_types = ['mountains', 'caves', 'markets', 'kitchens', 'valleys', 'shores']
-            if env_type in valid_env_types:
-                print(f"✅ Environment type '{env_type}' is valid")
+                        if has_estimated_field:
+                            print("❌ FAIL: Variables contains 'estimated' field (heuristics detected)")
+                            results.append({
+                                "test": test_case['name'],
+                                "status": "FAIL",
+                                "variables": variables,
+                                "reason": "Variables contains 'estimated' field - heuristics used"
+                            })
+                        else:
+                            print("⚠️  UNEXPECTED: Variables populated but no 'estimated' field")
+                            print("    This suggests exact longitude data IS available for this user")
+                            results.append({
+                                "test": test_case['name'],
+                                "status": "UNEXPECTED",
+                                "variables": variables,
+                                "reason": "Variables populated with actual computed data (exact longitude available)"
+                            })
+                    else:
+                        print(f"❌ FAIL: Variables is not null but not a dict: {type(variables)}")
+                        results.append({
+                            "test": test_case['name'],
+                            "status": "FAIL",
+                            "variables": variables,
+                            "reason": f"Variables is {type(variables)}, not null or dict"
+                        })
+                        
             else:
-                print(f"❌ FAILED: Environment type '{env_type}' not in valid types: {valid_env_types}")
-                all_tests_passed = False
+                print(f"❌ FAIL: HTTP {response.status_code}")
+                print(f"Response: {response.text}")
+                results.append({
+                    "test": test_case['name'],
+                    "status": "FAIL",
+                    "variables": None,
+                    "reason": f"HTTP {response.status_code}: {response.text}"
+                })
                 
-            # 2. Arrow directions validation
-            for component in required_components:
-                arrow = variables.get(component, {}).get('arrow')
-                if arrow in ['left', 'right']:
-                    print(f"✅ {component} arrow direction '{arrow}' is valid")
-                else:
-                    print(f"❌ FAILED: {component} arrow direction '{arrow}' not 'left' or 'right'")
-                    all_tests_passed = False
-                    
-            # 3. Tone/Color ranges validation
-            env_tone = variables.get('environment', {}).get('tone')
-            if env_tone and 1 <= env_tone <= 6:
-                print(f"✅ Environment tone {env_tone} is in valid range (1-6)")
-            else:
-                print(f"❌ FAILED: Environment tone {env_tone} not in range 1-6")
-                all_tests_passed = False
-                
-            det_color = variables.get('determination', {}).get('color')
-            if det_color and 1 <= det_color <= 6:
-                print(f"✅ Determination color {det_color} is in valid range (1-6)")
-            else:
-                print(f"❌ FAILED: Determination color {det_color} not in range 1-6")
-                all_tests_passed = False
-                
-            cog_color = variables.get('cognition', {}).get('color')
-            if cog_color and 1 <= cog_color <= 6:
-                print(f"✅ Cognition color {cog_color} is in valid range (1-6)")
-            else:
-                print(f"❌ FAILED: Cognition color {cog_color} not in range 1-6")
-                all_tests_passed = False
-                
-            mot_tone = variables.get('motivation', {}).get('tone')
-            if mot_tone and 1 <= mot_tone <= 6:
-                print(f"✅ Motivation tone {mot_tone} is in valid range (1-6)")
-            else:
-                print(f"❌ FAILED: Motivation tone {mot_tone} not in range 1-6")
-                all_tests_passed = False
-                
-            # Print full Variables structure for verification
-            print(f"\n📋 COMPLETE VARIABLES STRUCTURE:")
-            print(json.dumps(variables, indent=2))
-            
-        except requests.exceptions.RequestException as e:
-            print(f"❌ FAILED: Network error - {e}")
-            all_tests_passed = False
-        except json.JSONDecodeError as e:
-            print(f"❌ FAILED: JSON decode error - {e}")
-            all_tests_passed = False
         except Exception as e:
-            print(f"❌ FAILED: Unexpected error - {e}")
-            all_tests_passed = False
-            
-    # Final summary
-    print(f"\n{'='*80}")
-    print(f"🎯 FINAL TEST RESULTS")
-    print(f"{'='*80}")
+            print(f"❌ ERROR: {e}")
+            results.append({
+                "test": test_case['name'],
+                "status": "ERROR",
+                "variables": None,
+                "reason": str(e)
+            })
     
-    if all_tests_passed:
-        print(f"✅ ALL TESTS PASSED - Human Design Variables computation is working correctly!")
-        print(f"✅ Variables are computed from Design Sun and Personality Sun positions")
-        print(f"✅ Environment comes from Design Sun tone (1-6 maps to caves/markets/kitchens/mountains/valleys/shores)")
-        print(f"✅ Determination comes from Design Sun color (1-6)")
-        print(f"✅ Cognition comes from Personality Sun color (1-6)")
-        print(f"✅ Motivation comes from Personality Sun tone (1-6)")
-        print(f"✅ All arrow directions are 'left' or 'right'")
+    # Summary
+    print("\n" + "=" * 80)
+    print("📊 TEST SUMMARY")
+    print("=" * 80)
+    
+    pass_count = sum(1 for r in results if r['status'] == 'PASS')
+    fail_count = sum(1 for r in results if r['status'] == 'FAIL')
+    unexpected_count = sum(1 for r in results if r['status'] == 'UNEXPECTED')
+    error_count = sum(1 for r in results if r['status'] == 'ERROR')
+    
+    for result in results:
+        status_emoji = {
+            'PASS': '✅',
+            'FAIL': '❌', 
+            'UNEXPECTED': '⚠️',
+            'ERROR': '💥'
+        }.get(result['status'], '❓')
+        
+        print(f"{status_emoji} {result['test']}: {result['status']}")
+        print(f"   Reason: {result['reason']}")
+        if result['variables'] is not None:
+            print(f"   Variables: {result['variables']}")
+    
+    print(f"\n📈 RESULTS: {pass_count} PASS, {fail_count} FAIL, {unexpected_count} UNEXPECTED, {error_count} ERROR")
+    
+    # Determine overall test result
+    if fail_count > 0 or error_count > 0:
+        print("🚨 OVERALL: FAILED - Issues detected with strict computation")
+        return False
+    elif unexpected_count > 0:
+        print("⚠️  OVERALL: UNEXPECTED - Users may have exact longitude data available")
+        print("    This means the system is working correctly but test assumptions may be wrong")
         return True
     else:
-        print(f"❌ SOME TESTS FAILED - See details above")
-        return False
+        print("🎉 OVERALL: PASSED - Strict computation working correctly")
+        return True
+
+def test_no_estimation_verification():
+    """
+    Additional test to verify NO estimation is happening anywhere.
+    """
+    print("\n🔍 ADDITIONAL TEST: Verify NO estimation fields exist")
+    print("=" * 80)
+    
+    test_users = ["697f795f1a7a96aa35e283a3", "6971c81f2b40fd5ef501d375"]
+    
+    for user_id in test_users:
+        try:
+            url = f"{BASE_URL}/human-design/mechanics/{user_id}"
+            response = requests.get(url, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                variables = data.get('variables')
+                
+                if variables and isinstance(variables, dict):
+                    # Check for any estimation-related fields
+                    estimation_fields = ['estimated', 'heuristic', 'approximated', 'fallback']
+                    found_estimation = []
+                    
+                    def check_dict_for_estimation(obj, path=""):
+                        if isinstance(obj, dict):
+                            for key, value in obj.items():
+                                current_path = f"{path}.{key}" if path else key
+                                if key.lower() in estimation_fields:
+                                    found_estimation.append(current_path)
+                                check_dict_for_estimation(value, current_path)
+                        elif isinstance(obj, list):
+                            for i, item in enumerate(obj):
+                                check_dict_for_estimation(item, f"{path}[{i}]")
+                    
+                    check_dict_for_estimation(variables)
+                    
+                    if found_estimation:
+                        print(f"❌ User {user_id}: Found estimation fields: {found_estimation}")
+                    else:
+                        print(f"✅ User {user_id}: No estimation fields detected")
+                        
+        except Exception as e:
+            print(f"❌ Error checking user {user_id}: {e}")
 
 if __name__ == "__main__":
-    success = test_human_design_variables()
-    sys.exit(0 if success else 1)
+    print("🚀 Starting Human Design Variables Strict Computation Test")
+    print(f"🌐 Backend URL: {BASE_URL}")
+    
+    success = test_human_design_variables_strict_computation()
+    test_no_estimation_verification()
+    
+    if success:
+        print("\n🎉 All tests completed successfully!")
+        sys.exit(0)
+    else:
+        print("\n🚨 Tests failed!")
+        sys.exit(1)
