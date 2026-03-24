@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://collapsible-hd.preview.emergentagent.com/api"
+BACKEND_URL = "https://pattern-mirror-sync.preview.emergentagent.com/api"
 
 def test_pattern_compression_layer():
     """
