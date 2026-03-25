@@ -11518,7 +11518,7 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "You're back in the same decision again",
+                    "You almost made this decision—then stopped",
                     "Part of you is ready. Another part holds back",
                     "You've been here before"
                 ],
@@ -11526,7 +11526,7 @@ CROSS_LENS_PATTERN_TEMPLATES = {
             },
             {
                 "lines": [
-                    "You almost decided—then stopped",
+                    "You started to decide earlier—then pulled back",
                     "Pushing forward feels forced. Waiting feels stuck",
                     "You've been here before"
                 ],
@@ -11539,16 +11539,16 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "You're looking for clarity—but it keeps shifting",
-                    "What felt right yesterday doesn't land the same today",
+                    "You thought you had clarity—then it shifted",
+                    "What felt right a few days ago doesn't land the same now",
                     "You've been here before"
                 ],
                 "title": "Clarity That Shifts"
             },
             {
                 "lines": [
-                    "You want to be sure before you move",
-                    "But the more you think, the less clear it gets",
+                    "You almost moved forward—then wanted to be more sure",
+                    "The more you think, the less clear it gets",
                     "You've been here before"
                 ],
                 "title": "Waiting for Certainty"
@@ -11560,7 +11560,7 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "You're holding something back—something you almost said",
+                    "You almost said it—then held back",
                     "The right moment hasn't come. Or maybe it has",
                     "You've been here before"
                 ],
@@ -11568,7 +11568,7 @@ CROSS_LENS_PATTERN_TEMPLATES = {
             },
             {
                 "lines": [
-                    "You start to speak—then stop",
+                    "You started to speak earlier—then stopped",
                     "The words are there, but something holds them back",
                     "You've been here before"
                 ],
@@ -11581,16 +11581,16 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "You want to move—but something pulls you back",
-                    "You start, then hesitate",
+                    "You started to move—then hesitated",
+                    "The energy is there. The green light isn't",
                     "You've been here before"
                 ],
                 "title": "Ready but Waiting"
             },
             {
                 "lines": [
-                    "Part of you wants to act now",
-                    "Another part says wait",
+                    "You almost acted earlier—then pulled back",
+                    "Part of you says go. Another part says wait",
                     "You've been here before"
                 ],
                 "title": "Forward and Back"
@@ -11602,16 +11602,16 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "You're waiting for someone to confirm what you already feel",
-                    "You trust yourself—then doubt",
+                    "You knew what to do—then waited for someone to confirm it",
+                    "Self-trust and external validation pull different directions",
                     "You've been here before"
                 ],
                 "title": "Seeking Confirmation"
             },
             {
                 "lines": [
-                    "Part of you knows. Another part needs to hear it from someone else",
-                    "You believe it—then question it",
+                    "You trusted yourself earlier—then doubted",
+                    "The signal is there—but doubt crept in",
                     "You've been here before"
                 ],
                 "title": "Trust vs. Doubt"
@@ -11623,16 +11623,16 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "You're gripping—trying to make it go a certain way",
-                    "But some of it isn't yours to hold",
+                    "You tried to control how it went—then realized you couldn't",
+                    "Some of it isn't yours to hold",
                     "You've been here before"
                 ],
                 "title": "Grip and Release"
             },
             {
                 "lines": [
+                    "You pushed earlier—then pulled back—then pushed again",
                     "You want it to land a certain way",
-                    "You push, then pull back, then push again",
                     "You've been here before"
                 ],
                 "title": "Forcing vs. Allowing"
@@ -11644,15 +11644,15 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "This feeling has come up more than once this week",
-                    "Each time, it pulls you back to the same place",
+                    "You wrote about this a few days ago",
+                    "It came back again",
                     "You've been here before"
                 ],
                 "title": "What Keeps Returning"
             },
             {
                 "lines": [
-                    "You've written about this before",
+                    "You wrote about this earlier this week—and again now",
                     "The words change. The feeling doesn't",
                     "You've been here before"
                 ],
@@ -11665,7 +11665,7 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "Something feels different—but you can't name it yet",
+                    "Something shifted earlier—but you can't name it yet",
                     "The old way doesn't fit. The new way isn't here yet",
                     "You've been here before"
                 ],
@@ -11673,7 +11673,7 @@ CROSS_LENS_PATTERN_TEMPLATES = {
             },
             {
                 "lines": [
-                    "What worked before isn't working the same way",
+                    "What worked a few days ago isn't working now",
                     "You notice it—then push past it—then notice it again",
                     "You've been here before"
                 ],
