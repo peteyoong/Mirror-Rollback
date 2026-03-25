@@ -189,22 +189,44 @@ export default function Welcome() {
     }
   };
 
-  // If user is already logged in, show continue option
+  // If user is already logged in, show the same new entry screen
+  // but with a simpler flow (tap goes directly to app)
   if (hasExistingSession) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
         <StatusBar style={'light'} />
         
+        {/* Subtle animated pulse indicator */}
+        <View style={styles.pulseContainer}>
+          <View style={[styles.pulseRing, { borderColor: darkTheme.accent + '15' }]} />
+          <View style={[styles.pulseCore, { backgroundColor: darkTheme.accent + '08' }]} />
+        </View>
+        
         <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: darkTheme.text }]}>Project Mirror</Text>
+          {/* Same headline - pattern is universal */}
+          <View style={styles.headlineContainer}>
+            <Text style={[styles.headline, { color: darkTheme.text }]}>
+              You're already in a pattern.
+            </Text>
           </View>
           
-          <View style={styles.messageContainer}>
-            <Text style={[styles.welcomeBack, { color: darkTheme.text }]}>Welcome back{user?.name ? `, ${user.name}` : ''}.</Text>
-            <Text style={[styles.tagline, { color: darkTheme.textSecondary }]}>Your reflection space awaits.</Text>
+          {/* Subtext - real behavior description */}
+          <View style={styles.subtextContainer}>
+            <Text style={[styles.subtext, { color: darkTheme.textSecondary }]}>
+              The decision you keep almost making.{'\n'}
+              The thing you notice, then push past.
+            </Text>
           </View>
           
+          {/* Bridge line */}
+          <View style={styles.bridgeContainer}>
+            <Text style={[styles.bridgeLine, { color: darkTheme.textTertiary }]}>
+              Mirror doesn't tell you who you are.{'\n'}
+              It shows you what's happening right now.
+            </Text>
+          </View>
+          
+          {/* CTA Buttons - simplified for returning user */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={[styles.primaryButton, { 
@@ -214,19 +236,11 @@ export default function Welcome() {
               onPress={handleContinue}
               activeOpacity={0.8}
             >
-              <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Enter</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.textButton, { borderColor: darkTheme.border }]}
-              onPress={handleBeginReflection}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.textButtonText, { color: darkTheme.textTertiary }]}>Begin Again</Text>
+              <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Show me</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Forums Quick Access */}
+          {/* Forums Quick Access - Demoted */}
           <View style={[styles.forumsSection, { borderTopColor: darkTheme.border }]}>
             <Text style={[styles.forumsSectionLabel, { color: darkTheme.textTertiary }]}>FORUMS</Text>
             <View style={styles.forumsButtons}>
@@ -248,11 +262,13 @@ export default function Welcome() {
           </View>
         </View>
         
+        {/* Footer - minimal */}
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: darkTheme.textTertiary }]}>
-            You don't have to do anything with what you notice.
-          </Text>
+          <Text style={[styles.buildInfo, { color: darkTheme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID} • {BUILD_DATE}</Text>
         </View>
+        
+        {/* Debug Panel */}
+        {renderDebugPanel()}
       </SafeAreaView>
     );
   }
