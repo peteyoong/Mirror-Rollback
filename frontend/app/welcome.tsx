@@ -390,16 +390,18 @@ export default function Welcome() {
     <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
       <StatusBar style={'light'} />
       
-      {/* Subtle animated pulse indicator */}
+      {/* Subtle animated pulse indicator - repositioned behind logo */}
       <View style={styles.pulseContainer}>
-        <View style={[styles.pulseRing, { borderColor: darkTheme.accent + '15' }]} />
-        <View style={[styles.pulseCore, { backgroundColor: darkTheme.accent + '08' }]} />
+        <View style={[styles.pulseRing, { borderColor: darkTheme.accent + '12' }]} />
+        <View style={[styles.pulseCore, { backgroundColor: darkTheme.accent + '06' }]} />
       </View>
       
       <View style={styles.content}>
-        {/* Brand mark */}
-        <View style={styles.brandContainer}>
-          <Text style={[styles.brandText, { color: darkTheme.textTertiary }]}>The Mirror</Text>
+        {/* Logo / Wordmark - Premium minimal treatment */}
+        <View style={styles.logoContainer}>
+          {/* Single thin circle - minimal lens/portal motif */}
+          <View style={[styles.logoCircle, { borderColor: darkTheme.textTertiary }]} />
+          <Text style={[styles.logoText, { color: darkTheme.text }]}>The Mirror</Text>
         </View>
         
         {/* Headline - something already happening */}
@@ -459,31 +461,30 @@ export default function Welcome() {
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Forums Quick Access - Demoted */}
-        <View style={[styles.forumsSection, { borderTopColor: darkTheme.border }]}>
-          <Text style={[styles.forumsSectionLabel, { color: darkTheme.textTertiary }]}>FORUMS</Text>
-          <View style={styles.forumsButtons}>
-            <TouchableOpacity 
-              style={[styles.forumButton, { backgroundColor: darkTheme.surface, borderColor: darkTheme.border }]}
-              onPress={handleCreateForum}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.forumButtonText, { color: darkTheme.text }]}>Create Forum</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.forumButton, { backgroundColor: darkTheme.surface, borderColor: darkTheme.border }]}
-              onPress={handleJoinForum}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.forumButtonText, { color: darkTheme.text }]}>Join Forum</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </View>
       
-      {/* Footer - minimal */}
-      <View style={styles.footer}>
+      {/* Footer area - Forums moved here, reduced prominence */}
+      <View style={styles.footerArea}>
+        {/* Forums - Secondary/Optional */}
+        <View style={styles.forumsFooter}>
+          <TouchableOpacity 
+            style={styles.forumLink}
+            onPress={handleCreateForum}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.forumLinkText, { color: darkTheme.textTertiary }]}>Create Forum</Text>
+          </TouchableOpacity>
+          <Text style={[styles.forumDivider, { color: darkTheme.textTertiary }]}>·</Text>
+          <TouchableOpacity 
+            style={styles.forumLink}
+            onPress={handleJoinForum}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.forumLinkText, { color: darkTheme.textTertiary }]}>Join Forum</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Build info */}
         <Text style={[styles.buildInfo, { color: darkTheme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID} • {BUILD_DATE}</Text>
       </View>
       
@@ -535,15 +536,23 @@ const styles = StyleSheet.create({
     borderRadius: 60,
   },
   
-  // Brand
-  brandContainer: {
-    marginBottom: 24,
+  // Logo / Wordmark
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
-  brandText: {
-    fontSize: 12,
-    fontWeight: '500',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
+  logoCircle: {
+    width: 24,
+    height: 24,
+    borderWidth: 1,
+    borderRadius: 12,
+    marginBottom: 14,
+    opacity: 0.6,
+  },
+  logoText: {
+    fontSize: 18,
+    fontWeight: '300',
+    letterSpacing: 2,
   },
   
   // Headline
@@ -696,6 +705,30 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textTertiary,
     opacity: 0.7,
+  },
+  // Footer area with forums
+  footerArea: {
+    paddingBottom: 24,
+    paddingHorizontal: 32,
+    alignItems: 'center',
+    gap: 12,
+  },
+  forumsFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  forumLink: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  forumLinkText: {
+    fontSize: 12,
+    fontWeight: '400',
+  },
+  forumDivider: {
+    fontSize: 12,
+    opacity: 0.5,
   },
   footer: {
     paddingBottom: 32,
