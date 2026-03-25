@@ -11821,16 +11821,19 @@ def detect_cross_lens_pattern(
 @api_router.get("/today-pattern/{user_id}", response_model=TodayPatternResponse)
 async def get_today_pattern(user_id: str, force_refresh: bool = False):
     """
-    TODAY'S PATTERN - Cross-Lens Synthesis for Home Keystone
+    TODAY'S PATTERN v2 - NOW SIGNAL ENGINE
     
-    Combines signals from:
-    1. Transits (current timing pressure)
-    2. Human Design (decision/energy pattern)
-    3. Enneagram (behavioral tendencies)
-    4. Journal signals (recent repetition)
+    Architecture:
+    1. NOW SIGNAL LAYER - Score signals by recency (24h=1.0, 72h=0.6, 7d=0.3)
+    2. CATEGORY MAPPING - move_forward, hold_back, seek_clarity, avoid_expression, control, release
+    3. TENSION DETECTION - Detect opposing forces (push_pull, speak_swallow, grip_release, etc.)
+    4. MICRO-MOMENT GENERATION - Specific behavioral moments, not themes
+    5. CONFIDENCE FILTER - Soft language for weak signals
     
     Returns exactly 3 lines + title, no system language, no advice.
     """
+    from services.now_signal_engine import generate_today_pattern
+    
     try:
         today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         day_seed = int(datetime.now(timezone.utc).strftime("%d"))
@@ -11853,11 +11856,12 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
                     follow_through_route=cached.get("follow_through_route")
                 )
         
-        # Gather lens data
+        # Gather lens data for signal engine
         transit_data = None
         hd_data = None
         enneagram_data = None
-        journal_patterns = None
+        journal_entries = None
+        user = None
         
         # Get transit data
         try:
@@ -11921,32 +11925,26 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
         except Exception as e:
             logger.debug(f"[TodayPattern] Enneagram data unavailable: {e}")
         
-        # Get journal patterns (recent repetition)
+        # Get journal entries (raw entries for signal extraction)
         try:
             seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
-            recent_entries = await db.journal.find({
+            journal_entries = await db.journal.find({
                 "user_id": user_id,
                 "created_at": {"$gte": seven_days_ago}
             }).sort("created_at", -1).to_list(20)
-            
-            if len(recent_entries) >= 3:
-                # Extract recurring themes
-                patterns = extract_recurring_patterns(recent_entries, max_patterns=3)
-                if patterns:
-                    journal_patterns = patterns
         except Exception as e:
-            logger.debug(f"[TodayPattern] Journal patterns unavailable: {e}")
+            logger.debug(f"[TodayPattern] Journal entries unavailable: {e}")
         
-        # Detect cross-lens pattern
-        result = detect_cross_lens_pattern(
-            transit_data=transit_data,
+        # Generate pattern using NOW SIGNAL ENGINE
+        result = await generate_today_pattern(
+            journal_entries=journal_entries,
             hd_data=hd_data,
             enneagram_data=enneagram_data,
-            journal_patterns=journal_patterns,
+            transit_data=transit_data,
             day_seed=day_seed
         )
         
-        # Get contextual follow-through
+        # Get contextual follow-through (preserved from v1)
         follow_through, follow_through_route = get_follow_through(result["sources"], day_seed)
         
         # Cache result
@@ -11959,7 +11957,8 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
                 "lines": result["lines"],
                 "confidence": result["confidence"],
                 "sources": result["sources"],
-                "pattern_type": result["pattern_type"],
+                "tension_type": result.get("tension_type", ""),
+                "category_scores": result.get("category_scores", {}),
                 "follow_through": follow_through,
                 "follow_through_route": follow_through_route,
                 "created_at": datetime.now(timezone.utc)
@@ -11967,7 +11966,7 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
             upsert=True
         )
         
-        logger.info(f"[TodayPattern] Generated pattern for {user_id[:8]}: {result['pattern_type']} (confidence={result['confidence']})")
+        logger.info(f"[TodayPattern v2] Generated pattern for {user_id[:8]}: tension={result.get('tension_type')} confidence={result['confidence']}")
         
         return TodayPatternResponse(
             title=result["title"],
@@ -11981,19 +11980,19 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
         )
         
     except Exception as e:
-        logger.error(f"[TodayPattern] Error: {e}")
+        logger.error(f"[TodayPattern v2] Error: {e}")
         import traceback
         traceback.print_exc()
         
         # Return fallback pattern on error
         return TodayPatternResponse(
-            title="Something Shifting",
+            title="Something Stirring",
             lines=[
-                "Something is moving—you can feel it",
-                "The direction isn't clear yet",
-                "This in-between is temporary"
+                "Something feels off—you can't quite name it",
+                "It hasn't taken shape yet",
+                "Give it time"
             ],
-            confidence=0.3,
+            confidence=0.2,
             sources=["fallback"],
             date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             cached=False

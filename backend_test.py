@@ -1,206 +1,311 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Reflector Journal Synthesis Endpoint
-Tests the GET /api/journal/{user_id}/reflector-synthesis endpoint
+Backend Testing Script for TODAY'S PATTERN v2 API Endpoint
+Testing the NOW SIGNAL ENGINE implementation
 """
 
 import requests
 import json
-import sys
+import time
 from datetime import datetime
+from typing import Dict, Any, List
 
-# Backend URL from environment
-BACKEND_URL = "https://lunar-cycle-mirror.preview.emergentagent.com/api"
+# Backend URL configuration
+BACKEND_URL = "https://today-pattern.preview.emergentagent.com/api"
 
-def test_reflector_synthesis_endpoint():
-    """Test the Reflector Journal Synthesis endpoint comprehensively"""
+# Test user ID from review request
+TEST_USER_ID = "69bf562ac23ef591409d535a"
+
+# Expected pattern titles from the review request
+EXPECTED_TITLES = [
+    "Forward and Back", "What's Unsaid", "Grip and Release", 
+    "Still Searching", "The Pause", "Something Stirring", 
+    "Processing", "Waiting", "Moving"
+]
+
+# Expected sources from the review request
+EXPECTED_SOURCES = ["journal", "human_design", "enneagram", "transits", "baseline", "fallback"]
+
+def test_basic_endpoint():
+    """Test 1: Basic endpoint functionality"""
+    print("🧪 TEST 1: Basic endpoint functionality")
+    print(f"Testing endpoint: GET {BACKEND_URL}/today-pattern/{TEST_USER_ID}")
     
-    print("🧪 TESTING REFLECTOR JOURNAL SYNTHESIS ENDPOINT")
-    print("=" * 60)
-    
-    # Test cases from review request
-    test_cases = [
-        {
-            "name": "Reflector user with NO journal entries",
-            "user_id": "697f795f1a7a96aa35e283a3",
-            "expected_has_enough_data": False,
-            "expected_message_present": True,
-            "expected_synthesis_null": True
-        },
-        {
-            "name": "User with journal entries (Peter)",
-            "user_id": "6971c81f2b40fd5ef501d375",
-            "expected_has_enough_data": None,  # Will depend on actual data
-            "expected_message_present": None,
-            "expected_synthesis_null": None
-        }
-    ]
-    
-    all_tests_passed = True
-    
-    for i, test_case in enumerate(test_cases, 1):
-        print(f"\n🎯 TEST {i}: {test_case['name']}")
-        print(f"User ID: {test_case['user_id']}")
-        
-        try:
-            # Make request to endpoint
-            url = f"{BACKEND_URL}/journal/{test_case['user_id']}/reflector-synthesis"
-            print(f"Request URL: {url}")
-            
-            response = requests.get(url, timeout=30)
-            print(f"Status Code: {response.status_code}")
-            
-            if response.status_code != 200:
-                print(f"❌ FAILED: Expected 200, got {response.status_code}")
-                print(f"Response: {response.text}")
-                all_tests_passed = False
-                continue
-            
-            # Parse JSON response
-            try:
-                data = response.json()
-                print(f"Response received: {json.dumps(data, indent=2)}")
-            except json.JSONDecodeError as e:
-                print(f"❌ FAILED: Invalid JSON response: {e}")
-                print(f"Raw response: {response.text}")
-                all_tests_passed = False
-                continue
-            
-            # Validate response structure
-            required_fields = [
-                "user_id", "cycle_start", "cycle_day", "entries_in_cycle", 
-                "synthesis", "has_enough_data"
-            ]
-            
-            missing_fields = []
-            for field in required_fields:
-                if field not in data:
-                    missing_fields.append(field)
-            
-            if missing_fields:
-                print(f"❌ FAILED: Missing required fields: {missing_fields}")
-                all_tests_passed = False
-                continue
-            
-            # Validate field types
-            validation_errors = []
-            
-            if not isinstance(data["user_id"], str):
-                validation_errors.append("user_id should be string")
-            
-            if not isinstance(data["cycle_start"], str):
-                validation_errors.append("cycle_start should be ISO date string")
-            else:
-                # Validate ISO date format
-                try:
-                    datetime.fromisoformat(data["cycle_start"].replace('Z', '+00:00'))
-                except ValueError:
-                    validation_errors.append("cycle_start is not valid ISO date")
-            
-            if not isinstance(data["cycle_day"], int) or not (1 <= data["cycle_day"] <= 28):
-                validation_errors.append("cycle_day should be integer 1-28")
-            
-            if not isinstance(data["entries_in_cycle"], int) or data["entries_in_cycle"] < 0:
-                validation_errors.append("entries_in_cycle should be non-negative integer")
-            
-            if not isinstance(data["synthesis"], dict):
-                validation_errors.append("synthesis should be dict")
-            else:
-                # Validate synthesis structure
-                synthesis_fields = ["early_cycle", "mid_cycle", "current_direction"]
-                for field in synthesis_fields:
-                    if field not in data["synthesis"]:
-                        validation_errors.append(f"synthesis missing {field}")
-                    elif data["synthesis"][field] is not None and not isinstance(data["synthesis"][field], str):
-                        validation_errors.append(f"synthesis.{field} should be string or null")
-            
-            if not isinstance(data["has_enough_data"], bool):
-                validation_errors.append("has_enough_data should be boolean")
-            
-            if "message" in data and data["message"] is not None and not isinstance(data["message"], str):
-                validation_errors.append("message should be string or null")
-            
-            if validation_errors:
-                print(f"❌ FAILED: Validation errors: {validation_errors}")
-                all_tests_passed = False
-                continue
-            
-            # Test case specific validations
-            if test_case["expected_has_enough_data"] is not None:
-                if data["has_enough_data"] != test_case["expected_has_enough_data"]:
-                    print(f"❌ FAILED: Expected has_enough_data={test_case['expected_has_enough_data']}, got {data['has_enough_data']}")
-                    all_tests_passed = False
-                    continue
-            
-            if test_case["expected_message_present"] is not None:
-                message_present = "message" in data and data["message"] is not None
-                if message_present != test_case["expected_message_present"]:
-                    print(f"❌ FAILED: Expected message_present={test_case['expected_message_present']}, got {message_present}")
-                    all_tests_passed = False
-                    continue
-            
-            if test_case["expected_synthesis_null"] is not None:
-                synthesis_all_null = all(v is None for v in data["synthesis"].values())
-                if synthesis_all_null != test_case["expected_synthesis_null"]:
-                    print(f"❌ FAILED: Expected synthesis_all_null={test_case['expected_synthesis_null']}, got {synthesis_all_null}")
-                    all_tests_passed = False
-                    continue
-            
-            print("✅ PASSED: All validations successful")
-            
-            # Print key insights
-            print(f"📊 Key Data:")
-            print(f"   - Cycle Day: {data['cycle_day']}")
-            print(f"   - Entries in Cycle: {data['entries_in_cycle']}")
-            print(f"   - Has Enough Data: {data['has_enough_data']}")
-            if data.get("message"):
-                print(f"   - Message: {data['message']}")
-            
-            synthesis = data["synthesis"]
-            if any(v is not None for v in synthesis.values()):
-                print(f"   - Synthesis Lines:")
-                for key, value in synthesis.items():
-                    if value:
-                        print(f"     * {key}: {value}")
-            
-        except requests.exceptions.RequestException as e:
-            print(f"❌ FAILED: Request error: {e}")
-            all_tests_passed = False
-        except Exception as e:
-            print(f"❌ FAILED: Unexpected error: {e}")
-            all_tests_passed = False
-    
-    # Test edge cases
-    print(f"\n🎯 TEST 3: Invalid User ID")
     try:
-        url = f"{BACKEND_URL}/journal/invalid_user_id/reflector-synthesis"
-        response = requests.get(url, timeout=30)
+        response = requests.get(f"{BACKEND_URL}/today-pattern/{TEST_USER_ID}", timeout=30)
         print(f"Status Code: {response.status_code}")
         
-        if response.status_code == 200:
-            data = response.json()
-            if data["entries_in_cycle"] == 0 and not data["has_enough_data"]:
-                print("✅ PASSED: Invalid user ID handled gracefully")
-            else:
-                print("❌ FAILED: Invalid user ID should return empty data")
-                all_tests_passed = False
-        else:
-            print(f"❌ FAILED: Expected 200 for invalid user, got {response.status_code}")
-            all_tests_passed = False
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
             
-    except Exception as e:
-        print(f"❌ FAILED: Error testing invalid user ID: {e}")
-        all_tests_passed = False
-    
-    # Summary
-    print("\n" + "=" * 60)
-    if all_tests_passed:
-        print("🎉 ALL TESTS PASSED - Reflector Journal Synthesis endpoint working correctly!")
+        data = response.json()
+        print(f"✅ SUCCESS: Endpoint returned 200 OK")
+        
+        # Check required fields
+        required_fields = ["title", "lines", "confidence", "sources", "date", "follow_through", "follow_through_route"]
+        missing_fields = []
+        
+        for field in required_fields:
+            if field not in data:
+                missing_fields.append(field)
+        
+        if missing_fields:
+            print(f"❌ FAILED: Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"✅ SUCCESS: All required fields present")
+        
+        # Validate field types and constraints
+        if not isinstance(data["lines"], list) or len(data["lines"]) != 3:
+            print(f"❌ FAILED: Lines should be array of exactly 3 items, got {len(data.get('lines', []))}")
+            return False
+            
+        if not isinstance(data["confidence"], (int, float)) or not (0.2 <= data["confidence"] <= 0.95):
+            print(f"❌ FAILED: Confidence should be float between 0.2-0.95, got {data.get('confidence')}")
+            return False
+            
+        if not isinstance(data["sources"], list) or len(data["sources"]) == 0:
+            print(f"❌ FAILED: Sources should be non-empty array, got {data.get('sources')}")
+            return False
+            
+        print(f"✅ SUCCESS: Field types and constraints validated")
+        
+        # Check if title is one of expected patterns
+        title = data.get("title", "")
+        if title not in EXPECTED_TITLES:
+            print(f"⚠️  WARNING: Title '{title}' not in expected list, but this may be valid")
+        else:
+            print(f"✅ SUCCESS: Title '{title}' is in expected pattern list")
+            
+        # Validate lines are micro-moments (specific behavioral statements)
+        lines = data.get("lines", [])
+        for i, line in enumerate(lines):
+            if len(line.strip()) < 10:  # Basic check for meaningful content
+                print(f"❌ FAILED: Line {i+1} too short: '{line}'")
+                return False
+                
+        print(f"✅ SUCCESS: All lines contain meaningful content")
+        
+        # Check sources are valid
+        sources = data.get("sources", [])
+        invalid_sources = [s for s in sources if s not in EXPECTED_SOURCES]
+        if invalid_sources:
+            print(f"⚠️  WARNING: Unexpected sources: {invalid_sources}")
+        else:
+            print(f"✅ SUCCESS: All sources are valid")
+            
+        print(f"📊 Response Summary:")
+        print(f"   Title: {data.get('title')}")
+        print(f"   Lines: {len(data.get('lines', []))} lines")
+        print(f"   Confidence: {data.get('confidence')}")
+        print(f"   Sources: {data.get('sources')}")
+        print(f"   Date: {data.get('date')}")
+        print(f"   Follow-through: {data.get('follow_through')}")
+        print(f"   Follow-through route: {data.get('follow_through_route')}")
+        
         return True
-    else:
-        print("❌ SOME TESTS FAILED - Issues found with Reflector Journal Synthesis endpoint")
+        
+    except requests.exceptions.RequestException as e:
+        print(f"❌ FAILED: Request error: {e}")
+        return False
+    except json.JSONDecodeError as e:
+        print(f"❌ FAILED: Invalid JSON response: {e}")
+        return False
+    except Exception as e:
+        print(f"❌ FAILED: Unexpected error: {e}")
         return False
 
+def test_force_refresh():
+    """Test 2: Force refresh functionality"""
+    print("\n🧪 TEST 2: Force refresh functionality")
+    print(f"Testing endpoint: GET {BACKEND_URL}/today-pattern/{TEST_USER_ID}?force_refresh=true")
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/today-pattern/{TEST_USER_ID}?force_refresh=true", timeout=30)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected 200, got {response.status_code}")
+            return False
+            
+        data = response.json()
+        
+        # Check that cached is false when force_refresh=true
+        if data.get("cached", True):
+            print(f"❌ FAILED: Expected cached=false with force_refresh=true, got cached={data.get('cached')}")
+            return False
+            
+        print(f"✅ SUCCESS: Force refresh working correctly (cached: {data.get('cached')})")
+        return True
+        
+    except Exception as e:
+        print(f"❌ FAILED: Error during force refresh test: {e}")
+        return False
+
+def test_response_structure():
+    """Test 3: Detailed response structure validation"""
+    print("\n🧪 TEST 3: Detailed response structure validation")
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/today-pattern/{TEST_USER_ID}?force_refresh=true", timeout=30)
+        data = response.json()
+        
+        # Validate title format
+        title = data.get("title", "")
+        if not title or len(title.strip()) < 3:
+            print(f"❌ FAILED: Title too short or empty: '{title}'")
+            return False
+        print(f"✅ SUCCESS: Title format valid: '{title}'")
+        
+        # Validate lines are micro-moments (not themes)
+        lines = data.get("lines", [])
+        if len(lines) != 3:
+            print(f"❌ FAILED: Expected exactly 3 lines, got {len(lines)}")
+            return False
+            
+        # Check that lines are specific behavioral statements
+        behavioral_indicators = ["you", "your", "might", "may", "could", "feel", "notice", "sense", "find"]
+        for i, line in enumerate(lines):
+            has_behavioral_language = any(indicator in line.lower() for indicator in behavioral_indicators)
+            if not has_behavioral_language:
+                print(f"⚠️  WARNING: Line {i+1} may not be behavioral micro-moment: '{line}'")
+            else:
+                print(f"✅ SUCCESS: Line {i+1} contains behavioral language")
+                
+        # Validate confidence range
+        confidence = data.get("confidence", 0)
+        if not (0.2 <= confidence <= 0.95):
+            print(f"❌ FAILED: Confidence {confidence} outside expected range 0.2-0.95")
+            return False
+        print(f"✅ SUCCESS: Confidence {confidence} within valid range")
+        
+        # Check for low confidence soft language
+        if confidence < 0.4:
+            soft_indicators = ["something", "might", "may", "could", "perhaps", "seems", "feels like"]
+            text_content = " ".join(lines).lower()
+            has_soft_language = any(indicator in text_content for indicator in soft_indicators)
+            if has_soft_language:
+                print(f"✅ SUCCESS: Low confidence ({confidence}) uses appropriate soft language")
+            else:
+                print(f"⚠️  WARNING: Low confidence ({confidence}) but no soft language detected")
+                
+        # Validate sources
+        sources = data.get("sources", [])
+        if not sources:
+            print(f"❌ FAILED: No sources provided")
+            return False
+        print(f"✅ SUCCESS: Sources provided: {sources}")
+        
+        # Validate follow-through logic
+        follow_through = data.get("follow_through")
+        follow_through_route = data.get("follow_through_route")
+        
+        if follow_through and not follow_through_route:
+            print(f"⚠️  WARNING: Follow-through text provided but no route specified")
+        elif follow_through_route and not follow_through:
+            print(f"⚠️  WARNING: Follow-through route provided but no text")
+        elif follow_through and follow_through_route:
+            print(f"✅ SUCCESS: Follow-through logic complete: '{follow_through}' -> {follow_through_route}")
+            
+        return True
+        
+    except Exception as e:
+        print(f"❌ FAILED: Error during structure validation: {e}")
+        return False
+
+def test_engine_behavior():
+    """Test 4: NOW SIGNAL ENGINE behavior validation"""
+    print("\n🧪 TEST 4: NOW SIGNAL ENGINE behavior validation")
+    
+    try:
+        # Test multiple calls to see if engine detects different patterns
+        responses = []
+        for i in range(2):
+            response = requests.get(f"{BACKEND_URL}/today-pattern/{TEST_USER_ID}?force_refresh=true", timeout=30)
+            if response.status_code == 200:
+                responses.append(response.json())
+            time.sleep(1)  # Brief delay between requests
+            
+        if len(responses) < 2:
+            print(f"❌ FAILED: Could not get multiple responses for comparison")
+            return False
+            
+        # Check if responses show signal processing
+        for i, data in enumerate(responses):
+            print(f"Response {i+1}:")
+            print(f"  Title: {data.get('title')}")
+            print(f"  Confidence: {data.get('confidence')}")
+            print(f"  Sources: {data.get('sources')}")
+            
+            # Validate no system language or advice
+            all_text = data.get("title", "") + " " + " ".join(data.get("lines", []))
+            system_words = ["system", "algorithm", "analysis", "should", "must", "need to", "have to"]
+            found_system_words = [word for word in system_words if word.lower() in all_text.lower()]
+            
+            if found_system_words:
+                print(f"⚠️  WARNING: Possible system language detected: {found_system_words}")
+            else:
+                print(f"✅ SUCCESS: No system language detected in response {i+1}")
+                
+        # Check for tension detection (opposing forces)
+        tension_indicators = ["but", "yet", "while", "though", "however", "still", "even as"]
+        for i, data in enumerate(responses):
+            all_text = " ".join(data.get("lines", [])).lower()
+            has_tension = any(indicator in all_text for indicator in tension_indicators)
+            if has_tension:
+                print(f"✅ SUCCESS: Response {i+1} shows tension detection")
+            else:
+                print(f"ℹ️  INFO: Response {i+1} may not show explicit tension")
+                
+        return True
+        
+    except Exception as e:
+        print(f"❌ FAILED: Error during engine behavior test: {e}")
+        return False
+
+def run_all_tests():
+    """Run all tests and provide summary"""
+    print("🚀 STARTING TODAY'S PATTERN v2 API ENDPOINT TESTING")
+    print("=" * 60)
+    
+    test_results = []
+    
+    # Run all tests
+    tests = [
+        ("Basic Endpoint Functionality", test_basic_endpoint),
+        ("Force Refresh Test", test_force_refresh),
+        ("Response Structure Validation", test_response_structure),
+        ("NOW SIGNAL ENGINE Behavior", test_engine_behavior)
+    ]
+    
+    for test_name, test_func in tests:
+        print(f"\n{'='*60}")
+        result = test_func()
+        test_results.append((test_name, result))
+        
+    # Summary
+    print(f"\n{'='*60}")
+    print("📊 TEST SUMMARY")
+    print("=" * 60)
+    
+    passed = sum(1 for _, result in test_results if result)
+    total = len(test_results)
+    
+    for test_name, result in test_results:
+        status = "✅ PASSED" if result else "❌ FAILED"
+        print(f"{status}: {test_name}")
+        
+    print(f"\n🎯 OVERALL RESULT: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+    
+    if passed == total:
+        print("🎉 ALL TESTS PASSED - TODAY'S PATTERN v2 API is working correctly!")
+    else:
+        print("⚠️  SOME TESTS FAILED - Review the failures above")
+        
+    return passed == total
+
 if __name__ == "__main__":
-    success = test_reflector_synthesis_endpoint()
-    sys.exit(0 if success else 1)
+    success = run_all_tests()
+    exit(0 if success else 1)
