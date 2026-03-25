@@ -358,6 +358,29 @@ export default function Welcome() {
   }
 
   // Default welcome view - High-conversion entry experience
+  // HEADLINE TESTING: Change this to test different headlines
+  // A: "You keep ending up in the same place."
+  // B: "Something keeps repeating."
+  // C: "You've felt this before."
+  const HEADLINE_VERSION = 'B'; // RECOMMENDED - shortest, most universal
+  
+  const headlines = {
+    'A': {
+      main: "You keep ending up in the same place.",
+      sub: "The loop you notice but can't name.\nThe pattern that runs before you catch it."
+    },
+    'B': {
+      main: "Something keeps repeating.",
+      sub: "A feeling. A reaction. A choice you've made before.\nYou've noticed—but it hasn't stopped."
+    },
+    'C': {
+      main: "You've felt this before.",
+      sub: "The hesitation. The pull. The thing you keep circling back to.\nIt's not random."
+    }
+  };
+  
+  const currentHeadline = headlines[HEADLINE_VERSION];
+  
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
       <StatusBar style={'light'} />
@@ -369,32 +392,36 @@ export default function Welcome() {
       </View>
       
       <View style={styles.content}>
+        {/* Brand mark */}
+        <View style={styles.brandContainer}>
+          <Text style={[styles.brandText, { color: darkTheme.textTertiary }]}>The Mirror</Text>
+        </View>
+        
         {/* Headline - something already happening */}
         <View style={styles.headlineContainer}>
           <Text style={[styles.headline, { color: darkTheme.text }]}>
-            You're already in a pattern.
+            {currentHeadline.main}
           </Text>
         </View>
         
         {/* Subtext - real behavior description */}
         <View style={styles.subtextContainer}>
           <Text style={[styles.subtext, { color: darkTheme.textSecondary }]}>
-            The decision you keep almost making.{'\n'}
-            The thing you notice, then push past.
+            {currentHeadline.sub}
           </Text>
         </View>
         
         {/* Bridge line - what Mirror does */}
         <View style={styles.bridgeContainer}>
           <Text style={[styles.bridgeLine, { color: darkTheme.textTertiary }]}>
-            Mirror doesn't tell you who you are.{'\n'}
-            It shows you what's happening right now.
+            This isn't about who you are.{'\n'}
+            It's about what's happening right now.
           </Text>
         </View>
         
-        {/* CTA Buttons */}
+        {/* CTA Buttons - Clear paths for new vs returning */}
         <View style={styles.buttonContainer}>
-          {/* New User - Primary CTA */}
+          {/* Primary CTA */}
           <TouchableOpacity 
             style={[styles.primaryButton, { 
               backgroundColor: darkTheme.buttonPrimaryBg,
@@ -406,14 +433,26 @@ export default function Welcome() {
             <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Show me</Text>
           </TouchableOpacity>
           
-          {/* Existing User */}
-          <TouchableOpacity 
-            style={[styles.secondaryButton, { borderColor: darkTheme.border }]}
-            onPress={() => setShowLogin(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.secondaryButtonText, { color: darkTheme.textSecondary }]}>I've been here before</Text>
-          </TouchableOpacity>
+          {/* Secondary CTAs - Both visible for new users */}
+          <View style={styles.secondaryCtaRow}>
+            <TouchableOpacity 
+              style={styles.secondaryCta}
+              onPress={handleBeginReflection}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.secondaryCtaText, { color: darkTheme.textSecondary }]}>I'm new here</Text>
+            </TouchableOpacity>
+            
+            <Text style={[styles.ctaDivider, { color: darkTheme.textTertiary }]}>·</Text>
+            
+            <TouchableOpacity 
+              style={styles.secondaryCta}
+              onPress={() => setShowLogin(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.secondaryCtaText, { color: darkTheme.textSecondary }]}>Sign in</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Forums Quick Access - Demoted */}
@@ -491,16 +530,28 @@ const styles = StyleSheet.create({
     borderRadius: 60,
   },
   
+  // Brand
+  brandContainer: {
+    marginBottom: 24,
+  },
+  brandText: {
+    fontSize: 12,
+    fontWeight: '500',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  
   // Headline
   headlineContainer: {
-    marginBottom: 28,
+    marginBottom: 24,
+    paddingHorizontal: 8,
   },
   headline: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '500',
     color: Colors.text,
     textAlign: 'center',
-    lineHeight: 34,
+    lineHeight: 32,
   },
   
   // Subtext
@@ -566,8 +617,9 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     maxWidth: 300,
-    gap: 12,
+    gap: 16,
     marginBottom: 32,
+    alignItems: 'center',
   },
   primaryButton: {
     backgroundColor: Colors.surface,
@@ -577,11 +629,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 10,
     alignItems: 'center',
+    width: '100%',
   },
   primaryButtonText: {
     fontSize: 17,
     color: Colors.text,
     fontWeight: '600',
+  },
+  secondaryCtaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  secondaryCta: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  secondaryCtaText: {
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  ctaDivider: {
+    fontSize: 14,
   },
   buttonSubtext: {
     fontSize: 13,
