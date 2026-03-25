@@ -5348,24 +5348,24 @@ REINFORCEMENT_MESSAGES = {
     "light": [
         "You wrote something like this a few days ago",
         "You touched on this earlier this week",
-        "You've been here before—recently",
+        "You were here before",
         "You came back to this"
     ],
     "medium": [
         "You've come back to this more than once this week",
-        "You've circled this a few times now",
         "You wrote about this earlier—and again now",
-        "You keep finding your way back here"
+        "You came back to this again",
+        "You've written about this twice now"
     ],
     "strong": [
-        "You've written about this more than once—and it's not random",
-        "You keep coming back to this, again and again",
-        "You've circled this through your recent reflections"
+        "You've written about this more than once already",
+        "You keep coming back to this",
+        "You wrote about this again—that's not nothing"
     ],
     "today_connection": [
-        "You're writing about what's already been showing up today",
-        "This lines up with what you've been feeling today",
-        "You came back to what's been on your mind today"
+        "You're writing about what showed up today",
+        "This is what's been on your mind today",
+        "You came back to what you felt earlier"
     ]
 }
 
