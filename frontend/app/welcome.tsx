@@ -224,23 +224,16 @@ export default function Welcome() {
       <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
         <StatusBar style={'light'} />
         
-        {/* DIAGNOSTIC MARKER - RETURNING USER BLOCK */}
-        <View style={{ position: 'absolute', top: 60, left: 0, right: 0, zIndex: 9999, alignItems: 'center', backgroundColor: '#FF0000', padding: 12 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>REAL EXPO SCREEN</Text>
-          <Text style={{ color: '#FFFF00', fontSize: 12 }}>FILE: welcome.tsx | BLOCK: hasExistingSession</Text>
-          <Text style={{ color: '#00FF00', fontSize: 10 }}>BUILD: {new Date().toISOString()}</Text>
-        </View>
-        
-        {/* BRIGHT GREEN PULSE */}
+        {/* Subtle atmospheric pulse - premium, restrained */}
         <View style={styles.pulseContainer}>
-          <View style={[styles.pulseRing, { borderColor: '#00FF00', borderWidth: 4 }]} />
-          <View style={[styles.pulseCore, { backgroundColor: '#00FF00' }]} />
+          <View style={[styles.pulseRing, { borderColor: 'rgba(255, 255, 255, 0.06)' }]} />
+          <View style={[styles.pulseCore, { backgroundColor: 'rgba(255, 255, 255, 0.03)' }]} />
         </View>
         
         <View style={styles.content}>
-          {/* Logo */}
+          {/* Logo / Wordmark */}
           <View style={styles.logoContainer}>
-            <View style={[styles.logoCircle, { borderColor: '#00FF00', borderWidth: 2 }]} />
+            <View style={[styles.logoCircle, { borderColor: 'rgba(255, 255, 255, 0.25)' }]} />
             <Text style={[styles.logoText, { color: darkTheme.text }]}>The Mirror</Text>
           </View>
           
@@ -266,33 +259,36 @@ export default function Welcome() {
             </Text>
           </View>
           
-          {/* CTA Button */}
+          {/* Primary CTA */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={[styles.primaryButton, { 
-                backgroundColor: '#FF6B00',
-                borderColor: '#FF6B00' 
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                borderColor: 'rgba(255, 255, 255, 0.15)' 
               }]}
               onPress={handleContinue}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <Text style={[styles.primaryButtonText, { color: '#FFFFFF', fontWeight: 'bold' }]}>REAL BUTTON</Text>
+              <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>Show me</Text>
             </TouchableOpacity>
           </View>
         </View>
         
-        {/* Footer */}
+        {/* Footer - subtle, understated */}
         <View style={styles.footerArea}>
           <View style={styles.forumsFooter}>
-            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.7}>
-              <Text style={[styles.forumLinkText, { color: darkTheme.textTertiary }]}>Create Forum</Text>
+            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.6}>
+              <Text style={[styles.forumLinkText, { color: 'rgba(255, 255, 255, 0.35)' }]}>Create Forum</Text>
             </TouchableOpacity>
-            <Text style={[styles.forumDivider, { color: darkTheme.textTertiary }]}>·</Text>
-            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.7}>
-              <Text style={[styles.forumLinkText, { color: darkTheme.textTertiary }]}>Join Forum</Text>
+            <Text style={[styles.forumDivider, { color: 'rgba(255, 255, 255, 0.2)' }]}>·</Text>
+            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.6}>
+              <Text style={[styles.forumLinkText, { color: 'rgba(255, 255, 255, 0.35)' }]}>Join Forum</Text>
             </TouchableOpacity>
           </View>
-          <Text style={[styles.buildInfo, { color: '#FF6B00', fontWeight: 'bold' }]}>REAL FOOTER • v{BUILD_VERSION}</Text>
+          {/* Hidden verification marker */}
+          <Text style={{ fontSize: 9, color: 'rgba(255, 255, 255, 0.15)', marginTop: 12 }}>
+            welcome.tsx • existing-session • {BUILD_VERSION}
+          </Text>
         </View>
         
         {renderDebugPanel()}
