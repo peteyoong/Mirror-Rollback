@@ -341,29 +341,44 @@ export default function Welcome() {
     );
   }
 
-  // Default welcome view with two options
+  // Default welcome view - High-conversion entry experience
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
       <StatusBar style={'light'} />
       
+      {/* Subtle animated pulse indicator */}
+      <View style={styles.pulseContainer}>
+        <View style={[styles.pulseRing, { borderColor: darkTheme.accent + '15' }]} />
+        <View style={[styles.pulseCore, { backgroundColor: darkTheme.accent + '08' }]} />
+      </View>
+      
       <View style={styles.content}>
-        {/* Title */}
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: darkTheme.text }]}>Project Mirror</Text>
+        {/* Headline - something already happening */}
+        <View style={styles.headlineContainer}>
+          <Text style={[styles.headline, { color: darkTheme.text }]}>
+            You're already in a pattern.
+          </Text>
         </View>
         
-        {/* Core Message */}
-        <View style={styles.messageContainer}>
-          <Text style={[styles.tagline, { color: darkTheme.textSecondary }]}>A space for noticing.</Text>
-          <View style={styles.permissionLines}>
-            <Text style={[styles.permissionText, { color: darkTheme.textTertiary }]}>Nothing to fix.</Text>
-            <Text style={[styles.permissionText, { color: darkTheme.textTertiary }]}>Nothing to decide.</Text>
-          </View>
+        {/* Subtext - real behavior description */}
+        <View style={styles.subtextContainer}>
+          <Text style={[styles.subtext, { color: darkTheme.textSecondary }]}>
+            The decision you keep almost making.{'\n'}
+            The thing you notice, then push past.
+          </Text>
         </View>
         
-        {/* Two Options */}
+        {/* Bridge line - what Mirror does */}
+        <View style={styles.bridgeContainer}>
+          <Text style={[styles.bridgeLine, { color: darkTheme.textTertiary }]}>
+            Mirror doesn't tell you who you are.{'\n'}
+            It shows you what's happening right now.
+          </Text>
+        </View>
+        
+        {/* CTA Buttons */}
         <View style={styles.buttonContainer}>
-          {/* New User */}
+          {/* New User - Primary CTA */}
           <TouchableOpacity 
             style={[styles.primaryButton, { 
               backgroundColor: darkTheme.buttonPrimaryBg,
@@ -372,8 +387,7 @@ export default function Welcome() {
             onPress={handleBeginReflection}
             activeOpacity={0.8}
           >
-            <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Begin</Text>
-            <Text style={[styles.buttonSubtext, { color: darkTheme.textTertiary }]}>Begin your reflection journey</Text>
+            <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Show me</Text>
           </TouchableOpacity>
           
           {/* Existing User */}
@@ -382,12 +396,11 @@ export default function Welcome() {
             onPress={() => setShowLogin(true)}
             activeOpacity={0.8}
           >
-            <Text style={[styles.secondaryButtonText, { color: darkTheme.textSecondary }]}>Return</Text>
-            <Text style={[styles.secondaryButtonSubtext, { color: darkTheme.textTertiary }]}>Sign in with email</Text>
+            <Text style={[styles.secondaryButtonText, { color: darkTheme.textSecondary }]}>I've been here before</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Forums Quick Access */}
+        {/* Forums Quick Access - Demoted */}
         <View style={[styles.forumsSection, { borderTopColor: darkTheme.border }]}>
           <Text style={[styles.forumsSectionLabel, { color: darkTheme.textTertiary }]}>FORUMS</Text>
           <View style={styles.forumsButtons}>
@@ -407,16 +420,10 @@ export default function Welcome() {
             </TouchableOpacity>
           </View>
         </View>
-        
-        {/* Exit Permission */}
-        <Text style={[styles.exitPermission, { color: darkTheme.textTertiary }]}>You can leave at any time.</Text>
       </View>
       
-      {/* Footer Philosophy Line */}
+      {/* Footer - minimal */}
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: darkTheme.textTertiary }]}>
-          You don't have to do anything with what you notice.
-        </Text>
         <Text style={[styles.buildInfo, { color: darkTheme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID} • {BUILD_DATE}</Text>
       </View>
       
@@ -430,22 +437,82 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    // Full width - no centering that causes overflow
     width: '100%',
   },
   keyboardView: {
     flex: 1,
     width: '100%',
-    // Remove maxWidth - handled dynamically in component
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24, // Reduced from 32 to prevent overflow
+    paddingHorizontal: 28,
     width: '100%',
-    // Remove maxWidth - handled dynamically in component
   },
+  
+  // Pulse animation container
+  pulseContainer: {
+    position: 'absolute',
+    top: '15%',
+    left: '50%',
+    transform: [{ translateX: -100 }],
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pulseRing: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 1,
+  },
+  pulseCore: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  
+  // Headline
+  headlineContainer: {
+    marginBottom: 28,
+  },
+  headline: {
+    fontSize: 26,
+    fontWeight: '500',
+    color: Colors.text,
+    textAlign: 'center',
+    lineHeight: 34,
+  },
+  
+  // Subtext
+  subtextContainer: {
+    marginBottom: 32,
+  },
+  subtext: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 26,
+    fontWeight: '400',
+  },
+  
+  // Bridge line
+  bridgeContainer: {
+    marginBottom: 48,
+    paddingHorizontal: 12,
+  },
+  bridgeLine: {
+    fontSize: 14,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    lineHeight: 24,
+    fontStyle: 'italic',
+  },
+  
+  // Legacy styles kept for login flow
   header: {
     marginBottom: 48,
   },
@@ -483,16 +550,16 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     maxWidth: 300,
-    gap: 16,
+    gap: 12,
     marginBottom: 32,
   },
   primaryButton: {
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingVertical: 18,
+    paddingVertical: 16,
     paddingHorizontal: 32,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: 'center',
   },
   primaryButtonText: {
@@ -507,17 +574,15 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: 18,
+    paddingVertical: 14,
     paddingHorizontal: 32,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: 'center',
   },
   secondaryButtonText: {
-    fontSize: 17,
+    fontSize: 15,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '400',
   },
   secondaryButtonSubtext: {
     fontSize: 13,
