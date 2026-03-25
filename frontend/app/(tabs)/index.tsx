@@ -22,9 +22,8 @@ import { storage } from '../../store';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
-import PatternCard from '../../components/PatternCard';
 import TodayPatternCard from '../../components/TodayPatternCard';
-// KeystoneHeroCard REMOVED - replaced by PatternCard (Pattern Mirror V1)
+// PatternCard (Pattern Mirror) TEMPORARILY REMOVED - will reintroduce after signal-based engine upgrade
 
 interface PatternCategory {
   category_id: string;
@@ -324,7 +323,7 @@ export default function MirrorScreen() {
             Shows headline only - skimmable in <3 seconds
             =================================================================== */}
         {user?.id && (
-          <View style={{ paddingHorizontal: 20, marginBottom: 4 }}>
+          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
             <TodayPatternCard 
               userId={user.id} 
               theme={theme}
@@ -334,13 +333,9 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            POSITION 1: PATTERN MIRROR V1 - Single Pattern Surface
-            This is the ONLY pattern card on Home. 
-            OLD KeystoneHeroCard REMOVED.
+            POSITION 1: PATTERN MIRROR - TEMPORARILY REMOVED
+            Will reintroduce after signal-based engine upgrade
             =================================================================== */}
-        {user?.id && (
-          <PatternCard userId={user.id} />
-        )}
 
         {/* ===================================================================
             POSITION 1b (REFLECTORS ONLY): LUNAR REFLECTION
