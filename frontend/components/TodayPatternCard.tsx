@@ -148,14 +148,14 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
       {/* Divider */}
       <View style={[styles.divider, { backgroundColor: theme.border }]} />
       
-      {/* CTA */}
+      {/* CTA - Clear action */}
       <TouchableOpacity
         style={styles.ctaContainer}
         onPress={handleReflect}
         activeOpacity={0.7}
       >
-        <Text style={[styles.ctaIcon, { color: theme.textTertiary }]}>☐</Text>
-        <Text style={[styles.ctaText, { color: theme.text }]}>Reflect</Text>
+        <Text style={[styles.ctaText, { color: theme.text }]}>Write about this</Text>
+        <Text style={[styles.ctaArrow, { color: theme.textTertiary }]}>→</Text>
       </TouchableOpacity>
     </View>
   );
@@ -206,13 +206,14 @@ const styles = StyleSheet.create({
   ctaContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  ctaIcon: {
-    fontSize: 16,
+    justifyContent: 'space-between',
   },
   ctaText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  ctaArrow: {
+    fontSize: 16,
+    fontWeight: '400',
   },
 });

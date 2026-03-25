@@ -290,9 +290,12 @@ export default function MirrorScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       
-      {/* Minimal Header */}
+      {/* Minimal Header - Daily entry point feel */}
       <View style={[styles.header, { backgroundColor: theme.background }]}>
-        <Text style={[styles.headerTitle, { color: theme.textTertiary }]}>MIRROR</Text>
+        <View style={styles.headerLeft}>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Mirror</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.textTertiary }]}>Right now</Text>
+        </View>
         <TouchableOpacity 
           style={styles.userCluster}
           onPress={handleUserPress}
@@ -300,7 +303,7 @@ export default function MirrorScreen() {
           hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
         >
           <Text style={[styles.userName, { color: theme.textSecondary }]} numberOfLines={1}>
-            {user?.name?.split(' ')[0] || 'Account'}
+            {user?.name?.split(' ')[0] || 'You'}
           </Text>
           <Text style={[styles.chevron, { color: theme.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -353,7 +356,7 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            POSITION 2: NAVIGATION - Explore Lenses / Life
+            POSITION 2: NAVIGATION - Clear paths forward
             =================================================================== */}
         <View style={styles.doorwaysSection}>
           <View style={styles.doorwaysRow}>
@@ -362,8 +365,8 @@ export default function MirrorScreen() {
               onPress={() => router.push('/(tabs)/lenses')}
               activeOpacity={0.7}
             >
-              <Text style={[styles.doorwayIconSmall, { color: theme.textSecondary }]}>◇</Text>
-              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>Explore Lenses</Text>
+              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>See your lenses</Text>
+              <Text style={[styles.doorwaySubtext, { color: theme.textTertiary }]}>Astrology, HD, more</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -371,40 +374,32 @@ export default function MirrorScreen() {
               onPress={() => router.push('/(tabs)/life')}
               activeOpacity={0.7}
             >
-              <Text style={[styles.doorwayIconSmall, { color: theme.textSecondary }]}>❧</Text>
-              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>Your Lifeline</Text>
+              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>Your past</Text>
+              <Text style={[styles.doorwaySubtext, { color: theme.textTertiary }]}>Key moments mapped</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* ===================================================================
-            POSITION 3: YOUR LIFELINE
-            ALWAYS renders in this position after Navigation
+            POSITION 3: DEEPER CONTEXT (Lifeline teaser - non-redundant)
+            Only shown for users without lifeline events, to encourage setup
             =================================================================== */}
-        <View style={[styles.lifelineBridge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.lifelineBridgeLabel, { color: theme.textTertiary }]}>
-            YOUR LIFELINE
-          </Text>
-          <Text style={[styles.lifelineBridgeText, { color: theme.textSecondary }]}>
-            {lifelineEventCount > 0 
-              ? "The patterns you notice today often began much earlier."
-              : "Mirror learns from the moments that shaped you."}
-          </Text>
-          <TouchableOpacity
-            style={[styles.lifelineBridgeCTA, { backgroundColor: theme.accent }]}
-            onPress={() => router.push('/(tabs)/life')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.lifelineBridgeCTAText}>
-              {lifelineEventCount > 0 ? 'Explore your Lifeline' : 'Start your Lifeline'}
+        {lifelineEventCount === 0 && (
+          <View style={[styles.lifelineBridge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.lifelineBridgeText, { color: theme.textSecondary }]}>
+              Mirror gets sharper the more it knows about you.
             </Text>
-          </TouchableOpacity>
-          {lifelineEventCount > 0 && (
-            <Text style={[styles.lifelineBridgeCount, { color: theme.textTertiary }]}>
-              {lifelineEventCount} moment{lifelineEventCount !== 1 ? 's' : ''} mapped
-            </Text>
-          )}
-        </View>
+            <TouchableOpacity
+              style={[styles.lifelineBridgeCTA, { backgroundColor: theme.accent }]}
+              onPress={() => router.push('/(tabs)/life')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.lifelineBridgeCTAText}>
+                Add key moments from your past
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ===================================================================
             POSITION 4: MIRROR REMEMBERS
@@ -483,13 +478,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 12,
-    height: 48,
+    height: 52,
+  },
+  headerLeft: {
+    flexDirection: 'column',
   },
   headerTitle: {
-    fontSize: 11,
+    fontSize: 18,
     fontWeight: '600',
-    letterSpacing: 1.5,
-    opacity: 0.6,
+    letterSpacing: 0.3,
+  },
+  headerSubtitle: {
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+    marginTop: 2,
   },
   userCluster: {
     flexDirection: 'row',
@@ -717,8 +720,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   doorwayTitleSmall: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
+    marginBottom: 4,
+  },
+  doorwaySubtext: {
+    fontSize: 11,
+    fontWeight: '400',
   },
 
   // =========================================================================

@@ -32,6 +32,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Mirror',
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <Text style={{ fontSize: 22, color }}>☽</Text>
           ),
