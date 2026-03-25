@@ -189,6 +189,34 @@ export default function Welcome() {
     }
   };
 
+  // HEADLINE CONFIGURATION - Must be defined before hasExistingSession block
+  // A: "You keep ending up in the same place."
+  // B: "Something keeps repeating."
+  // C: "You've felt this before."
+  // D: "You almost did it again." (experiential hook)
+  const HEADLINE_VERSION = 'D';
+  
+  const headlines = {
+    'A': {
+      main: "You keep ending up in the same place.",
+      sub: "The loop you notice but can't name.\nThe pattern that runs before you catch it."
+    },
+    'B': {
+      main: "Something keeps repeating.",
+      sub: "A feeling. A reaction. A choice you've made before.\nYou've noticed—but it hasn't stopped."
+    },
+    'C': {
+      main: "You've felt this before.",
+      sub: "The hesitation. The pull. The thing you keep circling back to.\nIt's not random."
+    },
+    'D': {
+      main: "You almost did it again.",
+      sub: "You were about to decide—then stopped.\nYou noticed it—then moved past it."
+    }
+  };
+  
+  const currentHeadline = headlines[HEADLINE_VERSION];
+
   // If user is already logged in, show the same new entry screen
   // but with a simpler flow (tap goes directly to app)
   if (hasExistingSession) {
@@ -196,78 +224,77 @@ export default function Welcome() {
       <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
         <StatusBar style={'light'} />
         
-        {/* Subtle animated pulse indicator */}
+        {/* DIAGNOSTIC MARKER - RETURNING USER BLOCK */}
+        <View style={{ position: 'absolute', top: 60, left: 0, right: 0, zIndex: 9999, alignItems: 'center', backgroundColor: '#FF0000', padding: 12 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>REAL EXPO SCREEN</Text>
+          <Text style={{ color: '#FFFF00', fontSize: 12 }}>FILE: welcome.tsx | BLOCK: hasExistingSession</Text>
+          <Text style={{ color: '#00FF00', fontSize: 10 }}>BUILD: {new Date().toISOString()}</Text>
+        </View>
+        
+        {/* BRIGHT GREEN PULSE */}
         <View style={styles.pulseContainer}>
-          <View style={[styles.pulseRing, { borderColor: darkTheme.accent + '15' }]} />
-          <View style={[styles.pulseCore, { backgroundColor: darkTheme.accent + '08' }]} />
+          <View style={[styles.pulseRing, { borderColor: '#00FF00', borderWidth: 4 }]} />
+          <View style={[styles.pulseCore, { backgroundColor: '#00FF00' }]} />
         </View>
         
         <View style={styles.content}>
-          {/* Same headline - pattern is universal */}
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <View style={[styles.logoCircle, { borderColor: '#00FF00', borderWidth: 2 }]} />
+            <Text style={[styles.logoText, { color: darkTheme.text }]}>The Mirror</Text>
+          </View>
+          
+          {/* Headline */}
           <View style={styles.headlineContainer}>
             <Text style={[styles.headline, { color: darkTheme.text }]}>
-              You're already in a pattern.
+              {currentHeadline.main}
             </Text>
           </View>
           
-          {/* Subtext - real behavior description */}
+          {/* Subtext */}
           <View style={styles.subtextContainer}>
             <Text style={[styles.subtext, { color: darkTheme.textSecondary }]}>
-              The decision you keep almost making.{'\n'}
-              The thing you notice, then push past.
+              {currentHeadline.sub}
             </Text>
           </View>
           
           {/* Bridge line */}
           <View style={styles.bridgeContainer}>
             <Text style={[styles.bridgeLine, { color: darkTheme.textTertiary }]}>
-              Mirror doesn't tell you who you are.{'\n'}
-              It shows you what's happening right now.
+              This isn't about who you are.{'\n'}
+              It's about what's happening right now.
             </Text>
           </View>
           
-          {/* CTA Buttons - simplified for returning user */}
+          {/* CTA Button */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={[styles.primaryButton, { 
-                backgroundColor: darkTheme.buttonPrimaryBg,
-                borderColor: darkTheme.border 
+                backgroundColor: '#FF6B00',
+                borderColor: '#FF6B00' 
               }]}
               onPress={handleContinue}
               activeOpacity={0.8}
             >
-              <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Show me</Text>
+              <Text style={[styles.primaryButtonText, { color: '#FFFFFF', fontWeight: 'bold' }]}>REAL BUTTON</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Forums Quick Access - Demoted */}
-          <View style={[styles.forumsSection, { borderTopColor: darkTheme.border }]}>
-            <Text style={[styles.forumsSectionLabel, { color: darkTheme.textTertiary }]}>FORUMS</Text>
-            <View style={styles.forumsButtons}>
-              <TouchableOpacity 
-                style={[styles.forumButton, { backgroundColor: darkTheme.surface, borderColor: darkTheme.border }]}
-                onPress={handleCreateForum}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.forumButtonText, { color: darkTheme.text }]}>Create Forum</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.forumButton, { backgroundColor: darkTheme.surface, borderColor: darkTheme.border }]}
-                onPress={handleJoinForum}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.forumButtonText, { color: darkTheme.text }]}>Join Forum</Text>
-              </TouchableOpacity>
-            </View>
+        </View>
+        
+        {/* Footer */}
+        <View style={styles.footerArea}>
+          <View style={styles.forumsFooter}>
+            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.7}>
+              <Text style={[styles.forumLinkText, { color: darkTheme.textTertiary }]}>Create Forum</Text>
+            </TouchableOpacity>
+            <Text style={[styles.forumDivider, { color: darkTheme.textTertiary }]}>·</Text>
+            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.7}>
+              <Text style={[styles.forumLinkText, { color: darkTheme.textTertiary }]}>Join Forum</Text>
+            </TouchableOpacity>
           </View>
+          <Text style={[styles.buildInfo, { color: '#FF6B00', fontWeight: 'bold' }]}>REAL FOOTER • v{BUILD_VERSION}</Text>
         </View>
         
-        {/* Footer - minimal */}
-        <View style={styles.footer}>
-          <Text style={[styles.buildInfo, { color: darkTheme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID} • {BUILD_DATE}</Text>
-        </View>
-        
-        {/* Debug Panel */}
         {renderDebugPanel()}
       </SafeAreaView>
     );
@@ -358,34 +385,7 @@ export default function Welcome() {
   }
 
   // Default welcome view - High-conversion entry experience
-  // HEADLINE TESTING: Change this to test different headlines
-  // A: "You keep ending up in the same place."
-  // B: "Something keeps repeating."
-  // C: "You've felt this before."
-  // D: "You almost did it again." (experiential hook)
-  const HEADLINE_VERSION = 'D'; // TESTING - experiential hook
-  
-  const headlines = {
-    'A': {
-      main: "You keep ending up in the same place.",
-      sub: "The loop you notice but can't name.\nThe pattern that runs before you catch it."
-    },
-    'B': {
-      main: "Something keeps repeating.",
-      sub: "A feeling. A reaction. A choice you've made before.\nYou've noticed—but it hasn't stopped."
-    },
-    'C': {
-      main: "You've felt this before.",
-      sub: "The hesitation. The pull. The thing you keep circling back to.\nIt's not random."
-    },
-    'D': {
-      main: "You almost did it again.",
-      sub: "You were about to decide—then stopped.\nYou noticed it—then moved past it."
-    }
-  };
-  
-  const currentHeadline = headlines[HEADLINE_VERSION];
-  
+  // Default welcome view - no session
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
       <StatusBar style={'light'} />
