@@ -11294,17 +11294,17 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "There's a decision you keep coming back to today",
-                    "Part of you is ready. Another part isn't sure yet",
-                    "You've been here before—right before something shifts"
+                    "You're back in the same decision again",
+                    "Part of you is ready. Another part holds back",
+                    "You've been here before"
                 ],
                 "title": "The Decision That Waits"
             },
             {
                 "lines": [
-                    "A decision is close—but the timing doesn't feel right",
+                    "You feel the pressure to decide—but the timing feels off",
                     "Pushing forward feels forced. Waiting feels stuck",
-                    "This same tension showed up earlier this week"
+                    "You know this tension"
                 ],
                 "title": "Not Quite Ready"
             }
@@ -11315,17 +11315,17 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "You're trying to get clarity on something—but it keeps changing",
+                    "You're looking for clarity—but it keeps shifting",
                     "What felt right yesterday doesn't land the same today",
-                    "This has happened more than once this week"
+                    "You've done this before"
                 ],
                 "title": "Clarity That Shifts"
             },
             {
                 "lines": [
-                    "There's a direction you're considering—but you want to be sure first",
-                    "Certainty keeps slipping away",
-                    "This search has happened before"
+                    "You want to be sure before you move",
+                    "But certainty keeps slipping",
+                    "You know this search"
                 ],
                 "title": "Waiting for Certainty"
             }
@@ -11336,17 +11336,17 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "There's something you haven't said yet—maybe a conversation you're avoiding",
+                    "You're holding something back—a conversation, maybe",
                     "The right moment hasn't come. Or maybe it has",
-                    "You've circled back to this more than once"
+                    "You've circled this before"
                 ],
                 "title": "What's Unsaid"
             },
             {
                 "lines": [
-                    "Something wants to be expressed today",
-                    "But the words don't feel quite right yet",
-                    "This hesitation showed up earlier too"
+                    "You feel something wanting to come out",
+                    "But the words aren't quite right yet",
+                    "You know this hesitation"
                 ],
                 "title": "Almost Speaking"
             }
@@ -11357,17 +11357,17 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "There's something you want to move forward on today",
+                    "You want to move—but something pulls you back",
                     "The energy is there. The green light isn't",
-                    "This tension keeps coming back"
+                    "You've felt this before"
                 ],
                 "title": "Ready but Waiting"
             },
             {
                 "lines": [
-                    "Part of you wants to act on something now",
+                    "Part of you wants to act now",
                     "Another part needs more time",
-                    "This push-pull showed up earlier this week"
+                    "You know this push-pull"
                 ],
                 "title": "Forward and Back"
             }
@@ -11378,17 +11378,17 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "You're waiting for something to confirm a direction you're already sensing",
-                    "Self-trust and external validation pull in different directions",
-                    "This pattern showed up earlier too"
+                    "You're waiting for something to confirm what you already sense",
+                    "Self-trust and external validation pull different directions",
+                    "You've been here before"
                 ],
                 "title": "Seeking Confirmation"
             },
             {
                 "lines": [
-                    "Part of you knows what to do. Another part needs proof",
-                    "The signal is there—but doubt crept in today",
-                    "You've questioned this before"
+                    "Part of you knows. Another part needs proof",
+                    "The signal is there—but doubt creeps in",
+                    "You know this pattern"
                 ],
                 "title": "Trust vs. Doubt"
             }
@@ -11399,17 +11399,17 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "There's a situation today where you're trying to control the outcome",
-                    "But some of it isn't yours to control",
-                    "This grip-and-release has happened before"
+                    "You're trying to control how this goes",
+                    "But some of it isn't yours to hold",
+                    "You've gripped like this before"
                 ],
                 "title": "Grip and Release"
             },
             {
                 "lines": [
-                    "You want something to land a certain way",
+                    "You want it to land a certain way",
                     "Reality has other plans",
-                    "This tension between forcing and allowing showed up earlier this week"
+                    "You know this tension between forcing and allowing"
                 ],
                 "title": "Forcing vs. Allowing"
             }
@@ -11420,17 +11420,17 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "This feeling has come up more than once this week",
-                    "Each time, it pulls you back to the same decision",
-                    "Something here still isn't settled"
+                    "You've felt this more than once this week",
+                    "Each time, it pulls you back to the same place",
+                    "This isn't new"
                 ],
                 "title": "What Keeps Returning"
             },
             {
                 "lines": [
-                    "You've reflected on this before—more than once",
-                    "The words change, but it keeps coming back to the same thing",
-                    "Something underneath this still isn't done"
+                    "You've been here before—more than once",
+                    "The words change. The feeling doesn't",
+                    "You know what's underneath this"
                 ],
                 "title": "The Recurring Theme"
             }
@@ -11441,17 +11441,17 @@ CROSS_LENS_PATTERN_TEMPLATES = {
         "templates": [
             {
                 "lines": [
-                    "Something shifted today—but it's not clear what yet",
-                    "The old way doesn't fit. The new way isn't here",
-                    "You're in between"
+                    "You feel something shifting—but it's not clear what",
+                    "The old way doesn't fit. The new way isn't here yet",
+                    "You've been in between before"
                 ],
                 "title": "In Between"
             },
             {
                 "lines": [
-                    "Things feel different lately—especially this week",
+                    "You feel different lately",
                     "What worked before isn't working the same way",
-                    "A change is taking shape"
+                    "You know a change is coming"
                 ],
                 "title": "Something Changing"
             }
