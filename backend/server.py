@@ -11459,6 +11459,31 @@ CROSS_LENS_PATTERN_TEMPLATES = {
     }
 }
 
+# Recognition endings - varied by confidence level
+# High confidence (journal present): stronger endings
+# Lower confidence: softer endings
+RECOGNITION_ENDINGS_STRONG = [
+    "You've been here before",
+    "This isn't new",
+    "You've seen this play out"
+]
+
+RECOGNITION_ENDINGS_SOFT = [
+    "It feels familiar",
+    "You know this pattern",
+    "This isn't the first time"
+]
+
+
+def get_recognition_ending(confidence: float, day_seed: int) -> str:
+    """Select a varied recognition ending based on confidence level."""
+    if confidence >= 0.75:
+        # High confidence - use stronger endings
+        return RECOGNITION_ENDINGS_STRONG[day_seed % len(RECOGNITION_ENDINGS_STRONG)]
+    else:
+        # Lower confidence - use softer endings
+        return RECOGNITION_ENDINGS_SOFT[day_seed % len(RECOGNITION_ENDINGS_SOFT)]
+
 
 def detect_cross_lens_pattern(
     transit_data: Optional[dict],
@@ -11553,9 +11578,16 @@ def detect_cross_lens_pattern(
     template_list = templates["templates"]
     selected_template = template_list[day_seed % len(template_list)]
     
+    # Get varied recognition ending based on confidence
+    recognition_ending = get_recognition_ending(confidence, day_seed)
+    
+    # Replace the last line with the varied ending
+    lines = selected_template["lines"].copy()
+    lines[-1] = recognition_ending
+    
     return {
         "title": selected_template["title"],
-        "lines": selected_template["lines"],
+        "lines": lines,
         "confidence": confidence,
         "sources": sources if sources else ["baseline"],
         "pattern_type": pattern_type
