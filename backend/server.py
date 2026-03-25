@@ -11453,28 +11453,28 @@ class TodayPatternResponse(BaseModel):
 # Follow-through lines by dominant source
 FOLLOW_THROUGH_LINES = {
     "journal": [
-        "This has been showing up in your reflections",
-        "Your recent entries circle back to this",
-        "You've written around this before"
+        "You wrote about this before",
+        "You came back to this in your reflections",
+        "You touched on this earlier"
     ],
     "human_design": [
-        "This connects to how you process decisions",
-        "Your design has a way of handling this",
-        "This pattern runs deeper than this moment"
+        "This connects to how you make decisions",
+        "Your design does this",
+        "This is part of how you work"
     ],
     "transits": [
-        "Something current is pressing on this",
-        "The timing right now amplifies this",
-        "This is louder than usual for a reason"
+        "The timing is pressing on this",
+        "This is louder right now for a reason",
+        "Something current is amplifying this"
     ],
     "enneagram": [
-        "This follows a pattern you know well",
-        "Your type tends to meet this the same way",
-        "This is familiar territory"
+        "You do this",
+        "This is familiar",
+        "You've met this before"
     ],
     "fallback": [
-        "There's more underneath this",
-        "This connects to something deeper"
+        "There's more here",
+        "This connects to something"
     ]
 }
 

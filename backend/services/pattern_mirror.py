@@ -6030,20 +6030,20 @@ def _generate_angle_summary(
     facet_tag = facet["tag"]
     facet_label = facet["label"]
     
-    # Template-based angle summaries
+    # Template-based angle summaries - Mirror tone (direct, behavioral, no "may")
     angle_templates = {
-        "trust": "Today the question may be about trust—what feels safe enough to open to, and what still needs more care.",
-        "receiving": "Today you may be noticing what you're willing to receive—where you're letting things in, and where you're still guarded.",
-        "boundaries": "Today the edge between self and other may be asking for attention—what needs protecting, what can soften.",
-        "reopening": "Today something that was distant may be wanting to come closer—a slow thaw, a gentle reconnection.",
-        "vulnerability": "Today what feels exposed may be more present—the tender places that want care.",
-        "processing": "Today emotions may be moving—not to be fixed, just witnessed.",
-        "holding": "Today something may need gentle attention—held without needing to change.",
-        "releasing": "Today something may be ready to let go—a weight that's been carried long enough.",
-        "deciding": "Today a decision may be quietly surfacing—not rushing, just becoming clearer.",
-        "waiting": "Today the in-between space may feel more present—uncertainty asking for patience.",
-        "questioning": "Today questions about direction or identity may feel louder—who you're becoming.",
-        "becoming": "Today something new may be emerging—slowly, in its own time.",
+        "trust": "You're deciding who to trust right now—what feels safe, and what doesn't.",
+        "receiving": "You're noticing what you let in—and what you're still holding at arm's length.",
+        "boundaries": "You're drawing lines again—what needs protecting, what can stay open.",
+        "reopening": "You're coming back to something you'd stepped away from.",
+        "vulnerability": "The tender places are closer to the surface today.",
+        "processing": "You're feeling more than usual—it's moving, not stuck.",
+        "holding": "You're carrying something that needs attention—not fixing, just noticing.",
+        "releasing": "You're ready to put something down that you've been holding too long.",
+        "deciding": "You're coming back to a decision you didn't finish.",
+        "waiting": "You're in between—waiting without knowing what comes next.",
+        "questioning": "You're asking the same question again—who you're becoming.",
+        "becoming": "You're not who you were a month ago—something is changing.",
     }
     
     if facet_tag in angle_templates:
