@@ -18,6 +18,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { loginUser } from '../services/api';
 import { Colors } from '../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Svg, { Circle, Line, Path } from 'react-native-svg';
 
 // Forums redirect target type
 type ForumsRedirect = 'create' | 'join' | null;
@@ -224,18 +225,58 @@ export default function Welcome() {
       <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
         <StatusBar style={'light'} />
         
-        {/* Subtle atmospheric pulse - premium, restrained */}
-        <View style={styles.pulseContainer}>
-          <View style={[styles.pulseRing, { borderColor: 'rgba(255, 255, 255, 0.06)' }]} />
-          <View style={[styles.pulseCore, { backgroundColor: 'rgba(255, 255, 255, 0.03)' }]} />
-        </View>
-        
         <View style={styles.content}>
-          {/* Logo / Wordmark */}
-          <View style={styles.logoContainer}>
-            <View style={[styles.logoCircle, { borderColor: 'rgba(255, 255, 255, 0.25)' }]} />
-            <Text style={[styles.logoText, { color: darkTheme.text }]}>The Mirror</Text>
+          {/* The Mirror – Aperture Mark */}
+          <View style={styles.apertureContainer}>
+            {/* Subtle atmospheric glow behind logo */}
+            <View style={styles.apertureGlow} />
+            
+            {/* SVG Logo - Exact geometry, do not modify */}
+            <Svg width={88} height={88} viewBox="0 0 100 100" style={{ opacity: 0.9 }}>
+              {/* Outer circle */}
+              <Circle
+                cx={50}
+                cy={50}
+                r={38}
+                stroke="#EAE6DF"
+                strokeWidth={1.5}
+                fill="none"
+              />
+              {/* Vertical center line */}
+              <Line
+                x1={50}
+                y1={18}
+                x2={50}
+                y2={82}
+                stroke="#EAE6DF"
+                strokeWidth={1.5}
+              />
+              {/* Left aperture curve */}
+              <Path
+                d="M50 18 Q35 50 30 68"
+                stroke="#EAE6DF"
+                strokeWidth={1.5}
+                fill="none"
+              />
+              {/* Right aperture curve */}
+              <Path
+                d="M50 18 Q65 50 70 68"
+                stroke="#EAE6DF"
+                strokeWidth={1.5}
+                fill="none"
+              />
+              {/* Bottom connecting curve */}
+              <Path
+                d="M30 68 Q50 62 70 68"
+                stroke="#EAE6DF"
+                strokeWidth={1}
+                fill="none"
+              />
+            </Svg>
           </View>
+          
+          {/* Wordmark - below logo, above headline */}
+          <Text style={styles.apertureWordmark}>The Mirror</Text>
           
           {/* Headline */}
           <View style={styles.headlineContainer}>
@@ -537,7 +578,30 @@ const styles = StyleSheet.create({
     borderRadius: 60,
   },
   
-  // Logo / Wordmark
+  // Aperture Mark - The Mirror logo
+  apertureContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    position: 'relative',
+  },
+  apertureGlow: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(234, 230, 223, 0.04)',
+  },
+  apertureWordmark: {
+    fontSize: 14,
+    fontWeight: '400',
+    letterSpacing: 1.2,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  
+  // Legacy logo styles (for non-session view)
   logoContainer: {
     alignItems: 'center',
     marginBottom: 40,
