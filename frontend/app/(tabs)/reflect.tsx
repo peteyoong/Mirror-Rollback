@@ -321,6 +321,15 @@ export default function JournalScreen() {
   const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
   const HIGHLIGHT_CLEAR_DELAY = 2500; // Clear after 2.5s (animation is 2s)
   
+  // Pattern reinforcement state (post-journal feedback)
+  const [patternReinforcement, setPatternReinforcement] = useState<{
+    message: string;
+    strength: string;
+    connects_to_today: boolean;
+    route: string | null;
+  } | null>(null);
+  const [reinforcementEntryId, setReinforcementEntryId] = useState<string | null>(null);
+  
   const router = useRouter();
 
   // Collapsible intro card state (Part 1 & 2) - DEFAULT TO COLLAPSED for write-first UX
@@ -778,6 +787,18 @@ export default function JournalScreen() {
         setMicroMirrorResponse(journalText);
         setMicroMirrorEntryId(entry.id);
         setMicroMirrorVisible(true);
+        
+        // Fetch pattern reinforcement (non-blocking)
+        try {
+          const reinforcementResponse = await api.get(`/journal/${user.id}/pattern-reinforcement/${entry.id}`);
+          if (reinforcementResponse.data?.message && reinforcementResponse.data?.strength !== 'none') {
+            setPatternReinforcement(reinforcementResponse.data);
+            setReinforcementEntryId(entry.id);
+          }
+        } catch (err) {
+          console.log('[JOURNAL_SAVE] Pattern reinforcement fetch failed:', err);
+          // Non-blocking - don't show error
+        }
       }
       
       // Show Phase Mirror card with timeline phase info
@@ -870,6 +891,33 @@ export default function JournalScreen() {
     setMicroMirrorResponse(null);
     setMicroMirrorEntryId(null);
   }, []);
+
+  // Handle pattern reinforcement tap - routes to relevant screen
+  const handlePatternReinforcementTap = useCallback(() => {
+    if (!patternReinforcement?.route) return;
+    
+    if (patternReinforcement.route === 'today_pattern') {
+      router.push('/(tabs)');
+    } else if (patternReinforcement.route === 'reflect') {
+      // Already on reflect, just scroll to top
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }
+    
+    // Dismiss after tap
+    setPatternReinforcement(null);
+    setReinforcementEntryId(null);
+  }, [patternReinforcement, router]);
+
+  // Auto-dismiss pattern reinforcement after 8 seconds
+  useEffect(() => {
+    if (patternReinforcement) {
+      const timer = setTimeout(() => {
+        setPatternReinforcement(null);
+        setReinforcementEntryId(null);
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [patternReinforcement]);
 
   // Phase Mirror handlers
   const handlePhaseMirrorDismiss = useCallback(() => {
@@ -1852,6 +1900,21 @@ export default function JournalScreen() {
               />
             )}
 
+            {/* Pattern Reinforcement Card - subtle recognition after journal save */}
+            {patternReinforcement && patternReinforcement.message && (
+              <TouchableOpacity
+                style={[styles.reinforcementCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={handlePatternReinforcementTap}
+                activeOpacity={patternReinforcement.route ? 0.7 : 1}
+                disabled={!patternReinforcement.route}
+              >
+                <Text style={[styles.reinforcementText, { color: theme.textSecondary }]}>
+                  {patternReinforcement.message}
+                  {patternReinforcement.route && ' →'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
             {/* Phase Mirror Card - Timeline connection (appears after journal save) */}
             {phaseMirrorVisible && savedPhaseId && savedPhaseName && (
               <PhaseMirrorCard
@@ -1963,6 +2026,22 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingTop: 0,
     paddingBottom: 24,
+  },
+  // Pattern Reinforcement Card - subtle recognition after journal save
+  reinforcementCard: {
+    marginHorizontal: 24,
+    marginTop: 8,
+    marginBottom: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  reinforcementText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   // Mirror Leader Card wrapper
   mirrorLeaderCardWrapper: {

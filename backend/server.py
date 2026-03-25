@@ -5332,6 +5332,167 @@ async def delete_journal_entry(entry_id: str):
 
 
 # =============================================================================
+# JOURNAL PATTERN REINFORCEMENT - Post-submission feedback
+# =============================================================================
+
+class PatternReinforcementResponse(BaseModel):
+    """Response for post-journal pattern reinforcement"""
+    message: str
+    strength: str  # "light", "medium", "strong"
+    connects_to_today: bool
+    route: Optional[str] = None  # "today_pattern", "reflect", None
+
+
+# Pattern reinforcement messages by strength level
+REINFORCEMENT_MESSAGES = {
+    "light": [
+        "This has come up before",
+        "You've written about something similar recently",
+        "This connects to a pattern you've been in",
+        "This isn't the first time this feeling has shown up"
+    ],
+    "medium": [
+        "You've written about this more than once this week",
+        "This keeps coming back",
+        "There's a pattern forming here",
+        "This has been on your mind"
+    ],
+    "strong": [
+        "This is showing up again—and it's not random",
+        "You keep coming back to this",
+        "This thread runs through your recent reflections"
+    ],
+    "today_connection": [
+        "This connects to what's been showing up today",
+        "This touches on today's pattern",
+        "There's a connection to what you've been feeling today"
+    ]
+}
+
+
+@api_router.get("/journal/{user_id}/pattern-reinforcement/{entry_id}")
+async def get_pattern_reinforcement(user_id: str, entry_id: str):
+    """
+    Post-journal pattern reinforcement.
+    Analyzes recent entries to detect if this journal entry connects to existing patterns.
+    Returns a subtle reinforcement message if patterns are detected.
+    """
+    try:
+        # Get the just-saved entry
+        entry = await db.journal.find_one({"_id": ObjectId(entry_id)})
+        if not entry:
+            return PatternReinforcementResponse(
+                message="",
+                strength="none",
+                connects_to_today=False,
+                route=None
+            )
+        
+        entry_content = entry.get("content", "").lower()
+        entry_themes = entry.get("themes", [])
+        
+        # Get recent entries (last 7 days, excluding this one)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        recent_entries = await db.journal.find({
+            "user_id": user_id,
+            "created_at": {"$gte": seven_days_ago},
+            "_id": {"$ne": ObjectId(entry_id)}
+        }).sort("created_at", -1).to_list(20)
+        
+        if len(recent_entries) < 1:
+            # First entry in a while - no reinforcement
+            return PatternReinforcementResponse(
+                message="",
+                strength="none",
+                connects_to_today=False,
+                route=None
+            )
+        
+        # Detect theme overlap
+        theme_matches = 0
+        keyword_matches = 0
+        day_seed = int(datetime.now(timezone.utc).strftime("%d"))
+        
+        # Extract keywords from current entry
+        current_keywords = set(word for word in entry_content.split() if len(word) > 4)
+        
+        for past_entry in recent_entries:
+            past_content = past_entry.get("content", "").lower()
+            past_themes = past_entry.get("themes", [])
+            
+            # Check theme overlap
+            if entry_themes and past_themes:
+                if any(t in past_themes for t in entry_themes):
+                    theme_matches += 1
+            
+            # Check keyword overlap
+            past_keywords = set(word for word in past_content.split() if len(word) > 4)
+            overlap = len(current_keywords & past_keywords)
+            if overlap >= 3:
+                keyword_matches += 1
+        
+        # Check connection to today's pattern
+        connects_to_today = False
+        today_pattern = await db.today_patterns.find_one({
+            "user_id": user_id,
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        })
+        
+        if today_pattern:
+            today_keywords = set()
+            for line in today_pattern.get("lines", []):
+                today_keywords.update(word.lower() for word in line.split() if len(word) > 4)
+            
+            if len(current_keywords & today_keywords) >= 2:
+                connects_to_today = True
+        
+        # Determine strength and message
+        total_matches = theme_matches + keyword_matches
+        
+        if connects_to_today:
+            strength = "strong"
+            messages = REINFORCEMENT_MESSAGES["today_connection"]
+            route = "today_pattern"
+        elif total_matches >= 3:
+            strength = "strong"
+            messages = REINFORCEMENT_MESSAGES["strong"]
+            route = "reflect"
+        elif total_matches >= 2:
+            strength = "medium"
+            messages = REINFORCEMENT_MESSAGES["medium"]
+            route = "reflect"
+        elif total_matches >= 1 or len(recent_entries) >= 2:
+            strength = "light"
+            messages = REINFORCEMENT_MESSAGES["light"]
+            route = None
+        else:
+            return PatternReinforcementResponse(
+                message="",
+                strength="none",
+                connects_to_today=False,
+                route=None
+            )
+        
+        message = messages[day_seed % len(messages)]
+        
+        return PatternReinforcementResponse(
+            message=message,
+            strength=strength,
+            connects_to_today=connects_to_today,
+            route=route
+        )
+        
+    except Exception as e:
+        logger.error(f"[PatternReinforcement] Error: {e}")
+        return PatternReinforcementResponse(
+            message="",
+            strength="none",
+            connects_to_today=False,
+            route=None
+        )
+
+
+# =============================================================================
 # REFLECTOR JOURNAL SYNTHESIS ENDPOINT
 # =============================================================================
 
