@@ -390,10 +390,15 @@ export default function Welcome() {
     <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
       <StatusBar style={'light'} />
       
-      {/* Subtle animated pulse indicator - repositioned behind logo */}
+      {/* TEMP MARKER 1: Visible label at top */}
+      <View style={{ position: 'absolute', top: 60, left: 0, right: 0, zIndex: 9999, alignItems: 'center', backgroundColor: '#FF0000', padding: 8 }}>
+        <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' }}>WELCOME V2 LIVE</Text>
+      </View>
+      
+      {/* TEMP MARKER 2: Bright pulse circle */}
       <View style={styles.pulseContainer}>
-        <View style={[styles.pulseRing, { borderColor: darkTheme.accent + '12' }]} />
-        <View style={[styles.pulseCore, { backgroundColor: darkTheme.accent + '06' }]} />
+        <View style={[styles.pulseRing, { borderColor: '#00FF00', borderWidth: 3 }]} />
+        <View style={[styles.pulseCore, { backgroundColor: '#00FF00' }]} />
       </View>
       
       <View style={styles.content}>
@@ -428,16 +433,16 @@ export default function Welcome() {
         
         {/* CTA Buttons - Clear paths for new vs returning */}
         <View style={styles.buttonContainer}>
-          {/* Primary CTA */}
+          {/* TEMP MARKER 3: Primary CTA with V2 */}
           <TouchableOpacity 
             style={[styles.primaryButton, { 
-              backgroundColor: darkTheme.buttonPrimaryBg,
-              borderColor: darkTheme.border 
+              backgroundColor: '#FF6B00',
+              borderColor: '#FF6B00' 
             }]}
             onPress={handleBeginReflection}
             activeOpacity={0.8}
           >
-            <Text style={[styles.primaryButtonText, { color: darkTheme.buttonPrimaryText }]}>Show me</Text>
+            <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>SHOW ME V2</Text>
           </TouchableOpacity>
           
           {/* Secondary CTAs - Both visible for new users */}
@@ -484,8 +489,8 @@ export default function Welcome() {
           </TouchableOpacity>
         </View>
         
-        {/* Build info */}
-        <Text style={[styles.buildInfo, { color: darkTheme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID} • {BUILD_DATE}</Text>
+        {/* TEMP MARKER 4: Build info with WELCOME-V2 */}
+        <Text style={[styles.buildInfo, { color: '#FF6B00' }]}>WELCOME-V2 • v{BUILD_VERSION} • {BUILD_ID}</Text>
       </View>
       
       {/* Debug Panel */}
