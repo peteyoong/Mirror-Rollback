@@ -362,7 +362,8 @@ export default function Welcome() {
   // A: "You keep ending up in the same place."
   // B: "Something keeps repeating."
   // C: "You've felt this before."
-  const HEADLINE_VERSION = 'B'; // RECOMMENDED - shortest, most universal
+  // D: "You almost did it again." (experiential hook)
+  const HEADLINE_VERSION = 'D'; // TESTING - experiential hook
   
   const headlines = {
     'A': {
@@ -376,6 +377,10 @@ export default function Welcome() {
     'C': {
       main: "You've felt this before.",
       sub: "The hesitation. The pull. The thing you keep circling back to.\nIt's not random."
+    },
+    'D': {
+      main: "You almost did it again.",
+      sub: "You were about to decide—then stopped.\nYou noticed it—then moved past it."
     }
   };
   
