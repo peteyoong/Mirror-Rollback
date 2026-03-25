@@ -231,45 +231,45 @@ export default function Welcome() {
             {/* Subtle atmospheric glow behind logo */}
             <View style={styles.apertureGlow} />
             
-            {/* SVG Logo - Exact geometry, do not modify */}
-            <Svg width={88} height={88} viewBox="0 0 100 100" style={{ opacity: 0.9 }}>
-              {/* Outer circle */}
+            {/* SVG Logo - Refined aperture geometry */}
+            <Svg width={88} height={88} viewBox="0 0 100 100" style={{ opacity: 0.85 }}>
+              {/* Outer circle - stabilizing container */}
               <Circle
                 cx={50}
                 cy={50}
                 r={38}
                 stroke="#EAE6DF"
-                strokeWidth={1.5}
+                strokeWidth={1.25}
                 fill="none"
               />
-              {/* Vertical center line */}
+              {/* Vertical center axis - shortened at top for softer apex */}
               <Line
                 x1={50}
-                y1={18}
+                y1={26}
                 x2={50}
                 y2={82}
                 stroke="#EAE6DF"
-                strokeWidth={1.5}
+                strokeWidth={1.25}
               />
-              {/* Left aperture curve */}
+              {/* Left aperture curve - softer, more bowed outward */}
               <Path
-                d="M50 18 Q35 50 30 68"
+                d="M50 26 C38 38 28 54 32 72"
                 stroke="#EAE6DF"
-                strokeWidth={1.5}
+                strokeWidth={1.25}
                 fill="none"
               />
-              {/* Right aperture curve */}
+              {/* Right aperture curve - softer, more bowed outward */}
               <Path
-                d="M50 18 Q65 50 70 68"
+                d="M50 26 C62 38 72 54 68 72"
                 stroke="#EAE6DF"
-                strokeWidth={1.5}
+                strokeWidth={1.25}
                 fill="none"
               />
-              {/* Bottom connecting curve */}
+              {/* Reflection horizon - more present, subtle distortion */}
               <Path
-                d="M30 68 Q50 62 70 68"
+                d="M32 72 Q50 64 68 72"
                 stroke="#EAE6DF"
-                strokeWidth={1}
+                strokeWidth={1.25}
                 fill="none"
               />
             </Svg>
