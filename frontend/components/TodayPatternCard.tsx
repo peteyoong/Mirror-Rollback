@@ -1,16 +1,27 @@
 /**
  * TodayPatternCard
- * Home screen integration for Dominant Truth
- * Shows headline only - skimmable in <3 seconds
+ * Home screen keystone - Cross-Lens Synthesis
+ * Shows title + 3 lines that feel like immediate recognition
  * 
- * Now uses Mirror Response Engine for unified "light" intensity
+ * Structure:
+ * - Line 1: What you're feeling / doing
+ * - Line 2: The tension / contradiction  
+ * - Line 3: The pattern (recognition layer)
  */
 
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useDominantTruthForHome } from '../hooks/useDominantTruth';
-import { buildMirrorResponse, getHomeResponse } from '../services/mirrorResponseEngine';
+import api from '../services/api';
+
+interface TodayPatternData {
+  title: string;
+  lines: string[];
+  confidence: number;
+  sources: string[];
+  date: string;
+  cached: boolean;
+}
 
 interface TodayPatternCardProps {
   userId: string;
@@ -20,49 +31,45 @@ interface TodayPatternCardProps {
 
 export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatternCardProps) {
   const router = useRouter();
-  const { data, isLoading, hasPattern } = useDominantTruthForHome(userId);
+  const [data, setData] = useState<TodayPatternData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Build unified Mirror response using the engine (light intensity for Home)
-  const mirrorHomeData = useMemo(() => {
-    if (!data || !hasPattern) return null;
-    
-    // Use the engine to build a response with "light" intensity
-    const response = buildMirrorResponse({
-      dominantTruth: data.dominantTruth ? {
-        dominantTheme: data.dominantTruth,
-        confidenceScore: data.confidence || 60,
-      } : undefined,
-      variationSeed: new Date().getDate(), // Changes daily
-    });
-    
-    // Format for Home surface (light hook only)
-    return getHomeResponse(response);
-  }, [data, hasPattern]);
+  useEffect(() => {
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
 
-  // Don't render if no pattern detected
-  if (!isLoading && !hasPattern) {
-    return null;
-  }
+    const fetchPattern = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get(`/today-pattern/${userId}`);
+        setData(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('[TodayPatternCard] Error:', err);
+        setError('Could not load pattern');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPattern();
+  }, [userId]);
 
   const handleReflect = () => {
     if (onReflect) {
       onReflect();
     } else {
-      // Navigate to Today tab in Astrology lens
-      router.push({
-        pathname: '/lenses/astrology',
-        params: { tab: 'today' }
-      });
+      router.push('/(tabs)/reflect?view=mirror');
     }
   };
 
-  const handleExplore = () => {
-    // Navigate to Today tab in Astrology lens
-    router.push({
-      pathname: '/lenses/astrology',
-      params: { tab: 'today' }
-    });
-  };
+  // Don't render if no data
+  if (!isLoading && (!data || !data.lines || data.lines.length === 0)) {
+    return null;
+  }
 
   if (isLoading) {
     return (
@@ -75,38 +82,41 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
       {/* Label */}
-      <Text style={[styles.label, { color: theme.accent }]}>TODAY'S PATTERN</Text>
+      <Text style={[styles.label, { color: theme.textTertiary }]}>TODAY'S PATTERN</Text>
       
-      {/* Headline - use engine response when available, fallback to original */}
-      <Text style={[styles.headline, { color: theme.text }]}>
-        "{mirrorHomeData?.headline || data?.headline}"
+      {/* Title */}
+      <Text style={[styles.title, { color: theme.text }]}>
+        {data?.title}
       </Text>
       
-      {/* Supporting line - use engine response when available */}
-      {(mirrorHomeData?.supporting || data?.supportingLine) && (
-        <Text style={[styles.supportingLine, { color: theme.textTertiary }]}>
-          {mirrorHomeData?.supporting || data?.supportingLine}
-        </Text>
-      )}
-      
-      {/* CTAs */}
-      <View style={styles.ctaRow}>
-        <TouchableOpacity
-          style={[styles.ctaButton, { backgroundColor: theme.accent }]}
-          onPress={handleReflect}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.ctaText, { color: theme.background }]}>Reflect</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[styles.ctaButtonSecondary, { borderColor: theme.border }]}
-          onPress={handleExplore}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.ctaTextSecondary, { color: theme.textSecondary }]}>Explore</Text>
-        </TouchableOpacity>
+      {/* Three lines */}
+      <View style={styles.linesContainer}>
+        {data?.lines.map((line, index) => (
+          <Text 
+            key={index} 
+            style={[
+              styles.line, 
+              { color: index === 2 ? theme.text : theme.textSecondary },
+              index === 2 && styles.lastLine
+            ]}
+          >
+            {line}
+          </Text>
+        ))}
       </View>
+      
+      {/* Divider */}
+      <View style={[styles.divider, { backgroundColor: theme.border }]} />
+      
+      {/* CTA */}
+      <TouchableOpacity
+        style={styles.ctaContainer}
+        onPress={handleReflect}
+        activeOpacity={0.7}
+      >
+        <Text style={[styles.ctaIcon, { color: theme.textTertiary }]}>☐</Text>
+        <Text style={[styles.ctaText, { color: theme.text }]}>Reflect</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -120,43 +130,39 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  headline: {
-    fontSize: 17,
+  title: {
+    fontSize: 18,
     fontWeight: '600',
     lineHeight: 24,
+    marginBottom: 14,
+  },
+  linesContainer: {
+    gap: 8,
+  },
+  line: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  lastLine: {
     fontStyle: 'italic',
-    marginBottom: 8,
   },
-  supportingLine: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 12,
+  divider: {
+    height: 1,
+    marginVertical: 14,
   },
-  ctaRow: {
+  ctaContainer: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 4,
+    alignItems: 'center',
+    gap: 8,
   },
-  ctaButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 20,
-  },
-  ctaButtonSecondary: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 20,
-    borderWidth: 1,
+  ctaIcon: {
+    fontSize: 16,
   },
   ctaText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  ctaTextSecondary: {
     fontSize: 14,
     fontWeight: '500',
   },

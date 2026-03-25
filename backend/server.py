@@ -11273,6 +11273,469 @@ async def get_keystone_pattern_for_user(user_id: str, force_refresh: bool = Fals
 
 
 # =============================================================================
+# TODAY'S PATTERN - Cross-Lens Synthesis for Home Keystone
+# =============================================================================
+
+class TodayPatternResponse(BaseModel):
+    """Output format for TODAY'S PATTERN card"""
+    title: str
+    lines: List[str]  # Max 3 lines
+    confidence: float
+    sources: List[str]
+    date: str
+    cached: bool = False
+
+
+# Pattern templates for cross-lens synthesis
+# Structure: Line 1 = What you're feeling/doing, Line 2 = The tension, Line 3 = The pattern recognition
+CROSS_LENS_PATTERN_TEMPLATES = {
+    # Decision patterns (HD Authority + Transit pressure)
+    "decision_pressure": {
+        "templates": [
+            {
+                "lines": [
+                    "You feel pressure to decide—but something in you hesitates",
+                    "Part of you is ready. Another part isn't sure yet",
+                    "You've been here before, right before something shifts"
+                ],
+                "title": "The Decision That Waits"
+            },
+            {
+                "lines": [
+                    "A decision is close—but the timing doesn't feel right",
+                    "Pushing forward feels forced. Waiting feels stuck",
+                    "This tension keeps coming back"
+                ],
+                "title": "Not Quite Ready"
+            }
+        ]
+    },
+    # Clarity seeking (HD mental authority + Enneagram 5/6/7)
+    "clarity_loop": {
+        "templates": [
+            {
+                "lines": [
+                    "You're trying to get clarity—but it keeps changing",
+                    "What felt right yesterday doesn't land the same today",
+                    "You tend to move before it fully settles"
+                ],
+                "title": "Clarity That Shifts"
+            },
+            {
+                "lines": [
+                    "You want to be sure before you move",
+                    "But certainty keeps slipping away",
+                    "This search has happened before"
+                ],
+                "title": "Waiting for Certainty"
+            }
+        ]
+    },
+    # Expression tension (HD Throat + Enneagram 3/4/8)
+    "expression_holding": {
+        "templates": [
+            {
+                "lines": [
+                    "There's something you want to say—but you're holding it",
+                    "The right moment hasn't come. Or maybe it has",
+                    "You keep circling back to this"
+                ],
+                "title": "What's Unsaid"
+            },
+            {
+                "lines": [
+                    "Something wants to be expressed",
+                    "But the words don't feel quite right yet",
+                    "This hesitation is familiar"
+                ],
+                "title": "Almost Speaking"
+            }
+        ]
+    },
+    # Energy/action tension (HD Sacral/Root + transit activation)
+    "momentum_pause": {
+        "templates": [
+            {
+                "lines": [
+                    "You want to push forward—but something pulls you back",
+                    "The energy is there. The green light isn't",
+                    "You've felt this tension before"
+                ],
+                "title": "Ready but Waiting"
+            },
+            {
+                "lines": [
+                    "Part of you wants to move fast",
+                    "Another part needs more time",
+                    "This push-pull keeps returning"
+                ],
+                "title": "Forward and Back"
+            }
+        ]
+    },
+    # Recognition/validation (Enneagram 2/3/4 + HD G-Center)
+    "recognition_seeking": {
+        "templates": [
+            {
+                "lines": [
+                    "You're waiting for something to confirm what you already sense",
+                    "Self-trust and external validation pull in different directions",
+                    "This pattern has shown up before"
+                ],
+                "title": "Seeking Confirmation"
+            },
+            {
+                "lines": [
+                    "Part of you knows. Another part needs proof",
+                    "The signal is there—but doubt creeps in",
+                    "You've questioned this before"
+                ],
+                "title": "Trust vs. Doubt"
+            }
+        ]
+    },
+    # Control/release (Enneagram 1/8 + HD Will center)
+    "control_release": {
+        "templates": [
+            {
+                "lines": [
+                    "You're trying to control how this goes",
+                    "But some of it isn't yours to control",
+                    "Letting go feels risky—holding on feels heavy"
+                ],
+                "title": "Grip and Release"
+            },
+            {
+                "lines": [
+                    "You want things to land a certain way",
+                    "Reality has other plans",
+                    "This tension between forcing and allowing keeps returning"
+                ],
+                "title": "Forcing vs. Allowing"
+            }
+        ]
+    },
+    # Journal repetition patterns (when journal signals are strongest)
+    "journal_repetition": {
+        "templates": [
+            {
+                "lines": [
+                    "This feeling has come up more than once this week",
+                    "Each time, it pulls you toward the same place",
+                    "Something here isn't done yet"
+                ],
+                "title": "What Keeps Returning"
+            },
+            {
+                "lines": [
+                    "You've written about this before",
+                    "The words change. The feeling doesn't",
+                    "There's something underneath that wants attention"
+                ],
+                "title": "The Recurring Theme"
+            }
+        ]
+    },
+    # Default fallback
+    "general_transition": {
+        "templates": [
+            {
+                "lines": [
+                    "Something is shifting—but it's not clear what yet",
+                    "The old way doesn't fit. The new way isn't here",
+                    "You're in between"
+                ],
+                "title": "In Between"
+            },
+            {
+                "lines": [
+                    "Things feel different lately",
+                    "What worked before isn't working the same way",
+                    "A change is taking shape"
+                ],
+                "title": "Something Changing"
+            }
+        ]
+    }
+}
+
+
+def detect_cross_lens_pattern(
+    transit_data: Optional[dict],
+    hd_data: Optional[dict],
+    enneagram_data: Optional[dict],
+    journal_patterns: Optional[List[str]],
+    day_seed: int
+) -> dict:
+    """
+    Detect the dominant cross-lens pattern and return the formatted output.
+    
+    Priority order:
+    1. Journal repetition (if strong signal)
+    2. Human Design pattern (decision/energy)
+    3. Transit pressure (timing)
+    4. Enneagram tone
+    """
+    sources = []
+    pattern_type = "general_transition"
+    confidence = 0.5
+    
+    # Priority 1: Journal repetition (strongest signal)
+    if journal_patterns and len(journal_patterns) >= 2:
+        pattern_type = "journal_repetition"
+        sources.append("journal")
+        confidence = 0.85
+    
+    # Priority 2: Human Design patterns
+    elif hd_data:
+        sources.append("human_design")
+        hd_type = hd_data.get("type", "").lower()
+        authority = hd_data.get("authority", "").lower()
+        active_centers = hd_data.get("active_centers", [])
+        
+        # Map HD patterns to synthesis patterns
+        if "sacral" in authority or "Sacral" in active_centers:
+            pattern_type = "momentum_pause"
+            confidence = 0.75
+        elif "emotional" in authority or "splenic" in authority:
+            pattern_type = "decision_pressure"
+            confidence = 0.75
+        elif "self" in authority or "g center" in authority.lower():
+            pattern_type = "recognition_seeking"
+            confidence = 0.70
+        elif "Throat" in active_centers:
+            pattern_type = "expression_holding"
+            confidence = 0.70
+        elif "Ajna" in active_centers or "Head" in active_centers:
+            pattern_type = "clarity_loop"
+            confidence = 0.70
+        elif "Will" in active_centers or "Heart" in active_centers:
+            pattern_type = "control_release"
+            confidence = 0.70
+    
+    # Priority 3: Transit pressure
+    if transit_data:
+        sources.append("transits")
+        dominant_tension = transit_data.get("dominant_tension", "")
+        
+        if not hd_data:  # Only override if HD didn't set pattern
+            if "decision" in dominant_tension.lower() or "crossroad" in dominant_tension.lower():
+                pattern_type = "decision_pressure"
+                confidence = 0.65
+            elif "clarity" in dominant_tension.lower() or "mental" in dominant_tension.lower():
+                pattern_type = "clarity_loop"
+                confidence = 0.65
+            elif "express" in dominant_tension.lower() or "voice" in dominant_tension.lower():
+                pattern_type = "expression_holding"
+                confidence = 0.65
+    
+    # Priority 4: Enneagram tone overlay
+    if enneagram_data:
+        sources.append("enneagram")
+        ennea_type = str(enneagram_data.get("type", ""))
+        
+        # Enneagram can boost confidence or shift pattern slightly
+        if ennea_type in ["5", "6", "7"] and pattern_type == "general_transition":
+            pattern_type = "clarity_loop"
+            confidence = max(confidence, 0.60)
+        elif ennea_type in ["3", "4", "8"] and pattern_type == "general_transition":
+            pattern_type = "expression_holding"
+            confidence = max(confidence, 0.60)
+        elif ennea_type in ["1", "8"] and pattern_type == "general_transition":
+            pattern_type = "control_release"
+            confidence = max(confidence, 0.60)
+        elif ennea_type in ["2", "3", "4"] and pattern_type == "general_transition":
+            pattern_type = "recognition_seeking"
+            confidence = max(confidence, 0.60)
+    
+    # Select template variation using day seed for consistency
+    templates = CROSS_LENS_PATTERN_TEMPLATES.get(pattern_type, CROSS_LENS_PATTERN_TEMPLATES["general_transition"])
+    template_list = templates["templates"]
+    selected_template = template_list[day_seed % len(template_list)]
+    
+    return {
+        "title": selected_template["title"],
+        "lines": selected_template["lines"],
+        "confidence": confidence,
+        "sources": sources if sources else ["baseline"],
+        "pattern_type": pattern_type
+    }
+
+
+@api_router.get("/today-pattern/{user_id}", response_model=TodayPatternResponse)
+async def get_today_pattern(user_id: str, force_refresh: bool = False):
+    """
+    TODAY'S PATTERN - Cross-Lens Synthesis for Home Keystone
+    
+    Combines signals from:
+    1. Transits (current timing pressure)
+    2. Human Design (decision/energy pattern)
+    3. Enneagram (behavioral tendencies)
+    4. Journal signals (recent repetition)
+    
+    Returns exactly 3 lines + title, no system language, no advice.
+    """
+    try:
+        today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        day_seed = int(datetime.now(timezone.utc).strftime("%d"))
+        
+        # Check cache first
+        if not force_refresh:
+            cached = await db.today_patterns.find_one({
+                "user_id": user_id,
+                "date": today_date
+            })
+            if cached:
+                return TodayPatternResponse(
+                    title=cached.get("title", ""),
+                    lines=cached.get("lines", []),
+                    confidence=cached.get("confidence", 0.5),
+                    sources=cached.get("sources", []),
+                    date=today_date,
+                    cached=True
+                )
+        
+        # Gather lens data
+        transit_data = None
+        hd_data = None
+        enneagram_data = None
+        journal_patterns = None
+        
+        # Get transit data
+        try:
+            from services.field_signals import detect_transit_convergence
+            from services.astrology_signal_engine import select_dominant_tension, DayClass
+            
+            transit_stack = detect_transit_convergence()
+            day_class_str = transit_stack.get("classification", "normal_flow")
+            try:
+                day_class = DayClass(day_class_str)
+            except ValueError:
+                day_class = DayClass.NORMAL_FLOW
+            
+            dominant_tension = select_dominant_tension(day_class, transit_stack)
+            transit_data = {
+                "dominant_tension": dominant_tension.value if dominant_tension else "",
+                "day_class": day_class_str
+            }
+        except Exception as e:
+            logger.debug(f"[TodayPattern] Transit data unavailable: {e}")
+        
+        # Get Human Design data
+        try:
+            user = await db.users.find_one({"_id": ObjectId(user_id)})
+            if user:
+                hd = user.get("human_design", {})
+                if hd:
+                    active_centers = []
+                    centers = hd.get("centers", {})
+                    for center_name, center_data in centers.items():
+                        if isinstance(center_data, dict) and center_data.get("defined"):
+                            active_centers.append(center_name)
+                        elif center_data == True:
+                            active_centers.append(center_name)
+                    
+                    hd_data = {
+                        "type": hd.get("type", ""),
+                        "authority": hd.get("authority", ""),
+                        "active_centers": active_centers
+                    }
+        except Exception as e:
+            logger.debug(f"[TodayPattern] HD data unavailable: {e}")
+        
+        # Get Enneagram data
+        try:
+            if not user:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+            
+            if user:
+                ennea_type = user.get("enneagram_type")
+                if not ennea_type:
+                    ennea_result = await db.enneagram_results.find_one(
+                        {"user_id": user_id},
+                        sort=[("created_at", -1)]
+                    )
+                    if ennea_result:
+                        ennea_type = ennea_result.get("inferred_core")
+                
+                if ennea_type:
+                    enneagram_data = {"type": ennea_type}
+        except Exception as e:
+            logger.debug(f"[TodayPattern] Enneagram data unavailable: {e}")
+        
+        # Get journal patterns (recent repetition)
+        try:
+            seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+            recent_entries = await db.journal.find({
+                "user_id": user_id,
+                "created_at": {"$gte": seven_days_ago}
+            }).sort("created_at", -1).to_list(20)
+            
+            if len(recent_entries) >= 3:
+                # Extract recurring themes
+                patterns = extract_recurring_patterns(recent_entries, max_patterns=3)
+                if patterns:
+                    journal_patterns = patterns
+        except Exception as e:
+            logger.debug(f"[TodayPattern] Journal patterns unavailable: {e}")
+        
+        # Detect cross-lens pattern
+        result = detect_cross_lens_pattern(
+            transit_data=transit_data,
+            hd_data=hd_data,
+            enneagram_data=enneagram_data,
+            journal_patterns=journal_patterns,
+            day_seed=day_seed
+        )
+        
+        # Cache result
+        await db.today_patterns.update_one(
+            {"user_id": user_id, "date": today_date},
+            {"$set": {
+                "user_id": user_id,
+                "date": today_date,
+                "title": result["title"],
+                "lines": result["lines"],
+                "confidence": result["confidence"],
+                "sources": result["sources"],
+                "pattern_type": result["pattern_type"],
+                "created_at": datetime.now(timezone.utc)
+            }},
+            upsert=True
+        )
+        
+        logger.info(f"[TodayPattern] Generated pattern for {user_id[:8]}: {result['pattern_type']} (confidence={result['confidence']})")
+        
+        return TodayPatternResponse(
+            title=result["title"],
+            lines=result["lines"],
+            confidence=result["confidence"],
+            sources=result["sources"],
+            date=today_date,
+            cached=False
+        )
+        
+    except Exception as e:
+        logger.error(f"[TodayPattern] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Return fallback pattern on error
+        return TodayPatternResponse(
+            title="Something Shifting",
+            lines=[
+                "Something is moving—you can feel it",
+                "The direction isn't clear yet",
+                "This in-between is temporary"
+            ],
+            confidence=0.3,
+            sources=["fallback"],
+            date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            cached=False
+        )
+
+
+# =============================================================================
 # ASTROLOGY DETERMINISTIC CHART ENDPOINT (Full Data Exposure)
 # =============================================================================
 @api_router.get("/astrology/chart/{user_id}")
