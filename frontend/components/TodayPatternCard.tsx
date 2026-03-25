@@ -2,11 +2,13 @@
  * TodayPatternCard
  * Home screen keystone - Cross-Lens Synthesis
  * Shows title + 3 lines that feel like immediate recognition
+ * + contextual follow-through line based on dominant source
  * 
  * Structure:
  * - Line 1: What you're feeling / doing
  * - Line 2: The tension / contradiction  
  * - Line 3: The pattern (recognition layer)
+ * - Follow-through: Contextual bridge to relevant lens
  */
 
 import React, { useState, useEffect } from 'react';
@@ -21,6 +23,8 @@ interface TodayPatternData {
   sources: string[];
   date: string;
   cached: boolean;
+  follow_through?: string;
+  follow_through_route?: string;
 }
 
 interface TodayPatternCardProps {
@@ -66,6 +70,27 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
     }
   };
 
+  const handleFollowThrough = () => {
+    if (!data?.follow_through_route) return;
+    
+    switch (data.follow_through_route) {
+      case 'reflect':
+        router.push('/(tabs)/reflect');
+        break;
+      case 'human_design':
+        router.push('/lenses/human-design');
+        break;
+      case 'astrology':
+        router.push('/lenses/astrology?tab=today');
+        break;
+      case 'enneagram':
+        router.push('/lenses/enneagram');
+        break;
+      default:
+        break;
+    }
+  };
+
   // Don't render if no data
   if (!isLoading && (!data || !data.lines || data.lines.length === 0)) {
     return null;
@@ -104,6 +129,21 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
           </Text>
         ))}
       </View>
+      
+      {/* Follow-through line - tappable bridge to relevant lens */}
+      {data?.follow_through && (
+        <TouchableOpacity
+          style={styles.followThroughContainer}
+          onPress={handleFollowThrough}
+          activeOpacity={0.7}
+          disabled={!data.follow_through_route}
+        >
+          <Text style={[styles.followThrough, { color: theme.textTertiary }]}>
+            {data.follow_through}
+            {data.follow_through_route && ' →'}
+          </Text>
+        </TouchableOpacity>
+      )}
       
       {/* Divider */}
       <View style={[styles.divider, { backgroundColor: theme.border }]} />
@@ -148,6 +188,15 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   lastLine: {
+    fontStyle: 'italic',
+  },
+  followThroughContainer: {
+    marginTop: 12,
+    paddingTop: 10,
+  },
+  followThrough: {
+    fontSize: 13,
+    lineHeight: 18,
     fontStyle: 'italic',
   },
   divider: {

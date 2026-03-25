@@ -11284,6 +11284,69 @@ class TodayPatternResponse(BaseModel):
     sources: List[str]
     date: str
     cached: bool = False
+    # Contextual follow-through
+    follow_through: Optional[str] = None
+    follow_through_route: Optional[str] = None  # journal, human_design, astrology, enneagram
+
+
+# Follow-through lines by dominant source
+FOLLOW_THROUGH_LINES = {
+    "journal": [
+        "This has been showing up in your reflections",
+        "Your recent entries circle back to this",
+        "You've written around this before"
+    ],
+    "human_design": [
+        "This connects to how you process decisions",
+        "Your design has a way of handling this",
+        "This pattern runs deeper than this moment"
+    ],
+    "transits": [
+        "Something current is pressing on this",
+        "The timing right now amplifies this",
+        "This is louder than usual for a reason"
+    ],
+    "enneagram": [
+        "This follows a pattern you know well",
+        "Your type tends to meet this the same way",
+        "This is familiar territory"
+    ],
+    "fallback": [
+        "There's more underneath this",
+        "This connects to something deeper"
+    ]
+}
+
+# Route mappings for follow-through taps
+FOLLOW_THROUGH_ROUTES = {
+    "journal": "reflect",
+    "human_design": "human_design",
+    "transits": "astrology",
+    "enneagram": "enneagram"
+}
+
+
+def get_follow_through(sources: List[str], day_seed: int) -> tuple:
+    """Get contextual follow-through line and route based on dominant source."""
+    if not sources:
+        lines = FOLLOW_THROUGH_LINES["fallback"]
+        return lines[day_seed % len(lines)], None
+    
+    # Priority order for dominant source
+    dominant = None
+    for source in ["journal", "human_design", "transits", "enneagram"]:
+        if source in sources:
+            dominant = source
+            break
+    
+    if not dominant:
+        lines = FOLLOW_THROUGH_LINES["fallback"]
+        return lines[day_seed % len(lines)], None
+    
+    lines = FOLLOW_THROUGH_LINES.get(dominant, FOLLOW_THROUGH_LINES["fallback"])
+    route = FOLLOW_THROUGH_ROUTES.get(dominant)
+    
+    return lines[day_seed % len(lines)], route
 
 
 # Pattern templates for cross-lens synthesis
@@ -11624,7 +11687,9 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
                     confidence=cached.get("confidence", 0.5),
                     sources=cached.get("sources", []),
                     date=today_date,
-                    cached=True
+                    cached=True,
+                    follow_through=cached.get("follow_through"),
+                    follow_through_route=cached.get("follow_through_route")
                 )
         
         # Gather lens data
@@ -11720,6 +11785,9 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
             day_seed=day_seed
         )
         
+        # Get contextual follow-through
+        follow_through, follow_through_route = get_follow_through(result["sources"], day_seed)
+        
         # Cache result
         await db.today_patterns.update_one(
             {"user_id": user_id, "date": today_date},
@@ -11731,6 +11799,8 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
                 "confidence": result["confidence"],
                 "sources": result["sources"],
                 "pattern_type": result["pattern_type"],
+                "follow_through": follow_through,
+                "follow_through_route": follow_through_route,
                 "created_at": datetime.now(timezone.utc)
             }},
             upsert=True
@@ -11744,7 +11814,9 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
             confidence=result["confidence"],
             sources=result["sources"],
             date=today_date,
-            cached=False
+            cached=False,
+            follow_through=follow_through,
+            follow_through_route=follow_through_route
         )
         
     except Exception as e:
