@@ -27,10 +27,12 @@ type ForumsRedirect = 'create' | 'join' | null;
  */
 export default function Welcome() {
   const router = useRouter();
-  const { setUser, setChart, user } = useAppStore();
+  const { setUser, setChart, user, hasCompletedOnboarding } = useAppStore();
   
-  // Determine if user has existing session
-  const hasExistingSession = !!user;
+  // User state for routing decisions
+  const isAuthenticated = !!user?.id;
+  // Legacy alias for backwards compatibility
+  const hasExistingSession = isAuthenticated;
   
   // Dark onboarding colors (hardcoded)
   const darkTheme = {
@@ -65,6 +67,21 @@ export default function Welcome() {
 
   const handleContinue = () => {
     router.replace('/(tabs)');
+  };
+
+  /**
+   * SHOW ME BUTTON LOGIC
+   * - If authenticated AND onboarding complete → go to home
+   * - Otherwise → go to onboarding
+   */
+  const handleShowMe = () => {
+    if (isAuthenticated && hasCompletedOnboarding) {
+      console.log('[Welcome] Show Me → authenticated + onboarding complete → going to home');
+      router.replace('/(tabs)');
+    } else {
+      console.log('[Welcome] Show Me → needs onboarding → going to onboarding');
+      router.push('/onboarding');
+    }
   };
 
   // Forums quick access handlers
@@ -251,14 +268,14 @@ export default function Welcome() {
           </Text>
         </View>
         
-        {/* Primary CTA - Same visual, different action */}
+        {/* Primary CTA - Same visual, smart routing */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={[styles.primaryButton, { 
               backgroundColor: 'rgba(255, 255, 255, 0.08)',
               borderColor: 'rgba(255, 255, 255, 0.15)' 
             }]}
-            onPress={hasExistingSession ? handleContinue : handleBeginReflection}
+            onPress={handleShowMe}
             activeOpacity={0.7}
           >
             <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>
