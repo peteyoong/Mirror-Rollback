@@ -153,13 +153,13 @@ export const MODE_CONFIGS: Record<MirrorMode, ModeConfig> = {
 // HOME LAYOUT CONFIGURATION - Mode-driven home structure
 // ============================================================
 
-export type HomeSecondary = 'journal' | 'signals' | 'action';
+export type HomeSecondary = 'journal' | 'lenses' | 'action';
 
 export interface HomeLayoutConfig {
   primary: 'today';
   secondary: HomeSecondary;
-  showSignalsInline: boolean;
-  showSynthesis: boolean;
+  showSignalsInline: boolean;  // DEPRECATED - signals now only in TodayPatternCard
+  showSynthesis: boolean;      // DEPRECATED - synthesis only in TodayPatternCard
   maxCards: number;
   showNavigation: boolean;
   showForums: boolean;
@@ -177,9 +177,9 @@ export const HOME_LAYOUT: Record<MirrorMode, HomeLayoutConfig> = {
   },
   exploratory: {
     primary: 'today',
-    secondary: 'signals',
-    showSignalsInline: true,
-    showSynthesis: true,
+    secondary: 'lenses',    // Changed from 'signals' - signals now ONLY in TodayPatternCard
+    showSignalsInline: false, // Signals removed from Home - live inside TodayPatternCard only
+    showSynthesis: false,     // Synthesis removed from Home - live inside TodayPatternCard only
     maxCards: 4,
     showNavigation: true,   // Full exploration options
     showForums: true,       // Community exploration

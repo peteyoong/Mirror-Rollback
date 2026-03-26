@@ -24,10 +24,10 @@ import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import TodayPatternCard from '../../components/TodayPatternCard';
 import ActionCard from '../../components/ActionCard';
-import InlineSignalsCard from '../../components/InlineSignalsCard';
 import { useExperienceControls } from '../../hooks/useExperienceControls';
 import { HOME_LAYOUT, MirrorMode } from '../../types/mirror-profile';
 // PatternCard (Pattern Mirror) TEMPORARILY REMOVED - will reintroduce after signal-based engine upgrade
+// InlineSignalsCard REMOVED - Signals now live only inside TodayPatternCard + dedicated Signals page
 
 interface PatternCategory {
   category_id: string;
@@ -355,22 +355,40 @@ export default function MirrorScreen() {
         {/* ===================================================================
             POSITION 2: SECONDARY CARD (Mode-dependent)
             - grounding → journal/reflection card
-            - exploratory → inline signals card
+            - exploratory → lenses exploration (signals now ONLY in TodayPatternCard)
             - directive → action card
+            
+            NOTE: InlineSignalsCard REMOVED - Signals should not compete with 
+            TodayPatternCard. Signals live inside the pattern, not as a separate card.
             =================================================================== */}
-        {homeLayout.secondary === 'signals' && homeLayout.showSignalsInline && user?.id && (
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <InlineSignalsCard 
-              userId={user.id} 
-              theme={theme}
-              showSynthesis={homeLayout.showSynthesis}
-            />
-          </View>
-        )}
         
         {homeLayout.secondary === 'action' && user?.id && (
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
             <ActionCard userId={user.id} theme={theme} />
+          </View>
+        )}
+        
+        {/* Lenses exploration card for exploratory mode */}
+        {homeLayout.secondary === 'lenses' && (
+          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <TouchableOpacity
+              style={[styles.lensesExploreCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => router.push('/(tabs)/lenses')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.lensesExploreLabel, { color: theme.textTertiary }]}>EXPLORE DEEPER</Text>
+              <Text style={[styles.lensesExploreTitle, { color: theme.text }]}>
+                Your lenses hold more
+              </Text>
+              <Text style={[styles.lensesExploreDescription, { color: theme.textSecondary }]}>
+                See how astrology, human design, and more illuminate today's pattern.
+              </Text>
+              <View style={styles.lensesExploreFooter}>
+                <Text style={[styles.lensesExploreCta, { color: theme.accent }]}>
+                  See your lenses →
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         )}
         
@@ -1039,5 +1057,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     marginBottom: 40,
+  },
+
+  // =========================================================================
+  // LENSES EXPLORATION CARD (for exploratory mode)
+  // =========================================================================
+  lensesExploreCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 16,
+  },
+  lensesExploreLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  lensesExploreTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  lensesExploreDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  lensesExploreFooter: {
+    marginTop: 4,
+  },
+  lensesExploreCta: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
