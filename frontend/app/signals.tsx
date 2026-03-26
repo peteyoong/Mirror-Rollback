@@ -11,78 +11,212 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAppStore } from '../store';
-import { getPatternSignals, PatternSignalDetail, PatternSignalsResponse } from '../services/api';
+import { getPatternDiagnosis, PatternDiagnosisResponse } from '../services/api';
 import { useExperienceControls } from '../hooks/useExperienceControls';
-import { MODE_CONFIGS } from '../types/mirror-profile';
 
 /**
- * Signals Screen - MODE-BASED structure
+ * Signals Screen - DIAGNOSIS-FIRST approach
  * 
- * GROUNDING: Show 1 signal only, no interpretation
- * EXPLORATORY: Show all grouped signals with full detail
- * DIRECTIVE: Show 1-2 signals with interpretation
+ * Instead of separate lens summaries, we show:
+ * 1. Core diagnosis (what's happening, why, what to do)
+ * 2. Lens evidence as SUPPORT for the diagnosis
+ * 
+ * Mode controls depth, not structure.
  */
 export default function SignalsScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const { user } = useAppStore();
   const { mode, modeConfig } = useExperienceControls();
-  const [data, setData] = useState<PatternSignalsResponse | null>(null);
+  const [data, setData] = useState<PatternDiagnosisResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showEvidence, setShowEvidence] = useState(mode === 'exploratory');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (user?.id) {
-      fetchSignals();
+      fetchDiagnosis();
     }
   }, [user?.id]);
 
-  const fetchSignals = async () => {
+  const fetchDiagnosis = async () => {
     if (!user?.id) return;
     
     try {
       setLoading(true);
-      const result = await getPatternSignals(user.id);
+      const result = await getPatternDiagnosis(user.id);
       setData(result);
     } catch (err) {
       console.error('[Signals] Error:', err);
-      setError('Unable to load signals');
+      setError('Unable to load diagnosis');
     } finally {
       setLoading(false);
     }
   };
 
-  // MODE-based signal limiting
-  const getLimitedSignals = (signals: PatternSignalDetail[] | undefined): PatternSignalDetail[] => {
-    if (!signals) return [];
-    // In grounding mode, show fewer signals per category
-    if (mode === 'grounding') return signals.slice(0, 1);
-    if (mode === 'directive') return signals.slice(0, 2);
-    return signals; // exploratory: show all
-  };
-
-  const renderSignalSection = (title: string, signals: PatternSignalDetail[] | undefined, icon: string) => {
-    const limitedSignals = getLimitedSignals(signals);
-    if (limitedSignals.length === 0) return null;
+  // Render the CORE DIAGNOSIS - the main interpretive output
+  const renderCoreDiagnosis = () => {
+    if (!data) return null;
 
     return (
-      <View style={styles.signalSection}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionIcon, { color: theme.textTertiary }]}>{icon}</Text>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{title}</Text>
+      <View style={styles.diagnosisContainer}>
+        {/* What is happening */}
+        <View style={[styles.diagnosisSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.diagnosisLabel, { color: theme.textTertiary }]}>WHAT IS HAPPENING</Text>
+          <Text style={[styles.diagnosisText, { color: theme.text }]}>
+            {data.what_is_happening}
+          </Text>
         </View>
-        {limitedSignals.map((signal, index) => (
-          <View key={index} style={[styles.signalItem, { borderLeftColor: theme.accent + '40' }]}>
-            <Text style={[styles.signalLabel, { color: theme.text }]}>{signal.label}</Text>
-            {/* Only show interpretation if MODE allows */}
-            {modeConfig.showSignalInterpretation && (
-              <Text style={[styles.signalMeaning, { color: theme.textSecondary }]}>{signal.meaning}</Text>
+
+        {/* What kind of moment - always show */}
+        <View style={[styles.momentCard, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
+          <Text style={[styles.momentText, { color: theme.text }]}>
+            {data.what_kind_of_moment}
+          </Text>
+        </View>
+
+        {/* Why it is happening - mode controls whether to show */}
+        {(mode === 'exploratory' || mode === 'directive') && (
+          <View style={[styles.diagnosisSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.diagnosisLabel, { color: theme.textTertiary }]}>WHY THIS IS SHOWING UP</Text>
+            <Text style={[styles.diagnosisText, { color: theme.textSecondary }]}>
+              {data.why_it_is_happening}
+            </Text>
+          </View>
+        )}
+
+        {/* What would be wise - always show */}
+        <View style={[styles.wisdomCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
+          <Text style={[styles.diagnosisLabel, { color: theme.textTertiary }]}>WHAT WOULD BE WISE</Text>
+          <Text style={[styles.wisdomText, { color: theme.text }]}>
+            {data.what_would_be_wise}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // Render CONSTITUTION - stable patterns (exploratory only)
+  const renderConstitution = () => {
+    if (!data?.constitution || mode !== 'exploratory') return null;
+
+    const { constitution } = data;
+
+    return (
+      <View style={[styles.constitutionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>YOUR STABLE PATTERNS</Text>
+        
+        <View style={styles.constitutionGrid}>
+          <View style={styles.constitutionItem}>
+            <Text style={[styles.constitutionLabel, { color: theme.textTertiary }]}>How you move</Text>
+            <Text style={[styles.constitutionValue, { color: theme.text }]}>{constitution.action_style}</Text>
+          </View>
+          <View style={styles.constitutionItem}>
+            <Text style={[styles.constitutionLabel, { color: theme.textTertiary }]}>How clarity comes</Text>
+            <Text style={[styles.constitutionValue, { color: theme.text }]}>{constitution.clarity_style}</Text>
+          </View>
+          <View style={styles.constitutionItem}>
+            <Text style={[styles.constitutionLabel, { color: theme.textTertiary }]}>Your recurring gift</Text>
+            <Text style={[styles.constitutionValue, { color: theme.text }]}>{constitution.recurring_gift}</Text>
+          </View>
+          <View style={styles.constitutionItem}>
+            <Text style={[styles.constitutionLabel, { color: theme.textTertiary }]}>Your recurring risk</Text>
+            <Text style={[styles.constitutionValue, { color: theme.text }]}>{constitution.recurring_failure_mode}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // Render LENS EVIDENCE as support for the diagnosis
+  const renderLensEvidence = () => {
+    if (!data?.evidence) return null;
+    
+    const hasEvidence = data.evidence.timing || data.evidence.design || data.evidence.history;
+    if (!hasEvidence) return null;
+
+    return (
+      <View style={styles.evidenceContainer}>
+        <TouchableOpacity 
+          onPress={() => setShowEvidence(!showEvidence)}
+          style={styles.evidenceToggle}
+        >
+          <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+            SUPPORTING EVIDENCE {showEvidence ? '▼' : '▶'}
+          </Text>
+        </TouchableOpacity>
+
+        {showEvidence && (
+          <View style={styles.evidenceList}>
+            {data.evidence.timing && (
+              <View style={[styles.evidenceItem, { borderLeftColor: theme.accent + '50' }]}>
+                <Text style={[styles.evidenceSource, { color: theme.textTertiary }]}>TIMING</Text>
+                <Text style={[styles.evidenceSummary, { color: theme.text }]}>{data.evidence.timing.summary}</Text>
+                <Text style={[styles.evidenceImplication, { color: theme.textSecondary }]}>{data.evidence.timing.implication}</Text>
+              </View>
             )}
-            {signal.strength && signal.strength > 0.6 && mode !== 'grounding' && (
-              <Text style={[styles.signalStrength, { color: theme.accent }]}>Strong signal</Text>
+            
+            {data.evidence.design && (
+              <View style={[styles.evidenceItem, { borderLeftColor: theme.accent + '50' }]}>
+                <Text style={[styles.evidenceSource, { color: theme.textTertiary }]}>YOUR DESIGN</Text>
+                <Text style={[styles.evidenceSummary, { color: theme.text }]}>{data.evidence.design.summary}</Text>
+                <Text style={[styles.evidenceImplication, { color: theme.textSecondary }]}>{data.evidence.design.implication}</Text>
+              </View>
+            )}
+            
+            {data.evidence.history && (
+              <View style={[styles.evidenceItem, { borderLeftColor: theme.accent + '50' }]}>
+                <Text style={[styles.evidenceSource, { color: theme.textTertiary }]}>YOUR HISTORY</Text>
+                <Text style={[styles.evidenceSummary, { color: theme.text }]}>{data.evidence.history.summary}</Text>
+                <Text style={[styles.evidenceImplication, { color: theme.textSecondary }]}>{data.evidence.history.implication}</Text>
+              </View>
             )}
           </View>
-        ))}
+        )}
+      </View>
+    );
+  };
+
+  // Render HISTORY DETAILS - pattern recurrence (exploratory only)
+  const renderHistoryDetails = () => {
+    if (!data?.history || mode !== 'exploratory') return null;
+    
+    const { history } = data;
+    if (!history.pattern_shape && !history.examples?.length) return null;
+
+    return (
+      <View style={[styles.historyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>PATTERN RECURRENCE</Text>
+        
+        {history.pattern_shape && (
+          <Text style={[styles.patternShape, { color: theme.text }]}>
+            The shape: {history.pattern_shape}
+          </Text>
+        )}
+        
+        {history.examples && history.examples.length > 0 && (
+          <View style={styles.examplesContainer}>
+            <Text style={[styles.examplesLabel, { color: theme.textTertiary }]}>From your reflections:</Text>
+            {history.examples.map((example, index) => (
+              <Text key={index} style={[styles.exampleText, { color: theme.textSecondary }]}>
+                &quot;{example}&quot;
+              </Text>
+            ))}
+          </View>
+        )}
+        
+        {history.cycle_observation && (
+          <Text style={[styles.cycleText, { color: theme.textSecondary }]}>
+            {history.cycle_observation}
+          </Text>
+        )}
+        
+        {history.deeper_roots && (
+          <Text style={[styles.rootsText, { color: theme.textTertiary }]}>
+            {history.deeper_roots}
+          </Text>
+        )}
       </View>
     );
   };
@@ -93,7 +227,7 @@ export default function SignalsScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.textTertiary} />
           <Text style={[styles.loadingText, { color: theme.textTertiary }]}>
-            Tracing signals...
+            Building diagnosis...
           </Text>
         </View>
       </SafeAreaView>
@@ -113,7 +247,7 @@ export default function SignalsScreen() {
             {error}
           </Text>
           <TouchableOpacity 
-            onPress={fetchSignals} 
+            onPress={fetchDiagnosis} 
             style={[styles.retryButton, { borderColor: theme.border }]}
           >
             <Text style={[styles.retryText, { color: theme.text }]}>Try again</Text>
@@ -131,48 +265,34 @@ export default function SignalsScreen() {
           <Text style={[styles.backText, { color: theme.textSecondary }]}>← Back</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Why this is showing up</Text>
+        {data?.pattern_title && (
+          <Text style={[styles.patternTitle, { color: theme.textTertiary }]}>
+            {data.pattern_title}
+          </Text>
+        )}
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Summary */}
-        <View style={[styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>SUMMARY</Text>
-          <Text style={[styles.summaryText, { color: theme.text }]}>
-            {data?.summary || 'Something is surfacing, but the signals are still forming.'}
-          </Text>
-        </View>
+        {/* Core Diagnosis - Always first */}
+        {renderCoreDiagnosis()}
 
-        {/* Signal Sections */}
-        <View style={styles.signalsContainer}>
-          <Text style={[styles.signalsHeading, { color: theme.textTertiary }]}>SIGNALS</Text>
-          
-          {renderSignalSection('Astrology', data?.signals?.astrology, '◐')}
-          {renderSignalSection('Human Design', data?.signals?.human_design, '⬡')}
-          {renderSignalSection('Pattern History', data?.signals?.pattern_history, '↻')}
+        {/* Constitution - Exploratory only */}
+        {renderConstitution()}
 
-          {(!data?.signals?.astrology && !data?.signals?.human_design && !data?.signals?.pattern_history) && (
-            <View style={styles.noSignals}>
-              <Text style={[styles.noSignalsText, { color: theme.textTertiary }]}>
-                No specific signals traced yet. Complete your profile to see deeper connections.
-              </Text>
-            </View>
-          )}
-        </View>
+        {/* History Details - Exploratory only */}
+        {renderHistoryDetails()}
 
-        {/* Synthesis */}
-        <View style={[styles.synthesisCard, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
-          <Text style={[styles.synthesisLabel, { color: theme.textTertiary }]}>SYNTHESIS</Text>
-          <Text style={[styles.synthesisText, { color: theme.text }]}>
-            {data?.synthesis || "Trust what you're noticing. Patterns surface when they're ready to be seen."}
-          </Text>
-        </View>
+        {/* Lens Evidence - Collapsible support */}
+        {renderLensEvidence()}
 
-        {/* Footer note */}
-        <View style={styles.footerNote}>
-          <Text style={[styles.footerText, { color: theme.textTertiary }]}>
-            This is not random. Multiple signals are pointing to the same pattern.
-          </Text>
-        </View>
+        {/* Confidence indicator */}
+        {data?.confidence && mode === 'exploratory' && (
+          <View style={styles.confidenceContainer}>
+            <Text style={[styles.confidenceText, { color: theme.textTertiary }]}>
+              Diagnosis confidence: {Math.round(data.confidence * 100)}%
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -207,6 +327,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '600',
+    marginBottom: 4,
+  },
+  patternTitle: {
+    fontSize: 14,
+    fontStyle: 'italic',
   },
   scrollView: {
     flex: 1,
@@ -215,100 +340,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  summaryCard: {
-    borderRadius: 12,
-    padding: 18,
-    borderWidth: 1,
-    marginBottom: 24,
-  },
-  summaryLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.8,
-    marginBottom: 10,
-  },
-  summaryText: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  signalsContainer: {
-    marginBottom: 24,
-  },
-  signalsHeading: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.8,
-    marginBottom: 16,
-  },
-  signalSection: {
-    marginBottom: 20,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  sectionIcon: {
-    fontSize: 16,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  signalItem: {
-    borderLeftWidth: 2,
-    paddingLeft: 14,
-    marginBottom: 12,
-  },
-  signalLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  signalMeaning: {
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  signalStrength: {
-    fontSize: 11,
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  noSignals: {
-    paddingVertical: 20,
-  },
-  noSignalsText: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  synthesisCard: {
-    borderRadius: 12,
-    padding: 18,
-    borderWidth: 1,
-    marginBottom: 24,
-  },
-  synthesisLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.8,
-    marginBottom: 10,
-  },
-  synthesisText: {
-    fontSize: 15,
-    lineHeight: 24,
-    fontStyle: 'italic',
-  },
-  footerNote: {
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  footerText: {
-    fontSize: 12,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -316,18 +347,172 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    fontSize: 15,
+    fontSize: 16,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   retryButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
     borderWidth: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
   retryText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  
+  // Diagnosis sections
+  diagnosisContainer: {
+    gap: 16,
+    marginBottom: 24,
+  },
+  diagnosisSection: {
+    borderRadius: 12,
+    padding: 18,
+    borderWidth: 1,
+  },
+  diagnosisLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+  },
+  diagnosisText: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  momentCard: {
+    borderRadius: 12,
+    padding: 18,
+    borderWidth: 1,
+  },
+  momentText: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontWeight: '500',
+  },
+  wisdomCard: {
+    borderRadius: 12,
+    padding: 18,
+    borderWidth: 2,
+  },
+  wisdomText: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '500',
+  },
+  
+  // Constitution section
+  constitutionCard: {
+    borderRadius: 12,
+    padding: 18,
+    borderWidth: 1,
+    marginBottom: 24,
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 16,
+  },
+  constitutionGrid: {
+    gap: 16,
+  },
+  constitutionItem: {
+    gap: 4,
+  },
+  constitutionLabel: {
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  constitutionValue: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  
+  // Evidence section
+  evidenceContainer: {
+    marginBottom: 24,
+  },
+  evidenceToggle: {
+    paddingVertical: 8,
+  },
+  evidenceList: {
+    marginTop: 12,
+    gap: 16,
+  },
+  evidenceItem: {
+    borderLeftWidth: 2,
+    paddingLeft: 14,
+  },
+  evidenceSource: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
+  evidenceSummary: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 6,
+  },
+  evidenceImplication: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+  
+  // History section
+  historyCard: {
+    borderRadius: 12,
+    padding: 18,
+    borderWidth: 1,
+    marginBottom: 24,
+  },
+  patternShape: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 12,
+    fontWeight: '500',
+  },
+  examplesContainer: {
+    marginTop: 12,
+    gap: 8,
+  },
+  examplesLabel: {
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  exampleText: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontStyle: 'italic',
+    paddingLeft: 12,
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255,255,255,0.1)',
+  },
+  cycleText: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 12,
+  },
+  rootsText: {
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  
+  // Confidence
+  confidenceContainer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  confidenceText: {
+    fontSize: 12,
   },
 });

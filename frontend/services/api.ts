@@ -1229,6 +1229,78 @@ export const getPatternSignals = async (userId: string): Promise<PatternSignalsR
   return response.data;
 };
 
+// =====================================================
+// CROSS-LENS PATTERN DIAGNOSIS API
+// =====================================================
+
+export interface DiagnosisConstitution {
+  action_style: string;
+  clarity_style: string;
+  pressure_distortion: string;
+  recurring_gift: string;
+  recurring_failure_mode: string;
+  timing_tendency: string;
+  decision_pattern: string;
+}
+
+export interface DiagnosisHistory {
+  frequency: number;
+  pattern_shape: string;
+  examples: string[];
+  deeper_roots: string;
+  cycle_observation: string;
+}
+
+export interface DiagnosisEvidence {
+  timing?: {
+    summary: string;
+    implication: string;
+  };
+  design?: {
+    summary: string;
+    implication: string;
+  };
+  history?: {
+    summary: string;
+    implication: string;
+  };
+}
+
+export interface PatternDiagnosisResponse {
+  pattern_title: string;
+  pattern_family: string;
+  
+  // Core diagnosis
+  what_is_happening: string;
+  why_it_is_happening: string;
+  what_kind_of_moment: string;
+  what_would_be_wise: string;
+  full_diagnosis: string;
+  moment_type: string;
+  
+  // Constitution (stable patterns)
+  constitution: DiagnosisConstitution;
+  
+  // History analysis
+  history: DiagnosisHistory;
+  
+  // Lens evidence (supporting, not separate)
+  evidence: DiagnosisEvidence;
+  
+  confidence: number;
+}
+
+/**
+ * Get cross-lens pattern diagnosis.
+ * Returns ONE integrated interpretation, not separate lens summaries.
+ */
+export const getPatternDiagnosis = async (userId: string, forceRefresh: boolean = false): Promise<PatternDiagnosisResponse> => {
+  const response = await apiWithRetry.get(`/pattern-diagnosis/${userId}`, {
+    params: forceRefresh ? { force_refresh: true } : {}
+  });
+  return response.data;
+};
+
 // ============================================================
 // MIRROR PROFILE PERSISTENCE API
 // ============================================================
