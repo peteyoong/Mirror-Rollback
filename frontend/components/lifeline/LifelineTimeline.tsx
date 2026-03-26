@@ -28,6 +28,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../services/api';
 import LifelineEventCard, { LifelineEvent } from './LifelineEventCard';
 import LifelineEmptyState from './LifelineEmptyState';
+import LifelineInlineOnboarding from './LifelineInlineOnboarding';
 import LifelineEventEditor from './LifelineEventEditor';
 import LifelinePatterns, { LifelinePatternsData } from './LifelinePatterns';
 import LifelinePatternSynthesisCard from './LifelinePatternSynthesisCard';
@@ -568,12 +569,14 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     );
   }
 
-  // Empty state
+  // Empty state - use inline onboarding with full buttons
   if (events.length === 0) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        {renderHeader()}
-        <LifelineEmptyState onAddEvent={handleAddEvent} />
+        <LifelineInlineOnboarding 
+          onStartLifeline={handleAddEvent}
+          tabContext="lifeline"
+        />
         <LifelineEventEditor
           visible={showEditor}
           event={editingEvent}

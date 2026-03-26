@@ -8,6 +8,7 @@ export { default as LifelineTimeline } from './LifelineTimeline';
 export { default as LifelineEventCard, type LifelineEvent } from './LifelineEventCard';
 export { default as LifelineEventEditor } from './LifelineEventEditor';
 export { default as LifelineEmptyState } from './LifelineEmptyState';
+export { default as LifelineInlineOnboarding } from './LifelineInlineOnboarding';
 export { default as LifelinePatterns, type LifelinePatternsData, type PatternInsight } from './LifelinePatterns';
 export { default as LifelinePatternSynthesisCard } from './LifelinePatternSynthesisCard';
 export { default as LifelineGapPrompt, type GapPromptData } from './LifelineGapPrompt';
