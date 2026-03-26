@@ -549,40 +549,53 @@ def format_lens_evidence(
     history_analysis: Dict[str, Any],
     transit_data: Optional[Dict] = None,
     hd_data: Optional[Dict] = None,
+    pattern_family: str = "general",
+    mode: str = "exploratory",
 ) -> Dict[str, Dict[str, str]]:
     """
     Format lens evidence as SUPPORT for the diagnosis.
     These are not separate summaries—they're evidence points.
+    
+    UPGRADED: Now uses astrology_transit_evidence for real transit hierarchy.
     """
+    from services.astrology_transit_evidence import get_astrology_evidence_for_diagnosis
     
     evidence = {}
     
-    # TIMING EVIDENCE (Astrology)
-    if transit_data:
-        day_class = transit_data.get("classification", "normal_flow")
-        active_transits = transit_data.get("active_transits", [])
-        
-        if day_class == "high_pressure":
-            timing_summary = "The sky is active—multiple planetary tensions creating real external pressure."
-        elif day_class == "release_window":
-            timing_summary = "The timing supports release and completion, not new initiation."
-        else:
-            timing_summary = "The sky is quiet. When external pressure isn't driving movement, internal patterns become more visible."
-        
-        # Add specific planet info if available
-        planet_notes = []
-        for transit in active_transits[:2]:
-            planet = transit.get("planet", "")
-            if planet:
-                planet_notes.append(planet)
-        
-        if planet_notes:
-            timing_summary += f" ({', '.join(planet_notes)} active)"
+    # TIMING EVIDENCE (Astrology) - NOW WITH REAL TRANSIT HIERARCHY
+    try:
+        astro_evidence = get_astrology_evidence_for_diagnosis(
+            pattern_family=pattern_family,
+            mode=mode
+        )
         
         evidence["timing"] = {
-            "summary": timing_summary,
-            "implication": moment_interpretation,
+            "summary": astro_evidence.get("summary", "No strong transit is forcing the pace."),
+            "implication": astro_evidence.get("implication", moment_interpretation),
         }
+        
+        # Log debug data for verification
+        debug = astro_evidence.get("debug", {})
+        if debug:
+            logger.debug(f"[Diagnostician] Astrology debug: type={debug.get('overall_type')}, strength={debug.get('overall_strength')}, moon={debug.get('moon_sign')}/{debug.get('moon_phase')}")
+            
+    except Exception as e:
+        logger.warning(f"[Diagnostician] Astrology evidence failed, using fallback: {e}")
+        # Fallback to old method
+        if transit_data:
+            day_class = transit_data.get("classification", "normal_flow")
+            
+            if day_class == "high_pressure":
+                timing_summary = "Multiple planetary tensions are active—creating real external pressure."
+            elif day_class == "release_window":
+                timing_summary = "The timing supports release and completion, not new initiation."
+            else:
+                timing_summary = "No strong transit is forcing the pace. The signal is more internal than external."
+            
+            evidence["timing"] = {
+                "summary": timing_summary,
+                "implication": moment_interpretation,
+            }
     
     # DESIGN EVIDENCE (Human Design)
     if hd_data:
@@ -673,7 +686,7 @@ async def generate_cross_lens_diagnosis(
     )
     logger.debug(f"[Diagnostician] History: {history_analysis['frequency']} occurrences, shape: {history_analysis['pattern_shape']}")
     
-    # Step 4: Format lens evidence
+    # Step 4: Format lens evidence (with new astrology transit evidence)
     lens_evidence = format_lens_evidence(
         constitution=constitution,
         moment_type=moment_type,
@@ -681,6 +694,8 @@ async def generate_cross_lens_diagnosis(
         history_analysis=history_analysis,
         transit_data=transit_data,
         hd_data=hd_data,
+        pattern_family=pattern_family,
+        mode="exploratory",  # Always get full evidence, frontend truncates
     )
     
     # Step 5: Generate core diagnosis
