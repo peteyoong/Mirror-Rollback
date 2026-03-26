@@ -69,7 +69,7 @@ def get_recency_weight(timestamp: datetime) -> float:
     if isinstance(timestamp, str):
         try:
             timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-        except:
+        except ValueError:
             return 0.3  # default
     
     if timestamp.tzinfo is None:
