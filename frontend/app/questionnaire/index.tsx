@@ -14,6 +14,8 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
+import { createMirrorProfileFromAnswers, deriveExperienceControls } from '../../types/mirror-profile';
+import { storage } from '../../store';
 
 const QUESTIONS = [
   {
@@ -147,6 +149,13 @@ export default function Questionnaire() {
             });
             console.log('[Questionnaire] Answers saved to backend');
           }
+          
+          // Create and persist MirrorProfile from answers
+          const mirrorProfile = createMirrorProfileFromAnswers(allAnswers);
+          const experienceControls = deriveExperienceControls(mirrorProfile);
+          await storage.setItem('mirror_profile', JSON.stringify(mirrorProfile));
+          await storage.setItem('experience_controls', JSON.stringify(experienceControls));
+          console.log('[Questionnaire] MirrorProfile created:', mirrorProfile.primary_goal);
           
           // Mark questionnaire as complete (persisted)
           await completeQuestionnaire();

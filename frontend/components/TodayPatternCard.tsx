@@ -5,6 +5,12 @@
  * + contextual follow-through line based on dominant source
  * + "Why this is showing up" inline expander
  * 
+ * NOW WITH EXPERIENCE CONTROLS:
+ * - Tone: Affects opener/closer copy
+ * - Verbosity: Affects how much is shown
+ * - Signal Visibility: Controls expander detail level
+ * - Prompt Style: Affects the CTA copy
+ * 
  * Structure:
  * - Line 1: What you're feeling / doing
  * - Line 2: The tension / contradiction  
@@ -17,6 +23,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import api, { getPatternSignals, PatternSignalDetail } from '../services/api';
+import { useExperienceControls } from '../hooks/useExperienceControls';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -55,6 +62,9 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   const [data, setData] = useState<TodayPatternData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Experience controls for personalization
+  const { controls, toneTemplates, promptTemplate } = useExperienceControls();
   
   // Expander state
   const [isExpanded, setIsExpanded] = useState(false);
@@ -138,7 +148,8 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
     router.push('/signals');
   };
 
-  // Get top signals to display inline (max 3 total)
+  // Get top signals based on signal_visibility setting
+  // minimal: 1 signal, standard: 3 signals, expanded: 5 signals
   const getTopSignals = () => {
     if (!signalsData?.signals) return [];
     
@@ -154,7 +165,30 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
       signalsData.signals.pattern_history.forEach(s => allSignals.push({ category: 'Pattern History', signal: s }));
     }
     
-    return allSignals.slice(0, 3);
+    // Limit based on signal visibility preference
+    const limits = { minimal: 1, standard: 3, expanded: 5 };
+    const limit = limits[controls.signal_visibility] || 3;
+    
+    return allSignals.slice(0, limit);
+  };
+
+  // Get CTA text based on prompt_style
+  const getCtaText = () => {
+    const ctaMap = {
+      questions: 'What does this bring up?',
+      perspectives: 'Write about this',
+      reassurance: 'Take a moment with this',
+      action: 'What will you do with this?',
+    };
+    return ctaMap[controls.prompt_style] || 'Write about this';
+  };
+
+  // Get lines to show based on verbosity
+  const getLinesToShow = () => {
+    if (!data?.lines) return [];
+    if (controls.verbosity === 'low') return data.lines.slice(0, 2);
+    if (controls.verbosity === 'high') return data.lines;
+    return data.lines.slice(0, 3); // medium
   };
 
   // Don't render if no data
@@ -172,29 +206,36 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
-      {/* Label */}
-      <Text style={[styles.label, { color: theme.textTertiary }]}>TODAY'S PATTERN</Text>
+      {/* Label with tone opener */}
+      <Text style={[styles.label, { color: theme.textTertiary }]}>
+        {toneTemplates.pattern_opener.toUpperCase()}
+      </Text>
       
       {/* Title */}
       <Text style={[styles.title, { color: theme.text }]}>
         {data?.title}
       </Text>
       
-      {/* Three lines */}
+      {/* Lines - controlled by verbosity */}
       <View style={styles.linesContainer}>
-        {data?.lines.map((line, index) => (
+        {getLinesToShow().map((line, index) => (
           <Text 
             key={index} 
             style={[
               styles.line, 
-              { color: index === 2 ? theme.text : theme.textSecondary },
-              index === 2 && styles.lastLine
+              { color: index === getLinesToShow().length - 1 ? theme.text : theme.textSecondary },
+              index === getLinesToShow().length - 1 && styles.lastLine
             ]}
           >
             {line}
           </Text>
         ))}
       </View>
+      
+      {/* Tone closer - based on tone setting */}
+      <Text style={[styles.toneCloser, { color: theme.textTertiary }]}>
+        {toneTemplates.pattern_closer}
+      </Text>
       
       {/* Follow-through line - tappable bridge to relevant lens */}
       {data?.follow_through && (
@@ -279,13 +320,13 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
       {/* Divider */}
       <View style={[styles.divider, { backgroundColor: theme.border }]} />
       
-      {/* CTA - Clear action */}
+      {/* CTA - Personalized based on prompt_style */}
       <TouchableOpacity
         style={styles.ctaContainer}
         onPress={handleReflect}
         activeOpacity={0.7}
       >
-        <Text style={[styles.ctaText, { color: theme.text }]}>Write about this</Text>
+        <Text style={[styles.ctaText, { color: theme.text }]}>{getCtaText()}</Text>
         <Text style={[styles.ctaArrow, { color: theme.textTertiary }]}>→</Text>
       </TouchableOpacity>
     </View>
@@ -329,6 +370,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontStyle: 'italic',
+  },
+  // Tone closer (personalized closing line)
+  toneCloser: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontStyle: 'italic',
+    marginTop: 14,
   },
   // Expander styles
   expanderToggle: {
