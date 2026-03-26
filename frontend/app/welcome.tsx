@@ -226,54 +226,118 @@ export default function Welcome() {
         <StatusBar style={'light'} />
         
         <View style={styles.content}>
-          {/* The Mirror – Aperture Mark */}
-          <View style={styles.apertureContainer}>
-            {/* Subtle atmospheric glow behind logo */}
-            <View style={styles.apertureGlow} />
+          {/* The Mirror – Symbol Mark */}
+          {/* OPTION SELECT: Change this value to test different symbols */}
+          {/* 1 = Split Circle, 2 = Echo Circle, 3 = Reflection Horizon */}
+          {(() => {
+            const SYMBOL_OPTION = 1;
             
-            {/* SVG Logo - Refined aperture geometry */}
-            <Svg width={88} height={88} viewBox="0 0 100 100" style={{ opacity: 0.85 }}>
-              {/* Outer circle - stabilizing container */}
-              <Circle
-                cx={50}
-                cy={50}
-                r={38}
-                stroke="#EAE6DF"
-                strokeWidth={1.25}
-                fill="none"
-              />
-              {/* Vertical center axis - shortened at top for softer apex */}
-              <Line
-                x1={50}
-                y1={26}
-                x2={50}
-                y2={82}
-                stroke="#EAE6DF"
-                strokeWidth={1.25}
-              />
-              {/* Left aperture curve - softer, more bowed outward */}
-              <Path
-                d="M50 26 C38 38 28 54 32 72"
-                stroke="#EAE6DF"
-                strokeWidth={1.25}
-                fill="none"
-              />
-              {/* Right aperture curve - softer, more bowed outward */}
-              <Path
-                d="M50 26 C62 38 72 54 68 72"
-                stroke="#EAE6DF"
-                strokeWidth={1.25}
-                fill="none"
-              />
-              {/* Reflection horizon - more present, subtle distortion */}
-              <Path
-                d="M32 72 Q50 64 68 72"
-                stroke="#EAE6DF"
-                strokeWidth={1.25}
-                fill="none"
-              />
-            </Svg>
-          </View>
+            return (
+              <View style={styles.apertureContainer}>
+                {/* Subtle atmospheric glow */}
+                <View style={styles.apertureGlow} />
+                
+                {SYMBOL_OPTION === 1 && (
+                  /* OPTION 1 — Split Circle
+                     Outer circle + vertical axis + subtle offset curve in lower half
+                     Feels like: division, noticing, self-observation */
+                  <Svg width={88} height={88} viewBox="0 0 100 100" style={{ opacity: 0.9 }}>
+                    {/* Outer circle */}
+                    <Circle
+                      cx={50}
+                      cy={50}
+                      r={38}
+                      stroke="#EAE6DF"
+                      strokeWidth={1.25}
+                      fill="none"
+                    />
+                    {/* Vertical axis - the split */}
+                    <Line
+                      x1={50}
+                      y1={12}
+                      x2={50}
+                      y2={88}
+                      stroke="#EAE6DF"
+                      strokeWidth={1.25}
+                    />
+                    {/* Subtle offset curve in lower half - the reflection */}
+                    <Path
+                      d="M32 62 Q50 70 68 62"
+                      stroke="#EAE6DF"
+                      strokeWidth={1}
+                      fill="none"
+                    />
+                  </Svg>
+                )}
+                
+                {SYMBOL_OPTION === 2 && (
+                  /* OPTION 2 — Echo Circle
+                     Outer circle + inner partial arc offset
+                     Feels like: repetition, pattern, echo */
+                  <Svg width={88} height={88} viewBox="0 0 100 100" style={{ opacity: 0.9 }}>
+                    {/* Outer circle */}
+                    <Circle
+                      cx={50}
+                      cy={50}
+                      r={38}
+                      stroke="#EAE6DF"
+                      strokeWidth={1.25}
+                      fill="none"
+                    />
+                    {/* Inner echo arc - offset slightly down */}
+                    <Path
+                      d="M26 56 A28 28 0 0 1 74 56"
+                      stroke="#EAE6DF"
+                      strokeWidth={1}
+                      fill="none"
+                    />
+                    {/* Second subtle echo - deeper */}
+                    <Path
+                      d="M34 66 A20 20 0 0 1 66 66"
+                      stroke="#EAE6DF"
+                      strokeWidth={0.75}
+                      fill="none"
+                      opacity={0.6}
+                    />
+                  </Svg>
+                )}
+                
+                {SYMBOL_OPTION === 3 && (
+                  /* OPTION 3 — Reflection Horizon
+                     Outer circle + horizontal interruption in lower third
+                     Feels like: mirror surface, reflection distortion */
+                  <Svg width={88} height={88} viewBox="0 0 100 100" style={{ opacity: 0.9 }}>
+                    {/* Outer circle */}
+                    <Circle
+                      cx={50}
+                      cy={50}
+                      r={38}
+                      stroke="#EAE6DF"
+                      strokeWidth={1.25}
+                      fill="none"
+                    />
+                    {/* Horizon line - the reflection surface */}
+                    <Line
+                      x1={18}
+                      y1={62}
+                      x2={82}
+                      y2={62}
+                      stroke="#EAE6DF"
+                      strokeWidth={1}
+                    />
+                    {/* Subtle distortion curve above horizon */}
+                    <Path
+                      d="M28 58 Q50 52 72 58"
+                      stroke="#EAE6DF"
+                      strokeWidth={0.75}
+                      fill="none"
+                      opacity={0.5}
+                    />
+                  </Svg>
+                )}
+              </View>
+            );
+          })()}
           
           {/* Wordmark - below logo, above headline */}
           <Text style={styles.apertureWordmark}>The Mirror</Text>
