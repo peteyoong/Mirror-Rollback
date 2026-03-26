@@ -226,36 +226,8 @@ export default function Welcome() {
         <StatusBar style={'light'} />
         
         <View style={styles.content}>
-          {/* The Mirror – Final Mark */}
-          <View style={styles.apertureContainer}>
-            {/* Extremely subtle glow */}
-            <View style={styles.apertureGlow} />
-            
-            {/* Final Symbol: Circle + Vertical Line only */}
-            <Svg width={88} height={88} viewBox="0 0 100 100" style={{ opacity: 0.9 }}>
-              {/* Outer circle */}
-              <Circle
-                cx={50}
-                cy={50}
-                r={38}
-                stroke="#EAE6DF"
-                strokeWidth={1.5}
-                fill="none"
-              />
-              {/* Vertical center line */}
-              <Line
-                x1={50}
-                y1={12}
-                x2={50}
-                y2={88}
-                stroke="#EAE6DF"
-                strokeWidth={1.5}
-              />
-            </Svg>
-          </View>
-          
-          {/* Wordmark - below logo, above headline */}
-          <Text style={styles.apertureWordmark}>The Mirror</Text>
+          {/* Brand - Typography only, no graphic */}
+          <Text style={styles.brandText}>The Mirror</Text>
           
           {/* Headline */}
           <View style={styles.headlineContainer}>
@@ -291,27 +263,36 @@ export default function Welcome() {
             >
               <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>Show me</Text>
             </TouchableOpacity>
+            
+            {/* Secondary actions - new user path */}
+            <View style={styles.secondaryActionsRow}>
+              <TouchableOpacity onPress={handleBeginReflection} activeOpacity={0.6}>
+                <Text style={styles.secondaryActionText}>I'm new here</Text>
+              </TouchableOpacity>
+              <Text style={styles.secondaryActionDivider}>·</Text>
+              <TouchableOpacity onPress={() => setShowLogin(true)} activeOpacity={0.6}>
+                <Text style={styles.secondaryActionText}>Sign in</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
         
-        {/* Footer - subtle, understated */}
+        {/* Footer - lighter, more elegant */}
         <View style={styles.footerArea}>
           <View style={styles.forumsFooter}>
-            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.6}>
-              <Text style={[styles.forumLinkText, { color: 'rgba(255, 255, 255, 0.35)' }]}>Create Forum</Text>
+            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.5}>
+              <Text style={styles.forumLinkTextLight}>Create Forum</Text>
             </TouchableOpacity>
-            <Text style={[styles.forumDivider, { color: 'rgba(255, 255, 255, 0.2)' }]}>·</Text>
-            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.6}>
-              <Text style={[styles.forumLinkText, { color: 'rgba(255, 255, 255, 0.35)' }]}>Join Forum</Text>
+            <Text style={styles.forumDividerLight}>·</Text>
+            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.5}>
+              <Text style={styles.forumLinkTextLight}>Join Forum</Text>
             </TouchableOpacity>
           </View>
-          {/* Hidden verification marker */}
-          <Text style={{ fontSize: 9, color: 'rgba(255, 255, 255, 0.15)', marginTop: 12 }}>
+          {/* Verification marker */}
+          <Text style={styles.verificationMarker}>
             welcome.tsx • existing-session • {BUILD_VERSION}
           </Text>
         </View>
-        
-        {renderDebugPanel()}
       </SafeAreaView>
     );
   }
@@ -578,6 +559,53 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
     marginBottom: 16,
+  },
+  
+  // Brand text - typography only
+  brandText: {
+    fontSize: 26,
+    fontWeight: '400',
+    letterSpacing: 2.5,
+    color: 'rgba(255, 255, 255, 0.88)',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  
+  // Secondary actions row (I'm new here · Sign in)
+  secondaryActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 18,
+    gap: 12,
+  },
+  secondaryActionText: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.52)',
+  },
+  secondaryActionDivider: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.3)',
+  },
+  
+  // Lighter forum links
+  forumLinkTextLight: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.4)',
+  },
+  forumDividerLight: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.25)',
+  },
+  
+  // Verification marker
+  verificationMarker: {
+    fontSize: 9,
+    color: 'rgba(255, 255, 255, 0.15)',
+    marginTop: 16,
+    textAlign: 'center',
   },
   
   // Legacy logo styles (for non-session view)
