@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL configuration
-BACKEND_URL = "https://today-pattern.preview.emergentagent.com/api"
+BACKEND_URL = "https://signal-layer-preview.preview.emergentagent.com/api"
 
 # Test user ID from review request
 TEST_USER_ID = "69bf562ac23ef591409d535a"

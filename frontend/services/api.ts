@@ -1202,4 +1202,31 @@ export const getPairwiseDynamics = async (
   return response.data;
 };
 
+// =====================================================
+// PATTERN SIGNALS API (Why this is showing up)
+// =====================================================
+
+export interface PatternSignalDetail {
+  label: string;
+  meaning: string;
+  strength?: number;
+}
+
+export interface PatternSignalsResponse {
+  summary: string;
+  signals: {
+    astrology?: PatternSignalDetail[];
+    human_design?: PatternSignalDetail[];
+    pattern_history?: PatternSignalDetail[];
+  };
+  synthesis: string;
+  pattern_history?: string;
+  confidence: number;
+}
+
+export const getPatternSignals = async (userId: string): Promise<PatternSignalsResponse> => {
+  const response = await apiWithRetry.get(`/pattern-signals/${userId}`);
+  return response.data;
+};
+
 export default api;

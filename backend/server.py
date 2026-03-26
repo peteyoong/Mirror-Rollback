@@ -12000,6 +12000,245 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
 
 
 # =============================================================================
+# PATTERN SIGNALS ENDPOINT - Why this is showing up
+# =============================================================================
+
+class SignalDetail(BaseModel):
+    """Individual signal detail"""
+    label: str
+    meaning: str
+    strength: Optional[float] = None
+
+class PatternSignalsResponse(BaseModel):
+    """Response for pattern signals - explains why pattern is showing"""
+    summary: str
+    signals: Dict[str, List[SignalDetail]]
+    synthesis: str
+    pattern_history: Optional[str] = None
+    confidence: float
+
+@api_router.get("/pattern-signals/{user_id}", response_model=PatternSignalsResponse)
+async def get_pattern_signals(user_id: str):
+    """
+    Returns detailed breakdown of WHY today's pattern is showing up.
+    Shows supporting signals from Astrology, Human Design, etc.
+    """
+    try:
+        signals = {"astrology": [], "human_design": [], "pattern_history": []}
+        summary_parts = []
+        
+        # Get user data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return PatternSignalsResponse(
+                summary="We couldn't find your data to explain this pattern.",
+                signals={},
+                synthesis="Try completing your profile to see deeper connections.",
+                confidence=0.2
+            )
+        
+        # 1. ASTROLOGY SIGNALS
+        try:
+            from services.field_signals import detect_transit_convergence
+            from services.astrology_signal_engine import select_dominant_tension, DayClass
+            
+            transit_stack = detect_transit_convergence()
+            day_class_str = transit_stack.get("classification", "normal_flow")
+            
+            # Get active transits
+            active_transits = transit_stack.get("active_transits", [])
+            
+            if active_transits:
+                for transit in active_transits[:3]:  # Top 3 transits
+                    planet = transit.get("planet", "Unknown")
+                    aspect = transit.get("aspect", "")
+                    target = transit.get("target", "")
+                    
+                    # Generate human-readable meaning
+                    meaning = generate_transit_meaning(planet, aspect, target)
+                    
+                    signals["astrology"].append(SignalDetail(
+                        label=f"{planet} {aspect} {target}".strip(),
+                        meaning=meaning,
+                        strength=transit.get("strength", 0.5)
+                    ))
+                    summary_parts.append("astrology")
+            
+            # If no specific transits, add general day energy
+            if not signals["astrology"]:
+                if day_class_str == "high_pressure":
+                    signals["astrology"].append(SignalDetail(
+                        label="High pressure day",
+                        meaning="Multiple planetary tensions are active, creating internal pressure to act or decide",
+                        strength=0.7
+                    ))
+                elif day_class_str == "release_window":
+                    signals["astrology"].append(SignalDetail(
+                        label="Release window",
+                        meaning="Energy is flowing outward—good for letting go, not forcing",
+                        strength=0.6
+                    ))
+                else:
+                    signals["astrology"].append(SignalDetail(
+                        label="Current timing",
+                        meaning="Subtle planetary movements are stirring patterns beneath the surface",
+                        strength=0.4
+                    ))
+                summary_parts.append("astrology")
+                
+        except Exception as e:
+            logger.debug(f"[PatternSignals] Astrology unavailable: {e}")
+        
+        # 2. HUMAN DESIGN SIGNALS
+        try:
+            hd = user.get("human_design", {})
+            if hd and hd.get("type"):
+                hd_type = hd.get("type", "")
+                authority = hd.get("authority", "")
+                
+                # Type-based signal
+                type_meanings = {
+                    "Manifestor": "Your design initiates action without waiting—this pattern may be about reclaiming that impulse",
+                    "Generator": "You're designed to respond, not initiate—this pattern may be about waiting for the right signal",
+                    "Manifesting Generator": "You move fast when something resonates—this pattern is calling for that gut response",
+                    "Projector": "You see patterns others miss—this may be about what you're noticing but haven't been invited to share",
+                    "Reflector": "You mirror your environment—this pattern may be showing what's around you, not just in you"
+                }
+                
+                if hd_type in type_meanings:
+                    signals["human_design"].append(SignalDetail(
+                        label=f"Your type: {hd_type}",
+                        meaning=type_meanings[hd_type],
+                        strength=0.6
+                    ))
+                
+                # Authority-based signal
+                authority_meanings = {
+                    "Emotional": "Your clarity comes in waves—today's pattern may need time to settle",
+                    "Sacral": "Your gut knows before your mind—this pattern is something your body already recognized",
+                    "Splenic": "You sense things in the moment—this pattern is here now, trust it",
+                    "Self-Projected": "Speaking it out loud helps—this pattern wants to be heard",
+                    "Ego/Heart": "Your will knows what matters—this pattern connects to what you truly want",
+                    "Mental/Environmental": "You need the right space to see clearly—this pattern is affected by your surroundings"
+                }
+                
+                for auth_key, meaning in authority_meanings.items():
+                    if auth_key.lower() in authority.lower():
+                        signals["human_design"].append(SignalDetail(
+                            label=f"Your authority: {authority}",
+                            meaning=meaning,
+                            strength=0.5
+                        ))
+                        break
+                
+                summary_parts.append("human_design")
+                
+        except Exception as e:
+            logger.debug(f"[PatternSignals] Human Design unavailable: {e}")
+        
+        # 3. PATTERN HISTORY (Journal signals)
+        try:
+            seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+            recent_entries = await db.journal.find({
+                "user_id": user_id,
+                "created_at": {"$gte": seven_days_ago}
+            }).to_list(30)
+            
+            if len(recent_entries) >= 2:
+                signals["pattern_history"].append(SignalDetail(
+                    label=f"Appeared {len(recent_entries)} times recently",
+                    meaning="You've been circling back to similar themes in your reflections",
+                    strength=min(0.3 + (len(recent_entries) * 0.1), 0.8)
+                ))
+                summary_parts.append("pattern_history")
+                
+        except Exception as e:
+            logger.debug(f"[PatternSignals] Journal history unavailable: {e}")
+        
+        # Build summary
+        if not summary_parts:
+            summary = "This pattern is emerging from subtle signals we're still gathering."
+        elif len(summary_parts) == 1:
+            source_names = {"astrology": "current planetary timing", "human_design": "your design", "pattern_history": "your recent reflections"}
+            summary = f"This pattern is being highlighted by {source_names.get(summary_parts[0], 'one signal')}."
+        else:
+            summary = "Multiple sources are pointing to the same pattern today."
+        
+        # Build synthesis
+        synthesis_parts = []
+        if signals["astrology"]:
+            synthesis_parts.append("The current timing is creating pressure around this theme")
+        if signals["human_design"]:
+            synthesis_parts.append("your design is naturally drawn to notice this kind of pattern")
+        if signals["pattern_history"]:
+            synthesis_parts.append("you've been here before in your reflections")
+        
+        if synthesis_parts:
+            synthesis = synthesis_parts[0].capitalize()
+            if len(synthesis_parts) > 1:
+                synthesis += ", " + ", and ".join(synthesis_parts[1:])
+            synthesis += ". This is not random—these signals are converging."
+        else:
+            synthesis = "Trust what you're noticing. Patterns surface when they're ready to be seen."
+        
+        # Calculate confidence
+        confidence = 0.3
+        for source_signals in signals.values():
+            for sig in source_signals:
+                confidence += (sig.strength or 0.3) * 0.15
+        confidence = min(confidence, 0.95)
+        
+        return PatternSignalsResponse(
+            summary=summary,
+            signals={k: v for k, v in signals.items() if v},  # Only non-empty
+            synthesis=synthesis,
+            pattern_history=f"{len(recent_entries)} entries this week" if 'recent_entries' in dir() and recent_entries else None,
+            confidence=confidence
+        )
+        
+    except Exception as e:
+        logger.error(f"[PatternSignals] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        return PatternSignalsResponse(
+            summary="Something is showing up, but we couldn't trace all the signals.",
+            signals={},
+            synthesis="Trust what you're noticing—even without the full picture.",
+            confidence=0.3
+        )
+
+
+def generate_transit_meaning(planet: str, aspect: str, target: str) -> str:
+    """Generate human-readable meaning for a transit"""
+    planet_themes = {
+        "Sun": "identity and purpose",
+        "Moon": "emotions and needs",
+        "Mercury": "thoughts and communication",
+        "Venus": "relationships and values",
+        "Mars": "action and desire",
+        "Jupiter": "growth and expansion",
+        "Saturn": "structure and limits",
+        "Uranus": "change and disruption",
+        "Neptune": "dreams and illusions",
+        "Pluto": "transformation and power"
+    }
+    
+    aspect_effects = {
+        "conjunction": "is merging with",
+        "square": "is creating tension with",
+        "opposition": "is pulling against",
+        "trine": "is flowing with",
+        "sextile": "is opening doors with"
+    }
+    
+    theme = planet_themes.get(planet, "subtle energy")
+    effect = aspect_effects.get(aspect.lower(), "is interacting with")
+    
+    return f"Your {theme} {effect} deeper forces, creating the conditions for this pattern to surface"
+
+
+# =============================================================================
 # ASTROLOGY DETERMINISTIC CHART ENDPOINT (Full Data Exposure)
 # =============================================================================
 @api_router.get("/astrology/chart/{user_id}")
