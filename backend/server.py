@@ -12061,182 +12061,631 @@ class PatternSignalsResponse(BaseModel):
     pattern_history: Optional[str] = None
     confidence: float
 
+
+# =============================================================================
+# PATTERN-LINKED SIGNAL GENERATION
+# Evidence → Pattern → Implication format
+# =============================================================================
+
+def generate_astrology_signal_for_pattern(
+    transit_data: dict,
+    pattern_title: str,
+    pattern_family: str,
+    tension_type: str
+) -> List[SignalDetail]:
+    """
+    Generate astrology signals that explicitly link to the current pattern.
+    Evidence → Pattern → Implication
+    """
+    signals = []
+    
+    active_transits = transit_data.get("active_transits", [])
+    day_class = transit_data.get("classification", "normal_flow")
+    
+    # Pattern-specific timing interpretations
+    PATTERN_TIMING = {
+        "stall": {
+            "Mercury": "Mercury is slowing your thinking right now—questions that should feel clear are taking longer to land. This is part of why the pause feels stuck.",
+            "Moon": "The Moon is moving through a phase that emphasizes waiting. Your body knows this isn't the moment to push.",
+            "Saturn": "Saturn is pressing on your sense of progress. The pause you're feeling isn't laziness—it's timing saying 'not yet'.",
+            "Mars": "Mars is activating your drive, but something is blocking the follow-through. The energy is there; the direction isn't.",
+            "default": "Current planetary timing is creating a holding pattern—external pressure to move, but internal resistance to committing.",
+        },
+        "push_pull": {
+            "Mercury": "Mercury is creating mental back-and-forth. You know what you want to decide, but the thoughts keep reversing.",
+            "Mars": "Mars is pushing you forward while other forces pull back. This tension isn't confusion—it's competing valid impulses.",
+            "Venus": "Venus is highlighting what you want, while other timing highlights what you should wait for. Hence the tug.",
+            "default": "The planets are literally pulling in two directions right now. The push-pull you feel isn't in your head—it's in the timing.",
+        },
+        "expression": {
+            "Mercury": "Mercury is activating your voice, but something is suppressing the expression. The words are there; they're not coming out.",
+            "Moon": "The Moon is stirring what you feel, but today's timing doesn't support saying it. The silence is protective, not stuck.",
+            "default": "Current timing is amplifying things that want to be expressed—while also creating conditions that make expression feel risky.",
+        },
+        "clarity": {
+            "Mercury": "Mercury is fogging your usual clarity. What normally makes sense isn't landing. This is temporary, but it's real.",
+            "Neptune": "Neptune is blurring boundaries right now. The confusion isn't weakness—it's the timing dissolving premature certainty.",
+            "Moon": "The Moon is cycling through unclear territory. Give it a day before forcing conclusions.",
+            "default": "Current timing isn't supporting crisp decisions. The fog is external, not internal—trust that clarity will return.",
+        },
+        "control": {
+            "Saturn": "Saturn is pressing on what you're trying to hold together. The grip feels necessary because the pressure is real.",
+            "Pluto": "Pluto is activating deep control patterns. What you're trying to manage connects to something older than today.",
+            "Mars": "Mars is driving your need to act on this. The urgency isn't imagined—but it may not be yours.",
+            "default": "Current planetary pressure is creating a need to control outcomes. The grip is a response to real instability in the timing.",
+        },
+        "release": {
+            "Neptune": "Neptune is softening your grip. What you're letting go of is being helped by the timing.",
+            "Pluto": "Pluto is facilitating a deeper release. What's leaving needed to go—the timing is making it possible.",
+            "Moon": "The Moon is supporting emotional release. The letting go isn't loss—it's clearing.",
+            "default": "Current timing is supporting release. What you're letting go of is being met by planetary support.",
+        },
+        "movement": {
+            "Mars": "Mars is fueling your forward momentum. The drive to move isn't reckless—it's correctly timed.",
+            "Jupiter": "Jupiter is expanding what's possible. The impulse to go isn't impatience—it's opportunity.",
+            "default": "Current timing supports action. The urge to move forward is aligned with the planetary moment.",
+        },
+    }
+    
+    family_timing = PATTERN_TIMING.get(pattern_family, PATTERN_TIMING.get("stall", {}))
+    
+    if active_transits:
+        for transit in active_transits[:2]:  # Top 2 transits
+            planet = transit.get("planet", "Unknown")
+            aspect = transit.get("aspect", "")
+            target = transit.get("target", "")
+            strength = transit.get("strength", 0.5)
+            
+            # Get pattern-linked meaning
+            meaning = family_timing.get(planet, family_timing.get("default", ""))
+            
+            if meaning:
+                signals.append(SignalDetail(
+                    label=f"{planet} timing",
+                    meaning=meaning,
+                    strength=strength
+                ))
+    
+    # Fallback based on day class - still pattern-linked
+    if not signals:
+        if day_class == "high_pressure":
+            pressure_meanings = {
+                "stall": "Multiple planetary tensions are active today—creating pressure to act while something inside resists. This is why the pause feels loaded, not peaceful.",
+                "push_pull": "The sky is literally pulling in multiple directions. The back-and-forth you feel mirrors what's happening overhead.",
+                "expression": "High pressure is building around expression. Something wants out, but the timing is making it feel unsafe.",
+                "clarity": "Planetary pressure is creating mental static. Decisions feel harder because the timing is genuinely unclear.",
+                "control": "Multiple pressures are converging—no wonder you're gripping. The need to manage isn't paranoia; it's response to real instability.",
+                "release": "High pressure often precedes release. What's building may be preparing to let go.",
+                "movement": "Pressure is building momentum. The urge to move is being amplified by the timing.",
+            }
+            signals.append(SignalDetail(
+                label="High pressure timing",
+                meaning=pressure_meanings.get(pattern_family, "Multiple planetary tensions are active, creating pressure around this pattern."),
+                strength=0.7
+            ))
+        elif day_class == "release_window":
+            release_meanings = {
+                "stall": "The timing supports letting the pause be—not forcing through it. This is a release window, not an action window.",
+                "push_pull": "Current timing favors releasing one side of the pull. You may not need to resolve the tension—just let one thread drop.",
+                "expression": "The timing supports releasing what's held. If you're going to say it, today is supportive.",
+                "release": "You're in a release window. What you're letting go of is being supported by the timing.",
+            }
+            signals.append(SignalDetail(
+                label="Release window",
+                meaning=release_meanings.get(pattern_family, "Energy is flowing outward—good for letting go, not forcing."),
+                strength=0.6
+            ))
+        else:
+            # Normal flow - still pattern-specific
+            normal_meanings = {
+                "stall": "The timing isn't forcing anything right now. The pause you feel isn't from external pressure—it's coming from within.",
+                "push_pull": "Planetary timing is neutral. The back-and-forth is yours to resolve—external conditions aren't driving it.",
+                "clarity": "The timing isn't adding fog. If you're confused, it's sourced internally—which is useful information.",
+                "default": "Current timing is neutral, which means what you're feeling is primarily internal—not externally triggered.",
+            }
+            signals.append(SignalDetail(
+                label="Neutral timing",
+                meaning=normal_meanings.get(pattern_family, normal_meanings["default"]),
+                strength=0.4
+            ))
+    
+    return signals
+
+
+def generate_hd_signal_for_pattern(
+    hd_data: dict,
+    pattern_title: str,
+    pattern_family: str,
+    tension_type: str
+) -> List[SignalDetail]:
+    """
+    Generate Human Design signals that link to the current pattern.
+    Focus on: consistent vs inconsistent behavior, environmental amplification
+    """
+    signals = []
+    
+    if not hd_data:
+        return signals
+    
+    hd_type = hd_data.get("type", "")
+    authority = hd_data.get("authority", "")
+    defined_centers = hd_data.get("defined_centers", [])
+    undefined_centers = hd_data.get("undefined_centers", [])
+    
+    # TYPE-BASED signals linked to pattern
+    TYPE_PATTERN_SIGNALS = {
+        "Manifestor": {
+            "stall": "As a Manifestor, you're designed to initiate—but this pause might be informing you that something isn't ready to be initiated yet. The stall is data, not failure.",
+            "push_pull": "Manifestors don't usually hesitate. If you're feeling pulled both ways, it's worth pausing—your design says one impulse should feel clearer than the other.",
+            "expression": "Manifestors inform before acting. What's unsaid might be the inform you haven't given yet—to yourself or someone else.",
+            "control": "Your design wants to control the initiation. The grip might be you trying to force timing that isn't yours to force.",
+            "movement": "This forward energy aligns with your design. Manifestors are meant to move when the impulse is clear.",
+        },
+        "Generator": {
+            "stall": "Generators are designed to respond, not initiate. This pause may be your Sacral waiting for something to respond TO. The stall isn't stuck—it's waiting.",
+            "push_pull": "Your Sacral knows which way. If you're feeling pulled both ways, one of them isn't a true Sacral 'yes'. Notice which one has body energy, not just mental reasons.",
+            "expression": "What's unsaid might be waiting for a response invitation. Generators express best when responding to something—is something asking for your truth?",
+            "clarity": "Generators find clarity through response, not thinking. The fog might lift when something shows up to respond to.",
+            "movement": "This forward drive should feel like Sacral energy—a body-level 'uh-huh'. If it's mental, wait for the gut response.",
+        },
+        "Manifesting Generator": {
+            "stall": "MGs move fast when something resonates. This pause might mean nothing is truly resonating yet—your system is waiting for the right signal.",
+            "push_pull": "MGs often skip steps—but this back-and-forth might be your body saying you skipped something important. What did you not respond to fully?",
+            "expression": "MGs express through action more than words. What you're not saying might need to be done instead of spoken.",
+            "movement": "This forward energy is classic MG. The question is: are you responding or initiating? One feels right in your body, one doesn't.",
+        },
+        "Projector": {
+            "stall": "Projectors wait for recognition. This pause might be you waiting for an invitation that hasn't arrived—or noticing something others haven't seen yet.",
+            "push_pull": "Projectors see patterns others miss. The back-and-forth might be you seeing both sides too clearly—waiting for someone to ask which you see as true.",
+            "expression": "What's unsaid might be wisdom waiting for an invitation. Projectors don't push truth—they offer it when asked.",
+            "clarity": "Projectors often see clearly but can't act without invitation. The fog might be about action, not understanding.",
+            "control": "Projectors guide, not control. The grip might be you trying to manage something that wants to be guided instead.",
+        },
+        "Reflector": {
+            "stall": "Reflectors mirror their environment. This pause might be reflecting something stalled around you, not necessarily in you.",
+            "push_pull": "You're picking up conflicting energies from your environment. The back-and-forth might not be yours—it's what you're sampling from others.",
+            "expression": "What's unsaid might be something you're reflecting that isn't yours to say. Check whose truth you're holding.",
+            "clarity": "Reflectors need a lunar cycle for major clarity. If this feels foggy, give it time—your clarity operates on a longer rhythm.",
+        },
+    }
+    
+    if hd_type in TYPE_PATTERN_SIGNALS:
+        type_signals = TYPE_PATTERN_SIGNALS[hd_type]
+        if pattern_family in type_signals:
+            signals.append(SignalDetail(
+                label=f"Your {hd_type} design",
+                meaning=type_signals[pattern_family],
+                strength=0.6
+            ))
+    
+    # AUTHORITY-BASED signals (how you make decisions) linked to pattern
+    AUTHORITY_PATTERN_SIGNALS = {
+        "Emotional": {
+            "stall": "Your clarity comes in waves. This pause might be your emotional wave not yet at clarity. Don't decide until you feel neutral, not high or low.",
+            "push_pull": "Your emotional wave cycles between excitement and doubt. The back-and-forth is likely your wave—wait for the middle before choosing.",
+            "clarity": "Emotional authority means clarity takes time. The fog isn't failure—it's your wave still moving.",
+        },
+        "Sacral": {
+            "stall": "Your Sacral responds with 'uh-huh' or 'unh-unh'. If neither is happening, nothing is resonating yet. The pause is correct.",
+            "push_pull": "Ask your Sacral about each option separately. One should get a gut response, one shouldn't. Trust the body, not the mind.",
+            "clarity": "Sacral clarity is immediate but non-verbal. The mental fog doesn't matter—check what your gut says.",
+        },
+        "Splenic": {
+            "stall": "Splenic authority is instant knowing. If you're paused, either the knowing hasn't come, or you didn't trust it when it did.",
+            "push_pull": "Splenic knowing is fast and doesn't repeat. If you're stuck, you might have missed the moment. Get quiet and wait for another.",
+            "clarity": "Splenic clarity is quiet and in-the-moment. The fog might mean you're trying to use your mind instead of your instinct.",
+        },
+    }
+    
+    for auth_key, auth_signals in AUTHORITY_PATTERN_SIGNALS.items():
+        if auth_key.lower() in authority.lower():
+            if pattern_family in auth_signals:
+                signals.append(SignalDetail(
+                    label=f"Your {authority} authority",
+                    meaning=auth_signals[pattern_family],
+                    strength=0.55
+                ))
+            break
+    
+    # UNDEFINED CENTER signals (environmental amplification)
+    if undefined_centers:
+        CENTER_AMPLIFICATION = {
+            "Head": "With an undefined Head center, you may be picking up mental pressure from your environment—questions that aren't actually yours to answer.",
+            "Ajna": "Your undefined Ajna picks up others' certainties. The confusion might be borrowed, not original.",
+            "Throat": "With an undefined Throat, you may be feeling pressure to express that isn't natural to you right now.",
+            "Will": "Your undefined Heart/Will picks up others' willpower. The drive to push through might not be your authentic energy.",
+            "Sacral": "Without a defined Sacral, you may be amplifying others' work energy. The pressure to 'do' might be borrowed.",
+            "Spleen": "Your undefined Spleen picks up survival fears from your environment. The anxiety might not be sourced in your situation.",
+            "Solar Plexus": "With an undefined Solar Plexus, you're amplifying emotional waves around you. The intensity might not be yours.",
+            "Root": "Your undefined Root amplifies pressure to 'hurry up' from others. The urgency might be borrowed.",
+        }
+        
+        # Pick most relevant undefined center for the pattern
+        relevance_map = {
+            "stall": ["Sacral", "Root", "Will"],
+            "push_pull": ["Ajna", "Solar Plexus", "Head"],
+            "expression": ["Throat", "Solar Plexus"],
+            "clarity": ["Head", "Ajna"],
+            "control": ["Will", "Root", "Spleen"],
+        }
+        
+        relevant_centers = relevance_map.get(pattern_family, ["Head", "Root"])
+        for center in relevant_centers:
+            if center.lower() in [c.lower() for c in undefined_centers]:
+                if center in CENTER_AMPLIFICATION:
+                    signals.append(SignalDetail(
+                        label=f"Open {center} center",
+                        meaning=CENTER_AMPLIFICATION[center],
+                        strength=0.5
+                    ))
+                    break
+    
+    return signals
+
+
+async def generate_pattern_history_signal(
+    user_id: str,
+    pattern_title: str,
+    pattern_family: str,
+    tension_type: str,
+    db
+) -> List[SignalDetail]:
+    """
+    Generate Pattern History signals with REAL examples from journal/reflections.
+    Evidence: actual behavior patterns from user data
+    """
+    signals = []
+    
+    try:
+        # Get recent journal entries
+        fourteen_days_ago = datetime.now(timezone.utc) - timedelta(days=14)
+        recent_entries = await db.journal.find({
+            "user_id": user_id,
+            "created_at": {"$gte": fourteen_days_ago}
+        }).sort("created_at", -1).to_list(30)
+        
+        # Get lifeline events for deeper history
+        lifeline_events = await db.lifeline_events.find({
+            "user_id": user_id
+        }).sort("created_at", -1).to_list(50)
+        
+        entry_count = len(recent_entries)
+        
+        if entry_count > 0:
+            # Extract behavioral patterns from entries
+            pattern_examples = extract_pattern_examples(recent_entries, pattern_family)
+            
+            if pattern_examples:
+                # Real examples found
+                examples_text = "\n".join([f"- {ex}" for ex in pattern_examples[:3]])
+                signals.append(SignalDetail(
+                    label=f"Appeared {entry_count} times recently",
+                    meaning=f"You've been circling this pattern:\n{examples_text}\n\nThis has shown up {entry_count} times in your recent reflections.",
+                    strength=min(0.4 + (entry_count * 0.08), 0.85)
+                ))
+            else:
+                # No specific examples, but entries exist - use pattern-shaped description
+                pattern_descriptions = {
+                    "stall": "You've written about pausing before—moments where forward motion stopped and something felt unresolved.",
+                    "push_pull": "Your reflections show a pattern of moving toward something, then pulling back. This back-and-forth has appeared before.",
+                    "expression": "You've circled around things left unsaid—words held back, truths not spoken. This silence pattern repeats.",
+                    "clarity": "You've written about not knowing before—questions that didn't have clear answers. This fog is familiar.",
+                    "control": "Your reflections show moments of trying to hold things together. The grip isn't new.",
+                    "release": "You've let go of things before. This pattern of releasing shows up in your history.",
+                    "movement": "You've written about moving forward—times when the direction felt clear and you acted on it.",
+                }
+                signals.append(SignalDetail(
+                    label=f"Pattern history ({entry_count} reflections)",
+                    meaning=pattern_descriptions.get(pattern_family, f"You've reflected on similar themes {entry_count} times recently. This pattern isn't new to you."),
+                    strength=min(0.35 + (entry_count * 0.07), 0.75)
+                ))
+        
+        # Add lifeline depth if available
+        if lifeline_events:
+            # Look for similar pattern themes in lifeline
+            lifeline_signal = extract_lifeline_pattern(lifeline_events, pattern_family)
+            if lifeline_signal:
+                signals.append(SignalDetail(
+                    label="Deeper history",
+                    meaning=lifeline_signal,
+                    strength=0.6
+                ))
+                
+    except Exception as e:
+        logger.debug(f"[PatternSignals] Pattern history extraction failed: {e}")
+    
+    # Fallback if no data - pattern-consistent pseudo-evidence
+    if not signals:
+        fallback_descriptions = {
+            "stall": "You may be hesitating because something hasn't fully formed yet—not because you're unsure, but because it's not ready.",
+            "push_pull": "The back-and-forth might be revealing two valid impulses competing for the same space. Neither is wrong; they just can't both happen.",
+            "expression": "What's held back might be waiting for safety that hasn't arrived yet. The silence is protective, not stuck.",
+            "clarity": "The fog might be protecting you from deciding too early. Premature clarity can be worse than staying uncertain.",
+            "control": "The grip might be appropriate to the instability around you. Sometimes control is the right response.",
+            "release": "What's leaving might need more time to fully detach. Release happens in its own rhythm.",
+            "movement": "The forward drive might be responding to something you sense but haven't named yet. Trust the impulse.",
+        }
+        signals.append(SignalDetail(
+            label="Pattern shape",
+            meaning=fallback_descriptions.get(pattern_family, "This pattern has a shape you might recognize, even without specific memories."),
+            strength=0.35
+        ))
+    
+    return signals
+
+
+def extract_pattern_examples(entries: List[dict], pattern_family: str) -> List[str]:
+    """Extract real behavioral examples from journal entries that match the pattern."""
+    examples = []
+    
+    # Keywords that indicate pattern-relevant content
+    PATTERN_KEYWORDS = {
+        "stall": ["stopped", "paused", "stuck", "waiting", "hesitating", "blocked", "frozen", "stalled"],
+        "push_pull": ["back and forth", "can't decide", "both", "torn", "conflicted", "either", "or", "pulled"],
+        "expression": ["didn't say", "held back", "silent", "unsaid", "couldn't tell", "wanted to say"],
+        "clarity": ["confused", "unclear", "don't know", "foggy", "uncertain", "not sure"],
+        "control": ["trying to", "need to", "have to", "managing", "controlling", "holding"],
+        "release": ["let go", "letting go", "released", "stopped trying", "surrendered"],
+        "movement": ["moved", "acted", "did", "went", "started", "began", "decided"],
+    }
+    
+    keywords = PATTERN_KEYWORDS.get(pattern_family, [])
+    
+    for entry in entries:
+        content = entry.get("content", "").lower()
+        themes = entry.get("themes", [])
+        
+        # Check if entry contains pattern keywords
+        for keyword in keywords:
+            if keyword in content:
+                # Extract a snippet around the keyword
+                snippet = extract_relevant_snippet(content, keyword)
+                if snippet and snippet not in examples:
+                    examples.append(snippet)
+                    if len(examples) >= 3:
+                        return examples
+                break
+    
+    return examples
+
+
+def extract_relevant_snippet(content: str, keyword: str) -> str:
+    """Extract a short, meaningful snippet around a keyword."""
+    import re
+    
+    # Find the sentence containing the keyword
+    sentences = re.split(r'[.!?]', content)
+    for sentence in sentences:
+        if keyword in sentence.lower():
+            cleaned = sentence.strip()
+            if len(cleaned) > 20 and len(cleaned) < 150:
+                # Capitalize first letter, add context
+                return cleaned[0].upper() + cleaned[1:] if cleaned else ""
+    
+    return ""
+
+
+def extract_lifeline_pattern(events: List[dict], pattern_family: str) -> str:
+    """Look for pattern echoes in lifeline history."""
+    
+    # Count relevant event types
+    event_types = {}
+    for event in events:
+        event_type = event.get("event_type", "")
+        event_types[event_type] = event_types.get(event_type, 0) + 1
+    
+    # Pattern-relevant lifeline signals
+    pattern_lifeline = {
+        "stall": "Your lifeline shows other moments where momentum paused. This pattern has deeper roots.",
+        "push_pull": "Your history includes other crossroads—moments of choosing between paths. This isn't new territory.",
+        "expression": "There are other moments in your history where truth was held back. This silence has precedent.",
+        "control": "Your lifeline shows other times of holding on tight. The grip connects to something older.",
+        "release": "You've released before. Your history shows other moments of letting go.",
+    }
+    
+    if len(events) >= 5:
+        return pattern_lifeline.get(pattern_family, "Your history contains echoes of this pattern.")
+    
+    return ""
+
+
+def generate_pattern_synthesis(
+    signals: Dict[str, List],
+    pattern_title: str,
+    pattern_family: str
+) -> str:
+    """
+    Generate cross-lens synthesis that feels like a conclusion, not a summary.
+    """
+    has_astrology = bool(signals.get("astrology"))
+    has_hd = bool(signals.get("human_design"))
+    has_history = bool(signals.get("pattern_history"))
+    
+    source_count = sum([has_astrology, has_hd, has_history])
+    
+    # Pattern-specific synthesis conclusions
+    SYNTHESIS_TEMPLATES = {
+        "stall": {
+            3: "Across timing, your design, and your history, the same pattern shows up: momentum that stops before completion. This pause isn't blocking you—it's revealing something unresolved that wants attention before you move.",
+            2: "Both your current timing and your personal patterns point to the same thing: a pause that has meaning. The stall isn't failure—it's information about what isn't ready yet.",
+            1: "This pause connects to something real. It's not random hesitation—it's a pattern with roots.",
+        },
+        "push_pull": {
+            3: "From planetary pressure to your design to your own reflections, the same tension appears: two valid directions competing for the same moment. This isn't indecision—it's the feeling of standing at a real crossroads.",
+            2: "Multiple signals point to this back-and-forth. The pull in two directions isn't confusion—it's recognition that both paths have weight.",
+            1: "The push-pull you're feeling has evidence behind it. This isn't anxiety—it's two real options creating genuine tension.",
+        },
+        "expression": {
+            3: "Timing, design, and history all point to the same unsaid thing. The silence isn't nothing—it's holding something that wants to exist but doesn't feel safe yet.",
+            2: "What's unsaid is showing up across multiple sources. The held-back expression isn't weakness—it's waiting for the right conditions.",
+            1: "The silence carries weight. What's unexpressed has roots you can trace.",
+        },
+        "clarity": {
+            3: "The fog isn't just you. Current timing, your design, and your patterns all show moments where clarity delays. This confusion is protective, not problematic.",
+            2: "Multiple sources confirm the fog. The lack of clarity isn't a deficiency—it's appropriate to what's actually unclear.",
+            1: "The confusion connects to something real. Clarity will come, but it's not ready yet.",
+        },
+        "control": {
+            3: "Across timing, your design, and your history, the grip makes sense. You're trying to hold something together in genuinely unstable conditions.",
+            2: "The need to control is showing up in multiple sources. The grip isn't paranoia—it's response to real pressure.",
+            1: "The control has roots. What you're holding serves a purpose, even if it's exhausting.",
+        },
+        "release": {
+            3: "Timing, design, and history all support what's leaving. The release isn't loss—it's completion supported by multiple sources.",
+            2: "What you're letting go of is being confirmed from multiple angles. The release is aligned.",
+            1: "The letting go connects to something larger. What's releasing is ready to go.",
+        },
+        "movement": {
+            3: "Your forward drive is supported by timing, design, and your own history of moving when things are clear. This isn't impulsiveness—it's aligned action.",
+            2: "Multiple sources confirm the direction. The urge to move is grounded in real readiness.",
+            1: "The forward momentum connects to something authentic. The movement is earned.",
+        },
+    }
+    
+    family_templates = SYNTHESIS_TEMPLATES.get(pattern_family, SYNTHESIS_TEMPLATES["stall"])
+    
+    # Get the most appropriate template
+    if source_count >= 3:
+        return family_templates.get(3, family_templates[1])
+    elif source_count >= 2:
+        return family_templates.get(2, family_templates[1])
+    else:
+        return family_templates.get(1, "This pattern connects to something real. It's not random.")
+
+
 @api_router.get("/pattern-signals/{user_id}", response_model=PatternSignalsResponse)
 async def get_pattern_signals(user_id: str):
     """
     Returns detailed breakdown of WHY today's pattern is showing up.
-    Shows supporting signals from Astrology, Human Design, etc.
+    Evidence → Pattern → Implication format.
+    All signals explicitly link to the current pattern.
     """
     try:
         signals = {"astrology": [], "human_design": [], "pattern_history": []}
-        summary_parts = []
         
-        # Get user data
-        user = await db.users.find_one({"_id": ObjectId(user_id)})
-        if not user:
+        # Get user and chart data
+        try:
+            user, chart = await get_user_astrology_data(user_id)
+        except Exception as e:
+            logger.debug(f"[PatternSignals] Could not get user data: {e}")
             return PatternSignalsResponse(
                 summary="We couldn't find your data to explain this pattern.",
                 signals={},
-                synthesis="Try completing your profile to see deeper connections.",
+                synthesis="Complete your profile to see why patterns show up.",
                 confidence=0.2
             )
         
-        # 1. ASTROLOGY SIGNALS
+        # Get today's pattern for context
+        today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today_pattern = await db.today_patterns.find_one({
+            "user_id": user_id,
+            "date": today_date
+        })
+        
+        pattern_title = today_pattern.get("title", "Today's Pattern") if today_pattern else "Today's Pattern"
+        pattern_family = today_pattern.get("pattern_family", "general") if today_pattern else "general"
+        tension_type = today_pattern.get("tension_type", "") if today_pattern else ""
+        
+        # 1. ASTROLOGY SIGNALS - Evidence-linked
         try:
             from services.field_signals import detect_transit_convergence
-            from services.astrology_signal_engine import select_dominant_tension, DayClass
             
             transit_stack = detect_transit_convergence()
-            day_class_str = transit_stack.get("classification", "normal_flow")
             
-            # Get active transits
-            active_transits = transit_stack.get("active_transits", [])
-            
-            if active_transits:
-                for transit in active_transits[:3]:  # Top 3 transits
-                    planet = transit.get("planet", "Unknown")
-                    aspect = transit.get("aspect", "")
-                    target = transit.get("target", "")
-                    
-                    # Generate human-readable meaning
-                    meaning = generate_transit_meaning(planet, aspect, target)
-                    
-                    signals["astrology"].append(SignalDetail(
-                        label=f"{planet} {aspect} {target}".strip(),
-                        meaning=meaning,
-                        strength=transit.get("strength", 0.5)
-                    ))
-                    summary_parts.append("astrology")
-            
-            # If no specific transits, add general day energy
-            if not signals["astrology"]:
-                if day_class_str == "high_pressure":
-                    signals["astrology"].append(SignalDetail(
-                        label="High pressure day",
-                        meaning="Multiple planetary tensions are active, creating internal pressure to act or decide",
-                        strength=0.7
-                    ))
-                elif day_class_str == "release_window":
-                    signals["astrology"].append(SignalDetail(
-                        label="Release window",
-                        meaning="Energy is flowing outward—good for letting go, not forcing",
-                        strength=0.6
-                    ))
-                else:
-                    signals["astrology"].append(SignalDetail(
-                        label="Current timing",
-                        meaning="Subtle planetary movements are stirring patterns beneath the surface",
-                        strength=0.4
-                    ))
-                summary_parts.append("astrology")
+            astro_signals = generate_astrology_signal_for_pattern(
+                transit_stack,
+                pattern_title,
+                pattern_family,
+                tension_type
+            )
+            signals["astrology"] = astro_signals
                 
         except Exception as e:
             logger.debug(f"[PatternSignals] Astrology unavailable: {e}")
         
-        # 2. HUMAN DESIGN SIGNALS
+        # 2. HUMAN DESIGN SIGNALS - Design-linked
         try:
-            hd = user.get("human_design", {})
-            if hd and hd.get("type"):
-                hd_type = hd.get("type", "")
-                authority = hd.get("authority", "")
+            hd_data = extract_human_design_data(chart)
+            if hd_data and hd_data.get("type") != "Unknown":
+                # Get defined/undefined centers from chart
+                hd_chart = chart.get("human_design", {})
+                centers = hd_chart.get("centers", {})
+                defined_centers = []
+                undefined_centers = []
                 
-                # Type-based signal
-                type_meanings = {
-                    "Manifestor": "Your design initiates action without waiting—this pattern may be about reclaiming that impulse",
-                    "Generator": "You're designed to respond, not initiate—this pattern may be about waiting for the right signal",
-                    "Manifesting Generator": "You move fast when something resonates—this pattern is calling for that gut response",
-                    "Projector": "You see patterns others miss—this may be about what you're noticing but haven't been invited to share",
-                    "Reflector": "You mirror your environment—this pattern may be showing what's around you, not just in you"
+                for center_name, center_data in centers.items():
+                    if isinstance(center_data, dict):
+                        if center_data.get("defined"):
+                            defined_centers.append(center_name)
+                        else:
+                            undefined_centers.append(center_name)
+                    elif center_data == True:
+                        defined_centers.append(center_name)
+                    else:
+                        undefined_centers.append(center_name)
+                
+                hd_signal_data = {
+                    "type": hd_data.get("type", ""),
+                    "authority": hd_data.get("authority", ""),
+                    "defined_centers": defined_centers,
+                    "undefined_centers": undefined_centers,
                 }
                 
-                if hd_type in type_meanings:
-                    signals["human_design"].append(SignalDetail(
-                        label=f"Your type: {hd_type}",
-                        meaning=type_meanings[hd_type],
-                        strength=0.6
-                    ))
-                
-                # Authority-based signal
-                authority_meanings = {
-                    "Emotional": "Your clarity comes in waves—today's pattern may need time to settle",
-                    "Sacral": "Your gut knows before your mind—this pattern is something your body already recognized",
-                    "Splenic": "You sense things in the moment—this pattern is here now, trust it",
-                    "Self-Projected": "Speaking it out loud helps—this pattern wants to be heard",
-                    "Ego/Heart": "Your will knows what matters—this pattern connects to what you truly want",
-                    "Mental/Environmental": "You need the right space to see clearly—this pattern is affected by your surroundings"
-                }
-                
-                for auth_key, meaning in authority_meanings.items():
-                    if auth_key.lower() in authority.lower():
-                        signals["human_design"].append(SignalDetail(
-                            label=f"Your authority: {authority}",
-                            meaning=meaning,
-                            strength=0.5
-                        ))
-                        break
-                
-                summary_parts.append("human_design")
+                hd_signals = generate_hd_signal_for_pattern(
+                    hd_signal_data,
+                    pattern_title,
+                    pattern_family,
+                    tension_type
+                )
+                signals["human_design"] = hd_signals
                 
         except Exception as e:
             logger.debug(f"[PatternSignals] Human Design unavailable: {e}")
         
-        # 3. PATTERN HISTORY (Journal signals)
+        # 3. PATTERN HISTORY SIGNALS - Real examples
         try:
-            seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
-            recent_entries = await db.journal.find({
-                "user_id": user_id,
-                "created_at": {"$gte": seven_days_ago}
-            }).to_list(30)
-            
-            if len(recent_entries) >= 2:
-                signals["pattern_history"].append(SignalDetail(
-                    label=f"Appeared {len(recent_entries)} times recently",
-                    meaning="You've been circling back to similar themes in your reflections",
-                    strength=min(0.3 + (len(recent_entries) * 0.1), 0.8)
-                ))
-                summary_parts.append("pattern_history")
+            history_signals = await generate_pattern_history_signal(
+                user_id,
+                pattern_title,
+                pattern_family,
+                tension_type,
+                db
+            )
+            signals["pattern_history"] = history_signals
                 
         except Exception as e:
             logger.debug(f"[PatternSignals] Journal history unavailable: {e}")
         
         # Build summary
-        if not summary_parts:
-            summary = "This pattern is emerging from subtle signals we're still gathering."
-        elif len(summary_parts) == 1:
-            source_names = {"astrology": "current planetary timing", "human_design": "your design", "pattern_history": "your recent reflections"}
-            summary = f"This pattern is being highlighted by {source_names.get(summary_parts[0], 'one signal')}."
+        source_count = sum(1 for v in signals.values() if v)
+        if source_count == 0:
+            summary = f"'{pattern_title}' is emerging from subtle signals we're still gathering."
+        elif source_count == 1:
+            source_names = {
+                "astrology": "current planetary timing",
+                "human_design": "your Human Design",
+                "pattern_history": "your reflection history"
+            }
+            active_source = next((k for k, v in signals.items() if v), "signals")
+            summary = f"'{pattern_title}' is being highlighted by {source_names.get(active_source, 'one source')}."
         else:
-            summary = "Multiple sources are pointing to the same pattern today."
+            summary = f"Multiple sources are pointing to '{pattern_title}' today."
         
         # Build synthesis
-        synthesis_parts = []
-        if signals["astrology"]:
-            synthesis_parts.append("The current timing is creating pressure around this theme")
-        if signals["human_design"]:
-            synthesis_parts.append("your design is naturally drawn to notice this kind of pattern")
-        if signals["pattern_history"]:
-            synthesis_parts.append("you've been here before in your reflections")
-        
-        if synthesis_parts:
-            synthesis = synthesis_parts[0].capitalize()
-            if len(synthesis_parts) > 1:
-                synthesis += ", " + ", and ".join(synthesis_parts[1:])
-            synthesis += ". This is not random—these signals are converging."
-        else:
-            synthesis = "Trust what you're noticing. Patterns surface when they're ready to be seen."
+        synthesis = generate_pattern_synthesis(signals, pattern_title, pattern_family)
         
         # Calculate confidence
         confidence = 0.3
         for source_signals in signals.values():
             for sig in source_signals:
-                confidence += (sig.strength or 0.3) * 0.15
+                confidence += (sig.strength or 0.3) * 0.12
         confidence = min(confidence, 0.95)
         
         return PatternSignalsResponse(
             summary=summary,
             signals={k: v for k, v in signals.items() if v},  # Only non-empty
             synthesis=synthesis,
-            pattern_history=f"{len(recent_entries)} entries this week" if 'recent_entries' in dir() and recent_entries else None,
+            pattern_history=None,
             confidence=confidence
         )
         
@@ -12248,38 +12697,9 @@ async def get_pattern_signals(user_id: str):
         return PatternSignalsResponse(
             summary="Something is showing up, but we couldn't trace all the signals.",
             signals={},
-            synthesis="Trust what you're noticing—even without the full picture.",
+            synthesis="What you're noticing is real, even if the evidence is incomplete.",
             confidence=0.3
         )
-
-
-def generate_transit_meaning(planet: str, aspect: str, target: str) -> str:
-    """Generate human-readable meaning for a transit"""
-    planet_themes = {
-        "Sun": "identity and purpose",
-        "Moon": "emotions and needs",
-        "Mercury": "thoughts and communication",
-        "Venus": "relationships and values",
-        "Mars": "action and desire",
-        "Jupiter": "growth and expansion",
-        "Saturn": "structure and limits",
-        "Uranus": "change and disruption",
-        "Neptune": "dreams and illusions",
-        "Pluto": "transformation and power"
-    }
-    
-    aspect_effects = {
-        "conjunction": "is merging with",
-        "square": "is creating tension with",
-        "opposition": "is pulling against",
-        "trine": "is flowing with",
-        "sextile": "is opening doors with"
-    }
-    
-    theme = planet_themes.get(planet, "subtle energy")
-    effect = aspect_effects.get(aspect.lower(), "is interacting with")
-    
-    return f"Your {theme} {effect} deeper forces, creating the conditions for this pattern to surface"
 
 
 # =============================================================================

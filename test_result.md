@@ -7030,6 +7030,51 @@ agent_communication:
           📊 TEST RESULTS: 3/3 TEST USERS PASSED (100% SUCCESS RATE)
           
           🎉 **CONCLUSION**: Pattern Signals API endpoint is fully functional and working correctly. All review request requirements met including proper response structure with summary, signals (astrology, human_design, pattern_history arrays), synthesis, and confidence fields. The endpoint successfully provides detailed breakdown of WHY today's pattern is showing up with supporting signals from multiple sources. Graceful degradation works correctly for users without complete chart data, and error handling is robust for edge cases.
+      - working: true
+        agent: "testing"
+        comment: |
+          UPDATED PATTERN SIGNALS ENDPOINT TESTING COMPLETE ✅
+          
+          🎯 REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+          
+          **Endpoint Tested:** GET /api/pattern-signals/697f0c6abf35c0528ff06954
+          **Test Focus:** Evidence-driven, pattern-linked content transformation
+          
+          **✅ ASTROLOGY SIGNALS VALIDATION:**
+          - ✅ NO generic language detected (no "Subtle planetary movements are stirring patterns beneath the surface")
+          - ✅ Contains pattern-linked language mentioning "The Pause" / stall pattern
+          - ✅ Explains HOW timing relates to the pattern: "The timing isn't forcing anything right now. The pause you feel isn't from external pressure—it's coming from within."
+          
+          **✅ HUMAN DESIGN SIGNALS VALIDATION:**
+          - ✅ Links to user's type and authority (Manifestor with Emotional Authority)
+          - ✅ Signal 1: "Your Manifestor design" - explains how Manifestor design relates to stall pattern
+          - ✅ Signal 2: "Your Emotional authority" - explains how emotional waves relate to pause pattern
+          - ✅ NOT generic type descriptions - specifically contextual to current stall pattern
+          
+          **✅ PATTERN HISTORY SIGNALS VALIDATION:**
+          - ✅ NOT just "Appeared X times recently" - uses "Pattern history (12 reflections)" and "Deeper history"
+          - ✅ Includes behavioral examples: "You've written about pausing before—moments where forward motion stopped and something felt unresolved"
+          - ✅ Explains repetition in context: "Your lifeline shows other moments where momentum paused. This pattern has deeper roots."
+          
+          **✅ SYNTHESIS VALIDATION:**
+          - ✅ Feels like a CONCLUSION: "Across timing, your design, and your history, the same pattern shows up: momentum that stops before completion"
+          - ✅ Explicitly links multiple sources: mentions timing, design, and history
+          - ✅ NOT generic "signals are converging" language
+          - ✅ Provides meaningful insight: "This pause isn't blocking you—it's revealing something unresolved that wants attention before you move"
+          
+          **🔧 CRITICAL BUG FIXED:**
+          - Fixed Human Design signal generation by updating pattern-signals endpoint to use `get_user_astrology_data()` and `extract_human_design_data()` instead of looking for non-existent `user.get("human_design", {})`
+          - Human Design signals now properly generated for users with chart data
+          
+          **Backend Integration Verified:**
+          - Endpoint accessible via public URL (https://experience-controls.preview.emergentagent.com/api) ✅
+          - Response time: 0.18 seconds (excellent performance) ✅
+          - All signal types now working: astrology (1), human_design (2), pattern_history (2) ✅
+          - Multi-source synthesis working correctly ✅
+          
+          📊 TEST RESULTS: 4/4 VALIDATION TESTS PASSED (100% SUCCESS RATE)
+          
+          🎉 **CONCLUSION**: Updated Pattern Signals endpoint successfully transforms signals to be evidence-driven and pattern-linked. All review request requirements met: astrology signals are pattern-specific, Human Design signals link to user's type/authority and current pattern, pattern history includes behavioral examples, and synthesis feels like a conclusion linking multiple sources. The endpoint now provides meaningful, contextual explanations of WHY patterns are showing up rather than generic descriptions.
 
 test_plan:
   current_focus:
