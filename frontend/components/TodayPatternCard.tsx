@@ -1,70 +1,30 @@
 /**
- * TodayPatternCard
+ * TodayPatternCard - DIAGNOSIS-FIRST
+ * 
  * Home screen keystone - Cross-Lens Synthesis
  * 
- * NOW MODE-BASED for structural experience differentiation:
+ * NEW STRUCTURE (replaces signal-summary approach):
+ * 1. Pattern title
+ * 2. DIAGNOSIS: What is happening
+ * 3. GUIDANCE: What would be wise
+ * 4. Supporting evidence (collapsed)
+ * 5. CTA derived from diagnosis
  * 
- * GROUNDING MODE:
- * - Max 2 lines
- * - 1 signal only
- * - Reassuring tone
- * - Simple language
- * - Calming CTA
- * 
- * EXPLORATORY MODE:
- * - Full content (5 lines)
- * - Multiple signals
- * - Cross-lens synthesis
- * - Open-ended reflection
- * - Question-based CTA
- * 
- * DIRECTIVE MODE:
- * - Structured output (3 lines)
- * - 2 signals + interpretation
- * - Clear language
- * - Action-oriented CTA
+ * MODE still controls verbosity, but ALL modes use diagnosis-first:
+ * - GROUNDING: Shorter diagnosis, less evidence
+ * - EXPLORATORY: Full diagnosis, rich evidence
+ * - DIRECTIVE: Clear diagnosis, action-focused
  */
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useRouter } from 'expo-router';
-import api, { getPatternSignals, PatternSignalDetail } from '../services/api';
+import { getPatternDiagnosis, PatternDiagnosisResponse } from '../services/api';
 import { useExperienceControls } from '../hooks/useExperienceControls';
-import { MODE_CONFIGS } from '../types/mirror-profile';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
-interface TodayPatternData {
-  title: string;
-  lines: string[];
-  confidence: number;
-  sources: string[];
-  date: string;
-  cached: boolean;
-  follow_through?: string;
-  follow_through_route?: string;
-  // Pattern-specific content from backend
-  pattern_family?: string;
-  pattern_closer?: string;
-  action_guidance?: {
-    action: string;
-    context: string;
-    timeframe: string;
-    cta: string;
-  };
-}
-
-interface SignalsData {
-  summary: string;
-  signals: {
-    astrology?: PatternSignalDetail[];
-    human_design?: PatternSignalDetail[];
-    pattern_history?: PatternSignalDetail[];
-  };
-  synthesis: string;
 }
 
 interface TodayPatternCardProps {
@@ -75,17 +35,15 @@ interface TodayPatternCardProps {
 
 export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatternCardProps) {
   const router = useRouter();
-  const [data, setData] = useState<TodayPatternData | null>(null);
+  const [diagnosis, setDiagnosis] = useState<PatternDiagnosisResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Experience controls for personalization - MODE is the primary driver
-  const { mode, modeConfig, controls } = useExperienceControls();
+  const { mode, modeConfig } = useExperienceControls();
   
-  // Expander state
+  // Expander state for supporting evidence
   const [isExpanded, setIsExpanded] = useState(false);
-  const [signalsData, setSignalsData] = useState<SignalsData | null>(null);
-  const [signalsLoading, setSignalsLoading] = useState(false);
 
   useEffect(() => {
     if (!userId) {
@@ -93,21 +51,21 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
       return;
     }
 
-    const fetchPattern = async () => {
+    const fetchDiagnosis = async () => {
       try {
         setIsLoading(true);
-        const response = await api.get(`/today-pattern/${userId}`);
-        setData(response.data);
+        const response = await getPatternDiagnosis(userId);
+        setDiagnosis(response);
         setError(null);
       } catch (err) {
         console.error('[TodayPatternCard] Error:', err);
-        setError('Could not load pattern');
+        setError('Could not load diagnosis');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchPattern();
+    fetchDiagnosis();
   }, [userId]);
 
   const handleReflect = () => {
@@ -118,254 +76,272 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
     }
   };
 
-  const handleFollowThrough = () => {
-    if (!data?.follow_through_route) return;
-    
-    switch (data.follow_through_route) {
-      case 'reflect':
-        router.push('/(tabs)/reflect');
-        break;
-      case 'human_design':
-        router.push('/lenses/human-design');
-        break;
-      case 'astrology':
-        router.push('/lenses/astrology?tab=today');
-        break;
-      case 'enneagram':
-        router.push('/lenses/enneagram');
-        break;
-      default:
-        break;
-    }
-  };
-
-  // Toggle expander and fetch signals if needed
-  const handleExpandToggle = async () => {
+  // Toggle expander for supporting evidence
+  const handleExpandToggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    
-    if (!isExpanded && !signalsData && !signalsLoading) {
-      // First time expanding - fetch signals
-      setSignalsLoading(true);
-      try {
-        const response = await getPatternSignals(userId);
-        setSignalsData(response);
-      } catch (err) {
-        console.error('[TodayPatternCard] Error fetching signals:', err);
-      } finally {
-        setSignalsLoading(false);
-      }
-    }
-    
     setIsExpanded(!isExpanded);
   };
 
-  // Navigate to full signals page
-  const handleSeeAllSignals = () => {
+  // Navigate to full diagnosis page
+  const handleSeeFullDiagnosis = () => {
     router.push('/signals');
   };
 
   // ============================================================
-  // MODE-BASED STRUCTURAL FUNCTIONS
+  // MODE-BASED CONTENT FUNCTIONS
   // ============================================================
 
-  // Get signals based on MODE (structural change, not just count)
-  const getTopSignals = () => {
-    if (!signalsData?.signals) return [];
+  // Get "what is happening" text - truncated for grounding mode
+  const getWhatIsHappening = (): string => {
+    if (!diagnosis?.what_is_happening) return '';
     
-    const allSignals: { category: string; signal: PatternSignalDetail; showInterpretation: boolean }[] = [];
+    const text = diagnosis.what_is_happening;
     
-    if (signalsData.signals.astrology) {
-      signalsData.signals.astrology.forEach(s => 
-        allSignals.push({ 
-          category: 'Astrology', 
-          signal: s, 
-          showInterpretation: modeConfig.showSignalInterpretation 
-        })
-      );
-    }
-    if (signalsData.signals.human_design) {
-      signalsData.signals.human_design.forEach(s => 
-        allSignals.push({ 
-          category: 'Human Design', 
-          signal: s, 
-          showInterpretation: modeConfig.showSignalInterpretation 
-        })
-      );
-    }
-    if (signalsData.signals.pattern_history) {
-      signalsData.signals.pattern_history.forEach(s => 
-        allSignals.push({ 
-          category: 'Pattern History', 
-          signal: s, 
-          showInterpretation: modeConfig.showSignalInterpretation 
-        })
-      );
+    if (mode === 'grounding') {
+      // Truncate to first sentence for grounding mode
+      const firstSentence = text.split(/[.!?]/)[0];
+      return firstSentence ? firstSentence + '.' : text;
     }
     
-    // Use MODE maxSignals for structural limit
-    return allSignals.slice(0, modeConfig.maxSignals);
+    return text;
   };
 
-  // Get CTA text based on MODE (structural change in prompt behavior)
-  const getCtaText = () => modeConfig.ctaText;
-
-  // Get lines to show based on MODE maxLines (structural change)
-  const getLinesToShow = () => {
-    if (!data?.lines) return [];
-    return data.lines.slice(0, modeConfig.maxLines);
+  // Get "what would be wise" text - truncated for grounding mode
+  const getWhatWouldBeWise = (): string => {
+    if (!diagnosis?.what_would_be_wise) return '';
+    
+    const text = diagnosis.what_would_be_wise;
+    
+    if (mode === 'grounding') {
+      // Truncate to first sentence
+      const firstSentence = text.split(/[.!?]/)[0];
+      return firstSentence ? firstSentence + '.' : text;
+    }
+    
+    if (mode === 'directive') {
+      // Keep full for directive - they want clarity
+      return text;
+    }
+    
+    return text;
   };
 
-  // Should show cross-lens synthesis (only in exploratory mode)
-  const shouldShowCrossLensSynthesis = () => {
-    return mode === 'exploratory' && signalsData?.synthesis;
+  // Get CTA text based on MODE and diagnosis
+  const getCtaText = (): string => {
+    // Derive CTA from moment type when possible
+    if (diagnosis?.moment_type) {
+      const momentCtas: Record<string, Record<string, string>> = {
+        premature_initiation: {
+          grounding: 'Breathe first',
+          exploratory: 'Explore what is not ready',
+          directive: 'Name what is blocking',
+        },
+        pause_stall: {
+          grounding: 'Rest here',
+          exploratory: 'Explore the pause',
+          directive: 'Name the block',
+        },
+        threshold_moment: {
+          grounding: 'Notice without acting',
+          exploratory: 'Explore the threshold',
+          directive: 'Decide one thing',
+        },
+        overreach_risk: {
+          grounding: 'Let it be',
+          exploratory: 'Explore the risk',
+          directive: 'Identify what to release',
+        },
+        unresolved_wave: {
+          grounding: 'Wait for neutral',
+          exploratory: 'Feel the wave',
+          directive: 'Wait for clarity',
+        },
+        structure_not_ready: {
+          grounding: 'Build slowly',
+          exploratory: 'Explore the foundation',
+          directive: 'Strengthen one thing',
+        },
+        clean_initiation: {
+          grounding: 'Move gently',
+          exploratory: 'Explore the opening',
+          directive: 'Take one step',
+        },
+        consolidation: {
+          grounding: 'Rest and build',
+          exploratory: 'Explore what is forming',
+          directive: 'Strengthen foundation',
+        },
+        forcing_window: {
+          grounding: 'Ride gently',
+          exploratory: 'Explore the momentum',
+          directive: 'Act now',
+        },
+        review_recalibration: {
+          grounding: 'Reflect softly',
+          exploratory: 'Review what is true',
+          directive: 'Clarify one thing',
+        },
+      };
+      
+      const momentType = diagnosis.moment_type;
+      if (momentCtas[momentType] && momentCtas[momentType][mode]) {
+        return momentCtas[momentType][mode];
+      }
+    }
+    
+    // Fallback to mode config CTA
+    return modeConfig.ctaText;
   };
 
-  // Should show "See all signals" link
-  const shouldShowSeeAllLink = () => {
-    // Only show if we have more signals than maxSignals allows
-    if (!signalsData?.signals) return false;
-    const totalSignals = 
-      (signalsData.signals.astrology?.length || 0) +
-      (signalsData.signals.human_design?.length || 0) +
-      (signalsData.signals.pattern_history?.length || 0);
-    return totalSignals > modeConfig.maxSignals;
+  // Get opener text based on MODE
+  const getOpenerText = (): string => {
+    if (mode === 'grounding') return 'TODAY';
+    if (mode === 'directive') return 'TODAY\'S DIAGNOSIS';
+    return 'WHAT MIRROR SEES TODAY';
   };
 
-  // Don't render if no data
-  if (!isLoading && (!data || !data.lines || data.lines.length === 0)) {
-    return null;
-  }
+  // Should show "what kind of moment" line
+  const shouldShowMomentType = (): boolean => {
+    return mode !== 'grounding' && !!diagnosis?.what_kind_of_moment;
+  };
 
+  // Format evidence for display
+  const getEvidenceItems = () => {
+    if (!diagnosis?.evidence) return [];
+    
+    const items: { label: string; text: string }[] = [];
+    
+    if (diagnosis.evidence.timing) {
+      items.push({
+        label: 'TIMING',
+        text: diagnosis.evidence.timing.summary,
+      });
+    }
+    
+    if (diagnosis.evidence.design) {
+      items.push({
+        label: 'YOUR DESIGN',
+        text: diagnosis.evidence.design.summary,
+      });
+    }
+    
+    if (diagnosis.evidence.history) {
+      items.push({
+        label: 'PATTERN HISTORY',
+        text: diagnosis.evidence.history.summary,
+      });
+    }
+    
+    // Limit based on mode
+    if (mode === 'grounding') return items.slice(0, 1);
+    if (mode === 'directive') return items.slice(0, 2);
+    return items;
+  };
+
+  // Don't render if loading
   if (isLoading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <ActivityIndicator size="small" color={theme.textTertiary} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={theme.textTertiary} />
+          <Text style={[styles.loadingText, { color: theme.textTertiary }]}>
+            Building diagnosis...
+          </Text>
+        </View>
       </View>
     );
   }
 
+  // Don't render if no diagnosis
+  if (!diagnosis) {
+    return null;
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
-      {/* Label with MODE-based opener */}
+      {/* Opener */}
       <Text style={[styles.label, { color: theme.textTertiary }]}>
-        {modeConfig.patternOpener.toUpperCase()}
+        {getOpenerText()}
       </Text>
       
-      {/* Title */}
+      {/* Pattern Title */}
       <Text style={[styles.title, { color: theme.text }]}>
-        {data?.title}
+        {diagnosis.pattern_title}
       </Text>
       
-      {/* Lines - controlled by MODE maxLines (structural change) */}
-      <View style={styles.linesContainer}>
-        {getLinesToShow().map((line, index) => (
-          <Text 
-            key={index} 
-            style={[
-              styles.line, 
-              { color: index === getLinesToShow().length - 1 ? theme.text : theme.textSecondary },
-              index === getLinesToShow().length - 1 && styles.lastLine
-            ]}
-          >
-            {line}
-          </Text>
-        ))}
+      {/* CORE DIAGNOSIS: What is happening */}
+      <View style={styles.diagnosisSection}>
+        <Text style={[styles.diagnosisText, { color: theme.text }]}>
+          {getWhatIsHappening()}
+        </Text>
       </View>
       
-      {/* MODE-based closer - NOW USES PATTERN-SPECIFIC CLOSER FROM BACKEND */}
-      <Text style={[styles.toneCloser, { color: theme.textTertiary }]}>
-        {data?.pattern_closer || modeConfig.patternCloser}
-      </Text>
-      
-      {/* Follow-through line - only show if MODE allows cross-lens synthesis */}
-      {modeConfig.showCrossLensSynthesis && data?.follow_through && (
-        <TouchableOpacity
-          style={styles.followThroughContainer}
-          onPress={handleFollowThrough}
-          activeOpacity={0.7}
-          disabled={!data.follow_through_route}
-        >
-          <Text style={[styles.followThrough, { color: theme.textTertiary }]}>
-            {data.follow_through}
-            {data.follow_through_route && ' →'}
+      {/* MOMENT TYPE: What kind of moment (not in grounding) */}
+      {shouldShowMomentType() && (
+        <View style={[styles.momentBadge, { backgroundColor: theme.accent + '12', borderColor: theme.accent + '25' }]}>
+          <Text style={[styles.momentText, { color: theme.text }]}>
+            {diagnosis.what_kind_of_moment}
           </Text>
-        </TouchableOpacity>
+        </View>
       )}
       
-      {/* Why this is showing up - Expander */}
+      {/* GUIDANCE: What would be wise */}
+      <View style={styles.wisdomSection}>
+        <Text style={[styles.wisdomLabel, { color: theme.textTertiary }]}>
+          {mode === 'grounding' ? 'FOR NOW' : 'WHAT WOULD BE WISE'}
+        </Text>
+        <Text style={[styles.wisdomText, { color: theme.textSecondary }]}>
+          {getWhatWouldBeWise()}
+        </Text>
+      </View>
+      
+      {/* Supporting Evidence Expander */}
       <TouchableOpacity
         style={[styles.expanderToggle, { borderTopColor: theme.border }]}
         onPress={handleExpandToggle}
         activeOpacity={0.7}
       >
         <Text style={[styles.expanderToggleText, { color: theme.textSecondary }]}>
-          {modeConfig.signalIntro}
+          {isExpanded ? 'Hide supporting evidence' : 'Why this is showing up'}
         </Text>
         <Text style={[styles.expanderArrow, { color: theme.textTertiary }]}>
           {isExpanded ? '▲' : '▼'}
         </Text>
       </TouchableOpacity>
       
-      {/* Expanded Signals Section - MODE-based structure */}
+      {/* Expanded Evidence Section */}
       {isExpanded && (
         <View style={styles.expandedContent}>
-          {signalsLoading ? (
-            <View style={styles.signalsLoading}>
-              <ActivityIndicator size="small" color={theme.textTertiary} />
-              <Text style={[styles.signalsLoadingText, { color: theme.textTertiary }]}>
-                Tracing signals...
-              </Text>
-            </View>
-          ) : signalsData ? (
+          {getEvidenceItems().length > 0 ? (
             <>
-              {/* Top Signals - limited by MODE maxSignals */}
-              <View style={styles.signalsList}>
-                {getTopSignals().map((item, index) => (
-                  <View 
-                    key={index} 
-                    style={[styles.signalItem, { borderLeftColor: theme.accent + '50' }]}
-                  >
-                    <Text style={[styles.signalCategory, { color: theme.textTertiary }]}>
-                      {item.category}
-                    </Text>
-                    <Text style={[styles.signalLabel, { color: theme.text }]}>
-                      {item.signal.label}
-                    </Text>
-                    {/* Only show meaning if MODE allows interpretation */}
-                    {item.showInterpretation && (
-                      <Text style={[styles.signalMeaning, { color: theme.textSecondary }]}>
-                        {item.signal.meaning}
-                      </Text>
-                    )}
-                  </View>
-                ))}
-              </View>
-              
-              {/* Cross-lens synthesis - ONLY in exploratory mode */}
-              {shouldShowCrossLensSynthesis() && (
-                <View style={[styles.synthesisBox, { backgroundColor: theme.accent + '10' }]}>
-                  <Text style={[styles.synthesisText, { color: theme.textSecondary }]}>
-                    {signalsData.synthesis}
+              {getEvidenceItems().map((item, index) => (
+                <View 
+                  key={index} 
+                  style={[styles.evidenceItem, { borderLeftColor: theme.accent + '50' }]}
+                >
+                  <Text style={[styles.evidenceLabel, { color: theme.textTertiary }]}>
+                    {item.label}
+                  </Text>
+                  <Text style={[styles.evidenceText, { color: theme.textSecondary }]}>
+                    {item.text}
                   </Text>
                 </View>
-              )}
+              ))}
               
-              {/* See all signals link - only if more signals exist */}
-              {shouldShowSeeAllLink() && (
-                <TouchableOpacity
-                  style={styles.seeAllLink}
-                  onPress={handleSeeAllSignals}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.seeAllText, { color: theme.accent }]}>
-                    See all signals →
-                  </Text>
-                </TouchableOpacity>
-              )}
+              {/* See full diagnosis link */}
+              <TouchableOpacity
+                style={styles.seeAllLink}
+                onPress={handleSeeFullDiagnosis}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.seeAllText, { color: theme.accent }]}>
+                  See full diagnosis →
+                </Text>
+              </TouchableOpacity>
             </>
           ) : (
-            <Text style={[styles.noSignalsText, { color: theme.textTertiary }]}>
-              Unable to load signals
+            <Text style={[styles.noEvidenceText, { color: theme.textTertiary }]}>
+              Complete your profile to see deeper connections.
             </Text>
           )}
         </View>
@@ -374,7 +350,7 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
       {/* Divider */}
       <View style={[styles.divider, { backgroundColor: theme.border }]} />
       
-      {/* CTA - MODE-based action type */}
+      {/* CTA - derived from diagnosis */}
       <TouchableOpacity
         style={styles.ctaContainer}
         onPress={handleReflect}
@@ -394,6 +370,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 12,
   },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 20,
+  },
+  loadingText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
   label: {
     fontSize: 10,
     fontWeight: '600',
@@ -401,44 +388,56 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    lineHeight: 24,
+    marginBottom: 14,
+    letterSpacing: -0.3,
+  },
+  
+  // Diagnosis section
+  diagnosisSection: {
     marginBottom: 14,
   },
-  linesContainer: {
-    gap: 8,
-  },
-  line: {
+  diagnosisText: {
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 23,
+    fontWeight: '500',
   },
-  lastLine: {
-    fontStyle: 'italic',
+  
+  // Moment type badge
+  momentBadge: {
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 14,
+    borderWidth: 1,
   },
-  followThroughContainer: {
-    marginTop: 12,
-    paddingTop: 10,
-  },
-  followThrough: {
+  momentText: {
     fontSize: 13,
-    lineHeight: 18,
-    fontStyle: 'italic',
+    lineHeight: 20,
+    fontWeight: '500',
   },
-  // Tone closer (personalized closing line)
-  toneCloser: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontStyle: 'italic',
-    marginTop: 14,
+  
+  // Wisdom section
+  wisdomSection: {
+    marginBottom: 14,
   },
-  // Expander styles
+  wisdomLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
+  wisdomText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  
+  // Expander
   expanderToggle: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 14,
-    marginTop: 12,
+    alignItems: 'center',
+    paddingVertical: 12,
     borderTopWidth: 1,
   },
   expanderToggleText: {
@@ -448,80 +447,57 @@ const styles = StyleSheet.create({
   expanderArrow: {
     fontSize: 10,
   },
+  
+  // Expanded content
   expandedContent: {
-    marginTop: 14,
-    paddingTop: 4,
+    paddingBottom: 8,
   },
-  signalsLoading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-  },
-  signalsLoadingText: {
-    fontSize: 13,
-    fontStyle: 'italic',
-  },
-  signalsList: {
-    gap: 12,
-  },
-  signalItem: {
+  evidenceItem: {
     borderLeftWidth: 2,
     paddingLeft: 12,
+    marginBottom: 12,
   },
-  signalCategory: {
-    fontSize: 10,
+  evidenceLabel: {
+    fontSize: 9,
     fontWeight: '600',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     marginBottom: 4,
-    textTransform: 'uppercase',
   },
-  signalLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  signalMeaning: {
+  evidenceText: {
     fontSize: 13,
-    lineHeight: 18,
-  },
-  synthesisBox: {
-    marginTop: 14,
-    padding: 12,
-    borderRadius: 8,
-  },
-  synthesisText: {
-    fontSize: 13,
-    lineHeight: 20,
-    fontStyle: 'italic',
+    lineHeight: 19,
   },
   seeAllLink: {
-    marginTop: 14,
-    alignItems: 'flex-end',
+    paddingVertical: 8,
+    alignItems: 'center',
   },
   seeAllText: {
     fontSize: 13,
     fontWeight: '500',
   },
-  noSignalsText: {
+  noEvidenceText: {
     fontSize: 13,
     fontStyle: 'italic',
     textAlign: 'center',
-    paddingVertical: 12,
+    paddingVertical: 8,
   },
+  
+  // Divider
   divider: {
     height: 1,
-    marginVertical: 14,
+    marginVertical: 12,
+    opacity: 0.5,
   },
+  
+  // CTA
   ctaContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   ctaText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   ctaArrow: {
     fontSize: 16,
