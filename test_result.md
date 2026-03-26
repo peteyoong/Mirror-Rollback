@@ -2290,7 +2290,46 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: |
-      HUMAN DESIGN DEFINED GATES ENDPOINT TESTING COMPLETE ✅
+      UNIFIED TIMING INTELLIGENCE REGRESSION DETECTED ❌
+      
+      Successfully tested the unified timing intelligence in pattern diagnosis as requested, but discovered a critical regression:
+      
+      🎯 **REVIEW REQUEST TESTING RESULTS:**
+      
+      **❌ CRITICAL ISSUE FOUND:** Pattern diagnosis endpoint is showing BaZi information instead of real transit data in timing evidence.
+      
+      **🔍 DETAILED FINDINGS:**
+      
+      1. **evidence.timing.summary** REGRESSION:
+         - Current: "BaZi adds Fire officer energy—responsibility and authority pressure."
+         - Expected: Should reference actual transits like "Jupiter square Saturn" or "Uranus square Jupiter"
+         - Missing: Transit intensity (low/moderate/high), transit types (expansion, constraint, disruption)
+      
+      2. **evidence.timing.implication** REGRESSION:
+         - Current: "With no external transit pressure, what you're experiencing is arising from within."
+         - Expected: Should be pattern-specific linking to "The Pause"
+         - Missing: Pattern-specific references (pause, threshold, decision, choice)
+      
+      3. **CRITICAL DATA AVAILABILITY MISMATCH:**
+         - ✅ Chart API has 41 transit aspects available
+         - ✅ Major transits detected: Jupiter square Saturn (0.751), Pluto square Mars (0.624), Uranus square Jupiter (0.581)
+         - ✅ Backend logs show transit signals: ['Jupiter->Saturn', 'Uranus->Uranus', 'Uranus->Jupiter']
+         - ❌ Pattern diagnosis endpoint NOT accessing this real transit data
+      
+      **🔧 ROOT CAUSE:** Pattern diagnosis endpoint tries to get transit aspects from database chart but database doesn't contain transit aspects. Real transit data exists in Chart API but isn't being accessed.
+      
+      **📊 TEST RESULTS: 4/7 CRITICAL REQUIREMENTS FAILED**
+      - ❌ No actual transit references in timing evidence
+      - ❌ No transit intensity indicators  
+      - ❌ No pattern-specific implications
+      - ❌ Limited astrological content
+      - ✅ No 'sky is quiet' generic language
+      - ✅ Valid response structure
+      - ✅ BaZi evidence working correctly
+      
+      **🚨 IMPACT:** Users see BaZi information instead of real astrology transit data in their pattern diagnosis timing evidence.
+      
+      **🔧 REQUIRED FIX:** Pattern diagnosis endpoint must fetch transit aspects from Chart API (`/api/astrology/chart/{user_id}`) instead of database to access the 41 available transit aspects.
       
       Successfully tested the Human Design Defined Gates endpoint implementation as requested in the review:
       
@@ -7576,4 +7615,58 @@ agent_communication:
           📊 TEST RESULTS: 5/5 TESTS PASSED (100% SUCCESS RATE)
           
           🎉 **CONCLUSION**: The astrology evidence upgrade is fully functional and working correctly. All review request requirements met including specific transit types (threshold), Moon context with sign and phase (Virgo First Quarter), pattern-specific implications referencing "The Pause", and elimination of generic language. The upgrade successfully provides real transit hierarchy with meaningful astrological context that directly relates to the user's pattern diagnosis.
+      - working: false
+        agent: "testing"
+        comment: |
+          UNIFIED TIMING INTELLIGENCE REGRESSION DETECTED ❌
+          
+          🎯 REVIEW REQUEST TESTING: GET /api/pattern-diagnosis/697f0c6abf35c0528ff06954?force_refresh=true
+          
+          **❌ CRITICAL REGRESSION IDENTIFIED:**
+          The unified timing intelligence is no longer using REAL transit data as required. Instead showing BaZi information in timing evidence.
+          
+          **🔍 DETAILED FINDINGS:**
+          
+          1. ❌ **evidence.timing.summary** REGRESSION:
+             - Current: "BaZi adds Fire officer energy—responsibility and authority pressure."
+             - Expected: Should reference actual transits like "Jupiter square Saturn" or "Uranus square Jupiter"
+             - Issue: No transit keywords found (jupiter, saturn, uranus, square, opposition, etc.)
+             - Issue: No transit intensity indicators (low/moderate/high)
+             - Issue: No transit types (expansion, constraint, disruption, etc.)
+          
+          2. ❌ **evidence.timing.implication** REGRESSION:
+             - Current: "With no external transit pressure, what you're experiencing is arising from within."
+             - Expected: Should be pattern-specific linking to "The Pause"
+             - Issue: No pattern-specific references found (pause, threshold, decision, choice, moment)
+             - Issue: Generic language instead of pattern-linked content
+          
+          3. ✅ **BaZi evidence present** (working correctly):
+             - Summary: "Today carries Fire energy—expression, passion, visibility..."
+             - Implication: "Officer energy adds pressure and responsibility..."
+          
+          4. ❌ **CRITICAL DATA AVAILABILITY MISMATCH:**
+             - Chart API shows 41 transit aspects available
+             - Major transits detected: Jupiter square Saturn (0.751), Pluto square Mars (0.624), Uranus square Jupiter (0.581), Neptune conjunction Chiron
+             - Backend logs show transit signals: ['Jupiter->Saturn', 'Uranus->Uranus', 'Uranus->Jupiter']
+             - BUT: Pattern diagnosis endpoint not accessing this real transit data
+          
+          **🔧 ROOT CAUSE ANALYSIS:**
+          - Pattern diagnosis endpoint tries to get transit aspects from database chart: `chart.get("transits", {}).get("transit_to_natal_aspects", [])`
+          - Database chart doesn't contain transit aspects (returns empty list)
+          - Real transit data exists in Chart API: `/api/astrology/chart/{user_id}` with 41 aspects
+          - Unified timing intelligence falls back to BaZi when no transit aspects provided
+          - Result: BaZi information shown instead of real transit data in timing evidence
+          
+          **📊 TEST RESULTS: 4/7 CRITICAL REQUIREMENTS FAILED**
+          - ❌ No actual transit references in timing evidence
+          - ❌ No transit intensity indicators  
+          - ❌ No pattern-specific implications
+          - ❌ Limited astrological content
+          - ✅ No 'sky is quiet' generic language
+          - ✅ Valid response structure
+          - ✅ BaZi evidence working
+          
+          **🚨 IMPACT:** The unified timing intelligence feature is not working as designed. Users see BaZi information instead of real astrology transit data in their pattern diagnosis.
+          
+          **🔧 REQUIRED FIX:** Pattern diagnosis endpoint must fetch transit aspects from Chart API (`/api/astrology/chart/{user_id}`) instead of database to access real transit data.
 

@@ -12795,9 +12795,15 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
         
         # Get transit data
         transit_data = None
+        transit_aspects = []  # Actual transit aspects from chart
         try:
             from services.field_signals import detect_transit_convergence
             transit_data = detect_transit_convergence()
+            
+            # CRITICAL: Get actual transit-to-natal aspects from the user's chart
+            if chart and "transits" in chart:
+                transit_aspects = chart.get("transits", {}).get("transit_to_natal_aspects", [])
+                logger.info(f"[Diagnosis] Found {len(transit_aspects)} transit-to-natal aspects")
         except Exception as e:
             logger.debug(f"[Diagnosis] Transit data unavailable: {e}")
         
@@ -12831,6 +12837,7 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
             transit_data=transit_data,
             journal_entries=journal_entries,
             lifeline_events=lifeline_events,
+            transit_aspects=transit_aspects,  # Pass actual transit aspects
         )
         
         # Calculate confidence

@@ -551,51 +551,72 @@ def format_lens_evidence(
     hd_data: Optional[Dict] = None,
     pattern_family: str = "general",
     mode: str = "exploratory",
+    transit_aspects: Optional[List[Dict]] = None,
+    birth_date: Optional[datetime] = None,
 ) -> Dict[str, Dict[str, str]]:
     """
     Format lens evidence as SUPPORT for the diagnosis.
     These are not separate summaries—they're evidence points.
     
-    UPGRADED: Now uses astrology_transit_evidence for real transit hierarchy.
+    UPGRADED: Now uses unified_timing_intelligence for real transit data.
+    NEVER says "quiet" if outer planet aspects exist.
     """
-    from services.astrology_transit_evidence import get_astrology_evidence_for_diagnosis
+    from services.unified_timing_intelligence import get_unified_timing
     
     evidence = {}
     
-    # TIMING EVIDENCE (Astrology) - NOW WITH REAL TRANSIT HIERARCHY
+    # TIMING EVIDENCE (Unified: Astrology + BaZi + Numerology)
     try:
-        astro_evidence = get_astrology_evidence_for_diagnosis(
+        # Use actual transit aspects if provided
+        aspects = transit_aspects or []
+        
+        unified = get_unified_timing(
+            user_id="",
+            transit_aspects=aspects,
             pattern_family=pattern_family,
-            mode=mode
+            pattern_title="The Pause" if pattern_family == "stall" else "Today's Pattern",
+            natal_bazi=None,
+            birth_date=birth_date,
         )
         
+        transit_profile = unified.get("transit", {})
+        bazi_profile = unified.get("bazi", {})
+        
+        # Build timing summary - NEVER "quiet" with real transits
+        timing_summary = transit_profile.get("summary", "")
+        if not timing_summary or "No major transits" in timing_summary:
+            timing_summary = unified.get("master_summary", "The timing shows moderate activation across systems.")
+        
+        # Build timing implication - pattern-linked
+        timing_implication = transit_profile.get("pattern_link", "")
+        if not timing_implication:
+            timing_implication = unified.get("pattern_synthesis", moment_interpretation)
+        
         evidence["timing"] = {
-            "summary": astro_evidence.get("summary", "No strong transit is forcing the pace."),
-            "implication": astro_evidence.get("implication", moment_interpretation),
+            "summary": timing_summary,
+            "implication": timing_implication,
         }
         
-        # Log debug data for verification
-        debug = astro_evidence.get("debug", {})
-        if debug:
-            logger.debug(f"[Diagnostician] Astrology debug: type={debug.get('overall_type')}, strength={debug.get('overall_strength')}, moon={debug.get('moon_sign')}/{debug.get('moon_phase')}")
+        # Add BaZi as separate evidence if meaningful
+        if bazi_profile.get("ten_gods_active"):
+            evidence["bazi"] = {
+                "summary": bazi_profile.get("implication", ""),
+                "implication": bazi_profile.get("pattern_link", ""),
+            }
+        
+        # Log debug data
+        logger.debug(f"[Diagnostician] Unified timing: intensity={unified.get('overall_intensity')}, type={unified.get('overall_type')}")
             
     except Exception as e:
-        logger.warning(f"[Diagnostician] Astrology evidence failed, using fallback: {e}")
-        # Fallback to old method
-        if transit_data:
-            day_class = transit_data.get("classification", "normal_flow")
-            
-            if day_class == "high_pressure":
-                timing_summary = "Multiple planetary tensions are active—creating real external pressure."
-            elif day_class == "release_window":
-                timing_summary = "The timing supports release and completion, not new initiation."
-            else:
-                timing_summary = "No strong transit is forcing the pace. The signal is more internal than external."
-            
-            evidence["timing"] = {
-                "summary": timing_summary,
-                "implication": moment_interpretation,
-            }
+        logger.warning(f"[Diagnostician] Unified timing failed, using fallback: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Fallback
+        evidence["timing"] = {
+            "summary": "Timing data unavailable—working with internal patterns.",
+            "implication": moment_interpretation,
+        }
     
     # DESIGN EVIDENCE (Human Design)
     if hd_data:
@@ -644,6 +665,7 @@ async def generate_cross_lens_diagnosis(
     journal_entries: Optional[List[Dict]] = None,
     lifeline_events: Optional[List[Dict]] = None,
     bazi_data: Optional[Dict] = None,
+    transit_aspects: Optional[List[Dict]] = None,  # Actual transit-to-natal aspects
 ) -> Dict[str, Any]:
     """
     Main entry point for cross-lens diagnosis.
@@ -686,7 +708,12 @@ async def generate_cross_lens_diagnosis(
     )
     logger.debug(f"[Diagnostician] History: {history_analysis['frequency']} occurrences, shape: {history_analysis['pattern_shape']}")
     
-    # Step 4: Format lens evidence (with new astrology transit evidence)
+    # Step 4: Format lens evidence (with unified timing intelligence)
+    # Use actual transit aspects if provided
+    actual_transit_aspects = transit_aspects or []
+    if not actual_transit_aspects and transit_data and "active_transits" in transit_data:
+        actual_transit_aspects = transit_data.get("active_transits", [])
+    
     lens_evidence = format_lens_evidence(
         constitution=constitution,
         moment_type=moment_type,
@@ -696,6 +723,8 @@ async def generate_cross_lens_diagnosis(
         hd_data=hd_data,
         pattern_family=pattern_family,
         mode="exploratory",  # Always get full evidence, frontend truncates
+        transit_aspects=actual_transit_aspects,
+        birth_date=None,
     )
     
     # Step 5: Generate core diagnosis
