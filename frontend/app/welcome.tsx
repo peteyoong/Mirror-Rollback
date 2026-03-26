@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,38 +8,29 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useAppStore } from '../store';
-import { useTheme } from '../contexts/ThemeContext';
 import { loginUser } from '../services/api';
-import { Colors } from '../constants/colors';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Svg, { Circle, Line, Path } from 'react-native-svg';
 
 // Forums redirect target type
 type ForumsRedirect = 'create' | 'join' | null;
 
-// Build info - bump this to force cache refresh
-const BUILD_VERSION = '2.2.0';
-const BUILD_ID = 'icon-fix-v4';
-const BUILD_DATE = '2026-03-10';
-
-// Debug mode - set to true to show debug panel
-const SHOW_DEBUG_PANEL = false; // Disabled for production
-
 /**
- * Welcome Page - The Psychological Orientation Layer
+ * Welcome Page - SINGLE SOURCE OF TRUTH
+ * Clean typography-led design - same visual for ALL users
+ * Only behavior differs (CTA actions), not UI
+ * 
  * ALWAYS DARK MODE - Onboarding should feel calm, safe, intentional
  */
 export default function Welcome() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  // Force dark theme for onboarding - ignore user preference
-  const { setUser, setChart } = useAppStore();
+  const { setUser, setChart, user } = useAppStore();
+  
+  // Determine if user has existing session
+  const hasExistingSession = !!user;
   
   // Dark onboarding colors (hardcoded)
   const darkTheme = {
@@ -61,58 +52,11 @@ export default function Welcome() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [forumsRedirect, setForumsRedirect] = useState<ForumsRedirect>(null);
-  const [debugInfo, setDebugInfo] = useState<{
-    storedTheme: string | null;
-    effectiveTheme: string;
-    platform: string;
-    userAgent: string;
-  } | null>(null);
-  
-  const { user } = useAppStore();
-  const hasExistingSession = !!user;
 
-  // Load debug info on mount
-  useEffect(() => {
-    const loadDebugInfo = async () => {
-      try {
-        const storedTheme = await AsyncStorage.getItem('@mirror_theme_mode');
-        setDebugInfo({
-          storedTheme,
-          effectiveTheme: 'dark', // Always dark for onboarding
-          platform: Platform.OS,
-          userAgent: Platform.OS === 'web' ? (typeof navigator !== 'undefined' ? navigator.userAgent.substring(0, 50) : 'N/A') : 'native',
-        });
-      } catch (e) {
-        console.log('[Debug] Failed to load debug info');
-      }
-    };
-    loadDebugInfo();
-  }, []);
-
-  // Debug panel component
-  const renderDebugPanel = () => {
-    if (!SHOW_DEBUG_PANEL || !debugInfo) return null;
-    
-    return (
-      <View style={[styles.debugPanel, { backgroundColor: darkTheme.surfaceElevated, borderColor: darkTheme.border }]}>
-        <Text style={[styles.debugTitle, { color: darkTheme.accent }]}>🔧 Theme Debug</Text>
-        <Text style={[styles.debugText, { color: darkTheme.textSecondary }]}>
-          Stored: {debugInfo.storedTheme || 'none'}
-        </Text>
-        <Text style={[styles.debugText, { color: darkTheme.textSecondary }]}>
-          Mode: dark → {debugInfo.effectiveTheme}
-        </Text>
-        <Text style={[styles.debugText, { color: darkTheme.textSecondary }]}>
-          Platform: {debugInfo.platform}
-        </Text>
-        <Text style={[styles.debugText, { color: darkTheme.textTertiary, fontSize: 10 }]}>
-          {debugInfo.userAgent}
-        </Text>
-        <Text style={[styles.debugText, { color: darkTheme.accent, fontSize: 10 }]}>
-          Build: {BUILD_VERSION} • {BUILD_ID}
-        </Text>
-      </View>
-    );
+  // HEADLINE - experiential hook
+  const headline = {
+    main: "You almost did it again.",
+    sub: "You were about to decide—then stopped.\nYou noticed it—then moved past it."
   };
 
   const handleBeginReflection = () => {
@@ -143,7 +87,6 @@ export default function Welcome() {
   };
 
   const handleLogin = async () => {
-    console.log('[Login] handleLogin called with email:', email);
     if (!email.trim()) {
       setError('Please enter your email');
       return;
@@ -153,23 +96,16 @@ export default function Welcome() {
     setError('');
     
     try {
-      console.log('[Login] Calling loginUser API...');
       const result = await loginUser(email.trim());
-      console.log('[Login] API response:', result?.success, result?.user?.id);
       
       if (result.success && result.user) {
-        // Set user in store
-        console.log('[Login] Setting user in store...');
         await setUser(result.user);
         
-        // Set chart if available
         if (result.chart) {
-          console.log('[Login] Setting chart...');
           await setChart(result.chart);
         }
         
         // Navigate based on forums redirect or default to main app
-        console.log('[Login] Navigating to main app...');
         if (forumsRedirect === 'create') {
           router.replace('/forums/create');
         } else if (forumsRedirect === 'join') {
@@ -178,11 +114,9 @@ export default function Welcome() {
           router.replace('/(tabs)');
         }
       } else {
-        console.log('[Login] Login failed - no success or user:', result);
         setError('Login failed. Please try again.');
       }
     } catch (err: any) {
-      console.error('[Login] Error:', err);
       const errorMsg = err.response?.data?.detail || err.message || 'Login failed. Please try again.';
       setError(errorMsg);
     } finally {
@@ -190,122 +124,13 @@ export default function Welcome() {
     }
   };
 
-  // HEADLINE CONFIGURATION - Must be defined before hasExistingSession block
-  // A: "You keep ending up in the same place."
-  // B: "Something keeps repeating."
-  // C: "You've felt this before."
-  // D: "You almost did it again." (experiential hook)
-  const HEADLINE_VERSION = 'D';
-  
-  const headlines = {
-    'A': {
-      main: "You keep ending up in the same place.",
-      sub: "The loop you notice but can't name.\nThe pattern that runs before you catch it."
-    },
-    'B': {
-      main: "Something keeps repeating.",
-      sub: "A feeling. A reaction. A choice you've made before.\nYou've noticed—but it hasn't stopped."
-    },
-    'C': {
-      main: "You've felt this before.",
-      sub: "The hesitation. The pull. The thing you keep circling back to.\nIt's not random."
-    },
-    'D': {
-      main: "You almost did it again.",
-      sub: "You were about to decide—then stopped.\nYou noticed it—then moved past it."
-    }
-  };
-  
-  const currentHeadline = headlines[HEADLINE_VERSION];
-
-  // If user is already logged in, show the same new entry screen
-  // but with a simpler flow (tap goes directly to app)
-  if (hasExistingSession) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
-        <StatusBar style={'light'} />
-        
-        <View style={styles.content}>
-          {/* Brand - Framed wordmark with separators */}
-          <View style={styles.brandContainer}>
-            <Text style={styles.brandSeparator}>—</Text>
-            <Text style={styles.brandText}>The Mirror</Text>
-            <Text style={styles.brandSeparator}>—</Text>
-          </View>
-          
-          {/* Headline */}
-          <View style={styles.headlineContainer}>
-            <Text style={[styles.headline, { color: darkTheme.text }]}>
-              {currentHeadline.main}
-            </Text>
-          </View>
-          
-          {/* Subtext */}
-          <View style={styles.subtextContainer}>
-            <Text style={[styles.subtext, { color: darkTheme.textSecondary }]}>
-              {currentHeadline.sub}
-            </Text>
-          </View>
-          
-          {/* Bridge line */}
-          <View style={styles.bridgeContainer}>
-            <Text style={[styles.bridgeLine, { color: darkTheme.textTertiary }]}>
-              This isn't about who you are.{'\n'}
-              It's about what's happening right now.
-            </Text>
-          </View>
-          
-          {/* Primary CTA */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.primaryButton, { 
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                borderColor: 'rgba(255, 255, 255, 0.15)' 
-              }]}
-              onPress={handleContinue}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>Show me</Text>
-            </TouchableOpacity>
-            
-            {/* Secondary actions - new user path */}
-            <View style={styles.secondaryActionsRow}>
-              <TouchableOpacity onPress={handleBeginReflection} activeOpacity={0.6}>
-                <Text style={styles.secondaryActionText}>I'm new here</Text>
-              </TouchableOpacity>
-              <Text style={styles.secondaryActionDivider}>·</Text>
-              <TouchableOpacity onPress={() => setShowLogin(true)} activeOpacity={0.6}>
-                <Text style={styles.secondaryActionText}>Sign in</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-        
-        {/* Footer - lighter, more elegant */}
-        <View style={styles.footerArea}>
-          <View style={styles.forumsFooter}>
-            <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.5}>
-              <Text style={styles.forumLinkTextLight}>Create Forum</Text>
-            </TouchableOpacity>
-            <Text style={styles.forumDividerLight}>·</Text>
-            <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.5}>
-              <Text style={styles.forumLinkTextLight}>Join Forum</Text>
-            </TouchableOpacity>
-          </View>
-          {/* Verification marker */}
-          <Text style={styles.verificationMarker}>
-            welcome.tsx • existing-session • {BUILD_VERSION}
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Login form view
+  // ============================================================
+  // LOGIN FORM VIEW
+  // ============================================================
   if (showLogin) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
-        <StatusBar style={'light'} />
+        <StatusBar style="light" />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
@@ -385,46 +210,40 @@ export default function Welcome() {
     );
   }
 
-  // Default welcome view - High-conversion entry experience
-  // Default welcome view - no session
+  // ============================================================
+  // MAIN WELCOME VIEW - SINGLE UI FOR ALL USERS
+  // Only behavior differs (CTA target), not visual design
+  // ============================================================
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
-      <StatusBar style={'light'} />
+      <StatusBar style="light" />
       
-      {/* TEMP MARKER 1: Visible label at top */}
-      <View style={{ position: 'absolute', top: 60, left: 0, right: 0, zIndex: 9999, alignItems: 'center', backgroundColor: '#FF0000', padding: 8 }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' }}>WELCOME V2 LIVE</Text>
-      </View>
-      
-      {/* TEMP MARKER 2: Bright pulse circle */}
-      <View style={styles.pulseContainer}>
-        <View style={[styles.pulseRing, { borderColor: '#00FF00', borderWidth: 3 }]} />
-        <View style={[styles.pulseCore, { backgroundColor: '#00FF00' }]} />
-      </View>
+      {/* TEMPORARY CONFIRMATION MARKER */}
+      <Text style={styles.confirmationMarker}>FINAL CLEAN WELCOME</Text>
       
       <View style={styles.content}>
-        {/* Logo / Wordmark - Premium minimal treatment */}
-        <View style={styles.logoContainer}>
-          {/* Single thin circle - minimal lens/portal motif */}
-          <View style={[styles.logoCircle, { borderColor: darkTheme.textTertiary }]} />
-          <Text style={[styles.logoText, { color: darkTheme.text }]}>The Mirror</Text>
+        {/* Brand - Framed wordmark with em-dash separators */}
+        <View style={styles.brandContainer}>
+          <Text style={styles.brandSeparator}>—</Text>
+          <Text style={styles.brandText}>The Mirror</Text>
+          <Text style={styles.brandSeparator}>—</Text>
         </View>
         
-        {/* Headline - something already happening */}
+        {/* Headline */}
         <View style={styles.headlineContainer}>
           <Text style={[styles.headline, { color: darkTheme.text }]}>
-            {currentHeadline.main}
+            {headline.main}
           </Text>
         </View>
         
-        {/* Subtext - real behavior description */}
+        {/* Subtext */}
         <View style={styles.subtextContainer}>
           <Text style={[styles.subtext, { color: darkTheme.textSecondary }]}>
-            {currentHeadline.sub}
+            {headline.sub}
           </Text>
         </View>
         
-        {/* Bridge line - what Mirror does */}
+        {/* Bridge line */}
         <View style={styles.bridgeContainer}>
           <Text style={[styles.bridgeLine, { color: darkTheme.textTertiary }]}>
             This isn't about who you are.{'\n'}
@@ -432,70 +251,46 @@ export default function Welcome() {
           </Text>
         </View>
         
-        {/* CTA Buttons - Clear paths for new vs returning */}
+        {/* Primary CTA - Same visual, different action */}
         <View style={styles.buttonContainer}>
-          {/* TEMP MARKER 3: Primary CTA with V2 */}
           <TouchableOpacity 
             style={[styles.primaryButton, { 
-              backgroundColor: '#FF6B00',
-              borderColor: '#FF6B00' 
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              borderColor: 'rgba(255, 255, 255, 0.15)' 
             }]}
-            onPress={handleBeginReflection}
-            activeOpacity={0.8}
+            onPress={hasExistingSession ? handleContinue : handleBeginReflection}
+            activeOpacity={0.7}
           >
-            <Text style={[styles.primaryButtonText, { color: '#FFFFFF' }]}>SHOW ME V2</Text>
+            <Text style={[styles.primaryButtonText, { color: 'rgba(255, 255, 255, 0.9)' }]}>
+              Show me
+            </Text>
           </TouchableOpacity>
           
-          {/* Secondary CTAs - Both visible for new users */}
-          <View style={styles.secondaryCtaRow}>
-            <TouchableOpacity 
-              style={styles.secondaryCta}
-              onPress={handleBeginReflection}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.secondaryCtaText, { color: darkTheme.textSecondary }]}>I'm new here</Text>
+          {/* Secondary actions row */}
+          <View style={styles.secondaryActionsRow}>
+            <TouchableOpacity onPress={handleBeginReflection} activeOpacity={0.6}>
+              <Text style={styles.secondaryActionText}>I'm new here</Text>
             </TouchableOpacity>
-            
-            <Text style={[styles.ctaDivider, { color: darkTheme.textTertiary }]}>·</Text>
-            
-            <TouchableOpacity 
-              style={styles.secondaryCta}
-              onPress={() => setShowLogin(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.secondaryCtaText, { color: darkTheme.textSecondary }]}>Sign in</Text>
+            <Text style={styles.secondaryActionDivider}>·</Text>
+            <TouchableOpacity onPress={() => setShowLogin(true)} activeOpacity={0.6}>
+              <Text style={styles.secondaryActionText}>Sign in</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
       
-      {/* Footer area - Forums moved here, reduced prominence */}
+      {/* Footer - Forums */}
       <View style={styles.footerArea}>
-        {/* Forums - Secondary/Optional */}
         <View style={styles.forumsFooter}>
-          <TouchableOpacity 
-            style={styles.forumLink}
-            onPress={handleCreateForum}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.forumLinkText, { color: darkTheme.textTertiary }]}>Create Forum</Text>
+          <TouchableOpacity style={styles.forumLink} onPress={handleCreateForum} activeOpacity={0.5}>
+            <Text style={styles.forumLinkText}>Create Forum</Text>
           </TouchableOpacity>
-          <Text style={[styles.forumDivider, { color: darkTheme.textTertiary }]}>·</Text>
-          <TouchableOpacity 
-            style={styles.forumLink}
-            onPress={handleJoinForum}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.forumLinkText, { color: darkTheme.textTertiary }]}>Join Forum</Text>
+          <Text style={styles.forumDivider}>·</Text>
+          <TouchableOpacity style={styles.forumLink} onPress={handleJoinForum} activeOpacity={0.5}>
+            <Text style={styles.forumLinkText}>Join Forum</Text>
           </TouchableOpacity>
         </View>
-        
-        {/* TEMP MARKER 4: Build info with WELCOME-V2 */}
-        <Text style={[styles.buildInfo, { color: '#FF6B00' }]}>WELCOME-V2 • v{BUILD_VERSION} • {BUILD_ID}</Text>
       </View>
-      
-      {/* Debug Panel */}
-      {renderDebugPanel()}
     </SafeAreaView>
   );
 }
@@ -503,7 +298,6 @@ export default function Welcome() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
     width: '100%',
   },
   keyboardView: {
@@ -518,54 +312,15 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   
-  // Pulse animation container
-  pulseContainer: {
-    position: 'absolute',
-    top: '15%',
-    left: '50%',
-    transform: [{ translateX: -100 }],
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pulseRing: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    borderWidth: 1,
-  },
-  pulseCore: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-  
-  // Aperture Mark - The Mirror logo
-  apertureContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    position: 'relative',
-  },
-  apertureGlow: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(234, 230, 223, 0.04)',
-  },
-  apertureWordmark: {
-    fontSize: 14,
-    fontWeight: '400',
-    letterSpacing: 1.2,
-    color: 'rgba(255, 255, 255, 0.6)',
+  // Temporary confirmation marker
+  confirmationMarker: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.3)',
     textAlign: 'center',
-    marginBottom: 16,
+    paddingTop: 8,
   },
   
-  // Brand container and text - framed wordmark
+  // Brand container - framed wordmark
   brandContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -586,7 +341,66 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.5)',
   },
   
-  // Secondary actions row (I'm new here · Sign in)
+  // Headline
+  headlineContainer: {
+    marginBottom: 24,
+    paddingHorizontal: 8,
+  },
+  headline: {
+    fontSize: 24,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 32,
+  },
+  
+  // Subtext
+  subtextContainer: {
+    marginBottom: 32,
+  },
+  subtext: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 26,
+    fontWeight: '400',
+  },
+  
+  // Bridge line
+  bridgeContainer: {
+    marginBottom: 48,
+    paddingHorizontal: 12,
+  },
+  bridgeLine: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 24,
+    fontStyle: 'italic',
+  },
+  
+  // Buttons
+  buttonContainer: {
+    width: '100%',
+    maxWidth: 300,
+    gap: 16,
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+  primaryButton: {
+    borderWidth: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    width: '100%',
+  },
+  primaryButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  
+  // Secondary actions row
   secondaryActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -604,196 +418,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.3)',
   },
   
-  // Lighter forum links
-  forumLinkTextLight: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: 'rgba(255, 255, 255, 0.4)',
-  },
-  forumDividerLight: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.25)',
-  },
-  
-  // Verification marker
-  verificationMarker: {
-    fontSize: 9,
-    color: 'rgba(255, 255, 255, 0.15)',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  
-  // Legacy logo styles (for non-session view)
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoCircle: {
-    width: 24,
-    height: 24,
-    borderWidth: 1,
-    borderRadius: 12,
-    marginBottom: 14,
-    opacity: 0.6,
-  },
-  logoText: {
-    fontSize: 18,
-    fontWeight: '300',
-    letterSpacing: 2,
-  },
-  
-  // Headline
-  headlineContainer: {
-    marginBottom: 24,
-    paddingHorizontal: 8,
-  },
-  headline: {
-    fontSize: 24,
-    fontWeight: '500',
-    color: Colors.text,
-    textAlign: 'center',
-    lineHeight: 32,
-  },
-  
-  // Subtext
-  subtextContainer: {
-    marginBottom: 32,
-  },
-  subtext: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 26,
-    fontWeight: '400',
-  },
-  
-  // Bridge line
-  bridgeContainer: {
-    marginBottom: 48,
-    paddingHorizontal: 12,
-  },
-  bridgeLine: {
-    fontSize: 14,
-    color: Colors.textTertiary,
-    textAlign: 'center',
-    lineHeight: 24,
-    fontStyle: 'italic',
-  },
-  
-  // Legacy styles kept for login flow
-  header: {
-    marginBottom: 48,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '300',
-    color: Colors.text,
-    letterSpacing: 1,
-  },
-  messageContainer: {
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  welcomeBack: {
-    fontSize: 20,
-    color: Colors.text,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  tagline: {
-    fontSize: 18,
-    color: Colors.textSecondary,
-    marginBottom: 24,
-    fontWeight: '400',
-  },
-  permissionLines: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  permissionText: {
-    fontSize: 15,
-    color: Colors.textTertiary,
-    fontWeight: '400',
-  },
-  buttonContainer: {
-    width: '100%',
-    maxWidth: 300,
-    gap: 16,
-    marginBottom: 32,
-    alignItems: 'center',
-  },
-  primaryButton: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 10,
-    alignItems: 'center',
-    width: '100%',
-  },
-  primaryButtonText: {
-    fontSize: 17,
-    color: Colors.text,
-    fontWeight: '600',
-  },
-  secondaryCtaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  secondaryCta: {
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  secondaryCtaText: {
-    fontSize: 14,
-    fontWeight: '400',
-  },
-  ctaDivider: {
-    fontSize: 14,
-  },
-  buttonSubtext: {
-    fontSize: 13,
-    color: Colors.textTertiary,
-    marginTop: 4,
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    fontWeight: '400',
-  },
-  secondaryButtonSubtext: {
-    fontSize: 13,
-    color: Colors.textTertiary,
-    marginTop: 4,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  textButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  textButtonText: {
-    fontSize: 14,
-    color: Colors.textTertiary,
-    fontWeight: '400',
-  },
-  exitPermission: {
-    fontSize: 13,
-    color: Colors.textTertiary,
-    opacity: 0.7,
-  },
-  // Footer area with forums
+  // Footer area
   footerArea: {
     paddingBottom: 24,
     paddingHorizontal: 32,
@@ -810,25 +435,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   forumLinkText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.4)',
   },
   forumDivider: {
-    fontSize: 12,
-    opacity: 0.5,
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.25)',
   },
-  footer: {
-    paddingBottom: 32,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    color: Colors.textTertiary,
-    opacity: 0.5,
-    textAlign: 'center',
-  },
+  
   // Login form styles
+  header: {
+    marginBottom: 48,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '300',
+    letterSpacing: 1,
+  },
   loginContainer: {
     width: '100%',
     maxWidth: 320,
@@ -837,94 +461,38 @@ const styles = StyleSheet.create({
   loginTitle: {
     fontSize: 22,
     fontWeight: '500',
-    color: Colors.text,
     marginBottom: 8,
   },
   loginSubtitle: {
     fontSize: 14,
-    color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,
   },
   input: {
     width: '100%',
-    backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: Colors.text,
     borderWidth: 1,
-    borderColor: Colors.border,
     marginBottom: 16,
   },
   errorContainer: {
     width: '100%',
-    backgroundColor: Colors.error + '20',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
     fontSize: 14,
-    color: Colors.error,
     textAlign: 'center',
   },
-  buildInfo: {
-    fontSize: 10,
-    color: Colors.textTertiary,
-    marginTop: 8,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-  },
-  // Debug panel styles
-  debugPanel: {
-    position: 'absolute',
-    bottom: 100,
-    left: 16,
-    right: 16,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  debugTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  debugText: {
-    fontSize: 11,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    marginBottom: 4,
-  },
-  // Forums quick access styles
-  forumsSection: {
-    width: '100%',
-    maxWidth: 300,
-    marginTop: 24,
-    paddingTop: 24,
-    borderTopWidth: StyleSheet.hairlineWidth,
+  textButton: {
+    paddingVertical: 12,
     alignItems: 'center',
   },
-  forumsSectionLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1.5,
-    marginBottom: 12,
-  },
-  forumsButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  forumButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  forumButtonText: {
+  textButtonText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '400',
   },
 });
