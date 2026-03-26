@@ -27,7 +27,9 @@ import {
   ForumPulseResponse,
   ForumPulseMemberCard,
   getForumMemberLens,
-  ForumMemberLensData
+  ForumMemberLensData,
+  getPatternDiagnosis,
+  PatternDiagnosisResponse
 } from '../../services/api';
 import ForumChatView from '../../components/ForumChatView';
 import Constants from 'expo-constants';
@@ -87,6 +89,11 @@ export default function ForumHomeScreen() {
   const [domainModal, setDomainModal] = useState<DomainReflectionsModal>({ visible: false, domainId: '', domainName: '', reflections: [] });
   const [typeModal, setTypeModal] = useState<TypeMembersModal>({ visible: false, typeName: '', members: [] });
   const [insightModal, setInsightModal] = useState<InsightModal>({ visible: false, insight: '' });
+  
+  // FIX 4: Forum Pattern State
+  const [forumPattern, setForumPattern] = useState<PatternDiagnosisResponse | null>(null);
+  const [forumPatternLoading, setForumPatternLoading] = useState(false);
+  const [showForumPattern, setShowForumPattern] = useState(false);
 
   const fetchData = useCallback(async (showRefresh = false) => {
     if (!user?.id || !forumId) return;
@@ -250,6 +257,21 @@ export default function ForumHomeScreen() {
     setForumChatInitialMode('self');
     setForumChatInitialMember(null);
   };
+  
+  // FIX 4: Handle forum pattern reveal
+  const handleRevealGroupPattern = async () => {
+    if (!user?.id) return;
+    setForumPatternLoading(true);
+    try {
+      const response = await getPatternDiagnosis(user.id);
+      setForumPattern(response);
+      setShowForumPattern(true);
+    } catch (err) {
+      console.error('[Forum] Pattern load error:', err);
+    } finally {
+      setForumPatternLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -344,6 +366,52 @@ export default function ForumHomeScreen() {
               </View>
             ))}
           </View>
+        </View>
+
+        {/* FIX 4: Forum Pattern Entry - "What's happening in this room" */}
+        <View style={[styles.forumPatternCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '25' }]}>
+          <Text style={[styles.forumPatternTitle, { color: theme.text }]}>
+            What's happening in this room
+          </Text>
+          <Text style={[styles.forumPatternSub, { color: theme.textSecondary }]}>
+            See the pattern shaping this group right now
+          </Text>
+          
+          {!showForumPattern ? (
+            <TouchableOpacity
+              style={[styles.forumPatternButton, { backgroundColor: theme.accent }]}
+              onPress={handleRevealGroupPattern}
+              disabled={forumPatternLoading}
+            >
+              {forumPatternLoading ? (
+                <ActivityIndicator size="small" color={theme.textInverse} />
+              ) : (
+                <Text style={[styles.forumPatternButtonText, { color: theme.textInverse }]}>
+                  Reveal group pattern
+                </Text>
+              )}
+            </TouchableOpacity>
+          ) : forumPattern ? (
+            <View style={styles.forumPatternResult}>
+              <Text style={[styles.forumPatternResultTitle, { color: theme.accent }]}>
+                {forumPattern.pattern_title}
+              </Text>
+              <Text style={[styles.forumPatternResultText, { color: theme.text }]}>
+                {forumPattern.what_is_happening}
+              </Text>
+              <Text style={[styles.forumPatternResultWisdom, { color: theme.textSecondary }]}>
+                {forumPattern.what_would_be_wise}
+              </Text>
+              <TouchableOpacity
+                style={[styles.forumPatternRefreshBtn, { borderColor: theme.border }]}
+                onPress={() => setShowForumPattern(false)}
+              >
+                <Text style={[styles.forumPatternRefreshText, { color: theme.textTertiary }]}>
+                  Hide
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
         </View>
 
         {/* Ask Mirror Button */}
@@ -703,6 +771,100 @@ export default function ForumHomeScreen() {
                   </View>
                 ) : memberModal.lensData ? (
                   <View style={styles.lensDataContainer}>
+                    {/* FIX 6: What this means in real life */}
+                    <View style={[styles.realLifeMeaningBox, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+                      <Text style={[styles.realLifeMeaningTitle, { color: theme.accent }]}>
+                        What this means in real life
+                      </Text>
+                      <View style={styles.realLifeMeaningContent}>
+                        {memberModal.lensData.human_design.type === 'Manifestor' && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
+                            Tends to act quickly, then process after. May not always explain before initiating.
+                          </Text>
+                        )}
+                        {memberModal.lensData.human_design.type === 'Generator' && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
+                            Has sustainable energy when engaged. Responds best when asked, not told.
+                          </Text>
+                        )}
+                        {memberModal.lensData.human_design.type === 'Manifesting Generator' && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
+                            Fast-moving multi-tasker. May skip steps and come back. Thrives with variety.
+                          </Text>
+                        )}
+                        {memberModal.lensData.human_design.type === 'Projector' && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
+                            Sees deeply into others. Works best in bursts. Needs recognition to share.
+                          </Text>
+                        )}
+                        {memberModal.lensData.human_design.type === 'Reflector' && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
+                            Mirrors the group's health. Needs time for big decisions. Unusually perceptive.
+                          </Text>
+                        )}
+                        {memberModal.lensData.human_design.authority?.includes('Emotional') && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Clarity comes over time, not in the moment. Give space for processing.
+                          </Text>
+                        )}
+                        {memberModal.lensData.human_design.authority?.includes('Sacral') && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Makes decisions through gut response. Yes/no questions work best.
+                          </Text>
+                        )}
+                        {memberModal.lensData.human_design.authority?.includes('Splenic') && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Trusts instinct in the moment. Knows what's healthy or not instantly.
+                          </Text>
+                        )}
+                        {memberModal.lensData.enneagram.core_type === 1 && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            High standards, notices what could be better. Values doing things right.
+                          </Text>
+                        )}
+                        {memberModal.lensData.enneagram.core_type === 2 && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Naturally helpful, often anticipates needs before being asked.
+                          </Text>
+                        )}
+                        {memberModal.lensData.enneagram.core_type === 3 && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Achievement-oriented, adapts to what works. Values being seen as successful.
+                          </Text>
+                        )}
+                        {memberModal.lensData.enneagram.core_type === 4 && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Drawn to depth and meaning. May feel misunderstood. Values authenticity.
+                          </Text>
+                        )}
+                        {memberModal.lensData.enneagram.core_type === 5 && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Needs time to observe and understand. Protects energy. Values knowledge.
+                          </Text>
+                        )}
+                        {memberModal.lensData.enneagram.core_type === 6 && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Anticipates problems, values security. Loyal once trust is established.
+                          </Text>
+                        )}
+                        {memberModal.lensData.enneagram.core_type === 7 && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Moves toward options and possibilities. Avoids restriction and boredom.
+                          </Text>
+                        )}
+                        {memberModal.lensData.enneagram.core_type === 8 && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Direct and protective. Takes up space. Values strength and honesty.
+                          </Text>
+                        )}
+                        {memberModal.lensData.enneagram.core_type === 9 && (
+                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
+                            Goes with the flow, seeks harmony. May merge with others' agendas.
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                    
                     {/* Human Design Section */}
                     {(memberModal.lensData.human_design.type || memberModal.lensData.human_design.authority) && (
                       <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
@@ -1147,6 +1309,82 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  
+  // FIX 4: Forum Pattern Entry Card styles
+  forumPatternCard: {
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  forumPatternTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  forumPatternSub: {
+    fontSize: 14,
+    marginBottom: 14,
+  },
+  forumPatternButton: {
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  forumPatternButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  forumPatternResult: {
+    gap: 10,
+  },
+  forumPatternResultTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  forumPatternResultText: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  forumPatternResultWisdom: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 19,
+  },
+  forumPatternRefreshBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  forumPatternRefreshText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  
+  // FIX 6: Real Life Meaning styles
+  realLifeMeaningBox: {
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  realLifeMeaningTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  realLifeMeaningContent: {
+    gap: 6,
+  },
+  realLifeMeaningText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

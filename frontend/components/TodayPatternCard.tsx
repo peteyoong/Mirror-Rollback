@@ -44,6 +44,10 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   
   // Expander state for supporting evidence
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // INTERACTION LOOP STATE (FIX 2)
+  const [interactionStep, setInteractionStep] = useState<'initial' | 'yes_followup' | 'no_followup' | 'complete'>('initial');
+  const [interactionResponse, setInteractionResponse] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) {
@@ -68,6 +72,22 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
     fetchDiagnosis();
   }, [userId]);
 
+  // Re-fetch diagnosis (for re-engagement)
+  const handleRefetchDiagnosis = async () => {
+    setInteractionStep('initial');
+    setInteractionResponse(null);
+    try {
+      setIsLoading(true);
+      const response = await getPatternDiagnosis(userId);
+      setDiagnosis(response);
+      setError(null);
+    } catch (err) {
+      console.error('[TodayPatternCard] Refetch Error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleReflect = () => {
     if (onReflect) {
       onReflect();
@@ -80,6 +100,14 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   const handleExpandToggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsExpanded(!isExpanded);
+  };
+
+  // Navigate to reflection with prefill (FIX 3)
+  const handleMicroReflection = () => {
+    router.push({
+      pathname: '/reflection-chat',
+      params: { prefill: "I'm noticing a pattern where I..." }
+    });
   };
 
   // Navigate to full diagnosis page
@@ -259,8 +287,20 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
+      
+      {/* FIX 1: PRIMARY PATTERN ENTRY BUTTON */}
+      <TouchableOpacity
+        style={[styles.primaryEntryButton, { backgroundColor: theme.accent }]}
+        onPress={handleRefetchDiagnosis}
+        activeOpacity={0.8}
+      >
+        <Text style={[styles.primaryEntryText, { color: theme.textInverse }]}>
+          What pattern is running me right now?
+        </Text>
+      </TouchableOpacity>
+      
       {/* Opener */}
-      <Text style={[styles.label, { color: theme.textTertiary }]}>
+      <Text style={[styles.label, { color: theme.textTertiary, marginTop: 16 }]}>
         {getOpenerText()}
       </Text>
       
@@ -275,6 +315,86 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
           {getWhatIsHappening()}
         </Text>
       </View>
+      
+      {/* FIX 2: INTERACTION LOOP */}
+      {interactionStep === 'initial' && (
+        <View style={[styles.interactionBox, { backgroundColor: theme.background, borderColor: theme.border }]}>
+          <Text style={[styles.interactionQuestion, { color: theme.text }]}>
+            Does this feel true right now?
+          </Text>
+          <View style={styles.interactionButtonsRow}>
+            <TouchableOpacity
+              style={[styles.interactionBtn, { backgroundColor: theme.accent + '15', borderColor: theme.accent + '30' }]}
+              onPress={() => setInteractionStep('yes_followup')}
+            >
+              <Text style={[styles.interactionBtnText, { color: theme.accent }]}>Yes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.interactionBtn, { backgroundColor: theme.border + '30', borderColor: theme.border }]}
+              onPress={() => setInteractionStep('no_followup')}
+            >
+              <Text style={[styles.interactionBtnText, { color: theme.textSecondary }]}>Not really</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+      
+      {/* YES FOLLOW-UP */}
+      {interactionStep === 'yes_followup' && (
+        <View style={[styles.interactionBox, { backgroundColor: theme.background, borderColor: theme.accent + '30' }]}>
+          <Text style={[styles.interactionQuestion, { color: theme.text }]}>
+            Where do you feel this most right now?
+          </Text>
+          <View style={styles.interactionOptionsCol}>
+            {['Work', 'Relationships', 'Internal / Mental', 'Something else'].map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={[styles.interactionOption, { borderColor: theme.border }]}
+                onPress={() => { setInteractionResponse(option); setInteractionStep('complete'); }}
+              >
+                <Text style={[styles.interactionOptionText, { color: theme.text }]}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+      
+      {/* NO FOLLOW-UP */}
+      {interactionStep === 'no_followup' && (
+        <View style={[styles.interactionBox, { backgroundColor: theme.background, borderColor: theme.border }]}>
+          <Text style={[styles.interactionQuestion, { color: theme.text }]}>
+            What feels more true?
+          </Text>
+          <View style={styles.interactionOptionsCol}>
+            {["I'm stuck in something else", "This doesn't apply", "Not sure yet"].map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={[styles.interactionOption, { borderColor: theme.border }]}
+                onPress={() => { setInteractionResponse(option); setInteractionStep('complete'); }}
+              >
+                <Text style={[styles.interactionOptionText, { color: theme.text }]}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+      
+      {/* FIX 3: MICRO-REFLECTION TRIGGER (after interaction complete) */}
+      {interactionStep === 'complete' && (
+        <View style={[styles.interactionBox, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+          <Text style={[styles.interactionAck, { color: theme.textSecondary }]}>
+            {interactionResponse}
+          </Text>
+          <TouchableOpacity
+            style={[styles.microReflectButton, { backgroundColor: theme.accent }]}
+            onPress={handleMicroReflection}
+          >
+            <Text style={[styles.microReflectText, { color: theme.textInverse }]}>
+              Name what is actually happening
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
       
       {/* MOMENT TYPE: What kind of moment (not in grounding) */}
       {shouldShowMomentType() && (
@@ -359,6 +479,33 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
         <Text style={[styles.ctaText, { color: theme.text }]}>{getCtaText()}</Text>
         <Text style={[styles.ctaArrow, { color: theme.textTertiary }]}>→</Text>
       </TouchableOpacity>
+      
+      {/* FIX 7: WORK WITH THIS PATTERN - ALWAYS PRESENT */}
+      <View style={[styles.workWithPatternSection, { borderTopColor: theme.border }]}>
+        <Text style={[styles.workWithPatternLabel, { color: theme.textTertiary }]}>
+          WORK WITH THIS PATTERN
+        </Text>
+        <View style={styles.workWithPatternButtons}>
+          <TouchableOpacity
+            style={[styles.workWithBtn, { backgroundColor: theme.accent + '15' }]}
+            onPress={handleReflect}
+          >
+            <Text style={[styles.workWithBtnText, { color: theme.accent }]}>Reflect</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.workWithBtn, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}
+            onPress={handleMicroReflection}
+          >
+            <Text style={[styles.workWithBtnText, { color: theme.text }]}>Ask Mirror</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.workWithBtn, { backgroundColor: theme.background }]}
+            onPress={() => setInteractionStep('initial')}
+          >
+            <Text style={[styles.workWithBtnText, { color: theme.textTertiary }]}>Reset</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
@@ -370,6 +517,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 12,
   },
+  
+  // FIX 1: Primary entry button
+  primaryEntryButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  primaryEntryText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -404,6 +564,68 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   
+  // FIX 2: Interaction loop styles
+  interactionBox: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+  },
+  interactionQuestion: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  interactionButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  interactionBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    borderWidth: 1,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  interactionBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  interactionOptionsCol: {
+    gap: 8,
+  },
+  interactionOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  interactionOptionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  interactionAck: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  
+  // FIX 3: Micro-reflection button
+  microReflectButton: {
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  microReflectText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  
   // Moment type badge
   momentBadge: {
     borderRadius: 10,
@@ -415,6 +637,34 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     fontWeight: '500',
+  },
+  
+  // FIX 7: Work with pattern section
+  workWithPatternSection: {
+    borderTopWidth: 1,
+    paddingTop: 14,
+    marginTop: 8,
+  },
+  workWithPatternLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  workWithPatternButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+  },
+  workWithBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  workWithBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   
   // Wisdom section

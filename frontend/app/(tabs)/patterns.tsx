@@ -26,10 +26,10 @@ export default function PatternsScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.text }]}>
-          Patterns moved to Home
+          Mirror shows you the pattern you're in right now
         </Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          Your pattern mirror now appears on the home screen as "Today's Pattern"
+          You don't need to figure it out. Just notice it.
         </Text>
         <TouchableOpacity
           style={[styles.button, { backgroundColor: theme.accent }]}
@@ -37,7 +37,7 @@ export default function PatternsScreen() {
           activeOpacity={0.8}
         >
           <Text style={[styles.buttonText, { color: theme.textInverse }]}>
-            Go to Home
+            Show me my pattern
           </Text>
         </TouchableOpacity>
       </View>
