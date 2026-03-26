@@ -226,8 +226,12 @@ export default function Welcome() {
         <StatusBar style={'light'} />
         
         <View style={styles.content}>
-          {/* Brand - Typography only, no graphic */}
-          <Text style={styles.brandText}>The Mirror</Text>
+          {/* Brand - Framed wordmark with separators */}
+          <View style={styles.brandContainer}>
+            <Text style={styles.brandSeparator}>—</Text>
+            <Text style={styles.brandText}>The Mirror</Text>
+            <Text style={styles.brandSeparator}>—</Text>
+          </View>
           
           {/* Headline */}
           <View style={styles.headlineContainer}>
@@ -561,14 +565,25 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   
-  // Brand text - typography only
+  // Brand container and text - framed wordmark
+  brandContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 32,
+    gap: 12,
+  },
   brandText: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '400',
     letterSpacing: 2.5,
     color: 'rgba(255, 255, 255, 0.88)',
     textAlign: 'center',
-    marginBottom: 32,
+  },
+  brandSeparator: {
+    fontSize: 24,
+    fontWeight: '300',
+    color: 'rgba(255, 255, 255, 0.5)',
   },
   
   // Secondary actions row (I'm new here · Sign in)
