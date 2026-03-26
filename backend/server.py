@@ -12800,12 +12800,75 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
             from services.field_signals import detect_transit_convergence
             transit_data = detect_transit_convergence()
             
-            # CRITICAL: Get actual transit-to-natal aspects from the user's chart
-            if chart and "transits" in chart:
-                transit_aspects = chart.get("transits", {}).get("transit_to_natal_aspects", [])
-                logger.info(f"[Diagnosis] Found {len(transit_aspects)} transit-to-natal aspects")
+            # CRITICAL: Compute real-time transit aspects for unified timing
+            # Get user's natal chart data
+            astro_data = chart.get("astrology", {}) if chart else {}
+            natal_planets = astro_data.get("planets", {})
+            
+            if natal_planets:
+                import swisseph as swe
+                
+                # Use top-level datetime (already imported at top of file)
+                now = datetime.now(timezone.utc)
+                julian_now = swe.julday(now.year, now.month, now.day, now.hour + now.minute/60 + now.second/3600)
+                
+                # Transit planets to compute
+                TRANSIT_PLANETS = {
+                    swe.SUN: "Sun", swe.MOON: "Moon", swe.MERCURY: "Mercury", 
+                    swe.VENUS: "Venus", swe.MARS: "Mars", swe.JUPITER: "Jupiter",
+                    swe.SATURN: "Saturn", swe.URANUS: "Uranus", swe.NEPTUNE: "Neptune", swe.PLUTO: "Pluto"
+                }
+                
+                OUTER_PLANETS = ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+                ASPECTS = {"conjunction": 0, "sextile": 60, "square": 90, "trine": 120, "opposition": 180}
+                ORBS = {"conjunction": 8, "sextile": 5, "square": 7, "trine": 7, "opposition": 8}
+                
+                # Compute current transit positions
+                transit_positions = {}
+                for planet_id, planet_name in TRANSIT_PLANETS.items():
+                    try:
+                        lon, _, _ = swe.calc_ut(julian_now, planet_id)[0][:3]
+                        transit_positions[planet_name] = lon
+                    except Exception:
+                        pass
+                
+                # Check aspects to natal planets
+                for t_name, t_lon in transit_positions.items():
+                    for n_name, n_data in natal_planets.items():
+                        if isinstance(n_data, dict):
+                            n_lon = n_data.get("longitude", n_data.get("degree", 0))
+                        else:
+                            continue
+                        
+                        for aspect_name, aspect_angle in ASPECTS.items():
+                            orb = ORBS[aspect_name]
+                            diff = abs((t_lon - n_lon + 180) % 360 - 180)
+                            aspect_diff = abs(diff - aspect_angle)
+                            
+                            if aspect_diff <= orb:
+                                strength = (1 - aspect_diff / orb) * (0.8 if t_name in OUTER_PLANETS else 0.5)
+                                
+                                # Only include meaningful transits
+                                if strength >= 0.4:
+                                    transit_aspects.append({
+                                        "transit_point": t_name,
+                                        "natal_point": n_name.replace("_", " ").title(),
+                                        "aspect_type": aspect_name,
+                                        "orb": round(aspect_diff, 2),
+                                        "strength_score": round(strength, 3),
+                                    })
+                
+                # Sort by strength
+                transit_aspects.sort(key=lambda x: x["strength_score"], reverse=True)
+                transit_aspects = transit_aspects[:15]  # Top 15
+                logger.info(f"[Diagnosis] Computed {len(transit_aspects)} real-time transit aspects")
+            else:
+                logger.debug("[Diagnosis] No natal planets data for transit computation")
+                
         except Exception as e:
             logger.debug(f"[Diagnosis] Transit data unavailable: {e}")
+            import traceback
+            traceback.print_exc()
         
         # Get journal entries
         journal_entries = []
