@@ -1987,7 +1987,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       return null;
     }
     
-    const rawCenterName = center.center || center.name || center;
+    const rawCenterName = center.center_name || center.center || center.name || center;
     
     // DEFENSIVE GUARD: Ensure centerName is a string
     if (typeof rawCenterName !== 'string' || !rawCenterName) {
@@ -1999,81 +1999,89 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
     const safeCenterName = centerName.toLowerCase().replace(/\s/g, '_');
     const crossLink = getCenterCrossLink(centerName, isDefined, context);
     
-    // Generate Mirror Language content for centers
-    const getRecognition = (): string => {
-      if (isDefined) {
-        return `This is consistent energy for you—always present, always running the same way.`;
-      }
-      return `This isn't fixed for you. It amplifies and shifts based on who's around you.`;
+    // ACTUAL CENTER DATA from API - use interpretation fields
+    const interpretation = center.interpretation || {};
+    const definedStatus = isDefined ? 'defined' : 'undefined';
+    
+    // Use API data with fallbacks for each section
+    const getPlainLanguage = (): string => {
+      return interpretation.plain_language || 
+        (isDefined 
+          ? `Your ${centerName} center is defined—this is consistent energy that's always present for you.`
+          : `Your ${centerName} center is undefined—this is open, receptive energy that amplifies what's around you.`);
     };
     
-    const getTension = (): string => {
-      if (isDefined) {
-        return `You can't turn this off. The challenge is recognizing when this fixed way of operating doesn't serve the situation.`;
-      }
-      return `The trap is thinking this is your own energy. When it feels intense, you might be amplifying someone else's.`;
+    const getHowItShowsUp = (): string => {
+      return interpretation.how_it_shows_up || 
+        (isDefined
+          ? `You have a consistent way of experiencing ${centerName.toLowerCase()} energy that others can rely on.`
+          : `You experience ${centerName.toLowerCase()} energy in different ways depending on your environment.`);
     };
     
-    const getRealLife = (): string => {
-      if (isDefined) {
-        return `You probably have a consistent way of processing this energy that others notice.`;
-      }
-      return `You've probably felt this more strongly in certain relationships or environments.`;
+    const getWhatToWatch = (): string => {
+      return interpretation.what_to_watch || 
+        (isDefined
+          ? `Notice when your fixed approach creates friction—that's useful information.`
+          : `Before reacting strongly, pause and check: is this my energy, or am I amplifying someone else's?`);
     };
     
-    const getTryThis = (): string => {
-      if (isDefined) {
-        return `Notice when your consistent way of operating creates friction. That's information.`;
-      }
-      return `Before reacting, pause and ask: is this mine, or am I picking it up from somewhere?`;
+    const getGroundingNote = (): string => {
+      return interpretation.grounding_note || interpretation.what_helps ||
+        (isDefined
+          ? `Trust this consistent energy while staying flexible in how you express it.`
+          : `Give yourself permission to not have consistent energy here—your openness is a feature, not a bug.`);
     };
+    
+    // Additional context from API
+    const gatesPresent = center.gates_present || [];
+    const gatesStr = gatesPresent.length > 0 ? `Gates ${gatesPresent.join(', ')}` : null;
     
     return (
       <NestedCollapsible
         key={`center-${centerName}`}
         title={`${centerName} Center`}
-        subtitle={isDefined ? 'Consistent, fixed energy' : 'Open, amplifying energy'}
+        subtitle={isDefined ? `Defined${gatesStr ? ` • ${gatesStr}` : ''}` : 'Open / Undefined'}
         defaultOpen={defaultOpen}
         status={isDefined ? 'defined' : 'undefined'}
         lazyRender={true}
       >
         <View style={{ gap: 12 }}>
-          {/* Recognition */}
+          {/* Plain Language - What this means */}
           <View>
-            <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>RECOGNITION</Text>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>WHAT THIS MEANS</Text>
             <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
-              {getRecognition()}
+              {getPlainLanguage()}
             </Text>
           </View>
           
-          {/* Tension */}
+          {/* How It Shows Up */}
           <View>
-            <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>TENSION</Text>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>HOW IT SHOWS UP</Text>
             <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
-              {getTension()}
+              {getHowItShowsUp()}
             </Text>
           </View>
           
-          {/* Real Life Moments */}
+          {/* What to Watch */}
           <View>
-            <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>REAL LIFE MOMENTS</Text>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>WHAT TO WATCH</Text>
             <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
-              {getRealLife()}
+              {getWhatToWatch()}
             </Text>
           </View>
           
-          {/* Cross-Link (before Try This Instead) */}
+          {/* Cross-Link (if available) */}
           {crossLink && (
             <Text style={[styles.crossLinkText, { color: theme.textTertiary }]}>
               {crossLink}
             </Text>
           )}
           
-          {/* Try This Instead */}
+          {/* Grounding Note / What Helps */}
           <View>
-            <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>TRY THIS INSTEAD</Text>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>WHAT HELPS</Text>
             <Text style={[styles.mirrorSectionText, { color: theme.textSecondary }]}>
-              {getTryThis()}
+              {getGroundingNote()}
             </Text>
           </View>
           
