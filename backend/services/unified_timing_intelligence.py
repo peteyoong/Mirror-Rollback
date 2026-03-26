@@ -130,16 +130,34 @@ DOMAIN_MAPPINGS = {
     "Chiron": ["healing", "wound", "wisdom"],
 }
 
+# House to Life Domain mapping
+HOUSE_DOMAINS = {
+    1: {"name": "identity", "keywords": ["self", "appearance", "beginnings", "personal direction"]},
+    2: {"name": "money", "keywords": ["value", "resources", "possessions", "self-worth"]},
+    3: {"name": "communication", "keywords": ["siblings", "local environment", "learning", "daily movement"]},
+    4: {"name": "home", "keywords": ["family", "roots", "private life", "emotional foundation"]},
+    5: {"name": "creativity", "keywords": ["romance", "self-expression", "children", "pleasure"]},
+    6: {"name": "work", "keywords": ["health", "routine", "service", "daily habits"]},
+    7: {"name": "relationships", "keywords": ["partnership", "contracts", "one-on-one bonds", "open enemies"]},
+    8: {"name": "intimacy", "keywords": ["shared resources", "transformation", "deeper bonds", "death/rebirth"]},
+    9: {"name": "beliefs", "keywords": ["philosophy", "higher learning", "travel", "worldview"]},
+    10: {"name": "career", "keywords": ["public life", "reputation", "responsibility", "achievement"]},
+    11: {"name": "community", "keywords": ["friends", "groups", "future vision", "hopes"]},
+    12: {"name": "retreat", "keywords": ["inner life", "endings", "spirituality", "hidden patterns"]},
+}
+
 
 def build_transit_profile(
     transit_aspects: List[Dict[str, Any]],
     pattern_family: str = "general",
-    pattern_title: str = "Today's Pattern"
+    pattern_title: str = "Today's Pattern",
+    natal_planets: Optional[Dict[str, Any]] = None,  # For house lookup
 ) -> TransitProfile:
     """
     Build a unified transit profile from actual transit data.
     
     CRITICAL: Never collapse to "quiet" if outer planet aspects exist.
+    Now includes house/domain activation for specificity.
     """
     
     if not transit_aspects:
@@ -156,6 +174,8 @@ def build_transit_profile(
     types = []
     domains = []
     evidence = []
+    activated_houses = []
+    activated_life_domains = []
     outer_planet_count = 0
     hard_aspect_count = 0
     total_strength = 0
@@ -169,6 +189,7 @@ def build_transit_profile(
         natal_planet = transit.get("natal_point", "")
         strength = transit.get("strength_score", 0.5)
         orb = transit.get("orb", 5)
+        natal_house = transit.get("natal_house")  # House of natal planet
         
         total_strength += strength
         
@@ -189,18 +210,47 @@ def build_transit_profile(
         planet_domains = DOMAIN_MAPPINGS.get(transit_planet, ["general"])
         domains.extend(planet_domains)
         
-        # Build evidence entry
-        evidence.append({
+        # Get house/life domain if available
+        if natal_house and natal_house in HOUSE_DOMAINS:
+            house_info = HOUSE_DOMAINS[natal_house]
+            if natal_house not in activated_houses:
+                activated_houses.append(natal_house)
+                activated_life_domains.append(house_info["name"])
+        
+        # Also try to look up house from natal_planets data
+        if natal_planets and natal_planet:
+            # Normalize planet name for lookup
+            planet_key = natal_planet.lower().replace(" ", "_")
+            for key in [planet_key, natal_planet, natal_planet.capitalize()]:
+                if key in natal_planets:
+                    planet_data = natal_planets.get(key, {})
+                    if isinstance(planet_data, dict):
+                        house = planet_data.get("house")
+                        if house and house in HOUSE_DOMAINS and house not in activated_houses:
+                            house_info = HOUSE_DOMAINS[house]
+                            activated_houses.append(house)
+                            activated_life_domains.append(house_info["name"])
+                    break
+        
+        # Build evidence entry with house info
+        evidence_entry = {
             "transit": f"{transit_planet} {aspect_type} {natal_planet}",
             "strength": round(strength, 2),
             "orb": round(orb, 2),
             "types": planet_types,
-            "meaning": get_transit_meaning(transit_planet, aspect_type, natal_planet)
-        })
+            "meaning": get_transit_meaning(transit_planet, aspect_type, natal_planet),
+        }
+        
+        if natal_house and natal_house in HOUSE_DOMAINS:
+            evidence_entry["house"] = natal_house
+            evidence_entry["life_domain"] = HOUSE_DOMAINS[natal_house]["name"]
+        
+        evidence.append(evidence_entry)
     
     # Deduplicate
     types = list(dict.fromkeys(types))[:5]  # Top 5 unique
     domains = list(dict.fromkeys(domains))[:5]
+    activated_life_domains = list(dict.fromkeys(activated_life_domains))[:5]
     
     # Calculate intensity - NEVER "quiet" with outer planet hard aspects
     avg_strength = total_strength / len(transit_aspects) if transit_aspects else 0
@@ -222,11 +272,11 @@ def build_transit_profile(
         any("Mars" in t.get("transit_point", "") or "Pluto" in t.get("transit_point", "") for t in transit_aspects)
     )
     
-    # Build summary
-    summary = build_transit_summary(types, domains, evidence, intensity, is_forcing)
+    # Build summary with house/domain context
+    summary = build_transit_summary_with_domains(types, domains, evidence, intensity, is_forcing, activated_life_domains)
     
-    # Build pattern link
-    pattern_link = build_pattern_link(types, domains, pattern_family, pattern_title, intensity)
+    # Build pattern link with house context
+    pattern_link = build_pattern_link_with_domains(types, domains, pattern_family, pattern_title, intensity, activated_life_domains)
     
     return TransitProfile(
         intensity=intensity,
@@ -308,6 +358,111 @@ def build_transit_summary(
         return f"{lead} {' '.join(type_descriptions[:2])}"
     
     return lead
+
+
+def build_transit_summary_with_domains(
+    types: List[str], 
+    domains: List[str], 
+    evidence: List[Dict], 
+    intensity: TransitIntensity,
+    is_forcing: bool,
+    activated_life_domains: List[str]
+) -> str:
+    """Build human-readable transit summary WITH house/domain specificity."""
+    
+    if not evidence:
+        return "No major transits are activating your chart today."
+    
+    # Lead with intensity
+    if intensity == TransitIntensity.HIGH:
+        lead = "Multiple major transits are active today"
+    elif intensity == TransitIntensity.MODERATE:
+        lead = "There is real activation in the timing today"
+    else:
+        lead = "Mild transit activity is present"
+    
+    # Add life domain context if available
+    if activated_life_domains:
+        domain_str = ", ".join(activated_life_domains[:4])
+        lead += f", especially around {domain_str}."
+    else:
+        lead += "."
+    
+    # Add type description
+    type_descriptions = []
+    if "expansion" in types and "constraint" in types:
+        if activated_life_domains:
+            type_descriptions.append(f"Growth is meeting resistance around your {activated_life_domains[0] if activated_life_domains else 'direction'}.")
+        else:
+            type_descriptions.append("Growth is pushing forward, but something is resisting it.")
+    if "disruption" in types:
+        type_descriptions.append("Change energy is active, though not fully formed.")
+    if "transformation" in types:
+        type_descriptions.append("Deep transformation pressure is present.")
+    if "awakening" in types:
+        type_descriptions.append("A natural evolution is underway.")
+    
+    # Add specific evidence with house
+    if evidence:
+        top_transit = evidence[0]
+        transit_str = f"{top_transit['transit']}: {top_transit['meaning']}"
+        if top_transit.get("life_domain"):
+            transit_str += f" (activating {top_transit['life_domain']})"
+        type_descriptions.append(transit_str + ".")
+    
+    # Combine
+    if type_descriptions:
+        return f"{lead} {' '.join(type_descriptions[:2])}"
+    
+    return lead
+
+
+def build_pattern_link_with_domains(
+    types: List[str],
+    domains: List[str],
+    pattern_family: str,
+    pattern_title: str,
+    intensity: TransitIntensity,
+    activated_life_domains: List[str]
+) -> str:
+    """Link transit profile to the current pattern WITH domain context."""
+    
+    # Pattern-specific links with domain awareness
+    PATTERN_LINKS = {
+        "stall": {
+            "expansion+constraint": lambda d: f"This expansion-meets-resistance energy matches the stop-start momentum of your pause{', especially around ' + d[0] if d else ''}.",
+            "disruption": lambda d: f"Change is active but unformed—this explains why forward motion keeps stalling{', particularly in ' + d[0] if d else ''}.",
+            "transformation": lambda d: "Deep transformation is demanding attention before you move forward.",
+            "default": lambda d: f"The transit pressure creates conditions where pausing makes sense{', especially in ' + ', '.join(d[:2]) if d else ''}.",
+        },
+        "push_pull": {
+            "expansion+constraint": lambda d: f"Growth pushing against resistance creates the exact back-and-forth you're feeling{', around ' + ' and '.join(d[:2]) if d else ''}.",
+            "disruption": lambda d: "Disruption energy is pulling you toward change while something else holds you back.",
+            "default": lambda d: "Multiple forces are creating the push-pull you're experiencing.",
+        },
+        "expression": {
+            "constraint": lambda d: "Constraint pressure is suppressing expression—the silence has external reinforcement.",
+            "transformation": lambda d: "What wants to be said is connected to deeper transformation work.",
+            "default": lambda d: f"The timing is influencing what can and cannot be expressed{', in ' + d[0] if d else ''}.",
+        },
+    }
+    
+    family_links = PATTERN_LINKS.get(pattern_family, PATTERN_LINKS.get("stall", {}))
+    
+    # Check for expansion + constraint combo
+    if "expansion" in types and "constraint" in types:
+        link_func = family_links.get("expansion+constraint", family_links.get("default", lambda d: "The timing is relevant to your pattern."))
+        return link_func(activated_life_domains)
+    
+    # Check for specific types
+    for type_name in ["disruption", "transformation", "constraint", "confusion"]:
+        if type_name in types:
+            if type_name in family_links:
+                return family_links[type_name](activated_life_domains)
+    
+    # Default
+    default_func = family_links.get("default", lambda d: f"The timing is connected to '{pattern_title}'.")
+    return default_func(activated_life_domains)
 
 
 def build_pattern_link(
@@ -786,14 +941,15 @@ def build_unified_timing_profile(
     birth_date: Optional[datetime] = None,
     pattern_family: str = "general",
     pattern_title: str = "Today's Pattern",
-    dt: Optional[datetime] = None
+    dt: Optional[datetime] = None,
+    natal_planets: Optional[Dict[str, Any]] = None,  # For house lookup
 ) -> UnifiedTimingProfile:
     """
     Build the unified timing profile that ALL lenses consume.
     """
     
     # Build individual profiles
-    transit = build_transit_profile(transit_aspects, pattern_family, pattern_title)
+    transit = build_transit_profile(transit_aspects, pattern_family, pattern_title, natal_planets)
     bazi = build_bazi_day_profile(natal_bazi, pattern_family, dt)
     numerology = build_numerology_day_profile(birth_date, pattern_family, dt)
     
