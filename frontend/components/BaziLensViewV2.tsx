@@ -230,6 +230,42 @@ interface FeedbackMap {
   [key: string]: 'yes' | 'somewhat' | 'no';
 }
 
+// BaZi Today interface - from unified timing intelligence
+interface BaziTodayData {
+  success: boolean;
+  user_id: string;
+  date: string;
+  today_tone: {
+    element: string;
+    stem: string;
+    branch: string;
+    meaning: string;
+  };
+  what_is_active: {
+    ten_gods: string[];
+    interactions: string[];
+    strength_shift: string;
+    element_balance: {
+      dominant: string;
+      branch: string;
+      relationship: string;
+    };
+  };
+  where_it_lands: {
+    implication: string;
+    behavioral_hint: string;
+  };
+  what_to_watch: {
+    pressure_points: string[];
+    risk_note: string;
+  };
+  what_helps_now: {
+    practical: string;
+    element_support: string;
+  };
+  pattern_link: string;
+}
+
 interface BaziResponseV2 {
   success: boolean;
   user_id: string;
@@ -303,7 +339,7 @@ const ELEMENT_INTERPRETATIONS: Record<string, { strong: string; weak: string }> 
 // MAIN COMPONENT
 // =============================================================================
 
-type TabType = 'summary' | 'snapshot' | 'deep_dive';
+type TabType = 'summary' | 'today' | 'snapshot' | 'deep_dive';
 
 export default function BaziLensView({ userId, onOpenChat }: Props) {
   const { theme, isDark } = useTheme();
@@ -318,6 +354,10 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
   const [adaptive, setAdaptive] = useState<AdaptiveContent | null>(null);
   const [feedbackMap, setFeedbackMap] = useState<FeedbackMap>({});
   const [feedbackSubmitting, setFeedbackSubmitting] = useState<string | null>(null);
+  
+  // BaZi Today State
+  const [baziToday, setBaziToday] = useState<BaziTodayData | null>(null);
+  const [baziTodayLoading, setBaziTodayLoading] = useState(false);
 
   // Load BaZi data with adaptive content
   const loadBaziData = useCallback(async (refresh = false) => {
@@ -329,11 +369,12 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
     setError(null);
 
     try {
-      // Load both chart and adaptive content
-      const [chartResponse, adaptiveResponse, feedbackResponse] = await Promise.all([
+      // Load chart, adaptive content, feedback, and today data
+      const [chartResponse, adaptiveResponse, feedbackResponse, todayResponse] = await Promise.all([
         api.get<BaziResponseV2>(`/bazi/${userId}/full`),
         api.get(`/bazi/${userId}/adaptive`).catch(() => null),
         api.get(`/bazi/${userId}/feedback`).catch(() => null),
+        api.get<BaziTodayData>(`/bazi/${userId}/today`).catch(() => null),
       ]);
       
       if (chartResponse.data.success) {
@@ -350,6 +391,11 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
       // Load existing feedback
       if (feedbackResponse?.data?.feedback_map) {
         setFeedbackMap(feedbackResponse.data.feedback_map);
+      }
+      
+      // Load BaZi Today
+      if (todayResponse?.data?.success) {
+        setBaziToday(todayResponse.data);
       }
     } catch (err: any) {
       console.error('[BaZi V2] Load error:', err);
@@ -417,11 +463,19 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
+        style={[styles.tab, activeTab === 'today' && styles.activeTab]}
+        onPress={() => setActiveTab('today')}
+      >
+        <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'today' && { color: theme.text, fontWeight: '600' }]}>
+          Today
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         style={[styles.tab, activeTab === 'snapshot' && styles.activeTab]}
         onPress={() => setActiveTab('snapshot')}
       >
         <Text style={[styles.tabText, { color: theme.textTertiary }, activeTab === 'snapshot' && { color: theme.text, fontWeight: '600' }]}>
-          Snapshot
+          Timing
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -440,6 +494,10 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
     summary: {
       title: "Your Core Signature",
       blurb: "The fundamental energy that shapes how you move through life.",
+    },
+    today: {
+      title: "Today's Element Energy",
+      blurb: "What BaZi energy is active today and how it may affect you.",
     },
     snapshot: {
       title: "Current Timing",
@@ -651,6 +709,8 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
     switch (tab) {
       case 'summary':
         return "What stands out most in my BaZi chart?";
+      case 'today':
+        return "How does today's BaZi energy affect me specifically?";
       case 'snapshot':
         return "What is my chart being asked to pay attention to right now?";
       case 'deep_dive':
@@ -670,6 +730,11 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         "What does my Day Master mean in daily life?",
         "Which element should I focus on activating?",
         "How do my Four Pillars work together?",
+      ],
+      today: [
+        "How should I approach today based on this energy?",
+        "What pressure points should I watch for today?",
+        "How does today's element interact with my chart?",
       ],
       snapshot: [
         "What should I pay attention to today?",
@@ -745,6 +810,203 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             </View>
           </View>
         )}
+      </View>
+    );
+  };
+
+  // =============================================================================
+  // BAZI TODAY TAB COMPONENTS
+  // =============================================================================
+
+  // Today's Tone - Element energy card
+  const renderTodayTone = () => {
+    if (!baziToday) return null;
+    const { today_tone } = baziToday;
+    
+    const elementColor = ELEMENT_COLORS[today_tone.element] || theme.text;
+    
+    return (
+      <View style={[styles.todayToneCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={[styles.todayToneHeader, { borderBottomColor: theme.border }]}>
+          <View style={[styles.todayElementBadge, { backgroundColor: elementColor + '20' }]}>
+            <Text style={styles.todayElementIcon}>{ELEMENT_ICONS[today_tone.element]}</Text>
+            <Text style={[styles.todayElementName, { color: elementColor }]}>{today_tone.element}</Text>
+          </View>
+          <View style={styles.todayDateInfo}>
+            <Text style={[styles.todayDateLabel, { color: theme.textTertiary }]}>{baziToday.date}</Text>
+            <Text style={[styles.todayStemBranch, { color: theme.textSecondary }]}>
+              {today_tone.stem} {today_tone.branch}
+            </Text>
+          </View>
+        </View>
+        
+        <Text style={[styles.todayToneMeaning, { color: theme.text }]}>
+          {today_tone.meaning}
+        </Text>
+      </View>
+    );
+  };
+
+  // What is Active - Ten Gods and Interactions
+  const renderWhatIsActive = () => {
+    if (!baziToday) return null;
+    const { what_is_active } = baziToday;
+    
+    const getInteractionColor = (interaction: string) => {
+      if (interaction === 'pressure' || interaction === 'drain') return '#FF5722';
+      if (interaction === 'support' || interaction === 'opportunity') return '#4CAF50';
+      return '#FF9800';
+    };
+
+    const getTenGodLabel = (god: string) => {
+      const labels: Record<string, string> = {
+        'officer': 'Officer (Authority)',
+        'wealth': 'Wealth (Opportunity)',
+        'output': 'Output (Expression)',
+        'resource': 'Resource (Support)',
+        'companion': 'Companion (Equality)',
+      };
+      return labels[god] || god.charAt(0).toUpperCase() + god.slice(1);
+    };
+    
+    return (
+      <View style={[styles.whatIsActiveCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>WHAT IS ACTIVE</Text>
+        
+        {/* Ten Gods */}
+        <View style={styles.tenGodsRow}>
+          {what_is_active.ten_gods.map((god, idx) => (
+            <View key={idx} style={[styles.tenGodBadge, { backgroundColor: theme.background }]}>
+              <Text style={[styles.tenGodBadgeText, { color: theme.text }]}>{getTenGodLabel(god)}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Interactions */}
+        <View style={styles.interactionsRow}>
+          {what_is_active.interactions.map((interaction, idx) => (
+            <View key={idx} style={[styles.interactionBadgeLg, { backgroundColor: getInteractionColor(interaction) + '15' }]}>
+              <View style={[styles.interactionDotLg, { backgroundColor: getInteractionColor(interaction) }]} />
+              <Text style={[styles.interactionLabelLg, { color: getInteractionColor(interaction) }]}>
+                {interaction.charAt(0).toUpperCase() + interaction.slice(1)}
+              </Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Strength Shift */}
+        <View style={[styles.strengthShiftBox, { backgroundColor: theme.background }]}>
+          <Text style={[styles.strengthShiftLabel, { color: theme.textTertiary }]}>ENERGY SHIFT</Text>
+          <Text style={[styles.strengthShiftValue, { 
+            color: what_is_active.strength_shift === 'stronger' ? '#4CAF50' : 
+                   what_is_active.strength_shift === 'weaker' ? '#FF5722' : theme.text 
+          }]}>
+            {what_is_active.strength_shift === 'stronger' ? '↑ Stronger' : 
+             what_is_active.strength_shift === 'weaker' ? '↓ Weaker' : '→ Balanced'}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // Where It Lands - Behavioral implications
+  const renderWhereItLands = () => {
+    if (!baziToday) return null;
+    const { where_it_lands } = baziToday;
+    
+    return (
+      <View style={[styles.whereItLandsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>WHERE IT MAY LAND</Text>
+        
+        <Text style={[styles.todayImplicationText, { color: theme.text }]}>
+          {where_it_lands.implication}
+        </Text>
+        
+        <View style={[styles.behavioralHintBox, { backgroundColor: theme.background }]}>
+          <Ionicons name="body-outline" size={16} color={theme.textTertiary} />
+          <Text style={[styles.behavioralHintText, { color: theme.textSecondary }]}>
+            {where_it_lands.behavioral_hint}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // What to Watch - Pressure points and risks
+  const renderWhatToWatch = () => {
+    if (!baziToday) return null;
+    const { what_to_watch } = baziToday;
+    
+    return (
+      <View style={[styles.whatToWatchCard, { backgroundColor: '#FF572208', borderColor: '#FF572230' }]}>
+        <View style={styles.watchHeaderRow}>
+          <Ionicons name="warning-outline" size={18} color="#FF5722" />
+          <Text style={[styles.watchHeaderText, { color: '#FF5722' }]}>WHAT TO WATCH</Text>
+        </View>
+        
+        {/* Pressure Points */}
+        <View style={styles.pressurePointsList}>
+          {what_to_watch.pressure_points.map((point, idx) => (
+            <View key={idx} style={styles.pressurePointItem}>
+              <Text style={[styles.pressurePointBullet, { color: '#FF5722' }]}>•</Text>
+              <Text style={[styles.pressurePointText, { color: theme.text }]}>{point}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Risk Note */}
+        <View style={[styles.riskNoteBox, { backgroundColor: '#FF572210' }]}>
+          <Text style={[styles.riskNoteText, { color: theme.textSecondary }]}>
+            {what_to_watch.risk_note}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // What Helps Now - Practical guidance
+  const renderWhatHelpsNow = () => {
+    if (!baziToday) return null;
+    const { what_helps_now } = baziToday;
+    
+    const elementColor = ELEMENT_COLORS[baziToday.today_tone.element] || '#4CAF50';
+    
+    return (
+      <View style={[styles.whatHelpsNowCard, { backgroundColor: '#4CAF5008', borderColor: '#4CAF5030' }]}>
+        <View style={styles.helpsHeaderRow}>
+          <Ionicons name="leaf-outline" size={18} color="#4CAF50" />
+          <Text style={[styles.helpsHeaderText, { color: '#4CAF50' }]}>WHAT HELPS NOW</Text>
+        </View>
+        
+        {/* Practical Guidance */}
+        <Text style={[styles.practicalText, { color: theme.text }]}>
+          {what_helps_now.practical}
+        </Text>
+        
+        {/* Element Support */}
+        <View style={[styles.elementSupportBox, { backgroundColor: elementColor + '10' }]}>
+          <Text style={styles.elementSupportIcon}>{ELEMENT_ICONS[baziToday.today_tone.element]}</Text>
+          <Text style={[styles.elementSupportText, { color: theme.textSecondary }]}>
+            {what_helps_now.element_support}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  // Pattern Link - Connection to current pattern
+  const renderPatternLink = () => {
+    if (!baziToday?.pattern_link) return null;
+    
+    return (
+      <View style={[styles.patternLinkCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={styles.patternLinkHeader}>
+          <Ionicons name="git-merge-outline" size={16} color={theme.accent} />
+          <Text style={[styles.patternLinkLabel, { color: theme.accent }]}>PATTERN CONNECTION</Text>
+        </View>
+        <Text style={[styles.patternLinkText, { color: theme.textSecondary }]}>
+          {baziToday.pattern_link}
+        </Text>
       </View>
     );
   };
@@ -1429,6 +1691,28 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             {renderTimingPreview()}
             {renderUnifiedAskSection('summary')}
           </>
+        )}
+
+        {activeTab === 'today' && baziToday && (
+          <>
+            {renderTabBlurb()}
+            {renderTodayTone()}
+            {renderWhatIsActive()}
+            {renderWhereItLands()}
+            {renderWhatToWatch()}
+            {renderWhatHelpsNow()}
+            {renderPatternLink()}
+            {renderUnifiedAskSection('today')}
+          </>
+        )}
+        
+        {activeTab === 'today' && !baziToday && (
+          <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+            <ActivityIndicator size="large" color={theme.accent} />
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+              Loading today's energy...
+            </Text>
+          </View>
         )}
 
         {activeTab === 'snapshot' && data?.timing && (
@@ -2504,5 +2788,253 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '500',
+  },
+  
+  // =============================================================================
+  // BAZI TODAY TAB STYLES
+  // =============================================================================
+  
+  // Today's Tone Card
+  todayToneCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  todayToneHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  todayElementBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 8,
+  },
+  todayElementIcon: {
+    fontSize: 24,
+  },
+  todayElementName: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  todayDateInfo: {
+    alignItems: 'flex-end',
+  },
+  todayDateLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  todayStemBranch: {
+    fontSize: 16,
+    marginTop: 2,
+  },
+  todayToneMeaning: {
+    fontSize: 15,
+    lineHeight: 22,
+    padding: 16,
+  },
+  
+  // What Is Active Card
+  whatIsActiveCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  tenGodsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+    marginBottom: 12,
+  },
+  tenGodBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  tenGodBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  interactionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  interactionBadgeLg: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  interactionDotLg: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  interactionLabelLg: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  strengthShiftBox: {
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  strengthShiftLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  strengthShiftValue: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  
+  // Where It Lands Card
+  whereItLandsCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  todayImplicationText: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  behavioralHintBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    borderRadius: 8,
+    gap: 10,
+  },
+  behavioralHintText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  
+  // What To Watch Card
+  whatToWatchCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 16,
+  },
+  watchHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  watchHeaderText: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  pressurePointsList: {
+    marginBottom: 12,
+    gap: 8,
+  },
+  pressurePointItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  pressurePointBullet: {
+    fontSize: 14,
+    marginRight: 8,
+    marginTop: 2,
+  },
+  pressurePointText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  riskNoteBox: {
+    padding: 12,
+    borderRadius: 8,
+  },
+  riskNoteText: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+  
+  // What Helps Now Card
+  whatHelpsNowCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 16,
+  },
+  helpsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  helpsHeaderText: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  practicalText: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  elementSupportBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    gap: 10,
+  },
+  elementSupportIcon: {
+    fontSize: 20,
+  },
+  elementSupportText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  
+  // Pattern Link Card
+  patternLinkCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+    marginBottom: 16,
+  },
+  patternLinkHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  patternLinkLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  patternLinkText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

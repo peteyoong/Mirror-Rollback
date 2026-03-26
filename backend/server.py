@@ -18230,6 +18230,200 @@ async def get_bazi_chart_full(user_id: str):
 
 
 # =====================================================================
+# BAZI TODAY ENDPOINT - UNIFIED TIMING INTELLIGENCE
+# =====================================================================
+
+@api_router.get("/bazi/{user_id}/today")
+async def get_bazi_today(user_id: str):
+    """
+    Get BaZi Today profile - what element energy is active today.
+    
+    Returns the BaziDayProfile from unified_timing_intelligence:
+    - today_tone: Element energy and basic meaning
+    - what_is_active: Ten Gods and interactions
+    - where_it_lands: Behavioral implications
+    - what_to_watch: Pressure points and risks
+    - what_helps_now: Practical guidance
+    """
+    from services.unified_timing_intelligence import build_bazi_day_profile
+    
+    try:
+        # Get user data for context
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check for required birth data
+        birth_date = user.get("birth_date")
+        if not birth_date:
+            raise HTTPException(
+                status_code=400, 
+                detail="Birth date is required for BaZi calculation."
+            )
+        
+        # Get the current pattern family from today's pattern (if available)
+        pattern_family = "general"
+        try:
+            today_pattern = await db.today_patterns.find_one({"user_id": user_id})
+            if today_pattern and today_pattern.get("pattern_family"):
+                pattern_family = today_pattern.get("pattern_family")
+        except Exception:
+            pass
+        
+        # Build BaZi day profile using unified timing intelligence
+        bazi_day = build_bazi_day_profile(
+            natal_bazi=None,  # We use the standalone calculation
+            pattern_family=pattern_family,
+            dt=None  # Use current date
+        )
+        
+        # Convert to rich frontend format
+        bazi_today = {
+            "success": True,
+            "user_id": user_id,
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "today_tone": {
+                "element": bazi_day.day_element.value,
+                "stem": bazi_day.day_stem,
+                "branch": bazi_day.day_branch,
+                "meaning": get_element_meaning(bazi_day.day_element.value),
+            },
+            "what_is_active": {
+                "ten_gods": bazi_day.ten_gods_active,
+                "interactions": bazi_day.interactions,
+                "strength_shift": bazi_day.strength_shift,
+                "element_balance": bazi_day.element_balance,
+            },
+            "where_it_lands": {
+                "implication": bazi_day.implication,
+                "behavioral_hint": get_behavioral_hint(bazi_day.ten_gods_active, bazi_day.interactions),
+            },
+            "what_to_watch": {
+                "pressure_points": get_pressure_points(bazi_day.interactions, bazi_day.strength_shift),
+                "risk_note": get_risk_note(bazi_day.ten_gods_active, bazi_day.interactions),
+            },
+            "what_helps_now": {
+                "practical": get_practical_guidance(bazi_day.day_element.value, bazi_day.interactions),
+                "element_support": get_element_support(bazi_day.day_element.value),
+            },
+            "pattern_link": bazi_day.pattern_link,
+        }
+        
+        logger.info(f"[BaZi Today] Generated for user {user_id}: {bazi_day.day_element.value} day, interactions={bazi_day.interactions}")
+        
+        return bazi_today
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[BaZi Today] Error for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Failed to compute BaZi Today")
+
+
+def get_element_meaning(element: str) -> str:
+    """Get human-readable meaning for element energy."""
+    MEANINGS = {
+        "Wood": "Growth, initiative, planning energy. Today supports starting and forward movement.",
+        "Fire": "Expression, passion, visibility. Today supports being seen and sharing warmth.",
+        "Earth": "Stability, responsibility, grounding. Today supports building and nurturing.",
+        "Metal": "Precision, discipline, clarity. Today supports cutting away and refining.",
+        "Water": "Flow, wisdom, adaptability. Today supports reflection and flexibility.",
+    }
+    return MEANINGS.get(element, "General activation energy.")
+
+
+def get_behavioral_hint(ten_gods: list, interactions: list) -> str:
+    """Get behavioral hint based on ten gods and interactions."""
+    hints = []
+    
+    if "officer" in ten_gods:
+        hints.append("Authority or responsibility themes may surface—you might feel more observed or accountable.")
+    if "wealth" in ten_gods:
+        hints.append("Opportunity themes are present—notice what resources or gains appear.")
+    if "output" in ten_gods:
+        hints.append("Expression energy is active—creativity or communication may feel easier.")
+    if "resource" in ten_gods:
+        hints.append("Support energy is available—receiving help or nourishment is favored.")
+    if "companion" in ten_gods:
+        hints.append("Equal partnership energy—collaboration and peer connection supported.")
+    
+    if "pressure" in interactions:
+        hints.append("External pressure may be present—don't take it personally.")
+    if "support" in interactions:
+        hints.append("The day supports your direction—trust what's emerging.")
+    if "drain" in interactions:
+        hints.append("Energy may deplete faster—pace yourself.")
+    
+    return " ".join(hints[:2]) if hints else "Today carries neutral activation—observe what arises."
+
+
+def get_pressure_points(interactions: list, strength_shift: str) -> list:
+    """Get pressure points to watch for."""
+    points = []
+    
+    if "pressure" in interactions:
+        points.append("External demands may feel heavier than usual")
+    if "drain" in interactions:
+        points.append("Watch for energy depletion in the afternoon")
+    if strength_shift == "weaker":
+        points.append("Your core energy may feel less available—compensate with rest")
+    if "opportunity" in interactions:
+        points.append("Opportunity can create pressure to act—don't rush")
+    
+    if not points:
+        points.append("No major pressure points today—use the space wisely")
+    
+    return points[:3]
+
+
+def get_risk_note(ten_gods: list, interactions: list) -> str:
+    """Get risk note for the day."""
+    if "officer" in ten_gods and "pressure" in interactions:
+        return "Authority pressure is real—don't over-promise or take on more than sustainable."
+    if "output" in ten_gods and "drain" in interactions:
+        return "Expression may feel easy but could deplete you—choose what to share carefully."
+    if "wealth" in ten_gods:
+        return "Opportunity is present but may require discernment—not everything offered is worth pursuing."
+    if "pressure" in interactions:
+        return "Pressure is external, not internal—don't internalize what isn't yours."
+    return "No significant risks flagged—stay aware of your energy levels."
+
+
+def get_practical_guidance(element: str, interactions: list) -> str:
+    """Get practical guidance for the day."""
+    GUIDANCE = {
+        "Wood": "Focus on planning and initiating. Good for starting projects or conversations you've been delaying.",
+        "Fire": "Let yourself be visible. Share what you've been working on. Connect with warmth.",
+        "Earth": "Build and nurture. Good for strengthening foundations—home, health, relationships.",
+        "Metal": "Refine and clarify. Cut away what's not working. Make decisions that simplify.",
+        "Water": "Reflect and adapt. Go inward before acting outward. Let things flow.",
+    }
+    
+    base = GUIDANCE.get(element, "Stay present to what the day brings.")
+    
+    if "pressure" in interactions:
+        base += " But don't force—let results come at their own pace."
+    if "support" in interactions:
+        base += " The timing supports forward movement."
+    
+    return base
+
+
+def get_element_support(element: str) -> str:
+    """Get element support advice."""
+    SUPPORT = {
+        "Wood": "Spend time in nature. Wear green. Eat fresh, leafy foods.",
+        "Fire": "Seek sunlight. Move your body. Engage in creative expression.",
+        "Earth": "Ground yourself. Eat warming foods. Create order in your space.",
+        "Metal": "Declutter something. Take deep breaths. Wear white or metallic tones.",
+        "Water": "Hydrate well. Rest when needed. Spend time near water if possible.",
+    }
+    return SUPPORT.get(element, "Support your natural rhythm today.")
+
+
+# =====================================================================
 # BAZI FEEDBACK & PERSONALIZATION ENDPOINTS
 # =====================================================================
 
