@@ -140,7 +140,7 @@ export default function SignalsScreen() {
         <View style={[styles.synthesisCard, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
           <Text style={[styles.synthesisLabel, { color: theme.textTertiary }]}>SYNTHESIS</Text>
           <Text style={[styles.synthesisText, { color: theme.text }]}>
-            {data?.synthesis || 'Trust what you're noticing. Patterns surface when they're ready to be seen.'}
+            {data?.synthesis || "Trust what you're noticing. Patterns surface when they're ready to be seen."}
           </Text>
         </View>
 
