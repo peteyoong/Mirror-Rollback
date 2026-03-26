@@ -1,22 +1,28 @@
 /**
  * TodayPatternCard
  * Home screen keystone - Cross-Lens Synthesis
- * Shows title + 3 lines that feel like immediate recognition
- * + contextual follow-through line based on dominant source
- * + "Why this is showing up" inline expander
  * 
- * NOW WITH EXPERIENCE CONTROLS:
- * - Tone: Affects opener/closer copy
- * - Verbosity: Affects how much is shown
- * - Signal Visibility: Controls expander detail level
- * - Prompt Style: Affects the CTA copy
+ * NOW MODE-BASED for structural experience differentiation:
  * 
- * Structure:
- * - Line 1: What you're feeling / doing
- * - Line 2: The tension / contradiction  
- * - Line 3: The pattern (recognition layer)
- * - Follow-through: Contextual bridge to relevant lens
- * - Expander: Top signals driving today's pattern
+ * GROUNDING MODE:
+ * - Max 2 lines
+ * - 1 signal only
+ * - Reassuring tone
+ * - Simple language
+ * - Calming CTA
+ * 
+ * EXPLORATORY MODE:
+ * - Full content (5 lines)
+ * - Multiple signals
+ * - Cross-lens synthesis
+ * - Open-ended reflection
+ * - Question-based CTA
+ * 
+ * DIRECTIVE MODE:
+ * - Structured output (3 lines)
+ * - 2 signals + interpretation
+ * - Clear language
+ * - Action-oriented CTA
  */
 
 import React, { useState, useEffect } from 'react';
@@ -24,6 +30,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, LayoutAnim
 import { useRouter } from 'expo-router';
 import api, { getPatternSignals, PatternSignalDetail } from '../services/api';
 import { useExperienceControls } from '../hooks/useExperienceControls';
+import { MODE_CONFIGS } from '../types/mirror-profile';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -63,8 +70,8 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Experience controls for personalization
-  const { controls, toneTemplates, promptTemplate } = useExperienceControls();
+  // Experience controls for personalization - MODE is the primary driver
+  const { mode, modeConfig, controls } = useExperienceControls();
   
   // Expander state
   const [isExpanded, setIsExpanded] = useState(false);
@@ -148,47 +155,71 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
     router.push('/signals');
   };
 
-  // Get top signals based on signal_visibility setting
-  // minimal: 1 signal, standard: 3 signals, expanded: 5 signals
+  // ============================================================
+  // MODE-BASED STRUCTURAL FUNCTIONS
+  // ============================================================
+
+  // Get signals based on MODE (structural change, not just count)
   const getTopSignals = () => {
     if (!signalsData?.signals) return [];
     
-    const allSignals: { category: string; signal: PatternSignalDetail }[] = [];
+    const allSignals: { category: string; signal: PatternSignalDetail; showInterpretation: boolean }[] = [];
     
     if (signalsData.signals.astrology) {
-      signalsData.signals.astrology.forEach(s => allSignals.push({ category: 'Astrology', signal: s }));
+      signalsData.signals.astrology.forEach(s => 
+        allSignals.push({ 
+          category: 'Astrology', 
+          signal: s, 
+          showInterpretation: modeConfig.showSignalInterpretation 
+        })
+      );
     }
     if (signalsData.signals.human_design) {
-      signalsData.signals.human_design.forEach(s => allSignals.push({ category: 'Human Design', signal: s }));
+      signalsData.signals.human_design.forEach(s => 
+        allSignals.push({ 
+          category: 'Human Design', 
+          signal: s, 
+          showInterpretation: modeConfig.showSignalInterpretation 
+        })
+      );
     }
     if (signalsData.signals.pattern_history) {
-      signalsData.signals.pattern_history.forEach(s => allSignals.push({ category: 'Pattern History', signal: s }));
+      signalsData.signals.pattern_history.forEach(s => 
+        allSignals.push({ 
+          category: 'Pattern History', 
+          signal: s, 
+          showInterpretation: modeConfig.showSignalInterpretation 
+        })
+      );
     }
     
-    // Limit based on signal visibility preference
-    const limits = { minimal: 1, standard: 3, expanded: 5 };
-    const limit = limits[controls.signal_visibility] || 3;
-    
-    return allSignals.slice(0, limit);
+    // Use MODE maxSignals for structural limit
+    return allSignals.slice(0, modeConfig.maxSignals);
   };
 
-  // Get CTA text based on prompt_style
-  const getCtaText = () => {
-    const ctaMap = {
-      questions: 'What does this bring up?',
-      perspectives: 'Write about this',
-      reassurance: 'Take a moment with this',
-      action: 'What will you do with this?',
-    };
-    return ctaMap[controls.prompt_style] || 'Write about this';
-  };
+  // Get CTA text based on MODE (structural change in prompt behavior)
+  const getCtaText = () => modeConfig.ctaText;
 
-  // Get lines to show based on verbosity
+  // Get lines to show based on MODE maxLines (structural change)
   const getLinesToShow = () => {
     if (!data?.lines) return [];
-    if (controls.verbosity === 'low') return data.lines.slice(0, 2);
-    if (controls.verbosity === 'high') return data.lines;
-    return data.lines.slice(0, 3); // medium
+    return data.lines.slice(0, modeConfig.maxLines);
+  };
+
+  // Should show cross-lens synthesis (only in exploratory mode)
+  const shouldShowCrossLensSynthesis = () => {
+    return mode === 'exploratory' && signalsData?.synthesis;
+  };
+
+  // Should show "See all signals" link
+  const shouldShowSeeAllLink = () => {
+    // Only show if we have more signals than maxSignals allows
+    if (!signalsData?.signals) return false;
+    const totalSignals = 
+      (signalsData.signals.astrology?.length || 0) +
+      (signalsData.signals.human_design?.length || 0) +
+      (signalsData.signals.pattern_history?.length || 0);
+    return totalSignals > modeConfig.maxSignals;
   };
 
   // Don't render if no data
@@ -206,9 +237,9 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
-      {/* Label with tone opener */}
+      {/* Label with MODE-based opener */}
       <Text style={[styles.label, { color: theme.textTertiary }]}>
-        {toneTemplates.pattern_opener.toUpperCase()}
+        {modeConfig.patternOpener.toUpperCase()}
       </Text>
       
       {/* Title */}
@@ -216,7 +247,7 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
         {data?.title}
       </Text>
       
-      {/* Lines - controlled by verbosity */}
+      {/* Lines - controlled by MODE maxLines (structural change) */}
       <View style={styles.linesContainer}>
         {getLinesToShow().map((line, index) => (
           <Text 
@@ -232,13 +263,13 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
         ))}
       </View>
       
-      {/* Tone closer - based on tone setting */}
+      {/* MODE-based closer */}
       <Text style={[styles.toneCloser, { color: theme.textTertiary }]}>
-        {toneTemplates.pattern_closer}
+        {modeConfig.patternCloser}
       </Text>
       
-      {/* Follow-through line - tappable bridge to relevant lens */}
-      {data?.follow_through && (
+      {/* Follow-through line - only show if MODE allows cross-lens synthesis */}
+      {modeConfig.showCrossLensSynthesis && data?.follow_through && (
         <TouchableOpacity
           style={styles.followThroughContainer}
           onPress={handleFollowThrough}
@@ -259,14 +290,14 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
         activeOpacity={0.7}
       >
         <Text style={[styles.expanderToggleText, { color: theme.textSecondary }]}>
-          Why this is showing up
+          {modeConfig.signalIntro}
         </Text>
         <Text style={[styles.expanderArrow, { color: theme.textTertiary }]}>
           {isExpanded ? '▲' : '▼'}
         </Text>
       </TouchableOpacity>
       
-      {/* Expanded Signals Section */}
+      {/* Expanded Signals Section - MODE-based structure */}
       {isExpanded && (
         <View style={styles.expandedContent}>
           {signalsLoading ? (
@@ -278,7 +309,7 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
             </View>
           ) : signalsData ? (
             <>
-              {/* Top Signals */}
+              {/* Top Signals - limited by MODE maxSignals */}
               <View style={styles.signalsList}>
                 {getTopSignals().map((item, index) => (
                   <View 
@@ -291,23 +322,37 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
                     <Text style={[styles.signalLabel, { color: theme.text }]}>
                       {item.signal.label}
                     </Text>
-                    <Text style={[styles.signalMeaning, { color: theme.textSecondary }]}>
-                      {item.signal.meaning}
-                    </Text>
+                    {/* Only show meaning if MODE allows interpretation */}
+                    {item.showInterpretation && (
+                      <Text style={[styles.signalMeaning, { color: theme.textSecondary }]}>
+                        {item.signal.meaning}
+                      </Text>
+                    )}
                   </View>
                 ))}
               </View>
               
-              {/* See all signals link */}
-              <TouchableOpacity
-                style={styles.seeAllLink}
-                onPress={handleSeeAllSignals}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.seeAllText, { color: theme.accent }]}>
-                  See all signals →
-                </Text>
-              </TouchableOpacity>
+              {/* Cross-lens synthesis - ONLY in exploratory mode */}
+              {shouldShowCrossLensSynthesis() && (
+                <View style={[styles.synthesisBox, { backgroundColor: theme.accent + '10' }]}>
+                  <Text style={[styles.synthesisText, { color: theme.textSecondary }]}>
+                    {signalsData.synthesis}
+                  </Text>
+                </View>
+              )}
+              
+              {/* See all signals link - only if more signals exist */}
+              {shouldShowSeeAllLink() && (
+                <TouchableOpacity
+                  style={styles.seeAllLink}
+                  onPress={handleSeeAllSignals}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.seeAllText, { color: theme.accent }]}>
+                    See all signals →
+                  </Text>
+                </TouchableOpacity>
+              )}
             </>
           ) : (
             <Text style={[styles.noSignalsText, { color: theme.textTertiary }]}>
@@ -320,7 +365,7 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
       {/* Divider */}
       <View style={[styles.divider, { backgroundColor: theme.border }]} />
       
-      {/* CTA - Personalized based on prompt_style */}
+      {/* CTA - MODE-based action type */}
       <TouchableOpacity
         style={styles.ctaContainer}
         onPress={handleReflect}
@@ -431,6 +476,16 @@ const styles = StyleSheet.create({
   signalMeaning: {
     fontSize: 13,
     lineHeight: 18,
+  },
+  synthesisBox: {
+    marginTop: 14,
+    padding: 12,
+    borderRadius: 8,
+  },
+  synthesisText: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
   seeAllLink: {
     marginTop: 14,

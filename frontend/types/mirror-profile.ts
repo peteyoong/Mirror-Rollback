@@ -68,7 +68,16 @@ export type PromptStyle = 'questions' | 'perspectives' | 'reassurance' | 'action
 export type HomePriority = 'today' | 'signals' | 'journal' | 'lenses' | 'guided';
 export type SignalVisibility = 'minimal' | 'standard' | 'expanded';
 
+// ============================================================
+// MIRROR MODE - Core experience differentiation
+// ============================================================
+
+export type MirrorMode = 'grounding' | 'exploratory' | 'directive';
+
 export interface ExperienceControls {
+  // Core mode - drives structural experience differences
+  mode: MirrorMode;
+  // Legacy controls (for backward compatibility)
   verbosity: Verbosity;
   pacing: Pacing;
   tone: Tone;
@@ -76,6 +85,69 @@ export interface ExperienceControls {
   home_priority: HomePriority;
   signal_visibility: SignalVisibility;
 }
+
+// ============================================================
+// MODE CONFIGURATION - Structural behavior per mode
+// ============================================================
+
+export interface ModeConfig {
+  // Content structure
+  maxLines: number;
+  maxSignals: number;
+  showCrossLensSynthesis: boolean;
+  showSignalInterpretation: boolean;
+  
+  // Language style
+  languageStyle: 'simple' | 'open' | 'clear';
+  
+  // CTA behavior
+  ctaStyle: 'calming' | 'question' | 'action';
+  ctaText: string;
+  
+  // Pattern structure
+  patternOpener: string;
+  patternCloser: string;
+  signalIntro: string;
+}
+
+export const MODE_CONFIGS: Record<MirrorMode, ModeConfig> = {
+  grounding: {
+    maxLines: 2,
+    maxSignals: 1,
+    showCrossLensSynthesis: false,
+    showSignalInterpretation: false,
+    languageStyle: 'simple',
+    ctaStyle: 'calming',
+    ctaText: 'Take a breath with this',
+    patternOpener: "Here's what's present:",
+    patternCloser: 'This is enough to notice for now.',
+    signalIntro: 'One thing contributing:',
+  },
+  exploratory: {
+    maxLines: 5,
+    maxSignals: 5,
+    showCrossLensSynthesis: true,
+    showSignalInterpretation: true,
+    languageStyle: 'open',
+    ctaStyle: 'question',
+    ctaText: 'What does this bring up?',
+    patternOpener: 'Something interesting is emerging:',
+    patternCloser: 'There are layers here worth exploring.',
+    signalIntro: 'The signals underneath:',
+  },
+  directive: {
+    maxLines: 3,
+    maxSignals: 2,
+    showCrossLensSynthesis: false,
+    showSignalInterpretation: true,
+    languageStyle: 'clear',
+    ctaStyle: 'action',
+    ctaText: 'What will you do with this?',
+    patternOpener: "Today's pattern:",
+    patternCloser: 'Consider this as you move forward.',
+    signalIntro: 'Key signals:',
+  },
+};
 
 // ============================================================
 // QUESTIONNAIRE ANSWER MAPPING
@@ -133,8 +205,69 @@ export const QUESTIONNAIRE_MAPPING = {
 // DERIVE EXPERIENCE CONTROLS FROM PROFILE
 // ============================================================
 
+/**
+ * Derive MirrorMode from profile
+ * 
+ * GROUNDING: overwhelmed_stuck OR emotional_reassurance OR light_grounding
+ * EXPLORATORY: deep_exploratory OR gentle_questions OR curious_reflective
+ * DIRECTIVE: practical_grounding OR stability OR steady_grounded
+ */
+function deriveMirrorMode(profile: MirrorProfile): MirrorMode {
+  // Priority 1: Current emotional state (strongest signal)
+  if (profile.current_self_state === 'overwhelmed_stuck') {
+    return 'grounding';
+  }
+  if (profile.current_self_state === 'curious_reflective') {
+    return 'exploratory';
+  }
+  if (profile.current_self_state === 'steady_grounded') {
+    return 'directive';
+  }
+
+  // Priority 2: Support style preference
+  if (profile.support_style === 'emotional_reassurance') {
+    return 'grounding';
+  }
+  if (profile.support_style === 'gentle_questions') {
+    return 'exploratory';
+  }
+  if (profile.support_style === 'practical_grounding') {
+    return 'directive';
+  }
+
+  // Priority 3: Desired depth
+  if (profile.desired_depth === 'light_grounding') {
+    return 'grounding';
+  }
+  if (profile.desired_depth === 'deep_exploratory') {
+    return 'exploratory';
+  }
+
+  // Priority 4: Uncertainty style
+  if (profile.uncertainty_style === 'discomfort') {
+    return 'grounding';
+  }
+  if (profile.uncertainty_style === 'exploration' || profile.uncertainty_style === 'meaning') {
+    return 'exploratory';
+  }
+  if (profile.uncertainty_style === 'stability') {
+    return 'directive';
+  }
+
+  // Default: balanced → directive (action-oriented default)
+  return 'directive';
+}
+
 export function deriveExperienceControls(profile: MirrorProfile): ExperienceControls {
-  // Default controls
+  // ============================================================
+  // DERIVE MIRROR MODE FIRST - This is the primary differentiator
+  // ============================================================
+  const mode = deriveMirrorMode(profile);
+  
+  // Get mode config
+  const modeConfig = MODE_CONFIGS[mode];
+  
+  // Default controls (now driven by mode)
   let verbosity: Verbosity = 'medium';
   let pacing: Pacing = 'balanced';
   let tone: Tone = 'balanced';
@@ -143,7 +276,34 @@ export function deriveExperienceControls(profile: MirrorProfile): ExperienceCont
   let signal_visibility: SignalVisibility = 'standard';
 
   // ============================================================
-  // 1. PRIMARY_GOAL → HOME_PRIORITY
+  // SET CONTROLS BASED ON MODE
+  // ============================================================
+  switch (mode) {
+    case 'grounding':
+      verbosity = 'low';
+      pacing = 'fast';
+      tone = 'reassuring';
+      prompt_style = 'reassurance';
+      signal_visibility = 'minimal';
+      break;
+    case 'exploratory':
+      verbosity = 'high';
+      pacing = 'balanced';
+      tone = 'exploratory';
+      prompt_style = 'questions';
+      signal_visibility = 'expanded';
+      break;
+    case 'directive':
+      verbosity = 'medium';
+      pacing = 'balanced';
+      tone = 'direct';
+      prompt_style = 'action';
+      signal_visibility = 'standard';
+      break;
+  }
+
+  // ============================================================
+  // PRIMARY_GOAL → HOME_PRIORITY (mode-independent)
   // ============================================================
   switch (profile.primary_goal) {
     case 'self_understanding':
@@ -164,110 +324,8 @@ export function deriveExperienceControls(profile: MirrorProfile): ExperienceCont
       break;
   }
 
-  // ============================================================
-  // 2. UNCERTAINTY_STYLE → TONE / INTERPRETIVE FRAMING
-  // ============================================================
-  switch (profile.uncertainty_style) {
-    case 'meaning':
-      tone = 'exploratory';
-      break;
-    case 'stability':
-      tone = 'grounding';
-      break;
-    case 'exploration':
-      tone = 'balanced';
-      break;
-    case 'discomfort':
-      tone = 'reassuring';
-      break;
-    case 'depends':
-    default:
-      tone = 'balanced';
-      break;
-  }
-
-  // ============================================================
-  // 3. DESIRED_DEPTH → VERBOSITY, PACING, SIGNAL_VISIBILITY
-  // ============================================================
-  switch (profile.desired_depth) {
-    case 'light_grounding':
-      verbosity = 'low';
-      pacing = 'fast';
-      signal_visibility = 'minimal';
-      break;
-    case 'thoughtful_simple':
-      verbosity = 'medium';
-      pacing = 'balanced';
-      signal_visibility = 'standard';
-      break;
-    case 'deep_exploratory':
-      verbosity = 'high';
-      pacing = 'balanced';
-      signal_visibility = 'expanded';
-      break;
-    case 'slow_step_by_step':
-      verbosity = 'medium';
-      pacing = 'progressive';
-      signal_visibility = 'standard';
-      break;
-    case 'not_sure':
-    default:
-      verbosity = 'medium';
-      pacing = 'balanced';
-      signal_visibility = 'standard';
-      break;
-  }
-
-  // ============================================================
-  // 4. SUPPORT_STYLE → PROMPT_STYLE
-  // ============================================================
-  switch (profile.support_style) {
-    case 'gentle_questions':
-      prompt_style = 'questions';
-      break;
-    case 'clear_perspectives':
-      prompt_style = 'perspectives';
-      break;
-    case 'emotional_reassurance':
-      prompt_style = 'reassurance';
-      break;
-    case 'practical_grounding':
-      prompt_style = 'action';
-      break;
-    case 'dont_reflect_much':
-    default:
-      prompt_style = 'perspectives';
-      break;
-  }
-
-  // ============================================================
-  // 5. CURRENT_SELF_STATE → EMOTIONAL GUARDRAILS (modifies tone)
-  // ============================================================
-  switch (profile.current_self_state) {
-    case 'overwhelmed_stuck':
-      // Override to be more gentle and reassuring
-      if (tone === 'exploratory') tone = 'balanced';
-      if (verbosity === 'high') verbosity = 'medium';
-      break;
-    case 'uncertain_searching':
-      // Slightly softer approach
-      if (tone === 'direct') tone = 'balanced';
-      break;
-    case 'steady_grounded':
-      // Can handle more direct/exploratory content
-      if (tone === 'reassuring') tone = 'balanced';
-      break;
-    case 'curious_reflective':
-      // Open to exploration
-      if (signal_visibility === 'minimal') signal_visibility = 'standard';
-      break;
-    case 'hard_to_say':
-    default:
-      // Keep defaults
-      break;
-  }
-
   return {
+    mode,
     verbosity,
     pacing,
     tone,

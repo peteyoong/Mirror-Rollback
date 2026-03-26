@@ -12,11 +12,21 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAppStore } from '../store';
 import { getPatternSignals, PatternSignalDetail, PatternSignalsResponse } from '../services/api';
+import { useExperienceControls } from '../hooks/useExperienceControls';
+import { MODE_CONFIGS } from '../types/mirror-profile';
 
+/**
+ * Signals Screen - MODE-BASED structure
+ * 
+ * GROUNDING: Show 1 signal only, no interpretation
+ * EXPLORATORY: Show all grouped signals with full detail
+ * DIRECTIVE: Show 1-2 signals with interpretation
+ */
 export default function SignalsScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const { user } = useAppStore();
+  const { mode, modeConfig } = useExperienceControls();
   const [data, setData] = useState<PatternSignalsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,8 +52,18 @@ export default function SignalsScreen() {
     }
   };
 
+  // MODE-based signal limiting
+  const getLimitedSignals = (signals: PatternSignalDetail[] | undefined): PatternSignalDetail[] => {
+    if (!signals) return [];
+    // In grounding mode, show fewer signals per category
+    if (mode === 'grounding') return signals.slice(0, 1);
+    if (mode === 'directive') return signals.slice(0, 2);
+    return signals; // exploratory: show all
+  };
+
   const renderSignalSection = (title: string, signals: PatternSignalDetail[] | undefined, icon: string) => {
-    if (!signals || signals.length === 0) return null;
+    const limitedSignals = getLimitedSignals(signals);
+    if (limitedSignals.length === 0) return null;
 
     return (
       <View style={styles.signalSection}>
@@ -51,11 +71,14 @@ export default function SignalsScreen() {
           <Text style={[styles.sectionIcon, { color: theme.textTertiary }]}>{icon}</Text>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{title}</Text>
         </View>
-        {signals.map((signal, index) => (
+        {limitedSignals.map((signal, index) => (
           <View key={index} style={[styles.signalItem, { borderLeftColor: theme.accent + '40' }]}>
             <Text style={[styles.signalLabel, { color: theme.text }]}>{signal.label}</Text>
-            <Text style={[styles.signalMeaning, { color: theme.textSecondary }]}>{signal.meaning}</Text>
-            {signal.strength && signal.strength > 0.6 && (
+            {/* Only show interpretation if MODE allows */}
+            {modeConfig.showSignalInterpretation && (
+              <Text style={[styles.signalMeaning, { color: theme.textSecondary }]}>{signal.meaning}</Text>
+            )}
+            {signal.strength && signal.strength > 0.6 && mode !== 'grounding' && (
               <Text style={[styles.signalStrength, { color: theme.accent }]}>Strong signal</Text>
             )}
           </View>

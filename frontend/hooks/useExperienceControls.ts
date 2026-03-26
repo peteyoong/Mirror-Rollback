@@ -3,6 +3,8 @@
  * 
  * Provides access to the user's MirrorProfile and ExperienceControls
  * throughout the app. Handles loading, caching, and updates.
+ * 
+ * KEY: Now includes MirrorMode for structural experience differentiation
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -10,6 +12,9 @@ import { useAppStore } from '../store';
 import {
   MirrorProfile,
   ExperienceControls,
+  MirrorMode,
+  ModeConfig,
+  MODE_CONFIGS,
   deriveExperienceControls,
   createMirrorProfileFromAnswers,
   getExperienceSummary,
@@ -28,6 +33,8 @@ const EXPERIENCE_CONTROLS_KEY = 'experience_controls';
 interface UseExperienceControlsReturn {
   profile: MirrorProfile;
   controls: ExperienceControls;
+  mode: MirrorMode;
+  modeConfig: ModeConfig;
   summary: ExperienceSummary;
   toneTemplates: ToneTemplates;
   promptTemplate: string;
@@ -102,6 +109,8 @@ export function useExperienceControls(): UseExperienceControlsReturn {
   }, [questionnaireAnswers]);
 
   // Derived values
+  const mode = controls.mode;
+  const modeConfig = MODE_CONFIGS[mode];
   const summary = getExperienceSummary(profile, controls);
   const toneTemplates = getToneTemplates(controls);
   const promptTemplate = getPromptStyleTemplate(controls.prompt_style);
@@ -109,6 +118,8 @@ export function useExperienceControls(): UseExperienceControlsReturn {
   return {
     profile,
     controls,
+    mode,
+    modeConfig,
     summary,
     toneTemplates,
     promptTemplate,
@@ -121,6 +132,14 @@ export function useExperienceControls(): UseExperienceControlsReturn {
 // ============================================================
 // HELPER HOOKS FOR SPECIFIC USE CASES
 // ============================================================
+
+/**
+ * Get the current MirrorMode - PRIMARY hook for structural differences
+ */
+export function useMirrorMode(): { mode: MirrorMode; config: ModeConfig } {
+  const { mode, modeConfig } = useExperienceControls();
+  return { mode, config: modeConfig };
+}
 
 /**
  * Get signal visibility level for the current user
