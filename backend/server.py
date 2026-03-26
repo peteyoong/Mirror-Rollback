@@ -11448,6 +11448,11 @@ class TodayPatternResponse(BaseModel):
     # Contextual follow-through
     follow_through: Optional[str] = None
     follow_through_route: Optional[str] = None  # journal, human_design, astrology, enneagram
+    # Pattern-specific content (replaces generic mode closers)
+    pattern_family: Optional[str] = None
+    pattern_closer: Optional[str] = None
+    # Action guidance (pattern-derived)
+    action_guidance: Optional[dict] = None  # {action, context, timeframe, cta}
 
 
 # Follow-through lines by dominant source
@@ -11853,7 +11858,10 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
                     date=today_date,
                     cached=True,
                     follow_through=cached.get("follow_through"),
-                    follow_through_route=cached.get("follow_through_route")
+                    follow_through_route=cached.get("follow_through_route"),
+                    pattern_family=cached.get("pattern_family"),
+                    pattern_closer=cached.get("pattern_closer"),
+                    action_guidance=cached.get("action_guidance")
                 )
         
         # Gather lens data for signal engine
@@ -11935,19 +11943,48 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
         except Exception as e:
             logger.debug(f"[TodayPattern] Journal entries unavailable: {e}")
         
-        # Generate pattern using NOW SIGNAL ENGINE
+        # Get user's MirrorMode for pattern-specific content
+        user_mode = "exploratory"  # default
+        try:
+            if not user:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+            if user:
+                mirror_profile = user.get("mirror_profile", {})
+                if mirror_profile:
+                    # Derive mode from mirror_profile fields (same logic as frontend)
+                    desired_depth = mirror_profile.get("desired_depth", "")
+                    support_style = mirror_profile.get("support_style", "")
+                    
+                    if desired_depth in ["light_grounding", "slow_step_by_step"] or support_style in ["emotional_reassurance", "practical_grounding"]:
+                        user_mode = "grounding"
+                    elif desired_depth == "deep_exploratory" or support_style == "gentle_questions":
+                        user_mode = "exploratory"
+                    elif support_style == "clear_perspectives":
+                        user_mode = "directive"
+                    
+                    logger.debug(f"[TodayPattern] User mode derived: {user_mode} (depth={desired_depth}, style={support_style})")
+        except Exception as e:
+            logger.debug(f"[TodayPattern] Could not get user mode: {e}")
+        
+        # Generate pattern using NOW SIGNAL ENGINE with user mode
         result = await generate_today_pattern(
             journal_entries=journal_entries,
             hd_data=hd_data,
             enneagram_data=enneagram_data,
             transit_data=transit_data,
-            day_seed=day_seed
+            day_seed=day_seed,
+            mode=user_mode
         )
         
         # Get contextual follow-through (preserved from v1)
         follow_through, follow_through_route = get_follow_through(result["sources"], day_seed)
         
-        # Cache result
+        # Extract pattern-specific content
+        pattern_family = result.get("pattern_family", "general")
+        pattern_closer = result.get("pattern_closer", "")
+        action_guidance = result.get("action_guidance", {})
+        
+        # Cache result (including new pattern-specific fields)
         await db.today_patterns.update_one(
             {"user_id": user_id, "date": today_date},
             {"$set": {
@@ -11961,12 +11998,16 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
                 "category_scores": result.get("category_scores", {}),
                 "follow_through": follow_through,
                 "follow_through_route": follow_through_route,
+                "pattern_family": pattern_family,
+                "pattern_closer": pattern_closer,
+                "action_guidance": action_guidance,
+                "user_mode": user_mode,
                 "created_at": datetime.now(timezone.utc)
             }},
             upsert=True
         )
         
-        logger.info(f"[TodayPattern v2] Generated pattern for {user_id[:8]}: tension={result.get('tension_type')} confidence={result['confidence']}")
+        logger.info(f"[TodayPattern v2] Generated pattern for {user_id[:8]}: tension={result.get('tension_type')} family={pattern_family} confidence={result['confidence']}")
         
         return TodayPatternResponse(
             title=result["title"],
@@ -11976,7 +12017,10 @@ async def get_today_pattern(user_id: str, force_refresh: bool = False):
             date=today_date,
             cached=False,
             follow_through=follow_through,
-            follow_through_route=follow_through_route
+            follow_through_route=follow_through_route,
+            pattern_family=pattern_family,
+            pattern_closer=pattern_closer,
+            action_guidance=action_guidance
         )
         
     except Exception as e:

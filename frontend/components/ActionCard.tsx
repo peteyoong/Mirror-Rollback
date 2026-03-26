@@ -3,6 +3,8 @@
  * 
  * Provides clear, actionable guidance derived from the daily pattern.
  * Only shown in directive mode when users want structured, action-oriented content.
+ * 
+ * NOW: Uses pattern-family derived actions from backend instead of generic templates.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -20,58 +22,83 @@ interface ActionData {
   action: string;
   context: string;
   timeframe: 'now' | 'today' | 'this_week';
+  cta: string;
 }
 
-// Generate action from pattern (derived locally for now)
+// Fallback action derivation (only used if backend doesn't provide action_guidance)
 const deriveActionFromPattern = (patternTitle: string): ActionData => {
-  // Simple keyword-based action derivation
   const title = patternTitle.toLowerCase();
   
-  if (title.includes('decision') || title.includes('choice')) {
+  // Pattern-family specific fallbacks
+  if (title.includes('pause') || title.includes('stall') || title.includes('waiting')) {
     return {
-      action: 'Write down one decision you need to make today.',
-      context: 'Clarity comes from naming what needs attention.',
+      action: 'Name the one thing that would let you move, even slightly.',
+      context: 'The block is rarely everything—it\'s usually one specific thing.',
       timeframe: 'today',
+      cta: 'Name the block',
     };
   }
   
-  if (title.includes('tension') || title.includes('conflict')) {
+  if (title.includes('forward') || title.includes('back') || title.includes('push')) {
     return {
-      action: 'Identify one thing you can let go of.',
-      context: 'Not everything needs resolution right now.',
+      action: 'Identify the one decision underneath this back-and-forth.',
+      context: 'The push-pull often masks a simpler question you\'re avoiding.',
       timeframe: 'today',
+      cta: 'Name the real decision',
     };
   }
   
-  if (title.includes('energy') || title.includes('tired') || title.includes('rest')) {
+  if (title.includes('unsaid') || title.includes('holding back') || title.includes('silent')) {
     return {
-      action: 'Schedule 15 minutes of uninterrupted quiet.',
-      context: 'Rest is productive when you need it.',
-      timeframe: 'now',
-    };
-  }
-  
-  if (title.includes('growth') || title.includes('change') || title.includes('shift')) {
-    return {
-      action: 'Name one small step you can take this week.',
-      context: 'Progress is built one action at a time.',
-      timeframe: 'this_week',
-    };
-  }
-  
-  if (title.includes('relationship') || title.includes('connection')) {
-    return {
-      action: 'Reach out to someone you have been meaning to contact.',
-      context: 'Connection starts with a single message.',
+      action: 'Decide: is this something to say, or something to release?',
+      context: 'You can choose silence intentionally, rather than by default.',
       timeframe: 'today',
+      cta: 'Choose your silence',
     };
   }
   
-  // Default action
+  if (title.includes('grip') || title.includes('release') || title.includes('control')) {
+    return {
+      action: 'Name one thing you\'re trying to control that isn\'t yours to control.',
+      context: 'Releasing that frees energy for what you can actually influence.',
+      timeframe: 'today',
+      cta: 'Identify what to release',
+    };
+  }
+  
+  if (title.includes('search') || title.includes('clarity') || title.includes('fog') || title.includes('processing')) {
+    return {
+      action: 'Make one small decision without waiting for full clarity.',
+      context: 'Progress creates clarity faster than waiting for it.',
+      timeframe: 'today',
+      cta: 'Decide one thing now',
+    };
+  }
+  
+  if (title.includes('moving') || title.includes('forward')) {
+    return {
+      action: 'Pick the single most important thing to move on today.',
+      context: 'Forward momentum works best with focus.',
+      timeframe: 'today',
+      cta: 'Choose one priority',
+    };
+  }
+  
+  if (title.includes('letting go')) {
+    return {
+      action: 'Decide what to do with the space you\'ve created.',
+      context: 'Letting go is step one. Choosing what comes next is step two.',
+      timeframe: 'today',
+      cta: 'Choose what\'s next',
+    };
+  }
+  
+  // Default fallback - still pattern-aware
   return {
-    action: 'Take 5 minutes to write down what is on your mind.',
-    context: 'Sometimes clarity starts with simply naming what is present.',
-    timeframe: 'now',
+    action: 'Identify one thing you can decide or do today.',
+    context: 'Even small actions create momentum.',
+    timeframe: 'today',
+    cta: 'Take one step',
   };
 };
 
@@ -81,20 +108,24 @@ export default function ActionCard({ userId, theme, patternTitle }: ActionCardPr
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (patternTitle) {
-      const action = deriveActionFromPattern(patternTitle);
-      setActionData(action);
-      setIsLoading(false);
-    } else {
-      // Fetch pattern to derive action
-      fetchPatternAndDeriveAction();
-    }
-  }, [patternTitle, userId]);
+    fetchPatternAndDeriveAction();
+  }, [userId]);
 
   const fetchPatternAndDeriveAction = async () => {
     try {
       const response = await api.get(`/today-pattern/${userId}`);
-      if (response.data?.title) {
+      
+      // PRIORITY: Use backend-provided action_guidance if available
+      if (response.data?.action_guidance) {
+        const guidance = response.data.action_guidance;
+        setActionData({
+          action: guidance.action || 'Identify one thing you can decide or do today.',
+          context: guidance.context || 'Even small actions create momentum.',
+          timeframe: guidance.timeframe || 'today',
+          cta: guidance.cta || 'Take one step',
+        });
+      } else if (response.data?.title) {
+        // Fallback: Derive from title using pattern-family mapping
         const action = deriveActionFromPattern(response.data.title);
         setActionData(action);
       } else {
@@ -102,7 +133,7 @@ export default function ActionCard({ userId, theme, patternTitle }: ActionCardPr
       }
     } catch (error) {
       console.error('[ActionCard] Error fetching pattern:', error);
-      setActionData(deriveActionFromPattern(''));
+      setActionData(deriveActionFromPattern(patternTitle || ''));
     } finally {
       setIsLoading(false);
     }
@@ -156,13 +187,13 @@ export default function ActionCard({ userId, theme, patternTitle }: ActionCardPr
         </Text>
       </View>
       
-      {/* CTA */}
+      {/* CTA - Now uses pattern-specific CTA text */}
       <TouchableOpacity
         style={[styles.ctaButton, { backgroundColor: theme.accent + '20', borderColor: theme.accent + '40' }]}
         onPress={handleTakeStep}
         activeOpacity={0.7}
       >
-        <Text style={[styles.ctaText, { color: theme.text }]}>Take one step</Text>
+        <Text style={[styles.ctaText, { color: theme.text }]}>{actionData.cta}</Text>
         <Text style={[styles.ctaArrow, { color: theme.textTertiary }]}>→</Text>
       </TouchableOpacity>
     </View>

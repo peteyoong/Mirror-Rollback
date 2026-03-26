@@ -46,6 +46,15 @@ interface TodayPatternData {
   cached: boolean;
   follow_through?: string;
   follow_through_route?: string;
+  // Pattern-specific content from backend
+  pattern_family?: string;
+  pattern_closer?: string;
+  action_guidance?: {
+    action: string;
+    context: string;
+    timeframe: string;
+    cta: string;
+  };
 }
 
 interface SignalsData {
@@ -263,9 +272,9 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
         ))}
       </View>
       
-      {/* MODE-based closer */}
+      {/* MODE-based closer - NOW USES PATTERN-SPECIFIC CLOSER FROM BACKEND */}
       <Text style={[styles.toneCloser, { color: theme.textTertiary }]}>
-        {modeConfig.patternCloser}
+        {data?.pattern_closer || modeConfig.patternCloser}
       </Text>
       
       {/* Follow-through line - only show if MODE allows cross-lens synthesis */}

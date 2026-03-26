@@ -515,6 +515,331 @@ LOW_CONFIDENCE_CLOSERS = [
 ]
 
 
+# =============================================================================
+# PATTERN-SPECIFIC INTERPRETATION LAYER
+# =============================================================================
+
+# Pattern-specific closers - these REPLACE generic mode closers
+# Key: (tension_type) -> {mode: closer}
+PATTERN_CLOSERS = {
+    TensionType.PUSH_PULL: {
+        "grounding": "You don't have to resolve this today.",
+        "exploratory": "This back-and-forth holds information. The tension itself is telling you something.",
+        "directive": "The hesitation isn't blocking you—it's signaling that something isn't ready.",
+    },
+    TensionType.SPEAK_SWALLOW: {
+        "grounding": "What stays inside is still real.",
+        "exploratory": "Silence isn't emptiness. What you hold back shapes how you move.",
+        "directive": "Notice what feels unsafe to say—that's often where the real thing is.",
+    },
+    TensionType.GRIP_RELEASE: {
+        "grounding": "You can loosen your grip without letting go completely.",
+        "exploratory": "Control and surrender aren't opposites. They're a negotiation happening inside you.",
+        "directive": "Name what you're trying to control. That's the first step toward choosing differently.",
+    },
+    TensionType.CLARITY_FOG: {
+        "grounding": "Confusion is its own kind of information.",
+        "exploratory": "The fog isn't a failure. It may be protecting you from premature certainty.",
+        "directive": "Stop waiting for full clarity. Name what you know now, even if it's partial.",
+    },
+    TensionType.STALL: {
+        "grounding": "This pause is not failure. It's a form of waiting.",
+        "exploratory": "This may not be a lack of movement. It may be a moment where forcing clarity too early creates more noise.",
+        "directive": "The stall is signaling something unresolved. Name it, even if you can't fix it yet.",
+    },
+    TensionType.NONE: {
+        "move_forward": {
+            "grounding": "Going forward is okay, even when uncertain.",
+            "exploratory": "The impulse to move holds its own wisdom. What is it responding to?",
+            "directive": "Movement now matters more than certainty. Pick one thing and go.",
+        },
+        "hold_back": {
+            "grounding": "Waiting is its own kind of action.",
+            "exploratory": "There's a reason for the pause. It may be wiser than your urge to move.",
+            "directive": "Waiting isn't passive. Name what you're waiting for.",
+        },
+        "seek_clarity": {
+            "grounding": "Not knowing is part of this.",
+            "exploratory": "The question may be more important than the answer right now.",
+            "directive": "Write down what you know. The gaps will show themselves.",
+        },
+        "avoid_expression": {
+            "grounding": "What's unspoken is still present.",
+            "exploratory": "The things we hold back often carry more weight than the things we say.",
+            "directive": "Notice what you're not saying. That's often where the truth sits.",
+        },
+        "control": {
+            "grounding": "You can hold on without gripping so tight.",
+            "exploratory": "Control isn't bad—but notice what you're protecting.",
+            "directive": "What are you trying to make happen? Name it clearly.",
+        },
+        "release": {
+            "grounding": "Letting go is not the same as giving up.",
+            "exploratory": "Release opens space. What might come into that space?",
+            "directive": "You've let go of something. What does that free you to do?",
+        },
+    }
+}
+
+
+# =============================================================================
+# PATTERN-FAMILY ACTION FRAMEWORK
+# =============================================================================
+
+# Actions derived from pattern family - these replace generic ActionCard suggestions
+# Structure: tension_type -> { mode -> { action, context, timeframe } }
+
+PATTERN_FAMILY_ACTIONS = {
+    TensionType.PUSH_PULL: {
+        "grounding": {
+            "action": "Notice where the push-pull is happening without trying to fix it.",
+            "context": "Awareness is enough right now.",
+            "timeframe": "now",
+            "cta": "Sit with this",
+        },
+        "exploratory": {
+            "action": "Write down what pulls you forward and what holds you back.",
+            "context": "Seeing both sides helps clarify what the tension is actually about.",
+            "timeframe": "today",
+            "cta": "Explore the tension",
+        },
+        "directive": {
+            "action": "Identify the one decision underneath this back-and-forth.",
+            "context": "The push-pull often masks a simpler question you're avoiding.",
+            "timeframe": "today",
+            "cta": "Name the real decision",
+        },
+    },
+    TensionType.SPEAK_SWALLOW: {
+        "grounding": {
+            "action": "Let yourself feel what you're holding without pressure to express it.",
+            "context": "Not everything needs to be said out loud.",
+            "timeframe": "now",
+            "cta": "Let it be",
+        },
+        "exploratory": {
+            "action": "Write what you haven't said—just for yourself.",
+            "context": "Getting it out of your body helps, even if no one reads it.",
+            "timeframe": "today",
+            "cta": "Write it privately",
+        },
+        "directive": {
+            "action": "Decide: is this something to say, or something to release?",
+            "context": "You can choose silence intentionally, rather than by default.",
+            "timeframe": "today",
+            "cta": "Choose your silence",
+        },
+    },
+    TensionType.GRIP_RELEASE: {
+        "grounding": {
+            "action": "Take one deep breath and notice where you're holding tension.",
+            "context": "You can soften without losing what matters.",
+            "timeframe": "now",
+            "cta": "Soften one thing",
+        },
+        "exploratory": {
+            "action": "Ask: What would change if I let go of this one thing?",
+            "context": "Control often protects something. What is it protecting?",
+            "timeframe": "today",
+            "cta": "Explore what you're protecting",
+        },
+        "directive": {
+            "action": "Name one thing you're trying to control that isn't yours to control.",
+            "context": "Releasing that frees energy for what you can actually influence.",
+            "timeframe": "today",
+            "cta": "Identify what to release",
+        },
+    },
+    TensionType.CLARITY_FOG: {
+        "grounding": {
+            "action": "Accept that you don't know, without trying to force an answer.",
+            "context": "Uncertainty isn't failure. It's information.",
+            "timeframe": "now",
+            "cta": "Let the fog be",
+        },
+        "exploratory": {
+            "action": "Write down what you DO know, even if it's incomplete.",
+            "context": "The edges of clarity often reveal more than the center.",
+            "timeframe": "today",
+            "cta": "Map what you know",
+        },
+        "directive": {
+            "action": "Make one small decision without waiting for full clarity.",
+            "context": "Progress creates clarity faster than waiting for it.",
+            "timeframe": "today",
+            "cta": "Decide one thing now",
+        },
+    },
+    TensionType.STALL: {
+        "grounding": {
+            "action": "Notice the pause without judging it as stuck.",
+            "context": "Not moving isn't the same as not progressing.",
+            "timeframe": "now",
+            "cta": "Notice without fixing",
+        },
+        "exploratory": {
+            "action": "Ask: What is this pause protecting? What is it waiting for?",
+            "context": "The stall often has wisdom the push doesn't see.",
+            "timeframe": "today",
+            "cta": "Explore the stall",
+        },
+        "directive": {
+            "action": "Name the one thing that would let you move, even slightly.",
+            "context": "The block is rarely everything—it's usually one specific thing.",
+            "timeframe": "today",
+            "cta": "Name the block",
+        },
+    },
+}
+
+# Single-category actions (no tension)
+CATEGORY_ACTIONS = {
+    SignalCategory.MOVE_FORWARD: {
+        "grounding": {
+            "action": "Let the momentum carry you without overthinking.",
+            "context": "The impulse to move has its own wisdom.",
+            "timeframe": "now",
+            "cta": "Let yourself go",
+        },
+        "exploratory": {
+            "action": "Notice what pulled you forward. What's driving this movement?",
+            "context": "Understanding the impulse helps you direct it more clearly.",
+            "timeframe": "today",
+            "cta": "Explore the drive",
+        },
+        "directive": {
+            "action": "Pick the single most important thing to move on today.",
+            "context": "Forward momentum works best with focus.",
+            "timeframe": "today",
+            "cta": "Choose one priority",
+        },
+    },
+    SignalCategory.HOLD_BACK: {
+        "grounding": {
+            "action": "Honor the pause. You don't have to push through it.",
+            "context": "Waiting is its own form of action.",
+            "timeframe": "now",
+            "cta": "Honor the pause",
+        },
+        "exploratory": {
+            "action": "What is the pause protecting you from? What is it giving you time for?",
+            "context": "Sometimes waiting is wiser than moving.",
+            "timeframe": "today",
+            "cta": "Explore the wait",
+        },
+        "directive": {
+            "action": "Decide: is this pause intentional, or avoidance?",
+            "context": "Knowing the difference changes what you do next.",
+            "timeframe": "today",
+            "cta": "Name the nature of the pause",
+        },
+    },
+    SignalCategory.SEEK_CLARITY: {
+        "grounding": {
+            "action": "It's okay to not know yet. Keep noticing.",
+            "context": "Clarity comes in its own time.",
+            "timeframe": "now",
+            "cta": "Stay with the not-knowing",
+        },
+        "exploratory": {
+            "action": "Write down the question you're trying to answer.",
+            "context": "Naming the question often reveals more than the answer.",
+            "timeframe": "today",
+            "cta": "Clarify the question",
+        },
+        "directive": {
+            "action": "List three things you know for sure, even if small.",
+            "context": "Start with certainty, even partial certainty.",
+            "timeframe": "today",
+            "cta": "Anchor in what you know",
+        },
+    },
+    SignalCategory.AVOID_EXPRESSION: {
+        "grounding": {
+            "action": "Let yourself feel what you're holding, without words.",
+            "context": "Not everything needs to be spoken.",
+            "timeframe": "now",
+            "cta": "Feel without speaking",
+        },
+        "exploratory": {
+            "action": "Journal what's unsaid. It doesn't have to go anywhere.",
+            "context": "Sometimes expression starts on paper, not out loud.",
+            "timeframe": "today",
+            "cta": "Write the unsaid",
+        },
+        "directive": {
+            "action": "Identify one thing you could say today, if you chose to.",
+            "context": "You don't have to say it. But knowing you could is power.",
+            "timeframe": "today",
+            "cta": "Name what could be said",
+        },
+    },
+    SignalCategory.CONTROL: {
+        "grounding": {
+            "action": "Notice the grip without loosening it yet.",
+            "context": "Awareness comes before change.",
+            "timeframe": "now",
+            "cta": "Just notice",
+        },
+        "exploratory": {
+            "action": "What are you trying to protect by holding on?",
+            "context": "Control often guards something vulnerable.",
+            "timeframe": "today",
+            "cta": "Explore the protection",
+        },
+        "directive": {
+            "action": "Name one thing you could stop managing today.",
+            "context": "Letting go of one grip creates space.",
+            "timeframe": "today",
+            "cta": "Release one thing",
+        },
+    },
+    SignalCategory.RELEASE: {
+        "grounding": {
+            "action": "Let the release happen without rushing to fill the space.",
+            "context": "Empty space isn't loss. It's possibility.",
+            "timeframe": "now",
+            "cta": "Let the space be",
+        },
+        "exploratory": {
+            "action": "What did letting go make room for?",
+            "context": "Release creates space. What's emerging into it?",
+            "timeframe": "today",
+            "cta": "Notice what's emerging",
+        },
+        "directive": {
+            "action": "Decide what to do with the space you've created.",
+            "context": "Letting go is step one. Choosing what comes next is step two.",
+            "timeframe": "today",
+            "cta": "Choose what's next",
+        },
+    },
+}
+
+
+# Default fallback actions when pattern is unclear
+DEFAULT_ACTIONS = {
+    "grounding": {
+        "action": "Take one slow breath and notice what's present.",
+        "context": "You don't have to fix anything right now.",
+        "timeframe": "now",
+        "cta": "Just breathe",
+    },
+    "exploratory": {
+        "action": "Write down whatever is on your mind, without editing.",
+        "context": "Sometimes clarity comes from getting it out of your head.",
+        "timeframe": "today",
+        "cta": "Write freely",
+    },
+    "directive": {
+        "action": "Identify one thing you can decide or do today.",
+        "context": "Even small actions create momentum.",
+        "timeframe": "today",
+        "cta": "Take one step",
+    },
+}
+
+
 def generate_micro_moment(
     tension: TensionType,
     dominant_categories: List[SignalCategory],
@@ -533,6 +858,7 @@ def generate_micro_moment(
             "title": "Something Stirring",
             "lines": [opener, middle, closer],
             "tension_type": "low_confidence",
+            "pattern_family": "uncertain",
         }
     
     # Tension-based generation
@@ -552,10 +878,20 @@ def generate_micro_moment(
             TensionType.STALL: "The Pause",
         }
         
+        # Map tension to pattern family
+        TENSION_TO_FAMILY = {
+            TensionType.PUSH_PULL: "push_pull",
+            TensionType.SPEAK_SWALLOW: "expression",
+            TensionType.GRIP_RELEASE: "control",
+            TensionType.CLARITY_FOG: "clarity",
+            TensionType.STALL: "stall",
+        }
+        
         return {
             "title": TENSION_TITLES.get(tension, "Today's Pattern"),
             "lines": [opener, middle, closer],
             "tension_type": tension.value,
+            "pattern_family": TENSION_TO_FAMILY.get(tension, "general"),
         }
     
     # Single dominant category (no tension)
@@ -583,10 +919,21 @@ def generate_micro_moment(
             SignalCategory.RELEASE: "Letting Go",
         }
         
+        # Map category to pattern family
+        CATEGORY_TO_FAMILY = {
+            SignalCategory.MOVE_FORWARD: "movement",
+            SignalCategory.HOLD_BACK: "stall",
+            SignalCategory.SEEK_CLARITY: "clarity",
+            SignalCategory.AVOID_EXPRESSION: "expression",
+            SignalCategory.CONTROL: "control",
+            SignalCategory.RELEASE: "release",
+        }
+        
         return {
             "title": CATEGORY_TITLES.get(dominant_categories[0], "Today"),
             "lines": [opener, middle, closer],
             "tension_type": dom_cat,
+            "pattern_family": CATEGORY_TO_FAMILY.get(dominant_categories[0], "general"),
         }
     
     # Absolute fallback
@@ -598,7 +945,69 @@ def generate_micro_moment(
             LOW_CONFIDENCE_CLOSERS[(day_seed + 2) % len(LOW_CONFIDENCE_CLOSERS)],
         ],
         "tension_type": "fallback",
+        "pattern_family": "general",
     }
+
+
+def get_pattern_specific_closer(
+    tension: TensionType,
+    dominant_categories: List[SignalCategory],
+    mode: str
+) -> str:
+    """Get pattern-specific closer line based on tension/category and mode."""
+    
+    # Default mode if not provided
+    if mode not in ["grounding", "exploratory", "directive"]:
+        mode = "exploratory"
+    
+    # Tension-based closers
+    if tension != TensionType.NONE and tension in PATTERN_CLOSERS:
+        return PATTERN_CLOSERS[tension].get(mode, PATTERN_CLOSERS[tension].get("exploratory", ""))
+    
+    # Single category closers (from NONE tension)
+    if dominant_categories:
+        dom_cat = dominant_categories[0]
+        none_closers = PATTERN_CLOSERS.get(TensionType.NONE, {})
+        cat_closers = none_closers.get(dom_cat.value, {})
+        if isinstance(cat_closers, dict):
+            return cat_closers.get(mode, cat_closers.get("exploratory", "You've been here before."))
+    
+    # Absolute fallback
+    fallbacks = {
+        "grounding": "This is enough to notice for now.",
+        "exploratory": "There are layers here worth sitting with.",
+        "directive": "Consider this as you move forward.",
+    }
+    return fallbacks.get(mode, "There's something here.")
+
+
+def get_pattern_specific_action(
+    tension: TensionType,
+    dominant_categories: List[SignalCategory],
+    mode: str
+) -> Dict[str, Any]:
+    """Get pattern-specific action guidance based on tension/category and mode."""
+    
+    # Default mode if not provided
+    if mode not in ["grounding", "exploratory", "directive"]:
+        mode = "directive"
+    
+    # Tension-based actions
+    if tension != TensionType.NONE and tension in PATTERN_FAMILY_ACTIONS:
+        action_map = PATTERN_FAMILY_ACTIONS[tension]
+        if mode in action_map:
+            return action_map[mode]
+    
+    # Single category actions
+    if dominant_categories:
+        dom_cat = dominant_categories[0]
+        if dom_cat in CATEGORY_ACTIONS:
+            cat_action = CATEGORY_ACTIONS[dom_cat]
+            if mode in cat_action:
+                return cat_action[mode]
+    
+    # Default fallback
+    return DEFAULT_ACTIONS.get(mode, DEFAULT_ACTIONS["directive"])
 
 
 # =============================================================================
@@ -610,13 +1019,15 @@ async def generate_today_pattern(
     hd_data: Optional[dict] = None,
     enneagram_data: Optional[dict] = None,
     transit_data: Optional[dict] = None,
-    day_seed: Optional[int] = None
+    day_seed: Optional[int] = None,
+    mode: str = "exploratory"  # User's MirrorMode for pattern-specific content
 ) -> Dict[str, Any]:
     """
     Main engine: Generate today's pattern using signal-based architecture.
     
     Returns:
-        dict with: title, lines, confidence, sources, tension_type
+        dict with: title, lines, confidence, sources, tension_type, 
+                   pattern_family, pattern_closer, action_guidance
     """
     if day_seed is None:
         day_seed = int(datetime.now(timezone.utc).strftime("%d"))
@@ -666,11 +1077,20 @@ async def generate_today_pattern(
     # Step 5: Generate micro-moment
     micro_moment = generate_micro_moment(tension, dominant_categories, confidence, day_seed)
     
+    # Step 6: Get pattern-specific closer (replaces generic mode closer)
+    pattern_closer = get_pattern_specific_closer(tension, dominant_categories, mode)
+    
+    # Step 7: Get pattern-specific action guidance
+    action_guidance = get_pattern_specific_action(tension, dominant_categories, mode)
+    
     return {
         "title": micro_moment["title"],
         "lines": micro_moment["lines"],
         "confidence": confidence,
         "sources": sources_used if sources_used else ["baseline"],
         "tension_type": micro_moment["tension_type"],
+        "pattern_family": micro_moment.get("pattern_family", "general"),
+        "pattern_closer": pattern_closer,
+        "action_guidance": action_guidance,
         "category_scores": {k.value: round(v, 2) for k, v in category_scores.items()},
     }

@@ -1,203 +1,215 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for MirrorProfile API Endpoints
-Testing the MirrorProfile backend persistence API endpoints as requested.
+Backend API Testing Script for Today Pattern Endpoint
+Testing the updated Today Pattern endpoint with pattern-specific content
 """
 
 import requests
 import json
-import time
-from datetime import datetime, timezone
+import sys
+from datetime import datetime
 
-# Backend URL from frontend/.env
+# Backend URL from environment
 BACKEND_URL = "https://experience-controls.preview.emergentagent.com/api"
 
-def test_mirror_profile_endpoints():
-    """Test MirrorProfile backend persistence API endpoints"""
-    print("🧪 TESTING MIRRORPROFILE BACKEND PERSISTENCE API ENDPOINTS")
+def test_today_pattern_endpoint():
+    """Test the Today Pattern endpoint with pattern-specific content"""
+    
+    print("🧪 TESTING TODAY PATTERN ENDPOINT WITH PATTERN-SPECIFIC CONTENT")
     print("=" * 70)
     
-    # Step 1: Find user_id for pete@pulsifi.me
-    print("\n1. 🔍 FINDING USER_ID FOR pete@pulsifi.me")
-    print("-" * 50)
+    # Test user ID from review request
+    user_id = "697f0c6abf35c0528ff06954"
     
-    # Try to find user by email using login endpoint or user search
-    # First, let's try to get users collection or use a known test user
-    # Based on the test_result.md, I can see some existing user IDs
-    # Let me try with a known user first: 6971c81f2b40fd5ef501d375 (peter@test.com)
+    # Test endpoint with force_refresh=true
+    endpoint = f"{BACKEND_URL}/today-pattern/{user_id}?force_refresh=true"
     
-    test_user_id = "6971c81f2b40fd5ef501d375"  # Known user from test_result.md
-    print(f"Using known test user ID: {test_user_id}")
-    
-    # Step 2: Test GET /api/profile/mirror-profile/{user_id} with existing user
-    print(f"\n2. 🔍 TESTING GET /api/profile/mirror-profile/{test_user_id}")
-    print("-" * 50)
+    print(f"📍 Testing endpoint: {endpoint}")
+    print(f"👤 User ID: {user_id}")
+    print()
     
     try:
-        response = requests.get(f"{BACKEND_URL}/profile/mirror-profile/{test_user_id}")
-        print(f"Status: {response.status_code}")
-        print(f"Response: {json.dumps(response.json(), indent=2)}")
+        # Make the API request
+        print("🔄 Making API request...")
+        response = requests.get(endpoint, timeout=30)
+        
+        print(f"📊 Status Code: {response.status_code}")
         
         if response.status_code == 200:
-            print("✅ GET endpoint accessible")
-            initial_profile = response.json()
-        else:
-            print(f"❌ GET endpoint failed with status {response.status_code}")
-            return False
+            data = response.json()
             
-    except Exception as e:
-        print(f"❌ Error testing GET endpoint: {e}")
-        return False
-    
-    # Step 3: Test GET with non-existent user_id
-    print(f"\n3. 🔍 TESTING GET with non-existent user_id")
-    print("-" * 50)
-    
-    fake_user_id = "507f1f77bcf86cd799439011"  # Valid ObjectId format but non-existent
-    try:
-        response = requests.get(f"{BACKEND_URL}/profile/mirror-profile/{fake_user_id}")
-        print(f"Status: {response.status_code}")
-        print(f"Response: {json.dumps(response.json(), indent=2)}")
-        
-        if response.status_code == 404:
-            print("✅ Non-existent user handled gracefully")
-        else:
-            print(f"⚠️ Expected 404 but got {response.status_code}")
+            print("✅ SUCCESS - API returned 200 OK")
+            print()
             
-    except Exception as e:
-        print(f"❌ Error testing non-existent user: {e}")
-    
-    # Step 4: Test POST /api/profile/mirror-profile - Save mirror profile
-    print(f"\n4. 💾 TESTING POST /api/profile/mirror-profile - Save mirror profile")
-    print("-" * 50)
-    
-    # Create test payload as specified in review request
-    test_payload = {
-        "user_id": test_user_id,
-        "mirror_profile": {
-            "primary_goal": "self_understanding",
-            "uncertainty_style": "explore",
-            "desired_depth": "deep",
-            "support_style": "questioning",
-            "current_self_state": "curious",
-            "onboarding_version": "1.0"
-        },
-        "questionnaire_answers": [
-            "Curious and reflective", 
-            "Clear perspectives", 
-            "Deep and exploratory", 
-            "I explore perspectives", 
-            "Self-understanding"
-        ]
-    }
-    
-    try:
-        response = requests.post(
-            f"{BACKEND_URL}/profile/mirror-profile",
-            json=test_payload,
-            headers={"Content-Type": "application/json"}
-        )
-        print(f"Status: {response.status_code}")
-        print(f"Response: {json.dumps(response.json(), indent=2)}")
-        
-        if response.status_code == 200:
-            result = response.json()
-            if result.get("success") and result.get("saved"):
-                print("✅ Mirror profile saved successfully")
-            else:
-                print("❌ Save operation did not return expected success response")
-                return False
-        else:
-            print(f"❌ POST endpoint failed with status {response.status_code}")
-            return False
+            # Test 1: Verify response includes new fields
+            print("🔍 TEST 1: VERIFY NEW FIELDS PRESENT")
+            print("-" * 40)
             
-    except Exception as e:
-        print(f"❌ Error testing POST endpoint: {e}")
-        return False
-    
-    # Step 5: Verify persistence by fetching again
-    print(f"\n5. 🔄 VERIFYING PERSISTENCE - Fetch profile again")
-    print("-" * 50)
-    
-    # Wait a moment for data to persist
-    time.sleep(1)
-    
-    try:
-        response = requests.get(f"{BACKEND_URL}/profile/mirror-profile/{test_user_id}")
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            result = response.json()
-            print(f"Response: {json.dumps(result, indent=2)}")
+            required_fields = ['pattern_family', 'pattern_closer', 'action_guidance']
+            all_fields_present = True
             
-            # Verify the saved data
-            if result.get("has_profile") and result.get("mirror_profile"):
-                saved_profile = result["mirror_profile"]
-                expected_values = {
-                    "primary_goal": "self_understanding",
-                    "uncertainty_style": "explore", 
-                    "desired_depth": "deep",
-                    "support_style": "questioning",
-                    "current_self_state": "curious",
-                    "onboarding_version": "1.0"
-                }
-                
-                all_match = True
-                for key, expected_value in expected_values.items():
-                    actual_value = saved_profile.get(key)
-                    if actual_value != expected_value:
-                        print(f"❌ Mismatch for {key}: expected '{expected_value}', got '{actual_value}'")
-                        all_match = False
+            for field in required_fields:
+                if field in data:
+                    print(f"✅ {field}: Present")
+                    if data[field] is not None:
+                        print(f"   Value: {data[field]}")
                     else:
-                        print(f"✅ {key}: {actual_value}")
-                
-                # Check questionnaire answers
-                saved_answers = result.get("questionnaire_answers")
-                expected_answers = test_payload["questionnaire_answers"]
-                if saved_answers == expected_answers:
-                    print(f"✅ questionnaire_answers: {len(saved_answers)} answers saved correctly")
+                        print(f"   Value: null")
                 else:
-                    print(f"❌ questionnaire_answers mismatch")
-                    print(f"   Expected: {expected_answers}")
-                    print(f"   Got: {saved_answers}")
-                    all_match = False
-                
-                if all_match:
-                    print("✅ All data persisted correctly")
-                    return True
-                else:
-                    print("❌ Data persistence verification failed")
-                    return False
+                    print(f"❌ {field}: Missing")
+                    all_fields_present = False
+            
+            print()
+            
+            # Test 2: Verify pattern_family is valid
+            print("🔍 TEST 2: VERIFY PATTERN_FAMILY VALUE")
+            print("-" * 40)
+            
+            valid_pattern_families = [
+                'push_pull', 'expression', 'control', 'clarity', 
+                'stall', 'movement', 'release', 'general'
+            ]
+            
+            pattern_family = data.get('pattern_family')
+            if pattern_family in valid_pattern_families:
+                print(f"✅ pattern_family is valid: '{pattern_family}'")
             else:
-                print("❌ Profile not found after save operation")
+                print(f"❌ pattern_family is invalid: '{pattern_family}'")
+                print(f"   Expected one of: {valid_pattern_families}")
+            
+            print()
+            
+            # Test 3: Verify pattern_closer is pattern-specific
+            print("🔍 TEST 3: VERIFY PATTERN_CLOSER SPECIFICITY")
+            print("-" * 40)
+            
+            pattern_closer = data.get('pattern_closer')
+            if pattern_closer:
+                # Check it's not generic
+                generic_phrases = [
+                    "Consider this as you move forward",
+                    "Think about this",
+                    "Reflect on this"
+                ]
+                
+                is_generic = any(phrase in pattern_closer for phrase in generic_phrases)
+                if not is_generic:
+                    print(f"✅ pattern_closer appears specific: '{pattern_closer}'")
+                else:
+                    print(f"❌ pattern_closer appears generic: '{pattern_closer}'")
+            else:
+                print("❌ pattern_closer is null or empty")
+            
+            print()
+            
+            # Test 4: Verify action_guidance structure
+            print("🔍 TEST 4: VERIFY ACTION_GUIDANCE STRUCTURE")
+            print("-" * 40)
+            
+            action_guidance = data.get('action_guidance')
+            if action_guidance and isinstance(action_guidance, dict):
+                required_ag_fields = ['action', 'context', 'timeframe', 'cta']
+                ag_complete = True
+                
+                for field in required_ag_fields:
+                    if field in action_guidance:
+                        print(f"✅ action_guidance.{field}: '{action_guidance[field]}'")
+                    else:
+                        print(f"❌ action_guidance.{field}: Missing")
+                        ag_complete = False
+                
+                if ag_complete:
+                    print("✅ action_guidance structure is complete")
+                else:
+                    print("❌ action_guidance structure is incomplete")
+            else:
+                print("❌ action_guidance is not a valid object")
+            
+            print()
+            
+            # Test 5: Verify pattern title matches tension type
+            print("🔍 TEST 5: VERIFY PATTERN TITLE APPROPRIATENESS")
+            print("-" * 40)
+            
+            title = data.get('title', '')
+            pattern_family = data.get('pattern_family', '')
+            
+            # Expected title patterns for different families
+            title_patterns = {
+                'stall': ['The Pause', 'Waiting', 'Stillness'],
+                'push_pull': ['Forward and Back', 'Push and Pull', 'Back and Forth'],
+                'movement': ['Something Stirring', 'In Motion', 'Shifting'],
+                'clarity': ['Coming Clear', 'Clarity', 'Focus'],
+                'expression': ['Finding Voice', 'Expression', 'Speaking'],
+                'control': ['Holding On', 'Control', 'Grip'],
+                'release': ['Letting Go', 'Release', 'Opening']
+            }
+            
+            if pattern_family in title_patterns:
+                expected_patterns = title_patterns[pattern_family]
+                title_matches = any(pattern.lower() in title.lower() for pattern in expected_patterns)
+                if title_matches:
+                    print(f"✅ Title '{title}' matches pattern family '{pattern_family}'")
+                else:
+                    print(f"⚠️  Title '{title}' may not match pattern family '{pattern_family}'")
+                    print(f"   Expected patterns: {expected_patterns}")
+            else:
+                print(f"ℹ️  Pattern family '{pattern_family}' - title appropriateness not checked")
+            
+            print()
+            
+            # Summary
+            print("📋 FULL RESPONSE SUMMARY")
+            print("-" * 40)
+            print(f"Title: {data.get('title', 'N/A')}")
+            print(f"Lines: {data.get('lines', [])}")
+            print(f"Confidence: {data.get('confidence', 'N/A')}")
+            print(f"Sources: {data.get('sources', [])}")
+            print(f"Pattern Family: {data.get('pattern_family', 'N/A')}")
+            print(f"Pattern Closer: {data.get('pattern_closer', 'N/A')}")
+            print(f"Action Guidance: {data.get('action_guidance', 'N/A')}")
+            
+            print()
+            print("🎉 TESTING COMPLETE")
+            
+            # Overall assessment
+            if all_fields_present and pattern_family in valid_pattern_families:
+                print("✅ OVERALL: All major requirements met")
+                return True
+            else:
+                print("❌ OVERALL: Some requirements not met")
                 return False
+                
         else:
-            print(f"❌ Failed to fetch profile after save: status {response.status_code}")
+            print(f"❌ FAILED - API returned {response.status_code}")
+            print(f"Response: {response.text}")
             return False
             
+    except requests.exceptions.RequestException as e:
+        print(f"❌ REQUEST FAILED: {e}")
+        return False
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON DECODE FAILED: {e}")
+        return False
     except Exception as e:
-        print(f"❌ Error verifying persistence: {e}")
+        print(f"❌ UNEXPECTED ERROR: {e}")
         return False
 
 def main():
     """Main test execution"""
-    print("🚀 STARTING MIRRORPROFILE BACKEND PERSISTENCE API TESTING")
-    print("=" * 70)
+    print("🚀 BACKEND API TESTING - TODAY PATTERN ENDPOINT")
+    print(f"🕐 Test started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print()
     
-    success = test_mirror_profile_endpoints()
+    success = test_today_pattern_endpoint()
     
-    print("\n" + "=" * 70)
+    print()
     if success:
-        print("🎉 ALL MIRRORPROFILE TESTS PASSED")
-        print("✅ GET /api/profile/mirror-profile/{user_id} - Working")
-        print("✅ POST /api/profile/mirror-profile - Working") 
-        print("✅ Data persistence - Verified")
-        print("✅ Error handling - Verified")
+        print("🎯 ALL TESTS PASSED")
+        sys.exit(0)
     else:
-        print("❌ SOME MIRRORPROFILE TESTS FAILED")
-        print("Please check the detailed output above for specific failures")
-    
-    return success
+        print("💥 SOME TESTS FAILED")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
