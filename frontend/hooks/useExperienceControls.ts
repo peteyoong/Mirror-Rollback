@@ -4,6 +4,11 @@
  * Provides access to the user's MirrorProfile and ExperienceControls
  * throughout the app. Handles loading, caching, and updates.
  * 
+ * PERSISTENCE PRIORITY:
+ * 1. Backend (canonical source of truth)
+ * 2. User-specific AsyncStorage (local cache/fallback)
+ * 3. DEFAULT_MIRROR_PROFILE (last resort)
+ * 
  * KEY: Now includes MirrorMode for structural experience differentiation
  */
 
@@ -26,6 +31,7 @@ import {
   ToneTemplates,
 } from '../types/mirror-profile';
 import { storage } from '../store';
+import { getMirrorProfile, saveMirrorProfile, MirrorProfileData } from '../services/api';
 
 const MIRROR_PROFILE_KEY = 'mirror_profile';
 const EXPERIENCE_CONTROLS_KEY = 'experience_controls';
@@ -48,8 +54,11 @@ interface UseExperienceControlsReturn {
   toneTemplates: ToneTemplates;
   promptTemplate: string;
   isLoading: boolean;
+  profileSource: 'backend' | 'local' | 'default';
+  hasProfile: boolean;
   updateProfile: (profile: Partial<MirrorProfile>) => Promise<void>;
   refreshFromAnswers: () => Promise<void>;
+  saveToBackend: (answers?: string[]) => Promise<void>;
 }
 
 export function useExperienceControls(): UseExperienceControlsReturn {
@@ -59,71 +68,172 @@ export function useExperienceControls(): UseExperienceControlsReturn {
   const [profile, setProfile] = useState<MirrorProfile>(DEFAULT_MIRROR_PROFILE);
   const [controls, setControls] = useState<ExperienceControls>(DEFAULT_EXPERIENCE_CONTROLS);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileSource, setProfileSource] = useState<'backend' | 'local' | 'default'>('default');
+  const [hasProfile, setHasProfile] = useState(false);
 
-  // Load persisted profile on mount - USER-SPECIFIC
+  // Load profile with priority: backend > local > default
   useEffect(() => {
     const loadProfile = async () => {
+      if (!userId) {
+        console.log('[useExperienceControls] No userId - using DEFAULT');
+        setIsLoading(false);
+        return;
+      }
+      
       try {
-        // Try user-specific key first, then fall back to global key
-        const userKey = getUserProfileKey(userId);
-        const globalKey = MIRROR_PROFILE_KEY;
+        console.log('[useExperienceControls] ===== LOADING PROFILE for user:', userId, '=====');
         
+        // STEP 1: Try backend first (canonical source)
+        try {
+          const backendResponse = await getMirrorProfile(userId);
+          
+          if (backendResponse.has_profile && backendResponse.mirror_profile) {
+            const backendProfile = backendResponse.mirror_profile as MirrorProfile;
+            const derivedControls = deriveExperienceControls(backendProfile);
+            
+            setProfile(backendProfile);
+            setControls(derivedControls);
+            setProfileSource('backend');
+            setHasProfile(true);
+            
+            // Also update local cache
+            const userKey = getUserProfileKey(userId);
+            await storage.setItem(userKey, JSON.stringify(backendProfile));
+            
+            console.log('[useExperienceControls] LOADED FROM BACKEND:');
+            console.log('  primary_goal:', backendProfile.primary_goal);
+            console.log('  desired_depth:', backendProfile.desired_depth);
+            console.log('  support_style:', backendProfile.support_style);
+            console.log('  current_self_state:', backendProfile.current_self_state);
+            console.log('  DERIVED MODE:', derivedControls.mode);
+            console.log('  verbosity:', derivedControls.verbosity);
+            console.log('  tone:', derivedControls.tone);
+            setIsLoading(false);
+            return;
+          }
+          
+          console.log('[useExperienceControls] Backend has no profile for this user');
+        } catch (backendError) {
+          console.log('[useExperienceControls] Backend fetch failed:', backendError);
+        }
+        
+        // STEP 2: Try user-specific local storage
+        const userKey = getUserProfileKey(userId);
         let storedProfile = await storage.getItem(userKey);
         
-        // If no user-specific profile, try global (for migration)
-        if (!storedProfile && userId) {
-          storedProfile = await storage.getItem(globalKey);
-          // If found global, migrate to user-specific
-          if (storedProfile) {
-            console.log('[useExperienceControls] Migrating global profile to user-specific');
-            await storage.setItem(userKey, storedProfile);
+        // STEP 2b: Try migrating from global key if no user-specific exists
+        if (!storedProfile) {
+          const globalProfile = await storage.getItem(MIRROR_PROFILE_KEY);
+          if (globalProfile) {
+            console.log('[useExperienceControls] Migrating from global to user-specific key');
+            storedProfile = globalProfile;
+            await storage.setItem(userKey, globalProfile);
           }
         }
         
         if (storedProfile) {
-          const parsed = JSON.parse(storedProfile) as MirrorProfile;
-          setProfile(parsed);
-          const derivedControls = deriveExperienceControls(parsed);
+          const localProfile = JSON.parse(storedProfile) as MirrorProfile;
+          const derivedControls = deriveExperienceControls(localProfile);
+          
+          setProfile(localProfile);
           setControls(derivedControls);
+          setProfileSource('local');
+          setHasProfile(true);
           
-          // DEBUG: Log profile details
-          console.log('[useExperienceControls] LOADED PROFILE for user:', userId);
-          console.log('  primary_goal:', parsed.primary_goal);
-          console.log('  uncertainty_style:', parsed.uncertainty_style);
-          console.log('  desired_depth:', parsed.desired_depth);
-          console.log('  support_style:', parsed.support_style);
-          console.log('  current_self_state:', parsed.current_self_state);
-          console.log('  DERIVED MODE:', derivedControls.mode);
-          console.log('  verbosity:', derivedControls.verbosity);
-          console.log('  tone:', derivedControls.tone);
-          console.log('  prompt_style:', derivedControls.prompt_style);
-          console.log('  signal_visibility:', derivedControls.signal_visibility);
-          
-        } else if (questionnaireAnswers.length >= 5) {
-          // No stored profile but we have answers - create from answers
-          const newProfile = createMirrorProfileFromAnswers(questionnaireAnswers);
-          setProfile(newProfile);
-          const derivedControls = deriveExperienceControls(newProfile);
-          setControls(derivedControls);
-          await persistProfile(newProfile, userId);
-          
-          console.log('[useExperienceControls] CREATED NEW PROFILE from answers for user:', userId);
+          console.log('[useExperienceControls] LOADED FROM LOCAL STORAGE:');
+          console.log('  primary_goal:', localProfile.primary_goal);
+          console.log('  desired_depth:', localProfile.desired_depth);
           console.log('  DERIVED MODE:', derivedControls.mode);
           
-        } else {
-          // No profile, no answers - using DEFAULT
-          console.log('[useExperienceControls] NO PROFILE FOUND - using DEFAULT for user:', userId);
-          console.log('  DEFAULT MODE:', DEFAULT_EXPERIENCE_CONTROLS.mode);
-          console.log('  DEFAULT desired_depth:', DEFAULT_MIRROR_PROFILE.desired_depth);
+          // STEP 2c: Migrate local to backend
+          console.log('[useExperienceControls] Migrating local profile to backend...');
+          try {
+            await saveMirrorProfile({
+              user_id: userId,
+              mirror_profile: localProfile as MirrorProfileData,
+            });
+            console.log('[useExperienceControls] Migration to backend successful');
+            setProfileSource('backend');
+          } catch (migrationError) {
+            console.log('[useExperienceControls] Migration to backend failed:', migrationError);
+          }
+          
+          setIsLoading(false);
+          return;
         }
+        
+        // STEP 3: Create from questionnaire answers if available
+        if (questionnaireAnswers.length >= 5) {
+          console.log('[useExperienceControls] Creating profile from questionnaire answers');
+          const newProfile = createMirrorProfileFromAnswers(questionnaireAnswers);
+          const derivedControls = deriveExperienceControls(newProfile);
+          
+          setProfile(newProfile);
+          setControls(derivedControls);
+          setHasProfile(true);
+          
+          // Save to backend
+          try {
+            await saveMirrorProfile({
+              user_id: userId,
+              mirror_profile: newProfile as MirrorProfileData,
+              questionnaire_answers: questionnaireAnswers,
+            });
+            setProfileSource('backend');
+            console.log('[useExperienceControls] New profile saved to backend');
+          } catch (saveError) {
+            // Save to local as fallback
+            await storage.setItem(userKey, JSON.stringify(newProfile));
+            setProfileSource('local');
+            console.log('[useExperienceControls] Saved to local (backend save failed)');
+          }
+          
+          setIsLoading(false);
+          return;
+        }
+        
+        // STEP 4: Use DEFAULT
+        console.log('[useExperienceControls] NO PROFILE FOUND - using DEFAULT');
+        console.log('  DEFAULT MODE:', DEFAULT_EXPERIENCE_CONTROLS.mode);
+        console.log('  User needs to complete questionnaire or set preferences');
+        setProfileSource('default');
+        setHasProfile(false);
+        
       } catch (error) {
-        console.error('[useExperienceControls] Failed to load profile:', error);
+        console.error('[useExperienceControls] Error loading profile:', error);
       } finally {
         setIsLoading(false);
       }
     };
+    
     loadProfile();
   }, [userId]);
+
+  // Save profile to backend and local storage
+  const saveToBackend = useCallback(async (answers?: string[]) => {
+    if (!userId) {
+      console.log('[useExperienceControls] Cannot save - no userId');
+      return;
+    }
+    
+    try {
+      await saveMirrorProfile({
+        user_id: userId,
+        mirror_profile: profile as MirrorProfileData,
+        questionnaire_answers: answers,
+      });
+      
+      // Also update local cache
+      await storage.setItem(getUserProfileKey(userId), JSON.stringify(profile));
+      
+      setProfileSource('backend');
+      setHasProfile(true);
+      console.log('[useExperienceControls] Profile saved to backend and local cache');
+    } catch (error) {
+      console.error('[useExperienceControls] Failed to save to backend:', error);
+      throw error;
+    }
+  }, [userId, profile]);
 
   // Persist profile to storage - USER-SPECIFIC
   const persistProfile = async (newProfile: MirrorProfile, forUserId?: string) => {
@@ -131,10 +241,10 @@ export function useExperienceControls(): UseExperienceControlsReturn {
     const key = getUserProfileKey(forUserId || userId);
     await storage.setItem(key, JSON.stringify(newProfile));
     await storage.setItem(getUserControlsKey(forUserId || userId), JSON.stringify(newControls));
-    console.log('[useExperienceControls] Persisted profile for user:', forUserId || userId);
+    console.log('[useExperienceControls] Persisted profile locally for user:', forUserId || userId);
   };
 
-  // Update profile (for settings edits)
+  // Update profile (for settings edits) - saves to both backend and local
   const updateProfile = useCallback(async (updates: Partial<MirrorProfile>) => {
     const newProfile: MirrorProfile = {
       ...profile,
@@ -144,8 +254,24 @@ export function useExperienceControls(): UseExperienceControlsReturn {
     setProfile(newProfile);
     const newControls = deriveExperienceControls(newProfile);
     setControls(newControls);
+    
+    // Save to backend first, then local
+    if (userId) {
+      try {
+        await saveMirrorProfile({
+          user_id: userId,
+          mirror_profile: newProfile as MirrorProfileData,
+        });
+        setProfileSource('backend');
+        console.log('[useExperienceControls] Profile updated and saved to backend');
+      } catch (error) {
+        console.log('[useExperienceControls] Backend save failed, using local only');
+      }
+    }
+    
     await persistProfile(newProfile, userId);
-    console.log('[useExperienceControls] Profile updated for user:', userId, updates);
+    setHasProfile(true);
+    console.log('[useExperienceControls] Profile updated:', updates);
   }, [profile, userId]);
 
   // Refresh from questionnaire answers (after re-taking questionnaire)

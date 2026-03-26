@@ -1229,4 +1229,50 @@ export const getPatternSignals = async (userId: string): Promise<PatternSignalsR
   return response.data;
 };
 
+// ============================================================
+// MIRROR PROFILE PERSISTENCE API
+// ============================================================
+
+export interface MirrorProfileData {
+  primary_goal: string;
+  uncertainty_style: string;
+  desired_depth: string;
+  support_style: string;
+  current_self_state: string;
+  onboarding_version: string;
+  updated_at?: string;
+}
+
+export interface SaveMirrorProfileRequest {
+  user_id: string;
+  mirror_profile: MirrorProfileData;
+  questionnaire_answers?: string[];
+}
+
+export interface GetMirrorProfileResponse {
+  success: boolean;
+  has_profile: boolean;
+  mirror_profile?: MirrorProfileData;
+  questionnaire_answers?: string[];
+  source: 'backend' | 'not_found';
+}
+
+/**
+ * Save MirrorProfile to backend for persistent cross-device storage.
+ * This is the canonical store for experience preferences.
+ */
+export const saveMirrorProfile = async (request: SaveMirrorProfileRequest): Promise<{ success: boolean; saved: boolean }> => {
+  const response = await apiWithRetry.post('/profile/mirror-profile', request);
+  return response.data;
+};
+
+/**
+ * Get MirrorProfile from backend.
+ * Returns profile if exists, or indicates not found.
+ */
+export const getMirrorProfile = async (userId: string): Promise<GetMirrorProfileResponse> => {
+  const response = await apiWithRetry.get(`/profile/mirror-profile/${userId}`);
+  return response.data;
+};
+
 export default api;

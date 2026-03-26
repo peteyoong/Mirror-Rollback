@@ -20553,6 +20553,123 @@ class QuestionnaireRequest(BaseModel):
     questions: List[str]
 
 
+# ============================================================
+# MIRROR PROFILE PERSISTENCE
+# ============================================================
+
+class MirrorProfileData(BaseModel):
+    """Raw user preferences from onboarding questionnaire"""
+    primary_goal: str  # 'self_understanding' | 'emotional_clarity' | 'perspective_during_change' | 'quiet_reflection' | 'not_sure'
+    uncertainty_style: str  # 'meaning' | 'stability' | 'exploration' | 'discomfort' | 'depends'
+    desired_depth: str  # 'light_grounding' | 'thoughtful_simple' | 'deep_exploratory' | 'slow_step_by_step' | 'not_sure'
+    support_style: str  # 'gentle_questions' | 'clear_perspectives' | 'emotional_reassurance' | 'practical_grounding' | 'dont_reflect_much'
+    current_self_state: str  # 'steady_grounded' | 'curious_reflective' | 'uncertain_searching' | 'overwhelmed_stuck' | 'hard_to_say'
+    onboarding_version: str = 'v1'
+    updated_at: Optional[str] = None
+
+
+class SaveMirrorProfileRequest(BaseModel):
+    user_id: str
+    mirror_profile: MirrorProfileData
+    questionnaire_answers: Optional[List[str]] = None
+
+
+class GetMirrorProfileResponse(BaseModel):
+    success: bool
+    has_profile: bool
+    mirror_profile: Optional[dict] = None
+    questionnaire_answers: Optional[List[str]] = None
+    source: str  # 'backend' | 'not_found'
+
+
+@api_router.post("/profile/mirror-profile")
+async def save_mirror_profile(request: SaveMirrorProfileRequest):
+    """
+    Save MirrorProfile to backend for authenticated user.
+    This is the canonical store for experience preferences.
+    """
+    try:
+        profile_doc = {
+            "primary_goal": request.mirror_profile.primary_goal,
+            "uncertainty_style": request.mirror_profile.uncertainty_style,
+            "desired_depth": request.mirror_profile.desired_depth,
+            "support_style": request.mirror_profile.support_style,
+            "current_self_state": request.mirror_profile.current_self_state,
+            "onboarding_version": request.mirror_profile.onboarding_version,
+            "updated_at": request.mirror_profile.updated_at or datetime.now(timezone.utc).isoformat(),
+        }
+        
+        update_doc = {"mirror_profile": profile_doc}
+        
+        # Also save questionnaire answers if provided
+        if request.questionnaire_answers:
+            update_doc["questionnaire_answers"] = request.questionnaire_answers
+        
+        result = await db.users.update_one(
+            {"_id": ObjectId(request.user_id)},
+            {"$set": update_doc}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        logger.info(f"[MirrorProfile] Saved for user {request.user_id}: mode-inducing fields: "
+                   f"desired_depth={request.mirror_profile.desired_depth}, "
+                   f"support_style={request.mirror_profile.support_style}")
+        
+        return {"success": True, "saved": True}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving mirror_profile: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/profile/mirror-profile/{user_id}")
+async def get_mirror_profile(user_id: str):
+    """
+    Get MirrorProfile from backend for authenticated user.
+    Returns profile if exists, or indicates not found.
+    """
+    try:
+        user = await db.users.find_one(
+            {"_id": ObjectId(user_id)},
+            {"mirror_profile": 1, "questionnaire_answers": 1, "questionnaire": 1}
+        )
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        mirror_profile = user.get("mirror_profile")
+        questionnaire_answers = user.get("questionnaire_answers") or user.get("questionnaire", {}).get("answers")
+        
+        if mirror_profile:
+            logger.info(f"[MirrorProfile] Loaded for user {user_id}: desired_depth={mirror_profile.get('desired_depth')}")
+            return GetMirrorProfileResponse(
+                success=True,
+                has_profile=True,
+                mirror_profile=mirror_profile,
+                questionnaire_answers=questionnaire_answers,
+                source="backend"
+            )
+        else:
+            logger.info(f"[MirrorProfile] Not found for user {user_id}")
+            return GetMirrorProfileResponse(
+                success=True,
+                has_profile=False,
+                mirror_profile=None,
+                questionnaire_answers=questionnaire_answers,
+                source="not_found"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting mirror_profile: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/profile/questionnaire")
 async def save_questionnaire(request: QuestionnaireRequest):
     """
