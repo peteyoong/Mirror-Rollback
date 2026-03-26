@@ -12703,6 +12703,189 @@ async def get_pattern_signals(user_id: str):
 
 
 # =============================================================================
+# CROSS-LENS PATTERN DIAGNOSIS
+# =============================================================================
+
+class DiagnosisResponse(BaseModel):
+    """Response for cross-lens pattern diagnosis"""
+    pattern_title: str
+    pattern_family: str
+    
+    # Core diagnosis
+    what_is_happening: str
+    why_it_is_happening: str
+    what_kind_of_moment: str
+    what_would_be_wise: str
+    full_diagnosis: str
+    moment_type: str
+    
+    # Constitution (stable patterns)
+    constitution: Dict[str, str]
+    
+    # History analysis
+    history: Dict[str, Any]
+    
+    # Lens evidence (supporting, not separate)
+    evidence: Dict[str, Dict[str, str]]
+    
+    confidence: float
+
+
+@api_router.get("/pattern-diagnosis/{user_id}", response_model=DiagnosisResponse)
+async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
+    """
+    Returns a CROSS-LENS DIAGNOSIS - not separate lens summaries.
+    
+    Diagnosis-first approach:
+    1. Stable Constitution (who you are across lenses)
+    2. Current Activation (what kind of moment this is)
+    3. History Pattern (where this has appeared before)
+    4. Core Diagnosis (one integrated interpretation)
+    5. Lens Evidence (supporting details)
+    """
+    try:
+        from services.cross_lens_diagnostician import generate_cross_lens_diagnosis
+        
+        # Get user and chart data
+        try:
+            user, chart = await get_user_astrology_data(user_id)
+        except Exception as e:
+            logger.error(f"[Diagnosis] Could not get user data: {e}")
+            return DiagnosisResponse(
+                pattern_title="Unknown",
+                pattern_family="general",
+                what_is_happening="We couldn't access your data.",
+                why_it_is_happening="Complete your profile to receive diagnosis.",
+                what_kind_of_moment="Unknown",
+                what_would_be_wise="Start by completing your birth information.",
+                full_diagnosis="Profile data required for diagnosis.",
+                moment_type="unknown",
+                constitution={},
+                history={},
+                evidence={},
+                confidence=0.1
+            )
+        
+        # Get today's pattern
+        today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today_pattern = await db.today_patterns.find_one({
+            "user_id": user_id,
+            "date": today_date
+        })
+        
+        # If no pattern, generate one
+        if not today_pattern or force_refresh:
+            # Trigger pattern generation
+            pattern_response = await get_today_pattern(user_id, force_refresh=True)
+            today_pattern = await db.today_patterns.find_one({
+                "user_id": user_id,
+                "date": today_date
+            })
+        
+        pattern_title = today_pattern.get("title", "Today's Pattern") if today_pattern else "Today's Pattern"
+        pattern_family = today_pattern.get("pattern_family", "general") if today_pattern else "general"
+        tension_type = today_pattern.get("tension_type", "") if today_pattern else ""
+        
+        # Get Human Design data
+        hd_data = None
+        try:
+            hd_data = extract_human_design_data(chart)
+        except Exception as e:
+            logger.debug(f"[Diagnosis] HD data unavailable: {e}")
+        
+        # Get transit data
+        transit_data = None
+        try:
+            from services.field_signals import detect_transit_convergence
+            transit_data = detect_transit_convergence()
+        except Exception as e:
+            logger.debug(f"[Diagnosis] Transit data unavailable: {e}")
+        
+        # Get journal entries
+        journal_entries = []
+        try:
+            fourteen_days_ago = datetime.now(timezone.utc) - timedelta(days=14)
+            journal_entries = await db.journal.find({
+                "user_id": user_id,
+                "created_at": {"$gte": fourteen_days_ago}
+            }).sort("created_at", -1).to_list(30)
+        except Exception as e:
+            logger.debug(f"[Diagnosis] Journal data unavailable: {e}")
+        
+        # Get lifeline events
+        lifeline_events = []
+        try:
+            lifeline_events = await db.lifeline_events.find({
+                "user_id": user_id
+            }).sort("created_at", -1).to_list(50)
+        except Exception as e:
+            logger.debug(f"[Diagnosis] Lifeline data unavailable: {e}")
+        
+        # Generate cross-lens diagnosis
+        diagnosis_result = await generate_cross_lens_diagnosis(
+            user_id=user_id,
+            pattern_title=pattern_title,
+            pattern_family=pattern_family,
+            tension_type=tension_type,
+            hd_data=hd_data,
+            transit_data=transit_data,
+            journal_entries=journal_entries,
+            lifeline_events=lifeline_events,
+        )
+        
+        # Calculate confidence
+        confidence = 0.4
+        if hd_data:
+            confidence += 0.15
+        if transit_data:
+            confidence += 0.1
+        if journal_entries:
+            confidence += min(0.02 * len(journal_entries), 0.2)
+        if lifeline_events:
+            confidence += 0.1
+        confidence = min(confidence, 0.95)
+        
+        diagnosis = diagnosis_result.get("diagnosis", {})
+        
+        logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}")
+        
+        return DiagnosisResponse(
+            pattern_title=pattern_title,
+            pattern_family=pattern_family,
+            what_is_happening=diagnosis.get("what_is_happening", ""),
+            why_it_is_happening=diagnosis.get("why_it_is_happening", ""),
+            what_kind_of_moment=diagnosis.get("what_kind_of_moment", ""),
+            what_would_be_wise=diagnosis.get("what_would_be_wise", ""),
+            full_diagnosis=diagnosis.get("full_diagnosis", ""),
+            moment_type=diagnosis.get("moment_type", ""),
+            constitution=diagnosis_result.get("constitution", {}),
+            history=diagnosis_result.get("history", {}),
+            evidence=diagnosis_result.get("evidence", {}),
+            confidence=confidence
+        )
+        
+    except Exception as e:
+        logger.error(f"[Diagnosis] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        return DiagnosisResponse(
+            pattern_title="Error",
+            pattern_family="general",
+            what_is_happening="Something went wrong generating your diagnosis.",
+            why_it_is_happening="Please try again.",
+            what_kind_of_moment="Error state",
+            what_would_be_wise="Refresh and try again.",
+            full_diagnosis="Diagnosis generation failed.",
+            moment_type="error",
+            constitution={},
+            history={},
+            evidence={},
+            confidence=0.1
+        )
+
+
+# =============================================================================
 # ASTROLOGY DETERMINISTIC CHART ENDPOINT (Full Data Exposure)
 # =============================================================================
 @api_router.get("/astrology/chart/{user_id}")
