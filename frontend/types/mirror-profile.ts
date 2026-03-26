@@ -150,6 +150,52 @@ export const MODE_CONFIGS: Record<MirrorMode, ModeConfig> = {
 };
 
 // ============================================================
+// HOME LAYOUT CONFIGURATION - Mode-driven home structure
+// ============================================================
+
+export type HomeSecondary = 'journal' | 'signals' | 'action';
+
+export interface HomeLayoutConfig {
+  primary: 'today';
+  secondary: HomeSecondary;
+  showSignalsInline: boolean;
+  showSynthesis: boolean;
+  maxCards: number;
+  showNavigation: boolean;
+  showForums: boolean;
+}
+
+export const HOME_LAYOUT: Record<MirrorMode, HomeLayoutConfig> = {
+  grounding: {
+    primary: 'today',
+    secondary: 'journal',
+    showSignalsInline: false,
+    showSynthesis: false,
+    maxCards: 2,
+    showNavigation: false,  // Minimal - no extra doorways
+    showForums: false,      // Minimal - keep focus
+  },
+  exploratory: {
+    primary: 'today',
+    secondary: 'signals',
+    showSignalsInline: true,
+    showSynthesis: true,
+    maxCards: 4,
+    showNavigation: true,   // Full exploration options
+    showForums: true,       // Community exploration
+  },
+  directive: {
+    primary: 'today',
+    secondary: 'action',
+    showSignalsInline: false,
+    showSynthesis: false,
+    maxCards: 3,
+    showNavigation: true,   // Clear paths forward
+    showForums: false,      // Focus on action
+  },
+};
+
+// ============================================================
 // QUESTIONNAIRE ANSWER MAPPING
 // ============================================================
 

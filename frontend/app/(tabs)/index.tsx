@@ -23,6 +23,10 @@ import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import TodayPatternCard from '../../components/TodayPatternCard';
+import ActionCard from '../../components/ActionCard';
+import InlineSignalsCard from '../../components/InlineSignalsCard';
+import { useExperienceControls } from '../../hooks/useExperienceControls';
+import { HOME_LAYOUT, MirrorMode } from '../../types/mirror-profile';
 // PatternCard (Pattern Mirror) TEMPORARILY REMOVED - will reintroduce after signal-based engine upgrade
 
 interface PatternCategory {
@@ -61,6 +65,13 @@ export default function MirrorScreen() {
   const { theme, isDark, themeMode, setThemeMode } = useTheme();
   const { user, hasTriedSessionRestore, isRestoringSession, clearUser } = useAppStore();
   const router = useRouter();
+  
+  // MODE-BASED LAYOUT - Get current mode and layout config
+  const { mode, controls } = useExperienceControls();
+  const homeLayout = HOME_LAYOUT[mode];
+  
+  // Track rendered card count for maxCards enforcement
+  let cardCount = 0;
   
   // REMOVED: keystoneData, keystoneLoading - PatternCard now handles its own data
   const [isLoading, setIsLoading] = useState(true);
@@ -321,9 +332,15 @@ export default function MirrorScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ===================================================================
-            POSITION 0: TODAY'S DOMINANT PATTERN (Master Layer Integration)
-            Cross-Surface Reuse of Dominant Truth Engine
-            Shows headline only - skimmable in <3 seconds
+            MODE-BASED HOME LAYOUT
+            
+            GROUNDING: Minimal - 2 cards max, no signals inline
+            EXPLORATORY: Rich - 4 cards, signals inline, synthesis
+            DIRECTIVE: Clear - 3 cards, action card
+            =================================================================== */}
+        
+        {/* ===================================================================
+            POSITION 1: TODAY'S PATTERN (Always first - primary card)
             =================================================================== */}
         {user?.id && (
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
@@ -336,15 +353,55 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            POSITION 1: PATTERN MIRROR - TEMPORARILY REMOVED
-            Will reintroduce after signal-based engine upgrade
+            POSITION 2: SECONDARY CARD (Mode-dependent)
+            - grounding → journal/reflection card
+            - exploratory → inline signals card
+            - directive → action card
             =================================================================== */}
+        {homeLayout.secondary === 'signals' && homeLayout.showSignalsInline && user?.id && (
+          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <InlineSignalsCard 
+              userId={user.id} 
+              theme={theme}
+              showSynthesis={homeLayout.showSynthesis}
+            />
+          </View>
+        )}
+        
+        {homeLayout.secondary === 'action' && user?.id && (
+          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <ActionCard userId={user.id} theme={theme} />
+          </View>
+        )}
+        
+        {homeLayout.secondary === 'journal' && recentReflection && (
+          <View style={[styles.continuitySection, { borderColor: theme.border }]}>
+            <Text style={[styles.continuityTitle, { color: theme.textTertiary }]}>
+              A THOUGHT YOU LEFT YOURSELF
+            </Text>
+            <TouchableOpacity 
+              style={[styles.continuityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => router.push('/(tabs)/reflect')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.continuityLabel, { color: theme.textTertiary }]}>
+                {formatRelativeDate(recentReflection.timestamp)}
+              </Text>
+              <Text 
+                style={[styles.continuityText, { color: theme.textSecondary }]}
+                numberOfLines={2}
+              >
+                "{recentReflection.content}"
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ===================================================================
-            POSITION 1b (REFLECTORS ONLY): LUNAR REFLECTION
-            Additional card for Reflector types only
+            POSITION 2b (REFLECTORS ONLY): LUNAR REFLECTION
+            Additional card for Reflector types only - respects maxCards
             =================================================================== */}
-        {userIsReflector && user?.id && (
+        {userIsReflector && user?.id && homeLayout.maxCards > 2 && (
           <LunarReflectionSignalCard 
             userId={user.id} 
             onReflectorStatus={(isReflector) => {
@@ -356,62 +413,42 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            POSITION 2: NAVIGATION - Clear paths forward
+            POSITION 3: NAVIGATION (Mode-dependent)
+            Hidden in grounding mode for minimal feel
             =================================================================== */}
-        <View style={styles.doorwaysSection}>
-          <View style={styles.doorwaysRow}>
-            <TouchableOpacity
-              style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
-              onPress={() => router.push('/(tabs)/lenses')}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>See your lenses</Text>
-              <Text style={[styles.doorwaySubtext, { color: theme.textTertiary }]}>Astrology, HD, more</Text>
-            </TouchableOpacity>
+        {homeLayout.showNavigation && (
+          <View style={styles.doorwaysSection}>
+            <View style={styles.doorwaysRow}>
+              <TouchableOpacity
+                style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => router.push('/(tabs)/lenses')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>See your lenses</Text>
+                <Text style={[styles.doorwaySubtext, { color: theme.textTertiary }]}>Astrology, HD, more</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
-              onPress={() => router.push('/(tabs)/life')}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>Your past</Text>
-              <Text style={[styles.doorwaySubtext, { color: theme.textTertiary }]}>Key moments mapped</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ===================================================================
-            POSITION 3: DEEPER CONTEXT (Lifeline teaser - non-redundant)
-            Only shown for users without lifeline events, to encourage setup
-            =================================================================== */}
-        {lifelineEventCount === 0 && (
-          <View style={[styles.lifelineBridge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.lifelineBridgeText, { color: theme.textSecondary }]}>
-              Mirror gets sharper the more it knows about you.
-            </Text>
-            <TouchableOpacity
-              style={[styles.lifelineBridgeCTA, { backgroundColor: theme.accent }]}
-              onPress={() => router.push('/(tabs)/life')}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.lifelineBridgeCTAText}>
-                Add key moments from your past
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.doorwaySecondary, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => router.push('/(tabs)/life')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.doorwayTitleSmall, { color: theme.text }]}>Your past</Text>
+                <Text style={[styles.doorwaySubtext, { color: theme.textTertiary }]}>Key moments mapped</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
         {/* ===================================================================
-            POSITION 4: MIRROR REMEMBERS
-            Renders in position, content appears when data available
+            POSITION 4: MIRROR REMEMBERS (exploratory mode only, if not journal secondary)
             =================================================================== */}
-        {recentReflection && (
+        {homeLayout.secondary !== 'journal' && recentReflection && homeLayout.maxCards >= 3 && (
           <View style={[styles.continuitySection, { borderColor: theme.border }]}>
             <Text style={[styles.continuityTitle, { color: theme.textTertiary }]}>
               MIRROR REMEMBERS
             </Text>
             
-            {/* Recent Reflection - feels like a note to self */}
             <TouchableOpacity 
               style={[styles.continuityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() => router.push('/(tabs)/reflect')}
@@ -431,29 +468,48 @@ export default function MirrorScreen() {
         )}
 
         {/* ===================================================================
-            POSITION 5: ACTIVE PATTERNS - TEMPORARILY HIDDEN (pending rebuild)
+            POSITION 5: DEEPER CONTEXT (exploratory mode only)
+            Only shown for users without lifeline events
             =================================================================== */}
-        {/* Patterns section removed - will be rebuilt as standalone feature */}
+        {lifelineEventCount === 0 && homeLayout.maxCards >= 4 && (
+          <View style={[styles.lifelineBridge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.lifelineBridgeText, { color: theme.textSecondary }]}>
+              Mirror gets sharper the more it knows about you.
+            </Text>
+            <TouchableOpacity
+              style={[styles.lifelineBridgeCTA, { backgroundColor: theme.accent }]}
+              onPress={() => router.push('/(tabs)/life')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.lifelineBridgeCTAText}>
+                Add key moments from your past
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ===================================================================
-            POSITION 6: FORUMS
+            POSITION 6: FORUMS (Mode-dependent)
+            Hidden in grounding and directive for focus
             =================================================================== */}
-        <TouchableOpacity 
-          style={[styles.forumsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-          onPress={() => router.push('/forums')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.forumsCardContent}>
-            <Text style={[styles.forumsIcon, { color: theme.accent }]}>◎</Text>
-            <View style={styles.forumsTextContent}>
-              <Text style={[styles.forumsTitle, { color: theme.text }]}>Forums</Text>
-              <Text style={[styles.forumsSubtitle, { color: theme.textTertiary }]}>
-                Reflect with your trusted circle
-              </Text>
+        {homeLayout.showForums && (
+          <TouchableOpacity 
+            style={[styles.forumsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => router.push('/forums')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.forumsCardContent}>
+              <Text style={[styles.forumsIcon, { color: theme.accent }]}>◎</Text>
+              <View style={styles.forumsTextContent}>
+                <Text style={[styles.forumsTitle, { color: theme.text }]}>Forums</Text>
+                <Text style={[styles.forumsSubtitle, { color: theme.textTertiary }]}>
+                  Reflect with your trusted circle
+                </Text>
+              </View>
             </View>
-          </View>
-          <Text style={[styles.forumsChevron, { color: theme.textTertiary }]}>›</Text>
-        </TouchableOpacity>
+            <Text style={[styles.forumsChevron, { color: theme.textTertiary }]}>›</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Debug Panel */}
         {user?.id && <DebugComputeInputs userId={user.id} />}
