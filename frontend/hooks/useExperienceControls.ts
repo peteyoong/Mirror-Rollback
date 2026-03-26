@@ -302,8 +302,11 @@ export function useExperienceControls(): UseExperienceControlsReturn {
     toneTemplates,
     promptTemplate,
     isLoading,
+    profileSource,
+    hasProfile,
     updateProfile,
     refreshFromAnswers,
+    saveToBackend,
   };
 }
 

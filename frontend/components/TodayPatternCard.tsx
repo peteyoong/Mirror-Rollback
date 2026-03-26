@@ -374,11 +374,6 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
         <Text style={[styles.ctaText, { color: theme.text }]}>{getCtaText()}</Text>
         <Text style={[styles.ctaArrow, { color: theme.textTertiary }]}>→</Text>
       </TouchableOpacity>
-      
-      {/* DEBUG MARKER - TEMPORARY for profile audit */}
-      <Text style={[styles.debugMarker, { color: theme.textTertiary }]}>
-        PROFILE: {mode} / {controls.verbosity} / {modeConfig.maxLines} lines
-      </Text>
     </View>
   );
 }
@@ -522,13 +517,5 @@ const styles = StyleSheet.create({
   ctaArrow: {
     fontSize: 16,
     fontWeight: '400',
-  },
-  // DEBUG MARKER - TEMPORARY
-  debugMarker: {
-    fontSize: 9,
-    textAlign: 'center',
-    marginTop: 12,
-    fontFamily: 'monospace',
-    opacity: 0.5,
   },
 });

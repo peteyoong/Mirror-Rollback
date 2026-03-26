@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any, List
 
 # Backend URL from environment
-BACKEND_URL = "https://signal-layer-preview.preview.emergentagent.com/api"
+BACKEND_URL = "https://experience-controls.preview.emergentagent.com/api"
 
 def test_mechanics_endpoint_comprehensive(user_id: str, expected_environment: str, user_description: str) -> Dict[str, Any]:
     """Comprehensive test of the Human Design mechanics endpoint."""

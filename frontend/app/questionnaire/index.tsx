@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
-import api from '../../services/api';
+import api, { saveMirrorProfile, MirrorProfileData } from '../../services/api';
 import { createMirrorProfileFromAnswers, deriveExperienceControls } from '../../types/mirror-profile';
 import { storage } from '../../store';
 
@@ -140,28 +140,48 @@ export default function Questionnaire() {
         allAnswers[currentQuestion] = option;
 
         try {
-          // Save to backend
-          if (user?.id) {
-            await api.post('/profile/questionnaire', {
-              user_id: user.id,
-              answers: allAnswers,
-              questions: QUESTIONS.map(q => q.question),
-            });
-            console.log('[Questionnaire] Answers saved to backend');
-          }
-          
-          // Create and persist MirrorProfile from answers
+          // Create MirrorProfile from answers
           const mirrorProfile = createMirrorProfileFromAnswers(allAnswers);
           const experienceControls = deriveExperienceControls(mirrorProfile);
-          await storage.setItem('mirror_profile', JSON.stringify(mirrorProfile));
-          await storage.setItem('experience_controls', JSON.stringify(experienceControls));
-          console.log('[Questionnaire] MirrorProfile created:', mirrorProfile.primary_goal);
+          
+          // PRIORITY 1: Save MirrorProfile to backend (canonical source)
+          if (user?.id) {
+            try {
+              await saveMirrorProfile({
+                user_id: user.id,
+                mirror_profile: mirrorProfile as MirrorProfileData,
+                questionnaire_answers: allAnswers,
+              });
+              console.log('[Questionnaire] MirrorProfile saved to BACKEND:', mirrorProfile.primary_goal, mirrorProfile.desired_depth);
+            } catch (backendError) {
+              console.error('[Questionnaire] Backend save failed, using local fallback:', backendError);
+            }
+            
+            // Also save questionnaire answers separately
+            try {
+              await api.post('/profile/questionnaire', {
+                user_id: user.id,
+                answers: allAnswers,
+                questions: QUESTIONS.map(q => q.question),
+              });
+              console.log('[Questionnaire] Questionnaire answers saved to backend');
+            } catch (err) {
+              console.log('[Questionnaire] Questionnaire answers save failed (non-critical)');
+            }
+          }
+          
+          // PRIORITY 2: Save to local storage as cache/fallback (USER-SPECIFIC key)
+          const userProfileKey = user?.id ? `mirror_profile_${user.id}` : 'mirror_profile';
+          const userControlsKey = user?.id ? `experience_controls_${user.id}` : 'experience_controls';
+          await storage.setItem(userProfileKey, JSON.stringify(mirrorProfile));
+          await storage.setItem(userControlsKey, JSON.stringify(experienceControls));
+          console.log('[Questionnaire] MirrorProfile cached locally:', userProfileKey);
           
           // Mark questionnaire as complete (persisted)
           await completeQuestionnaire();
           
         } catch (error) {
-          console.error('[Questionnaire] Failed to save to backend:', error);
+          console.error('[Questionnaire] Failed to save:', error);
           // Still mark complete locally even if backend fails
           await completeQuestionnaire();
         } finally {
