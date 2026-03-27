@@ -73,6 +73,90 @@ function hashText(text: string): string {
   return hash.toString();
 }
 
+// =============================================================================
+// JOURNAL ENTRIES NORMALIZER - CRITICAL FIX FOR NON-ARRAY STATE BUG
+// =============================================================================
+// This helper ensures journalEntries is ALWAYS an array, regardless of what
+// the API returns or what gets passed during state updates.
+// 
+// Known failure modes this prevents:
+// 1. API returning {entries: [...]} instead of [...]
+// 2. API returning {data: [...]} instead of [...]
+// 3. API returning a single object instead of array
+// 4. null/undefined from failed requests
+// 5. State updater receiving non-array `prev` value
+// =============================================================================
+
+interface JournalEntryLike {
+  id: string;
+  content: string;
+  themes?: string[];
+  created_at: string;
+  [key: string]: any;
+}
+
+function normalizeJournalEntries(input: unknown, debugSource?: string): JournalEntryLike[] {
+  // DEV LOGGING: Track what shapes are entering the normalizer
+  if (__DEV__ && debugSource) {
+    console.log(`[JOURNAL_NORMALIZE] Source: ${debugSource}`);
+    console.log(`[JOURNAL_NORMALIZE] Input type: ${typeof input}`);
+    console.log(`[JOURNAL_NORMALIZE] Is array: ${Array.isArray(input)}`);
+    if (input && typeof input === 'object' && !Array.isArray(input)) {
+      console.log(`[JOURNAL_NORMALIZE] Object keys: ${Object.keys(input as object).join(', ')}`);
+    }
+  }
+
+  // Case 1: Already an array - filter to valid entries only
+  if (Array.isArray(input)) {
+    const filtered = input.filter((item): item is JournalEntryLike => 
+      item !== null && 
+      item !== undefined && 
+      typeof item === 'object' &&
+      typeof item.id === 'string' &&
+      item.id.length > 0
+    );
+    if (__DEV__ && debugSource) {
+      console.log(`[JOURNAL_NORMALIZE] Result: array with ${filtered.length} valid entries (from ${input.length} total)`);
+    }
+    return filtered;
+  }
+
+  // Case 2: Object with entries array (some APIs wrap arrays)
+  if (input && typeof input === 'object') {
+    const obj = input as Record<string, unknown>;
+    
+    // Check for common wrapper patterns
+    if (Array.isArray(obj.entries)) {
+      if (__DEV__) console.log(`[JOURNAL_NORMALIZE] Found entries wrapper, extracting array`);
+      return normalizeJournalEntries(obj.entries, debugSource ? `${debugSource}->entries` : undefined);
+    }
+    if (Array.isArray(obj.data)) {
+      if (__DEV__) console.log(`[JOURNAL_NORMALIZE] Found data wrapper, extracting array`);
+      return normalizeJournalEntries(obj.data, debugSource ? `${debugSource}->data` : undefined);
+    }
+    if (Array.isArray(obj.journal_entries)) {
+      if (__DEV__) console.log(`[JOURNAL_NORMALIZE] Found journal_entries wrapper, extracting array`);
+      return normalizeJournalEntries(obj.journal_entries, debugSource ? `${debugSource}->journal_entries` : undefined);
+    }
+    if (Array.isArray(obj.items)) {
+      if (__DEV__) console.log(`[JOURNAL_NORMALIZE] Found items wrapper, extracting array`);
+      return normalizeJournalEntries(obj.items, debugSource ? `${debugSource}->items` : undefined);
+    }
+
+    // Single entry object - wrap in array if it has an id
+    if (typeof obj.id === 'string' && obj.id.length > 0 && typeof obj.content === 'string') {
+      if (__DEV__) console.log(`[JOURNAL_NORMALIZE] Single entry object detected, wrapping in array`);
+      return [obj as JournalEntryLike];
+    }
+  }
+
+  // Case 3: null, undefined, or invalid - return empty array
+  if (__DEV__ && debugSource) {
+    console.log(`[JOURNAL_NORMALIZE] Invalid input, returning empty array`);
+  }
+  return [];
+}
+
 // Interface for keystone context (for chat continuation)
 interface KeystoneContext {
   date: string;
@@ -388,13 +472,12 @@ export default function JournalScreen() {
   const handleEditEntry = async (entryId: string, newContent: string) => {
     try {
       const updatedEntry = await updateJournalEntry(entryId, newContent);
-      // Update local state
-      if (journalEntries) {
-        const updatedEntries = journalEntries.map(entry =>
-          entry.id === entryId ? { ...entry, content: newContent } : entry
-        );
-        setJournalEntries(updatedEntries);
-      }
+      // Update local state - normalize to ensure array safety
+      const currentEntries = normalizeJournalEntries(journalEntries, 'handleEditEntry');
+      const updatedEntries = currentEntries.map(entry =>
+        entry.id === entryId ? { ...entry, content: newContent } : entry
+      );
+      setJournalEntries(updatedEntries);
       // Also update timeline if visible
       setTimelineItems(prev => prev.map(item =>
         item.id === entryId ? { ...item, content: newContent } : item
@@ -408,11 +491,10 @@ export default function JournalScreen() {
   const handleDeleteEntry = async (entryId: string) => {
     try {
       await deleteJournalEntry(entryId);
-      // Update local state
-      if (journalEntries) {
-        const filteredEntries = journalEntries.filter(entry => entry.id !== entryId);
-        setJournalEntries(filteredEntries);
-      }
+      // Update local state - normalize to ensure array safety
+      const currentEntries = normalizeJournalEntries(journalEntries, 'handleDeleteEntry');
+      const filteredEntries = currentEntries.filter(entry => entry.id !== entryId);
+      setJournalEntries(filteredEntries);
       // Also update timeline
       setTimelineItems(prev => prev.filter(item => item.id !== entryId));
     } catch (error) {
@@ -673,10 +755,14 @@ export default function JournalScreen() {
 
     setIsLoading(true);
     try {
-      const entries = await getJournalEntries(user.id);
-      setJournalEntries(entries);
+      const rawResponse = await getJournalEntries(user.id);
+      // CRITICAL: Normalize API response before storing in state
+      const normalizedEntries = normalizeJournalEntries(rawResponse, 'loadEntries');
+      setJournalEntries(normalizedEntries);
     } catch (err) {
       console.error('Load entries error:', err);
+      // On error, ensure we don't corrupt state - set to empty array
+      setJournalEntries([]);
     } finally {
       setIsLoading(false);
     }
@@ -739,9 +825,9 @@ export default function JournalScreen() {
     console.log('[JOURNAL_SAVE] Optimistic entry created:', { id: tempId, content: entryText.substring(0, 30) });
     
     // Add optimistic entry to start of list BEFORE API call
-    // HARDEN: Filter out any invalid entries while adding
+    // CRITICAL: Use normalizer to ensure prev is always an array
     setJournalEntries(prev => {
-      const validPrev = (prev || []).filter(item => item && item.id);
+      const validPrev = normalizeJournalEntries(prev, 'handleSubmit:optimistic');
       return [optimisticEntry, ...validPrev];
     });
     
@@ -777,9 +863,9 @@ export default function JournalScreen() {
       const entry = await createJournalEntry(user.id, entryText, metadata);
       console.log('[JOURNAL_SAVE] API SUCCESS - Entry ID:', entry.id);
 
-      // Replace optimistic entry with real entry - HARDENED
+      // Replace optimistic entry with real entry - CRITICAL: Use normalizer
       setJournalEntries(prev => {
-        const validPrev = (prev || []).filter(item => item && item.id);
+        const validPrev = normalizeJournalEntries(prev, 'handleSubmit:apiSuccess');
         return validPrev.map(e => {
           if (!e || !e.id) return null;
           return e.id === tempId ? { ...entry, status: undefined } : e;
@@ -837,10 +923,11 @@ export default function JournalScreen() {
 
       console.log('[JOURNAL_SAVE] === SUBMIT COMPLETE (SUCCESS) ===');
       
-      // Background re-fetch to reconcile
+      // Background re-fetch to reconcile - CRITICAL: Normalize before storing
       setTimeout(async () => {
         try {
-          const freshEntries = await getJournalEntries(user.id);
+          const rawFreshEntries = await getJournalEntries(user.id);
+          const freshEntries = normalizeJournalEntries(rawFreshEntries, 'handleSubmit:backgroundRefetch');
           const newEntryExists = freshEntries.some((e: any) => e.id === entry.id);
           if (newEntryExists) {
             setJournalEntries(freshEntries);
@@ -864,9 +951,9 @@ export default function JournalScreen() {
               phase_name: currentPhase.name,
             };
             const retryEntry = await createJournalEntry(user.id, pendingEntryText, metadata);
-            // HARDENED: Replace temp entry with real entry safely
+            // CRITICAL: Use normalizer for retry path
             setJournalEntries(prev => {
-              const validPrev = (prev || []).filter(item => item && item.id);
+              const validPrev = normalizeJournalEntries(prev, 'handleSubmit:retry');
               return validPrev.map(e => {
                 if (!e || !e.id) return null;
                 return e.id === tempId ? { ...retryEntry, status: undefined } : e;
@@ -2002,8 +2089,8 @@ export default function JournalScreen() {
             ) : (
               <FlatList
                 ref={flatListRef}
-                data={(journalEntries || []).filter(item => item && item.id)}
-                extraData={`${journalEntries.length}-${highlightedEntryId}`} // Force re-render on length or highlight change
+                data={normalizeJournalEntries(journalEntries, 'FlatList:data')}
+                extraData={`${Array.isArray(journalEntries) ? journalEntries.length : 0}-${highlightedEntryId}`} // Force re-render on length or highlight change
                 keyExtractor={(item) => item?.id || `fallback_${Math.random()}`}
                 renderItem={({ item }) => {
                   // HARDEN: Early return if item is invalid
@@ -2036,9 +2123,9 @@ export default function JournalScreen() {
                 onTouchStart={handleEntriesAreaPress}
                 ListFooterComponent={
                   // Key Moments Section - DEMOTED to footer, lower priority
-                  journalEntries.length >= 2 ? (
+                  normalizeJournalEntries(journalEntries).length >= 2 ? (
                     <KeyMomentsSection
-                      journalEntries={journalEntries}
+                      journalEntries={normalizeJournalEntries(journalEntries)}
                       onMomentPress={(entry) => handleReflect(entry.id, entry.content)}
                       onReflectWithMirror={(entry) => handleReflect(entry.id, entry.content)}
                       maxMoments={3}

@@ -102,6 +102,43 @@ interface JournalEntry {
   content: string;
   themes: string[];
   created_at: string;
+  [key: string]: any; // Allow additional fields from API
+}
+
+// =============================================================================
+// JOURNAL ENTRIES NORMALIZER - CRITICAL FIX FOR NON-ARRAY STATE BUG
+// =============================================================================
+// This helper ensures journalEntries is ALWAYS an array at the store level,
+// preventing crashes from `.filter is not a function` errors.
+// =============================================================================
+function normalizeJournalEntriesStore(input: unknown): JournalEntry[] {
+  // Case 1: Already an array - filter to valid entries only
+  if (Array.isArray(input)) {
+    return input.filter((item): item is JournalEntry => 
+      item !== null && 
+      item !== undefined && 
+      typeof item === 'object' &&
+      typeof item.id === 'string' &&
+      item.id.length > 0
+    );
+  }
+
+  // Case 2: Object with entries/data array (some APIs wrap arrays)
+  if (input && typeof input === 'object') {
+    const obj = input as Record<string, unknown>;
+    if (Array.isArray(obj.entries)) return normalizeJournalEntriesStore(obj.entries);
+    if (Array.isArray(obj.data)) return normalizeJournalEntriesStore(obj.data);
+    if (Array.isArray(obj.journal_entries)) return normalizeJournalEntriesStore(obj.journal_entries);
+    if (Array.isArray(obj.items)) return normalizeJournalEntriesStore(obj.items);
+
+    // Single entry object - wrap in array if it has an id
+    if (typeof obj.id === 'string' && obj.id.length > 0 && typeof obj.content === 'string') {
+      return [obj as JournalEntry];
+    }
+  }
+
+  // Case 3: null, undefined, or invalid - return empty array
+  return [];
 }
 
 interface DailyReflection {
@@ -191,13 +228,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   
   setJournalEntries: (entries) => {
-    set({ journalEntries: entries });
+    // CRITICAL: Always normalize entries to ensure array safety
+    // This prevents `.filter is not a function` crashes
+    const normalizedEntries = normalizeJournalEntriesStore(entries);
+    if (__DEV__) {
+      console.log(`[STORE] setJournalEntries called - input type: ${typeof entries}, isArray: ${Array.isArray(entries)}, normalized count: ${normalizedEntries.length}`);
+    }
+    set({ journalEntries: normalizedEntries });
   },
   
   addJournalEntry: (entry) => {
-    set((state) => ({
-      journalEntries: [entry, ...state.journalEntries],
-    }));
+    set((state) => {
+      // CRITICAL: Normalize existing entries before prepending
+      const currentEntries = normalizeJournalEntriesStore(state.journalEntries);
+      return {
+        journalEntries: [entry, ...currentEntries],
+      };
+    });
   },
   
   completeOnboarding: async () => {
