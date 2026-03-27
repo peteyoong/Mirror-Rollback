@@ -724,19 +724,26 @@ export default function JournalScreen() {
     const currentPhase = getCurrentPhase();
     console.log('[JOURNAL_SAVE] Current timeline phase:', currentPhase.id, currentPhase.name);
 
-    // FIX 1: OPTIMISTIC ENTRY - Create temp entry IMMEDIATELY
-    const tempId = `temp_${Date.now()}`;
+    // FIX 1: OPTIMISTIC ENTRY - Create temp entry IMMEDIATELY with FULL SHAPE
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const optimisticEntry = {
       id: tempId,
       content: entryText,
       created_at: new Date().toISOString(),
-      themes: [],
+      themes: [] as string[],
       phase_id: currentPhase.id,
       phase_name: currentPhase.name,
+      status: 'pending' as const,
     };
     
+    console.log('[JOURNAL_SAVE] Optimistic entry created:', { id: tempId, content: entryText.substring(0, 30) });
+    
     // Add optimistic entry to start of list BEFORE API call
-    setJournalEntries(prev => [optimisticEntry, ...prev]);
+    // HARDEN: Filter out any invalid entries while adding
+    setJournalEntries(prev => {
+      const validPrev = (prev || []).filter(item => item && item.id);
+      return [optimisticEntry, ...validPrev];
+    });
     
     // FIX 3: Auto-scroll to top to show new entry
     setTimeout(() => {
@@ -770,10 +777,14 @@ export default function JournalScreen() {
       const entry = await createJournalEntry(user.id, entryText, metadata);
       console.log('[JOURNAL_SAVE] API SUCCESS - Entry ID:', entry.id);
 
-      // Replace optimistic entry with real entry
-      setJournalEntries(prev => prev.map(e => 
-        e.id === tempId ? entry : e
-      ));
+      // Replace optimistic entry with real entry - HARDENED
+      setJournalEntries(prev => {
+        const validPrev = (prev || []).filter(item => item && item.id);
+        return validPrev.map(e => {
+          if (!e || !e.id) return null;
+          return e.id === tempId ? { ...entry, status: undefined } : e;
+        }).filter(Boolean) as typeof validPrev;
+      });
       
       // Clear pending text on success
       setPendingEntryText(null);
@@ -853,9 +864,14 @@ export default function JournalScreen() {
               phase_name: currentPhase.name,
             };
             const retryEntry = await createJournalEntry(user.id, pendingEntryText, metadata);
-            setJournalEntries(prev => prev.map(e => 
-              e.id === tempId ? retryEntry : e
-            ));
+            // HARDENED: Replace temp entry with real entry safely
+            setJournalEntries(prev => {
+              const validPrev = (prev || []).filter(item => item && item.id);
+              return validPrev.map(e => {
+                if (!e || !e.id) return null;
+                return e.id === tempId ? { ...retryEntry, status: undefined } : e;
+              }).filter(Boolean) as typeof validPrev;
+            });
             setError('');
             setPendingEntryText(null);
             console.log('[JOURNAL_SAVE] Retry succeeded');
@@ -1986,25 +2002,32 @@ export default function JournalScreen() {
             ) : (
               <FlatList
                 ref={flatListRef}
-                data={journalEntries}
+                data={(journalEntries || []).filter(item => item && item.id)}
                 extraData={`${journalEntries.length}-${highlightedEntryId}`} // Force re-render on length or highlight change
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <JournalEntryItem
-                    id={item.id}
-                    content={item.content}
-                    created_at={item.created_at}
-                    themes={item.themes}
-                    phase_id={item.phase_id}
-                    phase_name={item.phase_name}
-                    onReflect={(content) => handleReflect(item.id, content)}
-                    onEdit={handleEditEntry}
-                    onDelete={handleDeleteEntry}
-                    onPhaseTap={handlePhaseTap}
-                    isReflectDisabled={reflectionModalVisible}
-                    isHighlighted={item.id === highlightedEntryId}
-                  />
-                )}
+                keyExtractor={(item) => item?.id || `fallback_${Math.random()}`}
+                renderItem={({ item }) => {
+                  // HARDEN: Early return if item is invalid
+                  if (!item || !item.id) {
+                    console.warn('[JOURNAL] Invalid item in FlatList, skipping render');
+                    return null;
+                  }
+                  return (
+                    <JournalEntryItem
+                      id={item.id}
+                      content={item.content}
+                      created_at={item.created_at}
+                      themes={item.themes}
+                      phase_id={item.phase_id}
+                      phase_name={item.phase_name}
+                      onReflect={(content) => handleReflect(item.id, content)}
+                      onEdit={handleEditEntry}
+                      onDelete={handleDeleteEntry}
+                      onPhaseTap={handlePhaseTap}
+                      isReflectDisabled={reflectionModalVisible}
+                      isHighlighted={item.id === highlightedEntryId}
+                    />
+                  );
+                }}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
                 keyboardDismissMode="on-drag"
