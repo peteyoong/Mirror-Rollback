@@ -1288,6 +1288,17 @@ export interface PatternDiagnosisResponse {
   evidence: DiagnosisEvidence;
   
   confidence: number;
+  
+  // Pattern memory (exposure state) - enables evolved messaging
+  exposure_state?: 'first_exposure' | 'repeated_exposure' | 'persistent_pattern' | 'engaged_pattern';
+  exposure_copy?: {
+    headline: string;
+    opening: string;
+    explanation: string;
+    reflection_prompt: string;
+    time_words?: string[];
+    exposure_state: string;
+  };
 }
 
 /**

@@ -119,8 +119,27 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   // MODE-BASED CONTENT FUNCTIONS
   // ============================================================
 
-  // Get "what is happening" text - truncated for grounding mode
+  // Get pattern title - uses exposure_copy headline if available (evolved messaging)
+  const getPatternTitle = (): string => {
+    // Use exposure-aware headline if available
+    if (diagnosis?.exposure_copy?.headline) {
+      return diagnosis.exposure_copy.headline;
+    }
+    return diagnosis?.pattern_title || 'Pattern Active';
+  };
+
+  // Get "what is happening" text - uses exposure_copy opening if available
   const getWhatIsHappening = (): string => {
+    // Prioritize exposure-aware opening for evolved messaging
+    if (diagnosis?.exposure_copy?.opening) {
+      const text = diagnosis.exposure_copy.opening;
+      if (mode === 'grounding') {
+        const firstSentence = text.split(/[.!?]/)[0];
+        return firstSentence ? firstSentence + '.' : text;
+      }
+      return text;
+    }
+    
     if (!diagnosis?.what_is_happening) return '';
     
     const text = diagnosis.what_is_happening;
@@ -132,6 +151,14 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
     }
     
     return text;
+  };
+
+  // Get reflection prompt - uses exposure_copy if available
+  const getReflectionPrompt = (): string => {
+    if (diagnosis?.exposure_copy?.reflection_prompt) {
+      return diagnosis.exposure_copy.reflection_prompt;
+    }
+    return "Does this feel true right now?";
   };
 
   // Get "what would be wise" text - truncated for grounding mode
@@ -304,23 +331,23 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
         {getOpenerText()}
       </Text>
       
-      {/* Pattern Title */}
+      {/* Pattern Title - uses exposure_copy headline for evolved messaging */}
       <Text style={[styles.title, { color: theme.text }]}>
-        {diagnosis.pattern_title}
+        {getPatternTitle()}
       </Text>
       
-      {/* CORE DIAGNOSIS: What is happening */}
+      {/* CORE DIAGNOSIS: What is happening - uses exposure_copy opening for evolved messaging */}
       <View style={styles.diagnosisSection}>
         <Text style={[styles.diagnosisText, { color: theme.text }]}>
           {getWhatIsHappening()}
         </Text>
       </View>
       
-      {/* FIX 2: INTERACTION LOOP */}
+      {/* FIX 2: INTERACTION LOOP - uses exposure_copy reflection_prompt */}
       {interactionStep === 'initial' && (
         <View style={[styles.interactionBox, { backgroundColor: theme.background, borderColor: theme.border }]}>
           <Text style={[styles.interactionQuestion, { color: theme.text }]}>
-            Does this feel true right now?
+            {getReflectionPrompt()}
           </Text>
           <View style={styles.interactionButtonsRow}>
             <TouchableOpacity

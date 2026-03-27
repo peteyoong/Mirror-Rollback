@@ -12836,6 +12836,10 @@ class DiagnosisResponse(BaseModel):
     evidence: Dict[str, Dict[str, str]]
     
     confidence: float
+    
+    # Pattern memory (exposure state)
+    exposure_state: Optional[str] = None
+    exposure_copy: Optional[Dict[str, Any]] = None
 
 
 @api_router.get("/pattern-diagnosis/{user_id}", response_model=DiagnosisResponse)
@@ -13024,7 +13028,41 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
         
         diagnosis = diagnosis_result.get("diagnosis", {})
         
-        logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}")
+        # =============================================================================
+        # PATTERN MEMORY: Get exposure state and state-aware copy
+        # =============================================================================
+        from services.pattern_memory import (
+            get_pattern_exposure,
+            get_state_aware_copy,
+            apply_time_context_to_copy,
+            ExposureState
+        )
+        
+        # Create pattern_id from moment_type (e.g., "premature_initiation")
+        pattern_id = diagnosis.get("moment_type", pattern_family)
+        
+        # Get exposure data
+        exposure_data = await get_pattern_exposure(
+            db=db,
+            user_id=user_id,
+            pattern_id=pattern_id,
+            pattern_title=pattern_title,
+            pattern_family=pattern_family
+        )
+        
+        exposure_state = exposure_data.get("state", ExposureState.FIRST_EXPOSURE)
+        
+        # Get state-aware copy variants
+        exposure_copy = get_state_aware_copy(
+            pattern_family=pattern_family,
+            exposure_state=exposure_state,
+            base_pattern_title=pattern_title
+        )
+        
+        # Apply time context markers (still, again, coming back)
+        exposure_copy = apply_time_context_to_copy(exposure_copy, exposure_data)
+        
+        logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}, exposure={exposure_state.value}")
         
         return DiagnosisResponse(
             pattern_title=pattern_title,
@@ -13038,7 +13076,9 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
             constitution=diagnosis_result.get("constitution", {}),
             history=diagnosis_result.get("history", {}),
             evidence=diagnosis_result.get("evidence", {}),
-            confidence=confidence
+            confidence=confidence,
+            exposure_state=exposure_state.value,
+            exposure_copy=exposure_copy,
         )
         
     except Exception as e:
@@ -13060,6 +13100,36 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
             evidence={},
             confidence=0.1
         )
+
+
+# =============================================================================
+# PATTERN INTERACTION RECORDING
+# =============================================================================
+@api_router.post("/pattern-diagnosis/{user_id}/interaction")
+async def record_pattern_interaction_endpoint(
+    user_id: str,
+    pattern_id: str,
+    interaction_type: str,  # "yes", "no", "reflect", "chat", "explore"
+):
+    """
+    Record user interaction with a pattern.
+    This updates the pattern memory to evolve future messaging.
+    """
+    try:
+        from services.pattern_memory import record_pattern_interaction
+        
+        await record_pattern_interaction(
+            db=db,
+            user_id=user_id,
+            pattern_id=pattern_id,
+            interaction_type=interaction_type
+        )
+        
+        return {"success": True, "message": f"Recorded {interaction_type} interaction"}
+        
+    except Exception as e:
+        logger.error(f"[PatternInteraction] Error: {e}")
+        return {"success": False, "error": str(e)}
 
 
 # =============================================================================
