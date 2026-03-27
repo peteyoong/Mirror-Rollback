@@ -408,6 +408,23 @@ export default function JournalScreen() {
   const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
   const HIGHLIGHT_CLEAR_DELAY = 2500; // Clear after 2.5s (animation is 2s)
   
+  // =============================================================================
+  // LATEST REFLECTION THREAD STATE
+  // =============================================================================
+  // This tracks the most recently submitted entry to render it as a connected
+  // thread: User Entry → Mirror Response → Pattern Recognition
+  // The entry appears ABOVE the feed, attached to Mirror response
+  // =============================================================================
+  const [latestSubmittedEntry, setLatestSubmittedEntry] = useState<{
+    id: string;
+    content: string;
+    created_at: string;
+    themes: string[];
+    phase_id?: string;
+    phase_name?: string;
+    isOptimistic?: boolean;
+  } | null>(null);
+  
   // "Captured" feedback state (FIX 8)
   const [showCapturedFeedback, setShowCapturedFeedback] = useState(false);
   
@@ -828,6 +845,27 @@ export default function JournalScreen() {
     
     console.log('[JOURNAL_SAVE] Optimistic entry created:', { id: tempId, content: entryText.substring(0, 30) });
     
+    // =============================================================================
+    // LATEST REFLECTION THREAD: Set the entry for thread display
+    // =============================================================================
+    // This makes the user's entry visible as a "Latest Reflection" block
+    // ABOVE the journal feed, so it appears connected to the Mirror response
+    // =============================================================================
+    setLatestSubmittedEntry({
+      id: tempId,
+      content: entryText,
+      created_at: new Date().toISOString(),
+      themes: [],
+      phase_id: currentPhase.id,
+      phase_name: currentPhase.name,
+      isOptimistic: true,
+    });
+    
+    // Clear any previous Mirror responses so only new one appears
+    setMicroMirrorVisible(false);
+    setMicroMirrorResponse(null);
+    setPatternReinforcement(null);
+    
     // Add optimistic entry to start of list BEFORE API call
     // CRITICAL: Use normalizer to ensure prev is always an array
     setJournalEntries(prev => {
@@ -876,6 +914,16 @@ export default function JournalScreen() {
         }).filter(Boolean) as typeof validPrev;
       });
       
+      // =============================================================================
+      // LATEST REFLECTION THREAD: Update with real entry data
+      // =============================================================================
+      setLatestSubmittedEntry(prev => prev ? {
+        ...prev,
+        id: entry.id,
+        themes: entry.themes || [],
+        isOptimistic: false,
+      } : null);
+      
       // Clear pending text on success
       setPendingEntryText(null);
       
@@ -900,10 +948,7 @@ export default function JournalScreen() {
         setMicroMirrorEntryId(entry.id);
         setMicroMirrorVisible(true);
         
-        // FIX 4: Auto-scroll to ensure Mirror response is visible
-        setTimeout(() => {
-          flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-        }, 300);
+        // NO SCROLL HERE - Keep user looking at their entry + Mirror in thread view
         
         // Fetch pattern reinforcement (non-blocking)
         try {
@@ -2030,31 +2075,106 @@ export default function JournalScreen() {
               </View>
             )}
 
-            {/* Micro-Mirror Response (appears after journal save) */}
-            {microMirrorVisible && microMirrorResponse && (
-              <MicroMirrorCard
-                text={microMirrorResponse}
-                visible={microMirrorVisible}
-                onReflect={handleMicroMirrorReflect}
-                onAskMirror={handleMicroMirrorAskMirror}
-                onDismiss={handleMicroMirrorDismiss}
-                entryId={microMirrorEntryId || undefined}
-              />
-            )}
+            {/* =================================================================
+                LATEST REFLECTION THREAD
+                =================================================================
+                This shows the user's MOST RECENT entry FIRST, then Mirror
+                response directly beneath it, creating a connected thread feel.
+                
+                Structure:
+                1. User's submitted entry (visible first)
+                2. Mirror response (attached beneath)
+                3. Pattern reinforcement (if any)
+                
+                This prevents the disconnect where Mirror appears without context.
+                ================================================================= */}
+            {latestSubmittedEntry && (
+              <View style={[styles.latestReflectionThread, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                {/* USER'S ENTRY - Always visible first */}
+                <View style={styles.threadUserEntry}>
+                  <View style={styles.threadEntryHeader}>
+                    <Text style={[styles.threadLabel, { color: theme.textTertiary }]}>
+                      You wrote
+                    </Text>
+                    {latestSubmittedEntry.isOptimistic && (
+                      <Text style={[styles.threadSavingLabel, { color: theme.textTertiary }]}>
+                        saving...
+                      </Text>
+                    )}
+                  </View>
+                  <Text style={[styles.threadEntryContent, { color: theme.text }]}>
+                    {latestSubmittedEntry.content}
+                  </Text>
+                  {latestSubmittedEntry.phase_name && (
+                    <Text style={[styles.threadPhaseTag, { color: theme.textTertiary }]}>
+                      {latestSubmittedEntry.phase_name}
+                    </Text>
+                  )}
+                </View>
 
-            {/* Pattern Reinforcement Card - subtle recognition after journal save */}
-            {patternReinforcement && patternReinforcement.message && (
-              <TouchableOpacity
-                style={[styles.reinforcementCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                onPress={handlePatternReinforcementTap}
-                activeOpacity={patternReinforcement.route ? 0.7 : 1}
-                disabled={!patternReinforcement.route}
-              >
-                <Text style={[styles.reinforcementText, { color: theme.textSecondary }]}>
-                  {patternReinforcement.message}
-                  {patternReinforcement.route && ' →'}
-                </Text>
-              </TouchableOpacity>
+                {/* MIRROR RESPONSE - Directly beneath user entry */}
+                {microMirrorVisible && microMirrorResponse && (
+                  <View style={[styles.threadMirrorResponse, { borderTopColor: theme.border }]}>
+                    <Text style={[styles.threadLabel, { color: theme.textTertiary }]}>
+                      Mirror noticed
+                    </Text>
+                    <Text style={[styles.threadMirrorText, { color: theme.textSecondary }]}>
+                      {microMirrorResponse}
+                    </Text>
+                    <View style={styles.threadMirrorActions}>
+                      <TouchableOpacity
+                        style={[styles.threadMirrorAction, { borderColor: theme.border }]}
+                        onPress={handleMicroMirrorReflect}
+                      >
+                        <Text style={[styles.threadMirrorActionText, { color: theme.text }]}>
+                          Reflect deeper
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.threadMirrorAction, { borderColor: theme.border }]}
+                        onPress={handleMicroMirrorAskMirror}
+                      >
+                        <Text style={[styles.threadMirrorActionText, { color: theme.text }]}>
+                          Talk to Mirror
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                {/* PATTERN REINFORCEMENT - Beneath Mirror */}
+                {patternReinforcement && patternReinforcement.message && (
+                  <TouchableOpacity
+                    style={[styles.threadPatternRecognition, { borderTopColor: theme.border }]}
+                    onPress={handlePatternReinforcementTap}
+                    activeOpacity={patternReinforcement.route ? 0.7 : 1}
+                    disabled={!patternReinforcement.route}
+                  >
+                    <Text style={[styles.threadLabel, { color: theme.textTertiary }]}>
+                      Pattern recognized
+                    </Text>
+                    <Text style={[styles.threadPatternText, { color: theme.textSecondary }]}>
+                      {patternReinforcement.message}
+                      {patternReinforcement.route && ' →'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* DISMISS THREAD */}
+                <TouchableOpacity
+                  style={styles.threadDismiss}
+                  onPress={() => {
+                    setLatestSubmittedEntry(null);
+                    setMicroMirrorVisible(false);
+                    setMicroMirrorResponse(null);
+                    setPatternReinforcement(null);
+                  }}
+                >
+                  <Text style={[styles.threadDismissText, { color: theme.textTertiary }]}>
+                    ✕
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
 
             {/* Phase Mirror Card - Timeline connection (appears after journal save) */}
@@ -2094,8 +2214,11 @@ export default function JournalScreen() {
             ) : (
               <FlatList
                 ref={flatListRef}
-                data={normalizeJournalEntries(journalEntries, 'FlatList:data')}
-                extraData={`${Array.isArray(journalEntries) ? journalEntries.length : 0}-${highlightedEntryId}`} // Force re-render on length or highlight change
+                data={normalizeJournalEntries(journalEntries, 'FlatList:data').filter(
+                  // Exclude the latest submitted entry - it's shown in the thread above
+                  item => !latestSubmittedEntry || item.id !== latestSubmittedEntry.id
+                )}
+                extraData={`${Array.isArray(journalEntries) ? journalEntries.length : 0}-${highlightedEntryId}-${latestSubmittedEntry?.id}`} // Force re-render on length, highlight, or thread change
                 keyExtractor={(item) => item?.id || `fallback_${Math.random()}`}
                 renderItem={({ item }) => {
                   // HARDEN: Early return if item is invalid
@@ -2175,6 +2298,96 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingTop: 0,
     paddingBottom: 24,
+  },
+  // =============================================================================
+  // LATEST REFLECTION THREAD STYLES
+  // =============================================================================
+  // A unified block showing: User Entry → Mirror Response → Pattern Recognition
+  // This creates a threaded conversation feel after submit
+  // =============================================================================
+  latestReflectionThread: {
+    marginHorizontal: 0,
+    marginBottom: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  threadUserEntry: {
+    padding: 16,
+    paddingBottom: 14,
+  },
+  threadEntryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  threadLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  threadSavingLabel: {
+    fontSize: 11,
+    fontStyle: 'italic',
+  },
+  threadEntryContent: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  threadPhaseTag: {
+    fontSize: 11,
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  threadMirrorResponse: {
+    padding: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+  },
+  threadMirrorText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
+    marginTop: 6,
+  },
+  threadMirrorActions: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 8,
+  },
+  threadMirrorAction: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  threadMirrorActionText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  threadPatternRecognition: {
+    padding: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+  },
+  threadPatternText: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  threadDismiss: {
+    position: 'absolute',
+    top: 10,
+    right: 12,
+    padding: 6,
+  },
+  threadDismissText: {
+    fontSize: 16,
+    fontWeight: '300',
   },
   // Pattern Reinforcement Card - subtle recognition after journal save
   reinforcementCard: {
