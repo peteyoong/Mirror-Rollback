@@ -307,8 +307,11 @@ export default function JournalScreen() {
   const { user, chart, journalEntries, setJournalEntries, addJournalEntry } = useAppStore();
   const { theme, isDark } = useTheme();
   
+  // Derive safe entries count for debugging
+  const safeEntriesCount = Array.isArray(journalEntries) ? journalEntries.length : 0;
+  
   // DEBUG: Log render with journalEntries count
-  console.log('[JOURNAL_RENDER] Render triggered. journalEntries.length:', journalEntries.length);
+  console.log('[JOURNAL_RENDER] Render triggered. journalEntries count:', safeEntriesCount, 'isArray:', Array.isArray(journalEntries));
   
   const params = useLocalSearchParams<{ 
     view?: string; 
@@ -777,8 +780,9 @@ export default function JournalScreen() {
       setTimelineItems(response.items);
     } catch (err) {
       console.error('Load combined timeline error:', err);
-      // Fallback to journal entries only
-      setTimelineItems(journalEntries.map(entry => ({
+      // Fallback to journal entries only - normalize to ensure array
+      const safeEntries = normalizeJournalEntries(journalEntries, 'loadCombinedTimeline:fallback');
+      setTimelineItems(safeEntries.map(entry => ({
         id: entry.id,
         type: 'journal_entry' as const,
         content: entry.content,
@@ -794,7 +798,7 @@ export default function JournalScreen() {
     if (!user || !newEntry.trim() || isSubmitting) return;
 
     console.log('[JOURNAL_SAVE] === SUBMIT STARTED ===');
-    console.log('[JOURNAL_SAVE] Current journalEntries count:', journalEntries.length);
+    console.log('[JOURNAL_SAVE] Current journalEntries count:', Array.isArray(journalEntries) ? journalEntries.length : 0);
 
     Keyboard.dismiss();
     setIsSubmitting(true);
@@ -887,7 +891,7 @@ export default function JournalScreen() {
             dominantTheme: detectThemeFromText(entryText),
             confidenceScore: 60,
           } : undefined,
-          hasHistory: journalEntries.length > 0,
+          hasHistory: normalizeJournalEntries(journalEntries).length > 0,
           variationSeed: Date.now(),
         });
         
@@ -1000,8 +1004,9 @@ export default function JournalScreen() {
 
   // Micro-Mirror action handlers (must come AFTER handleReflect declaration)
   const handleMicroMirrorReflect = useCallback(() => {
-    if (microMirrorEntryId && journalEntries.length > 0) {
-      const entry = journalEntries.find(e => e.id === microMirrorEntryId);
+    const safeEntries = normalizeJournalEntries(journalEntries);
+    if (microMirrorEntryId && safeEntries.length > 0) {
+      const entry = safeEntries.find(e => e.id === microMirrorEntryId);
       if (entry) {
         handleReflect(entry.id, entry.content);
       }
@@ -2067,7 +2072,7 @@ export default function JournalScreen() {
             {/* Note: Reverse Prompt is now integrated into PhaseMirrorCard's "Write deeper" CTA */}
 
             {/* Mini Connection Line - V2: Subtle line explaining the Journal ↔ Timeline connection */}
-            {journalEntries.length > 0 && !phaseMirrorVisible && (
+            {normalizeJournalEntries(journalEntries).length > 0 && !phaseMirrorVisible && (
               <Text style={[styles.connectionLine, { color: theme.textTertiary }]}>
                 What you write here may later become patterns you can see.
               </Text>
@@ -2078,7 +2083,7 @@ export default function JournalScreen() {
               <View style={styles.centered}>
                 <ActivityIndicator size="large" color={theme.textSecondary} />
               </View>
-            ) : journalEntries.length === 0 ? (
+            ) : normalizeJournalEntries(journalEntries).length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={{ fontSize: 42, color: theme.textTertiary }}>☰</Text>
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No entries yet</Text>
