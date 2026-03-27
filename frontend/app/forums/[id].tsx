@@ -62,7 +62,7 @@ interface InsightModal {
 
 // =============================================================================
 // HUMAN UNDERSTANDING HELPER FUNCTIONS
-// Transform lens data into behavioral, human-readable descriptions
+// Transform lens data into FELT, RELATIONAL, ACTIONABLE descriptions
 // =============================================================================
 
 const getArchetypeLabel = (lensData: ForumMemberLensData): string => {
@@ -82,7 +82,6 @@ const getArchetypeLabel = (lensData: ForumMemberLensData): string => {
     return archetypes[hdType][enneaType];
   }
   
-  // Fallback
   if (hdType === 'Manifestor') return 'The Initiator';
   if (hdType === 'Generator') return 'The Builder';
   if (hdType === 'Manifesting Generator') return 'The Multi-tasker';
@@ -91,147 +90,220 @@ const getArchetypeLabel = (lensData: ForumMemberLensData): string => {
   return '';
 };
 
-const getHowTheyShowUp = (lensData: ForumMemberLensData): string => {
-  const parts: string[] = [];
+// NEW: What it feels like to be WITH them (second person, experiential)
+const getWhatItFeelsLike = (lensData: ForumMemberLensData): string => {
   const hdType = lensData.human_design.type;
   const authority = lensData.human_design.authority;
   const enneaType = lensData.enneagram.core_type;
   
-  // HD Type behavior
+  let base = '';
+  
   if (hdType === 'Manifestor') {
-    parts.push('Moves fast and initiates naturally. Speaks when something feels ready internally, not always in the moment.');
+    base = "You may feel their urgency before you understand it. There's a sense that something wants to move—even if it's not fully clear yet.";
   } else if (hdType === 'Generator') {
-    parts.push('Has sustainable energy when genuinely engaged. Responds to life rather than forcing direction.');
+    base = "You can feel their energy when they're lit up about something. When they're not, there's a heaviness that's hard to miss.";
   } else if (hdType === 'Manifesting Generator') {
-    parts.push('Multi-tracks naturally and moves quickly between interests. May skip steps and circle back.');
+    base = "You might feel like you're in a whirlwind. They move fast, shift gears quickly, and you may wonder how they keep track of it all.";
   } else if (hdType === 'Projector') {
-    parts.push('Sees deeply into people and situations. Shares insight when recognized and invited.');
+    base = "You may feel seen in a way that's both comforting and exposing. They notice things others miss—including things about you.";
   } else if (hdType === 'Reflector') {
-    parts.push('Reflects the health of the group. Unusually sensitive to environment and collective energy.');
+    base = "You may find yourself reflected back. The mood in the room often shows up in how they seem—they're taking in more than they let on.";
   }
   
   // Authority modifier
   if (authority?.includes('Emotional')) {
-    parts.push('Processes decisions over time—first reactions may shift.');
-  } else if (authority?.includes('Sacral')) {
-    parts.push('Knows through gut response—yes or no, not maybe.');
-  } else if (authority?.includes('Splenic')) {
-    parts.push('Trusts instant instincts—knows what feels right immediately.');
+    base += " Their energy can shift—what feels true to them today may change tomorrow. This isn't inconsistency; it's their process.";
   }
   
   // Enneagram flavor
   if (enneaType === 7) {
-    parts.push('Brings energy into the room, especially when things feel stuck or heavy.');
+    base += " There's often lightness around them, but sometimes you sense something underneath they're not slowing down to feel.";
   } else if (enneaType === 8) {
-    parts.push('Takes up space naturally. Direct and protective of what matters.');
+    base += " You may feel the weight of their presence—protective, intense, sometimes confronting.";
   } else if (enneaType === 4) {
-    parts.push('Drawn to depth and authenticity. May need space for emotional processing.');
-  } else if (enneaType === 5) {
-    parts.push('Observes before engaging. Needs time to process and prepare.');
+    base += " You might sense depth under the surface, a longing for something real that not everyone sees.";
+  } else if (enneaType === 2) {
+    base += " You may feel cared for, but also wonder if they're taking care of themselves.";
+  } else if (enneaType === 6) {
+    base += " You might notice they're scanning for what could go wrong—not out of pessimism, but vigilance.";
   }
   
-  return parts.join(' ');
+  return base;
+};
+
+// SHORTENED: How they show up (max 2 lines)
+const getHowTheyShowUp = (lensData: ForumMemberLensData): string => {
+  const hdType = lensData.human_design.type;
+  const enneaType = lensData.enneagram.core_type;
+  
+  if (hdType === 'Manifestor') {
+    return "Initiates and moves without waiting for consensus. Acts on internal timing, not external cues.";
+  } else if (hdType === 'Generator') {
+    return "Shows up with sustainable energy when engaged. Responds to what's in front of them rather than pushing forward.";
+  } else if (hdType === 'Manifesting Generator') {
+    return "Multi-tracks, moves fast, pivots often. Efficiency over linearity.";
+  } else if (hdType === 'Projector') {
+    return "Observes before engaging. Offers insight when invited, not before.";
+  } else if (hdType === 'Reflector') {
+    return "Takes in the group's energy. Reflects back what's really happening.";
+  }
+  
+  return "Shows up authentically based on their inner rhythm.";
 };
 
 const getAtTheirBest = (lensData: ForumMemberLensData): string => {
-  const parts: string[] = [];
   const hdType = lensData.human_design.type;
   const enneaType = lensData.enneagram.core_type;
   
+  let base = '';
+  
   if (hdType === 'Manifestor') {
-    parts.push('Clear, decisive, and catalytic.');
-    parts.push('Pushes things forward when others hesitate.');
+    base = "Clear, decisive, and catalytic. Creates movement when things are stuck. Others feel permission to act.";
   } else if (hdType === 'Generator') {
-    parts.push('Deeply satisfying work output.');
-    parts.push('Magnetic energy that draws opportunity.');
+    base = "Deeply satisfying output. Magnetic presence that draws the right opportunities. The work itself becomes the reward.";
   } else if (hdType === 'Manifesting Generator') {
-    parts.push('Efficient and multi-dimensional.');
-    parts.push('Gets more done than seems possible.');
+    base = "Accomplishes what seems impossible. Creates shortcuts others can follow. Brings energy and momentum.";
   } else if (hdType === 'Projector') {
-    parts.push('Brilliant at seeing what others miss.');
-    parts.push('Guides people to their own answers.');
+    base = "Sees what's really going on. Guides others to their own clarity. Wisdom that lands when received.";
   } else if (hdType === 'Reflector') {
-    parts.push('Reads the room like no one else.');
-    parts.push('Offers perspective that reveals truth.');
+    base = "Reads the room with uncanny accuracy. Offers perspective that cuts through noise. Reveals truth by reflection.";
   }
   
-  // Enneagram additions
-  if (enneaType === 1) parts.push('Brings integrity and high standards.');
-  else if (enneaType === 2) parts.push('Creates warmth and connection.');
-  else if (enneaType === 3) parts.push('Drives results and inspires action.');
-  else if (enneaType === 7) parts.push('Creates momentum in uncertain situations.');
-  else if (enneaType === 8) parts.push('Creates safety through directness.');
-  
-  return parts.join(' ');
+  return base;
 };
 
-const getUnderPressure = (lensData: ForumMemberLensData): string => {
-  const parts: string[] = [];
+// RENAMED: "When things get tense" (situational, not personality-based)
+const getWhenThingsGetTense = (lensData: ForumMemberLensData): string => {
   const hdType = lensData.human_design.type;
   const authority = lensData.human_design.authority;
   const enneaType = lensData.enneagram.core_type;
   
+  let base = '';
+  
   if (hdType === 'Manifestor') {
-    parts.push('May act before others are ready.');
-    parts.push('Can withdraw or pause when things feel off.');
-    parts.push('Others may feel "left behind" if not informed.');
+    base = "When decisions drag or feel unclear, they may push forward anyway—which can feel like pressure to others.";
   } else if (hdType === 'Generator') {
-    parts.push('May say yes when they mean no.');
-    parts.push('Can get stuck in work that drains rather than energizes.');
+    base = "When forced to commit before feeling a clear response, they may say yes but disengage later. Or push through work that drains them.";
   } else if (hdType === 'Manifesting Generator') {
-    parts.push('May move too fast for others to follow.');
-    parts.push('Can abandon projects mid-stream if interest wanes.');
+    base = "When things slow down or require too much waiting, they may skip ahead or abandon ship—leaving others scrambling.";
   } else if (hdType === 'Projector') {
-    parts.push('May give unsolicited advice.');
-    parts.push('Can feel bitter if contributions go unrecognized.');
+    base = "When their input goes unacknowledged, they may either over-give or withdraw entirely. The bitterness can be quiet but real.";
   } else if (hdType === 'Reflector') {
-    parts.push('May take on the group\'s stress as their own.');
-    parts.push('Needs more time for decisions than others expect.');
+    base = "When the group energy is off, they absorb it. They may seem checked out or overwhelmed—but they're processing everyone's stuff.";
+  }
+  
+  if (authority?.includes('Emotional') && !base.includes('clarity')) {
+    base += " If pushed for fast answers, they may commit to something they'll later need to undo.";
+  }
+  
+  if (enneaType === 9) {
+    base += " They may go along with decisions to keep the peace, then quietly resist later.";
+  } else if (enneaType === 6) {
+    base += " They may voice concerns that sound like resistance—but it's actually loyalty trying to protect the group.";
+  }
+  
+  return base;
+};
+
+// NEW: Where misunderstandings happen (CRITICAL for forum)
+const getWhereMisunderstandingsHappen = (lensData: ForumMemberLensData): string => {
+  const hdType = lensData.human_design.type;
+  const authority = lensData.human_design.authority;
+  const enneaType = lensData.enneagram.core_type;
+  
+  let base = '';
+  
+  if (hdType === 'Manifestor') {
+    base = "They may think they've communicated clearly—others may feel left out of the process. Their 'informing' can feel like announcing.";
+  } else if (hdType === 'Generator') {
+    base = "Their 'yes' may sound enthusiastic even when it's not fully there. Others may assume commitment that wasn't actually given.";
+  } else if (hdType === 'Manifesting Generator') {
+    base = "They may skip steps that seem obvious to them—but others need those steps to follow along. Speed can feel like dismissal.";
+  } else if (hdType === 'Projector') {
+    base = "They may assume their insight is wanted. Others may feel analyzed or advised when they just wanted to be heard.";
+  } else if (hdType === 'Reflector') {
+    base = "Their shifting opinions may look like indecisiveness. Others may not realize they're reflecting the group's own uncertainty back.";
   }
   
   if (authority?.includes('Emotional')) {
-    parts.push('Avoid pressing for immediate answers—clarity takes time.');
+    base += " What they said yesterday may change today—not because they were dishonest, but because clarity moves like a wave.";
   }
   
-  if (enneaType === 6) parts.push('May become anxious or suspicious under uncertainty.');
-  else if (enneaType === 9) parts.push('May go along to avoid conflict, then disengage.');
+  if (enneaType === 5) {
+    base += " Their silence may be read as disinterest—when they're actually processing deeply.";
+  } else if (enneaType === 3) {
+    base += " Their efficiency may feel cold. They're often moving toward results faster than others expect.";
+  } else if (enneaType === 8) {
+    base += " Their directness can land as aggression—even when they're trying to protect.";
+  }
   
-  return parts.join(' ');
+  return base;
 };
 
+// SHARPENED: How to work with them (direct + practical)
 const getHowToWorkWith = (lensData: ForumMemberLensData): string => {
-  const parts: string[] = [];
+  const hdType = lensData.human_design.type;
+  const authority = lensData.human_design.authority;
+  const enneaType = lensData.enneagram.core_type;
+  
+  let lines: string[] = [];
+  
+  if (hdType === 'Manifestor') {
+    lines.push("Keep them informed early—not after decisions are made.");
+    lines.push("Give them space to reach clarity instead of forcing answers.");
+  } else if (hdType === 'Generator') {
+    lines.push("Ask yes/no questions instead of open-ended ones.");
+    lines.push("Watch their energy—it tells you more than their words.");
+  } else if (hdType === 'Manifesting Generator') {
+    lines.push("Let them pivot—it's how they find what works.");
+    lines.push("Trust their process even when it looks chaotic.");
+  } else if (hdType === 'Projector') {
+    lines.push("Invite their perspective explicitly. Don't assume they'll offer it.");
+    lines.push("Acknowledge their contributions—recognition matters more than you think.");
+  } else if (hdType === 'Reflector') {
+    lines.push("Give them time for big decisions—a month if possible.");
+    lines.push("Ask 'what are you noticing?' to access their insight.");
+  }
+  
+  if (authority?.includes('Emotional')) {
+    lines.push("Don't press for immediate decisions. Let them sleep on it.");
+  }
+  
+  if (enneaType === 2) lines.push("Ask what they need—they often forget to say.");
+  else if (enneaType === 8) lines.push("Be direct. Don't soften or circle around issues.");
+  else if (enneaType === 5) lines.push("Give them prep time. Surprises deplete them.");
+  
+  return lines.join('\n');
+};
+
+// NEW: Micro-trigger (1-liner pattern interrupt for real-time awareness)
+const getMicroTrigger = (lensData: ForumMemberLensData): string => {
   const hdType = lensData.human_design.type;
   const authority = lensData.human_design.authority;
   const enneaType = lensData.enneagram.core_type;
   
   if (hdType === 'Manifestor') {
-    parts.push('Keep them informed—they work best when others are aligned.');
-    parts.push('Don\'t expect them to wait for permission.');
+    if (enneaType === 7) return "When they suddenly go quiet after proposing something big.";
+    if (enneaType === 8) return "When their energy shifts from driving to withdrawing mid-conversation.";
+    return "When they stop initiating and start waiting for others to catch up.";
   } else if (hdType === 'Generator') {
-    parts.push('Ask yes/no questions instead of open-ended ones.');
-    parts.push('Let them respond rather than initiating for them.');
+    if (enneaType === 9) return "When they agree too easily—without that spark of real engagement.";
+    return "When their energy drops mid-task, but they keep pushing anyway.";
   } else if (hdType === 'Manifesting Generator') {
-    parts.push('Give space to pivot and explore.');
-    parts.push('Trust their efficiency even if the path looks chaotic.');
+    if (enneaType === 3) return "When they speed past a concern someone else raised—watch if it resurfaces.";
+    return "When they suddenly pivot away from something they seemed committed to.";
   } else if (hdType === 'Projector') {
-    parts.push('Invite their input explicitly—don\'t assume they\'ll volunteer it.');
-    parts.push('Recognize their contributions; it matters more than you think.');
+    if (enneaType === 4) return "When they offer insight and no one responds—the silence lands hard.";
+    return "When they start over-explaining or advising without being asked.";
   } else if (hdType === 'Reflector') {
-    parts.push('Give them a lunar cycle for major decisions.');
-    parts.push('Ask "what are you noticing?" to tap their insight.');
+    return "When their mood shifts suddenly—something in the group just changed.";
   }
   
   if (authority?.includes('Emotional')) {
-    parts.push('Give space for them to process before expecting clarity.');
-    parts.push('Don\'t force immediate answers.');
+    return "When they commit quickly under pressure—check back in a day or two.";
   }
   
-  if (enneaType === 5) parts.push('Respect their need for preparation time.');
-  else if (enneaType === 2) parts.push('Ask what they need—they often forget to say.');
-  else if (enneaType === 8) parts.push('Be direct. Don\'t dance around issues.');
-  
-  return parts.join(' ');
+  return "When their pattern shifts—pause and ask what's happening.";
 };
 
 export default function ForumHomeScreen() {
@@ -954,7 +1026,15 @@ export default function ForumHomeScreen() {
                 ) : memberModal.lensData ? (
                   <View style={styles.humanProfileContent}>
                     
-                    {/* 2. HOW THEY SHOW UP - Primary behavioral card */}
+                    {/* 2. WHAT IT FEELS LIKE TO BE WITH THEM - NEW TOP PRIORITY */}
+                    <View style={[styles.humanSectionFelt, { backgroundColor: theme.accent + '06', borderColor: theme.accent + '20' }]}>
+                      <Text style={[styles.humanSectionTitleFelt, { color: theme.accent }]}>What it feels like to be with them</Text>
+                      <Text style={[styles.humanSectionTextFelt, { color: theme.text }]}>
+                        {getWhatItFeelsLike(memberModal.lensData)}
+                      </Text>
+                    </View>
+                    
+                    {/* 3. HOW THEY SHOW UP - Shortened */}
                     <View style={[styles.humanSection, { backgroundColor: theme.background, borderColor: theme.border }]}>
                       <Text style={[styles.humanSectionTitle, { color: theme.text }]}>How they show up</Text>
                       <Text style={[styles.humanSectionText, { color: theme.textSecondary }]}>
@@ -962,7 +1042,7 @@ export default function ForumHomeScreen() {
                       </Text>
                     </View>
                     
-                    {/* 3. WHEN THEY'RE AT THEIR BEST */}
+                    {/* 4. WHEN THEY'RE AT THEIR BEST */}
                     <View style={[styles.humanSection, { backgroundColor: theme.background, borderColor: theme.border }]}>
                       <Text style={[styles.humanSectionTitle, { color: theme.text }]}>When they're at their best</Text>
                       <Text style={[styles.humanSectionText, { color: theme.textSecondary }]}>
@@ -970,23 +1050,39 @@ export default function ForumHomeScreen() {
                       </Text>
                     </View>
                     
-                    {/* 4. UNDER PRESSURE */}
+                    {/* 5. WHEN THINGS GET TENSE - Renamed, situational */}
                     <View style={[styles.humanSection, { backgroundColor: theme.background, borderColor: theme.border }]}>
-                      <Text style={[styles.humanSectionTitle, { color: theme.text }]}>Under pressure</Text>
+                      <Text style={[styles.humanSectionTitle, { color: theme.text }]}>When things get tense</Text>
                       <Text style={[styles.humanSectionText, { color: theme.textSecondary }]}>
-                        {getUnderPressure(memberModal.lensData)}
+                        {getWhenThingsGetTense(memberModal.lensData)}
                       </Text>
                     </View>
                     
-                    {/* 5. HOW TO WORK WITH THEM - Most important */}
+                    {/* 6. WHERE MISUNDERSTANDINGS HAPPEN - NEW CRITICAL */}
+                    <View style={[styles.humanSectionWarning, { backgroundColor: '#FF572208', borderColor: '#FF572225' }]}>
+                      <Text style={[styles.humanSectionTitleWarning, { color: '#FF5722' }]}>⚠️ Where misunderstandings happen</Text>
+                      <Text style={[styles.humanSectionText, { color: theme.text }]}>
+                        {getWhereMisunderstandingsHappen(memberModal.lensData)}
+                      </Text>
+                    </View>
+                    
+                    {/* 7. HOW TO WORK WITH THEM - Sharpened */}
                     <View style={[styles.humanSectionHighlight, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '25' }]}>
                       <Text style={[styles.humanSectionTitleHighlight, { color: theme.accent }]}>How to work with them</Text>
-                      <Text style={[styles.humanSectionText, { color: theme.text }]}>
+                      <Text style={[styles.humanSectionTextLines, { color: theme.text }]}>
                         {getHowToWorkWith(memberModal.lensData)}
                       </Text>
                     </View>
                     
-                    {/* 6. PATTERN SIGNALS - Collapsible */}
+                    {/* 8. MICRO-TRIGGER - NEW Real-time awareness */}
+                    <View style={[styles.microTriggerBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                      <Text style={[styles.microTriggerLabel, { color: theme.textTertiary }]}>👁 Watch for this moment:</Text>
+                      <Text style={[styles.microTriggerText, { color: theme.text }]}>
+                        {getMicroTrigger(memberModal.lensData)}
+                      </Text>
+                    </View>
+                    
+                    {/* 9. PATTERN SIGNALS - Collapsible */}
                     <TouchableOpacity 
                       style={[styles.patternSignalsToggle, { borderColor: theme.border }]}
                       onPress={() => setShowPatternSignals(!showPatternSignals)}
@@ -1778,6 +1874,27 @@ const styles = StyleSheet.create({
   humanProfileContent: {
     paddingTop: 8,
   },
+  
+  // NEW: "What it feels like" - Top priority felt section
+  humanSectionFelt: {
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 14,
+    borderWidth: 1,
+  },
+  humanSectionTitleFelt: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 12,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  humanSectionTextFelt: {
+    fontSize: 16,
+    lineHeight: 26,
+    fontStyle: 'italic',
+  },
+  
   humanSection: {
     borderRadius: 12,
     padding: 16,
@@ -1829,6 +1946,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  
+  // NEW: Warning section (Where misunderstandings happen)
+  humanSectionWarning: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  humanSectionTitleWarning: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 10,
+    letterSpacing: 0.3,
+  },
+  
+  // NEW: Text with line breaks for "How to work with them"
+  humanSectionTextLines: {
+    fontSize: 15,
+    lineHeight: 24,
+  },
+  
+  // NEW: Micro-trigger box
+  microTriggerBox: {
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  microTriggerLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  microTriggerText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
   },
   
   // My Mirror Profile Card
