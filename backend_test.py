@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://mirror-diagnosis.preview.emergentagent.com"
+BACKEND_URL = "https://journal-optimized.preview.emergentagent.com"
 TEST_USER_ID = "697f0c6abf35c0528ff06954"  # pete@pulsifi.me
 
 def test_bazi_today_endpoint():
