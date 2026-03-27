@@ -532,6 +532,34 @@ export default function MirrorScreen() {
         {/* Debug Panel */}
         {user?.id && <DebugComputeInputs userId={user.id} />}
 
+        {/* ===================================================================
+            FORUM ENTRY FOOTER - ALWAYS VISIBLE
+            Subtle text links for forum access, visually understated
+            =================================================================== */}
+        <View style={styles.forumFooter}>
+          <TouchableOpacity
+            style={styles.forumFooterLink}
+            onPress={() => router.push('/forums/create')}
+            activeOpacity={0.6}
+          >
+            <Text style={[styles.forumFooterText, { color: theme.textTertiary }]}>
+              Create Forum
+            </Text>
+          </TouchableOpacity>
+          
+          <Text style={[styles.forumFooterDivider, { color: theme.textTertiary }]}>·</Text>
+          
+          <TouchableOpacity
+            style={styles.forumFooterLink}
+            onPress={() => router.push('/forums')}
+            activeOpacity={0.6}
+          >
+            <Text style={[styles.forumFooterText, { color: theme.textTertiary }]}>
+              Join Forum
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -1089,5 +1117,29 @@ const styles = StyleSheet.create({
   lensesExploreCta: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  
+  // =========================================================================
+  // FORUM FOOTER - Subtle entry links
+  // =========================================================================
+  forumFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    marginTop: 8,
+    gap: 12,
+  },
+  forumFooterLink: {
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+  },
+  forumFooterText: {
+    fontSize: 13,
+    fontWeight: '400',
+  },
+  forumFooterDivider: {
+    fontSize: 13,
+    opacity: 0.5,
   },
 });
