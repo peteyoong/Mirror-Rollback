@@ -1203,6 +1203,47 @@ export const getPairwiseDynamics = async (
 };
 
 // =====================================================
+// FORUM HD MAPPING API - "How they map to me"
+// =====================================================
+
+export interface ChannelCompletion {
+  channel: string;
+  name: string;
+  theme: string;
+  your_gate: number;
+  their_gate: number;
+}
+
+export interface ForumMemberMapping {
+  member_id: string;
+  member_name: string;
+  headline: string;
+  description: string;
+  what_works: string;
+  what_to_watch: string;
+  why_this_happens: ChannelCompletion[];
+  channel_count: number;
+  strength_score: number;
+}
+
+export interface ForumMemberMappingsResponse {
+  success: boolean;
+  mappings: ForumMemberMapping[];
+  current_user_id: string;
+  error?: string;
+}
+
+export const getForumMemberMappings = async (
+  forumId: string,
+  userId: string
+): Promise<ForumMemberMappingsResponse> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/member-mappings`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// =====================================================
 // PATTERN SIGNALS API (Why this is showing up)
 // =====================================================
 

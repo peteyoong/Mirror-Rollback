@@ -734,6 +734,33 @@ export default function ForumHomeScreen() {
         </TouchableOpacity>
 
         {/* ============================================
+            HOW THEY MAP TO ME - Channel-completion based mappings
+            ============================================ */}
+        <TouchableOpacity
+          style={[styles.forumDynamicsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={() => router.push({ pathname: '/forums/mappings', params: { forumId, forumName: forum?.name } })}
+          activeOpacity={0.7}
+        >
+          <View style={styles.forumDynamicsContent}>
+            <View style={[styles.forumDynamicsIcon, { backgroundColor: theme.accent + '15' }]}>
+              <Text style={{ fontSize: 20 }}>🔗</Text>
+            </View>
+            <View style={styles.forumDynamicsTextContainer}>
+              <Text style={[styles.forumDynamicsTitle, { color: theme.text }]}>How they map to me</Text>
+              <Text style={[styles.forumDynamicsSubtitle, { color: theme.textSecondary }]}>
+                See how each member energetically connects with you
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={[styles.forumDynamicsButton, { backgroundColor: theme.accent + '15' }]}
+            onPress={() => router.push({ pathname: '/forums/mappings', params: { forumId, forumName: forum?.name } })}
+          >
+            <Text style={[styles.forumDynamicsButtonText, { color: theme.accent }]}>View</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+
+        {/* ============================================
             FORUM PULSE - Collective Patterns & Lens Dynamics
             ============================================ */}
         {pulse && (

@@ -24459,6 +24459,62 @@ async def get_forum_member_lens(forum_id: str, member_user_id: str, user_id: str
     }
 
 
+# =============================================================================
+# FORUM HD MAPPING - "How they map to me"
+# =============================================================================
+@api_router.get("/forums/{forum_id}/member-mappings")
+async def get_forum_member_mappings(forum_id: str, user_id: str):
+    """
+    Get "How they map to me" - HD channel-completion based mappings
+    for all forum members relative to the current user.
+    
+    Returns relational interpretations, NOT raw HD data.
+    Each member mapping includes:
+    - headline (scannable)
+    - what_to_watch (short watch-out)
+    - description (detail view)
+    - what_works (detail view)
+    - why_this_happens (HD mechanics, hidden unless expanded)
+    """
+    logger.info(f"[ForumMapping] Getting member mappings for user {user_id[:8]}... in forum {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    try:
+        from services.forum_hd_mapping import get_forum_member_mappings
+        
+        mappings = await get_forum_member_mappings(
+            db=db,
+            forum_id=forum_id,
+            current_user_id=user_id
+        )
+        
+        return {
+            "success": True,
+            "mappings": mappings,
+            "current_user_id": user_id,
+        }
+        
+    except Exception as e:
+        logger.error(f"[ForumMapping] Error: {e}")
+        return {
+            "success": False,
+            "mappings": [],
+            "error": str(e)
+        }
+
+
 @api_router.get("/forums/{forum_id}/dynamics-context")
 async def get_forum_dynamics_context(forum_id: str, user_id: str):
     """
