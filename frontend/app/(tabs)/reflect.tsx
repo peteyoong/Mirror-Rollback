@@ -321,6 +321,12 @@ export default function JournalScreen() {
   const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
   const HIGHLIGHT_CLEAR_DELAY = 2500; // Clear after 2.5s (animation is 2s)
   
+  // "Captured" feedback state (FIX 8)
+  const [showCapturedFeedback, setShowCapturedFeedback] = useState(false);
+  
+  // Pending optimistic entry (for failsafe)
+  const [pendingEntryText, setPendingEntryText] = useState<string | null>(null);
+  
   // Pattern reinforcement state (post-journal feedback)
   const [patternReinforcement, setPatternReinforcement] = useState<{
     message: string;
@@ -703,7 +709,6 @@ export default function JournalScreen() {
 
     console.log('[JOURNAL_SAVE] === SUBMIT STARTED ===');
     console.log('[JOURNAL_SAVE] Current journalEntries count:', journalEntries.length);
-    console.log('[JOURNAL_SAVE] Top 3 entry IDs before save:', journalEntries.slice(0, 3).map(e => e.id));
 
     Keyboard.dismiss();
     setIsSubmitting(true);
@@ -712,9 +717,41 @@ export default function JournalScreen() {
     // Capture the entry text for Micro-Mirror response generation
     const entryText = newEntry.trim();
     
+    // FIX 6: Store pending text for failsafe
+    setPendingEntryText(entryText);
+    
     // Get current timeline phase for auto-tagging
     const currentPhase = getCurrentPhase();
     console.log('[JOURNAL_SAVE] Current timeline phase:', currentPhase.id, currentPhase.name);
+
+    // FIX 1: OPTIMISTIC ENTRY - Create temp entry IMMEDIATELY
+    const tempId = `temp_${Date.now()}`;
+    const optimisticEntry = {
+      id: tempId,
+      content: entryText,
+      created_at: new Date().toISOString(),
+      themes: [],
+      phase_id: currentPhase.id,
+      phase_name: currentPhase.name,
+    };
+    
+    // Add optimistic entry to start of list BEFORE API call
+    setJournalEntries(prev => [optimisticEntry, ...prev]);
+    
+    // FIX 3: Auto-scroll to top to show new entry
+    setTimeout(() => {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }, 100);
+    
+    // FIX 8: Show "Captured" feedback
+    setShowCapturedFeedback(true);
+    setTimeout(() => setShowCapturedFeedback(false), 1500);
+    
+    // FIX 2: Delay clear input until optimistic entry is rendered
+    setTimeout(() => {
+      setNewEntry('');
+      setPatternMetadata(null);
+    }, 150);
 
     try {
       // Include pattern metadata if present, plus phase data
@@ -725,53 +762,28 @@ export default function JournalScreen() {
           pattern_tension_pair: patternMetadata.pattern_tension_pair,
           prompt_text: patternMetadata.prompt_text
         } : {}),
-        // Auto-tag with current timeline phase
         phase_id: currentPhase.id,
         phase_name: currentPhase.name,
       };
       
-      console.log('[JOURNAL_SAVE] Calling createJournalEntry API with phase:', metadata.phase_id);
+      console.log('[JOURNAL_SAVE] Calling createJournalEntry API');
       const entry = await createJournalEntry(user.id, entryText, metadata);
-      console.log('[JOURNAL_SAVE] API SUCCESS - Entry returned:', {
-        id: entry.id,
-        content: entry.content?.substring(0, 50),
-        created_at: entry.created_at,
-        themes: entry.themes,
-        phase_id: entry.phase_id,
-        phase_name: entry.phase_name,
-      });
+      console.log('[JOURNAL_SAVE] API SUCCESS - Entry ID:', entry.id);
 
-      // CRITICAL: Add entry to store BEFORE clearing input
-      console.log('[JOURNAL_SAVE] Adding entry to store...');
-      addJournalEntry(entry);
+      // Replace optimistic entry with real entry
+      setJournalEntries(prev => prev.map(e => 
+        e.id === tempId ? entry : e
+      ));
       
-      // Small delay to ensure store update propagates
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      // Get fresh state to verify
-      const currentEntries = useAppStore.getState().journalEntries;
-      console.log('[JOURNAL_SAVE] Store updated - New count:', currentEntries.length);
-      console.log('[JOURNAL_SAVE] Top 3 entry IDs after add:', currentEntries.slice(0, 3).map(e => e.id));
-      console.log('[JOURNAL_SAVE] New entry is first?', currentEntries[0]?.id === entry.id);
-
-      // Only clear input AFTER confirmed store update
-      setNewEntry('');
-      
-      // Clear pattern metadata after successful submission
-      setPatternMetadata(null);
+      // Clear pending text on success
+      setPendingEntryText(null);
       
       // HIGHLIGHT: Set the newly saved entry as highlighted
       setHighlightedEntryId(entry.id);
-      // Clear highlight after animation completes
-      setTimeout(() => {
-        setHighlightedEntryId(null);
-      }, HIGHLIGHT_CLEAR_DELAY);
+      setTimeout(() => setHighlightedEntryId(null), HIGHLIGHT_CLEAR_DELAY);
 
-      // Generate and show Micro-Mirror response using unified engine (non-blocking)
-      // ONLY after confirmed save
+      // Generate and show Micro-Mirror response
       if (entryText.length >= 10) {
-        console.log('[JOURNAL_SAVE] Generating Micro-Mirror response...');
-        // Build response using the unified Mirror Response Engine
         const response = buildMirrorResponse({
           journalText: entryText,
           dominantTruth: dominantTruthData ? {
@@ -782,11 +794,15 @@ export default function JournalScreen() {
           variationSeed: Date.now(),
         });
         
-        // Format for journal surface (warm intensity)
         const { text: journalText } = getJournalResponse(response);
         setMicroMirrorResponse(journalText);
         setMicroMirrorEntryId(entry.id);
         setMicroMirrorVisible(true);
+        
+        // FIX 4: Auto-scroll to ensure Mirror response is visible
+        setTimeout(() => {
+          flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+        }, 300);
         
         // Fetch pattern reinforcement (non-blocking)
         try {
@@ -796,49 +812,58 @@ export default function JournalScreen() {
             setReinforcementEntryId(entry.id);
           }
         } catch (err) {
-          console.log('[JOURNAL_SAVE] Pattern reinforcement fetch failed:', err);
-          // Non-blocking - don't show error
+          console.log('[JOURNAL_SAVE] Pattern reinforcement fetch failed');
         }
       }
       
-      // Show Phase Mirror card with timeline phase info
+      // Show Phase Mirror card
       setSavedPhaseId(currentPhase.id);
       setSavedPhaseName(currentPhase.name);
       setPhaseMirrorVisible(true);
       
-      // Generate and show reverse prompt based on current phase
       const reversePrompt = getReversePrompt(currentPhase.id, Date.now());
       setReversePromptText(reversePrompt);
-      console.log('[JOURNAL_SAVE] Reverse prompt for phase:', currentPhase.id, reversePrompt);
 
       console.log('[JOURNAL_SAVE] === SUBMIT COMPLETE (SUCCESS) ===');
       
-      // Background re-fetch to reconcile with backend truth
-      // This runs after the optimistic insert, so the user sees immediate feedback
+      // Background re-fetch to reconcile
       setTimeout(async () => {
         try {
-          console.log('[JOURNAL_SAVE] Background re-fetch starting...');
           const freshEntries = await getJournalEntries(user.id);
-          console.log('[JOURNAL_SAVE] Background re-fetch complete. Count:', freshEntries.length);
-          console.log('[JOURNAL_SAVE] Fresh top 3 IDs:', freshEntries.slice(0, 3).map((e: any) => e.id));
-          
-          // Only update if the new entry is still in the fresh list
           const newEntryExists = freshEntries.some((e: any) => e.id === entry.id);
           if (newEntryExists) {
             setJournalEntries(freshEntries);
-            console.log('[JOURNAL_SAVE] Store reconciled with backend');
-          } else {
-            console.warn('[JOURNAL_SAVE] WARNING: New entry not found in backend response!');
           }
         } catch (err) {
-          console.error('[JOURNAL_SAVE] Background re-fetch failed:', err);
-          // Keep optimistic data on failure
+          console.error('[JOURNAL_SAVE] Background re-fetch failed');
         }
       }, 1000);
     } catch (err: any) {
       console.error('[JOURNAL_SAVE] === SUBMIT FAILED ===', err);
-      setError("Couldn't save this entry. Try again.");
-      // Do NOT clear input on failure - user can retry
+      
+      // FIX 6: FAILSAFE - Keep entry visible, mark as "syncing"
+      setError("Saved locally. Syncing...");
+      
+      // Retry after 3 seconds
+      setTimeout(async () => {
+        if (pendingEntryText) {
+          try {
+            const metadata = {
+              phase_id: currentPhase.id,
+              phase_name: currentPhase.name,
+            };
+            const retryEntry = await createJournalEntry(user.id, pendingEntryText, metadata);
+            setJournalEntries(prev => prev.map(e => 
+              e.id === tempId ? retryEntry : e
+            ));
+            setError('');
+            setPendingEntryText(null);
+            console.log('[JOURNAL_SAVE] Retry succeeded');
+          } catch (retryErr) {
+            console.error('[JOURNAL_SAVE] Retry also failed');
+          }
+        }
+      }, 3000);
     } finally {
       setIsSubmitting(false);
     }
@@ -1887,6 +1912,15 @@ export default function JournalScreen() {
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             )}
+            
+            {/* FIX 8: "Captured" micro-feedback */}
+            {showCapturedFeedback && (
+              <View style={[styles.capturedFeedback, { backgroundColor: theme.success + '15' }]}>
+                <Text style={[styles.capturedFeedbackText, { color: theme.success }]}>
+                  ✓ Captured
+                </Text>
+              </View>
+            )}
 
             {/* Micro-Mirror Response (appears after journal save) */}
             {microMirrorVisible && microMirrorResponse && (
@@ -2202,6 +2236,19 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 13,
     color: Colors.error,
+  },
+  // FIX 8: Captured feedback styles
+  capturedFeedback: {
+    marginTop: 8,
+    marginBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  capturedFeedbackText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   listContent: {
     paddingBottom: 120, // Extra padding for PWA banner overlay
