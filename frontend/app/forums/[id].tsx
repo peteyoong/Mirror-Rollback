@@ -138,9 +138,9 @@ export default function ForumHomeScreen() {
   };
 
   const handleBeginReflection = () => {
-    // Navigate to the Patterns page with forum context
-    // This shows the EXACT same Patterns experience as personal Mirror
-    router.push(`/forums/patterns?forumId=${forumId}&forumName=${encodeURIComponent(forum?.name || 'Forum')}`);
+    // Navigate to the Forum Updates page with forum context
+    // This is the new structured update experience
+    router.push(`/forums/updates?forumId=${forumId}&forumName=${encodeURIComponent(forum?.name || 'Forum')}`);
   };
 
   const handleMyMirrorProfile = () => {
@@ -669,13 +669,13 @@ export default function ForumHomeScreen() {
               onPress={handleBeginReflection}
             >
               <Text style={[styles.beginButtonText, { color: theme.buttonPrimaryText }]}>
-                {hasSubmitted ? 'Edit Reflection' : 'Begin Reflection'}
+                {hasSubmitted ? 'Edit Update' : 'Share Forum Update'}
               </Text>
             </TouchableOpacity>
             
             {hasSubmitted && (
               <Text style={[styles.submittedNote, { color: theme.success }]}>
-                ✓ You&apos;ve submitted a reflection
+                ✓ You&apos;ve shared an update
               </Text>
             )}
           </View>

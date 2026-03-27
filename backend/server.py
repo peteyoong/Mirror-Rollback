@@ -23506,6 +23506,172 @@ async def get_pattern_domains():
     return {"domains": PATTERN_DOMAINS}
 
 
+# =====================================================================
+# FORUM UPDATES - STRUCTURED UPDATE CAPTURE
+# =====================================================================
+
+class ForumUpdateCheckin(BaseModel):
+    mentally: Optional[str] = ""
+    emotionally: Optional[str] = ""
+    relationship: Optional[str] = ""
+    vocationally: Optional[str] = ""
+    spiritually: Optional[str] = ""
+    financially: Optional[str] = ""
+    physically: Optional[str] = ""
+
+class ForumUpdateArea(BaseModel):
+    emotions: List[str] = []
+    update_text: str = ""
+    add_to_journal: bool = False
+
+class ForumUpdateInput(BaseModel):
+    forum_id: str
+    user_id: str
+    one_word_checkin: ForumUpdateCheckin
+    updates: Dict[str, ForumUpdateArea]  # work, relationships, personal
+
+@api_router.post("/forums/update")
+async def save_forum_update(data: ForumUpdateInput):
+    """
+    Save a structured forum update with one-word check-ins and area updates.
+    
+    This captures live human signal for Mirror's pattern engine:
+    - One-word check-in across 7 life areas
+    - Updates for Work, Relationships, Personal
+    - Optional journal integration
+    """
+    logger.info(f"[ForumUpdate] Saving update for user {data.user_id} in forum {data.forum_id}")
+    
+    # Validate forum membership
+    membership = await db.forum_members.find_one({
+        "forum_id": data.forum_id,
+        "user_id": data.user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    # Get user info for journal entries
+    user = await db.users.find_one({"_id": ObjectId(data.user_id)})
+    user_name = user.get("name", "Anonymous") if user else "Anonymous"
+    
+    # Build the forum update document
+    forum_update = {
+        "forum_id": data.forum_id,
+        "user_id": data.user_id,
+        "user_name": user_name,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "one_word_checkin": data.one_word_checkin.model_dump(),
+        "updates": {k: v.model_dump() for k, v in data.updates.items()},
+    }
+    
+    # Save or update (upsert by user_id + forum_id for today)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    result = await db.forum_updates.update_one(
+        {
+            "forum_id": data.forum_id,
+            "user_id": data.user_id,
+            "created_date": today,
+        },
+        {"$set": {**forum_update, "created_date": today}},
+        upsert=True
+    )
+    
+    # Handle "add to journal" for each area
+    journal_entries_added = 0
+    for area_key, area_data in data.updates.items():
+        if area_data.add_to_journal and area_data.update_text.strip():
+            # Build emotion tag string
+            emotion_tags = ", ".join(area_data.emotions[:3]) if area_data.emotions else ""
+            
+            # Create journal entry
+            journal_entry = {
+                "user_id": data.user_id,
+                "entry_text": area_data.update_text,
+                "domain": area_key.capitalize(),
+                "emotions": emotion_tags,
+                "source": "forum_update",
+                "forum_id": data.forum_id,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await db.journal.insert_one(journal_entry)
+            journal_entries_added += 1
+            logger.info(f"[ForumUpdate] Added journal entry for {area_key}")
+    
+    logger.info(f"[ForumUpdate] Saved update for {data.user_id}, journal entries: {journal_entries_added}")
+    
+    return {
+        "success": True,
+        "message": "Forum update saved",
+        "journal_entries_added": journal_entries_added,
+        "update_id": str(result.upserted_id) if result.upserted_id else None,
+    }
+
+
+@api_router.get("/forums/{forum_id}/updates")
+async def get_forum_updates(forum_id: str, user_id: str, limit: int = 20):
+    """
+    Get recent forum updates for a forum.
+    Used to display what members are sharing.
+    """
+    # Validate membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="Not a forum member")
+    
+    # Get recent updates
+    updates_cursor = db.forum_updates.find(
+        {"forum_id": forum_id}
+    ).sort("created_at", -1).limit(limit)
+    
+    updates = []
+    async for update in updates_cursor:
+        updates.append({
+            "id": str(update["_id"]),
+            "user_id": update["user_id"],
+            "user_name": update.get("user_name", "Anonymous"),
+            "created_at": update["created_at"],
+            "one_word_checkin": update.get("one_word_checkin", {}),
+            "updates": update.get("updates", {}),
+        })
+    
+    return {"updates": updates}
+
+
+@api_router.get("/forums/{forum_id}/my-update")
+async def get_my_forum_update(forum_id: str, user_id: str):
+    """
+    Get the current user's most recent forum update for today.
+    Used to pre-fill the form if they've already submitted.
+    """
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    update = await db.forum_updates.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "created_date": today,
+    })
+    
+    if not update:
+        return {"found": False, "update": None}
+    
+    return {
+        "found": True,
+        "update": {
+            "id": str(update["_id"]),
+            "created_at": update["created_at"],
+            "one_word_checkin": update.get("one_word_checkin", {}),
+            "updates": update.get("updates", {}),
+        }
+    }
+
+
 @api_router.get("/forums/{forum_id}/pulse")
 async def get_forum_pulse(forum_id: str, user_id: str):
     """
