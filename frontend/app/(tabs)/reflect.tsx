@@ -2076,150 +2076,148 @@ export default function JournalScreen() {
             )}
 
             {/* =================================================================
-                LATEST REFLECTION THREAD
+                JOURNAL FEED - ALL CONTENT IN ONE SCROLLABLE FLATLIST
                 =================================================================
-                This shows the user's MOST RECENT entry FIRST, then Mirror
-                response directly beneath it, creating a connected thread feel.
-                
-                Structure:
-                1. User's submitted entry (visible first)
-                2. Mirror response (attached beneath)
-                3. Pattern reinforcement (if any)
-                
-                This prevents the disconnect where Mirror appears without context.
+                The Latest Reflection Thread, Phase Mirror, Recognition cards,
+                and older entries are ALL inside the FlatList scroll flow.
+                This prevents scroll lock / clipping issues.
                 ================================================================= */}
-            {latestSubmittedEntry && (
-              <View style={[styles.latestReflectionThread, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                {/* USER'S ENTRY - Always visible first */}
-                <View style={styles.threadUserEntry}>
-                  <View style={styles.threadEntryHeader}>
-                    <Text style={[styles.threadLabel, { color: theme.textTertiary }]}>
-                      You wrote
-                    </Text>
-                    {latestSubmittedEntry.isOptimistic && (
-                      <Text style={[styles.threadSavingLabel, { color: theme.textTertiary }]}>
-                        saving...
-                      </Text>
-                    )}
-                  </View>
-                  <Text style={[styles.threadEntryContent, { color: theme.text }]}>
-                    {latestSubmittedEntry.content}
-                  </Text>
-                  {latestSubmittedEntry.phase_name && (
-                    <Text style={[styles.threadPhaseTag, { color: theme.textTertiary }]}>
-                      {latestSubmittedEntry.phase_name}
-                    </Text>
-                  )}
-                </View>
-
-                {/* MIRROR RESPONSE - Directly beneath user entry */}
-                {microMirrorVisible && microMirrorResponse && (
-                  <View style={[styles.threadMirrorResponse, { borderTopColor: theme.border }]}>
-                    <Text style={[styles.threadLabel, { color: theme.textTertiary }]}>
-                      Mirror noticed
-                    </Text>
-                    <Text style={[styles.threadMirrorText, { color: theme.textSecondary }]}>
-                      {microMirrorResponse}
-                    </Text>
-                    <View style={styles.threadMirrorActions}>
-                      <TouchableOpacity
-                        style={[styles.threadMirrorAction, { borderColor: theme.border }]}
-                        onPress={handleMicroMirrorReflect}
-                      >
-                        <Text style={[styles.threadMirrorActionText, { color: theme.text }]}>
-                          Reflect deeper
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.threadMirrorAction, { borderColor: theme.border }]}
-                        onPress={handleMicroMirrorAskMirror}
-                      >
-                        <Text style={[styles.threadMirrorActionText, { color: theme.text }]}>
-                          Talk to Mirror
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-
-                {/* PATTERN REINFORCEMENT - Beneath Mirror */}
-                {patternReinforcement && patternReinforcement.message && (
-                  <TouchableOpacity
-                    style={[styles.threadPatternRecognition, { borderTopColor: theme.border }]}
-                    onPress={handlePatternReinforcementTap}
-                    activeOpacity={patternReinforcement.route ? 0.7 : 1}
-                    disabled={!patternReinforcement.route}
-                  >
-                    <Text style={[styles.threadLabel, { color: theme.textTertiary }]}>
-                      Pattern recognized
-                    </Text>
-                    <Text style={[styles.threadPatternText, { color: theme.textSecondary }]}>
-                      {patternReinforcement.message}
-                      {patternReinforcement.route && ' →'}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                {/* DISMISS THREAD */}
-                <TouchableOpacity
-                  style={styles.threadDismiss}
-                  onPress={() => {
-                    setLatestSubmittedEntry(null);
-                    setMicroMirrorVisible(false);
-                    setMicroMirrorResponse(null);
-                    setPatternReinforcement(null);
-                  }}
-                >
-                  <Text style={[styles.threadDismissText, { color: theme.textTertiary }]}>
-                    ✕
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* Phase Mirror Card - Timeline connection (appears after journal save) */}
-            {phaseMirrorVisible && savedPhaseId && savedPhaseName && (
-              <PhaseMirrorCard
-                phaseId={savedPhaseId}
-                phaseName={savedPhaseName}
-                visible={phaseMirrorVisible}
-                onViewTimeline={handleViewTimeline}
-                onWriteDeeper={handleWriteDeeper}
-                onDismiss={handlePhaseMirrorDismiss}
-              />
-            )}
-
-            {/* Note: Reverse Prompt is now integrated into PhaseMirrorCard's "Write deeper" CTA */}
-
-            {/* Mini Connection Line - V2: Subtle line explaining the Journal ↔ Timeline connection */}
-            {normalizeJournalEntries(journalEntries).length > 0 && !phaseMirrorVisible && (
-              <Text style={[styles.connectionLine, { color: theme.textTertiary }]}>
-                What you write here may later become patterns you can see.
-              </Text>
-            )}
-
-            {/* Entries List - NOW BEFORE Key Moments */}
             {isLoading ? (
               <View style={styles.centered}>
                 <ActivityIndicator size="large" color={theme.textSecondary} />
-              </View>
-            ) : normalizeJournalEntries(journalEntries).length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={{ fontSize: 42, color: theme.textTertiary }}>☰</Text>
-                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No entries yet</Text>
-                <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
-                  Start journaling to track your reflections over time.
-                </Text>
               </View>
             ) : (
               <FlatList
                 ref={flatListRef}
                 data={normalizeJournalEntries(journalEntries, 'FlatList:data').filter(
-                  // Exclude the latest submitted entry - it's shown in the thread above
+                  // Exclude the latest submitted entry - it's shown in the thread header
                   item => !latestSubmittedEntry || item.id !== latestSubmittedEntry.id
                 )}
-                extraData={`${Array.isArray(journalEntries) ? journalEntries.length : 0}-${highlightedEntryId}-${latestSubmittedEntry?.id}`} // Force re-render on length, highlight, or thread change
+                extraData={`${Array.isArray(journalEntries) ? journalEntries.length : 0}-${highlightedEntryId}-${latestSubmittedEntry?.id}-${microMirrorVisible}-${patternReinforcement?.message}`}
                 keyExtractor={(item) => item?.id || `fallback_${Math.random()}`}
+                ListHeaderComponent={
+                  <>
+                    {/* LATEST REFLECTION THREAD - Now inside scroll flow */}
+                    {latestSubmittedEntry && (
+                      <View style={[styles.latestReflectionThread, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                        {/* USER'S ENTRY - Always visible first */}
+                        <View style={styles.threadUserEntry}>
+                          <View style={styles.threadEntryHeader}>
+                            <Text style={[styles.threadLabel, { color: theme.textTertiary }]}>
+                              You wrote
+                            </Text>
+                            {latestSubmittedEntry.isOptimistic && (
+                              <Text style={[styles.threadSavingLabel, { color: theme.textTertiary }]}>
+                                saving...
+                              </Text>
+                            )}
+                          </View>
+                          <Text style={[styles.threadEntryContent, { color: theme.text }]}>
+                            {latestSubmittedEntry.content}
+                          </Text>
+                          {latestSubmittedEntry.phase_name && (
+                            <Text style={[styles.threadPhaseTag, { color: theme.textTertiary }]}>
+                              {latestSubmittedEntry.phase_name}
+                            </Text>
+                          )}
+                        </View>
+
+                        {/* MIRROR RESPONSE - Directly beneath user entry */}
+                        {microMirrorVisible && microMirrorResponse && (
+                          <View style={[styles.threadMirrorResponse, { borderTopColor: theme.border }]}>
+                            <Text style={[styles.threadLabel, { color: theme.textTertiary }]}>
+                              Mirror noticed
+                            </Text>
+                            <Text style={[styles.threadMirrorText, { color: theme.textSecondary }]}>
+                              {microMirrorResponse}
+                            </Text>
+                            <View style={styles.threadMirrorActions}>
+                              <TouchableOpacity
+                                style={[styles.threadMirrorAction, { borderColor: theme.border }]}
+                                onPress={handleMicroMirrorReflect}
+                              >
+                                <Text style={[styles.threadMirrorActionText, { color: theme.text }]}>
+                                  Reflect deeper
+                                </Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={[styles.threadMirrorAction, { borderColor: theme.border }]}
+                                onPress={handleMicroMirrorAskMirror}
+                              >
+                                <Text style={[styles.threadMirrorActionText, { color: theme.text }]}>
+                                  Talk to Mirror
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        )}
+
+                        {/* PATTERN REINFORCEMENT - Beneath Mirror */}
+                        {patternReinforcement && patternReinforcement.message && (
+                          <TouchableOpacity
+                            style={[styles.threadPatternRecognition, { borderTopColor: theme.border }]}
+                            onPress={handlePatternReinforcementTap}
+                            activeOpacity={patternReinforcement.route ? 0.7 : 1}
+                            disabled={!patternReinforcement.route}
+                          >
+                            <Text style={[styles.threadLabel, { color: theme.textTertiary }]}>
+                              Pattern recognized
+                            </Text>
+                            <Text style={[styles.threadPatternText, { color: theme.textSecondary }]}>
+                              {patternReinforcement.message}
+                              {patternReinforcement.route && ' →'}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {/* DISMISS THREAD */}
+                        <TouchableOpacity
+                          style={styles.threadDismiss}
+                          onPress={() => {
+                            setLatestSubmittedEntry(null);
+                            setMicroMirrorVisible(false);
+                            setMicroMirrorResponse(null);
+                            setPatternReinforcement(null);
+                          }}
+                        >
+                          <Text style={[styles.threadDismissText, { color: theme.textTertiary }]}>
+                            ✕
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+
+                    {/* Phase Mirror Card - Timeline connection (inside scroll flow) */}
+                    {phaseMirrorVisible && savedPhaseId && savedPhaseName && (
+                      <PhaseMirrorCard
+                        phaseId={savedPhaseId}
+                        phaseName={savedPhaseName}
+                        visible={phaseMirrorVisible}
+                        onViewTimeline={handleViewTimeline}
+                        onWriteDeeper={handleWriteDeeper}
+                        onDismiss={handlePhaseMirrorDismiss}
+                      />
+                    )}
+
+                    {/* Mini Connection Line - inside scroll flow */}
+                    {normalizeJournalEntries(journalEntries).length > 0 && !phaseMirrorVisible && !latestSubmittedEntry && (
+                      <Text style={[styles.connectionLine, { color: theme.textTertiary }]}>
+                        What you write here may later become patterns you can see.
+                      </Text>
+                    )}
+
+                    {/* Empty state message when no entries */}
+                    {normalizeJournalEntries(journalEntries).length === 0 && !latestSubmittedEntry && (
+                      <View style={styles.emptyContainer}>
+                        <Text style={{ fontSize: 42, color: theme.textTertiary }}>☰</Text>
+                        <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No entries yet</Text>
+                        <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
+                          Start journaling to track your reflections over time.
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                }
                 renderItem={({ item }) => {
                   // HARDEN: Early return if item is invalid
                   if (!item || !item.id) {
@@ -2250,15 +2248,23 @@ export default function JournalScreen() {
                 scrollEventThrottle={16}
                 onTouchStart={handleEntriesAreaPress}
                 ListFooterComponent={
-                  // Key Moments Section - DEMOTED to footer, lower priority
-                  normalizeJournalEntries(journalEntries).length >= 2 ? (
-                    <KeyMomentsSection
-                      journalEntries={normalizeJournalEntries(journalEntries)}
-                      onMomentPress={(entry) => handleReflect(entry.id, entry.content)}
-                      onReflectWithMirror={(entry) => handleReflect(entry.id, entry.content)}
-                      maxMoments={3}
-                    />
-                  ) : null
+                  <>
+                    {/* Key Moments Section - DEMOTED to footer, lower priority */}
+                    {normalizeJournalEntries(journalEntries).length >= 2 && (
+                      <KeyMomentsSection
+                        journalEntries={normalizeJournalEntries(journalEntries)}
+                        onMomentPress={(entry) => handleReflect(entry.id, entry.content)}
+                        onReflectWithMirror={(entry) => handleReflect(entry.id, entry.content)}
+                        maxMoments={3}
+                      />
+                    )}
+                    {/* Bottom spacer to ensure content clears tab bar */}
+                    <View style={{ height: 120 }} />
+                  </>
+                }
+                ListEmptyComponent={
+                  // Show nothing if we have the thread header visible
+                  latestSubmittedEntry ? null : undefined
                 }
               />
             )}
