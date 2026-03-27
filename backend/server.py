@@ -6383,12 +6383,119 @@ async def get_lenses():
 @api_router.get("/health")
 async def api_health_check():
     """Health check endpoint under /api prefix for deployment verification."""
-    return {
-        "ok": True,
-        "service": "backend",
-        "status": "healthy",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    # Get database info for debugging
+    try:
+        db_name = db.name
+        mongo_uri = os.environ.get('MONGO_URL', '')
+        db_uri_last_4 = mongo_uri[-4:] if len(mongo_uri) >= 4 else '****'
+        
+        # List collections
+        collections = await db.list_collection_names()
+        
+        # Count lifeline events
+        lifeline_count = await db.lifeline_events.count_documents({})
+        
+        return {
+            "ok": True,
+            "service": "backend",
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "debug": {
+                "env": os.environ.get('ENV', 'unknown'),
+                "db_name": db_name,
+                "db_uri_last_4": db_uri_last_4,
+                "collections": collections[:20],  # Limit to first 20
+                "lifeline_events_total": lifeline_count,
+            }
+        }
+    except Exception as e:
+        return {
+            "ok": True,
+            "service": "backend",
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "debug_error": str(e)
+        }
+
+
+@api_router.get("/debug/lifeline/{user_id}")
+async def debug_lifeline(user_id: str):
+    """
+    Debug endpoint to check lifeline data for a user.
+    Returns count, sample events, and database info.
+    """
+    try:
+        # Get database info
+        db_name = db.name
+        mongo_uri = os.environ.get('MONGO_URL', '')
+        db_uri_last_4 = mongo_uri[-4:] if len(mongo_uri) >= 4 else '****'
+        
+        # Count events for this user
+        count = await db.lifeline_events.count_documents({"user_id": user_id})
+        
+        # Get sample events
+        sample_events = []
+        cursor = db.lifeline_events.find({"user_id": user_id}).limit(5).sort("event_date", -1)
+        async for event in cursor:
+            sample_events.append({
+                "id": str(event.get("_id")),
+                "title": event.get("title", ""),
+                "event_date": event.get("event_date", ""),
+                "domain": event.get("domain", ""),
+                "source": event.get("source", "manual"),
+                "created_at": event.get("created_at", ""),
+            })
+        
+        # Check for alternate user_id formats
+        alternate_counts = {}
+        
+        # Check with ObjectId format
+        try:
+            oid_count = await db.lifeline_events.count_documents({"user_id": ObjectId(user_id)})
+            if oid_count > 0:
+                alternate_counts["as_objectid"] = oid_count
+        except:
+            pass
+        
+        # Check if user exists
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        user_info = None
+        if user:
+            user_info = {
+                "name": user.get("name", ""),
+                "email": user.get("email", ""),
+                "created_at": str(user.get("created_at", "")),
+            }
+        
+        # Get total lifeline events in DB
+        total_lifeline_events = await db.lifeline_events.count_documents({})
+        
+        # Get distinct user_ids in lifeline_events
+        distinct_user_ids = await db.lifeline_events.distinct("user_id")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "user_found": user is not None,
+            "user_info": user_info,
+            "lifeline_events_count": count,
+            "sample_events": sample_events,
+            "alternate_counts": alternate_counts,
+            "db_info": {
+                "db_name": db_name,
+                "db_uri_last_4": db_uri_last_4,
+                "total_lifeline_events_in_db": total_lifeline_events,
+                "distinct_user_ids_count": len(distinct_user_ids),
+                "sample_user_ids": distinct_user_ids[:10] if len(distinct_user_ids) <= 10 else distinct_user_ids[:10],
+            }
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 
 
 # ============================================

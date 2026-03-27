@@ -232,7 +232,9 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     }
     setError(null);
 
+    console.log('[Lifeline] ======= DEBUG: Loading timeline =======');
     console.log('[Lifeline] Loading all data for user:', userId, 'refresh:', refresh);
+    console.log('[Lifeline] userId type:', typeof userId, 'length:', userId?.length);
 
     try {
       // Fetch events, summary (with patterns), resonances, import stats, and user profile in parallel
@@ -247,6 +249,9 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
         api.get(`/lifeline/ingestion-stats/${userId}`).catch(() => ({ data: { import_sources: 0 } })),
         api.get(`/users/${userId}`).catch(() => ({ data: null })),
       ]);
+      
+      console.log('[Lifeline] API response - events count:', eventsRes.data?.events?.length || 0);
+      console.log('[Lifeline] API response - success:', eventsRes.data?.success);
       
       if (eventsRes.data.success) {
         let loadedEvents = eventsRes.data.events || [];
