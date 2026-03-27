@@ -60,6 +60,180 @@ interface InsightModal {
   insight: string;
 }
 
+// =============================================================================
+// HUMAN UNDERSTANDING HELPER FUNCTIONS
+// Transform lens data into behavioral, human-readable descriptions
+// =============================================================================
+
+const getArchetypeLabel = (lensData: ForumMemberLensData): string => {
+  const hdType = lensData.human_design.type;
+  const enneaType = lensData.enneagram.core_type;
+  
+  // Generate archetype based on HD type + Enneagram
+  const archetypes: Record<string, Record<number, string>> = {
+    'Manifestor': { 1: 'The Principled Initiator', 2: 'The Generous Starter', 3: 'The Driven Pioneer', 4: 'The Creative Catalyst', 5: 'The Strategic Mover', 6: 'The Vigilant Leader', 7: 'The Visionary Igniter', 8: 'The Bold Activator', 9: 'The Peaceful Initiator' },
+    'Generator': { 1: 'The Dedicated Builder', 2: 'The Nurturing Worker', 3: 'The Productive Achiever', 4: 'The Soulful Creator', 5: 'The Deep Investigator', 6: 'The Loyal Sustainer', 7: 'The Enthusiastic Doer', 8: 'The Powerful Producer', 9: 'The Steady Anchor' },
+    'Manifesting Generator': { 1: 'The Efficient Perfectionist', 2: 'The Multi-talented Helper', 3: 'The Fast Achiever', 4: 'The Expressive Multi-tasker', 5: 'The Quick Learner', 6: 'The Adaptive Problem-solver', 7: 'The Energetic Explorer', 8: 'The Dynamic Force', 9: 'The Versatile Harmonizer' },
+    'Projector': { 1: 'The Discerning Guide', 2: 'The Intuitive Counselor', 3: 'The Strategic Advisor', 4: 'The Deep Seer', 5: 'The Wise Observer', 6: 'The Trusted Mentor', 7: 'The Insightful Optimist', 8: 'The Powerful Guide', 9: 'The Gentle Director' },
+    'Reflector': { 1: 'The Fair Mirror', 2: 'The Empathic Barometer', 3: 'The Adaptive Mirror', 4: 'The Sensitive Reflector', 5: 'The Observant Mirror', 6: 'The Community Sensor', 7: 'The Joyful Evaluator', 8: 'The Honest Mirror', 9: 'The Peaceful Assessor' },
+  };
+  
+  if (hdType && enneaType && archetypes[hdType]?.[enneaType]) {
+    return archetypes[hdType][enneaType];
+  }
+  
+  // Fallback
+  if (hdType === 'Manifestor') return 'The Initiator';
+  if (hdType === 'Generator') return 'The Builder';
+  if (hdType === 'Manifesting Generator') return 'The Multi-tasker';
+  if (hdType === 'Projector') return 'The Guide';
+  if (hdType === 'Reflector') return 'The Mirror';
+  return '';
+};
+
+const getHowTheyShowUp = (lensData: ForumMemberLensData): string => {
+  const parts: string[] = [];
+  const hdType = lensData.human_design.type;
+  const authority = lensData.human_design.authority;
+  const enneaType = lensData.enneagram.core_type;
+  
+  // HD Type behavior
+  if (hdType === 'Manifestor') {
+    parts.push('Moves fast and initiates naturally. Speaks when something feels ready internally, not always in the moment.');
+  } else if (hdType === 'Generator') {
+    parts.push('Has sustainable energy when genuinely engaged. Responds to life rather than forcing direction.');
+  } else if (hdType === 'Manifesting Generator') {
+    parts.push('Multi-tracks naturally and moves quickly between interests. May skip steps and circle back.');
+  } else if (hdType === 'Projector') {
+    parts.push('Sees deeply into people and situations. Shares insight when recognized and invited.');
+  } else if (hdType === 'Reflector') {
+    parts.push('Reflects the health of the group. Unusually sensitive to environment and collective energy.');
+  }
+  
+  // Authority modifier
+  if (authority?.includes('Emotional')) {
+    parts.push('Processes decisions over time—first reactions may shift.');
+  } else if (authority?.includes('Sacral')) {
+    parts.push('Knows through gut response—yes or no, not maybe.');
+  } else if (authority?.includes('Splenic')) {
+    parts.push('Trusts instant instincts—knows what feels right immediately.');
+  }
+  
+  // Enneagram flavor
+  if (enneaType === 7) {
+    parts.push('Brings energy into the room, especially when things feel stuck or heavy.');
+  } else if (enneaType === 8) {
+    parts.push('Takes up space naturally. Direct and protective of what matters.');
+  } else if (enneaType === 4) {
+    parts.push('Drawn to depth and authenticity. May need space for emotional processing.');
+  } else if (enneaType === 5) {
+    parts.push('Observes before engaging. Needs time to process and prepare.');
+  }
+  
+  return parts.join(' ');
+};
+
+const getAtTheirBest = (lensData: ForumMemberLensData): string => {
+  const parts: string[] = [];
+  const hdType = lensData.human_design.type;
+  const enneaType = lensData.enneagram.core_type;
+  
+  if (hdType === 'Manifestor') {
+    parts.push('Clear, decisive, and catalytic.');
+    parts.push('Pushes things forward when others hesitate.');
+  } else if (hdType === 'Generator') {
+    parts.push('Deeply satisfying work output.');
+    parts.push('Magnetic energy that draws opportunity.');
+  } else if (hdType === 'Manifesting Generator') {
+    parts.push('Efficient and multi-dimensional.');
+    parts.push('Gets more done than seems possible.');
+  } else if (hdType === 'Projector') {
+    parts.push('Brilliant at seeing what others miss.');
+    parts.push('Guides people to their own answers.');
+  } else if (hdType === 'Reflector') {
+    parts.push('Reads the room like no one else.');
+    parts.push('Offers perspective that reveals truth.');
+  }
+  
+  // Enneagram additions
+  if (enneaType === 1) parts.push('Brings integrity and high standards.');
+  else if (enneaType === 2) parts.push('Creates warmth and connection.');
+  else if (enneaType === 3) parts.push('Drives results and inspires action.');
+  else if (enneaType === 7) parts.push('Creates momentum in uncertain situations.');
+  else if (enneaType === 8) parts.push('Creates safety through directness.');
+  
+  return parts.join(' ');
+};
+
+const getUnderPressure = (lensData: ForumMemberLensData): string => {
+  const parts: string[] = [];
+  const hdType = lensData.human_design.type;
+  const authority = lensData.human_design.authority;
+  const enneaType = lensData.enneagram.core_type;
+  
+  if (hdType === 'Manifestor') {
+    parts.push('May act before others are ready.');
+    parts.push('Can withdraw or pause when things feel off.');
+    parts.push('Others may feel "left behind" if not informed.');
+  } else if (hdType === 'Generator') {
+    parts.push('May say yes when they mean no.');
+    parts.push('Can get stuck in work that drains rather than energizes.');
+  } else if (hdType === 'Manifesting Generator') {
+    parts.push('May move too fast for others to follow.');
+    parts.push('Can abandon projects mid-stream if interest wanes.');
+  } else if (hdType === 'Projector') {
+    parts.push('May give unsolicited advice.');
+    parts.push('Can feel bitter if contributions go unrecognized.');
+  } else if (hdType === 'Reflector') {
+    parts.push('May take on the group\'s stress as their own.');
+    parts.push('Needs more time for decisions than others expect.');
+  }
+  
+  if (authority?.includes('Emotional')) {
+    parts.push('Avoid pressing for immediate answers—clarity takes time.');
+  }
+  
+  if (enneaType === 6) parts.push('May become anxious or suspicious under uncertainty.');
+  else if (enneaType === 9) parts.push('May go along to avoid conflict, then disengage.');
+  
+  return parts.join(' ');
+};
+
+const getHowToWorkWith = (lensData: ForumMemberLensData): string => {
+  const parts: string[] = [];
+  const hdType = lensData.human_design.type;
+  const authority = lensData.human_design.authority;
+  const enneaType = lensData.enneagram.core_type;
+  
+  if (hdType === 'Manifestor') {
+    parts.push('Keep them informed—they work best when others are aligned.');
+    parts.push('Don\'t expect them to wait for permission.');
+  } else if (hdType === 'Generator') {
+    parts.push('Ask yes/no questions instead of open-ended ones.');
+    parts.push('Let them respond rather than initiating for them.');
+  } else if (hdType === 'Manifesting Generator') {
+    parts.push('Give space to pivot and explore.');
+    parts.push('Trust their efficiency even if the path looks chaotic.');
+  } else if (hdType === 'Projector') {
+    parts.push('Invite their input explicitly—don\'t assume they\'ll volunteer it.');
+    parts.push('Recognize their contributions; it matters more than you think.');
+  } else if (hdType === 'Reflector') {
+    parts.push('Give them a lunar cycle for major decisions.');
+    parts.push('Ask "what are you noticing?" to tap their insight.');
+  }
+  
+  if (authority?.includes('Emotional')) {
+    parts.push('Give space for them to process before expecting clarity.');
+    parts.push('Don\'t force immediate answers.');
+  }
+  
+  if (enneaType === 5) parts.push('Respect their need for preparation time.');
+  else if (enneaType === 2) parts.push('Ask what they need—they often forget to say.');
+  else if (enneaType === 8) parts.push('Be direct. Don\'t dance around issues.');
+  
+  return parts.join(' ');
+};
+
 export default function ForumHomeScreen() {
   const { theme } = useTheme();
   const { user } = useAppStore();
@@ -94,6 +268,9 @@ export default function ForumHomeScreen() {
   const [forumPattern, setForumPattern] = useState<PatternDiagnosisResponse | null>(null);
   const [forumPatternLoading, setForumPatternLoading] = useState(false);
   const [showForumPattern, setShowForumPattern] = useState(false);
+  
+  // Member profile state
+  const [showPatternSignals, setShowPatternSignals] = useState(false);
 
   const fetchData = useCallback(async (showRefresh = false) => {
     if (!user?.id || !forumId) return;
@@ -734,7 +911,7 @@ export default function ForumHomeScreen() {
           MODALS - Interactive Forum Pulse Components
           ============================================ */}
       
-      {/* Member Lens Profile Modal */}
+      {/* Member Lens Profile Modal - REDESIGNED for human understanding */}
       <Modal
         visible={memberModal.visible}
         transparent
@@ -744,7 +921,7 @@ export default function ForumHomeScreen() {
         <Pressable style={styles.modalOverlay} onPress={closeAllModals}>
           <Pressable style={[styles.modalContent, styles.modalLarge, { backgroundColor: theme.surface }]} onPress={() => {}}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Member Lens Profile</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}></Text>
               <TouchableOpacity onPress={closeAllModals} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <Text style={[styles.modalClose, { color: theme.textTertiary }]}>✕</Text>
               </TouchableOpacity>
@@ -752,352 +929,117 @@ export default function ForumHomeScreen() {
             
             {memberModal.member && (
               <ScrollView style={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
-                {/* Header with name */}
-                <View style={styles.memberProfileContent}>
-                  <View style={[styles.memberProfileAvatar, { backgroundColor: theme.accent + '20' }]}>
-                    <Text style={[styles.memberProfileInitial, { color: theme.accent }]}>
+                {/* 1. HEADER - Name + Archetype */}
+                <View style={styles.humanProfileHeader}>
+                  <View style={[styles.humanProfileAvatar, { backgroundColor: theme.accent + '15' }]}>
+                    <Text style={[styles.humanProfileInitial, { color: theme.accent }]}>
                       {memberModal.member.name.charAt(0).toUpperCase()}
                     </Text>
                   </View>
-                  <Text style={[styles.memberProfileName, { color: theme.text }]}>
+                  <Text style={[styles.humanProfileName, { color: theme.text }]}>
                     {memberModal.member.name}
                   </Text>
+                  {memberModal.lensData && (
+                    <Text style={[styles.humanProfileArchetype, { color: theme.textSecondary }]}>
+                      {getArchetypeLabel(memberModal.lensData)}
+                    </Text>
+                  )}
                 </View>
                 
                 {memberModal.loading ? (
                   <View style={styles.lensLoadingContainer}>
                     <ActivityIndicator size="small" color={theme.accent} />
-                    <Text style={[styles.lensLoadingText, { color: theme.textTertiary }]}>Loading lens data...</Text>
+                    <Text style={[styles.lensLoadingText, { color: theme.textTertiary }]}>Understanding this person...</Text>
                   </View>
                 ) : memberModal.lensData ? (
-                  <View style={styles.lensDataContainer}>
-                    {/* FIX 6: What this means in real life */}
-                    <View style={[styles.realLifeMeaningBox, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
-                      <Text style={[styles.realLifeMeaningTitle, { color: theme.accent }]}>
-                        What this means in real life
+                  <View style={styles.humanProfileContent}>
+                    
+                    {/* 2. HOW THEY SHOW UP - Primary behavioral card */}
+                    <View style={[styles.humanSection, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                      <Text style={[styles.humanSectionTitle, { color: theme.text }]}>How they show up</Text>
+                      <Text style={[styles.humanSectionText, { color: theme.textSecondary }]}>
+                        {getHowTheyShowUp(memberModal.lensData)}
                       </Text>
-                      <View style={styles.realLifeMeaningContent}>
-                        {memberModal.lensData.human_design.type === 'Manifestor' && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
-                            Tends to act quickly, then process after. May not always explain before initiating.
-                          </Text>
-                        )}
-                        {memberModal.lensData.human_design.type === 'Generator' && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
-                            Has sustainable energy when engaged. Responds best when asked, not told.
-                          </Text>
-                        )}
-                        {memberModal.lensData.human_design.type === 'Manifesting Generator' && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
-                            Fast-moving multi-tasker. May skip steps and come back. Thrives with variety.
-                          </Text>
-                        )}
-                        {memberModal.lensData.human_design.type === 'Projector' && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
-                            Sees deeply into others. Works best in bursts. Needs recognition to share.
-                          </Text>
-                        )}
-                        {memberModal.lensData.human_design.type === 'Reflector' && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.text }]}>
-                            Mirrors the group's health. Needs time for big decisions. Unusually perceptive.
-                          </Text>
-                        )}
-                        {memberModal.lensData.human_design.authority?.includes('Emotional') && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Clarity comes over time, not in the moment. Give space for processing.
-                          </Text>
-                        )}
-                        {memberModal.lensData.human_design.authority?.includes('Sacral') && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Makes decisions through gut response. Yes/no questions work best.
-                          </Text>
-                        )}
-                        {memberModal.lensData.human_design.authority?.includes('Splenic') && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Trusts instinct in the moment. Knows what's healthy or not instantly.
-                          </Text>
-                        )}
-                        {memberModal.lensData.enneagram.core_type === 1 && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            High standards, notices what could be better. Values doing things right.
-                          </Text>
-                        )}
-                        {memberModal.lensData.enneagram.core_type === 2 && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Naturally helpful, often anticipates needs before being asked.
-                          </Text>
-                        )}
-                        {memberModal.lensData.enneagram.core_type === 3 && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Achievement-oriented, adapts to what works. Values being seen as successful.
-                          </Text>
-                        )}
-                        {memberModal.lensData.enneagram.core_type === 4 && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Drawn to depth and meaning. May feel misunderstood. Values authenticity.
-                          </Text>
-                        )}
-                        {memberModal.lensData.enneagram.core_type === 5 && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Needs time to observe and understand. Protects energy. Values knowledge.
-                          </Text>
-                        )}
-                        {memberModal.lensData.enneagram.core_type === 6 && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Anticipates problems, values security. Loyal once trust is established.
-                          </Text>
-                        )}
-                        {memberModal.lensData.enneagram.core_type === 7 && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Moves toward options and possibilities. Avoids restriction and boredom.
-                          </Text>
-                        )}
-                        {memberModal.lensData.enneagram.core_type === 8 && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Direct and protective. Takes up space. Values strength and honesty.
-                          </Text>
-                        )}
-                        {memberModal.lensData.enneagram.core_type === 9 && (
-                          <Text style={[styles.realLifeMeaningText, { color: theme.textSecondary }]}>
-                            Goes with the flow, seeks harmony. May merge with others' agendas.
-                          </Text>
-                        )}
-                      </View>
                     </View>
                     
-                    {/* Human Design Section */}
-                    {(memberModal.lensData.human_design.type || memberModal.lensData.human_design.authority) && (
-                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
-                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Human Design</Text>
-                        {memberModal.lensData.human_design.type && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Type</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.type}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.human_design.strategy && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Strategy</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.strategy}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.human_design.authority && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Authority</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.authority}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.human_design.profile && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Profile</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.profile}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.human_design.definition && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Definition</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.definition}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.human_design.incarnation_cross && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Incarnation Cross</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.human_design.incarnation_cross}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.human_design.centers_defined.length > 0 && (
-                          <View style={styles.lensRowVertical}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Defined Centers</Text>
-                            <Text style={[styles.lensValueSmall, { color: theme.text }]}>
-                              {memberModal.lensData.human_design.centers_defined.join(', ')}
-                            </Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.human_design.centers_undefined.length > 0 && (
-                          <View style={styles.lensRowVertical}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Open Centers</Text>
-                            <Text style={[styles.lensValueSmall, { color: theme.textSecondary }]}>
-                              {memberModal.lensData.human_design.centers_undefined.join(', ')}
-                            </Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.human_design.active_channels.length > 0 && (
-                          <View style={styles.lensRowVertical}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Key Channels</Text>
-                            <Text style={[styles.lensValueSmall, { color: theme.text }]}>
-                              {memberModal.lensData.human_design.active_channels.join(' • ')}
-                            </Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.human_design.active_gates.length > 0 && (
-                          <View style={styles.lensRowVertical}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Key Gates</Text>
-                            <Text style={[styles.lensValueSmall, { color: theme.textSecondary }]}>
-                              {memberModal.lensData.human_design.active_gates.slice(0, 10).join(', ')}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                    )}
+                    {/* 3. WHEN THEY'RE AT THEIR BEST */}
+                    <View style={[styles.humanSection, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                      <Text style={[styles.humanSectionTitle, { color: theme.text }]}>When they're at their best</Text>
+                      <Text style={[styles.humanSectionText, { color: theme.textSecondary }]}>
+                        {getAtTheirBest(memberModal.lensData)}
+                      </Text>
+                    </View>
                     
-                    {/* Enneagram Section */}
-                    {memberModal.lensData.enneagram.core_type && (
-                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
-                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Enneagram</Text>
-                        <View style={styles.lensRow}>
-                          <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Core Type</Text>
-                          <Text style={[styles.lensValue, { color: theme.text }]}>Type {memberModal.lensData.enneagram.core_type}</Text>
-                        </View>
-                        {memberModal.lensData.enneagram.wing && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Wing</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.enneagram.wing}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.enneagram.center && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Center</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.enneagram.center}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.enneagram.hornevian_group && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Hornevian Group</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.enneagram.hornevian_group}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.enneagram.harmonic_group && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Harmonic Group</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.enneagram.harmonic_group}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.enneagram.growth_direction && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Growth Direction</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>→ Type {memberModal.lensData.enneagram.growth_direction}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.enneagram.stress_direction && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Stress Direction</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>→ Type {memberModal.lensData.enneagram.stress_direction}</Text>
-                          </View>
-                        )}
-                      </View>
-                    )}
+                    {/* 4. UNDER PRESSURE */}
+                    <View style={[styles.humanSection, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                      <Text style={[styles.humanSectionTitle, { color: theme.text }]}>Under pressure</Text>
+                      <Text style={[styles.humanSectionText, { color: theme.textSecondary }]}>
+                        {getUnderPressure(memberModal.lensData)}
+                      </Text>
+                    </View>
                     
-                    {/* Astrology Section */}
-                    {(memberModal.lensData.astrology.sun || memberModal.lensData.astrology.moon || memberModal.lensData.astrology.rising) && (
-                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
-                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Astrology</Text>
-                        {memberModal.lensData.astrology.sun && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Sun</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.sun}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.astrology.moon && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Moon</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.moon}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.astrology.rising && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Rising</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.rising}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.astrology.dominant_element && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Dominant Element</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.dominant_element}</Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.astrology.dominant_modality && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Dominant Modality</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>{memberModal.lensData.astrology.dominant_modality}</Text>
-                          </View>
-                        )}
-                      </View>
-                    )}
+                    {/* 5. HOW TO WORK WITH THEM - Most important */}
+                    <View style={[styles.humanSectionHighlight, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '25' }]}>
+                      <Text style={[styles.humanSectionTitleHighlight, { color: theme.accent }]}>How to work with them</Text>
+                      <Text style={[styles.humanSectionText, { color: theme.text }]}>
+                        {getHowToWorkWith(memberModal.lensData)}
+                      </Text>
+                    </View>
                     
-                    {/* Numerology Section */}
-                    {memberModal.lensData.numerology.life_path && (
-                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
-                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Numerology</Text>
-                        <View style={styles.lensRow}>
-                          <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Life Path</Text>
-                          <Text style={[styles.lensValue, { color: theme.text }]}>
-                            {typeof memberModal.lensData.numerology.life_path === 'object' 
-                              ? memberModal.lensData.numerology.life_path.number 
-                              : memberModal.lensData.numerology.life_path}
-                          </Text>
-                        </View>
-                        {memberModal.lensData.numerology.expression && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Expression</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>
-                              {typeof memberModal.lensData.numerology.expression === 'object'
-                                ? memberModal.lensData.numerology.expression.number
-                                : memberModal.lensData.numerology.expression}
-                            </Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.numerology.soul_urge && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Soul Urge</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>
-                              {typeof memberModal.lensData.numerology.soul_urge === 'object'
-                                ? memberModal.lensData.numerology.soul_urge.number
-                                : memberModal.lensData.numerology.soul_urge}
-                            </Text>
-                          </View>
-                        )}
-                        {memberModal.lensData.numerology.personality && (
-                          <View style={styles.lensRow}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Personality</Text>
-                            <Text style={[styles.lensValue, { color: theme.text }]}>
-                              {typeof memberModal.lensData.numerology.personality === 'object'
-                                ? memberModal.lensData.numerology.personality.number
-                                : memberModal.lensData.numerology.personality}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                    )}
+                    {/* 6. PATTERN SIGNALS - Collapsible */}
+                    <TouchableOpacity 
+                      style={[styles.patternSignalsToggle, { borderColor: theme.border }]}
+                      onPress={() => setShowPatternSignals(!showPatternSignals)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.patternSignalsToggleText, { color: theme.textTertiary }]}>
+                        Underlying patterns (optional)
+                      </Text>
+                      <Text style={[styles.patternSignalsChevron, { color: theme.textTertiary }]}>
+                        {showPatternSignals ? '▼' : '▶'}
+                      </Text>
+                    </TouchableOpacity>
                     
-                    {/* Patterns Section */}
-                    {(memberModal.lensData.patterns.active_domains.length > 0 || 
-                      memberModal.lensData.patterns.recurring_domains.length > 0) && (
-                      <View style={[styles.lensSection, { borderTopColor: theme.border }]}>
-                        <Text style={[styles.lensSectionTitle, { color: theme.text }]}>Patterns</Text>
-                        {memberModal.lensData.patterns.active_domains.length > 0 && (
-                          <View style={styles.lensRowVertical}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Active Domains</Text>
-                            <View style={styles.patternTags}>
-                              {memberModal.lensData.patterns.active_domains.map((domain, idx) => (
-                                <View key={idx} style={[styles.patternTag, { backgroundColor: theme.accent + '20' }]}>
-                                  <Text style={[styles.patternTagText, { color: theme.accent }]}>{domain}</Text>
-                                </View>
-                              ))}
+                    {showPatternSignals && (
+                      <View style={[styles.patternSignalsContent, { backgroundColor: theme.background }]}>
+                        <View style={styles.patternSignalsTags}>
+                          {memberModal.lensData.human_design.type && (
+                            <View style={[styles.patternTag, { backgroundColor: theme.border }]}>
+                              <Text style={[styles.patternTagText, { color: theme.textSecondary }]}>
+                                {memberModal.lensData.human_design.type}
+                              </Text>
                             </View>
-                          </View>
-                        )}
-                        {memberModal.lensData.patterns.recurring_domains.length > 0 && (
-                          <View style={styles.lensRowVertical}>
-                            <Text style={[styles.lensLabel, { color: theme.textTertiary }]}>Recurring Domains</Text>
-                            <View style={styles.patternTags}>
-                              {memberModal.lensData.patterns.recurring_domains.map((domain, idx) => (
-                                <View key={idx} style={[styles.patternTag, { backgroundColor: theme.border }]}>
-                                  <Text style={[styles.patternTagText, { color: theme.textSecondary }]}>{domain}</Text>
-                                </View>
-                              ))}
+                          )}
+                          {memberModal.lensData.human_design.authority && (
+                            <View style={[styles.patternTag, { backgroundColor: theme.border }]}>
+                              <Text style={[styles.patternTagText, { color: theme.textSecondary }]}>
+                                {memberModal.lensData.human_design.authority} Authority
+                              </Text>
                             </View>
-                          </View>
-                        )}
+                          )}
+                          {memberModal.lensData.enneagram.core_type && (
+                            <View style={[styles.patternTag, { backgroundColor: theme.border }]}>
+                              <Text style={[styles.patternTagText, { color: theme.textSecondary }]}>
+                                Type {memberModal.lensData.enneagram.core_type}
+                                {memberModal.lensData.enneagram.wing ? `w${memberModal.lensData.enneagram.wing}` : ''}
+                              </Text>
+                            </View>
+                          )}
+                          {memberModal.lensData.astrology.dominant_element && (
+                            <View style={[styles.patternTag, { backgroundColor: theme.border }]}>
+                              <Text style={[styles.patternTagText, { color: theme.textSecondary }]}>
+                                {memberModal.lensData.astrology.dominant_element} dominant
+                              </Text>
+                            </View>
+                          )}
+                          {memberModal.lensData.human_design.profile && (
+                            <View style={[styles.patternTag, { backgroundColor: theme.border }]}>
+                              <Text style={[styles.patternTagText, { color: theme.textSecondary }]}>
+                                {memberModal.lensData.human_design.profile} Profile
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
                     )}
                     
@@ -1112,49 +1054,18 @@ export default function ForumHomeScreen() {
                       }}
                     >
                       <Text style={[styles.askMirrorButtonText, { color: theme.accent }]}>
-                        Ask Mirror About This Member
+                        Ask Mirror About {memberModal.member.name}
                       </Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
-                  // Fallback to basic data from member card
-                  <View style={styles.memberProfileDetails}>
-                    {memberModal.member.hd_type && (
-                      <View style={styles.profileRow}>
-                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Type</Text>
-                        <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_type}</Text>
-                      </View>
-                    )}
-                    {memberModal.member.hd_profile && (
-                      <View style={styles.profileRow}>
-                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Profile</Text>
-                        <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_profile}</Text>
-                      </View>
-                    )}
-                    {memberModal.member.hd_authority && (
-                      <View style={styles.profileRow}>
-                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Authority</Text>
-                        <Text style={[styles.profileValue, { color: theme.text }]}>{memberModal.member.hd_authority}</Text>
-                      </View>
-                    )}
-                    {memberModal.member.enneagram_type && (
-                      <View style={styles.profileRow}>
-                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Enneagram</Text>
-                        <Text style={[styles.profileValue, { color: theme.text }]}>Type {memberModal.member.enneagram_type}</Text>
-                      </View>
-                    )}
-                    {memberModal.member.active_pattern && (
-                      <View style={styles.profileRow}>
-                        <Text style={[styles.profileLabel, { color: theme.textTertiary }]}>Active Pattern</Text>
-                        <Text style={[styles.profileValue, { color: theme.accent }]}>{memberModal.member.active_pattern}</Text>
-                      </View>
-                    )}
-                    
-                    {!memberModal.member.hd_type && !memberModal.member.enneagram_type && (
-                      <Text style={[styles.profileEmpty, { color: theme.textTertiary }]}>
-                        This member hasn't set up their profile yet.
+                  // Fallback when no lens data
+                  <View style={styles.humanProfileContent}>
+                    <View style={[styles.humanSection, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                      <Text style={[styles.humanSectionText, { color: theme.textSecondary }]}>
+                        Lens data not available for this member yet.
                       </Text>
-                    )}
+                    </View>
                   </View>
                 )}
               </ScrollView>
@@ -1835,6 +1746,91 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontStyle: 'italic',
   },
+  
+  // =============================================================================
+  // HUMAN UNDERSTANDING MEMBER PROFILE STYLES
+  // =============================================================================
+  humanProfileHeader: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  humanProfileAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  humanProfileInitial: {
+    fontSize: 28,
+    fontWeight: '600',
+  },
+  humanProfileName: {
+    fontSize: 22,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  humanProfileArchetype: {
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  humanProfileContent: {
+    paddingTop: 8,
+  },
+  humanSection: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  humanSectionHighlight: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  humanSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 10,
+    letterSpacing: 0.3,
+  },
+  humanSectionTitleHighlight: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 10,
+    letterSpacing: 0.3,
+  },
+  humanSectionText: {
+    fontSize: 15,
+    lineHeight: 23,
+  },
+  patternSignalsToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: 8,
+  },
+  patternSignalsToggleText: {
+    fontSize: 13,
+  },
+  patternSignalsChevron: {
+    fontSize: 12,
+  },
+  patternSignalsContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  patternSignalsTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  
   // My Mirror Profile Card
   mirrorProfileCard: {
     flexDirection: 'row',
