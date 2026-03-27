@@ -13052,17 +13052,23 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
         
         exposure_state = exposure_data.get("state", ExposureState.FIRST_EXPOSURE)
         
-        # Get state-aware copy variants
+        # Get state-aware copy variants with house context
+        from services.pattern_memory import select_primary_house
+        
+        # Select primary house from transits (use chart which is already loaded)
+        primary_house = select_primary_house(transit_aspects, chart)
+        
         exposure_copy = get_state_aware_copy(
             pattern_family=pattern_family,
             exposure_state=exposure_state,
-            base_pattern_title=pattern_title
+            base_pattern_title=pattern_title,
+            house_number=primary_house
         )
         
         # Apply time context markers (still, again, coming back)
         exposure_copy = apply_time_context_to_copy(exposure_copy, exposure_data)
         
-        logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}, exposure={exposure_state.value}")
+        logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}, exposure={exposure_state.value}, house={primary_house}")
         
         return DiagnosisResponse(
             pattern_title=pattern_title,

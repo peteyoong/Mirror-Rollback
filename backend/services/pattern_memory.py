@@ -36,6 +36,92 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
+# =============================================================================
+# HOUSE → LIFE DOMAIN MAPPING
+# =============================================================================
+# Maps astrological houses to concrete life domains for contextual messaging.
+# Used to make pattern messages feel situational and specific.
+# =============================================================================
+
+HOUSE_DOMAINS = {
+    1: {"domain": "self", "phrases": ["in how you see yourself", "in your sense of who you are", "about your identity"]},
+    2: {"domain": "security", "phrases": ["around money", "about security", "with what you value"]},
+    3: {"domain": "communication", "phrases": ["in how you communicate", "in a conversation", "with something you need to say"]},
+    4: {"domain": "home", "phrases": ["at home", "with family", "about where you belong"]},
+    5: {"domain": "creativity", "phrases": ["creatively", "in something you're making", "about expressing yourself"]},
+    6: {"domain": "work", "phrases": ["at work", "in your daily routines", "with something practical"]},
+    7: {"domain": "relationship", "phrases": ["with someone", "in a relationship", "between you and another person"]},
+    8: {"domain": "intensity", "phrases": ["emotionally", "in something deep", "about power or control"]},
+    9: {"domain": "expansion", "phrases": ["about what's next", "with a bigger vision", "around meaning"]},
+    10: {"domain": "direction", "phrases": ["in your direction", "about your path", "with where you're heading"]},
+    11: {"domain": "network", "phrases": ["with a group", "in your network", "about influence"]},
+    12: {"domain": "internal", "phrases": ["internally", "in what you're avoiding", "beneath the surface"]},
+}
+
+# Fallback phrases when no house context is available
+DEFAULT_CONTEXT_PHRASES = ["in your life", "with something", "about what's ahead"]
+
+
+def get_house_context(house_number: int) -> Dict[str, Any]:
+    """Get life domain context for a house number (1-12)."""
+    if house_number < 1 or house_number > 12:
+        return {"domain": "general", "phrases": DEFAULT_CONTEXT_PHRASES}
+    return HOUSE_DOMAINS.get(house_number, {"domain": "general", "phrases": DEFAULT_CONTEXT_PHRASES})
+
+
+def select_primary_house(transit_aspects: List[Dict], chart_data: Dict = None) -> Optional[int]:
+    """
+    Select the primary activated house based on transit data.
+    
+    Priority:
+    1. House of natal planet receiving strongest outer planet transit
+    2. House of Moon if Moon is transiting
+    3. House of Sun
+    4. Default to 10 (direction/career) as fallback
+    """
+    if not transit_aspects:
+        return 10  # Default to direction
+    
+    # Find the strongest transit to a natal planet
+    for aspect in transit_aspects:
+        natal_point = aspect.get("natal_point", "").lower()
+        
+        # Try to get house from chart data
+        if chart_data:
+            planets = chart_data.get("astrology", {}).get("planets", {})
+            natal_key = natal_point.replace(" ", "_").lower()
+            
+            planet_data = planets.get(natal_key, {})
+            if isinstance(planet_data, dict):
+                house = planet_data.get("house")
+                if house:
+                    try:
+                        return int(house)
+                    except:
+                        pass
+        
+        # Use transit point to infer domain if no house data
+        transit_point = aspect.get("transit_point", "").lower()
+        
+        # Map outer planet transits to likely domains
+        if transit_point == "saturn":
+            return 10  # Career/direction
+        elif transit_point == "jupiter":
+            return 9   # Expansion/vision
+        elif transit_point == "mars":
+            return 6   # Work/action
+        elif transit_point == "venus":
+            return 7   # Relationships
+        elif transit_point == "mercury":
+            return 3   # Communication
+        elif transit_point == "moon":
+            return 4   # Home/emotions
+        elif transit_point in ["uranus", "neptune", "pluto"]:
+            return 8   # Deep transformation
+    
+    return 10  # Default to direction
+
+
 class ExposureState(Enum):
     FIRST_EXPOSURE = "first_exposure"
     REPEATED_EXPOSURE = "repeated_exposure"
@@ -449,10 +535,13 @@ def get_state_aware_copy(
     pattern_family: str,
     exposure_state: ExposureState,
     base_pattern_title: str = None,
+    house_number: int = None,
 ) -> Dict[str, str]:
     """
     Get copy variants based on pattern family and exposure state.
     Returns opening, explanation, and reflection prompt that evolve with exposure.
+    
+    If house_number is provided, injects life domain context into the opening.
     """
     
     # Get variants for this pattern family
@@ -461,14 +550,83 @@ def get_state_aware_copy(
     # Get state-specific copy
     state_copy = family_variants.get(exposure_state, family_variants.get(ExposureState.FIRST_EXPOSURE))
     
+    opening = state_copy.get("opening", "Something is surfacing.")
+    
+    # Inject house context if available
+    if house_number:
+        house_context = get_house_context(house_number)
+        domain = house_context.get("domain", "general")
+        phrases = house_context.get("phrases", DEFAULT_CONTEXT_PHRASES)
+        
+        # Select a context phrase
+        import random
+        context_phrase = random.choice(phrases)
+        
+        # Inject context into the opening based on pattern family
+        opening = inject_house_context(opening, pattern_family, context_phrase, domain)
+    
     return {
         "headline": state_copy.get("headline", base_pattern_title or "Pattern Active"),
-        "opening": state_copy.get("opening", "Something is surfacing."),
+        "opening": opening,
         "explanation": state_copy.get("explanation", "A pattern is asking for attention."),
         "reflection_prompt": state_copy.get("reflection_prompt", "Does this feel true?"),
         "time_words": state_copy.get("time_words", []),
         "exposure_state": exposure_state.value,
+        "house_context": house_number if house_number else None,
     }
+
+
+def inject_house_context(opening: str, pattern_family: str, context_phrase: str, domain: str) -> str:
+    """
+    Inject house context into the opening line to make it feel situational.
+    
+    Structure: CONTEXT (where) → BEHAVIOR (what) → SPLIT (tension)
+    """
+    # Pattern-specific context injection
+    if pattern_family == "stall":
+        if "ready to act" in opening.lower():
+            return f"You're trying to push something forward {context_phrase} — but it's not landing.\nPart of you is already moving. Part of you doesn't trust it yet."
+        elif "keep pushing" in opening.lower():
+            return f"You keep pushing into this {context_phrase} — and it keeps not moving.\nThis isn't about timing anymore. It's about what you're avoiding."
+        elif "been here before" in opening.lower():
+            return f"You've been here before — the same stall {context_phrase}, the same tension.\nSomething still isn't settled."
+        elif "already seen" in opening.lower():
+            return f"You've already seen this {context_phrase}. The question isn't what — it's what now.\nKnowing hasn't changed the pattern yet."
+    
+    elif pattern_family == "push_pull":
+        if "pulled in two" in opening.lower():
+            return f"You're pulled in two directions {context_phrase} — and both feel real.\nThe tension isn't confusion. It's two truths competing."
+        elif "still standing" in opening.lower():
+            return f"You're still standing at the fork {context_phrase}. The tension hasn't closed.\nSomething keeps you from choosing."
+        elif "keep coming back" in opening.lower():
+            return f"You keep coming back to this crossroads {context_phrase}. Same fork, same hesitation.\nThe crossroads isn't going anywhere — and neither are you."
+    
+    elif pattern_family == "expression":
+        if "not saying" in opening.lower():
+            return f"There's something you're not saying {context_phrase} — and it's sitting in you.\nThe silence isn't peace. It's pressure."
+        elif "unsaid thing" in opening.lower():
+            return f"That unsaid thing {context_phrase} is still there. It hasn't gone away.\nHolding it is starting to cost something."
+    
+    elif pattern_family == "clarity":
+        if "trying to see" in opening.lower():
+            return f"You're trying to see something {context_phrase} that isn't showing itself yet.\nThe uncertainty isn't failure — it's protection."
+        elif "still unclear" in opening.lower():
+            return f"Still unclear {context_phrase}. The answer hasn't come.\nThat's information too."
+    
+    elif pattern_family == "control":
+        if "holding something tight" in opening.lower():
+            return f"You're holding something tight {context_phrase} — tighter than you need to.\nThe grip isn't wrong, but it's exhausting."
+    
+    elif pattern_family == "movement":
+        if "momentum here" in opening.lower():
+            return f"There's momentum here {context_phrase} — something wants to move forward.\nThe question is whether the timing is right or you're ahead of yourself."
+    
+    elif pattern_family == "release":
+        if "ready to be let go" in opening.lower():
+            return f"Something {context_phrase} is ready to be let go — and part of you knows it.\nThe releasing has already started. The question is whether you're fighting it."
+    
+    # Default: prepend context
+    return opening
 
 
 def apply_time_context_to_copy(
