@@ -570,11 +570,20 @@ def format_lens_evidence(
         # Use actual transit aspects if provided
         aspects = transit_aspects or []
         
+        # Pattern-specific behavioral titles (no system terms)
+        PATTERN_TITLES = {
+            "stall": "You're moving before it's settled",
+            "push_pull": "You're pulled in two directions",
+            "expression": "There's something you're not saying",
+            "control": "You're holding on tighter than you need to",
+            "clarity": "You're still searching for the right answer",
+        }
+        
         unified = get_unified_timing(
             user_id="",
             transit_aspects=aspects,
             pattern_family=pattern_family,
-            pattern_title="The Pause" if pattern_family == "stall" else "Today's Pattern",
+            pattern_title=PATTERN_TITLES.get(pattern_family, "Something's emerging"),
             natal_bazi=None,
             birth_date=birth_date,
         )

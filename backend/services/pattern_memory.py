@@ -474,29 +474,29 @@ async def record_pattern_interaction(
 PATTERN_COPY_VARIANTS = {
     "stall": {
         ExposureState.FIRST_EXPOSURE: {
-            "headline": "The Pause",
+            "headline": "You're moving before it's settled",
             # V2: Behavior → Split → Grounding
-            "opening": "You're ready to act — but something in you knows it's not clean yet.\nThe push is there. The ground isn't.",
+            "opening": "The push is there. The ground isn't.\nYou're ready to act—but something in you knows it's not clean yet.",
             "explanation": "You're already in motion, but the timing isn't holding. Part of you knows this won't land the way you expect.",
             "reflection_prompt": "What's the part that isn't ready?",
         },
         ExposureState.REPEATED_EXPOSURE: {
-            "headline": "The Pause",
-            "opening": "You've been here before — the same stall, the same tension.\nSomething still isn't settled.",
+            "headline": "You're unsure—but still pushing",
+            "opening": "Something hasn't clicked, and you know it.\nYou've been here before—the same stall, the same tension.",
             "explanation": "The drive keeps returning, and so does the resistance. That's not random. Something hasn't shifted underneath.",
             "reflection_prompt": "What's still unresolved?",
             "time_words": ["still", "again"],
         },
         ExposureState.PERSISTENT_PATTERN: {
-            "headline": "The Pause",
-            "opening": "You keep pushing into this — and it keeps not moving.\nThis isn't about timing anymore. It's about what you're avoiding.",
+            "headline": "You're avoiding something you already know",
+            "opening": "The pause isn't confusion. It's protection.\nYou keep pushing into this—and it keeps not moving.",
             "explanation": "When the same pause keeps returning, it's asking to be faced, not waited out. The block isn't external.",
             "reflection_prompt": "What would you have to face to actually move?",
             "time_words": ["keeps returning", "won't shift"],
         },
         ExposureState.ENGAGED_PATTERN: {
-            "headline": "The Pause",
-            "opening": "You've already seen this. The question isn't what — it's what now.\nKnowing hasn't changed the pattern yet.",
+            "headline": "You're waiting on something outside you",
+            "opening": "But the hold might be internal.\nYou've already seen this. The question isn't what—it's what now.",
             "explanation": "Awareness is here. The gap is between knowing and acting. Something is still holding.",
             "reflection_prompt": "What would actually change this?",
             "time_words": ["already", "now"],

@@ -230,7 +230,17 @@ def generate_lens_context(
         hd_type = lens_data.get('type', 'Unknown')
         authority = lens_data.get('authority', 'Unknown')
         
-        return f"As a {hd_type} with {authority} authority, you're wired to express your {archetype_name} pattern through {_get_hd_archetype_link(hd_type, archetype_name)}"
+        # Behavior-first language for HD types
+        type_behaviors = {
+            'Manifestor': "You're wired to initiate before others are ready",
+            'Generator': "You have sustainable energy when the work engages you",
+            'Manifesting Generator': "You move fast when engaged—but skipping steps creates cleanup",
+            'Projector': "You see how things could work better",
+            'Reflector': "You mirror your environment"
+        }
+        
+        type_behavior = type_behaviors.get(hd_type, f"Your {hd_type} nature")
+        return f"{type_behavior}—and your {archetype_name} pattern shows up through {_get_hd_archetype_link(hd_type, archetype_name)}"
     
     elif lens_type == 'enneagram':
         etype = lens_data.get('type', lens_data.get('core_type', 'Unknown'))

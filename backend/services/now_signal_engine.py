@@ -869,13 +869,13 @@ def generate_micro_moment(
         middle = moment_pool["middles"][(day_seed + 1) % len(moment_pool["middles"])]
         closer = moment_pool["closers"][(day_seed + 2) % len(moment_pool["closers"])]
         
-        # Tension-specific titles
+        # Tension-specific titles - behavior first, no system terms
         TENSION_TITLES = {
-            TensionType.PUSH_PULL: "Forward and Back",
-            TensionType.SPEAK_SWALLOW: "What's Unsaid",
-            TensionType.GRIP_RELEASE: "Grip and Release",
-            TensionType.CLARITY_FOG: "Still Searching",
-            TensionType.STALL: "The Pause",
+            TensionType.PUSH_PULL: "You're pulled in two directions",
+            TensionType.SPEAK_SWALLOW: "There's something you're not saying",
+            TensionType.GRIP_RELEASE: "You're holding on tighter than you need to",
+            TensionType.CLARITY_FOG: "You're still searching for the right answer",
+            TensionType.STALL: "You're moving before it's settled",
         }
         
         # Map tension to pattern family
