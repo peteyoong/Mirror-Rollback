@@ -312,13 +312,20 @@ def get_center_interpretation(
 ) -> CenterInterpretation:
     """Generate interpretation for a single center.
     
+    Uses the new HD Translation Layer structure:
+    - WHAT THIS FEELS LIKE IN REAL LIFE (recognition)
+    - WHEN IT HELPS (strength)
+    - WHAT TO WATCH (shadow)  
+    - WHAT HELPS (usable guidance)
+    - SYSTEM NOTE (optional label)
+    
     Args:
         center_name: Internal center name (e.g., "G Center")
         defined: Whether the center is defined
         active_gates: List of all user's active gates
     
     Returns:
-        CenterInterpretation with full template-based content
+        CenterInterpretation with behavior-first content
     """
     # Get gates present in this center
     gates_present = get_gates_for_center(center_name, active_gates)
@@ -333,12 +340,17 @@ def get_center_interpretation(
     if not template:
         # Fallback for any missing templates
         template = {
-            "what_this_means": f"Your {display_name} center is {'defined' if defined else 'undefined'}.",
+            "what_this_means": f"You experience {display_name.lower()} energy {'consistently' if defined else 'variably'}.",
             "your_challenge": "Understanding this center takes time and experimentation.",
             "your_genius": "Every center configuration has its gifts.",
             "practical_experiments": ["Observe how this center shows up in your life."],
             "remember": "Your design is perfect as it is."
         }
+    
+    # Build system note
+    state_label = "defined" if defined else "open"
+    gate_str = f" · Gates {', '.join(str(g) for g in gates_present)}" if gates_present else ""
+    system_note = f"{display_name} {state_label}{gate_str}"
     
     return {
         "center_name": center_name,
@@ -346,6 +358,13 @@ def get_center_interpretation(
         "defined": defined,
         "gates_present": gates_present,
         "themes": themes,
+        # New structure - behavior first
+        "what_this_feels_like": template["what_this_means"],  # Recognition
+        "when_it_helps": template["your_genius"],  # Strength
+        "what_to_watch": template["your_challenge"],  # Shadow
+        "what_helps": template["practical_experiments"],  # Guidance
+        "system_note": system_note,  # Secondary label
+        # Legacy fields for compatibility
         "what_this_means": template["what_this_means"],
         "your_challenge": template["your_challenge"],
         "your_genius": template["your_genius"],

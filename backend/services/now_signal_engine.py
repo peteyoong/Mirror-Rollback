@@ -844,9 +844,26 @@ def generate_micro_moment(
     tension: TensionType,
     dominant_categories: List[SignalCategory],
     confidence: float,
-    day_seed: int
+    day_seed: int,
+    hd_data: Dict = None,
+    pattern_history: List[Dict] = None,
+    journal_entries: List[Dict] = None,
 ) -> Dict[str, Any]:
-    """Generate a specific micro-moment based on detected signals and tension."""
+    """
+    Generate a specific micro-moment based on detected signals and tension.
+    
+    Uses Pattern Differentiation Engine to avoid collapsing different situations
+    into generic patterns like "The Pause".
+    """
+    from services.pattern_differentiation import (
+        select_pattern,
+        generate_home_message,
+        extract_signal_profile,
+        convert_legacy_tension_to_differentiated,
+        get_pattern_family_from_differentiated,
+        DifferentiatedPattern,
+        PatternSignalProfile,
+    )
     
     # Low confidence = use softener language
     if confidence < 0.4:
@@ -861,38 +878,57 @@ def generate_micro_moment(
             "pattern_family": "uncertain",
         }
     
-    # Tension-based generation
-    if tension != TensionType.NONE:
-        moment_pool = MICRO_MOMENTS.get(tension, MICRO_MOMENTS[TensionType.STALL])
-        
-        opener = moment_pool["openers"][day_seed % len(moment_pool["openers"])]
-        middle = moment_pool["middles"][(day_seed + 1) % len(moment_pool["middles"])]
-        closer = moment_pool["closers"][(day_seed + 2) % len(moment_pool["closers"])]
-        
-        # Tension-specific titles - behavior first, no system terms
-        TENSION_TITLES = {
-            TensionType.PUSH_PULL: "You're pulled in two directions",
-            TensionType.SPEAK_SWALLOW: "There's something you're not saying",
-            TensionType.GRIP_RELEASE: "You're holding on tighter than you need to",
-            TensionType.CLARITY_FOG: "You're still searching for the right answer",
-            TensionType.STALL: "You're moving before it's settled",
-        }
-        
-        # Map tension to pattern family
-        TENSION_TO_FAMILY = {
-            TensionType.PUSH_PULL: "push_pull",
-            TensionType.SPEAK_SWALLOW: "expression",
-            TensionType.GRIP_RELEASE: "control",
-            TensionType.CLARITY_FOG: "clarity",
-            TensionType.STALL: "stall",
-        }
-        
-        return {
-            "title": TENSION_TITLES.get(tension, "Today's Pattern"),
-            "lines": [opener, middle, closer],
-            "tension_type": tension.value,
-            "pattern_family": TENSION_TO_FAMILY.get(tension, "general"),
-        }
+    # =========================================================================
+    # PATTERN DIFFERENTIATION ENGINE
+    # Instead of defaulting to STALL/Pause, use weighted scoring
+    # =========================================================================
+    
+    # Extract signal profile for differentiated pattern selection
+    profile = extract_signal_profile(
+        hd_data=hd_data,
+        pattern_history=pattern_history,
+        journal_entries=journal_entries,
+    )
+    
+    # Convert legacy tension to differentiated pattern with profile context
+    if tension == TensionType.STALL:
+        # This is where we differentiate instead of collapsing
+        differentiated_pattern = convert_legacy_tension_to_differentiated(
+            tension_type="stall",
+            profile=profile
+        )
+    elif tension == TensionType.PUSH_PULL:
+        differentiated_pattern = DifferentiatedPattern.SPLIT_PULL
+    elif tension == TensionType.SPEAK_SWALLOW:
+        differentiated_pattern = DifferentiatedPattern.EXPRESSION_HELD
+    elif tension == TensionType.GRIP_RELEASE:
+        differentiated_pattern = DifferentiatedPattern.PROTECTION_MASKING
+    elif tension == TensionType.CLARITY_FOG:
+        differentiated_pattern = DifferentiatedPattern.CLARITY_NOT_LANDED
+    else:
+        differentiated_pattern = DifferentiatedPattern.SOMETHING_NOT_CLEAN
+    
+    # Generate home message using differentiated pattern
+    home_message = generate_home_message(differentiated_pattern, confidence)
+    
+    # Get pattern family for legacy compatibility
+    pattern_family = get_pattern_family_from_differentiated(differentiated_pattern)
+    
+    # Create lines from the structured message
+    lines = [
+        home_message["recognition"],
+        home_message["split"],
+        home_message["cta"],
+    ]
+    
+    return {
+        "title": home_message["pattern_name"],
+        "lines": lines,
+        "tension_type": tension.value if tension != TensionType.NONE else "differentiated",
+        "pattern_family": pattern_family,
+        "differentiated_pattern": differentiated_pattern.value,
+        "pattern_headline": home_message["headline"],
+    }
     
     # Single dominant category (no tension)
     if dominant_categories:
@@ -1074,8 +1110,16 @@ async def generate_today_pattern(
     confidence = calculate_confidence(all_signals, category_scores)
     logger.info(f"[NowSignalEngine] Confidence: {confidence}")
     
-    # Step 5: Generate micro-moment
-    micro_moment = generate_micro_moment(tension, dominant_categories, confidence, day_seed)
+    # Step 5: Generate micro-moment with differentiation engine data
+    micro_moment = generate_micro_moment(
+        tension, 
+        dominant_categories, 
+        confidence, 
+        day_seed,
+        hd_data=hd_data,
+        pattern_history=None,  # Can be passed in future from pattern_exposures
+        journal_entries=journal_entries,
+    )
     
     # Step 6: Get pattern-specific closer (replaces generic mode closer)
     pattern_closer = get_pattern_specific_closer(tension, dominant_categories, mode)
