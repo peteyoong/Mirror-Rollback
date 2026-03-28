@@ -3230,9 +3230,10 @@ async def get_north_star():
 
 @api_router.post("/locations/search")
 async def search_locations(request: LocationSearchRequest):
-    """Search for locations with autocomplete"""
+    """Search for locations with autocomplete using multiple geocoding APIs"""
+    import httpx
     
-    # Fallback database of common cities (used when Nominatim is unavailable)
+    # Fallback database of common cities (used when APIs are unavailable)
     FALLBACK_CITIES = [
         {"city": "New York", "country": "United States", "latitude": 40.7128, "longitude": -74.0060},
         {"city": "Los Angeles", "country": "United States", "latitude": 34.0522, "longitude": -118.2437},
@@ -3259,14 +3260,17 @@ async def search_locations(request: LocationSearchRequest):
         {"city": "Delhi", "country": "India", "latitude": 28.7041, "longitude": 77.1025},
         {"city": "Bangalore", "country": "India", "latitude": 12.9716, "longitude": 77.5946},
         {"city": "Dubai", "country": "United Arab Emirates", "latitude": 25.2048, "longitude": 55.2708},
+        # Malaysia cities - comprehensive list
         {"city": "Kuala Lumpur", "country": "Malaysia", "latitude": 3.1390, "longitude": 101.6869},
         {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067},
         {"city": "Johor Bahru", "country": "Malaysia", "latitude": 1.4927, "longitude": 103.7414},
         {"city": "Alor Setar", "country": "Malaysia", "latitude": 6.1231908, "longitude": 100.3683962},
+        {"city": "Alor Star", "country": "Malaysia", "latitude": 6.1231908, "longitude": 100.3683962},
         {"city": "Penang", "country": "Malaysia", "latitude": 5.4164, "longitude": 100.3327},
         {"city": "George Town", "country": "Malaysia", "latitude": 5.4164, "longitude": 100.3327},
         {"city": "Ipoh", "country": "Malaysia", "latitude": 4.5975, "longitude": 101.0901},
         {"city": "Malacca", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501},
+        {"city": "Melaka", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501},
         {"city": "Kota Kinabalu", "country": "Malaysia", "latitude": 5.9804, "longitude": 116.0735},
         {"city": "Kuching", "country": "Malaysia", "latitude": 1.5535, "longitude": 110.3593},
         {"city": "Shah Alam", "country": "Malaysia", "latitude": 3.0733, "longitude": 101.5185},
@@ -3279,10 +3283,23 @@ async def search_locations(request: LocationSearchRequest):
         {"city": "Miri", "country": "Malaysia", "latitude": 4.3995, "longitude": 113.9914},
         {"city": "Sandakan", "country": "Malaysia", "latitude": 5.8402, "longitude": 118.1179},
         {"city": "Kedah", "country": "Malaysia", "latitude": 6.1231908, "longitude": 100.3683962},
+        {"city": "Taiping", "country": "Malaysia", "latitude": 4.8512, "longitude": 100.7440},
+        {"city": "Putrajaya", "country": "Malaysia", "latitude": 2.9264, "longitude": 101.6964},
+        {"city": "Cyberjaya", "country": "Malaysia", "latitude": 2.9213, "longitude": 101.6559},
+        {"city": "Batu Pahat", "country": "Malaysia", "latitude": 1.8548, "longitude": 102.9325},
+        {"city": "Sibu", "country": "Malaysia", "latitude": 2.2870, "longitude": 111.8307},
+        {"city": "Tawau", "country": "Malaysia", "latitude": 4.2498, "longitude": 117.8871},
+        {"city": "Labuan", "country": "Malaysia", "latitude": 5.2767, "longitude": 115.2417},
+        {"city": "Langkawi", "country": "Malaysia", "latitude": 6.3500, "longitude": 99.8000},
+        {"city": "Kangar", "country": "Malaysia", "latitude": 6.4414, "longitude": 100.1986},
+        {"city": "Sungai Petani", "country": "Malaysia", "latitude": 5.6470, "longitude": 100.4882},
+        {"city": "Butterworth", "country": "Malaysia", "latitude": 5.3991, "longitude": 100.3638},
+        # Other Asian cities
         {"city": "Bangkok", "country": "Thailand", "latitude": 13.7563, "longitude": 100.5018},
         {"city": "Jakarta", "country": "Indonesia", "latitude": -6.2088, "longitude": 106.8456},
         {"city": "Manila", "country": "Philippines", "latitude": 14.5995, "longitude": 120.9842},
         {"city": "Seoul", "country": "South Korea", "latitude": 37.5665, "longitude": 126.9780},
+        # European cities
         {"city": "Amsterdam", "country": "Netherlands", "latitude": 52.3676, "longitude": 4.9041},
         {"city": "Rome", "country": "Italy", "latitude": 41.9028, "longitude": 12.4964},
         {"city": "Madrid", "country": "Spain", "latitude": 40.4168, "longitude": -3.7038},
@@ -3300,10 +3317,12 @@ async def search_locations(request: LocationSearchRequest):
         {"city": "Prague", "country": "Czech Republic", "latitude": 50.0755, "longitude": 14.4378},
         {"city": "Warsaw", "country": "Poland", "latitude": 52.2297, "longitude": 21.0122},
         {"city": "Moscow", "country": "Russia", "latitude": 55.7558, "longitude": 37.6173},
+        # Americas
         {"city": "São Paulo", "country": "Brazil", "latitude": -23.5505, "longitude": -46.6333},
         {"city": "Rio de Janeiro", "country": "Brazil", "latitude": -22.9068, "longitude": -43.1729},
         {"city": "Buenos Aires", "country": "Argentina", "latitude": -34.6037, "longitude": -58.3816},
         {"city": "Mexico City", "country": "Mexico", "latitude": 19.4326, "longitude": -99.1332},
+        # Africa & Middle East
         {"city": "Cape Town", "country": "South Africa", "latitude": -33.9249, "longitude": 18.4241},
         {"city": "Johannesburg", "country": "South Africa", "latitude": -26.2041, "longitude": 28.0473},
         {"city": "Cairo", "country": "Egypt", "latitude": 30.0444, "longitude": 31.2357},
@@ -3313,92 +3332,181 @@ async def search_locations(request: LocationSearchRequest):
         {"city": "Istanbul", "country": "Turkey", "latitude": 41.0082, "longitude": 28.9784},
     ]
     
+    def estimate_timezone(longitude: float) -> str:
+        """Estimate timezone from longitude"""
+        tz_hours = round(longitude / 15)
+        tz_sign = "+" if tz_hours >= 0 else "-"
+        return f"{tz_sign}{abs(tz_hours):02d}:00"
+    
     def search_fallback(query: str):
-        """Search through fallback cities"""
+        """Search through fallback cities with fuzzy matching"""
         query_lower = query.lower().strip()
+        # Split query into words for better matching
+        query_words = query_lower.split()
         results = []
+        
         for city_data in FALLBACK_CITIES:
             city_lower = city_data["city"].lower()
             country_lower = city_data["country"].lower()
-            if query_lower in city_lower or query_lower in country_lower:
-                # Estimate timezone from longitude
-                lng = city_data["longitude"]
-                tz_hours = round(lng / 15)
-                tz_sign = "+" if tz_hours >= 0 else "-"
-                tz_string = f"{tz_sign}{abs(tz_hours):02d}:00"
-                
+            
+            # Check if any query word matches city or country
+            matches = False
+            for word in query_words:
+                if len(word) >= 2:  # Only check words with 2+ chars
+                    if word in city_lower or city_lower.startswith(word) or word in country_lower:
+                        matches = True
+                        break
+            
+            # Also check full query against city
+            if query_lower in city_lower or city_lower in query_lower:
+                matches = True
+            
+            if matches:
                 results.append({
                     "city": city_data["city"],
                     "country": city_data["country"],
                     "latitude": city_data["latitude"],
                     "longitude": city_data["longitude"],
                     "display_name": f"{city_data['city']}, {city_data['country']}",
-                    "timezone": tz_string
+                    "timezone": estimate_timezone(city_data["longitude"])
                 })
+        
         return results[:5]  # Limit to 5 results
     
+    async def search_photon(query: str) -> list:
+        """Search using Photon API (komoot.io) - free, no API key needed"""
+        try:
+            headers = {
+                "User-Agent": "ProjectMirror/1.0 (Birth Location Search)",
+                "Accept": "application/json"
+            }
+            async with httpx.AsyncClient(timeout=8.0, headers=headers) as client:
+                response = await client.get(
+                    "https://photon.komoot.io/api",
+                    params={"q": query, "limit": 5}
+                )
+                if response.status_code != 200:
+                    logger.warning(f"Photon API returned {response.status_code}")
+                    return []
+                
+                data = response.json()
+                results = []
+                
+                for feature in data.get("features", []):
+                    props = feature.get("properties", {})
+                    coords = feature.get("geometry", {}).get("coordinates", [])
+                    
+                    if len(coords) < 2:
+                        continue
+                    
+                    lon, lat = coords[0], coords[1]
+                    
+                    # Build city name from properties
+                    city = (
+                        props.get("city") or 
+                        props.get("name") or 
+                        props.get("town") or 
+                        props.get("village") or
+                        props.get("locality") or
+                        props.get("county") or
+                        props.get("state") or
+                        "Unknown"
+                    )
+                    
+                    country = props.get("country", "Unknown")
+                    
+                    # Build display name
+                    display_parts = [p for p in [
+                        props.get("name"),
+                        props.get("city"),
+                        props.get("state"),
+                        country
+                    ] if p]
+                    display_name = ", ".join(dict.fromkeys(display_parts))  # Remove duplicates
+                    
+                    results.append({
+                        "city": city,
+                        "country": country,
+                        "latitude": lat,
+                        "longitude": lon,
+                        "display_name": display_name or f"{city}, {country}",
+                        "timezone": estimate_timezone(lon)
+                    })
+                
+                return results
+        except Exception as e:
+            logger.warning(f"Photon API error: {e}")
+            return []
+    
+    async def search_nominatim(query: str) -> list:
+        """Search using Nominatim as backup"""
+        try:
+            geolocator = Nominatim(user_agent="project_mirror_app", timeout=8)
+            locations = geolocator.geocode(query, exactly_one=False, limit=5, addressdetails=True)
+            
+            if not locations:
+                return []
+            
+            results = []
+            for loc in locations:
+                address = loc.raw.get('address', {})
+                
+                city = (
+                    address.get('city') or 
+                    address.get('town') or 
+                    address.get('village') or
+                    address.get('suburb') or
+                    address.get('municipality') or
+                    address.get('county') or
+                    address.get('state_district') or
+                    address.get('state') or
+                    loc.address.split(',')[0].strip()
+                )
+                
+                country = address.get('country', 'Unknown')
+                
+                results.append({
+                    "city": city,
+                    "country": country,
+                    "latitude": loc.latitude,
+                    "longitude": loc.longitude,
+                    "display_name": loc.address,
+                    "timezone": estimate_timezone(loc.longitude)
+                })
+            
+            return results
+        except Exception as e:
+            logger.warning(f"Nominatim API error: {e}")
+            return []
+    
+    # First, always check fallback for exact/near matches (instant response)
+    fallback_results = search_fallback(request.query)
+    
+    # Try Photon API first (more reliable, faster)
     try:
-        geolocator = Nominatim(user_agent="project_mirror", timeout=10)
-        locations = geolocator.geocode(request.query, exactly_one=False, limit=5, addressdetails=True)
-        
-        if not locations:
-            # Try fallback if no results from Nominatim
-            fallback_results = search_fallback(request.query)
-            if fallback_results:
-                return {"results": fallback_results}
-            return {"results": []}
-        
-        results = []
-        for loc in locations:
-            address = loc.raw.get('address', {})
-            
-            # Extract city name - prefer the most specific locality
-            city = (
-                address.get('city') or 
-                address.get('town') or 
-                address.get('village') or
-                address.get('suburb') or  # Added suburb for places like Petaling Jaya
-                address.get('municipality') or
-                address.get('county') or
-                address.get('state_district') or
-                address.get('state') or
-                loc.address.split(',')[0].strip()
-            )
-            
-            # If search query looks like a specific place and result starts with it, use it
-            query_lower = request.query.lower().strip()
-            display_parts = loc.address.split(',')
-            first_part = display_parts[0].strip()
-            if query_lower in first_part.lower() and len(first_part) < 50:
-                city = first_part
-            
-            country = address.get('country', 'Unknown')
-            
-            # Estimate timezone from longitude (rough approximation)
-            # Each 15° of longitude = 1 hour offset from UTC
-            lng = loc.longitude
-            tz_hours = round(lng / 15)
-            tz_sign = "+" if tz_hours >= 0 else "-"
-            tz_string = f"{tz_sign}{abs(tz_hours):02d}:00"
-            
-            results.append({
-                "city": city,
-                "country": country,
-                "latitude": loc.latitude,
-                "longitude": loc.longitude,
-                "display_name": loc.address,
-                "timezone": tz_string
-            })
-        
-        return {"results": results}
+        photon_results = await search_photon(request.query)
+        if photon_results:
+            logger.info(f"Location search via Photon: {request.query} -> {len(photon_results)} results")
+            return {"results": photon_results}
     except Exception as e:
-        logger.error(f"Location search error: {e}")
-        # Try fallback when Nominatim fails
-        fallback_results = search_fallback(request.query)
-        if fallback_results:
-            logger.info(f"Using fallback cities for query: {request.query}")
-            return {"results": fallback_results}
-        return {"results": []}
+        logger.warning(f"Photon search failed: {e}")
+    
+    # Try Nominatim as backup
+    try:
+        nominatim_results = await search_nominatim(request.query)
+        if nominatim_results:
+            logger.info(f"Location search via Nominatim: {request.query} -> {len(nominatim_results)} results")
+            return {"results": nominatim_results}
+    except Exception as e:
+        logger.warning(f"Nominatim search failed: {e}")
+    
+    # Use fallback results if APIs failed
+    if fallback_results:
+        logger.info(f"Location search via fallback: {request.query} -> {len(fallback_results)} results")
+        return {"results": fallback_results}
+    
+    logger.warning(f"Location search found no results for: {request.query}")
+    return {"results": []}
 
 
 @api_router.post("/users", response_model=UserProfileResponse)
