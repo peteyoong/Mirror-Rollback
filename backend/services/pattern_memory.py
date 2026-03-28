@@ -37,38 +37,186 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
-# HOUSE → LIFE DOMAIN MAPPING
+# SCENE-BASED RECOGNITION (V3)
 # =============================================================================
-# Maps astrological houses to concrete life domains for contextual messaging.
-# Used to make pattern messages feel situational and specific.
+# Instead of abstract house/domain language, detect REAL-LIFE SCENES.
+# Every message must describe something the user can immediately point to.
+#
+# Scene Types:
+# - decision: You're facing a choice or commitment
+# - work: Something at work or with your direction
+# - relationship: Something between you and another person
+# - internal: Something you're avoiding or not facing
+# - expression: Something you need to say or communicate
+# - control: A power situation or grip on something
 # =============================================================================
 
-HOUSE_DOMAINS = {
-    1: {"domain": "self", "phrases": ["in how you see yourself", "in your sense of who you are", "about your identity"]},
-    2: {"domain": "security", "phrases": ["around money", "about security", "with what you value"]},
-    3: {"domain": "communication", "phrases": ["in how you communicate", "in a conversation", "with something you need to say"]},
-    4: {"domain": "home", "phrases": ["at home", "with family", "about where you belong"]},
-    5: {"domain": "creativity", "phrases": ["creatively", "in something you're making", "about expressing yourself"]},
-    6: {"domain": "work", "phrases": ["at work", "in your daily routines", "with something practical"]},
-    7: {"domain": "relationship", "phrases": ["with someone", "in a relationship", "between you and another person"]},
-    8: {"domain": "intensity", "phrases": ["emotionally", "in something deep", "about power or control"]},
-    9: {"domain": "expansion", "phrases": ["about what's next", "with a bigger vision", "around meaning"]},
-    10: {"domain": "direction", "phrases": ["in your direction", "about your path", "with where you're heading"]},
-    11: {"domain": "network", "phrases": ["with a group", "in your network", "about influence"]},
-    12: {"domain": "internal", "phrases": ["internally", "in what you're avoiding", "beneath the surface"]},
+SCENE_TYPES = {
+    "decision": {
+        "tone": "choice",
+        "signals": ["waiting", "unclear", "hesitation", "crossroads", "timing"],
+        "openings": {
+            "stall": "You're trying to move something forward—but it's not landing.\nYou've already decided… but it hasn't settled in you yet.",
+            "push_pull": "There's a decision sitting in front of you—and you keep circling it.\nBoth options feel real. That's why you haven't chosen.",
+            "clarity": "You're trying to figure something out—but the answer isn't coming.\nThe harder you look, the less clear it gets.",
+            "movement": "You're ready to move on something—but you keep hesitating.\nThe impulse is there. The commitment isn't.",
+        },
+    },
+    "work": {
+        "tone": "direction",
+        "signals": ["career", "saturn", "10th", "structure", "authority", "ambition"],
+        "openings": {
+            "stall": "Something at work isn't moving the way you expected.\nYou're pushing—but it's not catching.",
+            "push_pull": "You're torn between two directions professionally.\nOne feels safe. The other feels right. Neither feels easy.",
+            "control": "You're gripping something at work tighter than you need to.\nThe control isn't solving the problem—it's masking it.",
+            "movement": "There's momentum building in your work—but you're not sure if the timing is right.\nThe opportunity is there. Your readiness isn't clear.",
+        },
+    },
+    "relationship": {
+        "tone": "connection",
+        "signals": ["venus", "7th", "partner", "other", "between", "someone"],
+        "openings": {
+            "stall": "Something between you and someone isn't moving.\nYou want it to shift—but something's stuck.",
+            "push_pull": "You're pulled between staying and leaving—or between two people.\nBoth pulls are real. That's why it's hard.",
+            "expression": "There's something you're not saying to someone.\nThe silence isn't protecting anything anymore.",
+            "control": "You're trying to hold something in a relationship that doesn't want to be held.\nThe tighter you grip, the more it slips.",
+        },
+    },
+    "internal": {
+        "tone": "avoidance",
+        "signals": ["12th", "neptune", "hidden", "avoid", "beneath", "unconscious"],
+        "openings": {
+            "stall": "You're avoiding something—and you know it.\nThe delay isn't strategic. It's protection.",
+            "clarity": "There's something you don't want to see clearly.\nThe fog isn't confusion—it's a shield.",
+            "release": "Something wants to leave—but you're holding onto it.\nLetting go feels like losing. But holding on is costing more.",
+            "control": "You're controlling something that doesn't need controlling.\nThe grip is exhausting—and it's not changing anything.",
+        },
+    },
+    "expression": {
+        "tone": "voice",
+        "signals": ["mercury", "3rd", "communication", "speak", "say", "truth"],
+        "openings": {
+            "expression": "There's something you need to say—and you haven't said it.\nThe words are there. The permission isn't.",
+            "stall": "You're waiting to speak—but the right moment isn't coming.\nThe delay is starting to feel like silence.",
+            "push_pull": "You're torn between saying it and staying quiet.\nBoth feel risky. Neither feels right.",
+            "clarity": "You're trying to find the words—but they won't come.\nThe thought is clear. The expression isn't.",
+        },
+    },
+    "control": {
+        "tone": "power",
+        "signals": ["pluto", "8th", "power", "grip", "intensity", "transform"],
+        "openings": {
+            "control": "You're holding something too tightly—and it's starting to hurt.\nThe grip feels necessary. But it's not helping.",
+            "stall": "You're trying to control the timing of something—but it's not yours to control.\nThe harder you push, the more it resists.",
+            "release": "Something is trying to leave your life—and you're fighting it.\nThe struggle isn't saving anything. It's just prolonging the pain.",
+            "push_pull": "You want control and freedom at the same time.\nThat contradiction is the tension.",
+        },
+    },
 }
 
-# Fallback phrases when no house context is available
-DEFAULT_CONTEXT_PHRASES = ["in your life", "with something", "about what's ahead"]
+# Default scene when no specific scene is detected
+DEFAULT_SCENE = "decision"
 
 
-def get_house_context(house_number: int) -> Dict[str, Any]:
-    """Get life domain context for a house number (1-12)."""
-    if house_number < 1 or house_number > 12:
-        return {"domain": "general", "phrases": DEFAULT_CONTEXT_PHRASES}
-    return HOUSE_DOMAINS.get(house_number, {"domain": "general", "phrases": DEFAULT_CONTEXT_PHRASES})
+def detect_scene_type(
+    pattern_family: str,
+    transit_aspects: List[Dict] = None,
+    house_number: int = None,
+) -> str:
+    """
+    Detect the primary scene type from pattern + transits + house.
+    
+    Priority:
+    1. Transit planet signals (Venus → relationship, Saturn → work, etc.)
+    2. House domain hints
+    3. Pattern family default
+    """
+    
+    # Check transit signals first
+    if transit_aspects:
+        for aspect in transit_aspects:
+            transit_point = aspect.get("transit_point", "").lower()
+            
+            # Map transit planets to scenes
+            if transit_point in ["venus"]:
+                return "relationship"
+            elif transit_point in ["saturn"]:
+                return "work"
+            elif transit_point in ["mercury"]:
+                return "expression"
+            elif transit_point in ["pluto"]:
+                return "control"
+            elif transit_point in ["neptune"]:
+                return "internal"
+    
+    # Check house hints
+    if house_number:
+        house_scene_map = {
+            3: "expression",
+            6: "work",
+            7: "relationship",
+            8: "control",
+            10: "work",
+            12: "internal",
+        }
+        if house_number in house_scene_map:
+            return house_scene_map[house_number]
+    
+    # Pattern family defaults
+    pattern_scene_map = {
+        "stall": "decision",
+        "push_pull": "decision",
+        "expression": "expression",
+        "clarity": "decision",
+        "control": "control",
+        "movement": "decision",
+        "release": "internal",
+    }
+    
+    return pattern_scene_map.get(pattern_family, DEFAULT_SCENE)
 
 
+def get_scene_opening(scene_type: str, pattern_family: str) -> str:
+    """
+    Get the scene-specific opening for a pattern.
+    Returns a concrete, real-life description—not abstract language.
+    """
+    scene_data = SCENE_TYPES.get(scene_type, SCENE_TYPES[DEFAULT_SCENE])
+    openings = scene_data.get("openings", {})
+    
+    # Get opening for this pattern family
+    opening = openings.get(pattern_family)
+    
+    if not opening:
+        # Fallback to stall opening or generic
+        opening = openings.get("stall", "Something is happening—and you're not sure what to do with it.\nThe tension is real. The path forward isn't clear.")
+    
+    return opening
+
+
+def get_house_tone_modifier(house_number: int) -> str:
+    """
+    Get a subtle tone modifier from house—NOT the lead language.
+    House supports the scene, doesn't define it.
+    """
+    tone_map = {
+        1: "personal",      # About self/identity
+        2: "material",      # About resources/security
+        3: "verbal",        # About communication
+        4: "foundational",  # About roots/home
+        5: "creative",      # About expression/joy
+        6: "practical",     # About work/service
+        7: "relational",    # About partnership
+        8: "intense",       # About depth/transformation
+        9: "expansive",     # About meaning/growth
+        10: "structural",   # About direction/career
+        11: "collective",   # About community
+        12: "hidden",       # About unconscious/avoidance
+    }
+    return tone_map.get(house_number, "general")
+
+
+# Keep the old function signature for backward compatibility
 def select_primary_house(transit_aspects: List[Dict], chart_data: Dict = None) -> Optional[int]:
     """
     Select the primary activated house based on transit data.
@@ -536,43 +684,52 @@ def get_state_aware_copy(
     exposure_state: ExposureState,
     base_pattern_title: str = None,
     house_number: int = None,
+    transit_aspects: List[Dict] = None,
 ) -> Dict[str, str]:
     """
-    Get copy variants based on pattern family and exposure state.
-    Returns opening, explanation, and reflection prompt that evolve with exposure.
+    Get copy variants based on pattern family, exposure state, and SCENE detection.
     
-    If house_number is provided, injects life domain context into the opening.
+    V3: Scene-based generation replaces house injection.
+    - Detects real-life scene from transits + house + pattern
+    - Uses scene-specific opening (concrete, not abstract)
+    - House only modifies tone, doesn't lead the sentence
     """
     
-    # Get variants for this pattern family
-    family_variants = PATTERN_COPY_VARIANTS.get(pattern_family, PATTERN_COPY_VARIANTS.get("stall"))
+    # Detect the scene type
+    scene_type = detect_scene_type(pattern_family, transit_aspects, house_number)
     
-    # Get state-specific copy
+    # Get scene-specific opening
+    scene_opening = get_scene_opening(scene_type, pattern_family)
+    
+    # Get variants for this pattern family (for explanation, prompt, headline)
+    family_variants = PATTERN_COPY_VARIANTS.get(pattern_family, PATTERN_COPY_VARIANTS.get("stall"))
     state_copy = family_variants.get(exposure_state, family_variants.get(ExposureState.FIRST_EXPOSURE))
     
-    opening = state_copy.get("opening", "Something is surfacing.")
+    # For non-first exposure, check if we should modify the scene opening
+    if exposure_state == ExposureState.REPEATED_EXPOSURE:
+        # Add "again" continuity to scene opening
+        scene_opening = "You've been here before.\n" + scene_opening.split('\n')[-1] if '\n' in scene_opening else "You've been here before. " + scene_opening
+    elif exposure_state == ExposureState.PERSISTENT_PATTERN:
+        # Scene opening already captures persistence, but we can emphasize
+        if "keep" not in scene_opening.lower():
+            scene_opening = "This keeps coming back.\n" + scene_opening
+    elif exposure_state == ExposureState.ENGAGED_PATTERN:
+        # Acknowledge prior engagement
+        first_line = scene_opening.split('\n')[0] if '\n' in scene_opening else scene_opening
+        scene_opening = f"You've already seen this. {first_line}\nThe knowing hasn't changed it yet."
     
-    # Inject house context if available
-    if house_number:
-        house_context = get_house_context(house_number)
-        domain = house_context.get("domain", "general")
-        phrases = house_context.get("phrases", DEFAULT_CONTEXT_PHRASES)
-        
-        # Select a context phrase
-        import random
-        context_phrase = random.choice(phrases)
-        
-        # Inject context into the opening based on pattern family
-        opening = inject_house_context(opening, pattern_family, context_phrase, domain)
+    # Get house tone (subtle modifier, not lead)
+    house_tone = get_house_tone_modifier(house_number) if house_number else "general"
     
     return {
         "headline": state_copy.get("headline", base_pattern_title or "Pattern Active"),
-        "opening": opening,
+        "opening": scene_opening,
         "explanation": state_copy.get("explanation", "A pattern is asking for attention."),
         "reflection_prompt": state_copy.get("reflection_prompt", "Does this feel true?"),
         "time_words": state_copy.get("time_words", []),
         "exposure_state": exposure_state.value,
-        "house_context": house_number if house_number else None,
+        "scene_type": scene_type,
+        "house_tone": house_tone,
     }
 
 
