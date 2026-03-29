@@ -698,6 +698,65 @@ class HomeSituation(Enum):
 
 
 # =============================================================================
+# ACTION PINNING - Pre-Action Interrupt Layer
+# Maps situations to EXACT actions the user is about to take
+# =============================================================================
+
+# Situation → Specific Action Verb Mapping
+SITUATION_ACTION_VERBS = {
+    HomeSituation.FORCING_PREMATURE: {
+        "primary": "signing off on this",
+        "variants": ["locking this in", "saying yes", "committing to this"],
+    },
+    HomeSituation.WAITING_WITHOUT_CLARITY: {
+        "primary": "deciding on this",
+        "variants": ["picking one", "closing this out", "making the call"],
+    },
+    HomeSituation.BLOCKED_BY_OTHERS: {
+        "primary": "pushing them again",
+        "variants": ["sending another message", "asking them again", "following up again"],
+    },
+    HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
+        "primary": "pretending you don't know",
+        "variants": ["ignoring what you see", "looking away again", "telling yourself it's fine"],
+    },
+    HomeSituation.PUSHING_AGAINST_RESISTANCE: {
+        "primary": "forcing this through",
+        "variants": ["pushing harder", "trying again the same way", "making it happen now"],
+    },
+    HomeSituation.TORN_BETWEEN_OPTIONS: {
+        "primary": "picking one just to end it",
+        "variants": ["forcing yourself to choose", "closing a door prematurely", "committing before you're ready"],
+    },
+    HomeSituation.HOLDING_BACK_EXPRESSION: {
+        "primary": "sending that message",
+        "variants": ["saying what's in your head", "replying now", "bringing it up"],
+    },
+    HomeSituation.DIRECTION_UNCLEAR: {
+        "primary": "picking a direction just to have one",
+        "variants": ["moving without seeing", "starting just to start", "forcing motion"],
+    },
+    HomeSituation.PRESSURE_WITHOUT_READINESS: {
+        "primary": "deciding because they're waiting",
+        "variants": ["giving an answer to end the pressure", "committing under their timeline", "saying yes to stop the ask"],
+    },
+    HomeSituation.STANDING_AT_THRESHOLD: {
+        "primary": "crossing before you've let go",
+        "variants": ["stepping through without releasing", "moving while still holding on", "leaving without saying goodbye"],
+    },
+}
+
+# Scene Type → Generic Action Fallbacks (when no specific situation)
+SCENE_ACTION_FALLBACKS = {
+    SceneType.DECISION: ["deciding now", "making the call", "picking one", "closing this out"],
+    SceneType.CONVERSATION: ["sending that message", "saying it", "replying now", "bringing it up"],
+    SceneType.ACTION: ["signing off", "locking this in", "saying yes", "committing"],
+    SceneType.RELATIONSHIP: ["pushing them again", "reaching out", "forcing a response", "asking again"],
+    SceneType.INTERNAL: ["ignoring it", "pretending it's fine", "moving past it", "looking away"],
+}
+
+
+# =============================================================================
 # SITUATION → SCENE TYPE MAPPING
 # =============================================================================
 
@@ -819,113 +878,123 @@ class LifeArena:
 HOME_MESSAGES = {
     HomeSituation.FORCING_PREMATURE: {
         "arena": LifeArena.COMMITMENT,
-        "headline": "You already know this commitment isn't ready.",
-        "live_read": "This is about the commitment you're trying to close before it's solid.\nYou keep pushing to sign off, lock it in, be done with it.\nBut the part that keeps hesitating isn't confusion — it's signal.",
-        "dont_do": "Don't sign off on this commitment today.",
-        "if_ignore": "If you lock this in now, you'll be undoing it within the week — and explaining why you rushed it.",
-        "instead": "Write down what's still not resolved. That's the actual blocker.",
-        "cta": "What exactly isn't settled yet?",
+        "headline": "You're about to sign off on what isn't ready.",
+        "live_read": "This is about locking in a commitment before it's solid.\nYou want to say yes. Be done. Move on.\nBut the part that keeps hesitating isn't confusion — it's signal.",
+        "dont_do": "Don't say yes to this today.",
+        "if_ignore": "If you sign off now, you'll be undoing it within the week — reputation cost: having to explain why you rushed. Time cost: the hours you'll spend cleaning it up.",
+        "instead": "Write down what's still not settled. That's the actual blocker.",
+        "cta": "What exactly isn't resolved yet?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.ACTION,
+        "pinned_action": "signing off on this",
     },
     HomeSituation.WAITING_WITHOUT_CLARITY: {
         "arena": LifeArena.DECISION,
-        "headline": "This decision isn't landing because it's not ready.",
-        "live_read": "This is about the decision you keep circling.\nYou've thought it through, weighed the options, revisited it again.\nBut the clarity you want isn't arriving — and forcing it won't change that.",
-        "dont_do": "Don't decide on this today just to end the discomfort.",
-        "if_ignore": "If you choose now, you'll be back here within days — carrying the weight of a choice that wasn't yours to make yet.",
+        "headline": "You're trying to make a call before you have what you need.",
+        "live_read": "This is about deciding before you're ready.\nYou've thought it through, weighed the options, revisited it again.\nBut the clarity you want isn't arriving — and forcing the call won't change that.",
+        "dont_do": "Don't make this decision today just to end the discomfort.",
+        "if_ignore": "If you pick now, you'll be revisiting this within days — emotional cost: carrying the weight of a choice that wasn't ready. Energy cost: the mental drain of second-guessing yourself.",
         "instead": "Name what information you're actually still waiting on.",
         "cta": "What are you pretending is already clear?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.DECISION,
+        "pinned_action": "making the call",
     },
     HomeSituation.BLOCKED_BY_OTHERS: {
         "arena": LifeArena.RELATIONSHIP,
-        "headline": "This tension isn't yours to solve alone.",
-        "live_read": "This is about the person you're waiting on.\nYou're ready to move. They're not moving.\nThe frustration is real — but the delay isn't in your control.",
-        "dont_do": "Don't push them again today.",
-        "if_ignore": "If you pressure them now, you'll create tension you'll have to clean up later — on top of the delay.",
-        "instead": "Do your part. Send what you can send without them.",
-        "cta": "What can you finish or close without their input?",
+        "headline": "You're about to push them again. It won't change the timing.",
+        "live_read": "This is about reaching out again when they haven't moved.\nYou're ready. They're not.\nThe frustration is real — but sending another message won't speed this up.",
+        "dont_do": "Don't send that follow-up message today.",
+        "if_ignore": "If you push them now, you'll create tension you have to clean up later — relationship cost: becoming the person who pressures. Emotional cost: frustration that goes nowhere.",
+        "instead": "Do your part. Close what you can close without them.",
+        "cta": "What can you finish without their input?",
         "decision_signal": DecisionSignal.MOVE,
         "scene_type": SceneType.RELATIONSHIP,
+        "pinned_action": "pushing them again",
     },
     HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
         "arena": LifeArena.INTERNAL,
-        "headline": "You already know what this is about.",
-        "live_read": "This is about the truth you've been avoiding naming.\nYou've seen it. You keep looking for another explanation.\nBut the knowing is already there — you're just not ready for what comes next.",
-        "dont_do": "Don't pretend you don't know what this is.",
-        "if_ignore": "If you keep circling without naming it, you'll carry its weight everywhere — and wonder why you feel so heavy.",
+        "headline": "You're about to look away from what you already see.",
+        "live_read": "This is about ignoring a truth you've already spotted.\nYou keep looking for another explanation. Another reason.\nBut the knowing is already there — you're just not ready for what comes after.",
+        "dont_do": "Don't tell yourself it's fine today.",
+        "if_ignore": "If you keep looking away, you'll carry this weight everywhere — emotional cost: the heaviness of unnamed truth. Time cost: every day you delay facing it.",
         "instead": "Say it to yourself. Out loud. Privately. Just once.",
-        "cta": "What would you have to admit if you stopped circling?",
+        "cta": "What would you have to admit if you stopped looking away?",
         "decision_signal": DecisionSignal.CLARIFY,
         "scene_type": SceneType.INTERNAL,
+        "pinned_action": "pretending you don't know",
     },
     HomeSituation.PUSHING_AGAINST_RESISTANCE: {
         "arena": LifeArena.COMMITMENT,
-        "headline": "This commitment isn't moving because it's not ready.",
-        "live_read": "This is about the thing you keep pushing that won't budge.\nThe harder you push, the more resistance shows up.\nThis isn't about effort — it's about timing.",
-        "dont_do": "Don't push this commitment any harder today.",
-        "if_ignore": "If you keep forcing, you'll drain yourself fixing something that wasn't ready — and have nothing left for what actually is.",
+        "headline": "You're trying to force this through. It's not moving for a reason.",
+        "live_read": "This is about pushing harder on what won't budge.\nYou've tried once. Twice. You're about to try again.\nBut this isn't about effort — it's about timing.",
+        "dont_do": "Don't force this through today.",
+        "if_ignore": "If you keep pushing, you'll drain yourself fixing what wasn't ready — energy cost: nothing left for what actually wants to move. Reputation cost: being seen as the person who forces.",
         "instead": "Redirect. Ask: where IS there movement right now?",
         "cta": "What would happen if you stopped forcing this one?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.ACTION,
+        "pinned_action": "forcing this through",
     },
     HomeSituation.TORN_BETWEEN_OPTIONS: {
         "arena": LifeArena.DECISION,
-        "headline": "This decision has two real pulls. That's why it won't land.",
-        "live_read": "This is about the choice you keep going back and forth on.\nBoth options feel true. You lean one way, then hesitate.\nYou're not indecisive — you're torn between two things that matter.",
-        "dont_do": "Don't force yourself to choose today.",
-        "if_ignore": "If you pick now just to end the discomfort, you'll carry the grief of what you abandoned — and question whether you chose right.",
+        "headline": "You're about to pick one just to end the tension.",
+        "live_read": "This is about choosing between two things that both matter.\nYou lean one way, then hesitate. You're not indecisive.\nYou're torn — and forcing yourself to pick won't make this cleaner.",
+        "dont_do": "Don't commit to one option today just to be done.",
+        "if_ignore": "If you pick now just to end the discomfort, you'll carry the grief of what you abandoned — emotional cost: wondering if you chose right. Relationship cost: the thing or person you let go.",
         "instead": "Name both options out loud. Let them both be real for today.",
         "cta": "What are you afraid you'll lose if you choose?",
         "decision_signal": DecisionSignal.CLARIFY,
         "scene_type": SceneType.DECISION,
+        "pinned_action": "picking one just to end it",
     },
     HomeSituation.HOLDING_BACK_EXPRESSION: {
         "arena": LifeArena.CONVERSATION,
-        "headline": "There's a conversation you're still not having.",
-        "live_read": "This is about the thing you haven't said.\nYou've rehearsed it. Drafted it. Deleted it.\nBut you keep stopping yourself before it lands.",
-        "dont_do": "Don't smooth this over and pretend it's settled.",
-        "if_ignore": "If you avoid it again today, it will come back with more charge — and you'll have to say it when you're less ready.",
-        "instead": "Write the real sentence first. You don't need to send it yet.",
-        "cta": "What exactly are you not willing to say?",
+        "headline": "You're about to smooth this over instead of saying it.",
+        "live_read": "This is about not sending that message.\nYou've rehearsed it. Drafted it. Deleted it.\nYou keep stopping yourself before you hit send.",
+        "dont_do": "Don't pretend this is settled today.",
+        "if_ignore": "If you smooth it over again, it will come back with more charge — emotional cost: saying it when you're less ready. Relationship cost: the distance that builds from not being honest.",
+        "instead": "Write the real sentence. You don't have to send it yet.",
+        "cta": "What exactly are you not saying?",
         "decision_signal": DecisionSignal.CLARIFY,
         "scene_type": SceneType.CONVERSATION,
+        "pinned_action": "smoothing this over",
     },
     HomeSituation.DIRECTION_UNCLEAR: {
         "arena": LifeArena.INTERNAL,
-        "headline": "The direction isn't clear yet. That's the signal.",
-        "live_read": "This is about the restlessness that has no clear path.\nYou know something needs to change. But you can't see where to go.\nThe pull to move is real — but the direction hasn't arrived.",
-        "dont_do": "Don't force a direction just to have one.",
-        "if_ignore": "If you pick randomly, you'll spend energy walking back — and be more confused than when you started.",
+        "headline": "You're about to pick a direction just to have one.",
+        "live_read": "This is about moving before you can see where you're going.\nYou know a change is needed. But the path isn't clear.\nThe pull to start is real — but the direction hasn't arrived.",
+        "dont_do": "Don't pick a path just to stop standing still.",
+        "if_ignore": "If you pick randomly, you'll spend energy walking back — time cost: the hours undoing what wasn't right. Emotional cost: more confusion than when you started.",
         "instead": "Take the smallest step you can actually see. Just that one.",
         "cta": "What's the ONE thing you could do without knowing what comes after?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.INTERNAL,
+        "pinned_action": "picking a direction blindly",
     },
     HomeSituation.PRESSURE_WITHOUT_READINESS: {
         "arena": LifeArena.DECISION,
-        "headline": "This pressure to decide isn't yours.",
-        "live_read": "This is about the decision someone else is waiting on.\nYou feel the urgency. But your clarity hasn't caught up.\nThe pressure is external. The readiness isn't there.",
-        "dont_do": "Don't decide today just because they're waiting.",
-        "if_ignore": "If you commit under this pressure, you'll be undoing it soon — and explaining why you weren't ready.",
+        "headline": "You're about to say yes because someone is waiting.",
+        "live_read": "This is about committing under someone else's timeline.\nYou feel the urgency. But your clarity hasn't caught up.\nThe pressure is external. The readiness isn't there.",
+        "dont_do": "Don't give them an answer today just to stop the asking.",
+        "if_ignore": "If you commit under this pressure, you'll be undoing it soon — reputation cost: explaining why you weren't ready. Relationship cost: the trust lost when you backtrack.",
         "instead": "Separate the pressure from the decision. Ask: whose deadline is this?",
         "cta": "What would you decide if no one was waiting on you?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.DECISION,
+        "pinned_action": "saying yes because they're waiting",
     },
     HomeSituation.STANDING_AT_THRESHOLD: {
         "arena": LifeArena.COMMITMENT,
-        "headline": "You're at the edge of this commitment — but you haven't crossed.",
-        "live_read": "This is about the step you almost took.\nThe door is open. You've looked at the other side.\nBut something is keeping you here — and it's not fear. It's something you're not ready to leave.",
-        "dont_do": "Don't hover at this threshold another day.",
-        "if_ignore": "If you stay in the in-between, it will drain you more than crossing or staying — and you'll lose the clarity to choose.",
+        "headline": "You're about to cross before you've let go of what's behind you.",
+        "live_read": "This is about stepping through while still holding on.\nThe door is open. You've looked at the other side.\nBut you keep pausing — and it's not fear. It's what you haven't released.",
+        "dont_do": "Don't step through while holding on today.",
+        "if_ignore": "If you stay in the in-between, it will drain you more than crossing or staying — energy cost: the exhaustion of living in two places. Emotional cost: losing the clarity to choose.",
         "instead": "Name what you'd be leaving behind. Say it out loud.",
         "cta": "What exactly are you not ready to release?",
         "decision_signal": DecisionSignal.CLARIFY,
         "scene_type": SceneType.ACTION,
+        "pinned_action": "crossing while holding on",
     },
 }
 
@@ -1281,6 +1350,9 @@ def generate_home_message(
         
         # DECISION SIGNAL
         "decision_signal": decision_signal,
+        
+        # ACTION PINNING
+        "pinned_action": message.get("pinned_action", ""),
         
         # Scene & Targeting
         "scene_type": scene_type.value,
