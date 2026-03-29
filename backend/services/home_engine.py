@@ -185,6 +185,17 @@ class LiveSignalProfile:
     # Journal binding
     recent_theme: Optional[str] = None
     bound_context: Optional[str] = None
+    
+    # ======================
+    # MEMORY ANCHORING FIELDS
+    # ======================
+    has_journal_memory: bool = False           # User has recent journal entries
+    has_pattern_recurrence: bool = False       # Pattern has shown up before
+    has_reflection_memory: bool = False        # User has recent reflections
+    journal_anchor_phrase: Optional[str] = None  # Extracted phrase from journal
+    pattern_recurrence_count: int = 0          # How many times this pattern appeared
+    days_since_pattern: int = 999              # Days since last similar pattern
+    memory_strength: float = 0.0               # 0-1, how strong the memory anchor is
 
 
 def extract_live_signals(
@@ -343,7 +354,7 @@ def extract_live_signals(
             profile.clarity_delay -= 0.2  # Reduce if clarity is high
     
     # =================================================================
-    # E. PATTERN HISTORY (Recurrence)
+    # E. PATTERN HISTORY (Recurrence + Memory Anchoring)
     # =================================================================
     if pattern_history:
         recent = [p for p in pattern_history if p.get("days_ago", 999) < 7]
@@ -351,11 +362,23 @@ def extract_live_signals(
         if len(recent) >= 3:
             profile.recurrence += 0.6
             profile.stakes_level += 0.2  # Recurring = higher stakes
+            profile.has_pattern_recurrence = True
+            profile.pattern_recurrence_count = len(recent)
         elif len(recent) >= 2:
             profile.recurrence += 0.4
             profile.stakes_level += 0.1
+            profile.has_pattern_recurrence = True
+            profile.pattern_recurrence_count = len(recent)
         elif len(recent) >= 1:
             profile.recurrence += 0.2
+            profile.has_pattern_recurrence = True
+            profile.pattern_recurrence_count = 1
+        
+        # Track days since most recent pattern
+        if recent:
+            min_days = min(p.get("days_ago", 999) for p in recent)
+            profile.days_since_pattern = min_days
+            profile.memory_strength += 0.3 if min_days <= 2 else 0.15
         
         # Check for specific pattern types
         for p in recent:
@@ -369,9 +392,11 @@ def extract_live_signals(
                 profile.action_pressure += 0.1
     
     # =================================================================
-    # F. JOURNAL ENTRIES (Theme Binding)
+    # F. JOURNAL ENTRIES (Theme Binding + Memory Anchoring)
     # =================================================================
     if journal_entries:
+        profile.has_journal_memory = True
+        
         themes = {
             "waiting": 0, "stuck": 0, "blocked": 0,
             "decision": 0, "choose": 0, "decide": 0,
@@ -380,9 +405,12 @@ def extract_live_signals(
             "say": 0, "tell": 0, "speak": 0,
             "avoid": 0, "facing": 0, "truth": 0,
             "money": 0, "pay": 0, "cost": 0,
+            "back and forth": 0, "keep thinking": 0, "can't stop": 0,
         }
         
         recent_text = ""
+        anchor_phrases = []  # Collect potential anchor phrases
+        
         for entry in journal_entries[:5]:  # Last 5 entries
             content = entry.get("content", "").lower()
             recent_text += " " + content
@@ -390,6 +418,21 @@ def extract_live_signals(
             for theme in themes:
                 if theme in content:
                     themes[theme] += 1
+            
+            # Extract anchor phrases (things user mentioned recently)
+            if "keep" in content and ("thinking" in content or "going back" in content):
+                anchor_phrases.append("what keeps coming back to you")
+            if "can't" in content and ("decide" in content or "stop" in content):
+                anchor_phrases.append("what you can't let go of")
+            if "need to" in content and ("tell" in content or "say" in content):
+                anchor_phrases.append("what you need to say")
+            if "should" in content and ("have" in content or "do" in content):
+                anchor_phrases.append("what you've been putting off")
+        
+        # Set journal anchor phrase
+        if anchor_phrases:
+            profile.journal_anchor_phrase = anchor_phrases[0]
+            profile.memory_strength += 0.4
         
         # Detect dominant theme
         theme_groups = {
@@ -414,6 +457,11 @@ def extract_live_signals(
         if themes["avoid"] + themes["facing"] + themes["truth"] >= 2:
             profile.avoidance += 0.35
             profile.strongest_tension = CoreTension.KNOWING_VS_AVOIDING
+        
+        # Recurrence signal from journal
+        if themes["back and forth"] + themes["keep thinking"] + themes["can't stop"] >= 1:
+            profile.recurrence += 0.2
+            profile.memory_strength += 0.2
         
         # Extract recent theme for context binding
         if len(recent_text) > 50:
@@ -537,55 +585,99 @@ SITUATION_SCENE_TYPE = {
 
 
 # =============================================================================
-# TARGETED SITUATION CONTEXTS (ONE specific moment)
+# TARGETED SITUATION CONTEXTS (Memory-anchored, no generic language)
 # =============================================================================
 
+# Generic contexts (fallback when no memory)
 SITUATION_CONTEXTS = {
     SceneType.DECISION: [
-        "a decision you've been trying to push through",
-        "a choice you keep circling back to",
-        "something you've already decided but haven't committed to",
-        "a decision you want resolved today",
+        "the thing you've been going back and forth on",
+        "what keeps not landing",
+        "what you've already decided but won't commit to",
+        "what you're trying to close before you're ready",
     ],
     SceneType.CONVERSATION: [
-        "a conversation you're avoiding or softening",
-        "something you haven't said to someone",
-        "a message you're not sending",
-        "a truth you're holding back in words",
+        "what you're not saying out loud",
+        "what you've been rehearsing in your head",
+        "what you keep editing before it comes out",
+        "what you're holding back to keep the peace",
     ],
     SceneType.ACTION: [
-        "something you're trying to close quickly",
-        "a move you're about to make",
-        "something you want done now",
-        "an action you're forcing through",
+        "what you're trying to force through",
+        "the move you keep almost making",
+        "what you want done before it's ready",
+        "what you're pushing against instead of around",
     ],
     SceneType.RELATIONSHIP: [
-        "a tension with someone that isn't fully spoken",
-        "a dynamic with someone that feels off",
-        "something between you and another person",
-        "a relationship pattern you're navigating",
+        "what's unspoken between you and them",
+        "the dynamic that's been off lately",
+        "what you're waiting for them to do",
+        "what you're pretending is fine",
     ],
     SceneType.INTERNAL: [
-        "something you already know but haven't faced",
-        "a truth you're circling without landing",
-        "something inside you that wants attention",
-        "a feeling you keep pushing down",
+        "what you already know but haven't faced",
+        "what keeps showing up in your head",
+        "what you're protecting yourself from seeing",
+        "the truth you're circling but not landing",
     ],
+}
+
+# Memory-anchored contexts (when user has recent journal/patterns)
+MEMORY_ANCHORED_CONTEXTS = {
+    SceneType.DECISION: [
+        "what you've been revisiting in your head",
+        "what keeps coming back no matter how many times you think through it",
+        "what you mentioned recently—still not resolved",
+        "the thing that won't settle",
+    ],
+    SceneType.CONVERSATION: [
+        "what you've been meaning to say",
+        "what you almost said last time",
+        "what you've written but not sent",
+        "what's been building up",
+    ],
+    SceneType.ACTION: [
+        "what you keep almost doing",
+        "what you've been about to do for days",
+        "what you're forcing before you're ready for what comes after",
+        "what you're trying to move before the ground is solid",
+    ],
+    SceneType.RELATIONSHIP: [
+        "what's been between you and them lately",
+        "what you're waiting for them to see",
+        "what you're pretending isn't there",
+        "what keeps showing up in your interactions",
+    ],
+    SceneType.INTERNAL: [
+        "what you already know—you've been circling it",
+        "this keeps coming back for a reason",
+        "what you've been avoiding looking at directly",
+        "what showed up again recently",
+    ],
+}
+
+# Recurrence-based contexts (when pattern has shown up multiple times)
+RECURRENCE_CONTEXTS = {
+    SceneType.DECISION: "this keeps coming back because you haven't actually resolved it",
+    SceneType.CONVERSATION: "this keeps coming back because you haven't said it",
+    SceneType.ACTION: "this keeps coming back because you haven't done it or let it go",
+    SceneType.RELATIONSHIP: "this keeps coming back because it's not actually handled",
+    SceneType.INTERNAL: "this keeps coming back because you know what it means",
 }
 
 
 # =============================================================================
-# HIGH-STAKES HOME MESSAGES (Consequence-based, no soft phrasing)
+# HIGH-STAKES HOME MESSAGES (Memory-anchored, upgraded CTAs)
 # =============================================================================
 
 HOME_MESSAGES = {
     HomeSituation.FORCING_PREMATURE: {
-        "opening_hit": "You're about to force something that will take longer to undo than to wait.",
+        "opening_hit": "You're trying to move this forward before you're ready to deal with what comes next.",
         "tension": "The urge is real—but acting now is the mistake.",
         "tension_expanded": "Part of you wants to close this today.\nBut another part knows the ground isn't ready.",
-        "stakes": "If you push this through now, you'll create more cleanup than progress. The mess will outlast the relief.",
+        "stakes": "If you push this through now, the mess will outlast the relief. You're not avoiding consequences—you're deferring them.",
         "wise_move": "Don't move until the signal feels settled—not just urgent.",
-        "cta": "See what's not ready yet →",
+        "cta": "What are you trying to skip?",
         "scene_type": SceneType.ACTION,
     },
     HomeSituation.WAITING_WITHOUT_CLARITY: {
@@ -594,7 +686,7 @@ HOME_MESSAGES = {
         "tension_expanded": "Part of you wants to know now.\nBut another part knows the clarity hasn't landed.",
         "stakes": "Deciding just to end the discomfort will lock in a wrong answer. You'll have to revisit this.",
         "wise_move": "Hold the question one more day. Let it settle before you commit.",
-        "cta": "See what's actually clear →",
+        "cta": "What are you pretending is clear?",
         "scene_type": SceneType.DECISION,
     },
     HomeSituation.BLOCKED_BY_OTHERS: {
@@ -603,7 +695,7 @@ HOME_MESSAGES = {
         "tension_expanded": "Part of you is ready to go.\nBut another part is waiting on something you can't control.",
         "stakes": "Pushing them won't make them move faster. It will only create friction you'll have to manage.",
         "wise_move": "Name what's actually in your hands. Do that instead.",
-        "cta": "See what you can do now →",
+        "cta": "What are you waiting for them to do?",
         "scene_type": SceneType.RELATIONSHIP,
     },
     HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
@@ -612,7 +704,7 @@ HOME_MESSAGES = {
         "tension_expanded": "Part of you sees the truth clearly.\nBut another part is protecting you from what comes next.",
         "stakes": "The longer you avoid naming this, the heavier it gets. Avoidance compounds.",
         "wise_move": "Name it to yourself. Privately. That's the first move.",
-        "cta": "Face what you already know →",
+        "cta": "What are you avoiding admitting?",
         "scene_type": SceneType.INTERNAL,
     },
     HomeSituation.PUSHING_AGAINST_RESISTANCE: {
@@ -621,7 +713,7 @@ HOME_MESSAGES = {
         "tension_expanded": "Part of you wants to break through.\nBut another part feels the friction burning energy.",
         "stakes": "More effort in this direction will exhaust you without creating progress. You'll burn out, not break through.",
         "wise_move": "Pause. Ask: where IS there flow right now? Go there instead.",
-        "cta": "See what's actually open →",
+        "cta": "What would happen if you stopped pushing?",
         "scene_type": SceneType.ACTION,
     },
     HomeSituation.TORN_BETWEEN_OPTIONS: {
@@ -630,7 +722,7 @@ HOME_MESSAGES = {
         "tension_expanded": "Part of you wants one path.\nBut another part wants something that contradicts it.",
         "stakes": "Choosing now to escape the discomfort will abandon something that matters. You'll circle back to this.",
         "wise_move": "Name both options honestly. Let them both be real for now.",
-        "cta": "See both sides clearly →",
+        "cta": "What are you afraid of losing?",
         "scene_type": SceneType.DECISION,
     },
     HomeSituation.HOLDING_BACK_EXPRESSION: {
@@ -639,7 +731,7 @@ HOME_MESSAGES = {
         "tension_expanded": "Something wants to come out.\nBut something else is keeping it locked in.",
         "stakes": "What's unsaid doesn't disappear. It builds into resentment, distance, or an explosion. This is accumulating.",
         "wise_move": "Say it somewhere safe first. Write it. Voice memo. Then decide if it needs to land.",
-        "cta": "See what wants to be said →",
+        "cta": "What are you not saying?",
         "scene_type": SceneType.CONVERSATION,
     },
     HomeSituation.DIRECTION_UNCLEAR: {
@@ -648,7 +740,7 @@ HOME_MESSAGES = {
         "tension_expanded": "Part of you knows change is coming.\nBut another part can't see the path.",
         "stakes": "Forcing a direction just to have one will cost you time. Wrong paths still take energy to walk back.",
         "wise_move": "Take the smallest visible step. The next one appears after.",
-        "cta": "See what's emerging →",
+        "cta": "What do you already know but won't admit?",
         "scene_type": SceneType.INTERNAL,
     },
     HomeSituation.PRESSURE_WITHOUT_READINESS: {
@@ -657,7 +749,7 @@ HOME_MESSAGES = {
         "tension_expanded": "Part of you feels the clock ticking.\nBut another part knows you're not actually ready.",
         "stakes": "Deciding under pressure without clarity will give you relief now and regret later. You'll revisit this.",
         "wise_move": "Separate the pressure from the decision. Ask: whose deadline is this?",
-        "cta": "See what's truly urgent →",
+        "cta": "Whose pressure is this really?",
         "scene_type": SceneType.DECISION,
     },
     HomeSituation.STANDING_AT_THRESHOLD: {
@@ -666,7 +758,7 @@ HOME_MESSAGES = {
         "tension_expanded": "Part of you is ready to cross.\nBut another part is still holding onto what's behind.",
         "stakes": "Hovering at the threshold drains more than crossing or staying. The in-between costs the most.",
         "wise_move": "Name what you'd be leaving. Then decide if you're ready to leave it.",
-        "cta": "See what's on the other side →",
+        "cta": "What are you not ready to let go of?",
         "scene_type": SceneType.ACTION,
     },
 }
@@ -844,15 +936,46 @@ def select_home_situation(profile: LiveSignalProfile) -> Tuple[HomeSituation, fl
 
 
 # =============================================================================
-# HOME MESSAGE GENERATION (with Situation Targeting)
+# HOME MESSAGE GENERATION (with Memory Anchoring)
 # =============================================================================
 
 def get_targeted_context(situation: HomeSituation, profile: LiveSignalProfile) -> str:
     """
-    Generate ONE specific real-life context based on situation and signals.
-    No vague language. Points to exactly ONE moment.
+    Generate ONE specific, memory-anchored context.
+    
+    Priority:
+    1. Journal anchor phrase (if extracted)
+    2. Recurrence context (if pattern is recurring)
+    3. Memory-anchored context (if has journal/pattern memory)
+    4. Signal-based context (fallback)
     """
     scene_type = SITUATION_SCENE_TYPE.get(situation, SceneType.INTERNAL)
+    
+    # PRIORITY 1: Journal anchor phrase (most specific)
+    if profile.journal_anchor_phrase:
+        return profile.journal_anchor_phrase
+    
+    # PRIORITY 2: Recurrence context (pattern keeps coming back)
+    if profile.has_pattern_recurrence and profile.pattern_recurrence_count >= 3:
+        return RECURRENCE_CONTEXTS.get(scene_type, "this keeps coming back")
+    
+    # PRIORITY 3: Memory-anchored context (user has recent journal/patterns)
+    if profile.has_journal_memory or profile.has_pattern_recurrence:
+        memory_contexts = MEMORY_ANCHORED_CONTEXTS.get(scene_type, MEMORY_ANCHORED_CONTEXTS[SceneType.INTERNAL])
+        
+        # Choose based on recency/strength
+        if profile.days_since_pattern <= 1:
+            idx = 3  # "what showed up again recently" / most immediate
+        elif profile.memory_strength > 0.5:
+            idx = 0  # "what you've been revisiting" / strong anchor
+        elif profile.recurrence > 0.3:
+            idx = 1  # "keeps coming back" variant
+        else:
+            idx = 2  # moderate anchor
+        
+        return memory_contexts[min(idx, len(memory_contexts) - 1)]
+    
+    # PRIORITY 4: Signal-based context (no memory, use current signals)
     contexts = SITUATION_CONTEXTS.get(scene_type, SITUATION_CONTEXTS[SceneType.INTERNAL])
     
     # Choose the most specific context based on profile signals
@@ -860,69 +983,55 @@ def get_targeted_context(situation: HomeSituation, profile: LiveSignalProfile) -
     
     if scene_type == SceneType.DECISION:
         if profile.urgency > 0.4:
-            idx = 0  # "a decision you've been trying to push through"
+            idx = 0  # "the thing you've been going back and forth on"
         elif profile.recurrence > 0.3:
-            idx = 1  # "a choice you keep circling back to"
+            idx = 1  # "what keeps not landing"
         elif profile.clarity_delay > 0.4:
-            idx = 2  # "something you've already decided but haven't committed to"
+            idx = 2  # "what you've already decided but won't commit to"
         else:
-            idx = 3  # "a decision you want resolved today"
+            idx = 3  # "what you're trying to close before you're ready"
     
     elif scene_type == SceneType.CONVERSATION:
         if profile.avoidance > 0.3:
-            idx = 0  # "a conversation you're avoiding or softening"
-        elif profile.external_dependency > 0.3:
-            idx = 1  # "something you haven't said to someone"
+            idx = 0  # "what you're not saying out loud"
+        elif profile.emotional_intensity > 0.3:
+            idx = 1  # "what you've been rehearsing in your head"
         elif profile.action_pressure > 0.3:
-            idx = 2  # "a message you're not sending"
+            idx = 2  # "what you keep editing before it comes out"
         else:
-            idx = 3  # "a truth you're holding back in words"
+            idx = 3  # "what you're holding back to keep the peace"
     
     elif scene_type == SceneType.ACTION:
         if profile.urgency > 0.4:
-            idx = 0  # "something you're trying to close quickly"
+            idx = 0  # "what you're trying to force through"
         elif profile.readiness_mismatch > 0.3:
-            idx = 1  # "a move you're about to make"
+            idx = 1  # "the move you keep almost making"
         elif profile.action_pressure > 0.4:
-            idx = 2  # "something you want done now"
+            idx = 2  # "what you want done before it's ready"
         else:
-            idx = 3  # "an action you're forcing through"
+            idx = 3  # "what you're pushing against instead of around"
     
     elif scene_type == SceneType.RELATIONSHIP:
         if profile.expression_blockage > 0.3:
-            idx = 0  # "a tension with someone that isn't fully spoken"
+            idx = 0  # "what's unspoken between you and them"
         elif profile.avoidance > 0.3:
-            idx = 1  # "a dynamic with someone that feels off"
+            idx = 1  # "the dynamic that's been off lately"
         elif profile.external_dependency > 0.4:
-            idx = 2  # "something between you and another person"
+            idx = 2  # "what you're waiting for them to do"
         else:
-            idx = 3  # "a relationship pattern you're navigating"
+            idx = 3  # "what you're pretending is fine"
     
     elif scene_type == SceneType.INTERNAL:
         if profile.avoidance > 0.4:
-            idx = 0  # "something you already know but haven't faced"
+            idx = 0  # "what you already know but haven't faced"
         elif profile.recurrence > 0.3:
-            idx = 1  # "a truth you're circling without landing"
+            idx = 1  # "what keeps showing up in your head"
         elif profile.emotional_intensity > 0.3:
-            idx = 2  # "something inside you that wants attention"
+            idx = 2  # "what you're protecting yourself from seeing"
         else:
-            idx = 3  # "a feeling you keep pushing down"
+            idx = 3  # "the truth you're circling but not landing"
     
-    # Override with journal-bound context if available
-    if profile.bound_context:
-        return profile.bound_context
-    
-    # Override with recent theme if available
-    if profile.recent_theme:
-        theme_overrides = {
-            "decision": "a decision you've been weighing",
-            "work": "a work situation that needs resolution",
-            "relationship": "something unspoken with someone",
-            "expression": "something you haven't said",
-        }
-        return theme_overrides.get(profile.recent_theme, contexts[idx])
-    
-    return contexts[idx]
+    return contexts[min(idx, len(contexts) - 1)]
 
 
 def generate_home_message(
@@ -986,6 +1095,11 @@ def generate_home_message(
         "scene_type": scene_type.value,
         "targeted_context": targeted_context,
         
+        # Memory Anchoring Info
+        "memory_anchored": profile.has_journal_memory or profile.has_pattern_recurrence,
+        "memory_strength": round(profile.memory_strength, 2),
+        "recurrence_count": profile.pattern_recurrence_count,
+        
         # Metadata
         "situation": situation.value,
         "confidence": confidence,
@@ -1005,6 +1119,10 @@ def generate_home_message(
             "recurrence": round(profile.recurrence, 2),
             "avoidance": round(profile.avoidance, 2),
             "readiness_mismatch": round(profile.readiness_mismatch, 2),
+            "has_journal_memory": profile.has_journal_memory,
+            "has_pattern_recurrence": profile.has_pattern_recurrence,
+            "journal_anchor_phrase": profile.journal_anchor_phrase,
+            "days_since_pattern": profile.days_since_pattern,
         },
     }
 
@@ -1015,6 +1133,8 @@ def generate_home_message(
 
 def format_home_for_display(home: Dict[str, Any]) -> str:
     """Format Home message for display (testing/preview)."""
+    memory_indicator = "📍 MEMORY-ANCHORED" if home.get("memory_anchored") else "📎 SIGNAL-BASED"
+    
     lines = [
         home["opening_hit"],
         "",
@@ -1029,6 +1149,6 @@ def format_home_for_display(home: Dict[str, Any]) -> str:
         f"[{home['cta']}]",
         "",
         f"---",
-        f"Scene: {home.get('scene_type', 'internal')}",
+        f"{memory_indicator} | Scene: {home.get('scene_type', 'internal')}",
     ]
     return "\n".join(lines)
