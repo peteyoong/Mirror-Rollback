@@ -878,9 +878,9 @@ class LifeArena:
 HOME_MESSAGES = {
     HomeSituation.FORCING_PREMATURE: {
         "arena": LifeArena.COMMITMENT,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "You can feel it's not ready.\n\nYou're about to close it anyway.\n\nYou push. It doesn't land. You push again.\n\n— you felt that.\n\nLock this in now and you'll be reopening it by Friday.\n\nSo… what's actually off?",
-        # LEGACY FIELDS (kept for backward compatibility)
+        # V9 FINAL — HUMAN INTERRUPT + GENIUS INTEGRATION
+        "flow": "You can feel it's not ready.\n\nYou're about to close it anyway.\n\nYou're good at finishing things. That's the problem here.\n\nYou push. It doesn't land. You push again — you felt that.\n\nLock this in now and you'll be reopening it by Friday.\n\nSo… what's actually off?",
+        # LEGACY FIELDS
         "core_line": "You can feel it's not ready. You're about to close it anyway.",
         "reinforcement": "You push.\nIt doesn't land.\nYou push again.",
         "pressure": "Lock this in now and you'll be reopening it by Friday.",
@@ -897,8 +897,8 @@ HOME_MESSAGES = {
     },
     HomeSituation.WAITING_WITHOUT_CLARITY: {
         "arena": LifeArena.DECISION,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "You keep thinking through the same thing.\n\nYou run it again. Land nowhere.\n\nAgain.\n\nThat loop.\n\nForce this call and you'll be right back here tomorrow.\n\nSo maybe the decision isn't the problem.\n\nWhat's the one thing you're still missing?",
+        # V9 FINAL
+        "flow": "You keep thinking through the same thing.\n\nYou run it again. Land nowhere. Again.\n\nYou're thorough. You don't like leaving gaps. That's why this loop won't end.\n\nForce this call and you'll be right back here tomorrow.\n\nMaybe the decision isn't the problem.\n\nWhat's the one thing you're still missing?",
         # LEGACY FIELDS
         "core_line": "You keep thinking through the same thing.",
         "reinforcement": "You run it again.\nYou land nowhere.\nAgain.",
@@ -916,8 +916,8 @@ HOME_MESSAGES = {
     },
     HomeSituation.BLOCKED_BY_OTHERS: {
         "arena": LifeArena.RELATIONSHIP,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "They still haven't replied.\n\nYou check. Nothing.\n\nYou're already drafting another message.\n\n— see it?\n\nSend it and you become the one who keeps pushing.\n\nMaybe leave it.\n\nWhat can you close without them?",
+        # V9 FINAL
+        "flow": "They still haven't replied.\n\nYou check. Nothing.\n\nYou're already drafting another message. See it?\n\nYou don't like loose threads. That's what's making this hard.\n\nSend it and you become the one who keeps pushing.\n\nMaybe leave it.\n\nWhat can you close without them?",
         # LEGACY FIELDS
         "core_line": "They still haven't replied.",
         "reinforcement": "You check.\nNothing.\nYou're drafting another message.",
@@ -935,8 +935,8 @@ HOME_MESSAGES = {
     },
     HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
         "arena": LifeArena.INTERNAL,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "You already know what's off here.\n\nYou're just trying to get past it.\n\nAnd you're about to do it again.\n\n— you can feel that.\n\nThe second you push this through, it comes back.\n\nSo… what doesn't sit right?",
+        # V9 FINAL
+        "flow": "You already know what's off here.\n\nYou're just trying to get past it.\n\nYou're good at pushing things through. That's the problem here.\n\nAnd you're about to do it again — you know that.\n\nThe second you push this through, it comes back.\n\nSo… what doesn't sit right?",
         # LEGACY FIELDS
         "core_line": "You already know what's wrong here.",
         "reinforcement": "You keep trying to close it anyway.\nIt keeps reopening.",
@@ -954,8 +954,8 @@ HOME_MESSAGES = {
     },
     HomeSituation.PUSHING_AGAINST_RESISTANCE: {
         "arena": LifeArena.COMMITMENT,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "This didn't work the first time.\n\nOr the second.\n\nYou push. Nothing. You're winding up to push again.\n\nThat tension in your shoulders.\n\nSame approach, same result. You'll just be more tired.\n\nMaybe the force isn't the problem.\n\nWhere is there actual movement?",
+        # V9 FINAL
+        "flow": "This didn't work the first time. Or the second.\n\nYou push. Nothing.\n\nYou're winding up to push again. That tension.\n\nYou don't quit. That's usually a strength. Not here.\n\nSame approach, same result. You'll just be more tired.\n\nWhere is there actual movement?",
         # LEGACY FIELDS
         "core_line": "This didn't work the first time. Or the second.",
         "reinforcement": "You push.\nNothing.\nYou're winding up to push again.",
@@ -973,8 +973,8 @@ HOME_MESSAGES = {
     },
     HomeSituation.TORN_BETWEEN_OPTIONS: {
         "arena": LifeArena.DECISION,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "Back and forth.\n\nYou lean left. You lean right.\n\nYou're exhausted.\n\nYou're about to just pick one to end it.\n\n— notice that impulse.\n\nPick now and you carry the doubt into whatever you choose.\n\nBefore you decide…\n\nwhat would you lose on each side?",
+        # V9 FINAL
+        "flow": "Back and forth.\n\nYou lean left. You lean right. You're exhausted.\n\nYou see both sides clearly. That's why this is hard — not because you're confused.\n\nYou're about to just pick one to end it.\n\nPick now and you carry the doubt into whatever you choose.\n\nBefore you decide… what would you lose on each side?",
         # LEGACY FIELDS
         "core_line": "Back and forth. You're about to just pick one to end it.",
         "reinforcement": "You lean left.\nYou lean right.\nYou're exhausted.",
@@ -992,8 +992,8 @@ HOME_MESSAGES = {
     },
     HomeSituation.HOLDING_BACK_EXPRESSION: {
         "arena": LifeArena.CONVERSATION,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "You know what you want to say.\n\nYou're softening it again.\n\nYou write it. Rewrite it. Delete the sharp part.\n\nThere it is.\n\nSend the soft one and you'll regret it by tonight.\n\nSo write the real version first.\n\nWhat are you actually trying to say?",
+        # V9 FINAL
+        "flow": "You know what you want to say.\n\nYou're softening it again.\n\nYou write it. Rewrite it. Delete the sharp part.\n\nYou're careful with words. That's a gift — except when it becomes editing yourself out.\n\nThere.\n\nSend the soft one and you'll regret it by tonight.\n\nWhat are you actually trying to say?",
         # LEGACY FIELDS
         "core_line": "You know what you want to say. You're softening it again.",
         "reinforcement": "You write it.\nYou rewrite it.\nYou delete the sharp part.",
@@ -1011,8 +1011,8 @@ HOME_MESSAGES = {
     },
     HomeSituation.DIRECTION_UNCLEAR: {
         "arena": LifeArena.INTERNAL,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "You can't see where this goes.\n\nYou're about to move anyway.\n\nYou look for the path. It's not there.\n\nYou're picking just to feel less stuck.\n\n— that urge.\n\nMove blind and you'll be walking it back.\n\nSo slow down.\n\nWhat's the one step you can actually see?",
+        # V9 FINAL
+        "flow": "You can't see where this goes.\n\nYou're about to move anyway.\n\nYou look for the path. It's not there. You're picking just to feel less stuck.\n\nYou hate standing still. That impulse.\n\nMove blind and you'll be walking it back.\n\nWhat's the one step you can actually see?",
         # LEGACY FIELDS
         "core_line": "You can't see where this goes. You're about to move anyway.",
         "reinforcement": "You look for the path.\nIt's not there.\nYou're picking just to feel less stuck.",
@@ -1030,8 +1030,8 @@ HOME_MESSAGES = {
     },
     HomeSituation.PRESSURE_WITHOUT_READINESS: {
         "arena": LifeArena.DECISION,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "They're waiting.\n\nYour gut is saying no.\n\nYou feel the pressure. You're about to answer anyway.\n\nNot because you're ready.\n\n— you know that.\n\nSay yes now and you'll be unsaying it later.\n\nTheir timeline isn't yours.\n\nWhat would you decide if no one was waiting?",
+        # V9 FINAL
+        "flow": "They're waiting.\n\nYour gut is saying no.\n\nYou feel the pressure. You're about to answer anyway. Not because you're ready — you know that.\n\nYou're responsive. You don't like leaving people hanging. That's working against you here.\n\nSay yes now and you'll be unsaying it later.\n\nWhat would you decide if no one was waiting?",
         # LEGACY FIELDS
         "core_line": "They're waiting. Your gut is saying no.",
         "reinforcement": "You feel the pressure.\nYou're about to answer anyway.\nNot because you're ready.",
@@ -1049,8 +1049,8 @@ HOME_MESSAGES = {
     },
     HomeSituation.STANDING_AT_THRESHOLD: {
         "arena": LifeArena.COMMITMENT,
-        # V8 HUMAN INTERRUPT LAYER
-        "flow": "One foot in. One foot out.\n\nYou're stuck in the doorway.\n\nYou look forward. You reach back.\n\nYou're trying to hold both.\n\n— feel that pull.\n\nCross while gripping and you'll feel it tear.\n\nSo before you move…\n\nwhat are you still holding onto?",
+        # V9 FINAL
+        "flow": "One foot in. One foot out.\n\nYou're stuck in the doorway.\n\nYou look forward. You reach back. You're trying to hold both.\n\nYou carry things. You don't drop them easily. That's what's making this hard.\n\nCross while gripping and you'll feel it tear.\n\nWhat are you still holding onto?",
         # LEGACY FIELDS
         "core_line": "One foot in, one foot out. You're stuck in the doorway.",
         "reinforcement": "You look forward.\nYou reach back.\nYou're trying to hold both.",
