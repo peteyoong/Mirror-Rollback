@@ -18537,6 +18537,86 @@ async def get_bazi_chart_full(user_id: str):
         raise HTTPException(status_code=500, detail="Failed to compute BaZi chart")
 
 
+
+# =====================================================================
+# BAZI INSIGHT LAYER ENDPOINT - "Insight First + Proof Expand"
+# =====================================================================
+
+@api_router.get("/bazi/{user_id}/insight")
+async def get_bazi_insight(user_id: str):
+    """
+    Get BaZi data transformed for "Insight First + Proof Expand" architecture.
+    
+    Returns recognition-first insights without BaZi system language,
+    with chart details available in collapsible sections.
+    
+    Structure:
+    1. core_truth: Recognition line (no BaZi language)
+    2. how_this_shows_up: Real-life behaviors
+    3. when_this_backfires: Sharp, specific
+    4. what_this_costs_you: Energy, relationships, opportunities
+    5. one_shift: Doable today
+    6. why_showing_up: Light explanation (collapsible)
+    7. chart_details: Raw BaZi data (collapsible)
+    """
+    from services.bazi_insight_layer import transform_bazi_to_insight_first
+    
+    try:
+        # Get user data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check for required birth data
+        birth_date = user.get("birth_date")
+        if not birth_date:
+            raise HTTPException(
+                status_code=400, 
+                detail="Birth date is required for BaZi calculation."
+            )
+        
+        birth_time = user.get("birth_time")
+        timezone = user.get("timezone")
+        
+        # Compute V2 BaZi chart with timing
+        chart = compute_bazi_chart_v2(
+            birth_date=birth_date,
+            birth_time=birth_time,
+            timezone=timezone,
+            include_timing=True
+        )
+        
+        # Transform to insight-first format
+        insight_data = transform_bazi_to_insight_first(
+            day_master_element=chart["day_master"]["element"],
+            day_master_polarity=chart["day_master"]["polarity"],
+            day_master_strength=chart["day_master"]["strength"],
+            life_pattern=chart.get("deep_dive", {}).get("life_pattern", {}),
+            ten_gods_detailed=chart.get("deep_dive", {}).get("ten_gods_detailed", []),
+            timing=chart.get("timing"),
+            pillars=chart.get("pillars"),
+            favorable_elements=chart.get("deep_dive", {}).get("favorable_elements", []),
+            unfavorable_elements=chart.get("deep_dive", {}).get("unfavorable_elements", []),
+        )
+        
+        logger.info(f"[BaZi Insight] Generated insight-first data for user {user_id}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "insight": insight_data,
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[BaZi Insight] Error for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Failed to generate BaZi insight")
+
+
+
 # =====================================================================
 # BAZI TODAY ENDPOINT - UNIFIED TIMING INTELLIGENCE
 # =====================================================================

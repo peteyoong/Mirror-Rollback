@@ -38,6 +38,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
 import KeystoneReferenceLink from './KeystoneReferenceLink';
+import BaZiInsightDeepDive from './BaZiInsightDeepDive';
 
 // =============================================================================
 // INTERFACES (V2 Response Shape)
@@ -496,16 +497,16 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
       blurb: "The fundamental energy that shapes how you move through life.",
     },
     today: {
-      title: "Today's Element Energy",
-      blurb: "What BaZi energy is active today and how it may affect you.",
+      title: "What's Active Today",
+      blurb: "How today's energy interacts with your pattern.",
     },
     snapshot: {
       title: "Current Timing",
-      blurb: "What today, this month, and this year are activating in your chart.",
+      blurb: "What today, this month, and this year are activating.",
     },
     deep_dive: {
-      title: "Deeper Patterns",
-      blurb: "The behavioral tendencies and hidden dynamics that shape your experience.",
+      title: "Core Pattern",
+      blurb: "The pattern that runs you — and what it costs when unchecked.",
     },
   };
   
@@ -1725,15 +1726,13 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
           </>
         )}
 
-        {activeTab === 'deep_dive' && data?.deep_dive && (
+        {activeTab === 'deep_dive' && (
           <>
             {renderTabBlurb()}
-            {renderCoreEngine()}
-            {renderSupportsAndDrains()}
-            {renderBehavioralPatterns()}
-            {renderHiddenLayers()}
-            {renderLifePattern()}
-            {renderUnifiedAskSection('deep_dive')}
+            <BaZiInsightDeepDive 
+              userId={userId} 
+              onOpenChat={() => handleAskAboutLens('deep_dive')}
+            />
           </>
         )}
 
