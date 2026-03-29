@@ -878,12 +878,13 @@ class LifeArena:
 HOME_MESSAGES = {
     HomeSituation.FORCING_PREMATURE: {
         "arena": LifeArena.COMMITMENT,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "You can feel it's not ready.\n\nYou're about to close it anyway.\n\nYou push. It doesn't land. You push again.\n\nLock this in now and you'll be reopening it by Friday.\n\nSo before you sign off—\n\nwhat's actually off?",
+        # LEGACY FIELDS (kept for backward compatibility)
         "core_line": "You can feel it's not ready. You're about to close it anyway.",
         "reinforcement": "You push.\nIt doesn't land.\nYou push again.",
         "pressure": "Lock this in now and you'll be reopening it by Friday.",
         "shift": "Say what's actually off. Then decide.",
-        # LEGACY FIELDS
         "headline": "You can feel it's not ready. You're about to close it anyway.",
         "live_read": "You push.\nIt doesn't land.\nYou push again.",
         "dont_do": "Don't sign off on this today.",
@@ -896,12 +897,13 @@ HOME_MESSAGES = {
     },
     HomeSituation.WAITING_WITHOUT_CLARITY: {
         "arena": LifeArena.DECISION,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "You keep thinking through the same thing.\n\nYou run it again. Land nowhere. Again.\n\nForce this call and you'll be right back here tomorrow.\n\nSo maybe the decision isn't the problem.\n\nWhat's the one thing you're still missing?",
+        # LEGACY FIELDS
         "core_line": "You keep thinking through the same thing.",
         "reinforcement": "You run it again.\nYou land nowhere.\nAgain.",
         "pressure": "Force this call and you'll be back here tomorrow.",
         "shift": "What's the one thing you're still missing?",
-        # LEGACY FIELDS
         "headline": "You keep thinking through the same thing.",
         "live_read": "You run it again.\nYou land nowhere.\nAgain.",
         "dont_do": "Don't force the call today.",
@@ -914,12 +916,13 @@ HOME_MESSAGES = {
     },
     HomeSituation.BLOCKED_BY_OTHERS: {
         "arena": LifeArena.RELATIONSHIP,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "They still haven't replied.\n\nYou check. Nothing.\n\nYou're already drafting another message.\n\nSend it and you become the one who keeps pushing.\n\nMaybe leave it.\n\nWhat can you close without them?",
+        # LEGACY FIELDS
         "core_line": "They still haven't replied.",
         "reinforcement": "You check.\nNothing.\nYou're drafting another message.",
         "pressure": "Send it and you're the one who keeps pushing.",
         "shift": "Leave it. Do what you can without them.",
-        # LEGACY FIELDS
         "headline": "They still haven't replied.",
         "live_read": "You check.\nNothing.\nYou're drafting another message.",
         "dont_do": "Don't send that follow-up.",
@@ -932,12 +935,13 @@ HOME_MESSAGES = {
     },
     HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
         "arena": LifeArena.INTERNAL,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "You already know what's off here.\n\nYou're just trying to get past it.\n\nAnd you're about to do it again.\n\nThe second you push this through, it's coming back.\n\nSo don't rush it.\n\nWhat doesn't sit right?",
+        # LEGACY FIELDS
         "core_line": "You already know what's wrong here.",
         "reinforcement": "You keep trying to close it anyway.\nIt keeps reopening.",
         "pressure": "Push through now and it comes back harder.",
         "shift": "Say it. Out loud.",
-        # LEGACY FIELDS
         "headline": "You already know what's wrong here.",
         "live_read": "You keep trying to close it anyway.\nIt keeps reopening.",
         "dont_do": "Don't tell yourself it's fine.",
@@ -950,12 +954,13 @@ HOME_MESSAGES = {
     },
     HomeSituation.PUSHING_AGAINST_RESISTANCE: {
         "arena": LifeArena.COMMITMENT,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "This didn't work the first time.\n\nOr the second.\n\nYou push. Nothing. You're winding up to push again.\n\nSame approach, same result. You'll just be more tired.\n\nMaybe the force isn't the problem.\n\nWhere is there actual movement?",
+        # LEGACY FIELDS
         "core_line": "This didn't work the first time. Or the second.",
         "reinforcement": "You push.\nNothing.\nYou're winding up to push again.",
         "pressure": "Same approach, same result. You'll just be more tired.",
         "shift": "Where is there actual movement? Go there.",
-        # LEGACY FIELDS
         "headline": "This didn't work the first time. Or the second.",
         "live_read": "You push.\nNothing.\nYou're winding up to push again.",
         "dont_do": "Don't force this through today.",
@@ -968,12 +973,13 @@ HOME_MESSAGES = {
     },
     HomeSituation.TORN_BETWEEN_OPTIONS: {
         "arena": LifeArena.DECISION,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "Back and forth.\n\nYou lean left. You lean right. You're exhausted.\n\nYou're about to just pick one to end it.\n\nPick now and you carry the doubt into whatever you choose.\n\nBefore you decide—\n\nwhat would you lose on each side?",
+        # LEGACY FIELDS
         "core_line": "Back and forth. You're about to just pick one to end it.",
         "reinforcement": "You lean left.\nYou lean right.\nYou're exhausted.",
         "pressure": "Pick now and you carry the doubt into whatever you choose.",
         "shift": "Name what you'd lose on each side first.",
-        # LEGACY FIELDS
         "headline": "Back and forth. You're about to just pick one to end it.",
         "live_read": "You lean left.\nYou lean right.\nYou're exhausted.",
         "dont_do": "Don't commit just to end the discomfort.",
@@ -986,12 +992,13 @@ HOME_MESSAGES = {
     },
     HomeSituation.HOLDING_BACK_EXPRESSION: {
         "arena": LifeArena.CONVERSATION,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "You know what you want to say.\n\nYou're softening it again.\n\nYou write it. Rewrite it. Delete the sharp part.\n\nSend the soft one and you'll regret it by tonight.\n\nSo write the real version first.\n\nWhat are you actually trying to say?",
+        # LEGACY FIELDS
         "core_line": "You know what you want to say. You're softening it again.",
         "reinforcement": "You write it.\nYou rewrite it.\nYou delete the sharp part.",
         "pressure": "Send the soft one and you'll regret it by tonight.",
         "shift": "Write the real version. You can decide later.",
-        # LEGACY FIELDS
         "headline": "You know what you want to say. You're softening it again.",
         "live_read": "You write it.\nYou rewrite it.\nYou delete the sharp part.",
         "dont_do": "Don't smooth this over again.",
@@ -1004,12 +1011,13 @@ HOME_MESSAGES = {
     },
     HomeSituation.DIRECTION_UNCLEAR: {
         "arena": LifeArena.INTERNAL,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "You can't see where this goes.\n\nYou're about to move anyway.\n\nYou look for the path. It's not there. You're picking just to feel less stuck.\n\nMove blind and you'll be walking it back.\n\nSo slow down.\n\nWhat's the one step you can actually see?",
+        # LEGACY FIELDS
         "core_line": "You can't see where this goes. You're about to move anyway.",
         "reinforcement": "You look for the path.\nIt's not there.\nYou're picking just to feel less stuck.",
         "pressure": "Move blind and you'll be walking it back.",
         "shift": "What's the one step you can actually see? Take that one.",
-        # LEGACY FIELDS
         "headline": "You can't see where this goes. You're about to move anyway.",
         "live_read": "You look for the path.\nIt's not there.\nYou're picking just to feel less stuck.",
         "dont_do": "Don't pick just to have a direction.",
@@ -1022,12 +1030,13 @@ HOME_MESSAGES = {
     },
     HomeSituation.PRESSURE_WITHOUT_READINESS: {
         "arena": LifeArena.DECISION,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "They're waiting.\n\nYour gut is saying no.\n\nYou feel the pressure. You're about to answer anyway. Not because you're ready.\n\nSay yes now and you'll be unsaying it later.\n\nTheir timeline isn't yours.\n\nWhat would you decide if no one was waiting?",
+        # LEGACY FIELDS
         "core_line": "They're waiting. Your gut is saying no.",
         "reinforcement": "You feel the pressure.\nYou're about to answer anyway.\nNot because you're ready.",
         "pressure": "Say yes now and you'll be unsaying it later.",
         "shift": "Their timeline isn't yours. Wait.",
-        # LEGACY FIELDS
         "headline": "They're waiting. Your gut is saying no.",
         "live_read": "You feel the pressure.\nYou're about to answer anyway.\nNot because you're ready.",
         "dont_do": "Don't answer just to end the asking.",
@@ -1040,12 +1049,13 @@ HOME_MESSAGES = {
     },
     HomeSituation.STANDING_AT_THRESHOLD: {
         "arena": LifeArena.COMMITMENT,
-        # V6 HUMAN INTERRUPTION SYSTEM
+        # V7 SINGLE FLOW SYSTEM
+        "flow": "One foot in. One foot out.\n\nYou're stuck in the doorway.\n\nYou look forward. You reach back. You're trying to hold both.\n\nCross while gripping and you'll feel it tear.\n\nSo before you move—\n\nwhat are you still holding onto?",
+        # LEGACY FIELDS
         "core_line": "One foot in, one foot out. You're stuck in the doorway.",
         "reinforcement": "You look forward.\nYou reach back.\nYou're trying to hold both.",
         "pressure": "Cross while gripping and you'll feel it tear.",
         "shift": "Name what you're leaving. Then move.",
-        # LEGACY FIELDS
         "headline": "One foot in, one foot out. You're stuck in the doorway.",
         "live_read": "You look forward.\nYou reach back.\nYou're trying to hold both.",
         "dont_do": "Don't step through while holding on.",
@@ -1375,31 +1385,37 @@ def generate_home_message(
     arena = message.get("arena", LifeArena.INTERNAL)
     
     # =====================================================
-    # BUILD V3 RECOGNITION STRUCTURE (4-Part)
+    # BUILD V7 SINGLE FLOW SYSTEM
     # =====================================================
     
-    # V3 STRUCTURE: core_line, reinforcement, pressure, shift
+    # V7 SINGLE FLOW (Primary)
+    flow = message.get("flow", "")
+    
+    # V6 LEGACY FIELDS (for backward compatibility)
     core_line = message.get("core_line", "")
     reinforcement = message.get("reinforcement", "")
     pressure = message.get("pressure", "")
     shift = message.get("shift", "")
     
-    # LEGACY FIELDS (kept for backward compatibility)
-    headline = message.get("headline", core_line)  # Falls back to core_line
+    # OLDER LEGACY FIELDS
+    headline = message.get("headline", core_line)
     live_read = message.get("live_read", reinforcement)
     dont_do = message.get("dont_do", "")
-    if_ignore = message.get("if_ignore", pressure)  # if_ignore maps to pressure
+    if_ignore = message.get("if_ignore", pressure)
     instead = message.get("instead", shift)
     cta = message.get("cta", "")
     
     return {
-        # V3 RECOGNITION STRUCTURE (Primary)
+        # V7 SINGLE FLOW (Primary)
+        "flow": flow,
+        
+        # V6 LEGACY FIELDS
         "core_line": core_line,
         "reinforcement": reinforcement,
         "pressure": pressure,
         "shift": shift,
         
-        # LEGACY FIELDS (Backward Compatibility)
+        # OLDER LEGACY FIELDS (Backward Compatibility)
         "headline": headline,
         "live_read": live_read,
         "dont_do": dont_do,
@@ -1457,8 +1473,13 @@ def generate_home_message(
 # =============================================================================
 
 def format_home_for_display(home: Dict[str, Any]) -> str:
-    """Format Home message as V3 Recognition Structure (4-Part)."""
-    # Decision signal indicator
+    """Format Home message as V7 Single Flow."""
+    # V7: Just return the flow
+    flow = home.get("flow", "")
+    if flow:
+        return flow
+    
+    # Fallback to V6 format if no flow
     signal = home.get("decision_signal", "hold")
     signal_icons = {
         "hold": "⏸️ HOLD",
@@ -1467,21 +1488,16 @@ def format_home_for_display(home: Dict[str, Any]) -> str:
     }
     signal_display = signal_icons.get(signal, "⏸️ HOLD")
     
-    # Arena indicator
     arena = home.get("arena", "internal")
     arena_display = arena.upper() if arena else "INTERNAL"
     
     lines = [
-        # CORE LINE (Recognition hit)
         home.get("core_line", ""),
         "",
-        # REINFORCEMENT (Scene behavior)
         home.get("reinforcement", ""),
         "",
-        # PRESSURE (Consequence / Tension)
         home.get("pressure", ""),
         "",
-        # SHIFT (Actionable move)
         f"→ {home.get('shift', '')}",
         "",
         f"---",
