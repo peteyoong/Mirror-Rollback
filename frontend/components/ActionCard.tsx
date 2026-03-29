@@ -64,79 +64,73 @@ export default function ActionCard({ userId, theme }: ActionCardProps) {
     const momentType = diag.moment_type;
     const failureMode = diag.constitution?.recurring_failure_mode || '';
     
-    // Moment-type specific actions derived from diagnosis
+    // Moment-type specific actions derived from diagnosis (Scene-specific language)
     const momentActions: Record<string, ActionData> = {
       premature_initiation: {
-        action: 'Before acting, answer: What is this pause protecting?',
-        context: diag.what_would_be_wise || 'The drive is real, but the field may not be ready.',
+        action: 'Before you close this, name what still doesn\'t sit right.',
+        context: diag.what_would_be_wise || 'The drive is real—but the target isn\'t ready.',
         timeframe: 'today',
-        cta: 'Clarify what is blocking',
+        cta: 'Name what\'s unresolved',
       },
       pause_stall: {
-        action: 'Name the one thing that would let you move, even slightly.',
-        context: 'The pause exists because something hasn\'t landed—identifying it matters more than pushing through.',
+        action: 'Name the one thing that would let you move—even slightly.',
+        context: 'Something in you hasn\'t landed. Identifying it matters more than pushing through.',
         timeframe: 'today',
-        cta: 'Name the block',
+        cta: 'Name what\'s stuck',
       },
       threshold_moment: {
-        action: 'Decide: are you ready to cross this threshold?',
-        context: 'This is a real crossroads. The question isn\'t whether to cross—it\'s whether you\'re clear about what you\'re crossing into.',
+        action: 'Before crossing, name what you\'re leaving and what you\'re walking into.',
+        context: 'This is a real threshold. The question isn\'t whether to cross—it\'s whether you\'re clear about what changes.',
         timeframe: 'today',
-        cta: 'Face the threshold',
+        cta: 'Name both sides',
       },
       overreach_risk: {
         action: 'Identify one thing you could stop trying to control.',
-        context: 'The urge to force resolution could create more problems than it solves.',
+        context: 'Sitting in discomfort is hard—but collapsing it prematurely will just make you revisit it later.',
         timeframe: 'today',
         cta: 'Release one thing',
       },
       unresolved_wave: {
-        action: 'Wait for emotional neutrality before deciding.',
-        context: 'If you\'re still in the wave—high or low—your view is distorted. The truth lives in the middle.',
+        action: 'Wait for neutral before deciding.',
+        context: 'You\'re trying to decide while still in the wave. Clarity will come—but not while you\'re high or low.',
         timeframe: 'today',
         cta: 'Wait for neutral',
       },
       structure_not_ready: {
-        action: 'Name one foundation element that needs strengthening.',
-        context: 'The intention is right. The structure isn\'t. Build before pushing.',
+        action: 'Name one thing that needs building before you push forward.',
+        context: 'The intention is clear. The foundation isn\'t. Build what\'s missing first.',
         timeframe: 'today',
-        cta: 'Strengthen one thing',
+        cta: 'Build one thing',
       },
       clean_initiation: {
         action: 'Choose one thing to act on today.',
-        context: 'This is as clean as initiation gets. If you\'ve been waiting for a signal—this is closer to it.',
+        context: 'This is as clean a window as you\'ll get. If you\'ve been waiting for a signal—this is closer to it.',
         timeframe: 'today',
-        cta: 'Act now',
+        cta: 'Move now',
       },
       consolidation: {
-        action: 'Identify what needs more foundation before the next push.',
-        context: 'Build now, push later. Use this quieter moment to strengthen what will support the next move.',
+        action: 'Identify what needs strengthening before the next push.',
+        context: 'Build now, push later. Strengthen what you\'re standing on.',
         timeframe: 'this_week',
-        cta: 'Build foundation',
+        cta: 'Strengthen foundation',
       },
       forcing_window: {
-        action: 'Decide: ride this momentum or let it pass?',
-        context: 'The timing is creating pressure. The question is whether this force is aligned with what you actually want.',
+        action: 'Decide: are you moving toward something—or away from discomfort?',
+        context: 'There\'s momentum here. The question is whether it\'s aligned with what you actually want.',
         timeframe: 'now',
-        cta: 'Decide now',
+        cta: 'Name the direction',
       },
       review_recalibration: {
-        action: 'Review one assumption you\'ve been operating on.',
-        context: 'This is a recalibration moment. The timing supports review and adjustment, not forward push.',
+        action: 'Name one assumption you\'ve been operating on that might be off.',
+        context: 'This is a moment for review, not resolution. Stop trying to figure it out—let the answer find you.',
         timeframe: 'today',
-        cta: 'Review one thing',
+        cta: 'Question one thing',
       },
     };
 
     // Use moment-specific action if available
     if (momentType && momentActions[momentType]) {
       const action = momentActions[momentType];
-      
-      // If we have a specific failure mode, add context
-      if (failureMode && failureMode.includes('moving before')) {
-        action.context = `Watch for your pattern: ${failureMode}. ${action.context}`;
-      }
-      
       return action;
     }
 

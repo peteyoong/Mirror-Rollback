@@ -130,32 +130,32 @@ def infer_stable_constitution(
             clarity_style = "self-articulated"
             decision_pattern = "talking it through"
         
-        # Timing tendency from type
+        # Timing tendency from type (Scene-specific language)
         if hd_type == "Manifestor":
             timing_tendency = "initiating"
-            recurring_gift = "catalyzing action"
-            recurring_failure_mode = "moving before the field is ready"
-            pressure_distortion = "resistance to informing"
+            recurring_gift = "making things happen once direction is clear"
+            recurring_failure_mode = "trying to close things before they sit right"
+            pressure_distortion = "not naming what you're about to do"
         elif hd_type == "Generator":
             timing_tendency = "responsive"
-            recurring_gift = "sustained building"
-            recurring_failure_mode = "initiating instead of responding"
-            pressure_distortion = "saying yes when the gut says no"
+            recurring_gift = "building what matters once you get the signal"
+            recurring_failure_mode = "saying yes before your body agrees"
+            pressure_distortion = "ignoring the gut 'no' to keep things moving"
         elif hd_type == "Manifesting Generator":
             timing_tendency = "responsive-fast"
-            recurring_gift = "efficient multi-tasking"
-            recurring_failure_mode = "skipping necessary steps"
-            pressure_distortion = "impatience with process"
+            recurring_gift = "moving fast once something clicks"
+            recurring_failure_mode = "skipping steps to get to the finish"
+            pressure_distortion = "forcing closure when something still feels off"
         elif hd_type == "Projector":
             timing_tendency = "recognition-dependent"
-            recurring_gift = "seeing systems and patterns"
-            recurring_failure_mode = "sharing without invitation"
-            pressure_distortion = "bitterness from not being seen"
+            recurring_gift = "seeing what others miss"
+            recurring_failure_mode = "offering before you're asked"
+            pressure_distortion = "pushing when you haven't been invited"
         elif hd_type == "Reflector":
             timing_tendency = "lunar-cycle"
-            recurring_gift = "environmental awareness"
-            recurring_failure_mode = "deciding too fast"
-            pressure_distortion = "absorbing others' urgency"
+            recurring_gift = "reading the room accurately"
+            recurring_failure_mode = "deciding before the full picture lands"
+            pressure_distortion = "treating their urgency as your own"
         
         # Profile adds nuance
         if profile:
@@ -202,61 +202,61 @@ def determine_moment_type(
     moment_type = MomentType.PAUSE_STALL  # default
     interpretation = ""
     
-    # Determine moment type based on pattern + timing + constitution
+    # Determine moment type based on pattern + timing + constitution (Scene-specific language)
     if pattern_family == "stall":
         if day_class == "high_pressure":
             moment_type = MomentType.STRUCTURE_NOT_READY
-            interpretation = "External pressure is pushing for movement, but the internal structure isn't formed yet. The stall is protective."
+            interpretation = "There's real pressure to move. But part of you knows it's not ready—that hesitation is accurate."
         elif day_class == "release_window":
             moment_type = MomentType.REVIEW_RECALIBRATION
-            interpretation = "The timing supports letting go, not pushing through. This pause is a recalibration point."
+            interpretation = "This is a moment for letting go, not pushing through. The stall is telling you something."
         else:
             # Quiet sky - this is important
             if constitution and "initiating" in constitution.timing_tendency:
                 moment_type = MomentType.PREMATURE_INITIATION
-                interpretation = "When the sky is not forcing movement, internal activation becomes visible. The drive to move may be ahead of readiness."
+                interpretation = "Nothing external is forcing this—you're creating the urgency yourself. The drive is real, but the target isn't ready yet."
             else:
                 moment_type = MomentType.PAUSE_STALL
-                interpretation = "Nothing external is forcing this pause. It's arising from something unresolved within, which makes it worth attending to."
+                interpretation = "Nothing external is forcing this pause. Something inside hasn't landed—and that's worth paying attention to."
     
     elif pattern_family == "push_pull":
         if day_class == "high_pressure":
             moment_type = MomentType.THRESHOLD_MOMENT
-            interpretation = "Real pressure is creating a threshold moment. Both directions have weight—this isn't confusion, it's genuine crossroads."
+            interpretation = "This is a real crossroads—both directions have weight. You're not confused. You're accurate."
         else:
             moment_type = MomentType.OVERREACH_RISK
-            interpretation = "The back-and-forth signals competing valid impulses. Forcing resolution now risks choosing the wrong one."
+            interpretation = "You keep going back and forth because both options are real. Forcing a choice now will just make you revisit it later."
     
     elif pattern_family in ["movement", "release"]:
         if day_class == "high_pressure":
             moment_type = MomentType.FORCING_WINDOW
-            interpretation = "The timing is creating momentum. The question is whether this force is aligned or premature."
+            interpretation = "There's momentum here. The question is whether you're moving toward something clear—or just away from discomfort."
         elif day_class == "release_window":
             moment_type = MomentType.CLEAN_INITIATION
-            interpretation = "The timing supports forward movement. This is a cleaner window for action."
+            interpretation = "This is a cleaner window to move. If you've been waiting for a signal—this is closer to it."
         else:
             moment_type = MomentType.CONSOLIDATION
-            interpretation = "Quiet timing with forward energy suggests consolidation—building foundation before the next push."
+            interpretation = "Quiet timing with forward energy means build now, push later. Strengthen what you're standing on first."
     
     elif pattern_family == "expression":
         if constitution and "emotional" in constitution.clarity_style.lower():
             moment_type = MomentType.UNRESOLVED_WAVE
-            interpretation = "What's unsaid may be connected to an emotional wave that hasn't completed. The silence could be wise waiting."
+            interpretation = "What you're not saying may be connected to a wave that hasn't finished. The silence might be wise waiting—or avoidance."
         else:
             moment_type = MomentType.THRESHOLD_MOMENT
-            interpretation = "Something is at the threshold of expression. The question is whether it's ready to be said."
+            interpretation = "Something is sitting at the threshold. You've almost said it. The question is whether you're ready for what happens after."
     
     elif pattern_family == "clarity":
         moment_type = MomentType.REVIEW_RECALIBRATION
-        interpretation = "The fog is asking for review, not resolution. Clarity will come, but this isn't the moment to force it."
+        interpretation = "The fog is asking for review, not resolution. Stop trying to figure it out—let the answer find you."
     
     elif pattern_family == "control":
         if day_class == "high_pressure":
             moment_type = MomentType.STRUCTURE_NOT_READY
-            interpretation = "The grip makes sense—external instability is real. But holding tighter won't create the stability you need."
+            interpretation = "The grip makes sense—something really is unstable. But holding tighter won't create what you need."
         else:
             moment_type = MomentType.OVERREACH_RISK
-            interpretation = "The urge to control may be responding to internal instability projected outward. Check what's actually unstable."
+            interpretation = "You're trying to control something that may not need controlling. Check what's actually unstable versus what you're projecting."
     
     return moment_type, interpretation
 
@@ -287,37 +287,37 @@ def analyze_history_patterns(
     # Count entries
     result["frequency"] = len(journal_entries)
     
-    # Determine pattern shape based on pattern family + constitution
+    # Determine pattern shape based on pattern family + constitution (Scene-specific language)
     PATTERN_SHAPES = {
         "stall": {
-            "default": "start, then stall — the momentum builds but doesn't complete",
-            "initiating": "initiate, then pause — the force is there but something holds it back",
-            "responsive": "wait, then stall — even after the signal comes, movement doesn't follow",
+            "default": "almost move, then stop — you get close, then something pulls you back",
+            "initiating": "try to close it, then pause — you want this done but something still doesn't sit right",
+            "responsive": "wait for the signal, then stall — even when you feel it, you don't move",
         },
         "push_pull": {
-            "default": "move toward, then pull back — the same crossroads appearing repeatedly",
-            "initiating": "push forward, then hesitate — the initiating force meets internal resistance",
-            "responsive": "respond yes, then reconsider — the gut says go but something else says wait",
+            "default": "lean one way, then pull back — you've done this loop before",
+            "initiating": "try to force it, then hesitate — you want closure but something keeps reopening",
+            "responsive": "feel a yes, then second-guess — your body moves but your mind pulls back",
         },
         "expression": {
-            "default": "ready to speak, then hold back — truth at the threshold that doesn't cross",
-            "initiating": "about to declare, then silence — the inform that doesn't happen",
-            "emotional": "feeling it fully, then swallowing it — the wave peaks but the words don't come",
+            "default": "almost say it, then hold back — you've rehearsed this but still didn't send it",
+            "initiating": "about to declare it, then silence — you know what to say but you stop yourself",
+            "emotional": "feel it rising, then swallow it — the words are there but they don't come out",
         },
         "clarity": {
-            "default": "almost clear, then fog returns — understanding that doesn't stabilize",
-            "emotional": "clarity in the high or low, confusion in the neutral — the wave distorting the view",
+            "default": "almost clear, then fog returns — you think you've got it, then you don't",
+            "emotional": "clear in the high, lost in the low — the wave keeps distorting your view",
         },
         "control": {
-            "default": "grip, then grip tighter — the need for control escalating",
-            "initiating": "trying to force outcomes that aren't ready to be forced",
+            "default": "grip tighter, then grip again — you're holding on harder than you need to",
+            "initiating": "try to force outcomes that aren't ready to be forced — you're pushing against something that won't move",
         },
         "release": {
-            "default": "let go, then pick it back up — release that doesn't complete",
+            "default": "let go, then pick it back up — you release it but it keeps coming back",
         },
         "movement": {
-            "default": "move, then question — forward motion followed by doubt",
-            "initiating": "act, then second-guess — the initiating force not trusting itself",
+            "default": "move forward, then question — you act, then wonder if it was right",
+            "initiating": "close it, then second-guess — you finish things but you keep looking back",
         },
     }
     
@@ -351,14 +351,14 @@ def analyze_history_patterns(
             else:
                 result["deeper_roots"] = "This pattern has appeared before in different forms. The shape is familiar."
     
-    # Generate cycle observation
+    # Generate cycle observation (Scene-specific language)
     if result["frequency"] >= 5:
         if constitution and "initiating" in constitution.timing_tendency:
-            result["cycle_observation"] = f"This pattern has shown up {result['frequency']} times recently. For someone with initiating force, repeated stalling often signals premature activation—the drive is real, but the target isn't ready."
+            result["cycle_observation"] = f"This has shown up {result['frequency']} times recently. You keep trying to close things that still don't sit right—you want movement, but something in you keeps pumping the brakes."
         elif constitution and "emotional" in constitution.clarity_style.lower():
-            result["cycle_observation"] = f"This pattern has appeared {result['frequency']} times. With emotional authority, recurrence often means the wave hasn't completed—you keep returning because clarity hasn't landed."
+            result["cycle_observation"] = f"This has appeared {result['frequency']} times. You keep coming back because clarity hasn't actually landed—you're trying to decide while still in the wave."
         else:
-            result["cycle_observation"] = f"This same pattern has surfaced {result['frequency']} times recently. Recurrence this frequent isn't random—something is trying to be seen."
+            result["cycle_observation"] = f"This same thing has surfaced {result['frequency']} times recently. That's not random—there's something you keep trying to get past without actually resolving."
     
     return result
 
@@ -436,26 +436,26 @@ def generate_core_diagnosis(
     what_kind_of_moment = ""
     what_would_be_wise = ""
     
-    # WHAT IS HAPPENING - based on pattern + constitution
+    # WHAT IS HAPPENING - based on pattern + constitution (Scene-specific language)
     if pattern_family == "stall":
         if "initiating" in constitution.action_style:
-            what_is_happening = "There is real force here—initiating energy that wants to move. But it's meeting something that isn't ready."
+            what_is_happening = "You want to close this—but something in you keeps pumping the brakes. That hesitation isn't confusion. It's signal."
         else:
-            what_is_happening = "Movement has stopped. Not from lack of energy, but from something unresolved blocking the path."
+            what_is_happening = "You keep trying to move forward on this—and something keeps stopping you. Not because you're stuck. Because something hasn't landed yet."
     elif pattern_family == "push_pull":
-        what_is_happening = "Two valid directions are competing for the same moment. This isn't indecision—it's recognition that both paths have weight."
+        what_is_happening = "You lean one way, then pull back. Both directions feel valid—because they are. You're not indecisive. You're accurate."
     elif pattern_family == "expression":
-        what_is_happening = "Something wants to be said but hasn't crossed the threshold into speech. The silence isn't empty—it's holding something."
+        what_is_happening = "There's something you've almost said. Multiple times. You've drafted it, softened it, deleted it. It's still there—waiting to come out."
     elif pattern_family == "clarity":
-        what_is_happening = "Understanding hasn't landed. The fog isn't confusion—it's protection against premature certainty."
+        what_is_happening = "You keep thinking you've figured it out—then the fog returns. Stop trying to force clarity. It hasn't landed yet."
     elif pattern_family == "control":
-        what_is_happening = "There's a grip on something that may not need to be held so tightly. The control is responding to real instability, but may be creating more."
+        what_is_happening = "You're gripping harder than you need to. Something feels unstable—but holding tighter won't stabilize it."
     elif pattern_family == "release":
-        what_is_happening = "Something is leaving. The letting go is real, but may not be complete."
+        what_is_happening = "You've let go of this before. But it keeps coming back. Maybe the release wasn't complete—or wasn't actually what you wanted."
     elif pattern_family == "movement":
-        what_is_happening = "There is forward momentum. The question is whether it's aligned with readiness or ahead of it."
+        what_is_happening = "You're moving forward—but part of you keeps looking back. Are you moving toward something, or just away from discomfort?"
     else:
-        what_is_happening = "A pattern is surfacing that wants attention. Something is trying to be seen."
+        what_is_happening = "Something is surfacing that wants attention. It keeps coming back because there's something you haven't faced yet."
     
     # WHY IT IS HAPPENING - cross-lens synthesis
     why_parts = []
@@ -478,46 +478,46 @@ def generate_core_diagnosis(
     
     why_it_is_happening = ". ".join(why_parts) + "."
     
-    # WHAT KIND OF MOMENT - from moment type
+    # WHAT KIND OF MOMENT - from moment type (Scene-specific language)
     MOMENT_DESCRIPTIONS = {
-        MomentType.FORCING_WINDOW: "This is a forcing window—external pressure creating momentum. The question is whether to ride it or wait.",
-        MomentType.PAUSE_STALL: "This is a genuine pause—not laziness, not failure, but information. Something is asking to be understood before movement.",
-        MomentType.REVIEW_RECALIBRATION: "This is a recalibration moment. The timing supports review and adjustment, not forward push.",
-        MomentType.OVERREACH_RISK: "This is an overreach risk moment. The impulse to force resolution could create more problems than it solves.",
-        MomentType.PREMATURE_INITIATION: "This is a premature initiation risk. The drive to act is real, but the field may not be ready to receive it.",
-        MomentType.UNRESOLVED_WAVE: "This is an unresolved wave moment. Emotional clarity hasn't landed—decisions made now may be revised later.",
-        MomentType.STRUCTURE_NOT_READY: "This is a structure-not-ready moment. The intention is clear, but the foundation isn't in place.",
-        MomentType.CLEAN_INITIATION: "This is a cleaner initiation window. The timing and readiness are more aligned than usual.",
-        MomentType.CONSOLIDATION: "This is a consolidation moment. Build foundation now, push forward later.",
-        MomentType.THRESHOLD_MOMENT: "This is a threshold moment. Something is ready to cross over—the question is whether to let it.",
+        MomentType.FORCING_WINDOW: "There's momentum here. The question is whether you're moving toward clarity—or just away from discomfort.",
+        MomentType.PAUSE_STALL: "This is a real pause—not laziness, not failure. Something in you hasn't landed yet. That's worth paying attention to.",
+        MomentType.REVIEW_RECALIBRATION: "This is a moment for review, not resolution. Stop trying to figure it out—let the answer find you.",
+        MomentType.OVERREACH_RISK: "You're close to forcing something that isn't ready. Sitting in discomfort is hard—but collapsing it prematurely is harder to undo.",
+        MomentType.PREMATURE_INITIATION: "You're creating urgency that doesn't exist yet. The drive is real, but the target isn't ready.",
+        MomentType.UNRESOLVED_WAVE: "You're trying to decide while still in the wave. Clarity will come—but not while you're high or low.",
+        MomentType.STRUCTURE_NOT_READY: "The intention is clear. The foundation isn't. Build before pushing.",
+        MomentType.CLEAN_INITIATION: "This is a cleaner window to move. If you've been waiting for a signal—this is closer to it.",
+        MomentType.CONSOLIDATION: "Build now, push later. Use this quieter moment to strengthen what you're standing on.",
+        MomentType.THRESHOLD_MOMENT: "You're at a real threshold. The question isn't whether to cross—it's whether you're clear about what you're crossing into.",
     }
-    what_kind_of_moment = MOMENT_DESCRIPTIONS.get(moment_type, "This is a moment asking for attention.")
+    what_kind_of_moment = MOMENT_DESCRIPTIONS.get(moment_type, "Something is surfacing that wants attention.")
     
-    # WHAT WOULD BE WISE - based on moment type + constitution
+    # WHAT WOULD BE WISE - based on moment type + constitution (Scene-specific language)
     if moment_type == MomentType.PREMATURE_INITIATION:
         if "initiating" in constitution.action_style:
-            what_would_be_wise = "The force is real, but this may not be the clean initiation point. Wait for the field to be ready, not just your drive. Inform before acting—sometimes the inform itself reveals whether the moment is ripe."
+            what_would_be_wise = "Don't close this yet. Name what still doesn't sit right. The drive is real—but the target isn't ready."
         else:
-            what_would_be_wise = "The impulse to move is valid, but check whether it's arising from readiness or impatience. Waiting one more beat may reveal something."
+            what_would_be_wise = "Wait one more beat before moving. The urgency you feel might be yours—or it might be borrowed."
     elif moment_type == MomentType.PAUSE_STALL:
         if "emotional" in constitution.clarity_style.lower():
-            what_would_be_wise = "Don't try to think your way through this pause. Let the emotional wave complete. Clarity will come when you feel neutral, not when you've figured it out."
+            what_would_be_wise = "Don't try to think your way through this. Let the wave finish. Clarity will come when you feel neutral, not when you've figured it out."
         else:
-            what_would_be_wise = "Name what's unresolved. The pause exists because something hasn't landed—identifying it is more useful than pushing through it."
+            what_would_be_wise = "Name what's unresolved. The pause exists because something hasn't landed—identifying it matters more than pushing through."
     elif moment_type == MomentType.UNRESOLVED_WAVE:
-        what_would_be_wise = "Wait for emotional neutrality before deciding. If you're still in the wave—high or low—your view is distorted. The truth lives in the middle."
+        what_would_be_wise = "Wait for neutral before deciding. If you're still in the wave—high or low—your view is distorted."
     elif moment_type == MomentType.OVERREACH_RISK:
-        what_would_be_wise = "Resist the urge to force resolution. Sitting in uncertainty is uncomfortable but wiser than collapsing it prematurely."
+        what_would_be_wise = "Resist the urge to force this. Sitting in uncertainty is uncomfortable—but collapsing it prematurely will just make you revisit it later."
     elif moment_type == MomentType.THRESHOLD_MOMENT:
-        what_would_be_wise = "This is a real threshold. The question isn't whether to cross—it's whether you're clear about what you're crossing into."
+        what_would_be_wise = "This is a real threshold. Before crossing, name what you're leaving behind—and what you're walking into."
     elif moment_type == MomentType.STRUCTURE_NOT_READY:
-        what_would_be_wise = "The intention is right. The structure isn't. Focus on building foundation before pushing for results."
+        what_would_be_wise = "The intention is right. The foundation isn't. Build what's missing before pushing for results."
     elif moment_type == MomentType.CLEAN_INITIATION:
-        what_would_be_wise = "This is as clean as initiation gets for you. If you've been waiting for a signal—this is closer to it."
+        what_would_be_wise = "This is as clean a window as you'll get. If you've been waiting for a signal—this is closer to it."
     elif moment_type == MomentType.CONSOLIDATION:
-        what_would_be_wise = "Build now, push later. Use this quieter moment to strengthen what will support the next move."
+        what_would_be_wise = "Build now, push later. Strengthen what you're standing on before trying to move forward."
     else:
-        what_would_be_wise = "Notice what wants attention. The pattern is surfacing for a reason—understanding it is more valuable than fixing it."
+        what_would_be_wise = "Notice what keeps coming back. The pattern is surfacing for a reason—understanding it matters more than fixing it."
     
     # BUILD FULL DIAGNOSIS
     full_diagnosis = f"""{what_is_happening}

@@ -181,30 +181,30 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
     return text;
   };
 
-  // Get CTA text based on MODE and diagnosis
+  // Get CTA text based on MODE and diagnosis (Scene-specific language)
   const getCtaText = (): string => {
     // Derive CTA from moment type when possible
     if (diagnosis?.moment_type) {
       const momentCtas: Record<string, Record<string, string>> = {
         premature_initiation: {
           grounding: 'Breathe first',
-          exploratory: 'Explore what is not ready',
-          directive: 'Name what is blocking',
+          exploratory: 'See what\'s not ready',
+          directive: 'Name the unresolved part',
         },
         pause_stall: {
           grounding: 'Rest here',
-          exploratory: 'Explore the pause',
-          directive: 'Name the block',
+          exploratory: 'See what\'s stuck',
+          directive: 'Name what hasn\'t landed',
         },
         threshold_moment: {
           grounding: 'Notice without acting',
-          exploratory: 'Explore the threshold',
-          directive: 'Decide one thing',
+          exploratory: 'See both sides',
+          directive: 'Name what you\'re leaving',
         },
         overreach_risk: {
           grounding: 'Let it be',
-          exploratory: 'Explore the risk',
-          directive: 'Identify what to release',
+          exploratory: 'See the grip',
+          directive: 'Release one thing',
         },
         unresolved_wave: {
           grounding: 'Wait for neutral',
@@ -213,28 +213,28 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
         },
         structure_not_ready: {
           grounding: 'Build slowly',
-          exploratory: 'Explore the foundation',
-          directive: 'Strengthen one thing',
+          exploratory: 'See what\'s missing',
+          directive: 'Build one thing',
         },
         clean_initiation: {
           grounding: 'Move gently',
-          exploratory: 'Explore the opening',
+          exploratory: 'See the opening',
           directive: 'Take one step',
         },
         consolidation: {
           grounding: 'Rest and build',
-          exploratory: 'Explore what is forming',
-          directive: 'Strengthen foundation',
+          exploratory: 'See what\'s forming',
+          directive: 'Strengthen one thing',
         },
         forcing_window: {
           grounding: 'Ride gently',
-          exploratory: 'Explore the momentum',
-          directive: 'Act now',
+          exploratory: 'See the momentum',
+          directive: 'Name the direction',
         },
         review_recalibration: {
           grounding: 'Reflect softly',
-          exploratory: 'Review what is true',
-          directive: 'Clarify one thing',
+          exploratory: 'See what\'s true',
+          directive: 'Question one thing',
         },
       };
       
