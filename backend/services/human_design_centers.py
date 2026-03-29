@@ -91,214 +91,223 @@ class CenterInterpretation(TypedDict):
 
 
 # =============================================================================
-# TEMPLATE-BASED INTERPRETATIONS
+# TEMPLATE-BASED INTERPRETATIONS (Real-Life Language)
 # =============================================================================
-# Separate templates for defined vs undefined states
+# Structure:
+# 1. WHAT YOU TEND TO DO - "You tend to...", "You often..."
+# 2. HOW THIS SHOWS UP TODAY - 2-3 real behaviors
+# 3. WHAT TO WATCH - 1 clear risk
+# 4. WHAT TO DO - 1 concrete action
+# 5. SYSTEM LABEL - "(Ajna · defined)" - optional, last line
 
 DEFINED_TEMPLATES = {
     "Head": {
-        "what_this_means": "You get caught in questions that won't let go—ideas arrive uninvited and stay until you've turned them over enough times. This mental activity comes from within you, not absorbed from others.",
-        "your_challenge": "The challenge is managing the constant stream of inspiration. You might feel pressure to chase every interesting question or idea. Learning which inspirations are truly yours to follow versus just mental noise takes practice.",
-        "your_genius": "You have a reliable source of inspiration that others can draw from. There's a consistency to what fascinates you that, over time, becomes a resource. You're less likely to be confused by other people's mental agendas.",
-        "practical_experiments": [
-            "Notice which questions keep returning over weeks or months - these may be genuinely yours.",
-            "Try writing down inspirations without immediately acting on them. See which ones still feel alive after a few days.",
-            "When you feel mental pressure, pause and ask: 'Is this mine to solve, or am I just processing?'"
+        "what_you_tend_to_do": "You tend to get caught by questions that won't let go. Ideas arrive uninvited and stay until you've turned them over. When something sparks your curiosity, you can't easily set it down.",
+        "how_this_shows_up_today": [
+            "A question or idea keeps circling back even when you're busy with other things",
+            "You find yourself researching or thinking about something you didn't plan to",
+            "You feel a subtle pressure to figure something out before moving on"
         ],
-        "remember": "Not every inspiration requires action. Your consistent mental activity is a feature, not a problem to fix."
+        "what_to_watch": "Watch for chasing every interesting question as if they're all urgent. Not every thought needs to become a project.",
+        "what_to_do": "Try this: Write the question down. If it's still important in 3 days, it's worth pursuing.",
+        "system_label": "Head center · defined"
     },
     "Ajna": {
-        "what_this_means": "You tend to lock into a way of thinking—and once it makes sense to you, you stick with it. Changing your mind takes real evidence, not just someone else's opinion. Your mind works in a particular way that doesn't shift based on who you're around.",
-        "your_challenge": "This can create mental rigidity. You might find it hard to see other perspectives or get stuck in thought loops. There can also be pressure to have opinions about everything, even when you don't actually need one.",
-        "your_genius": "Your consistent thinking style means you can offer reliable perspectives. Others may value your mental clarity because it doesn't waver. You can process information without being overly influenced by how others think about it.",
-        "practical_experiments": [
-            "Notice when you're defending an opinion out of habit versus genuine conviction.",
-            "Practice saying 'I haven't formed a view on that yet' and notice how it feels.",
-            "When someone thinks differently, try mapping their logic before disagreeing."
+        "what_you_tend_to_do": "You tend to lock into a way of seeing things—and once something makes sense to you, you stick with it. Changing your mind takes real evidence, not just pressure from others.",
+        "how_this_shows_up_today": [
+            "You hold a clear opinion and find yourself defending it, even internally",
+            "You process new information through your existing framework first",
+            "You may feel certain about something before others are ready to commit"
         ],
-        "remember": "Your mind is designed to be consistent, but consistency isn't the same as certainty. Your opinions can evolve while your thinking style stays stable."
+        "what_to_watch": "Watch for rigidity. Confidence can become stubbornness when you stop considering new information.",
+        "what_to_do": "Try this: When someone disagrees, ask 'What would it take for me to change my mind?' before responding.",
+        "system_label": "Ajna · defined"
     },
     "Throat": {
-        "what_this_means": "You speak or act in consistent patterns—your voice has a recognizable style. When you have something to say, it comes out. Words, actions, or creative output tend to flow from you in ways others can recognize.",
-        "your_challenge": "There can be pressure to speak or act even when it's not the right moment. You might talk over others or feel the need to fill silence. The consistency of your expression can also mean repeating patterns that no longer serve you.",
-        "your_genius": "You have reliable communication abilities. You can express yourself clearly and consistently. Others likely recognize your voice or style. When properly channeled, this is a powerful capacity for manifesting ideas into reality.",
-        "practical_experiments": [
-            "Practice letting silence exist in conversations without filling it.",
-            "Notice the difference between speaking because you have something to say versus speaking from habit.",
-            "Try different modes of expression (writing, art, movement) to see what channels feel most natural."
+        "what_you_tend_to_do": "You tend to speak or act in recognizable patterns. Your voice has a consistent style. When something needs to be said, it often comes out—sometimes before you've planned it.",
+        "how_this_shows_up_today": [
+            "You find yourself naturally taking the lead in conversations",
+            "Others may wait for you to speak or act first",
+            "You feel a pull to fill silence or move things forward"
         ],
-        "remember": "Your voice is consistent, but timing matters. The same words land differently when offered at the right moment versus pushed out from pressure."
+        "what_to_watch": "Watch for speaking just to be heard. Not every silence needs filling, and not every moment needs your voice.",
+        "what_to_do": "Try this: Before speaking in a meeting or conversation, count to three. Notice if the moment actually needs you.",
+        "system_label": "Throat · defined"
     },
     "G Center": {
-        "what_this_means": "You usually have a strong sense of direction—you know who you are at your core, even if external circumstances change. There's a consistency to your identity that others may recognize and orient around.",
-        "your_challenge": "This can create rigidity around identity or direction. You might struggle to change course even when it's appropriate, or become attached to being a particular way. The consistency can also make it hard to understand people who feel less certain about who they are.",
-        "your_genius": "Your stable identity is a gift. You can hold a sense of self that doesn't collapse under pressure or change with every passing influence. Others often find this grounding. Your direction, once clear, tends to remain reliable.",
-        "practical_experiments": [
-            "Notice whether your sense of direction comes from genuine knowing or from resistance to uncertainty.",
-            "Practice being curious about people who seem less certain about their identity - what might they see that you don't?",
-            "When you feel lost, pause before forcing a direction. Sometimes 'lost' is part of finding a truer path."
+        "what_you_tend_to_do": "You tend to have a steady sense of who you are and where you're going. Even when life is uncertain, something in you holds direction. Others may look to you for steadiness.",
+        "how_this_shows_up_today": [
+            "You know what you want, even if you can't explain why",
+            "People may ask for your guidance or follow your lead without you asking",
+            "You feel pulled toward certain places, people, or paths"
         ],
-        "remember": "Your identity is stable, but it can still grow. Consistency doesn't mean being exactly the same person forever - it means having a continuous thread through change."
+        "what_to_watch": "Watch for staying on a path just because it's familiar. Steadiness can become stubbornness about direction.",
+        "what_to_do": "Try this: Ask yourself 'Is this direction still true for me, or am I just used to it?'",
+        "system_label": "G center · defined"
     },
     "Ego": {
-        "what_this_means": "You can push through when you've committed to something—willpower is available. You can make commitments and follow through. There's a steadiness to your capacity for effort that others may rely on.",
-        "your_challenge": "This can push you to prove yourself constantly or make promises you shouldn't. The will is always available, so you might overuse it—working when rest is needed, competing when cooperation would serve better. Worth can become too tied to achievement.",
-        "your_genius": "Your consistent willpower is valuable. When you commit to something, you have the resources to follow through. You can push through difficulty when it genuinely matters. Others often trust your word because you have the capacity to back it up.",
-        "practical_experiments": [
-            "Before making a commitment, ask: 'Is this mine to do, or am I just proving I can?'",
-            "Notice when willpower is serving you versus depleting you. The capacity is always there, but it's not always appropriate to use.",
-            "Practice resting even when you could keep going. See what happens to your effectiveness."
+        "what_you_tend_to_do": "You tend to push through when you've committed to something. Willpower is available when you decide to use it. When you say you'll do something, you usually can.",
+        "how_this_shows_up_today": [
+            "You feel capable of making promises and keeping them",
+            "You may push through resistance when something matters to you",
+            "You have opinions about what's valuable and what's worth effort"
         ],
-        "remember": "Having willpower doesn't mean every situation calls for it. Your heart is designed to work hard, but it's also designed to rest."
+        "what_to_watch": "Watch for proving yourself when you don't need to. Willpower is available, but not every situation requires it.",
+        "what_to_do": "Try this: Before committing to something hard, ask 'Does this actually need my effort, or am I just proving I can?'",
+        "system_label": "Heart/Ego · defined"
     },
     "Solar Plexus": {
-        "what_this_means": "You feel things in waves—your emotional state rises and falls in patterns that belong to you. Clarity doesn't come immediately; it arrives after the wave has moved through. You bring an emotional atmosphere into spaces you enter.",
-        "your_challenge": "Living with emotional waves means no feeling state is permanent—the highs will pass, and so will the lows. The challenge is not making decisions in either extreme. There can also be pressure to explain or justify your moods when they don't have logical causes.",
-        "your_genius": "Your emotional depth is a form of intelligence. The waves bring richness, creativity, and the capacity for profound connection. When you give yourself time to ride through the wave, your clarity is often more complete than purely mental analysis.",
-        "practical_experiments": [
-            "Track your emotional rhythms for a few weeks. Notice if there are patterns (daily, weekly, monthly).",
-            "Practice saying 'I'm not sure yet' when asked for decisions during emotional highs or lows.",
-            "When you feel certain in an emotional peak, write it down and revisit it in a different mood."
+        "what_you_tend_to_do": "You tend to feel things in waves. Your emotional state rises and falls—sometimes dramatically, sometimes subtly. Clarity about decisions comes after time, not in the first moment.",
+        "how_this_shows_up_today": [
+            "Your mood may shift without clear external cause",
+            "You might feel very certain in one moment, then less certain hours later",
+            "Big decisions feel better when you've slept on them"
         ],
-        "remember": "Your waves are yours - you don't need to explain them or wait for them to stop. Riding them skillfully is different from controlling them."
+        "what_to_watch": "Watch for making commitments at emotional peaks or lows. The wave will pass, and your perspective will shift.",
+        "what_to_do": "Try this: For any decision that matters, wait at least one full day. Notice if your feeling about it changes.",
+        "system_label": "Solar Plexus · defined"
     },
     "Sacral": {
-        "what_this_means": "You have consistent energy for work that engages you—when it's right, you can go and go. There's a generator quality to your system. Your vitality comes from within when you're doing work that lights you up.",
-        "your_challenge": "This can lead to overwork. Because the energy is always there, you might not notice when you've gone past healthy limits. You could also get stuck in work that depletes you because you can technically keep going. Learning to honor 'no' signals is crucial.",
-        "your_genius": "Your sustainable energy is a gift. When properly matched to work that lights you up, you can create, build, and sustain in ways others can't. The key is listening to your gut response—the 'uh-huh' (yes) or 'un-un' (no)—about what's correct to engage.",
-        "practical_experiments": [
-            "Pay attention to your gut response when opportunities arise. Does your energy rise or drop?",
-            "Notice the difference between tasks that build your energy versus tasks that drain it, even if both get done.",
-            "Practice stopping before you're exhausted. See what happens to your overall output."
+        "what_you_tend_to_do": "You tend to have consistent energy for work that engages you. When something is right, you can go and go. When it's wrong, even simple tasks feel draining.",
+        "how_this_shows_up_today": [
+            "You feel energy rising when you think about certain tasks—and dropping for others",
+            "Your gut responds quickly to requests: a subtle 'yes' or 'no' before you think",
+            "You may keep working long after others would stop, if you're engaged"
         ],
-        "remember": "Your energy regenerates through correct engagement, not just rest. The right work feeds you; the wrong work empties you even while you're doing it."
+        "what_to_watch": "Watch for overriding your gut response with logic. That 'ugh' feeling is data, not laziness.",
+        "what_to_do": "Try this: When asked to do something, notice your body's first response before your mind forms an opinion.",
+        "system_label": "Sacral · defined"
     },
     "Spleen": {
-        "what_this_means": "You get quiet, instant signals about what's safe or healthy—a knowing that arrives in the moment and doesn't repeat. Your body tends to give you subtle awareness about safety, health, and timing that speaks softly and only once.",
-        "your_challenge": "This awareness is subtle and doesn't repeat itself. The challenge is learning to hear and trust these quiet signals before the mind overrides them. You might also project a false sense of safety onto others, assuming they have the same instinctual awareness.",
-        "your_genius": "Your consistent access to instinct is a survival gift. When you learn to hear its quiet voice, you can navigate in real-time with a kind of knowing that doesn't require analysis. Health, timing, and safety awareness become reliable resources.",
-        "practical_experiments": [
-            "Practice noticing your first, instantaneous response before your mind starts analyzing.",
-            "When your body says 'no' to something, honor it - even if you can't explain why.",
-            "Pay attention to what your body does around different people and environments. It's giving you data."
+        "what_you_tend_to_do": "You tend to get quiet, instant signals about what's safe or healthy. A knowing arrives in the moment and doesn't repeat. It's subtle—easy to miss if you're not listening.",
+        "how_this_shows_up_today": [
+            "You may get a 'hit' about something—a sense of yes or no—that you can't explain",
+            "Your body reacts to environments or people before your mind catches up",
+            "You might know something is 'off' without being able to say why"
         ],
-        "remember": "Your instinct speaks in whispers, not shouts. Learning to hear it requires slowing down the mind enough to notice what the body already knows."
+        "what_to_watch": "Watch for overriding these signals with logic or politeness. The first hit is often more accurate than the second thought.",
+        "what_to_do": "Try this: When you get a quiet 'no,' honor it—even before you have a reason.",
+        "system_label": "Spleen · defined"
     },
     "Root": {
-        "what_this_means": "You handle pressure without being destabilized by it—stress arrives, but it doesn't throw you off. You experience stress and drive in your own rhythm, rather than absorbing it from external sources. There's a steadiness to how you handle urgency.",
-        "your_challenge": "This can create addiction to pressure. Because you have consistent access to adrenaline, you might create stress even when it's not necessary, or struggle to fully relax. The drive is always there, which can make it hard to stop.",
-        "your_genius": "Your consistent relationship with pressure means you can handle stress without being destabilized by it. You can work under deadlines and navigate urgency from a grounded place. Others may find your steadiness under pressure reassuring.",
-        "practical_experiments": [
-            "Notice when you're creating artificial urgency. Is the deadline real, or are you manufacturing pressure?",
-            "Practice genuine rest - not 'productive rest' - and notice what arises.",
-            "When external pressure hits, pause and notice whether it actually affects your internal state."
+        "what_you_tend_to_do": "You tend to handle pressure without being destabilized. Stress arrives, but it doesn't overwhelm you. You may even work better under deadline or urgency.",
+        "how_this_shows_up_today": [
+            "You feel steady even when there's a lot happening",
+            "You may create pressure or deadlines to get yourself moving",
+            "Others might notice that stress doesn't seem to affect you as much"
         ],
-        "remember": "Your drive is yours, but it doesn't need to run constantly. The same engine that powers you through difficulty needs maintenance and downtime."
+        "what_to_watch": "Watch for creating unnecessary urgency. Not everything needs to be a deadline to get done.",
+        "what_to_do": "Try this: Try finishing something without a deadline. Notice if you can stay motivated without the pressure.",
+        "system_label": "Root · defined"
     }
 }
 
 UNDEFINED_TEMPLATES = {
     "Head": {
-        "what_this_means": "You take in other people's mental pressure and sometimes mistake it for your own. Their questions become urgent for you, even when they're not yours to solve. You might experience different ideas depending on who you're around.",
-        "your_challenge": "Without consistent pressure of your own, you might feel confused about which questions are actually yours to answer. You could chase other people's inspirations thinking they're your own, or feel overwhelmed in mentally active environments.",
-        "your_genius": "You can sample and understand many different types of inspiration. You can recognize truly interesting questions from the mundane. Over time, you develop wisdom about what's actually worth thinking about.",
-        "practical_experiments": [
-            "Notice how your mental activity changes in different environments or around different people.",
-            "When inspired by an idea, ask: 'Would I still care about this if I were alone?'",
-            "Practice letting go of questions that don't stay with you after leaving certain people or places."
+        "what_you_tend_to_do": "You tend to take in other people's mental pressure—their questions become yours, even when they're not. Ideas arrive from outside you, and sometimes you mistake them for your own thoughts.",
+        "how_this_shows_up_today": [
+            "You may find yourself thinking intensely about something that doesn't actually concern you",
+            "Your mental activity changes depending on who you're around",
+            "You might feel pressure to answer questions that aren't really yours to solve"
         ],
-        "remember": "Not having your own fixed mental pressure is a gift for understanding how different minds work. You don't need to hold onto every inspiration that passes through."
+        "what_to_watch": "Watch for chasing ideas that disappear when you're alone. If it doesn't stay with you, it probably wasn't yours.",
+        "what_to_do": "Try this: When inspired by an idea, wait until you're alone. If it's still alive, it might be yours.",
+        "system_label": "Head center · open"
     },
     "Ajna": {
-        "what_this_means": "Your thinking shifts depending on who you're around—you can see multiple perspectives, but might struggle to hold a consistent view. That flexibility is a gift, not a flaw. Your mental processing adapts to context rather than staying fixed.",
-        "your_challenge": "Without a fixed way of thinking, you might feel pressure to have certainty you don't actually have, or get confused about what you really believe. You could adopt others' opinions without realizing they're not your own.",
-        "your_genius": "Your mental flexibility allows you to understand many different perspectives. You can process information in ways that match the context rather than forcing everything through one filter. This gives you potential wisdom about the nature of certainty itself.",
-        "practical_experiments": [
-            "Notice when your opinions change based on who you're talking to. Is this flexibility or people-pleasing?",
-            "Practice saying 'I see it differently in different contexts' instead of forcing one answer.",
-            "After leaving a strong personality, check in: which thoughts were theirs, which are yours?"
+        "what_you_tend_to_do": "You tend to think differently depending on who you're around. Your mind is flexible—you can see multiple perspectives, but you may struggle to land on one view.",
+        "how_this_shows_up_today": [
+            "Your opinions might shift based on who you're talking to",
+            "You can argue either side of a debate convincingly",
+            "You may feel uncertain about what you 'really' think about something"
         ],
-        "remember": "Your mind is designed to be flexible, not fixated. Wisdom comes from experiencing many ways of thinking, not from pretending to have one true opinion."
+        "what_to_watch": "Watch for pretending to have certainty you don't have. It's okay to not have a fixed opinion.",
+        "what_to_do": "Try this: Say 'I see it differently depending on context' and notice if that feels more honest.",
+        "system_label": "Ajna · open"
     },
     "Throat": {
-        "what_this_means": "You don't always know when or how to speak—timing feels inconsistent. You might overspeak to get attention or go quiet when you actually have something to say. Your voice and expression may vary depending on context.",
-        "your_challenge": "Without consistent throat energy, you might struggle to be heard or feel pressure to speak even when you have nothing to say. You could try to force expression, or conversely, remain silent even when you do have something to contribute.",
-        "your_genius": "You have the ability to communicate in many different styles. You can adapt your expression to the situation. Over time, you develop wisdom about when speaking actually matters versus when silence is more powerful.",
-        "practical_experiments": [
-            "Notice how your communication style changes in different settings. Which feels most authentic?",
-            "Practice being comfortable with not speaking when you don't have something genuine to say.",
-            "When you do speak, notice whether people seem to hear you. Timing and context may matter more for you."
+        "what_you_tend_to_do": "You tend to communicate differently depending on the situation. Your voice adapts. Sometimes you speak up easily; other times, words don't come.",
+        "how_this_shows_up_today": [
+            "You may find it easier to speak in some settings than others",
+            "You might feel pressure to fill silence, or alternately, go very quiet",
+            "Your communication style shifts based on who you're with"
         ],
-        "remember": "Your voice doesn't need to be consistent to be powerful. Sometimes the flexibility to express differently in different contexts is the gift."
+        "what_to_watch": "Watch for forcing yourself to speak when you don't have anything to say. Silence is allowed.",
+        "what_to_do": "Try this: Wait to be asked before offering your perspective. Notice if the timing feels better.",
+        "system_label": "Throat · open"
     },
     "G Center": {
-        "what_this_means": "You sometimes feel uncertain about who you are or where you're going. You pick up a sense of identity from people and places around you—which makes environment crucial. This isn't instability; it's openness to finding yourself through experience.",
-        "your_challenge": "Without a fixed identity center, you might feel lost or uncertain about who you are or where you're going. You could attach to others' identities, or become chameleon-like in ways that feel inauthentic. Finding yourself may seem like an ongoing project.",
-        "your_genius": "Your openness in identity allows you to understand many different ways of being. You can try on different directions without being locked into one. Over time, you develop wisdom about the nature of identity itself—recognizing who others truly are.",
-        "practical_experiments": [
-            "Notice how your sense of self changes in different places and with different people.",
-            "Instead of asking 'Who am I?', try asking 'Who am I in this context, right now?'",
-            "Pay attention to which environments and people make you feel more like yourself."
+        "what_you_tend_to_do": "You tend to feel different in different places and with different people. Your sense of direction and identity shifts. This isn't instability—it's openness.",
+        "how_this_shows_up_today": [
+            "You may not be sure 'who you are' or where you're headed",
+            "Certain places or people make you feel more like yourself",
+            "You might feel lost, then suddenly clear, depending on context"
         ],
-        "remember": "Your identity is designed to be fluid. This doesn't mean you lack a self—it means your self is discovered through experience rather than fixed from birth."
+        "what_to_watch": "Watch for attaching to someone else's direction as if it's your own. Environment matters more for you than for most.",
+        "what_to_do": "Try this: Notice which places make you feel most yourself. Go there when you need clarity.",
+        "system_label": "G center · open"
     },
     "Ego": {
-        "what_this_means": "You don't have consistent willpower—and that's not a weakness. You might overcommit to prove yourself, then burn out. Learning what's actually yours to push through matters more than trying to match others' determination.",
-        "your_challenge": "Without fixed willpower, you might overcompensate by making promises you can't keep, or pushing yourself with borrowed will. You could become obsessed with proving your worth, or conversely, feel powerless around people with strong will.",
-        "your_genius": "You have the ability to recognize true worthiness in others and yourself without needing external proof. You can let go of the proving game entirely. Over time, you develop wisdom about when willpower is actually needed versus when it's ego.",
-        "practical_experiments": [
-            "Notice when you're pushing with borrowed willpower versus genuine capacity.",
-            "Practice not promising things to prove yourself. See how it feels to say 'I'm not sure I can commit to that.'",
-            "Around very driven people, check: is this your will or are you amplifying theirs?"
+        "what_you_tend_to_do": "You tend to have variable willpower—sometimes you can push through, other times you can't. This isn't weakness; it's a different relationship with effort.",
+        "how_this_shows_up_today": [
+            "You may feel capable of effort in some moments and depleted in others",
+            "You might over-promise to prove your worth, then struggle to follow through",
+            "You may compare yourself to people who seem to push harder"
         ],
-        "remember": "You don't need to prove your worth. Your value isn't dependent on willpower or achievement. Learning when NOT to push can be your superpower."
+        "what_to_watch": "Watch for proving yourself when no proof is required. Your worth isn't measured by willpower.",
+        "what_to_do": "Try this: Before committing, ask 'Am I saying yes because I genuinely can, or because I want to prove something?'",
+        "system_label": "Heart/Ego · open"
     },
     "Solar Plexus": {
-        "what_this_means": "You absorb emotions from others and feel them more intensely than they do. Conflict in the room becomes your conflict. Learning to release what isn't yours is essential. Your own emotional baseline is actually more neutral than it might seem.",
-        "your_challenge": "Without a fixed emotional wave, you might struggle to distinguish your feelings from others'. You could avoid emotional environments entirely, or become overwhelmed in them. There can be a tendency to absorb emotional energy that isn't yours to process.",
-        "your_genius": "You have deep empathy and the ability to sense emotional undercurrents others miss. You can read the emotional atmosphere of any room. Over time, you develop wisdom about emotions themselves—seeing the waves without drowning in them.",
-        "practical_experiments": [
-            "After leaving emotional environments, check in: which feelings were yours?",
-            "Practice being in emotional spaces without trying to fix or absorb the feelings.",
-            "Notice your baseline emotional state when alone. This is closer to your authentic emotional tone."
+        "what_you_tend_to_do": "You tend to absorb emotions from others—feeling what they feel, sometimes more intensely than they do. Your own baseline is more neutral.",
+        "how_this_shows_up_today": [
+            "You may pick up tension in a room before others notice it",
+            "Your mood might shift based on who you're around",
+            "Conflict nearby can feel like your own conflict"
         ],
-        "remember": "Feeling others' emotions deeply is a gift, not a burden. The skill is learning to feel without taking responsibility for emotions that aren't yours."
+        "what_to_watch": "Watch for mistaking someone else's emotion for your own. If it arrived suddenly, ask who brought it.",
+        "what_to_do": "Try this: After leaving an emotional situation, check in: is this feeling still with me, or was it theirs?",
+        "system_label": "Solar Plexus · open"
     },
     "Sacral": {
-        "what_this_means": "You don't have consistent work energy—you need to know when enough is enough. You can borrow it from others and go beyond healthy limits. Learning when enough is enough prevents burnout. This is not a deficiency; it's a different design.",
-        "your_challenge": "Without fixed sacral energy, you might push yourself based on borrowed life force, leading to deep exhaustion. You could compare yourself to people with consistent work capacity and feel inadequate. Learning your actual sustainable rhythm is essential.",
-        "your_genius": "You have the ability to know when enough is enough—not just for yourself, but in general. You can see when others are overworking. Over time, you develop wisdom about the nature of life force and sustainable effort.",
-        "practical_experiments": [
-            "Track your energy through the day. When do you have it, and where did it come from?",
-            "Practice stopping before you're exhausted. Your signal comes later, so you need to stop earlier.",
-            "Notice how your energy changes around different people. Some will energize you; some will deplete you."
+        "what_you_tend_to_do": "You tend to have inconsistent work energy. Some days you can go and go; other days you're depleted. Learning when to stop matters more for you.",
+        "how_this_shows_up_today": [
+            "Your energy for work may not match what's expected of you",
+            "You might borrow energy from others and not realize you're running on fumes",
+            "You may need to rest before you feel tired"
         ],
-        "remember": "You're not designed for sustained work output like sacral beings. Your wisdom is about efficiency and knowing when to stop—not about matching their endurance."
+        "what_to_watch": "Watch for pushing through exhaustion because you technically can. Just because you can keep going doesn't mean you should.",
+        "what_to_do": "Try this: Stop working before you're exhausted. Build in rest before you need it.",
+        "system_label": "Sacral · open"
     },
     "Spleen": {
-        "what_this_means": "You might hold onto things too long—jobs, relationships, habits—past their expiration. Security feels uncertain, so you grip what you have even when it no longer serves. This can make you highly attuned to health and survival themes.",
-        "your_challenge": "Without fixed splenic awareness, you might hold onto things (people, situations, habits) past their healthy expiration because letting go feels unsafe. You could also ignore genuine danger signals or become overly fearful.",
-        "your_genius": "You have potential mastery over fear and health awareness. You can sense what's unhealthy in ways others miss. Over time, you develop wisdom about the nature of safety itself—knowing what's truly dangerous versus what just feels scary.",
-        "practical_experiments": [
-            "Notice what you're holding onto that may have outlived its usefulness.",
-            "When fear arises, ask: is this a genuine signal or amplified anxiety from the environment?",
-            "Pay attention to your health awareness—you may pick up on things before they become obvious."
+        "what_you_tend_to_do": "You tend to hold onto things longer than you should—jobs, relationships, habits. Letting go feels risky because security isn't consistent for you.",
+        "how_this_shows_up_today": [
+            "You might stay in something past its expiration because change feels unsafe",
+            "Fear may feel more amplified for you than for others",
+            "You could ignore health signals or dismiss intuitive hits"
         ],
-        "remember": "Your relationship with fear and survival is an ongoing education. The goal isn't to eliminate fear but to develop wisdom about when it's a real signal."
+        "what_to_watch": "Watch for holding on just because letting go feels scary. The grip isn't keeping you safe—it's keeping you stuck.",
+        "what_to_do": "Try this: Name one thing you're holding onto that might be ready to release. See how it feels to consider letting it go.",
+        "system_label": "Spleen · open"
     },
     "Root": {
-        "what_this_means": "You absorb other people's urgency and feel pressured to rush. Their deadline becomes your stress. Learning to notice when the pressure isn't actually yours is freedom. Your own natural rhythm may be less driven than you think.",
-        "your_challenge": "Without fixed root pressure, you might become addicted to others' urgency or feel chronically stressed in fast-paced environments. You could also try to match the pace of pressured people, burning out in the process.",
-        "your_genius": "You have the ability to recognize when pressure is real versus manufactured. You can see the hamster wheel others are running on. Over time, you develop wisdom about the nature of stress and healthy pacing.",
-        "practical_experiments": [
-            "Notice how your sense of urgency changes in different environments.",
-            "When you feel pressured, ask: is this deadline real, or am I absorbing someone else's stress?",
-            "Practice doing things at your natural pace when possible. See how the quality changes."
+        "what_you_tend_to_do": "You tend to absorb pressure from outside—other people's urgency becomes yours. You may rush to finish things just to get them off your plate.",
+        "how_this_shows_up_today": [
+            "You may feel stressed by other people's deadlines",
+            "Calm environments feel like relief; busy environments feel overwhelming",
+            "You might rush even when there's no actual rush"
         ],
-        "remember": "You're not designed to run on constant pressure. Your gift is recognizing when urgency is artificial—both for yourself and others."
+        "what_to_watch": "Watch for manufacturing urgency that isn't real. Not everything needs to be done now.",
+        "what_to_do": "Try this: When you feel pressure to rush, pause and ask: 'Is this deadline real, or am I absorbing someone else's stress?'",
+        "system_label": "Root · open"
     }
 }
 
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
 
 def get_gates_for_center(center_name: str, active_gates: List[int]) -> List[int]:
     """Get which gates from active_gates belong to a specific center."""
@@ -309,15 +318,15 @@ def get_center_interpretation(
     center_name: str,
     defined: bool,
     active_gates: List[int]
-) -> CenterInterpretation:
+) -> Dict[str, Any]:
     """Generate interpretation for a single center.
     
-    Uses the new HD Translation Layer structure:
-    - WHAT THIS FEELS LIKE IN REAL LIFE (recognition)
-    - WHEN IT HELPS (strength)
-    - WHAT TO WATCH (shadow)  
-    - WHAT HELPS (usable guidance)
-    - SYSTEM NOTE (optional label)
+    Uses the new 5-part Real-Life Language structure:
+    1. WHAT YOU TEND TO DO - behavioral observation
+    2. HOW THIS SHOWS UP TODAY - 2-3 real behaviors
+    3. WHAT TO WATCH - 1 clear risk
+    4. WHAT TO DO - 1 concrete action
+    5. SYSTEM LABEL - optional, secondary
     
     Args:
         center_name: Internal center name (e.g., "G Center")
@@ -325,7 +334,7 @@ def get_center_interpretation(
         active_gates: List of all user's active gates
     
     Returns:
-        CenterInterpretation with behavior-first content
+        Dict with behavior-first content
     """
     # Get gates present in this center
     gates_present = get_gates_for_center(center_name, active_gates)
@@ -339,18 +348,20 @@ def get_center_interpretation(
     
     if not template:
         # Fallback for any missing templates
+        state = "consistently" if defined else "variably"
         template = {
-            "what_this_means": f"You experience {display_name.lower()} energy {'consistently' if defined else 'variably'}.",
-            "your_challenge": "Understanding this center takes time and experimentation.",
-            "your_genius": "Every center configuration has its gifts.",
-            "practical_experiments": ["Observe how this center shows up in your life."],
-            "remember": "Your design is perfect as it is."
+            "what_you_tend_to_do": f"You tend to experience {display_name.lower()} {state}.",
+            "how_this_shows_up_today": ["This center influences your daily experience."],
+            "what_to_watch": "Watch for patterns that don't serve you.",
+            "what_to_do": "Try this: Notice how this center shows up in your life today.",
+            "system_label": f"{display_name} · {'defined' if defined else 'open'}"
         }
     
-    # Build system note
-    state_label = "defined" if defined else "open"
+    # Build system note with gates
     gate_str = f" · Gates {', '.join(str(g) for g in gates_present)}" if gates_present else ""
-    system_note = f"{display_name} {state_label}{gate_str}"
+    system_label = template.get("system_label", f"{display_name} · {'defined' if defined else 'open'}")
+    if gates_present and " · Gates" not in system_label:
+        system_label = f"{system_label}{gate_str}"
     
     return {
         "center_name": center_name,
@@ -358,18 +369,12 @@ def get_center_interpretation(
         "defined": defined,
         "gates_present": gates_present,
         "themes": themes,
-        # New structure - behavior first
-        "what_this_feels_like": template["what_this_means"],  # Recognition
-        "when_it_helps": template["your_genius"],  # Strength
-        "what_to_watch": template["your_challenge"],  # Shadow
-        "what_helps": template["practical_experiments"],  # Guidance
-        "system_note": system_note,  # Secondary label
-        # Legacy fields for compatibility
-        "what_this_means": template["what_this_means"],
-        "your_challenge": template["your_challenge"],
-        "your_genius": template["your_genius"],
-        "practical_experiments": template["practical_experiments"],
-        "remember": template["remember"]
+        # NEW 5-PART STRUCTURE
+        "what_you_tend_to_do": template["what_you_tend_to_do"],
+        "how_this_shows_up_today": template["how_this_shows_up_today"],
+        "what_to_watch": template["what_to_watch"],
+        "what_to_do": template["what_to_do"],
+        "system_label": system_label,
     }
 
 
