@@ -488,6 +488,19 @@ def extract_live_signals(
 
 
 # =============================================================================
+# SCENE TYPES - What kind of real-life moment is this?
+# =============================================================================
+
+class SceneType(Enum):
+    """The specific type of real-life moment this shows up in."""
+    DECISION = "decision"           # A choice you're weighing
+    CONVERSATION = "conversation"   # Something to say/unsaid
+    ACTION = "action"               # Something to do/not do
+    RELATIONSHIP = "relationship"   # Tension with someone
+    INTERNAL = "internal"           # Something you're facing inside
+
+
+# =============================================================================
 # HOME PATTERN TYPES (Specific situations, not abstract labels)
 # =============================================================================
 
@@ -506,192 +519,411 @@ class HomeSituation(Enum):
 
 
 # =============================================================================
-# HIGH-STAKES HOME MESSAGES
+# SITUATION → SCENE TYPE MAPPING
+# =============================================================================
+
+SITUATION_SCENE_TYPE = {
+    HomeSituation.FORCING_PREMATURE: SceneType.ACTION,
+    HomeSituation.WAITING_WITHOUT_CLARITY: SceneType.DECISION,
+    HomeSituation.BLOCKED_BY_OTHERS: SceneType.RELATIONSHIP,
+    HomeSituation.AVOIDING_WHAT_YOU_KNOW: SceneType.INTERNAL,
+    HomeSituation.PUSHING_AGAINST_RESISTANCE: SceneType.ACTION,
+    HomeSituation.TORN_BETWEEN_OPTIONS: SceneType.DECISION,
+    HomeSituation.HOLDING_BACK_EXPRESSION: SceneType.CONVERSATION,
+    HomeSituation.DIRECTION_UNCLEAR: SceneType.INTERNAL,
+    HomeSituation.PRESSURE_WITHOUT_READINESS: SceneType.DECISION,
+    HomeSituation.STANDING_AT_THRESHOLD: SceneType.ACTION,
+}
+
+
+# =============================================================================
+# TARGETED SITUATION CONTEXTS (ONE specific moment)
+# =============================================================================
+
+SITUATION_CONTEXTS = {
+    SceneType.DECISION: [
+        "a decision you've been trying to push through",
+        "a choice you keep circling back to",
+        "something you've already decided but haven't committed to",
+        "a decision you want resolved today",
+    ],
+    SceneType.CONVERSATION: [
+        "a conversation you're avoiding or softening",
+        "something you haven't said to someone",
+        "a message you're not sending",
+        "a truth you're holding back in words",
+    ],
+    SceneType.ACTION: [
+        "something you're trying to close quickly",
+        "a move you're about to make",
+        "something you want done now",
+        "an action you're forcing through",
+    ],
+    SceneType.RELATIONSHIP: [
+        "a tension with someone that isn't fully spoken",
+        "a dynamic with someone that feels off",
+        "something between you and another person",
+        "a relationship pattern you're navigating",
+    ],
+    SceneType.INTERNAL: [
+        "something you already know but haven't faced",
+        "a truth you're circling without landing",
+        "something inside you that wants attention",
+        "a feeling you keep pushing down",
+    ],
+}
+
+
+# =============================================================================
+# HIGH-STAKES HOME MESSAGES (Consequence-based, no soft phrasing)
 # =============================================================================
 
 HOME_MESSAGES = {
     HomeSituation.FORCING_PREMATURE: {
-        "opening_hit": "You're close to forcing something that will cost more to clean up later.",
-        "tension": "The urge is real—but acting on it too early is the trap.",
-        "tension_expanded": "Part of you wants to move now.\nBut another part knows the ground isn't solid yet.",
-        "stakes": "If you force it today, you'll create more cleanup than progress.",
-        "wise_move": "Wait until the signal feels settled, not just urgent.",
+        "opening_hit": "You're about to force something that will take longer to undo than to wait.",
+        "tension": "The urge is real—but acting now is the mistake.",
+        "tension_expanded": "Part of you wants to close this today.\nBut another part knows the ground isn't ready.",
+        "stakes": "If you push this through now, you'll create more cleanup than progress. The mess will outlast the relief.",
+        "wise_move": "Don't move until the signal feels settled—not just urgent.",
         "cta": "See what's not ready yet →",
+        "scene_type": SceneType.ACTION,
     },
     HomeSituation.WAITING_WITHOUT_CLARITY: {
-        "opening_hit": "You're waiting for certainty that hasn't arrived—and the waiting is creating its own pressure.",
-        "tension": "You want to know—but the answer hasn't fully landed.",
-        "tension_expanded": "Part of you wants certainty now.\nBut another part knows it hasn't arrived yet.",
-        "stakes": "Deciding just to end the uncertainty will give you a false answer, not a real one.",
-        "wise_move": "Hold the question without forcing an answer. Let it settle.",
+        "opening_hit": "You want certainty that hasn't arrived—and you're tempted to manufacture it.",
+        "tension": "The answer isn't here yet. Deciding early won't change that.",
+        "tension_expanded": "Part of you wants to know now.\nBut another part knows the clarity hasn't landed.",
+        "stakes": "Deciding just to end the discomfort will lock in a wrong answer. You'll have to revisit this.",
+        "wise_move": "Hold the question one more day. Let it settle before you commit.",
         "cta": "See what's actually clear →",
+        "scene_type": SceneType.DECISION,
     },
     HomeSituation.BLOCKED_BY_OTHERS: {
-        "opening_hit": "You're ready to move—but this one isn't fully yours to move.",
-        "tension": "The wait isn't confusion. It's dependence on something outside your control.",
-        "tension_expanded": "Part of you is ready.\nBut another part is waiting for something that isn't yours to control.",
-        "stakes": "Pushing harder won't make them move faster—it'll just create tension.",
-        "wise_move": "Focus on what IS yours while you wait.",
-        "cta": "See what you can do →",
+        "opening_hit": "You're ready—but this depends on someone who isn't moving.",
+        "tension": "The delay isn't yours. But you're carrying the frustration like it is.",
+        "tension_expanded": "Part of you is ready to go.\nBut another part is waiting on something you can't control.",
+        "stakes": "Pushing them won't make them move faster. It will only create friction you'll have to manage.",
+        "wise_move": "Name what's actually in your hands. Do that instead.",
+        "cta": "See what you can do now →",
+        "scene_type": SceneType.RELATIONSHIP,
     },
     HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
-        "opening_hit": "You already know what's true here—but naming it means something has to change.",
-        "tension": "This isn't confusion. It's protection from what you already see.",
-        "tension_expanded": "Part of you sees the truth.\nBut another part is protecting you from it.",
-        "stakes": "The longer you circle without landing, the heavier it gets.",
-        "wise_move": "Name it to yourself first. Just that.",
+        "opening_hit": "You already know what's true here. You're just not ready to say it out loud.",
+        "tension": "This isn't confusion. It's avoidance—and it's costing you clarity.",
+        "tension_expanded": "Part of you sees the truth clearly.\nBut another part is protecting you from what comes next.",
+        "stakes": "The longer you avoid naming this, the heavier it gets. Avoidance compounds.",
+        "wise_move": "Name it to yourself. Privately. That's the first move.",
         "cta": "Face what you already know →",
+        "scene_type": SceneType.INTERNAL,
     },
     HomeSituation.PUSHING_AGAINST_RESISTANCE: {
-        "opening_hit": "You're pushing hard—but the harder you push, the less it moves.",
-        "tension": "The effort is real. So is the resistance. They're feeding each other.",
-        "tension_expanded": "Part of you wants to force this through.\nBut another part feels the friction building.",
-        "stakes": "More effort in the wrong direction just exhausts you without creating progress.",
-        "wise_move": "Pause and ask: where IS there flow right now?",
+        "opening_hit": "You're pushing something that's not moving—and pushing harder isn't working.",
+        "tension": "The effort is real. The resistance is real. They're feeding each other.",
+        "tension_expanded": "Part of you wants to break through.\nBut another part feels the friction burning energy.",
+        "stakes": "More effort in this direction will exhaust you without creating progress. You'll burn out, not break through.",
+        "wise_move": "Pause. Ask: where IS there flow right now? Go there instead.",
         "cta": "See what's actually open →",
+        "scene_type": SceneType.ACTION,
     },
     HomeSituation.TORN_BETWEEN_OPTIONS: {
-        "opening_hit": "You're pulled between two things that both feel true—and choosing feels impossible.",
-        "tension": "This isn't indecision. It's two real truths competing.",
-        "tension_expanded": "Part of you wants one thing.\nBut another part wants something that contradicts it.",
-        "stakes": "Forcing a choice before the tension resolves will abandon something that matters.",
-        "wise_move": "Name both pulls honestly. Let them coexist for now.",
+        "opening_hit": "You're torn between two real things—and forcing a choice will betray one of them.",
+        "tension": "This isn't indecision. It's conflict between two genuine pulls.",
+        "tension_expanded": "Part of you wants one path.\nBut another part wants something that contradicts it.",
+        "stakes": "Choosing now to escape the discomfort will abandon something that matters. You'll circle back to this.",
+        "wise_move": "Name both options honestly. Let them both be real for now.",
         "cta": "See both sides clearly →",
+        "scene_type": SceneType.DECISION,
     },
     HomeSituation.HOLDING_BACK_EXPRESSION: {
-        "opening_hit": "There's something you're not saying—and it's sitting in you, taking up space.",
-        "tension": "Expression wants to happen. But something is keeping it in.",
-        "tension_expanded": "Part of you wants to speak.\nBut another part is holding back.",
-        "stakes": "What's unsaid doesn't disappear. It builds pressure or becomes resentment.",
-        "wise_move": "Say it somewhere safe first. Write it. Speak it to one person.",
+        "opening_hit": "There's something you're not saying—and holding it is costing you more than saying it would.",
+        "tension": "Part of you wants to speak. Part of you won't.",
+        "tension_expanded": "Something wants to come out.\nBut something else is keeping it locked in.",
+        "stakes": "What's unsaid doesn't disappear. It builds into resentment, distance, or an explosion. This is accumulating.",
+        "wise_move": "Say it somewhere safe first. Write it. Voice memo. Then decide if it needs to land.",
         "cta": "See what wants to be said →",
+        "scene_type": SceneType.CONVERSATION,
     },
     HomeSituation.DIRECTION_UNCLEAR: {
-        "opening_hit": "You know something needs to move—but you can't see the path clearly yet.",
+        "opening_hit": "You know something needs to move—but you can't see where yet.",
         "tension": "Direction exists. You just can't see it from here.",
-        "tension_expanded": "Part of you knows change is needed.\nBut another part can't see where to go.",
-        "stakes": "Forcing a direction just to have one will point you somewhere wrong.",
-        "wise_move": "Take the smallest step you can see. The next one will appear.",
+        "tension_expanded": "Part of you knows change is coming.\nBut another part can't see the path.",
+        "stakes": "Forcing a direction just to have one will cost you time. Wrong paths still take energy to walk back.",
+        "wise_move": "Take the smallest visible step. The next one appears after.",
         "cta": "See what's emerging →",
+        "scene_type": SceneType.INTERNAL,
     },
     HomeSituation.PRESSURE_WITHOUT_READINESS: {
-        "opening_hit": "The pressure to decide is real—but your clarity isn't caught up yet.",
-        "tension": "Urgency and readiness are out of sync. They're not the same thing.",
-        "tension_expanded": "Part of you feels urgent pressure.\nBut another part isn't actually ready.",
-        "stakes": "Deciding under pressure without clarity will give you relief, not resolution.",
-        "wise_move": "Separate the pressure from the decision. Which is actually yours?",
+        "opening_hit": "You feel pressure to decide—but your actual clarity isn't there yet.",
+        "tension": "Urgency and readiness are out of sync. Only one is real.",
+        "tension_expanded": "Part of you feels the clock ticking.\nBut another part knows you're not actually ready.",
+        "stakes": "Deciding under pressure without clarity will give you relief now and regret later. You'll revisit this.",
+        "wise_move": "Separate the pressure from the decision. Ask: whose deadline is this?",
         "cta": "See what's truly urgent →",
+        "scene_type": SceneType.DECISION,
     },
     HomeSituation.STANDING_AT_THRESHOLD: {
-        "opening_hit": "You're standing at a threshold—but you haven't stepped through yet.",
-        "tension": "The door is open. The step hasn't happened. Something is keeping you on this side.",
-        "tension_expanded": "Part of you is ready to cross.\nBut another part is anchored to what's behind.",
-        "stakes": "Hovering at the threshold drains more than either staying or going.",
-        "wise_move": "Name what you'd be leaving. Then decide if you're ready.",
+        "opening_hit": "You're standing at a line—but you haven't crossed it. Something is keeping you on this side.",
+        "tension": "The door is open. The step hasn't happened.",
+        "tension_expanded": "Part of you is ready to cross.\nBut another part is still holding onto what's behind.",
+        "stakes": "Hovering at the threshold drains more than crossing or staying. The in-between costs the most.",
+        "wise_move": "Name what you'd be leaving. Then decide if you're ready to leave it.",
         "cta": "See what's on the other side →",
+        "scene_type": SceneType.ACTION,
     },
 }
 
 
 # =============================================================================
-# SITUATION SELECTION (Truth-Based)
+# SITUATION SELECTION (Truth-Based, Discriminative)
 # =============================================================================
 
 def select_home_situation(profile: LiveSignalProfile) -> Tuple[HomeSituation, float]:
     """
     Select the single strongest live situation based on real signals.
     NO artificial variance. Pure signal-based selection.
+    
+    Uses DISCRIMINATIVE scoring - situations require specific signal thresholds.
     """
     
     scores = {}
     
-    # FORCING_PREMATURE: high action + clarity delay
-    scores[HomeSituation.FORCING_PREMATURE] = (
-        profile.action_pressure * 0.4 +
-        profile.clarity_delay * 0.3 +
-        profile.urgency * 0.2 +
-        profile.readiness_mismatch * 0.1
-    )
+    # FORCING_PREMATURE: high action + urgency + low clarity
+    # REQUIRED: action_pressure > 0.3 AND (urgency > 0.3 OR clarity_delay > 0.3)
+    if profile.action_pressure > 0.3 and (profile.urgency > 0.3 or profile.clarity_delay > 0.3):
+        scores[HomeSituation.FORCING_PREMATURE] = (
+            profile.action_pressure * 0.45 +
+            profile.urgency * 0.3 +
+            profile.clarity_delay * 0.25
+        )
+    else:
+        scores[HomeSituation.FORCING_PREMATURE] = 0.0
     
-    # WAITING_WITHOUT_CLARITY: high clarity delay + emotional
-    scores[HomeSituation.WAITING_WITHOUT_CLARITY] = (
-        profile.clarity_delay * 0.5 +
-        profile.emotional_intensity * 0.3 +
-        profile.urgency * 0.2
-    )
+    # WAITING_WITHOUT_CLARITY: high clarity delay + low action
+    # REQUIRED: clarity_delay > 0.3 AND action_pressure < 0.4
+    if profile.clarity_delay > 0.3 and profile.action_pressure < 0.4:
+        scores[HomeSituation.WAITING_WITHOUT_CLARITY] = (
+            profile.clarity_delay * 0.5 +
+            profile.emotional_intensity * 0.3 +
+            (1 - profile.action_pressure) * 0.2
+        )
+    else:
+        scores[HomeSituation.WAITING_WITHOUT_CLARITY] = 0.0
     
-    # BLOCKED_BY_OTHERS: external dependency
-    scores[HomeSituation.BLOCKED_BY_OTHERS] = (
-        profile.external_dependency * 0.5 +
-        profile.readiness_mismatch * 0.3 +
-        profile.action_pressure * 0.2
-    )
+    # BLOCKED_BY_OTHERS: external dependency dominant
+    # REQUIRED: external_dependency > 0.35
+    if profile.external_dependency > 0.35:
+        scores[HomeSituation.BLOCKED_BY_OTHERS] = (
+            profile.external_dependency * 0.6 +
+            profile.readiness_mismatch * 0.25 +
+            profile.action_pressure * 0.15
+        )
+    else:
+        scores[HomeSituation.BLOCKED_BY_OTHERS] = 0.0
     
-    # AVOIDING_WHAT_YOU_KNOW: avoidance + recurrence
-    scores[HomeSituation.AVOIDING_WHAT_YOU_KNOW] = (
-        profile.avoidance * 0.5 +
-        profile.recurrence * 0.3 +
-        profile.emotional_intensity * 0.2
-    )
+    # AVOIDING_WHAT_YOU_KNOW: avoidance dominant
+    # REQUIRED: avoidance > 0.3 OR recurrence > 0.4
+    if profile.avoidance > 0.3 or profile.recurrence > 0.4:
+        scores[HomeSituation.AVOIDING_WHAT_YOU_KNOW] = (
+            profile.avoidance * 0.5 +
+            profile.recurrence * 0.35 +
+            profile.emotional_intensity * 0.15
+        )
+    else:
+        scores[HomeSituation.AVOIDING_WHAT_YOU_KNOW] = 0.0
     
     # PUSHING_AGAINST_RESISTANCE: action + readiness mismatch
-    scores[HomeSituation.PUSHING_AGAINST_RESISTANCE] = (
-        profile.action_pressure * 0.4 +
-        profile.readiness_mismatch * 0.4 +
-        profile.urgency * 0.2
-    )
+    # REQUIRED: action_pressure > 0.35 AND readiness_mismatch > 0.25
+    if profile.action_pressure > 0.35 and profile.readiness_mismatch > 0.25:
+        scores[HomeSituation.PUSHING_AGAINST_RESISTANCE] = (
+            profile.action_pressure * 0.45 +
+            profile.readiness_mismatch * 0.4 +
+            profile.urgency * 0.15
+        )
+    else:
+        scores[HomeSituation.PUSHING_AGAINST_RESISTANCE] = 0.0
     
-    # TORN_BETWEEN_OPTIONS: emotional intensity + clarity delay
-    scores[HomeSituation.TORN_BETWEEN_OPTIONS] = (
-        profile.emotional_intensity * 0.4 +
-        profile.clarity_delay * 0.3 +
-        profile.recurrence * 0.2 +
-        (1 - profile.action_pressure) * 0.1  # Less action = more torn
-    )
+    # TORN_BETWEEN_OPTIONS: emotional intensity + clarity delay + low urgency
+    # REQUIRED: emotional_intensity > 0.25 AND clarity_delay > 0.25
+    if profile.emotional_intensity > 0.25 and profile.clarity_delay > 0.25:
+        scores[HomeSituation.TORN_BETWEEN_OPTIONS] = (
+            profile.emotional_intensity * 0.45 +
+            profile.clarity_delay * 0.35 +
+            profile.recurrence * 0.2
+        )
+    else:
+        scores[HomeSituation.TORN_BETWEEN_OPTIONS] = 0.0
     
-    # HOLDING_BACK_EXPRESSION: expression blockage
-    scores[HomeSituation.HOLDING_BACK_EXPRESSION] = (
-        profile.expression_blockage * 0.5 +
-        profile.emotional_intensity * 0.3 +
-        profile.avoidance * 0.2
-    )
+    # HOLDING_BACK_EXPRESSION: expression blockage dominant
+    # REQUIRED: expression_blockage > 0.3
+    if profile.expression_blockage > 0.3:
+        scores[HomeSituation.HOLDING_BACK_EXPRESSION] = (
+            profile.expression_blockage * 0.7 +
+            profile.emotional_intensity * 0.2 +
+            profile.avoidance * 0.1
+        )
+    else:
+        scores[HomeSituation.HOLDING_BACK_EXPRESSION] = 0.0
     
-    # DIRECTION_UNCLEAR: clarity delay + low action
-    scores[HomeSituation.DIRECTION_UNCLEAR] = (
-        profile.clarity_delay * 0.4 +
-        (1 - profile.action_pressure) * 0.3 +
-        profile.readiness_mismatch * 0.3
-    )
+    # DIRECTION_UNCLEAR: low clarity, low action, low urgency (genuine confusion)
+    # REQUIRED: clarity_delay > 0.25 AND action_pressure < 0.3 AND urgency < 0.35
+    # Also: expression_blockage must be LOW (otherwise it's not confusion, it's held expression)
+    if profile.clarity_delay > 0.25 and profile.action_pressure < 0.3 and profile.urgency < 0.35 and profile.expression_blockage < 0.4:
+        scores[HomeSituation.DIRECTION_UNCLEAR] = (
+            profile.clarity_delay * 0.5 +
+            profile.readiness_mismatch * 0.3 +
+            (1 - profile.action_pressure) * 0.2
+        )
+    else:
+        scores[HomeSituation.DIRECTION_UNCLEAR] = 0.0
     
-    # PRESSURE_WITHOUT_READINESS: urgency + clarity delay
-    scores[HomeSituation.PRESSURE_WITHOUT_READINESS] = (
-        profile.urgency * 0.4 +
-        profile.clarity_delay * 0.3 +
-        profile.external_dependency * 0.2 +
-        (1 - profile.action_pressure) * 0.1
-    )
+    # PRESSURE_WITHOUT_READINESS: urgency + clarity delay + external pressure
+    # REQUIRED: urgency > 0.3 AND clarity_delay > 0.2
+    if profile.urgency > 0.3 and profile.clarity_delay > 0.2:
+        scores[HomeSituation.PRESSURE_WITHOUT_READINESS] = (
+            profile.urgency * 0.45 +
+            profile.clarity_delay * 0.3 +
+            profile.external_dependency * 0.25
+        )
+    else:
+        scores[HomeSituation.PRESSURE_WITHOUT_READINESS] = 0.0
     
-    # STANDING_AT_THRESHOLD: readiness mismatch + avoidance
-    scores[HomeSituation.STANDING_AT_THRESHOLD] = (
-        profile.readiness_mismatch * 0.4 +
-        profile.avoidance * 0.3 +
-        profile.emotional_intensity * 0.2 +
-        (1 - profile.urgency) * 0.1
-    )
+    # STANDING_AT_THRESHOLD: readiness mismatch + avoidance (near-decision)
+    # REQUIRED: readiness_mismatch > 0.3 AND avoidance > 0.2
+    if profile.readiness_mismatch > 0.3 and profile.avoidance > 0.2:
+        scores[HomeSituation.STANDING_AT_THRESHOLD] = (
+            profile.readiness_mismatch * 0.45 +
+            profile.avoidance * 0.35 +
+            profile.emotional_intensity * 0.2
+        )
+    else:
+        scores[HomeSituation.STANDING_AT_THRESHOLD] = 0.0
     
     # Apply stakes multiplier
     for situation in scores:
         scores[situation] *= (1 + profile.stakes_level * 0.3)
     
-    # Select highest
+    # Select highest - FALLBACK if all scores are 0
     best = max(scores.items(), key=lambda x: x[1])
+    
+    # If all situations scored 0, use intelligent fallback based on dominant signals
+    if best[1] == 0:
+        # Pick fallback based on highest individual signals
+        signal_map = {
+            "action_pressure": HomeSituation.FORCING_PREMATURE,
+            "clarity_delay": HomeSituation.WAITING_WITHOUT_CLARITY,
+            "external_dependency": HomeSituation.BLOCKED_BY_OTHERS,
+            "avoidance": HomeSituation.AVOIDING_WHAT_YOU_KNOW,
+            "expression_blockage": HomeSituation.HOLDING_BACK_EXPRESSION,
+            "readiness_mismatch": HomeSituation.STANDING_AT_THRESHOLD,
+            "urgency": HomeSituation.PRESSURE_WITHOUT_READINESS,
+            "emotional_intensity": HomeSituation.TORN_BETWEEN_OPTIONS,
+            "recurrence": HomeSituation.AVOIDING_WHAT_YOU_KNOW,
+        }
+        
+        # Find the highest signal
+        signal_values = [
+            (profile.action_pressure, "action_pressure"),
+            (profile.clarity_delay, "clarity_delay"),
+            (profile.external_dependency, "external_dependency"),
+            (profile.avoidance, "avoidance"),
+            (profile.expression_blockage, "expression_blockage"),
+            (profile.readiness_mismatch, "readiness_mismatch"),
+            (profile.urgency, "urgency"),
+            (profile.emotional_intensity, "emotional_intensity"),
+            (profile.recurrence, "recurrence"),
+        ]
+        highest_signal = max(signal_values, key=lambda x: x[0])
+        
+        if highest_signal[0] > 0.1:
+            fallback_situation = signal_map.get(highest_signal[1], HomeSituation.DIRECTION_UNCLEAR)
+            return fallback_situation, highest_signal[0]
+        else:
+            # Default fallback
+            return HomeSituation.DIRECTION_UNCLEAR, 0.3
     
     return best[0], min(1.0, best[1])
 
 
 # =============================================================================
-# HOME MESSAGE GENERATION
+# HOME MESSAGE GENERATION (with Situation Targeting)
 # =============================================================================
+
+def get_targeted_context(situation: HomeSituation, profile: LiveSignalProfile) -> str:
+    """
+    Generate ONE specific real-life context based on situation and signals.
+    No vague language. Points to exactly ONE moment.
+    """
+    scene_type = SITUATION_SCENE_TYPE.get(situation, SceneType.INTERNAL)
+    contexts = SITUATION_CONTEXTS.get(scene_type, SITUATION_CONTEXTS[SceneType.INTERNAL])
+    
+    # Choose the most specific context based on profile signals
+    idx = 0
+    
+    if scene_type == SceneType.DECISION:
+        if profile.urgency > 0.4:
+            idx = 0  # "a decision you've been trying to push through"
+        elif profile.recurrence > 0.3:
+            idx = 1  # "a choice you keep circling back to"
+        elif profile.clarity_delay > 0.4:
+            idx = 2  # "something you've already decided but haven't committed to"
+        else:
+            idx = 3  # "a decision you want resolved today"
+    
+    elif scene_type == SceneType.CONVERSATION:
+        if profile.avoidance > 0.3:
+            idx = 0  # "a conversation you're avoiding or softening"
+        elif profile.external_dependency > 0.3:
+            idx = 1  # "something you haven't said to someone"
+        elif profile.action_pressure > 0.3:
+            idx = 2  # "a message you're not sending"
+        else:
+            idx = 3  # "a truth you're holding back in words"
+    
+    elif scene_type == SceneType.ACTION:
+        if profile.urgency > 0.4:
+            idx = 0  # "something you're trying to close quickly"
+        elif profile.readiness_mismatch > 0.3:
+            idx = 1  # "a move you're about to make"
+        elif profile.action_pressure > 0.4:
+            idx = 2  # "something you want done now"
+        else:
+            idx = 3  # "an action you're forcing through"
+    
+    elif scene_type == SceneType.RELATIONSHIP:
+        if profile.expression_blockage > 0.3:
+            idx = 0  # "a tension with someone that isn't fully spoken"
+        elif profile.avoidance > 0.3:
+            idx = 1  # "a dynamic with someone that feels off"
+        elif profile.external_dependency > 0.4:
+            idx = 2  # "something between you and another person"
+        else:
+            idx = 3  # "a relationship pattern you're navigating"
+    
+    elif scene_type == SceneType.INTERNAL:
+        if profile.avoidance > 0.4:
+            idx = 0  # "something you already know but haven't faced"
+        elif profile.recurrence > 0.3:
+            idx = 1  # "a truth you're circling without landing"
+        elif profile.emotional_intensity > 0.3:
+            idx = 2  # "something inside you that wants attention"
+        else:
+            idx = 3  # "a feeling you keep pushing down"
+    
+    # Override with journal-bound context if available
+    if profile.bound_context:
+        return profile.bound_context
+    
+    # Override with recent theme if available
+    if profile.recent_theme:
+        theme_overrides = {
+            "decision": "a decision you've been weighing",
+            "work": "a work situation that needs resolution",
+            "relationship": "something unspoken with someone",
+            "expression": "something you haven't said",
+        }
+        return theme_overrides.get(profile.recent_theme, contexts[idx])
+    
+    return contexts[idx]
+
 
 def generate_home_message(
     transit_aspects: List[Dict] = None,
@@ -703,10 +935,11 @@ def generate_home_message(
     exposure_state: str = None,
 ) -> Dict[str, Any]:
     """
-    Generate truth-based Home message.
+    Generate truth-based Home message with Situation Targeting.
     
     NO artificial variance.
     Based only on real signals from transits, HD, BaZi, journals, history.
+    Points to ONE specific real-life moment.
     """
     
     # Extract real signals
@@ -726,25 +959,14 @@ def generate_home_message(
     # Get message template
     message = HOME_MESSAGES.get(situation, HOME_MESSAGES[HomeSituation.DIRECTION_UNCLEAR])
     
-    # Build context based on real domain
-    domain_contexts = DOMAIN_CONTEXTS.get(profile.dominant_domain, DOMAIN_CONTEXTS[LifeDomain.INTERNAL])
+    # Get scene type
+    scene_type = SITUATION_SCENE_TYPE.get(situation, SceneType.INTERNAL)
     
-    # Choose most specific context based on journal binding
-    if profile.bound_context:
-        context_line = profile.bound_context
-    elif profile.recent_theme:
-        theme_contexts = {
-            "decision": "a decision you're weighing",
-            "work": "a work situation you're navigating",
-            "relationship": "a relationship dynamic",
-            "expression": "something you want to say",
-        }
-        context_line = theme_contexts.get(profile.recent_theme, domain_contexts[0])
-    else:
-        context_line = domain_contexts[0]
+    # Get targeted context (ONE specific moment)
+    targeted_context = get_targeted_context(situation, profile)
     
     # Build full context sentence
-    full_context = f"This is most likely showing up in {context_line}."
+    full_context = f"This is most likely showing up in:\n• {targeted_context}"
     
     # Get tension template
     tension_template = TENSION_TEMPLATES.get(profile.strongest_tension, 
@@ -759,6 +981,10 @@ def generate_home_message(
         "stakes": message["stakes"],
         "wise_move": message["wise_move"],
         "cta": message["cta"],
+        
+        # Situation Targeting
+        "scene_type": scene_type.value,
+        "targeted_context": targeted_context,
         
         # Metadata
         "situation": situation.value,
@@ -796,10 +1022,13 @@ def format_home_for_display(home: Dict[str, Any]) -> str:
         "",
         home["context"],
         "",
-        home["stakes"],
+        f"STAKES: {home['stakes']}",
         "",
-        home["wise_move"],
+        f"ONE WISE MOVE: {home['wise_move']}",
         "",
         f"[{home['cta']}]",
+        "",
+        f"---",
+        f"Scene: {home.get('scene_type', 'internal')}",
     ]
     return "\n".join(lines)
