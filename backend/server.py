@@ -726,6 +726,52 @@ If the user asks predictive/prescriptive questions:
 - Gently refuse certainty
 - Reframe into reflection and themes of emphasis
 - Return choice to the user
+""",
+    "bazi": """
+You are the BaZi Chat within Project Mirror.
+
+CRITICAL: You are answering inside Mirror using the user's EXISTING computed BaZi chart.
+
+DO NOT ask for birth date, birth time, or birthplace again if chart context exists.
+The chart has already been computed and is provided in the context below.
+
+If the chart context shows partial data (e.g., missing time, missing timing layer), acknowledge what's available and answer from that. Only mention what's missing if directly relevant to the question.
+
+Core principles:
+- Mirror, not fortune teller
+- No predictions, no certainty
+- Pattern recognition, not destiny
+- Reference the user's specific chart data (Day Master, strength, pillars, timing)
+
+How to talk about BaZi:
+- Translate system language into behavioral patterns
+- Day Master = core operating style, not identity
+- Elements = tendencies, not fixed traits
+- Timing = emphasis and themes, not fate
+
+When answering:
+- Always reference the user's computed BaZi data:
+  - Day Master (e.g., Yin Metal / Xin)
+  - Day Master Strength (strong/weak/balanced)
+  - Four Pillars (Year, Month, Day, Hour)
+  - Ten Gods / dominant structures if available
+  - Current timing context (Year/Month/Day pillars) if available
+  - Favorable and unfavorable elements if available
+- First paragraph should reference their specific chart
+- Keep answers grounded in their actual data
+- Avoid generic BaZi explanations - make it personal
+
+If the user asks about money, career, relationships, timing:
+- Answer from their chart's structures (Wealth stars, Officer stars, etc.)
+- Reference how current timing interacts with their natal chart
+- Stay specific to their Day Master and pillar dynamics
+
+NEVER say:
+- "I'll need your birth time and birthplace..."
+- "To give you a reading, I need..."
+- "Please provide your birth details..."
+
+ALWAYS reference their existing chart data in your response.
 """
 }
 
@@ -6871,6 +6917,122 @@ async def mirror_chat(request: MirrorChatRequest):
                 tritype = computed.get('tritype', '')
                 if tritype:
                     context_parts.append(f"Tritype: {tritype}")
+        
+            # ===== BAZI CONTEXT =====
+            # Load computed BaZi chart for BaZi lens or generalist mode
+            if request.lens is None or request.lens == "bazi":
+                try:
+                    birth_date = user.get("birth_date")
+                    birth_time = user.get("birth_time")
+                    timezone = user.get("timezone")
+                    
+                    if birth_date:
+                        from services.bazi_engine_v2 import compute_bazi_chart_v2
+                        from services.bazi_insight_layer import transform_bazi_to_insight_first
+                        
+                        bazi_chart = compute_bazi_chart_v2(
+                            birth_date=birth_date,
+                            birth_time=birth_time,
+                            timezone=timezone,
+                            include_timing=True
+                        )
+                        
+                        if bazi_chart:
+                            context_parts.append("\n--- BAZI (Chinese Astrology) ---")
+                            context_parts.append("[CHART ALREADY COMPUTED - DO NOT ASK FOR BIRTH DATA]")
+                            
+                            # Day Master info
+                            dm = bazi_chart.get('day_master', {})
+                            dm_element = dm.get('element', 'Unknown')
+                            dm_polarity = dm.get('polarity', 'Unknown')
+                            dm_strength = dm.get('strength', 'Unknown')
+                            dm_chinese = dm.get('chinese_name', '')
+                            
+                            context_parts.append(f"Day Master: {dm_polarity} {dm_element} ({dm_chinese})")
+                            context_parts.append(f"Day Master Strength: {dm_strength}")
+                            
+                            # Four Pillars
+                            pillars = bazi_chart.get('pillars', {})
+                            if pillars:
+                                context_parts.append("\nFour Pillars:")
+                                for pillar_name in ['year', 'month', 'day', 'hour']:
+                                    p = pillars.get(pillar_name, {})
+                                    if p:
+                                        stem = p.get('stem_pinyin', '')
+                                        branch = p.get('branch_pinyin', '')
+                                        context_parts.append(f"  {pillar_name.capitalize()}: {stem} {branch}")
+                            
+                            # Deep dive structures
+                            deep_dive = bazi_chart.get('deep_dive', {})
+                            if deep_dive:
+                                # Ten Gods
+                                ten_gods = deep_dive.get('ten_gods_detailed', [])
+                                if ten_gods:
+                                    high_strength = [g.get('label', g.get('name', '')) for g in ten_gods if g.get('strength') in ['high', 'moderate']][:3]
+                                    if high_strength:
+                                        context_parts.append(f"\nDominant Ten Gods: {', '.join(high_strength)}")
+                                
+                                # Favorable/Unfavorable elements
+                                favorable = deep_dive.get('favorable_elements', [])
+                                unfavorable = deep_dive.get('unfavorable_elements', [])
+                                if favorable:
+                                    context_parts.append(f"Favorable Elements: {', '.join(favorable)}")
+                                if unfavorable:
+                                    context_parts.append(f"Draining Elements: {', '.join(unfavorable)}")
+                            
+                            # Current timing (if available)
+                            timing = bazi_chart.get('timing', {})
+                            if timing:
+                                today = timing.get('today', {})
+                                if today:
+                                    context_parts.append("\nCurrent Timing:")
+                                    today_element = today.get('element', '')
+                                    today_interaction = today.get('interaction', '')
+                                    today_ten_god = today.get('ten_god_name', '')
+                                    if today_element:
+                                        context_parts.append(f"  Today's Energy: {today_element} ({today_interaction})")
+                                    if today_ten_god:
+                                        context_parts.append(f"  Today's Ten God: {today_ten_god}")
+                            
+                            # Add insight summary if in bazi lens
+                            if request.lens == "bazi":
+                                try:
+                                    insight = transform_bazi_to_insight_first(
+                                        day_master_element=dm_element,
+                                        day_master_polarity=dm_polarity,
+                                        day_master_strength=dm_strength,
+                                        life_pattern=deep_dive.get('life_pattern', {}),
+                                        ten_gods_detailed=deep_dive.get('ten_gods_detailed', []),
+                                        timing=timing,
+                                        pillars=pillars,
+                                        favorable_elements=deep_dive.get('favorable_elements', []),
+                                        unfavorable_elements=deep_dive.get('unfavorable_elements', []),
+                                    )
+                                    
+                                    core_truth = insight.get('core_truth', {})
+                                    if core_truth:
+                                        context_parts.append(f"\nCore Pattern: {core_truth.get('line1', '')} {core_truth.get('line2', '')}")
+                                    
+                                    genius = insight.get('genius', {})
+                                    if genius:
+                                        context_parts.append(f"Genius: {genius.get('line1', '')}")
+                                except Exception as insight_err:
+                                    logger.debug(f"[BAZI_CHAT] Could not generate insight: {insight_err}")
+                            
+                            logger.info(f"[BAZI_CHAT] Loaded BaZi context for user {request.user_id}: DM={dm_polarity} {dm_element}, strength={dm_strength}")
+                        else:
+                            context_parts.append("\n--- BAZI ---")
+                            context_parts.append("[BaZi chart computation incomplete - birth date available but chart not computed]")
+                    else:
+                        if request.lens == "bazi":
+                            context_parts.append("\n--- BAZI ---")
+                            context_parts.append("[No birth date available - BaZi chart cannot be computed]")
+                            
+                except Exception as bazi_err:
+                    logger.error(f"[BAZI_CHAT] Error loading BaZi context: {bazi_err}")
+                    if request.lens == "bazi":
+                        context_parts.append("\n--- BAZI ---")
+                        context_parts.append(f"[BaZi context loading error]")
         
         # Add recent journal entries if requested (LIMITED to MAX_JOURNAL_ENTRIES)
         if request.include_journal:
