@@ -812,3 +812,216 @@ def apply_time_context_to_copy(
             copy["opening"] = continuity_marker + copy["opening"]
     
     return copy
+
+
+# =============================================================================
+# PATTERN MEMORY LAYER V1 - Cross-Lens Recurrence Tracking
+# =============================================================================
+# 
+# GOAL: Make user feel "This is not random. This has happened before. Mirror remembers."
+#
+# MEMORY STATES:
+# - returning: Pattern came back after absence (>7 days gap)
+# - repeating: Pattern showing up again, same intensity
+# - deepening: Pattern is intensifying/tightening
+# - unresolved: User didn't act on it
+# - easing: Pattern is softening but still present
+# =============================================================================
+
+import random
+
+MEMORY_LINES = {
+    "returning": [
+        "This is back.",
+        "You've seen this recently.",
+        "This showed up before.",
+        "This came back.",
+        "You're here again."
+    ],
+    "repeating": [
+        "This is the same thing from last week.",
+        "You're back here again.",
+        "This keeps showing up.",
+        "You've been circling this.",
+        "Same pattern. Again."
+    ],
+    "deepening": [
+        "This pattern is tightening.",
+        "It's getting louder.",
+        "This is intensifying.",
+        "It didn't go away — it got stronger.",
+        "This is digging in."
+    ],
+    "unresolved": [
+        "This didn't fully resolve last time either.",
+        "You almost moved this last time too.",
+        "You circled this but didn't finish it.",
+        "This was here before. You didn't act.",
+        "Still here. Still waiting."
+    ],
+    "easing": [
+        "It softened, but it didn't go away.",
+        "This is quieter than before.",
+        "It's loosening, slowly.",
+        "Less intense, but still present.",
+        "Not as loud, but still here."
+    ]
+}
+
+
+def generate_memory_line(memory_state: str) -> str:
+    """
+    Generate a memory line based on the pattern's state.
+    
+    Rules:
+    - Specific and calm
+    - Feels like recognition, not drama
+    - Grounded in actual history
+    """
+    lines = MEMORY_LINES.get(memory_state, MEMORY_LINES["returning"])
+    return random.choice(lines)
+
+
+def compute_memory_state(
+    times_seen: int,
+    days_since_last: int,
+    was_acted_on: bool = False,
+    intensity_change: float = 0.0
+) -> str:
+    """
+    Compute memory state from exposure data.
+    
+    Args:
+        times_seen: Total times pattern was seen
+        days_since_last: Days since last occurrence
+        was_acted_on: Whether user engaged with it last time
+        intensity_change: Positive = deepening, negative = easing
+    
+    Returns:
+        Memory state string
+    """
+    # Check for returning (long gap)
+    if days_since_last > 7:
+        return "returning"
+    
+    # Check for unresolved (didn't act)
+    if times_seen >= 2 and not was_acted_on:
+        return "unresolved"
+    
+    # Check for deepening/easing
+    if intensity_change > 0.15:
+        return "deepening"
+    elif intensity_change < -0.15:
+        return "easing"
+    
+    # Default to repeating
+    return "repeating"
+
+
+async def get_pattern_memory_v1(
+    db,
+    user_id: str,
+    pattern_id: str,
+    pattern_title: str = None,
+    pattern_family: str = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Get memory fields for a pattern if real recurrence exists.
+    
+    Returns:
+        Dict with memory_line, recurrence_count, last_seen_at, memory_state
+        OR None if no meaningful history
+    
+    RULES:
+    - Only use memory if grounded in actual user history
+    - No fake continuity
+    - Must be specific and calm
+    - Must feel like recognition, not drama
+    """
+    try:
+        today = datetime.now(timezone.utc)
+        seven_days_ago = today - timedelta(days=7)
+        thirty_days_ago = today - timedelta(days=30)
+        
+        # Find exposure record
+        exposure = await db.pattern_exposures.find_one({
+            "user_id": user_id,
+            "pattern_id": pattern_id
+        })
+        
+        if not exposure:
+            return None  # No history
+        
+        times_seen = exposure.get("times_seen_total", 0)
+        
+        if times_seen < 2:
+            return None  # Not enough recurrence for memory
+        
+        last_seen_at = exposure.get("last_seen_at")
+        if not last_seen_at:
+            return None
+        
+        # Calculate days since last
+        if isinstance(last_seen_at, str):
+            last_seen_at = datetime.fromisoformat(last_seen_at.replace("Z", "+00:00"))
+        
+        days_since_last = (today - last_seen_at).days
+        
+        # Check if user acted on it
+        last_interaction = exposure.get("last_interaction", "none")
+        was_acted_on = last_interaction in ["yes", "reflect", "chat"]
+        
+        # Compute memory state
+        memory_state = compute_memory_state(
+            times_seen=times_seen,
+            days_since_last=days_since_last,
+            was_acted_on=was_acted_on,
+            intensity_change=0.0  # Could be computed from history
+        )
+        
+        # Generate memory line
+        memory_line = generate_memory_line(memory_state)
+        
+        return {
+            "memory_line": memory_line,
+            "recurrence_count": times_seen,
+            "last_seen_at": last_seen_at.isoformat() if hasattr(last_seen_at, 'isoformat') else str(last_seen_at),
+            "memory_state": memory_state
+        }
+        
+    except Exception as e:
+        logger.error(f"[PatternMemoryV1] Error getting memory for {pattern_id}: {e}")
+        return None
+
+
+def simulate_memory_for_demo(should_show: bool = True) -> Optional[Dict[str, Any]]:
+    """
+    Generate simulated memory for demonstration when real history unavailable.
+    
+    Returns None 70% of the time to avoid fake continuity.
+    ONLY use when real pattern history is unavailable.
+    """
+    if not should_show:
+        return None
+    
+    # Only show memory 30% of the time to avoid fabrication
+    if random.random() > 0.3:
+        return None
+    
+    # Pick a random state
+    states = ["returning", "repeating", "deepening", "unresolved", "easing"]
+    memory_state = random.choice(states)
+    
+    # Generate plausible recurrence data
+    recurrence_count = random.randint(2, 5)
+    days_ago = random.randint(3, 14)
+    last_seen = datetime.now(timezone.utc) - timedelta(days=days_ago)
+    
+    return {
+        "memory_line": generate_memory_line(memory_state),
+        "recurrence_count": recurrence_count,
+        "last_seen_at": last_seen.isoformat(),
+        "memory_state": memory_state,
+        "_simulated": True  # Flag to indicate this is not real data
+    }
+

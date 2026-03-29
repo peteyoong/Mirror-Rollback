@@ -1116,12 +1116,15 @@ async def compute_numerology_pattern(
         # Keep these for backward compatibility
         'present_numbers': lo_shu['present_numbers'],
         'missing_numbers': lo_shu['missing_numbers'],
-        # Pattern content (V1 Structure: Continuation → Core → Echo → Cross Link → Shows → Backfires → Genius → Cost → Shift)
+        # Pattern content (V1 Structure: Continuation → Core → Echo → Cross Link → Memory → Shows → Backfires → Genius → Cost → Shift)
         'core_pattern': core_pattern,
         # ECHO layer (V3) - Cross-lens reinforcement, goes after Core Truth
         'echo': echo_line,
         # CROSS-LINK layer (V1) - Connect patterns across features
         'cross_link': cross_link_line,
+        # MEMORY layer (V1) - Placeholder, filled by API when real history exists
+        # Structure: { memory_line, recurrence_count, last_seen_at, memory_state }
+        'memory': None,  # Will be populated with real data via get_pattern_memory_v1
         'how_this_shows_up': how_shows_up,
         # NEW: Time-aware sections
         'how_this_shows_up_today': how_shows_up_today,

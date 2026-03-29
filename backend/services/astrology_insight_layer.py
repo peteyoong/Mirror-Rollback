@@ -690,11 +690,14 @@ def compute_astrology_insight_first(
     
     return {
         "success": True,
-        # V1 Structure: Continuation → Core → Echo → Cross Link → Shows → Backfires → Genius → Cost → Shift
+        # V1 Structure: Continuation → Core → Echo → Cross Link → Memory → Shows → Backfires → Genius → Cost → Shift
         "continuation": continuation,
         "core_truth": core_truth,
         "echo": echo,
         "cross_link": cross_link,
+        # MEMORY layer (V1) - Placeholder, filled by API when real history exists
+        # Structure: { memory_line, recurrence_count, last_seen_at, memory_state }
+        "memory": None,  # Will be populated with real data via get_pattern_memory_v1
         "how_this_shows_up": how_shows_up,
         "when_this_backfires": when_backfires,
         "genius": genius,
