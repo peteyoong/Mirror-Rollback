@@ -141,6 +141,37 @@ def generate_continuation_line() -> str:
 
 
 # =============================================================================
+# CROSS-LENS ECHO (V3) - Reinforce pattern repetition
+# =============================================================================
+
+ECHO_LINES = [
+    "You've seen this already.",
+    "This is the same thing showing up again.",
+    "This isn't new.",
+    "You've felt this before.",
+    "Same pattern. Just clearer here.",
+    "This keeps repeating.",
+    "You know this one.",
+    "This has been running for a while."
+]
+
+def generate_echo_line() -> str:
+    """
+    Generate a short echo line that reinforces cross-lens pattern repetition.
+    
+    Purpose: Make user feel "This same pattern is showing up everywhere"
+    
+    Rules:
+    - 1 short line
+    - Calm, matter-of-fact
+    - No explanation
+    - No system references (no "numerology", "bazi", etc.)
+    - Keep it grounded
+    """
+    return random.choice(ECHO_LINES)
+
+
+# =============================================================================
 # GENIUS LAYER - Why the pattern exists (V9 Mirror System)
 # =============================================================================
 
@@ -988,6 +1019,9 @@ async def compute_numerology_pattern(
     # CONTINUATION layer (V2) - Bridge from Mirror Home
     continuation_line = generate_continuation_line()
     
+    # ECHO layer (V3) - Cross-lens reinforcement
+    echo_line = generate_echo_line()
+    
     # Action-relevant sections
     where_misfires = generate_where_this_misfires(
         life_path, lo_shu['missing_numbers'], lo_shu['present_numbers']
@@ -1037,8 +1071,10 @@ async def compute_numerology_pattern(
         # Keep these for backward compatibility
         'present_numbers': lo_shu['present_numbers'],
         'missing_numbers': lo_shu['missing_numbers'],
-        # Pattern content (V9 Structure)
+        # Pattern content (V3 Structure: Continuation → Core → Echo → Shows → Backfires → Genius → Cost → Shift)
         'core_pattern': core_pattern,
+        # ECHO layer (V3) - Cross-lens reinforcement, goes after Core Truth
+        'echo': echo_line,
         'how_this_shows_up': how_shows_up,
         # NEW: Time-aware sections
         'how_this_shows_up_today': how_shows_up_today,
