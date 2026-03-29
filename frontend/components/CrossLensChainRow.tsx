@@ -4,35 +4,50 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 /**
- * CrossLensChainRow (V1)
+ * CrossLensChainRow (V2: Specific Pattern Linking)
  * 
- * A subtle, quiet chaining row that connects patterns across lenses.
+ * A subtle, quiet chaining row that connects the SAME pattern across lenses.
  * 
- * GOAL: Make Mirror feel like one connected intelligence, not separate feature pages.
- * 
- * User should feel:
- * - "this is the same thing"
- * - "I'm seeing it from another angle"
- * - "the app is connecting the dots for me"
+ * V2 UPGRADE:
+ * - References the actual pattern, not just generic continuity
+ * - User should feel "This is the SAME thing" not just "these pages are connected"
+ * - Accepts pattern context for specific linking phrases
  * 
  * STYLE:
  * - Small text
  * - Low visual weight
- * - Optional chevron or inline arrow
+ * - Tappable with subtle chevron
  * - No big cards
- * - No competing borders
- * - Feels like connective tissue, not another content block
+ * - Feels like connective tissue
  */
+
+// Pattern scene types that can be linked
+type PatternScene = 
+  | 'urgency' 
+  | 'hesitation' 
+  | 'overcommitment' 
+  | 'avoidance' 
+  | 'control' 
+  | 'validation' 
+  | 'isolation' 
+  | 'intensity'
+  | 'general';
 
 interface CrossLensChainRowProps {
   // Current lens context
   currentLens: 'numerology' | 'astrology' | 'bazi' | 'home';
   
-  // Optional: Pattern showing elsewhere
-  showsInHome?: boolean;
-  showsInOtherLens?: string; // e.g., "astrology", "numerology"
+  // V2: Pattern-specific context
+  patternScene?: PatternScene;
+  patternKey?: string;  // e.g., "life_path_1", "sun_aries"
   
-  // Optional: Custom message override
+  // V2: Backend-derived linking phrase (preferred when available)
+  linkingPhrase?: string;
+  
+  // V2: Core pattern text for context extraction
+  corePattern?: string;
+  
+  // Optional: Custom message override (fallback)
   customMessage?: string;
   
   // Optional: Secondary line for extra clarity
@@ -41,66 +56,150 @@ interface CrossLensChainRowProps {
   // Navigation target (defaults to home)
   navigateTo?: string;
   
+  // Optional: Pattern ID for deep linking
+  patternId?: string;
+  
   // Hide if not useful
   hide?: boolean;
 }
 
-const CHAIN_MESSAGES = {
-  toHome: [
-    "Also showing up in your Home today",
-    "This pattern is active on Home",
-    "Visible on Home right now",
+// V2: Specific pattern-based linking phrases
+const PATTERN_LINKING_PHRASES: Record<PatternScene, string[]> = {
+  urgency: [
+    "Same pressure to close too early",
+    "Same pattern of pushing before clarity",
+    "This urgency is showing up here too",
+    "Same rush to decide",
   ],
-  fromAngle: [
-    "Seen from another angle",
-    "Same pattern, different view",
-    "Another perspective on this",
+  hesitation: [
+    "Same hesitation, different angle",
+    "Same thing keeps not landing",
+    "This holding pattern again",
+    "Same pause before moving",
   ],
-  elsewhere: [
-    "This pattern shows up elsewhere too",
-    "Showing up in more than one place",
-    "Connected across your profile",
+  overcommitment: [
+    "Same pattern of taking on too much",
+    "Same overextension showing here",
+    "This spreading thin again",
+  ],
+  avoidance: [
+    "Same thing you've been circling",
+    "Same unresolved part showing up here",
+    "This avoidance pattern again",
+  ],
+  control: [
+    "Same need to manage everything",
+    "Same grip showing here",
+    "This control pattern repeating",
+  ],
+  validation: [
+    "Same need to be seen",
+    "Same search for acknowledgment",
+    "This validation loop again",
+  ],
+  isolation: [
+    "Same pulling back",
+    "Same retreat pattern here",
+    "This withdrawal showing up again",
+  ],
+  intensity: [
+    "Same intensity pattern",
+    "Same full-on approach here",
+    "This all-or-nothing again",
+  ],
+  general: [
+    "This is the same loop",
+    "Same pattern, different lens",
+    "You've seen this already",
+    "This keeps showing up",
   ],
 };
 
-const SECONDARY_LINES = [
-  "Same pattern. Different proof.",
-  "This is showing up in more than one place.",
-  "The same signal, just louder here.",
-];
+// V2: Extract pattern scene from core pattern text
+function extractPatternScene(corePattern?: string): PatternScene {
+  if (!corePattern) return 'general';
+  
+  const text = corePattern.toLowerCase();
+  
+  if (text.includes('wait') || text.includes('rush') || text.includes('fast') || text.includes('move')) {
+    return 'urgency';
+  }
+  if (text.includes('hesitat') || text.includes('pause') || text.includes('hold') || text.includes('stuck')) {
+    return 'hesitation';
+  }
+  if (text.includes('too much') || text.includes('overcommit') || text.includes('spread') || text.includes('exhaust')) {
+    return 'overcommitment';
+  }
+  if (text.includes('avoid') || text.includes('circle') || text.includes('escape') || text.includes('run')) {
+    return 'avoidance';
+  }
+  if (text.includes('control') || text.includes('manage') || text.includes('grip') || text.includes('fix')) {
+    return 'control';
+  }
+  if (text.includes('seen') || text.includes('acknowledge') || text.includes('recogni') || text.includes('valid')) {
+    return 'validation';
+  }
+  if (text.includes('alone') || text.includes('withdraw') || text.includes('retreat') || text.includes('pull back')) {
+    return 'isolation';
+  }
+  if (text.includes('intense') || text.includes('all or') || text.includes('full')) {
+    return 'intensity';
+  }
+  
+  return 'general';
+}
+
+// V2: Generate specific linking phrase
+function generateLinkingPhrase(
+  patternScene: PatternScene,
+  linkingPhrase?: string,
+  customMessage?: string
+): string {
+  // Prefer backend-derived phrase
+  if (linkingPhrase) return linkingPhrase;
+  
+  // Use custom message if provided
+  if (customMessage) return customMessage;
+  
+  // Generate from pattern scene
+  const phrases = PATTERN_LINKING_PHRASES[patternScene] || PATTERN_LINKING_PHRASES.general;
+  return phrases[Math.floor(Math.random() * phrases.length)];
+}
 
 export default function CrossLensChainRow({
   currentLens,
-  showsInHome = true,
-  showsInOtherLens,
+  patternScene,
+  patternKey,
+  linkingPhrase,
+  corePattern,
   customMessage,
   secondaryLine,
   navigateTo = '/(tabs)',
+  patternId,
   hide = false,
 }: CrossLensChainRowProps) {
   const router = useRouter();
   
   if (hide) return null;
   
-  // Determine message
-  let message = customMessage;
-  if (!message) {
-    if (showsInHome && currentLens !== 'home') {
-      message = CHAIN_MESSAGES.toHome[Math.floor(Math.random() * CHAIN_MESSAGES.toHome.length)];
-    } else if (showsInOtherLens) {
-      message = CHAIN_MESSAGES.fromAngle[Math.floor(Math.random() * CHAIN_MESSAGES.fromAngle.length)];
-    } else {
-      message = CHAIN_MESSAGES.elsewhere[Math.floor(Math.random() * CHAIN_MESSAGES.elsewhere.length)];
-    }
-  }
+  // V2: Determine pattern scene from context
+  const effectiveScene = patternScene || extractPatternScene(corePattern);
   
-  // Determine navigation label
-  const navLabel = showsInHome ? 'Home' : showsInOtherLens ? showsInOtherLens : 'explore';
+  // V2: Generate specific linking phrase
+  const message = generateLinkingPhrase(effectiveScene, linkingPhrase, customMessage);
+  
+  // V2: Build navigation target (deep link if pattern ID available)
+  const buildNavTarget = (): string => {
+    if (patternId) {
+      // Deep link to specific pattern on Home
+      return `/(tabs)?pattern=${patternId}`;
+    }
+    return navigateTo;
+  };
   
   const handlePress = () => {
-    if (navigateTo) {
-      router.push(navigateTo as any);
-    }
+    const target = buildNavTarget();
+    router.push(target as any);
   };
   
   return (
@@ -133,7 +232,7 @@ export default function CrossLensChainRow({
 }
 
 /**
- * Minimal variant - even more subtle
+ * Minimal variant - even more subtle, for inline use
  */
 export function CrossLensChainRowMinimal({
   message = "Same pattern. Different lens.",

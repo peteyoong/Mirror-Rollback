@@ -147,11 +147,11 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
         </Text>
       </View>
 
-      {/* Cross-Lens Chain Row - Subtle navigation to Home */}
+      {/* Cross-Lens Chain Row V2 - Pattern-specific linking */}
       <CrossLensChainRow 
         currentLens="astrology"
-        showsInHome={true}
-        secondaryLine="Same pattern. Different proof."
+        corePattern={heroDescriptor}
+        patternKey={`sun_${sun.toLowerCase()}`}
       />
 
       {/* ============================================ */}

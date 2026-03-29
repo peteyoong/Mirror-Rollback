@@ -304,11 +304,12 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
         </Text>
       </View>
 
-      {/* Cross-Lens Chain Row - Subtle navigation to Home */}
+      {/* Cross-Lens Chain Row V2 - Pattern-specific linking */}
       <CrossLensChainRow 
         currentLens="numerology"
-        showsInHome={true}
-        secondaryLine={data.cross_link || undefined}
+        corePattern={data.core_pattern}
+        patternKey={`life_path_${data.life_path}`}
+        linkingPhrase={data.cross_link || undefined}
       />
 
       {/* HOW THIS SHOWS UP TODAY - Time-aware */}
