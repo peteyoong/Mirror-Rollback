@@ -878,83 +878,132 @@ class LifeArena:
 HOME_MESSAGES = {
     HomeSituation.FORCING_PREMATURE: {
         "arena": LifeArena.COMMITMENT,
-        "headline": "You're about to sign off on what isn't ready.",
-        "live_read": "This is about locking in a commitment before it's solid.\nYou want to say yes. Be done. Move on.\nBut the part that keeps hesitating isn't confusion — it's signal.",
-        "dont_do": "Don't say yes to this today.",
-        "if_ignore": "If you sign off now, you'll be undoing it within the week — reputation cost: having to explain why you rushed. Time cost: the hours you'll spend cleaning it up.",
-        "instead": "Write down what's still not settled. That's the actual blocker.",
-        "cta": "What exactly isn't resolved yet?",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "You're moving before it's settled.",
+        "reinforcement": "You're pushing something that isn't ready.\nThe more you push, the less it moves.",
+        "validation_layer": "You're good at moving things forward.\nThat's why this is hard to sit with.",
+        "question": "What isn't ready yet?",
+        "shift": "Name what hasn't landed.",
+        # LEGACY FIELDS (kept for backward compatibility)
+        "headline": "You're moving before it's settled.",
+        "live_read": "You're pushing something that isn't ready.\nThe more you push, the less it moves.",
+        "dont_do": "Don't lock this in today.",
+        "if_ignore": "You'll be undoing it within the week.",
+        "instead": "Name what hasn't landed.",
+        "cta": "What isn't ready yet?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.ACTION,
         "pinned_action": "signing off on this",
     },
     HomeSituation.WAITING_WITHOUT_CLARITY: {
         "arena": LifeArena.DECISION,
-        "headline": "You're trying to make a call before you have what you need.",
-        "live_read": "This is about deciding before you're ready.\nYou've thought it through, weighed the options, revisited it again.\nBut the clarity you want isn't arriving — and forcing the call won't change that.",
-        "dont_do": "Don't make this decision today just to end the discomfort.",
-        "if_ignore": "If you pick now, you'll be revisiting this within days — emotional cost: carrying the weight of a choice that wasn't ready. Energy cost: the mental drain of second-guessing yourself.",
-        "instead": "Name what information you're actually still waiting on.",
-        "cta": "What are you pretending is already clear?",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "You keep deciding before you actually know.",
+        "reinforcement": "You've been here before.\nDeciding, then undoing, then deciding again.",
+        "validation_layer": "You don't like sitting in not-knowing.\nYou move fast once something clicks.",
+        "question": "What are you pretending is clear?",
+        "shift": "Name the piece you're still missing.",
+        # LEGACY FIELDS
+        "headline": "You keep deciding before you actually know.",
+        "live_read": "You've been here before.\nDeciding, then undoing, then deciding again.",
+        "dont_do": "Don't force the call today.",
+        "if_ignore": "You'll be revisiting this within days.",
+        "instead": "Name the piece you're still missing.",
+        "cta": "What are you pretending is clear?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.DECISION,
         "pinned_action": "making the call",
     },
     HomeSituation.BLOCKED_BY_OTHERS: {
         "arena": LifeArena.RELATIONSHIP,
-        "headline": "You're about to push them again. It won't change the timing.",
-        "live_read": "This is about reaching out again when they haven't moved.\nYou're ready. They're not.\nThe frustration is real — but sending another message won't speed this up.",
-        "dont_do": "Don't send that follow-up message today.",
-        "if_ignore": "If you push them now, you'll create tension you have to clean up later — relationship cost: becoming the person who pressures. Emotional cost: frustration that goes nowhere.",
-        "instead": "Do your part. Close what you can close without them.",
-        "cta": "What can you finish without their input?",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "You're waiting on them again.",
+        "reinforcement": "You're ready. They're not.\nAnother message won't change that.",
+        "validation_layer": "You don't like loose ends.\nYou want things closed, handled, done.",
+        "question": "What can you close without them?",
+        "shift": "Finish your part. Leave theirs.",
+        # LEGACY FIELDS
+        "headline": "You're waiting on them again.",
+        "live_read": "You're ready. They're not.\nAnother message won't change that.",
+        "dont_do": "Don't send that follow-up.",
+        "if_ignore": "You'll create tension you have to clean up.",
+        "instead": "Finish your part. Leave theirs.",
+        "cta": "What can you close without them?",
         "decision_signal": DecisionSignal.MOVE,
         "scene_type": SceneType.RELATIONSHIP,
         "pinned_action": "pushing them again",
     },
     HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
         "arena": LifeArena.INTERNAL,
-        "headline": "You're about to look away from what you already see.",
-        "live_read": "This is about ignoring a truth you've already spotted.\nYou keep looking for another explanation. Another reason.\nBut the knowing is already there — you're just not ready for what comes after.",
-        "dont_do": "Don't tell yourself it's fine today.",
-        "if_ignore": "If you keep looking away, you'll carry this weight everywhere — emotional cost: the heaviness of unnamed truth. Time cost: every day you delay facing it.",
-        "instead": "Say it to yourself. Out loud. Privately. Just once.",
-        "cta": "What would you have to admit if you stopped looking away?",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "You already know this isn't clean.",
+        "reinforcement": "You keep trying to close it anyway.\nThat's why it keeps reopening.",
+        "validation_layer": "You move fast once you see the issue.\nYou don't naturally linger in uncertainty.",
+        "question": "What are you getting past too quickly?",
+        "shift": "Stop closing. Clarify.",
+        # LEGACY FIELDS
+        "headline": "You already know this isn't clean.",
+        "live_read": "You keep trying to close it anyway.\nThat's why it keeps reopening.",
+        "dont_do": "Don't tell yourself it's fine.",
+        "if_ignore": "You'll carry this weight everywhere.",
+        "instead": "Stop closing. Clarify.",
+        "cta": "What are you getting past too quickly?",
         "decision_signal": DecisionSignal.CLARIFY,
         "scene_type": SceneType.INTERNAL,
         "pinned_action": "pretending you don't know",
     },
     HomeSituation.PUSHING_AGAINST_RESISTANCE: {
         "arena": LifeArena.COMMITMENT,
-        "headline": "You're trying to force this through. It's not moving for a reason.",
-        "live_read": "This is about pushing harder on what won't budge.\nYou've tried once. Twice. You're about to try again.\nBut this isn't about effort — it's about timing.",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "You're forcing what isn't moving.",
+        "reinforcement": "You've tried. Twice. Three times.\nIt's not effort that's missing.",
+        "validation_layer": "You don't quit easily.\nWhen you want something done, you make it happen.",
+        "question": "What would happen if you stopped pushing this one?",
+        "shift": "Redirect. Find where there's actual movement.",
+        # LEGACY FIELDS
+        "headline": "You're forcing what isn't moving.",
+        "live_read": "You've tried. Twice. Three times.\nIt's not effort that's missing.",
         "dont_do": "Don't force this through today.",
-        "if_ignore": "If you keep pushing, you'll drain yourself fixing what wasn't ready — energy cost: nothing left for what actually wants to move. Reputation cost: being seen as the person who forces.",
-        "instead": "Redirect. Ask: where IS there movement right now?",
-        "cta": "What would happen if you stopped forcing this one?",
+        "if_ignore": "You'll drain yourself fixing what wasn't ready.",
+        "instead": "Redirect. Find where there's actual movement.",
+        "cta": "What would happen if you stopped pushing this one?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.ACTION,
         "pinned_action": "forcing this through",
     },
     HomeSituation.TORN_BETWEEN_OPTIONS: {
         "arena": LifeArena.DECISION,
-        "headline": "You're about to pick one just to end the tension.",
-        "live_read": "This is about choosing between two things that both matter.\nYou lean one way, then hesitate. You're not indecisive.\nYou're torn — and forcing yourself to pick won't make this cleaner.",
-        "dont_do": "Don't commit to one option today just to be done.",
-        "if_ignore": "If you pick now just to end the discomfort, you'll carry the grief of what you abandoned — emotional cost: wondering if you chose right. Relationship cost: the thing or person you let go.",
-        "instead": "Name both options out loud. Let them both be real for today.",
-        "cta": "What are you afraid you'll lose if you choose?",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "You're about to pick just to stop the weight.",
+        "reinforcement": "You lean one way. Then back.\nYou've done this loop before.",
+        "validation_layer": "You see both sides clearly.\nThat's not indecision. That's accuracy.",
+        "question": "What are you afraid to lose?",
+        "shift": "Name both. Let them both be real today.",
+        # LEGACY FIELDS
+        "headline": "You're about to pick just to stop the weight.",
+        "live_read": "You lean one way. Then back.\nYou've done this loop before.",
+        "dont_do": "Don't commit just to end the discomfort.",
+        "if_ignore": "You'll carry the grief of what you abandoned.",
+        "instead": "Name both. Let them both be real today.",
+        "cta": "What are you afraid to lose?",
         "decision_signal": DecisionSignal.CLARIFY,
         "scene_type": SceneType.DECISION,
         "pinned_action": "picking one just to end it",
     },
     HomeSituation.HOLDING_BACK_EXPRESSION: {
         "arena": LifeArena.CONVERSATION,
-        "headline": "You're about to smooth this over instead of saying it.",
-        "live_read": "This is about not sending that message.\nYou've rehearsed it. Drafted it. Deleted it.\nYou keep stopping yourself before you hit send.",
-        "dont_do": "Don't pretend this is settled today.",
-        "if_ignore": "If you smooth it over again, it will come back with more charge — emotional cost: saying it when you're less ready. Relationship cost: the distance that builds from not being honest.",
-        "instead": "Write the real sentence. You don't have to send it yet.",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "There's something sitting in your throat.",
+        "reinforcement": "You've rehearsed it. Drafted it. Deleted it.\nStill there.",
+        "validation_layer": "You feel things clearly.\nYou just don't always trust what comes out.",
+        "question": "What exactly are you not saying?",
+        "shift": "Write the real sentence. You don't have to send it.",
+        # LEGACY FIELDS
+        "headline": "There's something sitting in your throat.",
+        "live_read": "You've rehearsed it. Drafted it. Deleted it.\nStill there.",
+        "dont_do": "Don't smooth this over.",
+        "if_ignore": "It'll come back with more charge.",
+        "instead": "Write the real sentence. You don't have to send it.",
         "cta": "What exactly are you not saying?",
         "decision_signal": DecisionSignal.CLARIFY,
         "scene_type": SceneType.CONVERSATION,
@@ -962,35 +1011,56 @@ HOME_MESSAGES = {
     },
     HomeSituation.DIRECTION_UNCLEAR: {
         "arena": LifeArena.INTERNAL,
-        "headline": "You're about to pick a direction just to have one.",
-        "live_read": "This is about moving before you can see where you're going.\nYou know a change is needed. But the path isn't clear.\nThe pull to start is real — but the direction hasn't arrived.",
-        "dont_do": "Don't pick a path just to stop standing still.",
-        "if_ignore": "If you pick randomly, you'll spend energy walking back — time cost: the hours undoing what wasn't right. Emotional cost: more confusion than when you started.",
-        "instead": "Take the smallest step you can actually see. Just that one.",
-        "cta": "What's the ONE thing you could do without knowing what comes after?",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "You're about to move just to stop standing still.",
+        "reinforcement": "No clear path. Just pressure to pick one.\nYou've started before like this. Undid it later.",
+        "validation_layer": "You don't like waiting once you sense something needs to change.\nYou'd rather fix and adjust than sit.",
+        "question": "What's the one step you can actually see?",
+        "shift": "Take that one. Just that one.",
+        # LEGACY FIELDS
+        "headline": "You're about to move just to stop standing still.",
+        "live_read": "No clear path. Just pressure to pick one.\nYou've started before like this. Undid it later.",
+        "dont_do": "Don't pick just to have a direction.",
+        "if_ignore": "You'll spend energy walking it back.",
+        "instead": "Take that one. Just that one.",
+        "cta": "What's the one step you can actually see?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.INTERNAL,
         "pinned_action": "picking a direction blindly",
     },
     HomeSituation.PRESSURE_WITHOUT_READINESS: {
         "arena": LifeArena.DECISION,
-        "headline": "You're about to say yes because someone is waiting.",
-        "live_read": "This is about committing under someone else's timeline.\nYou feel the urgency. But your clarity hasn't caught up.\nThe pressure is external. The readiness isn't there.",
-        "dont_do": "Don't give them an answer today just to stop the asking.",
-        "if_ignore": "If you commit under this pressure, you'll be undoing it soon — reputation cost: explaining why you weren't ready. Relationship cost: the trust lost when you backtrack.",
-        "instead": "Separate the pressure from the decision. Ask: whose deadline is this?",
-        "cta": "What would you decide if no one was waiting on you?",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "You're about to say yes because they're waiting.",
+        "reinforcement": "The urgency is theirs. The decision is yours.\nThey don't line up.",
+        "validation_layer": "You don't like making people wait.\nYou'd rather answer than leave it open.",
+        "question": "What would you decide if no one was waiting?",
+        "shift": "Separate their timeline from yours.",
+        # LEGACY FIELDS
+        "headline": "You're about to say yes because they're waiting.",
+        "live_read": "The urgency is theirs. The decision is yours.\nThey don't line up.",
+        "dont_do": "Don't answer just to end the asking.",
+        "if_ignore": "You'll backtrack and lose trust.",
+        "instead": "Separate their timeline from yours.",
+        "cta": "What would you decide if no one was waiting?",
         "decision_signal": DecisionSignal.HOLD,
         "scene_type": SceneType.DECISION,
         "pinned_action": "saying yes because they're waiting",
     },
     HomeSituation.STANDING_AT_THRESHOLD: {
         "arena": LifeArena.COMMITMENT,
-        "headline": "You're about to cross before you've let go of what's behind you.",
-        "live_read": "This is about stepping through while still holding on.\nThe door is open. You've looked at the other side.\nBut you keep pausing — and it's not fear. It's what you haven't released.",
-        "dont_do": "Don't step through while holding on today.",
-        "if_ignore": "If you stay in the in-between, it will drain you more than crossing or staying — energy cost: the exhaustion of living in two places. Emotional cost: losing the clarity to choose.",
-        "instead": "Name what you'd be leaving behind. Say it out loud.",
+        # NEW 5-PART RECOGNITION STRUCTURE
+        "core_line": "You're about to cross while still holding on.",
+        "reinforcement": "The door is open. You've looked at the other side.\nBut you keep pausing. Not from fear. From grip.",
+        "validation_layer": "You don't leave things unfinished.\nYou carry what matters, even when it slows you.",
+        "question": "What exactly are you not ready to release?",
+        "shift": "Name what you're leaving. Say it out loud.",
+        # LEGACY FIELDS
+        "headline": "You're about to cross while still holding on.",
+        "live_read": "The door is open. You've looked at the other side.\nBut you keep pausing. Not from fear. From grip.",
+        "dont_do": "Don't step through while holding on.",
+        "if_ignore": "The in-between will drain you more than crossing or staying.",
+        "instead": "Name what you're leaving. Say it out loud.",
         "cta": "What exactly are you not ready to release?",
         "decision_signal": DecisionSignal.CLARIFY,
         "scene_type": SceneType.ACTION,
@@ -1315,29 +1385,33 @@ def generate_home_message(
     arena = message.get("arena", LifeArena.INTERNAL)
     
     # =====================================================
-    # BUILD DAILY MASTER GUIDE (New Structure)
+    # BUILD MIRROR RECOGNITION STRUCTURE (New 5-Part)
     # =====================================================
     
-    # 1. HEADLINE
-    headline = message.get("headline", "")
+    # NEW 5-PART RECOGNITION STRUCTURE
+    core_line = message.get("core_line", "")
+    reinforcement = message.get("reinforcement", "")
+    validation_layer = message.get("validation_layer", "")
+    question = message.get("question", "")
+    shift = message.get("shift", "")
     
-    # 2. LIVE READ (what arena, what they're doing, what they're avoiding)
-    live_read = message.get("live_read", "")
-    
-    # 3. DON'T DO THIS TODAY
+    # LEGACY FIELDS (kept for backward compatibility)
+    headline = message.get("headline", core_line)  # Falls back to core_line
+    live_read = message.get("live_read", reinforcement)
     dont_do = message.get("dont_do", "")
-    
-    # 4. IF YOU IGNORE THIS
     if_ignore = message.get("if_ignore", "")
-    
-    # 5. INSTEAD
-    instead = message.get("instead", "")
-    
-    # 6. CTA
-    cta = message.get("cta", "")
+    instead = message.get("instead", shift)
+    cta = message.get("cta", question)
     
     return {
-        # DAILY MASTER GUIDE STRUCTURE
+        # NEW 5-PART RECOGNITION STRUCTURE (Primary)
+        "core_line": core_line,
+        "reinforcement": reinforcement,
+        "validation_layer": validation_layer,
+        "question": question,
+        "shift": shift,
+        
+        # LEGACY FIELDS (Backward Compatibility)
         "headline": headline,
         "live_read": live_read,
         "dont_do": dont_do,
@@ -1395,7 +1469,7 @@ def generate_home_message(
 # =============================================================================
 
 def format_home_for_display(home: Dict[str, Any]) -> str:
-    """Format Home message as Daily Master Guide structure."""
+    """Format Home message as Mirror Recognition 5-Part Structure."""
     # Decision signal indicator
     signal = home.get("decision_signal", "hold")
     signal_icons = {
@@ -1410,22 +1484,20 @@ def format_home_for_display(home: Dict[str, Any]) -> str:
     arena_display = arena.upper() if arena else "INTERNAL"
     
     lines = [
-        f"HEADLINE:",
-        home.get("headline", ""),
+        # CORE LINE (Direct recognition hit)
+        home.get("core_line", ""),
         "",
-        f"LIVE READ:",
-        home.get("live_read", ""),
+        # REINFORCEMENT (2 short lines, no explanation)
+        home.get("reinforcement", ""),
         "",
-        f"DON'T DO THIS TODAY:",
-        home.get("dont_do", ""),
+        # VALIDATION LAYER (Genius/strength hook)
+        home.get("validation_layer", ""),
         "",
-        f"IF YOU IGNORE THIS:",
-        home.get("if_ignore", ""),
+        # QUESTION (Sharp and simple)
+        f"→ {home.get('question', '')}",
         "",
-        f"INSTEAD:",
-        home.get("instead", ""),
-        "",
-        f"CTA: [{home.get('cta', '')}]",
+        # SHIFT (One grounded next move)
+        home.get("shift", ""),
         "",
         f"---",
         f"{signal_display} | {arena_display} | {home.get('situation', '')}",
