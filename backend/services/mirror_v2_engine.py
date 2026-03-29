@@ -374,20 +374,16 @@ def extract_user_signals(
     """
     Extract user-specific signal profile.
     
-    CRITICAL: Uses user_id to ensure differentiated outputs per user.
-    Each user gets unique signal variations to prevent "same pattern" bug.
+    TRUTH-BASED: Uses only real signals from:
+    - Transit aspects
+    - HD authority/type
+    - BaZi day profile
+    - Pattern history
+    - Journal entries
+    
+    NO artificial user-id variance.
     """
     profile = SignalProfileV2()
-    
-    # User-specific seed (prevents same output for different users)
-    user_hash = hashlib.md5(user_id.encode()).hexdigest()
-    user_seed_1 = int(user_hash[:4], 16) % 100 / 100.0  # 0-1
-    user_seed_2 = int(user_hash[4:8], 16) % 100 / 100.0  # 0-1
-    user_seed_3 = int(user_hash[8:12], 16) % 100 / 100.0  # 0-1
-    
-    # Day-based variation (same user gets different patterns on different days)
-    day_of_year = datetime.now().timetuple().tm_yday
-    day_seed = (day_of_year + int(user_hash[:4], 16)) % 100 / 100.0
     
     # A. TRANSIT EVIDENCE (astrology)
     if transit_aspects:
@@ -497,16 +493,8 @@ def extract_user_signals(
             if any(w in content for w in ["torn", "both", "either", "split"]):
                 profile.emotional_intensity += 0.1
     
-    # Add user-specific variation (prevents same output for all users)
-    # Different users with same HD data will get different patterns
-    # STRONGER variance to compete with HD-based signals
-    profile.action_pressure += user_seed_1 * 0.3
-    profile.clarity_delay += user_seed_2 * 0.2
-    profile.external_dependency += user_seed_3 * 0.25
-    profile.emotional_intensity += day_seed * 0.15
-    profile.readiness_mismatch += (1 - user_seed_1) * 0.25
-    profile.urgency += user_seed_3 * 0.2
-    profile.expression_blockage += user_seed_2 * 0.15
+    # TRUTH-BASED: No artificial variance
+    # Signals come only from real data (transits, HD, BaZi, journals, history)
     
     # Normalize all to 0-1
     for field in profile.to_dict().keys():
