@@ -77,17 +77,22 @@ CENTER_THEMES = {
 
 
 class CenterInterpretation(TypedDict):
-    """Full interpretation for a single center."""
+    """Full interpretation for a single center - Mirror Content System V1."""
     center_name: str
     display_name: str
     defined: bool
     gates_present: List[int]
     themes: List[str]
-    what_this_means: str
-    your_challenge: str
-    your_genius: str
-    practical_experiments: List[str]
-    remember: str
+    # Mirror Content System V1 fields
+    recognition: str
+    what_this_is: str
+    when_it_trips_you_up: str
+    when_it_works: str
+    at_your_highest: str
+    where_youll_notice_today: List[str]
+    try_this: List[str]
+    why_this_is_happening: str
+    system_label: str
 
 
 # =============================================================================
@@ -319,14 +324,18 @@ def get_center_interpretation(
     defined: bool,
     active_gates: List[int]
 ) -> Dict[str, Any]:
-    """Generate interpretation for a single center.
+    """Generate interpretation for a single center using Mirror Content System V1.
     
-    Uses the new 5-part Real-Life Language structure:
-    1. WHAT YOU TEND TO DO - behavioral observation
-    2. HOW THIS SHOWS UP TODAY - 2-3 real behaviors
-    3. WHAT TO WATCH - 1 clear risk
-    4. WHAT TO DO - 1 concrete action
-    5. SYSTEM LABEL - optional, secondary
+    Structure:
+    - Recognition (top, always visible)
+    - WHAT THIS IS (2-3 lines)
+    - WHEN IT TRIPS YOU UP (2-3 lines)
+    - WHEN IT WORKS (2-3 lines)
+    - AT YOUR HIGHEST (1-2 lines)
+    - WHERE YOU'LL NOTICE THIS TODAY (3 bullets)
+    - TRY THIS (3 bullets)
+    - WHY THIS IS HAPPENING (collapsible)
+    - System label (bottom, metadata)
     
     Args:
         center_name: Internal center name (e.g., "G Center")
@@ -334,8 +343,10 @@ def get_center_interpretation(
         active_gates: List of all user's active gates
     
     Returns:
-        Dict with behavior-first content
+        Dict with Mirror Content System structure
     """
+    from services.mirror_content_system import get_hd_center_content
+    
     # Get gates present in this center
     gates_present = get_gates_for_center(center_name, active_gates)
     
@@ -343,25 +354,12 @@ def get_center_interpretation(
     display_name = CENTER_DISPLAY_NAMES.get(center_name, center_name)
     themes = CENTER_THEMES.get(center_name, [])
     
-    # Select appropriate template
-    template = DEFINED_TEMPLATES.get(center_name) if defined else UNDEFINED_TEMPLATES.get(center_name)
+    # Get Mirror Content System content
+    mirror_content = get_hd_center_content(center_name, defined)
     
-    if not template:
-        # Fallback for any missing templates
-        state = "consistently" if defined else "variably"
-        template = {
-            "what_you_tend_to_do": f"You tend to experience {display_name.lower()} {state}.",
-            "how_this_shows_up_today": ["This center influences your daily experience."],
-            "what_to_watch": "Watch for patterns that don't serve you.",
-            "what_to_do": "Try this: Notice how this center shows up in your life today.",
-            "system_label": f"{display_name} · {'defined' if defined else 'open'}"
-        }
-    
-    # Build system note with gates
+    # Build system label with gates
     gate_str = f" · Gates {', '.join(str(g) for g in gates_present)}" if gates_present else ""
-    system_label = template.get("system_label", f"{display_name} · {'defined' if defined else 'open'}")
-    if gates_present and " · Gates" not in system_label:
-        system_label = f"{system_label}{gate_str}"
+    system_label = f"{mirror_content['system_label']}{gate_str}"
     
     return {
         "center_name": center_name,
@@ -369,11 +367,16 @@ def get_center_interpretation(
         "defined": defined,
         "gates_present": gates_present,
         "themes": themes,
-        # NEW 5-PART STRUCTURE
-        "what_you_tend_to_do": template["what_you_tend_to_do"],
-        "how_this_shows_up_today": template["how_this_shows_up_today"],
-        "what_to_watch": template["what_to_watch"],
-        "what_to_do": template["what_to_do"],
+        
+        # MIRROR CONTENT SYSTEM V1 STRUCTURE
+        "recognition": mirror_content["recognition"],
+        "what_this_is": mirror_content["what_this_is"],
+        "when_it_trips_you_up": mirror_content["when_it_trips_you_up"],
+        "when_it_works": mirror_content["when_it_works"],
+        "at_your_highest": mirror_content["at_your_highest"],
+        "where_youll_notice_today": mirror_content["where_youll_notice_today"],
+        "try_this": mirror_content["try_this"],
+        "why_this_is_happening": mirror_content["why_this_is_happening"],
         "system_label": system_label,
     }
 
