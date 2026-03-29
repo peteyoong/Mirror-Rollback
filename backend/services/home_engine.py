@@ -525,41 +525,41 @@ def extract_live_signals(
             profile.live_issue_summary = f"{verb_p} {obj_p}"
             profile.memory_strength += 0.5
         
-        # Build anchor line based on detected patterns
+        # Build FELT EXPERIENCE anchor lines (not analytical)
         if profile.issue_state == "revisiting" or themes["back and forth"] >= 1:
-            profile.anchor_line = "This keeps coming back."
+            profile.anchor_line = "You thought this was done. But it isn't."
         elif profile.issue_state == "stuck":
-            profile.anchor_line = "This still isn't moving."
+            profile.anchor_line = "Something in you knows it's not moving."
         elif profile.issue_state == "almost":
-            profile.anchor_line = "You're almost there—but not quite."
+            profile.anchor_line = "You get close — then something pulls you back."
         elif profile.issue_state == "avoiding":
-            profile.anchor_line = "You already know what this is."
+            profile.anchor_line = "There's a truth sitting under the surface."
         elif profile.has_pattern_recurrence and profile.pattern_recurrence_count >= 3:
-            profile.anchor_line = "This keeps coming back for a reason."
+            profile.anchor_line = "You thought you dealt with this. But here it is again."
         elif profile.has_journal_memory:
-            profile.anchor_line = "There's something you've been circling."
+            profile.anchor_line = "There's something that won't let go."
         
-        # Build recognition line based on action verb
+        # Build FELT EXPERIENCE recognition lines (internal moments, not analysis)
         recognition_map = {
-            "pushing": "You keep trying to move it forward.",
-            "avoiding": "You keep finding reasons not to face it.",
-            "circling": "You keep revisiting it without landing.",
-            "waiting": "You're waiting for something that isn't coming.",
-            "holding": "You're holding something back.",
+            "pushing": "You get close to moving it — then something in you pulls back.",
+            "avoiding": "You look at it, then look away. Over and over.",
+            "circling": "You keep coming back to it — but you can't land.",
+            "waiting": "You're ready. But the next step isn't yours to take.",
+            "holding": "There's something you want to say — but you stop yourself.",
         }
         if profile.issue_action_verb:
             profile.recognition_line = recognition_map.get(profile.issue_action_verb)
         
-        # Legacy anchor phrase extraction
+        # FELT EXPERIENCE anchor phrases (not structured)
         anchor_phrases = []
         if "keep" in recent_text and ("thinking" in recent_text or "going back" in recent_text):
-            anchor_phrases.append("what keeps coming back to you")
+            anchor_phrases.append("what won't leave your head")
         if "can't" in recent_text and ("decide" in recent_text or "stop" in recent_text):
-            anchor_phrases.append("what you can't let go of")
+            anchor_phrases.append("the thing you can't put down")
         if "need to" in recent_text and ("tell" in recent_text or "say" in recent_text):
-            anchor_phrases.append("what you need to say")
+            anchor_phrases.append("what's sitting in your throat")
         if "should" in recent_text and ("have" in recent_text or "do" in recent_text):
-            anchor_phrases.append("what you've been putting off")
+            anchor_phrases.append("what you almost do, then don't")
         
         if anchor_phrases and not profile.journal_anchor_phrase:
             profile.journal_anchor_phrase = anchor_phrases[0]
@@ -798,113 +798,88 @@ RECURRENCE_CONTEXTS = {
 
 
 # =============================================================================
-# HIGH-STAKES HOME MESSAGES (New Structure: Anchor → Recognition → Tension → Stakes → Wise Move → CTA)
+# FELT EXPERIENCE HOME MESSAGES (Natural flow, internal moments, no structure)
 # =============================================================================
 
 HOME_MESSAGES = {
     HomeSituation.FORCING_PREMATURE: {
-        # ANCHOR (set dynamically, but default provided)
-        "anchor_default": "There's something you've been trying to close.",
-        # RECOGNITION (what they're doing right now)
-        "recognition": "You keep pushing at it—trying to move it forward before it's ready.",
-        # TENSION
-        "tension": "The urge is real. But the ground isn't solid yet.",
-        "tension_expanded": "Part of you wants this done.\nBut another part knows you're skipping the part that would actually make movement possible.",
-        # STAKES
-        "stakes": "If you push this through now, the mess will outlast the relief. You're not avoiding consequences—you're deferring them to a worse time.",
-        # WISE MOVE
-        "wise_move": "Stop pushing. Ask what you're trying to skip.",
-        # CTA
+        # FELT EXPERIENCE (blended flow)
+        "felt_opening": "You get close to moving this forward — then something in you pulls back.",
+        "felt_body": "You thought you were ready. But there's a part that knows you're not.\n\nThe urge to close it is real. But so is the knowing that the ground still isn't solid.",
+        "felt_stakes": "If you force it today, you'll end up dealing with it again — just messier.",
+        "felt_move": "Don't move yet. Name what's still not clean.",
         "cta": "What are you trying to skip?",
         "scene_type": SceneType.ACTION,
     },
     HomeSituation.WAITING_WITHOUT_CLARITY: {
-        "anchor_default": "There's something that still isn't landing.",
-        "recognition": "You keep thinking it through—but the clarity isn't coming.",
-        "tension": "The answer isn't here yet. Deciding early won't change that.",
-        "tension_expanded": "Part of you wants to know now.\nBut another part knows the clarity hasn't arrived—you're just tired of waiting.",
-        "stakes": "Deciding just to end the discomfort will lock in a wrong answer. You'll have to come back to this.",
-        "wise_move": "Hold the question one more day. Let it settle before you commit.",
+        "felt_opening": "You want to know — but the answer isn't arriving.",
+        "felt_body": "You've thought it through. Multiple times. But something still doesn't land.\n\nPart of you wants to just decide and be done with it. But another part knows the clarity isn't there yet — you're just tired of sitting with it.",
+        "felt_stakes": "Deciding now won't give you resolution. It'll give you relief — and then regret.",
+        "felt_move": "Hold it one more day. Let it settle before you lock it in.",
         "cta": "What are you pretending is clear?",
         "scene_type": SceneType.DECISION,
     },
     HomeSituation.BLOCKED_BY_OTHERS: {
-        "anchor_default": "There's something you can't move on your own.",
-        "recognition": "You're waiting for them to do something—and they're not moving.",
-        "tension": "The delay isn't yours. But you're carrying the frustration like it is.",
-        "tension_expanded": "Part of you is ready.\nBut another part is waiting on something you can't control—and resenting the wait.",
-        "stakes": "Pushing them won't make them move faster. It will create friction you'll have to manage on top of everything else.",
-        "wise_move": "Name what's actually in your hands. Do that instead.",
+        "felt_opening": "You're ready to move — but this one isn't fully yours.",
+        "felt_body": "There's someone else in this. And they're not doing what you need them to do.\n\nThe frustration is real. But it's also burning energy on something outside your hands.",
+        "felt_stakes": "Pushing harder won't make them move faster. It'll just add friction to something already stuck.",
+        "felt_move": "Name what's actually yours to do right now. Start there.",
         "cta": "What are you waiting for them to do?",
         "scene_type": SceneType.RELATIONSHIP,
     },
     HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
-        "anchor_default": "You already know what this is about.",
-        "recognition": "You keep circling it—but you won't name it.",
-        "tension": "This isn't confusion. It's avoidance—and it's costing you clarity.",
-        "tension_expanded": "Part of you sees the truth clearly.\nBut another part keeps finding reasons not to face it.",
-        "stakes": "The longer you avoid naming this, the heavier it gets. Avoidance compounds. What you're protecting yourself from is smaller than what the avoidance is creating.",
-        "wise_move": "Name it to yourself. Privately. Just that.",
+        "felt_opening": "You already know what this is. You just haven't said it out loud yet.",
+        "felt_body": "There's a truth sitting under the surface. You've seen it. You're just not ready to deal with what naming it would mean.\n\nSo you keep circling. Looking for another explanation. Hoping it's something else.",
+        "felt_stakes": "The longer you avoid naming it, the heavier it gets. What you're protecting yourself from is smaller than what the avoidance is creating.",
+        "felt_move": "Name it. Privately. Just to yourself. That's the first move.",
         "cta": "What are you avoiding admitting?",
         "scene_type": SceneType.INTERNAL,
     },
     HomeSituation.PUSHING_AGAINST_RESISTANCE: {
-        "anchor_default": "Something isn't moving no matter how hard you push.",
-        "recognition": "You keep pushing—but the harder you push, the less it moves.",
-        "tension": "The effort is real. The resistance is real. They're feeding each other.",
-        "tension_expanded": "Part of you believes if you just push harder, it'll break through.\nBut another part feels the friction burning energy without creating movement.",
-        "stakes": "More effort in this direction will exhaust you without creating progress. You'll burn out, not break through.",
-        "wise_move": "Stop pushing. Ask: where IS there flow right now?",
+        "felt_opening": "You keep pushing — but it's not moving.",
+        "felt_body": "The effort is real. But so is the friction. And the harder you push, the more resistance shows up.\n\nPart of you wants to believe if you just try harder, it'll break through. But another part can feel the energy draining without progress.",
+        "felt_stakes": "More force in this direction will burn you out — not break you through.",
+        "felt_move": "Stop pushing. Ask: where IS there movement right now?",
         "cta": "What would happen if you stopped pushing?",
         "scene_type": SceneType.ACTION,
     },
     HomeSituation.TORN_BETWEEN_OPTIONS: {
-        "anchor_default": "You're pulled in two directions.",
-        "recognition": "You keep going back and forth—but neither side is winning.",
-        "tension": "This isn't indecision. It's two real things competing for the same space.",
-        "tension_expanded": "Part of you wants one thing.\nBut another part wants something that directly contradicts it. Both feel true.",
-        "stakes": "Choosing now just to escape the discomfort will abandon something that matters. You'll circle back to this—probably at a worse time.",
-        "wise_move": "Name both options honestly. Let them both be real for now. The answer isn't to choose faster.",
+        "felt_opening": "You move toward one — then hesitate. Then lean toward the other.",
+        "felt_body": "Both feel true. That's why you can't choose.\n\nIt's not that you're indecisive. It's that there are two real things pulling you, and picking one means letting go of the other.",
+        "felt_stakes": "Forcing a choice right now won't resolve it. You'll just circle back later — probably at a worse time.",
+        "felt_move": "Name both pulls. Let them both be real for now.",
         "cta": "What are you afraid of losing?",
         "scene_type": SceneType.DECISION,
     },
     HomeSituation.HOLDING_BACK_EXPRESSION: {
-        "anchor_default": "There's something you're not saying.",
-        "recognition": "You keep editing it in your head—but it doesn't come out.",
-        "tension": "Part of you wants to speak. Part of you won't.",
-        "tension_expanded": "Something wants to come out.\nBut something else is keeping it locked in—maybe fear, maybe timing, maybe not knowing how.",
-        "stakes": "What's unsaid doesn't disappear. It builds into resentment, distance, or an explosion. This is accumulating.",
-        "wise_move": "Say it somewhere safe first. Write it. Voice memo. Then decide if it needs to land.",
+        "felt_opening": "There's something you want to say — but you stop yourself before it comes out.",
+        "felt_body": "You've rehearsed it. Maybe more than once. But something keeps it from landing.\n\nPart of you wants to just say it and be done. But another part knows it might change things — and you're not ready for that yet.",
+        "felt_stakes": "What's unsaid doesn't disappear. It builds. Into resentment. Or distance. Or something you can't take back.",
+        "felt_move": "Say it somewhere safe first. Write it. Voice memo. Then decide if it needs to land.",
         "cta": "What are you not saying?",
         "scene_type": SceneType.CONVERSATION,
     },
     HomeSituation.DIRECTION_UNCLEAR: {
-        "anchor_default": "Something needs to move—but you can't see where.",
-        "recognition": "You keep looking for the path—but it won't appear.",
-        "tension": "Direction exists. You just can't see it from here.",
-        "tension_expanded": "Part of you knows change is coming.\nBut another part can't see the path—and that's creating paralysis.",
-        "stakes": "Forcing a direction just to have one will cost you time. Wrong paths still take energy to walk back.",
-        "wise_move": "Take the smallest visible step. The next one appears after.",
+        "felt_opening": "Something needs to move — but you can't see where.",
+        "felt_body": "You know things can't stay the way they are. But the path forward isn't clear.\n\nPart of you wants to just pick something and go. But another part knows that forcing a direction won't give you one — it'll just take you somewhere wrong.",
+        "felt_stakes": "Moving without direction still costs energy. And wrong paths take time to walk back.",
+        "felt_move": "Take the smallest step you can see. The next one appears after.",
         "cta": "What do you already know but won't admit?",
         "scene_type": SceneType.INTERNAL,
     },
     HomeSituation.PRESSURE_WITHOUT_READINESS: {
-        "anchor_default": "You feel pressure to decide—but you're not ready.",
-        "recognition": "You keep trying to make yourself ready—but it's not working.",
-        "tension": "Urgency and readiness are out of sync. Only one is real.",
-        "tension_expanded": "Part of you feels the clock ticking.\nBut another part knows you're not actually ready—and rushing won't change that.",
-        "stakes": "Deciding under pressure without clarity will give you relief now and regret later. You'll revisit this.",
-        "wise_move": "Separate the pressure from the decision. Ask: whose deadline is this really?",
+        "felt_opening": "You feel the pressure to decide — but you're not ready.",
+        "felt_body": "Something is pressing you to move. But your clarity hasn't caught up yet.\n\nPart of you wants to just make the call and get relief. But another part knows you'd be deciding from pressure, not from knowing.",
+        "felt_stakes": "Deciding under pressure won't give you peace. It'll give you something you have to undo.",
+        "felt_move": "Separate the pressure from the decision. Ask: whose deadline is this really?",
         "cta": "Whose pressure is this?",
         "scene_type": SceneType.DECISION,
     },
     HomeSituation.STANDING_AT_THRESHOLD: {
-        "anchor_default": "You're standing at a line you haven't crossed.",
-        "recognition": "You keep looking at the other side—but you haven't stepped through.",
-        "tension": "The door is open. The step hasn't happened.",
-        "tension_expanded": "Part of you is ready to cross.\nBut another part is still holding onto what's behind—and that's keeping you frozen.",
-        "stakes": "Hovering at the threshold drains more than crossing or staying. The in-between costs the most.",
-        "wise_move": "Name what you'd be leaving. Then decide if you're ready to leave it.",
+        "felt_opening": "You're right at the edge — but you haven't stepped through.",
+        "felt_body": "The door is open. You've looked at what's on the other side. But something is keeping you on this side.\n\nPart of you is ready to cross. But another part is still holding onto what you'd be leaving behind.",
+        "felt_stakes": "Hovering at the edge drains more than crossing or staying. The in-between costs the most.",
+        "felt_move": "Name what you'd be leaving. Then decide if you're ready to let it go.",
         "cta": "What are you not ready to let go of?",
         "scene_type": SceneType.ACTION,
     },
@@ -1191,13 +1166,13 @@ def generate_home_message(
     exposure_state: str = None,
 ) -> Dict[str, Any]:
     """
-    Generate truth-based Home message with Memory Anchoring.
+    Generate FELT EXPERIENCE Home message.
     
-    Structure: ANCHOR → RECOGNITION → TENSION → STAKES → WISE MOVE → CTA
+    Outputs as ONE continuous natural flow, not segmented structure.
+    Uses internal moments: hesitation, pull/push, almost doing, stopping yourself.
     
     NO artificial variance.
     Based only on real signals from transits, HD, BaZi, journals, history.
-    Points to ONE specific real-life moment.
     """
     
     # Extract real signals
@@ -1220,68 +1195,62 @@ def generate_home_message(
     # Get scene type
     scene_type = SITUATION_SCENE_TYPE.get(situation, SceneType.INTERNAL)
     
-    # Get targeted context (ONE specific moment)
-    targeted_context = get_targeted_context(situation, profile)
-    
     # =====================================================
-    # BUILD HOME MESSAGE WITH NEW STRUCTURE
+    # BUILD FELT EXPERIENCE MESSAGE (Natural Flow)
     # =====================================================
     
-    # 1. ANCHOR - Name the familiar/repeated/recently active issue
-    if profile.anchor_line:
-        anchor = profile.anchor_line
-    elif profile.has_pattern_recurrence and profile.pattern_recurrence_count >= 3:
-        anchor = "This keeps coming back."
-    elif profile.has_journal_memory and profile.live_issue_summary:
-        anchor = f"There's something you've been {profile.live_issue_summary.split()[0]}."
-    elif profile.has_journal_memory:
-        anchor = "There's something you've been circling."
-    else:
-        anchor = message.get("anchor_default", "Something is in motion.")
-    
-    # 2. RECOGNITION - What the user is doing right now
+    # Use felt_opening (with memory override if available)
     if profile.recognition_line:
-        recognition = profile.recognition_line
+        felt_opening = profile.recognition_line
     else:
-        recognition = message.get("recognition", "")
+        felt_opening = message.get("felt_opening", "")
     
-    # 3. TARGETED CONTEXT - What it's about
-    if profile.live_issue_summary:
-        context = f"This is most likely about {profile.live_issue_summary}—the one that still won't land."
-    elif profile.journal_anchor_phrase:
-        context = f"This is most likely about {profile.journal_anchor_phrase}."
-    elif targeted_context:
-        context = f"This is most likely about {targeted_context}."
-    else:
-        context = ""
+    # Add anchor context for memory-bound users
+    if profile.anchor_line and profile.memory_strength > 0.3:
+        felt_opening = f"{profile.anchor_line}\n\n{felt_opening}"
     
-    # 4. TENSION
-    tension = message["tension_expanded"]
-    tension_short = message["tension"]
+    # Get the body (tension + internal moments)
+    felt_body = message.get("felt_body", "")
     
-    # 5. STAKES
-    stakes = message["stakes"]
+    # Get stakes
+    felt_stakes = message.get("felt_stakes", "")
     
-    # 6. WISE MOVE
-    wise_move = message["wise_move"]
+    # Get wise move
+    felt_move = message.get("felt_move", "")
     
-    # 7. CTA
-    cta = message["cta"]
+    # Get CTA
+    cta = message.get("cta", "")
+    
+    # Build the FULL MESSAGE as one natural flow
+    full_message_parts = []
+    
+    if felt_opening:
+        full_message_parts.append(felt_opening)
+    
+    if felt_body:
+        full_message_parts.append(felt_body)
+    
+    if felt_stakes:
+        full_message_parts.append(felt_stakes)
+    
+    if felt_move:
+        full_message_parts.append(felt_move)
+    
+    full_message = "\n\n".join(full_message_parts)
     
     return {
-        # NEW HOME STRUCTURE
-        "anchor": anchor,
-        "recognition": recognition,
-        "context": context,
-        "tension": tension,
-        "tension_short": tension_short,
-        "stakes": stakes,
-        "wise_move": wise_move,
+        # FELT EXPERIENCE OUTPUT (Single natural flow)
+        "full_message": full_message,
         "cta": cta,
+        
+        # Individual parts (for flexible rendering)
+        "felt_opening": felt_opening,
+        "felt_body": felt_body,
+        "felt_stakes": felt_stakes,
+        "felt_move": felt_move,
         
         # Scene & Targeting
         "scene_type": scene_type.value,
-        "targeted_context": targeted_context,
         
         # Memory Anchoring Info
         "memory_anchored": profile.has_journal_memory or profile.has_pattern_recurrence,
@@ -1310,11 +1279,6 @@ def generate_home_message(
             "readiness_mismatch": round(profile.readiness_mismatch, 2),
             "has_journal_memory": profile.has_journal_memory,
             "has_pattern_recurrence": profile.has_pattern_recurrence,
-            "journal_anchor_phrase": profile.journal_anchor_phrase,
-            "days_since_pattern": profile.days_since_pattern,
-            "issue_action_verb": profile.issue_action_verb,
-            "issue_object": profile.issue_object,
-            "issue_state": profile.issue_state,
             "anchor_line": profile.anchor_line,
             "recognition_line": profile.recognition_line,
         },
@@ -1322,30 +1286,19 @@ def generate_home_message(
 
 
 # =============================================================================
-# FORMATTED HOME OUTPUT
+# FORMATTED HOME OUTPUT (Felt Experience)
 # =============================================================================
 
 def format_home_for_display(home: Dict[str, Any]) -> str:
-    """Format Home message for display (testing/preview) with new structure."""
-    memory_indicator = "📍 MEMORY-ANCHORED" if home.get("memory_anchored") else "📎 SIGNAL-BASED"
+    """Format Home message as one continuous felt experience."""
+    memory_indicator = "📍 MEMORY-BOUND" if home.get("memory_anchored") else "📎 SIGNAL-BASED"
     
     lines = [
-        f"ANCHOR: {home.get('anchor', '')}",
+        home.get("full_message", ""),
         "",
-        f"RECOGNITION: {home.get('recognition', '')}",
-        "",
-        f"CONTEXT: {home.get('context', '')}",
-        "",
-        f"TENSION:",
-        home.get("tension", ""),
-        "",
-        f"STAKES: {home.get('stakes', '')}",
-        "",
-        f"WISE MOVE: {home.get('wise_move', '')}",
-        "",
-        f"CTA: [{home.get('cta', '')}]",
+        f"[{home.get('cta', '')}]",
         "",
         f"---",
-        f"{memory_indicator} | Scene: {home.get('scene_type', 'internal')} | Situation: {home.get('situation', '')}",
+        f"{memory_indicator} | {home.get('situation', '')}",
     ]
     return "\n".join(lines)
