@@ -6996,7 +6996,7 @@ async def mirror_chat(request: MirrorChatRequest):
                 try:
                     birth_date = user.get("birth_date")
                     birth_time = user.get("birth_time")
-                    timezone = user.get("timezone")
+                    user_tz = user.get("timezone")
                     
                     if birth_date:
                         from services.bazi_engine_v2 import compute_bazi_chart_v2
@@ -7005,7 +7005,7 @@ async def mirror_chat(request: MirrorChatRequest):
                         bazi_chart = compute_bazi_chart_v2(
                             birth_date=birth_date,
                             birth_time=birth_time,
-                            timezone=timezone,
+                            timezone=user_tz,
                             include_timing=True
                         )
                         

@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL configuration
-BACKEND_URL = "https://pattern-reveal.preview.emergentagent.com/api"
+BACKEND_URL = "https://recognition-flow.preview.emergentagent.com/api"
 
 # Test users from the review request
 TEST_USERS = [
