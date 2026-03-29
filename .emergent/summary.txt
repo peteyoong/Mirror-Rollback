@@ -1,142 +1,93 @@
 <analysis>**original_problem_statement**: 
-The initial request was to finish the Unified Timing Intelligence by implementing the BaZi Today tab on the frontend and its corresponding backend API. Following that, the user requested a rapid sequence of high-priority UI/UX features and fixes: an Emergency UX patch to restore interaction loops on the Home screen, a complete replacement of the Forum Patterns tool with a new Forum Updates feature, two major iterations of redesigning the Forum Member Card (from a data dump to a relational/actionable human profile), restoration of subtle forum entry points, debugging production Lifeline data visibility, and overhauling the Journal UX (optimistic rendering) followed by an immediate crash fix for the Journal's .
+The user requested several deep architectural and UX/Content upgrades:
+1. Fix location search bug during registration (Alor Setar, Malaysia not found) by integrating a better geocoding API.
+2. Convert all Human Design and Pattern outputs into REAL-LIFE LANGUAGE. Never start with system terms (Ajna, G Center, etc.). System labels must go last.
+3. Build a Pattern Differentiation Engine to prevent the app from over-collapsing outputs into a generic The Pause pattern.
+4. Implement Mirror Content System V1 & V2 across all lenses with a strict TENSION-FIRST structure (Recognition, Tension, Context, What this is, When it trips you up, When it works, At your highest, Try this).
+5. Fix the Friend Account Bug where different users receive the same generic pattern outputs.
+6. Upgrade Mirror Home to be truth-based: Remove artificial user-ID hashing for variance, ensuring Home message differences are derived entirely from actual astrological transits, journal entries, and HD tensions. Make Home messages high-stakes and grounded in real context.
 
-**PRODUCT REQUIREMENTS**: 
-- Implement BaZi Today tab using .
-- Convert passive pattern reading into an interactive loop (Does this feel true right now?).
-- Forum Updates must replace old Forum Patterns tool (One-word check-in + 3 update areas).
-- Forum Member cards must prioritize relational impact (What it feels like to be with them, Where misunderstandings happen) over raw astrological/HD data.
-- Journal entries must appear instantly (optimistic rendering) without FlatList crashes.
-- Lifeline data discrepancies between preview and production must be diagnosable via API.
+**PRODUCT REQUIREMENTS**:
+- Location search must reliably find global cities without API keys.
+- HD outputs must use behavior-first language (You tend to...) and ban phrases like consistent energy or alignment.
+- Differentiated Patterns must use weighted scoring based on action pressure, clarity delay, external dependency, etc.
+- Mirror Home must feature 6 distinct sections: Opening Hit, Tension, Context, Stakes, One Wise Move, CTA.
+- The  hash must be completely stripped from pattern selection logic.
 
 **User's preferred language**: English
-(INSTRUCT NEXT AGENT: You MUST respond in English)
+(INSTRUCT NEXT AGENT: You MUST respond in English only)
 
 **what currently exists?** 
-The application has undergone a massive UX transformation. The Home screen is highly interactive with pattern-trigger buttons and feedback loops. The Forums feature a new Forum Updates posting mechanism and highly relational, actionable Member Profiles rather than raw data dumps. The Journal implements optimistic rendering to prevent the feeling of data loss during saves. The codebase has defensive checks in place for React Native  rendering to prevent crashes with temporary data. Debugging endpoints exist to monitor DB connections and collection sizes for Lifeline events.
+A deeply relational and diagnostic mobile/web app (Mirror). The location search now uses the Photon API (komoot.io) as its primary geocoder with Nominatim as a backup, significantly improving international city resolution. The content layer has been completely overhauled: Human Design center interpretations and Home Patterns are now generated using a highly differentiated, tension-first  and . The system uses real astrological, HD, and journal signals to generate hyper-specific, behavior-driven psychological insights rather than system-heavy jargon. 
 
-**Last working item**:
-- **Last item agent was working**: Fixing a Journal submit crash () in  caused by the newly introduced optimistic rendering logic. The agent implemented strict filtering, null-guards, and defensive mapping for  rendering.
-- **Status**: USER VERIFICATION PENDING
-- **Agent Testing Done**: Y
-- **Which testing method agent to use?**: Frontend manual testing (screenshot tool) to verify journal submission works without crashing.
-- **User Testing Done**: N
+**Last working item**: 
+    - Last item agent was working: Upgrading Mirror Home to be truth-based and removing artificial user-ID variance. The agent successfully created  to evaluate truth-based profiles (Push, Hold, Clarify, Express) and stripped the  pseudo-random seeding from  so that patterns only differ if actual underlying signals differ.
+    - Status: USER VERIFICATION PENDING
+    - Agent Testing Done: Y (Tested pattern variation using bash scripts)
+    - Which testing method agent to use? manual testing by python -c (Verify truth-based generation outputs via backend scripts) or user verification on frontend.
+    - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-Issue 1: Missing Lifeline data in production (P1)
-- Attempted fixes: Added  with DB info and . Diagnosed that data *does* exist in the dev/preview DB but is missing in the production DB.
-- Next debug checklist: Check if user requires an automated DB migration script or if they will manually point the production environment to the correct MongoDB cluster.
-- Why fix this issue and what will be achieved with the fix? Users see an empty lifeline in production despite having populated it in preview.
-- Status: USER VERIFICATION PENDING (Awaiting user's infrastructural action based on debug data).
-- Is recurring issue? N
-- Should Test frontend/backend/both after fix? NA
-- Blocked on other issue: None.
+  Issue 1: Missing Lifeline data in production (P1)
+     - Attempted fixes: Debug endpoints were previously added. Verified data exists in preview DB but is missing in the production DB.
+     - Next debug checklist: Check if user requires an automated DB migration script or will manually point the production environment to the correct MongoDB cluster.
+     - Why fix this issue and what will be achieved with the fix? Users see an empty lifeline in production.
+     - Status: USER VERIFICATION PENDING (Awaiting user's infrastructural action).
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix? NA
 
 **In progress Task List**:
-None. All assigned tasks in the current session were completed.
+None currently active. Agent just finished the file replacements for  and .
 
 **Upcoming and Future Tasks**
-Upcoming Tasks:
-- Add Experience Preferences Settings Screen (P1): Ensure users can revisit and save/update their experience preferences from  (scaffolded but needs wiring).
-
-Future Tasks:
-- Batch Recompute HD Charts (P2): Script to run POST  for all users.
-- Refactor  (P2): Modularize the 27k+ line file into , , .
-- Refactor Frontend Monoliths (P2): Break down , , and  (Forums) into smaller components.
+  Upcoming Tasks:
+  - Extend Mirror Content System to Gene Keys, Astrology, and BaZi lenses (P1). 
+  - Add Experience Preferences Settings Screen (P2): Wire up  (scaffolded).
+  
+  Future Tasks:
+  - Batch Recompute HD Charts (P2): Script to run POST  for all users.
+  - Refactor  (P2): Modularize the 27k+ line file into , , .
+  - Refactor Frontend Monoliths (P2): Break down  and .
 
 **Completed work in this session**
-- Added  and BaZi Today Tab UI (DONE)
-- Fixed live site deployment lag by rebuilding web bundle and updating version (DONE)
-- Emergency UX Patch (Added pattern entry, interaction loops, and CTAs to Home & Forums) (DONE)
-- Built Forum Updates feature ( and ) (DONE)
-- Restored subtle Create / Join Forum footer links on Home screen (DONE)
-- Redesigned Forum Member Card to focus on Human Understanding (DONE)
-- Upgraded Forum Member Card to be felt + relational + actionable (DONE)
-- Added Lifeline debug endpoints ( and ) (DONE)
-- Enhanced Journal UX with optimistic rendering and Captured feedback (DONE)
-- Fixed Journal FlatList crash by hardening , , and state replacement logic (DONE)
+- Added Photon API (photon.komoot.io) as primary location search geocoder and resolved 403 error (DONE)
+- Created  to strip system jargon from outputs (DONE)
+- Created  to eliminate The Pause fallback and introduce 10 weighted patterns (DONE)
+- Rewrote 18 Human Design center templates into a 5-part behavioral structure (DONE)
+- Created  to enforce an 8-part tension-first architecture (DONE)
+- Built  resolving the friend account bug by increasing user-specific signal variance (DONE)
+- Built  to generate high-stakes, scene-based Home messages and completely stripped  pseudo-randomness (DONE)
 
 **Earlier issues found/mentioned but not fixed**
-None explicitly missed. Note that web deployment requires running env: load .env
-env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_DEBUG_MIRROR EXPO_PUBLIC_BUILD_VERSION EXPO_PUBLIC_BUILD_ID
-Fast resolver is enabled.
-Starting Metro Bundler
-Static rendering is enabled. Learn more: https://docs.expo.dev/router/reference/static-rendering/
-Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 85.5% (735/795)
-λ node_modules/expo-router/node/render.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 91.5% (944/989)
-λ Bundled 2899ms node_modules/expo-router/node/render.js (1374 modules)
-Web Bundled 4288ms node_modules/expo-router/entry.js (1285 modules)
-
-› web bundles (1):
-_expo/static/js/web/entry-8a31efba85d4173801d26551462272e3.js (3.62 MB)
-
-› Static routes (39):
-/life (40.7 kB)
-/ (index) (40.7 kB)
-/lenses (40.7 kB)
-/signals (40.7 kB)
-/welcome (40.7 kB)
-/reflect (40.7 kB)
-/_sitemap (39.6 kB)
-/patterns (40.7 kB)
-/+not-found (39.6 kB)
-/(tabs)/life (40.7 kB)
-/forums/[id] (40.7 kB)
-/forums/join (40.7 kB)
-/pattern-lens (40.7 kB)
-/(tabs) (40.7 kB)
-/forums (40.7 kB)
-/forums/story (40.7 kB)
-/todays-mirror (40.7 kB)
-/(tabs)/lenses (40.7 kB)
-/forums/create (40.7 kB)
-/lenses/[lens] (40.7 kB)
-/(tabs)/reflect (40.7 kB)
-/forums/updates (40.7 kB)
-/lifeline-upload (40.7 kB)
-/reflection-chat (40.7 kB)
-/(tabs)/patterns (40.7 kB)
-/enneagram (40.7 kB)
-/forums/dynamics (40.7 kB)
-/forums/exercise (40.7 kB)
-/forums/pairwise (40.7 kB)
-/forums/patterns (40.7 kB)
-/onboarding (40.7 kB)
-/forum-pattern-map (40.7 kB)
-/enneagram/results (40.7 kB)
-/questionnaire (40.7 kB)
-/enneagram/assessment (40.7 kB)
-/lifeline-import-review (40.7 kB)
-/enneagram/self-declare (40.7 kB)
-/lifeline-imported-sources (40.7 kB)
-/settings/experience-preferences (40.7 kB)
-
-Exported: dist and moving it to the backend  folder whenever frontend changes need to be reflected on the live URL.
+None explicitly missed.
 
 **Known issue recurrence from previous fork**
-- Issue recurrence in previous fork:  scope/shadowing and monolithic file size.
-- Recurrence count: 3
-- Status: PENDING REFACTOR
-- Note:  is exceptionally large (>27k lines). Be extremely careful with Search/Replace tools in this file.
+  - Issue recurrence in previous fork:  file size and monolithic nature.
+  - Recurrence count: 5
+  - Status: PENDING REFACTOR
+  - Note: Next agent needs to be cautious while doing search & replace in .
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Diagnosis-First & Relational UI:** The app prioritizes how does this feel/impact relationships over raw system data (e.g., HD/Enneagram jargon is hidden behind expandable toggles).
-- **Optimistic UI Rendering:** Journal entries render instantly with temporary IDs. Defensiveness is required in React Native  to strip / objects and ensure  safety.
-- **Web Export Workflow:** To apply frontend changes to the backend-served web preview, env: load .env
+- **Photon API Geocoding**: OpenStreetMap-based fallback. Replaces strict Nominatim dependence. Requires  headers to avoid 403 Forbidden errors.
+- **Weighted Pattern Scoring**: Patterns are no longer generic. They are dynamically chosen based on scoring , , , , , etc.
+- **Tension-First Architecture**: Outputs strictly require an internal conflict (Part of you wants X... but another part knows Y).
+- **Deterministic Truth Logic**: Removed pseudo-random tiebreakers ( hashing). Variation between users is purely driven by combinations of HD, astrology transits, and journal entries. 
+- **Web Export Workflow**: Crucial reminder: Changes to the frontend will NOT reflect on the live preview URL unless env: load .env
 env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_DEBUG_MIRROR EXPO_PUBLIC_BUILD_VERSION EXPO_PUBLIC_BUILD_ID
 Fast resolver is enabled.
 Starting Metro Bundler
 Static rendering is enabled. Learn more: https://docs.expo.dev/router/reference/static-rendering/
-λ Bundled 1160ms node_modules/expo-router/node/render.js (1373 modules)
-Web Bundled 1469ms node_modules/expo-router/entry.js (1237 modules)
+λ Bundled 1572ms node_modules/expo-router/node/render.js (1375 modules)
+Web Bundled 2029ms node_modules/expo-router/entry.js (1021 modules)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 55.4% ( 688/1021)
 
 › web bundles (1):
-_expo/static/js/web/entry-878a52394218c2ee7d8af15f113be0f3.js (3.62 MB)
+_expo/static/js/web/entry-da22d77b218a7f28340a9f87359504f1.js (3.63 MB)
 
-› Static routes (39):
+› Static routes (40):
 /life (40.7 kB)
 / (index) (40.7 kB)
 /lenses (40.7 kB)
@@ -165,6 +116,7 @@ _expo/static/js/web/entry-878a52394218c2ee7d8af15f113be0f3.js (3.62 MB)
 /enneagram (40.7 kB)
 /forums/dynamics (40.7 kB)
 /forums/exercise (40.7 kB)
+/forums/mappings (40.7 kB)
 /forums/pairwise (40.7 kB)
 /forums/patterns (40.7 kB)
 /onboarding (40.7 kB)
@@ -177,66 +129,67 @@ _expo/static/js/web/entry-878a52394218c2ee7d8af15f113be0f3.js (3.62 MB)
 /lifeline-imported-sources (40.7 kB)
 /settings/experience-preferences (40.7 kB)
 
-Exported: dist must be run.
+Exported: dist is run and moved to the backend  folder.
 
 **key DB schema**
-- : Newly structured data capturing 1-word check-ins and life-area updates.
-- : Exists in preview DB but reported missing in prod DB.
+  - : {user_id, pattern_id, first_seen_at, last_seen_at, exposure_dates, times_seen_7d, state}
 
 **changes in tech stack**
-- None.
+  - Added  to backend for async Photon API requests.
 
 **All files of reference**
--  (Heavily modified for Journal UX and crash fixes)
--  (Heavily modified for Member Cards)
--  (Newly created)
--  (Modified for new endpoints)
+-  (Created)
+-  (Created)
+-  (Created)
+-  (Created)
+-  (Created)
+-  (Heavily modified for language transformation)
+-  (Updated API routes)
+- 
 
 **Areas that need refactoring**:
-- , , and . These files are becoming monolithic and prone to search/replace failures due to size.
+-  (Critical mass)
 
 **key api endpoints**
-- : Saves structured forum updates.
-- : Fetches unified BaZi timing logic.
-- : Enhanced with DB debug info.
-- : New failsafe endpoint to check DB contents for Lifeline.
+- : Hits Photon API first, then Nominatim, then a hardcoded fallback database.
 
 **Critical Info for New Agent**
-- **Journal Code:** If you modify  regarding the Journal list, **do not break the optimistic rendering**. Always sanitize  () before passing to .
-- **Forums:** The client places high value on emotional/relational impact in the forum space rather than astrological data. Maintain this tone in any future forum updates.
-- **Database Context:** If the user asks about the missing Lifeline data, remind them that the data exists in the test DB, and they either need to point their production environment variables to the correct DB or run a migration script.
+- **Content Voice & Tone**: Strict instructions mandate *zero* abstract jargon (energy, alignment) in primary openings. Always start with behavior: You tend to..., When something matters.... System labels (e.g., Ajna center defined) must *only* appear at the absolute bottom as metadata.
+- **Tension Requirement**: When crafting new content blocks or updating other lenses (Gene keys, BaZi), ensure there is a clear dual-force Tension established before insights are given. 
 
 **documents and test reports created in this job**
 - None
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1.  (Completed)
+1.  (Implementation completed, awaiting verification)
 2.  (Completed)
-3.  (Debug endpoints implemented, awaiting DB migration action from user)
+3.  (Completed)
 4.  (Completed)
 5.  (Completed)
 6.  (Completed)
-7.  (Completed)
-8.  (Completed)
-9.  (Fixed via web bundle export)
+7.  (Completed - Switched to Photon API)
+8.  (Answered via Support Agent / API fixed in subsequent prompt)
+9.  (Completed)
 10.  (Completed)
 
 **Project Health Check:**
-- **Broken:** Lifeline production database alignment (infrastructural, not code).
-- **Stable:** Frontend UI flows, Web build generation, Backend endpoints.
+Broken: Lifeline production DB mapping (Infrastructural, pending user action)
+Stable: Geocoding API, Mirror Content V2 Engine, Pattern Differentiation
 
 **3rd Party Integrations**
 - OpenAI GPT-4o — uses Emergent LLM Key
 - Swisseph (Astrology)
+- Photon API (Geocoding) — Free/Public, no key required
+- Nominatim API (Geocoding) — Free/Public, no key required
 
 **Testing status**
-- Testing agent used after significant changes: YES (Backend deep testing used early on).
-- Troubleshoot agent used after agent stuck in loop: NO
-- Test files created: None
-- Known regressions: Journal crash was introduced and subsequently fixed.
+  - Testing agent used after significant changes: NO (Tested using internal python scripts ).
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: None
+  - Known regressions: None
 
 **Credentials to test flow:**
 -  (ID: )
 
 **What agent forgot to execute**
-- All explicit user requests in the long chain of tasks were successfully executed. No forgotten tasks identified.</analysis>
+- The agent was successfully editing  to purge the last of the  logic, but didn't execute the final  block with the summary for the user before the conversation ended. Next agent should explicitly confirm the completion of Home Engine V2 with the user.</analysis>
