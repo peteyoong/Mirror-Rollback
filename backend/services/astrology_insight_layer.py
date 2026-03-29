@@ -82,6 +82,37 @@ def generate_echo_line() -> str:
 
 
 # =============================================================================
+# CROSS-LENS LINKING (V1) - Connect patterns across features
+# =============================================================================
+
+CROSS_LINK_LINES = [
+    "This showed up earlier today.",
+    "You've already seen this.",
+    "Same thing — just showing up here too.",
+    "This isn't the first place you've seen this.",
+    "You're seeing it again.",
+    "This is showing up everywhere.",
+    "Same pattern, different angle.",
+    "You noticed this already."
+]
+
+def generate_cross_link_line() -> str:
+    """
+    Generate a short cross-link line that connects patterns across features.
+    
+    Purpose: Make user feel "This is the same pattern showing up everywhere"
+    
+    Rules:
+    - 1 short line
+    - calm
+    - no explanation
+    - no system jargon (no "numerology", "astrology", etc.)
+    - Must feel like recognition, not instruction
+    """
+    return random.choice(CROSS_LINK_LINES)
+
+
+# =============================================================================
 # CORE TRUTH - The Hero (No astrology terms)
 # =============================================================================
 
@@ -626,6 +657,7 @@ def compute_astrology_insight_first(
     continuation = generate_continuation_line()
     core_truth = generate_core_truth(sun, moon, rising)
     echo = generate_echo_line()
+    cross_link = generate_cross_link_line()
     how_shows_up = generate_how_this_shows_up(sun, moon)
     when_backfires = generate_when_backfires(sun)
     genius = generate_genius_line(sun)
@@ -658,10 +690,11 @@ def compute_astrology_insight_first(
     
     return {
         "success": True,
-        # V1 Structure
+        # V1 Structure: Continuation → Core → Echo → Cross Link → Shows → Backfires → Genius → Cost → Shift
         "continuation": continuation,
         "core_truth": core_truth,
         "echo": echo,
+        "cross_link": cross_link,
         "how_this_shows_up": how_shows_up,
         "when_this_backfires": when_backfires,
         "genius": genius,

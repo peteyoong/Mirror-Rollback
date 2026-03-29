@@ -183,6 +183,37 @@ def generate_echo_line() -> str:
 
 
 # =============================================================================
+# CROSS-LENS LINKING (V1) - Connect patterns across features
+# =============================================================================
+
+CROSS_LINK_LINES = [
+    "This showed up earlier today.",
+    "You've already seen this.",
+    "Same thing — just showing up here too.",
+    "This isn't the first place you've seen this.",
+    "You're seeing it again.",
+    "This is showing up everywhere.",
+    "Same pattern, different angle.",
+    "You noticed this already."
+]
+
+def generate_cross_link_line() -> str:
+    """
+    Generate a short cross-link line that connects patterns across features.
+    
+    Purpose: Make user feel "This is the same pattern showing up everywhere"
+    
+    Rules:
+    - 1 short line
+    - calm
+    - no explanation
+    - no system jargon (no "numerology", "astrology", etc.)
+    - Must feel like recognition, not instruction
+    """
+    return random.choice(CROSS_LINK_LINES)
+
+
+# =============================================================================
 # GENIUS LAYER - Why the pattern exists (V9 Mirror System)
 # =============================================================================
 
@@ -1033,6 +1064,9 @@ async def compute_numerology_pattern(
     # ECHO layer (V3) - Cross-lens reinforcement
     echo_line = generate_echo_line()
     
+    # CROSS-LINK layer (V1) - Connect patterns across features
+    cross_link_line = generate_cross_link_line()
+    
     # Action-relevant sections
     where_misfires = generate_where_this_misfires(
         life_path, lo_shu['missing_numbers'], lo_shu['present_numbers']
@@ -1082,10 +1116,12 @@ async def compute_numerology_pattern(
         # Keep these for backward compatibility
         'present_numbers': lo_shu['present_numbers'],
         'missing_numbers': lo_shu['missing_numbers'],
-        # Pattern content (V3 Structure: Continuation → Core → Echo → Shows → Backfires → Genius → Cost → Shift)
+        # Pattern content (V1 Structure: Continuation → Core → Echo → Cross Link → Shows → Backfires → Genius → Cost → Shift)
         'core_pattern': core_pattern,
         # ECHO layer (V3) - Cross-lens reinforcement, goes after Core Truth
         'echo': echo_line,
+        # CROSS-LINK layer (V1) - Connect patterns across features
+        'cross_link': cross_link_line,
         'how_this_shows_up': how_shows_up,
         # NEW: Time-aware sections
         'how_this_shows_up_today': how_shows_up_today,
