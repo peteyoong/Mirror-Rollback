@@ -234,12 +234,10 @@ export default function BaZiInsightDeepDive({
       {/* HERO SECTION - Core Pattern (dominant visual weight) */}
       {/* ================================================================== */}
       <View style={styles.heroSection}>
-        {/* Section label */}
-        <Text style={[styles.heroLabel, { color: theme.textTertiary }]}>
-          The pattern that runs you — and what it costs when unchecked
-        </Text>
+        {/* Signature gold accent - top */}
+        <View style={[styles.signatureAccent, { backgroundColor: BAZI_COLORS.gold }]} />
         
-        {/* Subtle element indicator */}
+        {/* Element indicator */}
         <View style={styles.heroHeader}>
           <View style={[styles.elementBadge, { backgroundColor: BAZI_COLORS.goldLight }]}>
             <Ionicons name={elementIcon as any} size={12} color={elementColor} />
@@ -256,9 +254,6 @@ export default function BaZiInsightDeepDive({
         <Text style={[styles.heroLine2, { color: theme.textSecondary }]}>
           {data.core_truth.line2}
         </Text>
-        
-        {/* Accent line */}
-        <View style={[styles.heroAccent, { backgroundColor: elementColor }]} />
       </View>
 
       {/* ================================================================== */}
@@ -273,7 +268,7 @@ export default function BaZiInsightDeepDive({
           <View style={styles.patternList}>
             {data.how_this_shows_up.map((item, index) => (
               <View key={index} style={styles.patternItem}>
-                <View style={[styles.patternDot, { backgroundColor: theme.textTertiary }]} />
+                <View style={[styles.patternDot, { backgroundColor: BAZI_COLORS.gold, opacity: 0.4 }]} />
                 <Text style={[styles.patternText, { color: theme.textSecondary }]}>{item}</Text>
               </View>
             ))}
@@ -329,13 +324,16 @@ export default function BaZiInsightDeepDive({
       </View>
 
       {/* ================================================================== */}
-      {/* SHIFT - Action callout */}
+      {/* SHIFT - Action callout with signature accent */}
       {/* ================================================================== */}
-      <View style={[styles.shiftSection, { borderLeftColor: BAZI_COLORS.gold }]}>
-        <Text style={[styles.shiftLabel, { color: BAZI_COLORS.gold }]}>ONE SHIFT</Text>
-        <Text style={[styles.shiftText, { color: theme.text }]}>
-          {data.one_shift}
-        </Text>
+      <View style={styles.shiftWrapper}>
+        <View style={[styles.signatureAccent, { backgroundColor: BAZI_COLORS.gold }]} />
+        <View style={[styles.shiftSection, { borderLeftColor: BAZI_COLORS.gold }]}>
+          <Text style={[styles.shiftLabel, { color: BAZI_COLORS.gold }]}>ONE SHIFT</Text>
+          <Text style={[styles.shiftText, { color: theme.text }]}>
+            {data.one_shift}
+          </Text>
+        </View>
       </View>
 
       {/* ================================================================== */}
@@ -471,19 +469,20 @@ const styles = StyleSheet.create({
   // HERO SECTION (dominant)
   // ==========================================================================
   heroSection: {
-    marginTop: 8,
-    marginBottom: 40,
-    paddingBottom: 8,
+    marginTop: 16,
+    marginBottom: 48,
+    paddingBottom: 12,
   },
-  heroLabel: {
-    fontSize: 11,
-    letterSpacing: 0.3,
-    marginBottom: 20,
-    lineHeight: 16,
+  signatureAccent: {
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+    marginBottom: 24,
+    opacity: 0.7,
   },
   heroHeader: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   elementBadge: {
     flexDirection: 'row',
@@ -502,21 +501,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     lineHeight: 32,
-    marginBottom: 8,
+    marginBottom: 10,
     letterSpacing: -0.4,
   },
   heroLine2: {
     fontSize: 17,
-    lineHeight: 25,
+    lineHeight: 26,
     fontStyle: 'italic',
-    opacity: 0.8,
-  },
-  heroAccent: {
-    width: 48,
-    height: 2,
-    borderRadius: 1,
-    marginTop: 24,
-    opacity: 0.5,
+    opacity: 0.75,
   },
 
   // ==========================================================================
@@ -591,12 +583,15 @@ const styles = StyleSheet.create({
   // ==========================================================================
   // SHIFT SECTION (pause moment)
   // ==========================================================================
+  shiftWrapper: {
+    marginTop: 16,
+    marginBottom: 48,
+  },
   shiftSection: {
     borderLeftWidth: 3,
     paddingLeft: 16,
     paddingVertical: 8,
-    marginTop: 8,
-    marginBottom: 40,
+    marginTop: 20,
   },
   shiftLabel: {
     fontSize: 10,

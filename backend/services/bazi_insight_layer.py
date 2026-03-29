@@ -201,8 +201,8 @@ WHEN_THIS_BACKFIRES_TEMPLATES = {
     ],
     ("Water", "Yang"): [
         "You don't stop — even when stopping is the answer",
-        "You're always moving, but nothing lands",
-        "You flow past things that needed your attention",
+        "You're always moving, but nothing actually lands",
+        "You move past things that actually needed your attention",
         "You keep moving to avoid actually facing it",
     ],
     ("Water", "Yin"): [
