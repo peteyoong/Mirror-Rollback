@@ -14648,6 +14648,94 @@ async def get_astrology_deep_dive(user_id: str, force_refresh: bool = False):
 
 
 # =====================================================================
+# ASTROLOGY INSIGHT FIRST ENDPOINT (V1)
+# =====================================================================
+# Redesigned to follow Mirror system: immediate recognition first,
+# system proof second, no jargon-first experience
+
+@api_router.get("/astrology/insight-first/{user_id}")
+async def get_astrology_insight_first(user_id: str):
+    """
+    Astrology Insight First - V1
+    
+    Returns the same structure as BaZi and Numerology:
+    - Continuation
+    - Core Truth (hero)
+    - Echo
+    - How This Shows Up
+    - When This Backfires
+    - Genius
+    - What This Costs
+    - One Shift
+    - Why Showing Up (collapsible proof)
+    - Astrology Details (collapsible raw)
+    - Today tab
+    
+    NO astrology jargon in primary view.
+    Proof layers are collapsible.
+    """
+    try:
+        from services.astrology_insight_layer import compute_astrology_insight_first
+        
+        # Get user's chart data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        
+        sun_sign = None
+        moon_sign = None
+        rising_sign = None
+        chart_data = None
+        
+        if user:
+            # Check for embedded chart data in user doc
+            chart_data = user.get('chart', {})
+            if chart_data:
+                planets = chart_data.get('planets', {})
+                angles = chart_data.get('angles', {})
+                
+                sun_data = planets.get('Sun', {})
+                moon_data = planets.get('Moon', {})
+                
+                sun_sign = sun_data.get('sign') if isinstance(sun_data, dict) else None
+                moon_sign = moon_data.get('sign') if isinstance(moon_data, dict) else None
+                rising_sign = angles.get('asc', {}).get('sign')
+        
+        # If no embedded chart, check astrology_charts collection
+        if not sun_sign:
+            chart = await db.astrology_charts.find_one({"user_id": user_id})
+            if chart:
+                sun_sign = chart.get("sun_sign") or chart.get("sun", {}).get("sign")
+                moon_sign = chart.get("moon_sign") or chart.get("moon", {}).get("sign")
+                rising_sign = chart.get("rising_sign") or chart.get("ascendant", {}).get("sign")
+                chart_data = chart
+        
+        # If still no data, return error
+        if not sun_sign:
+            return {
+                "success": False,
+                "error": "NO_CHART",
+                "message": "Astrology chart not yet computed. Complete your profile to unlock."
+            }
+        
+        # Compute insight-first structure
+        result = compute_astrology_insight_first(
+            sun_sign=sun_sign,
+            moon_sign=moon_sign or "Aries",
+            rising_sign=rising_sign or "Aries",
+            chart_data=chart_data
+        )
+        
+        logger.info(f"[ASTROLOGY_INSIGHT_FIRST] Generated for user {user_id}: Sun={sun_sign}, Moon={moon_sign}, Rising={rising_sign}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ASTROLOGY_INSIGHT_FIRST] Error for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================================
 # HUMAN DESIGN LENS ENDPOINTS
 # =====================================================================
 
