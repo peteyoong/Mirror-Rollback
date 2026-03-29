@@ -141,32 +141,43 @@ def generate_continuation_line() -> str:
 
 
 # =============================================================================
-# CROSS-LENS ECHO (V3) - Reinforce pattern repetition
+# CROSS-LENS ECHO (V3.1) - Recognition of lived repetition
 # =============================================================================
 
 ECHO_LINES = [
-    "You've seen this already.",
-    "This is the same thing showing up again.",
+    # Neutral (kept from V3)
     "This isn't new.",
     "You've felt this before.",
-    "Same pattern. Just clearer here.",
-    "This keeps repeating.",
     "You know this one.",
-    "This has been running for a while."
+    # Sharp / Lived (V3.1 upgrade)
+    "You keep ending up here.",
+    "You've hit this before.",
+    "This is where it loops.",
+    "You don't get past this — it resets.",
+    "You've already been here recently.",
+    "You thought you moved past this.",
+    "This part again.",
+    "You're back in the same spot."
 ]
 
 def generate_echo_line() -> str:
     """
-    Generate a short echo line that reinforces cross-lens pattern repetition.
+    Generate a short echo line that reinforces lived pattern repetition.
     
-    Purpose: Make user feel "This same pattern is showing up everywhere"
+    V3.1 Purpose: User should feel "I keep ending up here"
     
     Rules:
-    - 1 short line
-    - Calm, matter-of-fact
+    - 1 short line only
     - No explanation
-    - No system references (no "numerology", "bazi", etc.)
-    - Keep it grounded
+    - No system references
+    - No abstract phrasing
+    - Must feel immediate and personal
+    
+    Tone:
+    - Grounded
+    - Matter-of-fact
+    - Slightly confronting
+    - Not dramatic, not mystical
     """
     return random.choice(ECHO_LINES)
 
