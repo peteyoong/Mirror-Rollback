@@ -994,34 +994,139 @@ async def get_pattern_memory_v1(
         return None
 
 
-def simulate_memory_for_demo(should_show: bool = True) -> Optional[Dict[str, Any]]:
+# =============================================================================
+# PRODUCTION MEMORY RULES (V1.1 - Trust Hardening)
+# =============================================================================
+# 
+# GOAL: Memory must feel earned. Never fabricated. Never decorative.
+#
+# RULES:
+# 1. Memory ONLY appears when grounded in actual DB-backed history
+# 2. `last_seen_at` must be real (not simulated)
+# 3. `memory_state` must be derived from actual interaction/pattern history
+# 4. If ANY of these are missing or weak → do NOT show memory
+#
+# FALLBACK: Rely on continuation, echo, cross-link — NOT memory
+# =============================================================================
+
+def validate_memory_for_display(memory: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """
-    Generate simulated memory for demonstration when real history unavailable.
+    Validate that memory is grounded in real user history before display.
     
-    Returns None 70% of the time to avoid fake continuity.
-    ONLY use when real pattern history is unavailable.
+    Returns memory dict if valid, None if should be hidden.
+    
+    STRICT RULES:
+    - Must have real last_seen_at (not None, not simulated)
+    - Must have recurrence_count >= 2
+    - Must have valid memory_state from actual history
+    - Must NOT be flagged as _simulated
+    
+    If any validation fails → return None (memory not shown)
     """
-    if not should_show:
+    if not memory:
         return None
     
-    # Only show memory 30% of the time to avoid fabrication
-    if random.random() > 0.3:
+    # RULE 1: Reject any simulated memory
+    if memory.get("_simulated"):
+        logger.debug("[PatternMemoryV1] Rejected: simulated memory")
         return None
     
-    # Pick a random state
-    states = ["returning", "repeating", "deepening", "unresolved", "easing"]
-    memory_state = random.choice(states)
+    # RULE 2: Must have real last_seen_at
+    last_seen = memory.get("last_seen_at")
+    if not last_seen:
+        logger.debug("[PatternMemoryV1] Rejected: no last_seen_at")
+        return None
     
-    # Generate plausible recurrence data
-    recurrence_count = random.randint(2, 5)
-    days_ago = random.randint(3, 14)
-    last_seen = datetime.now(timezone.utc) - timedelta(days=days_ago)
+    # RULE 3: Must have meaningful recurrence (2+ times)
+    recurrence_count = memory.get("recurrence_count", 0)
+    if recurrence_count < 2:
+        logger.debug(f"[PatternMemoryV1] Rejected: recurrence_count={recurrence_count} < 2")
+        return None
     
-    return {
-        "memory_line": generate_memory_line(memory_state),
-        "recurrence_count": recurrence_count,
-        "last_seen_at": last_seen.isoformat(),
-        "memory_state": memory_state,
-        "_simulated": True  # Flag to indicate this is not real data
-    }
+    # RULE 4: Must have valid memory_state
+    valid_states = {"returning", "repeating", "deepening", "unresolved", "easing"}
+    memory_state = memory.get("memory_state")
+    if memory_state not in valid_states:
+        logger.debug(f"[PatternMemoryV1] Rejected: invalid memory_state={memory_state}")
+        return None
+    
+    # RULE 5: Must have a memory_line
+    if not memory.get("memory_line"):
+        logger.debug("[PatternMemoryV1] Rejected: no memory_line")
+        return None
+    
+    # All validations passed — memory is earned and can be displayed
+    return memory
+
+
+def get_safe_memory_for_display(
+    db,
+    user_id: str,
+    pattern_id: str,
+    pattern_title: str = None,
+    pattern_family: str = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Production-safe wrapper that only returns memory if grounded in real history.
+    
+    This is the ONLY function that should be used in user-facing surfaces.
+    
+    Returns:
+        Validated memory dict if real history exists
+        None if no real memory or validation fails
+    
+    FALLBACK STRATEGY (if None returned):
+    - UI should rely on: continuation, echo, cross_link
+    - UI should NOT show any memory-related text
+    """
+    import asyncio
+    
+    async def _get():
+        memory = await get_pattern_memory_v1(
+            db=db,
+            user_id=user_id,
+            pattern_id=pattern_id,
+            pattern_title=pattern_title,
+            pattern_family=pattern_family
+        )
+        return validate_memory_for_display(memory)
+    
+    # Handle both sync and async contexts
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # Already in async context
+            return None  # Caller should use get_pattern_memory_v1 directly
+        else:
+            return loop.run_until_complete(_get())
+    except RuntimeError:
+        return None
+
+
+# =============================================================================
+# DISABLED: SIMULATED MEMORY (Trust Violation)
+# =============================================================================
+# The function below is DISABLED for production use.
+# It exists only for historical reference and testing.
+# DO NOT use in any user-facing code path.
+# =============================================================================
+
+def _DISABLED_simulate_memory_for_demo(should_show: bool = True) -> Optional[Dict[str, Any]]:
+    """
+    ⚠️ DISABLED - DO NOT USE IN PRODUCTION
+    
+    This function was disabled in V1.1 (Trust Hardening).
+    
+    Reason: Memory must feel earned. Fabricated continuity violates user trust.
+    
+    If you need memory, use get_pattern_memory_v1() with real DB data.
+    If no real memory exists, do NOT show memory at all.
+    """
+    logger.warning("[PatternMemoryV1] DISABLED: simulate_memory_for_demo called - returning None")
+    return None
+
+
+# Keep old name as alias that returns None (prevents import errors)
+simulate_memory_for_demo = _DISABLED_simulate_memory_for_demo
+
 
