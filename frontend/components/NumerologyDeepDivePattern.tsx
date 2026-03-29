@@ -22,6 +22,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import CrossLensChainRow from './CrossLensChainRow';
 
 // =============================================================================
 // TYPES
@@ -40,6 +41,18 @@ interface NumerologyPatternData {
   lo_shu_display: string[][];
   present_numbers: { [key: string]: number };
   missing_numbers: number[];
+  // V1 Mirror Layers
+  continuation?: string;
+  echo?: string;
+  cross_link?: string;
+  memory?: {
+    memory_line: string;
+    recurrence_count: number;
+    last_seen_at: string;
+    memory_state: string;
+  } | null;
+  genius?: string;
+  // Original fields
   core_pattern: string;
   how_this_shows_up: string[];
   how_this_shows_up_today: string[];
@@ -290,6 +303,13 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
           {data.core_pattern}
         </Text>
       </View>
+
+      {/* Cross-Lens Chain Row - Subtle navigation to Home */}
+      <CrossLensChainRow 
+        currentLens="numerology"
+        showsInHome={true}
+        secondaryLine={data.cross_link || undefined}
+      />
 
       {/* HOW THIS SHOWS UP TODAY - Time-aware */}
       {data.how_this_shows_up_today && data.how_this_shows_up_today.length > 0 && (

@@ -27,6 +27,7 @@ import {
 } from '../../services/astrology/astrologyNarrative';
 
 import { cleanText } from '../../utils/languageGuard';
+import CrossLensChainRow from '../CrossLensChainRow';
 
 // ============================================
 // PROPS INTERFACE
@@ -145,6 +146,13 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
           {cleanText(compressedDescriptor)}
         </Text>
       </View>
+
+      {/* Cross-Lens Chain Row - Subtle navigation to Home */}
+      <CrossLensChainRow 
+        currentLens="astrology"
+        showsInHome={true}
+        secondaryLine="Same pattern. Different proof."
+      />
 
       {/* ============================================ */}
       {/* SECTION 2: CHART SPINE */}
