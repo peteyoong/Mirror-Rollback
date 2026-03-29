@@ -4,11 +4,17 @@ Numerology Pattern System Service
 Task: Transform numerology from descriptive personality text into 
 diagnostic pattern recognition system.
 
+SYSTEM: Vedic Numerology (date-based) is the PRIMARY system.
+Name-based numbers (Western) are SECONDARY - available when user adds name.
+
+Philosophy: Pattern notation, not identity. Lens, not truth.
+
 Provides:
-- Lo Shu Grid computation
+- Lo Shu Grid computation (Vedic)
 - Core pattern generation (sharp, confronting)
-- Behavioral manifestations
-- Internal tensions
+- WHERE THIS MISFIRES (real-world behavior)
+- WHERE THIS COSTS YOU (energy, relationships, trust)
+- ONE WAY TO BALANCE TODAY (practical action)
 - Precise reflection questions
 """
 
@@ -19,12 +25,12 @@ from typing import Dict, List, Any, Optional
 logger = logging.getLogger(__name__)
 
 # =============================================================================
-# LO SHU GRID COMPUTATION
+# LO SHU GRID COMPUTATION (VEDIC - Primary System)
 # =============================================================================
 
 def compute_lo_shu_grid(birth_date: datetime) -> Dict[str, Any]:
     """
-    Compute Lo Shu Grid from birth date.
+    Compute Lo Shu Grid from birth date (Vedic numerology).
     
     The Lo Shu Grid is a 3x3 grid showing presence/absence of numbers 1-9.
     Numbers are derived from the birth date digits.
@@ -102,6 +108,221 @@ NUMBER_CORE_MEANINGS = {
 }
 
 # =============================================================================
+# WHERE THIS MISFIRES - Real-world behavior patterns
+# =============================================================================
+
+def generate_where_this_misfires(
+    life_path: int,
+    missing_numbers: List[int],
+    present_counts: Dict[str, int]
+) -> List[str]:
+    """
+    Generate 2-3 specific ways this pattern misfires in real life.
+    
+    Rules:
+    - Concrete behaviors, not abstract tendencies
+    - Specific situations where the pattern works against you
+    - Confronting but recognizable
+    """
+    misfires = []
+    
+    # Life path misfires
+    lp_misfires = {
+        1: [
+            "You start moving before the other person has finished talking",
+            "You dismiss input that would have changed your course",
+            "You push through warning signs that were trying to slow you down"
+        ],
+        2: [
+            "You say yes when you mean maybe—and end up resenting it",
+            "You absorb someone else's mood and forget what you were feeling",
+            "You wait for approval that never comes"
+        ],
+        3: [
+            "You overshare before you've fully processed what happened",
+            "You scatter energy across too many interests and finish none",
+            "You talk about doing the work instead of doing it"
+        ],
+        4: [
+            "You rebuild systems that were working fine",
+            "You get stuck perfecting details no one will notice",
+            "You say no to opportunities that don't fit your timeline"
+        ],
+        5: [
+            "You leave before giving something enough time to work",
+            "You mistake restlessness for intuition",
+            "You start over instead of solving the problem in front of you"
+        ],
+        6: [
+            "You fix problems no one asked you to fix",
+            "You sacrifice your needs to avoid difficult conversations",
+            "You take responsibility for outcomes outside your control"
+        ],
+        7: [
+            "You analyze your way out of decisions that need to be felt",
+            "You reject feedback before fully hearing it",
+            "You isolate when connection is what you actually need"
+        ],
+        8: [
+            "You push through resistance that's trying to tell you something",
+            "You track results at the expense of relationships",
+            "You see power dynamics that weren't there"
+        ],
+        9: [
+            "You move on before you've fully completed what you started",
+            "You detach when presence is what's needed",
+            "You offer wisdom when someone just wanted to be heard"
+        ],
+        11: [
+            "You trust a vision before checking if the ground will support it",
+            "You overwhelm yourself with possibilities",
+            "You see what's coming but can't get others to see it with you"
+        ],
+        22: [
+            "You build systems that are too big for the current moment",
+            "You delay starting because the plan isn't perfect",
+            "You exhaust yourself on projects that weren't yours to carry"
+        ],
+        33: [
+            "You heal others at the cost of your own wellbeing",
+            "You attract people who drain more than they give",
+            "You teach before you've learned the lesson yourself"
+        ]
+    }
+    
+    misfires.extend(lp_misfires.get(life_path, [
+        "You run the pattern on autopilot without checking if it's working",
+        "You overcorrect for old wounds in situations that don't require it"
+    ]))
+    
+    return misfires[:3]
+
+
+# =============================================================================
+# WHERE THIS COSTS YOU - Energy, relationships, trust
+# =============================================================================
+
+def generate_where_this_costs_you(
+    life_path: int,
+    missing_numbers: List[int]
+) -> Dict[str, str]:
+    """
+    Generate specific costs for each pattern.
+    
+    Returns dict with:
+    - energy_cost: how it drains you
+    - relationship_cost: how it affects connections
+    - trust_cost: how it erodes self-trust or credibility
+    """
+    
+    costs = {
+        1: {
+            'energy_cost': 'Starting over repeatedly instead of building on what exists',
+            'relationship_cost': 'People stop offering input because you move anyway',
+            'trust_cost': 'Others learn to wait you out instead of engage'
+        },
+        2: {
+            'energy_cost': 'Processing everyone else\'s feelings before your own',
+            'relationship_cost': 'People don\'t know what you actually want',
+            'trust_cost': 'Your yes loses weight because you say it too often'
+        },
+        3: {
+            'energy_cost': 'Spinning on creative projects that never ship',
+            'relationship_cost': 'People hear your plans more than your results',
+            'trust_cost': 'Your excitement gets discounted because it\'s always there'
+        },
+        4: {
+            'energy_cost': 'Maintaining structures that should be simplified or released',
+            'relationship_cost': 'Others feel judged for their chaos',
+            'trust_cost': 'You\'re seen as rigid even when you\'re just being careful'
+        },
+        5: {
+            'energy_cost': 'Starting from scratch repeatedly instead of deepening',
+            'relationship_cost': 'People stop investing because you might leave',
+            'trust_cost': 'Your commitments carry less weight because they\'ve shifted before'
+        },
+        6: {
+            'energy_cost': 'Carrying responsibilities that were never yours',
+            'relationship_cost': 'People lean too heavily because you always catch them',
+            'trust_cost': 'You\'re overlooked for your own needs because you hide them'
+        },
+        7: {
+            'energy_cost': 'Researching past the point of usefulness',
+            'relationship_cost': 'People feel analyzed rather than understood',
+            'trust_cost': 'Your conclusions get dismissed because they came without emotion'
+        },
+        8: {
+            'energy_cost': 'Fighting battles that don\'t need to be won',
+            'relationship_cost': 'People feel like transactions instead of connections',
+            'trust_cost': 'Your drive gets mistaken for ambition without care'
+        },
+        9: {
+            'energy_cost': 'Holding the big picture while ignoring the details that need you',
+            'relationship_cost': 'People feel you\'re already gone before you leave',
+            'trust_cost': 'Your wisdom gets dismissed because it sounds detached'
+        },
+        11: {
+            'energy_cost': 'Living in vision while neglecting practical ground',
+            'relationship_cost': 'People can\'t follow where you\'re pointing',
+            'trust_cost': 'Your insights get ignored because they can\'t be proven yet'
+        },
+        22: {
+            'energy_cost': 'Building beyond your current capacity',
+            'relationship_cost': 'People feel like pieces in a larger plan',
+            'trust_cost': 'Your timelines lose credibility because they\'re too ambitious'
+        },
+        33: {
+            'energy_cost': 'Giving until you\'re empty',
+            'relationship_cost': 'People don\'t know when you need them to give back',
+            'trust_cost': 'Your guidance gets taken for granted because it\'s always available'
+        }
+    }
+    
+    return costs.get(life_path, {
+        'energy_cost': 'Running the pattern without checking if it\'s still serving you',
+        'relationship_cost': 'Others can\'t meet you where you are because you hide it',
+        'trust_cost': 'Self-trust erodes when the pattern keeps producing the same outcome'
+    })
+
+
+# =============================================================================
+# ONE WAY TO BALANCE TODAY - Practical action
+# =============================================================================
+
+def generate_balance_today(
+    life_path: int,
+    missing_numbers: List[int]
+) -> str:
+    """
+    Generate ONE practical, grounded action for today.
+    
+    Rules:
+    - Specific and doable
+    - Directly addresses the pattern
+    - Takes less than 10 minutes
+    """
+    
+    balance_actions = {
+        1: "Before you act on the next thing, ask one person for their input — and wait for their answer.",
+        2: "Say 'I need a moment to think about that' instead of answering immediately.",
+        3: "Choose one idea and do one concrete step on it before talking about it.",
+        4: "Let one thing stay imperfect today. Notice what happens when you don't fix it.",
+        5: "Stay with one thing 10% longer than you want to. Notice what you learn.",
+        6: "Let someone struggle without offering to help. Notice how it feels.",
+        7: "Make one decision today using only how it feels, not what you know.",
+        8: "Do one thing today without tracking the result. Just do it.",
+        9: "Zoom into one detail instead of the bigger picture. Give it your full attention.",
+        11: "Ground one of your insights by writing down three specific steps to make it real.",
+        22: "Take one small action instead of perfecting the plan for the bigger one.",
+        33: "Say no to one request today, even if you could say yes."
+    }
+    
+    return balance_actions.get(life_path, 
+        "Notice the pattern running today. Pause before repeating it. Ask: is this serving me right now?"
+    )
+
+
+# =============================================================================
 # CORE PATTERN GENERATOR
 # =============================================================================
 
@@ -120,10 +341,6 @@ def generate_core_pattern(
     - "You are built to see quickly and move quickly—but not naturally built to stabilize or express what you see."
     - "You initiate powerfully but struggle to follow through on emotional commitments."
     """
-    lp_meaning = NUMBER_CORE_MEANINGS.get(life_path, {})
-    lp_verb = lp_meaning.get('verb', 'moves')
-    lp_energy = lp_meaning.get('energy', 'action')
-    
     # Start with life path core
     pattern_parts = []
     
@@ -332,11 +549,7 @@ def generate_internal_tensions(
     tensions = []
     
     # Life path vs missing number tensions
-    lp_meaning = NUMBER_CORE_MEANINGS.get(life_path, {})
-    
     for missing in missing_numbers[:2]:
-        missing_meaning = NUMBER_CORE_MEANINGS.get(missing, {})
-        
         tension_map = {
             (1, 2): {
                 'a': f'Fast action ({life_path})',
@@ -401,7 +614,7 @@ def generate_internal_tensions(
                 tensions.append({
                     'a': f'Amplified {meaning["energy"].split(",")[0]} ({num}×{count})',
                     'b': 'balance and moderation',
-                    'description': f'This energy is doubled—making it both a gift and a blind spot'
+                    'description': 'This energy is doubled—making it both a gift and a blind spot'
                 })
                 break  # Only one doubled number tension
     
@@ -452,6 +665,8 @@ async def compute_numerology_pattern(
     """
     Compute the complete numerology pattern system for a user.
     
+    System: Vedic (date-based) is PRIMARY. Western (name-based) is SECONDARY.
+    
     Returns:
         {
             'life_path': int,
@@ -459,11 +674,17 @@ async def compute_numerology_pattern(
             'soul_urge': int | null,
             'personality': int | null,
             'birth_date': str,
-            'lo_shu_grid': [[int]],
+            'has_name_numbers': bool,
+            'system_explanation': str,
+            'lo_shu_template': [[int]],
+            'lo_shu_display': [[str]],
             'present_numbers': {str: int},
             'missing_numbers': [int],
             'core_pattern': str,
             'how_this_shows_up': [str],
+            'where_this_misfires': [str],
+            'where_this_costs_you': {energy_cost, relationship_cost, trust_cost},
+            'balance_today': str,
             'internal_tensions': [{a, b, description}],
             'mirror_moment': str
         }
@@ -482,6 +703,7 @@ async def compute_numerology_pattern(
     expression = None
     soul_urge = None
     personality = None
+    has_name_numbers = False
     
     if full_name:
         expression_result = calculate_expression_number(full_name)
@@ -492,8 +714,9 @@ async def compute_numerology_pattern(
         
         personality_result = calculate_personality_number(full_name)
         personality = personality_result['number']
+        has_name_numbers = True
     
-    # Compute Lo Shu grid
+    # Compute Lo Shu grid (Vedic - Primary)
     lo_shu = compute_lo_shu_grid(birth_date)
     
     # Generate pattern content
@@ -505,6 +728,19 @@ async def compute_numerology_pattern(
         life_path, expression, lo_shu['missing_numbers'], lo_shu['present_numbers']
     )
     
+    # NEW: Action-relevant sections
+    where_misfires = generate_where_this_misfires(
+        life_path, lo_shu['missing_numbers'], lo_shu['present_numbers']
+    )
+    
+    where_costs = generate_where_this_costs_you(
+        life_path, lo_shu['missing_numbers']
+    )
+    
+    balance_today = generate_balance_today(
+        life_path, lo_shu['missing_numbers']
+    )
+    
     internal_tensions = generate_internal_tensions(
         life_path, expression, soul_urge, 
         lo_shu['missing_numbers'], lo_shu['present_numbers']
@@ -514,13 +750,24 @@ async def compute_numerology_pattern(
         life_path, internal_tensions, lo_shu['missing_numbers']
     )
     
+    # System explanation (Vedic-first positioning)
+    system_explanation = (
+        "Your core pattern comes from your birth date (Vedic numerology). "
+        "Your name adds an identity layer on top of it."
+    ) if not has_name_numbers else (
+        "Your birth date reveals the core pattern. "
+        "Your name shows how you express and refine it."
+    )
+    
     return {
         'life_path': life_path,
         'expression': expression,
         'soul_urge': soul_urge,
         'personality': personality,
         'birth_date': birth_date.isoformat(),
-        # New Lo Shu structure (Task: API Data Contract Cleanup)
+        'has_name_numbers': has_name_numbers,
+        'system_explanation': system_explanation,
+        # Lo Shu structure (Vedic - Primary System)
         'lo_shu_template': lo_shu['lo_shu_template'],
         'lo_shu_counts': lo_shu['lo_shu_counts'],
         'lo_shu_display': lo_shu['lo_shu_display'],
@@ -530,6 +777,11 @@ async def compute_numerology_pattern(
         # Pattern content
         'core_pattern': core_pattern,
         'how_this_shows_up': how_shows_up,
+        # NEW: Action-relevant sections
+        'where_this_misfires': where_misfires,
+        'where_this_costs_you': where_costs,
+        'balance_today': balance_today,
+        # Original sections
         'internal_tensions': internal_tensions,
         'mirror_moment': mirror_moment
     }

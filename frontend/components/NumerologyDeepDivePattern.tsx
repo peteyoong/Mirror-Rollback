@@ -33,6 +33,8 @@ interface NumerologyPatternData {
   soul_urge: number | null;
   personality: number | null;
   birth_date: string;
+  has_name_numbers: boolean;
+  system_explanation: string;
   lo_shu_template: number[][];
   lo_shu_counts: { [key: string]: number };
   lo_shu_display: string[][];
@@ -40,6 +42,13 @@ interface NumerologyPatternData {
   missing_numbers: number[];
   core_pattern: string;
   how_this_shows_up: string[];
+  where_this_misfires: string[];
+  where_this_costs_you: {
+    energy_cost: string;
+    relationship_cost: string;
+    trust_cost: string;
+  };
+  balance_today: string;
   internal_tensions: { a: string; b: string; description: string }[];
   mirror_moment: string;
 }
@@ -63,6 +72,13 @@ const COLORS = {
   lessEmphasisText: '#9CA3AF',
   tensionGold: '#D4A574',
   tensionBg: 'rgba(212, 165, 116, 0.08)',
+  // New action-relevant colors
+  misfireRed: '#E57373',
+  misfireBg: 'rgba(229, 115, 115, 0.08)',
+  costOrange: '#FFB74D',
+  costBg: 'rgba(255, 183, 77, 0.08)',
+  balanceGreen: '#81C784',
+  balanceBg: 'rgba(129, 199, 132, 0.08)',
 };
 
 // =============================================================================
@@ -227,6 +243,14 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
 
   return (
     <View style={styles.container}>
+      {/* System Explanation Banner */}
+      <View style={[styles.systemBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Ionicons name="information-circle-outline" size={16} color={theme.textTertiary} />
+        <Text style={[styles.systemBannerText, { color: theme.textSecondary }]}>
+          {data.system_explanation || "Your core pattern comes from your birth date. Your name adds an identity layer on top of it."}
+        </Text>
+      </View>
+
       {/* Core Numbers Strip */}
       <View style={[styles.coreNumbersStrip, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.coreNumberItem}>
@@ -279,8 +303,54 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
         </View>
       </View>
 
+      {/* WHERE THIS MISFIRES - New action-relevant section */}
+      {data.where_this_misfires && data.where_this_misfires.length > 0 && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: COLORS.misfireRed }]}>WHERE THIS MISFIRES</Text>
+          <View style={[styles.bulletList, { backgroundColor: COLORS.misfireBg, borderColor: COLORS.misfireRed }]}>
+            {data.where_this_misfires.map((item, index) => (
+              <View key={index} style={styles.bulletItem}>
+                <View style={[styles.bulletDot, { backgroundColor: COLORS.misfireRed }]} />
+                <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{item}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* WHERE THIS COSTS YOU - New action-relevant section */}
+      {data.where_this_costs_you && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: COLORS.costOrange }]}>WHERE THIS COSTS YOU</Text>
+          <View style={[styles.costsCard, { backgroundColor: COLORS.costBg, borderColor: COLORS.costOrange }]}>
+            <View style={styles.costItem}>
+              <Text style={[styles.costLabel, { color: COLORS.costOrange }]}>ENERGY</Text>
+              <Text style={[styles.costText, { color: theme.textSecondary }]}>{data.where_this_costs_you.energy_cost}</Text>
+            </View>
+            <View style={styles.costItem}>
+              <Text style={[styles.costLabel, { color: COLORS.costOrange }]}>RELATIONSHIPS</Text>
+              <Text style={[styles.costText, { color: theme.textSecondary }]}>{data.where_this_costs_you.relationship_cost}</Text>
+            </View>
+            <View style={styles.costItem}>
+              <Text style={[styles.costLabel, { color: COLORS.costOrange }]}>TRUST</Text>
+              <Text style={[styles.costText, { color: theme.textSecondary }]}>{data.where_this_costs_you.trust_cost}</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* ONE WAY TO BALANCE TODAY - New action section */}
+      {data.balance_today && (
+        <View style={[styles.balanceSection, { backgroundColor: COLORS.balanceBg, borderColor: COLORS.balanceGreen }]}>
+          <Text style={[styles.balanceLabel, { color: COLORS.balanceGreen }]}>ONE WAY TO BALANCE TODAY</Text>
+          <Text style={[styles.balanceText, { color: theme.text }]}>
+            {data.balance_today}
+          </Text>
+        </View>
+      )}
+
       {/* Tensions to Notice */}
-      {data.internal_tensions.length > 0 && (
+      {data.internal_tensions && data.internal_tensions.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>TENSIONS TO NOTICE</Text>
           <View style={styles.tensionList}>
@@ -319,7 +389,7 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
         >
           <Ionicons name="add-circle-outline" size={18} color={COLORS.accent} />
           <Text style={[styles.addNameButtonText, { color: COLORS.accent }]}>
-            Add birth name for full reading
+            Add birth name for identity layer
           </Text>
         </TouchableOpacity>
       )}
@@ -334,6 +404,11 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
           Explore this pattern with Mirror
         </Text>
       </TouchableOpacity>
+
+      {/* Positioning Footer */}
+      <Text style={[styles.footer, { color: theme.textTertiary }]}>
+        A lens for noticing patterns, not a statement of identity. Use it or leave it.
+      </Text>
 
       {/* Name Modal */}
       <Modal
@@ -435,6 +510,22 @@ const styles = StyleSheet.create({
   retryText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+
+  // System Banner
+  systemBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+  },
+  systemBannerText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 18,
   },
 
   // Core Numbers Strip
@@ -612,6 +703,46 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  // Costs Card
+  costsCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 14,
+    gap: 14,
+  },
+  costItem: {
+    gap: 4,
+  },
+  costLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  costText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+
+  // Balance Section
+  balanceSection: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderLeftWidth: 4,
+    padding: 14,
+    marginBottom: 20,
+  },
+  balanceLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  balanceText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: '500',
+  },
+
   // Reflection
   reflectionSection: {
     borderRadius: 12,
@@ -655,11 +786,19 @@ const styles = StyleSheet.create({
     gap: 8,
     borderRadius: 12,
     paddingVertical: 14,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   askMirrorText: {
     fontSize: 15,
     fontWeight: '600',
+  },
+
+  // Footer
+  footer: {
+    fontSize: 12,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginBottom: 16,
   },
 
   // Modal
