@@ -798,90 +798,115 @@ RECURRENCE_CONTEXTS = {
 
 
 # =============================================================================
-# MICRO-REFERENCE HOME MESSAGES (Final layer - embedded memory hooks)
+# DECISION SIGNAL HOME MESSAGES (Final layer - with HOLD/MOVE/CLARIFY signals)
 # =============================================================================
+
+# Decision Signal Types
+class DecisionSignal:
+    HOLD = "hold"      # This isn't ready yet
+    MOVE = "move"      # You already know — act
+    CLARIFY = "clarify"  # Name the real issue first
 
 HOME_MESSAGES = {
     HomeSituation.FORCING_PREMATURE: {
-        # WITH MICRO-REFERENCE HOOKS
+        # DECISION SIGNAL: HOLD
         "felt_opening": "You get close to saying yes to this — the one you've been going back and forth on — then something in you pulls back.",
         "felt_body": "You thought you were ready, especially after how it felt yesterday. But there's a part that knows you're not.\n\nThe urgency is real. But it's not clarity — it's pressure. The push is there, but the ground still isn't solid.",
-        "felt_stakes": "If you sign off on this now — the one that still isn't sitting right — you'll be cleaning it up later. Probably at a worse time.",
-        "felt_move": "Don't commit yet. Say what's actually not resolved.",
+        "felt_stakes": "If you sign off on this now, you'll be back here within days — just messier. Today is not the day to close this.",
+        "felt_move": "Don't commit yet. Give it 24 hours and see if it still holds.",
         "cta": "What exactly would change if you waited one more day?",
         "scene_type": SceneType.ACTION,
+        "decision_signal": DecisionSignal.HOLD,
     },
     HomeSituation.WAITING_WITHOUT_CLARITY: {
+        # DECISION SIGNAL: HOLD
         "felt_opening": "You want to decide on this — the one you keep coming back to — but the answer still isn't landing.",
         "felt_body": "You've thought it through. Multiple times. Especially recently. But something won't click.\n\nThis isn't lack of effort — it's timing not lining up. The clarity you need isn't here yet. You're just tired of sitting with it.",
-        "felt_stakes": "Deciding now — just to end the back and forth — won't give you resolution. It'll give you relief, and then you'll have to revisit it.",
-        "felt_move": "Don't decide yet. Hold it one more day. Let it settle before you lock anything in.",
+        "felt_stakes": "Deciding now — just to end the back and forth — won't give you resolution. It'll give you relief for a day, then you'll be back here.",
+        "felt_move": "This needs another pass. Hold it one more day. Let it settle before you lock anything in.",
         "cta": "What are you pretending is already clear?",
         "scene_type": SceneType.DECISION,
+        "decision_signal": DecisionSignal.HOLD,
     },
     HomeSituation.BLOCKED_BY_OTHERS: {
+        # DECISION SIGNAL: MOVE (on what's yours)
         "felt_opening": "You're ready to move on this — you've been ready — but you're waiting on them.",
         "felt_body": "There's someone else in this. The one you've been waiting on. And they still haven't done what you need them to do.\n\nThe frustration is real. But the wait isn't in your hands. You're spending energy on something you can't control.",
         "felt_stakes": "Pushing them again won't make them move faster. It'll just add friction you'll have to manage later.",
-        "felt_move": "Don't wait on them. Do the part that's actually yours right now.",
+        "felt_move": "You already know what you can do without them. Do that part now — it's ready.",
         "cta": "What can you send, finish, or close without them?",
         "scene_type": SceneType.RELATIONSHIP,
+        "decision_signal": DecisionSignal.MOVE,
     },
     HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
+        # DECISION SIGNAL: CLARIFY
         "felt_opening": "You already know what this is — the thing you didn't want to name. You just haven't said it plainly yet.",
         "felt_body": "There's a truth sitting under the surface. You've seen it. Maybe even recently. You're just not ready to deal with what naming it would mean.\n\nSo you keep looking for another explanation. But the knowing is already there — it's just waiting for you to say it.",
         "felt_stakes": "The longer you avoid naming it — the one you've been circling — the heavier it gets. What you're protecting yourself from is smaller than what the avoidance is creating.",
-        "felt_move": "Say it to yourself. Out loud. Privately. That's the first move.",
+        "felt_move": "Name the real issue before doing anything else. Say it to yourself. Out loud. That's the first move.",
         "cta": "What would you have to admit if you stopped circling?",
         "scene_type": SceneType.INTERNAL,
+        "decision_signal": DecisionSignal.CLARIFY,
     },
     HomeSituation.PUSHING_AGAINST_RESISTANCE: {
+        # DECISION SIGNAL: HOLD (stop pushing)
         "felt_opening": "You keep trying to close this — the one that won't move — but it still won't close.",
         "felt_body": "The effort is real. You've been at this. But so is the resistance. And the harder you push, the more it pushes back.\n\nThis isn't lack of effort — it's force meeting friction. Something in the situation isn't ready, even if you are.",
         "felt_stakes": "More force on this one — the one you've been pushing — will drain you, not break through. You'll burn out before it moves.",
-        "felt_move": "Stop pushing this one. Ask: where IS there movement right now? Go there instead.",
+        "felt_move": "This isn't ready yet. Stop pushing this one today. Ask: where IS there movement right now? Go there instead.",
         "cta": "What would happen if you stopped forcing this today?",
         "scene_type": SceneType.ACTION,
+        "decision_signal": DecisionSignal.HOLD,
     },
     HomeSituation.TORN_BETWEEN_OPTIONS: {
+        # DECISION SIGNAL: CLARIFY (name both pulls)
         "felt_opening": "You're about to choose one — the one you almost chose yesterday — then you hesitate. Then lean toward the other.",
         "felt_body": "Both options feel real. That's why you can't pick.\n\nThis isn't indecision — it's two actual things pulling you in different directions. Choosing one means releasing the other. And you're not ready to let go of either yet.",
-        "felt_stakes": "Forcing a choice right now — just to end the back and forth — won't resolve it. You'll just pick one and regret not picking the other.",
-        "felt_move": "Don't choose yet. Name both pulls out loud. Let them both be real for today.",
+        "felt_stakes": "Forcing a choice right now — just to end the back and forth — won't resolve it. You'll pick one and be back questioning it within days.",
+        "felt_move": "Say what's actually missing first. Name both pulls out loud. Let them both be real for today — then see what shifts.",
         "cta": "What are you afraid you'll lose if you choose?",
         "scene_type": SceneType.DECISION,
+        "decision_signal": DecisionSignal.CLARIFY,
     },
     HomeSituation.HOLDING_BACK_EXPRESSION: {
+        # DECISION SIGNAL: CLARIFY (then decide)
         "felt_opening": "There's something you want to say — the thing you didn't say last time — but you keep stopping yourself.",
         "felt_body": "You've drafted it. Maybe deleted it. Rehearsed it in your head, especially recently. But something keeps it from landing.\n\nPart of you wants to just send it and be done. But another part knows it might shift things — and you're not ready for that shift.",
         "felt_stakes": "What's unsaid doesn't go away. The message you didn't send. The thing you held back. It builds. Into resentment. Or distance. Or a bigger explosion later.",
-        "felt_move": "Write it out. Full version. Don't send it yet. Just get it out of your head.",
+        "felt_move": "Say what's actually missing first. Write it out. Full version. Don't send it yet — just get clear on what you actually want to say.",
         "cta": "What exactly are you not willing to say?",
         "scene_type": SceneType.CONVERSATION,
+        "decision_signal": DecisionSignal.CLARIFY,
     },
     HomeSituation.DIRECTION_UNCLEAR: {
+        # DECISION SIGNAL: HOLD (don't force)
         "felt_opening": "You know something needs to change — the thing that's been sitting with you — but you can't see what to do next.",
         "felt_body": "The restlessness is real. You've felt it recently. But the path isn't clear.\n\nYou're feeling urgency, not readiness. The pull to move is there, but the direction hasn't arrived yet. Picking randomly won't help.",
         "felt_stakes": "Moving without direction still costs energy. Wrong paths — even the ones that feel urgent — take time to walk back.",
-        "felt_move": "Don't force a direction. Take the smallest step you can actually see. The next one appears after.",
+        "felt_move": "This isn't ready yet. Don't force a direction today. Take the smallest step you can actually see. The next one appears after.",
         "cta": "What's the ONE thing you could do today without needing to know what comes after?",
         "scene_type": SceneType.INTERNAL,
+        "decision_signal": DecisionSignal.HOLD,
     },
     HomeSituation.PRESSURE_WITHOUT_READINESS: {
+        # DECISION SIGNAL: HOLD
         "felt_opening": "You feel pressure to decide on this — the one they're waiting on — but you're not actually ready.",
         "felt_body": "Something is pressing you to move. A deadline. An expectation. Someone waiting for your answer.\n\nBut you're feeling urgency, not clarity. The pressure is external. The readiness isn't there yet.",
-        "felt_stakes": "Deciding under pressure — just because they're waiting — won't give you peace. It'll give you something you have to undo later.",
-        "felt_move": "Don't decide yet. Separate the pressure from the decision. Ask: whose deadline is this really?",
+        "felt_stakes": "Deciding under pressure — just because they're waiting — won't give you peace. It'll give you something you have to undo within the week.",
+        "felt_move": "Don't decide yet. Give it a day. Separate the pressure from the decision. Ask: whose deadline is this really?",
         "cta": "What would you decide if no one was waiting on you?",
         "scene_type": SceneType.DECISION,
+        "decision_signal": DecisionSignal.HOLD,
     },
     HomeSituation.STANDING_AT_THRESHOLD: {
+        # DECISION SIGNAL: CLARIFY (then move)
         "felt_opening": "You're right at the edge of saying yes — to the one you've been considering — but you haven't done it.",
         "felt_body": "The door is open. You've looked at what's on the other side, maybe more than once recently. But something is keeping you here.\n\nPart of you is ready to go. But another part is still holding onto what you'd be leaving behind.",
         "felt_stakes": "Hovering at the edge — on this one, the one you almost committed to — drains more than crossing or staying. The in-between costs the most.",
-        "felt_move": "Name what you'd be leaving. Say it out loud. Then decide if you're ready to let it go.",
+        "felt_move": "Name the real issue before acting. Say what you'd be leaving out loud. Then decide — today or tomorrow — if you're ready to let it go.",
         "cta": "What exactly are you not ready to release?",
         "scene_type": SceneType.ACTION,
+        "decision_signal": DecisionSignal.CLARIFY,
     },
 }
 
@@ -1195,6 +1220,9 @@ def generate_home_message(
     # Get scene type
     scene_type = SITUATION_SCENE_TYPE.get(situation, SceneType.INTERNAL)
     
+    # Get decision signal
+    decision_signal = message.get("decision_signal", DecisionSignal.HOLD)
+    
     # =====================================================
     # BUILD FELT EXPERIENCE MESSAGE (Natural Flow)
     # =====================================================
@@ -1243,6 +1271,9 @@ def generate_home_message(
         "full_message": full_message,
         "cta": cta,
         
+        # DECISION SIGNAL
+        "decision_signal": decision_signal,
+        
         # Individual parts (for flexible rendering)
         "felt_opening": felt_opening,
         "felt_body": felt_body,
@@ -1286,12 +1317,21 @@ def generate_home_message(
 
 
 # =============================================================================
-# FORMATTED HOME OUTPUT (Felt Experience)
+# FORMATTED HOME OUTPUT (Felt Experience with Decision Signal)
 # =============================================================================
 
 def format_home_for_display(home: Dict[str, Any]) -> str:
-    """Format Home message as one continuous felt experience."""
+    """Format Home message as one continuous felt experience with decision signal."""
     memory_indicator = "📍 MEMORY-BOUND" if home.get("memory_anchored") else "📎 SIGNAL-BASED"
+    
+    # Decision signal indicator
+    signal = home.get("decision_signal", "hold")
+    signal_icons = {
+        "hold": "⏸️ HOLD",
+        "move": "▶️ MOVE",
+        "clarify": "🔍 CLARIFY",
+    }
+    signal_display = signal_icons.get(signal, "⏸️ HOLD")
     
     lines = [
         home.get("full_message", ""),
@@ -1299,6 +1339,6 @@ def format_home_for_display(home: Dict[str, Any]) -> str:
         f"[{home.get('cta', '')}]",
         "",
         f"---",
-        f"{memory_indicator} | {home.get('situation', '')}",
+        f"{signal_display} | {memory_indicator} | {home.get('situation', '')}",
     ]
     return "\n".join(lines)

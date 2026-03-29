@@ -348,7 +348,7 @@ export default function Onboarding() {
               {/* Birth Time - Separate HH:MM with AM/PM */}
               {/* Task 45: Fixed native input - removed Pressable wrappers that were blocking touches */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Birth Time (optional)</Text>
+                <Text style={styles.label}>Birth Time</Text>
                 <View style={styles.timeRow}>
                   {/* Hour input - no wrapper, direct TextInput for reliable native focus */}
                   <View style={styles.timeInputContainer}>
