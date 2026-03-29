@@ -196,6 +196,20 @@ class LiveSignalProfile:
     pattern_recurrence_count: int = 0          # How many times this pattern appeared
     days_since_pattern: int = 999              # Days since last similar pattern
     memory_strength: float = 0.0               # 0-1, how strong the memory anchor is
+    
+    # ======================
+    # LIVE ISSUE SHAPE (from journal/reflections)
+    # ======================
+    live_issue_summary: Optional[str] = None   # Short summary of what user is dealing with
+    issue_action_verb: Optional[str] = None    # What they're DOING (pushing, avoiding, circling)
+    issue_object: Optional[str] = None         # What it's about (decision, conversation, person)
+    issue_state: Optional[str] = None          # Current state (stuck, almost, revisiting)
+    
+    # ======================
+    # ANCHOR LINE (Pre-computed)
+    # ======================
+    anchor_line: Optional[str] = None          # "This keeps coming back", "What you've been circling"
+    recognition_line: Optional[str] = None     # What they're doing right now
 
 
 def extract_live_signals(
@@ -392,10 +406,37 @@ def extract_live_signals(
                 profile.action_pressure += 0.1
     
     # =================================================================
-    # F. JOURNAL ENTRIES (Theme Binding + Memory Anchoring)
+    # F. JOURNAL ENTRIES (Theme Binding + Live Issue Shape Extraction)
     # =================================================================
     if journal_entries:
         profile.has_journal_memory = True
+        
+        # Action verbs to detect what user is DOING
+        action_verbs = {
+            "pushing": ["push", "force", "trying to make", "want it to"],
+            "avoiding": ["avoid", "not facing", "ignoring", "pretending"],
+            "circling": ["keep thinking", "going back", "can't stop", "revisiting", "back and forth"],
+            "waiting": ["waiting", "stuck", "blocked", "on hold"],
+            "holding": ["holding back", "not saying", "keeping", "haven't told"],
+        }
+        
+        # Objects to detect what it's ABOUT
+        issue_objects = {
+            "decision": ["decide", "decision", "choose", "choice", "option"],
+            "conversation": ["tell", "say", "talk", "speak", "conversation"],
+            "person": ["they", "them", "he", "she", "partner", "boss", "friend"],
+            "work": ["work", "job", "career", "project", "business"],
+            "money": ["money", "pay", "cost", "invest", "spend"],
+            "change": ["change", "move", "leave", "start", "end"],
+        }
+        
+        # States to detect current position
+        issue_states = {
+            "stuck": ["stuck", "blocked", "can't move", "nowhere"],
+            "almost": ["almost", "about to", "close to", "ready to"],
+            "revisiting": ["keep coming back", "again", "still", "same"],
+            "avoiding": ["avoiding", "not ready", "scared", "afraid"],
+        }
         
         themes = {
             "waiting": 0, "stuck": 0, "blocked": 0,
@@ -409,7 +450,9 @@ def extract_live_signals(
         }
         
         recent_text = ""
-        anchor_phrases = []  # Collect potential anchor phrases
+        detected_verbs = []
+        detected_objects = []
+        detected_states = []
         
         for entry in journal_entries[:5]:  # Last 5 entries
             content = entry.get("content", "").lower()
@@ -419,18 +462,106 @@ def extract_live_signals(
                 if theme in content:
                     themes[theme] += 1
             
-            # Extract anchor phrases (things user mentioned recently)
-            if "keep" in content and ("thinking" in content or "going back" in content):
-                anchor_phrases.append("what keeps coming back to you")
-            if "can't" in content and ("decide" in content or "stop" in content):
-                anchor_phrases.append("what you can't let go of")
-            if "need to" in content and ("tell" in content or "say" in content):
-                anchor_phrases.append("what you need to say")
-            if "should" in content and ("have" in content or "do" in content):
-                anchor_phrases.append("what you've been putting off")
+            # Detect action verbs
+            for verb_name, verb_patterns in action_verbs.items():
+                for pattern in verb_patterns:
+                    if pattern in content:
+                        detected_verbs.append(verb_name)
+                        break
+            
+            # Detect objects
+            for obj_name, obj_patterns in issue_objects.items():
+                for pattern in obj_patterns:
+                    if pattern in content:
+                        detected_objects.append(obj_name)
+                        break
+            
+            # Detect states
+            for state_name, state_patterns in issue_states.items():
+                for pattern in state_patterns:
+                    if pattern in content:
+                        detected_states.append(state_name)
+                        break
         
-        # Set journal anchor phrase
-        if anchor_phrases:
+        # Build live issue shape
+        if detected_verbs:
+            # Most common verb
+            verb_counts = {}
+            for v in detected_verbs:
+                verb_counts[v] = verb_counts.get(v, 0) + 1
+            profile.issue_action_verb = max(verb_counts, key=verb_counts.get)
+        
+        if detected_objects:
+            obj_counts = {}
+            for o in detected_objects:
+                obj_counts[o] = obj_counts.get(o, 0) + 1
+            profile.issue_object = max(obj_counts, key=obj_counts.get)
+        
+        if detected_states:
+            state_counts = {}
+            for s in detected_states:
+                state_counts[s] = state_counts.get(s, 0) + 1
+            profile.issue_state = max(state_counts, key=state_counts.get)
+        
+        # Build live issue summary
+        if profile.issue_action_verb and profile.issue_object:
+            verb_phrases = {
+                "pushing": "trying to push through",
+                "avoiding": "avoiding facing",
+                "circling": "going back and forth on",
+                "waiting": "stuck waiting on",
+                "holding": "holding back from",
+            }
+            obj_phrases = {
+                "decision": "a decision that won't land",
+                "conversation": "something that needs to be said",
+                "person": "something with someone",
+                "work": "a work situation",
+                "money": "something involving money",
+                "change": "a change that keeps getting delayed",
+            }
+            verb_p = verb_phrases.get(profile.issue_action_verb, profile.issue_action_verb)
+            obj_p = obj_phrases.get(profile.issue_object, profile.issue_object)
+            profile.live_issue_summary = f"{verb_p} {obj_p}"
+            profile.memory_strength += 0.5
+        
+        # Build anchor line based on detected patterns
+        if profile.issue_state == "revisiting" or themes["back and forth"] >= 1:
+            profile.anchor_line = "This keeps coming back."
+        elif profile.issue_state == "stuck":
+            profile.anchor_line = "This still isn't moving."
+        elif profile.issue_state == "almost":
+            profile.anchor_line = "You're almost there—but not quite."
+        elif profile.issue_state == "avoiding":
+            profile.anchor_line = "You already know what this is."
+        elif profile.has_pattern_recurrence and profile.pattern_recurrence_count >= 3:
+            profile.anchor_line = "This keeps coming back for a reason."
+        elif profile.has_journal_memory:
+            profile.anchor_line = "There's something you've been circling."
+        
+        # Build recognition line based on action verb
+        recognition_map = {
+            "pushing": "You keep trying to move it forward.",
+            "avoiding": "You keep finding reasons not to face it.",
+            "circling": "You keep revisiting it without landing.",
+            "waiting": "You're waiting for something that isn't coming.",
+            "holding": "You're holding something back.",
+        }
+        if profile.issue_action_verb:
+            profile.recognition_line = recognition_map.get(profile.issue_action_verb)
+        
+        # Legacy anchor phrase extraction
+        anchor_phrases = []
+        if "keep" in recent_text and ("thinking" in recent_text or "going back" in recent_text):
+            anchor_phrases.append("what keeps coming back to you")
+        if "can't" in recent_text and ("decide" in recent_text or "stop" in recent_text):
+            anchor_phrases.append("what you can't let go of")
+        if "need to" in recent_text and ("tell" in recent_text or "say" in recent_text):
+            anchor_phrases.append("what you need to say")
+        if "should" in recent_text and ("have" in recent_text or "do" in recent_text):
+            anchor_phrases.append("what you've been putting off")
+        
+        if anchor_phrases and not profile.journal_anchor_phrase:
             profile.journal_anchor_phrase = anchor_phrases[0]
             profile.memory_strength += 0.4
         
@@ -667,95 +798,111 @@ RECURRENCE_CONTEXTS = {
 
 
 # =============================================================================
-# HIGH-STAKES HOME MESSAGES (Memory-anchored, upgraded CTAs)
+# HIGH-STAKES HOME MESSAGES (New Structure: Anchor → Recognition → Tension → Stakes → Wise Move → CTA)
 # =============================================================================
 
 HOME_MESSAGES = {
     HomeSituation.FORCING_PREMATURE: {
-        "opening_hit": "You're trying to move this forward before you're ready to deal with what comes next.",
-        "tension": "The urge is real—but acting now is the mistake.",
-        "tension_expanded": "Part of you wants to close this today.\nBut another part knows the ground isn't ready.",
-        "stakes": "If you push this through now, the mess will outlast the relief. You're not avoiding consequences—you're deferring them.",
-        "wise_move": "Don't move until the signal feels settled—not just urgent.",
+        # ANCHOR (set dynamically, but default provided)
+        "anchor_default": "There's something you've been trying to close.",
+        # RECOGNITION (what they're doing right now)
+        "recognition": "You keep pushing at it—trying to move it forward before it's ready.",
+        # TENSION
+        "tension": "The urge is real. But the ground isn't solid yet.",
+        "tension_expanded": "Part of you wants this done.\nBut another part knows you're skipping the part that would actually make movement possible.",
+        # STAKES
+        "stakes": "If you push this through now, the mess will outlast the relief. You're not avoiding consequences—you're deferring them to a worse time.",
+        # WISE MOVE
+        "wise_move": "Stop pushing. Ask what you're trying to skip.",
+        # CTA
         "cta": "What are you trying to skip?",
         "scene_type": SceneType.ACTION,
     },
     HomeSituation.WAITING_WITHOUT_CLARITY: {
-        "opening_hit": "You want certainty that hasn't arrived—and you're tempted to manufacture it.",
+        "anchor_default": "There's something that still isn't landing.",
+        "recognition": "You keep thinking it through—but the clarity isn't coming.",
         "tension": "The answer isn't here yet. Deciding early won't change that.",
-        "tension_expanded": "Part of you wants to know now.\nBut another part knows the clarity hasn't landed.",
-        "stakes": "Deciding just to end the discomfort will lock in a wrong answer. You'll have to revisit this.",
+        "tension_expanded": "Part of you wants to know now.\nBut another part knows the clarity hasn't arrived—you're just tired of waiting.",
+        "stakes": "Deciding just to end the discomfort will lock in a wrong answer. You'll have to come back to this.",
         "wise_move": "Hold the question one more day. Let it settle before you commit.",
         "cta": "What are you pretending is clear?",
         "scene_type": SceneType.DECISION,
     },
     HomeSituation.BLOCKED_BY_OTHERS: {
-        "opening_hit": "You're ready—but this depends on someone who isn't moving.",
+        "anchor_default": "There's something you can't move on your own.",
+        "recognition": "You're waiting for them to do something—and they're not moving.",
         "tension": "The delay isn't yours. But you're carrying the frustration like it is.",
-        "tension_expanded": "Part of you is ready to go.\nBut another part is waiting on something you can't control.",
-        "stakes": "Pushing them won't make them move faster. It will only create friction you'll have to manage.",
+        "tension_expanded": "Part of you is ready.\nBut another part is waiting on something you can't control—and resenting the wait.",
+        "stakes": "Pushing them won't make them move faster. It will create friction you'll have to manage on top of everything else.",
         "wise_move": "Name what's actually in your hands. Do that instead.",
         "cta": "What are you waiting for them to do?",
         "scene_type": SceneType.RELATIONSHIP,
     },
     HomeSituation.AVOIDING_WHAT_YOU_KNOW: {
-        "opening_hit": "You already know what's true here. You're just not ready to say it out loud.",
+        "anchor_default": "You already know what this is about.",
+        "recognition": "You keep circling it—but you won't name it.",
         "tension": "This isn't confusion. It's avoidance—and it's costing you clarity.",
-        "tension_expanded": "Part of you sees the truth clearly.\nBut another part is protecting you from what comes next.",
-        "stakes": "The longer you avoid naming this, the heavier it gets. Avoidance compounds.",
-        "wise_move": "Name it to yourself. Privately. That's the first move.",
+        "tension_expanded": "Part of you sees the truth clearly.\nBut another part keeps finding reasons not to face it.",
+        "stakes": "The longer you avoid naming this, the heavier it gets. Avoidance compounds. What you're protecting yourself from is smaller than what the avoidance is creating.",
+        "wise_move": "Name it to yourself. Privately. Just that.",
         "cta": "What are you avoiding admitting?",
         "scene_type": SceneType.INTERNAL,
     },
     HomeSituation.PUSHING_AGAINST_RESISTANCE: {
-        "opening_hit": "You're pushing something that's not moving—and pushing harder isn't working.",
+        "anchor_default": "Something isn't moving no matter how hard you push.",
+        "recognition": "You keep pushing—but the harder you push, the less it moves.",
         "tension": "The effort is real. The resistance is real. They're feeding each other.",
-        "tension_expanded": "Part of you wants to break through.\nBut another part feels the friction burning energy.",
+        "tension_expanded": "Part of you believes if you just push harder, it'll break through.\nBut another part feels the friction burning energy without creating movement.",
         "stakes": "More effort in this direction will exhaust you without creating progress. You'll burn out, not break through.",
-        "wise_move": "Pause. Ask: where IS there flow right now? Go there instead.",
+        "wise_move": "Stop pushing. Ask: where IS there flow right now?",
         "cta": "What would happen if you stopped pushing?",
         "scene_type": SceneType.ACTION,
     },
     HomeSituation.TORN_BETWEEN_OPTIONS: {
-        "opening_hit": "You're torn between two real things—and forcing a choice will betray one of them.",
-        "tension": "This isn't indecision. It's conflict between two genuine pulls.",
-        "tension_expanded": "Part of you wants one path.\nBut another part wants something that contradicts it.",
-        "stakes": "Choosing now to escape the discomfort will abandon something that matters. You'll circle back to this.",
-        "wise_move": "Name both options honestly. Let them both be real for now.",
+        "anchor_default": "You're pulled in two directions.",
+        "recognition": "You keep going back and forth—but neither side is winning.",
+        "tension": "This isn't indecision. It's two real things competing for the same space.",
+        "tension_expanded": "Part of you wants one thing.\nBut another part wants something that directly contradicts it. Both feel true.",
+        "stakes": "Choosing now just to escape the discomfort will abandon something that matters. You'll circle back to this—probably at a worse time.",
+        "wise_move": "Name both options honestly. Let them both be real for now. The answer isn't to choose faster.",
         "cta": "What are you afraid of losing?",
         "scene_type": SceneType.DECISION,
     },
     HomeSituation.HOLDING_BACK_EXPRESSION: {
-        "opening_hit": "There's something you're not saying—and holding it is costing you more than saying it would.",
+        "anchor_default": "There's something you're not saying.",
+        "recognition": "You keep editing it in your head—but it doesn't come out.",
         "tension": "Part of you wants to speak. Part of you won't.",
-        "tension_expanded": "Something wants to come out.\nBut something else is keeping it locked in.",
+        "tension_expanded": "Something wants to come out.\nBut something else is keeping it locked in—maybe fear, maybe timing, maybe not knowing how.",
         "stakes": "What's unsaid doesn't disappear. It builds into resentment, distance, or an explosion. This is accumulating.",
         "wise_move": "Say it somewhere safe first. Write it. Voice memo. Then decide if it needs to land.",
         "cta": "What are you not saying?",
         "scene_type": SceneType.CONVERSATION,
     },
     HomeSituation.DIRECTION_UNCLEAR: {
-        "opening_hit": "You know something needs to move—but you can't see where yet.",
+        "anchor_default": "Something needs to move—but you can't see where.",
+        "recognition": "You keep looking for the path—but it won't appear.",
         "tension": "Direction exists. You just can't see it from here.",
-        "tension_expanded": "Part of you knows change is coming.\nBut another part can't see the path.",
+        "tension_expanded": "Part of you knows change is coming.\nBut another part can't see the path—and that's creating paralysis.",
         "stakes": "Forcing a direction just to have one will cost you time. Wrong paths still take energy to walk back.",
         "wise_move": "Take the smallest visible step. The next one appears after.",
         "cta": "What do you already know but won't admit?",
         "scene_type": SceneType.INTERNAL,
     },
     HomeSituation.PRESSURE_WITHOUT_READINESS: {
-        "opening_hit": "You feel pressure to decide—but your actual clarity isn't there yet.",
+        "anchor_default": "You feel pressure to decide—but you're not ready.",
+        "recognition": "You keep trying to make yourself ready—but it's not working.",
         "tension": "Urgency and readiness are out of sync. Only one is real.",
-        "tension_expanded": "Part of you feels the clock ticking.\nBut another part knows you're not actually ready.",
+        "tension_expanded": "Part of you feels the clock ticking.\nBut another part knows you're not actually ready—and rushing won't change that.",
         "stakes": "Deciding under pressure without clarity will give you relief now and regret later. You'll revisit this.",
-        "wise_move": "Separate the pressure from the decision. Ask: whose deadline is this?",
-        "cta": "Whose pressure is this really?",
+        "wise_move": "Separate the pressure from the decision. Ask: whose deadline is this really?",
+        "cta": "Whose pressure is this?",
         "scene_type": SceneType.DECISION,
     },
     HomeSituation.STANDING_AT_THRESHOLD: {
-        "opening_hit": "You're standing at a line—but you haven't crossed it. Something is keeping you on this side.",
+        "anchor_default": "You're standing at a line you haven't crossed.",
+        "recognition": "You keep looking at the other side—but you haven't stepped through.",
         "tension": "The door is open. The step hasn't happened.",
-        "tension_expanded": "Part of you is ready to cross.\nBut another part is still holding onto what's behind.",
+        "tension_expanded": "Part of you is ready to cross.\nBut another part is still holding onto what's behind—and that's keeping you frozen.",
         "stakes": "Hovering at the threshold drains more than crossing or staying. The in-between costs the most.",
         "wise_move": "Name what you'd be leaving. Then decide if you're ready to leave it.",
         "cta": "What are you not ready to let go of?",
@@ -1044,7 +1191,9 @@ def generate_home_message(
     exposure_state: str = None,
 ) -> Dict[str, Any]:
     """
-    Generate truth-based Home message with Situation Targeting.
+    Generate truth-based Home message with Memory Anchoring.
+    
+    Structure: ANCHOR → RECOGNITION → TENSION → STAKES → WISE MOVE → CTA
     
     NO artificial variance.
     Based only on real signals from transits, HD, BaZi, journals, history.
@@ -1074,24 +1223,63 @@ def generate_home_message(
     # Get targeted context (ONE specific moment)
     targeted_context = get_targeted_context(situation, profile)
     
-    # Build full context sentence
-    full_context = f"This is most likely showing up in:\n• {targeted_context}"
+    # =====================================================
+    # BUILD HOME MESSAGE WITH NEW STRUCTURE
+    # =====================================================
     
-    # Get tension template
-    tension_template = TENSION_TEMPLATES.get(profile.strongest_tension, 
-                                             TENSION_TEMPLATES[CoreTension.CERTAINTY_VS_AMBIGUITY])
+    # 1. ANCHOR - Name the familiar/repeated/recently active issue
+    if profile.anchor_line:
+        anchor = profile.anchor_line
+    elif profile.has_pattern_recurrence and profile.pattern_recurrence_count >= 3:
+        anchor = "This keeps coming back."
+    elif profile.has_journal_memory and profile.live_issue_summary:
+        anchor = f"There's something you've been {profile.live_issue_summary.split()[0]}."
+    elif profile.has_journal_memory:
+        anchor = "There's something you've been circling."
+    else:
+        anchor = message.get("anchor_default", "Something is in motion.")
+    
+    # 2. RECOGNITION - What the user is doing right now
+    if profile.recognition_line:
+        recognition = profile.recognition_line
+    else:
+        recognition = message.get("recognition", "")
+    
+    # 3. TARGETED CONTEXT - What it's about
+    if profile.live_issue_summary:
+        context = f"This is most likely about {profile.live_issue_summary}—the one that still won't land."
+    elif profile.journal_anchor_phrase:
+        context = f"This is most likely about {profile.journal_anchor_phrase}."
+    elif targeted_context:
+        context = f"This is most likely about {targeted_context}."
+    else:
+        context = ""
+    
+    # 4. TENSION
+    tension = message["tension_expanded"]
+    tension_short = message["tension"]
+    
+    # 5. STAKES
+    stakes = message["stakes"]
+    
+    # 6. WISE MOVE
+    wise_move = message["wise_move"]
+    
+    # 7. CTA
+    cta = message["cta"]
     
     return {
-        # HOME STRUCTURE
-        "opening_hit": message["opening_hit"],
-        "tension": message["tension_expanded"],
-        "tension_short": message["tension"],
-        "context": full_context,
-        "stakes": message["stakes"],
-        "wise_move": message["wise_move"],
-        "cta": message["cta"],
+        # NEW HOME STRUCTURE
+        "anchor": anchor,
+        "recognition": recognition,
+        "context": context,
+        "tension": tension,
+        "tension_short": tension_short,
+        "stakes": stakes,
+        "wise_move": wise_move,
+        "cta": cta,
         
-        # Situation Targeting
+        # Scene & Targeting
         "scene_type": scene_type.value,
         "targeted_context": targeted_context,
         
@@ -1099,6 +1287,7 @@ def generate_home_message(
         "memory_anchored": profile.has_journal_memory or profile.has_pattern_recurrence,
         "memory_strength": round(profile.memory_strength, 2),
         "recurrence_count": profile.pattern_recurrence_count,
+        "live_issue_summary": profile.live_issue_summary,
         
         # Metadata
         "situation": situation.value,
@@ -1123,6 +1312,11 @@ def generate_home_message(
             "has_pattern_recurrence": profile.has_pattern_recurrence,
             "journal_anchor_phrase": profile.journal_anchor_phrase,
             "days_since_pattern": profile.days_since_pattern,
+            "issue_action_verb": profile.issue_action_verb,
+            "issue_object": profile.issue_object,
+            "issue_state": profile.issue_state,
+            "anchor_line": profile.anchor_line,
+            "recognition_line": profile.recognition_line,
         },
     }
 
@@ -1132,23 +1326,26 @@ def generate_home_message(
 # =============================================================================
 
 def format_home_for_display(home: Dict[str, Any]) -> str:
-    """Format Home message for display (testing/preview)."""
+    """Format Home message for display (testing/preview) with new structure."""
     memory_indicator = "📍 MEMORY-ANCHORED" if home.get("memory_anchored") else "📎 SIGNAL-BASED"
     
     lines = [
-        home["opening_hit"],
+        f"ANCHOR: {home.get('anchor', '')}",
         "",
-        home["tension"],
+        f"RECOGNITION: {home.get('recognition', '')}",
         "",
-        home["context"],
+        f"CONTEXT: {home.get('context', '')}",
         "",
-        f"STAKES: {home['stakes']}",
+        f"TENSION:",
+        home.get("tension", ""),
         "",
-        f"ONE WISE MOVE: {home['wise_move']}",
+        f"STAKES: {home.get('stakes', '')}",
         "",
-        f"[{home['cta']}]",
+        f"WISE MOVE: {home.get('wise_move', '')}",
+        "",
+        f"CTA: [{home.get('cta', '')}]",
         "",
         f"---",
-        f"{memory_indicator} | Scene: {home.get('scene_type', 'internal')}",
+        f"{memory_indicator} | Scene: {home.get('scene_type', 'internal')} | Situation: {home.get('situation', '')}",
     ]
     return "\n".join(lines)
