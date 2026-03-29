@@ -286,7 +286,7 @@ def generate_where_this_costs_you(
 
 
 # =============================================================================
-# ONE WAY TO BALANCE TODAY - Practical action
+# ONE WAY TO BALANCE TODAY - Situational specificity with micro-references
 # =============================================================================
 
 def generate_balance_today(
@@ -298,28 +298,205 @@ def generate_balance_today(
     
     Rules:
     - Specific and doable
-    - Directly addresses the pattern
+    - References real behavior patterns (the thing you've been circling)
     - Takes less than 10 minutes
     """
     
     balance_actions = {
-        1: "Before you act on the next thing, ask one person for their input — and wait for their answer.",
-        2: "Say 'I need a moment to think about that' instead of answering immediately.",
-        3: "Choose one idea and do one concrete step on it before talking about it.",
-        4: "Let one thing stay imperfect today. Notice what happens when you don't fix it.",
-        5: "Stay with one thing 10% longer than you want to. Notice what you learn.",
-        6: "Let someone struggle without offering to help. Notice how it feels.",
-        7: "Make one decision today using only how it feels, not what you know.",
-        8: "Do one thing today without tracking the result. Just do it.",
-        9: "Zoom into one detail instead of the bigger picture. Give it your full attention.",
-        11: "Ground one of your insights by writing down three specific steps to make it real.",
-        22: "Take one small action instead of perfecting the plan for the bigger one.",
-        33: "Say no to one request today, even if you could say yes."
+        1: "Before you act on the thing you've been about to do — ask one person for input. Wait for their full answer before moving.",
+        2: "The next time someone asks you for something, say 'I need a moment' instead of answering. Even if you already know what you want to say.",
+        3: "The idea you've already talked about — do one concrete step on it before mentioning it again.",
+        4: "The thing you've been wanting to fix or reorganize — let it stay imperfect for the rest of the day. Notice what happens.",
+        5: "The thing you're ready to leave or move on from — stay with it 10% longer than feels comfortable. Notice what you learn.",
+        6: "Someone you've been wanting to help — don't. Let them struggle. Notice how it feels to not be the one fixing it.",
+        7: "The decision you've been researching — make it today using only how it feels. No more information gathering.",
+        8: "The thing you're tracking or measuring progress on — do it once today without tracking. Just do it.",
+        9: "The big picture you keep referencing — zoom into one specific detail instead. Give it your full attention for 10 minutes.",
+        11: "The insight you've been sitting on — write down three specific steps to make it real. No more vision until it has legs.",
+        22: "The bigger plan you've been perfecting — take one small action on it today. Imperfect is fine.",
+        33: "The next request that comes in — say no. Even if you could easily say yes. Even if they need you."
     }
     
     return balance_actions.get(life_path, 
-        "Notice the pattern running today. Pause before repeating it. Ask: is this serving me right now?"
+        "The pattern you've been running today — pause before repeating it. Ask: is this actually serving me right now?"
     )
+
+
+# =============================================================================
+# HOW THIS SHOWS UP TODAY - Time-aware, context-aware
+# =============================================================================
+
+def generate_today_bridge(life_path: int) -> List[str]:
+    """
+    Generate 2-3 specific ways this pattern shows up TODAY.
+    
+    Rules:
+    - Present tense, current moment
+    - Specific behavior, not general trait
+    - Feels like "this is what I'm doing right now"
+    """
+    
+    today_bridges = {
+        1: [
+            "You're already thinking about the next thing before finishing what's in front of you",
+            "You've dismissed feedback today without fully hearing it",
+            "You're about to move forward on something without checking if others are ready"
+        ],
+        2: [
+            "You've already said yes to something you meant to think about first",
+            "You're carrying someone else's emotional weight and calling it 'being supportive'",
+            "You're waiting for a signal from someone instead of checking your own knowing"
+        ],
+        3: [
+            "You've talked about an idea more than you've worked on it today",
+            "You're juggling multiple creative threads and none of them are moving",
+            "You shared something personal before you fully processed it"
+        ],
+        4: [
+            "You're fixing something that didn't need fixing",
+            "You've already spent time organizing or planning instead of doing",
+            "You're resisting a change because it doesn't fit your system"
+        ],
+        5: [
+            "You're already restless with something you just started",
+            "You're considering leaving or changing something that hasn't had time to work",
+            "You've mistaken boredom for a sign that you need to move on"
+        ],
+        6: [
+            "You've taken on responsibility for something that wasn't yours to carry",
+            "You're managing someone else's emotions instead of letting them feel it",
+            "You've avoided a difficult conversation by just handling it yourself"
+        ],
+        7: [
+            "You've researched past the point where it's useful today",
+            "You're holding back from acting because you don't have enough information",
+            "You've analyzed a feeling instead of just feeling it"
+        ],
+        8: [
+            "You've pushed through resistance that was trying to tell you something",
+            "You're tracking progress on something instead of just being in it",
+            "You've noticed a power dynamic that might not actually be there"
+        ],
+        9: [
+            "You've given advice when someone just wanted to be heard",
+            "You're mentally already past something that's still happening",
+            "You've detached from a detail that actually needed your attention"
+        ],
+        11: [
+            "You've seen something others haven't — and you're frustrated they can't see it too",
+            "You're living in a vision that doesn't have practical legs yet",
+            "You've overwhelmed yourself with possibilities instead of picking one"
+        ],
+        22: [
+            "You're planning something too big for the current moment",
+            "You've delayed starting because the plan isn't perfect",
+            "You're carrying a project that was never supposed to be yours alone"
+        ],
+        33: [
+            "You've given to someone who hasn't given back in a while",
+            "You're teaching or guiding before you've learned the lesson yourself",
+            "You've attracted a conversation or request that's draining you"
+        ]
+    }
+    
+    return today_bridges.get(life_path, [
+        "The pattern is running today — you just haven't noticed it yet",
+        "Something you're doing today is a repeat of what you did yesterday"
+    ])
+
+
+# =============================================================================
+# WHEN THIS GETS TRIGGERED - Context triggers
+# =============================================================================
+
+def generate_triggers(life_path: int) -> List[str]:
+    """
+    Generate 3-4 specific triggers that activate this pattern.
+    
+    Categories: pressure, urgency, social expectation, lack of processing time
+    """
+    
+    triggers = {
+        1: [
+            "When someone is moving slower than you want",
+            "When you feel blocked or dependent on others",
+            "When there's urgency and you see a clear path forward",
+            "When feedback feels like a delay tactic"
+        ],
+        2: [
+            "When someone asks you for an answer before you've had time to feel into it",
+            "When you sense emotional tension in the room",
+            "When someone you care about is struggling",
+            "When you're afraid saying no will damage the relationship"
+        ],
+        3: [
+            "When you have a new idea you're excited about",
+            "When you feel unheard or unseen",
+            "When there's social energy and an audience",
+            "When staying quiet feels like disappearing"
+        ],
+        4: [
+            "When something feels disorganized or unstable",
+            "When someone else's chaos touches your system",
+            "When change is introduced without structure",
+            "When you feel like things could fall apart"
+        ],
+        5: [
+            "When you've been in one place or project too long",
+            "When someone tries to pin you down or make you commit",
+            "When routine starts feeling like a cage",
+            "When excitement shows up somewhere new"
+        ],
+        6: [
+            "When someone you care about is in trouble",
+            "When harmony is at risk",
+            "When saying no would make you feel selfish",
+            "When it's easier to fix it than to have the conversation"
+        ],
+        7: [
+            "When you're asked to decide without enough information",
+            "When you feel emotionally exposed",
+            "When people expect you to engage before you've processed",
+            "When intuition shows up without logic to back it"
+        ],
+        8: [
+            "When power dynamics feel unclear or shifting",
+            "When you sense someone testing your authority",
+            "When there's competition or scarcity",
+            "When results aren't coming fast enough"
+        ],
+        9: [
+            "When details feel tedious or irrelevant",
+            "When someone is asking you to narrow your focus",
+            "When closure is being forced before you're ready",
+            "When you feel pressure to stay engaged when you're ready to move on"
+        ],
+        11: [
+            "When you see something others can't see yet",
+            "When you're asked to explain what you just 'know'",
+            "When the practical world feels too slow for your vision",
+            "When anxiety spikes without a clear cause"
+        ],
+        22: [
+            "When you see a system that could be built better",
+            "When you're handed a project that's bigger than expected",
+            "When perfection feels achievable if you just had more time",
+            "When others aren't meeting your standards"
+        ],
+        33: [
+            "When someone needs you",
+            "When you sense pain or struggle in another person",
+            "When saying no would feel like abandonment",
+            "When you believe your guidance could change an outcome"
+        ]
+    }
+    
+    return triggers.get(life_path, [
+        "When pressure shows up",
+        "When urgency is high",
+        "When social expectations kick in",
+        "When you don't have time to process"
+    ])
 
 
 # =============================================================================
@@ -682,6 +859,8 @@ async def compute_numerology_pattern(
             'missing_numbers': [int],
             'core_pattern': str,
             'how_this_shows_up': [str],
+            'how_this_shows_up_today': [str],  # NEW: Time-aware
+            'when_this_gets_triggered': [str],  # NEW: Context triggers
             'where_this_misfires': [str],
             'where_this_costs_you': {energy_cost, relationship_cost, trust_cost},
             'balance_today': str,
@@ -728,7 +907,13 @@ async def compute_numerology_pattern(
         life_path, expression, lo_shu['missing_numbers'], lo_shu['present_numbers']
     )
     
-    # NEW: Action-relevant sections
+    # NEW: Time-aware today bridge
+    how_shows_up_today = generate_today_bridge(life_path)
+    
+    # NEW: Context triggers
+    when_triggered = generate_triggers(life_path)
+    
+    # Action-relevant sections
     where_misfires = generate_where_this_misfires(
         life_path, lo_shu['missing_numbers'], lo_shu['present_numbers']
     )
@@ -777,7 +962,10 @@ async def compute_numerology_pattern(
         # Pattern content
         'core_pattern': core_pattern,
         'how_this_shows_up': how_shows_up,
-        # NEW: Action-relevant sections
+        # NEW: Time-aware sections
+        'how_this_shows_up_today': how_shows_up_today,
+        'when_this_gets_triggered': when_triggered,
+        # Action-relevant sections
         'where_this_misfires': where_misfires,
         'where_this_costs_you': where_costs,
         'balance_today': balance_today,

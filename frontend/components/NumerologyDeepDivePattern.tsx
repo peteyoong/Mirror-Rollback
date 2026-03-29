@@ -42,6 +42,8 @@ interface NumerologyPatternData {
   missing_numbers: number[];
   core_pattern: string;
   how_this_shows_up: string[];
+  how_this_shows_up_today: string[];
+  when_this_gets_triggered: string[];
   where_this_misfires: string[];
   where_this_costs_you: {
     energy_cost: string;
@@ -72,13 +74,21 @@ const COLORS = {
   lessEmphasisText: '#9CA3AF',
   tensionGold: '#D4A574',
   tensionBg: 'rgba(212, 165, 116, 0.08)',
-  // New action-relevant colors
+  // Action-relevant colors
   misfireRed: '#E57373',
   misfireBg: 'rgba(229, 115, 115, 0.08)',
   costOrange: '#FFB74D',
   costBg: 'rgba(255, 183, 77, 0.08)',
   balanceGreen: '#81C784',
   balanceBg: 'rgba(129, 199, 132, 0.08)',
+  // Time-aware colors
+  todayBlue: '#64B5F6',
+  todayBg: 'rgba(100, 181, 246, 0.08)',
+  triggerPurple: '#BA68C8',
+  triggerBg: 'rgba(186, 104, 200, 0.08)',
+  // Identity layer
+  identityGold: '#FFD54F',
+  identityBg: 'rgba(255, 213, 79, 0.08)',
 };
 
 // =============================================================================
@@ -251,25 +261,17 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
         </Text>
       </View>
 
-      {/* Core Numbers Strip */}
+      {/* ========== CORE PATTERN (Birth Date) ========== */}
+      <View style={[styles.layerHeader, { borderColor: COLORS.accent }]}>
+        <Text style={[styles.layerLabel, { color: COLORS.accent }]}>CORE PATTERN</Text>
+        <Text style={[styles.layerSubLabel, { color: theme.textTertiary }]}>from birth date</Text>
+      </View>
+
+      {/* Life Path Number */}
       <View style={[styles.coreNumbersStrip, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.coreNumberItem}>
           <Text style={[styles.coreNumberLabel, { color: theme.textTertiary }]}>Life Path</Text>
           <Text style={[styles.coreNumberValue, { color: theme.text }]}>{data.life_path}</Text>
-        </View>
-        <View style={[styles.coreNumberDivider, { backgroundColor: theme.border }]} />
-        <View style={styles.coreNumberItem}>
-          <Text style={[styles.coreNumberLabel, { color: theme.textTertiary }]}>Expression</Text>
-          <Text style={[styles.coreNumberValue, { color: data.expression ? theme.text : theme.textTertiary }]}>
-            {data.expression ?? '🔒'}
-          </Text>
-        </View>
-        <View style={[styles.coreNumberDivider, { backgroundColor: theme.border }]} />
-        <View style={styles.coreNumberItem}>
-          <Text style={[styles.coreNumberLabel, { color: theme.textTertiary }]}>Soul Urge</Text>
-          <Text style={[styles.coreNumberValue, { color: data.soul_urge ? theme.text : theme.textTertiary }]}>
-            {data.soul_urge ?? '🔒'}
-          </Text>
         </View>
       </View>
 
@@ -282,28 +284,44 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
         theme={theme}
       />
 
-      {/* Core Pattern */}
+      {/* Core Pattern Statement */}
       <View style={[styles.corePatternSection, { backgroundColor: COLORS.accentLight, borderColor: COLORS.accent }]}>
-        <Text style={[styles.corePatternLabel, { color: COLORS.accent }]}>CORE PATTERN</Text>
         <Text style={[styles.corePatternText, { color: theme.text }]}>
           {data.core_pattern}
         </Text>
       </View>
 
-      {/* How This Shows Up */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>HOW THIS SHOWS UP</Text>
-        <View style={[styles.bulletList, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          {data.how_this_shows_up.map((item, index) => (
-            <View key={index} style={styles.bulletItem}>
-              <View style={[styles.bulletDot, { backgroundColor: COLORS.accent }]} />
-              <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{item}</Text>
-            </View>
-          ))}
+      {/* HOW THIS SHOWS UP TODAY - Time-aware */}
+      {data.how_this_shows_up_today && data.how_this_shows_up_today.length > 0 && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: COLORS.todayBlue }]}>HOW THIS SHOWS UP TODAY</Text>
+          <View style={[styles.bulletList, { backgroundColor: COLORS.todayBg, borderColor: COLORS.todayBlue }]}>
+            {data.how_this_shows_up_today.map((item, index) => (
+              <View key={index} style={styles.bulletItem}>
+                <View style={[styles.bulletDot, { backgroundColor: COLORS.todayBlue }]} />
+                <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{item}</Text>
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
+      )}
 
-      {/* WHERE THIS MISFIRES - New action-relevant section */}
+      {/* WHEN THIS GETS TRIGGERED - Context triggers */}
+      {data.when_this_gets_triggered && data.when_this_gets_triggered.length > 0 && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: COLORS.triggerPurple }]}>WHEN THIS GETS TRIGGERED</Text>
+          <View style={[styles.bulletList, { backgroundColor: COLORS.triggerBg, borderColor: COLORS.triggerPurple }]}>
+            {data.when_this_gets_triggered.map((item, index) => (
+              <View key={index} style={styles.bulletItem}>
+                <View style={[styles.bulletDot, { backgroundColor: COLORS.triggerPurple }]} />
+                <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{item}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* WHERE THIS MISFIRES */}
       {data.where_this_misfires && data.where_this_misfires.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: COLORS.misfireRed }]}>WHERE THIS MISFIRES</Text>
@@ -349,10 +367,47 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
         </View>
       )}
 
-      {/* Tensions to Notice */}
+      {/* ========== IDENTITY LAYER (Name-based) ========== */}
+      {data.has_name_numbers && (
+        <>
+          <View style={[styles.layerHeader, { borderColor: COLORS.identityGold, marginTop: 24 }]}>
+            <Text style={[styles.layerLabel, { color: COLORS.identityGold }]}>IDENTITY LAYER</Text>
+            <Text style={[styles.layerSubLabel, { color: theme.textTertiary }]}>from birth name</Text>
+          </View>
+
+          <View style={[styles.identityNumbersStrip, { backgroundColor: COLORS.identityBg, borderColor: COLORS.identityGold }]}>
+            <View style={styles.identityNumberItem}>
+              <Text style={[styles.identityNumberLabel, { color: COLORS.identityGold }]}>Expression</Text>
+              <Text style={[styles.identityNumberValue, { color: theme.text }]}>{data.expression}</Text>
+              <Text style={[styles.identityNumberDesc, { color: theme.textTertiary }]}>how you show up</Text>
+            </View>
+            <View style={[styles.identityNumberDivider, { backgroundColor: COLORS.identityGold }]} />
+            <View style={styles.identityNumberItem}>
+              <Text style={[styles.identityNumberLabel, { color: COLORS.identityGold }]}>Soul Urge</Text>
+              <Text style={[styles.identityNumberValue, { color: theme.text }]}>{data.soul_urge}</Text>
+              <Text style={[styles.identityNumberDesc, { color: theme.textTertiary }]}>what you crave</Text>
+            </View>
+            {data.personality && (
+              <>
+                <View style={[styles.identityNumberDivider, { backgroundColor: COLORS.identityGold }]} />
+                <View style={styles.identityNumberItem}>
+                  <Text style={[styles.identityNumberLabel, { color: COLORS.identityGold }]}>Personality</Text>
+                  <Text style={[styles.identityNumberValue, { color: theme.text }]}>{data.personality}</Text>
+                  <Text style={[styles.identityNumberDesc, { color: theme.textTertiary }]}>first impression</Text>
+                </View>
+              </>
+            )}
+          </View>
+        </>
+      )}
+
+      {/* Tensions to Notice - Sharpened language */}
       {data.internal_tensions && data.internal_tensions.length > 0 && (
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>TENSIONS TO NOTICE</Text>
+          <Text style={[styles.sectionTitle, { color: COLORS.tensionGold }]}>TENSIONS TO NOTICE</Text>
+          <Text style={[styles.sectionSubtitleWarning, { color: theme.textTertiary }]}>
+            These show up when you're under pressure
+          </Text>
           <View style={styles.tensionList}>
             {data.internal_tensions.map((tension, index) => (
               <View 
@@ -528,6 +583,22 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
+  // Layer Headers (Core vs Identity)
+  layerHeader: {
+    borderLeftWidth: 3,
+    paddingLeft: 12,
+    marginBottom: 12,
+  },
+  layerLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  layerSubLabel: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+
   // Core Numbers Strip
   coreNumbersStrip: {
     flexDirection: 'row',
@@ -535,6 +606,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 20,
     borderWidth: 1,
+    justifyContent: 'center',
   },
   coreNumberItem: {
     flex: 1,
@@ -555,6 +627,39 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
 
+  // Identity Numbers Strip (Name-based)
+  identityNumbersStrip: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+  },
+  identityNumberItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  identityNumberLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  identityNumberValue: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  identityNumberDesc: {
+    fontSize: 9,
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
+  identityNumberDivider: {
+    width: 1,
+    marginHorizontal: 8,
+    opacity: 0.3,
+  },
+
   // Lo Shu Grid
   loShuContainer: {
     marginBottom: 20,
@@ -568,6 +673,11 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 12,
     marginBottom: 12,
+  },
+  sectionSubtitleWarning: {
+    fontSize: 11,
+    marginBottom: 10,
+    fontStyle: 'italic',
   },
   gridContainer: {
     borderWidth: 2,
