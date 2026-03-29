@@ -215,48 +215,48 @@ WHEN_THIS_BACKFIRES_TEMPLATES = {
 
 
 # =============================================================================
-# GENIUS - The strength inside the pattern (NOT affirmation)
+# GENIUS - Pure identity recognition (NOT explanation)
 # =============================================================================
 
 GENIUS_TEMPLATES = {
     ("Wood", "Yang"): {
-        "line1": "This same instinct is why you get things moving when everyone else is still deciding.",
-        "line2": "You don't wait for permission. You create momentum others can follow.",
+        "line1": "You get things moving when everyone else is still deciding.",
+        "line2": "Momentum follows you. It always has.",
     },
     ("Wood", "Yin"): {
-        "line1": "This same flexibility is why you survive things that break others.",
+        "line1": "You survive things that break other people.",
         "line2": "You find a way through. Always have.",
     },
     ("Fire", "Yang"): {
-        "line1": "This same intensity is why people follow you without being asked.",
-        "line2": "You clarify what's possible just by showing up.",
+        "line1": "People follow you without being asked.",
+        "line2": "You walk into a room and something shifts.",
     },
     ("Fire", "Yin"): {
-        "line1": "This same steadiness is why people trust you when everything else is uncertain.",
+        "line1": "People trust you when everything else feels uncertain.",
         "line2": "You stay warm when everyone else burns out or goes cold.",
     },
     ("Earth", "Yang"): {
-        "line1": "This same solidity is why people come to you when nothing else is stable.",
+        "line1": "People come to you when nothing else is stable.",
         "line2": "You hold ground that others can't.",
     },
     ("Earth", "Yin"): {
-        "line1": "This same generosity is why things grow around you.",
-        "line2": "You create conditions for others to flourish — and that's rare.",
+        "line1": "Things grow around you.",
+        "line2": "People flourish in your presence — and that's rare.",
     },
     ("Metal", "Yang"): {
-        "line1": "This same clarity is why you cut through confusion that paralyzes others.",
-        "line2": "You see what matters — and you name it.",
+        "line1": "You cut through confusion that paralyzes other people.",
+        "line2": "You see what matters. And you name it.",
     },
     ("Metal", "Yin"): {
-        "line1": "This same precision is why things you touch become better.",
+        "line1": "Things get better when you touch them.",
         "line2": "You notice what others miss. You refine what others accept.",
     },
     ("Water", "Yang"): {
-        "line1": "This same momentum is why you move through uncertainty faster than most.",
-        "line2": "You don't freeze. You figure things out while others are still stuck.",
+        "line1": "You move through uncertainty faster than most people.",
+        "line2": "You don't freeze. You figure it out while others are still stuck.",
     },
     ("Water", "Yin"): {
-        "line1": "This same depth is why you understand people before they explain themselves.",
+        "line1": "You understand people before they explain themselves.",
         "line2": "You sense what's underneath — and you're usually right.",
     },
 }
