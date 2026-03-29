@@ -234,6 +234,11 @@ export default function BaZiInsightDeepDive({
       {/* HERO SECTION - Core Pattern (dominant visual weight) */}
       {/* ================================================================== */}
       <View style={styles.heroSection}>
+        {/* Section label */}
+        <Text style={[styles.heroLabel, { color: theme.textTertiary }]}>
+          The pattern that runs you — and what it costs when unchecked
+        </Text>
+        
         {/* Subtle element indicator */}
         <View style={styles.heroHeader}>
           <View style={[styles.elementBadge, { backgroundColor: BAZI_COLORS.goldLight }]}>
@@ -466,11 +471,19 @@ const styles = StyleSheet.create({
   // HERO SECTION (dominant)
   // ==========================================================================
   heroSection: {
-    marginBottom: 32,
+    marginTop: 8,
+    marginBottom: 40,
+    paddingBottom: 8,
+  },
+  heroLabel: {
+    fontSize: 11,
+    letterSpacing: 0.3,
+    marginBottom: 20,
+    lineHeight: 16,
   },
   heroHeader: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   elementBadge: {
     flexDirection: 'row',
@@ -486,24 +499,24 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   heroLine1: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '600',
-    lineHeight: 30,
-    marginBottom: 6,
-    letterSpacing: -0.3,
+    lineHeight: 32,
+    marginBottom: 8,
+    letterSpacing: -0.4,
   },
   heroLine2: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 25,
     fontStyle: 'italic',
-    opacity: 0.85,
+    opacity: 0.8,
   },
   heroAccent: {
-    width: 40,
+    width: 48,
     height: 2,
     borderRadius: 1,
-    marginTop: 20,
-    opacity: 0.6,
+    marginTop: 24,
+    opacity: 0.5,
   },
 
   // ==========================================================================
@@ -576,22 +589,24 @@ const styles = StyleSheet.create({
   },
 
   // ==========================================================================
-  // SHIFT SECTION
+  // SHIFT SECTION (pause moment)
   // ==========================================================================
   shiftSection: {
     borderLeftWidth: 3,
     paddingLeft: 16,
-    marginBottom: 32,
+    paddingVertical: 8,
+    marginTop: 8,
+    marginBottom: 40,
   },
   shiftLabel: {
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   shiftText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 16,
+    lineHeight: 25,
     fontWeight: '500',
   },
 
