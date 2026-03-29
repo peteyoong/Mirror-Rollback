@@ -215,6 +215,54 @@ WHEN_THIS_BACKFIRES_TEMPLATES = {
 
 
 # =============================================================================
+# GENIUS - The strength inside the pattern (NOT affirmation)
+# =============================================================================
+
+GENIUS_TEMPLATES = {
+    ("Wood", "Yang"): {
+        "line1": "This same instinct is why you get things moving when everyone else is still deciding.",
+        "line2": "You don't wait for permission. You create momentum others can follow.",
+    },
+    ("Wood", "Yin"): {
+        "line1": "This same flexibility is why you survive things that break others.",
+        "line2": "You find a way through. Always have.",
+    },
+    ("Fire", "Yang"): {
+        "line1": "This same intensity is why people follow you without being asked.",
+        "line2": "You clarify what's possible just by showing up.",
+    },
+    ("Fire", "Yin"): {
+        "line1": "This same steadiness is why people trust you when everything else is uncertain.",
+        "line2": "You stay warm when everyone else burns out or goes cold.",
+    },
+    ("Earth", "Yang"): {
+        "line1": "This same solidity is why people come to you when nothing else is stable.",
+        "line2": "You hold ground that others can't.",
+    },
+    ("Earth", "Yin"): {
+        "line1": "This same generosity is why things grow around you.",
+        "line2": "You create conditions for others to flourish — and that's rare.",
+    },
+    ("Metal", "Yang"): {
+        "line1": "This same clarity is why you cut through confusion that paralyzes others.",
+        "line2": "You see what matters — and you name it.",
+    },
+    ("Metal", "Yin"): {
+        "line1": "This same precision is why things you touch become better.",
+        "line2": "You notice what others miss. You refine what others accept.",
+    },
+    ("Water", "Yang"): {
+        "line1": "This same momentum is why you move through uncertainty faster than most.",
+        "line2": "You don't freeze. You figure things out while others are still stuck.",
+    },
+    ("Water", "Yin"): {
+        "line1": "This same depth is why you understand people before they explain themselves.",
+        "line2": "You sense what's underneath — and you're usually right.",
+    },
+}
+
+
+# =============================================================================
 # WHAT THIS COSTS YOU - Energy, Relationships, Opportunities (SHARPENED)
 # =============================================================================
 
@@ -442,6 +490,12 @@ def transform_bazi_to_insight_first(
         "Under pressure, your pattern intensifies",
     ])[:4]  # Limit to 4
     
+    # Genius - the strength inside the pattern (NOT affirmation)
+    genius = GENIUS_TEMPLATES.get(key, {
+        "line1": "This same pattern is also why you can do things others can't.",
+        "line2": "The strength is already there — you just don't always see it.",
+    })
+    
     # What this costs you
     costs = WHAT_THIS_COSTS_TEMPLATES.get(key, {
         "energy": "Running your pattern without checking if it's serving you",
@@ -488,6 +542,7 @@ def transform_bazi_to_insight_first(
         "core_truth": core_truth,
         "how_this_shows_up": how_shows_up,
         "when_this_backfires": when_backfires,
+        "genius": genius,
         "what_this_costs_you": costs,
         "one_shift": one_shift,
         "why_showing_up": why_showing,

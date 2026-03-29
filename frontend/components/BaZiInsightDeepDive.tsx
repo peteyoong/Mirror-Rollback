@@ -61,10 +61,16 @@ interface ChartDetails {
   dominant_patterns?: string[];
 }
 
+interface Genius {
+  line1: string;
+  line2: string;
+}
+
 interface BaZiInsightData {
   core_truth: CoreTruth;
   how_this_shows_up: string[];
   when_this_backfires: string[];
+  genius: Genius;
   what_this_costs_you: CostCategories;
   one_shift: string;
   why_showing_up: WhyShowingUp;
@@ -293,6 +299,20 @@ export default function BaZiInsightDeepDive({
           </View>
         </View>
       </View>
+
+      {/* ================================================================== */}
+      {/* GENIUS - The strength inside the pattern */}
+      {/* ================================================================== */}
+      {data.genius && (
+        <View style={styles.geniusSection}>
+          <Text style={[styles.geniusLine1, { color: theme.text }]}>
+            {data.genius.line1}
+          </Text>
+          <Text style={[styles.geniusLine2, { color: theme.textSecondary }]}>
+            {data.genius.line2}
+          </Text>
+        </View>
+      )}
 
       {/* ================================================================== */}
       {/* COST LAYER - Lighter treatment */}
@@ -549,6 +569,28 @@ const styles = StyleSheet.create({
   sectionDivider: {
     height: 1,
     marginVertical: 20,
+  },
+
+  // ==========================================================================
+  // GENIUS SECTION (capability reveal)
+  // ==========================================================================
+  geniusSection: {
+    marginTop: 8,
+    marginBottom: 32,
+    paddingLeft: 16,
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(201, 169, 98, 0.3)',
+  },
+  geniusLine1: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  geniusLine2: {
+    fontSize: 14,
+    lineHeight: 21,
+    opacity: 0.85,
   },
 
   // ==========================================================================
