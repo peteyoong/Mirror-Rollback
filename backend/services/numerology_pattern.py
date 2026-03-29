@@ -108,6 +108,39 @@ NUMBER_CORE_MEANINGS = {
 }
 
 # =============================================================================
+# CONTINUATION LAYER (V2) - Bridge from Mirror Home
+# =============================================================================
+
+import random
+
+CONTINUATION_LINES = [
+    "This is the same pattern — just from a different angle.",
+    "You're seeing the same thing again, just clearer here.",
+    "This connects to what showed up earlier.",
+    "Same pattern. Different lens.",
+    "The same signal, just louder here.",
+    "What you noticed before — this is the root of it.",
+    "You've already felt this. Now you're seeing where it comes from."
+]
+
+def generate_continuation_line() -> str:
+    """
+    Generate a short continuation line that bridges from Mirror Home.
+    
+    Purpose: User should feel "This is the same intelligence, just going deeper"
+    NOT: "I've opened a different system"
+    
+    Rules:
+    - Short
+    - Calm
+    - Matter-of-fact
+    - No explanation of numerology system
+    - No jargon
+    """
+    return random.choice(CONTINUATION_LINES)
+
+
+# =============================================================================
 # GENIUS LAYER - Why the pattern exists (V9 Mirror System)
 # =============================================================================
 
@@ -952,6 +985,9 @@ async def compute_numerology_pattern(
     # GENIUS layer (V9 Mirror System) - Why the pattern exists
     genius_line = generate_genius_line(life_path)
     
+    # CONTINUATION layer (V2) - Bridge from Mirror Home
+    continuation_line = generate_continuation_line()
+    
     # Action-relevant sections
     where_misfires = generate_where_this_misfires(
         life_path, lo_shu['missing_numbers'], lo_shu['present_numbers']
@@ -984,6 +1020,9 @@ async def compute_numerology_pattern(
     )
     
     return {
+        # CONTINUATION layer (V2) - FIRST, bridges from Mirror Home
+        'continuation': continuation_line,
+        # Core identifiers
         'life_path': life_path,
         'expression': expression,
         'soul_urge': soul_urge,
