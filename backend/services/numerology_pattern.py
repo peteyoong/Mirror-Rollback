@@ -108,6 +108,42 @@ NUMBER_CORE_MEANINGS = {
 }
 
 # =============================================================================
+# GENIUS LAYER - Why the pattern exists (V9 Mirror System)
+# =============================================================================
+
+LIFE_PATH_GENIUS = {
+    1: "You don't wait once you feel direction. That's why you move before others are ready.",
+    2: "You feel what's off before anyone says it. That's why you're already adjusting before others notice.",
+    3: "You process by expressing. That's why silence feels like something's stuck.",
+    4: "You see instability before it breaks. That's why you're already building walls others don't need yet.",
+    5: "You feel when something's dead before it ends. That's why you're already leaving when others are still settling in.",
+    6: "You sense when someone's struggling. That's why you reach before they ask.",
+    7: "You notice what doesn't add up. That's why you're still analyzing when others have moved on.",
+    8: "You see where the power sits. That's why you're already positioning when others are still reacting.",
+    9: "You see how things end. That's why you're already grieving what hasn't finished yet.",
+    11: "You catch signals others miss. That's why you're frustrated when no one else sees it coming.",
+    22: "You see the larger structure. That's why small fixes feel like a waste of time.",
+    33: "You absorb what others carry. That's why you're tired before you've done anything for yourself."
+}
+
+def generate_genius_line(life_path: int) -> str:
+    """
+    Generate the GENIUS line for V9 Mirror System integration.
+    
+    Rules:
+    - 1-2 lines max
+    - No hype, no identity statements ("you are...")
+    - Must explain WHY pattern exists
+    - Must feel slightly confronting
+    
+    Format: "[Observation]. That's why [consequence behavior]."
+    """
+    return LIFE_PATH_GENIUS.get(life_path, 
+        "You run your pattern before you check if it's working. That's why the same results keep showing up."
+    )
+
+
+# =============================================================================
 # WHERE THIS MISFIRES - Real-world behavior patterns
 # =============================================================================
 
@@ -913,6 +949,9 @@ async def compute_numerology_pattern(
     # NEW: Context triggers
     when_triggered = generate_triggers(life_path)
     
+    # GENIUS layer (V9 Mirror System) - Why the pattern exists
+    genius_line = generate_genius_line(life_path)
+    
     # Action-relevant sections
     where_misfires = generate_where_this_misfires(
         life_path, lo_shu['missing_numbers'], lo_shu['present_numbers']
@@ -959,13 +998,15 @@ async def compute_numerology_pattern(
         # Keep these for backward compatibility
         'present_numbers': lo_shu['present_numbers'],
         'missing_numbers': lo_shu['missing_numbers'],
-        # Pattern content
+        # Pattern content (V9 Structure)
         'core_pattern': core_pattern,
         'how_this_shows_up': how_shows_up,
         # NEW: Time-aware sections
         'how_this_shows_up_today': how_shows_up_today,
         'when_this_gets_triggered': when_triggered,
-        # Action-relevant sections
+        # GENIUS layer (V9) - Goes between recognition and consequence
+        'genius': genius_line,
+        # Action-relevant sections (consequence/cost)
         'where_this_misfires': where_misfires,
         'where_this_costs_you': where_costs,
         'balance_today': balance_today,
