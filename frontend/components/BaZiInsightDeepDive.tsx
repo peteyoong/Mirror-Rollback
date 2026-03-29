@@ -100,7 +100,7 @@ const COLORS = {
   chartBg: 'rgba(158, 158, 158, 0.08)',
 };
 
-// Collapsible Section Component
+// Collapsible Section Component - Simple content-driven height
 const CollapsibleSection: React.FC<{
   title: string;
   icon: string;
@@ -110,20 +110,13 @@ const CollapsibleSection: React.FC<{
   children: React.ReactNode;
 }> = ({ title, icon, color, bgColor, theme, children }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const height = useSharedValue(0);
   const rotation = useSharedValue(0);
 
   const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-    height.value = withTiming(isExpanded ? 0 : 1, { duration: 250 });
-    rotation.value = withTiming(isExpanded ? 0 : 90, { duration: 200 });
+    const newState = !isExpanded;
+    setIsExpanded(newState);
+    rotation.value = withTiming(newState ? 90 : 0, { duration: 200 });
   };
-
-  const animatedContentStyle = useAnimatedStyle(() => ({
-    opacity: height.value,
-    maxHeight: height.value === 0 ? 0 : undefined,
-    overflow: 'hidden',
-  }));
 
   const animatedIconStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotation.value}deg` }],
@@ -146,9 +139,10 @@ const CollapsibleSection: React.FC<{
       </TouchableOpacity>
       
       {isExpanded && (
-        <Animated.View style={[styles.collapsibleContent, animatedContentStyle]}>
+        <View style={styles.collapsibleContent}>
+          <View style={[styles.collapsibleDivider, { backgroundColor: color }]} />
           {children}
-        </Animated.View>
+        </View>
       )}
     </View>
   );
@@ -498,7 +492,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     marginBottom: 12,
-    overflow: 'hidden',
   },
   collapsibleHeader: {
     flexDirection: 'row',
@@ -517,7 +510,16 @@ const styles = StyleSheet.create({
   },
   collapsibleContent: {
     paddingHorizontal: 14,
-    paddingBottom: 14,
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
+  collapsibleDivider: {
+    height: 1,
+    opacity: 0.2,
+    marginBottom: 12,
+    marginHorizontal: -14,
+    marginLeft: -14,
+    marginRight: -14,
   },
   collapsibleText: {
     fontSize: 13,
