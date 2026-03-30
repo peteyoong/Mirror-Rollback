@@ -1340,6 +1340,14 @@ export interface PatternDiagnosisResponse {
     time_words?: string[];
     exposure_state: string;
   };
+  
+  // V1: Pattern Memory Surfacing (validated, earned memory only)
+  memory?: {
+    memory_line: string;
+    recurrence_count: number;
+    last_seen_at: string;
+    memory_state: 'returning' | 'repeating' | 'deepening' | 'unresolved' | 'easing';
+  } | null;
 }
 
 /**

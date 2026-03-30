@@ -13271,6 +13271,9 @@ class DiagnosisResponse(BaseModel):
     # Pattern memory (exposure state)
     exposure_state: Optional[str] = None
     exposure_copy: Optional[Dict[str, Any]] = None
+    
+    # V1: Pattern Memory Surfacing (validated, earned memory only)
+    memory: Optional[Dict[str, Any]] = None  # {memory_line, recurrence_count, last_seen_at, memory_state}
 
 
 @api_router.get("/pattern-diagnosis/{user_id}", response_model=DiagnosisResponse)
@@ -13499,7 +13502,24 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
         # Apply time context markers (still, again, coming back)
         exposure_copy = apply_time_context_to_copy(exposure_copy, exposure_data)
         
-        logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}, exposure={exposure_state.value}, house={primary_house}")
+        # =============================================================================
+        # V1: PATTERN MEMORY SURFACING - Get validated memory for Home display
+        # =============================================================================
+        from services.pattern_memory import get_pattern_memory_v1, validate_memory_for_display
+        
+        # Get real memory from DB
+        raw_memory = await get_pattern_memory_v1(
+            db=db,
+            user_id=user_id,
+            pattern_id=pattern_id,
+            pattern_title=pattern_title,
+            pattern_family=pattern_family
+        )
+        
+        # Validate memory (only show if earned)
+        validated_memory = validate_memory_for_display(raw_memory)
+        
+        logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}, exposure={exposure_state.value}, house={primary_house}, memory={'yes' if validated_memory else 'no'}")
         
         return DiagnosisResponse(
             pattern_title=pattern_title,
@@ -13516,6 +13536,8 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
             confidence=confidence,
             exposure_state=exposure_state.value,
             exposure_copy=exposure_copy,
+            # V1: Pattern Memory Surfacing (only if validated/earned)
+            memory=validated_memory,
         )
         
     except Exception as e:

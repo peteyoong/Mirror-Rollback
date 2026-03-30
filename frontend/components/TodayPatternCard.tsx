@@ -343,6 +343,15 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
         </Text>
       </View>
       
+      {/* V1: Pattern Memory Line (only if validated/earned) */}
+      {diagnosis.memory && diagnosis.memory.memory_line && (
+        <View style={styles.memoryLineContainer}>
+          <Text style={[styles.memoryLineText, { color: theme.textTertiary }]}>
+            {diagnosis.memory.memory_line}
+          </Text>
+        </View>
+      )}
+      
       {/* FIX 2: INTERACTION LOOP - uses exposure_copy reflection_prompt */}
       {interactionStep === 'initial' && (
         <View style={[styles.interactionBox, { backgroundColor: theme.background, borderColor: theme.border }]}>
@@ -589,6 +598,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 23,
     fontWeight: '500',
+  },
+  
+  // V1: Memory line (quiet, under the main flow)
+  memoryLineContainer: {
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  memoryLineText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    fontWeight: '400',
   },
   
   // FIX 2: Interaction loop styles
