@@ -1237,25 +1237,34 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     
     v1.7: SIGNAL DOMINANCE + NO GENERIC FALLBACK
     v2.0: DAILY DIFFERENTIATION - Why Today, Anti-Repetition, Surface Freshness
+    v2.1: BEHAVIORAL SPECIFICITY - Behavior snaps, forced arena, first-line impact
     
     - phase_shift days ALWAYS use phase_shift framing
     - Generic copy is BLOCKED
     - Signal-absent days use tension-based patterns, not generic
     - DAILY signals weighted MORE than static patterns (v2.0)
     - Anti-repetition pressure prevents same pattern winning too often (v2.0)
+    - V2.1: First line is always a BEHAVIOR SNAP
+    - V2.1: Life arena is FORCED (almost never null)
     
     Returns the new structured format with debug info.
     """
     from datetime import datetime, timezone, timedelta
     from bson import ObjectId
     
-    # Import daily differentiation layer (v2.0)
+    # Import daily differentiation layer (v2.0 + v2.1)
     try:
         from services.daily_differentiation import (
             compute_daily_signals,
             get_anti_repetition_penalty,
             inject_daily_freshness,
             resolve_life_arena,
+            # V2.1 additions
+            generate_behavior_snap,
+            resolve_life_arena_forced,
+            inject_behavior_first,
+            generate_behavioral_home,
+            LifeArena,
         )
         daily_diff_available = True
     except ImportError as e:
@@ -1447,6 +1456,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     anti_repetition_applied = False
     life_arena = None
     life_arena_phrase = None
+    behavior_snap = None
     daily_diff_debug = {}
     
     if daily_diff_available:
@@ -1468,44 +1478,72 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             
             daily_intensity = daily_profile.daily_intensity
             
-            # Inject freshness into body
-            if why_today_phrase and body:
-                body = inject_daily_freshness(body, daily_profile, why_today_phrase)
+            # =================================================================
+            # V2.1: BEHAVIORAL SPECIFICITY
+            # =================================================================
             
-            # Resolve life arena
-            life_arena, life_arena_phrase = resolve_life_arena(journal_data, daily_profile)
+            # Force life arena resolution (almost never null)
+            arena_enum, arena_opener = resolve_life_arena_forced(
+                journal_entries=journal_data,
+                daily_profile=daily_profile,
+                why_today=daily_profile.why_today,
+            )
+            life_arena = arena_enum.value
+            life_arena_phrase = arena_opener
+            
+            # Generate behavior snap (first line)
+            behavior_snap = generate_behavior_snap(
+                why_today=daily_profile.why_today,
+                life_arena=arena_enum,
+                daily_profile=daily_profile,
+                pattern_id=pattern_key,
+            )
+            
+            # Inject behavior first into body
+            if behavior_snap and body:
+                body = inject_behavior_first(
+                    flow_text=body,
+                    behavior_snap=behavior_snap,
+                    life_arena=arena_enum,
+                )
             
             daily_diff_debug = {
                 "why_today": why_today,
                 "why_today_phrase": why_today_phrase,
                 "daily_intensity": round(daily_intensity, 2),
                 "life_arena": life_arena,
+                "behavior_snap": behavior_snap,
                 "journal_recency": round(daily_profile.journal_recency, 2),
                 "unresolved_loop": round(daily_profile.unresolved_recent_loop, 2),
+                "version": "v2.1_behavioral",
             }
             
-            logger.info(f"[HomeInsight] Daily diff applied: why={why_today}, intensity={daily_intensity:.2f}")
+            logger.info(f"[HomeInsight] V2.1 Behavioral: snap='{behavior_snap[:40]}...', arena={life_arena}")
         except Exception as e:
             logger.warning(f"[HomeInsight] Daily differentiation error: {e}")
+            import traceback
+            traceback.print_exc()
     
     return {
         "success": True,
         "date": today,
         "pattern_id": f"{pattern_key}_{today.replace('-', '')}",
         "title": title,
-        # New Mirror-format fields (v1.7 signal dominance + v2.0 daily diff)
+        # V2.1: BEHAVIOR-FIRST BODY
         "body": body,
         "bridge": bridge if bridge else None,
         # Day-class metadata
         "day_class": day_class,
         "hero_mode": hero_output.get("hero_mode"),
         "tone": hero_output.get("tone"),
-        # v2.0 DAILY DIFFERENTIATION
+        # V2.1 BEHAVIORAL SPECIFICITY
+        "behavior_snap": behavior_snap,
+        "life_arena": life_arena,
+        "life_arena_phrase": life_arena_phrase,
+        # v2.0 DAILY DIFFERENTIATION (kept for backward compat)
         "why_today": why_today,
         "why_today_phrase": why_today_phrase,
         "daily_intensity": round(daily_intensity, 2),
-        "life_arena": life_arena,
-        "life_arena_phrase": life_arena_phrase,
         # Legacy fields (for compatibility)
         "what_happening": modified_template["what_happening"],
         "why_feels": modified_template["why_feels"],
@@ -1515,7 +1553,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v20_daily_diff",  # Version flag for frontend
+        "card_version": "mirror_v21_behavioral",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
