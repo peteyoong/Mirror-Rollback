@@ -109,6 +109,11 @@ export default function ExperiencePreferences() {
   const [supportStyle, setSupportStyle] = useState<string>('work_with');
   const [showSaved, setShowSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // V1: Micro confirmation messages
+  const MICRO_CONFIRMATIONS = ["Got it.", "We'll meet you there.", "Adjusted.", "Noted."];
+  const [microConfirmation, setMicroConfirmation] = useState<string | null>(null);
+  const [tonePreview, setTonePreview] = useState<string | null>(null);
 
   // Map existing profile to V1 preferences
   useEffect(() => {
@@ -147,12 +152,32 @@ export default function ExperiencePreferences() {
         : supportStyle === 'explore' ? 'gentle_questions'
         : 'practical_grounding';
       
+      // Also store V1 preferences directly for immediate use
       await updateProfile({
         desired_depth: desiredDepth,
         support_style: supportStyleValue,
+        // V1: Store raw preferences for immediate feedback
+        v1_tone: tone,
+        v1_depth: depth,
+        v1_support_style: supportStyle,
       });
       
-      // Show saved confirmation
+      // V1: Show micro confirmation
+      const randomConfirmation = MICRO_CONFIRMATIONS[Math.floor(Math.random() * MICRO_CONFIRMATIONS.length)];
+      setMicroConfirmation(randomConfirmation);
+      
+      // V1: Show tone preview
+      const preview = TONE_OPTIONS.find(o => o.value === tone)?.preview;
+      if (preview) {
+        setTonePreview(preview);
+      }
+      
+      // Clear after delay
+      setTimeout(() => {
+        setMicroConfirmation(null);
+        setTonePreview(null);
+      }, 3000);
+      
       setShowSaved(true);
       setTimeout(() => setShowSaved(false), 2000);
     } catch (error) {
@@ -343,6 +368,24 @@ export default function ExperiencePreferences() {
         </TouchableOpacity>
 
         {/* ============================================ */}
+        {/* V1: MICRO CONFIRMATION + TONE PREVIEW */}
+        {/* ============================================ */}
+        {(microConfirmation || tonePreview) && (
+          <View style={styles.feedbackContainer}>
+            {microConfirmation && (
+              <Text style={[styles.microConfirmation, { color: theme.text }]}>
+                {microConfirmation}
+              </Text>
+            )}
+            {tonePreview && (
+              <Text style={[styles.tonePreview, { color: theme.textSecondary }]}>
+                "{tonePreview}"
+              </Text>
+            )}
+          </View>
+        )}
+
+        {/* ============================================ */}
         {/* FOOTER */}
         {/* ============================================ */}
         <Text style={[styles.footer, { color: theme.textTertiary }]}>
@@ -483,6 +526,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  
+  // V1: Feedback Container
+  feedbackContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  microConfirmation: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  tonePreview: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    lineHeight: 20,
   },
   
   // Footer

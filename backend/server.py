@@ -7371,6 +7371,86 @@ async def mirror_chat(request: MirrorChatRequest):
         # Build system prompt
         system_prompt = MIRROR_SYSTEM_PROMPT
         
+        # ===== V1: PREFERENCE FEEDBACK LOOP =====
+        # Apply user's experience preferences to chat immediately
+        if user:
+            v1_tone = user.get('v1_tone', 'calm')
+            v1_depth = user.get('v1_depth', 'balanced')
+            v1_support = user.get('v1_support_style', 'work_with')
+            
+            preference_insert = f"""
+--- EXPERIENCE PREFERENCES (V1) ---
+
+The user has configured their experience preferences. Apply these IMMEDIATELY:
+
+TONE: {v1_tone}
+"""
+            if v1_tone == 'direct':
+                preference_insert += """- Be clear, no padding
+- Shorter sentences
+- Get to the point quickly
+- Example: "You already know what's off here."
+"""
+            elif v1_tone == 'calm':
+                preference_insert += """- Steady, less intense
+- More space between ideas
+- Soft but clear
+- Example: "Take a breath. Something here still doesn't feel settled."
+"""
+            elif v1_tone == 'grounded':
+                preference_insert += """- Practical phrasing
+- Less emotional
+- Action-oriented
+- Example: "This isn't ready yet. Slow it down."
+"""
+            elif v1_tone == 'confronting':
+                preference_insert += """- Sharper pattern exposure
+- More direct about consequences
+- Don't soften the truth
+- Example: "You're about to do the thing that keeps costing you."
+"""
+            
+            preference_insert += f"""
+DEPTH: {v1_depth}
+"""
+            if v1_depth == 'light':
+                preference_insert += """- Shorter responses
+- Just enough to notice
+- Get in and out quickly
+"""
+            elif v1_depth == 'balanced':
+                preference_insert += """- Enough to work with
+- Not overwhelming
+- Standard depth
+"""
+            elif v1_depth == 'deep':
+                preference_insert += """- More pattern exploration
+- More reflection prompts
+- Allow multi-turn deepening
+"""
+            
+            preference_insert += f"""
+SUPPORT STYLE: {v1_support}
+"""
+            if v1_support == 'interrupt':
+                preference_insert += """- Catch patterns quickly
+- More interception
+- Don't let them loop
+"""
+            elif v1_support == 'work_with':
+                preference_insert += """- More actionable guidance
+- Practical support
+- Help them move through it
+"""
+            elif v1_support == 'explore':
+                preference_insert += """- Deeper engagement
+- More reflection
+- More space to explore
+"""
+            
+            system_prompt += "\n" + preference_insert
+            logger.debug(f"[MIRROR_CHAT] Applied V1 preferences for user {request.user_id}: tone={v1_tone}, depth={v1_depth}, support={v1_support}")
+        
         # Add lens-specific prompt if constrained
         if request.lens and request.lens in LENS_PROMPTS:
             system_prompt += "\n" + LENS_PROMPTS[request.lens]
