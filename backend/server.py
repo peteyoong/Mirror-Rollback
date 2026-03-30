@@ -28769,6 +28769,120 @@ async def get_engagement_history(user_id: str, limit: int = 10):
         return {"success": False, "error": str(e)}
 
 
+@api_router.get("/engagement/validate/{user_id}")
+async def validate_engagement_loop(user_id: str):
+    """
+    Validate engagement loop for a user.
+    Returns comprehensive debug info for the engagement adaptation system.
+    """
+    try:
+        from services.engagement_adaptation import (
+            get_last_engagement,
+            get_recent_actions,
+            get_adaptation_mode,
+            compute_adaptation_modifiers,
+            generate_behavior_echo,
+            get_behavior_echo_or_snap,
+            AdaptationMode,
+        )
+        from datetime import datetime, timezone
+        
+        # Get engagement state
+        last_eng = await get_last_engagement(db, user_id)
+        
+        # Get recent actions
+        recent_actions = await get_recent_actions(db, user_id, limit=3)
+        
+        # Get adaptation mode
+        adaptation_mode = get_adaptation_mode(
+            last_eng["engagement_state"],
+            last_eng["consecutive_bounces"],
+            last_eng["consecutive_skims"],
+        )
+        
+        # Get modifiers
+        modifiers = compute_adaptation_modifiers(
+            adaptation_mode,
+            last_eng["consecutive_bounces"],
+            last_eng["consecutive_skims"],
+        )
+        
+        # Generate behavior echo
+        echo = generate_behavior_echo(recent_actions, pattern_id=f"validate_{user_id}")
+        
+        # Get echo or snap
+        first_line, source = get_behavior_echo_or_snap(
+            recent_actions=recent_actions,
+            base_snap="Validation base snap",
+            life_arena="internal_doubt",
+            adaptation_mode=adaptation_mode,
+            pattern_id=f"validate_{user_id}",
+        )
+        
+        # Get session history
+        sessions = await db["home_engagement_sessions"].find(
+            {"user_id": user_id}
+        ).sort("created_at", -1).limit(10).to_list(10)
+        
+        # Compute session stats
+        state_counts = {}
+        for s in sessions:
+            state = s.get("engagement_state", "unknown")
+            state_counts[state] = state_counts.get(state, 0) + 1
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "validation_timestamp": datetime.now(timezone.utc).isoformat(),
+            
+            # Current State
+            "current_engagement_state": last_eng["engagement_state"].value,
+            "consecutive_bounces": last_eng["consecutive_bounces"],
+            "consecutive_skims": last_eng["consecutive_skims"],
+            "last_engagement_at": last_eng["last_engagement_at"].isoformat() if last_eng["last_engagement_at"] else None,
+            
+            # Adaptation
+            "adaptation_mode": adaptation_mode.value,
+            "modifiers": modifiers.to_dict(),
+            
+            # Behavior Echo
+            "recent_action_types": [a.get("action_type") for a in recent_actions],
+            "behavior_echo": echo,
+            "first_line": first_line,
+            "first_line_source": source,
+            
+            # Session Stats
+            "session_count": len(sessions),
+            "state_distribution": state_counts,
+            
+            # Recent Sessions
+            "recent_sessions": [
+                {
+                    "session_id": s.get("session_id", "")[:20],
+                    "time_on_home": s.get("time_on_home"),
+                    "engagement_state": s.get("engagement_state"),
+                    "entered_chat": s.get("entered_chat"),
+                    "chat_message_sent": s.get("chat_message_sent"),
+                }
+                for s in sessions[:5]
+            ],
+            
+            # Validation Checks
+            "checks": {
+                "has_engagement_state": last_eng["engagement_state"].value != "unknown",
+                "has_recent_actions": len(recent_actions) > 0,
+                "echo_available": echo is not None,
+                "adaptation_active": adaptation_mode != AdaptationMode.NEUTRAL,
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"[Engagement] Validation error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 
