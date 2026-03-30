@@ -79,6 +79,21 @@ interface MirrorChatProps {
   onClose?: () => void;
   keystoneContext?: KeystoneContext | null;  // For keystone continuation
   initialMessage?: string | null;  // Pre-filled question for Ask flows
+  // V1: Pattern Thread Context for Lens → Chat continuity
+  patternThreadContext?: PatternThreadContext | null;
+}
+
+// V1: Pattern Thread Context - Passed when navigating from Home/Lens to Chat
+interface PatternThreadContext {
+  source_surface: 'home' | 'numerology' | 'astrology' | 'bazi' | 'human_design';
+  pattern_key?: string;  // e.g., "life_path_1", "sun_scorpio"
+  core_truth?: string;
+  echo?: string;
+  cross_link?: string;
+  memory_line?: string;  // Only if real
+  current_shift?: string;
+  genius?: string;
+  lens_specific_truth?: string;
 }
 
 // Helper to get storage key for a lens context
@@ -255,6 +270,7 @@ export default function MirrorChat({
   onClose,
   keystoneContext = null,
   initialMessage = null,
+  patternThreadContext = null,
 }: MirrorChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState(initialMessage || '');
@@ -265,6 +281,9 @@ export default function MirrorChat({
   const [isMemoryExpanded, setIsMemoryExpanded] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
   const [hasTriggeredKeystone, setHasTriggeredKeystone] = useState(false);
+  
+  // V1: Track if pattern thread context has been used
+  const [hasUsedPatternThreadContext, setHasUsedPatternThreadContext] = useState(false);
   
   // Leader card expansion state
   // - Default expanded when chat is empty (onboarding state)
@@ -548,7 +567,23 @@ export default function MirrorChat({
       include_history: true,
       // Master Layer Integration: Inject unified Mirror context
       dominant_pattern_context: mirrorEngineContext || (!lens && hasDominantPattern ? dominantTruthData?.systemContext : undefined),
+      // V1: Pattern Thread Context for Lens → Chat continuity
+      pattern_thread_context: (!hasUsedPatternThreadContext && patternThreadContext) ? {
+        source_surface: patternThreadContext.source_surface,
+        pattern_key: patternThreadContext.pattern_key,
+        core_truth: patternThreadContext.core_truth,
+        echo: patternThreadContext.echo,
+        cross_link: patternThreadContext.cross_link,
+        memory_line: patternThreadContext.memory_line,
+        current_shift: patternThreadContext.current_shift,
+        genius: patternThreadContext.genius,
+      } : undefined,
     };
+    
+    // Mark pattern thread context as used after first message
+    if (patternThreadContext && !hasUsedPatternThreadContext) {
+      setHasUsedPatternThreadContext(true);
+    }
     
     console.log('[MIRROR_CHAT_REQUEST]', {
       endpoint: '/api/mirror/chat',

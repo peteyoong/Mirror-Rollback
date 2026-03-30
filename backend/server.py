@@ -460,6 +460,8 @@ class MirrorChatRequest(BaseModel):
     include_journal: bool = True  # Include recent journal entries
     include_history: bool = True  # Include chat history
     keystone_context: Optional[KeystoneContext] = None  # For keystone continuation
+    # V1: Pattern Thread Context for Lens → Chat continuity
+    pattern_thread_context: Optional[dict] = None  # Contains source_surface, pattern_key, core_truth, etc.
 
 
 # Memory Update - "You Over Time" structured tracking
@@ -7326,6 +7328,55 @@ async def mirror_chat(request: MirrorChatRequest):
         
         # Add context
         system_prompt += "\n\n--- USER CONTEXT ---\n" + "\n".join(context_parts)
+        
+        # ===== V1: PATTERN THREAD CONTEXT FOR LENS → CHAT CONTINUITY =====
+        if request.pattern_thread_context:
+            ptc = request.pattern_thread_context
+            thread_context_parts = []
+            
+            # Build continuity context
+            source = ptc.get('source_surface', 'lens')
+            thread_context_parts.append(f"User just came from: {source}")
+            
+            if ptc.get('core_truth'):
+                thread_context_parts.append(f"Active pattern (core truth): {ptc['core_truth']}")
+            
+            if ptc.get('echo'):
+                thread_context_parts.append(f"Recurrence signal: {ptc['echo']}")
+            
+            if ptc.get('cross_link'):
+                thread_context_parts.append(f"Cross-lens link: {ptc['cross_link']}")
+            
+            if ptc.get('memory_line'):
+                thread_context_parts.append(f"Memory: {ptc['memory_line']}")
+            
+            if ptc.get('current_shift'):
+                thread_context_parts.append(f"Suggested shift: {ptc['current_shift']}")
+            
+            if ptc.get('genius'):
+                thread_context_parts.append(f"Genius insight: {ptc['genius']}")
+            
+            # Add continuity instruction
+            pattern_thread_insert = """
+--- PATTERN THREAD CONTINUITY (V1) ---
+
+The user has arrived from a lens view where they were already seeing a specific pattern.
+
+{context}
+
+CONTINUITY RULES:
+1. Acknowledge continuity in your first response: "You've already seen this pattern once today." or "This same thing is showing up here too." or "Alright. Let's stay with the same thread."
+2. Do NOT restart from a generic assistant mode
+3. Do NOT ask broad opening questions
+4. Continue the same pattern thread, not a new conversation
+5. After the continuity acknowledgment, proceed with Mirror Chat mode (interrupt or support)
+
+The user should feel: "Mirror is continuing the same conversation"
+NOT: "I opened a generic chat"
+""".format(context="\n".join(thread_context_parts))
+            
+            system_prompt += "\n" + pattern_thread_insert
+            logger.info(f"[MIRROR_CHAT] Pattern thread context injected from {source} for user {request.user_id}")
         
         # Add Gene Keys pattern awareness context (if match found)
         if gene_keys_context:
