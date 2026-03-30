@@ -1,26 +1,25 @@
 """
-Mirror Home Engine - Truth-Based
-================================
+Mirror Home Engine - Truth-Based + Daily Differentiation
+=========================================================
 
 Generates Home content based ONLY on real signals, not artificial variance.
 
-REMOVED:
-- User-id-based pseudo-variance
-- Seeded randomness
-- Arbitrary per-user noise
+V2: DAILY DIFFERENTIATION UPGRADE
+- Increased daily signal weighting (transits, journals, timing matter MORE)
+- "Why Today" tracking - internal reason for pattern selection
+- Surface freshness injection - daily-fresh signals in copy
+- Anti-repetition pressure - same pattern requires stronger evidence
+- Life arena resolution - patterns resolve to real life contexts
+- Debug output - internal logging for validation
 
-USES ONLY:
-- Transit stack
-- House/domain activation
-- HD authority/tension
-- BaZi day profile
-- Recent journal/reflection/pattern history
-- Prior exposure state
+SIGNAL HIERARCHY (V2):
+1. Daily Signals (70% weight): Transit pressure, recent journals, BaZi timing
+2. Static Signals (30% weight): HD structure, natal baseline
 
 HOME STRUCTURE:
 1. OPENING HIT - Direct confronting statement
 2. TENSION - Two forces in conflict
-3. CONTEXT - Where this is showing up today
+3. CONTEXT - Where this is showing up today + WHY TODAY
 4. STAKES - What happens if misread
 5. ONE WISE MOVE - Clear action
 6. CTA - See what's really going on →
@@ -1349,16 +1348,33 @@ def generate_home_message(
     exposure_state: str = None,
 ) -> Dict[str, Any]:
     """
-    Generate FELT EXPERIENCE Home message.
+    Generate FELT EXPERIENCE Home message with DAILY DIFFERENTIATION.
     
-    Outputs as ONE continuous natural flow, not segmented structure.
-    Uses internal moments: hesitation, pull/push, almost doing, stopping yourself.
+    V2 UPGRADES:
+    1. Daily signals weighted MORE than static patterns
+    2. "Why Today" tracking and phrase injection
+    3. Anti-repetition penalty for overused patterns
+    4. Surface freshness injection
+    5. Life arena resolution
+    6. Debug output for validation
     
     NO artificial variance.
     Based only on real signals from transits, HD, BaZi, journals, history.
     """
     
-    # Extract real signals
+    # Import daily differentiation layer
+    from services.daily_differentiation import (
+        compute_daily_signals,
+        get_anti_repetition_penalty,
+        inject_daily_freshness,
+        resolve_life_arena,
+        generate_debug_output,
+        PatternCandidate,
+    )
+    
+    # =================================================================
+    # STEP 1: Extract base signals (existing flow)
+    # =================================================================
     profile = extract_live_signals(
         transit_aspects=transit_aspects,
         house_activations=house_activations,
@@ -1369,10 +1385,86 @@ def generate_home_message(
         exposure_state=exposure_state,
     )
     
-    # Select situation based on truth
+    # =================================================================
+    # STEP 2: Compute DAILY signals (NEW - V2)
+    # =================================================================
+    daily_profile = compute_daily_signals(
+        transit_aspects=transit_aspects,
+        bazi_data=bazi_data,
+        journal_entries=journal_entries,
+        pattern_history=pattern_history,
+    )
+    
+    # =================================================================
+    # STEP 3: Boost profile signals based on daily intensity
+    # =================================================================
+    # Daily signals boost existing signals
+    if daily_profile.transit_pressure_today > 0.3:
+        profile.action_pressure += daily_profile.transit_pressure_today * 0.3
+        profile.urgency += daily_profile.transit_pressure_today * 0.2
+        profile.stakes_level += 0.15
+    
+    if daily_profile.unresolved_recent_loop > 0.3:
+        profile.recurrence += daily_profile.unresolved_recent_loop * 0.4
+        profile.avoidance += 0.15
+    
+    if daily_profile.journal_recency > 0.4:
+        profile.stakes_level += 0.1
+        profile.memory_strength += 0.2
+    
+    if daily_profile.bazi_day_pressure > 0.3:
+        profile.urgency += daily_profile.bazi_day_pressure * 0.2
+        profile.stakes_level += 0.1
+    
+    # =================================================================
+    # STEP 4: Select situation with anti-repetition (NEW - V2)
+    # =================================================================
     situation, confidence = select_home_situation(profile)
     
-    # Get message template
+    # Get anti-repetition penalty
+    situation_id = situation.value
+    penalty, should_allow = get_anti_repetition_penalty(
+        situation_id,
+        pattern_history or [],
+        daily_profile,
+    )
+    
+    # If penalty is too high and not intensifying, try second-best situation
+    anti_repetition_applied = False
+    if penalty > 0.4 and not should_allow:
+        logger.info(f"[Home] Anti-repetition: {situation_id} penalized by {penalty:.2f}, trying fallback")
+        anti_repetition_applied = True
+        
+        # Get all situation scores and pick second best
+        all_scores = {}
+        for sit in HomeSituation:
+            all_scores[sit] = 0.0
+        
+        # Re-score (simplified)
+        if profile.clarity_delay > 0.3 and profile.action_pressure < 0.4:
+            all_scores[HomeSituation.WAITING_WITHOUT_CLARITY] = profile.clarity_delay * 0.5
+        if profile.avoidance > 0.3:
+            all_scores[HomeSituation.AVOIDING_WHAT_YOU_KNOW] = profile.avoidance * 0.5
+        if profile.expression_blockage > 0.3:
+            all_scores[HomeSituation.HOLDING_BACK_EXPRESSION] = profile.expression_blockage * 0.6
+        if profile.external_dependency > 0.35:
+            all_scores[HomeSituation.BLOCKED_BY_OTHERS] = profile.external_dependency * 0.5
+        if profile.emotional_intensity > 0.25:
+            all_scores[HomeSituation.TORN_BETWEEN_OPTIONS] = profile.emotional_intensity * 0.4
+        
+        # Remove the penalized situation
+        all_scores[situation] = 0.0
+        
+        # Pick next best
+        sorted_scores = sorted(all_scores.items(), key=lambda x: x[1], reverse=True)
+        if sorted_scores[0][1] > 0.1:
+            situation = sorted_scores[0][0]
+            confidence = sorted_scores[0][1]
+            logger.info(f"[Home] Anti-repetition: switched to {situation.value}")
+    
+    # =================================================================
+    # STEP 5: Get message template
+    # =================================================================
     message = HOME_MESSAGES.get(situation, HOME_MESSAGES[HomeSituation.DIRECTION_UNCLEAR])
     
     # Get scene type
@@ -1384,14 +1476,54 @@ def generate_home_message(
     # Get arena
     arena = message.get("arena", LifeArena.INTERNAL)
     
-    # =====================================================
-    # BUILD V7 SINGLE FLOW SYSTEM
-    # =====================================================
+    # =================================================================
+    # STEP 6: Resolve life arena from journal (NEW - V2)
+    # =================================================================
+    life_arena_key, life_arena_phrase = resolve_life_arena(journal_entries, daily_profile)
     
-    # V7 SINGLE FLOW (Primary)
+    # =================================================================
+    # STEP 7: Build V7 Single Flow with Daily Freshness (NEW - V2)
+    # =================================================================
     flow = message.get("flow", "")
     
-    # V6 LEGACY FIELDS (for backward compatibility)
+    # Inject daily freshness - "why today" phrase
+    if daily_profile.why_today_phrase:
+        flow = inject_daily_freshness(flow, daily_profile, daily_profile.why_today_phrase)
+    
+    # =================================================================
+    # STEP 8: Generate debug output (NEW - V2)
+    # =================================================================
+    # Build a pattern candidate for debug
+    winner_candidate = PatternCandidate(
+        pattern_id=situation_id,
+        pattern_family=scene_type.value,
+        pattern_title=message.get("headline", ""),
+        base_score=confidence,
+        daily_boost=daily_profile.daily_intensity * 0.3,
+        anti_repetition_penalty=penalty,
+        final_score=confidence + (daily_profile.daily_intensity * 0.3) - penalty,
+        why_today_reason=daily_profile.why_today,
+        why_today_phrase=daily_profile.why_today_phrase,
+        life_arena=life_arena_key,
+    )
+    
+    # Count recent appearances
+    if pattern_history:
+        for p in pattern_history:
+            if p.get("pattern_id") == situation_id or p.get("situation") == situation_id:
+                days_ago = p.get("days_ago", 999)
+                if days_ago <= 3:
+                    winner_candidate.times_shown_72h += 1
+                if days_ago <= 7:
+                    winner_candidate.times_shown_7d += 1
+    
+    debug_output = generate_debug_output([winner_candidate], daily_profile, winner_candidate)
+    
+    # =================================================================
+    # STEP 9: Build response
+    # =================================================================
+    
+    # V6 LEGACY FIELDS
     core_line = message.get("core_line", "")
     reinforcement = message.get("reinforcement", "")
     pressure = message.get("pressure", "")
@@ -1406,7 +1538,7 @@ def generate_home_message(
     cta = message.get("cta", "")
     
     return {
-        # V7 SINGLE FLOW (Primary)
+        # V7 SINGLE FLOW (Primary) - now with freshness
         "flow": flow,
         
         # V6 LEGACY FIELDS
@@ -1441,6 +1573,16 @@ def generate_home_message(
         "recurrence_count": profile.pattern_recurrence_count,
         "live_issue_summary": profile.live_issue_summary,
         
+        # ============================================
+        # V2 DAILY DIFFERENTIATION (NEW)
+        # ============================================
+        "why_today": daily_profile.why_today.value if daily_profile.why_today else None,
+        "why_today_phrase": daily_profile.why_today_phrase,
+        "daily_intensity": round(daily_profile.daily_intensity, 2),
+        "anti_repetition_applied": anti_repetition_applied,
+        "life_arena": life_arena_key,
+        "life_arena_phrase": life_arena_phrase,
+        
         # Metadata
         "situation": situation.value,
         "confidence": confidence,
@@ -1449,7 +1591,7 @@ def generate_home_message(
         "core_tension": profile.strongest_tension.value,
         "stakes_level": profile.stakes_level,
         
-        # Debug (for verification)
+        # Debug (for verification) - ENHANCED
         "debug": {
             "action_pressure": round(profile.action_pressure, 2),
             "clarity_delay": round(profile.clarity_delay, 2),
@@ -1464,6 +1606,8 @@ def generate_home_message(
             "has_pattern_recurrence": profile.has_pattern_recurrence,
             "anchor_line": profile.anchor_line,
             "recognition_line": profile.recognition_line,
+            # V2 Daily Differentiation Debug
+            "daily_differentiation": debug_output,
         },
     }
 

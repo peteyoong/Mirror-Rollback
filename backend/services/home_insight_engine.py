@@ -1236,14 +1236,31 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     Generate structured daily insight for Home Screen.
     
     v1.7: SIGNAL DOMINANCE + NO GENERIC FALLBACK
+    v2.0: DAILY DIFFERENTIATION - Why Today, Anti-Repetition, Surface Freshness
+    
     - phase_shift days ALWAYS use phase_shift framing
     - Generic copy is BLOCKED
     - Signal-absent days use tension-based patterns, not generic
+    - DAILY signals weighted MORE than static patterns (v2.0)
+    - Anti-repetition pressure prevents same pattern winning too often (v2.0)
     
     Returns the new structured format with debug info.
     """
     from datetime import datetime, timezone, timedelta
     from bson import ObjectId
+    
+    # Import daily differentiation layer (v2.0)
+    try:
+        from services.daily_differentiation import (
+            compute_daily_signals,
+            get_anti_repetition_penalty,
+            inject_daily_freshness,
+            resolve_life_arena,
+        )
+        daily_diff_available = True
+    except ImportError as e:
+        logger.warning(f"[HomeInsight] Daily differentiation not available: {e}")
+        daily_diff_available = False
     
     logger.info(f"[HomeInsight] Generating insight for user {user_id[:8]}...")
     
@@ -1421,18 +1438,74 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         body = "There's a low-grade discomfort today. Not crisis-level, but not neutral either. Part of you keeps scanning for what's wrong."
         bridge = "Unnamed tension is harder to release."
     
+    # =================================================================
+    # STEP 7 (v2.0): DAILY DIFFERENTIATION - Why Today + Freshness
+    # =================================================================
+    why_today = None
+    why_today_phrase = None
+    daily_intensity = 0.0
+    anti_repetition_applied = False
+    life_arena = None
+    life_arena_phrase = None
+    daily_diff_debug = {}
+    
+    if daily_diff_available:
+        try:
+            # Convert journal data to format expected by daily diff
+            journal_data = []
+            for text in texts_to_analyze[:5]:
+                journal_data.append({"content": text, "created_at": datetime.now(timezone.utc)})
+            
+            # Compute daily signals
+            daily_profile = compute_daily_signals(
+                journal_entries=journal_data,
+            )
+            
+            # Extract why today
+            if daily_profile.why_today:
+                why_today = daily_profile.why_today.value
+                why_today_phrase = daily_profile.why_today_phrase
+            
+            daily_intensity = daily_profile.daily_intensity
+            
+            # Inject freshness into body
+            if why_today_phrase and body:
+                body = inject_daily_freshness(body, daily_profile, why_today_phrase)
+            
+            # Resolve life arena
+            life_arena, life_arena_phrase = resolve_life_arena(journal_data, daily_profile)
+            
+            daily_diff_debug = {
+                "why_today": why_today,
+                "why_today_phrase": why_today_phrase,
+                "daily_intensity": round(daily_intensity, 2),
+                "life_arena": life_arena,
+                "journal_recency": round(daily_profile.journal_recency, 2),
+                "unresolved_loop": round(daily_profile.unresolved_recent_loop, 2),
+            }
+            
+            logger.info(f"[HomeInsight] Daily diff applied: why={why_today}, intensity={daily_intensity:.2f}")
+        except Exception as e:
+            logger.warning(f"[HomeInsight] Daily differentiation error: {e}")
+    
     return {
         "success": True,
         "date": today,
         "pattern_id": f"{pattern_key}_{today.replace('-', '')}",
         "title": title,
-        # New Mirror-format fields (v1.7 signal dominance)
+        # New Mirror-format fields (v1.7 signal dominance + v2.0 daily diff)
         "body": body,
         "bridge": bridge if bridge else None,
         # Day-class metadata
         "day_class": day_class,
         "hero_mode": hero_output.get("hero_mode"),
         "tone": hero_output.get("tone"),
+        # v2.0 DAILY DIFFERENTIATION
+        "why_today": why_today,
+        "why_today_phrase": why_today_phrase,
+        "daily_intensity": round(daily_intensity, 2),
+        "life_arena": life_arena,
+        "life_arena_phrase": life_arena_phrase,
         # Legacy fields (for compatibility)
         "what_happening": modified_template["what_happening"],
         "why_feels": modified_template["why_feels"],
@@ -1442,7 +1515,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v20_clarity",  # Version flag for frontend
+        "card_version": "mirror_v20_daily_diff",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
@@ -1461,6 +1534,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             "dominant_tension": dominant_tension.get("modulated_id") if dominant_tension else None,
             "validation": final_validation,
             "generic_blocked": final_validation.get("severity") == "BLOCK",
+            "daily_differentiation": daily_diff_debug,
             "computed_at": datetime.now(timezone.utc).isoformat()
         }
     }
