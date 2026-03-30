@@ -95,8 +95,117 @@ CAPTURE_THRESHOLD = 15      # > 15 seconds OR any interaction = captured
 
 
 # =============================================================================
+# V1.2: RECENT ACTION TYPES (for Behavior Echo)
+# =============================================================================
+
+class RecentActionType(Enum):
+    """Types of recent user actions that can be echoed."""
+    OPENED_HOME = "opened_home"
+    ENTERED_CHAT = "entered_chat"
+    CHAT_NO_SEND = "chat_no_send"           # Opened chat but didn't send
+    CHAT_SENT = "chat_sent"                  # Opened chat and sent message
+    OPENED_LENS = "opened_lens"
+    LENS_EXIT_FAST = "lens_exit_fast"        # Opened lens, left quickly
+    EXITED_QUICKLY = "exited_quickly"        # Bounced from home
+    REPEAT_OPEN = "repeat_open"              # Opened home again within short time
+    PARTIAL_INTERACTION = "partial_interaction"  # Started but didn't complete
+    SCROLLED_PAST = "scrolled_past"          # Saw content, scrolled away
+    RETURNED_SAME_DAY = "returned_same_day"  # Came back same day
+
+
+# =============================================================================
+# V1.2: BEHAVIOR ECHO TEMPLATES (Real Action -> First Line)
+# =============================================================================
+# These are based on ACTUAL recent actions, not generic snaps
+
+BEHAVIOR_ECHOES = {
+    RecentActionType.CHAT_NO_SEND: [
+        "You opened it — then didn't say it.",
+        "You started to type — then stopped.",
+        "You went to say something — didn't.",
+        "You opened the chat — then closed it.",
+    ],
+    RecentActionType.CHAT_SENT: [
+        "You said something.",
+        "You put it into words.",
+        "You started talking about it.",
+        "You opened that up.",
+    ],
+    RecentActionType.LENS_EXIT_FAST: [
+        "You looked — then left it.",
+        "You opened it — then backed out.",
+        "You glanced — then moved on.",
+        "You checked — then closed it.",
+    ],
+    RecentActionType.OPENED_LENS: [
+        "You went deeper.",
+        "You looked into it.",
+        "You wanted to understand.",
+        "You opened this up.",
+    ],
+    RecentActionType.EXITED_QUICKLY: [
+        "You saw it — and closed it.",
+        "You opened this — then left.",
+        "You came — then went.",
+        "You looked away.",
+    ],
+    RecentActionType.REPEAT_OPEN: [
+        "You came back to this again.",
+        "You're here again.",
+        "You returned to this.",
+        "You opened this again.",
+    ],
+    RecentActionType.PARTIAL_INTERACTION: [
+        "You started — then stopped.",
+        "You almost did something — didn't.",
+        "You began — then paused.",
+        "You moved toward it — then back.",
+    ],
+    RecentActionType.SCROLLED_PAST: [
+        "You scrolled past it.",
+        "You saw it — kept going.",
+        "You noticed — then moved on.",
+        "You passed it by.",
+    ],
+    RecentActionType.RETURNED_SAME_DAY: [
+        "You came back.",
+        "You're here again today.",
+        "You returned to this.",
+        "Back again.",
+    ],
+    RecentActionType.OPENED_HOME: [
+        "You're checking in.",
+        "You opened this.",
+        "You came here.",
+        "You're looking.",
+    ],
+    RecentActionType.ENTERED_CHAT: [
+        "You went to talk.",
+        "You opened the conversation.",
+        "You wanted to say something.",
+        "You went to Mirror.",
+    ],
+}
+
+
+# =============================================================================
 # SESSION DATA MODEL
 # =============================================================================
+
+@dataclass
+class RecentAction:
+    """A single recent user action."""
+    action_type: RecentActionType
+    timestamp: datetime
+    details: Dict[str, Any] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "action_type": self.action_type.value,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "details": self.details,
+        }
+
 
 @dataclass
 class HomeEngagementSession:
@@ -113,6 +222,11 @@ class HomeEngagementSession:
     entered_lens: bool = False
     entered_chat: bool = False
     closed_from_home: bool = False
+    
+    # V1.2: Recent action tracking
+    chat_message_sent: bool = False
+    lens_time: float = 0.0  # seconds in lens
+    scroll_depth: float = 0.0  # 0-1, how far scrolled
     
     # Derived state
     engagement_state: EngagementState = EngagementState.UNKNOWN
@@ -132,6 +246,9 @@ class HomeEngagementSession:
             "entered_lens": self.entered_lens,
             "entered_chat": self.entered_chat,
             "closed_from_home": self.closed_from_home,
+            "chat_message_sent": self.chat_message_sent,
+            "lens_time": self.lens_time,
+            "scroll_depth": self.scroll_depth,
             "engagement_state": self.engagement_state.value,
             "pattern_shown": self.pattern_shown,
             "behavior_snap_shown": self.behavior_snap_shown,
@@ -562,6 +679,269 @@ def adapt_body_text(
         return body
     
     return body
+
+
+# =============================================================================
+# V1.2: RECENT ACTION TRACKING
+# =============================================================================
+
+async def track_recent_action(
+    db,
+    user_id: str,
+    action_type: RecentActionType,
+    details: Dict[str, Any] = None,
+) -> bool:
+    """
+    Track a recent user action for behavior echo.
+    Stores last 3 actions per user.
+    """
+    try:
+        collection = db["user_recent_actions"]
+        
+        action = RecentAction(
+            action_type=action_type,
+            timestamp=datetime.now(timezone.utc),
+            details=details or {},
+        )
+        
+        # Get existing actions
+        doc = await collection.find_one({"user_id": user_id})
+        
+        if doc:
+            actions = doc.get("actions", [])
+        else:
+            actions = []
+        
+        # Add new action at the beginning
+        actions.insert(0, action.to_dict())
+        
+        # Keep only last 3
+        actions = actions[:3]
+        
+        # Upsert
+        await collection.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    "actions": actions,
+                    "last_action_at": datetime.now(timezone.utc),
+                }
+            },
+            upsert=True
+        )
+        
+        logger.info(f"[RecentAction] Tracked {action_type.value} for user {user_id[:8]}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"[RecentAction] Error tracking action: {e}")
+        return False
+
+
+async def get_recent_actions(
+    db,
+    user_id: str,
+    limit: int = 3,
+) -> List[Dict[str, Any]]:
+    """
+    Get recent actions for a user.
+    """
+    try:
+        collection = db["user_recent_actions"]
+        
+        doc = await collection.find_one({"user_id": user_id})
+        
+        if not doc:
+            return []
+        
+        actions = doc.get("actions", [])
+        return actions[:limit]
+        
+    except Exception as e:
+        logger.error(f"[RecentAction] Error getting actions: {e}")
+        return []
+
+
+def derive_action_from_event(
+    event_type: str,
+    time_on_home: float = 0,
+    entered_chat: bool = False,
+    chat_message_sent: bool = False,
+    entered_lens: bool = False,
+    lens_time: float = 0,
+    previous_actions: List[Dict] = None,
+) -> Optional[RecentActionType]:
+    """
+    Derive the most specific action type from event data.
+    
+    Priority:
+    1. Chat with/without send
+    2. Lens fast exit
+    3. Repeat open (if came back)
+    4. Quick bounce
+    5. General interaction
+    """
+    # Check for repeat open (within 30 minutes)
+    if previous_actions:
+        for prev in previous_actions[:2]:
+            prev_time = prev.get("timestamp")
+            if prev_time:
+                try:
+                    if isinstance(prev_time, str):
+                        prev_time = datetime.fromisoformat(prev_time.replace("Z", "+00:00"))
+                    minutes_ago = (datetime.now(timezone.utc) - prev_time).total_seconds() / 60
+                    if minutes_ago < 30:
+                        return RecentActionType.REPEAT_OPEN
+                except Exception:
+                    pass
+    
+    # Chat actions (most specific)
+    if entered_chat:
+        if chat_message_sent:
+            return RecentActionType.CHAT_SENT
+        else:
+            return RecentActionType.CHAT_NO_SEND
+    
+    # Lens actions
+    if entered_lens:
+        if lens_time < 5:
+            return RecentActionType.LENS_EXIT_FAST
+        else:
+            return RecentActionType.OPENED_LENS
+    
+    # Time-based actions
+    if event_type == "close":
+        if time_on_home < BOUNCE_THRESHOLD:
+            return RecentActionType.EXITED_QUICKLY
+        elif time_on_home < SKIM_THRESHOLD:
+            return RecentActionType.SCROLLED_PAST
+    
+    # Default
+    if event_type == "open":
+        return RecentActionType.OPENED_HOME
+    
+    return None
+
+
+# =============================================================================
+# V1.2: BEHAVIOR ECHO GENERATION
+# =============================================================================
+
+def generate_behavior_echo(
+    recent_actions: List[Dict[str, Any]],
+    pattern_id: str = None,
+) -> Optional[str]:
+    """
+    V1.2: Generate behavior echo from REAL recent actions.
+    
+    Priority: Use most recent action that has high-specificity echo.
+    
+    Returns:
+        Behavior echo string, or None if no suitable action found.
+    """
+    if not recent_actions:
+        return None
+    
+    # Priority order for echo generation
+    PRIORITY_ORDER = [
+        RecentActionType.CHAT_NO_SEND,      # Highest - they almost said something
+        RecentActionType.REPEAT_OPEN,       # They came back
+        RecentActionType.LENS_EXIT_FAST,    # They looked and left
+        RecentActionType.EXITED_QUICKLY,    # They bounced
+        RecentActionType.CHAT_SENT,         # They engaged
+        RecentActionType.SCROLLED_PAST,     # They skimmed
+        RecentActionType.OPENED_LENS,       # They explored
+        RecentActionType.RETURNED_SAME_DAY, # They returned
+        RecentActionType.PARTIAL_INTERACTION,
+        RecentActionType.OPENED_HOME,       # Lowest - just opened
+        RecentActionType.ENTERED_CHAT,
+    ]
+    
+    day_of_year = datetime.now().timetuple().tm_yday
+    hash_seed = hash(pattern_id or "") if pattern_id else 0
+    
+    # Find best action by priority
+    best_action = None
+    best_priority = len(PRIORITY_ORDER)
+    
+    for action in recent_actions[:3]:
+        action_type_str = action.get("action_type")
+        if not action_type_str:
+            continue
+        
+        try:
+            action_type = RecentActionType(action_type_str)
+        except ValueError:
+            continue
+        
+        # Check if this action is within recency window (6 hours)
+        timestamp = action.get("timestamp")
+        if timestamp:
+            try:
+                if isinstance(timestamp, str):
+                    timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                hours_ago = (datetime.now(timezone.utc) - timestamp).total_seconds() / 3600
+                if hours_ago > 6:
+                    continue  # Too old
+            except Exception:
+                pass
+        
+        # Check priority
+        try:
+            priority = PRIORITY_ORDER.index(action_type)
+            if priority < best_priority:
+                best_priority = priority
+                best_action = action_type
+        except ValueError:
+            pass
+    
+    if not best_action:
+        return None
+    
+    # Get echo for this action
+    echoes = BEHAVIOR_ECHOES.get(best_action)
+    if not echoes:
+        return None
+    
+    echo = echoes[(day_of_year + hash_seed) % len(echoes)]
+    
+    logger.info(f"[BehaviorEcho] Generated echo for {best_action.value}: '{echo}'")
+    
+    return echo
+
+
+def get_behavior_echo_or_snap(
+    recent_actions: List[Dict[str, Any]],
+    base_snap: str,
+    life_arena: str,
+    adaptation_mode: AdaptationMode,
+    pattern_id: str = None,
+) -> Tuple[str, str]:
+    """
+    V1.2: Get behavior echo if available, otherwise fall back to behavior snap.
+    
+    ECHO takes priority over SNAP when available.
+    
+    Returns:
+        (first_line, source) where source is "echo" or "snap"
+    """
+    # Try to generate echo from recent actions
+    echo = generate_behavior_echo(recent_actions, pattern_id)
+    
+    if echo:
+        # Validate echo is not generic
+        if not is_generic_opener(echo):
+            return echo, "echo"
+    
+    # Fall back to adapted behavior snap
+    snap = get_adapted_behavior_snap(
+        base_snap,
+        life_arena,
+        adaptation_mode,
+        pattern_id,
+    )
+    
+    return snap, "snap"
 
 
 # =============================================================================

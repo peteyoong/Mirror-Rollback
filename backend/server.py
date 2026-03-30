@@ -28492,11 +28492,15 @@ class EngagementEventRequest(BaseModel):
     """Request model for engagement tracking."""
     user_id: str
     session_id: str
-    event_type: str  # "open", "interact", "enter_lens", "enter_chat", "close"
+    event_type: str  # "open", "interact", "enter_lens", "enter_chat", "close", "chat_send"
     time_on_home: Optional[float] = None
     pattern_shown: Optional[str] = None
     behavior_snap_shown: Optional[str] = None
     life_arena_shown: Optional[str] = None
+    # V1.2: Additional tracking fields
+    chat_message_sent: Optional[bool] = False
+    lens_time: Optional[float] = None
+    scroll_depth: Optional[float] = None
 
 
 @api_router.post("/engagement/track")
@@ -28509,6 +28513,7 @@ async def track_engagement_event(request: EngagementEventRequest):
     - interact: User interacted with home content
     - enter_lens: User entered a lens from home
     - enter_chat: User entered chat from home
+    - chat_send: User sent a message in chat
     - close: User closed/left home screen
     """
     try:
@@ -28518,10 +28523,18 @@ async def track_engagement_event(request: EngagementEventRequest):
             save_engagement_session,
             update_last_engagement,
             EngagementState,
+            # V1.2: Recent action tracking
+            track_recent_action,
+            get_recent_actions,
+            derive_action_from_event,
+            RecentActionType,
         )
         from datetime import datetime, timezone
         
         logger.info(f"[Engagement] Event: {request.event_type} for user {request.user_id[:8]}")
+        
+        # V1.2: Get previous actions for repeat detection
+        previous_actions = await get_recent_actions(db, request.user_id, limit=3)
         
         # For close event, derive engagement state and save
         if request.event_type == "close":
@@ -28533,6 +28546,23 @@ async def track_engagement_event(request: EngagementEventRequest):
                 entered_chat=False,
             )
             
+            # V1.2: Derive and track recent action
+            action_type = derive_action_from_event(
+                event_type="close",
+                time_on_home=request.time_on_home or 0,
+                entered_chat=False,
+                chat_message_sent=request.chat_message_sent or False,
+                entered_lens=False,
+                lens_time=request.lens_time or 0,
+                previous_actions=previous_actions,
+            )
+            
+            if action_type:
+                await track_recent_action(db, request.user_id, action_type, {
+                    "time_on_home": request.time_on_home,
+                    "pattern_shown": request.pattern_shown,
+                })
+            
             # Create session record
             session = HomeEngagementSession(
                 user_id=request.user_id,
@@ -28543,6 +28573,9 @@ async def track_engagement_event(request: EngagementEventRequest):
                 entered_lens=False,
                 entered_chat=False,
                 closed_from_home=True,
+                chat_message_sent=request.chat_message_sent or False,
+                lens_time=request.lens_time or 0,
+                scroll_depth=request.scroll_depth or 0,
                 engagement_state=engagement_state,
                 pattern_shown=request.pattern_shown,
                 behavior_snap_shown=request.behavior_snap_shown,
@@ -28566,11 +28599,78 @@ async def track_engagement_event(request: EngagementEventRequest):
                 "success": True,
                 "engagement_state": engagement_state.value,
                 "time_on_home": request.time_on_home,
+                "action_tracked": action_type.value if action_type else None,
             }
         
-        # For interaction events, just update the state
-        elif request.event_type in ["interact", "enter_lens", "enter_chat"]:
-            # These interactions mean captured
+        # V1.2: Track chat send event
+        elif request.event_type == "chat_send":
+            await track_recent_action(db, request.user_id, RecentActionType.CHAT_SENT, {
+                "pattern_shown": request.pattern_shown,
+            })
+            
+            await update_last_engagement(
+                db,
+                request.user_id,
+                EngagementState.CAPTURED,
+                request.pattern_shown,
+                request.behavior_snap_shown,
+                request.life_arena_shown,
+            )
+            
+            return {
+                "success": True,
+                "engagement_state": "captured",
+                "event": "chat_send",
+                "action_tracked": "chat_sent",
+            }
+        
+        # For interaction events, update state and track action
+        elif request.event_type == "enter_chat":
+            # Track chat entry (will update to chat_sent if they send)
+            await track_recent_action(db, request.user_id, RecentActionType.ENTERED_CHAT, {
+                "pattern_shown": request.pattern_shown,
+            })
+            
+            await update_last_engagement(
+                db,
+                request.user_id,
+                EngagementState.CAPTURED,
+                request.pattern_shown,
+                request.behavior_snap_shown,
+                request.life_arena_shown,
+            )
+            
+            return {
+                "success": True,
+                "engagement_state": "captured",
+                "event": request.event_type,
+                "action_tracked": "entered_chat",
+            }
+        
+        elif request.event_type == "enter_lens":
+            # Track lens entry
+            await track_recent_action(db, request.user_id, RecentActionType.OPENED_LENS, {
+                "pattern_shown": request.pattern_shown,
+                "lens_time": request.lens_time,
+            })
+            
+            await update_last_engagement(
+                db,
+                request.user_id,
+                EngagementState.CAPTURED,
+                request.pattern_shown,
+                request.behavior_snap_shown,
+                request.life_arena_shown,
+            )
+            
+            return {
+                "success": True,
+                "engagement_state": "captured",
+                "event": request.event_type,
+                "action_tracked": "opened_lens",
+            }
+        
+        elif request.event_type == "interact":
             await update_last_engagement(
                 db,
                 request.user_id,
@@ -28586,12 +28686,15 @@ async def track_engagement_event(request: EngagementEventRequest):
                 "event": request.event_type,
             }
         
-        # For open event, just acknowledge
+        # For open event, track and acknowledge
         elif request.event_type == "open":
+            await track_recent_action(db, request.user_id, RecentActionType.OPENED_HOME, {})
+            
             return {
                 "success": True,
                 "event": "open",
                 "session_id": request.session_id,
+                "action_tracked": "opened_home",
             }
         
         return {"success": True, "event": request.event_type}
