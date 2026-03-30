@@ -21,6 +21,8 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, LayoutAnim
 import { useRouter } from 'expo-router';
 import { getPatternDiagnosis, PatternDiagnosisResponse } from '../services/api';
 import { useExperienceControls } from '../hooks/useExperienceControls';
+import { useAdaptationCues, logAdaptationCues, AdaptationResponse } from '../hooks/useAdaptationCues';
+import { trackHomeChatTap, updateTrackingContext } from '../services/actionTracking';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -48,6 +50,29 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   // INTERACTION LOOP STATE (FIX 2)
   const [interactionStep, setInteractionStep] = useState<'initial' | 'yes_followup' | 'no_followup' | 'complete'>('initial');
   const [interactionResponse, setInteractionResponse] = useState<string | null>(null);
+  
+  // ADAPTATION CUES - Subtle visual changes based on engagement
+  const adaptationResponse: AdaptationResponse = {
+    adaptation_mode: diagnosis?.full_diagnosis?.home?.adaptation_mode || null,
+    first_line_source: diagnosis?.full_diagnosis?.home?.first_line_source || null,
+    behavior_snap: diagnosis?.full_diagnosis?.home?.behavior_snap || null,
+    engagement_state: diagnosis?.full_diagnosis?.home?.engagement_state || null,
+  };
+  const adaptationCues = useAdaptationCues(adaptationResponse);
+  
+  // Log adaptation cues in dev
+  useEffect(() => {
+    if (diagnosis && adaptationCues) {
+      logAdaptationCues(adaptationCues);
+      
+      // Update tracking context with current pattern info
+      updateTrackingContext({
+        patternShown: diagnosis.pattern_id,
+        behaviorSnapShown: adaptationResponse.behavior_snap || undefined,
+        lifeArenaShown: diagnosis?.full_diagnosis?.home?.life_arena || undefined,
+      });
+    }
+  }, [diagnosis, adaptationCues]);
 
   useEffect(() => {
     if (!userId) {

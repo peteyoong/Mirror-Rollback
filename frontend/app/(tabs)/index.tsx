@@ -10,10 +10,12 @@ import {
   Pressable,
   Platform,
   Modal,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme, ThemeMode } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 import { useAppStore } from '../../store';
@@ -26,6 +28,15 @@ import TodayPatternCard from '../../components/TodayPatternCard';
 import ActionCard from '../../components/ActionCard';
 import { useExperienceControls } from '../../hooks/useExperienceControls';
 import { HOME_LAYOUT, MirrorMode } from '../../types/mirror-profile';
+// Action Tracking for Engagement Adaptation
+import ActionTracking, { 
+  trackHomeOpen, 
+  trackHomeClose,
+  trackHomeChatTap,
+  trackHomeLensTap,
+  trackHomeReflectTap,
+  updateTrackingContext,
+} from '../../services/actionTracking';
 // PatternCard (Pattern Mirror) TEMPORARILY REMOVED - will reintroduce after signal-based engine upgrade
 // InlineSignalsCard REMOVED - Signals now live only inside TodayPatternCard + dedicated Signals page
 
@@ -93,6 +104,50 @@ export default function MirrorScreen() {
   
   // Settings modal
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  
+  // App state tracking for engagement
+  const appState = useRef(AppState.currentState);
+
+  // =================================================================
+  // ACTION TRACKING - Track home screen engagement
+  // =================================================================
+  
+  // Track home open when screen focuses
+  useFocusEffect(
+    useCallback(() => {
+      // Track home open
+      trackHomeOpen().catch(console.error);
+      
+      return () => {
+        // Track home close when leaving
+        trackHomeClose().catch(console.error);
+      };
+    }, [])
+  );
+  
+  // Track app state changes (background/foreground)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) && 
+        nextAppState === 'active'
+      ) {
+        // App came to foreground - track as home open
+        trackHomeOpen().catch(console.error);
+      } else if (
+        appState.current === 'active' && 
+        nextAppState.match(/inactive|background/)
+      ) {
+        // App went to background - track as home close
+        trackHomeClose().catch(console.error);
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // Handler for logout action sheet
   const handleUserPress = () => {
@@ -251,6 +306,8 @@ export default function MirrorScreen() {
 
   // Navigate to reflection chat
   const handleReflect = useCallback(() => {
+    // Track reflect tap
+    trackHomeReflectTap().catch(console.error);
     router.push('/reflection-chat');
   }, [router]);
 

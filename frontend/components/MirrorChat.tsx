@@ -23,6 +23,8 @@ import { storage, CHAT_SESSION_KEYS } from '../store';
 import MirrorLeaderCard from './journal/MirrorLeaderCard';
 import { useDominantTruthForChat } from '../hooks/useDominantTruth';
 import { buildMirrorResponse, getAskMirrorContext, getAskMirrorOpener } from '../services/mirrorResponseEngine';
+// Action Tracking for Engagement Adaptation
+import { trackChatEnter, trackChatSend, trackChatClose } from '../services/actionTracking';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -513,6 +515,9 @@ export default function MirrorChat({
 
   const handleSend = async () => {
     if (!inputText.trim() || isLoading || !sessionId) return;
+
+    // Track chat send event for engagement adaptation
+    trackChatSend().catch(console.error);
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
