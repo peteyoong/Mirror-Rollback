@@ -57,22 +57,22 @@ const TONE_OPTIONS: PreferenceOption[] = [
   { 
     value: 'direct', 
     label: 'Direct', 
-    preview: 'You already know what's off here.' 
+    preview: "You already know what's off here." 
   },
   { 
     value: 'calm', 
     label: 'Calm', 
-    preview: 'Take a breath. Something here still doesn't feel settled.' 
+    preview: "Take a breath. Something here still doesn't feel settled." 
   },
   { 
     value: 'grounded', 
     label: 'Grounded', 
-    preview: 'This isn't ready yet. Slow it down.' 
+    preview: "This isn't ready yet. Slow it down." 
   },
   { 
     value: 'confronting', 
     label: 'Confronting', 
-    preview: 'You're about to do the thing that keeps costing you.' 
+    preview: "You're about to do the thing that keeps costing you." 
   },
 ];
 
@@ -80,7 +80,7 @@ const SUPPORT_OPTIONS: PreferenceOption[] = [
   { 
     value: 'interrupt', 
     label: 'Interrupt me', 
-    preview: 'Catch the pattern quickly. Don't let me loop.' 
+    preview: "Catch the pattern quickly. Don't let me loop." 
   },
   { 
     value: 'work_with', 
@@ -392,7 +392,7 @@ export default function ExperiencePreferences() {
           You can change this anytime.
         </Text>
         <Text style={[styles.footerSubtle, { color: theme.textTertiary }]}>
-          This changes tone and depth — not the truth.
+          This changes tone and depth - not the truth.
         </Text>
 
         <View style={styles.bottomPadding} />

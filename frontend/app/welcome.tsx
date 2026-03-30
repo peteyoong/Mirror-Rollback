@@ -235,8 +235,13 @@ export default function Welcome() {
     <SafeAreaView style={[styles.container, { backgroundColor: darkTheme.background }]}>
       <StatusBar style="light" />
       
-      {/* TEMPORARY CONFIRMATION MARKER */}
-      <Text style={styles.confirmationMarker}>FINAL CLEAN WELCOME</Text>
+      {/* GIANT DEBUG MARKERS - IMPOSSIBLE TO MISS */}
+      <View style={styles.debugBanner}>
+        <Text style={styles.debugText}>🔴 EXPO STARTUP FILE = welcome.tsx</Text>
+        <Text style={styles.debugText}>🟢 ROUTE = /welcome</Text>
+        <Text style={styles.debugText}>🔵 BUILD_STAMP = 2026-02-20-1430</Text>
+        <Text style={styles.debugText}>⚡ REAL EXPO SCREEN</Text>
+      </View>
       
       <View style={styles.content}>
         {/* Brand - Framed wordmark with em-dash separators */}
@@ -329,12 +334,19 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   
-  // Temporary confirmation marker
-  confirmationMarker: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.3)',
+  // GIANT DEBUG BANNER - Force visibility
+  debugBanner: {
+    backgroundColor: '#FF0000',
+    padding: 12,
+    width: '100%',
+    marginTop: 8,
+  },
+  debugText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
     textAlign: 'center',
-    paddingTop: 8,
+    marginVertical: 2,
   },
   
   // Brand container - framed wordmark

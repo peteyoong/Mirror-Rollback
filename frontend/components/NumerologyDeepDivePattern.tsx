@@ -503,8 +503,6 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
           Explore this pattern
         </Text>
       </TouchableOpacity>
-        </Text>
-      </TouchableOpacity>
 
       {/* Positioning Footer */}
       <Text style={[styles.footer, { color: theme.textTertiary }]}>
