@@ -28483,6 +28483,189 @@ async def get_pattern_for_user(user_id: str, force_refresh: bool = False):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =====================================================================
+# ENGAGEMENT ADAPTATION LAYER (V1)
+# Track home engagement and adapt responses
+# =====================================================================
+
+class EngagementEventRequest(BaseModel):
+    """Request model for engagement tracking."""
+    user_id: str
+    session_id: str
+    event_type: str  # "open", "interact", "enter_lens", "enter_chat", "close"
+    time_on_home: Optional[float] = None
+    pattern_shown: Optional[str] = None
+    behavior_snap_shown: Optional[str] = None
+    life_arena_shown: Optional[str] = None
+
+
+@api_router.post("/engagement/track")
+async def track_engagement_event(request: EngagementEventRequest):
+    """
+    Track home engagement event.
+    
+    Events:
+    - open: User opened home screen
+    - interact: User interacted with home content
+    - enter_lens: User entered a lens from home
+    - enter_chat: User entered chat from home
+    - close: User closed/left home screen
+    """
+    try:
+        from services.engagement_adaptation import (
+            HomeEngagementSession,
+            derive_engagement_state,
+            save_engagement_session,
+            update_last_engagement,
+            EngagementState,
+        )
+        from datetime import datetime, timezone
+        
+        logger.info(f"[Engagement] Event: {request.event_type} for user {request.user_id[:8]}")
+        
+        # For close event, derive engagement state and save
+        if request.event_type == "close":
+            # Derive state
+            engagement_state = derive_engagement_state(
+                time_on_home=request.time_on_home or 0,
+                interacted=False,  # Will be tracked separately
+                entered_lens=False,
+                entered_chat=False,
+            )
+            
+            # Create session record
+            session = HomeEngagementSession(
+                user_id=request.user_id,
+                session_id=request.session_id,
+                opened_home=datetime.now(timezone.utc),
+                time_on_home=request.time_on_home or 0,
+                interacted=False,
+                entered_lens=False,
+                entered_chat=False,
+                closed_from_home=True,
+                engagement_state=engagement_state,
+                pattern_shown=request.pattern_shown,
+                behavior_snap_shown=request.behavior_snap_shown,
+                life_arena_shown=request.life_arena_shown,
+            )
+            
+            # Save session
+            await save_engagement_session(db, session)
+            
+            # Update user's last engagement
+            await update_last_engagement(
+                db,
+                request.user_id,
+                engagement_state,
+                request.pattern_shown,
+                request.behavior_snap_shown,
+                request.life_arena_shown,
+            )
+            
+            return {
+                "success": True,
+                "engagement_state": engagement_state.value,
+                "time_on_home": request.time_on_home,
+            }
+        
+        # For interaction events, just update the state
+        elif request.event_type in ["interact", "enter_lens", "enter_chat"]:
+            # These interactions mean captured
+            await update_last_engagement(
+                db,
+                request.user_id,
+                EngagementState.CAPTURED,
+                request.pattern_shown,
+                request.behavior_snap_shown,
+                request.life_arena_shown,
+            )
+            
+            return {
+                "success": True,
+                "engagement_state": "captured",
+                "event": request.event_type,
+            }
+        
+        # For open event, just acknowledge
+        elif request.event_type == "open":
+            return {
+                "success": True,
+                "event": "open",
+                "session_id": request.session_id,
+            }
+        
+        return {"success": True, "event": request.event_type}
+        
+    except Exception as e:
+        logger.error(f"[Engagement] Error tracking event: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/engagement/state/{user_id}")
+async def get_engagement_state(user_id: str):
+    """
+    Get user's current engagement state and adaptation mode.
+    """
+    try:
+        from services.engagement_adaptation import (
+            get_last_engagement,
+            get_adaptation_mode,
+            compute_adaptation_modifiers,
+        )
+        
+        last_eng = await get_last_engagement(db, user_id)
+        
+        adaptation_mode = get_adaptation_mode(
+            last_eng["engagement_state"],
+            last_eng["consecutive_bounces"],
+            last_eng["consecutive_skims"],
+        )
+        
+        modifiers = compute_adaptation_modifiers(
+            adaptation_mode,
+            last_eng["consecutive_bounces"],
+            last_eng["consecutive_skims"],
+        )
+        
+        return {
+            "success": True,
+            "engagement_state": last_eng["engagement_state"].value,
+            "adaptation_mode": adaptation_mode.value,
+            "consecutive_bounces": last_eng["consecutive_bounces"],
+            "consecutive_skims": last_eng["consecutive_skims"],
+            "last_engagement_at": last_eng["last_engagement_at"].isoformat() if last_eng["last_engagement_at"] else None,
+            "last_pattern_shown": last_eng["last_pattern_shown"],
+            "modifiers": modifiers.to_dict(),
+        }
+        
+    except Exception as e:
+        logger.error(f"[Engagement] Error getting state: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/engagement/history/{user_id}")
+async def get_engagement_history(user_id: str, limit: int = 10):
+    """
+    Get user's recent engagement history.
+    """
+    try:
+        from services.engagement_adaptation import get_engagement_history as get_history
+        
+        history = await get_history(db, user_id, limit)
+        
+        return {
+            "success": True,
+            "history": history,
+            "count": len(history),
+        }
+        
+    except Exception as e:
+        logger.error(f"[Engagement] Error getting history: {e}")
+        return {"success": False, "error": str(e)}
+
+
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
 app.include_router(api_router)
 

@@ -1238,6 +1238,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     v1.7: SIGNAL DOMINANCE + NO GENERIC FALLBACK
     v2.0: DAILY DIFFERENTIATION - Why Today, Anti-Repetition, Surface Freshness
     v2.1: BEHAVIORAL SPECIFICITY - Behavior snaps, forced arena, first-line impact
+    v2.2: ENGAGEMENT ADAPTATION - Adapt based on how user responded last session
     
     - phase_shift days ALWAYS use phase_shift framing
     - Generic copy is BLOCKED
@@ -1246,6 +1247,9 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     - Anti-repetition pressure prevents same pattern winning too often (v2.0)
     - V2.1: First line is always a BEHAVIOR SNAP
     - V2.1: Life arena is FORCED (almost never null)
+    - V2.2: Bounced users get sharper hooks
+    - V2.2: Skimmed users get more tension
+    - V2.2: Captured users get continuity
     
     Returns the new structured format with debug info.
     """
@@ -1270,6 +1274,21 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     except ImportError as e:
         logger.warning(f"[HomeInsight] Daily differentiation not available: {e}")
         daily_diff_available = False
+    
+    # Import engagement adaptation layer (v2.2)
+    try:
+        from services.engagement_adaptation import (
+            get_last_engagement,
+            get_adaptation_mode,
+            compute_adaptation_modifiers,
+            get_adapted_behavior_snap,
+            adapt_body_text,
+            AdaptationMode,
+        )
+        engagement_available = True
+    except ImportError as e:
+        logger.warning(f"[HomeInsight] Engagement adaptation not available: {e}")
+        engagement_available = False
     
     logger.info(f"[HomeInsight] Generating insight for user {user_id[:8]}...")
     
@@ -1524,12 +1543,82 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             import traceback
             traceback.print_exc()
     
+    # =================================================================
+    # STEP 8 (V2.2): ENGAGEMENT ADAPTATION
+    # =================================================================
+    engagement_state = None
+    adaptation_mode = None
+    engagement_debug = {}
+    
+    if engagement_available:
+        try:
+            # Get last engagement state
+            last_eng = await get_last_engagement(db, user_id)
+            engagement_state = last_eng["engagement_state"].value
+            
+            # Get adaptation mode
+            adaptation_mode_enum = get_adaptation_mode(
+                last_eng["engagement_state"],
+                last_eng["consecutive_bounces"],
+                last_eng["consecutive_skims"],
+            )
+            adaptation_mode = adaptation_mode_enum.value
+            
+            # Get modifiers
+            modifiers = compute_adaptation_modifiers(
+                adaptation_mode_enum,
+                last_eng["consecutive_bounces"],
+                last_eng["consecutive_skims"],
+            )
+            
+            # Apply adaptation if not neutral
+            if adaptation_mode_enum != AdaptationMode.NEUTRAL:
+                # Adapt behavior snap
+                adapted_snap = get_adapted_behavior_snap(
+                    behavior_snap or "",
+                    life_arena or "internal_doubt",
+                    adaptation_mode_enum,
+                    pattern_key,
+                )
+                
+                # Adapt body
+                adapted_body = adapt_body_text(
+                    body,
+                    modifiers,
+                    adaptation_mode_enum,
+                )
+                
+                # Update if adapted snap is different
+                if adapted_snap and adapted_snap != behavior_snap:
+                    # Replace in body if present
+                    if behavior_snap and body and behavior_snap in body:
+                        adapted_body = adapted_body.replace(behavior_snap, adapted_snap, 1)
+                    behavior_snap = adapted_snap
+                
+                body = adapted_body
+                
+                logger.info(f"[HomeInsight] V2.2 Engagement: mode={adaptation_mode}, bounces={last_eng['consecutive_bounces']}")
+            
+            engagement_debug = {
+                "engagement_state": engagement_state,
+                "adaptation_mode": adaptation_mode,
+                "consecutive_bounces": last_eng["consecutive_bounces"],
+                "consecutive_skims": last_eng["consecutive_skims"],
+                "last_engagement_at": last_eng["last_engagement_at"].isoformat() if last_eng["last_engagement_at"] else None,
+                "modifiers": modifiers.to_dict() if adaptation_mode_enum != AdaptationMode.NEUTRAL else None,
+                "version": "v2.2_engagement",
+            }
+        except Exception as e:
+            logger.warning(f"[HomeInsight] Engagement adaptation error: {e}")
+            import traceback
+            traceback.print_exc()
+    
     return {
         "success": True,
         "date": today,
         "pattern_id": f"{pattern_key}_{today.replace('-', '')}",
         "title": title,
-        # V2.1: BEHAVIOR-FIRST BODY
+        # V2.1: BEHAVIOR-FIRST BODY (possibly adapted by V2.2)
         "body": body,
         "bridge": bridge if bridge else None,
         # Day-class metadata
@@ -1540,6 +1629,9 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "behavior_snap": behavior_snap,
         "life_arena": life_arena,
         "life_arena_phrase": life_arena_phrase,
+        # V2.2 ENGAGEMENT ADAPTATION
+        "engagement_state": engagement_state,
+        "adaptation_mode": adaptation_mode,
         # v2.0 DAILY DIFFERENTIATION (kept for backward compat)
         "why_today": why_today,
         "why_today_phrase": why_today_phrase,
@@ -1553,7 +1645,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v21_behavioral",  # Version flag for frontend
+        "card_version": "mirror_v22_engagement",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
@@ -1573,6 +1665,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             "validation": final_validation,
             "generic_blocked": final_validation.get("severity") == "BLOCK",
             "daily_differentiation": daily_diff_debug,
+            "engagement_adaptation": engagement_debug,
             "computed_at": datetime.now(timezone.utc).isoformat()
         }
     }
