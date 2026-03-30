@@ -1,21 +1,37 @@
 """
-Engagement Adaptation Layer for Mirror Home - V1
-=================================================
+Engagement Adaptation Layer for Mirror Home - V1.1 PERCEIVED ADAPTATION
+========================================================================
 
-PROBLEM: Mirror doesn't adapt based on whether user actually engaged.
-SOLUTION: Track engagement, derive state, adapt next Home output.
+PROBLEM: System adapts internally, but UI feels static.
+SOLUTION: Make adaptation FELT through first-line changes.
+
+V1.0: Track engagement, derive state, adapt output
+V1.1: PERCEIVED ADAPTATION - Users FEEL the system adapted
 
 ENGAGEMENT STATES:
 - captured: User interacted OR spent > threshold time
 - skimmed: Time > threshold but no interaction
 - bounced: Time < threshold AND no interaction
 
-ADAPTATION RULES:
-- IF bounced: Sharper hook, more concrete, less abstraction
-- IF skimmed: More tension, call out avoidance, less softness
-- IF captured: Continue thread, deepen, reference continuity
+PERCEIVED ADAPTATION RULES:
+- First line must ALWAYS change based on engagement
+- IF bounced: Sharper, more immediate, more concrete
+- IF skimmed: Call out avoidance clearly
+- IF captured: Continuity + deepening
+- NEVER explain adaptation explicitly
 
-NEVER explicitly reference engagement. Adjust implicitly.
+BANNED GENERIC OPENERS (V1.1):
+- "You're avoiding something you already know"
+- "You already know what's off here"
+- "This keeps coming back"
+- "There's something you're not facing"
+- "Something is off"
+
+FIRST LINE RULES (V1.1):
+- Must describe something user likely just did
+- Must be <= 12 words
+- Must use present or immediate past tense
+- Must be behavior-based, time-bound, specific
 """
 
 import logging
@@ -25,6 +41,27 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# BANNED GENERIC OPENERS (V1.1)
+# =============================================================================
+
+BANNED_OPENERS = [
+    "you're avoiding something you already know",
+    "you already know what's off here",
+    "this keeps coming back",
+    "there's something you're not facing",
+    "something is off",
+    "you know what you need to do",
+    "the answer is already there",
+    "you've been here before",
+    "this pattern is familiar",
+    "something feels unresolved",
+    "there's a tension",
+    "you're holding something back",
+    "you know what's true",
+]
 
 
 # =============================================================================
@@ -242,164 +279,180 @@ def compute_adaptation_modifiers(
 
 
 # =============================================================================
-# BEHAVIOR SNAP SHARPENERS
+# V1.1: PERCEIVED ADAPTATION BEHAVIOR SNAPS
 # =============================================================================
+# Rules:
+# - Must describe something user likely just did
+# - Must be <= 12 words
+# - Must use present or immediate past tense
+# - Must be behavior-based, time-bound, specific
 
-# Sharper behavior snaps for bounced users
-SHARPENED_BEHAVIOR_SNAPS = {
+# BOUNCED: Sharper, more immediate, more concrete
+# User barely looked - hit them with what they JUST did
+BOUNCED_BEHAVIOR_SNAPS = {
     "decision": [
-        "You avoided the decision again.",
-        "Still not locked in.",
-        "You looked away.",
-        "The choice is still there.",
+        "You paused — then moved past it again.",
+        "You almost decided — then didn't.",
+        "You saw the choice — and left.",
+        "You looked away from it.",
     ],
     "message": [
-        "You didn't send it.",
-        "Still unsent.",
-        "You closed the draft.",
-        "The message is waiting.",
+        "You almost sent it — then closed it.",
+        "You opened the draft — and left.",
+        "You typed something — then deleted.",
+        "You thought about saying it — didn't.",
     ],
     "follow_up": [
-        "You checked. Nothing.",
-        "Still waiting.",
-        "No response yet.",
-        "You refreshed again.",
+        "You checked — nothing changed.",
+        "You refreshed — same result.",
+        "You looked for the answer — not there.",
+        "You waited — then gave up.",
     ],
     "commitment": [
-        "You didn't commit.",
-        "Still open.",
-        "You hesitated again.",
-        "The yes didn't come.",
+        "You were about to lock in — then stopped.",
+        "You got close — then backed off.",
+        "You almost said yes — but didn't.",
+        "You hesitated — again.",
     ],
     "internal_doubt": [
-        "You second-guessed yourself.",
-        "The doubt won.",
-        "You backed off.",
-        "You questioned it again.",
+        "You paused — then moved past it.",
+        "You felt it — then ignored it.",
+        "You almost trusted yourself — then didn't.",
+        "You had the answer — then questioned it.",
     ],
     "relationship": [
-        "You didn't say it.",
-        "Still unsaid.",
-        "They don't know.",
-        "You held it back.",
+        "You almost said something — then didn't.",
+        "You thought about them — then let it go.",
+        "You started to reach out — then stopped.",
+        "You had the words — held them back.",
     ],
     "timing": [
-        "The moment passed.",
-        "You waited too long.",
-        "It's still not time.",
-        "You missed it.",
+        "The moment came — you let it pass.",
+        "You felt the window — didn't move.",
+        "You sensed it was time — ignored it.",
+        "The opening was there — you waited.",
     ],
     "execution": [
-        "You didn't do it.",
-        "Still not done.",
-        "You stopped.",
-        "It's still pending.",
+        "You were about to start — then didn't.",
+        "You opened it — then closed it.",
+        "You got ready — then stopped.",
+        "You almost did it — then paused.",
     ],
 }
 
-# Intensified behavior snaps for skimmed users
-INTENSIFIED_BEHAVIOR_SNAPS = {
+# SKIMMED: Call out avoidance clearly
+# User saw it but kept scrolling - acknowledge they saw it
+SKIMMED_BEHAVIOR_SNAPS = {
     "decision": [
-        "The decision isn't going away.",
-        "Avoiding it doesn't make it smaller.",
-        "It's still sitting there.",
-        "You know you can't skip this.",
+        "You saw it — and kept going anyway.",
+        "You noticed the choice — pushed past it.",
+        "You recognized it — then moved on.",
+        "You knew what needed deciding — skipped it.",
     ],
     "message": [
-        "The thing you need to say won't say itself.",
-        "Waiting isn't sending.",
-        "The silence is getting louder.",
-        "They can't read your mind.",
+        "You knew what to say — stayed quiet.",
+        "You saw the message — didn't respond.",
+        "You thought about sending it — scrolled past.",
+        "You noticed the silence — left it.",
     ],
     "follow_up": [
-        "Checking won't change the answer.",
-        "The response isn't coming faster.",
-        "The wait is the work.",
-        "Nothing to do but sit with it.",
+        "You checked — saw nothing — moved on.",
+        "You noticed the wait — didn't sit with it.",
+        "You saw the empty inbox — kept going.",
+        "You felt the limbo — pushed past.",
     ],
     "commitment": [
-        "Circling isn't committing.",
-        "The commitment is still pending.",
-        "You're delaying the lock-in.",
-        "Hesitation has a cost.",
+        "You saw the commitment — walked past it.",
+        "You noticed the open loop — left it open.",
+        "You recognized the hesitation — continued.",
+        "You felt the pull to decide — resisted.",
     ],
     "internal_doubt": [
-        "The doubt is getting louder.",
-        "You keep questioning instead of moving.",
-        "Overthinking isn't clarity.",
-        "The answer was there — you dismissed it.",
+        "You noticed the doubt — pushed through anyway.",
+        "You felt the uncertainty — ignored it.",
+        "You saw the question — didn't answer it.",
+        "You recognized the hesitation — kept moving.",
     ],
     "relationship": [
-        "The tension isn't resolving itself.",
-        "Silence isn't fixing it.",
-        "They're still waiting.",
-        "The distance is growing.",
+        "You thought about them — kept scrolling.",
+        "You noticed the tension — didn't address it.",
+        "You felt the distance — left it alone.",
+        "You saw what needed saying — stayed silent.",
     ],
     "timing": [
-        "The window is still open — but narrowing.",
-        "Waiting for perfect isn't working.",
-        "The right time doesn't announce itself.",
-        "You're running out of runway.",
+        "You felt the moment — let it slide.",
+        "You noticed the window — didn't go through.",
+        "You sensed the timing — kept waiting.",
+        "You saw the opportunity — passed on it.",
     ],
     "execution": [
-        "Planning isn't doing.",
-        "The task is still there.",
-        "Motion isn't progress.",
-        "You haven't started the real work.",
+        "You saw the task — scrolled past.",
+        "You noticed what needed doing — didn't do it.",
+        "You recognized the work — moved on.",
+        "You felt the push to act — resisted.",
     ],
 }
 
-# Deepening behavior snaps for captured users (continuity)
-DEEPENING_BEHAVIOR_SNAPS = {
+# CAPTURED: Continuity + deepening
+# User engaged yesterday - acknowledge they're back
+CAPTURED_BEHAVIOR_SNAPS = {
     "decision": [
-        "You're still weighing this.",
+        "You stayed with this.",
+        "You're still here — thinking.",
         "The decision is clearer now.",
-        "You're closer than yesterday.",
-        "The path is narrowing — that's good.",
+        "You're closer than before.",
     ],
     "message": [
-        "You know what you need to say.",
+        "You're still thinking about what to say.",
         "The words are forming.",
-        "You're almost ready to send it.",
-        "The conversation is coming.",
+        "You're getting ready to send it.",
+        "It's almost time.",
     ],
     "follow_up": [
-        "Still in the waiting.",
-        "The patience is working something.",
-        "You're learning to sit with uncertainty.",
-        "The answer will come when it comes.",
+        "You're still waiting — that's okay.",
+        "The patience is doing something.",
+        "You're learning to sit with this.",
+        "Still no answer — but you're here.",
     ],
     "commitment": [
         "You're circling closer.",
-        "The commitment is clarifying.",
-        "You're testing the yes.",
-        "Almost ready to lock in.",
+        "The yes is getting clearer.",
+        "You're almost ready to lock in.",
+        "The commitment is forming.",
     ],
     "internal_doubt": [
-        "The doubt is softer today.",
+        "The doubt is quieter today.",
         "You're finding ground.",
         "The questioning is slowing.",
-        "You're learning to trust yourself.",
+        "You're starting to trust it.",
     ],
     "relationship": [
-        "The dynamic is shifting.",
-        "Something is moving between you.",
-        "The tension has a direction now.",
-        "You're understanding them better.",
+        "You're still thinking about them.",
+        "Something is shifting between you.",
+        "The words are getting clearer.",
+        "You're getting ready to say it.",
     ],
     "timing": [
         "The timing is aligning.",
         "You're reading the moment better.",
         "Patience is doing its work.",
-        "The window is clearer.",
+        "The window is getting clearer.",
     ],
     "execution": [
-        "Progress is happening.",
         "You're in motion now.",
+        "Progress is happening — slowly.",
         "The work is building.",
-        "Momentum is forming.",
+        "You're closer than yesterday.",
     ],
 }
+
+
+def is_generic_opener(text: str) -> bool:
+    """Check if text starts with a banned generic opener."""
+    if not text:
+        return False
+    text_lower = text.lower().strip()
+    return any(text_lower.startswith(banned) for banned in BANNED_OPENERS)
 
 
 def get_adapted_behavior_snap(
@@ -409,32 +462,56 @@ def get_adapted_behavior_snap(
     pattern_id: str = None,
 ) -> str:
     """
-    Get behavior snap adapted to engagement state.
+    V1.1: Get behavior snap adapted to engagement state with perceived adaptation.
     
-    - SHARPEN: Use sharpened snaps (concrete, immediate)
-    - INTENSIFY: Use intensified snaps (more tension, call out avoidance)
-    - DEEPEN: Use deepening snaps (continuity, progress)
-    - NEUTRAL: Return base snap
+    Rules:
+    - Must describe something user likely just did
+    - Must be <= 12 words
+    - Must use present or immediate past tense
+    - Must be behavior-based, time-bound, specific
+    - Must NOT be a banned generic opener
+    
+    SHARPEN (bounced): More immediate, more concrete
+    INTENSIFY (skimmed): Call out avoidance clearly
+    DEEPEN (captured): Continuity + deepening
+    NEUTRAL: Return base snap (if not generic)
     """
     day_of_year = datetime.now().timetuple().tm_yday
     hash_seed = hash(pattern_id or "") if pattern_id else 0
     
     arena_key = life_arena.lower() if life_arena else "internal_doubt"
     
+    # Select appropriate snap dictionary based on mode
     if adaptation_mode == AdaptationMode.SHARPEN:
-        snaps = SHARPENED_BEHAVIOR_SNAPS.get(arena_key, SHARPENED_BEHAVIOR_SNAPS["internal_doubt"])
-        return snaps[(day_of_year + hash_seed) % len(snaps)]
+        snaps = BOUNCED_BEHAVIOR_SNAPS.get(arena_key, BOUNCED_BEHAVIOR_SNAPS["internal_doubt"])
+        snap = snaps[(day_of_year + hash_seed) % len(snaps)]
     
     elif adaptation_mode == AdaptationMode.INTENSIFY:
-        snaps = INTENSIFIED_BEHAVIOR_SNAPS.get(arena_key, INTENSIFIED_BEHAVIOR_SNAPS["internal_doubt"])
-        return snaps[(day_of_year + hash_seed) % len(snaps)]
+        snaps = SKIMMED_BEHAVIOR_SNAPS.get(arena_key, SKIMMED_BEHAVIOR_SNAPS["internal_doubt"])
+        snap = snaps[(day_of_year + hash_seed) % len(snaps)]
     
     elif adaptation_mode == AdaptationMode.DEEPEN:
-        snaps = DEEPENING_BEHAVIOR_SNAPS.get(arena_key, DEEPENING_BEHAVIOR_SNAPS["internal_doubt"])
-        return snaps[(day_of_year + hash_seed) % len(snaps)]
+        snaps = CAPTURED_BEHAVIOR_SNAPS.get(arena_key, CAPTURED_BEHAVIOR_SNAPS["internal_doubt"])
+        snap = snaps[(day_of_year + hash_seed) % len(snaps)]
     
-    # NEUTRAL - return base snap
-    return base_snap
+    else:
+        # NEUTRAL - check if base snap is generic
+        if is_generic_opener(base_snap):
+            # Replace with a neutral but specific snap
+            neutral_snaps = CAPTURED_BEHAVIOR_SNAPS.get(arena_key, CAPTURED_BEHAVIOR_SNAPS["internal_doubt"])
+            snap = neutral_snaps[(day_of_year + hash_seed) % len(neutral_snaps)]
+        else:
+            snap = base_snap
+    
+    # Final check - ensure it's not generic
+    if is_generic_opener(snap):
+        # Fallback to bounced snaps (always specific)
+        fallback = BOUNCED_BEHAVIOR_SNAPS.get(arena_key, BOUNCED_BEHAVIOR_SNAPS["internal_doubt"])
+        snap = fallback[(day_of_year + hash_seed) % len(fallback)]
+    
+    logger.debug(f"[PerceivedAdapt] mode={adaptation_mode.value}, arena={arena_key}, snap='{snap}'")
+    
+    return snap
 
 
 # =============================================================================
