@@ -13711,17 +13711,35 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
         # Validate memory (only show if earned)
         validated_memory = validate_memory_for_display(raw_memory)
         
-        logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}, exposure={exposure_state.value}, house={primary_house}, memory={'yes' if validated_memory else 'no'}")
+        # =============================================================================
+        # V1: PREFERENCE-AWARE HOME ADAPTATION
+        # =============================================================================
+        from services.cross_lens_diagnostician import adapt_diagnosis_to_preferences
+        
+        # Get user preferences
+        v1_tone = user.get('v1_tone', 'calm') if user else 'calm'
+        v1_depth = user.get('v1_depth', 'balanced') if user else 'balanced'
+        v1_support = user.get('v1_support_style', 'work_with') if user else 'work_with'
+        
+        # Adapt diagnosis based on preferences
+        adapted_diagnosis = adapt_diagnosis_to_preferences(
+            diagnosis=diagnosis,
+            v1_tone=v1_tone,
+            v1_depth=v1_depth,
+            v1_support_style=v1_support
+        )
+        
+        logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}, exposure={exposure_state.value}, house={primary_house}, memory={'yes' if validated_memory else 'no'}, prefs=({v1_tone}/{v1_depth}/{v1_support})")
         
         return DiagnosisResponse(
             pattern_title=pattern_title,
             pattern_family=pattern_family,
-            what_is_happening=diagnosis.get("what_is_happening", ""),
-            why_it_is_happening=diagnosis.get("why_it_is_happening", ""),
-            what_kind_of_moment=diagnosis.get("what_kind_of_moment", ""),
-            what_would_be_wise=diagnosis.get("what_would_be_wise", ""),
-            full_diagnosis=diagnosis.get("full_diagnosis", ""),
-            moment_type=diagnosis.get("moment_type", ""),
+            what_is_happening=adapted_diagnosis.get("what_is_happening", ""),
+            why_it_is_happening=adapted_diagnosis.get("why_it_is_happening", ""),
+            what_kind_of_moment=adapted_diagnosis.get("what_kind_of_moment", ""),
+            what_would_be_wise=adapted_diagnosis.get("what_would_be_wise", ""),
+            full_diagnosis=adapted_diagnosis.get("full_diagnosis", ""),
+            moment_type=adapted_diagnosis.get("moment_type", ""),
             constitution=diagnosis_result.get("constitution", {}),
             history=diagnosis_result.get("history", {}),
             evidence=diagnosis_result.get("evidence", {}),

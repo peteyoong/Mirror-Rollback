@@ -757,3 +757,125 @@ async def generate_cross_lens_diagnosis(
         "diagnosis": diagnosis,
         "evidence": lens_evidence,
     }
+
+
+# =============================================================================
+# V1: PREFERENCE-AWARE HOME ADAPTATION
+# =============================================================================
+
+def adapt_diagnosis_to_preferences(
+    diagnosis: Dict[str, Any],
+    v1_tone: str = "calm",
+    v1_depth: str = "balanced",
+    v1_support_style: str = "work_with"
+) -> Dict[str, Any]:
+    """
+    Adapt diagnosis output based on user preferences.
+    
+    GOAL: Home should feel like it speaks in the user's chosen tone, depth, and support style.
+    
+    RULES:
+    - Keep single flow structure
+    - Keep interruption feel
+    - Keep short lines
+    - No labels or explanations
+    - Do NOT turn Home into advice
+    """
+    if not diagnosis:
+        return diagnosis
+    
+    adapted = diagnosis.copy()
+    
+    what_is_happening = diagnosis.get("what_is_happening", "")
+    
+    # =============================================================================
+    # TONE ADAPTATION
+    # =============================================================================
+    
+    if v1_tone == "direct":
+        # Shorter lines, less padding, more blunt
+        # Remove softer phrases
+        what_is_happening = what_is_happening.replace("—but ", ". ")
+        what_is_happening = what_is_happening.replace("Maybe ", "")
+        what_is_happening = what_is_happening.replace("something in you ", "you ")
+        what_is_happening = what_is_happening.replace("It's signal.", "That's the signal.")
+        
+    elif v1_tone == "confronting":
+        # Sharper truth, more direct exposure
+        if "hesitation" in what_is_happening.lower():
+            what_is_happening = what_is_happening.replace(
+                "That hesitation isn't confusion. It's signal.",
+                "You're about to do the thing that keeps costing you."
+            )
+        if "keep trying" in what_is_happening.lower():
+            what_is_happening += " You already know what's stopping you."
+        if "let go" in what_is_happening.lower():
+            what_is_happening += " Be honest about why it's still here."
+            
+    elif v1_tone == "grounded":
+        # Practical phrasing, less emotional language
+        what_is_happening = what_is_happening.replace("signal", "information")
+        what_is_happening = what_is_happening.replace("fog", "uncertainty")
+        what_is_happening = what_is_happening.replace("gripping", "holding")
+        what_is_happening = what_is_happening.replace("waiting to come out", "needs to be said")
+    
+    # calm = default, no changes needed
+    
+    # =============================================================================
+    # DEPTH ADAPTATION
+    # =============================================================================
+    
+    if v1_depth == "light":
+        # Fewer lines, quicker hit
+        # Split on periods and take first 2-3 sentences
+        sentences = what_is_happening.split(". ")
+        if len(sentences) > 2:
+            what_is_happening = ". ".join(sentences[:2]) + "."
+        # Also shorten why_it_is_happening
+        why_text = diagnosis.get("why_it_is_happening", "")
+        why_sentences = why_text.split(". ")
+        if len(why_sentences) > 2:
+            adapted["why_it_is_happening"] = ". ".join(why_sentences[:2]) + "."
+            
+    elif v1_depth == "deep":
+        # Allow one extra reinforcing line
+        if not what_is_happening.endswith("You've seen this before."):
+            what_is_happening += " This isn't new. You've seen this pattern before."
+    
+    # balanced = default, no changes needed
+    
+    # =============================================================================
+    # SUPPORT STYLE ADAPTATION
+    # =============================================================================
+    
+    if v1_support_style == "interrupt":
+        # Stronger interception, more "You're about to..."
+        if "keep" in what_is_happening.lower() and "You're about to" not in what_is_happening:
+            what_is_happening = "You're about to loop again. " + what_is_happening
+        if "trying" in what_is_happening.lower():
+            what_is_happening = what_is_happening.replace("You keep trying", "Stop. You keep trying")
+            
+    elif v1_support_style == "explore":
+        # More open-ended, reflective ending
+        if not what_is_happening.endswith("?"):
+            what_is_happening += " What's actually underneath this?"
+        # Make what_would_be_wise more reflective
+        wise = adapted.get("what_would_be_wise", "")
+        if wise and not wise.endswith("?"):
+            adapted["what_would_be_wise"] = wise.rstrip(".") + "—if you're ready to name it."
+    
+    # work_with = default, current behavior is already action-oriented
+    
+    adapted["what_is_happening"] = what_is_happening
+    
+    # Rebuild full_diagnosis
+    adapted["full_diagnosis"] = f"""{adapted.get("what_is_happening", "")}
+
+{adapted.get("what_kind_of_moment", "")}
+
+{adapted.get("why_it_is_happening", "")}
+
+{adapted.get("what_would_be_wise", "")}"""
+    
+    return adapted
+
