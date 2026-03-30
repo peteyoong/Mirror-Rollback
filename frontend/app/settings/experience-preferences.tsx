@@ -1,8 +1,12 @@
 /**
- * Experience Preferences Screen
+ * Experience Preferences Screen (V1)
  * 
- * Allows users to edit their MirrorProfile preferences
- * without retaking the full onboarding questionnaire.
+ * Premium Mirror-style settings screen.
+ * Feels like Mirror's intelligence system, not a settings panel.
+ * 
+ * USER SHOULD FEEL:
+ * "I'm shaping how Mirror meets me"
+ * NOT: "I'm configuring software"
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,97 +21,145 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useExperienceControls } from '../../hooks/useExperienceControls';
-import ExperienceSummaryCard from '../../components/ExperienceSummaryCard';
-import {
-  PrimaryGoal,
-  UncertaintyStyle,
-  DesiredDepth,
-  SupportStyle,
-  CurrentSelfState,
-} from '../../types/mirror-profile';
 
-// Option configurations for each preference
-const PREFERENCE_OPTIONS = {
-  primary_goal: {
-    title: 'What do you want Mirror to focus on?',
-    options: [
-      { value: 'self_understanding', label: 'Self-understanding' },
-      { value: 'emotional_clarity', label: 'Emotional clarity' },
-      { value: 'perspective_during_change', label: 'Perspective during change' },
-      { value: 'quiet_reflection', label: 'Quiet reflection' },
-      { value: 'not_sure', label: "I'm not sure yet" },
-    ] as { value: PrimaryGoal; label: string }[],
-  },
-  desired_depth: {
-    title: 'How deep should we go?',
-    options: [
-      { value: 'light_grounding', label: 'Light and grounding' },
-      { value: 'thoughtful_simple', label: 'Thoughtful but simple' },
-      { value: 'deep_exploratory', label: 'Deep and exploratory' },
-      { value: 'slow_step_by_step', label: 'Slowly, step by step' },
-      { value: 'not_sure', label: "I'm not sure" },
-    ] as { value: DesiredDepth; label: string }[],
-  },
-  support_style: {
-    title: 'What helps you reflect?',
-    options: [
-      { value: 'gentle_questions', label: 'Gentle questions' },
-      { value: 'clear_perspectives', label: 'Clear perspectives' },
-      { value: 'emotional_reassurance', label: 'Emotional reassurance' },
-      { value: 'practical_grounding', label: 'Practical grounding' },
-      { value: 'dont_reflect_much', label: "I don't reflect much" },
-    ] as { value: SupportStyle; label: string }[],
-  },
-  uncertainty_style: {
-    title: 'How do you relate to uncertainty?',
-    options: [
-      { value: 'meaning', label: 'I look for meaning' },
-      { value: 'stability', label: 'I look for stability' },
-      { value: 'exploration', label: 'I explore perspectives' },
-      { value: 'discomfort', label: 'I feel uncomfortable with it' },
-      { value: 'depends', label: 'It depends' },
-    ] as { value: UncertaintyStyle; label: string }[],
-  },
-  current_self_state: {
-    title: 'Where are you right now?',
-    options: [
-      { value: 'steady_grounded', label: 'Steady and grounded' },
-      { value: 'curious_reflective', label: 'Curious and reflective' },
-      { value: 'uncertain_searching', label: 'Uncertain or searching' },
-      { value: 'overwhelmed_stuck', label: 'Overwhelmed or stuck' },
-      { value: 'hard_to_say', label: 'Hard to say right now' },
-    ] as { value: CurrentSelfState; label: string }[],
-  },
-};
+// =============================================================================
+// V1 PREFERENCE OPTIONS - Simple, clear, Mirror-aligned
+// =============================================================================
 
-type PreferenceKey = keyof typeof PREFERENCE_OPTIONS;
+interface PreferenceOption {
+  value: string;
+  label: string;
+  preview: string;  // Short preview of how Mirror will respond
+}
+
+const DEPTH_OPTIONS: PreferenceOption[] = [
+  { 
+    value: 'light', 
+    label: 'Light', 
+    preview: 'Shorter, sharper. Just enough to notice.' 
+  },
+  { 
+    value: 'balanced', 
+    label: 'Balanced', 
+    preview: 'Enough to work with. Not overwhelming.' 
+  },
+  { 
+    value: 'deep', 
+    label: 'Deep', 
+    preview: 'More pattern. More reflection. More time.' 
+  },
+];
+
+const TONE_OPTIONS: PreferenceOption[] = [
+  { 
+    value: 'direct', 
+    label: 'Direct', 
+    preview: 'You already know what's off here.' 
+  },
+  { 
+    value: 'calm', 
+    label: 'Calm', 
+    preview: 'Take a breath. Something here still doesn't feel settled.' 
+  },
+  { 
+    value: 'grounded', 
+    label: 'Grounded', 
+    preview: 'This isn't ready yet. Slow it down.' 
+  },
+  { 
+    value: 'confronting', 
+    label: 'Confronting', 
+    preview: 'You're about to do the thing that keeps costing you.' 
+  },
+];
+
+const SUPPORT_OPTIONS: PreferenceOption[] = [
+  { 
+    value: 'interrupt', 
+    label: 'Interrupt me', 
+    preview: 'Catch the pattern quickly. Don't let me loop.' 
+  },
+  { 
+    value: 'work_with', 
+    label: 'Help me work with it', 
+    preview: 'More practical. Help me move through it.' 
+  },
+  { 
+    value: 'explore', 
+    label: 'Let me explore it', 
+    preview: 'More depth. More reflection. More space.' 
+  },
+];
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
 
 export default function ExperiencePreferences() {
   const router = useRouter();
   const { theme } = useTheme();
-  const { profile, summary, updateProfile, isLoading } = useExperienceControls();
+  const { profile, updateProfile, isLoading } = useExperienceControls();
   
-  const [expandedSection, setExpandedSection] = useState<PreferenceKey | null>(null);
+  // Local state for selections (maps to existing profile fields)
+  const [depth, setDepth] = useState<string>('balanced');
+  const [tone, setTone] = useState<string>('calm');
+  const [supportStyle, setSupportStyle] = useState<string>('work_with');
+  const [showSaved, setShowSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSelectOption = async (key: PreferenceKey, value: any) => {
+  // Map existing profile to V1 preferences
+  useEffect(() => {
+    if (profile) {
+      // Map desired_depth to V1 depth
+      if (profile.desired_depth === 'light_grounding') setDepth('light');
+      else if (profile.desired_depth === 'deep_exploratory') setDepth('deep');
+      else setDepth('balanced');
+      
+      // Map support_style to V1 support
+      if (profile.support_style === 'clear_perspectives') {
+        setTone('direct');
+        setSupportStyle('interrupt');
+      } else if (profile.support_style === 'practical_grounding') {
+        setTone('grounded');
+        setSupportStyle('work_with');
+      } else if (profile.support_style === 'emotional_reassurance') {
+        setTone('calm');
+        setSupportStyle('explore');
+      } else {
+        setTone('calm');
+        setSupportStyle('work_with');
+      }
+    }
+  }, [profile]);
+
+  const handleSave = async () => {
     setIsSaving(true);
     try {
-      await updateProfile({ [key]: value });
-      setExpandedSection(null);
+      // Map V1 preferences back to existing profile fields
+      const desiredDepth = depth === 'light' ? 'light_grounding' 
+        : depth === 'deep' ? 'deep_exploratory' 
+        : 'thoughtful_simple';
+      
+      const supportStyleValue = supportStyle === 'interrupt' ? 'clear_perspectives'
+        : supportStyle === 'explore' ? 'gentle_questions'
+        : 'practical_grounding';
+      
+      await updateProfile({
+        desired_depth: desiredDepth,
+        support_style: supportStyleValue,
+      });
+      
+      // Show saved confirmation
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 2000);
     } catch (error) {
-      console.error('[ExperiencePreferences] Failed to save:', error);
+      console.error('[ExperiencePreferences] Save error:', error);
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const getCurrentValueLabel = (key: PreferenceKey): string => {
-    const currentValue = profile[key];
-    const option = PREFERENCE_OPTIONS[key].options.find(o => o.value === currentValue);
-    return option?.label || 'Not set';
   };
 
   if (isLoading) {
@@ -115,7 +167,7 @@ export default function ExperiencePreferences() {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <StatusBar style={theme.isDark ? 'light' : 'dark'} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.textTertiary} />
+          <ActivityIndicator size="small" color={theme.textTertiary} />
         </View>
       </SafeAreaView>
     );
@@ -126,93 +178,189 @@ export default function ExperiencePreferences() {
       <StatusBar style={theme.isDark ? 'light' : 'dark'} />
       
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={[styles.backText, { color: theme.textSecondary }]}>← Back</Text>
+          <Ionicons name="chevron-back" size={24} color={theme.textSecondary} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Experience Preferences</Text>
-        <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Current Summary */}
-        <ExperienceSummaryCard summary={summary} />
-
-        {/* Preference Sections */}
-        <Text style={[styles.sectionTitle, { color: theme.textTertiary }]}>
-          ADJUST YOUR PREFERENCES
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {/* Title & Intro */}
+        <Text style={[styles.title, { color: theme.text }]}>
+          Experience Preferences
+        </Text>
+        <Text style={[styles.intro, { color: theme.textSecondary }]}>
+          Shape how Mirror meets you.
         </Text>
 
-        {(Object.keys(PREFERENCE_OPTIONS) as PreferenceKey[]).map((key) => {
-          const config = PREFERENCE_OPTIONS[key];
-          const isExpanded = expandedSection === key;
-          
-          return (
-            <View key={key} style={[styles.preferenceSection, { borderColor: theme.border }]}>
-              <TouchableOpacity
-                style={styles.preferenceHeader}
-                onPress={() => setExpandedSection(isExpanded ? null : key)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.preferenceInfo}>
-                  <Text style={[styles.preferenceTitle, { color: theme.text }]}>
-                    {config.title}
+        {/* ============================================ */}
+        {/* DEPTH */}
+        {/* ============================================ */}
+        <View style={styles.preferenceGroup}>
+          <Text style={[styles.question, { color: theme.text }]}>
+            How deep do you want Mirror to go?
+          </Text>
+          <View style={styles.pillContainer}>
+            {DEPTH_OPTIONS.map((option) => {
+              const isSelected = depth === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.pill,
+                    { borderColor: isSelected ? theme.text : theme.border },
+                    isSelected && { backgroundColor: theme.text },
+                  ]}
+                  onPress={() => setDepth(option.value)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.pillText,
+                    { color: isSelected ? theme.background : theme.textSecondary },
+                  ]}>
+                    {option.label}
                   </Text>
-                  <Text style={[styles.preferenceValue, { color: theme.textSecondary }]}>
-                    {getCurrentValueLabel(key)}
-                  </Text>
-                </View>
-                <Text style={[styles.expandIcon, { color: theme.textTertiary }]}>
-                  {isExpanded ? '▲' : '▼'}
-                </Text>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {/* Preview */}
+          <Text style={[styles.preview, { color: theme.textTertiary }]}>
+            {DEPTH_OPTIONS.find(o => o.value === depth)?.preview}
+          </Text>
+        </View>
 
-              {isExpanded && (
-                <View style={styles.optionsContainer}>
-                  {config.options.map((option) => {
-                    const isSelected = profile[key] === option.value;
-                    return (
-                      <TouchableOpacity
-                        key={option.value}
-                        style={[
-                          styles.option,
-                          { borderColor: isSelected ? theme.accent : theme.border },
-                          isSelected && { backgroundColor: theme.accent + '15' },
-                        ]}
-                        onPress={() => handleSelectOption(key, option.value)}
-                        activeOpacity={0.7}
-                        disabled={isSaving}
-                      >
-                        <Text
-                          style={[
-                            styles.optionText,
-                            { color: isSelected ? theme.text : theme.textSecondary },
-                          ]}
-                        >
-                          {option.label}
-                        </Text>
-                        {isSelected && (
-                          <Text style={[styles.checkmark, { color: theme.accent }]}>✓</Text>
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              )}
+        {/* ============================================ */}
+        {/* TONE */}
+        {/* ============================================ */}
+        <View style={styles.preferenceGroup}>
+          <Text style={[styles.question, { color: theme.text }]}>
+            How should Mirror speak to you?
+          </Text>
+          <View style={styles.pillContainer}>
+            {TONE_OPTIONS.map((option) => {
+              const isSelected = tone === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.pill,
+                    { borderColor: isSelected ? theme.text : theme.border },
+                    isSelected && { backgroundColor: theme.text },
+                  ]}
+                  onPress={() => setTone(option.value)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.pillText,
+                    { color: isSelected ? theme.background : theme.textSecondary },
+                  ]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {/* Preview */}
+          <Text style={[styles.preview, { color: theme.textTertiary }]}>
+            "{TONE_OPTIONS.find(o => o.value === tone)?.preview}"
+          </Text>
+        </View>
+
+        {/* ============================================ */}
+        {/* SUPPORT STYLE */}
+        {/* ============================================ */}
+        <View style={styles.preferenceGroup}>
+          <Text style={[styles.question, { color: theme.text }]}>
+            What helps most when you're stuck?
+          </Text>
+          <View style={styles.optionList}>
+            {SUPPORT_OPTIONS.map((option) => {
+              const isSelected = supportStyle === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.optionRow,
+                    { borderColor: isSelected ? theme.text : theme.border },
+                    isSelected && { backgroundColor: 'rgba(128, 128, 128, 0.08)' },
+                  ]}
+                  onPress={() => setSupportStyle(option.value)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.optionContent}>
+                    <Text style={[
+                      styles.optionLabel,
+                      { color: isSelected ? theme.text : theme.textSecondary },
+                      isSelected && { fontWeight: '600' },
+                    ]}>
+                      {option.label}
+                    </Text>
+                    <Text style={[styles.optionPreview, { color: theme.textTertiary }]}>
+                      {option.preview}
+                    </Text>
+                  </View>
+                  {isSelected && (
+                    <Ionicons name="checkmark" size={20} color={theme.text} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* ============================================ */}
+        {/* SAVE / APPLY */}
+        {/* ============================================ */}
+        <TouchableOpacity
+          style={[
+            styles.saveButton,
+            { backgroundColor: theme.text },
+            isSaving && { opacity: 0.7 },
+          ]}
+          onPress={handleSave}
+          disabled={isSaving}
+          activeOpacity={0.8}
+        >
+          {isSaving ? (
+            <ActivityIndicator size="small" color={theme.background} />
+          ) : showSaved ? (
+            <View style={styles.savedRow}>
+              <Ionicons name="checkmark" size={18} color={theme.background} />
+              <Text style={[styles.saveButtonText, { color: theme.background }]}>
+                Saved
+              </Text>
             </View>
-          );
-        })}
+          ) : (
+            <Text style={[styles.saveButtonText, { color: theme.background }]}>
+              Save preferences
+            </Text>
+          )}
+        </TouchableOpacity>
 
-        {/* Footer note */}
-        <Text style={[styles.footerNote, { color: theme.textTertiary }]}>
-          These preferences shape how Mirror responds to you—the tone, depth, and focus of what you see. They don't change the underlying data or calculations.
+        {/* ============================================ */}
+        {/* FOOTER */}
+        {/* ============================================ */}
+        <Text style={[styles.footer, { color: theme.textTertiary }]}>
+          You can change this anytime.
         </Text>
-        
+        <Text style={[styles.footerSubtle, { color: theme.textTertiary }]}>
+          This changes tone and depth — not the truth.
+        </Text>
+
         <View style={styles.bottomPadding} />
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+// =============================================================================
+// STYLES - Premium, calm, minimal
+// =============================================================================
 
 const styles = StyleSheet.create({
   container: {
@@ -223,95 +371,133 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  
+  // Header
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
   },
   backButton: {
-    padding: 4,
+    padding: 8,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  backText: {
-    fontSize: 16,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  headerSpacer: {
-    width: 60,
-  },
+  
+  // Content
   content: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
   },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.8,
-    marginBottom: 12,
+  contentContainer: {
+    paddingHorizontal: 24,
+  },
+  
+  // Title & Intro
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
     marginTop: 8,
+    marginBottom: 8,
   },
-  preferenceSection: {
-    borderWidth: 1,
-    borderRadius: 12,
-    marginBottom: 12,
-    overflow: 'hidden',
+  intro: {
+    fontSize: 16,
+    marginBottom: 40,
   },
-  preferenceHeader: {
+  
+  // Preference Groups
+  preferenceGroup: {
+    marginBottom: 40,
+  },
+  question: {
+    fontSize: 17,
+    fontWeight: '500',
+    marginBottom: 16,
+  },
+  
+  // Pills (for Depth & Tone)
+  pillContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 12,
   },
-  preferenceInfo: {
-    flex: 1,
-    gap: 4,
+  pill: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
   },
-  preferenceTitle: {
-    fontSize: 15,
+  pillText: {
+    fontSize: 14,
     fontWeight: '500',
   },
-  preferenceValue: {
+  
+  // Preview
+  preview: {
     fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 19,
   },
-  expandIcon: {
-    fontSize: 12,
-    marginLeft: 12,
+  
+  // Option List (for Support Style)
+  optionList: {
+    gap: 12,
   },
-  optionsContainer: {
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-    gap: 8,
-  },
-  option: {
+  optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  optionText: {
-    fontSize: 14,
+  optionContent: {
+    flex: 1,
+    marginRight: 12,
   },
-  checkmark: {
+  optionLabel: {
+    fontSize: 15,
+    marginBottom: 4,
+  },
+  optionPreview: {
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  
+  // Save Button
+  saveButton: {
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  saveButtonText: {
     fontSize: 16,
     fontWeight: '600',
   },
-  footerNote: {
-    fontSize: 12,
-    lineHeight: 18,
-    textAlign: 'center',
-    marginTop: 24,
-    paddingHorizontal: 20,
-    fontStyle: 'italic',
+  savedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
+  
+  // Footer
+  footer: {
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  footerSubtle: {
+    fontSize: 12,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    opacity: 0.7,
+  },
+  
   bottomPadding: {
     height: 40,
   },
