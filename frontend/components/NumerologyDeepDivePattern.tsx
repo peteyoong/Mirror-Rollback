@@ -192,6 +192,11 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
   const [showNameModal, setShowNameModal] = useState(false);
   const [nameInput, setNameInput] = useState(existingName || '');
   const [isSavingName, setIsSavingName] = useState(false);
+  
+  // Premium V1: Collapsible states for proof sections
+  const [showLoShu, setShowLoShu] = useState(false);
+  const [showIdentity, setShowIdentity] = useState(false);
+  const [showTensions, setShowTensions] = useState(false);
 
   useEffect(() => {
     loadPatternData();
@@ -266,218 +271,238 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
 
   return (
     <View style={styles.container}>
-      {/* System Explanation Banner */}
-      <View style={[styles.systemBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Ionicons name="information-circle-outline" size={16} color={theme.textTertiary} />
-        <Text style={[styles.systemBannerText, { color: theme.textSecondary }]}>
-          {data.system_explanation || "Your core pattern comes from your birth date. Your name adds an identity layer on top of it."}
+      {/* ========== PREMIUM V1 STRUCTURE ========== */}
+      
+      {/* 1. CONTINUATION (whisper) */}
+      {data.continuation && (
+        <Text style={[styles.continuation, { color: theme.textTertiary }]}>
+          {data.continuation}
         </Text>
+      )}
+      
+      {/* Life Path Number - Minimal display */}
+      <View style={styles.lifePathBadge}>
+        <Text style={[styles.lifePathLabel, { color: theme.textTertiary }]}>Life Path</Text>
+        <Text style={[styles.lifePathNumber, { color: theme.text }]}>{data.life_path}</Text>
       </View>
-
-      {/* ========== CORE PATTERN (Birth Date) ========== */}
-      <View style={[styles.layerHeader, { borderColor: COLORS.accent }]}>
-        <Text style={[styles.layerLabel, { color: COLORS.accent }]}>CORE PATTERN</Text>
-        <Text style={[styles.layerSubLabel, { color: theme.textTertiary }]}>from birth date</Text>
-      </View>
-
-      {/* Life Path Number */}
-      <View style={[styles.coreNumbersStrip, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <View style={styles.coreNumberItem}>
-          <Text style={[styles.coreNumberLabel, { color: theme.textTertiary }]}>Life Path</Text>
-          <Text style={[styles.coreNumberValue, { color: theme.text }]}>{data.life_path}</Text>
-        </View>
-      </View>
-
-      {/* Energy Map */}
-      <LoShuGrid
-        loShuDisplay={data.lo_shu_display}
-        loShuTemplate={data.lo_shu_template}
-        presentNumbers={data.present_numbers}
-        missingNumbers={data.missing_numbers}
-        theme={theme}
-      />
-
-      {/* Core Pattern Statement */}
-      <View style={[styles.corePatternSection, { backgroundColor: COLORS.accentLight, borderColor: COLORS.accent }]}>
-        <Text style={[styles.corePatternText, { color: theme.text }]}>
+      
+      {/* 2. CORE TRUTH (hero) */}
+      <View style={styles.heroSection}>
+        <View style={[styles.heroAccent, { backgroundColor: COLORS.accent }]} />
+        <Text style={[styles.heroText, { color: theme.text }]}>
           {data.core_pattern}
         </Text>
       </View>
-
-      {/* Cross-Lens Chain Row V2 - Pattern-specific linking */}
+      
+      {/* 3. ECHO (quick reinforcement) */}
+      {data.echo && (
+        <Text style={[styles.echoText, { color: theme.textSecondary }]}>
+          {data.echo}
+        </Text>
+      )}
+      
+      {/* 4. CROSS LINK (subtle connection) */}
       <CrossLensChainRow 
         currentLens="numerology"
         corePattern={data.core_pattern}
         patternKey={`life_path_${data.life_path}`}
         linkingPhrase={data.cross_link || undefined}
       />
-
-      {/* HOW THIS SHOWS UP TODAY - Time-aware */}
+      
+      {/* 5. HOW THIS SHOWS UP */}
       {data.how_this_shows_up_today && data.how_this_shows_up_today.length > 0 && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: COLORS.todayBlue }]}>HOW THIS SHOWS UP TODAY</Text>
-          <View style={[styles.bulletList, { backgroundColor: COLORS.todayBg, borderColor: COLORS.todayBlue }]}>
+        <View style={styles.premiumSection}>
+          <Text style={[styles.premiumSectionTitle, { color: theme.textSecondary }]}>How this shows up</Text>
+          <View style={styles.premiumBulletList}>
             {data.how_this_shows_up_today.map((item, index) => (
-              <View key={index} style={styles.bulletItem}>
-                <View style={[styles.bulletDot, { backgroundColor: COLORS.todayBlue }]} />
-                <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{item}</Text>
+              <View key={index} style={styles.premiumBulletItem}>
+                <View style={[styles.premiumBulletDot, { backgroundColor: COLORS.accent, opacity: 0.4 }]} />
+                <Text style={[styles.premiumBulletText, { color: theme.text }]}>{item}</Text>
               </View>
             ))}
           </View>
         </View>
       )}
-
-      {/* WHEN THIS GETS TRIGGERED - Context triggers */}
-      {data.when_this_gets_triggered && data.when_this_gets_triggered.length > 0 && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: COLORS.triggerPurple }]}>WHEN THIS GETS TRIGGERED</Text>
-          <View style={[styles.bulletList, { backgroundColor: COLORS.triggerBg, borderColor: COLORS.triggerPurple }]}>
-            {data.when_this_gets_triggered.map((item, index) => (
-              <View key={index} style={styles.bulletItem}>
-                <View style={[styles.bulletDot, { backgroundColor: COLORS.triggerPurple }]} />
-                <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{item}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* WHERE THIS MISFIRES */}
+      
+      {/* 6. WHEN THIS BACKFIRES */}
       {data.where_this_misfires && data.where_this_misfires.length > 0 && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: COLORS.misfireRed }]}>WHERE THIS MISFIRES</Text>
-          <View style={[styles.bulletList, { backgroundColor: COLORS.misfireBg, borderColor: COLORS.misfireRed }]}>
+        <View style={styles.premiumSection}>
+          <Text style={[styles.premiumSectionTitle, { color: theme.textSecondary }]}>When this backfires</Text>
+          <View style={styles.premiumBulletList}>
             {data.where_this_misfires.map((item, index) => (
-              <View key={index} style={styles.bulletItem}>
-                <View style={[styles.bulletDot, { backgroundColor: COLORS.misfireRed }]} />
-                <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{item}</Text>
+              <View key={index} style={styles.premiumBulletItem}>
+                <View style={[styles.premiumBulletDot, { backgroundColor: COLORS.misfireRed, opacity: 0.5 }]} />
+                <Text style={[styles.premiumBulletText, { color: theme.text }]}>{item}</Text>
               </View>
             ))}
           </View>
         </View>
       )}
-
-      {/* WHERE THIS COSTS YOU - New action-relevant section */}
+      
+      {/* 7. GENIUS (integrated, subtle accent) */}
+      {data.genius && (
+        <View style={styles.geniusSection}>
+          <View style={[styles.geniusAccentBar, { backgroundColor: COLORS.accent, opacity: 0.3 }]} />
+          <Text style={[styles.geniusText, { color: theme.text }]}>
+            {data.genius}
+          </Text>
+        </View>
+      )}
+      
+      {/* 8. WHAT THIS COSTS */}
       {data.where_this_costs_you && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: COLORS.costOrange }]}>WHERE THIS COSTS YOU</Text>
-          <View style={[styles.costsCard, { backgroundColor: COLORS.costBg, borderColor: COLORS.costOrange }]}>
-            <View style={styles.costItem}>
-              <Text style={[styles.costLabel, { color: COLORS.costOrange }]}>ENERGY</Text>
-              <Text style={[styles.costText, { color: theme.textSecondary }]}>{data.where_this_costs_you.energy_cost}</Text>
+        <View style={styles.costsSection}>
+          <Text style={[styles.premiumSectionTitle, { color: theme.textSecondary }]}>What this costs</Text>
+          <View style={styles.costsList}>
+            <View style={styles.costRow}>
+              <Text style={[styles.costLabel, { color: theme.textTertiary }]}>Energy</Text>
+              <Text style={[styles.costValue, { color: theme.text }]}>{data.where_this_costs_you.energy_cost}</Text>
             </View>
-            <View style={styles.costItem}>
-              <Text style={[styles.costLabel, { color: COLORS.costOrange }]}>RELATIONSHIPS</Text>
-              <Text style={[styles.costText, { color: theme.textSecondary }]}>{data.where_this_costs_you.relationship_cost}</Text>
+            <View style={styles.costRow}>
+              <Text style={[styles.costLabel, { color: theme.textTertiary }]}>Relationships</Text>
+              <Text style={[styles.costValue, { color: theme.text }]}>{data.where_this_costs_you.relationship_cost}</Text>
             </View>
-            <View style={styles.costItem}>
-              <Text style={[styles.costLabel, { color: COLORS.costOrange }]}>TRUST</Text>
-              <Text style={[styles.costText, { color: theme.textSecondary }]}>{data.where_this_costs_you.trust_cost}</Text>
+            <View style={styles.costRow}>
+              <Text style={[styles.costLabel, { color: theme.textTertiary }]}>Trust</Text>
+              <Text style={[styles.costValue, { color: theme.text }]}>{data.where_this_costs_you.trust_cost}</Text>
             </View>
           </View>
         </View>
       )}
-
-      {/* ONE WAY TO BALANCE TODAY - New action section */}
+      
+      {/* 9. ONE SHIFT (pause moment) */}
       {data.balance_today && (
-        <View style={[styles.balanceSection, { backgroundColor: COLORS.balanceBg, borderColor: COLORS.balanceGreen }]}>
-          <Text style={[styles.balanceLabel, { color: COLORS.balanceGreen }]}>ONE WAY TO BALANCE TODAY</Text>
-          <Text style={[styles.balanceText, { color: theme.text }]}>
+        <View style={styles.shiftSection}>
+          <View style={[styles.shiftAccent, { backgroundColor: COLORS.balanceGreen, opacity: 0.2 }]} />
+          <Text style={[styles.shiftLabel, { color: COLORS.balanceGreen }]}>One shift</Text>
+          <Text style={[styles.shiftText, { color: theme.text }]}>
             {data.balance_today}
           </Text>
         </View>
       )}
-
-      {/* ========== IDENTITY LAYER (Name-based) ========== */}
-      {data.has_name_numbers && (
-        <>
-          <View style={[styles.layerHeader, { borderColor: COLORS.identityGold, marginTop: 24 }]}>
-            <Text style={[styles.layerLabel, { color: COLORS.identityGold }]}>IDENTITY LAYER</Text>
-            <Text style={[styles.layerSubLabel, { color: theme.textTertiary }]}>from birth name</Text>
+      
+      {/* 10. PROOF / DETAILS (collapsible) */}
+      <View style={styles.proofSection}>
+        {/* Energy Map Collapsible */}
+        <TouchableOpacity 
+          style={styles.collapsibleHeader}
+          onPress={() => setShowLoShu(!showLoShu)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.collapsibleTitle, { color: theme.textSecondary }]}>Your energy map</Text>
+          <Ionicons 
+            name={showLoShu ? "chevron-up" : "chevron-down"} 
+            size={18} 
+            color={theme.textTertiary} 
+          />
+        </TouchableOpacity>
+        {showLoShu && (
+          <View style={styles.collapsibleContent}>
+            <LoShuGrid
+              loShuDisplay={data.lo_shu_display}
+              loShuTemplate={data.lo_shu_template}
+              presentNumbers={data.present_numbers}
+              missingNumbers={data.missing_numbers}
+              theme={theme}
+            />
           </View>
-
-          <View style={[styles.identityNumbersStrip, { backgroundColor: COLORS.identityBg, borderColor: COLORS.identityGold }]}>
-            <View style={styles.identityNumberItem}>
-              <Text style={[styles.identityNumberLabel, { color: COLORS.identityGold }]}>Expression</Text>
-              <Text style={[styles.identityNumberValue, { color: theme.text }]}>{data.expression}</Text>
-              <Text style={[styles.identityNumberDesc, { color: theme.textTertiary }]}>how you show up</Text>
-            </View>
-            <View style={[styles.identityNumberDivider, { backgroundColor: COLORS.identityGold }]} />
-            <View style={styles.identityNumberItem}>
-              <Text style={[styles.identityNumberLabel, { color: COLORS.identityGold }]}>Soul Urge</Text>
-              <Text style={[styles.identityNumberValue, { color: theme.text }]}>{data.soul_urge}</Text>
-              <Text style={[styles.identityNumberDesc, { color: theme.textTertiary }]}>what you crave</Text>
-            </View>
-            {data.personality && (
-              <>
-                <View style={[styles.identityNumberDivider, { backgroundColor: COLORS.identityGold }]} />
-                <View style={styles.identityNumberItem}>
-                  <Text style={[styles.identityNumberLabel, { color: COLORS.identityGold }]}>Personality</Text>
-                  <Text style={[styles.identityNumberValue, { color: theme.text }]}>{data.personality}</Text>
-                  <Text style={[styles.identityNumberDesc, { color: theme.textTertiary }]}>first impression</Text>
+        )}
+        
+        {/* Identity Layer Collapsible (if name exists) */}
+        {data.has_name_numbers && (
+          <>
+            <TouchableOpacity 
+              style={styles.collapsibleHeader}
+              onPress={() => setShowIdentity(!showIdentity)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.collapsibleTitle, { color: theme.textSecondary }]}>Your identity numbers</Text>
+              <Ionicons 
+                name={showIdentity ? "chevron-up" : "chevron-down"} 
+                size={18} 
+                color={theme.textTertiary} 
+              />
+            </TouchableOpacity>
+            {showIdentity && (
+              <View style={styles.collapsibleContent}>
+                <View style={styles.identityRow}>
+                  <View style={styles.identityItem}>
+                    <Text style={[styles.identityLabel, { color: theme.textTertiary }]}>Expression</Text>
+                    <Text style={[styles.identityValue, { color: theme.text }]}>{data.expression}</Text>
+                    <Text style={[styles.identityDesc, { color: theme.textTertiary }]}>how you show up</Text>
+                  </View>
+                  <View style={styles.identityItem}>
+                    <Text style={[styles.identityLabel, { color: theme.textTertiary }]}>Soul Urge</Text>
+                    <Text style={[styles.identityValue, { color: theme.text }]}>{data.soul_urge}</Text>
+                    <Text style={[styles.identityDesc, { color: theme.textTertiary }]}>what you crave</Text>
+                  </View>
+                  {data.personality && (
+                    <View style={styles.identityItem}>
+                      <Text style={[styles.identityLabel, { color: theme.textTertiary }]}>Personality</Text>
+                      <Text style={[styles.identityValue, { color: theme.text }]}>{data.personality}</Text>
+                      <Text style={[styles.identityDesc, { color: theme.textTertiary }]}>first impression</Text>
+                    </View>
+                  )}
                 </View>
-              </>
-            )}
-          </View>
-        </>
-      )}
-
-      {/* Tensions to Notice - Sharpened language */}
-      {data.internal_tensions && data.internal_tensions.length > 0 && (
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: COLORS.tensionGold }]}>TENSIONS TO NOTICE</Text>
-          <Text style={[styles.sectionSubtitleWarning, { color: theme.textTertiary }]}>
-            These show up when you're under pressure
-          </Text>
-          <View style={styles.tensionList}>
-            {data.internal_tensions.map((tension, index) => (
-              <View 
-                key={index} 
-                style={[styles.tensionCard, { backgroundColor: COLORS.tensionBg, borderColor: COLORS.tensionGold }]}
-              >
-                <View style={styles.tensionHeader}>
-                  <Text style={[styles.tensionA, { color: theme.text }]}>{tension.a}</Text>
-                  <Text style={[styles.tensionVs, { color: COLORS.tensionGold }]}>vs</Text>
-                  <Text style={[styles.tensionB, { color: theme.text }]}>{tension.b}</Text>
-                </View>
-                <Text style={[styles.tensionDescription, { color: theme.textSecondary }]}>
-                  {tension.description}
-                </Text>
               </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* Reflection */}
-      <View style={[styles.reflectionSection, { backgroundColor: theme.surface, borderLeftColor: COLORS.accent }]}>
-        <Text style={[styles.reflectionLabel, { color: theme.textTertiary }]}>REFLECTION</Text>
-        <Text style={[styles.reflectionText, { color: theme.text }]}>
-          {data.mirror_moment}
-        </Text>
+            )}
+          </>
+        )}
+        
+        {/* Tensions Collapsible */}
+        {data.internal_tensions && data.internal_tensions.length > 0 && (
+          <>
+            <TouchableOpacity 
+              style={styles.collapsibleHeader}
+              onPress={() => setShowTensions(!showTensions)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.collapsibleTitle, { color: theme.textSecondary }]}>Tensions to notice</Text>
+              <Ionicons 
+                name={showTensions ? "chevron-up" : "chevron-down"} 
+                size={18} 
+                color={theme.textTertiary} 
+              />
+            </TouchableOpacity>
+            {showTensions && (
+              <View style={styles.collapsibleContent}>
+                {data.internal_tensions.map((tension, index) => (
+                  <View key={index} style={styles.tensionItem}>
+                    <Text style={[styles.tensionPair, { color: theme.text }]}>
+                      {tension.a} <Text style={{ color: theme.textTertiary }}>vs</Text> {tension.b}
+                    </Text>
+                    <Text style={[styles.tensionDesc, { color: theme.textSecondary }]}>{tension.description}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        )}
       </View>
-
+      
       {/* Edit birth name link */}
       {!existingName && (
         <TouchableOpacity
-          style={[styles.addNameButton, { borderColor: COLORS.accent }]}
+          style={styles.addNameLink}
           onPress={() => setShowNameModal(true)}
         >
-          <Ionicons name="add-circle-outline" size={18} color={COLORS.accent} />
-          <Text style={[styles.addNameButtonText, { color: COLORS.accent }]}>
+          <Ionicons name="add-circle-outline" size={16} color={theme.textTertiary} />
+          <Text style={[styles.addNameLinkText, { color: theme.textTertiary }]}>
             Add birth name for identity layer
           </Text>
         </TouchableOpacity>
       )}
-
+      
       {/* Explore with Mirror CTA */}
       <TouchableOpacity
-        style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
+        style={[styles.exploreCTA, { backgroundColor: theme.text }]}
         onPress={onOpenChat}
       >
         <Ionicons name="chatbubble-outline" size={18} color={theme.background} />
-        <Text style={[styles.askMirrorText, { color: theme.background }]}>
-          Explore this pattern with Mirror
+        <Text style={[styles.exploreCTAText, { color: theme.background }]}>
+          Explore this pattern
+        </Text>
+      </TouchableOpacity>
         </Text>
       </TouchableOpacity>
 
@@ -560,6 +585,7 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
 const styles = StyleSheet.create({
   container: {
     paddingTop: 8,
+    paddingHorizontal: 16,
   },
   loadingContainer: {
     paddingVertical: 40,
@@ -588,7 +614,257 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // System Banner
+  // =============================================================================
+  // PREMIUM V1 STYLES
+  // =============================================================================
+
+  // 1. Continuation (whisper)
+  continuation: {
+    fontSize: 13,
+    opacity: 0.6,
+    marginBottom: 24,
+    fontStyle: 'italic',
+  },
+
+  // Life Path Badge (minimal)
+  lifePathBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  lifePathLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  lifePathNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
+  // 2. Hero Section (Core Truth)
+  heroSection: {
+    marginBottom: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+  },
+  heroAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+  },
+  heroText: {
+    fontSize: 22,
+    fontWeight: '600',
+    lineHeight: 32,
+  },
+
+  // 3. Echo (reinforcement)
+  echoText: {
+    fontSize: 14,
+    marginBottom: 16,
+    opacity: 0.7,
+  },
+
+  // 5-6. Premium Section (bullet lists)
+  premiumSection: {
+    marginBottom: 28,
+  },
+  premiumSectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    marginBottom: 12,
+    textTransform: 'lowercase',
+  },
+  premiumBulletList: {
+    gap: 10,
+  },
+  premiumBulletItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  premiumBulletDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    marginTop: 7,
+  },
+  premiumBulletText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+
+  // 7. Genius (subtle accent)
+  geniusSection: {
+    paddingLeft: 16,
+    marginBottom: 28,
+    position: 'relative',
+  },
+  geniusAccentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
+    borderRadius: 2,
+  },
+  geniusText: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontWeight: '500',
+  },
+
+  // 8. Costs Section
+  costsSection: {
+    marginBottom: 28,
+  },
+  costsList: {
+    gap: 12,
+  },
+  costRow: {
+    gap: 4,
+  },
+  costLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  costValue: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  // 9. Shift Section (pause moment)
+  shiftSection: {
+    paddingTop: 32,
+    paddingBottom: 32,
+    marginBottom: 28,
+    position: 'relative',
+  },
+  shiftAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    borderRadius: 1,
+  },
+  shiftLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  shiftText: {
+    fontSize: 16,
+    fontWeight: '500',
+    lineHeight: 24,
+  },
+
+  // 10. Proof Section (collapsibles)
+  proofSection: {
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(128, 128, 128, 0.2)',
+  },
+  collapsibleTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  collapsibleContent: {
+    paddingVertical: 16,
+  },
+
+  // Identity Row (in collapsible)
+  identityRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+  },
+  identityItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  identityLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  identityValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  identityDesc: {
+    fontSize: 10,
+    fontStyle: 'italic',
+  },
+
+  // Tension Items (in collapsible)
+  tensionItem: {
+    marginBottom: 16,
+  },
+  tensionPair: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  tensionDesc: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+
+  // Add Name Link
+  addNameLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+  },
+  addNameLinkText: {
+    fontSize: 13,
+  },
+
+  // Explore CTA
+  exploreCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  exploreCTAText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+
+  // =============================================================================
+  // LEGACY STYLES (kept for modal compatibility)
+  // =============================================================================
+
+  // System Banner (now hidden but kept for reference)
   systemBanner: {
     flexDirection: 'row',
     alignItems: 'center',
