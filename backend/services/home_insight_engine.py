@@ -2120,7 +2120,6 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     why_today = None
     why_today_phrase = None
     daily_intensity = 0.0
-    anti_repetition_applied = False
     life_arena = None
     life_arena_phrase = None
     behavior_snap = None
@@ -2275,7 +2274,91 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             traceback.print_exc()
     
     # =================================================================
-    # STEP 9 (V3.0): FRESHNESS GUARD - Detect & prevent repetition
+    # STEP 9 (V4.0): PATTERN MEMORY ENGINE - Cross-day continuity
+    # =================================================================
+    pattern_memory_debug = {}
+    pattern_memory_state = "new_pattern"
+    pattern_memory_prefix = None
+    
+    try:
+        from services.pattern_memory_engine import (
+            process_pattern_memory,
+            should_override_home_with_memory,
+            generate_home_memory_override,
+            PatternMemoryState,
+        )
+        
+        # Extract key drivers from signal flags
+        key_drivers = list(active_flags.keys())[:3] if active_flags else ["general"]
+        
+        # Identify primary tension from pattern_key or hero output
+        primary_tension = pattern_key.replace("_", " ").title()
+        if hero_output.get("hero_mode") == "turning_point":
+            primary_tension = "transition_pressure"
+        elif hero_output.get("hero_mode") == "threshold":
+            primary_tension = "threshold_moment"
+        
+        # Check if Home should be overridden with recurring pattern
+        should_override, recurring_info = await should_override_home_with_memory(db, user_id)
+        
+        if should_override and recurring_info:
+            logger.info(f"[HomeInsight] V4 MEMORY OVERRIDE: Recurring pattern detected ({recurring_info.get('occurrence_count')} occurrences)")
+            
+            # Generate override diagnosis
+            memory_override = generate_home_memory_override(recurring_info)
+            title = memory_override.get("title", title)
+            body = memory_override.get("body", body)
+            bridge = memory_override.get("bridge", bridge)
+            
+            pattern_memory_state = PatternMemoryState.RECURRING_PATTERN
+            pattern_memory_prefix = "You keep coming back to this."
+            pattern_memory_debug = {
+                "override_applied": True,
+                "recurring_pattern": recurring_info.get("pattern_signature"),
+                "occurrence_count": recurring_info.get("occurrence_count"),
+                "primary_tension": recurring_info.get("primary_tension"),
+            }
+        else:
+            # Build temporary diagnosis dict for memory processing
+            temp_diagnosis = {
+                "title": title,
+                "body": body,
+                "bridge": bridge,
+            }
+            
+            # Process pattern memory
+            processed = await process_pattern_memory(
+                db=db,
+                user_id=user_id,
+                diagnosis=temp_diagnosis,
+                primary_tension=primary_tension,
+                lens_source="home",
+                key_drivers=key_drivers,
+                diagnosis_title=title,
+            )
+            
+            # Extract memory-enhanced data
+            memory_info = processed.get("pattern_memory", {})
+            pattern_memory_state = memory_info.get("state", "new_pattern")
+            pattern_memory_prefix = memory_info.get("memory_prefix")
+            
+            # Update body if memory prefix was injected
+            if memory_info.get("memory_prefix"):
+                body = processed.get("body", body)
+                logger.info(f"[HomeInsight] V4 Memory injected: state={pattern_memory_state}, prefix='{pattern_memory_prefix[:30]}...'")
+            
+            pattern_memory_debug = processed.get("debug", {}).get("pattern_memory", {})
+            pattern_memory_debug["is_new"] = memory_info.get("is_new", True)
+            
+    except ImportError as e:
+        logger.debug(f"[HomeInsight] Pattern memory engine not available: {e}")
+    except Exception as e:
+        logger.warning(f"[HomeInsight] Pattern memory error: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    # =================================================================
+    # STEP 10 (V3.0): FRESHNESS GUARD - Detect & prevent repetition
     # =================================================================
     freshness_debug = {}
     generation_source = "fresh"
@@ -2370,6 +2453,9 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "adaptation_mode": adaptation_mode,
         # V2.3 BEHAVIOR ECHO
         "first_line_source": first_line_source,  # "echo" or "snap"
+        # V4.0 PATTERN MEMORY
+        "pattern_memory_state": pattern_memory_state,
+        "pattern_memory_prefix": pattern_memory_prefix,
         # v2.0 DAILY DIFFERENTIATION (kept for backward compat)
         "why_today": why_today,
         "why_today_phrase": why_today_phrase,
@@ -2383,7 +2469,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v31_angle_rotation",  # Version flag for frontend
+        "card_version": "mirror_v40_pattern_memory",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
@@ -2404,6 +2490,8 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             "generic_blocked": final_validation.get("severity") == "BLOCK",
             "daily_differentiation": daily_diff_debug,
             "engagement_adaptation": engagement_debug,
+            # V4.0: PATTERN MEMORY DEBUG
+            "pattern_memory": pattern_memory_debug,
             # V3.0: FRESHNESS GUARD DEBUG
             "freshness_guard": freshness_debug,
             "generation_source": generation_source,

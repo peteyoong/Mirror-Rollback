@@ -11,7 +11,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from environment
-BACKEND_URL = "https://home-insight-live.preview.emergentagent.com/api"
+BACKEND_URL = "https://mirror-continuity.preview.emergentagent.com/api"
 
 def test_astrology_summary(user_id):
     """

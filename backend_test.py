@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BACKEND_URL = "https://home-insight-live.preview.emergentagent.com/api"
+BACKEND_URL = "https://mirror-continuity.preview.emergentagent.com/api"
 TEST_USER_ID = "697f0c6abf35c0528ff06954"
 
 def test_journal_api_endpoints():

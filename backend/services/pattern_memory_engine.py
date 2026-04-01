@@ -198,7 +198,6 @@ def detect_pattern_repetition(
     partial_matches = []  # Same tension, different source
     
     for entry in past_entries:
-        entry_date = entry.get("date", "")
         entry_signature = entry.get("pattern_signature", "")
         entry_tension_hash = entry.get("tension_hash", "")
         

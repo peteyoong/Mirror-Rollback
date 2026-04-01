@@ -15770,7 +15770,7 @@ Profile: {hd_data['profile']}
 @api_router.get("/human-design/today-diagnosis/{user_id}")
 async def get_human_design_today_diagnosis(user_id: str):
     """
-    V3.1: Generate Human Design Today Diagnosis matching Home standard.
+    V3.2 + V4: Generate Human Design Today Diagnosis with Pattern Memory.
     
     Returns diagnosis-first format:
     - title (tension-based)
@@ -15779,6 +15779,7 @@ async def get_human_design_today_diagnosis(user_id: str):
     - misstep (likely wrong move)
     - better_move (grounded action)
     - signals (collapsible: gates, Gene Keys, centers)
+    - pattern_memory_state (NEW, RETURNING, RECURRING)
     """
     try:
         from services.lens_diagnosis_engine import generate_hd_today_diagnosis
@@ -15827,6 +15828,36 @@ async def get_human_design_today_diagnosis(user_id: str):
             undefined_centers=undefined_centers
         )
         
+        # V4.0: Process Pattern Memory for cross-day continuity
+        try:
+            from services.pattern_memory_engine import process_pattern_memory
+            
+            # Extract key drivers from gate data
+            dominant_gate = all_gates[0] if all_gates else 35
+            key_drivers = [f"gate{g}" for g in all_gates[:3]]
+            
+            # Process memory
+            diagnosis = await process_pattern_memory(
+                db=db,
+                user_id=user_id,
+                diagnosis=diagnosis,
+                primary_tension=diagnosis.get("title", "hd_tension"),
+                lens_source="human_design",
+                key_drivers=key_drivers,
+                diagnosis_title=diagnosis.get("title", "Human Design Today"),
+            )
+            
+            # Add memory state to response
+            memory_info = diagnosis.get("pattern_memory", {})
+            diagnosis["pattern_memory_state"] = memory_info.get("state", "new_pattern")
+            diagnosis["pattern_memory_prefix"] = memory_info.get("memory_prefix")
+            
+            logger.info(f"[HD Today] V4 Pattern Memory: state={diagnosis.get('pattern_memory_state')}")
+            
+        except Exception as me:
+            logger.debug(f"[HD Today] Pattern memory not applied: {me}")
+            diagnosis["pattern_memory_state"] = "new_pattern"
+        
         return diagnosis
         
     except HTTPException:
@@ -15841,7 +15872,7 @@ async def get_human_design_today_diagnosis(user_id: str):
 @api_router.get("/astrology/today-diagnosis/{user_id}")
 async def get_astrology_today_diagnosis(user_id: str):
     """
-    V3.1: Generate Astrology Today Diagnosis matching Home standard.
+    V3.2 + V4: Generate Astrology Today Diagnosis with Pattern Memory.
     
     Returns diagnosis-first format:
     - title (tension-based)
@@ -15850,6 +15881,7 @@ async def get_astrology_today_diagnosis(user_id: str):
     - misstep (likely wrong move)
     - better_move (grounded action)
     - signals (collapsible: transits, houses)
+    - pattern_memory_state (NEW, RETURNING, RECURRING)
     """
     try:
         from services.lens_diagnosis_engine import generate_astro_today_diagnosis
@@ -15885,6 +15917,37 @@ async def get_astrology_today_diagnosis(user_id: str):
             transits=transits,
             active_houses=active_houses
         )
+        
+        # V4.0: Process Pattern Memory for cross-day continuity
+        try:
+            from services.pattern_memory_engine import process_pattern_memory
+            
+            # Extract key drivers from transit/house data
+            key_drivers = [f"house{h}" for h in active_houses[:3]]
+            if transits:
+                key_drivers.append(transits[0].get("planet", "moon").lower())
+            
+            # Process memory
+            diagnosis = await process_pattern_memory(
+                db=db,
+                user_id=user_id,
+                diagnosis=diagnosis,
+                primary_tension=diagnosis.get("title", "astro_tension"),
+                lens_source="astrology",
+                key_drivers=key_drivers,
+                diagnosis_title=diagnosis.get("title", "Astrology Today"),
+            )
+            
+            # Add memory state to response
+            memory_info = diagnosis.get("pattern_memory", {})
+            diagnosis["pattern_memory_state"] = memory_info.get("state", "new_pattern")
+            diagnosis["pattern_memory_prefix"] = memory_info.get("memory_prefix")
+            
+            logger.info(f"[Astro Today] V4 Pattern Memory: state={diagnosis.get('pattern_memory_state')}")
+            
+        except Exception as me:
+            logger.debug(f"[Astro Today] Pattern memory not applied: {me}")
+            diagnosis["pattern_memory_state"] = "new_pattern"
         
         return diagnosis
         
