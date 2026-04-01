@@ -13446,7 +13446,7 @@ class DiagnosisResponse(BaseModel):
     why_it_is_happening: str
     what_kind_of_moment: str
     what_would_be_wise: str
-    full_diagnosis: str
+    full_diagnosis: Any  # Can be string OR dict (for V3.1 home insight integration)
     moment_type: str
     
     # Constitution (stable patterns)
@@ -13466,6 +13466,13 @@ class DiagnosisResponse(BaseModel):
     
     # V1: Pattern Memory Surfacing (validated, earned memory only)
     memory: Optional[Dict[str, Any]] = None  # {memory_line, recurrence_count, last_seen_at, memory_state}
+    
+    # V3.1: PATTERN ID for angle system tracking
+    pattern_id: Optional[str] = None
+    
+    class Config:
+        # Allow extra fields for forward compatibility
+        extra = "allow"
 
 
 @api_router.get("/pattern-diagnosis/{user_id}", response_model=DiagnosisResponse)
@@ -13729,7 +13736,48 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
             v1_support_style=v1_support
         )
         
+        # =============================================================================
+        # V3.1: ANGLE-BASED HOME INSIGHT - Get angle rotation data
+        # =============================================================================
+        home_insight_data = None
+        try:
+            from services.home_insight_engine import generate_daily_insight
+            home_insight = await generate_daily_insight(db, user_id)
+            
+            if home_insight and home_insight.get("success"):
+                home_insight_data = {
+                    "title": home_insight.get("title"),
+                    "body": home_insight.get("body"),
+                    "bridge": home_insight.get("bridge"),
+                    "better_move": home_insight.get("better_move"),
+                    "card_version": home_insight.get("card_version"),
+                    "behavior_snap": home_insight.get("behavior_snap"),
+                    "life_arena": home_insight.get("life_arena"),
+                    "engagement_state": home_insight.get("engagement_state"),
+                    "adaptation_mode": home_insight.get("adaptation_mode"),
+                    "first_line_source": home_insight.get("first_line_source"),
+                    "debug": home_insight.get("debug", {}),
+                }
+                
+                # V3.1: Override what_is_happening with angle-specific body for consistency
+                if home_insight_data.get("body"):
+                    adapted_diagnosis["what_is_happening"] = home_insight_data["body"]
+                if home_insight_data.get("title"):
+                    pattern_title = home_insight_data["title"]
+                
+                logger.info(f"[Diagnosis] V3.1 Home insight angle: {home_insight.get('debug', {}).get('angle_system', {}).get('angle_id', 'none')}")
+        except Exception as e:
+            logger.debug(f"[Diagnosis] Could not get home insight: {e}")
+        
         logger.info(f"[Diagnosis] Generated for {user_id[:8]}: moment={diagnosis.get('moment_type')}, family={pattern_family}, exposure={exposure_state.value}, house={primary_house}, memory={'yes' if validated_memory else 'no'}, prefs=({v1_tone}/{v1_depth}/{v1_support})")
+        
+        # Build full_diagnosis as dict when home_insight_data is available
+        full_diagnosis_value = adapted_diagnosis.get("full_diagnosis", "")
+        if home_insight_data:
+            full_diagnosis_value = {
+                "text": adapted_diagnosis.get("full_diagnosis", ""),
+                "home": home_insight_data,
+            }
         
         return DiagnosisResponse(
             pattern_title=pattern_title,
@@ -13738,7 +13786,7 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
             why_it_is_happening=adapted_diagnosis.get("why_it_is_happening", ""),
             what_kind_of_moment=adapted_diagnosis.get("what_kind_of_moment", ""),
             what_would_be_wise=adapted_diagnosis.get("what_would_be_wise", ""),
-            full_diagnosis=adapted_diagnosis.get("full_diagnosis", ""),
+            full_diagnosis=full_diagnosis_value,
             moment_type=adapted_diagnosis.get("moment_type", ""),
             constitution=diagnosis_result.get("constitution", {}),
             history=diagnosis_result.get("history", {}),
@@ -13748,6 +13796,8 @@ async def get_pattern_diagnosis(user_id: str, force_refresh: bool = False):
             exposure_copy=exposure_copy,
             # V1: Pattern Memory Surfacing (only if validated/earned)
             memory=validated_memory,
+            # V3.1: Pattern ID for angle tracking
+            pattern_id=home_insight_data.get("debug", {}).get("pattern_key") if home_insight_data else None,
         )
         
     except Exception as e:
