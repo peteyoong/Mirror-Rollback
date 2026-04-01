@@ -14,12 +14,14 @@
  * - GROUNDING: Shorter diagnosis, less evidence
  * - EXPLORATORY: Full diagnosis, rich evidence
  * - DIRECTIVE: Clear diagnosis, action-focused
+ * 
+ * V3.1: ANGLE SYSTEM - Prefers full_diagnosis.home fields when available
  */
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getPatternDiagnosis, PatternDiagnosisResponse } from '../services/api';
+import { getPatternDiagnosis, PatternDiagnosisResponse, HomeInsightData, FullDiagnosisWithHome } from '../services/api';
 import { useExperienceControls } from '../hooks/useExperienceControls';
 import { useAdaptationCues, logAdaptationCues, AdaptationResponse } from '../hooks/useAdaptationCues';
 import { trackHomeChatTap, updateTrackingContext } from '../services/actionTracking';
@@ -141,11 +143,51 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   };
 
   // ============================================================
+  // V3.1: HELPER - Extract home insight data from full_diagnosis
+  // ============================================================
+  const getHomeInsight = (): HomeInsightData | null => {
+    if (!diagnosis?.full_diagnosis) return null;
+    
+    // Check if full_diagnosis is the new object format with home data
+    if (typeof diagnosis.full_diagnosis === 'object' && diagnosis.full_diagnosis !== null) {
+      const fd = diagnosis.full_diagnosis as FullDiagnosisWithHome;
+      return fd.home || null;
+    }
+    
+    return null;
+  };
+
+  // V3.1: Log angle debug info on render
+  useEffect(() => {
+    if (diagnosis) {
+      const homeInsight = getHomeInsight();
+      console.log('[TodayPatternCard] V3.1 ANGLE DEBUG:', {
+        pattern_title: diagnosis.pattern_title,
+        legacy_body: diagnosis.what_is_happening?.substring(0, 80) + '...',
+        full_home_title: homeInsight?.title,
+        full_home_body: homeInsight?.body?.substring(0, 80) + '...',
+        full_home_bridge: homeInsight?.bridge,
+        angle_id: homeInsight?.debug?.angle_system?.angle_id,
+        angle_label: homeInsight?.debug?.angle_system?.angle_label,
+        is_repeated_pattern: homeInsight?.debug?.angle_system?.is_repeated_pattern,
+        card_version: homeInsight?.card_version,
+      });
+    }
+  }, [diagnosis]);
+
+  // ============================================================
   // MODE-BASED CONTENT FUNCTIONS
   // ============================================================
 
   // Get pattern title - uses exposure_copy headline if available (evolved messaging)
+  // V3.1: Prefers full_diagnosis.home.title for angle-specific content
   const getPatternTitle = (): string => {
+    // V3.1: PREFER angle-specific title from home insight
+    const homeInsight = getHomeInsight();
+    if (homeInsight?.title) {
+      return homeInsight.title;
+    }
+    
     // Use exposure-aware headline if available
     if (diagnosis?.exposure_copy?.headline) {
       return diagnosis.exposure_copy.headline;
@@ -154,7 +196,19 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   };
 
   // Get "what is happening" text - uses exposure_copy opening if available
+  // V3.1: Prefers full_diagnosis.home.body for angle-specific content
   const getWhatIsHappening = (): string => {
+    // V3.1: PREFER angle-specific body from home insight
+    const homeInsight = getHomeInsight();
+    if (homeInsight?.body) {
+      const text = homeInsight.body;
+      if (mode === 'grounding') {
+        const firstSentence = text.split(/[.!?]/)[0];
+        return firstSentence ? firstSentence + '.' : text;
+      }
+      return text;
+    }
+    
     // Prioritize exposure-aware opening for evolved messaging
     if (diagnosis?.exposure_copy?.opening) {
       const text = diagnosis.exposure_copy.opening;
@@ -178,6 +232,16 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
     return text;
   };
 
+  // Get bridge text - V3.1: NEW - uses home insight bridge
+  const getBridgeText = (): string => {
+    const homeInsight = getHomeInsight();
+    if (homeInsight?.bridge) {
+      return homeInsight.bridge;
+    }
+    // Fallback to why_it_is_happening or empty
+    return diagnosis?.why_it_is_happening || '';
+  };
+
   // Get reflection prompt - uses exposure_copy if available
   const getReflectionPrompt = (): string => {
     if (diagnosis?.exposure_copy?.reflection_prompt) {
@@ -187,7 +251,19 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
   };
 
   // Get "what would be wise" text - truncated for grounding mode
+  // V3.1: Prefers full_diagnosis.home.better_move for angle-specific action
   const getWhatWouldBeWise = (): string => {
+    // V3.1: PREFER angle-specific action from home insight
+    const homeInsight = getHomeInsight();
+    if (homeInsight?.better_move) {
+      const text = homeInsight.better_move;
+      if (mode === 'grounding') {
+        const firstSentence = text.split(/[.!?]/)[0];
+        return firstSentence ? firstSentence + '.' : text;
+      }
+      return text;
+    }
+    
     if (!diagnosis?.what_would_be_wise) return '';
     
     const text = diagnosis.what_would_be_wise;
@@ -362,11 +438,21 @@ export default function TodayPatternCard({ userId, theme, onReflect }: TodayPatt
       </Text>
       
       {/* CORE DIAGNOSIS: What is happening - uses exposure_copy opening for evolved messaging */}
+      {/* V3.1: Now prefers full_diagnosis.home.body for angle-specific content */}
       <View style={styles.diagnosisSection}>
         <Text style={[styles.diagnosisText, { color: theme.text }]}>
           {getWhatIsHappening()}
         </Text>
       </View>
+      
+      {/* V3.1: BRIDGE TEXT - Gray callout with angle-specific bridge */}
+      {getBridgeText() && (
+        <View style={[styles.bridgeContainer, { backgroundColor: theme.cardBackground, borderLeftColor: theme.accent + '40' }]}>
+          <Text style={[styles.bridgeText, { color: theme.textSecondary }]}>
+            {getBridgeText()}
+          </Text>
+        </View>
+      )}
       
       {/* V1: Pattern Memory Line (only if validated/earned) */}
       {diagnosis.memory && diagnosis.memory.memory_line && (
@@ -824,5 +910,19 @@ const styles = StyleSheet.create({
   ctaArrow: {
     fontSize: 16,
     fontWeight: '400',
+  },
+  
+  // V3.1: Bridge container (gray callout)
+  bridgeContainer: {
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderLeftWidth: 3,
+    borderRadius: 4,
+  },
+  bridgeText: {
+    fontSize: 14,
+    lineHeight: 21,
+    fontStyle: 'italic',
   },
 });

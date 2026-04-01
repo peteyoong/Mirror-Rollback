@@ -1316,7 +1316,7 @@ export interface PatternDiagnosisResponse {
   why_it_is_happening: string;
   what_kind_of_moment: string;
   what_would_be_wise: string;
-  full_diagnosis: string;
+  full_diagnosis: string | FullDiagnosisWithHome;  // V3.1: Can be string or object with home data
   moment_type: string;
   
   // Constitution (stable patterns)
@@ -1348,6 +1348,39 @@ export interface PatternDiagnosisResponse {
     last_seen_at: string;
     memory_state: 'returning' | 'repeating' | 'deepening' | 'unresolved' | 'easing';
   } | null;
+  
+  // V3.1: Pattern ID for angle tracking
+  pattern_id?: string;
+}
+
+// V3.1: Home insight with angle system data
+export interface HomeInsightData {
+  title?: string;
+  body?: string;
+  bridge?: string;
+  better_move?: string;
+  card_version?: string;
+  behavior_snap?: string;
+  life_arena?: string;
+  engagement_state?: string;
+  adaptation_mode?: string;
+  first_line_source?: string;
+  debug?: {
+    angle_system?: {
+      pattern_key?: string;
+      is_repeated_pattern?: boolean;
+      angle_id?: string;
+      angle_label?: string;
+      angle_selection_reason?: string;
+      recent_history_count?: number;
+    };
+    [key: string]: any;
+  };
+}
+
+export interface FullDiagnosisWithHome {
+  text?: string;
+  home?: HomeInsightData;
 }
 
 /**
