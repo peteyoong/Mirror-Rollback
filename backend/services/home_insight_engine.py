@@ -125,7 +125,9 @@ async def save_home_history(
     body: str,
     pattern_id: str,
     content_signature: str,
-    generation_source: str
+    generation_source: str,
+    angle_id: Optional[str] = None,
+    pattern_key: Optional[str] = None
 ):
     """Save Home output to history for future freshness checks."""
     try:
@@ -137,13 +139,15 @@ async def save_home_history(
                 "title": title,
                 "body_preview": body[:200] if body else "",
                 "pattern_id": pattern_id,
+                "pattern_key": pattern_key,
+                "angle_id": angle_id,
                 "content_signature": content_signature,
                 "generation_source": generation_source,
                 "saved_at": datetime.now(timezone.utc).isoformat()
             }},
             upsert=True
         )
-        logger.info(f"[FreshnessGuard] Saved home history for {user_id[:8]} on {date_str}")
+        logger.info(f"[FreshnessGuard] Saved home history for {user_id[:8]} on {date_str} (pattern={pattern_key}, angle={angle_id})")
     except Exception as e:
         logger.debug(f"[FreshnessGuard] Save error: {e}")
 
@@ -193,6 +197,375 @@ def force_variation(
     logger.info(f"[FreshnessGuard] VARIATION APPLIED: reason={variation_reason}, day_class={day_class}, shift_idx={shift_idx}")
     
     return new_title, new_body, final_bridge
+
+
+# =============================================================================
+# V3.1: ANGLE SYSTEM - Multiple cuts into the same pattern
+# =============================================================================
+# Each pattern can have multiple "angles" - different ways to present the same
+# core tension. This prevents semantic repetition when the same pattern is
+# selected across consecutive days.
+
+PATTERN_ANGLES = {
+    "strong_urge_wrong_timing": {
+        "core_tension": "wanting_to_act_before_ready",
+        "angles": [
+            {
+                "angle_id": "the_gap",
+                "angle_label": "The Unbearable Gap",
+                "title": "You're Ready Before It Is",
+                "body": "You know what you want. You've known for a while. But the situation isn't ready—and that gap is unbearable.",
+                "bridge": "Waiting when you're ready feels like being held back. It's not. But it feels that way.",
+                "action": "Stay ready without acting. The window will open.",
+            },
+            {
+                "angle_id": "forcing_it",
+                "angle_label": "The Urge to Force",
+                "title": "You're About to Push",
+                "body": "The urge to make it happen now is strong. You can feel yourself looking for a way to accelerate. That's the signal to pause.",
+                "bridge": "Forcing rarely creates what you want. It creates what you could get.",
+                "action": "Name what you're trying to speed up. Ask: would waiting 48 hours actually cost anything?",
+            },
+            {
+                "angle_id": "manufactured_opening",
+                "angle_label": "Manufacturing the Moment",
+                "title": "You're Creating the Opening",
+                "body": "You're engineering a situation that would justify moving. But manufactured openings don't land the same as real ones.",
+                "bridge": "If you have to create the permission, it's not real permission.",
+                "action": "Notice where you're setting up the scene. What would it mean to just... wait?",
+            },
+            {
+                "angle_id": "cost_of_waiting",
+                "angle_label": "The Real Cost",
+                "title": "Waiting Feels Expensive",
+                "body": "Every day feels like falling behind. But the cost of waiting is lower than the cost of forcing. You know this—but it doesn't help.",
+                "bridge": "The frustration isn't about time. It's about not being able to make it happen.",
+                "action": "Calculate the actual cost of 2 more weeks of waiting. Not the feeling—the facts.",
+            },
+            {
+                "angle_id": "readiness_mismatch",
+                "angle_label": "The Readiness Mismatch",
+                "title": "They're Not Where You Are",
+                "body": "You've done the work. You've gotten ready. And now you're waiting for someone or something else to catch up. That asymmetry is exhausting.",
+                "bridge": "Their timeline isn't a judgment of your readiness.",
+                "action": "What can you do with this energy while you wait? Not to fill time—to use it well.",
+            },
+        ],
+    },
+    "waiting_for_permission": {
+        "core_tension": "seeking_external_validation",
+        "angles": [
+            {
+                "angle_id": "already_know",
+                "angle_label": "You Already Know",
+                "title": "You Already Know",
+                "body": "You know what you want to do. You've known for a while. But you keep asking for input because committing feels too final.",
+                "bridge": "If someone else says it's right, you don't have to own it alone.",
+                "action": "What would you do if no one would judge the choice?",
+            },
+            {
+                "angle_id": "asking_again",
+                "angle_label": "Asking Again",
+                "title": "You're About to Ask Again",
+                "body": "You've already asked. You got an answer. But it didn't make the fear go away, so you're looking for another opinion.",
+                "bridge": "More input won't create certainty. You're trying to outsource a feeling.",
+                "action": "Notice the impulse to ask. Sit with it for 24 hours before acting on it.",
+            },
+            {
+                "angle_id": "permission_source",
+                "angle_label": "Wrong Permission Source",
+                "title": "You're Asking the Wrong Person",
+                "body": "The person you want permission from can't give you what you actually need. They can say yes—but it won't land.",
+                "bridge": "You're not looking for their approval. You're looking for certainty they can't provide.",
+                "action": "Name the person you keep wanting validation from. What would their 'yes' actually change?",
+            },
+            {
+                "angle_id": "framing_as_question",
+                "angle_label": "Statements as Questions",
+                "title": "You Keep Framing It as a Question",
+                "body": "You know what you think. But you present it as 'what do you think I should do?' That's not curiosity—it's hedging.",
+                "bridge": "If you said what you actually believe, you'd have to own it.",
+                "action": "Next time you want to ask, state instead. See how it feels to commit to your own read.",
+            },
+        ],
+    },
+    "pattern_returning_control": {
+        "core_tension": "control_as_anxiety_management",
+        "angles": [
+            {
+                "angle_id": "grip_tightening",
+                "angle_label": "The Grip Tightening",
+                "title": "The Grip Is Getting Tighter",
+                "body": "You can't control the thing that matters, so you're controlling everything around it—details, plans, other people's timelines.",
+                "bridge": "Controlling small things feels like safety. It's not. But it stops the panic.",
+                "action": "Name what you're actually worried about—the real thing.",
+            },
+            {
+                "angle_id": "checking_again",
+                "angle_label": "Checking Again",
+                "title": "You're Checking It Again",
+                "body": "You already checked. Nothing has changed. But you're about to check again because not-checking feels reckless.",
+                "bridge": "Checking is a ritual, not a strategy. It manages anxiety, not risk.",
+                "action": "Set a time. Don't check until that time. See what happens.",
+            },
+            {
+                "angle_id": "over_preparing",
+                "angle_label": "Over-Preparing",
+                "title": "You're Preparing for Things That Won't Happen",
+                "body": "You're planning for scenarios that probably won't occur. But preparing feels productive, and uncertainty feels unbearable.",
+                "bridge": "Preparation has diminishing returns. At some point, it's avoidance.",
+                "action": "What's the 80% version? What would 'good enough' preparation look like?",
+            },
+            {
+                "angle_id": "controlling_others",
+                "angle_label": "Managing Others",
+                "title": "You're Managing Their Process",
+                "body": "You're tracking someone else's progress more closely than they are. That's not helpfulness—that's your anxiety wearing a costume.",
+                "bridge": "You can't make them move faster by watching more closely.",
+                "action": "What's the minimum check-in that would actually be useful? Stick to that.",
+            },
+        ],
+    },
+    "emotional_noise_low_clarity": {
+        "core_tension": "feelings_obscuring_signal",
+        "angles": [
+            {
+                "angle_id": "noise_floor",
+                "angle_label": "High Noise Floor",
+                "title": "Everything Feels Like Something",
+                "body": "Your feelings are loud today. Not necessarily wrong—but loud. Hard to tell what's signal and what's noise.",
+                "bridge": "Intensity doesn't mean importance. But it makes everything feel urgent.",
+                "action": "Wait before acting on anything that feels urgent. Urgency is contagious.",
+            },
+            {
+                "angle_id": "feelings_as_facts",
+                "angle_label": "Feelings as Facts",
+                "title": "It Feels True So It Must Be",
+                "body": "Something feels very true right now. But strong feelings aren't evidence. They're information—not conclusions.",
+                "bridge": "The intensity makes it feel certain. It's not.",
+                "action": "What would you think about this if you felt neutral? That's probably closer to the truth.",
+            },
+            {
+                "angle_id": "reactive_mode",
+                "angle_label": "Reactive Mode",
+                "title": "You're Reacting, Not Responding",
+                "body": "You're moving fast. Making decisions. Sending messages. But you're operating from the feeling, not through it.",
+                "bridge": "Speed feels decisive. Right now it's just reactive.",
+                "action": "Pause. Let one wave pass before you act. Just one.",
+            },
+            {
+                "angle_id": "amplified_read",
+                "angle_label": "Amplified Read",
+                "title": "Your Read Is Amplified",
+                "body": "What you're sensing might be real. But your emotional state is amplifying it. Hard to trust your read when the volume is this high.",
+                "bridge": "You're not wrong. But you're not calibrated either.",
+                "action": "Write down what you're sensing. Come back to it tomorrow. See if it still rings true.",
+            },
+        ],
+    },
+    "decision_avoidance": {
+        "core_tension": "avoiding_the_cost_of_choosing",
+        "angles": [
+            {
+                "angle_id": "circling_choice",
+                "angle_label": "Circling the Choice",
+                "title": "The Choice You Keep Circling",
+                "body": "You've thought about this decision until thinking feels like action. It's not. You're avoiding the cost of choosing.",
+                "bridge": "Every option closes a door. Staying in analysis keeps them all open—hypothetically.",
+                "action": "Name what you're actually afraid of getting wrong.",
+            },
+            {
+                "angle_id": "more_information",
+                "angle_label": "More Information",
+                "title": "You Don't Need More Information",
+                "body": "You're gathering more data. But you have enough. The issue isn't information—it's willingness to commit.",
+                "bridge": "Research feels productive. It's often just delay.",
+                "action": "What would you decide if you had to decide today? That's probably the answer.",
+            },
+            {
+                "angle_id": "reversibility_illusion",
+                "angle_label": "Reversibility Illusion",
+                "title": "You're Looking for Reversibility",
+                "body": "You want to choose without closing doors. But most real choices close doors. That's what makes them choices.",
+                "bridge": "The fantasy of keeping options open is expensive. It costs you momentum.",
+                "action": "Accept that choosing means losing the other thing. Grieve it. Then move.",
+            },
+            {
+                "angle_id": "decision_as_identity",
+                "angle_label": "Decision as Identity",
+                "title": "This Choice Feels Like Who You Are",
+                "body": "It's not just a decision—it feels like it defines something about you. That's why it's so hard to commit.",
+                "bridge": "You're not choosing who you are. You're choosing what to do next.",
+                "action": "Lower the stakes. This is a choice, not a verdict.",
+            },
+        ],
+    },
+}
+
+# Fallback angles for patterns without defined variations
+DEFAULT_ANGLE_VARIATIONS = [
+    {
+        "angle_id": "persistence",
+        "angle_label": "It Persists",
+        "title_modifier": "— Still",
+        "body_prefix": "This hasn't resolved. ",
+        "bridge_suffix": "And it won't today.",
+    },
+    {
+        "angle_id": "new_surface",
+        "angle_label": "New Surface",
+        "title_modifier": "",
+        "body_prefix": "Same tension, different face. ",
+        "bridge_suffix": "You're seeing it from a new angle.",
+    },
+    {
+        "angle_id": "deeper_layer",
+        "angle_label": "Deeper Layer",
+        "title_modifier": "",
+        "body_prefix": "There's something underneath. ",
+        "bridge_suffix": "The surface pattern points to something else.",
+    },
+    {
+        "angle_id": "cost_visible",
+        "angle_label": "Cost Becoming Visible",
+        "title_modifier": "",
+        "body_prefix": "The cost of this pattern is showing up. ",
+        "bridge_suffix": "You're starting to feel the weight of it.",
+    },
+]
+
+
+async def get_recent_pattern_history(db, user_id: str, days: int = 5) -> List[Dict[str, Any]]:
+    """Get recent pattern/angle history for this user."""
+    from datetime import timedelta
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff_str = cutoff.strftime("%Y-%m-%d")
+    
+    try:
+        history = await db.home_history.find({
+            "user_id": user_id,
+            "date": {"$gte": cutoff_str}
+        }).sort("date", -1).limit(days).to_list(days)
+        return history
+    except Exception as e:
+        logger.debug(f"[AngleSystem] History fetch error: {e}")
+        return []
+
+
+def select_angle_for_pattern(
+    pattern_key: str,
+    user_id: str,
+    date_str: str,
+    recent_history: List[Dict[str, Any]]
+) -> Tuple[Dict[str, Any], str, bool]:
+    """
+    Select an angle for the given pattern, avoiding recently shown angles.
+    
+    Returns:
+        (angle_data, selection_reason, is_repeated_pattern)
+    """
+    # Get angles for this pattern
+    pattern_config = PATTERN_ANGLES.get(pattern_key)
+    
+    if not pattern_config:
+        # No angles defined for this pattern - use default variation
+        logger.info(f"[AngleSystem] No angles defined for '{pattern_key}', using default")
+        return (None, "no_angles_defined", False)
+    
+    angles = pattern_config.get("angles", [])
+    if not angles:
+        return (None, "empty_angles", False)
+    
+    # Check recent history for same pattern
+    recent_pattern_dates = []
+    recent_angle_ids = []
+    
+    for h in recent_history:
+        h_pattern = h.get("pattern_key") or h.get("pattern_id", "").split("_")[0] if h.get("pattern_id") else None
+        if h_pattern == pattern_key:
+            recent_pattern_dates.append(h.get("date"))
+            if h.get("angle_id"):
+                recent_angle_ids.append(h.get("angle_id"))
+    
+    is_repeated_pattern = len(recent_pattern_dates) > 0
+    
+    if is_repeated_pattern:
+        logger.info(f"[AngleSystem] Pattern '{pattern_key}' was shown on: {recent_pattern_dates}")
+        logger.info(f"[AngleSystem] Recent angle_ids used: {recent_angle_ids}")
+    
+    # Create user+date seed for deterministic but varied selection
+    seed_input = f"{user_id}:{date_str}:{pattern_key}"
+    seed_hash = int(hashlib.md5(seed_input.encode()).hexdigest()[:8], 16)
+    
+    # Filter out recently used angles
+    available_angles = [a for a in angles if a["angle_id"] not in recent_angle_ids]
+    
+    if not available_angles:
+        # All angles used recently - reset and use least recent
+        logger.info("[AngleSystem] All angles used recently, resetting rotation")
+        available_angles = angles
+        # But still try to pick a different one from yesterday
+        if recent_angle_ids:
+            yesterday_angle = recent_angle_ids[0]
+            available_angles = [a for a in angles if a["angle_id"] != yesterday_angle]
+            if not available_angles:
+                available_angles = angles
+    
+    # Select angle based on seed
+    angle_idx = seed_hash % len(available_angles)
+    selected_angle = available_angles[angle_idx]
+    
+    selection_reason = f"selected_angle_{selected_angle['angle_id']}"
+    if is_repeated_pattern:
+        selection_reason = f"rotated_to_{selected_angle['angle_id']}_avoiding_{recent_angle_ids}"
+    
+    logger.info(f"[AngleSystem] Selected angle '{selected_angle['angle_id']}' for pattern '{pattern_key}'")
+    
+    return (selected_angle, selection_reason, is_repeated_pattern)
+
+
+def apply_default_angle_variation(
+    template: Dict[str, Any],
+    pattern_key: str,
+    user_id: str,
+    date_str: str,
+    days_since_last: int = 0
+) -> Tuple[Dict[str, Any], Dict[str, str]]:
+    """
+    Apply default angle variation to a pattern without defined angles.
+    
+    Returns:
+        (modified_template, angle_debug_info)
+    """
+    # Select a default variation based on seed
+    seed_input = f"{user_id}:{date_str}:{pattern_key}:default"
+    seed_hash = int(hashlib.md5(seed_input.encode()).hexdigest()[:8], 16)
+    
+    # Use days_since_last to help vary if same pattern repeating
+    adjusted_idx = (seed_hash + days_since_last) % len(DEFAULT_ANGLE_VARIATIONS)
+    variation = DEFAULT_ANGLE_VARIATIONS[adjusted_idx]
+    
+    modified = template.copy()
+    
+    # Apply variation modifiers
+    if variation.get("title_modifier"):
+        modified["title"] = template["title"] + variation["title_modifier"]
+    
+    if variation.get("body_prefix"):
+        modified["what_happening"] = variation["body_prefix"] + template["what_happening"]
+    
+    if variation.get("bridge_suffix"):
+        original_why = template.get("why_feels", "")
+        modified["why_feels"] = f"{original_why} {variation['bridge_suffix']}".strip()
+    
+    debug_info = {
+        "angle_id": variation["angle_id"],
+        "angle_label": variation["angle_label"],
+        "variation_type": "default",
+        "variation_idx": adjusted_idx,
+    }
+    
+    return modified, debug_info
 
 
 # =============================================================================
@@ -1573,16 +1946,77 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     
     pattern_key, selection_reason = select_pattern_for_user(user_id, signal_flags, chart_data)
     
+    # =================================================================
+    # STEP 4.5 (V3.1): ANGLE SELECTION - Rotate cuts on repeated patterns
+    # =================================================================
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Get recent pattern history for angle rotation
+    recent_history = await get_recent_pattern_history(db, user_id, days=5)
+    
+    # Select angle for this pattern
+    selected_angle, angle_selection_reason, is_repeated_pattern = select_angle_for_pattern(
+        pattern_key=pattern_key,
+        user_id=user_id,
+        date_str=today,
+        recent_history=recent_history
+    )
+    
+    angle_debug = {
+        "pattern_key": pattern_key,
+        "is_repeated_pattern": is_repeated_pattern,
+        "angle_selection_reason": angle_selection_reason,
+        "recent_history_count": len(recent_history),
+    }
+    
     # v1.7: Check if using signal-absent pattern
     if pattern_key in SIGNAL_ABSENT_PATTERNS:
         template = SIGNAL_ABSENT_PATTERNS[pattern_key]
+        angle_debug["template_source"] = "signal_absent"
     elif pattern_key in PATTERN_TEMPLATES:
         template = PATTERN_TEMPLATES[pattern_key]
+        angle_debug["template_source"] = "pattern_template"
     else:
         # Absolute fallback - should never happen
         template = SIGNAL_ABSENT_PATTERNS["ambient_unease"]
         pattern_key = "ambient_unease"
+        angle_debug["template_source"] = "fallback"
         logger.warning(f"[HomeInsight] Pattern key '{pattern_key}' not found, using ambient_unease")
+    
+    # V3.1: If we have a selected angle, use it to override the template
+    if selected_angle:
+        # Angle provides custom title/body/bridge
+        angle_debug["angle_id"] = selected_angle.get("angle_id")
+        angle_debug["angle_label"] = selected_angle.get("angle_label")
+        
+        # Create a template from the angle
+        template = {
+            "title": selected_angle.get("title", template["title"]),
+            "what_happening": selected_angle.get("body", template["what_happening"]),
+            "why_feels": selected_angle.get("bridge", template.get("why_feels", "")),
+            "watch_for": template.get("watch_for", ""),
+            "better_move": selected_angle.get("action", template.get("better_move", "")),
+            "interrupt": template.get("interrupt", ""),
+        }
+        
+        logger.info(f"[HomeInsight] V3.1 ANGLE APPLIED: {selected_angle['angle_id']} for pattern '{pattern_key}'")
+    elif is_repeated_pattern and pattern_key not in SIGNAL_ABSENT_PATTERNS:
+        # No defined angles but pattern is repeating - apply default variation
+        days_since = 1
+        for h in recent_history:
+            if h.get("pattern_key") == pattern_key or (h.get("pattern_id", "").startswith(pattern_key)):
+                days_since = max(1, (datetime.strptime(today, "%Y-%m-%d") - 
+                               datetime.strptime(h.get("date", today), "%Y-%m-%d")).days)
+                break
+        
+        template, default_angle_info = apply_default_angle_variation(
+            template, pattern_key, user_id, today, days_since
+        )
+        angle_debug.update(default_angle_info)
+        logger.info(f"[HomeInsight] V3.1 DEFAULT VARIATION APPLIED: {default_angle_info.get('angle_id')}")
+    else:
+        angle_debug["angle_id"] = "base"
+        angle_debug["angle_label"] = "Base Pattern"
     
     # =================================================================
     # STEP 5: Apply phase modifier to template
@@ -1634,12 +2068,25 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     # v1.7: SIGNAL DOMINANCE RULE
     # phase_shift and cycle_event ALWAYS use day-class framing
     # NO fallback to generic copy
+    # V3.1: But angle system can provide alternative cuts when pattern repeats
     
     if day_class in ["phase_shift", "cycle_event"]:
         # Day-class framing takes priority - ALWAYS
-        title = hero_output.get("title", modified_template["title"])
-        body = hero_output.get("body", modified_template["what_happening"])
-        bridge = hero_output.get("bridge", "")
+        # BUT if angle system selected a specific angle, use that angle's title/body as the content
+        # while keeping the day-class "mode" and "tone"
+        
+        # V3.1: If angle provided specific title/body, use those but preserve hero metadata
+        if selected_angle and angle_debug.get("is_repeated_pattern"):
+            # Repeated pattern - use angle's specific framing
+            title = selected_angle.get("title", hero_output.get("title", modified_template["title"]))
+            body = selected_angle.get("body", hero_output.get("body", modified_template["what_happening"]))
+            bridge = selected_angle.get("bridge", hero_output.get("bridge", ""))
+            logger.info(f"[HomeInsight] V3.1 ANGLE OVERRIDE: Using angle '{angle_debug.get('angle_id')}' for repeated pattern on {day_class}")
+        else:
+            # First time seeing this pattern - use hero framing
+            title = hero_output.get("title", modified_template["title"])
+            body = hero_output.get("body", modified_template["what_happening"])
+            bridge = hero_output.get("bridge", "")
     else:
         # Normal flow - use pattern-based title
         title = modified_template["title"]
@@ -1879,7 +2326,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
                 # Recompute signature after variation
                 freshness_debug["varied_signature"] = compute_content_signature(title, body)
         
-        # Save to history for future checks
+        # Save to history for future checks (V3.1: include angle info)
         await save_home_history(
             db=db,
             user_id=user_id,
@@ -1888,7 +2335,9 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             body=body,
             pattern_id=f"{pattern_key}_{today.replace('-', '')}",
             content_signature=freshness_result.get("current_signature", compute_content_signature(title, body)),
-            generation_source=generation_source
+            generation_source=generation_source,
+            angle_id=angle_debug.get("angle_id"),
+            pattern_key=pattern_key
         )
         
     except Exception as e:
@@ -1934,7 +2383,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v30_freshness",  # Version flag for frontend
+        "card_version": "mirror_v31_angle_rotation",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
@@ -1960,6 +2409,8 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             "generation_source": generation_source,
             "deterministic_hash": deterministic_hash,
             "user_seed": f"{user_id[:8]}..:{today_str}",
+            # V3.1: ANGLE SYSTEM DEBUG
+            "angle_system": angle_debug,
             "computed_at": datetime.now(timezone.utc).isoformat()
         }
     }
