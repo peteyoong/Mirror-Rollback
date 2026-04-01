@@ -1,195 +1,130 @@
 <analysis>**original_problem_statement**: 
-The user requested several deep architectural and UX/Content upgrades:
-1. Fix location search bug during registration (Alor Setar, Malaysia not found) by integrating a better geocoding API.
-2. Convert all Human Design and Pattern outputs into REAL-LIFE LANGUAGE. Never start with system terms (Ajna, G Center, etc.). System labels must go last.
-3. Build a Pattern Differentiation Engine to prevent the app from over-collapsing outputs into a generic The Pause pattern.
-4. Implement Mirror Content System V1 & V2 across all lenses with a strict TENSION-FIRST structure (Recognition, Tension, Context, What this is, When it trips you up, When it works, At your highest, Try this).
-5. Fix the Friend Account Bug where different users receive the same generic pattern outputs.
-6. Upgrade Mirror Home to be truth-based: Remove artificial user-ID hashing for variance, ensuring Home message differences are derived entirely from actual astrological transits, journal entries, and HD tensions. Make Home messages high-stakes and grounded in real context.
-
-**PRODUCT REQUIREMENTS**:
-- Location search must reliably find global cities without API keys.
-- HD outputs must use behavior-first language (You tend to...) and ban phrases like consistent energy or alignment.
-- Differentiated Patterns must use weighted scoring based on action pressure, clarity delay, external dependency, etc.
-- Mirror Home must feature 6 distinct sections: Opening Hit, Tension, Context, Stakes, One Wise Move, CTA.
-- The  hash must be completely stripped from pattern selection logic.
+The user is driving a continuous, deep refinement of the application's Home screen and Lenses. The core product requirement is to replace abstract, generic system jargon with hyper-specific, behavioral, and highly confronting recognition language. In this session, the focus was entirely on making the Home screen feel live and responsive by building an Engagement Adaptation Layer. The app now tracks how the user engages (bounce, skim, capture), detects exact recent actions (e.g., opening and closing chat without sending), and uses Behavior Echoes to generate the first line of the Home insight (e.g., You almost said it — then stopped.). 
+A secondary issue involved a reported missing Lifeline in production.
 
 **User's preferred language**: English
 (INSTRUCT NEXT AGENT: You MUST respond in English only)
 
 **what currently exists?** 
-A deeply relational and diagnostic mobile/web app (Mirror). The location search now uses the Photon API (komoot.io) as its primary geocoder with Nominatim as a backup, significantly improving international city resolution. The content layer has been completely overhauled: Human Design center interpretations and Home Patterns are now generated using a highly differentiated, tension-first  and . The system uses real astrological, HD, and journal signals to generate hyper-specific, behavior-driven psychological insights rather than system-heavy jargon. 
+A deeply relational diagnostic mobile/web app (Mirror). The system features an Insight First architecture. Home cards now utilize a highly advanced  backed by  and . The app tracks frontend actions (), calculates session states (bounced, skimmed, captured), and dynamically adapts the text's sharpness, tension, and UI spacing ().
 
 **Last working item**: 
-    - Last item agent was working: Upgrading Mirror Home to be truth-based and removing artificial user-ID variance. The agent successfully created  to evaluate truth-based profiles (Push, Hold, Clarify, Express) and stripped the  pseudo-random seeding from  so that patterns only differ if actual underlying signals differ.
-    - Status: USER VERIFICATION PENDING
-    - Agent Testing Done: Y (Tested pattern variation using bash scripts)
-    - Which testing method agent to use? manual testing by python -c (Verify truth-based generation outputs via backend scripts) or user verification on frontend.
+    - Last item agent was working: Debugging the missing Lifeline data in the frontend UI (). 
+    - Status: IN PROGRESS
+    - Agent Testing Done: Y (for backend)
+    - Which testing method agent to use? manual testing by bash/python -c to inspect component states. Use screenshot tool if needed to verify UI rendering.
     - User Testing Done: N
 
-**All Pending/In progress Issue list**:
-  Issue 1: Missing Lifeline data in production (P1)
-     - Attempted fixes: Debug endpoints were previously added. Verified data exists in preview DB but is missing in the production DB.
-     - Next debug checklist: Check if user requires an automated DB migration script or will manually point the production environment to the correct MongoDB cluster.
-     - Why fix this issue and what will be achieved with the fix? Users see an empty lifeline in production.
-     - Status: USER VERIFICATION PENDING (Awaiting user's infrastructural action).
+**All Pending/In progress Issue list**:  
+  Issue 1: 🔴 Lifeline Data Not Rendering in UI (P0)
+     - Attempted fixes: The agent successfully proved that backend data **IS INTACT** (data lives in  collection, and  returns 45 events perfectly). The issue is strictly on the frontend. Agent traced the UI to  and began inspecting .
+     - Next debug checklist: 
+        1. Check  in .
+        2. Ensure state variables holding the lifeline data are populated correctly.
+        3. Verify how the data is passed to .
+        4. Look for mismatched keys (e.g., expecting  instead of ).
+     - Why fix this issue and what will be achieved with the fix? Restores user access to their Lifeline history without risking any backend data corruption.
+     - Status: IN PROGRESS
      - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? NA
+     - Should Test frontend/backend/both after fix? Frontend
+     - Blocked on other issue: None
 
 **In progress Task List**:
-None currently active. Agent just finished the file replacements for  and .
+None strictly in progress besides the P0 Lifeline UI Bug.
 
 **Upcoming and Future Tasks**
-  Upcoming Tasks:
-  - Extend Mirror Content System to Gene Keys, Astrology, and BaZi lenses (P1). 
-  - Add Experience Preferences Settings Screen (P2): Wire up  (scaffolded).
-  
-  Future Tasks:
-  - Batch Recompute HD Charts (P2): Script to run POST  for all users.
-  - Refactor  (P2): Modularize the 27k+ line file into , , .
-  - Refactor Frontend Monoliths (P2): Break down  and .
+    Future Tasks:
+    - Batch Recompute HD Charts (P2)
+    - Refactor  monolith (P2)
+    - Refactor Frontend Monoliths (, ) (P2)
 
 **Completed work in this session**
-- Added Photon API (photon.komoot.io) as primary location search geocoder and resolved 403 error (DONE)
-- Created  to strip system jargon from outputs (DONE)
-- Created  to eliminate The Pause fallback and introduce 10 weighted patterns (DONE)
-- Rewrote 18 Human Design center templates into a 5-part behavioral structure (DONE)
-- Created  to enforce an 8-part tension-first architecture (DONE)
-- Built  resolving the friend account bug by increasing user-specific signal variance (DONE)
-- Built  to generate high-stakes, scene-based Home messages and completely stripped  pseudo-randomness (DONE)
+- Fixed Expo Go caching issue (added/removed debug markers, fixed syntax errors in  and ) (DONE)
+- MIRROR — HOME DAILY DIFFERENTIATION V1: Rebalanced scoring to prioritize daily transit/journal signals. Created  (DONE)
+- MIRROR — HOME BEHAVIORAL SPECIFICITY V2: Replaced abstract phrases with behavior snaps and forced life arenas (DONE)
+- MIRROR — ENGAGEMENT ADAPTATION LAYER V1: Tracked user session state (bounced/skimmed/captured) via  (DONE)
+- MIRROR — PERCEIVED ADAPTATION LAYER V1: Altered Home first lines to imply adaptation based on previous session state (DONE)
+- MIRROR — RECENT ACTION ECHO LAYER V1: Upgraded behavior snaps to precise Echoes based on real tracked actions (e.g., , ) (DONE)
+- MIRROR — FRONTEND ACTION TRACKING + SUBTLE CUES V1: Created  and . Wired , , and  to send interaction data to backend (DONE)
+- MIRROR — ENGAGEMENT LOOP VALIDATION SPRINT V1: Built backend script to validate the tracking loop (DONE)
+- MIRROR — LIFELINE DATA RESTORE & DEBUG V1: Diagnosed that backend DB and API are perfectly fine. (DONE)
 
 **Earlier issues found/mentioned but not fixed**
-None explicitly missed.
+- The monolithic nature of  makes it difficult to maintain and risky for search/replace operations.
 
 **Known issue recurrence from previous fork**
-  - Issue recurrence in previous fork:  file size and monolithic nature.
-  - Recurrence count: 5
+  - Issue recurrence in previous fork:  file size and monolithic nature (>28k lines).
+  - Recurrence count: 10
   - Status: PENDING REFACTOR
-  - Note: Next agent needs to be cautious while doing search & replace in .
+  - Note: Next agent MUST be highly cautious while doing search & replace in  to avoid truncating or corrupting the file. Use precise replacements.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Photon API Geocoding**: OpenStreetMap-based fallback. Replaces strict Nominatim dependence. Requires  headers to avoid 403 Forbidden errors.
-- **Weighted Pattern Scoring**: Patterns are no longer generic. They are dynamically chosen based on scoring , , , , , etc.
-- **Tension-First Architecture**: Outputs strictly require an internal conflict (Part of you wants X... but another part knows Y).
-- **Deterministic Truth Logic**: Removed pseudo-random tiebreakers ( hashing). Variation between users is purely driven by combinations of HD, astrology transits, and journal entries. 
-- **Web Export Workflow**: Crucial reminder: Changes to the frontend will NOT reflect on the live preview URL unless env: load .env
-env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_DEBUG_MIRROR EXPO_PUBLIC_BUILD_VERSION EXPO_PUBLIC_BUILD_ID
-Fast resolver is enabled.
-Starting Metro Bundler
-Static rendering is enabled. Learn more: https://docs.expo.dev/router/reference/static-rendering/
-λ Bundled 1572ms node_modules/expo-router/node/render.js (1375 modules)
-Web Bundled 2029ms node_modules/expo-router/entry.js (1021 modules)
-Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓░░░░░░░░ 55.4% ( 688/1021)
-
-› web bundles (1):
-_expo/static/js/web/entry-da22d77b218a7f28340a9f87359504f1.js (3.63 MB)
-
-› Static routes (40):
-/life (40.7 kB)
-/ (index) (40.7 kB)
-/lenses (40.7 kB)
-/signals (40.7 kB)
-/welcome (40.7 kB)
-/reflect (40.7 kB)
-/_sitemap (39.6 kB)
-/patterns (40.7 kB)
-/+not-found (39.6 kB)
-/(tabs)/life (40.7 kB)
-/forums/[id] (40.7 kB)
-/forums/join (40.7 kB)
-/pattern-lens (40.7 kB)
-/(tabs) (40.7 kB)
-/forums (40.7 kB)
-/forums/story (40.7 kB)
-/todays-mirror (40.7 kB)
-/(tabs)/lenses (40.7 kB)
-/forums/create (40.7 kB)
-/lenses/[lens] (40.7 kB)
-/(tabs)/reflect (40.7 kB)
-/forums/updates (40.7 kB)
-/lifeline-upload (40.7 kB)
-/reflection-chat (40.7 kB)
-/(tabs)/patterns (40.7 kB)
-/enneagram (40.7 kB)
-/forums/dynamics (40.7 kB)
-/forums/exercise (40.7 kB)
-/forums/mappings (40.7 kB)
-/forums/pairwise (40.7 kB)
-/forums/patterns (40.7 kB)
-/onboarding (40.7 kB)
-/forum-pattern-map (40.7 kB)
-/enneagram/results (40.7 kB)
-/questionnaire (40.7 kB)
-/enneagram/assessment (40.7 kB)
-/lifeline-import-review (40.7 kB)
-/enneagram/self-declare (40.7 kB)
-/lifeline-imported-sources (40.7 kB)
-/settings/experience-preferences (40.7 kB)
-
-Exported: dist is run and moved to the backend  folder.
+- **Insight First + Proof Expand**: Visible text is behavioral observation. Jargon is hidden in expandable UI.
+- **Engagement Adaptation & Echoes**: The backend logs  and specific clicks via . Next time Home generates, it calculates if the user bounced, skimmed, or was captured. It then prepends an exact Behavior Echo (e.g., You came back again.) based on the last recorded action type.
+- **Subtle Adaptation Cues**:  subtly shifts padding and line height based on the adaptation mode (, , ) to make the app feel alive without explicit labels.
 
 **key DB schema**
-  - : {user_id, pattern_id, first_seen_at, last_seen_at, exposure_dates, times_seen_7d, state}
+  -  (New): Tracks session ID, timestamps, durations, and flags.
+  -  (New): Current derived state (bounced, captured).
+  -  (New): List of specific actions (, ).
+  - : **Crucial Note** - Lifeline data is stored here, NOT in the empty  collection.
 
 **changes in tech stack**
-  - Added  to backend for async Photon API requests.
+  - None.
 
 **All files of reference**
--  (Created)
--  (Created)
--  (Created)
--  (Created)
--  (Created)
--  (Heavily modified for language transformation)
--  (Updated API routes)
+-  (Current target for Lifeline UI fix)
+-  (Current target for Lifeline UI fix)
+-  
+- 
+- 
 - 
 
 **Areas that need refactoring**:
--  (Critical mass)
+-  (Massive monolith).
 
 **key api endpoints**
-- : Hits Photon API first, then Nominatim, then a hardcoded fallback database.
+-  (Tracks frontend interactions)
+- 
+-  (Now returns , , and )
+-  (Working fine, returns events for frontend)
 
 **Critical Info for New Agent**
-- **Content Voice & Tone**: Strict instructions mandate *zero* abstract jargon (energy, alignment) in primary openings. Always start with behavior: You tend to..., When something matters.... System labels (e.g., Ajna center defined) must *only* appear at the absolute bottom as metadata.
-- **Tension Requirement**: When crafting new content blocks or updating other lenses (Gene keys, BaZi), ensure there is a clear dual-force Tension established before insights are given. 
+- **P0 LIFELINE BUG INSTRUCTIONS**: Do NOT touch the database or backend API for the Lifeline bug. The data is intact in  and the API successfully returns it. Your exact starting point is debugging the state, rendering logic, and data mapping inside  and .
+- **Typescript Errors**: If you encounter a  error for local  files when using  or  to execute them, remember they must be bundled via Expo. Let Expo handle TS compilation; use linter output or visual preview to verify.
 
 **documents and test reports created in this job**
-- None
+- 
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1.  (Implementation completed, awaiting verification)
+1.  (Completed)
 2.  (Completed)
 3.  (Completed)
 4.  (Completed)
 5.  (Completed)
 6.  (Completed)
-7.  (Completed - Switched to Photon API)
-8.  (Answered via Support Agent / API fixed in subsequent prompt)
-9.  (Completed)
-10.  (Completed)
+7.  (Completed)
+8.  (Completed - Confirmed backend is safe)
+9.  (In Progress) **<- START HERE**
 
 **Project Health Check:**
-Broken: Lifeline production DB mapping (Infrastructural, pending user action)
-Stable: Geocoding API, Mirror Content V2 Engine, Pattern Differentiation
+- Broken: Lifeline UI rendering in frontend.
+- Stable: Engagement Tracking, Adaptation Logic, Backend APIs, Home screen.
 
 **3rd Party Integrations**
 - OpenAI GPT-4o — uses Emergent LLM Key
-- Swisseph (Astrology)
-- Photon API (Geocoding) — Free/Public, no key required
-- Nominatim API (Geocoding) — Free/Public, no key required
 
 **Testing status**
-  - Testing agent used after significant changes: NO (Tested using internal python scripts ).
+  - Testing agent used after significant changes: NO (Agent successfully used custom python validation scripts).
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: None
-  - Known regressions: None
+  - Test files created: 
+  - Known regressions: Lifeline frontend UI is blank despite data existing.
 
 **Credentials to test flow:**
 -  (ID: )
 
 **What agent forgot to execute**
-- The agent was successfully editing  to purge the last of the  logic, but didn't execute the final  block with the summary for the user before the conversation ended. Next agent should explicitly confirm the completion of Home Engine V2 with the user.</analysis>
+- The agent ran out of context while actively examining  to figure out why the correctly fetched Lifeline data isn't rendering. The next agent must pick this up immediately.</analysis>
