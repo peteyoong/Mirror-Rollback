@@ -4,15 +4,195 @@ Simple structured insight generation for Home Screen.
 Phase 1: Transform existing data into new structured format.
 v1.5: Day-Class Hero Framing - titles/copy selected by day classification
 v1.7: ELIMINATE GENERIC FALLBACK - Signal Dominance Rule
+v3.0: FRESHNESS GUARD + USER-SPECIFIC SEEDS - Anti-Repetition
 """
 
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 import hashlib
 import re
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# V3.0: FRESHNESS GUARD - Prevent day-over-day repetition
+# =============================================================================
+
+def compute_content_signature(title: str, body: str) -> str:
+    """
+    Compute a signature of the content for similarity comparison.
+    Uses key phrases, not full text, to detect semantic repetition.
+    """
+    # Extract first 100 chars of body (the hook) + title
+    hook = body[:100] if body else ""
+    content = f"{title}|{hook}".lower()
+    
+    # Remove common filler words for better matching
+    filler_words = ["the", "a", "an", "is", "are", "was", "were", "you", "your", "it", "to", "of", "and", "in", "that", "for"]
+    words = content.split()
+    filtered = [w for w in words if w not in filler_words]
+    
+    return hashlib.md5(" ".join(filtered).encode()).hexdigest()[:12]
+
+
+def check_freshness_against_history(
+    user_id: str,
+    title: str,
+    body: str,
+    db_home_history_collection
+) -> Tuple[bool, Optional[str], str]:
+    """
+    Check if this Home output is too similar to recent days.
+    
+    Returns:
+        (is_fresh: bool, previous_date: Optional[str], current_signature: str)
+    """
+    current_sig = compute_content_signature(title, body)
+    
+    # This is a sync helper - actual DB check happens in async wrapper
+    return (True, None, current_sig)
+
+
+async def async_check_freshness(
+    db,
+    user_id: str,
+    title: str,
+    body: str,
+    days_to_check: int = 3
+) -> Dict[str, Any]:
+    """
+    Async freshness check against recent Home history.
+    
+    Returns dict with:
+        - is_fresh: bool
+        - signature_match_date: Optional[str] - date of matching output
+        - current_signature: str
+        - previous_signatures: List[str]
+    """
+    from datetime import timedelta
+    
+    current_sig = compute_content_signature(title, body)
+    
+    # Get recent home outputs for this user
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days_to_check)
+    cutoff_str = cutoff.strftime("%Y-%m-%d")
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    try:
+        recent_homes = await db.home_history.find({
+            "user_id": user_id,
+            "date": {"$gte": cutoff_str, "$ne": today_str}  # Within cutoff but not today
+        }).sort("date", -1).limit(days_to_check).to_list(days_to_check)
+    except Exception as e:
+        logger.debug(f"[FreshnessGuard] DB error: {e}")
+        return {
+            "is_fresh": True,
+            "signature_match_date": None,
+            "current_signature": current_sig,
+            "previous_signatures": [],
+            "check_performed": False
+        }
+    
+    previous_sigs = []
+    match_date = None
+    
+    for home in recent_homes:
+        prev_sig = home.get("content_signature", "")
+        prev_date = home.get("date", "")
+        previous_sigs.append({"date": prev_date, "signature": prev_sig})
+        
+        if prev_sig == current_sig:
+            match_date = prev_date
+            logger.warning(f"[FreshnessGuard] REPETITION DETECTED: {current_sig} matches {prev_date}")
+            break
+    
+    return {
+        "is_fresh": match_date is None,
+        "signature_match_date": match_date,
+        "current_signature": current_sig,
+        "previous_signatures": previous_sigs,
+        "check_performed": True
+    }
+
+
+async def save_home_history(
+    db,
+    user_id: str,
+    date_str: str,
+    title: str,
+    body: str,
+    pattern_id: str,
+    content_signature: str,
+    generation_source: str
+):
+    """Save Home output to history for future freshness checks."""
+    try:
+        await db.home_history.update_one(
+            {"user_id": user_id, "date": date_str},
+            {"$set": {
+                "user_id": user_id,
+                "date": date_str,
+                "title": title,
+                "body_preview": body[:200] if body else "",
+                "pattern_id": pattern_id,
+                "content_signature": content_signature,
+                "generation_source": generation_source,
+                "saved_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+        logger.info(f"[FreshnessGuard] Saved home history for {user_id[:8]} on {date_str}")
+    except Exception as e:
+        logger.debug(f"[FreshnessGuard] Save error: {e}")
+
+
+def force_variation(
+    title: str,
+    body: str,
+    bridge: str,
+    seed_offset: int,
+    day_class: str,
+    pattern_key: str,
+    variation_reason: str
+) -> Tuple[str, str, str]:
+    """
+    Force variation in content when freshness guard triggers.
+    
+    This doesn't change the truth/signal, just the angle/framing.
+    Uses a seed offset to select alternative templates.
+    """
+    # V3.0: Variation angles by day class
+    ANGLE_SHIFTS = {
+        "normal_flow": [
+            # Different emphasis, same pattern
+            lambda t, b: (t, b.replace("Part of you", "A part that"), "The familiar surface in different light."),
+            lambda t, b: (t, f"Today, {b.lower()[0]}{b[1:]}", "Same tension, new day."),
+            lambda t, b: (t + " — Still", b, "It hasn't resolved. And won't today."),
+        ],
+        "cycle_event": [
+            lambda t, b: (f"Still: {t}", b, "The cycle continues."),
+            lambda t, b: (t, f"Again: {b}", "This isn't new. But it's present."),
+        ],
+        "phase_shift": [
+            lambda t, b: (t, f"The pressure hasn't lifted. {b}", ""),
+            lambda t, b: (f"Day {seed_offset + 2}: {t}", b, "You're still in it."),
+        ],
+    }
+    
+    shifts = ANGLE_SHIFTS.get(day_class, ANGLE_SHIFTS["normal_flow"])
+    shift_idx = seed_offset % len(shifts)
+    shift_fn = shifts[shift_idx]
+    
+    new_title, new_body, new_bridge_suffix = shift_fn(title, body)
+    
+    # Append to bridge if exists
+    final_bridge = f"{bridge} {new_bridge_suffix}".strip() if bridge else new_bridge_suffix
+    
+    logger.info(f"[FreshnessGuard] VARIATION APPLIED: reason={variation_reason}, day_class={day_class}, shift_idx={shift_idx}")
+    
+    return new_title, new_body, final_bridge
 
 
 # =============================================================================
@@ -462,11 +642,21 @@ def select_hero_framing(
         body_options = framing["body_templates"]
         bridge_options = framing["bridge_templates"]
     
-    # Use date-based seed for consistent selection within a day
-    date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
+    # V3.0: User-specific date seed for per-user variety
+    # CRITICAL FIX: Include user_id in seed so different users get different templates
+    # Without this, ALL users see the same Home content on the same day
+    today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+    
+    # Extract user_id from transit_stack if available (passed from generate_daily_insight)
+    user_id_for_seed = transit_stack.get("_user_id", "default")
+    
+    # Create user+date seed for variety across users AND days
+    date_seed = f"{user_id_for_seed}:{today_str}"
     seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
     
-    # Select title deterministically
+    logger.info(f"[HeroFraming V3] Seed: user={user_id_for_seed[:8] if len(user_id_for_seed) > 8 else user_id_for_seed}... date={today_str}, hash={seed_hash % 1000}")
+    
+    # Select title deterministically based on user+date seed
     title_index = seed_hash % len(title_options)
     selected_title = title_options[title_index]
     
@@ -593,8 +783,9 @@ def generate_day_class_hero(
         for emph in emphasis_list:
             if emph in EMPHASIS_BRIDGES_V20:
                 bridges = EMPHASIS_BRIDGES_V20[emph]
-                # Select based on date seed
-                date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
+                # V3.0: Select based on user+date seed (passed via framing)
+                user_id_for_seed = framing.get("_user_id", "default")
+                date_seed = f"{user_id_for_seed}:{datetime.now(timezone.utc).strftime('%Y%m%d')}"
                 seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
                 bridge_index = seed_hash % len(bridges)
                 candidate_bridge = bridges[bridge_index]
@@ -625,7 +816,9 @@ def generate_day_class_hero(
         bridge_options = framing_templates.get("bridge_templates", [])
         
         if bridge_options:
-            date_seed = datetime.now(timezone.utc).strftime("%Y%m%d")
+            # V3.0: User+date seed for variety
+            user_id_for_seed = framing.get("_user_id", "default")
+            date_seed = f"{user_id_for_seed}:{datetime.now(timezone.utc).strftime('%Y%m%d')}"
             seed_hash = int(hashlib.md5(date_seed.encode()).hexdigest()[:8], 16)
             
             for i in range(len(bridge_options)):
@@ -1407,6 +1600,9 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         logger.debug(f"[HomeInsight] Transit detection error: {e}")
         transit_stack = {"type": "background", "classification": "normal_flow", "intensity": 0}
     
+    # V3.0: CRITICAL - Inject user_id into transit_stack for per-user template variety
+    transit_stack["_user_id"] = user_id
+    
     day_class = transit_stack.get("classification", "normal_flow")
     
     # Fetch modulated tension for the day
@@ -1631,6 +1827,79 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             import traceback
             traceback.print_exc()
     
+    # =================================================================
+    # STEP 9 (V3.0): FRESHNESS GUARD - Detect & prevent repetition
+    # =================================================================
+    freshness_debug = {}
+    generation_source = "fresh"
+    
+    try:
+        freshness_result = await async_check_freshness(db, user_id, title, body)
+        
+        if freshness_result["check_performed"]:
+            freshness_debug = {
+                "is_fresh": freshness_result["is_fresh"],
+                "current_signature": freshness_result["current_signature"],
+                "signature_match_date": freshness_result.get("signature_match_date"),
+                "previous_signatures": freshness_result.get("previous_signatures", []),
+                "check_performed": True,
+            }
+            
+            # If NOT fresh (repetition detected), apply variation
+            if not freshness_result["is_fresh"]:
+                match_date = freshness_result.get("signature_match_date", "unknown")
+                logger.warning(f"[HomeInsight] V3.0 REPETITION GUARD TRIGGERED: content matches {match_date}")
+                
+                # Calculate seed offset based on day difference
+                try:
+                    today_date = datetime.strptime(today, "%Y-%m-%d")
+                    if match_date and match_date != "unknown":
+                        match_dt = datetime.strptime(match_date, "%Y-%m-%d")
+                        day_diff = (today_date - match_dt).days
+                    else:
+                        day_diff = 1
+                except Exception:
+                    day_diff = 1
+                
+                # Apply variation
+                title, body, bridge = force_variation(
+                    title=title,
+                    body=body,
+                    bridge=bridge or "",
+                    seed_offset=day_diff,
+                    day_class=day_class,
+                    pattern_key=pattern_key,
+                    variation_reason=f"repetition_from_{match_date}"
+                )
+                
+                generation_source = f"varied_from_{match_date}"
+                freshness_debug["variation_applied"] = True
+                freshness_debug["variation_reason"] = f"matched_{match_date}"
+                
+                # Recompute signature after variation
+                freshness_debug["varied_signature"] = compute_content_signature(title, body)
+        
+        # Save to history for future checks
+        await save_home_history(
+            db=db,
+            user_id=user_id,
+            date_str=today,
+            title=title,
+            body=body,
+            pattern_id=f"{pattern_key}_{today.replace('-', '')}",
+            content_signature=freshness_result.get("current_signature", compute_content_signature(title, body)),
+            generation_source=generation_source
+        )
+        
+    except Exception as e:
+        logger.debug(f"[HomeInsight] Freshness guard error: {e}")
+        freshness_debug["error"] = str(e)
+    
+    # V3.0: Compute deterministic signature for debug output
+    today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+    user_date_seed = f"{user_id}:{today_str}"
+    deterministic_hash = hashlib.md5(user_date_seed.encode()).hexdigest()[:8]
+    
     return {
         "success": True,
         "date": today,
@@ -1665,7 +1934,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v23_echo",  # Version flag for frontend
+        "card_version": "mirror_v30_freshness",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
@@ -1686,6 +1955,11 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             "generic_blocked": final_validation.get("severity") == "BLOCK",
             "daily_differentiation": daily_diff_debug,
             "engagement_adaptation": engagement_debug,
+            # V3.0: FRESHNESS GUARD DEBUG
+            "freshness_guard": freshness_debug,
+            "generation_source": generation_source,
+            "deterministic_hash": deterministic_hash,
+            "user_seed": f"{user_id[:8]}..:{today_str}",
             "computed_at": datetime.now(timezone.utc).isoformat()
         }
     }
