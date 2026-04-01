@@ -2279,13 +2279,18 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
     pattern_memory_debug = {}
     pattern_memory_state = "new_pattern"
     pattern_memory_prefix = None
+    evolution_state = "none"
+    evolution_confidence = 0.0
     
     try:
         from services.pattern_memory_engine import (
             process_pattern_memory,
-            should_override_home_with_memory,
-            generate_home_memory_override,
+            get_home_override_with_evolution,
+            generate_home_evolution_override,
+            detect_cross_lens_convergence,
             PatternMemoryState,
+            PatternEvolutionState,
+            EVOLUTION_CONFIDENCE_THRESHOLD,
         )
         
         # Extract key drivers from signal flags
@@ -2298,25 +2303,39 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         elif hero_output.get("hero_mode") == "threshold":
             primary_tension = "threshold_moment"
         
-        # Check if Home should be overridden with recurring pattern
-        should_override, recurring_info = await should_override_home_with_memory(db, user_id)
+        # V4.1: Check if Home should be overridden with evolution-aware logic
+        # Priority: ESCALATING > LOOPING > RECURRING > RETURNING > NEW
+        should_override, override_info, override_reason = await get_home_override_with_evolution(
+            db, user_id, 
+            signal_flags=active_flags,
+            journal_keywords=[]  # Could fetch from recent journal entries
+        )
         
-        if should_override and recurring_info:
-            logger.info(f"[HomeInsight] V4 MEMORY OVERRIDE: Recurring pattern detected ({recurring_info.get('occurrence_count')} occurrences)")
+        if should_override and override_info:
+            evolution_state = override_info.get("evolution_state", "none")
+            evolution_confidence = override_info.get("evolution_confidence", 0.0)
             
-            # Generate override diagnosis
-            memory_override = generate_home_memory_override(recurring_info)
-            title = memory_override.get("title", title)
-            body = memory_override.get("body", body)
-            bridge = memory_override.get("bridge", bridge)
+            logger.info(f"[HomeInsight] V4.1 EVOLUTION OVERRIDE: {evolution_state} (conf={evolution_confidence:.2f}), memory={override_info.get('memory_state')}")
             
-            pattern_memory_state = PatternMemoryState.RECURRING_PATTERN
-            pattern_memory_prefix = "You keep coming back to this."
+            # Generate evolution-aware override diagnosis
+            evolution_override = generate_home_evolution_override(override_info)
+            title = evolution_override.get("title", title)
+            body = evolution_override.get("body", body)
+            bridge = evolution_override.get("bridge", bridge)
+            
+            pattern_memory_state = override_info.get("memory_state", PatternMemoryState.RECURRING_PATTERN)
+            pattern_memory_prefix = evolution_override.get("pattern_memory", {}).get("primary_tension")
+            
             pattern_memory_debug = {
                 "override_applied": True,
-                "recurring_pattern": recurring_info.get("pattern_signature"),
-                "occurrence_count": recurring_info.get("occurrence_count"),
-                "primary_tension": recurring_info.get("primary_tension"),
+                "override_reason": override_reason,
+                "evolution_state": evolution_state,
+                "evolution_confidence": evolution_confidence,
+                "recurring_pattern": override_info.get("pattern_signature"),
+                "occurrence_count": override_info.get("occurrence_count"),
+                "primary_tension": override_info.get("primary_tension"),
+                "combined_priority": override_info.get("combined_priority"),
+                "version": "v4.1",
             }
         else:
             # Build temporary diagnosis dict for memory processing
@@ -2324,9 +2343,11 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
                 "title": title,
                 "body": body,
                 "bridge": bridge,
+                "misstep": modified_template.get("watch_for", ""),
+                "better_move": modified_template.get("better_move", ""),
             }
             
-            # Process pattern memory
+            # V4.1: Process pattern memory with evolution tracking
             processed = await process_pattern_memory(
                 db=db,
                 user_id=user_id,
@@ -2335,20 +2356,38 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
                 lens_source="home",
                 key_drivers=key_drivers,
                 diagnosis_title=title,
+                signal_flags=active_flags,
+                journal_keywords=[],
             )
             
             # Extract memory-enhanced data
             memory_info = processed.get("pattern_memory", {})
             pattern_memory_state = memory_info.get("state", "new_pattern")
             pattern_memory_prefix = memory_info.get("memory_prefix")
+            evolution_state = memory_info.get("evolution_state", "none")
+            evolution_confidence = memory_info.get("evolution_confidence", 0.0)
             
-            # Update body if memory prefix was injected
+            # Update body if memory/evolution prefix was injected
             if memory_info.get("memory_prefix"):
                 body = processed.get("body", body)
-                logger.info(f"[HomeInsight] V4 Memory injected: state={pattern_memory_state}, prefix='{pattern_memory_prefix[:30]}...'")
+                prefix_source = memory_info.get("prefix_source", "memory")
+                logger.info(f"[HomeInsight] V4.1 injected: state={pattern_memory_state}, evolution={evolution_state}, source={prefix_source}")
             
             pattern_memory_debug = processed.get("debug", {}).get("pattern_memory", {})
             pattern_memory_debug["is_new"] = memory_info.get("is_new", True)
+        
+        # V4.1: Check for cross-lens convergence
+        try:
+            is_convergent, convergence_language = await detect_cross_lens_convergence(db, user_id)
+            if is_convergent and convergence_language:
+                logger.info("[HomeInsight] V4.1 Cross-lens convergence detected")
+                pattern_memory_debug["cross_lens_convergence"] = True
+                pattern_memory_debug["convergence_language"] = convergence_language
+                # Optionally inject convergence language (if not already overriding)
+                if not should_override:
+                    body = f"{convergence_language} {body}"
+        except Exception as ce:
+            logger.debug(f"[HomeInsight] Cross-lens detection error: {ce}")
             
     except ImportError as e:
         logger.debug(f"[HomeInsight] Pattern memory engine not available: {e}")
@@ -2456,6 +2495,9 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         # V4.0 PATTERN MEMORY
         "pattern_memory_state": pattern_memory_state,
         "pattern_memory_prefix": pattern_memory_prefix,
+        # V4.1 PATTERN EVOLUTION
+        "evolution_state": evolution_state,
+        "evolution_confidence": round(evolution_confidence, 3),
         # v2.0 DAILY DIFFERENTIATION (kept for backward compat)
         "why_today": why_today,
         "why_today_phrase": why_today_phrase,
@@ -2469,7 +2511,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
         "phase": phase,
         "phase_description": phase_description,
         "confidence": confidence,
-        "card_version": "mirror_v40_pattern_memory",  # Version flag for frontend
+        "card_version": "mirror_v41_evolution",  # Version flag for frontend
         "debug": {
             "pattern_key": pattern_key,
             "selection_reason": selection_reason,
@@ -2490,7 +2532,7 @@ async def generate_daily_insight(db, user_id: str) -> Dict[str, Any]:
             "generic_blocked": final_validation.get("severity") == "BLOCK",
             "daily_differentiation": daily_diff_debug,
             "engagement_adaptation": engagement_debug,
-            # V4.0: PATTERN MEMORY DEBUG
+            # V4.1: PATTERN EVOLUTION DEBUG
             "pattern_memory": pattern_memory_debug,
             # V3.0: FRESHNESS GUARD DEBUG
             "freshness_guard": freshness_debug,

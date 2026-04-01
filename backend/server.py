@@ -15770,7 +15770,7 @@ Profile: {hd_data['profile']}
 @api_router.get("/human-design/today-diagnosis/{user_id}")
 async def get_human_design_today_diagnosis(user_id: str):
     """
-    V3.2 + V4: Generate Human Design Today Diagnosis with Pattern Memory.
+    V3.2 + V4.1: Generate Human Design Today Diagnosis with Pattern Evolution.
     
     Returns diagnosis-first format:
     - title (tension-based)
@@ -15780,6 +15780,7 @@ async def get_human_design_today_diagnosis(user_id: str):
     - better_move (grounded action)
     - signals (collapsible: gates, Gene Keys, centers)
     - pattern_memory_state (NEW, RETURNING, RECURRING)
+    - evolution_state (ESCALATING, SOFTENING, LOOPING, etc.)
     """
     try:
         from services.lens_diagnosis_engine import generate_hd_today_diagnosis
@@ -15828,15 +15829,24 @@ async def get_human_design_today_diagnosis(user_id: str):
             undefined_centers=undefined_centers
         )
         
-        # V4.0: Process Pattern Memory for cross-day continuity
+        # V4.1: Process Pattern Memory with Evolution tracking
         try:
-            from services.pattern_memory_engine import process_pattern_memory
+            from services.pattern_memory_engine import (
+                process_pattern_memory,
+                detect_cross_lens_convergence,
+            )
             
             # Extract key drivers from gate data
-            dominant_gate = all_gates[0] if all_gates else 35
             key_drivers = [f"gate{g}" for g in all_gates[:3]]
             
-            # Process memory
+            # Build signal flags from HD data
+            signal_flags = {
+                "undefined_emotional": "Solar Plexus" in undefined_centers,
+                "undefined_root": "Root" in undefined_centers,
+                "gate_activation": len(transit_gates) > 0,
+            }
+            
+            # Process memory with V4.1 evolution
             diagnosis = await process_pattern_memory(
                 db=db,
                 user_id=user_id,
@@ -15845,18 +15855,33 @@ async def get_human_design_today_diagnosis(user_id: str):
                 lens_source="human_design",
                 key_drivers=key_drivers,
                 diagnosis_title=diagnosis.get("title", "Human Design Today"),
+                signal_flags=signal_flags,
             )
             
             # Add memory state to response
             memory_info = diagnosis.get("pattern_memory", {})
             diagnosis["pattern_memory_state"] = memory_info.get("state", "new_pattern")
             diagnosis["pattern_memory_prefix"] = memory_info.get("memory_prefix")
+            diagnosis["evolution_state"] = memory_info.get("evolution_state", "none")
+            diagnosis["evolution_confidence"] = memory_info.get("evolution_confidence", 0.0)
             
-            logger.info(f"[HD Today] V4 Pattern Memory: state={diagnosis.get('pattern_memory_state')}")
+            # V4.1: Check cross-lens convergence
+            is_convergent, convergence_language = await detect_cross_lens_convergence(
+                db, user_id, 
+                current_tension_hash=diagnosis.get("debug", {}).get("pattern_memory", {}).get("tension_hash")
+            )
+            if is_convergent and convergence_language:
+                diagnosis["cross_lens_convergence"] = True
+                diagnosis["convergence_language"] = convergence_language
+                # Inject into body
+                diagnosis["body"] = f"{convergence_language} {diagnosis.get('body', '')}"
+            
+            logger.info(f"[HD Today] V4.1: memory={diagnosis.get('pattern_memory_state')}, evolution={diagnosis.get('evolution_state')}")
             
         except Exception as me:
-            logger.debug(f"[HD Today] Pattern memory not applied: {me}")
+            logger.debug(f"[HD Today] Pattern evolution not applied: {me}")
             diagnosis["pattern_memory_state"] = "new_pattern"
+            diagnosis["evolution_state"] = "none"
         
         return diagnosis
         
@@ -15882,6 +15907,7 @@ async def get_astrology_today_diagnosis(user_id: str):
     - better_move (grounded action)
     - signals (collapsible: transits, houses)
     - pattern_memory_state (NEW, RETURNING, RECURRING)
+    - evolution_state (ESCALATING, SOFTENING, LOOPING, etc.)
     """
     try:
         from services.lens_diagnosis_engine import generate_astro_today_diagnosis
@@ -15918,16 +15944,26 @@ async def get_astrology_today_diagnosis(user_id: str):
             active_houses=active_houses
         )
         
-        # V4.0: Process Pattern Memory for cross-day continuity
+        # V4.1: Process Pattern Memory with Evolution tracking
         try:
-            from services.pattern_memory_engine import process_pattern_memory
+            from services.pattern_memory_engine import (
+                process_pattern_memory,
+                detect_cross_lens_convergence,
+            )
             
             # Extract key drivers from transit/house data
             key_drivers = [f"house{h}" for h in active_houses[:3]]
             if transits:
                 key_drivers.append(transits[0].get("planet", "moon").lower())
             
-            # Process memory
+            # Build signal flags from transit data
+            signal_flags = {
+                "angular_house_active": any(h in active_houses for h in [1, 4, 7, 10]),
+                "moon_transit": any(t.get("planet", "").lower() == "moon" for t in transits),
+                "saturn_transit": any(t.get("planet", "").lower() == "saturn" for t in transits),
+            }
+            
+            # Process memory with V4.1 evolution
             diagnosis = await process_pattern_memory(
                 db=db,
                 user_id=user_id,
@@ -15936,18 +15972,33 @@ async def get_astrology_today_diagnosis(user_id: str):
                 lens_source="astrology",
                 key_drivers=key_drivers,
                 diagnosis_title=diagnosis.get("title", "Astrology Today"),
+                signal_flags=signal_flags,
             )
             
             # Add memory state to response
             memory_info = diagnosis.get("pattern_memory", {})
             diagnosis["pattern_memory_state"] = memory_info.get("state", "new_pattern")
             diagnosis["pattern_memory_prefix"] = memory_info.get("memory_prefix")
+            diagnosis["evolution_state"] = memory_info.get("evolution_state", "none")
+            diagnosis["evolution_confidence"] = memory_info.get("evolution_confidence", 0.0)
             
-            logger.info(f"[Astro Today] V4 Pattern Memory: state={diagnosis.get('pattern_memory_state')}")
+            # V4.1: Check cross-lens convergence
+            is_convergent, convergence_language = await detect_cross_lens_convergence(
+                db, user_id,
+                current_tension_hash=diagnosis.get("debug", {}).get("pattern_memory", {}).get("tension_hash")
+            )
+            if is_convergent and convergence_language:
+                diagnosis["cross_lens_convergence"] = True
+                diagnosis["convergence_language"] = convergence_language
+                # Inject into body
+                diagnosis["body"] = f"{convergence_language} {diagnosis.get('body', '')}"
+            
+            logger.info(f"[Astro Today] V4.1: memory={diagnosis.get('pattern_memory_state')}, evolution={diagnosis.get('evolution_state')}")
             
         except Exception as me:
-            logger.debug(f"[Astro Today] Pattern memory not applied: {me}")
+            logger.debug(f"[Astro Today] Pattern evolution not applied: {me}")
             diagnosis["pattern_memory_state"] = "new_pattern"
+            diagnosis["evolution_state"] = "none"
         
         return diagnosis
         
