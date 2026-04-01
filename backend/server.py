@@ -15767,6 +15767,136 @@ Profile: {hd_data['profile']}
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/human-design/today-diagnosis/{user_id}")
+async def get_human_design_today_diagnosis(user_id: str):
+    """
+    V3.1: Generate Human Design Today Diagnosis matching Home standard.
+    
+    Returns diagnosis-first format:
+    - title (tension-based)
+    - body (what's happening internally)
+    - bridge (normalize experience)
+    - misstep (likely wrong move)
+    - better_move (grounded action)
+    - signals (collapsible: gates, Gene Keys, centers)
+    """
+    try:
+        from services.lens_diagnosis_engine import generate_hd_today_diagnosis
+        
+        # Get user's HD data
+        user, chart = await get_user_astrology_data(user_id)
+        hd_data = extract_human_design_data(chart)
+        
+        if hd_data['type'] == 'Unknown':
+            raise HTTPException(status_code=404, detail="Human Design data not found")
+        
+        # Extract gate data
+        all_gates = hd_data.get('all_gates', [])
+        if not all_gates:
+            all_gates = list(set(
+                hd_data.get('personality_gates', []) + 
+                hd_data.get('design_gates', [])
+            ))
+        
+        # Get transit gates (current planetary positions)
+        transit_gates = []
+        try:
+            from services.transit_signals import compute_transit_signals
+            transit_result = compute_transit_signals(
+                natal_gates=all_gates,
+                defined_channels=hd_data.get('defined_channels', []),
+                defined_centers=hd_data.get('defined_centers', []),
+                authority=hd_data.get('authority', 'Emotional'),
+                user_type=hd_data.get('type', 'Generator')
+            )
+            transit_gates = transit_result.get('transit_gates', [])
+        except Exception as te:
+            logger.debug(f"Could not get transit gates: {te}")
+        
+        defined_centers = hd_data.get('defined_centers', [])
+        undefined_centers = [c for c in ['Head', 'Ajna', 'Throat', 'G/Identity', 'Heart/Ego', 'Sacral', 'Solar Plexus', 'Spleen', 'Root'] if c not in defined_centers]
+        
+        # Generate diagnosis
+        diagnosis = await generate_hd_today_diagnosis(
+            db=db,
+            user_id=user_id,
+            hd_data=hd_data,
+            active_gates=all_gates,
+            transit_gates=transit_gates,
+            defined_centers=defined_centers,
+            undefined_centers=undefined_centers
+        )
+        
+        return diagnosis
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Human Design today diagnosis error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/astrology/today-diagnosis/{user_id}")
+async def get_astrology_today_diagnosis(user_id: str):
+    """
+    V3.1: Generate Astrology Today Diagnosis matching Home standard.
+    
+    Returns diagnosis-first format:
+    - title (tension-based)
+    - body (what's happening internally)
+    - bridge (normalize experience)
+    - misstep (likely wrong move)
+    - better_move (grounded action)
+    - signals (collapsible: transits, houses)
+    """
+    try:
+        from services.lens_diagnosis_engine import generate_astro_today_diagnosis
+        
+        # Get user's chart data
+        user, chart = await get_user_astrology_data(user_id)
+        
+        if not chart:
+            raise HTTPException(status_code=404, detail="Astrology chart not found")
+        
+        # Get current transits
+        transits = []
+        active_houses = []
+        try:
+            # Try to get transit data from existing endpoint logic
+            from services.field_signals import detect_transit_convergence
+            transit_data = detect_transit_convergence()
+            
+            # Extract relevant transit info
+            if transit_data:
+                transits = transit_data.get('transits', [])
+                active_houses = transit_data.get('houses', [1, 4, 7, 10])  # Default to angular houses
+        except Exception as te:
+            logger.debug(f"Could not get transit data: {te}")
+            # Use minimal fallback
+            active_houses = [1, 7, 10]
+        
+        # Generate diagnosis
+        diagnosis = await generate_astro_today_diagnosis(
+            db=db,
+            user_id=user_id,
+            chart_data=chart,
+            transits=transits,
+            active_houses=active_houses
+        )
+        
+        return diagnosis
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Astrology today diagnosis error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/human-design/transit-signals/{user_id}")
 async def get_human_design_transit_signals(user_id: str):
     """

@@ -17,6 +17,7 @@ import { useForumContext, PrefilledSource } from '../contexts/ForumContext';
 import { useRouter } from 'expo-router';
 import api from '../services/api';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
+import HDTodayDiagnosis from './HDTodayDiagnosis';
 import { 
   formatSequenceExplanation, 
   getArcDescription, 
@@ -1153,6 +1154,9 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
   // Reflector journal synthesis for "You've Been Noticing" feature
   const [reflectorSynthesis, setReflectorSynthesis] = useState<any>(null);
   const [reflectorSynthesisLoading, setReflectorSynthesisLoading] = useState(false);
+  
+  // V3.1: Legacy content toggle for Today tab
+  const [legacyExpanded, setLegacyExpanded] = useState(false);
   
   // Debug: track raw API response length
   const [rawDataLength, setRawDataLength] = useState<number>(0);
@@ -4215,26 +4219,42 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
     return (
       <View style={styles.todayTabContainer}>
-        {/* PAGE TITLE - Single instance only */}
-        <View style={styles.todayIntroSection}>
-          <Text style={[styles.todayIntroTitle, { color: theme.text }]}>Your Design Today</Text>
-          <Text style={[styles.todayIntroSubtitle, { color: theme.textSecondary }]}>
-            What's active in your chart right now.
+        {/* V3.1: DIAGNOSIS-FIRST LAYER - Primary, always visible */}
+        <HDTodayDiagnosis 
+          userId={userId}
+          hdType={hdType}
+          authority={authority}
+          theme={theme}
+          onReflect={(title, prompt) => openReflection(title, 'hd_diagnosis', prompt, 'today', 'diagnosis', hdType)}
+        />
+        
+        {/* Divider before legacy content */}
+        <View style={[styles.todayDivider, { backgroundColor: theme.border, marginVertical: 24 }]} />
+        
+        {/* LEGACY CONTENT - Now secondary/collapsed */}
+        <TouchableOpacity 
+          style={styles.legacyToggle}
+          onPress={() => setLegacyExpanded && setLegacyExpanded(!legacyExpanded)}
+        >
+          <Text style={[styles.legacyToggleText, { color: theme.textSecondary }]}>
+            {legacyExpanded ? '▼' : '▶'} Detailed Timing & Signals
           </Text>
-        </View>
+        </TouchableOpacity>
         
-        {/* 1. DOMINANT THEME - The central truth */}
-        {dominantSignal.theme && (
-          <View style={styles.dominantThemeSection}>
-            <Text style={[styles.dominantThemeLabel, { color: theme.textTertiary }]}>THE THROUGH-LINE</Text>
-            <Text style={[styles.dominantThemeText, { color: theme.text }]}>
-              {dominantSignal.theme.replace('—', '. ').replace('don\'t', 'Don\'t')}
-            </Text>
-          </View>
-        )}
-        
-        {/* 2. WHAT'S ACTIVE NOW - Personal HD signals first (experience before explanation) */}
-        {renderHeroSection()}
+        {legacyExpanded && (
+          <>
+            {/* 1. DOMINANT THEME - The central truth */}
+            {dominantSignal.theme && (
+              <View style={styles.dominantThemeSection}>
+                <Text style={[styles.dominantThemeLabel, { color: theme.textTertiary }]}>THE THROUGH-LINE</Text>
+                <Text style={[styles.dominantThemeText, { color: theme.text }]}>
+                  {dominantSignal.theme.replace('—', '. ').replace('don\'t', 'Don\'t')}
+                </Text>
+              </View>
+            )}
+            
+            {/* 2. WHAT'S ACTIVE NOW - Personal HD signals first (experience before explanation) */}
+            {renderHeroSection()}
         
         {/* Divider */}
         <View style={[styles.todayDivider, { backgroundColor: theme.border }]} />
@@ -4293,6 +4313,8 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             <Text style={[styles.timingReflectCtaText, { color: theme.accent }]}>Reflect →</Text>
           </TouchableOpacity>
         </View>
+          </>
+        )}
       </View>
     );
   };
@@ -10650,5 +10672,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     marginTop: 2,
+  },
+  
+  // V3.1: Legacy content toggle
+  legacyToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+  },
+  legacyToggleText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
