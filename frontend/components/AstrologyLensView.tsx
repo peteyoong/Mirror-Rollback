@@ -277,6 +277,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
     if (activeTab === 'today') {
       return (
         <AstrologyTodayTab
+          userId={userId}
           fullChartData={fullChartData}
           theme={theme}
           onOpenChat={onOpenChat}

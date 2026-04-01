@@ -1,11 +1,12 @@
 // ============================================
-// ASTROLOGY TODAY TAB
-// Renders: Today/Week/Month content with live timing layer
-// Upgraded: Premium timing layer with real transit data
+// ASTROLOGY TODAY TAB V3.2
+// Renders: Diagnosis-first with Today/Week/Month content
+// Upgraded: Mirror-level diagnosis quality with collapsible signals
 // ============================================
 
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import AstroTodayDiagnosis from '../AstroTodayDiagnosis';
 
 import {
   FullChartData,
@@ -825,6 +826,7 @@ const SignalsSection: React.FC<SignalsSectionProps> = ({ transits, expanded, onT
 // ============================================
 
 interface AstrologyTodayTabProps {
+  userId: string;  // V3.2: Added for diagnosis component
   fullChartData: FullChartData | null;
   theme: any;
   onOpenChat: () => void;
@@ -924,6 +926,7 @@ function getTimelineLinkingLine(phase: CurrentPhase | null, altitude: Timeframe)
 // ============================================
 
 const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
+  userId,
   fullChartData,
   theme,
   onOpenChat,
@@ -932,6 +935,7 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
 }) => {
   const [activeAltitude, setActiveAltitude] = useState<Timeframe>('today');
   const [signalsExpanded, setSignalsExpanded] = useState(false);
+  const [legacyExpanded, setLegacyExpanded] = useState(false);  // V3.2: Legacy content collapsed by default
 
   // Get current timeline phase
   const currentPhase = getCurrentTimelinePhase();
@@ -1017,6 +1021,17 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
 
   return (
     <ScrollView style={styles.todayContainer} showsVerticalScrollIndicator={false}>
+      {/* V3.2: DIAGNOSIS LAYER - Primary, always visible (only for "today" altitude) */}
+      {activeAltitude === 'today' && userId && (
+        <View style={styles.diagnosisSection}>
+          <AstroTodayDiagnosis
+            userId={userId}
+            theme={theme}
+            onReflect={(title, context, prompt) => onReflect(prompt)}
+          />
+        </View>
+      )}
+      
       {/* Altitude Selector */}
       <View style={[styles.altitudeSelector, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
         <TouchableOpacity
@@ -1169,6 +1184,10 @@ const styles = StyleSheet.create({
   todayContainer: {
     padding: 16,
     flex: 1,
+  },
+  // V3.2: Diagnosis section
+  diagnosisSection: {
+    marginBottom: 20,
   },
   altitudeSelector: {
     flexDirection: 'row',
