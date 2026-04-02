@@ -21,7 +21,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../services/api';
 
 interface HomeSynthesisData {
   success: boolean;
@@ -80,8 +79,9 @@ const HomeSynthesisCard: React.FC<HomeSynthesisCardProps> = ({
       setLoading(true);
       setError(null);
       
-      const response = await api.get(`/home-synthesis/${userId}`);
-      setSynthesis(response.data);
+      const { getHomeSynthesis } = await import('../services/api');
+      const data = await getHomeSynthesis(userId);
+      setSynthesis(data);
     } catch (err: any) {
       console.error('[HomeSynthesisCard] Error:', err);
       setError(err.message || 'Failed to load');

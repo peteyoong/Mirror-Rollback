@@ -1,731 +1,76 @@
 // ============================================
-// ASTROLOGY TODAY TAB V3.2
-// Renders: Diagnosis-first with Today/Week/Month content
-// Upgraded: Mirror-level diagnosis quality with collapsible signals
+// ASTROLOGY TODAY TAB V5.0 - Expert Interpreter Primary
 // ============================================
+// 
+// CORE RULE: Must feel like a Master Astrologer who knows you
+// 
+// Primary Experience: Expert Interpretation (6-section structure)
+// Secondary: Raw signals as "What this is based on" (supporting proof layer)
+// 
+// NO: Leading with "Top Active Transits" or signal inventory
+// YES: Lead with interpreted meaning, demote raw signals
 
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import AstroTodayDiagnosis from '../AstroTodayDiagnosis';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import {
   FullChartData,
   TransitHit,
   TransitWindow,
   Timeframe,
-  CollapsedInsights,
 } from '../../services/astrology/astrologyTypes';
 
-import {
-  HOUSE_MEANINGS,
-  getChartRuler,
-  getDominantHouses,
-  isChartRulerActivated,
-  detectChapterTransits,
-  detectRepeatPatterns,
-  detectPersonalRelevance,
-  getActivatedHouses,
-  buildRulershipChains,
-  detectThemeConcentration,
-  prioritizeTransits,
-  buildAspectPatternAnalysis,
-  isPatternActivatedByTransit,
-  buildLifeChapterAnalysis,
-  getChapterContextLine,
-  buildCollapsedInsights,
-} from '../../services/astrology/astrologyInterpreter';
-
-import {
-  getDailyEnergySynthesis,
-  getWhatThisMayFeelLike,
-  getMistakeToWatch,
-  getReflectionQuestion,
-  getLifeAreaContext,
-  getMoonPhaseContext,
-  getPersonalRelevanceLine,
-  getChartRulerContextLine,
-  getDominantHouseRulerLine,
-  getRulershipChainLine,
-  getChapterLine,
-  getRepeatPatternLine,
-  getThemeCollapseLineIfApplicable,
-} from '../../services/astrology/astrologyNarrative';
-
-import { cleanText } from '../../utils/languageGuard';
-
 // ============================================
-// LIFE DOMAIN MAPPING - Translate houses/planets to real life
+// V5.0 EXPERT DATA INTERFACES
 // ============================================
 
-const HOUSE_TO_LIFE_DOMAIN: { [key: number]: string } = {
-  1: 'identity / self-expression / physical presence',
-  2: 'money / resources / self-worth',
-  3: 'communication / thinking / voice / learning',
-  4: 'home / family / inner life / emotional roots',
-  5: 'creativity / self-expression / romance / joy',
-  6: 'work / health / daily routines / service',
-  7: 'partnership / relating / commitments / reciprocity',
-  8: 'intimacy / shared resources / emotional depth / transformation',
-  9: 'beliefs / meaning / travel / expansion',
-  10: 'career / public role / responsibility / achievement',
-  11: 'community / friendship / hopes / collective connection',
-  12: 'solitude / rest / spirituality / what operates beneath awareness',
-};
-
-const PLANET_TO_THEME: { [key: string]: string } = {
-  'Sun': 'core identity / vitality / self-expression',
-  'Moon': 'emotional life / needs / comfort / inner rhythms',
-  'Mercury': 'communication / thinking / perception',
-  'Venus': 'relationships / values / pleasure / closeness',
-  'Mars': 'action / drive / assertion / conflict',
-  'Jupiter': 'growth / expansion / opportunity / optimism',
-  'Saturn': 'pressure / responsibility / limits / maturity',
-  'Uranus': 'disruption / change / freedom / individuality',
-  'Neptune': 'imagination / idealism / dissolution / spirituality',
-  'Pluto': 'power / transformation / intensity / depth',
-  'Chiron': 'sensitivity / old wounds / healing / wisdom',
-  'North Node': 'growth direction / developmental edge',
-  'South Node': 'familiar patterns / comfort zone',
-};
-
-// ============================================
-// TRANSIT HUMAN TRANSLATIONS
-// ============================================
-
-interface TransitTranslation {
-  label: string;
-  humanLine: string;
-}
-
-const getTransitHumanLine = (
-  transitPoint: string,
-  aspectType: string,
-  natalPoint: string
-): string => {
-  const aspect = aspectType.toLowerCase();
-  const transit = transitPoint;
-  const natal = natalPoint;
-  
-  // Jupiter transits
-  if (transit === 'Jupiter') {
-    if (natal === 'Saturn') return aspect === 'square' || aspect === 'opposition' 
-      ? 'Expansion is meeting resistance—growth may require more patience than speed.'
-      : 'Growth and structure are finding productive alignment.';
-    if (natal === 'Sun') return aspect === 'square' || aspect === 'opposition'
-      ? 'Confidence may be stretching beyond current capacity.'
-      : 'A natural expansiveness is supporting self-expression.';
-    if (natal === 'Moon') return aspect === 'square' || aspect === 'opposition'
-      ? 'Emotional needs may be inflating or feeling harder to contain.'
-      : 'Emotional generosity and optimism are flowing more easily.';
-    if (natal === 'Mars') return 'Action and expansion are in active conversation.';
-    if (natal === 'Venus') return 'Relationships and pleasure may be amplified.';
-    if (natal === 'Mercury') return 'Thinking and communication are expanding.';
-  }
-  
-  // Saturn transits
-  if (transit === 'Saturn') {
-    if (natal === 'Sun') return 'Identity is being tested by responsibility and limits.';
-    if (natal === 'Moon') return 'Emotional life is carrying more weight than usual.';
-    if (natal === 'Mars') return 'Action is meeting friction—patience may be required.';
-    if (natal === 'Venus') return 'Relationships may be under pressure to mature.';
-    if (natal === 'Jupiter') return 'Optimism is being asked to get realistic.';
-    if (natal === 'Mercury') return 'Thinking is being asked to be more serious or precise.';
-  }
-  
-  // Pluto transits
-  if (transit === 'Pluto') {
-    if (natal === 'Mars') return 'Pressure may be intensifying how action and control are handled.';
-    if (natal === 'Sun') return 'Deep transformation is touching the core of identity.';
-    if (natal === 'Moon') return 'Emotional intensity is running higher than usual.';
-    if (natal === 'Venus') return 'Relationships are being pulled into deeper territory.';
-    if (natal === 'Saturn') return 'Power and structure are being renegotiated.';
-  }
-  
-  // Uranus transits
-  if (transit === 'Uranus') {
-    if (natal === 'Jupiter') return 'Sudden opportunities or disruptions to growth are possible.';
-    if (natal === 'Saturn') return 'Structures are being challenged to change or break.';
-    if (natal === 'Sun') return 'Identity is being pushed toward something less predictable.';
-    if (natal === 'Moon') return 'Emotional life may feel more erratic or restless.';
-    if (natal === 'Venus') return 'Relationships may be feeling unpredictable or changing.';
-    if (natal === 'Mars') return 'Action may be more impulsive or erratic.';
-  }
-  
-  // Neptune transits
-  if (transit === 'Neptune') {
-    if (natal === 'Chiron') return 'Older sensitivities may be closer to the surface.';
-    if (natal === 'Sun') return 'Identity may feel more diffuse or idealized.';
-    if (natal === 'Moon') return 'Emotional boundaries may be more permeable.';
-    if (natal === 'Venus') return 'Love and idealism are deeply connected right now.';
-    if (natal === 'Saturn') return 'Reality and imagination may be harder to distinguish.';
-    if (natal === 'Mercury') return 'Thinking may be more imaginative but less precise.';
-  }
-  
-  // Generic fallback based on aspect type
-  if (aspect === 'conjunction') return `${transit} is amplifying ${natal.toLowerCase()} themes.`;
-  if (aspect === 'square') return `${transit} is creating friction with ${natal.toLowerCase()} patterns.`;
-  if (aspect === 'opposition') return `${transit} is creating tension with ${natal.toLowerCase()} expression.`;
-  if (aspect === 'trine') return `${transit} is supporting ${natal.toLowerCase()} energy naturally.`;
-  if (aspect === 'sextile') return `${transit} is opening opportunities around ${natal.toLowerCase()}.`;
-  
-  return `${transit} is activating ${natal.toLowerCase()} themes.`;
-};
-
-// ============================================
-// PSYCHOLOGICAL ACTIVATION BULLETS - Timeframe-Differentiated Perspectives
-// ============================================
-
-// TODAY = immediate experience, reaction, urgency
-// WEEK = unfolding pattern, repetition, buildup
-// MONTH = developmental arc, behavioral shifts, direction
-
-interface ThemeVariants {
-  today: string;
-  week: string;
-  month: string;
-}
-
-// Theme variants by timeframe perspective
-const THEME_VARIANTS: { [key: string]: ThemeVariants } = {
-  'expansion-structure': {
-    today: 'growth bumping into limits right now',
-    week: 'a recurring tension between wanting more and needing to wait',
-    month: 'learning to hold ambition and patience in the same hand',
-  },
-  'expansion': {
-    today: 'a pull toward more—more space, more possibility',
-    week: 'optimism building but needing grounding',
-    month: 'an emerging sense of what you want to expand toward',
-  },
-  'transformation': {
-    today: 'something pressing beneath the surface',
-    week: 'intensity that may be asking for attention',
-    month: 'a slow transformation in how you relate to power or control',
-  },
-  'communication': {
-    today: 'words or ideas asking to come through',
-    week: 'conversations that keep circling back',
-    month: 'a shift in how you speak or what you say',
-  },
-  'drive': {
-    today: 'urgency in forward momentum',
-    week: 'action meeting repeated obstacles or redirections',
-    month: 'learning where your energy is most effective',
-  },
-  'opportunity': {
-    today: 'a door appearing that requires quick discernment',
-    week: 'opportunities asking which ones to take seriously',
-    month: 'clarity about which paths are worth following',
-  },
-  'sensitivity': {
-    today: 'an older sensitivity closer to the surface',
-    week: 'a wound getting re-touched in small ways',
-    month: 'something you carry becoming easier to name',
-  },
-  'action-pressure': {
-    today: 'pressure on how you act or react',
-    week: 'a pattern of friction around assertion or control',
-    month: 'redefining your relationship with force and patience',
-  },
-  'change': {
-    today: 'something unexpected disrupting the expected',
-    week: 'instability or restlessness recurring across days',
-    month: 'freedom and disruption reshaping familiar structures',
-  },
-  'responsibility': {
-    today: 'weight landing on your shoulders right now',
-    week: 'responsibility showing up in repetitive ways',
-    month: 'maturity being asked for across multiple fronts',
-  },
-  'relating': {
-    today: 'closeness or distance feeling sharper than usual',
-    week: 'relationship dynamics surfacing repeatedly',
-    month: 'values around connection becoming clearer',
-  },
-  'identity': {
-    today: 'who you are feeling more visible or questioned',
-    week: 'your sense of self being tested in different contexts',
-    month: 'a slow redefinition of how you see yourself',
-  },
-  'emotional': {
-    today: 'feelings arriving with more weight or urgency',
-    week: 'emotional patterns showing themselves more clearly',
-    month: 'learning what you actually need to feel safe',
-  },
-};
-
-const getActivationBullets = (transits: TransitHit[], emphasisTags: string[], timeframe: Timeframe = 'today'): string[] => {
-  const bullets: string[] = [];
-  const seen = new Set<string>();
-  
-  const getVariant = (key: string): string | null => {
-    const variants = THEME_VARIANTS[key];
-    if (!variants) return null;
-    return variants[timeframe];
+interface AstroExpertData {
+  success: boolean;
+  lens: string;
+  date: string;
+  version: string;
+  todays_theme: string;
+  whats_happening: string[];
+  how_it_interacts: string[];
+  what_it_feels_like: string[];
+  what_to_do: string[];
+  one_question: string;
+  pattern_memory_state: string;
+  evolution_state: string;
+  signals?: {
+    transits: any[];
+    active_houses: number[];
+    dominant_planet: string;
+    primary_house: number;
   };
-  
-  // From emphasis tags - core themes
-  if (emphasisTags.includes('expansion') && emphasisTags.includes('structure')) {
-    const bullet = getVariant('expansion-structure');
-    if (bullet) bullets.push(bullet);
-    seen.add('expansion-structure');
-  } else if (emphasisTags.includes('expansion')) {
-    const bullet = getVariant('expansion');
-    if (bullet) bullets.push(bullet);
-    seen.add('expansion');
-  }
-  
-  if ((emphasisTags.includes('transformation') || emphasisTags.includes('power')) && !seen.has('transformation')) {
-    const bullet = getVariant('transformation');
-    if (bullet) bullets.push(bullet);
-    seen.add('transformation');
-  }
-  
-  if (emphasisTags.includes('communication') && !seen.has('communication')) {
-    const bullet = getVariant('communication');
-    if (bullet) bullets.push(bullet);
-    seen.add('communication');
-  }
-  
-  if (emphasisTags.includes('drive') && !seen.has('drive')) {
-    const bullet = getVariant('drive');
-    if (bullet) bullets.push(bullet);
-    seen.add('drive');
-  }
-  
-  if (emphasisTags.includes('opportunity') && !seen.has('opportunity')) {
-    const bullet = getVariant('opportunity');
-    if (bullet) bullets.push(bullet);
-    seen.add('opportunity');
-  }
-  
-  // From specific transits - deeper themes
-  for (const t of transits.slice(0, 6)) {
-    const transit = t.transit_point || (t as any).transit_planet;
-    const natal = t.natal_point || (t as any).natal_planet;
-    const aspect = t.aspect_type;
-    
-    if (!transit || !natal) continue;
-    
-    // Neptune + Chiron
-    if (transit === 'Neptune' && natal === 'Chiron' && !seen.has('sensitivity')) {
-      const bullet = getVariant('sensitivity');
-      if (bullet) bullets.push(bullet);
-      seen.add('sensitivity');
-    }
-    
-    // Pluto + Mars
-    if (transit === 'Pluto' && natal === 'Mars' && !seen.has('action-pressure')) {
-      const bullet = getVariant('action-pressure');
-      if (bullet) bullets.push(bullet);
-      seen.add('action-pressure');
-    }
-    
-    // Uranus transits
-    if (transit === 'Uranus' && !seen.has('change')) {
-      const bullet = getVariant('change');
-      if (bullet) bullets.push(bullet);
-      seen.add('change');
-    }
-    
-    // Saturn involvement
-    if ((transit === 'Saturn' || natal === 'Saturn') && !seen.has('responsibility')) {
-      const bullet = getVariant('responsibility');
-      if (bullet) bullets.push(bullet);
-      seen.add('responsibility');
-    }
-    
-    // Venus activation
-    if (natal === 'Venus' && !seen.has('relating')) {
-      const bullet = getVariant('relating');
-      if (bullet) bullets.push(bullet);
-      seen.add('relating');
-    }
-    
-    // Sun activation (identity)
-    if (natal === 'Sun' && (transit === 'Pluto' || transit === 'Saturn') && !seen.has('identity')) {
-      const bullet = getVariant('identity');
-      if (bullet) bullets.push(bullet);
-      seen.add('identity');
-    }
-    
-    // Moon activation (emotional)
-    if (natal === 'Moon' && !seen.has('emotional')) {
-      const bullet = getVariant('emotional');
-      if (bullet) bullets.push(bullet);
-      seen.add('emotional');
-    }
-  }
-  
-  // Cap based on timeframe - today is focused, month can be broader
-  const maxBullets = timeframe === 'today' ? 3 : 4;
-  return bullets.slice(0, maxBullets);
-};
-
-// ============================================
-// LIFE DOMAIN EXTRACTION - Enhanced with richer mapping
-// ============================================
-
-interface LifeDomainResult {
-  domains: string[];
-  detailedDomains: string[];
-  primaryHouses: number[];
+  debug?: any;
 }
 
-const getLifeDomainsEnhanced = (transits: TransitHit[]): LifeDomainResult => {
-  const houseCounts: { [key: number]: number } = {};
-  const planetThemes = new Set<string>();
-  
-  for (const t of transits) {
-    const house = t.natal_house;
-    if (house) {
-      houseCounts[house] = (houseCounts[house] || 0) + 1;
-    }
-    
-    // Also gather planetary themes
-    const natal = t.natal_point || (t as any).natal_planet;
-    if (natal && PLANET_TO_THEME[natal]) {
-      // Get first theme for planet
-      const theme = PLANET_TO_THEME[natal].split(' / ')[0];
-      planetThemes.add(theme);
-    }
-  }
-  
-  // Get top 4 houses by frequency
-  const sortedHouses = Object.entries(houseCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 4)
-    .map(([h]) => parseInt(h));
-  
-  const domains: string[] = [];
-  const detailedDomains: string[] = [];
-  
-  for (const house of sortedHouses) {
-    const fullDomain = HOUSE_TO_LIFE_DOMAIN[house];
-    if (fullDomain) {
-      // Short version for compact display
-      const shortDomain = fullDomain.split(' / ')[0];
-      domains.push(shortDomain);
-      // Detailed version
-      detailedDomains.push(fullDomain);
-    }
-  }
-  
-  return {
-    domains,
-    detailedDomains,
-    primaryHouses: sortedHouses,
-  };
-};
-
-const getLifeDomainLine = (transits: TransitHit[], timeframe: Timeframe): string => {
-  const { domains, detailedDomains } = getLifeDomainsEnhanced(transits);
-  if (domains.length === 0) return '';
-  
-  // Timeframe-differentiated phrasing
-  // TODAY = immediate location
-  // WEEK = unfolding areas
-  // MONTH = developmental zones
-  
-  let prefix: string;
-  let connector: string;
-  
-  switch (timeframe) {
-    case 'today':
-      prefix = 'This may show up most today in';
-      connector = 'and';
-      break;
-    case 'week':
-      prefix = 'Across this week, watch for recurring themes in';
-      connector = 'as well as';
-      break;
-    case 'month':
-      prefix = 'Over the month, these energies may reshape how you relate to';
-      connector = 'and';
-      break;
-    default:
-      prefix = 'This may land in';
-      connector = 'and';
-  }
-  
-  if (domains.length === 1) {
-    return `${prefix} ${domains[0]}.`;
-  }
-  
-  if (domains.length === 2) {
-    return `${prefix} ${domains[0]} ${connector} ${domains[1]}.`;
-  }
-  
-  // For 3+, build a more natural sentence
-  const [first, ...rest] = domains;
-  const last = rest.pop();
-  return `${prefix} ${first}, ${rest.join(', ')}, ${connector} ${last}.`;
-};
-
-// Get compact domain list for context
-const getLifeDomains = (transits: TransitHit[]): string[] => {
-  return getLifeDomainsEnhanced(transits).domains;
-};
-
 // ============================================
-// SUPPORT LINE GENERATION - Timeframe-Differentiated
+// PROPS INTERFACE
 // ============================================
 
-// TODAY = grounding / immediate regulation
-// WEEK = noticing repetition
-// MONTH = holding longer tension / learning
-
-interface SupportLineVariants {
-  today: string;
-  week: string;
-  month: string;
+interface AstrologyTodayTabProps {
+  userId: string;
+  fullChartData: FullChartData | null;
+  theme: any;
+  onOpenChat: () => void;
+  onReflect: (question: string) => void;
+  onSwitchToTimeline?: () => void;
 }
 
-const SUPPORT_LINE_VARIANTS: { [key: string]: SupportLineVariants } = {
-  'expansion-structure': {
-    today: 'Let clarity come before commitment right now.',
-    week: 'Notice where the same tension keeps appearing—it may be teaching you something.',
-    month: 'Growth this month may require holding two truths at once: the pull to expand and the need to wait.',
-  },
-  'saturn-pluto': {
-    today: 'If something feels overcharged, name it before acting on it.',
-    week: 'When pressure keeps returning, it may be pointing at something real.',
-    month: 'The intensity you\'re carrying may be reshaping something important. Let it.',
-  },
-  'saturn': {
-    today: 'Slowing the pace may reveal more than pushing through.',
-    week: 'The friction showing up repeatedly may be asking for a different approach.',
-    month: 'What feels like delay may be preparation. Trust the slower timeline.',
-  },
-  'pluto': {
-    today: 'What is surfacing may need witnessing before it needs solving.',
-    week: 'Power dynamics that keep appearing may deserve more attention.',
-    month: 'Something is being transformed. You don\'t have to understand it yet.',
-  },
-  'neptune': {
-    today: 'Let what is unclear remain unclear a little longer.',
-    week: 'If confusion keeps returning, it may not be a problem to fix.',
-    month: 'This month may ask you to trust without knowing exactly where you\'re going.',
-  },
-  'uranus': {
-    today: 'Flexibility may serve better than rigid planning right now.',
-    week: 'The disruptions have a pattern—watch for what they\'re all touching.',
-    month: 'Freedom is calling, even if it feels like instability. Let the shape emerge.',
-  },
-  'default-today': {
-    today: 'Notice what is being touched before trying to fix it.',
-    week: 'Let the week reveal its rhythm before over-scheduling.',
-    month: 'Let what is emerging become clearer before trying to resolve it.',
-  },
-};
-
-const getSupportLine = (transits: TransitHit[], emphasisTags: string[], timeframe: Timeframe): string => {
-  const hasSaturn = transits.some(t => 
-    (t.transit_point || (t as any).transit_planet) === 'Saturn' ||
-    (t.natal_point || (t as any).natal_planet) === 'Saturn'
-  );
-  
-  const hasPluto = transits.some(t => 
-    (t.transit_point || (t as any).transit_planet) === 'Pluto'
-  );
-  
-  const hasNeptune = transits.some(t => 
-    (t.transit_point || (t as any).transit_planet) === 'Neptune'
-  );
-  
-  const hasUranus = transits.some(t => 
-    (t.transit_point || (t as any).transit_planet) === 'Uranus'
-  );
-  
-  const hasExpansionStructure = emphasisTags.includes('expansion') && emphasisTags.includes('structure');
-  
-  if (hasExpansionStructure) {
-    return SUPPORT_LINE_VARIANTS['expansion-structure'][timeframe];
-  }
-  
-  if (hasSaturn && hasPluto) {
-    return SUPPORT_LINE_VARIANTS['saturn-pluto'][timeframe];
-  }
-  
-  if (hasSaturn) {
-    return SUPPORT_LINE_VARIANTS['saturn'][timeframe];
-  }
-  
-  if (hasPluto) {
-    return SUPPORT_LINE_VARIANTS['pluto'][timeframe];
-  }
-  
-  if (hasNeptune) {
-    return SUPPORT_LINE_VARIANTS['neptune'][timeframe];
-  }
-  
-  if (hasUranus) {
-    return SUPPORT_LINE_VARIANTS['uranus'][timeframe];
-  }
-  
-  // Timeframe-specific defaults
-  return SUPPORT_LINE_VARIANTS['default-today'][timeframe];
-};
-
 // ============================================
-// REFLECTION QUESTION GENERATION - Timeframe-Differentiated
+// RAW SIGNALS SECTION (Supporting Proof Layer)
 // ============================================
 
-// TODAY = situational (what's happening now?)
-// WEEK = pattern recognition (what keeps showing up?)
-// MONTH = identity / behavior shift (what's changing in me?)
-
-interface QuestionVariants {
-  today: string;
-  week: string;
-  month: string;
-}
-
-const QUESTION_VARIANTS: { [key: string]: QuestionVariants } = {
-  'expansion-structure': {
-    today: 'Where is impatience pulling you to act before you\'re ready?',
-    week: 'What pattern are you noticing between wanting more and hitting walls?',
-    month: 'How is your relationship with ambition and limitation evolving?',
-  },
-  'sensitivity': {
-    today: 'What is this moment touching that feels older than today?',
-    week: 'What keeps getting re-triggered—and what does that tell you?',
-    month: 'What wound are you learning to carry differently?',
-  },
-  'identity': {
-    today: 'Who are you trying to be right now—and is it working?',
-    week: 'Where does your sense of self keep getting challenged?',
-    month: 'What version of yourself is trying to emerge?',
-  },
-  'relating': {
-    today: 'What would shift if you stopped managing the impression you\'re making?',
-    week: 'What dynamic in your relationships keeps returning?',
-    month: 'How is your understanding of what you need from others changing?',
-  },
-  'default': {
-    today: 'What would shift if you stopped trying to control the outcome?',
-    week: 'What keeps showing up that you haven\'t fully acknowledged yet?',
-    month: 'What are you in the middle of learning—even if you can\'t name it?',
-  },
-};
-
-const getTimingReflectionQuestion = (transits: TransitHit[], emphasisTags: string[], timeframe: Timeframe): string => {
-  const hasExpansionStructure = emphasisTags.includes('expansion') && emphasisTags.includes('structure');
-  
-  const hasSensitivity = transits.some(t => {
-    const natal = t.natal_point || (t as any).natal_planet;
-    return natal === 'Chiron';
-  });
-  
-  const hasIdentityPressure = transits.some(t => {
-    const natal = t.natal_point || (t as any).natal_planet;
-    const transit = t.transit_point || (t as any).transit_planet;
-    return (natal === 'Sun' && (transit === 'Saturn' || transit === 'Pluto'));
-  });
-  
-  const hasRelationshipActivation = transits.some(t => {
-    const natal = t.natal_point || (t as any).natal_planet;
-    return natal === 'Venus';
-  });
-  
-  if (hasExpansionStructure) {
-    return QUESTION_VARIANTS['expansion-structure'][timeframe];
-  }
-  
-  if (hasSensitivity) {
-    return QUESTION_VARIANTS['sensitivity'][timeframe];
-  }
-  
-  if (hasIdentityPressure) {
-    return QUESTION_VARIANTS['identity'][timeframe];
-  }
-  
-  if (hasRelationshipActivation) {
-    return QUESTION_VARIANTS['relating'][timeframe];
-  }
-  
-  return QUESTION_VARIANTS['default'][timeframe];
-};
-
-// ============================================
-// BUILD TIMING CONTEXT FOR ASK MIRROR - Enhanced
-// ============================================
-
-interface TimingContext {
-  timeframe: Timeframe;
-  timeframeLabel: string;
-  topTransits: string[];
-  topTransitDescriptions: string[];
-  activatedNatalPoints: string[];
-  activatedNatalHouses: number[];
-  lifeDomains: string[];
-  lifeDomainsSentence: string;
-  questionToSitWith: string;
-  supportLine: string;
-  emphasisTags: string[];
-  activationThemes: string[];
-}
-
-const buildTimingContext = (
-  transits: TransitHit[],
-  emphasisTags: string[],
-  timeframe: Timeframe
-): TimingContext => {
-  const topTransits = transits.slice(0, 3).map(t => {
-    const transit = t.transit_point || (t as any).transit_planet || '?';
-    const natal = t.natal_point || (t as any).natal_planet || '?';
-    return `${transit} ${t.aspect_type} ${natal}`;
-  });
-  
-  const topTransitDescriptions = transits.slice(0, 3).map(t => {
-    const transit = t.transit_point || (t as any).transit_planet || '?';
-    const natal = t.natal_point || (t as any).natal_planet || '?';
-    return getTransitHumanLine(transit, t.aspect_type, natal);
-  });
-  
-  const activatedNatalPoints = [...new Set(transits.slice(0, 5).map(t => 
-    t.natal_point || (t as any).natal_planet
-  ).filter(Boolean))];
-  
-  const activatedNatalHouses = [...new Set(transits.slice(0, 5).map(t => 
-    t.natal_house
-  ).filter(h => h !== undefined && h !== null))] as number[];
-  
-  const { domains, detailedDomains } = getLifeDomainsEnhanced(transits);
-  const lifeDomainsSentence = getLifeDomainLine(transits, timeframe);
-  const questionToSitWith = getTimingReflectionQuestion(transits, emphasisTags, timeframe);
-  const supportLine = getSupportLine(transits, emphasisTags, timeframe);
-  const activationThemes = getActivationBullets(transits, emphasisTags, timeframe);
-  
-  const timeframeLabel = timeframe === 'today' ? 'Today' : 
-                         timeframe === 'week' ? 'This Week' : 'This Month';
-  
-  return {
-    timeframe,
-    timeframeLabel,
-    topTransits,
-    topTransitDescriptions,
-    activatedNatalPoints,
-    activatedNatalHouses,
-    lifeDomains: domains,
-    lifeDomainsSentence,
-    questionToSitWith,
-    supportLine,
-    emphasisTags,
-    activationThemes,
-  };
-};
-
-// ============================================
-// SIGNALS SECTION COMPONENT (Now "Evidence" when dominant truth exists)
-// ============================================
-
-interface SignalsSectionProps {
+interface RawSignalsSectionProps {
   transits: TransitHit[];
   expanded: boolean;
   onToggle: () => void;
   theme: any;
-  label?: string;
+  activeHouses?: number[];
+  dominantPlanet?: string;
 }
 
 const getAspectSymbol = (aspectType: string): string => {
@@ -739,187 +84,124 @@ const getAspectSymbol = (aspectType: string): string => {
   return symbols[aspectType] || '•';
 };
 
-const SignalsSection: React.FC<SignalsSectionProps> = ({ transits, expanded, onToggle, theme, label }) => {
+const RawSignalsSection: React.FC<RawSignalsSectionProps> = ({ 
+  transits, 
+  expanded, 
+  onToggle, 
+  theme,
+  activeHouses = [],
+  dominantPlanet
+}) => {
   if (!transits || transits.length === 0) return null;
 
-  const displayLabel = label || 'What this is based on';
-
   return (
-    <>
+    <View style={styles.rawSignalsWrapper}>
       <TouchableOpacity
-        style={[styles.signalsToggle, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}
+        style={[styles.rawSignalsToggle, { borderColor: theme.border }]}
         onPress={onToggle}
         activeOpacity={0.7}
       >
-        <Text style={[styles.signalsToggleText, { color: theme.textSecondary }]}>
-          {displayLabel} {expanded ? '▴' : '▾'}
+        <Ionicons 
+          name="analytics-outline" 
+          size={14} 
+          color={theme.textTertiary} 
+        />
+        <Text style={[styles.rawSignalsToggleText, { color: theme.textTertiary }]}>
+          What this is based on
         </Text>
+        <Ionicons 
+          name={expanded ? 'chevron-up' : 'chevron-down'} 
+          size={14} 
+          color={theme.textTertiary} 
+        />
       </TouchableOpacity>
 
       {expanded && (
-        <View style={[styles.signalsContainer, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
-          {/* Timing Pressures */}
-          <View style={styles.signalsSection}>
-            <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>TIMING PRESSURES</Text>
-            <View style={styles.signalsCompactList}>
-              {transits.slice(0, 4).map((hit, index) => (
-                <View key={index} style={styles.signalsTransitRow}>
-                  <Text style={[styles.signalsTransitText, { color: theme.textSecondary }]}>
-                    {getAspectSymbol(hit.aspect_type)} {hit.transit_point} {hit.aspect_type} {hit.natal_point}
-                  </Text>
-                  <Text style={[styles.signalsTransitOrb, { color: theme.textTertiary }]}>
-                    {hit.orb.toFixed(1)}°
-                  </Text>
+        <View style={[styles.rawSignalsContainer, { backgroundColor: theme.background, borderColor: theme.border }]}>
+          
+          {/* Active Transits */}
+          <View style={styles.rawSignalsGroup}>
+            <Text style={[styles.rawSignalsLabel, { color: theme.textTertiary }]}>
+              ACTIVE TRANSITS
+            </Text>
+            {transits.slice(0, 5).map((hit, index) => (
+              <View key={index} style={styles.rawTransitRow}>
+                <Text style={[styles.rawTransitAspect, { color: theme.textSecondary }]}>
+                  {getAspectSymbol(hit.aspect_type)} {hit.transit_point} {hit.aspect_type} {hit.natal_point}
+                </Text>
+                <Text style={[styles.rawTransitOrb, { color: theme.textTertiary }]}>
+                  {hit.orb?.toFixed(1) || '—'}°
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Natal Points Being Touched */}
+          <View style={styles.rawSignalsGroup}>
+            <Text style={[styles.rawSignalsLabel, { color: theme.textTertiary }]}>
+              NATAL POINTS ACTIVATED
+            </Text>
+            <View style={styles.rawChipsRow}>
+              {[...new Set(transits.slice(0, 6).map(t => t.natal_point))].map((point, i) => (
+                <View key={i} style={[styles.rawChip, { backgroundColor: theme.accent + '10' }]}>
+                  <Text style={[styles.rawChipText, { color: theme.accent }]}>{point}</Text>
                 </View>
               ))}
             </View>
           </View>
 
-          {/* What's Being Touched */}
-          {transits.length > 0 && (
-            <View style={styles.signalsSection}>
-              <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>WHAT'S BEING TOUCHED</Text>
-              <View style={styles.signalsChipsRow}>
-                {[...new Set(transits.slice(0, 6).map(t => t.natal_point))].map((point, i) => (
-                  <View key={i} style={[styles.signalsChip, { backgroundColor: theme.accent + '10' }]}>
-                    <Text style={[styles.signalsChipText, { color: theme.accent }]}>{point}</Text>
-                  </View>
-                ))}
-              </View>
+          {/* Houses Activated */}
+          {activeHouses.length > 0 && (
+            <View style={styles.rawSignalsGroup}>
+              <Text style={[styles.rawSignalsLabel, { color: theme.textTertiary }]}>
+                LIFE AREAS (HOUSES)
+              </Text>
+              <Text style={[styles.rawHousesText, { color: theme.textSecondary }]}>
+                Houses {activeHouses.join(', ')}
+              </Text>
             </View>
           )}
 
-          {/* Where This Is Landing */}
-          <View style={styles.signalsSection}>
-            <Text style={[styles.signalsSectionTitle, { color: theme.textTertiary }]}>WHERE THIS IS LANDING</Text>
-            <View style={styles.signalsLifeAreas}>
-              {transits.slice(0, 4).map((hit, i) => {
-                const shortAreaMap: { [key: string]: string } = {
-                  'Sun': 'Purpose, identity',
-                  'Moon': 'Emotions, comfort',
-                  'Mercury': 'Thinking, communication',
-                  'Venus': 'Relationships, values',
-                  'Mars': 'Action, drive',
-                  'Jupiter': 'Growth, meaning',
-                  'Saturn': 'Structure, maturity',
-                  'Uranus': 'Change, freedom',
-                  'Neptune': 'Intuition, boundaries',
-                  'Pluto': 'Power, transformation',
-                  'Chiron': 'Wounds, healing'
-                };
-                return (
-                  <Text key={i} style={[styles.signalsLifeAreaText, { color: theme.textSecondary }]}>
-                    • {hit.natal_point}: {shortAreaMap[hit.natal_point] || hit.natal_point}
-                  </Text>
-                );
-              })}
+          {/* Dominant Energy */}
+          {dominantPlanet && (
+            <View style={styles.rawSignalsGroup}>
+              <Text style={[styles.rawSignalsLabel, { color: theme.textTertiary }]}>
+                DOMINANT ENERGY
+              </Text>
+              <Text style={[styles.rawDominantText, { color: theme.textSecondary }]}>
+                {dominantPlanet}
+              </Text>
             </View>
-          </View>
+          )}
         </View>
       )}
-    </>
+    </View>
   );
 };
 
 // ============================================
-// PROPS INTERFACE
+// SECTION HEADER COMPONENT
 // ============================================
 
-interface AstrologyTodayTabProps {
-  userId: string;  // V3.2: Added for diagnosis component
-  fullChartData: FullChartData | null;
-  theme: any;
-  onOpenChat: () => void;
-  onReflect: (question: string) => void;
-  onSwitchToTimeline?: () => void;
-}
+const SectionHeader: React.FC<{ title: string; icon: string; theme: any }> = ({ title, icon, theme }) => (
+  <View style={styles.sectionHeader}>
+    <Ionicons name={icon as any} size={16} color={theme.accent} />
+    <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+      {title}
+    </Text>
+  </View>
+);
 
 // ============================================
-// TIMELINE PHASE DETECTION
+// BULLET ITEM COMPONENT
 // ============================================
 
-interface CurrentPhase {
-  name: string;
-  dateRange: string;
-  summary: string;
-  isPrimary: boolean;
-  id: string;
-}
-
-function getCurrentTimelinePhase(): CurrentPhase | null {
-  const now = new Date();
-  const currentMonth = now.getMonth(); // 0-11
-  const currentYear = now.getFullYear();
-  
-  // Q1: Jan-Mar (months 0-2)
-  if (currentMonth >= 0 && currentMonth <= 2) {
-    return {
-      id: 'q1',
-      name: 'Recognition',
-      dateRange: `Jan – Mar ${currentYear}`,
-      summary: 'The year\'s dominant tension is beginning to show itself in small, easy-to-dismiss moments.',
-      isPrimary: false,
-    };
-  }
-  
-  // Q2: Apr-Jun (months 3-5)
-  if (currentMonth >= 3 && currentMonth <= 5) {
-    return {
-      id: 'q2',
-      name: 'Confrontation',
-      dateRange: `Apr – Jun ${currentYear}`,
-      summary: 'What you\'ve been tolerating becomes harder to keep calling "manageable."',
-      isPrimary: true,
-    };
-  }
-  
-  // Q3: Jul-Sep (months 6-8)
-  if (currentMonth >= 6 && currentMonth <= 8) {
-    return {
-      id: 'q3',
-      name: 'The Crossroads',
-      dateRange: `Jul – Sep ${currentYear}`,
-      summary: 'Two versions of your direction become visible—the question is which one you\'ll commit to.',
-      isPrimary: true,
-    };
-  }
-  
-  // Q4: Oct-Dec (months 9-11)
-  if (currentMonth >= 9 && currentMonth <= 11) {
-    return {
-      id: 'q4',
-      name: 'Integration',
-      dateRange: `Oct – Dec ${currentYear}`,
-      summary: 'The year\'s lessons are settling—either as earned clarity or recognition of what needs another cycle.',
-      isPrimary: false,
-    };
-  }
-  
-  return null;
-}
-
-function getTimelineLinkingLine(phase: CurrentPhase | null, altitude: Timeframe): string | null {
-  if (!phase) return null;
-  
-  const phaseName = phase.name;
-  
-  if (altitude === 'today') {
-    if (phase.isPrimary) {
-      return `This isn't just today—this is part of your ${phaseName} phase.`;
-    }
-    return `This moment is connected to a larger ${phaseName.toLowerCase()} happening this quarter.`;
-  }
-  
-  if (altitude === 'week') {
-    return `This week sits inside your ${phaseName} phase.`;
-  }
-  
-  if (altitude === 'month') {
-    return `This month is where your ${phaseName} phase becomes more visible.`;
-  }
-  
-  return null;
-}
+const BulletItem: React.FC<{ text: string; theme: any }> = ({ text, theme }) => (
+  <View style={styles.bulletItem}>
+    <View style={[styles.bulletDot, { backgroundColor: theme.accent + '60' }]} />
+    <Text style={[styles.bulletText, { color: theme.text }]}>{text}</Text>
+  </View>
+);
 
 // ============================================
 // MAIN COMPONENT
@@ -935,13 +217,36 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
 }) => {
   const [activeAltitude, setActiveAltitude] = useState<Timeframe>('today');
   const [signalsExpanded, setSignalsExpanded] = useState(false);
-  const [legacyExpanded, setLegacyExpanded] = useState(false);  // V3.2: Legacy content collapsed by default
+  const [expertData, setExpertData] = useState<AstroExpertData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Get current timeline phase
-  const currentPhase = getCurrentTimelinePhase();
-  const timelineLinkingLine = getTimelineLinkingLine(currentPhase, activeAltitude);
+  // Load expert data when userId or altitude changes
+  useEffect(() => {
+    if (userId) {
+      loadExpertData();
+    }
+  }, [userId, activeAltitude]);
 
-  // Get transit window based on timeframe
+  const loadExpertData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // For now, all altitudes use the same endpoint
+      // Future: Create /api/astro-expert/{user_id}?timeframe=week etc
+      const { getAstroExpert } = await import('../../services/api');
+      const data = await getAstroExpert(userId);
+      setExpertData(data);
+    } catch (err: any) {
+      console.error('[AstrologyTodayTab V5] Error:', err);
+      setError(err.message || 'Failed to load');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get transit window for raw signals
   const getTransitWindow = (): TransitWindow | null => {
     if (!fullChartData?.transits?.windows) return null;
     
@@ -956,214 +261,150 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
   const currentWindow = getTransitWindow();
   const transits = currentWindow?.strongest_hits || [];
 
-  // Get activated houses for context
-  const activatedHouses = getActivatedHouses(transits);
+  // Timeframe label
+  const getTimeframeLabel = () => {
+    switch (activeAltitude) {
+      case 'today': return 'Today';
+      case 'week': return 'This Week';
+      case 'month': return 'This Month';
+    }
+  };
 
-  // Generate all context lines from services
-  const energySynthesis = getDailyEnergySynthesis(transits, activeAltitude);
-  const lifeAreaContext = getLifeAreaContext(transits);
-  const moonPhaseContext = getMoonPhaseContext(transits, fullChartData);
-  
-  // Personal relevance
-  const personalRelevance = detectPersonalRelevance(fullChartData, transits);
-  const personalRelevanceLine = getPersonalRelevanceLine(personalRelevance, activatedHouses, fullChartData);
-  
-  // Chart ruler context
-  const chartRulerLine = getChartRulerContextLine(fullChartData, transits);
-  
-  // Rulership chain context
-  const rulershipChainLine = getRulershipChainLine(fullChartData, transits);
-  
-  // Dominant house ruler context
-  const dominantHouseRulerLine = getDominantHouseRulerLine(fullChartData, transits);
-  
-  // Theme collapse
-  const themeCollapseLine = getThemeCollapseLineIfApplicable(fullChartData, transits);
-  
-  // Repeat patterns
-  const repeatPatternLine = getRepeatPatternLine(fullChartData, transits);
-  
-  // Chapter awareness (for month view)
-  const chapterInfo = detectChapterTransits(transits);
-  const chapterLine = activeAltitude === 'month' ? getChapterLine(chapterInfo) : '';
+  // Adjust content based on timeframe
+  const getTimeframeAdjustedContent = () => {
+    if (!expertData) return null;
+    
+    // For week/month, we could adjust the phrasing
+    // For now, use same content but could be enhanced with timeframe-specific endpoints
+    return expertData;
+  };
 
-  // Pattern activation check (Part 8)
-  const patternAnalysis = buildAspectPatternAnalysis(fullChartData);
-  const patternActivation = isPatternActivatedByTransit(patternAnalysis, transits);
+  const content = getTimeframeAdjustedContent();
 
-  // Life Chapter context (Master Astrologer v4)
-  const lifeChapterAnalysis = buildLifeChapterAnalysis(fullChartData);
-  const lifeChapterContextLine = getChapterContextLine(lifeChapterAnalysis, activeAltitude);
-
-  // DOMINANT TRUTH (Master Astrologer v5)
-  const collapsedInsights = buildCollapsedInsights(fullChartData, lifeChapterAnalysis, patternAnalysis, activeAltitude);
-  const hasDominantTruth = collapsedInsights.dominantTruth !== null && collapsedInsights.narrative !== null;
-
-  // Get content based on timeframe (fallback if no dominant truth)
-  const feelings = getWhatThisMayFeelLike(transits, activeAltitude).slice(0, 3);
-  const mistakes = getMistakeToWatch(transits, activeAltitude).slice(0, 3);
-  const question = getReflectionQuestion(transits, activeAltitude);
-  
-  // NEW: Premium Timing Layer Content
-  const emphasisTags = currentWindow?.emphasis_tags || [];
-  const topTransits = transits.slice(0, 3);
-  const activationBullets = getActivationBullets(transits, emphasisTags, activeAltitude);
-  const lifeDomainLine = getLifeDomainLine(transits, activeAltitude);
-  const supportLine = getSupportLine(transits, emphasisTags, activeAltitude);
-  const timingReflectionQuestion = getTimingReflectionQuestion(transits, emphasisTags, activeAltitude);
-  const timingContext = buildTimingContext(transits, emphasisTags, activeAltitude);
-  
-  // Handle Ask Mirror with timing context
-  const handleAskMirrorWithContext = () => {
-    console.log('[AstrologyTodayTab] Timing context for Ask Mirror:', timingContext);
-    onOpenChat();
+  // Handle reflection
+  const handleReflect = () => {
+    if (content?.one_question) {
+      onReflect(content.one_question);
+    }
   };
 
   return (
-    <ScrollView style={styles.todayContainer} showsVerticalScrollIndicator={false}>
-      {/* V3.2: DIAGNOSIS LAYER - Primary, always visible (only for "today" altitude) */}
-      {activeAltitude === 'today' && userId && (
-        <View style={styles.diagnosisSection}>
-          <AstroTodayDiagnosis
-            userId={userId}
-            theme={theme}
-            onReflect={(title, context, prompt) => onReflect(prompt)}
-          />
-        </View>
-      )}
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       
       {/* Altitude Selector */}
       <View style={[styles.altitudeSelector, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
-        <TouchableOpacity
-          style={[styles.altitudeButton, activeAltitude === 'today' && { backgroundColor: theme.surface }]}
-          onPress={() => setActiveAltitude('today')}
-        >
-          <Text style={[styles.altitudeText, { color: activeAltitude === 'today' ? theme.text : theme.textTertiary }]}>
-            Today
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.altitudeButton, activeAltitude === 'week' && { backgroundColor: theme.surface }]}
-          onPress={() => setActiveAltitude('week')}
-        >
-          <Text style={[styles.altitudeText, { color: activeAltitude === 'week' ? theme.text : theme.textTertiary }]}>
-            This Week
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.altitudeButton, activeAltitude === 'month' && { backgroundColor: theme.surface }]}
-          onPress={() => setActiveAltitude('month')}
-        >
-          <Text style={[styles.altitudeText, { color: activeAltitude === 'month' ? theme.text : theme.textTertiary }]}>
-            This Month
-          </Text>
-        </TouchableOpacity>
+        {(['today', 'week', 'month'] as Timeframe[]).map((alt) => (
+          <TouchableOpacity
+            key={alt}
+            style={[styles.altitudeButton, activeAltitude === alt && { backgroundColor: theme.surface }]}
+            onPress={() => setActiveAltitude(alt)}
+          >
+            <Text style={[styles.altitudeText, { color: activeAltitude === alt ? theme.text : theme.textTertiary }]}>
+              {alt === 'today' ? 'Today' : alt === 'week' ? 'This Week' : 'This Month'}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* TIMELINE CONTEXT STRIP - Connects Today to larger arc */}
-      {currentPhase && onSwitchToTimeline && (
-        <TouchableOpacity
-          style={styles.timelineContextStrip}
-          onPress={onSwitchToTimeline}
-          activeOpacity={0.7}
-        >
-          <View style={styles.timelineContextLeft}>
-            <Text style={[styles.timelineContextPhase, { color: theme.textSecondary }]}>
-              {currentPhase.isPrimary ? '⭐ ' : ''}{currentPhase.name}
-            </Text>
-            <Text style={[styles.timelineContextDate, { color: theme.textTertiary }]}>
-              {currentPhase.dateRange}
-            </Text>
-          </View>
-          <Text style={[styles.timelineContextArrow, { color: theme.textTertiary }]}>→</Text>
-        </TouchableOpacity>
-      )}
-
-
-      {/* ============================================ */}
-      {/* SECTION 1: TOP ACTIVE TRANSITS */}
-      {/* ============================================ */}
-      {topTransits.length > 0 && (
-        <View style={[styles.topTransitsSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>TOP ACTIVE TRANSITS</Text>
-          <View style={styles.topTransitsList}>
-            {topTransits.map((t, index) => {
-              const transit = t.transit_point || (t as any).transit_planet || '?';
-              const natal = t.natal_point || (t as any).natal_planet || '?';
-              const aspectLabel = `${transit} ${t.aspect_type} ${natal}`;
-              const humanLine = getTransitHumanLine(transit, t.aspect_type, natal);
-              
-              return (
-                <View key={index} style={[styles.transitRow, index < topTransits.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.border }]}>
-                  <Text style={[styles.transitLabel, { color: theme.text }]}>{aspectLabel}</Text>
-                  <Text style={[styles.transitHumanLine, { color: theme.textSecondary }]}>{humanLine}</Text>
-                </View>
-              );
-            })}
-          </View>
+      {/* LOADING STATE */}
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={theme.accent} />
+          <Text style={[styles.loadingText, { color: theme.textTertiary }]}>
+            Reading your chart...
+          </Text>
         </View>
       )}
 
-      {/* ============================================ */}
-      {/* SECTION 2: WHAT IS BEING ACTIVATED */}
-      {/* ============================================ */}
-      {activationBullets.length > 0 && (
-        <View style={[styles.activationSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>WHAT IS BEING ACTIVATED</Text>
-          <View style={styles.bulletList}>
-            {activationBullets.map((bullet, index) => (
-              <Text key={index} style={[styles.bulletItem, { color: theme.textSecondary }]}>
-                • {bullet}
-              </Text>
+      {/* ERROR STATE */}
+      {error && !loading && (
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, { color: theme.textSecondary }]}>
+            {error}
+          </Text>
+          <TouchableOpacity onPress={loadExpertData}>
+            <Text style={[styles.retryText, { color: theme.accent }]}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* V5.0: PRIMARY EXPERT INTERPRETATION */}
+      {content && !loading && (
+        <View style={[styles.expertContainer, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
+          
+          {/* 1. TODAY'S THEME */}
+          <View style={styles.themeSection}>
+            <Text style={[styles.themeLabel, { color: theme.textTertiary }]}>
+              {activeAltitude === 'today' ? "TODAY'S THEME" : 
+               activeAltitude === 'week' ? "THIS WEEK'S THEME" : 
+               "THIS MONTH'S THEME"}
+            </Text>
+            <Text style={[styles.themeText, { color: theme.text }]}>
+              {content.todays_theme}
+            </Text>
+          </View>
+
+          {/* 2. WHAT'S ACTUALLY HAPPENING */}
+          <View style={styles.section}>
+            <SectionHeader title="What's Actually Happening" icon="planet-outline" theme={theme} />
+            {content.whats_happening?.map((item, index) => (
+              <BulletItem key={`happening-${index}`} text={item} theme={theme} />
             ))}
           </View>
+
+          {/* 3. HOW THIS INTERACTS WITH YOU (Personalization - CRITICAL) */}
+          <View style={[styles.section, styles.personalSection, { backgroundColor: theme.cardBackground || theme.background }]}>
+            <SectionHeader title="How This Interacts With You" icon="person-outline" theme={theme} />
+            {content.how_it_interacts?.map((item, index) => (
+              <BulletItem key={`interacts-${index}`} text={item} theme={theme} />
+            ))}
+          </View>
+
+          {/* 4. WHAT THIS MAY FEEL LIKE */}
+          <View style={styles.section}>
+            <SectionHeader title="What This May Feel Like" icon="heart-outline" theme={theme} />
+            {content.what_it_feels_like?.map((item, index) => (
+              <BulletItem key={`feels-${index}`} text={item} theme={theme} />
+            ))}
+          </View>
+
+          {/* 5. WHAT TO DO WITH IT */}
+          <View style={[styles.section, styles.actionSection, { borderLeftColor: theme.accent }]}>
+            <SectionHeader title="What To Do With It" icon="arrow-forward-circle-outline" theme={theme} />
+            {content.what_to_do?.map((item, index) => (
+              <BulletItem key={`todo-${index}`} text={item} theme={theme} />
+            ))}
+          </View>
+
+          {/* 6. ONE QUESTION */}
+          <TouchableOpacity 
+            style={[styles.questionSection, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}
+            onPress={handleReflect}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="help-circle-outline" size={20} color={theme.accent} />
+            <Text style={[styles.questionText, { color: theme.text }]}>
+              {content.one_question}
+            </Text>
+          </TouchableOpacity>
+
         </View>
       )}
 
-      {/* ============================================ */}
-      {/* SECTION 3: WHERE THIS MAY LAND */}
-      {/* ============================================ */}
-      {lifeDomainLine && (
-        <View style={[styles.domainSection, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>WHERE THIS MAY LAND</Text>
-          <Text style={[styles.domainLine, { color: theme.text }]}>{lifeDomainLine}</Text>
-        </View>
-      )}
-
-      {/* ============================================ */}
-      {/* SECTION 4: WHAT HELPS NOW */}
-      {/* ============================================ */}
-      <View style={[styles.supportSection, { backgroundColor: '#10B98108', borderColor: '#10B98120' }]}>
-        <Text style={[styles.sectionTitleGreen, { color: '#10B981' }]}>WHAT HELPS NOW</Text>
-        <Text style={[styles.supportLine, { color: theme.text }]}>{supportLine}</Text>
-      </View>
-
-      {/* ============================================ */}
-      {/* SECTION 5: A QUESTION TO SIT WITH */}
-      {/* ============================================ */}
-      <View style={[styles.questionSection, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
-        <Text style={[styles.sectionTitleAccent, { color: theme.accent }]}>A QUESTION TO SIT WITH</Text>
-        <Text style={[styles.questionLine, { color: theme.text }]}>{timingReflectionQuestion}</Text>
-        <TouchableOpacity
-          style={[styles.reflectButton, { backgroundColor: theme.accent }]}
-          onPress={() => onReflect(timingReflectionQuestion)}
-        >
-          <Text style={[styles.reflectButtonText, { color: theme.background }]}>Reflect on this</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Signals Section - Evidence */}
-      <SignalsSection 
+      {/* V5.0: RAW SIGNALS - SUPPORTING PROOF LAYER (Demoted) */}
+      <RawSignalsSection
         transits={transits}
         expanded={signalsExpanded}
         onToggle={() => setSignalsExpanded(!signalsExpanded)}
         theme={theme}
-        label="ACTIVE SIGNALS"
+        activeHouses={content?.signals?.active_houses}
+        dominantPlanet={content?.signals?.dominant_planet}
       />
+
       {/* Ask Mirror Button */}
       <TouchableOpacity
         style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
-        onPress={handleAskMirrorWithContext}
+        onPress={onOpenChat}
       >
         <Text style={{ fontSize: 16, color: theme.background }}>💬</Text>
         <Text style={[styles.askMirrorText, { color: theme.background }]}>
@@ -1172,6 +413,9 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
            'Ask about this month'}
         </Text>
       </TouchableOpacity>
+
+      {/* Spacing at bottom */}
+      <View style={{ height: 40 }} />
     </ScrollView>
   );
 };
@@ -1181,20 +425,16 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
 // ============================================
 
 const styles = StyleSheet.create({
-  todayContainer: {
+  container: {
     padding: 16,
     flex: 1,
-  },
-  // V3.2: Diagnosis section
-  diagnosisSection: {
-    marginBottom: 20,
   },
   altitudeSelector: {
     flexDirection: 'row',
     borderRadius: 10,
     padding: 4,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   altitudeButton: {
     flex: 1,
@@ -1204,340 +444,189 @@ const styles = StyleSheet.create({
   },
   altitudeText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  // NEW: Premium Timing Layer Styles
-  topTransitsSection: {
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginBottom: 12,
-  },
-  sectionTitleGreen: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginBottom: 8,
-  },
-  sectionTitleAccent: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginBottom: 8,
-  },
-  topTransitsList: {
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
     gap: 12,
   },
-  transitRow: {
-    paddingBottom: 12,
+  loadingText: {
+    fontSize: 14,
   },
-  transitLabel: {
+  errorContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  errorText: {
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  retryText: {
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 4,
   },
-  transitHumanLine: {
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  activationSection: {
-    borderRadius: 12,
-    padding: 16,
+  expertContainer: {
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
-  bulletList: {
-    gap: 6,
+  themeSection: {
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
+  },
+  themeLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  themeText: {
+    fontSize: 20,
+    fontWeight: '700',
+    lineHeight: 26,
+    letterSpacing: -0.3,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  personalSection: {
+    padding: 14,
+    borderRadius: 10,
+    marginHorizontal: -4,
+  },
+  actionSection: {
+    borderLeftWidth: 3,
+    paddingLeft: 14,
+    marginLeft: -4,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   bulletItem: {
-    fontSize: 14,
-    lineHeight: 20,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+    paddingRight: 8,
   },
-  domainSection: {
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 12,
+  bulletDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 7,
+    marginRight: 10,
   },
-  domainLine: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  supportSection: {
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  supportLine: {
+  bulletText: {
+    flex: 1,
     fontSize: 15,
     lineHeight: 22,
   },
   questionSection: {
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  questionLine: {
-    fontSize: 15,
-    lineHeight: 22,
-    fontStyle: 'italic',
-    marginBottom: 12,
-  },
-  // Legacy styles (kept for SignalsSection compatibility)
-  dailyEnergyCard: {
-    borderRadius: 14,
-    padding: 18,
-    borderWidth: 1,
-    borderLeftWidth: 3,
-  },
-  dailyEnergyLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    marginBottom: 10,
-  },
-  dailyEnergyHeadline: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 10,
-    lineHeight: 26,
-  },
-  dailyEnergyBody: {
-    fontSize: 15,
-    lineHeight: 23,
-  },
-  contextLinesContainer: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0,0,0,0.08)',
-    gap: 4,
-  },
-  contextLine: {
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  compressedInsightsRow: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  compressedInsightCard: {
-    flex: 1,
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 12,
-  },
-  compressedInsightTitle: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  compressedInsightText: {
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  additionalInsightsCard: {
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 14,
-  },
-  additionalSection: {
-    marginBottom: 10,
-  },
-  additionalTitle: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  additionalBullet: {
-    fontSize: 13,
-    lineHeight: 20,
-    marginBottom: 2,
-  },
-  reflectionCard: {
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-  },
-  reflectionLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  reflectionText: {
-    fontSize: 15,
-    lineHeight: 22,
-    fontStyle: 'italic',
-    marginBottom: 12,
-  },
-  fallbackReflectButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  fallbackReflectButtonText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  signalsToggle: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 4,
+    gap: 10,
   },
-  signalsToggleText: {
+  questionText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    fontStyle: 'italic',
+    lineHeight: 22,
+  },
+  rawSignalsWrapper: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  rawSignalsToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+    borderTopWidth: 1,
+  },
+  rawSignalsToggleText: {
     fontSize: 12,
     fontWeight: '500',
   },
-  signalsContainer: {
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 14,
+  rawSignalsContainer: {
+    marginTop: 8,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
   },
-  signalsSection: {
-    marginBottom: 14,
+  rawSignalsGroup: {
+    marginBottom: 16,
   },
-  signalsSectionTitle: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+  rawSignalsLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
     marginBottom: 8,
   },
-  signalsCompactList: {
-    gap: 4,
-  },
-  signalsTransitRow: {
+  rawTransitRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 4,
   },
-  signalsTransitText: {
-    fontSize: 12,
+  rawTransitAspect: {
+    fontSize: 13,
   },
-  signalsTransitOrb: {
+  rawTransitOrb: {
     fontSize: 11,
   },
-  signalsChipsRow: {
+  rawChipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
   },
-  signalsChip: {
+  rawChip: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
-  signalsChipText: {
-    fontSize: 11,
+  rawChipText: {
+    fontSize: 12,
     fontWeight: '500',
   },
-  signalsLifeAreas: {
-    gap: 2,
+  rawHousesText: {
+    fontSize: 13,
   },
-  signalsLifeAreaText: {
-    fontSize: 11,
-    lineHeight: 16,
-  },
-  // DOMINANT TRUTH STYLES (Master Astrologer v5)
-  dominantTruthCard: {
-    borderRadius: 14,
-    padding: 18,
-    borderWidth: 1.5,
-  },
-  dominantTruthHeadline: {
-    fontSize: 19,
-    fontWeight: '600',
-    lineHeight: 26,
-    marginBottom: 8,
-  },
-  recognitionLine: {
+  rawDominantText: {
     fontSize: 13,
     fontWeight: '500',
-    fontStyle: 'italic',
-    marginBottom: 12,
-  },
-  coreTruthText: {
-    fontSize: 15,
-    lineHeight: 23,
-    marginBottom: 16,
-  },
-  whereShowsUp: {
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
-  },
-  whereShowsUpLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  whereShowsUpText: {
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  whatGoesWrong: {
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
-  },
-  whatGoesWrongLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  whatGoesWrongText: {
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  questionContainer: {
-    borderRadius: 10,
-    padding: 14,
-    borderWidth: 1,
-    marginBottom: 14,
-  },
-  questionText: {
-    fontSize: 15,
-    lineHeight: 22,
-    fontStyle: 'italic',
-  },
-  reflectButton: {
-    alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 20,
-    marginBottom: 14,
-  },
-  reflectButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  timeframeContext: {
-    fontSize: 11,
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  evidenceNote: {
-    fontSize: 10,
-    textAlign: 'center',
-    fontStyle: 'italic',
   },
   askMirrorButton: {
     flexDirection: 'row',
@@ -1545,44 +634,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 12,
-    marginTop: 4,
     gap: 8,
   },
   askMirrorText: {
     fontSize: 15,
     fontWeight: '600',
-  },
-  // TIMELINE CONTEXT STRIP STYLES
-  timelineContextStrip: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 10,
-    borderRadius: 8,
-    backgroundColor: 'transparent',
-  },
-  timelineContextLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  timelineContextPhase: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  timelineContextDate: {
-    fontSize: 11,
-  },
-  timelineContextArrow: {
-    fontSize: 12,
-  },
-  timelineLinkingLine: {
-    fontSize: 12,
-    fontStyle: 'italic',
-    marginBottom: 14,
-    marginTop: -4,
   },
 });
 

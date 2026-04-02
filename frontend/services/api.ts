@@ -1440,4 +1440,91 @@ export const getMirrorProfile = async (userId: string): Promise<GetMirrorProfile
   return response.data;
 };
 
+
+// ============================================================
+// V5.0 HOME SYNTHESIS API
+// ============================================================
+
+export interface HomeSynthesisResponse {
+  success: boolean;
+  date: string;
+  pattern_key: string;
+  the_call: string;
+  the_reality: string;
+  the_source_hint: string;
+  the_edge: string;
+  cta_text: string;
+  cta_target: string;
+  pattern_memory_state: string;
+  evolution_state: string;
+  angle_id: string;
+  version: string;
+  original_pattern?: {
+    title: string;
+    body: string;
+    pattern_id: string;
+  };
+  debug?: any;
+}
+
+/**
+ * V5.0: Get Home Synthesis - 4-block decisive pattern synthesis
+ * 
+ * Returns:
+ * - THE CALL: Sharp, decisive pattern statement
+ * - THE REALITY: Grounded, felt experience
+ * - THE SOURCE HINT: Subtle multi-source cue
+ * - THE EDGE: Tension/choice moment
+ * - CTA -> Astrology Today
+ */
+export const getHomeSynthesis = async (userId: string): Promise<HomeSynthesisResponse> => {
+  const response = await apiWithRetry.get(`/home-synthesis/${userId}`);
+  return response.data;
+};
+
+
+// ============================================================
+// V5.0 ASTRO EXPERT API
+// ============================================================
+
+export interface AstroExpertResponse {
+  success: boolean;
+  lens: string;
+  date: string;
+  version: string;
+  todays_theme: string;
+  whats_happening: string[];
+  how_it_interacts: string[];
+  what_it_feels_like: string[];
+  what_to_do: string[];
+  one_question: string;
+  pattern_memory_state: string;
+  evolution_state: string;
+  signals?: {
+    transits: any[];
+    active_houses: number[];
+    dominant_planet: string;
+    primary_house: number;
+  };
+  debug?: any;
+}
+
+/**
+ * V5.0: Get Astrology Expert Diagnosis - 6-section expert interpretation
+ * 
+ * Feels like: A master astrologer who knows you
+ * 
+ * Returns:
+ * - TODAY'S THEME: Tension headline
+ * - WHAT'S HAPPENING: Real transit bullets
+ * - HOW IT INTERACTS: Personalization (pattern memory + tendencies)
+ * - WHAT IT FEELS LIKE: Concrete experience
+ * - WHAT TO DO: Grounded action
+ * - ONE QUESTION: Reflective prompt
+ */
+export const getAstroExpert = async (userId: string): Promise<AstroExpertResponse> => {
+  const response = await apiWithRetry.get(`/astro-expert/${userId}`);
+  return response.data;
+};
+
 export default api;
