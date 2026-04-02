@@ -13852,6 +13852,251 @@ async def record_pattern_interaction_endpoint(
 
 
 # =============================================================================
+# V5.0: HOME SYNTHESIS ENGINE - Decisive Pattern Synthesis
+# =============================================================================
+@api_router.get("/home-synthesis/{user_id}")
+async def get_home_synthesis(user_id: str):
+    """
+    V5.0: Home Synthesis Engine - Decisive Pattern Synthesis.
+    
+    Home answers ONLY: "Out of everything happening — what matters most right now?"
+    
+    Returns 4-BLOCK STRUCTURE:
+    1. THE CALL (1 sentence — sharp, decisive)
+    2. THE REALITY (1–2 sentences — grounded, felt experience)
+    3. THE SOURCE HINT (1 sentence — subtle synthesis cue)
+    4. THE EDGE (1 sentence — tension / choice)
+    + CTA → Astrology Today
+    
+    UPGRADES:
+    - Dominance Scoring: Selects ONLY highest scoring pattern
+    - Behavioral Language: Every line maps to real behavior
+    - Expression Rotation: Anti-repetition via angle cycling
+    """
+    try:
+        from services.home_synthesis_engine import (
+            generate_home_synthesis,
+            select_dominant_pattern,
+        )
+        from services.home_insight_engine import generate_daily_insight
+        
+        # Get base pattern data from existing engine
+        pattern_data = await generate_daily_insight(db, user_id)
+        
+        if not pattern_data.get("success"):
+            return {
+                "success": False,
+                "error": "Could not generate pattern",
+                "the_call": "Something is asking for your attention today.",
+                "the_reality": "We couldn't access the details — but trust what you're feeling.",
+                "the_source_hint": "Multiple signals are converging.",
+                "the_edge": "The question is what you do with it.",
+                "cta_text": "See what's driving this today →",
+                "cta_target": "/astrology",
+            }
+        
+        # Get pattern memory state
+        pattern_memory_state = pattern_data.get("pattern_memory_state", "new_pattern")
+        evolution_state = pattern_data.get("evolution_state", "none")
+        
+        # Get cross-lens agreement score
+        cross_lens_agreement = 0.0
+        try:
+            from services.pattern_memory_engine import detect_cross_lens_convergence
+            is_convergent, _ = await detect_cross_lens_convergence(db, user_id)
+            if is_convergent:
+                cross_lens_agreement = 0.8
+        except Exception:
+            pass
+        
+        # Get transit data
+        transit_data = {}
+        try:
+            from services.field_signals import detect_transit_convergence
+            transit_data = detect_transit_convergence() or {}
+        except Exception:
+            pass
+        
+        # Generate V5.0 synthesis
+        synthesis = await generate_home_synthesis(
+            db=db,
+            user_id=user_id,
+            pattern_data={
+                "pattern_key": pattern_data.get("debug", {}).get("pattern_key", "general"),
+                "title": pattern_data.get("title", ""),
+                "body": pattern_data.get("body", ""),
+                "bridge": pattern_data.get("bridge", ""),
+            },
+            transit_data=transit_data,
+            pattern_memory_state=pattern_memory_state,
+            evolution_state=evolution_state,
+            cross_lens_agreement=cross_lens_agreement,
+        )
+        
+        # Include original pattern data for backward compat
+        synthesis["original_pattern"] = {
+            "title": pattern_data.get("title"),
+            "body": pattern_data.get("body"),
+            "pattern_id": pattern_data.get("pattern_id"),
+        }
+        
+        return synthesis
+        
+    except Exception as e:
+        logger.error(f"[HomeSynthesis] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e),
+            "the_call": "Something is asking for your attention today.",
+            "the_reality": "We couldn't access the details.",
+            "the_source_hint": "Multiple signals are converging.",
+            "the_edge": "The question is what you do with it.",
+            "cta_text": "See what's driving this today →",
+            "cta_target": "/astrology",
+        }
+
+
+# =============================================================================
+# V5.0: ASTROLOGY EXPERT INTERPRETER
+# =============================================================================
+@api_router.get("/astro-expert/{user_id}")
+async def get_astro_expert_diagnosis(user_id: str):
+    """
+    V5.0: Astrology Today as Expert Interpreter.
+    
+    Must feel like: "A master astrologer who knows the user"
+    
+    Returns 6-SECTION STRUCTURE:
+    1. TODAY'S THEME (1 line tension)
+    2. WHAT'S ACTUALLY HAPPENING (real transit bullets)
+    3. HOW THIS INTERACTS WITH YOU (personalization - CRITICAL)
+    4. WHAT THIS MAY FEEL LIKE (concrete felt experience)
+    5. WHAT TO DO WITH IT (actionable, grounded)
+    6. ONE QUESTION (clean reflective prompt)
+    
+    UPGRADES:
+    - Behavioral Language: Every line maps to real behavior
+    - Personalization Depth: References pattern_memory, tendencies
+    - Real Transit Signals: Actual planetary positions
+    """
+    try:
+        from services.astro_expert_engine import generate_astro_expert_diagnosis
+        
+        # Get user's chart data
+        user, chart = await get_user_astrology_data(user_id)
+        
+        if not chart:
+            return {
+                "success": False,
+                "error": "Astrology chart not found",
+                "todays_theme": "Unknown",
+                "whats_happening": ["Chart data required"],
+                "how_it_interacts": ["Complete your profile for personalization"],
+                "what_it_feels_like": ["Unable to assess without birth data"],
+                "what_to_do": ["Add your birth information to get started"],
+                "one_question": "What are you waiting for?",
+            }
+        
+        # Get current transits
+        transits = []
+        active_houses = [1, 7, 10]  # Default to angular houses
+        try:
+            from services.field_signals import detect_transit_convergence
+            transit_data = detect_transit_convergence()
+            
+            if transit_data:
+                transits = transit_data.get('transits', [])
+                active_houses = transit_data.get('houses', [1, 4, 7, 10])
+        except Exception as te:
+            logger.debug(f"Could not get transit data: {te}")
+        
+        # Compute real transit aspects if possible
+        try:
+            astro_data = chart.get("astrology", {})
+            natal_planets = astro_data.get("planets", {})
+            
+            if natal_planets:
+                import swisseph as swe
+                
+                now = datetime.now(timezone.utc)
+                julian_now = swe.julday(now.year, now.month, now.day, now.hour + now.minute/60)
+                
+                TRANSIT_PLANETS = {
+                    swe.SUN: "Sun", swe.MOON: "Moon", swe.MERCURY: "Mercury",
+                    swe.VENUS: "Venus", swe.MARS: "Mars", swe.JUPITER: "Jupiter",
+                    swe.SATURN: "Saturn"
+                }
+                
+                ASPECTS = {"conjunction": 0, "square": 90, "opposition": 180, "trine": 120}
+                
+                for planet_id, planet_name in TRANSIT_PLANETS.items():
+                    try:
+                        t_lon = swe.calc_ut(julian_now, planet_id)[0][0]
+                        
+                        for n_name, n_data in natal_planets.items():
+                            if not isinstance(n_data, dict):
+                                continue
+                            n_lon = n_data.get("longitude", n_data.get("degree", 0))
+                            
+                            for aspect_name, aspect_angle in ASPECTS.items():
+                                diff = abs((t_lon - n_lon + 180) % 360 - 180)
+                                if abs(diff - aspect_angle) <= 8:
+                                    transits.append({
+                                        "planet": planet_name,
+                                        "aspect": aspect_name,
+                                        "natal_planet": n_name.replace("_", " ").title(),
+                                        "house": n_data.get("house", 1),
+                                    })
+                    except Exception:
+                        pass
+        except Exception as e:
+            logger.debug(f"Could not compute transits: {e}")
+        
+        # Get pattern memory state
+        pattern_memory_state = "new_pattern"
+        evolution_state = "none"
+        try:
+            from services.pattern_memory_engine import get_pattern_history
+            history = await get_pattern_history(db, user_id, days=30)
+            if len(history) >= 3:
+                pattern_memory_state = "recurring_pattern"
+            elif len(history) >= 1:
+                pattern_memory_state = "returning_pattern"
+        except Exception:
+            pass
+        
+        # Generate V5.0 expert diagnosis
+        diagnosis = await generate_astro_expert_diagnosis(
+            db=db,
+            user_id=user_id,
+            chart_data=chart,
+            transits=transits,
+            active_houses=active_houses,
+            pattern_memory_state=pattern_memory_state,
+            evolution_state=evolution_state,
+        )
+        
+        return diagnosis
+        
+    except Exception as e:
+        logger.error(f"[AstroExpert] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e),
+            "todays_theme": "Unable to compute",
+            "whats_happening": ["Error loading transit data"],
+            "how_it_interacts": ["Try again later"],
+            "what_it_feels_like": ["Unknown"],
+            "what_to_do": ["Refresh the page"],
+            "one_question": "What are you avoiding?",
+        }
+
+
+# =============================================================================
 # ASTROLOGY DETERMINISTIC CHART ENDPOINT (Full Data Exposure)
 # =============================================================================
 @api_router.get("/astrology/chart/{user_id}")
