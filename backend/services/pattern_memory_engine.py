@@ -998,13 +998,17 @@ def generate_home_memory_override(recurring_info: Dict[str, Any]) -> Dict[str, A
     """
     Generate a special Home diagnosis that acknowledges recurring pattern.
     """
-    tension = recurring_info.get("primary_tension", "this tension")
+    from services.pattern_sanitizer import sanitize_pattern_key
+    
+    raw_tension = recurring_info.get("primary_tension", "this tension")
+    # SANITIZE: Convert internal pattern key to human-readable
+    tension = sanitize_pattern_key(raw_tension)
     occurrences = recurring_info.get("occurrence_count", 3)
     
-    # Build recognition-focused diagnosis
+    # Build recognition-focused diagnosis - NO internal pattern keys
     title = "You're Back Here Again"
     
-    body = f"This isn't new. You've been circling this pattern—{tension.lower()}—and it keeps coming back because something hasn't shifted yet. "
+    body = "This isn't new. You've been circling this pattern and it keeps coming back because something hasn't shifted yet. "
     body += "That's not failure. That's the pattern asking to be seen more clearly."
     
     bridge = "The repetition isn't random. What you haven't resolved keeps returning until you do."
@@ -1023,7 +1027,7 @@ def generate_home_memory_override(recurring_info: Dict[str, Any]) -> Dict[str, A
             "state": PatternMemoryState.RECURRING_PATTERN,
             "is_override": True,
             "occurrence_count": occurrences,
-            "primary_tension": tension,
+            "primary_tension": tension,  # Sanitized
         },
         "debug": {
             "source": "home_memory_override",
@@ -1199,16 +1203,24 @@ async def get_home_override_with_evolution(
 def generate_home_evolution_override(override_info: Dict[str, Any]) -> Dict[str, Any]:
     """
     V4.1: Generate Home diagnosis based on evolution state.
+    
+    CRITICAL: All output must be sanitized - no internal pattern keys
     """
-    tension = override_info.get("primary_tension", "this tension")
+    from services.pattern_sanitizer import sanitize_pattern_key
+    
+    raw_tension = override_info.get("primary_tension", "this tension")
+    # SANITIZE: Convert internal pattern key to human-readable
+    tension = sanitize_pattern_key(raw_tension)
+    
     evolution_state = override_info.get("evolution_state", PatternEvolutionState.NONE)
     memory_state = override_info.get("memory_state", PatternMemoryState.NEW_PATTERN)
     occurrences = override_info.get("occurrence_count", 2)
     
     # Select title and body based on evolution state
+    # NOTE: Do NOT include pattern name in body - use generic language
     if evolution_state == PatternEvolutionState.ESCALATING:
         title = "This Is Getting Stronger"
-        body = f"The pattern around {tension.lower()} isn't just back—it's intensifying. "
+        body = "What you're feeling isn't just back—it's intensifying. "
         body += "Something about it hasn't been addressed, and now it's demanding more attention."
         bridge = "Escalation is the pattern's way of saying: you can't wait this one out."
         misstep = "hoping it will settle on its own"
@@ -1216,7 +1228,7 @@ def generate_home_evolution_override(override_info: Dict[str, Any]) -> Dict[str,
         
     elif evolution_state == PatternEvolutionState.LOOPING:
         title = "The Same Loop Is Running"
-        body = f"You recognize this—{tension.lower()}—and you know how it usually plays out. "
+        body = "You recognize this pattern—and you know how it usually plays out. "
         body += "But knowing the pattern hasn't changed how you respond to it. That's the loop."
         bridge = "Awareness without different action just makes the loop more visible."
         misstep = "thinking that recognizing it is the same as changing it"
@@ -1224,7 +1236,7 @@ def generate_home_evolution_override(override_info: Dict[str, Any]) -> Dict[str,
         
     elif evolution_state == PatternEvolutionState.INTEGRATING:
         title = "Something Is Shifting"
-        body = f"The pattern around {tension.lower()} is still here—but you're meeting it differently. "
+        body = "The pattern is still here—but you're meeting it differently. "
         body += "That's not nothing. That's the beginning of actual change."
         bridge = "Integration isn't dramatic. It's subtle. But it's real."
         misstep = "dismissing the progress because it feels small"
@@ -1232,7 +1244,7 @@ def generate_home_evolution_override(override_info: Dict[str, Any]) -> Dict[str,
         
     elif evolution_state == PatternEvolutionState.EARLY_AWARENESS:
         title = "You're Catching It Earlier"
-        body = f"You're noticing {tension.lower()} before it takes over. "
+        body = "You're noticing this before it takes over. "
         body += "That space—between noticing and reacting—is new. Use it."
         bridge = "Early awareness is where choice lives."
         misstep = "waiting to see if it gets worse before responding"
@@ -1240,7 +1252,7 @@ def generate_home_evolution_override(override_info: Dict[str, Any]) -> Dict[str,
         
     elif evolution_state == PatternEvolutionState.SOFTENING:
         title = "The Grip Is Loosening"
-        body = f"The pattern around {tension.lower()} is still present—but something has softened. "
+        body = "The pattern is still present—but something has softened. "
         body += "It doesn't have the same charge it did before."
         bridge = "Softening doesn't mean resolved. But it means less power over you."
         misstep = "pushing for complete resolution when partial is progress"
@@ -1261,7 +1273,7 @@ def generate_home_evolution_override(override_info: Dict[str, Any]) -> Dict[str,
             "evolution_state": evolution_state,
             "is_override": True,
             "occurrence_count": occurrences,
-            "primary_tension": tension,
+            "primary_tension": tension,  # Sanitized version
         },
         "debug": {
             "source": "home_evolution_override_v4.1",

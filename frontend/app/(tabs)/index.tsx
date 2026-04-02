@@ -24,7 +24,7 @@ import { storage } from '../../store';
 import DebugComputeInputs from '../../components/DebugComputeInputs';
 import { InlineReflectButton } from '../../components/UniversalReflectButton';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
-import TodayPatternCard from '../../components/TodayPatternCard';
+import HomeSynthesisCard from '../../components/HomeSynthesisCard';
 import ActionCard from '../../components/ActionCard';
 import { useExperienceControls } from '../../hooks/useExperienceControls';
 import { HOME_LAYOUT, MirrorMode } from '../../types/mirror-profile';
@@ -398,13 +398,14 @@ export default function MirrorScreen() {
         
         {/* ===================================================================
             POSITION 1: TODAY'S PATTERN (Always first - primary card)
+            V5.0: Using HomeSynthesisCard for 4-block decisive synthesis
             =================================================================== */}
         {user?.id && (
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <TodayPatternCard 
+            <HomeSynthesisCard 
               userId={user.id} 
               theme={theme}
-              onReflect={() => router.push('/(tabs)/reflect?view=mirror')}
+              onNavigateToAstro={() => router.push('/(tabs)/lenses')}
             />
           </View>
         )}

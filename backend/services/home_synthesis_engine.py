@@ -486,6 +486,12 @@ async def generate_home_synthesis(
     4. THE EDGE (1 sentence — tension / choice)
     + CTA
     """
+    from services.pattern_sanitizer import (
+        sanitize_pattern_key, 
+        sanitize_text_content,
+        ensure_clean_copy,
+    )
+    
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     pattern_key = pattern_data.get("pattern_key", "general_tension")
     
@@ -502,6 +508,10 @@ async def generate_home_synthesis(
         # Ensure it's behavioral
         the_call = enforce_behavioral_language(the_call)
     
+    # SANITIZE: Remove any internal pattern keys from the_call
+    the_call = sanitize_text_content(the_call)
+    the_call = ensure_clean_copy(the_call, angle_data["call_template"])
+    
     # Generate THE REALITY
     the_reality = angle_data["reality_template"]
     
@@ -513,6 +523,9 @@ async def generate_home_synthesis(
             the_reality = enforce_behavioral_language(body_sentences[0])
             if len(body_sentences) > 1 and len(body_sentences[1]) > 20:
                 the_reality += f" {body_sentences[1]}"
+    
+    # SANITIZE: Remove any internal pattern keys from the_reality
+    the_reality = sanitize_text_content(the_reality)
     
     # Inject pattern state language if applicable
     state_language = get_pattern_state_language(pattern_memory_state, evolution_state, user_id)
@@ -532,36 +545,39 @@ async def generate_home_synthesis(
         if "?" in edge_candidate or "whether" in edge_candidate.lower():
             the_edge = edge_candidate
     
+    # SANITIZE: Remove any internal pattern keys from the_edge
+    the_edge = sanitize_text_content(the_edge)
+    the_edge = ensure_clean_copy(the_edge, angle_data["edge_template"])
+    
     # CTA
     cta_text = "See what's driving this today →"
     cta_target = "/astrology"  # Deep link to Astrology Today
     
-    # Validate all content is behavioral
+    # Final validation: all content must be behavioral and clean
     all_content = f"{the_call} {the_reality} {the_source_hint} {the_edge}"
     is_valid, issues = validate_behavioral_content(all_content)
     
     if not is_valid:
         logger.warning(f"[HomeSynthesis] Behavioral validation issues: {issues}")
     
+    # DO NOT expose pattern_key to frontend - keep it in debug only
     return {
         "success": True,
         "date": today,
-        "pattern_key": pattern_key,
-        # V5.0 4-BLOCK STRUCTURE
+        # V5.0 4-BLOCK STRUCTURE (CLEAN - no internal tokens)
         "the_call": the_call,
         "the_reality": the_reality,
         "the_source_hint": the_source_hint,
         "the_edge": the_edge,
         "cta_text": cta_text,
         "cta_target": cta_target,
-        # Metadata
+        # Metadata (sanitized for display)
         "pattern_memory_state": pattern_memory_state,
         "evolution_state": evolution_state,
-        "angle_id": angle_id,
         "version": "v5.0_synthesis",
-        # Debug
+        # Debug only (NOT for user display)
         "debug": {
-            "pattern_key": pattern_key,
+            "pattern_key": pattern_key,  # Internal only
             "angle_id": angle_id,
             "pattern_memory_state": pattern_memory_state,
             "evolution_state": evolution_state,

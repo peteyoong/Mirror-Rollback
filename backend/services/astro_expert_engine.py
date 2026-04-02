@@ -81,59 +81,120 @@ def enforce_behavioral_language(text: str) -> str:
 
 
 # =============================================================================
-# TRANSIT INTERPRETATION LIBRARY (V5.0)
+# TRANSIT INTERPRETATION LIBRARY (V5.0) - LIVED TEXTURE
 # =============================================================================
+# Themes should feel lived and immediate, not abstract/conceptual
 
 PLANET_MEANINGS = {
     "Sun": {
-        "theme": "identity and direction",
-        "pressure": "who you are vs who you're expected to be",
-        "action": "clarify what actually matters to you",
+        "theme": "identity pressure",
+        "tension": "Feeling pressure to be someone you're not sure you are",
+        "pressure": "the pull between who you're becoming and who you're expected to stay",
+        "action": "notice where you're performing vs where you're being real",
+        "felt_experience": [
+            "tension in the chest when pretending",
+            "wanting to be seen but not sure how",
+            "irritation when expectations feel heavy",
+        ],
     },
     "Moon": {
         "theme": "emotional needs",
-        "pressure": "what you need vs what you're getting",
-        "action": "honor what you're actually feeling",
+        "tension": "Needing something you're not getting—or not asking for",
+        "pressure": "the gap between what you need and what you're allowing yourself to receive",
+        "action": "name what you actually need without justifying it",
+        "felt_experience": [
+            "tightness in the stomach when needs go unmet",
+            "wanting comfort but pushing it away",
+            "emotional noise that won't settle",
+        ],
     },
     "Mercury": {
-        "theme": "communication and decisions",
-        "pressure": "what you're saying vs what you mean",
-        "action": "say the thing you've been holding back",
+        "theme": "communication and clarity",
+        "tension": "Wanting to say something but not trusting how it will land",
+        "pressure": "the distance between what you're thinking and what you're saying",
+        "action": "say the thing you keep editing in your head",
+        "felt_experience": [
+            "rehearsing conversations that haven't happened",
+            "overthinking before speaking",
+            "frustration when misunderstood",
+        ],
     },
     "Venus": {
-        "theme": "relationships and values",
-        "pressure": "what you want vs what you're settling for",
-        "action": "notice where you're compromising too much",
+        "theme": "relationships and worth",
+        "tension": "Settling for less than what you actually want",
+        "pressure": "wanting connection but not sure you deserve it on your terms",
+        "action": "notice where you're over-giving or under-asking",
+        "felt_experience": [
+            "resentment building slowly",
+            "wanting reassurance but not asking",
+            "loneliness even when not alone",
+        ],
     },
     "Mars": {
         "theme": "action and assertion",
-        "pressure": "what you're doing vs what you want to do",
-        "action": "take one decisive step forward",
+        "tension": "Wanting to move but not trusting the direction",
+        "pressure": "the urge to act vs the fear of acting wrong",
+        "action": "move one small thing instead of waiting for certainty",
+        "felt_experience": [
+            "restlessness in the body",
+            "irritability with no clear target",
+            "energy that needs somewhere to go",
+        ],
     },
     "Jupiter": {
-        "theme": "expansion and opportunity",
-        "pressure": "wanting more vs accepting what is",
-        "action": "identify one thing to expand, not everything",
+        "theme": "expansion and excess",
+        "tension": "Wanting more without being sure it's the right more",
+        "pressure": "the pull to grow vs the risk of overextending",
+        "action": "choose one thing to expand, release the others",
+        "felt_experience": [
+            "excitement that might be escapism",
+            "optimism that hasn't been tested",
+            "saying yes before checking capacity",
+        ],
     },
     "Saturn": {
         "theme": "responsibility and limits",
-        "pressure": "freedom vs obligation",
-        "action": "accept one limit you've been fighting",
+        "tension": "Carrying weight that may or may not be yours",
+        "pressure": "obligation pressing on freedom",
+        "action": "name one limit you've been fighting and stop fighting it",
+        "felt_experience": [
+            "heaviness in the shoulders",
+            "fatigue that rest doesn't fix",
+            "guilt when resting",
+        ],
     },
     "Uranus": {
         "theme": "disruption and change",
-        "pressure": "stability vs breakthrough",
-        "action": "let go of one thing that's no longer working",
+        "tension": "Something wants to break free, but you're not sure what it is",
+        "pressure": "stability vs the need for breakthrough",
+        "action": "identify what's no longer working and let it go",
+        "felt_experience": [
+            "sudden urges to change everything",
+            "boredom with what used to work",
+            "restlessness that won't be satisfied by small adjustments",
+        ],
     },
     "Neptune": {
-        "theme": "dreams and illusions",
+        "theme": "dreams and confusion",
+        "tension": "Not being sure what's real and what you're hoping is real",
         "pressure": "idealism vs reality",
-        "action": "distinguish hope from expectation",
+        "action": "distinguish hope from expectation—and accept the difference",
+        "felt_experience": [
+            "brain fog when trying to decide",
+            "romanticizing what hasn't happened",
+            "feeling lost without clear reason",
+        ],
     },
     "Pluto": {
-        "theme": "transformation and power",
-        "pressure": "control vs surrender",
-        "action": "release what you're gripping too tightly",
+        "theme": "power and transformation",
+        "tension": "Something is ending, and you're not in control of how",
+        "pressure": "gripping vs surrendering",
+        "action": "release what you're holding too tightly",
+        "felt_experience": [
+            "fear of losing control",
+            "intensity in small interactions",
+            "old patterns resurfacing for clearing",
+        ],
     },
 }
 
@@ -198,7 +259,11 @@ async def get_personalization_context(
     - detected pattern_memory (if exists)
     - known user tendencies (from profile or historical patterns)
     - recent behavioral signals (if available)
+    
+    CRITICAL: All output must be sanitized - no internal pattern keys in user-facing copy
     """
+    from services.pattern_sanitizer import sanitize_pattern_key, sanitize_tendency_phrase
+    
     context = {
         "pattern_state_phrase": None,
         "tendency_phrases": [],
@@ -227,36 +292,44 @@ async def get_personalization_context(
         sorted_tensions = sorted(tension_counts.items(), key=lambda x: x[1], reverse=True)
         
         if sorted_tensions:
-            top_tendency = sorted_tensions[0][0]
+            top_tendency_raw = sorted_tensions[0][0]
             count = sorted_tensions[0][1]
+            
+            # SANITIZE: Convert internal pattern key to human-readable
+            top_tendency_clean = sanitize_pattern_key(top_tendency_raw)
             
             if count >= 5:
                 context["tendency_phrases"].append(
-                    f"Your pattern history shows {top_tendency.replace('_', ' ')} coming up repeatedly."
+                    f"This touches a pattern that's been showing up a lot for you lately — {top_tendency_clean}."
                 )
             elif count >= 3:
                 context["tendency_phrases"].append(
-                    f"This touches your tendency around {top_tendency.replace('_', ' ')}."
+                    f"This connects to your tendency toward {top_tendency_clean} when pressure builds."
                 )
     except Exception as e:
         logger.debug(f"[Personalization] Could not get history: {e}")
     
-    # Evolution state phrases
+    # Evolution state phrases (already clean - no internal tokens)
     if evolution_state == "escalating":
-        context["tendency_phrases"].append("This tension has been intensifying recently.")
+        context["tendency_phrases"].append("This tension has been intensifying recently — it's not settling.")
     elif evolution_state == "looping":
-        context["tendency_phrases"].append("You've been cycling through this same response pattern.")
+        context["tendency_phrases"].append("You've been cycling through this same response pattern — it wants something different.")
     elif evolution_state == "integrating":
-        context["tendency_phrases"].append("You're starting to respond to this differently than before.")
+        context["tendency_phrases"].append("You're starting to respond to this differently than before. That's real progress.")
     elif evolution_state == "softening":
-        context["tendency_phrases"].append("This is less charged than it was recently.")
+        context["tendency_phrases"].append("This is less charged than it was recently — something has loosened.")
+    
+    # Sanitize all tendency phrases before returning
+    context["tendency_phrases"] = [
+        sanitize_tendency_phrase(p) for p in context["tendency_phrases"]
+    ]
     
     return context
 
 
 def generate_how_it_interacts(
     personalization: Dict[str, Any],
-    planet_tension: Dict[str, Any],
+    planet_info: Dict[str, Any],
     house_info: Dict[str, Any]
 ) -> List[str]:
     """
@@ -264,7 +337,11 @@ def generate_how_it_interacts(
     
     CRITICAL: Must explicitly reference pattern_memory and tendencies.
     Must feel like: "This system remembers me and sees the pattern continuing"
+    
+    NO INTERNAL TOKENS. All output must be clean, human-readable.
     """
+    from services.pattern_sanitizer import sanitize_text_content
+    
     bullets = []
     
     # Pattern state reference
@@ -275,19 +352,28 @@ def generate_how_it_interacts(
     for phrase in personalization.get("tendency_phrases", [])[:2]:
         bullets.append(phrase)
     
+    # Add lived-texture personalization if we have planet info
+    if planet_info.get("tension"):
+        bullets.append(f"{planet_info['tension']}.")
+    
     # Generic personalization if no history
     if not bullets:
         bullets.append(
-            f"This hits your {house_info['area']} area — {house_info['behavioral']}."
+            f"This is hitting your {house_info['area']} area — {house_info['behavioral']}."
         )
-        bullets.append(
-            f"The {planet_tension['theme']} theme amplifies any existing tension you carry around {planet_tension['pressure']}."
-        )
+        if planet_info.get("pressure"):
+            bullets.append(
+                f"You may feel the pull between {planet_info['pressure']}."
+            )
     
-    # Ensure behavioral language
-    bullets = [enforce_behavioral_language(b) for b in bullets]
+    # Ensure behavioral language and sanitize
+    cleaned_bullets = []
+    for b in bullets:
+        b = enforce_behavioral_language(b)
+        b = sanitize_text_content(b)
+        cleaned_bullets.append(b)
     
-    return bullets[:3]
+    return cleaned_bullets[:3]
 
 
 # =============================================================================
@@ -335,12 +421,13 @@ async def generate_astro_expert_diagnosis(
     )
     
     # =========================================================================
-    # 1. TODAY'S THEME (1 line)
+    # 1. TODAY'S THEME (1 line - LIVED, not abstract)
     # =========================================================================
-    todays_theme = f"{planet_info['pressure'].title()}"
+    # Use the tension field which is more lived/immediate
+    todays_theme = planet_info.get('tension', planet_info['pressure'].title())
     
     # =========================================================================
-    # 2. WHAT'S ACTUALLY HAPPENING (transit bullets)
+    # 2. WHAT'S ACTUALLY HAPPENING (transit bullets - lived consequence)
     # =========================================================================
     whats_happening = []
     
@@ -350,17 +437,23 @@ async def generate_astro_expert_diagnosis(
         aspect_name = transit.get("aspect", "conjunction")
         house = transit.get("house", primary_house)
         
+        t_planet_info = PLANET_MEANINGS.get(planet, {})
         a_info = ASPECT_MEANINGS.get(aspect_name, ASPECT_MEANINGS["conjunction"])
+        h_info = HOUSE_MEANINGS.get(house, HOUSE_MEANINGS[1])
         
+        # Build more lived-texture transit description
         if natal_planet:
-            bullet = f"{planet} {aspect_name} your natal {natal_planet} → {a_info['behavioral']}"
+            # Transit to natal - use tension + behavioral connection
+            bullet = f"{planet} {aspect_name} your natal {natal_planet} — {a_info['behavioral']}"
         else:
-            bullet = f"{planet} transiting House {house} → pressure on your {HOUSE_MEANINGS.get(house, house_info)['area']}"
+            # Transit through house - use house behavioral + planet tension
+            planet_tension = t_planet_info.get('tension', t_planet_info.get('pressure', 'pressure'))
+            bullet = f"{planet} in your {h_info['area']} area — {planet_tension.lower()}"
         
         whats_happening.append(enforce_behavioral_language(bullet))
     
     if not whats_happening:
-        whats_happening.append(f"{dominant_planet} activating your {house_info['area']} → {planet_info['pressure']}")
+        whats_happening.append(f"{dominant_planet} activating your {house_info['area']} — {planet_info.get('tension', planet_info['pressure'])}")
     
     # =========================================================================
     # 3. HOW THIS INTERACTS WITH YOU (personalization - CRITICAL)
@@ -368,20 +461,36 @@ async def generate_astro_expert_diagnosis(
     how_it_interacts = generate_how_it_interacts(personalization, planet_info, house_info)
     
     # =========================================================================
-    # 4. WHAT THIS MAY FEEL LIKE (concrete experience)
+    # 4. WHAT THIS MAY FEEL LIKE (concrete experience - LIVED TEXTURE)
     # =========================================================================
-    what_it_feels_like = [
-        f"Feeling the pull between {planet_info['pressure'].split(' vs ')[0]} and {planet_info['pressure'].split(' vs ')[1] if ' vs ' in planet_info['pressure'] else 'something else'}",
-        f"Noticing tension in your {house_info['area']} area — {house_info['behavioral'].split(' vs ')[0]}",
-        "Wanting to act but not being sure which direction is right",
-        "Sensing that something needs to change but not knowing what yet",
+    # Use the felt_experience from planet info if available
+    what_it_feels_like = []
+    
+    # Add planet-specific felt experiences
+    if planet_info.get("felt_experience"):
+        for exp in planet_info["felt_experience"][:2]:
+            what_it_feels_like.append(exp.capitalize() if exp[0].islower() else exp)
+    
+    # Add house-related felt experience
+    what_it_feels_like.append(f"Tension in your {house_info['area']} area — {house_info['behavioral'].split(' vs ')[0]}")
+    
+    # Add generic lived-texture experiences
+    generic_experiences = [
+        "Wanting to act but not trusting the timing",
+        "Restlessness that won't settle until something moves",
+        "Pressure in the body when trying to decide",
+        "Overthinking before speaking or acting",
+        "Irritability without a clear target",
     ]
     
-    # Select 2-3 based on context
+    # Fill to 3 if needed
     seed = f"{user_id}:{today}:feels"
     seed_hash = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
-    selected_feels = [what_it_feels_like[i % len(what_it_feels_like)] for i in range(seed_hash % 2 + 2, seed_hash % 2 + 5)]
-    what_it_feels_like = [enforce_behavioral_language(f) for f in selected_feels[:3]]
+    while len(what_it_feels_like) < 3:
+        idx = (seed_hash + len(what_it_feels_like)) % len(generic_experiences)
+        what_it_feels_like.append(generic_experiences[idx])
+    
+    what_it_feels_like = [enforce_behavioral_language(f) for f in what_it_feels_like[:3]]
     
     # =========================================================================
     # 5. WHAT TO DO WITH IT (actionable)
