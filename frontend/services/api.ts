@@ -1521,9 +1521,19 @@ export interface AstroExpertResponse {
  * - WHAT IT FEELS LIKE: Concrete experience
  * - WHAT TO DO: Grounded action
  * - ONE QUESTION: Reflective prompt
+ * 
+ * V5.2: Now supports timeframe parameter for HORIZON INTERPRETATION
+ * - today: "What is peaking or loud right now?"
+ * - week: "What keeps surfacing across these days?"
+ * - month: "What larger arc is this part of?"
  */
-export const getAstroExpert = async (userId: string): Promise<AstroExpertResponse> => {
-  const response = await apiWithRetry.get(`/astro-expert/${userId}`);
+export const getAstroExpert = async (
+  userId: string, 
+  timeframe: 'today' | 'week' | 'month' = 'today'
+): Promise<AstroExpertResponse> => {
+  console.log(`[API] getAstroExpert called: userId=${userId}, timeframe=${timeframe}`);
+  const response = await apiWithRetry.get(`/astro-expert/${userId}?timeframe=${timeframe}`);
+  console.log(`[API] getAstroExpert response: theme="${response.data?.todays_theme}", timeframe="${response.data?.timeframe}"`);
   return response.data;
 };
 

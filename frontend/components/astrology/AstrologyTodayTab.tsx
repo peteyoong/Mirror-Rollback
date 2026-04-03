@@ -30,6 +30,7 @@ interface AstroExpertData {
   lens: string;
   date: string;
   version: string;
+  timeframe: string;  // V5.2: Added to verify horizon
   todays_theme: string;
   whats_happening: string[];
   how_it_interacts: string[];
@@ -38,6 +39,17 @@ interface AstroExpertData {
   one_question: string;
   pattern_memory_state: string;
   evolution_state: string;
+  event_priority?: {
+    has_dominant_event: boolean;
+    dominant_event?: any;
+    explicit_event_name?: string;
+    event_sign?: string;
+  };
+  horizon_interpretation?: {
+    timeframe: string;
+    theme_description: string;
+    horizon_source: string;
+  };
   signals?: {
     transits: any[];
     active_houses: number[];
@@ -233,13 +245,24 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
       setLoading(true);
       setError(null);
       
-      // For now, all altitudes use the same endpoint
-      // Future: Create /api/astro-expert/{user_id}?timeframe=week etc
+      // V5.2: Pass timeframe to get DISTINCT horizon interpretations
       const { getAstroExpert } = await import('../../services/api');
-      const data = await getAstroExpert(userId);
+      
+      // Map UI altitude to API timeframe
+      const timeframeMap: Record<Timeframe, 'today' | 'week' | 'month'> = {
+        'today': 'today',
+        'week': 'week',
+        'month': 'month',
+      };
+      const timeframe = timeframeMap[activeAltitude];
+      
+      console.log(`[AstrologyTodayTab] Loading expert data for timeframe: ${timeframe}`);
+      const data = await getAstroExpert(userId, timeframe);
+      console.log(`[AstrologyTodayTab] Received theme: "${data.todays_theme}", timeframe: "${data.timeframe}"`);
+      
       setExpertData(data);
     } catch (err: any) {
-      console.error('[AstrologyTodayTab V5] Error:', err);
+      console.error('[AstrologyTodayTab V5.2] Error:', err);
       setError(err.message || 'Failed to load');
     } finally {
       setLoading(false);
@@ -331,6 +354,16 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
       {/* V5.0: PRIMARY EXPERT INTERPRETATION */}
       {content && !loading && (
         <View style={[styles.expertContainer, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
+          
+          {/* DEBUG BANNER - TEMP - To verify horizon wiring */}
+          <View style={[styles.debugBanner, { backgroundColor: '#2a2a2a', borderColor: '#4a4a4a' }]}>
+            <Text style={[styles.debugText, { color: '#888' }]}>
+              DEBUG: timeframe={content.timeframe || 'not_set'} | version={content.version}
+            </Text>
+            <Text style={[styles.debugText, { color: '#aaa' }]} numberOfLines={1}>
+              theme="{content.todays_theme?.substring(0, 50)}..."
+            </Text>
+          </View>
           
           {/* 1. TODAY'S THEME */}
           <View style={styles.themeSection}>
@@ -639,6 +672,16 @@ const styles = StyleSheet.create({
   askMirrorText: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  debugBanner: {
+    padding: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  debugText: {
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });
 
