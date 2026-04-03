@@ -8,7 +8,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build:web": "npx expo export --platform web",
+    "build:deploy": "npx expo export --platform web && rm -rf ../backend/web_dist/* && cp -r dist/* ../backend/web_dist/"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.6",
