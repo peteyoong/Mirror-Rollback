@@ -1,0 +1,365 @@
+{
+  "today": {
+    "success": true,
+    "lens": "astrology",
+    "date": "2026-04-03",
+    "version": "v5.2_horizon",
+    "timeframe": "today",
+    "todays_theme": "Full Moon in Virgo \u2014 Peak Self-Criticism",
+    "whats_happening": [
+      "\ud83c\udf15 **Full Moon in Virgo** \u2014 This is a peak/release moment happening NOW",
+      "The perfectionist is running the show TODAY. You're noticing what's broken, what's wrong, what needs fixing \u2014 and possibly being too hard on yourself.",
+      "Sun conjunction your natal Moon \u2014 two parts of your life are colliding\u2014they want to be integrated",
+      "Sun trine your natal Pluto \u2014 this is coming easily\u2014don't overthink it, just move with it"
+    ],
+    "how_it_interacts": [
+      "The Full Moon is amplifying whatever you've been holding back \u2014 RIGHT NOW.",
+      "This is the same pattern showing up again \u2014 not a one-off.",
+      "This connects to your tendency toward building pressure when pressure builds.",
+      "Feeling pressure to be someone you're not sure you are."
+    ],
+    "what_it_feels_like": [
+      "Finding fault in everything \u2014 including yourself",
+      "Anxiety about things being 'good enough'",
+      "Tension in the chest when pretending"
+    ],
+    "what_to_do": [
+      "Name three things that are working BEFORE touching what's broken",
+      "notice where you're performing vs where you're being real",
+      "Move one small thing forward TODAY instead of planning everything"
+    ],
+    "one_question": "What are you being too hard on yourself about right now?",
+    "event_priority": {
+      "has_dominant_event": true,
+      "dominant_event": {
+        "type": "full_moon",
+        "explicit_name": "Full Moon in Virgo",
+        "sign": "Virgo",
+        "is_exact": true,
+        "days_until": 28,
+        "salience": 0.95
+      },
+      "explicit_event_name": "Full Moon in Virgo",
+      "event_sign": "Virgo",
+      "tier_summary": {
+        "tier_1_count": 1,
+        "tier_2_count": 0,
+        "tier_3_count": 0
+      },
+      "moon_phase": "Full Moon",
+      "days_to_full": 28.5,
+      "days_to_new": 13.7
+    },
+    "horizon_interpretation": {
+      "timeframe": "today",
+      "theme_description": "You're seeing every flaw right now",
+      "horizon_source": "horizon_interpretation_layer"
+    },
+    "pattern_memory_state": "recurring_pattern",
+    "evolution_state": "none",
+    "signals": {
+      "transits": [
+        {
+          "planet": "Sun",
+          "aspect": "conjunction",
+          "natal_planet": "Moon",
+          "house": 4,
+          "orb": 2.6,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Sun",
+          "aspect": "trine",
+          "natal_planet": "Pluto",
+          "house": 8,
+          "orb": 6.3,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Moon",
+          "aspect": "square",
+          "natal_planet": "Jupiter",
+          "house": 8,
+          "orb": 6.1,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Moon",
+          "aspect": "conjunction",
+          "natal_planet": "Neptune",
+          "house": 11,
+          "orb": 6.4,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Moon",
+          "aspect": "trine",
+          "natal_planet": "Chiron",
+          "house": 3,
+          "orb": 2.7,
+          "priority_tier": "tier_1_dominant"
+        }
+      ],
+      "active_houses": [
+        1,
+        4,
+        7
+      ],
+      "dominant_planet": "Sun",
+      "primary_house": 1
+    },
+    "debug": {
+      "dominant_planet": "Sun",
+      "primary_house": 1,
+      "aspect": "conjunction",
+      "pattern_memory_state": "recurring_pattern",
+      "evolution_state": "none",
+      "personalization_applied": true,
+      "event_priority_active": true,
+      "horizon_mode": "today",
+      "version": "v5.2"
+    }
+  },
+  "week": {
+    "success": true,
+    "lens": "astrology",
+    "date": "2026-04-03",
+    "version": "v5.2_horizon",
+    "timeframe": "week",
+    "todays_theme": "Full Moon Week \u2014 The Same Critical Voice Returning",
+    "whats_happening": [
+      "\ud83c\udf15 **Full Moon in Virgo Week** \u2014 The same peak energy keeps returning this week",
+      "This week, the same critical voice may show up in different areas \u2014 work, health, relationships. The repetition is showing you a pattern, not a problem list.",
+      "Sun conjunction your natal Moon \u2014 two parts of your life are colliding\u2014they want to be integrated",
+      "Sun trine your natal Pluto \u2014 this is coming easily\u2014don't overthink it, just move with it"
+    ],
+    "how_it_interacts": [
+      "This Full Moon's intensity keeps finding new targets throughout the week.",
+      "This is the same pattern showing up again \u2014 not a one-off.",
+      "This connects to your tendency toward building pressure when pressure builds.",
+      "Feeling pressure to be someone you're not sure you are."
+    ],
+    "what_it_feels_like": [
+      "The same anxiety about adequacy in different contexts",
+      "Repeated urges to optimize and improve",
+      "Tension in the chest when pretending"
+    ],
+    "what_to_do": [
+      "Notice which criticism keeps returning \u2014 it's less about the details and more about the fear",
+      "Track which patterns keep repeating \u2014 they hold the real message",
+      "Notice what keeps triggering you this week \u2014 that's the work"
+    ],
+    "one_question": "What keeps triggering the same self-critical response this week?",
+    "event_priority": {
+      "has_dominant_event": true,
+      "dominant_event": {
+        "type": "full_moon",
+        "explicit_name": "Full Moon in Virgo",
+        "sign": "Virgo",
+        "is_exact": true,
+        "days_until": 28,
+        "salience": 0.95
+      },
+      "explicit_event_name": "Full Moon in Virgo",
+      "event_sign": "Virgo",
+      "tier_summary": {
+        "tier_1_count": 1,
+        "tier_2_count": 0,
+        "tier_3_count": 0
+      },
+      "moon_phase": "Full Moon",
+      "days_to_full": 28.5,
+      "days_to_new": 13.7
+    },
+    "horizon_interpretation": {
+      "timeframe": "week",
+      "theme_description": "The same perfectionist pressure keeps surfacing this week",
+      "horizon_source": "horizon_interpretation_layer"
+    },
+    "pattern_memory_state": "recurring_pattern",
+    "evolution_state": "none",
+    "signals": {
+      "transits": [
+        {
+          "planet": "Sun",
+          "aspect": "conjunction",
+          "natal_planet": "Moon",
+          "house": 4,
+          "orb": 2.6,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Sun",
+          "aspect": "trine",
+          "natal_planet": "Pluto",
+          "house": 8,
+          "orb": 6.3,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Moon",
+          "aspect": "square",
+          "natal_planet": "Jupiter",
+          "house": 8,
+          "orb": 6.1,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Moon",
+          "aspect": "conjunction",
+          "natal_planet": "Neptune",
+          "house": 11,
+          "orb": 6.4,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Moon",
+          "aspect": "trine",
+          "natal_planet": "Chiron",
+          "house": 3,
+          "orb": 2.7,
+          "priority_tier": "tier_1_dominant"
+        }
+      ],
+      "active_houses": [
+        1,
+        4,
+        7
+      ],
+      "dominant_planet": "Sun",
+      "primary_house": 1
+    },
+    "debug": {
+      "dominant_planet": "Sun",
+      "primary_house": 1,
+      "aspect": "conjunction",
+      "pattern_memory_state": "recurring_pattern",
+      "evolution_state": "none",
+      "personalization_applied": true,
+      "event_priority_active": true,
+      "horizon_mode": "week",
+      "version": "v5.2"
+    }
+  },
+  "month": {
+    "success": true,
+    "lens": "astrology",
+    "date": "2026-04-03",
+    "version": "v5.2_horizon",
+    "timeframe": "month",
+    "todays_theme": "This Month's Arc \u2014 Learning the Difference Between Care and Control",
+    "whats_happening": [
+      "\ud83c\udf15 **This Month's Lunation** \u2014 The Full Moon is ONE peak in a larger arc",
+      "This Full Moon is one peak inside a larger monthly lesson about improvement vs. self-attack. The month is teaching you when refinement helps and when it hurts.",
+      "Sun conjunction your natal Moon \u2014 two parts of your life are colliding\u2014they want to be integrated",
+      "Sun trine your natal Pluto \u2014 this is coming easily\u2014don't overthink it, just move with it"
+    ],
+    "how_it_interacts": [
+      "This month is teaching you something the Full Moon is just highlighting.",
+      "This is the same pattern showing up again \u2014 not a one-off.",
+      "This connects to your tendency toward building pressure when pressure builds.",
+      "Feeling pressure to be someone you're not sure you are."
+    ],
+    "what_it_feels_like": [
+      "Gradual softening of impossible standards",
+      "New ability to accept 'good enough'",
+      "Tension in the chest when pretending"
+    ],
+    "what_to_do": [
+      "By month's end, identify one area where perfectionism is actually self-sabotage",
+      "Trust the arc \u2014 not every day needs to be a breakthrough",
+      "By month's end, identify what has permanently shifted"
+    ],
+    "one_question": "What is this month teaching you about the cost of always trying to be better?",
+    "event_priority": {
+      "has_dominant_event": true,
+      "dominant_event": {
+        "type": "full_moon",
+        "explicit_name": "Full Moon in Virgo",
+        "sign": "Virgo",
+        "is_exact": true,
+        "days_until": 28,
+        "salience": 0.95
+      },
+      "explicit_event_name": "Full Moon in Virgo",
+      "event_sign": "Virgo",
+      "tier_summary": {
+        "tier_1_count": 1,
+        "tier_2_count": 0,
+        "tier_3_count": 0
+      },
+      "moon_phase": "Full Moon",
+      "days_to_full": 28.5,
+      "days_to_new": 13.7
+    },
+    "horizon_interpretation": {
+      "timeframe": "month",
+      "theme_description": "A month of confronting perfectionism",
+      "horizon_source": "horizon_interpretation_layer"
+    },
+    "pattern_memory_state": "recurring_pattern",
+    "evolution_state": "none",
+    "signals": {
+      "transits": [
+        {
+          "planet": "Sun",
+          "aspect": "conjunction",
+          "natal_planet": "Moon",
+          "house": 4,
+          "orb": 2.6,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Sun",
+          "aspect": "trine",
+          "natal_planet": "Pluto",
+          "house": 8,
+          "orb": 6.3,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Moon",
+          "aspect": "square",
+          "natal_planet": "Jupiter",
+          "house": 8,
+          "orb": 6.1,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Moon",
+          "aspect": "conjunction",
+          "natal_planet": "Neptune",
+          "house": 11,
+          "orb": 6.4,
+          "priority_tier": "tier_1_dominant"
+        },
+        {
+          "planet": "Moon",
+          "aspect": "trine",
+          "natal_planet": "Chiron",
+          "house": 3,
+          "orb": 2.7,
+          "priority_tier": "tier_1_dominant"
+        }
+      ],
+      "active_houses": [
+        1,
+        4,
+        7
+      ],
+      "dominant_planet": "Sun",
+      "primary_house": 1
+    },
+    "debug": {
+      "dominant_planet": "Sun",
+      "primary_house": 1,
+      "aspect": "conjunction",
+      "pattern_memory_state": "recurring_pattern",
+      "evolution_state": "none",
+      "personalization_applied": true,
+      "event_priority_active": true,
+      "horizon_mode": "month",
+      "version": "v5.2"
+    }
+  }
+}

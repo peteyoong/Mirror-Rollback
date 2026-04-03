@@ -1,299 +1,230 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for V5.1 Astro Expert Endpoint
-Testing Event Priority logic and timeframe parameters
+Backend Test Script for V5.2 Astro Expert Endpoint with TRUE HORIZON INTERPRETATION
+
+Test Requirements:
+1. Test endpoint with all 3 timeframes: today, week, month
+2. All 3 responses MUST have DISTINCT todays_theme values
+3. All 3 responses MUST have DISTINCT whats_happening first bullet
+4. All 3 responses MUST have DISTINCT one_question values
+5. All 3 responses MUST have DISTINCT what_to_do items
+6. Version should be "v5.2_horizon"
+7. horizon_interpretation.timeframe should match the requested timeframe
+
+Expected distinct themes for Full Moon in Virgo:
+- TODAY: "Full Moon in Virgo — Peak Self-Criticism" (immediate peak)
+- WEEK: "Full Moon Week — The Same Critical Voice Returning" (recurring pattern)
+- MONTH: "This Month's Arc — Learning the Difference Between Care and Control" (larger arc)
 """
 
 import requests
 import json
 import sys
-from datetime import datetime
+from typing import Dict, Any, List
 
-# Backend URL from frontend/.env
+# Backend URL from environment
 BACKEND_URL = "https://deployment-fix-25.preview.emergentagent.com/api"
-TEST_USER_ID = "697f0c6abf35c0528ff06954"
 
-def test_astro_expert_today():
-    """Test the main astro-expert endpoint with timeframe=today"""
-    print("🧪 Testing V5.1 Astro Expert endpoint (timeframe=today)...")
+# Test user ID
+USER_ID = "697f0c6abf35c0528ff06954"
+
+def test_astro_expert_endpoint():
+    """Test V5.2 Astro Expert endpoint with all three timeframes."""
     
-    url = f"{BACKEND_URL}/astro-expert/{TEST_USER_ID}?timeframe=today"
+    print("🧪 TESTING V5.2 ASTRO EXPERT ENDPOINT WITH TRUE HORIZON INTERPRETATION")
+    print("=" * 80)
     
-    try:
-        response = requests.get(url, timeout=30)
-        print(f"   Status: {response.status_code}")
+    timeframes = ["today", "week", "month"]
+    responses = {}
+    
+    # Test all three timeframes
+    for timeframe in timeframes:
+        print(f"\n📅 Testing timeframe: {timeframe.upper()}")
+        print("-" * 40)
         
-        if response.status_code != 200:
-            print(f"   ❌ FAILED: Expected 200, got {response.status_code}")
-            print(f"   Response: {response.text}")
-            return False
+        url = f"{BACKEND_URL}/astro-expert/{USER_ID}?timeframe={timeframe}"
         
-        data = response.json()
-        print(f"   ✅ SUCCESS: Got 200 OK response")
-        
-        # Check basic structure
-        required_fields = ['success', 'todays_theme', 'whats_happening', 'event_priority']
-        missing_fields = [field for field in required_fields if field not in data]
-        if missing_fields:
-            print(f"   ❌ MISSING FIELDS: {missing_fields}")
-            return False
-        
-        print(f"   ✅ All required fields present")
-        
-        # Check success field
-        if not data.get('success', False):
-            print(f"   ❌ SUCCESS FIELD: Expected true, got {data.get('success')}")
-            print(f"   Error: {data.get('error', 'Unknown error')}")
-            return False
-        
-        print(f"   ✅ Success: {data['success']}")
-        
-        # Check event priority structure
-        event_priority = data.get('event_priority', {})
-        has_dominant_event = event_priority.get('has_dominant_event', False)
-        
-        print(f"   Event Priority - Has Dominant Event: {has_dominant_event}")
-        
-        if has_dominant_event:
-            dominant_event = event_priority.get('dominant_event', {})
-            required_event_fields = ['type', 'explicit_name', 'sign', 'is_exact', 'days_until', 'salience']
+        try:
+            response = requests.get(url, timeout=30)
+            print(f"Status: {response.status_code}")
             
-            print(f"   ✅ DOMINANT EVENT DETECTED:")
-            for field in required_event_fields:
-                value = dominant_event.get(field)
-                print(f"     - {field}: {value}")
-                if field not in dominant_event:
-                    print(f"   ❌ MISSING EVENT FIELD: {field}")
-                    return False
-            
-            # Check if todays_theme derives from dominant event
-            todays_theme = data.get('todays_theme', '')
-            explicit_name = dominant_event.get('explicit_name', '')
-            
-            print(f"   Today's Theme: '{todays_theme}'")
-            print(f"   Explicit Event Name: '{explicit_name}'")
-            
-            # Check if whats_happening first item mentions the event
-            whats_happening = data.get('whats_happening', [])
-            if whats_happening:
-                first_item = whats_happening[0]
-                print(f"   What's Happening (first): '{first_item}'")
+            if response.status_code == 200:
+                data = response.json()
+                responses[timeframe] = data
                 
-                # Look for explicit event naming in first item
-                event_keywords = ['Full Moon', 'New Moon', 'Eclipse', explicit_name.split()[0:2]]
-                has_explicit_naming = any(keyword in first_item for keyword in event_keywords if keyword)
+                # Basic structure validation
+                print(f"✅ Success: {data.get('success', False)}")
+                print(f"✅ Version: {data.get('version', 'unknown')}")
+                print(f"✅ Today's Theme: {data.get('todays_theme', 'missing')}")
+                print(f"✅ Whats Happening (first): {data.get('whats_happening', ['missing'])[0] if data.get('whats_happening') else 'missing'}")
+                print(f"✅ One Question: {data.get('one_question', 'missing')}")
+                print(f"✅ What To Do (first): {data.get('what_to_do', ['missing'])[0] if data.get('what_to_do') else 'missing'}")
                 
-                if has_explicit_naming:
-                    print(f"   ✅ EXPLICIT EVENT NAMING: Found event reference in first item")
-                else:
-                    print(f"   ⚠️  EXPLICIT EVENT NAMING: No clear event reference in first item")
-        else:
-            print(f"   ℹ️  NO DOMINANT EVENT: Testing with regular transit data")
-        
-        # Check tier summary
-        event_priority = data.get('event_priority', {})
-        tier_summary = event_priority.get('tier_summary', {})
-        tier_fields = ['tier_1_count', 'tier_2_count', 'tier_3_count']
-        
-        print(f"   Tier Summary:")
-        for tier in tier_fields:
-            count = tier_summary.get(tier, 0)
-            print(f"     - {tier}: {count}")
-        
-        # Check theme label for today
-        todays_theme = data.get('todays_theme', '')
-        print(f"   Today's Theme: '{todays_theme}'")
-        
-        # For today timeframe, we don't expect "TODAY'S THEME" in the theme itself
-        # The theme should be the actual content like "Full Moon in Virgo — Peak Self-Criticism"
-        if todays_theme and len(todays_theme) > 10:
-            print(f"   ✅ THEME CONTENT: Has meaningful theme content")
-        else:
-            print(f"   ⚠️  THEME CONTENT: Theme may be too short or empty")
-        
-        print(f"   ✅ ASTRO EXPERT TODAY TEST PASSED")
-        return True
-        
-    except requests.exceptions.RequestException as e:
-        print(f"   ❌ REQUEST ERROR: {e}")
-        return False
-    except json.JSONDecodeError as e:
-        print(f"   ❌ JSON DECODE ERROR: {e}")
-        print(f"   Response text: {response.text}")
-        return False
-    except Exception as e:
-        print(f"   ❌ UNEXPECTED ERROR: {e}")
-        return False
-
-
-def test_astro_expert_week():
-    """Test the astro-expert endpoint with timeframe=week"""
-    print("\n🧪 Testing V5.1 Astro Expert endpoint (timeframe=week)...")
-    
-    url = f"{BACKEND_URL}/astro-expert/{TEST_USER_ID}?timeframe=week"
-    
-    try:
-        response = requests.get(url, timeout=30)
-        print(f"   Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            print(f"   ❌ FAILED: Expected 200, got {response.status_code}")
-            return False
-        
-        data = response.json()
-        print(f"   ✅ SUCCESS: Got 200 OK response")
-        
-        # Check if theme label changes for week
-        todays_theme = data.get('todays_theme', '')
-        print(f"   Theme: '{todays_theme}'")
-        
-        # Note: Current implementation may not change theme label based on timeframe
-        # This is expected behavior for now - the theme content is the same
-        # but the timeframe parameter is processed by the backend
-        timeframe_in_response = data.get('timeframe', 'today')
-        print(f"   Timeframe in response: {timeframe_in_response}")
-        
-        print(f"   ✅ ASTRO EXPERT WEEK TEST PASSED")
-        return True
-        
-    except Exception as e:
-        print(f"   ❌ ERROR: {e}")
-        return False
-
-
-def test_astro_expert_month():
-    """Test the astro-expert endpoint with timeframe=month"""
-    print("\n🧪 Testing V5.1 Astro Expert endpoint (timeframe=month)...")
-    
-    url = f"{BACKEND_URL}/astro-expert/{TEST_USER_ID}?timeframe=month"
-    
-    try:
-        response = requests.get(url, timeout=30)
-        print(f"   Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            print(f"   ❌ FAILED: Expected 200, got {response.status_code}")
-            return False
-        
-        data = response.json()
-        print(f"   ✅ SUCCESS: Got 200 OK response")
-        
-        # Check if theme label changes for month
-        todays_theme = data.get('todays_theme', '')
-        print(f"   Theme: '{todays_theme}'")
-        
-        # Note: Current implementation may not change theme label based on timeframe
-        # This is expected behavior for now - the theme content is the same
-        # but the timeframe parameter is processed by the backend
-        timeframe_in_response = data.get('timeframe', 'today')
-        print(f"   Timeframe in response: {timeframe_in_response}")
-        
-        print(f"   ✅ ASTRO EXPERT MONTH TEST PASSED")
-        return True
-        
-    except Exception as e:
-        print(f"   ❌ ERROR: {e}")
-        return False
-
-
-def test_detailed_response_structure():
-    """Test detailed response structure and content quality"""
-    print("\n🧪 Testing detailed response structure...")
-    
-    url = f"{BACKEND_URL}/astro-expert/{TEST_USER_ID}?timeframe=today"
-    
-    try:
-        response = requests.get(url, timeout=30)
-        data = response.json()
-        
-        if not data.get('success'):
-            print(f"   ⚠️  Skipping detailed test - endpoint not successful")
-            return True
-        
-        # Check all expected sections
-        sections = {
-            'todays_theme': 'Today\'s Theme',
-            'whats_happening': 'What\'s Actually Happening',
-            'how_it_interacts': 'How This Interacts With You',
-            'what_it_feels_like': 'What This May Feel Like',
-            'what_to_do': 'What To Do With It',
-            'one_question': 'One Question'
-        }
-        
-        print(f"   Response Structure Analysis:")
-        for field, description in sections.items():
-            value = data.get(field)
-            if value:
-                if isinstance(value, list):
-                    print(f"   ✅ {description}: {len(value)} items")
-                    if value:
-                        print(f"      First item: '{value[0][:100]}...'")
-                else:
-                    print(f"   ✅ {description}: '{str(value)[:100]}...'")
+                # Horizon interpretation validation
+                horizon_interp = data.get('horizon_interpretation', {})
+                print(f"✅ Horizon Timeframe: {horizon_interp.get('timeframe', 'missing')}")
+                print(f"✅ Horizon Source: {horizon_interp.get('horizon_source', 'missing')}")
+                
             else:
-                print(f"   ❌ {description}: Missing or empty")
-        
-        # Check event priority details
-        event_priority = data.get('event_priority', {})
-        if event_priority:
-            print(f"   Event Priority Structure:")
-            print(f"     - has_dominant_event: {event_priority.get('has_dominant_event')}")
-            
-            dominant_event = event_priority.get('dominant_event')
-            if dominant_event:
-                print(f"     - dominant_event.type: {dominant_event.get('type')}")
-                print(f"     - dominant_event.explicit_name: {dominant_event.get('explicit_name')}")
-                print(f"     - dominant_event.sign: {dominant_event.get('sign')}")
-                print(f"     - dominant_event.is_exact: {dominant_event.get('is_exact')}")
-                print(f"     - dominant_event.days_until: {dominant_event.get('days_until')}")
-                print(f"     - dominant_event.salience: {dominant_event.get('salience')}")
-        
-        print(f"   ✅ DETAILED STRUCTURE TEST PASSED")
-        return True
-        
-    except Exception as e:
-        print(f"   ❌ ERROR: {e}")
-        return False
+                print(f"❌ Error: {response.status_code}")
+                print(f"Response: {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Exception: {e}")
+    
+    # Validation of distinct content across timeframes
+    print("\n🔍 VALIDATION: DISTINCT CONTENT ACROSS TIMEFRAMES")
+    print("=" * 80)
+    
+    if len(responses) == 3:
+        validate_distinct_content(responses)
+    else:
+        print(f"❌ FAIL: Only got {len(responses)} responses, need 3")
+    
+    return responses
 
+def validate_distinct_content(responses: Dict[str, Dict[str, Any]]):
+    """Validate that all three timeframes have distinct content."""
+    
+    # Extract key fields for comparison
+    themes = {}
+    whats_happening_first = {}
+    one_questions = {}
+    what_to_do_first = {}
+    versions = {}
+    horizon_timeframes = {}
+    
+    for timeframe, data in responses.items():
+        themes[timeframe] = data.get('todays_theme', '')
+        whats_happening_first[timeframe] = data.get('whats_happening', [''])[0] if data.get('whats_happening') else ''
+        one_questions[timeframe] = data.get('one_question', '')
+        what_to_do_first[timeframe] = data.get('what_to_do', [''])[0] if data.get('what_to_do') else ''
+        versions[timeframe] = data.get('version', '')
+        
+        horizon_interp = data.get('horizon_interpretation', {})
+        horizon_timeframes[timeframe] = horizon_interp.get('timeframe', '')
+    
+    # Test 1: Version should be v5.2_horizon
+    print("\n1. VERSION VALIDATION:")
+    all_v52 = all(v == "v5.2_horizon" for v in versions.values())
+    if all_v52:
+        print("✅ PASS: All responses have version 'v5.2_horizon'")
+    else:
+        print(f"❌ FAIL: Versions not all v5.2_horizon: {versions}")
+    
+    # Test 2: Horizon timeframes should match requested timeframes
+    print("\n2. HORIZON TIMEFRAME VALIDATION:")
+    horizon_match = all(horizon_timeframes[tf] == tf for tf in ["today", "week", "month"])
+    if horizon_match:
+        print("✅ PASS: All horizon_interpretation.timeframe values match requested timeframes")
+    else:
+        print(f"❌ FAIL: Horizon timeframes don't match: {horizon_timeframes}")
+    
+    # Test 3: Distinct themes
+    print("\n3. DISTINCT THEMES VALIDATION:")
+    unique_themes = set(themes.values())
+    if len(unique_themes) == 3:
+        print("✅ PASS: All three themes are distinct")
+        for tf, theme in themes.items():
+            print(f"   {tf.upper()}: {theme}")
+    else:
+        print(f"❌ FAIL: Themes not distinct (found {len(unique_themes)} unique):")
+        for tf, theme in themes.items():
+            print(f"   {tf.upper()}: {theme}")
+    
+    # Test 4: Distinct whats_happening first bullets
+    print("\n4. DISTINCT WHATS_HAPPENING FIRST BULLETS:")
+    unique_whats_happening = set(whats_happening_first.values())
+    if len(unique_whats_happening) == 3:
+        print("✅ PASS: All three whats_happening first bullets are distinct")
+        for tf, bullet in whats_happening_first.items():
+            print(f"   {tf.upper()}: {bullet}")
+    else:
+        print(f"❌ FAIL: whats_happening first bullets not distinct (found {len(unique_whats_happening)} unique):")
+        for tf, bullet in whats_happening_first.items():
+            print(f"   {tf.upper()}: {bullet}")
+    
+    # Test 5: Distinct one_question values
+    print("\n5. DISTINCT ONE_QUESTION VALIDATION:")
+    unique_questions = set(one_questions.values())
+    if len(unique_questions) == 3:
+        print("✅ PASS: All three one_question values are distinct")
+        for tf, question in one_questions.items():
+            print(f"   {tf.upper()}: {question}")
+    else:
+        print(f"❌ FAIL: one_question values not distinct (found {len(unique_questions)} unique):")
+        for tf, question in one_questions.items():
+            print(f"   {tf.upper()}: {question}")
+    
+    # Test 6: Distinct what_to_do first items
+    print("\n6. DISTINCT WHAT_TO_DO FIRST ITEMS:")
+    unique_what_to_do = set(what_to_do_first.values())
+    if len(unique_what_to_do) == 3:
+        print("✅ PASS: All three what_to_do first items are distinct")
+        for tf, action in what_to_do_first.items():
+            print(f"   {tf.upper()}: {action}")
+    else:
+        print(f"❌ FAIL: what_to_do first items not distinct (found {len(unique_what_to_do)} unique):")
+        for tf, action in what_to_do_first.items():
+            print(f"   {tf.upper()}: {action}")
+    
+    # Test 7: Expected Full Moon in Virgo themes (if applicable)
+    print("\n7. EXPECTED FULL MOON IN VIRGO THEMES:")
+    expected_patterns = {
+        "today": ["Peak Self-Criticism", "immediate", "peak"],
+        "week": ["Same Critical Voice Returning", "recurring", "pattern"],
+        "month": ["Learning the Difference Between Care and Control", "larger", "arc"]
+    }
+    
+    for tf, theme in themes.items():
+        expected_keywords = expected_patterns.get(tf, [])
+        found_keywords = [kw for kw in expected_keywords if kw.lower() in theme.lower()]
+        
+        if found_keywords:
+            print(f"✅ {tf.upper()}: Found expected keywords {found_keywords} in '{theme}'")
+        else:
+            print(f"⚠️  {tf.upper()}: No expected keywords {expected_keywords} found in '{theme}'")
+    
+    # Summary
+    print("\n📊 SUMMARY:")
+    print("=" * 40)
+    
+    total_tests = 6
+    passed_tests = 0
+    
+    if all_v52:
+        passed_tests += 1
+    if horizon_match:
+        passed_tests += 1
+    if len(unique_themes) == 3:
+        passed_tests += 1
+    if len(unique_whats_happening) == 3:
+        passed_tests += 1
+    if len(unique_questions) == 3:
+        passed_tests += 1
+    if len(unique_what_to_do) == 3:
+        passed_tests += 1
+    
+    print(f"Tests Passed: {passed_tests}/{total_tests}")
+    
+    if passed_tests == total_tests:
+        print("🎉 ALL TESTS PASSED! V5.2 Astro Expert endpoint with TRUE HORIZON INTERPRETATION is working correctly.")
+    else:
+        print(f"❌ {total_tests - passed_tests} tests failed. V5.2 implementation needs fixes.")
 
 def main():
-    """Run all V5.1 Astro Expert endpoint tests"""
-    print("=" * 80)
-    print("V5.1 ASTRO EXPERT ENDPOINT TESTING")
-    print("=" * 80)
-    print(f"Backend URL: {BACKEND_URL}")
-    print(f"Test User ID: {TEST_USER_ID}")
-    print(f"Test Time: {datetime.now().isoformat()}")
-    print()
-    
-    tests = [
-        test_astro_expert_today,
-        test_astro_expert_week,
-        test_astro_expert_month,
-        test_detailed_response_structure,
-    ]
-    
-    passed = 0
-    total = len(tests)
-    
-    for test_func in tests:
-        try:
-            if test_func():
-                passed += 1
-        except Exception as e:
-            print(f"   ❌ TEST EXCEPTION: {e}")
-    
-    print("\n" + "=" * 80)
-    print(f"TEST RESULTS: {passed}/{total} PASSED")
-    
-    if passed == total:
-        print("🎉 ALL TESTS PASSED - V5.1 Astro Expert endpoint is working correctly!")
-        return True
-    else:
-        print(f"⚠️  {total - passed} TESTS FAILED - Issues found with V5.1 Astro Expert endpoint")
-        return False
-
+    """Main test execution."""
+    try:
+        responses = test_astro_expert_endpoint()
+        
+        # Save responses for debugging
+        with open('/app/v52_test_responses.json', 'w') as f:
+            json.dump(responses, f, indent=2)
+        print(f"\n💾 Responses saved to /app/v52_test_responses.json")
+        
+    except Exception as e:
+        print(f"❌ Test execution failed: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    main()

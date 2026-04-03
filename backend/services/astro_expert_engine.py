@@ -385,7 +385,7 @@ def generate_how_it_interacts(
 
 
 # =============================================================================
-# MAIN GENERATOR
+# MAIN GENERATOR V5.2 WITH HORIZON INTERPRETATION
 # =============================================================================
 
 async def generate_astro_expert_diagnosis(
@@ -401,25 +401,28 @@ async def generate_astro_expert_diagnosis(
     timeframe: str = "today"
 ) -> Dict[str, Any]:
     """
-    V5.1: Generate Astrology Today as Expert Interpreter with Event Priority.
+    V5.2: Generate Astrology Today with TRUE HORIZON INTERPRETATION.
     
-    CRITICAL: If Tier 1 event exists (Full Moon, New Moon, Eclipse),
-    theme MUST derive from that event. No averaging.
+    CRITICAL: Today / Week / Month MUST produce DISTINCT interpretations.
+    Same event, DIFFERENT framing based on time horizon.
     
-    6-SECTION STRUCTURE:
-    1. TODAY'S THEME - MUST derive from Tier 1 event if present
-    2. WHAT'S ACTUALLY HAPPENING - Main event + supporting transits
-    3. HOW THIS INTERACTS WITH YOU - Personalization
-    4. WHAT THIS MAY FEEL LIKE - Concrete felt experience
-    5. WHAT TO DO WITH IT - Actionable
-    6. ONE QUESTION - Reflective prompt
+    THREE MODES:
+    - TODAY: "What is peaking or loud right now?"
+    - WEEK: "What keeps surfacing across these days?"
+    - MONTH: "What larger arc is this part of?"
+    
+    GUARDRAILS:
+    - Headlines MUST differ across horizons
+    - Themes MUST differ across horizons
+    - what_it_means MUST differ across horizons
     """
     from services.event_priority_engine import (
-        compute_event_priority, 
+        compute_event_priority,
         detect_dominant_event,
         prioritize_transits
     )
     from services.field_signals import calculate_moon_phase, check_eclipse_season
+    from services.horizon_interpretation_layer import get_horizon_interpretation
     
     now = datetime.now(timezone.utc)
     today = now.strftime("%Y-%m-%d")
@@ -443,7 +446,6 @@ async def generate_astro_expert_diagnosis(
     
     has_dominant_event = event_priority.get("has_dominant_event", False)
     dominant_event = event_priority.get("dominant_event")
-    main_event = event_priority.get("main_event", {})
     
     # Get dominant transit for fallback
     dominant_transit = transits[0] if transits else None
@@ -464,40 +466,81 @@ async def generate_astro_expert_diagnosis(
     )
     
     # =========================================================================
-    # 1. TODAY'S THEME (MUST derive from Tier 1 event if present)
+    # HORIZON INTERPRETATION LAYER - Get timeframe-specific content
     # =========================================================================
     if has_dominant_event and dominant_event:
-        # TIER 1 ACTIVE — Theme MUST come from dominant event
-        todays_theme = main_event.get("headline", "Major Event Active")
+        event_type = dominant_event.get("type", "full_moon")
+        event_sign = dominant_event.get("sign", "Aries")
+        
+        # Get HORIZON-SPECIFIC interpretation
+        horizon_content = get_horizon_interpretation(
+            event_type=event_type,
+            sign=event_sign,
+            timeframe=timeframe,
+            moon_data=moon_data,
+            eclipse_data=eclipse_data
+        )
+        
+        # Use horizon-specific content
+        todays_theme = horizon_content.get("headline", "Event Active")
+        theme_description = horizon_content.get("theme", "")
+        event_what_it_means = horizon_content.get("what_it_means", "")
+        event_felt_texture = horizon_content.get("felt_texture", [])
+        event_action = horizon_content.get("action", "")
+        event_question = horizon_content.get("question", "")
         explicit_event_name = dominant_event.get("explicit_name", "")
-        event_sign = dominant_event.get("sign", "")
+        
+        logger.info(f"[AstroExpert] Horizon: {timeframe}, Event: {event_type}, Sign: {event_sign}")
     else:
-        # No Tier 1 — Use planet-based theme
+        # No dominant event - use planet-based theme
         todays_theme = planet_info.get('tension', planet_info['pressure'].title())
+        theme_description = ""
+        event_what_it_means = ""
+        event_felt_texture = []
+        event_action = ""
+        event_question = ""
         explicit_event_name = None
         event_sign = None
+        horizon_content = {}
     
     # =========================================================================
-    # 2. WHAT'S ACTUALLY HAPPENING (Main Event + Supporting Transits)
+    # 2. WHAT'S ACTUALLY HAPPENING (Horizon-specific framing)
     # =========================================================================
     whats_happening = []
     
     if has_dominant_event and dominant_event:
-        # FIRST: Explicitly name the main event
         event_type = dominant_event.get("type", "")
-        if "full_moon" in event_type:
-            whats_happening.append(f"🌕 **{explicit_event_name}** — This is a peak/release moment")
-        elif "new_moon" in event_type:
-            whats_happening.append(f"🌑 **{explicit_event_name}** — A new cycle is seeding")
-        elif "eclipse" in event_type:
-            whats_happening.append(f"⬤ **{explicit_event_name}** — Portal event, major shifts possible")
         
-        # Add the meaning
-        whats_happening.append(main_event.get("what_it_means", ""))
+        # Timeframe-specific event announcement
+        if timeframe == "today":
+            if "full_moon" in event_type:
+                whats_happening.append(f"🌕 **{explicit_event_name}** — This is a peak/release moment happening NOW")
+            elif "new_moon" in event_type:
+                whats_happening.append(f"🌑 **{explicit_event_name}** — A new cycle is seeding TODAY")
+            elif "eclipse" in event_type:
+                whats_happening.append(f"⬤ **{explicit_event_name}** — Portal event active RIGHT NOW")
+        elif timeframe == "week":
+            if "full_moon" in event_type:
+                whats_happening.append(f"🌕 **{explicit_event_name} Week** — The same peak energy keeps returning this week")
+            elif "new_moon" in event_type:
+                whats_happening.append(f"🌑 **{explicit_event_name} Week** — New patterns emerging through repetition")
+            elif "eclipse" in event_type:
+                whats_happening.append("⬤ **Eclipse Week** — Rapid shifts rippling through multiple days")
+        else:  # month
+            if "full_moon" in event_type:
+                whats_happening.append("🌕 **This Month's Lunation** — The Full Moon is ONE peak in a larger arc")
+            elif "new_moon" in event_type:
+                whats_happening.append("🌑 **This Month's Seed Point** — What's planted now grows over weeks")
+            elif "eclipse" in event_type:
+                whats_happening.append("⬤ **Eclipse Season Month** — Permanent shifts unfolding over the arc")
+        
+        # Add the horizon-specific meaning
+        if event_what_it_means:
+            whats_happening.append(event_what_it_means)
     
-    # Add supporting transits (Tier 2 and 3)
+    # Add supporting transits (with horizon-appropriate framing)
     supporting_transits = event_priority.get("supporting_transits", [])
-    for transit in (supporting_transits if supporting_transits else transits)[:3]:
+    for transit in (supporting_transits if supporting_transits else transits)[:2]:
         planet = transit.get("planet", "")
         natal_planet = transit.get("natal_planet", "")
         aspect_name = transit.get("aspect", "conjunction")
@@ -507,7 +550,6 @@ async def generate_astro_expert_diagnosis(
         a_info = ASPECT_MEANINGS.get(aspect_name, ASPECT_MEANINGS["conjunction"])
         h_info = HOUSE_MEANINGS.get(house, HOUSE_MEANINGS[1])
         
-        # Build more lived-texture transit description
         if natal_planet:
             bullet = f"{planet} {aspect_name} your natal {natal_planet} — {a_info['behavioral']}"
         else:
@@ -520,51 +562,73 @@ async def generate_astro_expert_diagnosis(
         whats_happening.append(f"{dominant_planet} activating your {house_info['area']} — {planet_info.get('tension', planet_info['pressure'])}")
     
     # =========================================================================
-    # 3. HOW THIS INTERACTS WITH YOU (personalization - CRITICAL)
+    # 3. HOW THIS INTERACTS WITH YOU (Horizon-specific personalization)
     # =========================================================================
     how_it_interacts = generate_how_it_interacts(personalization, planet_info, house_info)
     
-    # If dominant event, add event-specific personalization
+    # Add horizon-specific event personalization
     if has_dominant_event and dominant_event:
         event_type = dominant_event.get("type", "")
-        if "full_moon" in event_type:
-            how_it_interacts.insert(0, "The Full Moon is amplifying whatever you've been holding back.")
-        elif "new_moon" in event_type:
-            how_it_interacts.insert(0, "The New Moon is inviting you to start fresh — but not force clarity.")
-        elif "eclipse" in event_type:
-            how_it_interacts.insert(0, "Eclipse energy accelerates change. What shifts now won't come back the same.")
+        
+        if timeframe == "today":
+            if "full_moon" in event_type:
+                how_it_interacts.insert(0, "The Full Moon is amplifying whatever you've been holding back — RIGHT NOW.")
+            elif "new_moon" in event_type:
+                how_it_interacts.insert(0, "The New Moon is inviting you to plant a seed TODAY — not force the harvest.")
+            elif "eclipse" in event_type:
+                how_it_interacts.insert(0, "Eclipse energy is accelerating change TODAY. What shifts now won't come back.")
+        elif timeframe == "week":
+            if "full_moon" in event_type:
+                how_it_interacts.insert(0, "This Full Moon's intensity keeps finding new targets throughout the week.")
+            elif "new_moon" in event_type:
+                how_it_interacts.insert(0, "Notice what new pattern keeps emerging in different forms this week.")
+            elif "eclipse" in event_type:
+                how_it_interacts.insert(0, "The eclipse energy ripples through the week — expect multiple shifts.")
+        else:  # month
+            if "full_moon" in event_type:
+                how_it_interacts.insert(0, "This month is teaching you something the Full Moon is just highlighting.")
+            elif "new_moon" in event_type:
+                how_it_interacts.insert(0, "This month's arc depends on what you seed now — choose intentionally.")
+            elif "eclipse" in event_type:
+                how_it_interacts.insert(0, "This month marks a before/after point. Integration takes the full arc.")
     
     # =========================================================================
-    # 4. WHAT THIS MAY FEEL LIKE (concrete experience - LIVED TEXTURE)
+    # 4. WHAT THIS MAY FEEL LIKE (Horizon-specific felt texture)
     # =========================================================================
     what_it_feels_like = []
     
-    # If dominant event, use its felt texture FIRST
-    if has_dominant_event:
-        event_felt_texture = event_priority.get("felt_texture", [])
+    # Use horizon-specific felt texture from event
+    if event_felt_texture:
         what_it_feels_like.extend(event_felt_texture[:2])
     
     # Add planet-specific felt experiences
-    if planet_info.get("felt_experience"):
+    if planet_info.get("felt_experience") and len(what_it_feels_like) < 3:
         for exp in planet_info["felt_experience"][:2]:
-            if exp not in what_it_feels_like:
+            if exp not in what_it_feels_like and len(what_it_feels_like) < 3:
                 what_it_feels_like.append(exp.capitalize() if exp[0].islower() else exp)
     
-    # Add house-related felt experience
-    if len(what_it_feels_like) < 3:
-        what_it_feels_like.append(f"Tension in your {house_info['area']} area — {house_info['behavioral'].split(' vs ')[0]}")
-    
-    # Add generic lived-texture experiences
-    generic_experiences = [
-        "Wanting to act but not trusting the timing",
-        "Restlessness that won't settle until something moves",
-        "Pressure in the body when trying to decide",
-        "Overthinking before speaking or acting",
-        "Irritability without a clear target",
-    ]
+    # Horizon-specific generic experiences
+    if timeframe == "today":
+        generic_experiences = [
+            "Pressure in the body right now when trying to decide",
+            "Restlessness that demands movement today",
+            "Emotional intensity peaking in the moment",
+        ]
+    elif timeframe == "week":
+        generic_experiences = [
+            "The same tension surfacing in different situations this week",
+            "Repeated moments of the same frustration",
+            "Patterns that keep finding new forms",
+        ]
+    else:  # month
+        generic_experiences = [
+            "A gradual shift in how you're responding to familiar pressures",
+            "Old patterns slowly loosening their grip",
+            "New capacity emerging through the month's arc",
+        ]
     
     # Fill to 3 if needed
-    seed = f"{user_id}:{today}:feels"
+    seed = f"{user_id}:{today}:{timeframe}:feels"
     seed_hash = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
     while len(what_it_feels_like) < 3:
         idx = (seed_hash + len(what_it_feels_like)) % len(generic_experiences)
@@ -573,69 +637,68 @@ async def generate_astro_expert_diagnosis(
     what_it_feels_like = [enforce_behavioral_language(f) for f in what_it_feels_like[:3]]
     
     # =========================================================================
-    # 5. WHAT TO DO WITH IT (actionable)
+    # 5. WHAT TO DO WITH IT (Horizon-specific action)
     # =========================================================================
     what_to_do = []
     
-    # If dominant event, use its action FIRST
-    if has_dominant_event:
-        event_action = event_priority.get("action", "")
-        if event_action:
-            what_to_do.append(event_action)
+    # Use horizon-specific action from event
+    if event_action:
+        what_to_do.append(event_action)
     
-    what_to_do.extend([
-        planet_info["action"],
-        f"Notice where {house_info['behavioral'].split(' vs ')[0]} without rushing to fix it",
-        "Move one small thing forward instead of trying to solve everything",
-    ])
+    # Horizon-specific generic actions
+    if timeframe == "today":
+        what_to_do.extend([
+            planet_info["action"],
+            "Move one small thing forward TODAY instead of planning everything",
+        ])
+    elif timeframe == "week":
+        what_to_do.extend([
+            "Track which patterns keep repeating — they hold the real message",
+            "Notice what keeps triggering you this week — that's the work",
+        ])
+    else:  # month
+        what_to_do.extend([
+            "Trust the arc — not every day needs to be a breakthrough",
+            "By month's end, identify what has permanently shifted",
+        ])
+    
     what_to_do = [enforce_behavioral_language(w) for w in what_to_do[:3]]
     
     # =========================================================================
-    # 6. ONE QUESTION (reflective prompt)
+    # 6. ONE QUESTION (Horizon-specific reflective prompt)
     # =========================================================================
-    # Event-specific questions
-    if has_dominant_event:
-        event_type = dominant_event.get("type", "") if dominant_event else ""
-        if "full_moon" in event_type:
-            questions = [
-                "What have you been waiting for 'the right moment' to release?",
-                "What clarity are you avoiding because it requires action?",
-                "What's reaching a peak that you've been hoping would just resolve itself?",
-            ]
-        elif "new_moon" in event_type:
-            questions = [
-                "What new beginning have you been hesitant to seed?",
-                "What do you want to start that you keep talking yourself out of?",
-                "If clarity isn't coming yet, can you plant the intention anyway?",
-            ]
-        elif "eclipse" in event_type:
-            questions = [
-                "What's changing that you can't control?",
-                "What would shift if you stopped resisting this transition?",
-                "What old version of yourself is this eclipse asking you to release?",
-            ]
-        else:
-            questions = [
-                f"What are you trying to {planet_info['action'].split()[0].lower()} before it's actually ready?",
-                f"Where in your {house_info['area']} are you settling for less than you want?",
-                "What are you avoiding that keeps coming back?",
-            ]
+    # Use horizon-specific question from event
+    if event_question:
+        one_question = event_question
     else:
-        questions = [
-            f"What are you trying to {planet_info['action'].split()[0].lower()} before it's actually ready?",
-            f"Where in your {house_info['area']} are you settling for less than you want?",
-            f"What would change if you stopped fighting the {planet_info['theme']}?",
-            "What are you avoiding that keeps coming back?",
-        ]
-    
-    one_question = questions[seed_hash % len(questions)]
+        # Fallback questions based on horizon
+        if timeframe == "today":
+            questions = [
+                "What is most loud or urgent for you RIGHT NOW?",
+                "What decision are you trying to force today that isn't ready?",
+                "What are you avoiding that keeps pressing?",
+            ]
+        elif timeframe == "week":
+            questions = [
+                "What keeps surfacing this week that you haven't fully addressed?",
+                "What pattern is repeating in different forms?",
+                "What keeps triggering the same response?",
+            ]
+        else:  # month
+            questions = [
+                "What is this month teaching you that previous months couldn't?",
+                "What phase are you in, and what does it require?",
+                "What larger transformation is this period part of?",
+            ]
+        one_question = questions[seed_hash % len(questions)]
     
     return {
         "success": True,
         "lens": "astrology",
         "date": today,
-        "version": "v5.1_event_priority",
-        # V5.1 6-SECTION STRUCTURE
+        "version": "v5.2_horizon",
+        "timeframe": timeframe,
+        # V5.2 6-SECTION STRUCTURE (HORIZON-SPECIFIC)
         "todays_theme": todays_theme,
         "whats_happening": whats_happening,
         "how_it_interacts": how_it_interacts,
@@ -647,11 +710,17 @@ async def generate_astro_expert_diagnosis(
             "has_dominant_event": has_dominant_event,
             "dominant_event": dominant_event,
             "explicit_event_name": explicit_event_name,
-            "event_sign": event_sign,
+            "event_sign": event_sign if has_dominant_event else None,
             "tier_summary": event_priority.get("tier_summary", {}),
             "moon_phase": moon_data.get("phase_name", "Unknown"),
             "days_to_full": round(moon_data.get("days_to_full", 0), 1),
             "days_to_new": round(moon_data.get("days_to_new", 0), 1),
+        },
+        # Horizon interpretation metadata
+        "horizon_interpretation": {
+            "timeframe": timeframe,
+            "theme_description": theme_description,
+            "horizon_source": "horizon_interpretation_layer" if horizon_content else "fallback",
         },
         # Pattern memory state
         "pattern_memory_state": pattern_memory_state,
@@ -671,6 +740,7 @@ async def generate_astro_expert_diagnosis(
             "evolution_state": evolution_state,
             "personalization_applied": bool(personalization.get("pattern_state_phrase") or personalization.get("tendency_phrases")),
             "event_priority_active": has_dominant_event,
-            "version": "v5.1",
+            "horizon_mode": timeframe,
+            "version": "v5.2",
         }
     }

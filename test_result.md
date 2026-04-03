@@ -7843,6 +7843,69 @@ backend:
           
           🎉 **CONCLUSION**: V5.1 Astro Expert endpoint with Event Priority logic is fully functional. All requirements met including proper Full Moon detection, explicit event naming, theme derivation from dominant events, tier summary with transit counts, and timeframe parameter support. The Event Priority Engine successfully provides the "Oh — THAT'S why everything feels heightened" experience as specified.
 
+  - task: "V5.2 Astro Expert Endpoint with TRUE HORIZON INTERPRETATION"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/services/astro_expert_engine.py, /app/backend/services/horizon_interpretation_layer.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          V5.2 ASTRO EXPERT ENDPOINT WITH TRUE HORIZON INTERPRETATION TESTING COMPLETE ✅
+          
+          🎯 ALL REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+          
+          **Test Endpoints:**
+          1. GET /api/astro-expert/697f0c6abf35c0528ff06954?timeframe=today
+          2. GET /api/astro-expert/697f0c6abf35c0528ff06954?timeframe=week
+          3. GET /api/astro-expert/697f0c6abf35c0528ff06954?timeframe=month
+          
+          **✅ CRITICAL VERIFICATION REQUIREMENTS MET:**
+          
+          1. **All 3 responses have DISTINCT todays_theme values** ✅
+             - TODAY: "Full Moon in Virgo — Peak Self-Criticism"
+             - WEEK: "Full Moon Week — The Same Critical Voice Returning"
+             - MONTH: "This Month's Arc — Learning the Difference Between Care and Control"
+          
+          2. **All 3 responses have DISTINCT whats_happening first bullet** ✅
+             - TODAY: "🌕 **Full Moon in Virgo** — This is a peak/release moment happening NOW"
+             - WEEK: "🌕 **Full Moon in Virgo Week** — The same peak energy keeps returning this week"
+             - MONTH: "🌕 **This Month's Lunation** — The Full Moon is ONE peak in a larger arc"
+          
+          3. **All 3 responses have DISTINCT one_question values** ✅
+             - TODAY: "What are you being too hard on yourself about right now?"
+             - WEEK: "What keeps triggering the same self-critical response this week?"
+             - MONTH: "What is this month teaching you about the cost of always trying to be better?"
+          
+          4. **All 3 responses have DISTINCT what_to_do items** ✅
+             - TODAY: "Name three things that are working BEFORE touching what's broken"
+             - WEEK: "Notice which criticism keeps returning — it's less about the details and more about the fear"
+             - MONTH: "By month's end, identify one area where perfectionism is actually self-sabotage"
+          
+          **✅ EXPECTED DISTINCT THEMES FOR FULL MOON IN VIRGO VERIFIED:**
+          - TODAY: Contains "Peak Self-Criticism" (immediate peak) ✅
+          - WEEK: Contains "Same Critical Voice Returning" (recurring pattern) ✅
+          - MONTH: Contains "Learning the Difference Between Care and Control" (larger arc) ✅
+          
+          **✅ TECHNICAL REQUIREMENTS VERIFIED:**
+          - Version: "v5.2_horizon" for all responses ✅
+          - horizon_interpretation.timeframe matches requested timeframe for all ✅
+          - horizon_interpretation.horizon_source: "horizon_interpretation_layer" ✅
+          
+          **✅ BACKEND INTEGRATION VERIFIED:**
+          - All endpoints accessible via public URL (https://deployment-fix-25.preview.emergentagent.com/api) ✅
+          - Response times excellent (< 5 seconds) ✅
+          - Backend logs confirm horizon interpretation working: "[AstroExpert] Horizon: today/week/month, Event: full_moon, Sign: Virgo" ✅
+          - Event priority engine working correctly with Full Moon detection ✅
+          - Horizon interpretation layer successfully providing distinct content ✅
+          
+          📊 TEST RESULTS: 6/6 CRITICAL TESTS PASSED (100% SUCCESS RATE)
+          
+          🎉 **CONCLUSION**: V5.2 Astro Expert endpoint with TRUE HORIZON INTERPRETATION is fully functional and working correctly. All critical verification requirements met including distinct themes, whats_happening bullets, questions, and actions across all three timeframes. The horizon interpretation layer successfully provides genuinely different interpretations for the same Full Moon event based on timeframe (today = immediate peak, week = recurring pattern, month = larger arc). Switching tabs produces genuinely different interpretations, not just label changes, as required.
+
   - task: "Journal API Endpoints Response Shape Verification"
     implemented: true
     working: true
@@ -7911,7 +7974,7 @@ backend:
 
 test_plan:
   current_focus:
-    - "V5.1 Astro Expert Endpoint with Event Priority Logic" # COMPLETED ✅
+    - "V5.2 Astro Expert Endpoint with TRUE HORIZON INTERPRETATION" # COMPLETED ✅
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -7919,81 +7982,66 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: |
-      V5.1 ASTRO EXPERT ENDPOINT WITH EVENT PRIORITY LOGIC TESTING COMPLETE ✅
+      V5.2 ASTRO EXPERT ENDPOINT WITH TRUE HORIZON INTERPRETATION TESTING COMPLETE ✅
       
-      Successfully completed comprehensive testing of the V5.1 Astro Expert endpoint as requested in the review:
+      Successfully completed comprehensive testing of the V5.2 Astro Expert endpoint with TRUE HORIZON INTERPRETATION as requested in the review:
       
       🎯 ALL REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
       
-      **Primary Endpoint:** GET /api/astro-expert/{user_id}?timeframe=today
-      **Test User:** 697f0c6abf35c0528ff06954 (as specified in review request)
-      **Backend URL:** https://deployment-fix-25.preview.emergentagent.com/api
+      **Primary Test Endpoints:**
+      1. GET /api/astro-expert/697f0c6abf35c0528ff06954?timeframe=today
+      2. GET /api/astro-expert/697f0c6abf35c0528ff06954?timeframe=week
+      3. GET /api/astro-expert/697f0c6abf35c0528ff06954?timeframe=month
       
-      **✅ CORE FUNCTIONALITY TESTS:**
-      1. **API Returns Success: true** ✅
-         - Status: 200 OK for all timeframes (today, week, month)
-         - Response structure complete with all required fields
-         - No HTTP errors or timeouts
+      **✅ CRITICAL VERIFICATION REQUIREMENTS MET:**
       
-      2. **Event Priority Logic Working Correctly** ✅
-         - event_priority.has_dominant_event: true ✅
-         - event_priority.dominant_event contains all required fields:
-           * type: "full_moon" ✅
-           * explicit_name: "Full Moon in Virgo" ✅
-           * sign: "Virgo" ✅
-           * is_exact: true ✅
-           * days_until: 28 ✅
-           * salience: 0.95 ✅
+      1. **All 3 responses have DISTINCT todays_theme values** ✅
+         - TODAY: "Full Moon in Virgo — Peak Self-Criticism"
+         - WEEK: "Full Moon Week — The Same Critical Voice Returning"
+         - MONTH: "This Month's Arc — Learning the Difference Between Care and Control"
       
-      3. **Theme Derives from Dominant Event (Not Generic)** ✅
-         - todays_theme: "Full Moon in Virgo — Peak Self-Criticism" ✅
-         - Theme directly references the Full Moon event ✅
-         - Not generic astrological content ✅
+      2. **All 3 responses have DISTINCT whats_happening first bullet** ✅
+         - TODAY: "🌕 **Full Moon in Virgo** — This is a peak/release moment happening NOW"
+         - WEEK: "🌕 **Full Moon in Virgo Week** — The same peak energy keeps returning this week"
+         - MONTH: "🌕 **This Month's Lunation** — The Full Moon is ONE peak in a larger arc"
       
-      4. **Explicit Event Naming in whats_happening** ✅
-         - First item: "🌕 **Full Moon in Virgo** — This is a peak/release moment" ✅
-         - Explicitly names the event with emoji and formatting ✅
-         - Clear event reference found in first item ✅
+      3. **All 3 responses have DISTINCT one_question values** ✅
+         - TODAY: "What are you being too hard on yourself about right now?"
+         - WEEK: "What keeps triggering the same self-critical response this week?"
+         - MONTH: "What is this month teaching you about the cost of always trying to be better?"
       
-      5. **Tier Summary Shows Transit Counts** ✅
-         - event_priority.tier_summary.tier_1_count: 1 ✅
-         - event_priority.tier_summary.tier_2_count: 0 ✅
-         - event_priority.tier_summary.tier_3_count: 0 ✅
-         - Proper tier classification working ✅
+      4. **All 3 responses have DISTINCT what_to_do items** ✅
+         - TODAY: "Name three things that are working BEFORE touching what's broken"
+         - WEEK: "Notice which criticism keeps returning — it's less about the details and more about the fear"
+         - MONTH: "By month's end, identify one area where perfectionism is actually self-sabotage"
       
-      **✅ TIMEFRAME PARAMETER TESTS:**
-      - GET /api/astro-expert/{user_id}?timeframe=today: 200 OK ✅
-      - GET /api/astro-expert/{user_id}?timeframe=week: 200 OK ✅
-      - GET /api/astro-expert/{user_id}?timeframe=month: 200 OK ✅
-      - All timeframes process correctly and return valid responses ✅
+      **✅ EXPECTED DISTINCT THEMES FOR FULL MOON IN VIRGO VERIFIED:**
+      - TODAY: Contains "Peak Self-Criticism" (immediate peak) ✅
+      - WEEK: Contains "Same Critical Voice Returning" (recurring pattern) ✅
+      - MONTH: Contains "Learning the Difference Between Care and Control" (larger arc) ✅
       
-      **✅ RESPONSE STRUCTURE VERIFICATION:**
-      - todays_theme: Meaningful content (Full Moon in Virgo — Peak Self-Criticism) ✅
-      - whats_happening: 5 items with explicit event naming ✅
-      - how_it_interacts: 4 items with personalization ✅
-      - what_it_feels_like: 3 items with concrete felt experience ✅
-      - what_to_do: 3 items with actionable guidance ✅
-      - one_question: Reflective prompt present ✅
-      
-      **✅ EVENT PRIORITY ENGINE VERIFICATION:**
-      - Backend logs confirm: "[EventPriority] Dominant event: full_moon, Tier counts: T1=1, T2=0, T3=0" ✅
-      - Moon phase detection: "Full Moon, Days to full: 28.5, Eclipse season: False" ✅
-      - Event priority system correctly identifies and prioritizes Full Moon ✅
-      - Salience score of 0.95 indicates high priority event ✅
+      **✅ TECHNICAL REQUIREMENTS VERIFIED:**
+      - Version: "v5.2_horizon" for all responses ✅
+      - horizon_interpretation.timeframe matches requested timeframe for all ✅
+      - horizon_interpretation.horizon_source: "horizon_interpretation_layer" ✅
       
       **✅ BACKEND INTEGRATION VERIFIED:**
-      - All endpoints accessible via public URL ✅
-      - No HTTP errors or timeouts ✅
+      - All endpoints accessible via public URL (https://deployment-fix-25.preview.emergentagent.com/api) ✅
       - Response times excellent (< 5 seconds) ✅
-      - Backend logs confirm successful processing ✅
-      - Event priority engine working correctly ✅
-      - Transit detection and classification functional ✅
+      - Backend logs confirm horizon interpretation working: "[AstroExpert] Horizon: today/week/month, Event: full_moon, Sign: Virgo" ✅
+      - Event priority engine working correctly with Full Moon detection ✅
+      - Horizon interpretation layer successfully providing distinct content ✅
       
-      📊 TEST RESULTS: 4/4 TESTS PASSED (100% SUCCESS RATE)
+      📊 TEST RESULTS: 6/6 CRITICAL TESTS PASSED (100% SUCCESS RATE)
       
-      🎉 **CONCLUSION**: V5.1 Astro Expert endpoint with Event Priority logic is fully functional and working correctly. All review request requirements met including proper event detection (Full Moon in Virgo), explicit event naming, theme derivation from dominant events, tier summary with transit counts, and timeframe parameter support. The Event Priority Engine successfully identifies and prioritizes major celestial events, providing users with the "Oh — THAT'S why everything feels heightened" experience as specified.
+      🎉 **CONCLUSION**: V5.2 Astro Expert endpoint with TRUE HORIZON INTERPRETATION is fully functional and working correctly. All critical verification requirements met including distinct themes, whats_happening bullets, questions, and actions across all three timeframes. The horizon interpretation layer successfully provides genuinely different interpretations for the same Full Moon event based on timeframe (today = immediate peak, week = recurring pattern, month = larger arc). Switching tabs produces genuinely different interpretations, not just label changes, as required.
       
-      **CRITICAL SUCCESS:** The endpoint correctly detects the current Full Moon in Virgo as a dominant Tier 1 event and derives the theme directly from this event rather than using generic astrological content. The explicit naming requirement is met with "🌕 **Full Moon in Virgo**" appearing prominently in the response.
+      **CRITICAL SUCCESS:** The endpoint correctly implements TRUE HORIZON INTERPRETATION where the same Full Moon in Virgo event is interpreted differently based on timeframe:
+      - TODAY mode focuses on immediate peak experience ("Peak Self-Criticism")
+      - WEEK mode focuses on recurring patterns ("Same Critical Voice Returning")
+      - MONTH mode focuses on larger arc learning ("Learning the Difference Between Care and Control")
+      
+      This ensures users get genuinely different insights when switching between timeframe tabs, not just cosmetic label changes.
   - agent: "testing"
     message: |
       JOURNAL API ENDPOINTS TESTING COMPLETE ✅
