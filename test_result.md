@@ -7117,7 +7117,7 @@ agent_communication:
 
 test_plan:
   current_focus:
-    - "Cross-Lens Pattern Diagnosis Endpoint" # COMPLETED ✅
+    - "V5.2 Astrology Today and V5.0 Home Synthesis Testing" # COMPLETED ✅
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -8088,4 +8088,92 @@ agent_communication:
       📊 TEST RESULTS: 4/4 TESTS PASSED (100% SUCCESS RATE)
       
       🎉 **CONCLUSION**: Journal API endpoints are fully functional and return the correct data shapes that the frontend normalizer expects. The critical requirement that GET /api/journal/{user_id} returns an ARRAY (not wrapped in object) is confirmed working correctly.
+  - agent: "testing"
+    message: |
+      V5.2 ASTROLOGY TODAY AND V5.0 HOME SYNTHESIS TESTING COMPLETE ✅
+      
+      Successfully completed comprehensive testing of the V5.2 Astrology Today and V5.0 Home Synthesis endpoints as requested in the review:
+      
+      🎯 ALL REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
+      
+      **1. V5.2 ASTROLOGY TODAY WITH HORIZON DIFFERENTIATION TESTING:**
+      
+      **✅ ALL 3 TIMEFRAMES TESTED FOR USER 697f0c6abf35c0528ff06954:**
+      - GET /api/astro-expert/697f0c6abf35c0528ff06954?timeframe=today ✅
+      - GET /api/astro-expert/697f0c6abf35c0528ff06954?timeframe=week ✅
+      - GET /api/astro-expert/697f0c6abf35c0528ff06954?timeframe=month ✅
+      
+      **✅ ALL 3 TODAYS_THEME VALUES ARE DISTINCT:**
+      - TODAY: "Full Moon in Virgo — Peak Self-Criticism"
+      - WEEK: "Full Moon Week — The Same Critical Voice Returning"
+      - MONTH: "This Month's Arc — Learning the Difference Between Care and Control"
+      
+      **✅ MONTH HAS ARC-FOCUSED LANGUAGE (NOT IMMEDIATE):**
+      - Month theme contains "This Month's Arc" (arc-focused) ✅
+      - Month theme does NOT contain "NOW" (immediate language) ✅
+      - Proper horizon differentiation working correctly ✅
+      
+      **✅ VERSION VERIFICATION:**
+      - All 3 responses have version: "v5.2_horizon" ✅
+      - Correct version identifier for horizon interpretation layer ✅
+      
+      **2. V5.0 HOME SYNTHESIS TESTING:**
+      
+      **✅ ENDPOINT TESTED:** GET /api/home-synthesis/697f0c6abf35c0528ff06954
+      - Status: 200 OK ✅
+      - Response time: < 2 seconds ✅
+      
+      **✅ SUCCESS FIELD VERIFICATION:**
+      - success: true ✅
+      
+      **✅ 4-BLOCK STRUCTURE VERIFICATION:**
+      - the_call: present ✅
+      - the_reality: present ✅
+      - the_source_hint: present ✅
+      - the_edge: present ✅
+      - All 4 required blocks confirmed ✅
+      
+      **✅ VERSION VERIFICATION:**
+      - version: "v5.0_synthesis" ✅
+      - Correct version identifier for synthesis engine ✅
+      
+      **✅ INTERNAL LABELS SANITIZATION VERIFICATION:**
+      - NO "_test" found in user-facing fields ✅
+      - NO "_low_" found in user-facing fields ✅
+      - NO "_high_" found in user-facing fields ✅
+      - NO "pattern_" found in user-facing fields ✅
+      - NO "escalating_" found in user-facing fields ✅
+      - All internal pattern keys properly sanitized ✅
+      
+      **✅ SAMPLE CONTENT VERIFICATION:**
+      - the_call: "This Is Getting Stronger"
+      - the_reality: "You've circled this before. Multiple times now. Again: What you're feeling isn't just back—it's inte..."
+      - the_source_hint: "This is showing up across multiple areas right now."
+      - the_edge: "The question is whether you turn toward it or keep circling"
+      - All content is user-facing and clean ✅
+      
+      **Backend Integration Verified:**
+      - All endpoints accessible via public URL (https://deployment-fix-25.preview.emergentagent.com/api) ✅
+      - No HTTP errors or timeouts ✅
+      - Response times excellent (< 5 seconds) ✅
+      - Backend logs confirm successful processing ✅
+      - V5.2 horizon interpretation layer working correctly ✅
+      - V5.0 synthesis engine working correctly ✅
+      
+      📊 TEST RESULTS: 6/6 CRITICAL TESTS PASSED (100% SUCCESS RATE)
+      
+      🎉 **CONCLUSION**: Both V5.2 Astrology Today and V5.0 Home Synthesis endpoints are fully functional and working correctly. All review request requirements met including:
+      
+      **V5.2 Astrology Today:**
+      - All 3 timeframes return distinct themes with proper horizon differentiation
+      - Month uses arc-focused language (not immediate "NOW" language)
+      - Version correctly shows "v5.2_horizon"
+      
+      **V5.0 Home Synthesis:**
+      - 4-block structure complete (the_call, the_reality, the_source_hint, the_edge)
+      - No internal labels in user-facing fields (all sanitized correctly)
+      - Version correctly shows "v5.0_synthesis"
+      - success: true confirmed
+      
+      Both endpoints demonstrate proper implementation of their respective features with excellent performance and correct data structures.
 

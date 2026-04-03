@@ -355,16 +355,6 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
       {content && !loading && (
         <View style={[styles.expertContainer, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
           
-          {/* DEBUG BANNER - TEMP - To verify horizon wiring */}
-          <View style={[styles.debugBanner, { backgroundColor: '#2a2a2a', borderColor: '#4a4a4a' }]}>
-            <Text style={[styles.debugText, { color: '#888' }]}>
-              DEBUG: timeframe={content.timeframe || 'not_set'} | version={content.version}
-            </Text>
-            <Text style={[styles.debugText, { color: '#aaa' }]} numberOfLines={1}>
-              theme="{content.todays_theme?.substring(0, 50)}..."
-            </Text>
-          </View>
-          
           {/* 1. TODAY'S THEME */}
           <View style={styles.themeSection}>
             <Text style={[styles.themeLabel, { color: theme.textTertiary }]}>
@@ -672,16 +662,6 @@ const styles = StyleSheet.create({
   askMirrorText: {
     fontSize: 15,
     fontWeight: '600',
-  },
-  debugBanner: {
-    padding: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  debugText: {
-    fontSize: 10,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });
 
