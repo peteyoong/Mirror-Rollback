@@ -289,38 +289,38 @@ def validate_behavioral_content(text: str) -> Tuple[bool, List[str]]:
 EXPRESSION_ANGLES = {
     "timing": {
         "call_template": "You're pushing before it's ready",
-        "reality_template": "You know the timing is off. Part of you is forcing it anyway.",
-        "edge_template": "Wait for clarity — or push through uncertainty",
+        "reality_template": "You know.",
+        "edge_template": "Wait — or force it",
         "keywords": ["too early", "not yet", "before ready", "timing off"],
     },
     "control": {
         "call_template": "You're gripping too hard",
-        "reality_template": "The tighter you hold, the worse it gets. You can feel that.",
-        "edge_template": "Hold tighter — or let it breathe",
+        "reality_template": "It's making it worse.",
+        "edge_template": "Tighter — or let go",
         "keywords": ["force", "control", "grip", "make it happen"],
     },
     "clarity": {
-        "call_template": "You're closing before you can see",
-        "reality_template": "You're deciding before the picture is clear. That's fear, not certainty.",
-        "edge_template": "Commit now — or stay open longer",
+        "call_template": "You're deciding before you can see",
+        "reality_template": "That's fear. Not certainty.",
+        "edge_template": "Commit — or stay open",
         "keywords": ["unclear", "can't see", "fog", "closing too fast"],
     },
     "readiness": {
-        "call_template": "You're moving faster than your intention",
-        "reality_template": "The action is ahead of the clarity. You're improvising without a plan.",
-        "edge_template": "Slow down — or trust the momentum",
+        "call_template": "You're moving faster than you know",
+        "reality_template": "The action is ahead of the clarity.",
+        "edge_template": "Slow down — or trust the chaos",
         "keywords": ["not ready", "unformed", "half-baked", "premature"],
     },
     "resistance": {
         "call_template": "You're circling instead of facing",
-        "reality_template": "You know what this is about. You're just not looking at it directly.",
-        "edge_template": "Turn toward it — or keep circling",
+        "reality_template": "You know what this is about.",
+        "edge_template": "Face it — or keep circling",
         "keywords": ["avoiding", "resisting", "circling", "not facing"],
     },
     "overcommitment": {
         "call_template": "You're carrying too much",
-        "reality_template": "The load is unsustainable. You know it. You're pretending otherwise.",
-        "edge_template": "Drop something — or keep pretending you can hold it all",
+        "reality_template": "You know it's unsustainable.",
+        "edge_template": "Drop something — or break",
         "keywords": ["too much", "overloaded", "can't hold", "spreading thin"],
     },
 }
@@ -391,16 +391,16 @@ async def get_next_expression_angle(
 # =============================================================================
 
 RETURNING_PHRASES = [
-    "This was here yesterday. It hasn't left.",
-    "This showed up recently. Still here.",
-    "You just dealt with this. It's back.",
+    "This was here yesterday.",
+    "Still here.",
+    "Back again.",
 ]
 
 RECURRING_PHRASES = [
-    "Again. You've been here before.",
-    "This keeps showing up. That's not random.",
-    "You've circled this multiple times now.",
-    "This pattern has been calling for attention.",
+    "Again.",
+    "You keep doing this.",
+    "This one won't leave.",
+    "Same loop.",
 ]
 
 
