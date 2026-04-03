@@ -7974,12 +7974,55 @@ backend:
 
 test_plan:
   current_focus:
-    - "V5.2 Astro Expert Endpoint with TRUE HORIZON INTERPRETATION" # COMPLETED ✅
+    - "V5.2 Language Refinement Testing" # COMPLETED ✅ - CRITICAL ISSUE FOUND
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "testing"
+    message: |
+      V5.2 LANGUAGE REFINEMENT TESTING COMPLETE - CRITICAL ISSUE IDENTIFIED ❌
+      
+      Successfully completed comprehensive testing of the refined V5.2 language across all endpoints as requested in the review:
+      
+      🎯 ALL REVIEW REQUEST REQUIREMENTS TESTED:
+      
+      **✅ SUCCESSFUL TESTS:**
+      
+      1. **Home Synthesis Endpoint (GET /api/home-synthesis/697f0c6abf35c0528ff06954)** ✅
+         - Language is appropriately DIRECT and confronting
+         - the_call: "This Is Getting Stronger" (24 chars - short and sharp)
+         - the_edge: "Turn toward it — or keep circling" (clear binary choice)
+         - No forbidden explanatory phrases found
+      
+      2. **Astro Expert Distinct Content Across All 3 Horizons** ✅
+         - All timeframes (today/week/month) working with excellent performance
+         - how_it_interacts[0] content is DISTINCT across timeframes:
+           * TODAY: "The Full Moon is amplifying whatever you've been holding back — RIGHT NOW."
+           * WEEK: "The same intensity keeps finding different targets this week."
+           * MONTH: "The Full Moon is one moment. The month is the lesson."
+         - what_to_do content is DISTINCT and timeframe-appropriate:
+           * TODAY: Immediate behavioral actions
+           * WEEK: Pattern-tracking actions  
+           * MONTH: Arc/identity reflection actions
+      
+      **❌ CRITICAL ISSUE FOUND:**
+      
+      3. **Language Directness Verification FAILED** ❌
+         - Found forbidden phrase: "This is the same pattern showing up again — not a one-off."
+         - Location: how_it_interacts[1] in ALL three Astro Expert timeframes
+         - This violates V5.2 requirement: "No 'This is the same pattern showing up again...' (too explanatory)"
+      
+      **🔧 REQUIRED FIX:**
+      The phrase "This is the same pattern showing up again — not a one-off." must be replaced with more direct language such as:
+      - "You do this when..."
+      - "This isn't new — you've been here before"
+      - "Again. You've been here before."
+      
+      **📊 TEST RESULTS: 2/3 CRITICAL TESTS PASSED**
+      
+      The V5.2 language refinement is mostly implemented correctly, but requires one critical fix to remove the forbidden explanatory phrase from the Astro Expert endpoint across all timeframes.
   - agent: "testing"
     message: |
       V5.2 ASTRO EXPERT ENDPOINT WITH TRUE HORIZON INTERPRETATION TESTING COMPLETE ✅
@@ -8176,4 +8219,62 @@ agent_communication:
       - success: true confirmed
       
       Both endpoints demonstrate proper implementation of their respective features with excellent performance and correct data structures.
+
+  - task: "V5.2 Language Refinement Testing"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: |
+          V5.2 LANGUAGE REFINEMENT TESTING COMPLETE - CRITICAL ISSUE FOUND ❌
+          
+          🎯 REVIEW REQUEST REQUIREMENTS TESTING:
+          
+          **✅ Test 1: Home Synthesis Endpoint (GET /api/home-synthesis/697f0c6abf35c0528ff06954)**
+          - Status: 200 OK, Response time: 0.31s
+          - the_call: "This Is Getting Stronger" (24 chars - appropriately short and sharp) ✅
+          - the_edge: "Turn toward it — or keep circling" (33 chars - clear binary choice) ✅
+          - No forbidden phrases found in Home Synthesis ✅
+          
+          **✅ Test 2: Astro Expert Distinct Content Across Horizons**
+          - All 3 timeframes (today/week/month) return 200 OK with excellent response times ✅
+          - how_it_interacts[0] content is DISTINCT across all timeframes:
+            * TODAY: "The Full Moon is amplifying whatever you've been holding back — RIGHT NOW."
+            * WEEK: "The same intensity keeps finding different targets this week."
+            * MONTH: "The Full Moon is one moment. The month is the lesson."
+          - what_to_do content is DISTINCT and timeframe-appropriate:
+            * TODAY: "Name three things that are working BEFORE touching what's broken" (immediate action)
+            * WEEK: "Notice which criticism keeps returning — it's less about the details and more about the fear" (pattern tracking)
+            * MONTH: "By month's end, identify one area where perfectionism is actually self-sabotage" (arc reflection)
+          
+          **❌ CRITICAL ISSUE FOUND: Test 3: Language Directness FAILED**
+          
+          🚨 **FORBIDDEN PHRASE DETECTED ACROSS ALL ASTRO EXPERT TIMEFRAMES:**
+          - Found: "This is the same pattern showing up again — not a one-off."
+          - Location: how_it_interacts[1] in ALL three timeframes (today, week, month)
+          - This violates the V5.2 language requirement: "No 'This is the same pattern showing up again...' (too explanatory)"
+          
+          **🔧 REQUIRED FIX:**
+          The phrase "This is the same pattern showing up again — not a one-off." should be replaced with more direct language such as:
+          - "You do this when..."
+          - "This isn't new — you've been here before"
+          - "Again. You've been here before."
+          
+          **✅ POSITIVE FINDINGS:**
+          - No "This connects to your tendency..." phrases found ✅
+          - Home Synthesis uses appropriately direct language ✅
+          - Astro Expert content is properly distinct across timeframes ✅
+          - All endpoints accessible and performing well ✅
+          
+          **📊 TEST RESULTS: 2/3 CRITICAL TESTS PASSED**
+          - ✅ Home Synthesis directness: PASSED
+          - ✅ Astro Expert distinct content: PASSED  
+          - ❌ Language directness across endpoints: FAILED (forbidden explanatory phrase found)
+          
+          **🎯 CONCLUSION:** The V5.2 language refinement is mostly implemented correctly, but there is one critical issue that needs to be fixed. The forbidden explanatory phrase "This is the same pattern showing up again..." appears in the Astro Expert endpoint across all timeframes and must be replaced with more direct, confronting language as specified in the review request.
 

@@ -288,39 +288,39 @@ def validate_behavioral_content(text: str) -> Tuple[bool, List[str]]:
 
 EXPRESSION_ANGLES = {
     "timing": {
-        "call_template": "You're trying to move something forward that isn't ready yet",
-        "reality_template": "The timing feels off—and part of you knows it",
-        "edge_template": "The question is whether you wait for clarity or push through uncertainty",
+        "call_template": "You're pushing before it's ready",
+        "reality_template": "You know the timing is off. Part of you is forcing it anyway.",
+        "edge_template": "Wait for clarity — or push through uncertainty",
         "keywords": ["too early", "not yet", "before ready", "timing off"],
     },
     "control": {
-        "call_template": "You're trying to force an outcome that wants to unfold on its own",
-        "reality_template": "The grip is tightening—and it's not helping",
-        "edge_template": "The question is whether you hold tighter or let it breathe",
+        "call_template": "You're gripping too hard",
+        "reality_template": "The tighter you hold, the worse it gets. You can feel that.",
+        "edge_template": "Hold tighter — or let it breathe",
         "keywords": ["force", "control", "grip", "make it happen"],
     },
     "clarity": {
-        "call_template": "You're closing a decision before you can see it clearly",
-        "reality_template": "Something feels unfinished—because it is",
-        "edge_template": "The question is whether you commit now or stay open longer",
+        "call_template": "You're closing before you can see",
+        "reality_template": "You're deciding before the picture is clear. That's fear, not certainty.",
+        "edge_template": "Commit now — or stay open longer",
         "keywords": ["unclear", "can't see", "fog", "closing too fast"],
     },
     "readiness": {
-        "call_template": "You're acting before you've fully formed what you're doing",
-        "reality_template": "The action is outpacing the intention",
-        "edge_template": "The question is whether you slow down or trust the momentum",
+        "call_template": "You're moving faster than your intention",
+        "reality_template": "The action is ahead of the clarity. You're improvising without a plan.",
+        "edge_template": "Slow down — or trust the momentum",
         "keywords": ["not ready", "unformed", "half-baked", "premature"],
     },
     "resistance": {
-        "call_template": "You're avoiding something that's asking to be faced",
-        "reality_template": "The avoidance is louder than the thing itself now",
-        "edge_template": "The question is whether you turn toward it or keep circling",
+        "call_template": "You're circling instead of facing",
+        "reality_template": "You know what this is about. You're just not looking at it directly.",
+        "edge_template": "Turn toward it — or keep circling",
         "keywords": ["avoiding", "resisting", "circling", "not facing"],
     },
     "overcommitment": {
-        "call_template": "You're taking on more than you can actually hold right now",
-        "reality_template": "The load is heavier than it looks—and you're pretending it isn't",
-        "edge_template": "The question is whether you drop something or keep carrying it all",
+        "call_template": "You're carrying too much",
+        "reality_template": "The load is unsustainable. You know it. You're pretending otherwise.",
+        "edge_template": "Drop something — or keep pretending you can hold it all",
         "keywords": ["too much", "overloaded", "can't hold", "spreading thin"],
     },
 }
@@ -391,16 +391,16 @@ async def get_next_expression_angle(
 # =============================================================================
 
 RETURNING_PHRASES = [
-    "You felt this recently — and it's still here.",
-    "This showed up a few days ago. It hasn't left.",
-    "This is familiar territory. You were just here.",
+    "This was here yesterday. It hasn't left.",
+    "This showed up recently. Still here.",
+    "You just dealt with this. It's back.",
 ]
 
 RECURRING_PHRASES = [
-    "You're back here again — this isn't passing.",
-    "This keeps coming up. That's not coincidence.",
-    "You've circled this before. Multiple times now.",
-    "This pattern isn't new. It's been asking for attention.",
+    "Again. You've been here before.",
+    "This keeps showing up. That's not random.",
+    "You've circled this multiple times now.",
+    "This pattern has been calling for attention.",
 ]
 
 

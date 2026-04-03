@@ -306,26 +306,27 @@ async def get_personalization_context(
             # SANITIZE: Convert internal pattern key to human-readable
             top_tendency_clean = sanitize_pattern_key(top_tendency_raw)
             
+            # V5.2: More DIRECT phrasing - no generic explanation language
             if count >= 5:
                 context["tendency_phrases"].append(
-                    f"This touches a pattern that's been showing up a lot for you lately — {top_tendency_clean}."
+                    f"This isn't new. You do this — {top_tendency_clean} — when pressure builds."
                 )
             elif count >= 3:
                 context["tendency_phrases"].append(
-                    f"This connects to your tendency toward {top_tendency_clean} when pressure builds."
+                    f"You've been here before. {top_tendency_clean.capitalize()} is your go-to response."
                 )
     except Exception as e:
         logger.debug(f"[Personalization] Could not get history: {e}")
     
-    # Evolution state phrases (already clean - no internal tokens)
+    # Evolution state phrases - V5.2: More DIRECT, less explanation
     if evolution_state == "escalating":
-        context["tendency_phrases"].append("This tension has been intensifying recently — it's not settling.")
+        context["tendency_phrases"].append("This is getting louder. You've ignored it, and now it's demanding attention.")
     elif evolution_state == "looping":
-        context["tendency_phrases"].append("You've been cycling through this same response pattern — it wants something different.")
+        context["tendency_phrases"].append("Same response, different situation. You keep circling this.")
     elif evolution_state == "integrating":
-        context["tendency_phrases"].append("You're starting to respond to this differently than before. That's real progress.")
+        context["tendency_phrases"].append("You're handling this differently now. Something has shifted.")
     elif evolution_state == "softening":
-        context["tendency_phrases"].append("This is less charged than it was recently — something has loosened.")
+        context["tendency_phrases"].append("This doesn't hit as hard anymore. You've loosened your grip.")
     
     # Sanitize all tendency phrases before returning
     context["tendency_phrases"] = [
@@ -566,7 +567,7 @@ async def generate_astro_expert_diagnosis(
     # =========================================================================
     how_it_interacts = generate_how_it_interacts(personalization, planet_info, house_info)
     
-    # Add horizon-specific event personalization
+    # Add horizon-specific event personalization - V5.2: More distinct per horizon
     if has_dominant_event and dominant_event:
         event_type = dominant_event.get("type", "")
         
@@ -574,23 +575,23 @@ async def generate_astro_expert_diagnosis(
             if "full_moon" in event_type:
                 how_it_interacts.insert(0, "The Full Moon is amplifying whatever you've been holding back — RIGHT NOW.")
             elif "new_moon" in event_type:
-                how_it_interacts.insert(0, "The New Moon is inviting you to plant a seed TODAY — not force the harvest.")
+                how_it_interacts.insert(0, "The New Moon is inviting a fresh start TODAY — not forcing clarity.")
             elif "eclipse" in event_type:
                 how_it_interacts.insert(0, "Eclipse energy is accelerating change TODAY. What shifts now won't come back.")
         elif timeframe == "week":
             if "full_moon" in event_type:
-                how_it_interacts.insert(0, "This Full Moon's intensity keeps finding new targets throughout the week.")
+                how_it_interacts.insert(0, "The same intensity keeps finding different targets this week.")
             elif "new_moon" in event_type:
-                how_it_interacts.insert(0, "Notice what new pattern keeps emerging in different forms this week.")
+                how_it_interacts.insert(0, "New patterns are emerging through repetition — watch what keeps appearing.")
             elif "eclipse" in event_type:
-                how_it_interacts.insert(0, "The eclipse energy ripples through the week — expect multiple shifts.")
+                how_it_interacts.insert(0, "Eclipse ripples are spreading through multiple areas this week.")
         else:  # month
             if "full_moon" in event_type:
-                how_it_interacts.insert(0, "This month is teaching you something the Full Moon is just highlighting.")
+                how_it_interacts.insert(0, "The Full Moon is one moment. The month is the lesson.")
             elif "new_moon" in event_type:
-                how_it_interacts.insert(0, "This month's arc depends on what you seed now — choose intentionally.")
+                how_it_interacts.insert(0, "What you seed this month grows over the next cycle.")
             elif "eclipse" in event_type:
-                how_it_interacts.insert(0, "This month marks a before/after point. Integration takes the full arc.")
+                how_it_interacts.insert(0, "This month marks a before/after. Integration takes time.")
     
     # =========================================================================
     # 4. WHAT THIS MAY FEEL LIKE (Horizon-specific felt texture)
@@ -645,21 +646,21 @@ async def generate_astro_expert_diagnosis(
     if event_action:
         what_to_do.append(event_action)
     
-    # Horizon-specific generic actions
+    # Horizon-specific generic actions - V5.2: More distinct per horizon
     if timeframe == "today":
         what_to_do.extend([
             planet_info["action"],
-            "Move one small thing forward TODAY instead of planning everything",
+            "Do one small thing. Not the whole list — just one.",
         ])
     elif timeframe == "week":
         what_to_do.extend([
-            "Track which patterns keep repeating — they hold the real message",
-            "Notice what keeps triggering you this week — that's the work",
+            "Track what triggers the same reaction twice",
+            "When the pattern repeats, notice — don't react",
         ])
     else:  # month
         what_to_do.extend([
-            "Trust the arc — not every day needs to be a breakthrough",
-            "By month's end, identify what has permanently shifted",
+            "Ask: what is this month teaching me that last month couldn't?",
+            "By month's end, name what has permanently changed",
         ])
     
     what_to_do = [enforce_behavioral_language(w) for w in what_to_do[:3]]
