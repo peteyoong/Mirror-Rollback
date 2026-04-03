@@ -13962,27 +13962,36 @@ async def get_home_synthesis(user_id: str):
 # V5.0: ASTROLOGY EXPERT INTERPRETER
 # =============================================================================
 @api_router.get("/astro-expert/{user_id}")
-async def get_astro_expert_diagnosis(user_id: str):
+async def get_astro_expert_diagnosis(user_id: str, timeframe: str = "today"):
     """
-    V5.0: Astrology Today as Expert Interpreter.
+    V5.1: Astrology Today as Expert Interpreter with Event Priority.
+    
+    CRITICAL: If Full Moon/New Moon/Eclipse is active, theme MUST derive from that event.
+    User should feel: "Oh — THAT'S why everything feels heightened"
     
     Must feel like: "A master astrologer who knows the user"
     
     Returns 6-SECTION STRUCTURE:
-    1. TODAY'S THEME (1 line tension)
-    2. WHAT'S ACTUALLY HAPPENING (real transit bullets)
+    1. TODAY'S THEME (1 line tension) - MUST derive from Tier 1 event if present
+    2. WHAT'S ACTUALLY HAPPENING (real transit bullets + main event)
     3. HOW THIS INTERACTS WITH YOU (personalization - CRITICAL)
     4. WHAT THIS MAY FEEL LIKE (concrete felt experience)
     5. WHAT TO DO WITH IT (actionable, grounded)
     6. ONE QUESTION (clean reflective prompt)
     
-    UPGRADES:
+    V5.1 UPGRADES:
+    - Event Priority: Tier 1 events (Full Moon, New Moon, Eclipse) DOMINATE theme
+    - Explicit Naming: "Full Moon in Libra", not vague descriptions
     - Behavioral Language: Every line maps to real behavior
     - Personalization Depth: References pattern_memory, tendencies
     - Real Transit Signals: Actual planetary positions
+    
+    Args:
+        timeframe: "today" | "week" | "month"
     """
     try:
         from services.astro_expert_engine import generate_astro_expert_diagnosis
+        from services.field_signals import calculate_moon_phase, check_eclipse_season
         
         # Get user's chart data
         user, chart = await get_user_astrology_data(user_id)
@@ -13998,6 +14007,15 @@ async def get_astro_expert_diagnosis(user_id: str):
                 "what_to_do": ["Add your birth information to get started"],
                 "one_question": "What are you waiting for?",
             }
+        
+        # Get moon and eclipse data for Event Priority Engine
+        now = datetime.now(timezone.utc)
+        moon_data = calculate_moon_phase(now)
+        eclipse_data = check_eclipse_season(now)
+        
+        logger.info(f"[AstroExpert] Moon phase: {moon_data.get('phase_name')}, "
+                   f"Days to full: {moon_data.get('days_to_full', 0):.1f}, "
+                   f"Eclipse season: {eclipse_data.get('in_eclipse_season', False)}")
         
         # Get current transits
         transits = []
@@ -14020,7 +14038,6 @@ async def get_astro_expert_diagnosis(user_id: str):
             if natal_planets:
                 import swisseph as swe
                 
-                now = datetime.now(timezone.utc)
                 julian_now = swe.julday(now.year, now.month, now.day, now.hour + now.minute/60)
                 
                 TRANSIT_PLANETS = {
@@ -14042,12 +14059,14 @@ async def get_astro_expert_diagnosis(user_id: str):
                             
                             for aspect_name, aspect_angle in ASPECTS.items():
                                 diff = abs((t_lon - n_lon + 180) % 360 - 180)
-                                if abs(diff - aspect_angle) <= 8:
+                                orb = abs(diff - aspect_angle)
+                                if orb <= 8:
                                     transits.append({
                                         "planet": planet_name,
                                         "aspect": aspect_name,
                                         "natal_planet": n_name.replace("_", " ").title(),
                                         "house": n_data.get("house", 1),
+                                        "orb": round(orb, 1),  # Include orb for tier classification
                                     })
                     except Exception:
                         pass
@@ -14067,7 +14086,7 @@ async def get_astro_expert_diagnosis(user_id: str):
         except Exception:
             pass
         
-        # Generate V5.0 expert diagnosis
+        # Generate V5.1 expert diagnosis with Event Priority
         diagnosis = await generate_astro_expert_diagnosis(
             db=db,
             user_id=user_id,
@@ -14076,6 +14095,9 @@ async def get_astro_expert_diagnosis(user_id: str):
             active_houses=active_houses,
             pattern_memory_state=pattern_memory_state,
             evolution_state=evolution_state,
+            moon_data=moon_data,
+            eclipse_data=eclipse_data,
+            timeframe=timeframe,
         )
         
         return diagnosis

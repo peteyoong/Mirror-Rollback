@@ -1,7 +1,8 @@
-"""Astrology Today Expert Interpreter V5.0
+"""Astrology Today Expert Interpreter V5.1 with Event Priority
 
 CORE RULE: Must feel like:
 → "A master astrologer who knows the user"
+→ If Full Moon is happening: "Oh — THAT'S why everything feels heightened"
 
 Must include:
 - actual transits
@@ -10,17 +11,24 @@ Must include:
 - grounded action
 
 STRUCTURE (6 sections):
-1. TODAY'S THEME (1 line tension)
+1. TODAY'S THEME (1 line tension) - MUST derive from Tier 1 event if present
 2. WHAT'S ACTUALLY HAPPENING (real transit bullets)
 3. HOW THIS INTERACTS WITH YOU (personalization - CRITICAL)
 4. WHAT THIS MAY FEEL LIKE (concrete felt experience)
 5. WHAT TO DO WITH IT (actionable, grounded)
 6. ONE QUESTION (clean reflective prompt)
 
-V5.0 UPGRADES:
-1. BEHAVIORAL LANGUAGE ENFORCEMENT - Every line maps to real behavior
-2. PERSONALIZATION DEPTH - Must reference pattern_memory and known tendencies
-3. REAL TRANSIT SIGNALS - Actual planetary positions, not vague descriptions
+V5.1 UPGRADES:
+1. EVENT PRIORITY ENGINE - Tier 1 events DOMINATE theme generation
+2. EXPLICIT EVENT NAMING - "Full Moon in Libra", not vague descriptions
+3. BEHAVIORAL LANGUAGE ENFORCEMENT - Every line maps to real behavior
+4. PERSONALIZATION DEPTH - References pattern_memory, known tendencies
+5. REAL TRANSIT SIGNALS - Actual planetary positions, not vague descriptions
+
+PRIORITY TIERS:
+- Tier 1 (DOMINANT): Full Moon, New Moon, Eclipses, exact Sun/Moon/ASC/MC hits
+- Tier 2 (STRONG): Jupiter/Saturn/Pluto aspects, tight orbs (<2°)
+- Tier 3 (SUPPORTING): Minor aspects, wider orbs, fast-moving transits
 """
 
 import logging
@@ -387,22 +395,57 @@ async def generate_astro_expert_diagnosis(
     transits: List[Dict[str, Any]],
     active_houses: List[int],
     pattern_memory_state: str = "new_pattern",
-    evolution_state: str = "none"
+    evolution_state: str = "none",
+    moon_data: Optional[Dict[str, Any]] = None,
+    eclipse_data: Optional[Dict[str, Any]] = None,
+    timeframe: str = "today"
 ) -> Dict[str, Any]:
     """
-    V5.0: Generate Astrology Today as Expert Interpreter.
+    V5.1: Generate Astrology Today as Expert Interpreter with Event Priority.
+    
+    CRITICAL: If Tier 1 event exists (Full Moon, New Moon, Eclipse),
+    theme MUST derive from that event. No averaging.
     
     6-SECTION STRUCTURE:
-    1. TODAY'S THEME
-    2. WHAT'S ACTUALLY HAPPENING
-    3. HOW THIS INTERACTS WITH YOU
-    4. WHAT THIS MAY FEEL LIKE
-    5. WHAT TO DO WITH IT
-    6. ONE QUESTION
+    1. TODAY'S THEME - MUST derive from Tier 1 event if present
+    2. WHAT'S ACTUALLY HAPPENING - Main event + supporting transits
+    3. HOW THIS INTERACTS WITH YOU - Personalization
+    4. WHAT THIS MAY FEEL LIKE - Concrete felt experience
+    5. WHAT TO DO WITH IT - Actionable
+    6. ONE QUESTION - Reflective prompt
     """
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    from services.event_priority_engine import (
+        compute_event_priority, 
+        detect_dominant_event,
+        prioritize_transits
+    )
+    from services.field_signals import calculate_moon_phase, check_eclipse_season
     
-    # Get dominant transit
+    now = datetime.now(timezone.utc)
+    today = now.strftime("%Y-%m-%d")
+    
+    # Get moon and eclipse data if not provided
+    if moon_data is None:
+        moon_data = calculate_moon_phase(now)
+    if eclipse_data is None:
+        eclipse_data = check_eclipse_season(now)
+    
+    # =========================================================================
+    # EVENT PRIORITY ENGINE - Detect Tier 1 dominant events
+    # =========================================================================
+    event_priority = compute_event_priority(
+        transits=transits,
+        moon_data=moon_data,
+        eclipse_data=eclipse_data,
+        timeframe=timeframe,
+        dt=now
+    )
+    
+    has_dominant_event = event_priority.get("has_dominant_event", False)
+    dominant_event = event_priority.get("dominant_event")
+    main_event = event_priority.get("main_event", {})
+    
+    # Get dominant transit for fallback
     dominant_transit = transits[0] if transits else None
     dominant_planet = dominant_transit.get("planet", "Moon") if dominant_transit else "Moon"
     
@@ -421,17 +464,40 @@ async def generate_astro_expert_diagnosis(
     )
     
     # =========================================================================
-    # 1. TODAY'S THEME (1 line - LIVED, not abstract)
+    # 1. TODAY'S THEME (MUST derive from Tier 1 event if present)
     # =========================================================================
-    # Use the tension field which is more lived/immediate
-    todays_theme = planet_info.get('tension', planet_info['pressure'].title())
+    if has_dominant_event and dominant_event:
+        # TIER 1 ACTIVE — Theme MUST come from dominant event
+        todays_theme = main_event.get("headline", "Major Event Active")
+        explicit_event_name = dominant_event.get("explicit_name", "")
+        event_sign = dominant_event.get("sign", "")
+    else:
+        # No Tier 1 — Use planet-based theme
+        todays_theme = planet_info.get('tension', planet_info['pressure'].title())
+        explicit_event_name = None
+        event_sign = None
     
     # =========================================================================
-    # 2. WHAT'S ACTUALLY HAPPENING (transit bullets - lived consequence)
+    # 2. WHAT'S ACTUALLY HAPPENING (Main Event + Supporting Transits)
     # =========================================================================
     whats_happening = []
     
-    for transit in transits[:4]:
+    if has_dominant_event and dominant_event:
+        # FIRST: Explicitly name the main event
+        event_type = dominant_event.get("type", "")
+        if "full_moon" in event_type:
+            whats_happening.append(f"🌕 **{explicit_event_name}** — This is a peak/release moment")
+        elif "new_moon" in event_type:
+            whats_happening.append(f"🌑 **{explicit_event_name}** — A new cycle is seeding")
+        elif "eclipse" in event_type:
+            whats_happening.append(f"⬤ **{explicit_event_name}** — Portal event, major shifts possible")
+        
+        # Add the meaning
+        whats_happening.append(main_event.get("what_it_means", ""))
+    
+    # Add supporting transits (Tier 2 and 3)
+    supporting_transits = event_priority.get("supporting_transits", [])
+    for transit in (supporting_transits if supporting_transits else transits)[:3]:
         planet = transit.get("planet", "")
         natal_planet = transit.get("natal_planet", "")
         aspect_name = transit.get("aspect", "conjunction")
@@ -443,10 +509,8 @@ async def generate_astro_expert_diagnosis(
         
         # Build more lived-texture transit description
         if natal_planet:
-            # Transit to natal - use tension + behavioral connection
             bullet = f"{planet} {aspect_name} your natal {natal_planet} — {a_info['behavioral']}"
         else:
-            # Transit through house - use house behavioral + planet tension
             planet_tension = t_planet_info.get('tension', t_planet_info.get('pressure', 'pressure'))
             bullet = f"{planet} in your {h_info['area']} area — {planet_tension.lower()}"
         
@@ -460,19 +524,35 @@ async def generate_astro_expert_diagnosis(
     # =========================================================================
     how_it_interacts = generate_how_it_interacts(personalization, planet_info, house_info)
     
+    # If dominant event, add event-specific personalization
+    if has_dominant_event and dominant_event:
+        event_type = dominant_event.get("type", "")
+        if "full_moon" in event_type:
+            how_it_interacts.insert(0, "The Full Moon is amplifying whatever you've been holding back.")
+        elif "new_moon" in event_type:
+            how_it_interacts.insert(0, "The New Moon is inviting you to start fresh — but not force clarity.")
+        elif "eclipse" in event_type:
+            how_it_interacts.insert(0, "Eclipse energy accelerates change. What shifts now won't come back the same.")
+    
     # =========================================================================
     # 4. WHAT THIS MAY FEEL LIKE (concrete experience - LIVED TEXTURE)
     # =========================================================================
-    # Use the felt_experience from planet info if available
     what_it_feels_like = []
+    
+    # If dominant event, use its felt texture FIRST
+    if has_dominant_event:
+        event_felt_texture = event_priority.get("felt_texture", [])
+        what_it_feels_like.extend(event_felt_texture[:2])
     
     # Add planet-specific felt experiences
     if planet_info.get("felt_experience"):
         for exp in planet_info["felt_experience"][:2]:
-            what_it_feels_like.append(exp.capitalize() if exp[0].islower() else exp)
+            if exp not in what_it_feels_like:
+                what_it_feels_like.append(exp.capitalize() if exp[0].islower() else exp)
     
     # Add house-related felt experience
-    what_it_feels_like.append(f"Tension in your {house_info['area']} area — {house_info['behavioral'].split(' vs ')[0]}")
+    if len(what_it_feels_like) < 3:
+        what_it_feels_like.append(f"Tension in your {house_info['area']} area — {house_info['behavioral'].split(' vs ')[0]}")
     
     # Add generic lived-texture experiences
     generic_experiences = [
@@ -495,36 +575,84 @@ async def generate_astro_expert_diagnosis(
     # =========================================================================
     # 5. WHAT TO DO WITH IT (actionable)
     # =========================================================================
-    what_to_do = [
+    what_to_do = []
+    
+    # If dominant event, use its action FIRST
+    if has_dominant_event:
+        event_action = event_priority.get("action", "")
+        if event_action:
+            what_to_do.append(event_action)
+    
+    what_to_do.extend([
         planet_info["action"],
         f"Notice where {house_info['behavioral'].split(' vs ')[0]} without rushing to fix it",
         "Move one small thing forward instead of trying to solve everything",
-    ]
+    ])
     what_to_do = [enforce_behavioral_language(w) for w in what_to_do[:3]]
     
     # =========================================================================
     # 6. ONE QUESTION (reflective prompt)
     # =========================================================================
-    questions = [
-        f"What are you trying to {planet_info['action'].split()[0].lower()} before it's actually ready?",
-        f"Where in your {house_info['area']} are you settling for less than you want?",
-        f"What would change if you stopped fighting the {planet_info['theme']}?",
-        "What are you avoiding that keeps coming back?",
-    ]
+    # Event-specific questions
+    if has_dominant_event:
+        event_type = dominant_event.get("type", "") if dominant_event else ""
+        if "full_moon" in event_type:
+            questions = [
+                "What have you been waiting for 'the right moment' to release?",
+                "What clarity are you avoiding because it requires action?",
+                "What's reaching a peak that you've been hoping would just resolve itself?",
+            ]
+        elif "new_moon" in event_type:
+            questions = [
+                "What new beginning have you been hesitant to seed?",
+                "What do you want to start that you keep talking yourself out of?",
+                "If clarity isn't coming yet, can you plant the intention anyway?",
+            ]
+        elif "eclipse" in event_type:
+            questions = [
+                "What's changing that you can't control?",
+                "What would shift if you stopped resisting this transition?",
+                "What old version of yourself is this eclipse asking you to release?",
+            ]
+        else:
+            questions = [
+                f"What are you trying to {planet_info['action'].split()[0].lower()} before it's actually ready?",
+                f"Where in your {house_info['area']} are you settling for less than you want?",
+                "What are you avoiding that keeps coming back?",
+            ]
+    else:
+        questions = [
+            f"What are you trying to {planet_info['action'].split()[0].lower()} before it's actually ready?",
+            f"Where in your {house_info['area']} are you settling for less than you want?",
+            f"What would change if you stopped fighting the {planet_info['theme']}?",
+            "What are you avoiding that keeps coming back?",
+        ]
+    
     one_question = questions[seed_hash % len(questions)]
     
     return {
         "success": True,
         "lens": "astrology",
         "date": today,
-        "version": "v5.0_expert",
-        # V5.0 6-SECTION STRUCTURE
+        "version": "v5.1_event_priority",
+        # V5.1 6-SECTION STRUCTURE
         "todays_theme": todays_theme,
         "whats_happening": whats_happening,
         "how_it_interacts": how_it_interacts,
         "what_it_feels_like": what_it_feels_like,
         "what_to_do": what_to_do,
         "one_question": one_question,
+        # Event priority metadata
+        "event_priority": {
+            "has_dominant_event": has_dominant_event,
+            "dominant_event": dominant_event,
+            "explicit_event_name": explicit_event_name,
+            "event_sign": event_sign,
+            "tier_summary": event_priority.get("tier_summary", {}),
+            "moon_phase": moon_data.get("phase_name", "Unknown"),
+            "days_to_full": round(moon_data.get("days_to_full", 0), 1),
+            "days_to_new": round(moon_data.get("days_to_new", 0), 1),
+        },
         # Pattern memory state
         "pattern_memory_state": pattern_memory_state,
         "evolution_state": evolution_state,
@@ -542,6 +670,7 @@ async def generate_astro_expert_diagnosis(
             "pattern_memory_state": pattern_memory_state,
             "evolution_state": evolution_state,
             "personalization_applied": bool(personalization.get("pattern_state_phrase") or personalization.get("tendency_phrases")),
-            "version": "v5.0",
+            "event_priority_active": has_dominant_event,
+            "version": "v5.1",
         }
     }
