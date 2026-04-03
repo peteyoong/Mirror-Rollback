@@ -289,19 +289,19 @@ def validate_behavioral_content(text: str) -> Tuple[bool, List[str]]:
 EXPRESSION_ANGLES = {
     "timing": {
         "call_template": "You're pushing before it's ready",
-        "reality_template": "You know.",
+        "reality_template": "You know the timing is off.",
         "edge_template": "Wait — or force it",
         "keywords": ["too early", "not yet", "before ready", "timing off"],
     },
     "control": {
         "call_template": "You're gripping too hard",
-        "reality_template": "It's making it worse.",
+        "reality_template": "The tighter you hold, the worse it gets.",
         "edge_template": "Tighter — or let go",
         "keywords": ["force", "control", "grip", "make it happen"],
     },
     "clarity": {
         "call_template": "You're deciding before you can see",
-        "reality_template": "That's fear. Not certainty.",
+        "reality_template": "That's fear, not certainty.",
         "edge_template": "Commit — or stay open",
         "keywords": ["unclear", "can't see", "fog", "closing too fast"],
     },
@@ -319,7 +319,7 @@ EXPRESSION_ANGLES = {
     },
     "overcommitment": {
         "call_template": "You're carrying too much",
-        "reality_template": "You know it's unsustainable.",
+        "reality_template": "The load is unsustainable. You know it.",
         "edge_template": "Drop something — or break",
         "keywords": ["too much", "overloaded", "can't hold", "spreading thin"],
     },
@@ -391,16 +391,16 @@ async def get_next_expression_angle(
 # =============================================================================
 
 RETURNING_PHRASES = [
-    "This was here yesterday.",
-    "Still here.",
-    "Back again.",
+    "This was here yesterday. Still unresolved.",
+    "Back again. You know what this is.",
+    "This showed up recently. It hasn't left.",
 ]
 
 RECURRING_PHRASES = [
-    "Again.",
-    "You keep doing this.",
-    "This one won't leave.",
-    "Same loop.",
+    "Again. You keep doing this.",
+    "Same pattern. Different day.",
+    "This one won't leave until you face it.",
+    "You've circled this before.",
 ]
 
 
