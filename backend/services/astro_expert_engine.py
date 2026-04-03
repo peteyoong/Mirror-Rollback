@@ -278,11 +278,11 @@ async def get_personalization_context(
         "recent_signals": [],
     }
     
-    # Pattern state language
+    # Pattern state language - V5.2: Direct, not explanatory
     if pattern_memory_state == "returning_pattern":
-        context["pattern_state_phrase"] = "This connects to something you were already dealing with recently."
+        context["pattern_state_phrase"] = "This was here recently. Still unresolved."
     elif pattern_memory_state == "recurring_pattern":
-        context["pattern_state_phrase"] = "This is the same pattern showing up again — not a one-off."
+        context["pattern_state_phrase"] = "Again. You've circled this before."
     
     # Get historical patterns for tendencies
     try:
