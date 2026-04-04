@@ -618,6 +618,13 @@ export default function MirrorScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* BUILD VERSION MARKER - For deployment verification */}
+        <View style={styles.buildVersionMarker}>
+          <Text style={[styles.buildVersionText, { color: theme.textTertiary }]}>
+            Build: {process.env.EXPO_PUBLIC_BUILD_VERSION || 'dev'} | API: {process.env.EXPO_PUBLIC_BACKEND_URL?.replace('https://', '') || 'local'}
+          </Text>
+        </View>
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -1199,5 +1206,19 @@ const styles = StyleSheet.create({
   forumFooterDivider: {
     fontSize: 13,
     opacity: 0.5,
+  },
+  
+  // =========================================================================
+  // BUILD VERSION MARKER - For deployment verification
+  // =========================================================================
+  buildVersionMarker: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginTop: 20,
+  },
+  buildVersionText: {
+    fontSize: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    opacity: 0.6,
   },
 });
