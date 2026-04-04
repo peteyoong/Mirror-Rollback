@@ -599,6 +599,243 @@ def add_identity_context(
 
 
 # =============================================================================
+# LAYER 5: YOUR POSITION IN THE FIELD
+# =============================================================================
+
+def detect_user_position(
+    signals: Dict[str, Any],
+    patterns: Dict[str, Any],
+    user_id: str,
+) -> Dict[str, Any]:
+    """
+    Determine the user's role in current field dynamics.
+    
+    Positions:
+    - initiating: User is one of the active voices moving things forward
+    - holding_back: User has been quieter than their usual or than others
+    - bridging: User's activity sits between extremes
+    - observing: User is present but hasn't engaged recently
+    
+    NO PERSONALITY REFERENCES. Pure behavioral observation.
+    """
+    
+    member_activity = signals.get("member_activity", {})
+    user_data = member_activity.get(user_id, {})
+    
+    user_total = (
+        user_data.get("updates", 0) + 
+        user_data.get("reflections", 0) + 
+        user_data.get("chat_messages", 0)
+    )
+    
+    # Calculate group average
+    all_totals = []
+    for uid, data in member_activity.items():
+        total = data.get("updates", 0) + data.get("reflections", 0) + data.get("chat_messages", 0)
+        all_totals.append(total)
+    
+    avg_activity = sum(all_totals) / len(all_totals) if all_totals else 0
+    max_activity = max(all_totals) if all_totals else 0
+    
+    # Determine position
+    position = "observing"  # default
+    
+    if user_total == 0:
+        position = "observing"
+    elif max_activity > 0 and user_total >= max_activity * 0.7:
+        position = "initiating"
+    elif avg_activity > 0 and user_total < avg_activity * 0.5:
+        position = "holding_back"
+    elif avg_activity > 0:
+        position = "bridging"
+    
+    # Check if user recently went quiet (was active but stopped)
+    recently_quiet = signals.get("recently_quiet", [])
+    if user_id in recently_quiet:
+        position = "withdrawing"
+    
+    return {
+        "position": position,
+        "user_activity": user_total,
+        "avg_activity": round(avg_activity, 1),
+        "is_most_active": user_total == max_activity and max_activity > 0,
+    }
+
+
+def generate_position_language(
+    position_data: Dict[str, Any],
+    patterns: Dict[str, Any],
+) -> str:
+    """
+    Generate 1-2 lines describing user's position in the field.
+    
+    Mirror voice: observational, present-tense, no advice.
+    """
+    
+    position = position_data.get("position", "observing")
+    is_most_active = position_data.get("is_most_active", False)
+    detected = patterns.get("detected_patterns", [])
+    
+    # Position-specific language
+    if position == "initiating":
+        if is_most_active:
+            return "You're one of the ones moving this forward. The space has felt your presence."
+        else:
+            return "You've been active here. Your voice is part of what's shaping this."
+    
+    elif position == "holding_back":
+        if "forward_energy" in detected:
+            return "You're quieter than usual here. The room is moving, but you're not in step with it yet."
+        else:
+            return "You've been holding back. Something may be keeping you from entering fully."
+    
+    elif position == "withdrawing":
+        return "You were here, and then you went quiet. That shift is part of what the room is feeling."
+    
+    elif position == "bridging":
+        if "pacing_mismatch" in detected:
+            return "You're somewhere in the middle. Not pushing, not withdrawing. Watching the tempo."
+        else:
+            return "You're present, pacing with the room. Neither leading nor trailing."
+    
+    elif position == "observing":
+        if "heavy_silence" in detected:
+            return "You haven't entered yet. You're one of the many waiting."
+        else:
+            return "You're watching from the edge. Present, but not yet in the conversation."
+    
+    return "Your position in this field is still forming."
+
+
+# =============================================================================
+# LAYER 6: TRAJECTORY (IF NOTHING CHANGES)
+# =============================================================================
+
+def detect_trajectory(
+    signals: Dict[str, Any],
+    patterns: Dict[str, Any],
+    position_data: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Predict near-term relational direction based on current signals.
+    
+    Trajectories:
+    - disengagement: People are pulling away
+    - misalignment: Pacing/energy differences growing
+    - tension_building: Unspoken things accumulating
+    - stagnation: Nothing moving, energy draining
+    - fragmentation: Group splitting into subgroups
+    - stabilizing: Things finding a rhythm (positive)
+    
+    NO DETERMINISTIC LANGUAGE. Observational, possibility-based.
+    """
+    
+    detected = patterns.get("detected_patterns", [])
+    frequency = signals.get("frequency_pattern", "dormant")
+    temperature = patterns.get("field_temperature", "still")
+    timing_gaps = signals.get("timing_gaps", [])
+    recently_quiet = signals.get("recently_quiet", [])
+    silent_count = len(signals.get("silent_members", []))
+    member_count = signals.get("member_count", 0)
+    total_activity = signals.get("total_activity", 0)
+    distribution = signals.get("activity_distribution", {})
+    
+    trajectory = "unclear"
+    severity = "low"
+    
+    # Disengagement signals - be more sensitive
+    if len(recently_quiet) >= 1 or frequency == "fading":
+        trajectory = "disengagement"
+        severity = "moderate" if len(recently_quiet) >= 2 else "low"
+    
+    # Tension building - check emotional markers
+    elif "unspoken_tension" in detected:
+        trajectory = "tension_building"
+        severity = "moderate" if "emotional_weight" in detected else "low"
+    
+    # Misalignment - pacing issues
+    elif "pacing_mismatch" in detected:
+        trajectory = "misalignment"
+        severity = "moderate" if temperature == "charged" else "low"
+    
+    # Stagnation - dormant or minimal activity with multiple members
+    elif frequency == "dormant" and member_count >= 3:
+        trajectory = "stagnation"
+        severity = "low"
+    elif frequency == "sporadic" and silent_count > member_count / 2:
+        trajectory = "stagnation"
+        severity = "low"
+    
+    # Fragmentation - high spread in activity
+    elif distribution.get("spread", 0) >= 3 and total_activity > 2:
+        trajectory = "fragmentation"
+        severity = "low"
+    
+    # Recent silence pattern - someone withdrew
+    elif "recent_silence" in detected:
+        trajectory = "disengagement"
+        severity = "low"
+    
+    # Stabilizing (positive) - active without tension
+    elif frequency == "active" and "pacing_mismatch" not in detected and "unspoken_tension" not in detected:
+        trajectory = "stabilizing"
+        severity = "positive"
+    
+    return {
+        "trajectory": trajectory,
+        "severity": severity,
+    }
+
+
+def generate_trajectory_language(
+    trajectory_data: Dict[str, Any],
+    position_data: Dict[str, Any],
+) -> str:
+    """
+    Generate 1-2 lines about what happens if nothing changes.
+    
+    Creates gentle urgency without pressure.
+    Mirror voice: observational, possibility-based.
+    """
+    
+    trajectory = trajectory_data.get("trajectory", "unclear")
+    severity = trajectory_data.get("severity", "low")
+    user_position = position_data.get("position", "observing")
+    
+    # Trajectory-specific language
+    if trajectory == "disengagement":
+        if severity == "moderate":
+            return "If this continues, some may disengage quietly. Presence fades before it's noticed."
+        else:
+            return "The pull away has started. It's subtle, but it's there."
+    
+    elif trajectory == "tension_building":
+        if severity == "moderate":
+            return "If this stays unspoken, it doesn't go away. It waits. It compounds."
+        else:
+            return "Something is building. It hasn't surfaced, but it's accumulating."
+    
+    elif trajectory == "misalignment":
+        if user_position == "initiating":
+            return "The gap between movers and processors may widen. Some may feel left behind."
+        elif user_position == "holding_back":
+            return "The room may move without you. Not intentionally, but because momentum doesn't wait."
+        else:
+            return "If the tempo differences stay unnamed, people may stop trying to sync."
+    
+    elif trajectory == "stagnation":
+        return "Without movement, energy drains quietly. Waiting becomes the default."
+    
+    elif trajectory == "fragmentation":
+        return "The group may split into pockets. Those connecting may stop trying to include those who aren't."
+    
+    elif trajectory == "stabilizing":
+        return "Something is finding its rhythm here. The field is settling into itself."
+    
+    return None  # No trajectory language if unclear
+
+
+# =============================================================================
 # MAIN API FUNCTION
 # =============================================================================
 
@@ -611,6 +848,14 @@ async def generate_forum_live_field(
     Generate a live field reading for a forum.
     
     Returns present-tense, situational language about what's happening NOW.
+    
+    Layers:
+    1. Signal Extraction - Raw activity data
+    2. Field Pattern Detection - Dynamics without personality
+    3. Field Language - Present-tense room reading
+    4. Optional Identity Context - Light touch
+    5. YOUR POSITION - Where user sits in the field
+    6. TRAJECTORY - What happens if nothing changes
     """
     logger.info(f"[ForumLiveField] Generating for forum {forum_id}")
     
@@ -627,7 +872,15 @@ async def generate_forum_live_field(
         # Layer 4: Optional identity context (light touch)
         language = add_identity_context(language, signals)
         
-        logger.info(f"[ForumLiveField] Generated: temp={language['field_temperature']}, dynamics={language['detected_dynamics']}")
+        # Layer 5: YOUR POSITION IN THE FIELD
+        position_data = detect_user_position(signals, patterns, user_id)
+        position_language = generate_position_language(position_data, patterns)
+        
+        # Layer 6: TRAJECTORY (IF NOTHING CHANGES)
+        trajectory_data = detect_trajectory(signals, patterns, position_data)
+        trajectory_language = generate_trajectory_language(trajectory_data, position_data)
+        
+        logger.info(f"[ForumLiveField] Generated: temp={language['field_temperature']}, position={position_data['position']}, trajectory={trajectory_data['trajectory']}")
         
         return {
             "success": True,
@@ -640,6 +893,15 @@ async def generate_forum_live_field(
             "what_room_needs": language.get("what_room_needs"),
             "your_shift": language.get("your_shift"),
             
+            # NEW: Your position in the field
+            "your_position": position_language,
+            "your_position_type": position_data["position"],
+            
+            # NEW: Trajectory (if nothing changes)
+            "trajectory": trajectory_language,
+            "trajectory_type": trajectory_data["trajectory"],
+            "trajectory_severity": trajectory_data["severity"],
+            
             # Metadata
             "field_temperature": language["field_temperature"],
             "detected_dynamics": language["detected_dynamics"],
@@ -651,6 +913,8 @@ async def generate_forum_live_field(
                 "total_activity": signals["total_activity"],
                 "silent_count": len(signals["silent_members"]),
                 "frequency_pattern": signals["frequency_pattern"],
+                "user_activity": position_data["user_activity"],
+                "avg_activity": position_data["avg_activity"],
             }
         }
         

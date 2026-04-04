@@ -730,6 +730,56 @@ export default function ForumHomeScreen() {
               </View>
             )}
             
+            {/* YOUR POSITION IN THE FIELD - Personal, direct */}
+            {liveField.your_position && (
+              <View style={[styles.liveFieldPositionCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '25' }]}>
+                <View style={styles.liveFieldPositionHeader}>
+                  <Text style={{ fontSize: 14, marginRight: 6 }}>
+                    {liveField.your_position_type === 'initiating' ? '⚡' :
+                     liveField.your_position_type === 'holding_back' ? '🔇' :
+                     liveField.your_position_type === 'bridging' ? '🌉' :
+                     liveField.your_position_type === 'withdrawing' ? '🚶' : '👁️'}
+                  </Text>
+                  <Text style={[styles.liveFieldPositionLabel, { color: theme.accent }]}>
+                    Your position
+                  </Text>
+                </View>
+                <Text style={[styles.liveFieldPositionText, { color: theme.text }]}>
+                  {liveField.your_position}
+                </Text>
+              </View>
+            )}
+            
+            {/* TRAJECTORY - If nothing changes */}
+            {liveField.trajectory && (
+              <View style={[
+                styles.liveFieldTrajectoryCard, 
+                { 
+                  backgroundColor: liveField.trajectory_severity === 'positive' ? '#10B98110' : 
+                                   liveField.trajectory_severity === 'moderate' ? '#F5920010' : '#88888808',
+                  borderColor: liveField.trajectory_severity === 'positive' ? '#10B98130' :
+                               liveField.trajectory_severity === 'moderate' ? '#F5920030' : '#88888820',
+                }
+              ]}>
+                <View style={styles.liveFieldTrajectoryHeader}>
+                  <Text style={{ fontSize: 14, marginRight: 6 }}>
+                    {liveField.trajectory_severity === 'positive' ? '✨' :
+                     liveField.trajectory_severity === 'moderate' ? '⚠️' : '↗️'}
+                  </Text>
+                  <Text style={[
+                    styles.liveFieldTrajectoryLabel, 
+                    { color: liveField.trajectory_severity === 'positive' ? '#10B981' :
+                             liveField.trajectory_severity === 'moderate' ? '#F59200' : theme.textSecondary }
+                  ]}>
+                    If nothing changes
+                  </Text>
+                </View>
+                <Text style={[styles.liveFieldTrajectoryText, { color: theme.text }]}>
+                  {liveField.trajectory}
+                </Text>
+              </View>
+            )}
+            
             {/* What the Room Needs */}
             {liveField.what_room_needs && (
               <View style={[styles.liveFieldSection, { backgroundColor: theme.background }]}>
@@ -1725,6 +1775,51 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     marginTop: 10,
+    fontStyle: 'italic',
+  },
+  // YOUR POSITION IN THE FIELD styles
+  liveFieldPositionCard: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  liveFieldPositionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  liveFieldPositionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  liveFieldPositionText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  // TRAJECTORY (IF NOTHING CHANGES) styles
+  liveFieldTrajectoryCard: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  liveFieldTrajectoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  liveFieldTrajectoryLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  liveFieldTrajectoryText: {
+    fontSize: 14,
+    lineHeight: 20,
     fontStyle: 'italic',
   },
   // Forum Story Card

@@ -1138,6 +1138,15 @@ export interface ForumLiveFieldResponse {
   what_room_needs: string | null;
   your_shift: string | null;
   
+  // NEW: Your position in the field
+  your_position: string | null;
+  your_position_type: 'initiating' | 'holding_back' | 'bridging' | 'observing' | 'withdrawing';
+  
+  // NEW: Trajectory (if nothing changes)
+  trajectory: string | null;
+  trajectory_type: 'disengagement' | 'tension_building' | 'misalignment' | 'stagnation' | 'fragmentation' | 'stabilizing' | 'unclear';
+  trajectory_severity: 'low' | 'moderate' | 'positive';
+  
   // Metadata
   field_temperature: 'warm' | 'cool' | 'charged' | 'still';
   detected_dynamics: string[];
@@ -1149,6 +1158,8 @@ export interface ForumLiveFieldResponse {
     total_activity: number;
     silent_count: number;
     frequency_pattern: string;
+    user_activity: number;
+    avg_activity: number;
   };
 }
 
