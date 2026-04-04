@@ -26622,26 +26622,246 @@ FORUM_STORY_FORBIDDEN_PHRASES = {
 }
 
 
+# =============================================================================
+# SENTENCE-LEVEL REWRITE RULES (Pattern-aware, natural language)
+# =============================================================================
+
+import re
+
+def _rewrite_part_of_you_pattern(text: str) -> str:
+    """
+    Rewrite: "Part of you X, (but) part of you Y"
+    To: "The space may hold both X and Y at once."
+    """
+    # Pattern: "part of you [verb/adj], (but/and/while) part of you [verb/adj]"
+    pattern = r"[Pp]art of you ([^,\.]+),?\s*(?:but|and|while)?\s*(?:part of you|another part)?\s*([^\.]+)\."
+    
+    def rewrite(match):
+        first = match.group(1).strip().lower()
+        second = match.group(2).strip().lower()
+        # Clean up "part of you" from second part if present
+        second = re.sub(r'^part of you\s*', '', second)
+        second = re.sub(r'^another part\s*', '', second)
+        # Extract core concepts - convert verbs to nouns where possible
+        first_concept = first.replace("wants ", "").replace("feels ", "").replace("is ", "")
+        second_concept = second.replace("wants ", "").replace("feels ", "").replace("is ", "")
+        # Convert verb forms to noun forms for natural reading
+        verb_to_noun = {
+            "hesitates": "hesitation",
+            "resists": "resistance",
+            "withdraws": "withdrawal",
+            "pushes": "pushing forward",
+            "waits": "waiting",
+            "moves": "movement",
+            "holds back": "holding back",
+        }
+        for verb, noun in verb_to_noun.items():
+            first_concept = first_concept.replace(verb, noun)
+            second_concept = second_concept.replace(verb, noun)
+        return f"The space may hold both {first_concept} and {second_concept} at once."
+    
+    return re.sub(pattern, rewrite, text)
+
+
+def _rewrite_youve_been_here(text: str) -> str:
+    """
+    Rewrite: "You've been here before" variants
+    To: "Something in this dynamic may feel familiar."
+    """
+    patterns = [
+        (r"[Yy]ou'?ve been here before\.?", "Something in this dynamic may feel familiar."),
+        (r"[Yy]ou have been here before\.?", "Something in this dynamic may feel familiar."),
+        (r"[Tt]his feels familiar to you\.?", "Something in this dynamic may feel familiar."),
+        (r"[Yy]ou recognize this\.?", "The room may recognize this shape."),
+        (r"[Yy]ou know this feeling\.?", "There's something familiar in the field."),
+    ]
+    result = text
+    for pattern, replacement in patterns:
+        result = re.sub(pattern, replacement, result)
+    return result
+
+
+def _rewrite_when_you_feel(text: str) -> str:
+    """
+    Rewrite: "When you feel X, you Y"
+    To: "When X enters the space, the dynamic may Y."
+    """
+    # Pattern: "when you feel/sense/get X, you [often/always/tend to] Y"
+    pattern = r"[Ww]hen you (?:feel|sense|get|become|are)\s+([^,]+),\s*you\s+(?:often|always|tend to|usually)?\s*([^\.]+)\."
+    
+    def rewrite(match):
+        feeling = match.group(1).strip().lower()
+        action = match.group(2).strip().lower()
+        # Transform feeling to field-language
+        feeling = feeling.replace("uncertain", "uncertainty")
+        feeling = feeling.replace("anxious", "anxiety")
+        feeling = feeling.replace("excited", "excitement")
+        feeling = feeling.replace("overwhelmed", "overwhelm")
+        # Transform action
+        action = action.replace("hold back", "slow or pull back")
+        action = action.replace("withdraw", "grow quieter")
+        action = action.replace("push forward", "accelerate")
+        return f"When {feeling} enters the space, the dynamic may {action}."
+    
+    return re.sub(pattern, rewrite, text)
+
+
+def _rewrite_something_in_you(text: str) -> str:
+    """
+    Rewrite: "Something in you X"
+    To: "At times, the field may seem to X"
+    """
+    pattern = r"[Ss]omething in you ([^\.]+)\."
+    
+    def rewrite(match):
+        action = match.group(1).strip()
+        # Make it field-based
+        action = action.replace("knows", "know")
+        action = action.replace("wants", "want")
+        action = action.replace("feels", "feel")
+        return f"At times, the field may seem to {action}."
+    
+    return re.sub(pattern, rewrite, text)
+
+
+def _rewrite_your_pattern_is(text: str) -> str:
+    """
+    Rewrite: "Your pattern is to X"
+    To: "This circle may naturally lean toward X-ing."
+    """
+    # Pattern: "your pattern is to X" or "your tendency is to X"
+    pattern = r"[Yy]our (?:pattern|tendency) is (?:to )?([^\.]+)\."
+    
+    def rewrite(match):
+        action = match.group(1).strip()
+        # Convert to gerund-friendly phrasing
+        if action.startswith("wait"):
+            return "This circle may naturally lean toward waiting, sensing, and observing before moving."
+        elif "speak" in action or "voice" in action:
+            return "This circle may naturally lean toward finding voice when it feels ready."
+        elif "hold back" in action:
+            return "This circle may naturally lean toward holding space before acting."
+        elif "move" in action or "act" in action:
+            return "This circle may naturally lean toward movement and action."
+        else:
+            # Generic transform
+            return f"This circle may naturally lean toward {action}."
+    
+    return re.sub(pattern, rewrite, text)
+
+
+def _rewrite_you_always_never(text: str) -> str:
+    """
+    Rewrite: "You always X" / "You never X"
+    To: "There's often X in this space" / "This space rarely X"
+    """
+    # "You always X" - full sentence rewrite
+    always_pattern = r"[Yy]ou always ([^\.]+)\."
+    
+    def rewrite_always(match):
+        action = match.group(1).strip()
+        # Make it natural field language
+        return f"This space often {action}."
+    
+    # "You never X" - full sentence rewrite
+    never_pattern = r"[Yy]ou never ([^\.]+)\."
+    
+    def rewrite_never(match):
+        action = match.group(1).strip()
+        return f"This space rarely finds room for {action}."
+    
+    # Handle "where you never/always" mid-sentence
+    where_always = r"where you always ([^\.]+)"
+    where_never = r"where you never ([^\.]+)"
+    
+    result = re.sub(always_pattern, rewrite_always, text)
+    result = re.sub(never_pattern, rewrite_never, result)
+    result = re.sub(where_always, r"where there's often \1", result)
+    result = re.sub(where_never, r"where the space rarely makes room for \1", result)
+    
+    return result
+
+
+def _rewrite_you_feel_sense(text: str) -> str:
+    """
+    Rewrite standalone: "You feel X" / "You sense X"
+    To: "The space holds X" / "The field carries X"
+    """
+    patterns = [
+        (r"[Yy]ou feel ([^\.]+)\.", r"The space may hold \1."),
+        (r"[Yy]ou sense ([^\.]+)\.", r"The field may carry \1."),
+        (r"[Yy]ou need ([^\.]+)\.", r"The group may need \1."),
+        (r"[Yy]ou want ([^\.]+)\.", r"There may be a wanting for \1 in this circle."),
+    ]
+    result = text
+    for pattern, replacement in patterns:
+        result = re.sub(pattern, replacement, result)
+    return result
+
+
+def _final_cleanup(text: str) -> str:
+    """
+    Final pass to catch any remaining 'you' statements and fix grammar.
+    """
+    # Fix double spaces
+    text = re.sub(r'  +', ' ', text)
+    
+    # Fix "the space holds uncertain" -> "the space holds uncertainty"
+    text = text.replace("holds uncertain", "holds uncertainty")
+    text = text.replace("holds anxious", "holds anxiety")
+    text = text.replace("holds excited", "holds excitement")
+    
+    # Fix "this group often hold" -> "this group often holds"
+    text = re.sub(r"this group often (\w+)([^s])", r"this group often \1s\2", text)
+    
+    return text
+
+
 def sanitize_forum_story(story_text: str) -> str:
     """
-    Post-generation sanitizer that rewrites any leaked personal phrasing
-    into field-based phrasing.
+    Post-generation sanitizer using SENTENCE-LEVEL pattern-aware rewrites.
     
-    Returns sanitized story text.
+    Transforms leaked personal/Home language into natural field-based language.
+    Preserves Mirror tone: calm, reflective, relational.
+    
+    Returns sanitized story text with natural grammar.
     """
     if not story_text:
         return story_text
     
     result = story_text
     
-    # Apply all replacements (case-insensitive)
+    # Apply sentence-level rewrites in order of specificity
+    # (most specific patterns first)
+    
+    # 1. "Part of you X, part of you Y" pattern
+    result = _rewrite_part_of_you_pattern(result)
+    
+    # 2. "You've been here before" variants
+    result = _rewrite_youve_been_here(result)
+    
+    # 3. "When you feel X, you Y" pattern
+    result = _rewrite_when_you_feel(result)
+    
+    # 4. "Something in you X" pattern
+    result = _rewrite_something_in_you(result)
+    
+    # 5. "Your pattern is to X" pattern
+    result = _rewrite_your_pattern_is(result)
+    
+    # 6. "You always/never X" patterns
+    result = _rewrite_you_always_never(result)
+    
+    # 7. Standalone "You feel/sense X" patterns
+    result = _rewrite_you_feel_sense(result)
+    
+    # 8. Final fallback: simple phrase replacement for anything missed
     for forbidden, replacement in FORUM_STORY_FORBIDDEN_PHRASES.items():
-        # Replace lowercase
         result = result.replace(forbidden, replacement)
-        # Replace capitalized (sentence start)
         result = result.replace(forbidden.capitalize(), replacement.capitalize())
-        # Replace uppercase
-        result = result.replace(forbidden.upper(), replacement.upper())
+    
+    # 9. Final grammar cleanup
+    result = _final_cleanup(result)
     
     return result
 
