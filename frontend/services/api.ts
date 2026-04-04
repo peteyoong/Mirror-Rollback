@@ -1549,4 +1549,40 @@ export const getAstroExpert = async (
   return response.data;
 };
 
+
+// ============================================================
+// RELATIONSHIP PATTERN API (Identity-Level)
+// ============================================================
+
+export interface RelationshipPatternResponse {
+  success: boolean;
+  version: string;
+  pattern_type: string;
+  pattern_quality: string;
+  core_pattern: string;
+  default_tension: string;
+  growth_edge: string;
+  gift: string;
+  try_this: string;
+  generated_at: string;
+}
+
+/**
+ * Get user's general relationship pattern (identity-level).
+ * 
+ * This is NOT about specific people.
+ * This is about HOW THE USER SHOWS UP in relationships.
+ * 
+ * Returns:
+ * - CORE PATTERN: How they show up
+ * - DEFAULT TENSION: Their typical friction point
+ * - GROWTH EDGE: What to shift (Your Shift equivalent)
+ * - GIFT: What they bring to relationships
+ * - TRY THIS: One actionable suggestion
+ */
+export const getRelationshipPattern = async (userId: string): Promise<RelationshipPatternResponse> => {
+  const response = await apiWithRetry.get(`/relationship-pattern/${userId}`);
+  return response.data;
+};
+
 export default api;

@@ -14175,6 +14175,49 @@ async def get_relationship_insight_endpoint(
 
 
 # =============================================================================
+# RELATIONSHIP PATTERN ENDPOINT (Identity-Level)
+# =============================================================================
+@api_router.get("/relationship-pattern/{user_id}")
+async def get_relationship_pattern_endpoint(user_id: str):
+    """
+    V1.0: Generate user's general relationship pattern (identity-level).
+    
+    This is NOT about specific people.
+    This is about HOW THE USER SHOWS UP in relationships.
+    
+    Returns 5-section structure:
+    1. CORE PATTERN - How they show up
+    2. DEFAULT TENSION - Their typical friction point
+    3. GROWTH EDGE - What to shift (Your Shift equivalent)
+    4. GIFT - What they bring to relationships
+    5. TRY THIS - One actionable suggestion
+    
+    PRINCIPLE: Identity-level, mostly stable.
+    Use Relationship Insight for 1:1 dynamics.
+    """
+    try:
+        from services.relationship_insight_engine import get_relationship_pattern
+        
+        result = await get_relationship_pattern(
+            db=db,
+            user_id=user_id,
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"[RelationshipPattern] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+
+
+# =============================================================================
 # ASTROLOGY DETERMINISTIC CHART ENDPOINT (Full Data Exposure)
 # =============================================================================
 @api_router.get("/astrology/chart/{user_id}")

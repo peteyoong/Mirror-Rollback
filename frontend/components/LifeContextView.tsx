@@ -30,9 +30,9 @@ const CONTEXT_CONFIG = {
     description: 'Your story',
   },
   relationships: {
-    icon: 'people-outline' as const,
-    label: 'People',
-    description: 'Those in your life',
+    icon: 'heart-outline' as const,
+    label: 'Relationships',
+    description: 'How you connect',
   },
   work: {
     icon: 'briefcase-outline' as const,

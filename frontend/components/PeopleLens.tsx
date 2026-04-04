@@ -1,18 +1,34 @@
 /**
- * PeopleLens V1.0
+ * PeopleLens V2.0 - Relationships Lens
  * 
- * A lens for viewing and understanding the people in your life.
- * NOT just romantic relationships - includes all relationship types.
+ * ARCHITECTURE: One engine, three lenses.
+ * 
+ * THIS LENS (Life > Relationships):
+ * - PRIMARY: User's general relationship pattern (identity-level)
+ * - SECONDARY: People in your life (optional)
+ * 
+ * USER EXPERIENCE:
+ * - Immediate value WITHOUT adding anyone
+ * - "I understand how I behave in relationships"
+ * - Then optionally: "I understand how to be with specific people better"
  * 
  * STRUCTURE:
- * - List of people (name + optional relationship type)
- * - Each person opens a Relationship Insight
+ * ┌─────────────────────────────────────┐
+ * │  YOUR RELATIONSHIP PATTERN          │
+ * │  How you show up in connection      │
+ * ├─────────────────────────────────────┤
+ * │  CORE PATTERN                       │
+ * │  DEFAULT TENSION                    │
+ * │  GROWTH EDGE (emphasized)           │
+ * │  GIFT                               │
+ * │  TRY THIS                           │
+ * └─────────────────────────────────────┘
  * 
- * RELATIONSHIP TYPES:
- * - Partner, Family, Friend, Work, Other
- * 
- * FINAL STANDARD:
- * User should feel: "I understand how to be with THIS person better"
+ * ┌─────────────────────────────────────┐
+ * │  PEOPLE IN YOUR LIFE (optional)     │
+ * │  [List of saved people]             │
+ * │  + Add Person                       │
+ * └─────────────────────────────────────┘
  */
 
 import React, { useState, useEffect } from 'react';
@@ -31,15 +47,16 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getRelationshipPattern, RelationshipPatternResponse } from '../services/api';
 
-// Relationship types
+// Relationship types for people
 type RelationshipType = 'partner' | 'family' | 'friend' | 'work' | 'other';
 
 interface Person {
   id: string;
   name: string;
   type: RelationshipType;
-  context: string; // How they operate (for insight generation)
+  context: string;
   createdAt: string;
 }
 
@@ -72,13 +89,6 @@ const TYPE_COLORS: Record<RelationshipType, string> = {
   other: '#607D8B',
 };
 
-// Context prompts to help user describe the person
-const CONTEXT_PROMPTS = [
-  "How do they process things?",
-  "How do they communicate?",
-  "What's their energy like?",
-];
-
 const CONTEXT_SUGGESTIONS = [
   "Takes time to process",
   "Moves fast, decides quickly",
@@ -94,10 +104,17 @@ const CONTEXT_SUGGESTIONS = [
 
 const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
   const router = useRouter();
+  
+  // Pattern state (primary)
+  const [pattern, setPattern] = useState<RelationshipPatternResponse | null>(null);
+  const [patternLoading, setPatternLoading] = useState(true);
+  const [patternError, setPatternError] = useState<string | null>(null);
+  
+  // People state (secondary)
   const [people, setPeople] = useState<Person[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [peopleLoading, setPeopleLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [showPeopleSection, setShowPeopleSection] = useState(true);
   
   // Add person form state
   const [newName, setNewName] = useState('');
@@ -107,20 +124,35 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
   const STORAGE_KEY = `@mirror_people_${userId}`;
 
   useEffect(() => {
+    loadPattern();
     loadPeople();
   }, [userId]);
 
+  const loadPattern = async () => {
+    try {
+      setPatternLoading(true);
+      setPatternError(null);
+      const data = await getRelationshipPattern(userId);
+      setPattern(data);
+    } catch (err: any) {
+      console.error('[PeopleLens] Error loading pattern:', err);
+      setPatternError('Unable to load your relationship pattern');
+    } finally {
+      setPatternLoading(false);
+    }
+  };
+
   const loadPeople = async () => {
     try {
-      setIsLoading(true);
+      setPeopleLoading(true);
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
       if (stored) {
         setPeople(JSON.parse(stored));
       }
     } catch (err) {
-      console.error('[PeopleLens] Error loading:', err);
+      console.error('[PeopleLens] Error loading people:', err);
     } finally {
-      setIsLoading(false);
+      setPeopleLoading(false);
     }
   };
 
@@ -149,14 +181,7 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
     setShowAddModal(false);
   };
 
-  const handleDeletePerson = (personId: string) => {
-    const updated = people.filter(p => p.id !== personId);
-    savePeople(updated);
-    setSelectedPerson(null);
-  };
-
   const handleOpenInsight = (person: Person) => {
-    // Navigate to relationship insight screen
     const params = new URLSearchParams({
       name: person.name,
       context: person.context || '',
@@ -178,25 +203,40 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
     }
   };
 
-  // Render empty state
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Ionicons name="people-outline" size={64} color={theme.textTertiary} />
-      <Text style={[styles.emptyTitle, { color: theme.text }]}>
-        People in your life
-      </Text>
-      <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-        Add someone to understand how to be with them better
-      </Text>
-      <TouchableOpacity
-        style={[styles.addButtonLarge, { backgroundColor: theme.accent }]}
-        onPress={() => setShowAddModal(true)}
-      >
-        <Ionicons name="add" size={24} color="#fff" />
-        <Text style={styles.addButtonLargeText}>Add Person</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  // Split multi-line text
+  const splitLines = (text: string): string[] => {
+    return text.split('\n').filter(line => line.trim());
+  };
+
+  // Render pattern loading state
+  if (patternLoading) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.accent} />
+        <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+          Reading your relationship pattern...
+        </Text>
+      </View>
+    );
+  }
+
+  // Render pattern error state
+  if (patternError || !pattern) {
+    return (
+      <View style={[styles.errorContainer, { backgroundColor: theme.background }]}>
+        <Ionicons name="alert-circle-outline" size={48} color={theme.textTertiary} />
+        <Text style={[styles.errorText, { color: theme.textSecondary }]}>
+          {patternError || 'Unable to load pattern'}
+        </Text>
+        <TouchableOpacity 
+          style={[styles.retryButton, { backgroundColor: theme.surface, borderColor: theme.border }]} 
+          onPress={loadPattern}
+        >
+          <Text style={[styles.retryButtonText, { color: theme.text }]}>Try Again</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   // Render person card
   const renderPersonCard = (person: Person) => {
@@ -212,7 +252,7 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
       >
         <View style={styles.personCardContent}>
           <View style={[styles.typeIndicator, { backgroundColor: typeColor + '20' }]}>
-            <Ionicons name={typeConfig?.icon as any} size={20} color={typeColor} />
+            <Ionicons name={typeConfig?.icon as any} size={18} color={typeColor} />
           </View>
           
           <View style={styles.personInfo}>
@@ -224,17 +264,8 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
             </Text>
           </View>
           
-          <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
+          <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
         </View>
-        
-        {person.context && (
-          <Text 
-            style={[styles.personContext, { color: theme.textSecondary }]}
-            numberOfLines={1}
-          >
-            {person.context}
-          </Text>
-        )}
       </TouchableOpacity>
     );
   };
@@ -305,7 +336,7 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
                 >
                   <Ionicons 
                     name={icon as any} 
-                    size={18} 
+                    size={16} 
                     color={newType === type ? TYPE_COLORS[type] : theme.textSecondary} 
                   />
                   <Text style={[
@@ -319,7 +350,7 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
             </View>
           </View>
 
-          {/* Context / How they operate */}
+          {/* Context */}
           <View style={styles.inputSection}>
             <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
               How do they operate?
@@ -328,7 +359,6 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
               This helps generate better insights
             </Text>
             
-            {/* Suggestions */}
             <View style={styles.suggestions}>
               {CONTEXT_SUGGESTIONS.map((suggestion) => (
                 <TouchableOpacity
@@ -356,7 +386,6 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
               ))}
             </View>
 
-            {/* Free text input */}
             <TextInput
               style={[styles.textAreaInput, { 
                 backgroundColor: theme.surface, 
@@ -376,51 +405,145 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
     </Modal>
   );
 
-  if (isLoading) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.accent} />
-      </View>
-    );
-  }
-
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.title, { color: theme.text }]}>People</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Understand how to be with them
+    <ScrollView 
+      style={[styles.container, { backgroundColor: theme.background }]}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* ========================================
+          PRIMARY: YOUR RELATIONSHIP PATTERN
+          ======================================== */}
+      <View style={styles.patternSection}>
+        <View style={styles.patternHeader}>
+          <Text style={[styles.patternTitle, { color: theme.text }]}>
+            Your Relationship Pattern
+          </Text>
+          <Text style={[styles.patternSubtitle, { color: theme.textSecondary }]}>
+            How you show up in connection
           </Text>
         </View>
-        
-        {people.length > 0 && (
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: theme.accent }]}
-            onPress={() => setShowAddModal(true)}
-          >
-            <Ionicons name="add" size={24} color="#fff" />
-          </TouchableOpacity>
+
+        {/* CORE PATTERN */}
+        <View style={[styles.patternCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+            CORE PATTERN
+          </Text>
+          {splitLines(pattern.core_pattern).map((line, idx) => (
+            <Text key={idx} style={[styles.patternText, { color: theme.text }]}>
+              {line}
+            </Text>
+          ))}
+        </View>
+
+        {/* DEFAULT TENSION */}
+        <View style={[styles.patternCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+            DEFAULT TENSION
+          </Text>
+          {splitLines(pattern.default_tension).map((line, idx) => (
+            <Text key={idx} style={[styles.patternText, { color: theme.text }]}>
+              {line}
+            </Text>
+          ))}
+        </View>
+
+        {/* GROWTH EDGE (emphasized) */}
+        <View style={[styles.growthEdgeCard, { borderColor: theme.accent }]}>
+          <Text style={[styles.growthEdgeLabel, { color: theme.accent }]}>
+            GROWTH EDGE
+          </Text>
+          {splitLines(pattern.growth_edge).map((line, idx) => (
+            <Text key={idx} style={[styles.growthEdgeText, { color: theme.text }]}>
+              {line}
+            </Text>
+          ))}
+        </View>
+
+        {/* GIFT */}
+        <View style={[styles.giftCard, { backgroundColor: theme.accent + '08' }]}>
+          <Text style={[styles.giftLabel, { color: theme.accent }]}>
+            GIFT
+          </Text>
+          {splitLines(pattern.gift).map((line, idx) => (
+            <Text key={idx} style={[styles.giftText, { color: theme.text }]}>
+              {line}
+            </Text>
+          ))}
+        </View>
+
+        {/* TRY THIS */}
+        <View style={[styles.tryThisCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={styles.tryThisHeader}>
+            <Ionicons name="arrow-forward-circle" size={16} color={theme.accent} />
+            <Text style={[styles.tryThisLabel, { color: theme.accent }]}>
+              TRY THIS
+            </Text>
+          </View>
+          <Text style={[styles.tryThisText, { color: theme.text }]}>
+            {pattern.try_this}
+          </Text>
+        </View>
+      </View>
+
+      {/* ========================================
+          SECONDARY: PEOPLE IN YOUR LIFE
+          ======================================== */}
+      <View style={styles.peopleSection}>
+        <TouchableOpacity 
+          style={styles.peopleSectionHeader}
+          onPress={() => setShowPeopleSection(!showPeopleSection)}
+          activeOpacity={0.7}
+        >
+          <View>
+            <Text style={[styles.peopleSectionTitle, { color: theme.text }]}>
+              People in your life
+            </Text>
+            <Text style={[styles.peopleSectionSubtitle, { color: theme.textTertiary }]}>
+              Understand specific dynamics
+            </Text>
+          </View>
+          <Ionicons 
+            name={showPeopleSection ? 'chevron-up' : 'chevron-down'} 
+            size={20} 
+            color={theme.textTertiary} 
+          />
+        </TouchableOpacity>
+
+        {showPeopleSection && (
+          <View style={styles.peopleContent}>
+            {people.length === 0 ? (
+              <View style={[styles.emptyPeople, { borderColor: theme.border }]}>
+                <Text style={[styles.emptyPeopleText, { color: theme.textSecondary }]}>
+                  Add someone to understand how to be with them
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.peopleList}>
+                {people.map(renderPersonCard)}
+              </View>
+            )}
+            
+            <TouchableOpacity
+              style={[styles.addPersonButton, { borderColor: theme.border }]}
+              onPress={() => setShowAddModal(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="add" size={18} color={theme.accent} />
+              <Text style={[styles.addPersonText, { color: theme.accent }]}>
+                Add Person
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
-      {/* People list or empty state */}
-      {people.length === 0 ? (
-        renderEmptyState()
-      ) : (
-        <ScrollView 
-          style={styles.listContainer}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {people.map(renderPersonCard)}
-        </ScrollView>
-      )}
+      {/* Bottom padding */}
+      <View style={styles.bottomPadding} />
 
       {/* Add modal */}
       {renderAddModal()}
-    </View>
+    </ScrollView>
   );
 };
 
@@ -428,106 +551,199 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollContent: {
+    padding: 20,
+  },
+  
+  // Loading/Error states
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    fontStyle: 'italic',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    gap: 16,
+  },
+  errorText: {
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  // Pattern section (PRIMARY)
+  patternSection: {
+    marginBottom: 32,
+  },
+  patternHeader: {
+    marginBottom: 20,
+  },
+  patternTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    marginBottom: 4,
+  },
+  patternSubtitle: {
+    fontSize: 14,
+    fontStyle: 'italic',
   },
   
-  // Header
-  header: {
+  // Pattern cards
+  patternCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  sectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+  },
+  patternText: {
+    fontSize: 15,
+    lineHeight: 23,
+    marginBottom: 4,
+  },
+  
+  // Growth Edge (emphasized)
+  growthEdgeCard: {
+    borderLeftWidth: 3,
+    paddingLeft: 16,
+    paddingVertical: 16,
+    marginBottom: 12,
+  },
+  growthEdgeLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginBottom: 12,
+  },
+  growthEdgeText: {
+    fontSize: 16,
+    fontWeight: '500',
+    lineHeight: 25,
+    marginBottom: 6,
+  },
+  
+  // Gift card
+  giftCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  giftLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+  },
+  giftText: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  
+  // Try This card
+  tryThisCard: {
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+  },
+  tryThisHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  tryThisLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+  },
+  tryThisText: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontWeight: '500',
+  },
+
+  // People section (SECONDARY)
+  peopleSection: {
+    paddingTop: 20,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+  },
+  peopleSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
+    marginBottom: 16,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-
-  // Empty state
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  emptyTitle: {
-    fontSize: 22,
+  peopleSectionTitle: {
+    fontSize: 18,
     fontWeight: '600',
-    marginTop: 20,
-    marginBottom: 8,
+    marginBottom: 2,
   },
-  emptySubtitle: {
-    fontSize: 15,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 32,
+  peopleSectionSubtitle: {
+    fontSize: 13,
   },
-  addButtonLarge: {
-    flexDirection: 'row',
+  peopleContent: {
+    gap: 10,
+  },
+  
+  // Empty state for people
+  emptyPeople: {
+    padding: 20,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderStyle: 'dashed',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
+  },
+  emptyPeopleText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  
+  // People list
+  peopleList: {
     gap: 8,
   },
-  addButtonLargeText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
-  // List
-  listContainer: {
-    flex: 1,
-  },
-  listContent: {
-    padding: 20,
-    paddingTop: 8,
-    gap: 12,
-  },
-
+  
   // Person card
   personCard: {
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   personCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   typeIndicator: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -536,17 +752,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   personName: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '600',
     marginBottom: 2,
   },
   personType: {
-    fontSize: 13,
+    fontSize: 12,
   },
-  personContext: {
-    fontSize: 13,
-    marginTop: 10,
-    fontStyle: 'italic',
+  
+  // Add person button
+  addPersonButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderStyle: 'dashed',
+  },
+  addPersonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  // Bottom padding
+  bottomPadding: {
+    height: 100,
   },
 
   // Modal
@@ -615,14 +847,14 @@ const styles = StyleSheet.create({
   typeOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
     gap: 6,
   },
   typeOptionText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
   },
 

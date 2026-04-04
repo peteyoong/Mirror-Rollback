@@ -497,6 +497,171 @@ def generate_relationship_insight(
 
 
 # =============================================================================
+# GENERAL RELATIONSHIP PATTERN (IDENTITY-LEVEL)
+# =============================================================================
+# This generates the user's general way of showing up in ALL relationships.
+# Not about specific people - about their relational identity.
+
+IDENTITY_PATTERNS = {
+    "initiator": {
+        "core_pattern": "You start things. In relationships, you're the one who reaches first.\nYou don't wait for invitations — you create openings.\nThis is how you connect: by moving toward.",
+        "default_tension": "Your initiation can feel like demand when it isn't received.\nYou reach. Silence. You reach again.\nThe gap between your offer and their response is where you struggle.",
+        "growth_edge": "Let your reaching land before you add to it.\nNot every silence is rejection. Some people need time to meet your energy.\nYour shift: Initiate once, then wait.",
+        "gift": "You make connection happen.\nWithout you, things stay still. People who can't start things need you.\nYour forward motion creates openings others can't.",
+        "try_this": "Next time you reach out: wait twice as long as feels comfortable before reaching again.",
+    },
+    "reflector": {
+        "core_pattern": "You respond to what's already there. You don't originate — you deepen.\nIn relationships, you mirror back what others can't see.\nThis is how you connect: by receiving first.",
+        "default_tension": "Your reflection can feel like hesitation to people who move fast.\nThey reach. You need a moment. They wonder if you're there.\nThe gap between their offer and your response is where friction lives.",
+        "growth_edge": "Speak before you've fully formed it.\nYour response doesn't need to be complete to be valuable.\nYour shift: Show your process, not just your result.",
+        "gift": "You see what others miss about themselves.\nYour reflection is a mirror they can't find alone.\nWhat you give back is often clearer than what they sent.",
+        "try_this": "Say 'I'm still landing this — here's my first thought' instead of waiting until you're ready.",
+    },
+    "momentum_carrier": {
+        "core_pattern": "You carry energy forward. In relationships, you build through doing.\nStopping costs you. Hesitation breaks your flow.\nThis is how you connect: by moving together.",
+        "default_tension": "Your momentum can outpace people who need to feel before they move.\nYou're building. They're sensing. The gap widens.\nWhat feels like responsiveness to you can feel like pressure to them.",
+        "growth_edge": "Slowing doesn't break your flow — it deepens it.\nSome people need to sense what's happening before they can join.\nYour shift: Pause mid-motion to check in.",
+        "gift": "You bring force to what matters.\nPeople who struggle to move need your momentum.\nYour energy makes things happen that wouldn't happen otherwise.",
+        "try_this": "Mid-action, pause and ask: 'Are you with me?' Then actually wait for the answer.",
+    },
+    "attunement_holder": {
+        "core_pattern": "You feel the room before you speak. In relationships, you read what isn't said.\nYour timing comes from sensing, not deciding.\nThis is how you connect: by adjusting to what's present.",
+        "default_tension": "Your attunement can feel like hesitation to people who move fast.\nThey act. You're still sensing. They've moved again.\nYour tempo doesn't match their speed.",
+        "growth_edge": "You can attune while moving.\nMatching some momentum doesn't mean abandoning your sensing.\nYour shift: Move with them once before pausing to sense.",
+        "gift": "You catch what speed misses.\nPeople who move fast need someone who reads the field.\nYour sensing prevents collisions they don't see coming.",
+        "try_this": "Say yes to one thing before you've fully felt into it. See what happens.",
+    },
+    "certainty_seeker": {
+        "core_pattern": "You need to know before you move. In relationships, ambiguity stalls you.\nYou trust what's clear. Vagueness feels dangerous.\nThis is how you connect: through clarity and ground.",
+        "default_tension": "Your questions can feel like interrogation to people who work by feeling.\nYou ask for clarity. They offer impressions.\nYour need for ground meets their fluidity.",
+        "growth_edge": "Not everything can be known before it's lived.\nSome people's vagueness isn't avoidance — it's how they know.\nYour shift: Let some things stay unresolved longer.",
+        "gift": "You bring structure to what's formless.\nPeople who float need someone who names things clearly.\nYour certainty creates ground others can stand on.",
+        "try_this": "Instead of 'What do you think?' ask 'What are you picking up on?' — and accept the vague answer.",
+    },
+    "sensor": {
+        "core_pattern": "You trust what you feel before you understand it.\nIn relationships, clarity comes last. Sensing comes first.\nThis is how you connect: by picking up on what's unsaid.",
+        "default_tension": "Your impressions can feel like evasion to people who need facts.\nThey ask questions. You give impressions.\nYour felt sense doesn't translate into their language.",
+        "growth_edge": "Give them something concrete to hold.\nYour sensing doesn't have to be vague when you share it.\nYour shift: Name one thing you're certain about — even if the rest is forming.",
+        "gift": "You see around corners others haven't reached.\nPeople who only trust facts miss what you perceive.\nYour sensing notices what logic would filter out.",
+        "try_this": "Offer one concrete thing: 'I don't have the whole picture, but I'm certain about this.'",
+    },
+    "expresser": {
+        "core_pattern": "What you feel, you show. In relationships, it's not a choice.\nYou process by externalizing. Silence is pressure.\nThis is how you connect: by making your inner world visible.",
+        "default_tension": "Your expression can feel like demand to people who hold more inside.\nYou reach out. They take in.\nYour visibility meets their depth — and wonders what's there.",
+        "growth_edge": "Show without needing matching.\nNot everyone processes out loud. Their silence isn't rejection.\nYour shift: Express without requiring equal expression back.",
+        "gift": "You make the invisible visible.\nPeople who can't name their feelings learn from watching you.\nYour openness gives permission to others.",
+        "try_this": "Share something and end with: 'You don't need to reply.' Mean it.",
+    },
+    "absorber": {
+        "core_pattern": "You take in more than you put out. In relationships, that's how you learn.\nYour interior is larger than your exterior shows.\nThis is how you connect: by receiving deeply.",
+        "default_tension": "Your silence can feel like absence to people who need feedback.\nThey share. You take it in. They wonder if you're there.\nWhat you're holding doesn't reach the surface.",
+        "growth_edge": "Let something small surface.\nThey're not asking for everything — just something.\nYour shift: Your small expressions mean more because they're rare.",
+        "gift": "You receive at a depth most people can't.\nPeople who express need someone who actually takes it in.\nWhat you hold transforms over time into something valuable.",
+        "try_this": "Name one feeling you're holding. Just one. Out loud.",
+    },
+    "action_taker": {
+        "core_pattern": "You move. In relationships, that's your answer to most questions.\nThinking without doing doesn't feel real to you.\nThis is how you connect: by doing things together.",
+        "default_tension": "Your action can feel abrupt to people who need to feel first.\nYou act. They're still reading. The room has already changed.\nYour doing can override what they're perceiving.",
+        "growth_edge": "Let them sense before you move.\nWhat they see might change what you do.\nYour shift: Ask 'What's the room saying?' before acting.",
+        "gift": "You make things happen.\nPeople who get stuck in sensing need your motion.\nYour action clarifies what thinking couldn't.",
+        "try_this": "Before your next move, ask: 'What are you sensing here?' Wait for the full answer.",
+    },
+    "atmospheric_reader": {
+        "core_pattern": "You read the room before you act. In relationships, the field tells you what to do.\nYou sense what's appropriate before you decide what you want.\nThis is how you connect: through environmental intelligence.",
+        "default_tension": "Your reading can feel like stalling to people who move fast.\nThey act. You're still reading. The field has already changed.\nYour sense of timing doesn't match their readiness.",
+        "growth_edge": "Let some action in before you assess it.\nYour reading can include movement, not just resist it.\nYour shift: Sometimes action clarifies what reading couldn't.",
+        "gift": "You see what action creates.\nPeople who move fast need someone who reads the impact.\nYour perception prevents unintended consequences.",
+        "try_this": "Let them act once. Read the result. Then share what you see.",
+    },
+    "container": {
+        "core_pattern": "You hold what you feel. In relationships, it stays inside until you choose.\nYour boundaries are clear. You know where you end.\nThis is how you connect: by protecting what's precious.",
+        "default_tension": "Your containment can feel like withholding to people who share openly.\nThey reach. You hold. They wonder what's there.\nYour protection can read as coldness.",
+        "growth_edge": "Offer a door, not a wall.\nThey can't enter what you don't open.\nYour shift: Name one thing you're holding that they haven't seen.",
+        "gift": "You provide structure when others flood.\nPeople with no edges need your containment.\nYour steadiness is a form of safety.",
+        "try_this": "Share one thing from inside before they ask. Proactively.",
+    },
+    "porous": {
+        "core_pattern": "You feel what's around you. In relationships, others' emotions enter easily.\nBoundaries are harder for you. Not weakness — porosity.\nThis is how you connect: by feeling what others feel.",
+        "default_tension": "You absorb what isn't yours. That can tire you.\nThey contain themselves. You feel them anyway.\nWhat you're carrying may not be theirs to feel back.",
+        "growth_edge": "Create some edge of your own. Just a little.\nYou don't have to hold everything you feel.\nYour shift: Notice what you're carrying that isn't yours. Put one thing down.",
+        "gift": "You feel what others hide from themselves.\nPeople who can't access their feelings need your perception.\nYour porosity brings hidden things to light.",
+        "try_this": "At the end of each conversation, ask yourself: 'What am I carrying that isn't mine?'",
+    },
+}
+
+
+def generate_relationship_pattern(
+    user_profile: Dict[str, Any],
+    seed: str = ""
+) -> Dict[str, Any]:
+    """
+    Generate user's general relationship pattern (identity-level).
+    
+    This is NOT about specific people.
+    This is about HOW THE USER SHOWS UP in relationships.
+    
+    Output:
+    - Core Pattern: How they show up
+    - Default Tension: Their typical friction point
+    - Growth Edge: What to shift (Your Shift equivalent)
+    - Gift: What they bring
+    - Try This: One actionable suggestion
+    """
+    
+    # Generate seed for deterministic output
+    if not seed:
+        seed = f"{user_profile.get('user_id', '')}:pattern:{datetime.now().strftime('%Y-%m-%d')}"
+    
+    # Detect user's deep type
+    user_type = detect_deep_type(user_profile, "")
+    
+    # Get identity pattern
+    pattern = IDENTITY_PATTERNS.get(user_type, IDENTITY_PATTERNS["initiator"])
+    
+    return {
+        "success": True,
+        "version": "v2.0",
+        "pattern_type": user_type,
+        "pattern_quality": DEEP_DYNAMICS.get(user_type, {}).get("quality", "unknown"),
+        
+        # The 5-section structure for identity-level
+        "core_pattern": pattern["core_pattern"],
+        "default_tension": pattern["default_tension"],
+        "growth_edge": pattern["growth_edge"],
+        "gift": pattern["gift"],
+        "try_this": pattern["try_this"],
+        
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+async def get_relationship_pattern(
+    db,
+    user_id: str
+) -> Dict[str, Any]:
+    """
+    Get user's general relationship pattern from database profile.
+    """
+    try:
+        # Get user profile
+        user = await db.users.find_one({"_id": user_id})
+        user_profile = {
+            "user_id": user_id,
+            "enneagram": user.get("enneagram", {}) if user else {},
+            "astrology": user.get("astrology", {}) if user else {},
+        }
+        
+        return generate_relationship_pattern(user_profile=user_profile)
+        
+    except Exception as e:
+        logger.error(f"[RelationshipPattern] Error: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+# =============================================================================
 # API HELPERS
 # =============================================================================
 
