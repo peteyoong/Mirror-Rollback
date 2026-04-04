@@ -1,115 +1,126 @@
-<analysis>**original_problem_statement**: 
-The user is driving continuous deep refinement of the application's Home screen and Lenses. In this session, the user requested:
-1. Correct the Life > Relationships tab architecture so the DEFAULT view shows the user's general relationship pattern (Identity-Level), and specific people (1:1 Dynamics) become a secondary section.
-2. Add deep meaning layers: WHY THIS CONNECTION EXISTS (for 1:1) and WHAT RELATIONSHIPS ARE TEACHING YOU (for Identity).
-3. Refine the engine to use stable identity-level meaning and anchored variation for 1:1 dynamics (no fixed templates, but no random novelty either).
-4. Implement REAL pattern detection by wiring the system to the  with actual escalation levels (0=dormant, 1=present, 2=recurring, 3=escalating).
-5. Implement Soft Entry, Time Decay (older patterns reduce in weight), and Breakthrough Signals.
-6. **(Current Task)** Implement Breakthrough Confidence Levels (Low, Medium, High) to ensure the app never falsely praises the user for a breakthrough without sufficient behavioral evidence.
+<analysis>original_problem_statement: 
+The user wanted to implement the 5-part continuous Relationship Narrative Flow in the frontend. Following that, the user ordered a strict debug pass and overhaul of the application's Today transit calculations. The previous transit system relied on incorrect linear approximations and tropical references. The requirement was to convert all transit calculations to use True Sidereal Swiss Ephemeris (matching Chimenti-style reports), implement deterministic daily window scanning (timed events, slow transits, house ingresses) for all 10 planets, and surface this cleanly in the Today UI.
 
 PRODUCT REQUIREMENTS:
-- Language must be direct, grounded, meaningful, and non-deterministic (no spiritual fluff or generic explanations).
-- Escalation must be earned (e.g., Again, This keeps repeating) based on real historical data.
-- Breakthroughs require evidence (gap detection + journal/reflection evidence). Long time gaps alone do not equal a breakthrough.
+- **Relationship Narrative**: Implement a 5-part continuous flow (Field State, Your Position, Trajectory, Story, The Move).
+- **True Sidereal Transits**: Transits must strictly use Swiss Ephemeris with SIDM_USER, SVP 31.2836, J2000 epoch, and 0.0 yearly increment.
+- **Daily Window Scanner**: Must track daily exact transit-to-natal aspects, slow/outer planet transits, Moon sign context, and house ingresses (Equal house system).
+- **Today UI Hierarchy**: Deterministic transit card placed above the LLM interpretation. Strict hierarchy: Hero aspect, Moon context, top 3 timed events, top 3 slow transits, show more expander, and a dev/debug provenance footer.
 
 **User's preferred language**: English
 (INSTRUCT NEXT AGENT: You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only. In this case, respond in English.)
 
 **what currently exists?** 
-The Life > Relationships architecture has been completely redesigned. The primary view now successfully shows the user's general Relationship Pattern and the secondary section handles 1:1 People insights. The backend  has been deeply refactored to connect to the database, track exact/dynamic match counts, apply time-decay weighting to historical interactions, and generate dynamic escalation language (levels 0-3). The agent is currently halfway through implementing Breakthrough Confidence Levels to distinguish between low-confidence gaps and high-confidence behavioral shifts.
+The Relationship Narrative Flow UI (, ) is complete and validated. The backend astrology engine was successfully overhauled. Incorrect linear approximations were removed and replaced with a canonical True Sidereal config (). A daily transit window scanner () was built and API endpoints were added to serve precise timed events, slow/outer planet transits, and house placements for all 10 planets. A foundational frontend component () was created and embedded into the Today tab.
 
 **Last working item**: 
-    - Last item agent was working: Implementing Breakthrough Confidence Levels (Low, Medium, High) in . The agent was replacing the old boolean  logic with a tiered confidence system to avoid false-positive growth signals.
+    - Last item agent was working: Analyzing the uploaded  PDF to perform a focused house discrepancy check (explaining why the external report says Moon in 4th while Mirror says Moon in 10th) and updating  to follow the user's strict UI display hierarchy rules.
     - Status: IN PROGRESS
-    - Agent Testing Done: N
-    - Which testing method agent to use? manual testing by python -c or curl to test the backend API response, followed by frontend screenshot tool to ensure the UI handles the new confidence payload without crashing.
+    - Agent Testing Done: N (For the final UI integration and discrepancy check)
+    - Which testing method agent to use? both (python -c/bash for data discrepancy logic; screenshot tool for UI validation)
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:  
-  Issue 1: 500 Internal Server Error on Forum Members API (P1)
-     - Attempted fixes: None. Spotted in the background expo logs during the latest edits: .
-     - Next debug checklist: Check backend logs for the exact traceback on the  route.
-     - Why fix this issue and what will be achieved with the fix? Ensures forum functionality isn't broken while working on relationship insights.
-     - Status: NOT STARTED
+  Issue 1: Architectural Logic Duplication (Forum vs Relationship Field Engines) (P1)
+     - Attempted fixes: Agent mapped out duplicated logic previously.
+     - Next debug checklist: Abstract shared signal extraction from  and  into a base .
+     - Why fix this issue and what will be achieved with the fix? Prevents parallel intelligence systems.
+     - Status: BLOCKED (User explicitly ordered: Do not refactor architecture yet. First make the event model complete.)
      - Is recurring issue? N
      - Should Test frontend/backend/both after fix? backend
+     - Blocked on other issue: Task 1 (Finalizing Today UI)
+
+  Issue 2: Monolithic  (P2)
+     - Attempted fixes: None. File is over 30k lines.
+     - Next debug checklist: Move routing logic to .
+     - Why fix this issue and what will be achieved with the fix? Context limits and easier maintenance.
+     - Status: NOT STARTED
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? both
+     - Blocked on other issue: None
 
 **In progress Task List**: 
-  Task 1: Complete Breakthrough Confidence Levels Integration (P0)
-     - Where to resume: The agent just updated  and  in . You need to finish updating  to properly consume the new confidence levels, format the final API payload, and ensure the frontend components (, ) correctly handle the new data structure (if it changed from boolean to string). 
-     - What will be achieved with this? Prevents the system from giving unwarranted praise to the user for simply not interacting with a pattern for a few days.
+  Task 1: Finalize Today UI Surfacing & House Discrepancy Check (P0)
+     - Where to resume: Read the parsed analysis of the  PDF. First, answer the user's discrepancy check (Why does Chimenti say Moon in 4th while Mirror says Moon in 10th? Verify timestamp, timezone, house frame). Second, update  with the strict hierarchy: hero aspect, Moon context, next 3 timed events, top 3 slow transits, show more toggle, and a lightweight dev footer showing True Sidereal, SVP 31.2836, house system, timezone, and timestamp.
+     - What will be achieved with this? A clean, trustworthy, mobile-friendly Today UI grounded in accurate True Sidereal data.
      - Status: IN PROGRESS
      - Should Test frontend/backend/both after fix? both
      - Blocked on something: None
 
 **Upcoming and Future Tasks**
     Upcoming Tasks:
+    - Consolidate field intelligence logic into shared primitives based on architecture review (P1).
     - Wire  to the identity relationship pattern endpoint (P1).
     - Add more sophisticated journal sentiment analysis for breakthrough detection (P1).
     - Add backend persistence for saved people (currently uses AsyncStorage) (P1).
-    - Add evolution state indicators (Escalating, Softening) to the UI (P1).
     
     Future Tasks:
-    - Implement Forum (Group Dynamics) lens with field-level meaning for emergent dynamics (P2).
-    - Refactor  monolith (29k+ lines) (P2).
+    - Refactor  monolith (P2).
     - Refactor Frontend Monoliths (, , ) (P2).
 
 **Completed work in this session**
-- Redesigned Life > Relationships architecture (Identity pattern primary, 1:1 secondary) (DONE)
-- Added WHAT RELATIONSHIPS ARE TEACHING YOU (Identity) and WHY THIS CONNECTION EXISTS (1:1) (DONE)
-- Stabilized identity-level meaning and anchored variation for 1:1 dynamics (DONE)
-- Wired  to real Pattern Memory data and created Escalation levels 0-3 (DONE)
-- Added Time Decay, Soft Entry for Level 2, and initial Breakthrough Detection (DONE)
+- Implemented  frontend using a shared  (DONE)
+- Found and removed incorrect linear/tropical transit approximations in  and  (DONE)
+- Created  for canonical True Sidereal settings (DONE)
+- Implemented deterministic transit-to-natal aspects (DONE)
+- Created  to scan daily events for all 10 planets (DONE)
+- Added house tracking and house ingress detection to daily window scanner (DONE)
+- Added  endpoint (DONE)
+- Created  and injected it into  (DONE)
 
 **Earlier issues found/mentioned but not fixed**
    Issue 1: Monolithic 
-   - Debug checklist:  is over 29k lines long.
-   - Why to solve this issue and what will be achieved with this? Prevents search/replace truncation, improves maintainability.
+   - Debug checklist: Break down  into modular routers.
+   - Why to solve this issue and what will be achieved with this? Simplifies file edits, avoids token limits.
    - Should Test frontend/backend/both after fix: Both
    - Is recurring issue? Y
 
 **Known issue recurrence from previous fork**
-  - Issue recurrence in previous fork: Monolithic architecture of  causing context limits and search/replace errors.
-  - Recurrence count: 12
+  - Issue recurrence in previous fork:  monolith causing context limits.
+  - Recurrence count: 14
   - Status: PENDING REFACTOR
-  - Note: Next agent MUST be highly cautious while doing search & replace in .
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Escalation Levels (0-3)**: 0=Dormant, 1=Present, 2=Recurring, 3=Escalating. Derived from real historical pattern data using Time Decay weights.
-- **Soft Entry**: Level 2 escalation uses gentle lead-ins (e.g., This might feel familiar.) before hitting hard escalation language.
-- **Breakthrough Confidence**: Evaluates if a pattern gap is genuine growth (Medium/High confidence via journal evidence) or just avoidance (Low confidence).
-- **Identity vs. Relational Meaning**: Identity meaning is completely stable per user. Relational meaning has anchored variations based on deterministic seeds.
+- **True Sidereal Swiss Ephemeris**: strict configuration using , SVP 31.2836°, J2000 epoch, and 0.0 yearly increment.
+- **Daily Window Scanning**: Computing exact aspect times, slow transits, and house/sign ingresses within a localized daily timezone window.
+- **Equal House System**: Ascendant is calculated, and houses are evenly distributed in 30-degree segments.
 
 **key DB schema**
-  -  collection used to track historical matches and calculate escalation.
+  -  (Contains True Sidereal calculated planetary positions for the natal chart).
 
 **changes in tech stack**
   - None.
 
 **All files of reference** 
--  (Heavily modified, currently in an unstable edit state)
--  (Modified)
--  (Modified)
--  (Modified)
--  (Modified)
--  (Modified)
+-  (Created)
+-  (Created)
+-  (Created)
+-  (Created)
+-  (Heavily updated)
+-  (Updated)
+-  (Refactored)
+-  (Refactored)
+-  (Updated with new endpoints)
 
 **Areas that need refactoring**:
--  (29k+ lines)
+-  (30k+ lines).
+- Architectural logic abstraction for Forum vs Relationship shared intelligence engines (Deferred per user instructions).
 
 **key api endpoints**
--  (Identity Level)
--  (1:1 Level)
+- 
+-  (NEW - Returns daily timed events, slow transits, and house placements)
+-  (NEW)
 
 **Critical Info for New Agent**
-- **Strict Tone Rules:** The user is incredibly specific about tone. NEVER use spiritual jargon, determinism, or fate language. Escalation must be earned. Praise for breakthroughs must be heavily guarded (only when high-confidence evidence exists).
-- **Mid-Edit State:** The agent was in the middle of replacing the boolean  logic with a string-based  (low, medium, high) inside . You need to ensure the final payload output by the backend matches what the frontend components (, ) are expecting, or update the frontend accordingly to prevent crashes.
+- **DO NOT Refactor Architecture Yet**: The user explicitly instructed to finish the True Sidereal event model and Today UI wiring *before* starting any architecture consolidation.
+- **House Discrepancy**: The user specifically wants you to explain why the uploaded Chimenti PDF says Moon in 4th but Mirror calculates Moon in 10th. Check timestamp alignment, timezone differences, and house system calculations. Provide this output to the user clearly.
+- **UI Hierarchy Rules**: Implement the requested visual hierarchy in  to prevent mobile overload. Fast vs. slow signals must be visually distinct. Add the requested dev/debug footer to prove config parity.
 
 **documents and test reports created in this job**
-- None created in this session.
+- External PDF provided:  (Analyzed but findings not yet presented to user).
 
 **Last 10 User Messages and any pending HUMAN messages** 
 1.  (Completed)
@@ -118,23 +129,27 @@ The Life > Relationships architecture has been completely redesigned. The primar
 4.  (Completed)
 5.  (Completed)
 6.  (Completed)
-7.  (IN PROGRESS - PENDING).
+7.  (Completed)
+8.  (Completed)
+9.  (Completed)
+10.  (**PENDING - Start here**)
 
 **Project Health Check:**
-- Broken:  is throwing 500 errors in the background logs.
-- Mocked: Saved relationships list in  still uses AsyncStorage instead of backend persistence.
+- Broken: None.
+- Mocked: Saved relationships list still uses AsyncStorage.
 
 **3rd Party Integrations**
 - OpenAI GPT-4o — uses Emergent LLM Key
 
 **Testing status**
-  - Testing agent used after significant changes: NO (Manual Bash/Screenshots used extensively).
+  - Testing agent used after significant changes: NO (Manual bash/python testing used).
   - Troubleshoot agent used after agent stuck in loop: NO.
   - Test files created: None.
-  - Known regressions: Forum members API returning 500.
+  - Known regressions: None.
 
 **Credentials to test flow:**
-- Check  if needed. (Primary: Email: , User ID: )
+- User ID to test: 
+- Email:  (Melissa's chart data)
 
 **What agent forgot to execute**
-- The agent was mid-refactor on the  logic in . They updated the helper functions but have not finished updating the main generation endpoints or checked if the frontend TypeScript interfaces need updating to handle the new confidence payload structure. You must finish this integration first.</analysis>
+- The agent successfully analyzed the uploaded Chimenti PDF using the  but the session ended before the agent could run the house discrepancy check or update  with the requested strict UI hierarchy and dev/debug footer. The next agent must resume directly from these two pending action items.</analysis>

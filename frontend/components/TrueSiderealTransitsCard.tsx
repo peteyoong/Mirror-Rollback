@@ -54,6 +54,8 @@ interface SlowTransit {
   orb: number;
   description: string;
   note: string;
+  is_outer_planet?: boolean;
+  is_applying?: boolean;
 }
 
 interface ActiveAspect {
@@ -83,19 +85,107 @@ interface DailyTheme {
 interface DailyWindowData {
   date: string;
   local_timezone: string;
+  scan_start_utc?: string;
+  scan_end_utc?: string;
+  computed_at?: string;
   total_events: number;
   all_events: TransitEvent[];
   moon_ingresses: TransitEvent[];
+  house_ingresses?: TransitEvent[];
   aspect_events: TransitEvent[];
   slow_transits_active: SlowTransit[];
   current_moon_sign: string;
+  current_moon_house?: number;
+  transit_houses?: { [key: string]: number };
   next_moon_sign?: string;
   next_moon_ingress_time?: string;
   strongest_active_aspect?: ActiveAspect;
   current_active_aspects?: ActiveAspect[];
-  daily_theme: DailyTheme;
+  daily_theme?: DailyTheme;
+  house_system?: string;
+  calculation_method?: string;
+  user_timezone?: string;
   error?: string;
 }
+
+/**
+ * DEV/DEBUG FOOTER - Shows calculation provenance
+ * Proves config parity with external tools like Chimenti reports
+ */
+const DebugFooter: React.FC<{
+  data: DailyWindowData;
+  theme: any;
+  showFull?: boolean;
+}> = ({ data, theme, showFull = false }) => {
+  const [expanded, setExpanded] = useState(false);
+  
+  return (
+    <View style={styles.debugFooter}>
+      <TouchableOpacity 
+        style={styles.debugToggle}
+        onPress={() => setExpanded(!expanded)}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.debugBadge, { backgroundColor: theme.surfaceLight }]}>
+          <Text style={[styles.debugBadgeText, { color: theme.textTertiary }]}>
+            True Sidereal
+          </Text>
+        </View>
+        <Text style={[styles.debugSvp, { color: theme.textTertiary }]}>
+          SVP 31.2836°
+        </Text>
+        <Ionicons
+          name={expanded ? 'chevron-up' : 'information-circle-outline'}
+          size={12}
+          color={theme.textTertiary}
+        />
+      </TouchableOpacity>
+      
+      {expanded && (
+        <View style={[styles.debugDetails, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
+          <View style={styles.debugRow}>
+            <Text style={[styles.debugLabel, { color: theme.textTertiary }]}>Config:</Text>
+            <Text style={[styles.debugValue, { color: theme.textSecondary }]}>
+              Swiss Ephemeris SIDM_USER
+            </Text>
+          </View>
+          <View style={styles.debugRow}>
+            <Text style={[styles.debugLabel, { color: theme.textTertiary }]}>SVP:</Text>
+            <Text style={[styles.debugValue, { color: theme.textSecondary }]}>
+              31.2836° at J2000
+            </Text>
+          </View>
+          <View style={styles.debugRow}>
+            <Text style={[styles.debugLabel, { color: theme.textTertiary }]}>House System:</Text>
+            <Text style={[styles.debugValue, { color: theme.textSecondary }]}>
+              {data.house_system || 'Equal (Asc-based)'}
+            </Text>
+          </View>
+          <View style={styles.debugRow}>
+            <Text style={[styles.debugLabel, { color: theme.textTertiary }]}>Timezone:</Text>
+            <Text style={[styles.debugValue, { color: theme.textSecondary }]}>
+              {data.local_timezone}
+            </Text>
+          </View>
+          <View style={styles.debugRow}>
+            <Text style={[styles.debugLabel, { color: theme.textTertiary }]}>Computed:</Text>
+            <Text style={[styles.debugValue, { color: theme.textSecondary }]}>
+              {data.computed_at ? new Date(data.computed_at).toLocaleTimeString() : 'Now'}
+            </Text>
+          </View>
+          {data.transit_houses && Object.keys(data.transit_houses).length > 0 && (
+            <View style={styles.debugRow}>
+              <Text style={[styles.debugLabel, { color: theme.textTertiary }]}>Moon House:</Text>
+              <Text style={[styles.debugValue, { color: theme.textSecondary }]}>
+                {data.transit_houses.Moon || data.current_moon_house || '—'}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
+  );
+};
 
 interface TrueSiderealTransitsCardProps {
   userId: string;
@@ -145,7 +235,11 @@ const PLANET_SYMBOLS: Record<string, string> = {
 // SUB-COMPONENTS
 // =============================================================================
 
-const StrongestAspectHero: React.FC<{
+/**
+ * HERO ASPECT - Most significant transit displayed prominently
+ * Shows the tightest active aspect at the top
+ */
+const HeroAspectCard: React.FC<{
   aspect: ActiveAspect;
   exactTime?: string;
   theme: any;
@@ -153,7 +247,7 @@ const StrongestAspectHero: React.FC<{
   <View style={[styles.heroCard, { backgroundColor: theme.surfaceLight, borderColor: theme.accent + '30' }]}>
     <View style={styles.heroHeader}>
       <Text style={[styles.heroLabel, { color: theme.accent }]}>
-        STRONGEST ACTIVE
+        TODAY'S MAIN TRANSIT
       </Text>
       {exactTime && (
         <Text style={[styles.heroExactTime, { color: theme.textSecondary }]}>
@@ -180,33 +274,64 @@ const StrongestAspectHero: React.FC<{
   </View>
 );
 
+/**
+ * MOON CONTEXT - Current Moon sign and house
+ * Second in hierarchy after Hero aspect
+ */
 const MoonContextCard: React.FC<{
   currentSign: string;
+  currentHouse?: number;
   nextSign?: string;
   ingressTime?: string;
   theme: any;
-}> = ({ currentSign, nextSign, ingressTime, theme }) => (
-  <View style={[styles.moonCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-    <View style={styles.moonHeader}>
-      <Text style={styles.moonEmoji}>☽</Text>
-      <Text style={[styles.moonLabel, { color: theme.textSecondary }]}>MOON</Text>
+}> = ({ currentSign, currentHouse, nextSign, ingressTime, theme }) => {
+  const houseLabel = currentHouse ? `${currentHouse}${getOrdinalSuffix(currentHouse)} house` : null;
+  
+  return (
+    <View style={[styles.moonCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={styles.moonHeader}>
+        <Text style={styles.moonEmoji}>☽</Text>
+        <Text style={[styles.moonLabel, { color: theme.textSecondary }]}>MOON NOW</Text>
+      </View>
+      <View style={styles.moonContent}>
+        <Text style={[styles.moonSign, { color: theme.text }]}>
+          {currentSign}
+        </Text>
+        {houseLabel && (
+          <Text style={[styles.moonHouse, { color: theme.textSecondary }]}>
+            in {houseLabel}
+          </Text>
+        )}
+      </View>
+      {nextSign && ingressTime && (
+        <Text style={[styles.moonIngress, { color: theme.textTertiary }]}>
+          → {nextSign} at {ingressTime}
+        </Text>
+      )}
     </View>
-    <Text style={[styles.moonSign, { color: theme.text }]}>
-      {currentSign}
-    </Text>
-    {nextSign && ingressTime && (
-      <Text style={[styles.moonIngress, { color: theme.textTertiary }]}>
-        → {nextSign} at {ingressTime}
-      </Text>
-    )}
-  </View>
-);
+  );
+};
 
-const UpcomingEventsList: React.FC<{
+/**
+ * Helper to get ordinal suffix (1st, 2nd, 3rd, etc.)
+ */
+const getOrdinalSuffix = (n: number): string => {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
+};
+
+/**
+ * TIMED EVENTS - Top 3 upcoming exact times
+ * Shows only 3 by default with "show more" expansion
+ */
+const TimedEventsList: React.FC<{
   events: TransitEvent[];
+  expanded: boolean;
+  onToggle: () => void;
   theme: any;
   onEventPress?: (event: TransitEvent) => void;
-}> = ({ events, theme, onEventPress }) => {
+}> = ({ events, expanded, onToggle, theme, onEventPress }) => {
   if (events.length === 0) {
     return (
       <View style={styles.noEventsContainer}>
@@ -217,9 +342,13 @@ const UpcomingEventsList: React.FC<{
     );
   }
 
+  // Show top 3 by default, all if expanded
+  const displayEvents = expanded ? events : events.slice(0, 3);
+  const hasMore = events.length > 3;
+
   return (
     <View style={styles.eventsList}>
-      {events.map((event, index) => (
+      {displayEvents.map((event, index) => (
         <TouchableOpacity
           key={`${event.timestamp_utc}-${index}`}
           style={[styles.eventRow, { borderBottomColor: theme.border + '30' }]}
@@ -252,10 +381,32 @@ const UpcomingEventsList: React.FC<{
           )}
         </TouchableOpacity>
       ))}
+      
+      {/* Show More / Show Less toggle */}
+      {hasMore && (
+        <TouchableOpacity
+          style={styles.showMoreButton}
+          onPress={onToggle}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.showMoreText, { color: theme.accent }]}>
+            {expanded ? 'Show less' : `Show ${events.length - 3} more`}
+          </Text>
+          <Ionicons
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={14}
+            color={theme.accent}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
 
+/**
+ * SLOW TRANSITS - Top 3 outer planet transits active all day
+ * Shows top 3 by default, expandable
+ */
 const SlowTransitsSection: React.FC<{
   transits: SlowTransit[];
   theme: any;
@@ -264,12 +415,22 @@ const SlowTransitsSection: React.FC<{
 }> = ({ transits, theme, expanded, onToggle }) => {
   if (transits.length === 0) return null;
 
+  // Show top 3 by default
+  const displayTransits = expanded ? transits : transits.slice(0, 3);
+  const hasMore = transits.length > 3;
+
   return (
     <View style={[styles.slowSection, { borderTopColor: theme.border }]}>
       <TouchableOpacity style={styles.slowHeader} onPress={onToggle}>
-        <Text style={[styles.slowLabel, { color: theme.textSecondary }]}>
-          SLOW TRANSITS (all day)
-        </Text>
+        <View style={styles.slowHeaderLeft}>
+          <Ionicons name="planet-outline" size={14} color={theme.textSecondary} />
+          <Text style={[styles.slowLabel, { color: theme.textSecondary }]}>
+            SLOW TRANSITS
+          </Text>
+          <Text style={[styles.slowCount, { color: theme.textTertiary }]}>
+            ({transits.length})
+          </Text>
+        </View>
         <Ionicons
           name={expanded ? 'chevron-up' : 'chevron-down'}
           size={16}
@@ -277,10 +438,10 @@ const SlowTransitsSection: React.FC<{
         />
       </TouchableOpacity>
       
-      {expanded && (
-        <View style={styles.slowList}>
-          {transits.map((transit, index) => (
-            <View key={index} style={styles.slowItem}>
+      <View style={styles.slowList}>
+        {displayTransits.map((transit, index) => (
+          <View key={index} style={styles.slowItem}>
+            <View style={styles.slowItemLeft}>
               <Text style={[styles.slowPlanet, { color: theme.text }]}>
                 {PLANET_SYMBOLS[transit.transit_planet]}
                 {' '}
@@ -288,12 +449,32 @@ const SlowTransitsSection: React.FC<{
                 {' '}
                 {PLANET_SYMBOLS[transit.natal_planet] || transit.natal_planet}
               </Text>
-              <Text style={[styles.slowOrb, { color: theme.textTertiary }]}>
-                {transit.orb.toFixed(1)}°
-              </Text>
+              {transit.is_outer_planet && (
+                <View style={[styles.outerPlanetBadge, { backgroundColor: theme.surfaceLight }]}>
+                  <Text style={[styles.outerPlanetText, { color: theme.textTertiary }]}>
+                    outer
+                  </Text>
+                </View>
+              )}
             </View>
-          ))}
-        </View>
+            <Text style={[styles.slowOrb, { color: theme.textTertiary }]}>
+              {transit.orb.toFixed(1)}°
+            </Text>
+          </View>
+        ))}
+      </View>
+      
+      {/* Show more indicator */}
+      {hasMore && !expanded && (
+        <TouchableOpacity
+          style={styles.showMoreButton}
+          onPress={onToggle}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.showMoreText, { color: theme.accent }]}>
+            +{transits.length - 3} more
+          </Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -332,6 +513,7 @@ const TrueSiderealTransitsCard: React.FC<TrueSiderealTransitsCardProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [slowExpanded, setSlowExpanded] = useState(false);
+  const [eventsExpanded, setEventsExpanded] = useState(false);
 
   useEffect(() => {
     loadDailyWindow();
@@ -342,7 +524,7 @@ const TrueSiderealTransitsCard: React.FC<TrueSiderealTransitsCardProps> = ({
       setLoading(true);
       setError(null);
 
-      const { getDailyTransitWindow } = await import('../../services/api');
+      const { getDailyTransitWindow } = await import('../services/api');
       const response = await getDailyTransitWindow(userId, timezone);
       
       if (response.error) {
@@ -394,59 +576,74 @@ const TrueSiderealTransitsCard: React.FC<TrueSiderealTransitsCardProps> = ({
          e.natal_planet === data.strongest_active_aspect.natal_planet
   );
 
+  // Get current Moon house from transit_houses or current_moon_house
+  const currentMoonHouse = data.transit_houses?.Moon || data.current_moon_house;
+
   return (
     <View style={[styles.container, { backgroundColor: theme.surface }]}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>
-          True Sidereal Transits
+          Today's Transits
         </Text>
         <Text style={[styles.headerDate, { color: theme.textTertiary }]}>
-          {data.date} • {data.local_timezone}
+          {data.date}
         </Text>
       </View>
 
-      {/* Theme Keywords */}
-      {data.daily_theme?.theme_keywords?.length > 0 && (
-        <ThemeKeywords keywords={data.daily_theme.theme_keywords} theme={theme} />
-      )}
+      {/* ============================================================ */}
+      {/* STRICT HIERARCHY:                                            */}
+      {/* 1. Hero Aspect (most significant transit)                    */}
+      {/* 2. Moon Context (sign + house)                               */}
+      {/* 3. Top 3 Timed Events (with "show more")                     */}
+      {/* 4. Top 3 Slow Transits (with "show more")                    */}
+      {/* 5. Debug Footer (provenance info)                            */}
+      {/* ============================================================ */}
 
-      {/* Hero: Strongest Active Aspect */}
+      {/* 1. HERO: Strongest Active Aspect */}
       {data.strongest_active_aspect && (
-        <StrongestAspectHero
+        <HeroAspectCard
           aspect={data.strongest_active_aspect}
           exactTime={strongestExactEvent?.local_time}
           theme={theme}
         />
       )}
 
-      {/* Moon Context */}
+      {/* 2. MOON CONTEXT (sign + house) */}
       <MoonContextCard
         currentSign={data.current_moon_sign}
+        currentHouse={currentMoonHouse}
         nextSign={data.next_moon_sign}
         ingressTime={data.next_moon_ingress_time}
         theme={theme}
       />
 
-      {/* Upcoming Events */}
+      {/* 3. TOP 3 TIMED EVENTS (expandable) */}
       {!compact && (
         <>
           <View style={styles.sectionHeader}>
             <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
             <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-              UPCOMING TODAY ({upcomingEvents.length})
+              TIMED EVENTS
             </Text>
+            {upcomingEvents.length > 0 && (
+              <Text style={[styles.sectionCount, { color: theme.textTertiary }]}>
+                ({upcomingEvents.length})
+              </Text>
+            )}
           </View>
           
-          <UpcomingEventsList
+          <TimedEventsList
             events={upcomingEvents}
+            expanded={eventsExpanded}
+            onToggle={() => setEventsExpanded(!eventsExpanded)}
             theme={theme}
             onEventPress={onEventPress}
           />
         </>
       )}
 
-      {/* Slow Transits */}
+      {/* 4. TOP 3 SLOW TRANSITS (expandable) */}
       {!compact && data.slow_transits_active.length > 0 && (
         <SlowTransitsSection
           transits={data.slow_transits_active}
@@ -456,12 +653,8 @@ const TrueSiderealTransitsCard: React.FC<TrueSiderealTransitsCardProps> = ({
         />
       )}
 
-      {/* Footer: Calculation Method */}
-      <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.textTertiary }]}>
-          Swiss Ephemeris • True Sidereal (SVP 31.28°)
-        </Text>
-      </View>
+      {/* 5. DEBUG FOOTER - Calculation provenance */}
+      <DebugFooter data={data} theme={theme} />
     </View>
   );
 };
@@ -711,6 +904,107 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 10,
     fontStyle: 'italic',
+  },
+  
+  // Moon Content (new for house display)
+  moonContent: {
+    flex: 1,
+  },
+  moonHouse: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  
+  // Section Count
+  sectionCount: {
+    fontSize: 10,
+    marginLeft: 4,
+  },
+  
+  // Show More Button
+  showMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    gap: 4,
+  },
+  showMoreText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  
+  // Slow Section Header Left
+  slowHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  slowCount: {
+    fontSize: 10,
+  },
+  
+  // Slow Item Left (for outer planet badge)
+  slowItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  
+  // Outer Planet Badge
+  outerPlanetBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  outerPlanetText: {
+    fontSize: 9,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+  },
+  
+  // Debug Footer
+  debugFooter: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+  },
+  debugToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  debugBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  debugBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  debugSvp: {
+    fontSize: 10,
+  },
+  debugDetails: {
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  debugRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  debugLabel: {
+    fontSize: 11,
+  },
+  debugValue: {
+    fontSize: 11,
+    fontWeight: '500',
   },
 });
 
