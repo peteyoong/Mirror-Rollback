@@ -26753,31 +26753,54 @@ def _rewrite_your_pattern_is(text: str) -> str:
 def _rewrite_you_always_never(text: str) -> str:
     """
     Rewrite: "You always X" / "You never X"
-    To: "There's often X in this space" / "This space rarely X"
+    To natural field-based language.
     """
-    # "You always X" - full sentence rewrite
-    always_pattern = r"[Yy]ou always ([^\.]+)\."
+    result = text
     
+    # Handle mid-sentence patterns first (more specific)
+    # "where you always feel X" → "where there's often a feeling of X"
+    result = re.sub(
+        r"where you always feel ([^\.]+)",
+        r"where there's often a feeling of \1",
+        result
+    )
+    # "where you always X" → "where this space often X"
+    result = re.sub(
+        r"where you always ([^\.]+)",
+        r"where the space often holds \1",
+        result
+    )
+    # "where you never X" → "where there's rarely X"  
+    result = re.sub(
+        r"where you never ([^\.]+)",
+        r"where there's rarely \1",
+        result
+    )
+    # "you never have to X" → "there's no need to X in this space"
+    result = re.sub(
+        r"[Yy]ou never have to ([^\.]+)\.",
+        r"There's no need to \1 in this space.",
+        result
+    )
+    
+    # Full sentence: "You always X." → "This space often allows for X."
     def rewrite_always(match):
         action = match.group(1).strip()
-        # Make it natural field language
-        return f"This space often {action}."
+        # Make the action fit grammatically
+        if action.startswith("take"):
+            return f"This space often allows for taking {action[5:].strip()}."
+        return f"This space often allows for {action}."
     
-    # "You never X" - full sentence rewrite
-    never_pattern = r"[Yy]ou never ([^\.]+)\."
+    result = re.sub(r"[Yy]ou always ([^\.]+)\.", rewrite_always, result)
     
+    # Full sentence: "You never X." → "This space rarely X."
     def rewrite_never(match):
         action = match.group(1).strip()
-        return f"This space rarely finds room for {action}."
+        if action.startswith("rush"):
+            return "This space rarely rushes."
+        return f"This space rarely {action}."
     
-    # Handle "where you never/always" mid-sentence
-    where_always = r"where you always ([^\.]+)"
-    where_never = r"where you never ([^\.]+)"
-    
-    result = re.sub(always_pattern, rewrite_always, text)
-    result = re.sub(never_pattern, rewrite_never, result)
-    result = re.sub(where_always, r"where there's often \1", result)
-    result = re.sub(where_never, r"where the space rarely makes room for \1", result)
+    result = re.sub(r"[Yy]ou never ([^\.]+)\.", rewrite_never, result)
     
     return result
 
