@@ -1352,11 +1352,13 @@ SIGNAL_ABSENT_PATTERNS = {
     },
     "familiar_pressure": {
         "title": "This Shape Again",
+        # HOME CONTEXT: First person, direct recognition - internal experience
         "what_happening": "You've been here before. The situation is different, but the feeling is the same. Part of you knows exactly how this usually goes.",
         "why_feels": "Patterns are comfortable even when they hurt. Breaking them takes more energy than repeating them.",
         "watch_for": "Defaulting to the familiar response. Knowing the ending but walking toward it anyway.",
         "better_move": "Notice the script. Ask what one small thing could be different this time.",
-        "interrupt": "You're about to do the thing you always do. What if you didn't?"
+        "interrupt": "You're about to do the thing you always do. What if you didn't?",
+        # Note: For FORUM context, use transform_pattern_to_forum() below
     },
 }
 

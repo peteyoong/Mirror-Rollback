@@ -408,3 +408,92 @@ def sanitize_forum_language(text: str) -> str:
         result = result.replace(old.capitalize(), new.capitalize())
     
     return result
+
+
+
+# =============================================================================
+# PATTERN CONTEXT TRANSFORMER
+# =============================================================================
+
+def transform_pattern_to_context(
+    pattern_data: Dict,
+    target_context: str,
+) -> Dict:
+    """
+    Transform a pattern's language to the appropriate context.
+    
+    Takes a pattern dict (with fields like title, what_happening, etc.)
+    and transforms all text fields to the target context (home or forum).
+    
+    Args:
+        pattern_data: Dict with pattern text fields
+        target_context: "home" or "forum"
+        
+    Returns:
+        New dict with context-appropriate language
+    """
+    if target_context == LanguageContext.HOME:
+        # Home context uses original language (first person, internal)
+        return pattern_data.copy()
+    
+    elif target_context == LanguageContext.FORUM:
+        # Forum context needs field-based transformation
+        result = {}
+        
+        for key, value in pattern_data.items():
+            if isinstance(value, str):
+                # Apply forum language sanitization
+                result[key] = sanitize_forum_language(value)
+            else:
+                result[key] = value
+        
+        # Special title transformation for Forum
+        if "title" in result:
+            title = result["title"]
+            # Transform internal titles to field-framed
+            title_transforms = {
+                "This Shape Again": "This Shape in the Field Again",
+                "You're Back Here Again": "The Space Has Been Here Before",
+                "You've Been Here Before": "A Familiar Dynamic Has Surfaced",
+            }
+            result["title"] = title_transforms.get(title, title)
+        
+        return result
+    
+    else:
+        logger.warning(f"[PatternTransform] Unknown context: {target_context}")
+        return pattern_data.copy()
+
+
+def generate_context_aware_pattern_message(
+    pattern_key: str,
+    pattern_signal: Dict,
+    context: str,
+    seed_hash: int = 0,
+) -> Dict[str, str]:
+    """
+    Generate a complete pattern message for the specified context.
+    
+    This is the main entry point for producing differentiated 
+    Home vs Forum pattern language from the same underlying signal.
+    
+    Args:
+        pattern_key: The pattern identifier (e.g., "familiar_pressure")
+        pattern_signal: Dict with pattern metadata (escalation_level, etc.)
+        context: "home" or "forum"
+        seed_hash: For variation selection
+        
+    Returns:
+        Dict with context-appropriate message components:
+        - recognition: Opening recognition phrase
+        - escalation: Escalation-level phrase
+        - soft_entry: Soft entry (for recurring patterns)
+        - breakthrough: Breakthrough phrase (if applicable)
+    """
+    if context == LanguageContext.HOME:
+        return generate_home_language(pattern_signal, seed_hash)
+    elif context == LanguageContext.FORUM:
+        return generate_forum_language(pattern_signal, seed_hash)
+    else:
+        logger.warning(f"[PatternMessage] Unknown context: {context}, defaulting to home")
+        return generate_home_language(pattern_signal, seed_hash)

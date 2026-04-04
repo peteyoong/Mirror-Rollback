@@ -43,7 +43,12 @@ import hashlib
 from services.pattern_language_context import (
     LanguageContext,
     generate_home_language,
+    generate_forum_language,
+    generate_pattern_language,
     HOME_PATTERN_LANGUAGE,
+    FORUM_PATTERN_LANGUAGE,
+    transform_to_field_language,
+    sanitize_forum_language,
 )
 
 logger = logging.getLogger(__name__)
@@ -443,7 +448,8 @@ class EscalationLevel:
     ESCALATING = 3
 
 # Map escalation levels to language
-ESCALATION_LANGUAGE = {
+# NOTE: These are HOME-context defaults. Use get_escalation_language() for context-aware output.
+ESCALATION_LANGUAGE_HOME = {
     EscalationLevel.DORMANT: [],  # No added language
     EscalationLevel.PRESENT: [
         "This is showing up.",
@@ -459,6 +465,49 @@ ESCALATION_LANGUAGE = {
         "This is louder than before.",
     ],
 }
+
+# Forum context uses field-framed language (NO "you've been here before")
+ESCALATION_LANGUAGE_FORUM = {
+    EscalationLevel.DORMANT: [],  # No added language
+    EscalationLevel.PRESENT: [
+        "Something is present in the field.",
+    ],
+    EscalationLevel.RECURRING: [
+        "Again.",
+        "The space has been here before.",
+        "Same dynamic, different context.",
+    ],
+    EscalationLevel.ESCALATING: [
+        "This keeps surfacing between you.",
+        "Notice the pattern.",
+        "This is building in the field.",
+    ],
+}
+
+def get_escalation_language(level: EscalationLevel, context: str = "home", seed_hash: int = 0) -> str:
+    """
+    Get context-aware escalation language.
+    
+    Args:
+        level: EscalationLevel (DORMANT, PRESENT, RECURRING, ESCALATING)
+        context: "home" or "forum"
+        seed_hash: For consistent variation selection
+        
+    Returns:
+        Context-appropriate escalation phrase
+    """
+    if context == LanguageContext.FORUM:
+        phrases = ESCALATION_LANGUAGE_FORUM.get(level, [])
+    else:
+        phrases = ESCALATION_LANGUAGE_HOME.get(level, [])
+    
+    if not phrases:
+        return ""
+    
+    return phrases[seed_hash % len(phrases)]
+
+# Legacy alias for backward compatibility
+ESCALATION_LANGUAGE = ESCALATION_LANGUAGE_HOME
 
 # -----------------------------------------------------------------------------
 # TIME DECAY WEIGHTS (V3.2)
