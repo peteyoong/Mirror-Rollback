@@ -1563,6 +1563,7 @@ export interface RelationshipPatternResponse {
   default_tension: string;
   growth_edge: string;
   gift: string;
+  what_teaching: string;  // NEW: What relationships are teaching you
   try_this: string;
   generated_at: string;
 }

@@ -47,6 +47,7 @@ interface RelationshipInsightData {
   tension: string;
   your_shift: string;
   gift: string;
+  why_this_connection: string;  // NEW: Why this connection exists
   try_this: string;
   dynamic: {
     user_type: string;
@@ -221,6 +222,23 @@ const RelationshipInsightCard: React.FC<RelationshipInsightCardProps> = ({
         ))}
       </View>
 
+      {/* WHY THIS CONNECTION EXISTS (NEW) */}
+      {data.why_this_connection && (
+        <View style={[styles.whyConnectionSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.whyConnectionLabel, { color: theme.textTertiary }]}>
+            WHY THIS CONNECTION EXISTS
+          </Text>
+          {splitLines(data.why_this_connection).map((line, idx) => (
+            <Text 
+              key={idx} 
+              style={[styles.whyConnectionText, { color: theme.text }]}
+            >
+              {line}
+            </Text>
+          ))}
+        </View>
+      )}
+
       {/* ESSENCE + FRICTION (compact) */}
       <View style={styles.contextSection}>
         <View style={styles.contextBlock}>
@@ -390,6 +408,26 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     fontStyle: 'italic',
+    marginBottom: 4,
+  },
+
+  // WHY THIS CONNECTION EXISTS section
+  whyConnectionSection: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  whyConnectionLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  whyConnectionText: {
+    fontSize: 15,
+    lineHeight: 24,
     marginBottom: 4,
   },
 

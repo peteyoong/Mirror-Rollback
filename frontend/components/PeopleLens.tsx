@@ -472,6 +472,20 @@ const PeopleLens: React.FC<PeopleLensProps> = ({ userId, theme }) => {
           ))}
         </View>
 
+        {/* WHAT RELATIONSHIPS ARE TEACHING YOU (NEW) */}
+        {pattern.what_teaching && (
+          <View style={[styles.teachingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.teachingLabel, { color: theme.textTertiary }]}>
+              WHAT RELATIONSHIPS ARE TEACHING YOU
+            </Text>
+            {splitLines(pattern.what_teaching).map((line, idx) => (
+              <Text key={idx} style={[styles.teachingText, { color: theme.text }]}>
+                {line}
+              </Text>
+            ))}
+          </View>
+        )}
+
         {/* TRY THIS */}
         <View style={[styles.tryThisCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.tryThisHeader}>
@@ -662,6 +676,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 23,
     fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  
+  // Teaching card (WHAT RELATIONSHIPS ARE TEACHING YOU)
+  teachingCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  teachingLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  teachingText: {
+    fontSize: 15,
+    lineHeight: 23,
     marginBottom: 4,
   },
   

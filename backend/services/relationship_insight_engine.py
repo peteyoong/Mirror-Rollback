@@ -160,6 +160,7 @@ DEEP_FRICTION = {
         "tension": "You reach. They wait. You reach again.\nYour initiation can feel like demand. Their reflection can feel like absence.",
         "your_shift": "Let your initiation land before you add to it.\nGive them something to respond to — then stop.\nTheir reflection needs stillness, not more input.",
         "gift": "They show you what your forward motion obscures.\nWhat you start, they complete — if you let them.",
+        "why_this_connection": "You create openings. They deepen what enters.\nWithout you, nothing would start. Without them, nothing would land.\nYou're learning that reaching isn't enough — it has to land somewhere.",
         "try_this": "Initiate once. Then wait. Count to five before adding anything.",
     },
     ("reflector", "initiator"): {
@@ -167,6 +168,7 @@ DEEP_FRICTION = {
         "tension": "They move. You need a moment. They move again.\nYour reflection gets crowded by their next idea.",
         "your_shift": "Speak before you've fully formed it.\nYour response doesn't need to be complete to be valuable.\nLet them see you working, not just the result.",
         "gift": "They pull things out of you that wouldn't emerge alone.\nTheir initiation is a prompt — not a demand.",
+        "why_this_connection": "They bring motion. You bring depth.\nWithout them, you'd stay in your interior. Without you, they'd stay on the surface.\nYou're learning that responding is also a form of action.",
         "try_this": "Say: 'I'm still landing this. Here's my first thought.'",
     },
     
@@ -175,6 +177,7 @@ DEEP_FRICTION = {
         "tension": "You push. They attune. You push harder.\nWhat feels like responsiveness to you feels like overwhelm to them.",
         "your_shift": "Your momentum is real. So is their attunement.\nSlowing doesn't break your flow — it deepens it.\nLet their sensing catch up. It's seeing something you missed.",
         "gift": "They slow you down enough to notice what speed hides.\nTheir attunement catches what your momentum would miss.",
+        "why_this_connection": "You bring force. They bring calibration.\nWithout you, things wouldn't move. Without them, movement wouldn't land right.\nYou're learning that power includes knowing when to pause.",
         "try_this": "Before your next move, ask: 'What are you sensing here?'",
     },
     ("attunement_holder", "momentum_carrier"): {
@@ -182,6 +185,7 @@ DEEP_FRICTION = {
         "tension": "They move. You adjust. They're already somewhere else.\nYour attunement loses its object.",
         "your_shift": "Their momentum isn't carelessness. It's their way of knowing.\nMatch some of it without abandoning your sensing.\nYou can attune while moving.",
         "gift": "They bring force to what you feel.\nYour sensing shapes their momentum into something smarter.",
+        "why_this_connection": "They move things forward. You make sure it's the right direction.\nWithout them, you'd sense forever. Without you, they'd move blind.\nYou're learning that sensing can happen while moving.",
         "try_this": "Move with them once before pausing to sense.",
     },
     
@@ -190,6 +194,7 @@ DEEP_FRICTION = {
         "tension": "You ask for clarity. They offer impressions.\nYour certainty seeks ground. Their sensing stays fluid.",
         "your_shift": "Not everything can be known before it's lived.\nTheir sensing isn't weakness — it's a different way of reading.\nLet some things stay unresolved longer.",
         "gift": "They see around corners you haven't reached yet.\nTheir sensing notices what your certainty would filter out.",
+        "why_this_connection": "You anchor things. They perceive what anchors can't hold.\nWithout you, everything stays vague. Without them, you miss what logic can't reach.\nYou're learning that some truths arrive before words.",
         "try_this": "Instead of 'What do you think?' ask 'What are you picking up on?'",
     },
     ("sensor", "certainty_seeker"): {
@@ -197,6 +202,7 @@ DEEP_FRICTION = {
         "tension": "They ask questions. You give impressions.\nThey want a clear answer. You have a felt sense.",
         "your_shift": "Give them something concrete to hold.\nYour sensing doesn't need to be vague when you share it.\nName one thing you're certain about — even if the rest is still forming.",
         "gift": "They ground what you sense into something usable.\nYour impressions become actionable through them.",
+        "why_this_connection": "They give form to what you feel. You give texture to what they know.\nWithout them, your sensing stays private. Without you, their knowing stays flat.\nYou're learning that impressions can become language.",
         "try_this": "Offer one concrete thing: 'I don't have the whole picture, but I'm certain about this.'",
     },
     
@@ -205,6 +211,7 @@ DEEP_FRICTION = {
         "tension": "You reach out. They take in.\nYour expression meets a depth you can't see the bottom of.",
         "your_shift": "Your expression is a gift. But it can feel like demand.\nShow without needing matching.\nWhat they hold is larger than what they show.",
         "gift": "They receive what you give in a way most people can't.\nYour expression lands somewhere real.",
+        "why_this_connection": "You make the invisible visible. They hold what visibility can't contain.\nWithout you, nothing would surface. Without them, nothing would be truly received.\nYou're learning that being seen isn't the same as being matched.",
         "try_this": "Share something without asking for response. Say: 'You don't need to reply.'",
     },
     ("absorber", "expresser"): {
@@ -212,6 +219,7 @@ DEEP_FRICTION = {
         "tension": "They reach. You take in. They wonder if you're there.\nWhat you're holding doesn't reach the surface.",
         "your_shift": "Let something small surface.\nThey're not asking for everything — just something.\nYour small expressions mean more to them than your silence.",
         "gift": "They draw out what you wouldn't express alone.\nTheir visibility invites yours.",
+        "why_this_connection": "They model expression. You model depth.\nWithout them, you'd stay hidden. Without you, they'd have no landing place.\nYou're learning that surfacing doesn't mean emptying.",
         "try_this": "Name one feeling you're holding. Just one.",
     },
     
@@ -220,6 +228,7 @@ DEEP_FRICTION = {
         "tension": "You act. They sense. You've already changed the room they were reading.\nYour doing can override what they're perceiving.",
         "your_shift": "Your action is real. So is the field they're reading.\nLet them sense before you move.\nWhat they see might change what you do.",
         "gift": "They read what your action creates — and tell you what you can't see.\nTheir perception completes your motion.",
+        "why_this_connection": "You change the room. They read what the room becomes.\nWithout you, nothing would change. Without them, you wouldn't know what you changed.\nYou're learning that action has consequences you can't see alone.",
         "try_this": "Before acting, ask: 'What's the room saying?'",
     },
     ("atmospheric_reader", "action_taker"): {
@@ -227,6 +236,7 @@ DEEP_FRICTION = {
         "tension": "They act. You're still reading. The field has already changed.\nYour sense of timing doesn't match their sense of readiness.",
         "your_shift": "Let some of their action in before you assess it.\nYour reading can include their movement, not just resist it.\nSometimes the action clarifies what reading couldn't.",
         "gift": "They bring motion to what you perceive.\nYour atmospheric reading shapes where their action lands.",
+        "why_this_connection": "They create change. You perceive what change creates.\nWithout them, you'd read a static room. Without you, they'd act without awareness.\nYou're learning that perception can follow action, not just precede it.",
         "try_this": "Let them act once. Read the result. Then share what you see.",
     },
     
@@ -236,6 +246,7 @@ DEEP_FRICTION = {
         "tension": "You move. They sense. You've already moved again.\nWhat you initiate, they're still metabolizing.",
         "your_shift": "Slow your initiations. Let one land fully.\nTheir attunement isn't hesitation — it's a different kind of intelligence.\nGive them the room to sense what you've started.",
         "gift": "They catch what your initiation misses.\nYour starting becomes smarter when it includes their sensing.",
+        "why_this_connection": "You create openings. They feel whether they're the right ones.\nWithout you, nothing would start. Without them, starts wouldn't be calibrated.\nYou're learning that starting well includes sensing the field.",
         "try_this": "Start something. Then ask: 'What are you sensing here?' Wait for the full answer.",
     },
     ("attunement_holder", "initiator"): {
@@ -243,6 +254,7 @@ DEEP_FRICTION = {
         "tension": "They initiate. You attune. They've initiated again.\nYour tempo doesn't match their pace.",
         "your_shift": "Let their initiation land without immediately attuning to it.\nYou can respond without first having fully sensed.\nSometimes action teaches what attunement can't.",
         "gift": "They pull you into motion before you've finished reading.\nThat forward energy shows you what you wouldn't have moved toward alone.",
+        "why_this_connection": "They bring motion. You bring awareness of what motion creates.\nWithout them, you'd sense without moving. Without you, they'd move without sensing.\nYou're learning that you can attune and move at the same time.",
         "try_this": "Say yes to one thing before you've fully felt into it. See what happens.",
     },
     
@@ -251,6 +263,7 @@ DEEP_FRICTION = {
         "tension": "You build through doing. They trust impressions.\nYour motion can drown out what they're sensing.",
         "your_shift": "Your momentum is real. But it's not the only signal.\nPause mid-motion to ask what they're picking up.\nTheir sensing sees around corners you haven't reached.",
         "gift": "They sense what's coming before you get there.\nYour momentum lands better when it includes their feeling.",
+        "why_this_connection": "You bring force. They bring foresight.\nWithout you, nothing would build. Without them, you'd build toward the wrong thing.\nYou're learning that feeling can guide momentum.",
         "try_this": "Mid-action, pause and ask: 'What are you picking up on here?'",
     },
     ("sensor", "momentum_carrier"): {
@@ -258,6 +271,7 @@ DEEP_FRICTION = {
         "tension": "They build. You sense. The gap widens.\nWhat you're feeling gets lost in their forward motion.",
         "your_shift": "Let your sensing inform their momentum without stopping it.\nSpeak your impressions while they're moving.\nYour input doesn't require their pause.",
         "gift": "Your sensing gives their momentum direction.\nTogether, you move with both force and feeling.",
+        "why_this_connection": "They carry energy. You give it shape.\nWithout them, your sensing stays still. Without you, their energy has no direction.\nYou're learning that sensing can happen in motion.",
         "try_this": "Share one impression while they're still moving. Don't wait until they stop.",
     },
     
@@ -266,6 +280,7 @@ DEEP_FRICTION = {
         "tension": "You reach. They hold. You wonder what's there.\nWhat you give isn't matched in kind. That's not coldness — it's their structure.",
         "your_shift": "Your expression is generous. But it needs less return.\nShow without requiring them to show back.\nTheir containment isn't a wall — it's just how they're built.",
         "gift": "They receive what you give without flooding.\nYour expression lands somewhere stable.",
+        "why_this_connection": "You show what's happening. They hold what's precious.\nWithout you, nothing would surface. Without them, everything would scatter.\nYou're learning that stability can receive without reflecting.",
         "try_this": "Express something without asking for response. End with: 'You don't have to reply.'",
     },
     ("container", "expresser"): {
@@ -273,6 +288,7 @@ DEEP_FRICTION = {
         "tension": "They share. You take it in. They wonder if you're there.\nWhat they give seems to disappear into your holding.",
         "your_shift": "Give them something small. A signal that you're receiving.\nYour containment is protection — but they need to see past it.\nOne small opening changes everything.",
         "gift": "They draw out what you hold.\nYour small expressions mean more because they're rare.",
+        "why_this_connection": "They model visibility. You model steadiness.\nWithout them, you'd stay unseen. Without you, they'd have no anchor.\nYou're learning that opening doesn't mean flooding.",
         "try_this": "Name one thing you're holding that relates to what they just shared.",
     },
     
@@ -281,6 +297,7 @@ DEEP_FRICTION = {
         "tension": "You ask for clarity. They're reading the field.\nDifferent intelligences, different timings.",
         "your_shift": "Your certainty isn't wrong. But it's not the only way to know.\nLet them sense without requiring translation into facts.\nSometimes the feeling is the answer.",
         "gift": "They bring information your questions can't reach.\nTheir sensing completes your knowing.",
+        "why_this_connection": "You seek ground. They read the field.\nWithout you, nothing would be named. Without them, you'd miss what can't be named.\nYou're learning that some knowing arrives through feeling.",
         "try_this": "Instead of asking 'What do you think?', ask 'What's the feeling here?'",
     },
     ("attunement_holder", "certainty_seeker"): {
@@ -288,6 +305,7 @@ DEEP_FRICTION = {
         "tension": "They ask. You sense. Your answers don't satisfy their questions.\nYou speak in impressions. They want facts.",
         "your_shift": "Give them one certainty to hold. Even if the rest is still forming.\nYour sensing doesn't have to stay vague when you share it.\nMeet their clarity need without abandoning your own way of knowing.",
         "gift": "They ground what you sense into something usable.\nYour impressions become actionable through their structure.",
+        "why_this_connection": "They need named things. You perceive unnamed things.\nWithout them, your sensing stays formless. Without you, their knowing stays incomplete.\nYou're learning that impressions can become language without losing their essence.",
         "try_this": "Start with: 'Here's one thing I'm certain about.' Then add the sensing.",
     },
     
@@ -296,6 +314,7 @@ DEEP_FRICTION = {
         "tension": "You do. They hold. You've done more before they've processed the first thing.\nYour doing fills the space they need.",
         "your_shift": "Leave room between actions.\nWhat you do lands deeper when there's space around it.\nTheir absorption isn't passivity — it's how they learn.",
         "gift": "They take in your action at a depth you can't see.\nWhat you do matters more because of how they receive it.",
+        "why_this_connection": "You create impact. They register impact.\nWithout you, there would be nothing to absorb. Without them, your actions would vanish unwitnessed.\nYou're learning that impact needs space to land.",
         "try_this": "Do one thing. Then leave space. Ask: 'What are you holding from that?'",
     },
     ("absorber", "action_taker"): {
@@ -303,6 +322,7 @@ DEEP_FRICTION = {
         "tension": "They act. You're still processing. The actions accumulate.\nYou're holding more than you can show.",
         "your_shift": "Let some of what they do pass through without holding it.\nYou don't have to absorb everything.\nSurface what you're holding before it becomes too much.",
         "gift": "Their action gives you something to work with.\nYour absorption transforms what they do into something deeper.",
+        "why_this_connection": "They generate material. You transform it.\nWithout them, you'd have nothing to process. Without you, their actions wouldn't gain depth.\nYou're learning that you can choose what to hold and what to release.",
         "try_this": "Before you've fully processed, say: 'Here's what I'm holding so far.'",
     },
     
@@ -311,6 +331,7 @@ DEEP_FRICTION = {
         "tension": "You keep what's yours. They take in what's not theirs.\nYour boundaries protect you. Their openness absorbs.",
         "your_shift": "Your containment isn't coldness. But it can read that way.\nOffer a door, not a wall.\nThey can't enter what you don't open.",
         "gift": "They bring feeling into spaces you've protected.\nTheir porosity softens your edges without breaking them.",
+        "why_this_connection": "You hold edges. They blur edges.\nWithout you, they'd have no structure. Without them, you'd have no permeability.\nYou're learning that edges can have doors.",
         "try_this": "Name one thing you're holding that they haven't seen.",
     },
     ("porous", "container"): {
@@ -318,6 +339,7 @@ DEEP_FRICTION = {
         "tension": "You feel them. They hold themselves.\nWhat you're carrying may not be theirs to feel back.",
         "your_shift": "Their containment isn't rejection. It's how they're built.\nYou don't have to hold everything they don't show.\nCreate some edge of your own. Just a little.",
         "gift": "They provide structure when your edges blur.\nTheir containment gives you something to push against.",
+        "why_this_connection": "They model edges. You model permeability.\nWithout them, you'd have no boundaries. Without you, they'd have no flow.\nYou're learning that you can feel without absorbing.",
         "try_this": "Notice what you're carrying that isn't yours. Put one thing down.",
     },
 }
@@ -473,16 +495,17 @@ def generate_relationship_insight(
     
     return {
         "success": True,
-        "version": "v2.0",
+        "version": "v2.1",
         "other_name": other_name,
         "relationship_type": relationship_type,
         
-        # The 6-section structure
+        # The 7-section structure (added WHY THIS CONNECTION EXISTS)
         "essence": essence,
         "friction": deep_content["friction"],
         "tension": deep_content["tension"],
         "your_shift": deep_content["your_shift"],
         "gift": deep_content["gift"],
+        "why_this_connection": deep_content.get("why_this_connection", ""),  # NEW: Why this connection exists
         "try_this": deep_content["try_this"],
         
         # Metadata
@@ -508,6 +531,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your initiation can feel like demand when it isn't received.\nYou reach. Silence. You reach again.\nThe gap between your offer and their response is where you struggle.",
         "growth_edge": "Let your reaching land before you add to it.\nNot every silence is rejection. Some people need time to meet your energy.\nYour shift: Initiate once, then wait.",
         "gift": "You make connection happen.\nWithout you, things stay still. People who can't start things need you.\nYour forward motion creates openings others can't.",
+        "what_teaching": "You keep meeting people who don't match your speed.\nThis isn't random. You're learning that connection isn't just about reaching — it's about landing.\nThe ones who make you wait are teaching you that your energy needs space to be received.",
         "try_this": "Next time you reach out: wait twice as long as feels comfortable before reaching again.",
     },
     "reflector": {
@@ -515,6 +539,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your reflection can feel like hesitation to people who move fast.\nThey reach. You need a moment. They wonder if you're there.\nThe gap between their offer and your response is where friction lives.",
         "growth_edge": "Speak before you've fully formed it.\nYour response doesn't need to be complete to be valuable.\nYour shift: Show your process, not just your result.",
         "gift": "You see what others miss about themselves.\nYour reflection is a mirror they can't find alone.\nWhat you give back is often clearer than what they sent.",
+        "what_teaching": "You keep attracting people who want more than you're showing.\nThis isn't random. You're learning that your interior needs to reach the surface sometimes.\nThe ones who push you to respond are teaching you that presence isn't passive.",
         "try_this": "Say 'I'm still landing this — here's my first thought' instead of waiting until you're ready.",
     },
     "momentum_carrier": {
@@ -522,6 +547,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your momentum can outpace people who need to feel before they move.\nYou're building. They're sensing. The gap widens.\nWhat feels like responsiveness to you can feel like pressure to them.",
         "growth_edge": "Slowing doesn't break your flow — it deepens it.\nSome people need to sense what's happening before they can join.\nYour shift: Pause mid-motion to check in.",
         "gift": "You bring force to what matters.\nPeople who struggle to move need your momentum.\nYour energy makes things happen that wouldn't happen otherwise.",
+        "what_teaching": "You keep meeting people who slow you down.\nThis isn't random. You're learning that force without awareness misses things.\nThe ones who can't match your pace are teaching you that momentum includes pausing.",
         "try_this": "Mid-action, pause and ask: 'Are you with me?' Then actually wait for the answer.",
     },
     "attunement_holder": {
@@ -529,6 +555,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your attunement can feel like hesitation to people who move fast.\nThey act. You're still sensing. They've moved again.\nYour tempo doesn't match their speed.",
         "growth_edge": "You can attune while moving.\nMatching some momentum doesn't mean abandoning your sensing.\nYour shift: Move with them once before pausing to sense.",
         "gift": "You catch what speed misses.\nPeople who move fast need someone who reads the field.\nYour sensing prevents collisions they don't see coming.",
+        "what_teaching": "You keep attracting people who move faster than you sense.\nThis isn't random. You're learning that your attunement can happen in motion.\nThe ones who don't wait are teaching you that reading the room includes moving through it.",
         "try_this": "Say yes to one thing before you've fully felt into it. See what happens.",
     },
     "certainty_seeker": {
@@ -536,6 +563,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your questions can feel like interrogation to people who work by feeling.\nYou ask for clarity. They offer impressions.\nYour need for ground meets their fluidity.",
         "growth_edge": "Not everything can be known before it's lived.\nSome people's vagueness isn't avoidance — it's how they know.\nYour shift: Let some things stay unresolved longer.",
         "gift": "You bring structure to what's formless.\nPeople who float need someone who names things clearly.\nYour certainty creates ground others can stand on.",
+        "what_teaching": "You keep meeting people who can't give you straight answers.\nThis isn't random. You're learning that clarity isn't the only form of truth.\nThe ones who speak in impressions are teaching you that some knowing can't be pinned down.",
         "try_this": "Instead of 'What do you think?' ask 'What are you picking up on?' — and accept the vague answer.",
     },
     "sensor": {
@@ -543,6 +571,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your impressions can feel like evasion to people who need facts.\nThey ask questions. You give impressions.\nYour felt sense doesn't translate into their language.",
         "growth_edge": "Give them something concrete to hold.\nYour sensing doesn't have to be vague when you share it.\nYour shift: Name one thing you're certain about — even if the rest is forming.",
         "gift": "You see around corners others haven't reached.\nPeople who only trust facts miss what you perceive.\nYour sensing notices what logic would filter out.",
+        "what_teaching": "You keep meeting people who want you to be more concrete.\nThis isn't random. You're learning that impressions can become language.\nThe ones who ask for facts are teaching you that your sensing can be shared without losing its truth.",
         "try_this": "Offer one concrete thing: 'I don't have the whole picture, but I'm certain about this.'",
     },
     "expresser": {
@@ -550,6 +579,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your expression can feel like demand to people who hold more inside.\nYou reach out. They take in.\nYour visibility meets their depth — and wonders what's there.",
         "growth_edge": "Show without needing matching.\nNot everyone processes out loud. Their silence isn't rejection.\nYour shift: Express without requiring equal expression back.",
         "gift": "You make the invisible visible.\nPeople who can't name their feelings learn from watching you.\nYour openness gives permission to others.",
+        "what_teaching": "You keep meeting people who don't show as much as you do.\nThis isn't random. You're learning that expression can land without being matched.\nThe ones who stay quiet are teaching you that reception is different from reflection.",
         "try_this": "Share something and end with: 'You don't need to reply.' Mean it.",
     },
     "absorber": {
@@ -557,6 +587,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your silence can feel like absence to people who need feedback.\nThey share. You take it in. They wonder if you're there.\nWhat you're holding doesn't reach the surface.",
         "growth_edge": "Let something small surface.\nThey're not asking for everything — just something.\nYour shift: Your small expressions mean more because they're rare.",
         "gift": "You receive at a depth most people can't.\nPeople who express need someone who actually takes it in.\nWhat you hold transforms over time into something valuable.",
+        "what_teaching": "You keep meeting people who want more from you than silence.\nThis isn't random. You're learning that what you hold can reach the surface without emptying.\nThe ones who ask if you're there are teaching you that small signals matter.",
         "try_this": "Name one feeling you're holding. Just one. Out loud.",
     },
     "action_taker": {
@@ -564,6 +595,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your action can feel abrupt to people who need to feel first.\nYou act. They're still reading. The room has already changed.\nYour doing can override what they're perceiving.",
         "growth_edge": "Let them sense before you move.\nWhat they see might change what you do.\nYour shift: Ask 'What's the room saying?' before acting.",
         "gift": "You make things happen.\nPeople who get stuck in sensing need your motion.\nYour action clarifies what thinking couldn't.",
+        "what_teaching": "You keep meeting people who want you to slow down.\nThis isn't random. You're learning that action without awareness misses what's happening.\nThe ones who read the room are teaching you that the field has information too.",
         "try_this": "Before your next move, ask: 'What are you sensing here?' Wait for the full answer.",
     },
     "atmospheric_reader": {
@@ -571,6 +603,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your reading can feel like stalling to people who move fast.\nThey act. You're still reading. The field has already changed.\nYour sense of timing doesn't match their readiness.",
         "growth_edge": "Let some action in before you assess it.\nYour reading can include movement, not just resist it.\nYour shift: Sometimes action clarifies what reading couldn't.",
         "gift": "You see what action creates.\nPeople who move fast need someone who reads the impact.\nYour perception prevents unintended consequences.",
+        "what_teaching": "You keep meeting people who move before you've finished reading.\nThis isn't random. You're learning that reading can happen in motion.\nThe ones who act fast are teaching you that the room keeps changing anyway.",
         "try_this": "Let them act once. Read the result. Then share what you see.",
     },
     "container": {
@@ -578,6 +611,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "Your containment can feel like withholding to people who share openly.\nThey reach. You hold. They wonder what's there.\nYour protection can read as coldness.",
         "growth_edge": "Offer a door, not a wall.\nThey can't enter what you don't open.\nYour shift: Name one thing you're holding that they haven't seen.",
         "gift": "You provide structure when others flood.\nPeople with no edges need your containment.\nYour steadiness is a form of safety.",
+        "what_teaching": "You keep meeting people who want inside what you're protecting.\nThis isn't random. You're learning that your edges can have doors.\nThe ones who reach toward you are teaching you that opening isn't the same as flooding.",
         "try_this": "Share one thing from inside before they ask. Proactively.",
     },
     "porous": {
@@ -585,6 +619,7 @@ IDENTITY_PATTERNS = {
         "default_tension": "You absorb what isn't yours. That can tire you.\nThey contain themselves. You feel them anyway.\nWhat you're carrying may not be theirs to feel back.",
         "growth_edge": "Create some edge of your own. Just a little.\nYou don't have to hold everything you feel.\nYour shift: Notice what you're carrying that isn't yours. Put one thing down.",
         "gift": "You feel what others hide from themselves.\nPeople who can't access their feelings need your perception.\nYour porosity brings hidden things to light.",
+        "what_teaching": "You keep meeting people who have clearer edges than you do.\nThis isn't random. You're learning that boundaries don't mean disconnection.\nThe ones who hold themselves are teaching you that you can feel without absorbing.",
         "try_this": "At the end of each conversation, ask yourself: 'What am I carrying that isn't mine?'",
     },
 }
@@ -620,15 +655,16 @@ def generate_relationship_pattern(
     
     return {
         "success": True,
-        "version": "v2.0",
+        "version": "v2.1",
         "pattern_type": user_type,
         "pattern_quality": DEEP_DYNAMICS.get(user_type, {}).get("quality", "unknown"),
         
-        # The 5-section structure for identity-level
+        # The 6-section structure for identity-level
         "core_pattern": pattern["core_pattern"],
         "default_tension": pattern["default_tension"],
         "growth_edge": pattern["growth_edge"],
         "gift": pattern["gift"],
+        "what_teaching": pattern["what_teaching"],  # NEW: What relationships are teaching you
         "try_this": pattern["try_this"],
         
         "generated_at": datetime.now(timezone.utc).isoformat(),
