@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getLifeContext, LifeContextResponse, LifeContextType } from '../services/api';
 import { InlineReflectButton } from './UniversalReflectButton';
 import { LifelineTimeline } from './lifeline';
+import PeopleLens from './PeopleLens';
 
 interface Props {
   userId: string;
@@ -29,9 +30,9 @@ const CONTEXT_CONFIG = {
     description: 'Your story',
   },
   relationships: {
-    icon: 'heart-outline' as const,
-    label: 'Relationships',
-    description: 'How you connect',
+    icon: 'people-outline' as const,
+    label: 'People',
+    description: 'Those in your life',
   },
   work: {
     icon: 'briefcase-outline' as const,
@@ -64,10 +65,10 @@ export default function LifeContextView({ userId, initialContext = 'lifeline', o
   const [expandedSection, setExpandedSection] = useState<string | null>('Overview');
 
   useEffect(() => {
-    if (activeContext !== 'lifeline') {
+    if (activeContext !== 'lifeline' && activeContext !== 'relationships') {
       loadContextData();
     } else {
-      // Lifeline has its own loading logic
+      // Lifeline and Relationships have their own loading logic
       setIsLoading(false);
     }
   }, [activeContext, userId]);
@@ -177,8 +178,9 @@ export default function LifeContextView({ userId, initialContext = 'lifeline', o
     );
   };
 
-  // Only show loading/error for non-lifeline tabs (lifeline handles its own state)
-  if (activeContext !== 'lifeline') {
+  // Only show loading/error for non-lifeline and non-relationships tabs 
+  // (lifeline and relationships handle their own state)
+  if (activeContext !== 'lifeline' && activeContext !== 'relationships') {
     if (isLoading) {
       return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -213,7 +215,23 @@ export default function LifeContextView({ userId, initialContext = 'lifeline', o
     <LifelineTimeline userId={userId} />
   );
 
-  // Render other context tabs (Relationships, Work, Self)
+  // Render the People/Relationships tab content
+  const renderPeopleTab = () => (
+    <PeopleLens 
+      userId={userId} 
+      theme={{
+        background: theme.background,
+        surface: theme.surface,
+        text: theme.text,
+        textSecondary: theme.textSecondary,
+        textTertiary: theme.textTertiary,
+        accent: theme.accent,
+        border: theme.border,
+      }}
+    />
+  );
+
+  // Render other context tabs (Work, Self)
   const renderOtherContextTab = () => (
     <ScrollView
       style={styles.scrollContainer}
@@ -254,7 +272,9 @@ export default function LifeContextView({ userId, initialContext = 'lifeline', o
       {renderContextTabs()}
       
       {/* Conditional rendering based on active tab */}
-      {activeContext === 'lifeline' ? renderLifelineTab() : renderOtherContextTab()}
+      {activeContext === 'lifeline' && renderLifelineTab()}
+      {activeContext === 'relationships' && renderPeopleTab()}
+      {activeContext !== 'lifeline' && activeContext !== 'relationships' && renderOtherContextTab()}
     </View>
   );
 }

@@ -11,7 +11,7 @@ import sys
 from typing import Dict, Any, List
 
 # Backend URL from environment
-BACKEND_URL = "https://deployment-fix-25.preview.emergentagent.com/api"
+BACKEND_URL = "https://insight-engine-126.preview.emergentagent.com/api"
 
 class RelationshipInsightTester:
     def __init__(self):

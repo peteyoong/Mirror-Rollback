@@ -4,10 +4,22 @@ import { Platform } from 'react-native';
 
 // Resolve API base URL with proper fallback chain for Expo
 const getApiBaseUrl = (): string => {
-  // 1. For web preview, ALWAYS use relative URL (same origin)
-  // This is the most reliable approach as it avoids DNS/hostname issues
-  // The ingress will route /api/* to the backend
+  // For web, determine the best URL based on hostname
   if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      
+      // If on preview domain, use relative URLs (ingress will proxy)
+      if (hostname.includes('preview.emergentagent.com') || hostname.includes('.emergent.host')) {
+        return '';  // Use relative URLs
+      }
+      
+      // If localhost, use direct backend URL
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:8001';
+      }
+    }
+    // Fallback for web
     return '';
   }
   

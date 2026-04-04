@@ -1,123 +1,71 @@
 <analysis>**original_problem_statement**: 
-The user is driving continuous deep refinement of the application's Home screen and Lenses to completely remove dependency on the chat interface for deep, resonant insights. In this session, the user requested:
-1. Upgrade Pattern Memory Engine from V4 to V4.1 (Pattern Evolution Engine) to detect if patterns are escalating, softening, looping, etc.
-2. Upgrade Home to a Synthesis Engine (V5.0) with a strict 4-block decisive structure.
-3. Upgrade Astrology Today to an Expert Interpreter (V5.0) using a 6-section structure that connects transit, natal placement, and lived consequence.
-4. Replace old UI components with new V5.0 cards on the frontend and sanitize all internal system labels from user-facing copy.
-5. Deploy the changes to production.
+The user is driving continuous deep refinement of the application's Home screen and Lenses. In this session, the user requested:
+1. Fix the production deployment pipeline serving a stale frontend.
+2. Implement Event Priority (Salience) logic in Astrology Today so major transits (like Full Moons) dominate the theme and are explicitly named.
+3. Implement a Horizon Interpretation Layer so Today, This Week, and This Month tabs have distinct interpretations (Immediate, Recurring, Arc).
+4. Perform a language refinement pass: cut sentence lengths by 30-50%, increase emotional edge, and use a Blade + Anchor copy pattern.
+5. Create a new Relationship Insight Engine for 1:1 dynamics (Essence, Friction, Tension, Your Shift, Gift, Try This).
+6. Redefine the Life > Relationships tab as a People lens.
 
-PRODUCT REQUIREMENTS: 
-- Home should deliver decisive synthesis across all signals (no abstract or generic horoscopes).
-- Internal pattern keys (e.g., ) must be sanitized into human-readable behavioral text.
-- Production deployment must reflect the V5.0 UI updates (Currently failing/stale).
+PRODUCT REQUIREMENTS:
+- Astrology horizons must feel distinct: Today (right now), Week (repetition), Month (broader lesson).
+- Language must be direct, slightly confronting, and actionable (no spiritual fluff or generic explanations).
+- Relationship Insights must center the user, focus on deeper dynamics (e.g., Initiation vs. Attunement), and never diagnose the other person.
+- The People lens must list people in the user's life, and clicking one opens their specific Relationship Insight card.
 
 **User's preferred language**: English
-(INSTRUCT NEXT AGENT: You MUST respond in English only)
+(INSTRUCT NEXT AGENT: You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only. In this case, respond in English.)
 
 **what currently exists?** 
-The backend now features V4.1 Pattern Evolution, V5.0 Home Synthesis Engine (), and V5.0 Astro Expert Engine (). The frontend components  and  have been fully integrated into  and . The preview environment runs correctly with the V5.0 experience, but the production deployment pipeline is failing to serve the updated static files.
+The deployment pipeline has been fixed to correctly serve the V5.0 frontend. The backend now contains the , , and . The  and  were heavily refactored to use the Blade + Anchor language pattern. The frontend successfully wires the timeframe parameter for Astro Expert and includes a new . A test route  proved the relationship UI works. The agent just created  to replace the old Relationships tab but has not integrated it yet.
 
 **Last working item**: 
-    - Last item agent was working: Debugging why the production deployment URL is serving stale UI components (V4) instead of the new V5.0 UI, despite successful deployments and local previews. The agent discovered that the production backend serves static files from  (which was stale), but manual  commands inside the container do not persist across fresh deployment builds.
+    - Last item agent was working: Building the  component and integrating it into the  so that the Relationships tab acts as a list of people which opens individual Relationship Insight cards.
     - Status: IN PROGRESS
-    - Agent Testing Done: Y
-    - Which testing method agent to use? bash curl / manual static build inspection.
-    - User Testing Done: Y (User repeatedly reported production URL is still not reflecting changes).
+    - Agent Testing Done: N
+    - Which testing method agent to use? Frontend testing agent or manual screenshot tool to verify the new People tab renders correctly and opens the Insight Card.
+    - User Testing Done: N
 
 **All Pending/In progress Issue list**:  
-  Issue 1: Production Deployment Serving Stale Frontend (P0)
-     - Attempted fixes: Agent manually ran env: load .env
-env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_DEBUG_MIRROR EXPO_PUBLIC_BUILD_VERSION EXPO_PUBLIC_BUILD_ID
-Fast resolver is enabled.
-Starting Metro Bundler
-Static rendering is enabled. Learn more: https://docs.expo.dev/router/reference/static-rendering/
-Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 79.3% (1109/1245)
-λ node_modules/expo-router/node/render.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 90.8% (1491/1566)
-λ Bundled 2493ms node_modules/expo-router/node/render.js (1656 modules)
-Web Bundled 3072ms node_modules/expo-router/entry.js (1603 modules)
-
-› web bundles (1):
-_expo/static/js/web/entry-dee1ac61170e925c6369578066e50034.js (4.37 MB)
-
-› Static routes (40):
-/life (41.4 kB)
-/ (index) (41.4 kB)
-/lenses (41.4 kB)
-/signals (41.4 kB)
-/welcome (41.4 kB)
-/reflect (41.4 kB)
-/_sitemap (40.3 kB)
-/patterns (41.4 kB)
-/+not-found (40.3 kB)
-/(tabs)/life (41.4 kB)
-/forums/[id] (41.4 kB)
-/forums/join (41.4 kB)
-/pattern-lens (41.4 kB)
-/(tabs) (41.4 kB)
-/forums (41.4 kB)
-/forums/story (41.4 kB)
-/todays-mirror (41.4 kB)
-/(tabs)/lenses (41.4 kB)
-/forums/create (41.4 kB)
-/lenses/[lens] (41.4 kB)
-/(tabs)/reflect (41.4 kB)
-/forums/updates (41.4 kB)
-/lifeline-upload (41.4 kB)
-/reflection-chat (41.4 kB)
-/(tabs)/patterns (41.4 kB)
-/enneagram (41.4 kB)
-/forums/dynamics (41.4 kB)
-/forums/exercise (41.4 kB)
-/forums/mappings (41.4 kB)
-/forums/pairwise (41.4 kB)
-/forums/patterns (41.4 kB)
-/onboarding (41.4 kB)
-/forum-pattern-map (41.4 kB)
-/enneagram/results (41.4 kB)
-/questionnaire (41.4 kB)
-/enneagram/assessment (41.4 kB)
-/lifeline-import-review (41.4 kB)
-/enneagram/self-declare (41.4 kB)
-/lifeline-imported-sources (41.4 kB)
-/settings/experience-preferences (41.4 kB)
-
-Exported: dist and manually copied  to . This fixed the local container but did not persist on the user's actual live staging URL because deployment containers are built from source and manual terminal copies are overwritten. Agent also deleted a backup file () thinking it might be conflicting.
-     - Next debug checklist: 
-        1. Check  in the frontend or root to see if the build script actually outputs to  or if it lacks a post-build copy step.
-        2. Check  to see how static files are mounted. If it mounts , modify the deployment pipeline/scripts so it automatically populates that folder during a deployment build, OR change  to serve directly from .
-     - Why fix this issue and what will be achieved with the fix? The user cannot see any of the massive V5.0 upgrades on their live app until the deployment pipeline correctly bundles and serves the updated frontend.
-     - Status: IN PROGRESS
+  Issue 1: Frontend API Base URL resolution edge cases (P1)
+     - Attempted fixes: Agent modified  to ensure  is used as a fallback rather than a relative path , which caused 404s for the  routes during local web testing. 
+     - Next debug checklist: Keep an eye on  if any new endpoints fail with 404s on web. 
+     - Why fix this issue and what will be achieved with the fix? Ensures local web testing properly proxies API calls to the backend.
+     - Status: RESOLVED (Monitor for recurrence)
      - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? Both (Requires deployment agent / user verification on live link)
-     - Blocked on other issue: None
+     - Should Test frontend/backend/both after fix? Frontend
 
 **In progress Task List**: 
-  None (Features are complete, blocked by deployment issue above).
+  Task 1: Integrate People Lens into Life Context
+     - Where to resume:  was just created. You need to build its UI (a list of people with optional relationship types) and wire it into  (replacing the old  logic for the Relationships active context). When a person is clicked, it should open the .
+     - What will be achieved with this? Fulfills the user's request to redefine the Life > Relationships tab as a People lens.
+     - Status: IN PROGRESS
+     - Should Test frontend/backend/both after fix? Frontend
+     - Blocked on something: None
 
 **Upcoming and Future Tasks**
     Upcoming Tasks:
-    - Add frontend UI indicators for evolution state (subtle labels for Escalating, Softening) (P1)
-    - Enhance personalization with actual journal keyword fetching for dominance scoring (P1)
-    - Add timeframe-specific endpoints for Week/Month views in Astro Expert (P1)
-    - Fine-tune lived-texture language library / add more  entries per planet (P2)
+    - Add ability to save/edit people/relationships in the People Lens (P1).
+    - Add frontend UI indicators for evolution state (subtle labels for Escalating, Softening) (P1).
+    - Enhance personalization with actual journal keyword fetching for dominance scoring (P1).
     
     Future Tasks:
-    - Refactor  monolith (P2)
-    - Refactor Frontend Monoliths (, , ) (P2)
+    - Refactor  monolith (P2).
+    - Refactor Frontend Monoliths (, , ) (P2).
 
 **Completed work in this session**
-- Pattern Memory Engine V4 completion (DONE)
-- Pattern Evolution Engine V4.1 implementation (DONE)
-- Home Synthesis Engine V5.0 & API endpoints (DONE)
-- Astro Expert Interpreter V5.0 & API endpoints (DONE)
--  created and integrated into Home screen () (DONE)
--  created and integrated into  (DONE)
-- Pattern Sanitizer () built to remove internal keys from user-facing copy (DONE)
+- Production deployment script fixed (syncs  to ) (DONE)
+-  created for Tier 1 Astro events (DONE)
+-  created for timeframe differentiation (DONE)
+- Frontend timeframe parameter wiring bug fixed in  and  (DONE)
+- Blade + Anchor language refinement pass across Astro and Home engines (DONE)
+-  created with Deep Dynamics logic (DONE)
+-  created and tested via temporary route (DONE)
 
 **Earlier issues found/mentioned but not fixed**
-   Issue 1: 
-   - Debug checklist:  is a massive monolithic file (29k+ lines). 
-   - Why to solve this issue and what will be achieved with this? Search/replace operations are risky and prone to truncation.
+   Issue 1: Monolithic 
+   - Debug checklist:  is over 29k lines long.
+   - Why to solve this issue and what will be achieved with this? Prevents search/replace truncation, improves maintainability.
    - Should Test frontend/backend/both after fix: Both
    - Is recurring issue? Y
 
@@ -131,67 +79,64 @@ Exported: dist and manually copied  to . This fixed the local container but did 
 
 
 **Key Technical Concepts**
-- **Pattern Evolution V4.1**: Detects patterns trajectory (Escalating, Softening, Looping, Early Awareness) by tracking urgency, intensity, and clarity scores.
-- **Home Synthesis V5.0**: Strict 4-block structure (The Call, The Reality, The Source Hint, The Edge) + CTA. Replaces vague insights with sharp behavioral translation.
-- **Astro Expert V5.0**: 6-section structured output acting as a master astrologer. Connects transit with natal placements and provides specific felt texture (e.g., body tension, pacing).
-- **Pattern Sanitizer**: Ensures system keys like  are dynamically mapped to human readable behavioral phrases before API return.
+- **Event Priority (Salience)**: Forces Tier 1 events (Full Moon, eclipses) to dominate the theme.
+- **Horizon Interpretation**: Today (peak moment/body), Week (recurring pattern), Month (larger arc/lesson).
+- **Blade + Anchor Pattern**: Max 1 ultra-short blade line per section (e.g., Again.), followed by a clearer anchor line (e.g., You keep doing this.).
+- **Deep Relationship Dynamics**: Instead of surface traits, uses deep pairs like  or .
 
 **key DB schema**
-  - No new schema changes; relies on existing  driven history fetching.
+  - No database schema changes made. Relationship insights currently accept  and  via query params dynamically.
 
 **changes in tech stack**
   - None.
 
 **All files of reference** 
--  (Created: Core V5 Home logic)
--  (Created: Core V5 Astro logic)
--  (Created: Text cleanup logic)
--  (Created: UI for V5 Home)
--  (Created: UI for V5 Astro)
--  (Updated: Added V5 endpoints)
--  (Updated: Primary integration)
+-  (Created)
+-  (Created)
+-  (Created)
+-  (Created)
+-  (Created, needs implementation)
+-  (Needs editing)
+-  (Modified endpoints)
+-  (Modified)
 
 **Areas that need refactoring**:
 -  (29k+ lines)
 
 **key api endpoints**
--  (NEW)
+- 
 -  (NEW)
 
 **Critical Info for New Agent**
-- **DEPLOYMENT BLOCKER:** The deployment pipeline is broken because the backend serves static files from . The agent successfully rebuilt the Expo web files to  and copied them manually, but manual copies don't persist on standard platform deployments which rebuild from source. You must investigate the deployment scripts ( build step) to ensure  is natively copied to  during build, OR modify  to serve directly from .
-- V5 APIs return a strict  shape but the inner fields heavily utilize the new 4-block/6-section text logic.
+- **People Lens Integration:** The user specifically wants the Life > Relationships tab to be redefined as a People lens. The component  was just created. You need to populate it with a UI list (Name + Optional type like Partner, Friend, Work). When clicking a person, it should expand or open . Ensure you pass the , , and  correctly to the card so it fetches from the backend. 
+- **API URL Resolution**: Be careful testing on the web;  was updated because relative paths broke proxying to the  backend.
 
 **documents and test reports created in this job**
-- None created in this session. Refer to  if needed.
+- None created in this session.
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1.  (Done)
-2.  (Done)
-3.  (Done)
-4.  (Done - Passed)
-5.  (Deployment syncing issue found, static builds rebuilt manually)
-6.  (Done - Passed)
-7.  (npm warnings addressed)
-8.  (Agent found  was stale and manually copied files)
-9.  - **PENDING**. The manual copy did not persist. You must fix the core deployment build mechanism so the live URL serves the V5 frontend.
+1. 
+2. 
+3. 
+4. 
+5. 
+6.  (PENDING integration of People Lens).
 
 **Project Health Check:**
-- Broken: Deployment Pipeline / Static File Serving (Stale UI in production)
-- Mocked: None
+- Broken: None
+- Mocked: People list data (will need to be mocked initially or hooked up to a new schema for saved relationships).
 
 **3rd Party Integrations**
 - OpenAI GPT-4o — uses Emergent LLM Key
 
 **Testing status**
-  - Testing agent used after significant changes: NO (Tested manually via bash/curl)
-  - Troubleshoot agent used after agent stuck in loop: YES (Used to diagnose the static build issue)
-  - Test files created: None
-  - Known regressions: Production deployment pipeline failing to update static files.
+  - Testing agent used after significant changes: YES (Backend testing agent used 3 times for Astro Salience, Horizons, and Relationship Engine).
+  - Troubleshoot agent used after agent stuck in loop: NO.
+  - Test files created: None.
+  - Known regressions: None currently.
 
 **Credentials to test flow:**
-- Email:  
-- User ID: 
+- Check  if needed. (Previous: Email: , User ID: )
 
 **What agent forgot to execute**
-- The agent forgot to persistently fix the deployment pipeline. Manually copying files in an ephemeral container does not fix the deployed image. The agent needed to update the  script in  or modify the static routing path in  to ensure the fresh frontend is served dynamically upon deployment.</analysis>
+- The agent created  but was interrupted before writing its contents and hooking it up inside . The user expects the Relationships tab to now show the list of people. You must finish this integration immediately.</analysis>
