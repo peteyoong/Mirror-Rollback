@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL configuration
-BACKEND_URL = "https://insight-engine-126.preview.emergentagent.com/api"
+BACKEND_URL = "https://relational-meaning.preview.emergentagent.com/api"
 
 # Test users from the review request
 TEST_USERS = [

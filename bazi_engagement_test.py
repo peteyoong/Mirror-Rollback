@@ -19,7 +19,7 @@ import time
 from typing import Dict, Any
 
 # Configuration
-BACKEND_URL = "https://insight-engine-126.preview.emergentagent.com/api"
+BACKEND_URL = "https://relational-meaning.preview.emergentagent.com/api"
 TEST_USER_ID = "6971c81f2b40fd5ef501d375"
 
 def test_bazi_feedback_submit():

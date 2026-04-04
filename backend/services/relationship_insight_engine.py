@@ -1,4 +1,4 @@
-"""Relationship Insight Engine V2.1
+"""Relationship Insight Engine V3.3
 
 Generates 1:1 dynamic reflections that help the user understand:
 1) What is happening between them
@@ -20,11 +20,15 @@ STRUCTURE:
 6. WHY THIS CONNECTION EXISTS - Meaning layer (2-3 lines)
 7. TRY THIS - ONE specific behavioral action
 
-V2.1 UPGRADES:
+V3.3 FEATURES:
+- BREAKTHROUGH CONFIDENCE LEVELS (0=none, 1=low, 2=medium, 3=high)
+- Low confidence = tentative (could be avoidance)
+- Medium confidence = probable shift
+- High confidence = confirmed (gap + level decrease + journal evidence)
 - Dynamic meaning generation (no fixed templates)
-- Subtle activation signals when relevant
-- Shorter, more evocative language
-- Let users feel meaning, not be told conclusions
+- Time decay for pattern escalation (older patterns reduce weight)
+- Soft entry for Level 2 escalation
+- Escalation levels 0-3 (dormant, present, recurring, escalating)
 
 TONE: Direct, grounded, human. Slight edge is okay.
 """
@@ -360,25 +364,62 @@ SOFT_ENTRY_PHRASES = [
 ]
 
 # -----------------------------------------------------------------------------
-# BREAKTHROUGH SIGNALS (V3.2)
+# BREAKTHROUGH SIGNALS (V3.3)
 # -----------------------------------------------------------------------------
 # Positive signals when pattern is NOT repeated or behavior changes
+# V3.3: Now with CONFIDENCE LEVELS to avoid false-positive growth signals
 
-BREAKTHROUGH_PHRASES = [
-    "This shifted.",
-    "You didn't go back to the usual response.",
-    "Something changed here.",
-    "Different choice this time.",
-    "The pattern didn't complete.",
-]
+class BreakthroughConfidence:
+    """
+    Breakthrough confidence levels:
+    - LOW: Only gap detection (tentative - could be avoidance)
+    - MEDIUM: Gap + lower escalation level (probable shift)
+    - HIGH: Gap + lower level + journal/reflection evidence (confirmed)
+    """
+    NONE = 0
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
 
-BREAKTHROUGH_ENCOURAGEMENT = [
-    "That's new.",
-    "Notice what you did differently.",
-    "This is the shift.",
-    "Keep noticing.",
-    "The loop opened.",
-]
+# Breakthrough phrases mapped to confidence levels
+# LOW = tentative, MEDIUM = probable, HIGH = confirmed
+BREAKTHROUGH_PHRASES_BY_CONFIDENCE = {
+    BreakthroughConfidence.LOW: [
+        "Something may be shifting.",
+        "This feels less automatic than before.",
+        "There might be a pause here.",
+    ],
+    BreakthroughConfidence.MEDIUM: [
+        "This shifted.",
+        "You may not have gone back to the usual response.",
+        "The pattern seems softer.",
+    ],
+    BreakthroughConfidence.HIGH: [
+        "You didn't go back to the usual response.",
+        "Something changed here.",
+        "The loop opened.",
+    ],
+}
+
+BREAKTHROUGH_ENCOURAGEMENT_BY_CONFIDENCE = {
+    BreakthroughConfidence.LOW: [
+        "Notice if this continues.",
+        "Pay attention here.",
+    ],
+    BreakthroughConfidence.MEDIUM: [
+        "Notice what you did differently.",
+        "Something's different.",
+    ],
+    BreakthroughConfidence.HIGH: [
+        "That's new.",
+        "This is the shift.",
+        "Keep noticing.",
+    ],
+}
+
+# Legacy - for backwards compatibility
+BREAKTHROUGH_PHRASES = BREAKTHROUGH_PHRASES_BY_CONFIDENCE[BreakthroughConfidence.HIGH]
+BREAKTHROUGH_ENCOURAGEMENT = BREAKTHROUGH_ENCOURAGEMENT_BY_CONFIDENCE[BreakthroughConfidence.HIGH]
 
 # -----------------------------------------------------------------------------
 # ESCALATION LEVELS (V3.1)
@@ -475,18 +516,35 @@ async def detect_breakthrough(
     current_escalation: int,
 ) -> tuple:
     """
-    Detect if user has broken their usual pattern.
+    V3.3: Detect breakthrough with CONFIDENCE LEVELS.
     
-    Breakthrough signals:
-    1. Previously escalating pattern is now dormant/present
-    2. Time gap suggests pattern was resisted
-    3. Journal mentions indicate awareness/change
+    Avoids false-positive growth signals by requiring evidence.
+    
+    Confidence levels:
+    - NONE (0): No breakthrough detected
+    - LOW (1): Only gap detection (tentative - could be avoidance)
+    - MEDIUM (2): Gap + lower escalation level (probable shift)
+    - HIGH (3): Gap + lower level + journal/reflection evidence (confirmed)
     
     Returns:
-        (is_breakthrough: bool, breakthrough_type: str, message: str)
+        (confidence: int, breakthrough_type: str, debug_info: dict)
     """
     try:
         pair_signature = f"relational:{user_type}:{other_type}:{other_name.lower()}"
+        
+        # Evidence trackers
+        has_gap = False
+        has_level_decrease = False
+        has_journal_evidence = False
+        has_recent_engagement = False
+        
+        debug_info = {
+            "gap_detected": False,
+            "level_decreased": False,
+            "journal_evidence": False,
+            "recent_engagement": False,
+            "evidence_count": 0,
+        }
         
         # Get pattern history
         pattern_history = await db.relationship_patterns.find({
@@ -495,10 +553,10 @@ async def detect_breakthrough(
         }).sort("timestamp", -1).limit(20).to_list(20)
         
         if len(pattern_history) < 3:
-            return False, None, None
+            return BreakthroughConfidence.NONE, None, debug_info
         
-        # Check for time gap (pattern was resisted)
-        # If previous requests were frequent and now there's a gap, that's a breakthrough
+        # CHECK 1: Time gap (pattern was resisted)
+        # Gap alone is NOT enough - could be avoidance
         if len(pattern_history) >= 4:
             recent_gaps = []
             for i in range(min(4, len(pattern_history) - 1)):
@@ -516,17 +574,17 @@ async def detect_breakthrough(
                     gap = (t1 - t2).days
                     recent_gaps.append(gap)
             
-            # If there was frequent checking (gaps < 2 days) and now a longer gap
             if len(recent_gaps) >= 2:
                 avg_early_gap = sum(recent_gaps[1:]) / len(recent_gaps[1:]) if recent_gaps[1:] else 0
                 current_gap = recent_gaps[0] if recent_gaps else 0
                 
+                # Significant gap after frequent checking
                 if avg_early_gap < 2 and current_gap > 7:
-                    # They stopped checking frequently - possible breakthrough
-                    return True, "gap", "You stopped reaching for this."
+                    has_gap = True
+                    debug_info["gap_detected"] = True
+                    debug_info["gap_days"] = current_gap
         
-        # Check if escalation decreased
-        # Look for stored escalation levels in history
+        # CHECK 2: Escalation level decreased
         historical_levels = []
         for entry in pattern_history[:5]:
             level = entry.get("escalation_level")
@@ -534,11 +592,25 @@ async def detect_breakthrough(
                 historical_levels.append(level)
         
         if len(historical_levels) >= 2:
-            # If previous level was higher and now it's lower
-            if historical_levels[0] < max(historical_levels[1:]):
-                return True, "decrease", "The pattern is softer now."
+            max_historical = max(historical_levels[1:]) if len(historical_levels) > 1 else 0
+            if current_escalation < max_historical:
+                has_level_decrease = True
+                debug_info["level_decreased"] = True
+                debug_info["previous_max_level"] = max_historical
+                debug_info["current_level"] = current_escalation
         
-        # Check journal for breakthrough keywords
+        # CHECK 3: Recent engagement (still engaging, not avoiding)
+        # Check if they've engaged with this person recently but in a different way
+        recent_cutoff = datetime.now(timezone.utc) - timedelta(days=14)
+        recent_entries = [
+            e for e in pattern_history 
+            if e.get("timestamp") and e.get("timestamp") > recent_cutoff
+        ]
+        if len(recent_entries) >= 1:
+            has_recent_engagement = True
+            debug_info["recent_engagement"] = True
+        
+        # CHECK 4: Journal evidence of awareness/change
         try:
             recent_journals = await db.journals.find({
                 "user_id": user_id,
@@ -546,25 +618,53 @@ async def detect_breakthrough(
             
             journal_text = " ".join([j.get("content", "") for j in recent_journals]).lower()
             
+            # Keywords that indicate conscious change
             breakthrough_keywords = [
                 "realized", "noticed", "different", "changed", "shifted",
                 "caught myself", "stopped myself", "didn't react", "paused",
-                "let go", "released", "accepted", "understood"
+                "let go", "released", "accepted", "understood", "aware"
             ]
+            
+            # Keywords that might mention the relationship/person
+            relationship_mention = other_name.lower() in journal_text
             
             keyword_count = sum(1 for kw in breakthrough_keywords if kw in journal_text)
             
-            if keyword_count >= 3:
-                return True, "awareness", "Something shifted in how you see this."
-            
+            if keyword_count >= 3 or (keyword_count >= 2 and relationship_mention):
+                has_journal_evidence = True
+                debug_info["journal_evidence"] = True
+                debug_info["journal_keyword_count"] = keyword_count
+                debug_info["relationship_mentioned"] = relationship_mention
+                
         except Exception:
             pass
         
-        return False, None, None
+        # DETERMINE CONFIDENCE LEVEL
+        evidence_count = sum([has_gap, has_level_decrease, has_journal_evidence, has_recent_engagement])
+        debug_info["evidence_count"] = evidence_count
+        
+        # HIGH: Gap + level decrease + journal evidence (or all 4 signals)
+        if evidence_count >= 3 and has_journal_evidence:
+            logger.info(f"[Breakthrough] HIGH confidence for {user_id} + {other_name}: {debug_info}")
+            return BreakthroughConfidence.HIGH, "confirmed", debug_info
+        
+        # MEDIUM: Gap + level decrease (but needs recent engagement to not be avoidance)
+        if has_level_decrease and (has_gap or has_recent_engagement):
+            logger.info(f"[Breakthrough] MEDIUM confidence for {user_id} + {other_name}: {debug_info}")
+            return BreakthroughConfidence.MEDIUM, "probable", debug_info
+        
+        # LOW: Only gap detection (could be avoidance, stay tentative)
+        # Require recent engagement to even suggest LOW - otherwise it's avoidance
+        if has_gap and has_recent_engagement:
+            logger.info(f"[Breakthrough] LOW confidence for {user_id} + {other_name}: {debug_info}")
+            return BreakthroughConfidence.LOW, "tentative", debug_info
+        
+        # NONE: No breakthrough or insufficient evidence
+        return BreakthroughConfidence.NONE, None, debug_info
         
     except Exception as e:
         logger.error(f"[Breakthrough] Detection error: {e}")
-        return False, None, None
+        return BreakthroughConfidence.NONE, None, {"error": str(e)}
 
 
 async def detect_relational_pattern_state(
@@ -829,24 +929,22 @@ def generate_relational_meaning(
     other_type: str,
     seed_hash: int,
     escalation_level: int = 0,
-    is_breakthrough: bool = False,
+    breakthrough_confidence: int = 0,
 ) -> str:
     """
     Generate 1:1 relational meaning with ANCHORED variation.
     
-    V3.2: Enhanced with SOFT ENTRY + BREAKTHROUGH signals:
-    - 0 = dormant (no added language)
-    - 1 = present ("This is showing up.")
-    - 2 = recurring (SOFT ENTRY + "Again.", "You've been here before.")
-    - 3 = escalating ("This keeps repeating.", "Pause here.")
+    V3.3: Enhanced with BREAKTHROUGH CONFIDENCE LEVELS:
+    - Escalation: 0=dormant, 1=present, 2=recurring (soft entry), 3=escalating
+    - Breakthrough: 0=none, 1=low (tentative), 2=medium (probable), 3=high (confirmed)
     
-    If is_breakthrough=True, adds positive recognition instead.
+    Breakthrough language is now HUMBLE - only confident when evidence is strong.
     
     Principles:
     - Core truth is stable (always the same for this pair)
     - ONE variation line allowed (anchored to same truth)
     - Soft entry at Level 2 to soften the recognition
-    - Breakthrough signals when pattern breaks
+    - Breakthrough signals mapped to confidence levels
     """
     # Get pair key
     pair_key = (user_type, other_type)
@@ -864,11 +962,15 @@ def generate_relational_meaning(
     
     lines = []
     
-    # V3.2: If breakthrough detected, add positive signal instead of escalation
-    if is_breakthrough:
-        breakthrough_phrase = BREAKTHROUGH_PHRASES[seed_hash % len(BREAKTHROUGH_PHRASES)]
-        lines.append(breakthrough_phrase)
-    # Add escalation language based on level
+    # V3.3: If breakthrough detected, add CONFIDENCE-MAPPED language
+    if breakthrough_confidence > BreakthroughConfidence.NONE:
+        breakthrough_phrases = BREAKTHROUGH_PHRASES_BY_CONFIDENCE.get(
+            breakthrough_confidence, 
+            BREAKTHROUGH_PHRASES_BY_CONFIDENCE[BreakthroughConfidence.LOW]
+        )
+        phrase = breakthrough_phrases[seed_hash % len(breakthrough_phrases)]
+        lines.append(phrase)
+    # Add escalation language based on level (only if no breakthrough)
     elif escalation_level > 0:
         # V3.2: Add SOFT ENTRY for Level 2
         if escalation_level == EscalationLevel.RECURRING:
@@ -1451,8 +1553,9 @@ async def generate_relationship_insight_with_detection(
         other_type=other_type,
     )
     
-    # V3.2: BREAKTHROUGH DETECTION
-    is_breakthrough, breakthrough_type, breakthrough_msg = await detect_breakthrough(
+    # V3.3: BREAKTHROUGH DETECTION WITH CONFIDENCE LEVELS
+    # Returns: (confidence_level: 0-3, breakthrough_type: str|None, debug_info: dict)
+    breakthrough_confidence, breakthrough_type, breakthrough_debug = await detect_breakthrough(
         db=db,
         user_id=user_id,
         other_name=other_name,
@@ -1460,6 +1563,9 @@ async def generate_relationship_insight_with_detection(
         other_type=other_type,
         current_escalation=escalation_level,
     )
+    
+    # For backwards compatibility, derive boolean from confidence
+    is_breakthrough = breakthrough_confidence >= BreakthroughConfidence.MEDIUM
     
     # Store this access for future recurrence detection (with escalation level)
     await store_relationship_pattern(
@@ -1509,15 +1615,27 @@ async def generate_relationship_insight_with_detection(
     your_shift = deep_content["your_shift"]
     try_this = deep_content["try_this"]
     
-    # V3.2: If BREAKTHROUGH detected, add positive signals
-    if is_breakthrough:
-        breakthrough_phrase = BREAKTHROUGH_PHRASES[seed_hash % len(BREAKTHROUGH_PHRASES)]
-        encouragement = BREAKTHROUGH_ENCOURAGEMENT[seed_hash % len(BREAKTHROUGH_ENCOURAGEMENT)]
+    # V3.3: If BREAKTHROUGH detected, add CONFIDENCE-MAPPED positive signals
+    if breakthrough_confidence >= BreakthroughConfidence.LOW:
+        # Get phrases mapped to the specific confidence level
+        breakthrough_phrases = BREAKTHROUGH_PHRASES_BY_CONFIDENCE.get(
+            breakthrough_confidence, 
+            BREAKTHROUGH_PHRASES_BY_CONFIDENCE[BreakthroughConfidence.LOW]
+        )
+        encouragement_phrases = BREAKTHROUGH_ENCOURAGEMENT_BY_CONFIDENCE.get(
+            breakthrough_confidence,
+            BREAKTHROUGH_ENCOURAGEMENT_BY_CONFIDENCE[BreakthroughConfidence.LOW]
+        )
         
-        # Add breakthrough to YOUR SHIFT
-        your_shift = f"{breakthrough_phrase}\n{your_shift}"
+        breakthrough_phrase = breakthrough_phrases[seed_hash % len(breakthrough_phrases)]
+        encouragement = encouragement_phrases[seed_hash % len(encouragement_phrases)]
         
-        # Add encouragement to TRY THIS
+        # Only add to YOUR SHIFT if confidence is MEDIUM or HIGH
+        # LOW confidence is too tentative for direct statements
+        if breakthrough_confidence >= BreakthroughConfidence.MEDIUM:
+            your_shift = f"{breakthrough_phrase}\n{your_shift}"
+        
+        # Add encouragement to TRY THIS (all confidence levels, but language varies)
         try_this = f"{encouragement}\n{try_this}"
     else:
         # Apply escalation (only if not a breakthrough)
@@ -1543,7 +1661,7 @@ async def generate_relationship_insight_with_detection(
     
     return {
         "success": True,
-        "version": "v3.2",
+        "version": "v3.3",
         "other_name": other_name,
         "relationship_type": relationship_type,
         
@@ -1558,7 +1676,7 @@ async def generate_relationship_insight_with_detection(
             other_type=other_type,
             seed_hash=seed_hash,
             escalation_level=escalation_level,
-            is_breakthrough=is_breakthrough,
+            breakthrough_confidence=breakthrough_confidence,
         ),
         "try_this": try_this,
         
@@ -1570,8 +1688,19 @@ async def generate_relationship_insight_with_detection(
             "other_quality": DEEP_DYNAMICS.get(other_type, {}).get("quality", "unknown"),
         },
         "escalation_level": escalation_level,
-        "is_breakthrough": is_breakthrough,
+        
+        # V3.3: Breakthrough with confidence levels
+        "is_breakthrough": is_breakthrough,  # Backwards compat (True if MEDIUM+)
+        "breakthrough_confidence": breakthrough_confidence,  # 0=none, 1=low, 2=medium, 3=high
+        "breakthrough_confidence_label": (
+            "none" if breakthrough_confidence == 0 else
+            "low" if breakthrough_confidence == 1 else
+            "medium" if breakthrough_confidence == 2 else
+            "high"
+        ),
         "breakthrough_type": breakthrough_type,
+        "breakthrough_debug": breakthrough_debug,
+        
         "pattern_details": pattern_details,
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
