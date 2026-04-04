@@ -1138,14 +1138,18 @@ export interface ForumLiveFieldResponse {
   what_room_needs: string | null;
   your_shift: string | null;
   
-  // NEW: Your position in the field
+  // Your position in the field
   your_position: string | null;
   your_position_type: 'initiating' | 'holding_back' | 'bridging' | 'observing' | 'withdrawing';
   
-  // NEW: Trajectory (if nothing changes)
+  // Trajectory (if nothing changes)
   trajectory: string | null;
   trajectory_type: 'disengagement' | 'tension_building' | 'misalignment' | 'stagnation' | 'fragmentation' | 'stabilizing' | 'unclear';
   trajectory_severity: 'low' | 'moderate' | 'positive';
+  
+  // THE MOVE (subtle action opening) - only when confidence is high
+  the_move: string | null;
+  signal_confidence: 'low' | 'medium' | 'high';
   
   // Metadata
   field_temperature: 'warm' | 'cool' | 'charged' | 'still';

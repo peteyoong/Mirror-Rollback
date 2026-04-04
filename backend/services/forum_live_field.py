@@ -836,6 +836,116 @@ def generate_trajectory_language(
 
 
 # =============================================================================
+# LAYER 7: THE MOVE (subtle action opening)
+# =============================================================================
+
+def calculate_signal_confidence(
+    signals: Dict[str, Any],
+    patterns: Dict[str, Any],
+    trajectory_data: Dict[str, Any],
+) -> str:
+    """
+    Calculate confidence level in field signals.
+    
+    Returns: 'high', 'medium', or 'low'
+    
+    High confidence required for THE MOVE to appear.
+    """
+    total_activity = signals.get("total_activity", 0)
+    member_count = signals.get("member_count", 0)
+    detected_patterns = patterns.get("detected_patterns", [])
+    trajectory = trajectory_data.get("trajectory", "unclear")
+    
+    # High confidence: multiple signals aligning
+    if total_activity >= 3 and len(detected_patterns) >= 2 and trajectory != "unclear":
+        return "high"
+    
+    # Medium confidence: some signals present
+    if total_activity >= 2 and len(detected_patterns) >= 1:
+        return "medium"
+    
+    # Low confidence: minimal data
+    return "low"
+
+
+def generate_the_move(
+    signals: Dict[str, Any],
+    patterns: Dict[str, Any],
+    position_data: Dict[str, Any],
+    trajectory_data: Dict[str, Any],
+    confidence: str,
+) -> Optional[str]:
+    """
+    Generate THE MOVE - a subtle action opening.
+    
+    NOT advice. NOT instruction. NOT prescriptive.
+    
+    A felt sense of what is available next.
+    
+    Only appears when confidence is HIGH.
+    """
+    
+    # Only show when confidence is high
+    if confidence != "high":
+        return None
+    
+    trajectory = trajectory_data.get("trajectory", "unclear")
+    user_position = position_data.get("position", "observing")
+    detected = patterns.get("detected_patterns", [])
+    temperature = patterns.get("field_temperature", "still")
+    
+    # === THE MOVE based on trajectory + position ===
+    
+    # Disengagement trajectory
+    if trajectory == "disengagement":
+        if user_position == "initiating":
+            return "There's space here to reach back without pulling."
+        elif user_position == "observing":
+            return "Something small could be enough to stay connected."
+        else:
+            return "Presence alone might be the move. Not fixing, just staying."
+    
+    # Tension building trajectory
+    elif trajectory == "tension_building":
+        if "emotional_weight" in detected:
+            return "Something here could be named. Not solved, just named."
+        else:
+            return "There's something waiting to be said. It doesn't have to be everything."
+    
+    # Misalignment trajectory
+    elif trajectory == "misalignment":
+        if user_position == "initiating":
+            return "There's space here to slow this down without stopping it."
+        elif user_position == "holding_back":
+            return "A signal that you're still here might be enough."
+        else:
+            return "The gap doesn't have to be bridged all at once."
+    
+    # Stagnation trajectory
+    elif trajectory == "stagnation":
+        if user_position in ["observing", "holding_back"]:
+            return "One small thing could shift the stillness."
+        else:
+            return "Movement doesn't have to be big to matter."
+    
+    # Fragmentation trajectory
+    elif trajectory == "fragmentation":
+        return "You don't have to carry this forward alone."
+    
+    # Stabilizing trajectory (positive)
+    elif trajectory == "stabilizing":
+        return "What's working here could be named. Not to fix it, but to honor it."
+    
+    # Field-specific moves based on temperature
+    if temperature == "charged":
+        return "There's space to let this settle before the next thing."
+    elif temperature == "cool":
+        return "Something could open this. It doesn't have to be the right thing."
+    
+    return None
+
+
+# =============================================================================
 # MAIN API FUNCTION
 # =============================================================================
 
@@ -856,6 +966,7 @@ async def generate_forum_live_field(
     4. Optional Identity Context - Light touch
     5. YOUR POSITION - Where user sits in the field
     6. TRAJECTORY - What happens if nothing changes
+    7. THE MOVE - Subtle action opening (only when confidence is high)
     """
     logger.info(f"[ForumLiveField] Generating for forum {forum_id}")
     
@@ -880,7 +991,11 @@ async def generate_forum_live_field(
         trajectory_data = detect_trajectory(signals, patterns, position_data)
         trajectory_language = generate_trajectory_language(trajectory_data, position_data)
         
-        logger.info(f"[ForumLiveField] Generated: temp={language['field_temperature']}, position={position_data['position']}, trajectory={trajectory_data['trajectory']}")
+        # Layer 7: THE MOVE (subtle action opening)
+        signal_confidence = calculate_signal_confidence(signals, patterns, trajectory_data)
+        the_move = generate_the_move(signals, patterns, position_data, trajectory_data, signal_confidence)
+        
+        logger.info(f"[ForumLiveField] Generated: temp={language['field_temperature']}, position={position_data['position']}, trajectory={trajectory_data['trajectory']}, confidence={signal_confidence}, has_move={the_move is not None}")
         
         return {
             "success": True,
@@ -893,14 +1008,18 @@ async def generate_forum_live_field(
             "what_room_needs": language.get("what_room_needs"),
             "your_shift": language.get("your_shift"),
             
-            # NEW: Your position in the field
+            # Your position in the field
             "your_position": position_language,
             "your_position_type": position_data["position"],
             
-            # NEW: Trajectory (if nothing changes)
+            # Trajectory (if nothing changes)
             "trajectory": trajectory_language,
             "trajectory_type": trajectory_data["trajectory"],
             "trajectory_severity": trajectory_data["severity"],
+            
+            # THE MOVE (subtle action opening) - only when confidence is high
+            "the_move": the_move,
+            "signal_confidence": signal_confidence,
             
             # Metadata
             "field_temperature": language["field_temperature"],

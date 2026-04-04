@@ -804,6 +804,21 @@ export default function ForumHomeScreen() {
               </View>
             )}
             
+            {/* THE MOVE - Subtle action opening (only shows when confidence is high) */}
+            {liveField.the_move && (
+              <View style={[styles.liveFieldTheMoveCard, { borderColor: theme.accent + '40' }]}>
+                <View style={styles.liveFieldTheMoveHeader}>
+                  <Text style={{ fontSize: 14, marginRight: 6 }}>✦</Text>
+                  <Text style={[styles.liveFieldTheMoveLabel, { color: theme.accent }]}>
+                    The move
+                  </Text>
+                </View>
+                <Text style={[styles.liveFieldTheMoveText, { color: theme.text }]}>
+                  {liveField.the_move}
+                </Text>
+              </View>
+            )}
+            
             {/* Identity Note - Only if present, light touch */}
             {liveField.identity_note && (
               <Text style={[styles.liveFieldIdentityNote, { color: theme.textSecondary }]}>
@@ -1820,6 +1835,31 @@ const styles = StyleSheet.create({
   liveFieldTrajectoryText: {
     fontSize: 14,
     lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  // THE MOVE - Subtle action opening styles
+  liveFieldTheMoveCard: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  liveFieldTheMoveHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  liveFieldTheMoveLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  liveFieldTheMoveText: {
+    fontSize: 15,
+    lineHeight: 22,
     fontStyle: 'italic',
   },
   // Forum Story Card
