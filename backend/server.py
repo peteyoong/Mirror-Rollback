@@ -14195,6 +14195,104 @@ async def get_relationship_insight_endpoint(
         }
 
 
+# =============================================================================
+# RELATIONSHIP NARRATIVE FLOW (5-part continuous experience)
+# =============================================================================
+@api_router.get("/relationship-narrative/{user_id}")
+async def get_relationship_narrative_endpoint(
+    user_id: str,
+    other_name: str = "them",
+    context: str = ""
+):
+    """
+    V1.0: Generate 5-part Relationship Narrative Flow.
+    
+    Same structure as Forum Live Field, but adapted for 1:1 dynamics.
+    
+    5 Sections:
+    1. FIELD STATE - What's happening between you two
+    2. YOUR POSITION - Where you stand in this dynamic
+    3. TRAJECTORY - What happens if nothing changes
+    4. STORY - What this connection tends to become
+    5. THE MOVE - Subtle action opening
+    
+    Language uses: "between you", "this connection", "this dynamic"
+    Avoids: "the room", "the space", "the circle"
+    """
+    try:
+        from services.relationship_narrative_flow import generate_relationship_narrative_flow
+        from services.relationship_insight_engine import (
+            detect_deep_type,
+            detect_relational_pattern_state,
+            detect_breakthrough,
+            get_complementary_type,
+            BreakthroughConfidence,
+        )
+        import hashlib
+        
+        from bson import ObjectId
+        
+        # Get user profile
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return {"success": False, "error": "User not found"}
+        
+        # Detect types
+        user_profile = {
+            "enneagram": user.get("enneagram", {}),
+            "astrology": user.get("astrology", {}),
+        }
+        
+        user_type = detect_deep_type(user_profile, "")
+        other_type = detect_deep_type({}, context) if context else get_complementary_type(user_type)
+        
+        # Calculate escalation
+        escalation_level, pattern_details = await detect_relational_pattern_state(
+            db=db,
+            user_id=user_id,
+            other_name=other_name,
+            user_type=user_type,
+            other_type=other_type,
+        )
+        
+        # Detect breakthrough
+        breakthrough_confidence, breakthrough_type, _ = await detect_breakthrough(
+            db=db,
+            user_id=user_id,
+            other_name=other_name,
+            user_type=user_type,
+            other_type=other_type,
+            current_escalation=escalation_level,
+        )
+        
+        is_breakthrough = breakthrough_confidence >= BreakthroughConfidence.MEDIUM
+        
+        # Generate seed for consistent randomization
+        seed_str = f"{user_id}:{other_name}:{user_type}:{other_type}"
+        seed_hash = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
+        
+        # Generate narrative flow
+        result = generate_relationship_narrative_flow(
+            user_id=user_id,
+            other_name=other_name,
+            user_type=user_type,
+            other_type=other_type,
+            escalation_level=escalation_level,
+            is_breakthrough=is_breakthrough,
+            breakthrough_confidence=breakthrough_confidence,
+            seed_hash=seed_hash,
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"[RelationshipNarrative] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
+
+
+
 
 # =============================================================================
 # RELATIONSHIP PATTERN ENDPOINT (Identity-Level)
