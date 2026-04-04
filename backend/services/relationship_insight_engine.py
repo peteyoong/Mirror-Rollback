@@ -346,6 +346,41 @@ INTERRUPT_PHRASES = [
 ]
 
 # -----------------------------------------------------------------------------
+# SOFT ENTRY PHRASES (V3.2)
+# -----------------------------------------------------------------------------
+# Gentle lead-ins before stronger escalation language
+# Used especially at Level 2 to soften the recognition
+
+SOFT_ENTRY_PHRASES = [
+    "This might feel familiar.",
+    "You may recognize this.",
+    "Something here isn't new.",
+    "There's an echo here.",
+    "You've touched this before.",
+]
+
+# -----------------------------------------------------------------------------
+# BREAKTHROUGH SIGNALS (V3.2)
+# -----------------------------------------------------------------------------
+# Positive signals when pattern is NOT repeated or behavior changes
+
+BREAKTHROUGH_PHRASES = [
+    "This shifted.",
+    "You didn't go back to the usual response.",
+    "Something changed here.",
+    "Different choice this time.",
+    "The pattern didn't complete.",
+]
+
+BREAKTHROUGH_ENCOURAGEMENT = [
+    "That's new.",
+    "Notice what you did differently.",
+    "This is the shift.",
+    "Keep noticing.",
+    "The loop opened.",
+]
+
+# -----------------------------------------------------------------------------
 # ESCALATION LEVELS (V3.1)
 # -----------------------------------------------------------------------------
 # 0 = dormant (no recent pattern match)
@@ -376,6 +411,160 @@ ESCALATION_LANGUAGE = {
         "This is louder than before.",
     ],
 }
+
+# -----------------------------------------------------------------------------
+# TIME DECAY WEIGHTS (V3.2)
+# -----------------------------------------------------------------------------
+# Pattern escalation reduces over time
+# Old patterns should not permanently escalate
+
+TIME_DECAY_WEIGHTS = {
+    "recent": {"days": 3, "weight": 1.0},      # <3 days: full weight
+    "medium": {"days": 7, "weight": 0.7},      # 3-7 days: medium weight
+    "reduced": {"days": 14, "weight": 0.4},    # 7-14 days: reduced
+    "fading": {"days": 30, "weight": 0.2},     # 14-30 days: fading
+    "dormant": {"days": 999, "weight": 0.0},   # >30 days: reset to dormant
+}
+
+
+def calculate_time_decay_weight(timestamp: datetime) -> float:
+    """
+    Calculate decay weight based on how old a pattern match is.
+    More recent = higher weight.
+    """
+    if timestamp is None:
+        return 0.0
+    
+    now = datetime.now(timezone.utc)
+    age_days = (now - timestamp).days
+    
+    if age_days < 3:
+        return 1.0
+    elif age_days < 7:
+        return 0.7
+    elif age_days < 14:
+        return 0.4
+    elif age_days < 30:
+        return 0.2
+    else:
+        return 0.0
+
+
+def calculate_weighted_matches(matches: list) -> float:
+    """
+    Calculate weighted match count using time decay.
+    Returns effective match count (can be fractional).
+    """
+    total_weight = 0.0
+    
+    for match in matches:
+        ts = match.get("timestamp")
+        if ts:
+            weight = calculate_time_decay_weight(ts)
+            total_weight += weight
+    
+    return total_weight
+
+
+async def detect_breakthrough(
+    db,
+    user_id: str,
+    other_name: str,
+    user_type: str,
+    other_type: str,
+    current_escalation: int,
+) -> tuple:
+    """
+    Detect if user has broken their usual pattern.
+    
+    Breakthrough signals:
+    1. Previously escalating pattern is now dormant/present
+    2. Time gap suggests pattern was resisted
+    3. Journal mentions indicate awareness/change
+    
+    Returns:
+        (is_breakthrough: bool, breakthrough_type: str, message: str)
+    """
+    try:
+        pair_signature = f"relational:{user_type}:{other_type}:{other_name.lower()}"
+        
+        # Get pattern history
+        pattern_history = await db.relationship_patterns.find({
+            "user_id": user_id,
+            "pair_signature": pair_signature,
+        }).sort("timestamp", -1).limit(20).to_list(20)
+        
+        if len(pattern_history) < 3:
+            return False, None, None
+        
+        # Check for time gap (pattern was resisted)
+        # If previous requests were frequent and now there's a gap, that's a breakthrough
+        if len(pattern_history) >= 4:
+            recent_gaps = []
+            for i in range(min(4, len(pattern_history) - 1)):
+                t1 = pattern_history[i].get("timestamp")
+                t2 = pattern_history[i + 1].get("timestamp")
+                if t1 and t2:
+                    if isinstance(t1, str):
+                        t1 = datetime.fromisoformat(t1.replace('Z', '+00:00'))
+                    if isinstance(t2, str):
+                        t2 = datetime.fromisoformat(t2.replace('Z', '+00:00'))
+                    if t1.tzinfo is None:
+                        t1 = t1.replace(tzinfo=timezone.utc)
+                    if t2.tzinfo is None:
+                        t2 = t2.replace(tzinfo=timezone.utc)
+                    gap = (t1 - t2).days
+                    recent_gaps.append(gap)
+            
+            # If there was frequent checking (gaps < 2 days) and now a longer gap
+            if len(recent_gaps) >= 2:
+                avg_early_gap = sum(recent_gaps[1:]) / len(recent_gaps[1:]) if recent_gaps[1:] else 0
+                current_gap = recent_gaps[0] if recent_gaps else 0
+                
+                if avg_early_gap < 2 and current_gap > 7:
+                    # They stopped checking frequently - possible breakthrough
+                    return True, "gap", "You stopped reaching for this."
+        
+        # Check if escalation decreased
+        # Look for stored escalation levels in history
+        historical_levels = []
+        for entry in pattern_history[:5]:
+            level = entry.get("escalation_level")
+            if level is not None:
+                historical_levels.append(level)
+        
+        if len(historical_levels) >= 2:
+            # If previous level was higher and now it's lower
+            if historical_levels[0] < max(historical_levels[1:]):
+                return True, "decrease", "The pattern is softer now."
+        
+        # Check journal for breakthrough keywords
+        try:
+            recent_journals = await db.journals.find({
+                "user_id": user_id,
+            }).sort("created_at", -1).limit(5).to_list(5)
+            
+            journal_text = " ".join([j.get("content", "") for j in recent_journals]).lower()
+            
+            breakthrough_keywords = [
+                "realized", "noticed", "different", "changed", "shifted",
+                "caught myself", "stopped myself", "didn't react", "paused",
+                "let go", "released", "accepted", "understood"
+            ]
+            
+            keyword_count = sum(1 for kw in breakthrough_keywords if kw in journal_text)
+            
+            if keyword_count >= 3:
+                return True, "awareness", "Something shifted in how you see this."
+            
+        except Exception:
+            pass
+        
+        return False, None, None
+        
+    except Exception as e:
+        logger.error(f"[Breakthrough] Detection error: {e}")
+        return False, None, None
 
 
 async def detect_relational_pattern_state(
@@ -453,6 +642,11 @@ async def detect_relational_pattern_state(
         # Check for recent matches (last 3 days)
         recent_exact = [m for m in exact_matches if m["timestamp"] > recent_cutoff]
         
+        # V3.2: Calculate weighted matches using TIME DECAY
+        weighted_exact = calculate_weighted_matches(exact_matches)
+        weighted_dynamic = calculate_weighted_matches(dynamic_matches)
+        weighted_total = weighted_exact + weighted_dynamic
+        
         # Compute emotional intensity from journals
         intensity_keywords = ["overwhelm", "frustrated", "stuck", "can't", "keep", "again", "always"]
         soft_keywords = ["noticing", "aware", "seeing", "curious"]
@@ -469,19 +663,25 @@ async def detect_relational_pattern_state(
         elif soft_count > intensity_count:
             emotional_intensity = 0.35
         
-        # Determine escalation level
+        # V3.2: Determine escalation level using WEIGHTED matches (time decay)
         escalation_level = EscalationLevel.DORMANT
         
-        total_matches = len(exact_matches) + len(dynamic_matches)
+        # Use weighted counts instead of raw counts
+        # Priority: exact matches > dynamic matches
+        # Dynamic matches (same type pairing, different person) are weaker signals
         
-        if len(exact_matches) >= 3 or (len(exact_matches) >= 2 and emotional_intensity > 0.7):
-            # Multiple occurrences with this person + high intensity = ESCALATING
+        if weighted_exact >= 2.5 or (weighted_exact >= 1.5 and emotional_intensity > 0.7):
+            # High weighted exact matches + high intensity = ESCALATING
             escalation_level = EscalationLevel.ESCALATING
-        elif len(exact_matches) >= 2 or (total_matches >= 3 and len(dynamic_matches) >= 2):
-            # Multiple occurrences = RECURRING
+        elif weighted_exact >= 1.5:
+            # Multiple exact weighted matches = RECURRING
             escalation_level = EscalationLevel.RECURRING
-        elif recent_exact or (total_matches >= 1 and len(recent_exact) > 0):
-            # Recent match = PRESENT
+        elif weighted_exact >= 0.5 or len(recent_exact) > 0:
+            # Recent exact match or partial weight = PRESENT
+            escalation_level = EscalationLevel.PRESENT
+        elif weighted_dynamic >= 5.0 and emotional_intensity > 0.6:
+            # Many dynamic matches + elevated intensity = PRESENT (not RECURRING)
+            # This is a weaker signal - same type pairing but different person
             escalation_level = EscalationLevel.PRESENT
         
         # Build details
@@ -492,13 +692,15 @@ async def detect_relational_pattern_state(
         details = {
             "escalation_level": escalation_level,
             "exact_match_count": len(exact_matches),
+            "weighted_exact_count": round(weighted_exact, 2),
             "dynamic_match_count": len(dynamic_matches),
+            "weighted_dynamic_count": round(weighted_dynamic, 2),
             "recent_match_count": len(recent_exact),
             "emotional_intensity": emotional_intensity,
             "most_recent_date": most_recent,
         }
         
-        logger.info(f"[RelationshipPattern] User {user_id} + {other_name}: escalation={escalation_level}, matches={total_matches}")
+        logger.info(f"[RelationshipPattern] User {user_id} + {other_name}: escalation={escalation_level}, weighted_exact={round(weighted_exact, 2)}")
         
         return escalation_level, details
         
@@ -514,9 +716,11 @@ async def store_relationship_pattern(
     other_name: str,
     user_type: str,
     other_type: str,
+    escalation_level: int = 0,
 ):
     """
     Store relationship pattern access for future recurrence detection.
+    V3.2: Also stores escalation_level for breakthrough detection.
     """
     try:
         pair_signature = f"relational:{user_type}:{other_type}:{other_name.lower()}"
@@ -529,6 +733,7 @@ async def store_relationship_pattern(
             "dynamic_signature": dynamic_signature,
             "user_type": user_type,
             "other_type": other_type,
+            "escalation_level": escalation_level,
             "timestamp": datetime.now(timezone.utc),
         })
         
@@ -624,20 +829,24 @@ def generate_relational_meaning(
     other_type: str,
     seed_hash: int,
     escalation_level: int = 0,
+    is_breakthrough: bool = False,
 ) -> str:
     """
     Generate 1:1 relational meaning with ANCHORED variation.
     
-    V3.1: Uses escalation levels instead of binary flags:
+    V3.2: Enhanced with SOFT ENTRY + BREAKTHROUGH signals:
     - 0 = dormant (no added language)
     - 1 = present ("This is showing up.")
-    - 2 = recurring ("Again.", "You've been here before.")
+    - 2 = recurring (SOFT ENTRY + "Again.", "You've been here before.")
     - 3 = escalating ("This keeps repeating.", "Pause here.")
+    
+    If is_breakthrough=True, adds positive recognition instead.
     
     Principles:
     - Core truth is stable (always the same for this pair)
     - ONE variation line allowed (anchored to same truth)
-    - Escalation language only when level > 0
+    - Soft entry at Level 2 to soften the recognition
+    - Breakthrough signals when pattern breaks
     """
     # Get pair key
     pair_key = (user_type, other_type)
@@ -655,8 +864,17 @@ def generate_relational_meaning(
     
     lines = []
     
+    # V3.2: If breakthrough detected, add positive signal instead of escalation
+    if is_breakthrough:
+        breakthrough_phrase = BREAKTHROUGH_PHRASES[seed_hash % len(BREAKTHROUGH_PHRASES)]
+        lines.append(breakthrough_phrase)
     # Add escalation language based on level
-    if escalation_level > 0:
+    elif escalation_level > 0:
+        # V3.2: Add SOFT ENTRY for Level 2
+        if escalation_level == EscalationLevel.RECURRING:
+            soft_entry = SOFT_ENTRY_PHRASES[seed_hash % len(SOFT_ENTRY_PHRASES)]
+            lines.append(soft_entry)
+        
         escalation_phrases = ESCALATION_LANGUAGE.get(escalation_level, [])
         if escalation_phrases:
             # Select phrase based on seed for consistency
@@ -1233,13 +1451,24 @@ async def generate_relationship_insight_with_detection(
         other_type=other_type,
     )
     
-    # Store this access for future recurrence detection
+    # V3.2: BREAKTHROUGH DETECTION
+    is_breakthrough, breakthrough_type, breakthrough_msg = await detect_breakthrough(
+        db=db,
+        user_id=user_id,
+        other_name=other_name,
+        user_type=user_type,
+        other_type=other_type,
+        current_escalation=escalation_level,
+    )
+    
+    # Store this access for future recurrence detection (with escalation level)
     await store_relationship_pattern(
         db=db,
         user_id=user_id,
         other_name=other_name,
         user_type=user_type,
         other_type=other_type,
+        escalation_level=escalation_level,
     )
     
     dynamic_pair = (user_type, other_type)
@@ -1280,25 +1509,45 @@ async def generate_relationship_insight_with_detection(
     your_shift = deep_content["your_shift"]
     try_this = deep_content["try_this"]
     
-    # Add escalation prefix to TENSION for levels 2+
-    if escalation_level >= EscalationLevel.RECURRING:
-        escalation_phrases = ESCALATION_LANGUAGE.get(escalation_level, [])
-        if escalation_phrases:
-            phrase = escalation_phrases[seed_hash % len(escalation_phrases)]
-            tension = f"{phrase}\n{tension}"
-    
-    # Add interrupt to YOUR SHIFT for level 3
-    if escalation_level >= EscalationLevel.ESCALATING:
-        interrupt = INTERRUPT_PHRASES[seed_hash % len(INTERRUPT_PHRASES)]
-        your_shift = f"{interrupt}\n{your_shift}"
+    # V3.2: If BREAKTHROUGH detected, add positive signals
+    if is_breakthrough:
+        breakthrough_phrase = BREAKTHROUGH_PHRASES[seed_hash % len(BREAKTHROUGH_PHRASES)]
+        encouragement = BREAKTHROUGH_ENCOURAGEMENT[seed_hash % len(BREAKTHROUGH_ENCOURAGEMENT)]
+        
+        # Add breakthrough to YOUR SHIFT
+        your_shift = f"{breakthrough_phrase}\n{your_shift}"
+        
+        # Add encouragement to TRY THIS
+        try_this = f"{encouragement}\n{try_this}"
+    else:
+        # Apply escalation (only if not a breakthrough)
+        
+        # Add SOFT ENTRY + escalation prefix to TENSION for Level 2
+        if escalation_level == EscalationLevel.RECURRING:
+            soft_entry = SOFT_ENTRY_PHRASES[seed_hash % len(SOFT_ENTRY_PHRASES)]
+            escalation_phrases = ESCALATION_LANGUAGE.get(escalation_level, [])
+            if escalation_phrases:
+                phrase = escalation_phrases[seed_hash % len(escalation_phrases)]
+                tension = f"{soft_entry}\n{phrase}\n{tension}"
+        # Add stronger escalation for Level 3 (no soft entry)
+        elif escalation_level >= EscalationLevel.ESCALATING:
+            escalation_phrases = ESCALATION_LANGUAGE.get(escalation_level, [])
+            if escalation_phrases:
+                phrase = escalation_phrases[seed_hash % len(escalation_phrases)]
+                tension = f"{phrase}\n{tension}"
+        
+        # Add interrupt to YOUR SHIFT for level 3
+        if escalation_level >= EscalationLevel.ESCALATING:
+            interrupt = INTERRUPT_PHRASES[seed_hash % len(INTERRUPT_PHRASES)]
+            your_shift = f"{interrupt}\n{your_shift}"
     
     return {
         "success": True,
-        "version": "v3.1",
+        "version": "v3.2",
         "other_name": other_name,
         "relationship_type": relationship_type,
         
-        # Sections with escalation applied
+        # Sections with escalation/breakthrough applied
         "essence": essence,
         "friction": deep_content["friction"],
         "tension": tension,
@@ -1309,6 +1558,7 @@ async def generate_relationship_insight_with_detection(
             other_type=other_type,
             seed_hash=seed_hash,
             escalation_level=escalation_level,
+            is_breakthrough=is_breakthrough,
         ),
         "try_this": try_this,
         
@@ -1320,6 +1570,8 @@ async def generate_relationship_insight_with_detection(
             "other_quality": DEEP_DYNAMICS.get(other_type, {}).get("quality", "unknown"),
         },
         "escalation_level": escalation_level,
+        "is_breakthrough": is_breakthrough,
+        "breakthrough_type": breakthrough_type,
         "pattern_details": pattern_details,
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
