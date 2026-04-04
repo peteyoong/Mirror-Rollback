@@ -14131,31 +14131,53 @@ async def get_relationship_insight_endpoint(
     context: str = ""
 ):
     """
-    V1.0: Generate relationship insight for 1:1 dynamics.
+    V3.1: Generate relationship insight for 1:1 dynamics WITH pattern detection.
     
     Centered on USER, not the other person.
-    Helps user understand what's happening and what to shift.
+    Now includes REAL escalation detection from:
+    - Pattern Memory Engine
+    - Journal entries
+    - Previous relationship insight requests
     
-    Returns 6-section structure:
-    1. ESSENCE - What they are / how they move
-    2. FRICTION - Where it clashes with you
-    3. TENSION - What happens between you
-    4. YOUR SHIFT - What YOU need to adjust (MOST IMPORTANT)
-    5. GIFT - What unlocks if you do this well
-    6. TRY THIS - ONE specific action
+    Escalation Levels:
+    0 = dormant (no recent pattern match)
+    1 = present ("This is showing up.")
+    2 = recurring ("Again.", "You've been here before.")
+    3 = escalating ("This keeps repeating.", "Pause here.")
     
-    CRITICAL RULES:
-    - Always center the USER, not the other person
-    - Never suggest what the other person should do
-    - Make it feel specific, relational, and slightly confronting
+    Returns 7-section structure with escalation-aware language.
     """
     try:
-        from services.relationship_insight_engine import get_relationship_insight
+        from services.relationship_insight_engine import (
+            get_relationship_insight,
+            generate_relationship_insight_with_detection,
+        )
         
-        result = await get_relationship_insight(
+        # Get user profile for type detection
+        user = await db.users.find_one({"_id": user_id})
+        user_profile = {
+            "user_id": user_id,
+            "enneagram": user.get("enneagram", {}) if user else {},
+            "astrology": user.get("astrology", {}) if user else {},
+        }
+        
+        # Get other user profile if provided
+        other_profile = None
+        if other_user_id:
+            other_user = await db.users.find_one({"_id": other_user_id})
+            if other_user:
+                other_profile = {
+                    "user_id": other_user_id,
+                    "enneagram": other_user.get("enneagram", {}),
+                    "astrology": other_user.get("astrology", {}),
+                }
+        
+        # Use the new function WITH pattern detection
+        result = await generate_relationship_insight_with_detection(
             db=db,
             user_id=user_id,
-            other_user_id=other_user_id,
+            user_profile=user_profile,
+            other_profile=other_profile,
             other_name=other_name,
             relationship_type=relationship_type,
             relationship_context=context,

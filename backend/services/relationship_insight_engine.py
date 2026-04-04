@@ -32,7 +32,7 @@ TONE: Direct, grounded, human. Slight edge is okay.
 import logging
 import random
 from typing import Dict, Any, Optional, List, Tuple
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import hashlib
 
 logger = logging.getLogger(__name__)
@@ -345,6 +345,248 @@ INTERRUPT_PHRASES = [
     "Notice what you're about to do.",
 ]
 
+# -----------------------------------------------------------------------------
+# ESCALATION LEVELS (V3.1)
+# -----------------------------------------------------------------------------
+# 0 = dormant (no recent pattern match)
+# 1 = present (pattern detected recently)
+# 2 = recurring (seen multiple times)
+# 3 = escalating (recurring + intensity increasing)
+
+class EscalationLevel:
+    DORMANT = 0
+    PRESENT = 1
+    RECURRING = 2
+    ESCALATING = 3
+
+# Map escalation levels to language
+ESCALATION_LANGUAGE = {
+    EscalationLevel.DORMANT: [],  # No added language
+    EscalationLevel.PRESENT: [
+        "This is showing up.",
+    ],
+    EscalationLevel.RECURRING: [
+        "Again.",
+        "You've been here before.",
+        "Same dynamic, different day.",
+    ],
+    EscalationLevel.ESCALATING: [
+        "This keeps repeating.",
+        "Pause here.",
+        "This is louder than before.",
+    ],
+}
+
+
+async def detect_relational_pattern_state(
+    db,
+    user_id: str,
+    other_name: str,
+    user_type: str,
+    other_type: str,
+) -> tuple:
+    """
+    Detect real pattern recurrence and escalation for relationship dynamics.
+    
+    Connects to:
+    1. Pattern Memory Engine (existing)
+    2. Journal entries (for emotional patterns)
+    3. Recent relationship insights (for 1:1 recurrence)
+    
+    Returns:
+        (escalation_level: 0-3, pattern_details: dict)
+    """
+    try:
+        # Generate relational pattern signature
+        pair_signature = f"relational:{user_type}:{other_type}:{other_name.lower()}"
+        dynamic_signature = f"dynamic:{user_type}:{other_type}"
+        
+        # Get recent journal entries for emotional context
+        recent_journals = []
+        try:
+            journals = await db.journals.find({
+                "user_id": user_id,
+            }).sort("created_at", -1).limit(10).to_list(10)
+            recent_journals = [j.get("content", "") for j in journals if j.get("content")]
+        except Exception:
+            pass
+        
+        # Track relationship pattern occurrences
+        # Check pattern_memory for relational patterns
+        relational_history = []
+        try:
+            relational_history = await db.relationship_patterns.find({
+                "user_id": user_id,
+            }).sort("timestamp", -1).limit(30).to_list(30)
+        except Exception:
+            pass
+        
+        # Analyze recurrence
+        exact_matches = []
+        dynamic_matches = []
+        recent_cutoff = datetime.now(timezone.utc) - timedelta(days=3)
+        
+        for entry in relational_history:
+            entry_sig = entry.get("pair_signature", "")
+            entry_dynamic = entry.get("dynamic_signature", "")
+            entry_time = entry.get("timestamp")
+            
+            # Handle various timestamp formats
+            if entry_time is None:
+                entry_time = datetime.min.replace(tzinfo=timezone.utc)
+            elif isinstance(entry_time, str):
+                try:
+                    entry_time = datetime.fromisoformat(entry_time.replace('Z', '+00:00'))
+                except:
+                    entry_time = datetime.min.replace(tzinfo=timezone.utc)
+            elif entry_time.tzinfo is None:
+                # Make naive datetime timezone-aware
+                entry_time = entry_time.replace(tzinfo=timezone.utc)
+            
+            # Exact match (same person, same dynamic)
+            if entry_sig == pair_signature:
+                exact_matches.append({"entry": entry, "timestamp": entry_time})
+            # Dynamic match (same type pairing, different person)
+            elif entry_dynamic == dynamic_signature:
+                dynamic_matches.append({"entry": entry, "timestamp": entry_time})
+        
+        # Check for recent matches (last 3 days)
+        recent_exact = [m for m in exact_matches if m["timestamp"] > recent_cutoff]
+        
+        # Compute emotional intensity from journals
+        intensity_keywords = ["overwhelm", "frustrated", "stuck", "can't", "keep", "again", "always"]
+        soft_keywords = ["noticing", "aware", "seeing", "curious"]
+        
+        journal_text = " ".join(recent_journals).lower()
+        intensity_count = sum(1 for kw in intensity_keywords if kw in journal_text)
+        soft_count = sum(1 for kw in soft_keywords if kw in journal_text)
+        
+        emotional_intensity = 0.5
+        if intensity_count > soft_count + 2:
+            emotional_intensity = 0.8
+        elif intensity_count > soft_count:
+            emotional_intensity = 0.65
+        elif soft_count > intensity_count:
+            emotional_intensity = 0.35
+        
+        # Determine escalation level
+        escalation_level = EscalationLevel.DORMANT
+        
+        total_matches = len(exact_matches) + len(dynamic_matches)
+        
+        if len(exact_matches) >= 3 or (len(exact_matches) >= 2 and emotional_intensity > 0.7):
+            # Multiple occurrences with this person + high intensity = ESCALATING
+            escalation_level = EscalationLevel.ESCALATING
+        elif len(exact_matches) >= 2 or (total_matches >= 3 and len(dynamic_matches) >= 2):
+            # Multiple occurrences = RECURRING
+            escalation_level = EscalationLevel.RECURRING
+        elif recent_exact or (total_matches >= 1 and len(recent_exact) > 0):
+            # Recent match = PRESENT
+            escalation_level = EscalationLevel.PRESENT
+        
+        # Build details
+        most_recent = None
+        if exact_matches:
+            most_recent = exact_matches[0]["timestamp"].isoformat() if exact_matches[0]["timestamp"] else None
+        
+        details = {
+            "escalation_level": escalation_level,
+            "exact_match_count": len(exact_matches),
+            "dynamic_match_count": len(dynamic_matches),
+            "recent_match_count": len(recent_exact),
+            "emotional_intensity": emotional_intensity,
+            "most_recent_date": most_recent,
+        }
+        
+        logger.info(f"[RelationshipPattern] User {user_id} + {other_name}: escalation={escalation_level}, matches={total_matches}")
+        
+        return escalation_level, details
+        
+    except Exception as e:
+        logger.error(f"[RelationshipPattern] Detection error: {e}")
+        # Return conservative defaults on error
+        return EscalationLevel.DORMANT, {"error": str(e)}
+
+
+async def store_relationship_pattern(
+    db,
+    user_id: str,
+    other_name: str,
+    user_type: str,
+    other_type: str,
+):
+    """
+    Store relationship pattern access for future recurrence detection.
+    """
+    try:
+        pair_signature = f"relational:{user_type}:{other_type}:{other_name.lower()}"
+        dynamic_signature = f"dynamic:{user_type}:{other_type}"
+        
+        await db.relationship_patterns.insert_one({
+            "user_id": user_id,
+            "other_name": other_name,
+            "pair_signature": pair_signature,
+            "dynamic_signature": dynamic_signature,
+            "user_type": user_type,
+            "other_type": other_type,
+            "timestamp": datetime.now(timezone.utc),
+        })
+        
+        logger.info(f"[RelationshipPattern] Stored pattern for {user_id} + {other_name}")
+        
+    except Exception as e:
+        logger.error(f"[RelationshipPattern] Store error: {e}")
+
+
+async def detect_identity_pattern_recurrence(
+    db,
+    user_id: str,
+    user_type: str,
+) -> bool:
+    """
+    Detect if the user's identity-level relationship pattern is recurring.
+    
+    Uses journal analysis + pattern memory to determine if user is 
+    experiencing their core relational pattern repeatedly.
+    """
+    try:
+        # Get recent journals
+        journals = await db.journals.find({
+            "user_id": user_id,
+        }).sort("created_at", -1).limit(20).to_list(20)
+        
+        if len(journals) < 3:
+            return False  # Not enough data
+        
+        # Relationship pattern keywords by type
+        pattern_keywords = {
+            "initiator": ["reach", "start", "wait", "silence", "respond", "ignored"],
+            "reflector": ["push", "pressure", "respond", "time", "process", "slow"],
+            "momentum_carrier": ["slow", "pause", "stop", "fast", "impatient", "waiting"],
+            "attunement_holder": ["rush", "fast", "sense", "feel", "read", "pace"],
+            "certainty_seeker": ["unclear", "vague", "know", "sure", "certain", "confused"],
+            "sensor": ["concrete", "specific", "feel", "sense", "impression", "explain"],
+            "expresser": ["silent", "quiet", "share", "show", "open", "match"],
+            "absorber": ["overwhelm", "loud", "quiet", "hold", "take in", "show"],
+            "action_taker": ["slow", "wait", "sense", "read", "move", "act"],
+            "atmospheric_reader": ["fast", "change", "read", "sense", "act", "move"],
+            "container": ["open", "share", "hold", "protect", "wall", "edge"],
+            "porous": ["boundary", "absorb", "feel", "carry", "edge", "protect"],
+        }
+        
+        keywords = pattern_keywords.get(user_type, ["pattern", "relationship"])
+        journal_text = " ".join([j.get("content", "") for j in journals]).lower()
+        
+        # Count keyword occurrences
+        keyword_count = sum(1 for kw in keywords if kw in journal_text)
+        
+        # If keywords appear frequently in recent journals, pattern is recurring
+        return keyword_count >= 4
+        
+    except Exception as e:
+        logger.error(f"[IdentityPattern] Detection error: {e}")
+        return False
+
 
 def generate_identity_meaning(
     user_type: str,
@@ -381,18 +623,21 @@ def generate_relational_meaning(
     user_type: str,
     other_type: str,
     seed_hash: int,
-    pattern_active: bool = False,
-    recurrence_count: int = 0,
+    escalation_level: int = 0,
 ) -> str:
     """
     Generate 1:1 relational meaning with ANCHORED variation.
     
+    V3.1: Uses escalation levels instead of binary flags:
+    - 0 = dormant (no added language)
+    - 1 = present ("This is showing up.")
+    - 2 = recurring ("Again.", "You've been here before.")
+    - 3 = escalating ("This keeps repeating.", "Pause here.")
+    
     Principles:
     - Core truth is stable (always the same for this pair)
     - ONE variation line allowed (anchored to same truth)
-    - Pattern loop only if recurrence is real (count > 0)
-    - Interrupt only if pattern is currently active
-    - NO random activation
+    - Escalation language only when level > 0
     """
     # Get pair key
     pair_key = (user_type, other_type)
@@ -410,11 +655,13 @@ def generate_relational_meaning(
     
     lines = []
     
-    # Pattern loop recognition - only if recurrence is real
-    if recurrence_count >= 2:
-        lines.append("Again.")
-    elif recurrence_count == 1:
-        lines.append("You've met this before.")
+    # Add escalation language based on level
+    if escalation_level > 0:
+        escalation_phrases = ESCALATION_LANGUAGE.get(escalation_level, [])
+        if escalation_phrases:
+            # Select phrase based on seed for consistency
+            phrase_idx = seed_hash % len(escalation_phrases)
+            lines.append(escalation_phrases[phrase_idx])
     
     # Core truth (ALWAYS present, stable)
     lines.append(truth["core"])
@@ -422,11 +669,6 @@ def generate_relational_meaning(
     # ONE variation (anchored - selected by seed for consistency)
     variation_idx = seed_hash % len(truth["variations"])
     lines.append(truth["variations"][variation_idx])
-    
-    # Interrupt moment - only if pattern is currently active
-    if pattern_active:
-        interrupt_idx = seed_hash % len(INTERRUPT_PHRASES)
-        lines.append(INTERRUPT_PHRASES[interrupt_idx])
     
     return "\n".join(lines)
 
@@ -918,11 +1160,11 @@ def generate_relationship_insight(
     
     return {
         "success": True,
-        "version": "v3.0",
+        "version": "v3.1",
         "other_name": other_name,
         "relationship_type": relationship_type,
         
-        # The 7-section structure (WHY THIS CONNECTION now STABLE with anchored variation)
+        # The 7-section structure
         "essence": essence,
         "friction": deep_content["friction"],
         "tension": deep_content["tension"],
@@ -932,8 +1174,7 @@ def generate_relationship_insight(
             user_type=user_type,
             other_type=other_type,
             seed_hash=seed_hash,
-            pattern_active=False,  # TODO: detect from journal/history
-            recurrence_count=0,    # TODO: detect from journal/history
+            escalation_level=0,  # Sync version - no detection
         ),
         "try_this": deep_content["try_this"],
         
@@ -944,6 +1185,142 @@ def generate_relationship_insight(
             "user_quality": DEEP_DYNAMICS.get(user_type, {}).get("quality", "unknown"),
             "other_quality": DEEP_DYNAMICS.get(other_type, {}).get("quality", "unknown"),
         },
+        "escalation_level": 0,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+async def generate_relationship_insight_with_detection(
+    db,
+    user_id: str,
+    user_profile: Dict[str, Any],
+    other_profile: Optional[Dict[str, Any]] = None,
+    other_name: str = "them",
+    relationship_type: str = "relationship",
+    relationship_context: str = "",
+    seed: str = ""
+) -> Dict[str, Any]:
+    """
+    V3.1: Generate relationship insight WITH real pattern detection.
+    
+    Connects to:
+    - Pattern Memory Engine
+    - Journal entries
+    - Previous relationship insights
+    
+    Uses escalation levels (0-3) to add appropriate language.
+    """
+    
+    # Generate seed for deterministic output
+    if not seed:
+        seed = f"{user_id}:{other_name}:{datetime.now().strftime('%Y-%m-%d')}"
+    seed_hash = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
+    
+    # Detect deep types
+    user_type = detect_deep_type(user_profile, "")
+    other_type = detect_deep_type(other_profile or {}, relationship_context)
+    
+    # If no context, use complementary type
+    if not relationship_context and not other_profile:
+        other_type = get_complementary_type(user_type)
+    
+    # REAL PATTERN DETECTION
+    escalation_level, pattern_details = await detect_relational_pattern_state(
+        db=db,
+        user_id=user_id,
+        other_name=other_name,
+        user_type=user_type,
+        other_type=other_type,
+    )
+    
+    # Store this access for future recurrence detection
+    await store_relationship_pattern(
+        db=db,
+        user_id=user_id,
+        other_name=other_name,
+        user_type=user_type,
+        other_type=other_type,
+    )
+    
+    dynamic_pair = (user_type, other_type)
+    
+    # Get deep dynamic content
+    deep_content = DEEP_FRICTION.get(dynamic_pair)
+    
+    if not deep_content:
+        reversed_pair = (other_type, user_type)
+        deep_content = DEEP_FRICTION.get(reversed_pair)
+        if deep_content:
+            dynamic_pair = reversed_pair
+    
+    # Fallback matching
+    if not deep_content:
+        initiation_types = ["initiator", "action_taker", "momentum_carrier", "expresser"]
+        reflection_types = ["reflector", "atmospheric_reader", "attunement_holder", "absorber", "sensor"]
+        
+        user_is_initiating = user_type in initiation_types
+        other_is_reflecting = other_type in reflection_types
+        
+        if user_is_initiating and other_is_reflecting:
+            dynamic_pair = ("initiator", "reflector")
+        elif not user_is_initiating and not other_is_reflecting:
+            dynamic_pair = ("reflector", "initiator")
+        else:
+            dynamic_pair = ("initiator", "reflector")
+        
+        deep_content = DEEP_FRICTION[dynamic_pair]
+    
+    # Get essence
+    other_deep = DEEP_DYNAMICS.get(other_type, DEEP_DYNAMICS["reflector"])
+    essence_options = other_deep["essence"]
+    essence = essence_options[seed_hash % len(essence_options)]
+    
+    # Apply escalation language to sections
+    tension = deep_content["tension"]
+    your_shift = deep_content["your_shift"]
+    try_this = deep_content["try_this"]
+    
+    # Add escalation prefix to TENSION for levels 2+
+    if escalation_level >= EscalationLevel.RECURRING:
+        escalation_phrases = ESCALATION_LANGUAGE.get(escalation_level, [])
+        if escalation_phrases:
+            phrase = escalation_phrases[seed_hash % len(escalation_phrases)]
+            tension = f"{phrase}\n{tension}"
+    
+    # Add interrupt to YOUR SHIFT for level 3
+    if escalation_level >= EscalationLevel.ESCALATING:
+        interrupt = INTERRUPT_PHRASES[seed_hash % len(INTERRUPT_PHRASES)]
+        your_shift = f"{interrupt}\n{your_shift}"
+    
+    return {
+        "success": True,
+        "version": "v3.1",
+        "other_name": other_name,
+        "relationship_type": relationship_type,
+        
+        # Sections with escalation applied
+        "essence": essence,
+        "friction": deep_content["friction"],
+        "tension": tension,
+        "your_shift": your_shift,
+        "gift": deep_content["gift"],
+        "why_this_connection": generate_relational_meaning(
+            user_type=user_type,
+            other_type=other_type,
+            seed_hash=seed_hash,
+            escalation_level=escalation_level,
+        ),
+        "try_this": try_this,
+        
+        # Metadata
+        "dynamic": {
+            "user_type": user_type,
+            "other_type": other_type,
+            "user_quality": DEEP_DYNAMICS.get(user_type, {}).get("quality", "unknown"),
+            "other_quality": DEEP_DYNAMICS.get(other_type, {}).get("quality", "unknown"),
+        },
+        "escalation_level": escalation_level,
+        "pattern_details": pattern_details,
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
 
