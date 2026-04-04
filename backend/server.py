@@ -16802,6 +16802,90 @@ async def get_transit_debug(user_id: str):
     except Exception as e:
         logger.error(f"Transit debug error for {user_id}: {e}")
         return {"error": str(e)}
+
+
+@api_router.get("/astrology/daily-window/{user_id}")
+async def get_daily_transit_window(user_id: str, timezone_str: str = "UTC"):
+    """
+    Get full daily transit window scan for a user.
+    
+    Scans the current local day (midnight to midnight) for:
+    - Moon sign ingress times (exact times when Moon changes signs)
+    - Transit-to-natal aspect exact times (when aspects reach minimum orb)
+    - Currently active aspects (within 3° orb)
+    
+    All calculations use TRUE SIDEREAL (SVP 31.2836°, J2000).
+    
+    Args:
+        user_id: User ID
+        timezone_str: User's local timezone (e.g., "Asia/Singapore", "America/New_York")
+    
+    Returns:
+        - date: Local date scanned
+        - all_events: List of events sorted by time
+        - moon_ingresses: Moon sign changes
+        - aspect_events: Transit-natal aspect exact times
+        - current_moon_sign: Current Moon sign
+        - next_moon_sign: Next Moon sign (if ingress today)
+        - strongest_active_aspect: Tightest current aspect
+        - daily_theme: Synthesized daily theme from events
+    """
+    try:
+        from services.daily_transit_window import (
+            scan_daily_transit_window,
+            build_daily_theme_from_events,
+            get_current_active_aspects,
+        )
+        
+        # Get user's natal chart
+        user, chart = await get_user_astrology_data(user_id)
+        
+        # Extract natal planet positions
+        astrology_data = chart.get('astrology', {})
+        natal_planets = astrology_data.get('planets', {})
+        
+        if not natal_planets:
+            raise HTTPException(status_code=400, detail="No natal planet data found for user")
+        
+        # Get user's timezone from profile if not specified
+        if timezone_str == "UTC":
+            user_tz = user.get('timezone') or user.get('birth_location', {}).get('timezone')
+            if user_tz:
+                timezone_str = user_tz
+        
+        # Scan daily window
+        window = scan_daily_transit_window(natal_planets, timezone_str)
+        
+        # Build daily theme
+        daily_theme = build_daily_theme_from_events(window, natal_planets)
+        
+        # Get current active aspects
+        active_aspects = get_current_active_aspects(natal_planets)
+        
+        response = window.to_dict()
+        response["daily_theme"] = daily_theme
+        response["current_active_aspects"] = active_aspects[:5]  # Top 5
+        response["user_timezone"] = timezone_str
+        response["calculation_method"] = "swiss_ephemeris_true_sidereal"
+        
+        logger.info(f"[DailyWindow] Scanned {len(window.all_events)} events for user {user_id} in {timezone_str}")
+        return response
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Daily window error for {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "error": str(e),
+            "total_events": 0,
+            "all_events": [],
+        }
+
+
+@api_router.get("/human-design/deep-dive/{user_id}")
 async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
     """
     Generate Deep Dive - Full Human Design profile including Type, Strategy, Authority,
