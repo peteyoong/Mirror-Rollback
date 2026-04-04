@@ -1,4 +1,4 @@
-"""Relationship Insight Engine V3.3
+"""Relationship Insight Engine V3.4
 
 Generates 1:1 dynamic reflections that help the user understand:
 1) What is happening between them
@@ -20,11 +20,11 @@ STRUCTURE:
 6. WHY THIS CONNECTION EXISTS - Meaning layer (2-3 lines)
 7. TRY THIS - ONE specific behavioral action
 
-V3.3 FEATURES:
+V3.4 FEATURES:
+- Context-aware language (HOME vs FORUM separation)
+- HOME = First person / direct recognition ("You've been here before")
+- FORUM = Field-based / relational (uses pattern_language_context.py)
 - BREAKTHROUGH CONFIDENCE LEVELS (0=none, 1=low, 2=medium, 3=high)
-- Low confidence = tentative (could be avoidance)
-- Medium confidence = probable shift
-- High confidence = confirmed (gap + level decrease + journal evidence)
 - Dynamic meaning generation (no fixed templates)
 - Time decay for pattern escalation (older patterns reduce weight)
 - Soft entry for Level 2 escalation
@@ -38,6 +38,13 @@ import random
 from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime, timezone, timedelta
 import hashlib
+
+# Import context-aware language generator
+from services.pattern_language_context import (
+    LanguageContext,
+    generate_home_language,
+    HOME_PATTERN_LANGUAGE,
+)
 
 logger = logging.getLogger(__name__)
 

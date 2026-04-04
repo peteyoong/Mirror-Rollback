@@ -1,10 +1,15 @@
 """
-Forum Live Field Engine V1.0
+Forum Live Field Engine V2.0
 
 ARCHITECTURE: FIELD-FIRST, NOT IDENTITY-FIRST
 
 This engine reads the live field dynamics of a forum based on actual activity signals,
 NOT on personality composition summaries.
+
+V2.0 ENHANCEMENT:
+Context-aware language generation that ensures Forum language is DISTINCT from Home:
+- HOME: First person / direct recognition ("You've been here before")
+- FORUM: Field-based / relational ("Something in this space has surfaced before")
 
 LAYERS:
 1. SIGNAL LAYER - Raw activity detection
@@ -29,18 +34,40 @@ LAYERS:
    - "Some move fast, others take time to sense"
    - NEVER lead with "Manifestors are..." or "Type 5s tend to..."
 
+5. YOUR POSITION - Where user sits in the field
+
+6. TRAJECTORY - What happens if nothing changes
+
+7. THE MOVE - Subtle action opening (high confidence only)
+
+FORUM LANGUAGE GUARDRAILS:
+- MUST avoid second-person psychological statements
+- MUST avoid identity statements ("you always", "you've been")
+- MUST use field framing ("this space", "between you", "the dynamic")
+
 SUCCESS CRITERIA:
 - Feels like reading the room in real time
 - Not a static report
 - Not personality analysis
 - Helps user sense what is happening NOW
 - Supports: "What do I need to shift?"
+- DISTINCT from Home language
 """
 
 import logging
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
+
+# Import context-aware language generator
+from services.pattern_language_context import (
+    LanguageContext,
+    generate_forum_language,
+    transform_to_field_language,
+    validate_forum_language,
+    sanitize_forum_language,
+    FORUM_PATTERN_LANGUAGE,
+)
 
 logger = logging.getLogger(__name__)
 
