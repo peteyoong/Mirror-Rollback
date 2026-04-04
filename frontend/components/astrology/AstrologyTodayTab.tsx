@@ -13,6 +13,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import TrueSiderealTransitsCard from '../TrueSiderealTransitsCard';
 
 import {
   FullChartData,
@@ -328,6 +329,42 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* ============================================================ */}
+      {/* TRUE SIDEREAL TRANSITS CARD - Deterministic Data First */}
+      {/* Shows: Strongest aspect, Moon context, upcoming events */}
+      {/* Only shown for "Today" view */}
+      {/* ============================================================ */}
+      {activeAltitude === 'today' && (
+        <View style={styles.trueSiderealSection}>
+          <TrueSiderealTransitsCard
+            userId={userId}
+            timezone="Asia/Singapore"
+            theme={{
+              background: theme.background,
+              surface: theme.surface,
+              surfaceLight: theme.surfaceLight || theme.surface,
+              text: theme.text,
+              textSecondary: theme.textSecondary,
+              textTertiary: theme.textTertiary,
+              accent: theme.accent,
+              border: theme.border,
+            }}
+            compact={false}
+          />
+        </View>
+      )}
+
+      {/* Section Divider between data and interpretation */}
+      {activeAltitude === 'today' && !loading && content && (
+        <View style={[styles.sectionDivider, { borderColor: theme.border }]}>
+          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+          <Text style={[styles.dividerText, { color: theme.textTertiary }]}>
+            INTERPRETATION
+          </Text>
+          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+        </View>
+      )}
 
       {/* LOADING STATE */}
       {loading && (
@@ -662,6 +699,29 @@ const styles = StyleSheet.create({
   askMirrorText: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  
+  // True Sidereal Transit Card Section
+  trueSiderealSection: {
+    marginBottom: 20,
+  },
+  
+  // Section Divider between data and interpretation
+  sectionDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+    paddingHorizontal: 4,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    marginHorizontal: 12,
   },
 });
 
