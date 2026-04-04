@@ -1,4 +1,4 @@
-"""Relationship Insight Engine V2.0
+"""Relationship Insight Engine V2.1
 
 Generates 1:1 dynamic reflections that help the user understand:
 1) What is happening between them
@@ -17,22 +17,396 @@ STRUCTURE:
 3. TENSION - What happens between you (1-2 lines)
 4. YOUR SHIFT - What YOU need to adjust (2-3 lines) - MOST IMPORTANT
 5. GIFT - Why this person matters in your life (1-2 lines)
-6. TRY THIS - ONE specific behavioral action
+6. WHY THIS CONNECTION EXISTS - Meaning layer (2-3 lines)
+7. TRY THIS - ONE specific behavioral action
 
-V2.0 UPGRADES:
-- Deeper dynamic layer (initiation/reflection, momentum/attunement, etc.)
-- Stronger gift language (why they matter, not just what happens)
-- Behavioral try-this (usable in actual moments, not therapy exercises)
+V2.1 UPGRADES:
+- Dynamic meaning generation (no fixed templates)
+- Subtle activation signals when relevant
+- Shorter, more evocative language
+- Let users feel meaning, not be told conclusions
 
 TONE: Direct, grounded, human. Slight edge is okay.
 """
 
 import logging
+import random
 from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime, timezone
 import hashlib
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# DYNAMIC MEANING GENERATOR
+# =============================================================================
+# Generates varied meaning layers - never the same twice
+
+MEANING_FRAGMENTS = {
+    # Opening statements (short, punchy)
+    "openings": [
+        "That's not random.",
+        "There's a reason.",
+        "Pay attention to this.",
+        "This keeps happening.",
+        "Notice the pattern.",
+    ],
+    
+    # Activation signals (when timing matters)
+    "activation": [
+        "This matters more right now.",
+        "This is more active than usual.",
+        "Something's shifting here.",
+        "The pattern is louder lately.",
+        "This is asking for attention.",
+        "",  # Empty = no activation (most common)
+        "",
+        "",
+    ],
+    
+    # Dynamic pair meanings (user_type -> other_type)
+    "dynamic_meanings": {
+        ("initiator", "reflector"): [
+            "You create. They deepen.",
+            "You open doors. They show what's behind them.",
+            "You reach forward. They reach back.",
+            "Your motion meets their stillness.",
+            "What you start needs somewhere to land.",
+        ],
+        ("reflector", "initiator"): [
+            "They bring motion. You bring depth.",
+            "They start. You complete.",
+            "Their reaching draws out your response.",
+            "Without their push, you'd stay internal.",
+            "They pull things out of you.",
+        ],
+        ("momentum_carrier", "attunement_holder"): [
+            "You carry force. They carry awareness.",
+            "Your speed meets their perception.",
+            "You build. They calibrate.",
+            "Your power needs their sensing.",
+            "Force without calibration is rough.",
+        ],
+        ("attunement_holder", "momentum_carrier"): [
+            "They move. You read.",
+            "Their force gives you something to shape.",
+            "Without them, you'd sense without acting.",
+            "They bring what you perceive into motion.",
+            "Your awareness shapes their power.",
+        ],
+        ("certainty_seeker", "sensor"): [
+            "You anchor. They perceive.",
+            "Your ground meets their flow.",
+            "You name things. They feel things.",
+            "Facts meet impressions here.",
+            "Some things can't be named until they're felt.",
+        ],
+        ("sensor", "certainty_seeker"): [
+            "They give structure. You give texture.",
+            "Your impressions become their facts.",
+            "They hold what you feel.",
+            "Without them, sensing stays formless.",
+            "Your flow meets their ground.",
+        ],
+        ("expresser", "absorber"): [
+            "You show. They hold.",
+            "Your surface meets their depth.",
+            "You make visible. They receive invisible.",
+            "What you express lands somewhere real.",
+            "They take you in differently than others.",
+        ],
+        ("absorber", "expresser"): [
+            "They model showing. You model receiving.",
+            "Their visibility invites yours.",
+            "They pull you toward the surface.",
+            "Without them, you'd stay hidden.",
+            "Small expressions from you mean more.",
+        ],
+        ("action_taker", "atmospheric_reader"): [
+            "You change the room. They read the change.",
+            "Your doing creates their seeing.",
+            "Action meets perception here.",
+            "You can't see what you create. They can.",
+            "Your motion needs their awareness.",
+        ],
+        ("atmospheric_reader", "action_taker"): [
+            "They act. You perceive the impact.",
+            "Their movement gives you something to read.",
+            "You see consequences they can't.",
+            "Reading happens after acting here.",
+            "Your perception shapes their direction.",
+        ],
+        ("initiator", "attunement_holder"): [
+            "You start. They feel whether it's right.",
+            "Your openings meet their sensing.",
+            "Not every start lands well.",
+            "They catch what your starting misses.",
+            "Initiation needs calibration.",
+        ],
+        ("attunement_holder", "initiator"): [
+            "They start. You sense the field.",
+            "Their energy overwhelms your reading.",
+            "You can attune while moving.",
+            "Let their motion teach you.",
+            "Action reveals what sensing can't.",
+        ],
+        ("momentum_carrier", "sensor"): [
+            "You build. They feel what's coming.",
+            "Force meets foresight here.",
+            "Your motion benefits from their seeing.",
+            "They perceive around corners.",
+            "Momentum lands better with direction.",
+        ],
+        ("sensor", "momentum_carrier"): [
+            "They carry. You shape.",
+            "Your sensing gives their force direction.",
+            "Feeling can happen in motion.",
+            "They generate. You guide.",
+            "Together: force with feeling.",
+        ],
+        ("expresser", "container"): [
+            "You show. They hold steady.",
+            "Your openness meets their structure.",
+            "They receive without flooding.",
+            "Not everyone needs to match you.",
+            "Stability can receive without reflecting.",
+        ],
+        ("container", "expresser"): [
+            "They model visibility. You model steadiness.",
+            "Small openings from you mean more.",
+            "Your edges can have doors.",
+            "They draw out what you protect.",
+            "Opening doesn't mean flooding.",
+        ],
+        ("certainty_seeker", "attunement_holder"): [
+            "You need names. They feel fields.",
+            "Not everything translates to facts.",
+            "Different intelligences. Different timings.",
+            "Some knowing arrives through feeling.",
+            "Let some things stay unnamed.",
+        ],
+        ("attunement_holder", "certainty_seeker"): [
+            "They need ground. You read atmospheres.",
+            "Your impressions can become their language.",
+            "Give them one certainty. Keep the rest forming.",
+            "Impressions can hold facts.",
+            "Clarity and sensing aren't opposites.",
+        ],
+        ("action_taker", "absorber"): [
+            "You do. They hold the doing.",
+            "Your action lands at depth.",
+            "Leave room between actions.",
+            "They process what you create.",
+            "Impact needs space to register.",
+        ],
+        ("absorber", "action_taker"): [
+            "They generate. You transform.",
+            "Their motion gives you material.",
+            "You don't have to hold everything.",
+            "Some things pass through.",
+            "Surfacing doesn't mean emptying.",
+        ],
+        ("container", "porous"): [
+            "You hold edges. They blur edges.",
+            "Structure meets permeability.",
+            "They soften what you protect.",
+            "Edges can have doors.",
+            "Your steadiness gives them ground.",
+        ],
+        ("porous", "container"): [
+            "They model edges. You model flow.",
+            "You can feel without absorbing.",
+            "Their structure gives you something to push against.",
+            "Not everything felt needs holding.",
+            "Boundaries aren't disconnection.",
+        ],
+    },
+    
+    # Learning edge statements (what the connection teaches)
+    "learning_edges": {
+        "initiator": [
+            "Reaching needs landing.",
+            "Speed isn't connection.",
+            "Some silences aren't rejection.",
+            "Forward motion has limits.",
+            "Starting is half. Landing is the other.",
+        ],
+        "reflector": [
+            "Response is action.",
+            "Your interior can reach the surface.",
+            "Showing process matters.",
+            "Presence isn't passive.",
+            "Emerging before ready is okay.",
+        ],
+        "momentum_carrier": [
+            "Pause doesn't break flow.",
+            "Force needs awareness.",
+            "Speed misses things.",
+            "Momentum includes stopping.",
+            "Power includes perception.",
+        ],
+        "attunement_holder": [
+            "Sensing can happen while moving.",
+            "Reading the room includes changing it.",
+            "Let some action teach you.",
+            "You can attune and act.",
+            "Perception follows action sometimes.",
+        ],
+        "certainty_seeker": [
+            "Some truths arrive before words.",
+            "Not all knowing is named.",
+            "Vagueness isn't always avoidance.",
+            "Clarity has limits.",
+            "Some things stay unresolved.",
+        ],
+        "sensor": [
+            "Impressions can become language.",
+            "Felt sense can be shared.",
+            "One certainty is enough to offer.",
+            "Sensing translates sometimes.",
+            "Concreteness doesn't kill subtlety.",
+        ],
+        "expresser": [
+            "Expression doesn't need matching.",
+            "Reception is different from reflection.",
+            "Being seen isn't being mirrored.",
+            "Some people show differently.",
+            "Generosity doesn't require return.",
+        ],
+        "absorber": [
+            "Surfacing doesn't mean emptying.",
+            "Small signals matter.",
+            "Depth can reach the surface.",
+            "Showing a piece isn't flooding.",
+            "The rare expression means more.",
+        ],
+        "action_taker": [
+            "The field has information too.",
+            "Action without awareness misses things.",
+            "Some things need sensing first.",
+            "The room knows something.",
+            "Impact isn't always visible to you.",
+        ],
+        "atmospheric_reader": [
+            "Reading can happen in motion.",
+            "Let action clarify.",
+            "Perception follows action sometimes.",
+            "The room changes anyway.",
+            "Assessment can include movement.",
+        ],
+        "container": [
+            "Edges can have doors.",
+            "Opening isn't flooding.",
+            "Protection can include access.",
+            "Small openings transform things.",
+            "Steadiness includes permeability.",
+        ],
+        "porous": [
+            "Feeling without absorbing is possible.",
+            "You can have edges too.",
+            "Not everything felt needs holding.",
+            "Boundaries aren't disconnection.",
+            "You choose what you carry.",
+        ],
+    },
+}
+
+
+def generate_why_connection(
+    user_type: str, 
+    other_type: str,
+    seed_hash: int
+) -> str:
+    """
+    Generate dynamic 'why this connection exists' text.
+    Never the same - varies based on seed and available fragments.
+    """
+    # Get dynamic pair key (try both directions)
+    pair_key = (user_type, other_type)
+    reversed_key = (other_type, user_type)
+    
+    meanings = MEANING_FRAGMENTS["dynamic_meanings"].get(pair_key)
+    if not meanings:
+        meanings = MEANING_FRAGMENTS["dynamic_meanings"].get(reversed_key, [
+            "You shape each other differently.",
+            "Something's being learned here.",
+            "The pattern isn't accidental.",
+        ])
+    
+    learning_edges = MEANING_FRAGMENTS["learning_edges"].get(user_type, [
+        "There's something here for you.",
+    ])
+    
+    # Select based on seed
+    opening = MEANING_FRAGMENTS["openings"][seed_hash % len(MEANING_FRAGMENTS["openings"])]
+    meaning = meanings[(seed_hash // 7) % len(meanings)]
+    edge = learning_edges[(seed_hash // 13) % len(learning_edges)]
+    activation = MEANING_FRAGMENTS["activation"][(seed_hash // 3) % len(MEANING_FRAGMENTS["activation"])]
+    
+    # Build output (short, varied)
+    lines = [meaning]
+    
+    # Add opening sometimes (not always)
+    if seed_hash % 3 == 0:
+        lines.insert(0, opening)
+    
+    # Add learning edge
+    lines.append(edge)
+    
+    # Add activation signal occasionally
+    if activation:
+        lines.append(activation)
+    
+    return "\n".join(lines)
+
+
+def generate_what_teaching(
+    user_type: str,
+    seed_hash: int
+) -> str:
+    """
+    Generate dynamic 'what relationships are teaching you' text.
+    Identity-level - about recurring patterns, not specific people.
+    """
+    learning_edges = MEANING_FRAGMENTS["learning_edges"].get(user_type, [
+        "Something keeps showing up.",
+    ])
+    
+    openings = [
+        "That's not random.",
+        "The pattern repeats.",
+        "Notice what keeps happening.",
+        "Same dynamic, different faces.",
+        "There's a reason this keeps appearing.",
+    ]
+    
+    conclusions = [
+        "The ones who challenge you most are showing you something.",
+        "What irritates you points somewhere.",
+        "The friction isn't accidental.",
+        "The difficulty is the teaching.",
+        "It keeps appearing until it lands.",
+    ]
+    
+    # Select based on seed
+    opening = openings[seed_hash % len(openings)]
+    edge = learning_edges[(seed_hash // 7) % len(learning_edges)]
+    conclusion = conclusions[(seed_hash // 11) % len(conclusions)]
+    
+    # Build output (concise, evocative)
+    lines = [opening, edge]
+    
+    # Add conclusion sometimes
+    if seed_hash % 2 == 0:
+        lines.append(conclusion)
+    
+    # Add activation occasionally
+    activation = MEANING_FRAGMENTS["activation"][(seed_hash // 5) % len(MEANING_FRAGMENTS["activation"])]
+    if activation:
+        lines.append(activation)
+    
+    return "\n".join(lines)
 
 
 # =============================================================================
@@ -495,17 +869,17 @@ def generate_relationship_insight(
     
     return {
         "success": True,
-        "version": "v2.1",
+        "version": "v2.2",
         "other_name": other_name,
         "relationship_type": relationship_type,
         
-        # The 7-section structure (added WHY THIS CONNECTION EXISTS)
+        # The 7-section structure (WHY THIS CONNECTION now dynamically generated)
         "essence": essence,
         "friction": deep_content["friction"],
         "tension": deep_content["tension"],
         "your_shift": deep_content["your_shift"],
         "gift": deep_content["gift"],
-        "why_this_connection": deep_content.get("why_this_connection", ""),  # NEW: Why this connection exists
+        "why_this_connection": generate_why_connection(user_type, other_type, seed_hash),  # DYNAMIC
         "try_this": deep_content["try_this"],
         
         # Metadata
@@ -647,6 +1021,8 @@ def generate_relationship_pattern(
     if not seed:
         seed = f"{user_profile.get('user_id', '')}:pattern:{datetime.now().strftime('%Y-%m-%d')}"
     
+    seed_hash = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
+    
     # Detect user's deep type
     user_type = detect_deep_type(user_profile, "")
     
@@ -655,16 +1031,16 @@ def generate_relationship_pattern(
     
     return {
         "success": True,
-        "version": "v2.1",
+        "version": "v2.2",
         "pattern_type": user_type,
         "pattern_quality": DEEP_DYNAMICS.get(user_type, {}).get("quality", "unknown"),
         
-        # The 6-section structure for identity-level
+        # The 6-section structure for identity-level (what_teaching now dynamic)
         "core_pattern": pattern["core_pattern"],
         "default_tension": pattern["default_tension"],
         "growth_edge": pattern["growth_edge"],
         "gift": pattern["gift"],
-        "what_teaching": pattern["what_teaching"],  # NEW: What relationships are teaching you
+        "what_teaching": generate_what_teaching(user_type, seed_hash),  # DYNAMIC
         "try_this": pattern["try_this"],
         
         "generated_at": datetime.now(timezone.utc).isoformat(),
