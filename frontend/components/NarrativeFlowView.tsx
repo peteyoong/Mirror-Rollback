@@ -246,12 +246,6 @@ const NarrativeFlowView: React.FC<NarrativeFlowViewProps> = ({
         </>
       )}
       
-      {/* Optional: Name prominence for relationship mode */}
-      {isRelationship && data.other_name && (
-        <Text style={[styles.relationshipNote, { color: theme.textTertiary }]}>
-          Between you and {data.other_name}
-        </Text>
-      )}
     </View>
   );
 };
@@ -384,14 +378,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 25,
     fontWeight: '600',
-  },
-  
-  // Relationship-specific
-  relationshipNote: {
-    fontSize: 12,
-    textAlign: 'center',
-    marginTop: 12,
-    fontStyle: 'italic',
   },
 });
 
