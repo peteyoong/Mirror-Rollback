@@ -25184,11 +25184,15 @@ async def get_forum_members(forum_id: str, user_id: str):
         user = await db.users.find_one({"_id": ObjectId(m["user_id"])})
         user_name = user.get("name", "Anonymous") if user else "Anonymous"
         
+        # Handle optional fields with defaults
+        joined_at = m.get("joined_at")
+        joined_at_str = joined_at.isoformat() if joined_at else None
+        
         members.append({
             "user_id": m["user_id"],
             "user_name": user_name,
-            "role": m["role"],
-            "joined_at": m["joined_at"].isoformat(),
+            "role": m.get("role", "member"),  # Default to "member" if role is missing
+            "joined_at": joined_at_str,
         })
     
     return {"members": members}
