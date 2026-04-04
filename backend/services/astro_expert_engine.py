@@ -493,8 +493,19 @@ async def generate_astro_expert_diagnosis(
         
         logger.info(f"[AstroExpert] Horizon: {timeframe}, Event: {event_type}, Sign: {event_sign}")
     else:
-        # No dominant event - use planet-based theme
-        todays_theme = planet_info.get('tension', planet_info['pressure'].title())
+        # No dominant event - use planet-based theme WITH HORIZON DIFFERENTIATION
+        base_theme = planet_info.get('tension', planet_info['pressure'].title())
+        
+        # CRITICAL: Add horizon-specific framing to the theme
+        if timeframe == "today":
+            todays_theme = base_theme  # Direct, immediate
+        elif timeframe == "week":
+            # Week = what keeps surfacing
+            todays_theme = f"What keeps returning this week: {base_theme.lower()}"
+        else:  # month
+            # Month = larger arc
+            todays_theme = f"This month's recurring lesson: {base_theme.lower()}"
+        
         theme_description = ""
         event_what_it_means = ""
         event_felt_texture = []
@@ -693,11 +704,30 @@ async def generate_astro_expert_diagnosis(
             ]
         one_question = questions[seed_hash % len(questions)]
     
+    # Build cache key for debugging
+    cache_key = f"{user_id}:{today}:{timeframe}:astro_expert"
+    
+    # Compute window boundaries based on timeframe
+    from datetime import timedelta
+    if timeframe == "today":
+        window_start = today
+        window_end = today
+    elif timeframe == "week":
+        week_start = now - timedelta(days=now.weekday())
+        week_end = week_start + timedelta(days=6)
+        window_start = week_start.strftime("%Y-%m-%d")
+        window_end = week_end.strftime("%Y-%m-%d")
+    else:  # month
+        from calendar import monthrange
+        _, last_day = monthrange(now.year, now.month)
+        window_start = f"{now.year}-{now.month:02d}-01"
+        window_end = f"{now.year}-{now.month:02d}-{last_day}"
+    
     return {
         "success": True,
         "lens": "astrology",
         "date": today,
-        "version": "v5.2_horizon",
+        "version": "v5.3_scope_isolated",
         "timeframe": timeframe,
         # V5.2 6-SECTION STRUCTURE (HORIZON-SPECIFIC)
         "todays_theme": todays_theme,
@@ -733,6 +763,14 @@ async def generate_astro_expert_diagnosis(
             "dominant_planet": dominant_planet,
             "primary_house": primary_house,
         },
+        # SCOPE DEBUG METADATA (for verifying scope isolation)
+        "scope_debug": {
+            "scope": timeframe,
+            "cache_key": cache_key,
+            "window_start": window_start,
+            "window_end": window_end,
+            "generated_at": now.isoformat(),
+        },
         "debug": {
             "dominant_planet": dominant_planet,
             "primary_house": primary_house,
@@ -742,6 +780,6 @@ async def generate_astro_expert_diagnosis(
             "personalization_applied": bool(personalization.get("pattern_state_phrase") or personalization.get("tendency_phrases")),
             "event_priority_active": has_dominant_event,
             "horizon_mode": timeframe,
-            "version": "v5.2",
+            "version": "v5.3",
         }
     }

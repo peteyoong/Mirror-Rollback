@@ -57,6 +57,14 @@ interface AstroExpertData {
     dominant_planet: string;
     primary_house: number;
   };
+  // V5.3: Scope debug metadata for verification
+  scope_debug?: {
+    scope: string;
+    cache_key: string;
+    window_start: string;
+    window_end: string;
+    generated_at: string;
+  };
   debug?: any;
 }
 
@@ -461,6 +469,18 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
         dominantPlanet={content?.signals?.dominant_planet}
       />
 
+      {/* V5.3: SCOPE DEBUG FOOTER - Verify scope isolation */}
+      {content?.scope_debug && (
+        <View style={[styles.scopeDebugFooter, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
+          <Text style={[styles.scopeDebugText, { color: theme.textTertiary }]}>
+            scope: {content.scope_debug.scope} | window: {content.scope_debug.window_start} → {content.scope_debug.window_end}
+          </Text>
+          <Text style={[styles.scopeDebugText, { color: theme.textTertiary }]}>
+            cache_key: {content.scope_debug.cache_key?.slice(0, 40)}...
+          </Text>
+        </View>
+      )}
+
       {/* Ask Mirror Button */}
       <TouchableOpacity
         style={[styles.askMirrorButton, { backgroundColor: theme.text }]}
@@ -722,6 +742,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 1,
     marginHorizontal: 12,
+  },
+  
+  // V5.3: Scope Debug Footer
+  scopeDebugFooter: {
+    padding: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  scopeDebugText: {
+    fontSize: 9,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    lineHeight: 14,
   },
 });
 
