@@ -1,25 +1,21 @@
 /**
- * RelationshipInsightCard V1.0
+ * RelationshipInsightCard V2.0
  * 
- * A 1:1 dynamic reflection that helps the user understand:
- * - What is happening between them
- * - What they need to shift in themselves
+ * NOW: 5-part Relationship Narrative Flow
+ * Uses the same structure as Forum Live Field, adapted for 1:1 dynamics.
  * 
- * 6-SECTION STRUCTURE:
- * 1. Essence - What they are / how they move
- * 2. Friction - Where it clashes with you
- * 3. Tension - What happens between you
- * 4. Your Shift - What YOU need to adjust (MOST IMPORTANT)
- * 5. Gift - Why this person matters
- * 6. Try This - ONE specific action
+ * 5-PART STRUCTURE (strict order):
+ * 1. FIELD STATE - What's happening between you two
+ * 2. YOUR POSITION - Where you stand in this dynamic
+ * 3. TRAJECTORY - What happens if nothing changes
+ * 4. STORY - What this connection tends to become
+ * 5. THE MOVE - Subtle action opening
  * 
- * VISUAL HIERARCHY:
- * 1. Title / dynamic
- * 2. Your Shift (EMPHASIZED)
- * 3. Tension
- * 4. Gift
- * 5. Essence / Friction
- * 6. Try This
+ * DESIGN PRINCIPLES:
+ * - More intimate than Forum (tighter, warmer, more immediate)
+ * - Uses "between you", "this connection" language
+ * - Story is expandable, doesn't overpower present-moment read
+ * - Other person's name is prominent ("Between you and Sarah")
  * 
  * TONE: Intimate, calm, clear, slightly premium, not clinical
  */
@@ -35,27 +31,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../services/api';
-
-interface RelationshipInsightData {
-  success: boolean;
-  version: string;
-  other_name: string;
-  relationship_type: string;
-  essence: string;
-  friction: string;
-  tension: string;
-  your_shift: string;
-  gift: string;
-  why_this_connection: string;  // NEW: Why this connection exists
-  try_this: string;
-  dynamic: {
-    user_type: string;
-    other_type: string;
-    user_quality: string;
-    other_quality: string;
-  };
-}
+import NarrativeFlowView, { NarrativeFlowData } from './NarrativeFlowView';
+import { getRelationshipNarrativeFlow, RelationshipNarrativeFlowResponse } from '../services/api';
 
 interface RelationshipInsightCardProps {
   userId: string;
@@ -80,16 +57,16 @@ const RelationshipInsightCard: React.FC<RelationshipInsightCardProps> = ({
   theme,
   onClose,
 }) => {
-  const [data, setData] = useState<RelationshipInsightData | null>(null);
+  const [data, setData] = useState<RelationshipNarrativeFlowResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadInsight();
+    loadNarrativeFlow();
   }, [userId, otherName, relationshipContext]);
 
-  const loadInsight = async () => {
-    console.log('[RelationshipInsight] Loading insight for:', { userId, otherName, relationshipContext });
+  const loadNarrativeFlow = async () => {
+    console.log('[RelationshipInsight] Loading narrative flow for:', { userId, otherName, relationshipContext });
     
     if (!userId || !otherName) {
       console.log('[RelationshipInsight] Missing userId or otherName');
@@ -101,17 +78,14 @@ const RelationshipInsightCard: React.FC<RelationshipInsightCardProps> = ({
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams({
-        other_name: otherName,
-        context: relationshipContext,
-      });
-
-      const url = `/relationship-insight/${userId}?${params}`;
-      console.log('[RelationshipInsight] Calling API:', url);
+      const response = await getRelationshipNarrativeFlow(
+        userId,
+        otherName,
+        relationshipContext
+      );
       
-      const response = await api.get(url);
-      console.log('[RelationshipInsight] Response:', response.data);
-      setData(response.data);
+      console.log('[RelationshipInsight] Response:', response);
+      setData(response);
     } catch (err: any) {
       console.error('[RelationshipInsight] Error:', err);
       setError(err.message || 'Failed to load');
@@ -120,43 +94,54 @@ const RelationshipInsightCard: React.FC<RelationshipInsightCardProps> = ({
     }
   };
 
-  // Split multi-line text into array
-  const splitLines = (text: string): string[] => {
-    return text.split('\n').filter(line => line.trim());
-  };
-
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.surface }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={theme.accent} />
           <Text style={[styles.loadingText, { color: theme.textTertiary }]}>
-            Reading the dynamic...
+            Reading what's between you...
           </Text>
         </View>
       </View>
     );
   }
 
-  if (error || !data) {
+  if (error || !data || !data.success) {
     return (
       <View style={[styles.container, { backgroundColor: theme.surface }]}>
         <Text style={[styles.errorText, { color: theme.textSecondary }]}>
-          {error || 'Unable to load insight'}
+          {error || 'Unable to read this dynamic'}
         </Text>
-        <TouchableOpacity onPress={loadInsight}>
+        <TouchableOpacity onPress={loadNarrativeFlow}>
           <Text style={[styles.retryText, { color: theme.accent }]}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
+  // Transform API response to NarrativeFlowData
+  const narrativeData: NarrativeFlowData = {
+    field_state: data.field_state,
+    your_position: data.your_position,
+    your_position_type: data.your_position_type,
+    trajectory: data.trajectory,
+    trajectory_type: data.trajectory_type,
+    trajectory_severity: data.trajectory_severity,
+    story: data.story,
+    the_move: data.the_move,
+    field_temperature: data.field_temperature,
+    is_breakthrough: data.is_breakthrough,
+    other_name: data.other_name,
+  };
+
   return (
     <ScrollView 
-      style={[styles.container, { backgroundColor: theme.surface }]}
+      style={[styles.container, { backgroundColor: theme.background }]}
+      contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
+      {/* Header with name and close button */}
       <View style={styles.header}>
         {onClose && (
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -168,117 +153,36 @@ const RelationshipInsightCard: React.FC<RelationshipInsightCardProps> = ({
           {data.other_name}
         </Text>
         
-        <View style={styles.dynamicBadge}>
-          <Text style={[styles.dynamicText, { color: theme.textTertiary }]}>
-            {data.dynamic.user_quality} ↔ {data.dynamic.other_quality}
-          </Text>
-        </View>
-      </View>
-
-      {/* YOUR SHIFT - Most emphasized */}
-      <View style={[styles.shiftSection, { borderColor: theme.accent }]}>
-        <Text style={[styles.shiftLabel, { color: theme.accent }]}>
-          YOUR SHIFT
+        {/* Intimate connection subtitle */}
+        <Text style={[styles.connectionSubtitle, { color: theme.textTertiary }]}>
+          Between you and {data.other_name}
         </Text>
-        <View style={styles.shiftContent}>
-          {splitLines(data.your_shift).map((line, idx) => (
-            <Text 
-              key={idx} 
-              style={[styles.shiftLine, { color: theme.text }]}
-            >
-              {line}
-            </Text>
-          ))}
-        </View>
       </View>
 
-      {/* TENSION */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-          TENSION
-        </Text>
-        {splitLines(data.tension).map((line, idx) => (
-          <Text 
-            key={idx} 
-            style={[styles.sectionText, { color: theme.text }]}
-          >
-            {line}
-          </Text>
-        ))}
-      </View>
+      {/* Main Narrative Flow */}
+      <NarrativeFlowView
+        data={narrativeData}
+        mode="relationship"
+        theme={theme}
+      />
 
-      {/* GIFT */}
-      <View style={[styles.giftSection, { backgroundColor: theme.accent + '08' }]}>
-        <Text style={[styles.giftLabel, { color: theme.accent }]}>
-          GIFT
-        </Text>
-        {splitLines(data.gift).map((line, idx) => (
-          <Text 
-            key={idx} 
-            style={[styles.giftText, { color: theme.text }]}
-          >
-            {line}
+      {/* Signal confidence indicator (subtle) */}
+      {data.signal_confidence === 'low' && (
+        <View style={[styles.signalNote, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.signalNoteText, { color: theme.textTertiary }]}>
+            ✦ More signal will deepen this reading over time
           </Text>
-        ))}
-      </View>
-
-      {/* WHY THIS CONNECTION EXISTS (NEW) */}
-      {data.why_this_connection && (
-        <View style={[styles.whyConnectionSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.whyConnectionLabel, { color: theme.textTertiary }]}>
-            WHY THIS CONNECTION EXISTS
-          </Text>
-          {splitLines(data.why_this_connection).map((line, idx) => (
-            <Text 
-              key={idx} 
-              style={[styles.whyConnectionText, { color: theme.text }]}
-            >
-              {line}
-            </Text>
-          ))}
         </View>
       )}
 
-      {/* ESSENCE + FRICTION (compact) */}
-      <View style={styles.contextSection}>
-        <View style={styles.contextBlock}>
-          <Text style={[styles.contextLabel, { color: theme.textTertiary }]}>
-            ESSENCE
-          </Text>
-          <Text style={[styles.contextText, { color: theme.textSecondary }]}>
-            {data.essence}
+      {/* Breakthrough indicator */}
+      {data.is_breakthrough && (
+        <View style={[styles.breakthroughNote, { backgroundColor: theme.accent + '10' }]}>
+          <Text style={[styles.breakthroughText, { color: theme.accent }]}>
+            ✦ Something is shifting in this connection
           </Text>
         </View>
-        
-        <View style={[styles.contextDivider, { backgroundColor: theme.border }]} />
-        
-        <View style={styles.contextBlock}>
-          <Text style={[styles.contextLabel, { color: theme.textTertiary }]}>
-            FRICTION
-          </Text>
-          {splitLines(data.friction).map((line, idx) => (
-            <Text 
-              key={idx} 
-              style={[styles.contextText, { color: theme.textSecondary }]}
-            >
-              {line}
-            </Text>
-          ))}
-        </View>
-      </View>
-
-      {/* TRY THIS - Action block */}
-      <View style={[styles.tryThisSection, { backgroundColor: theme.background, borderColor: theme.border }]}>
-        <View style={styles.tryThisHeader}>
-          <Ionicons name="arrow-forward-circle" size={18} color={theme.accent} />
-          <Text style={[styles.tryThisLabel, { color: theme.accent }]}>
-            TRY THIS
-          </Text>
-        </View>
-        <Text style={[styles.tryThisText, { color: theme.text }]}>
-          {data.try_this}
-        </Text>
-      </View>
+      )}
 
       <View style={styles.bottomPadding} />
     </ScrollView>
@@ -300,6 +204,9 @@ const styles = StyleSheet.create({
         elevation: 4,
       },
     }),
+  },
+  scrollContent: {
+    padding: 20,
   },
   loadingContainer: {
     padding: 48,
@@ -324,161 +231,50 @@ const styles = StyleSheet.create({
   
   // Header
   header: {
-    padding: 24,
-    paddingBottom: 16,
     alignItems: 'center',
+    marginBottom: 20,
   },
   closeButton: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 0,
+    right: 0,
     padding: 8,
   },
   otherName: {
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.5,
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  dynamicBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  dynamicText: {
+  connectionSubtitle: {
     fontSize: 13,
-    fontWeight: '500',
-    letterSpacing: 0.5,
-  },
-
-  // YOUR SHIFT - Primary emphasis
-  shiftSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    padding: 20,
-    borderLeftWidth: 3,
-    borderRadius: 2,
-  },
-  shiftLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    marginBottom: 12,
-  },
-  shiftContent: {
-    gap: 8,
-  },
-  shiftLine: {
-    fontSize: 17,
-    fontWeight: '500',
-    lineHeight: 26,
-    letterSpacing: -0.2,
-  },
-
-  // Standard section
-  section: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 1.2,
-    marginBottom: 10,
-  },
-  sectionText: {
-    fontSize: 15,
-    lineHeight: 24,
-    marginBottom: 4,
-  },
-
-  // GIFT section
-  giftSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    padding: 16,
-    borderRadius: 12,
-  },
-  giftLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 1.2,
-    marginBottom: 10,
-  },
-  giftText: {
-    fontSize: 15,
-    lineHeight: 24,
     fontStyle: 'italic',
-    marginBottom: 4,
+    letterSpacing: 0.3,
   },
 
-  // WHY THIS CONNECTION EXISTS section
-  whyConnectionSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  whyConnectionLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  whyConnectionText: {
-    fontSize: 15,
-    lineHeight: 24,
-    marginBottom: 4,
-  },
-
-  // Context section (Essence + Friction)
-  contextSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  contextBlock: {
-    marginBottom: 16,
-  },
-  contextDivider: {
-    height: 1,
-    marginVertical: 8,
-    opacity: 0.5,
-  },
-  contextLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 1.2,
-    marginBottom: 8,
-  },
-  contextText: {
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 2,
-  },
-
-  // TRY THIS section
-  tryThisSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  tryThisHeader: {
-    flexDirection: 'row',
+  // Signal confidence note
+  signalNote: {
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 10,
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
   },
-  tryThisLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
+  signalNoteText: {
+    fontSize: 12,
+    fontStyle: 'italic',
   },
-  tryThisText: {
-    fontSize: 15,
-    lineHeight: 24,
-    fontWeight: '500',
+
+  // Breakthrough indicator
+  breakthroughNote: {
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  breakthroughText: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 
   bottomPadding: {

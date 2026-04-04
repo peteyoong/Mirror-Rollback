@@ -1640,4 +1640,66 @@ export const getRelationshipPattern = async (userId: string): Promise<Relationsh
   return response.data;
 };
 
+
+// ============================================================
+// RELATIONSHIP NARRATIVE FLOW API (1:1 Dynamic)
+// ============================================================
+
+export interface RelationshipNarrativeFlowResponse {
+  success: boolean;
+  other_name: string;
+  generated_at: string;
+  
+  // 5-part narrative flow
+  field_state: string;
+  your_position: string | null;
+  your_position_type: 'initiating' | 'receiving' | 'holding_back' | 'withdrawing' | 'mirroring' | 'protecting';
+  trajectory: string | null;
+  trajectory_type: 'distance_growing' | 'tension_building' | 'pattern_repeating' | 'connection_deepening' | 'stagnation';
+  trajectory_severity: 'low' | 'moderate' | 'high' | 'positive';
+  story: string;
+  the_move: string | null;
+  
+  // Metadata
+  field_temperature: 'warm' | 'charged' | 'present' | 'quiet';
+  escalation_level: number;
+  is_breakthrough: boolean;
+  signal_confidence: 'low' | 'medium' | 'high';
+  
+  // Debug data
+  debug?: {
+    user_type: string;
+    other_type: string;
+    emotional_tone: string;
+  };
+}
+
+/**
+ * Get 5-part Relationship Narrative Flow for a 1:1 dynamic.
+ * 
+ * Same structure as Forum Live Field, but adapted for 1:1 dynamics.
+ * 
+ * 5 Sections:
+ * 1. FIELD STATE - What's happening between you two
+ * 2. YOUR POSITION - Where you stand in this dynamic
+ * 3. TRAJECTORY - What happens if nothing changes
+ * 4. STORY - What this connection tends to become
+ * 5. THE MOVE - Subtle action opening
+ * 
+ * Language uses: "between you", "this connection", "this dynamic"
+ * Avoids: "the room", "the space", "the circle"
+ */
+export const getRelationshipNarrativeFlow = async (
+  userId: string,
+  otherName: string,
+  context: string = ''
+): Promise<RelationshipNarrativeFlowResponse> => {
+  const params = new URLSearchParams({
+    other_name: otherName,
+    context,
+  });
+  const response = await apiWithRetry.get(`/relationship-narrative/${userId}?${params}`);
+  return response.data;
+};
+
 export default api;

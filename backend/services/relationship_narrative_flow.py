@@ -180,7 +180,7 @@ RELATIONSHIP_TRAJECTORIES = {
     },
     "pattern_repeating": {
         "low": "This dynamic may loop again.",
-        "moderate": "You've been here before. Without something different, you'll be here again.",
+        "moderate": "The pattern has shown up before. Without something different, it will likely return.",
         "high": "The pattern is entrenched. It will repeat until one of you breaks it.",
     },
     "connection_deepening": {
