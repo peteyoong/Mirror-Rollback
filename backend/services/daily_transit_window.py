@@ -237,7 +237,8 @@ def longitude_to_house(longitude: float, house_cusps: List[float]) -> int:
 def get_current_transit_houses(
     dt: datetime,
     house_cusps: List[float],
-    transit_planets: Optional[List[str]] = None
+    transit_planets: Optional[List[str]] = None,
+    include_outer_planets: bool = True
 ) -> Dict[str, int]:
     """
     Get current house positions for all transit planets.
@@ -245,7 +246,8 @@ def get_current_transit_houses(
     Args:
         dt: Datetime for calculation
         house_cusps: List of 12 house cusp longitudes
-        transit_planets: Planets to track (default: Moon, Sun, Mercury, Venus, Mars)
+        transit_planets: Planets to track (default: all personal + outer planets)
+        include_outer_planets: If True, include Jupiter, Saturn, Uranus, Neptune, Pluto
     
     Returns:
         Dict mapping planet names to house numbers (1-12)
@@ -253,7 +255,7 @@ def get_current_transit_houses(
     from calculations.sidereal_config import calculate_planet_by_name
     
     if transit_planets is None:
-        transit_planets = ["Moon", "Sun", "Mercury", "Venus", "Mars"]
+        transit_planets = ALL_TRANSIT_PLANETS if include_outer_planets else PERSONAL_PLANETS
     
     positions = {}
     for planet_name in transit_planets:
@@ -262,7 +264,7 @@ def get_current_transit_houses(
             house = longitude_to_house(pos['longitude'], house_cusps)
             positions[planet_name] = house
         except Exception as e:
-            logger.error(f"[HouseCalc] Error for {planet_name}: {e}")
+            logger.warning(f"[HouseCalc] Error for {planet_name}: {e}")
     
     return positions
 
@@ -568,19 +570,40 @@ def _refine_aspect_exact_time(
 
 
 # =============================================================================
+# TRANSIT PLANET LISTS
+# =============================================================================
+
+# Personal planets (fast-moving, used for timed daily events)
+PERSONAL_PLANETS = ["Moon", "Sun", "Mercury", "Venus", "Mars"]
+
+# Outer planets (slow-moving, typically shown as background transits)
+OUTER_PLANETS = ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+
+# All transit planets
+ALL_TRANSIT_PLANETS = PERSONAL_PLANETS + OUTER_PLANETS
+
+
+# =============================================================================
 # CURRENT ACTIVE ASPECTS
 # =============================================================================
 
 def get_current_active_aspects(
     natal_planets: Dict[str, Dict[str, Any]],
     now: Optional[datetime] = None,
-    max_orb_for_active: float = 3.0
+    max_orb_for_active: float = 3.0,
+    include_outer_planets: bool = True
 ) -> List[Dict[str, Any]]:
     """
     Get currently active transit-natal aspects (within tight orb).
     
     "Active" means orb < max_orb_for_active (default 3°).
     Sorted by orb (tightest first).
+    
+    Args:
+        natal_planets: Dict of natal planet data
+        now: Datetime for calculation
+        max_orb_for_active: Maximum orb to consider "active"
+        include_outer_planets: If True, include Jupiter, Saturn, Uranus, Neptune, Pluto
     """
     from calculations.sidereal_config import calculate_planet_by_name
     from services.transit_natal_aspects import check_aspect, ASPECT_CONFIG
@@ -588,12 +611,17 @@ def get_current_active_aspects(
     if now is None:
         now = datetime.now(timezone.utc)
     
-    transit_planets = ["Sun", "Moon", "Mercury", "Venus", "Mars"]
+    # Select which planets to track
+    transit_planets = ALL_TRANSIT_PLANETS if include_outer_planets else PERSONAL_PLANETS
     active_aspects = []
     
     for transit_name in transit_planets:
-        transit_pos = calculate_planet_by_name(transit_name, now)
-        transit_long = transit_pos['longitude']
+        try:
+            transit_pos = calculate_planet_by_name(transit_name, now)
+            transit_long = transit_pos['longitude']
+        except Exception as e:
+            logger.warning(f"[ActiveAspects] Could not calculate {transit_name}: {e}")
+            continue
         
         for natal_name, natal_data in natal_planets.items():
             natal_long = natal_data.get('longitude')
@@ -605,6 +633,9 @@ def get_current_active_aspects(
                 aspect_type, orb, is_applying = result
                 
                 if orb <= max_orb_for_active:
+                    # Mark outer planets as "slow" for UI differentiation
+                    is_outer = transit_name in OUTER_PLANETS
+                    
                     active_aspects.append({
                         "transit_planet": transit_name,
                         "natal_planet": natal_name,
@@ -613,6 +644,8 @@ def get_current_active_aspects(
                         "is_applying": is_applying,
                         "significance": ASPECT_CONFIG[aspect_type]['nature'],
                         "description": f"Transit {transit_name} {aspect_type.value} natal {natal_name}",
+                        "is_outer_planet": is_outer,
+                        "transit_speed": "slow" if is_outer else "fast",
                     })
     
     # Sort by orb
@@ -816,29 +849,34 @@ def scan_daily_transit_window(
     
     # =================================================================
     # CURRENT ACTIVE ASPECTS (snapshot, not scan)
+    # Now includes outer planets (Jupiter, Saturn, Uranus, Neptune, Pluto)
     # =================================================================
-    active_aspects = get_current_active_aspects(natal_planets, now_utc, max_orb_for_active=3.0)
+    active_aspects = get_current_active_aspects(natal_planets, now_utc, max_orb_for_active=3.0, include_outer_planets=True)
     if active_aspects:
         result.strongest_active_aspect = active_aspects[0]
     
     # =================================================================
-    # IDENTIFY SLOW-MOVING TRANSITS (Mercury, Venus, Mars)
+    # IDENTIFY SLOW-MOVING TRANSITS
+    # Personal planets (Mercury, Venus, Mars) that don't have timed events
+    # + All outer planets (Jupiter, Saturn, Uranus, Neptune, Pluto)
     # These don't reach exact within a day but are still active
     # =================================================================
     timed_transit_planets = set(e.transit_planet for e in result.aspect_events if e.transit_planet)
-    slow_transit_names = ["Mercury", "Venus", "Mars"]
+    slow_transit_candidates = ["Mercury", "Venus", "Mars"] + OUTER_PLANETS
     
     for aspect in active_aspects:
         transit_planet = aspect['transit_planet']
         # If this planet has NO timed events but IS in active aspects, it's a slow transit
-        if transit_planet in slow_transit_names and transit_planet not in timed_transit_planets:
+        if transit_planet in slow_transit_candidates and transit_planet not in timed_transit_planets:
             result.slow_transits_active.append({
                 "transit_planet": aspect['transit_planet'],
                 "natal_planet": aspect['natal_planet'],
                 "aspect_type": aspect['aspect_type'],
                 "orb": aspect['orb'],
                 "description": aspect['description'],
-                "note": "Active all day (slow-moving transit)",
+                "is_applying": aspect.get('is_applying', False),
+                "is_outer_planet": aspect.get('is_outer_planet', False),
+                "note": "Active all day (outer planet)" if aspect.get('is_outer_planet') else "Active all day (slow-moving transit)",
             })
     
     # Sort all events by time
