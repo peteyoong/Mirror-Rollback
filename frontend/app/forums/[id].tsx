@@ -692,168 +692,117 @@ export default function ForumHomeScreen() {
         </TouchableOpacity>
 
         {/* ============================================
-            LIVE FIELD - Real-time field dynamics (FIELD-FIRST)
+            FORUM NARRATIVE FLOW
+            A continuous, unfolding experience of this space
+            Order: Field State → Your Position → Trajectory → Story → The Move
             ============================================ */}
         {liveField && (
-          <View style={[styles.liveFieldCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
-            {/* Header with temperature indicator */}
-            <View style={styles.liveFieldHeader}>
-              <View style={styles.liveFieldTitleRow}>
-                <Text style={{ fontSize: 18, marginRight: 8 }}>
+          <View style={[styles.narrativeFlow, { backgroundColor: theme.surface }]}>
+            
+            {/* === SECTION 1: FIELD STATE (Awareness) === */}
+            <View style={styles.narrativeSection}>
+              <View style={styles.narrativeFieldHeader}>
+                <Text style={[styles.narrativeFieldEmoji]}>
                   {liveField.field_temperature === 'warm' ? '🔥' : 
                    liveField.field_temperature === 'charged' ? '⚡' :
                    liveField.field_temperature === 'still' ? '🌊' : '❄️'}
                 </Text>
-                <Text style={[styles.liveFieldTitle, { color: theme.text }]}>Live Field</Text>
-              </View>
-              <View style={[styles.liveFieldBadge, { backgroundColor: theme.accent + '20' }]}>
-                <Text style={[styles.liveFieldBadgeText, { color: theme.accent }]}>
+                <Text style={[styles.narrativeFieldTemp, { color: theme.textSecondary }]}>
                   {liveField.field_temperature}
                 </Text>
               </View>
-            </View>
-            
-            {/* Field Reading - Present tense observation */}
-            <Text style={[styles.liveFieldReading, { color: theme.text }]}>
-              {liveField.field_reading}
-            </Text>
-            
-            {/* What Hasn't Landed */}
-            {liveField.what_hasnt_landed && (
-              <View style={[styles.liveFieldSection, { backgroundColor: theme.background }]}>
-                <Text style={[styles.liveFieldSectionLabel, { color: theme.textSecondary }]}>
-                  What hasn't landed
-                </Text>
-                <Text style={[styles.liveFieldSectionText, { color: theme.text }]}>
+              
+              <Text style={[styles.narrativeFieldText, { color: theme.text }]}>
+                {liveField.field_reading}
+              </Text>
+              
+              {liveField.what_hasnt_landed && (
+                <Text style={[styles.narrativeSubtext, { color: theme.textSecondary }]}>
                   {liveField.what_hasnt_landed}
                 </Text>
-              </View>
-            )}
+              )}
+            </View>
             
-            {/* YOUR POSITION IN THE FIELD - Personal, direct */}
+            {/* Subtle divider */}
+            <View style={[styles.narrativeDivider, { backgroundColor: theme.border + '30' }]} />
+            
+            {/* === SECTION 2: YOUR POSITION (Responsibility) === */}
             {liveField.your_position && (
-              <View style={[styles.liveFieldPositionCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '25' }]}>
-                <View style={styles.liveFieldPositionHeader}>
-                  <Text style={{ fontSize: 14, marginRight: 6 }}>
-                    {liveField.your_position_type === 'initiating' ? '⚡' :
-                     liveField.your_position_type === 'holding_back' ? '🔇' :
-                     liveField.your_position_type === 'bridging' ? '🌉' :
-                     liveField.your_position_type === 'withdrawing' ? '🚶' : '👁️'}
+              <>
+                <View style={styles.narrativeSection}>
+                  <Text style={[styles.narrativeSectionHint, { color: theme.accent }]}>
+                    your position
                   </Text>
-                  <Text style={[styles.liveFieldPositionLabel, { color: theme.accent }]}>
-                    Your position
+                  <Text style={[styles.narrativePositionText, { color: theme.text }]}>
+                    {liveField.your_position}
                   </Text>
                 </View>
-                <Text style={[styles.liveFieldPositionText, { color: theme.text }]}>
-                  {liveField.your_position}
-                </Text>
-              </View>
+                
+                <View style={[styles.narrativeDivider, { backgroundColor: theme.border + '30' }]} />
+              </>
             )}
             
-            {/* TRAJECTORY - If nothing changes */}
+            {/* === SECTION 3: TRAJECTORY (Tension) === */}
             {liveField.trajectory && (
-              <View style={[
-                styles.liveFieldTrajectoryCard, 
-                { 
-                  backgroundColor: liveField.trajectory_severity === 'positive' ? '#10B98110' : 
-                                   liveField.trajectory_severity === 'moderate' ? '#F5920010' : '#88888808',
-                  borderColor: liveField.trajectory_severity === 'positive' ? '#10B98130' :
-                               liveField.trajectory_severity === 'moderate' ? '#F5920030' : '#88888820',
-                }
-              ]}>
-                <View style={styles.liveFieldTrajectoryHeader}>
-                  <Text style={{ fontSize: 14, marginRight: 6 }}>
-                    {liveField.trajectory_severity === 'positive' ? '✨' :
-                     liveField.trajectory_severity === 'moderate' ? '⚠️' : '↗️'}
-                  </Text>
+              <>
+                <View style={styles.narrativeSection}>
                   <Text style={[
-                    styles.liveFieldTrajectoryLabel, 
+                    styles.narrativeSectionHint, 
                     { color: liveField.trajectory_severity === 'positive' ? '#10B981' :
                              liveField.trajectory_severity === 'moderate' ? '#F59200' : theme.textSecondary }
                   ]}>
-                    If nothing changes
+                    if nothing changes
+                  </Text>
+                  <Text style={[styles.narrativeTrajectoryText, { color: theme.text }]}>
+                    {liveField.trajectory}
                   </Text>
                 </View>
-                <Text style={[styles.liveFieldTrajectoryText, { color: theme.text }]}>
-                  {liveField.trajectory}
-                </Text>
-              </View>
+                
+                <View style={[styles.narrativeDivider, { backgroundColor: theme.border + '30' }]} />
+              </>
             )}
             
-            {/* What the Room Needs */}
-            {liveField.what_room_needs && (
-              <View style={[styles.liveFieldSection, { backgroundColor: theme.background }]}>
-                <Text style={[styles.liveFieldSectionLabel, { color: theme.textSecondary }]}>
-                  What the room might need
-                </Text>
-                <Text style={[styles.liveFieldSectionText, { color: theme.text }]}>
-                  {liveField.what_room_needs}
-                </Text>
-              </View>
-            )}
+            {/* === SECTION 4: STORY (Meaning - What this space tends to become) === */}
+            <TouchableOpacity 
+              style={styles.narrativeSection}
+              onPress={() => router.push({ pathname: '/forums/story', params: { forumId } })}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.narrativeSectionHint, { color: theme.textSecondary }]}>
+                what this space tends to become
+              </Text>
+              <Text style={[styles.narrativeStoryText, { color: theme.text }]}>
+                Spaces like this often find their own rhythm over time. The mix of energies here may create something none of you could build alone.
+              </Text>
+              <Text style={[styles.narrativeStoryLink, { color: theme.accent }]}>
+                Read the full story →
+              </Text>
+            </TouchableOpacity>
             
-            {/* Your Shift - What user can notice/do */}
-            {liveField.your_shift && (
-              <View style={[styles.liveFieldYourShift, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
-                <Text style={[styles.liveFieldYourShiftLabel, { color: theme.accent }]}>
-                  Your shift
-                </Text>
-                <Text style={[styles.liveFieldYourShiftText, { color: theme.text }]}>
-                  {liveField.your_shift}
-                </Text>
-              </View>
-            )}
-            
-            {/* THE MOVE - Subtle action opening (only shows when confidence is high) */}
+            {/* === SECTION 5: THE MOVE (Possibility) === */}
             {liveField.the_move && (
-              <View style={[styles.liveFieldTheMoveCard, { borderColor: theme.accent + '40' }]}>
-                <View style={styles.liveFieldTheMoveHeader}>
-                  <Text style={{ fontSize: 14, marginRight: 6 }}>✦</Text>
-                  <Text style={[styles.liveFieldTheMoveLabel, { color: theme.accent }]}>
-                    The move
+              <>
+                <View style={[styles.narrativeMoveDivider, { backgroundColor: theme.accent + '20' }]} />
+                
+                <View style={styles.narrativeMoveSection}>
+                  <Text style={[styles.narrativeMoveHint, { color: theme.accent }]}>✦</Text>
+                  <Text style={[styles.narrativeMoveText, { color: theme.text }]}>
+                    {liveField.the_move}
                   </Text>
                 </View>
-                <Text style={[styles.liveFieldTheMoveText, { color: theme.text }]}>
-                  {liveField.the_move}
-                </Text>
-              </View>
+              </>
             )}
             
-            {/* Identity Note - Only if present, light touch */}
+            {/* Light identity note if present */}
             {liveField.identity_note && (
-              <Text style={[styles.liveFieldIdentityNote, { color: theme.textSecondary }]}>
+              <Text style={[styles.narrativeIdentityNote, { color: theme.textSecondary }]}>
                 {liveField.identity_note}
               </Text>
             )}
           </View>
         )}
 
-        {/* Forum Story Card */}
-        <TouchableOpacity
-          style={[styles.forumStoryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-          onPress={() => router.push({ pathname: '/forums/story', params: { forumId } })}
-          activeOpacity={0.7}
-        >
-          <View style={styles.forumStoryContent}>
-            <View style={[styles.forumStoryIcon, { backgroundColor: theme.accent + '15' }]}>
-              <Text style={{ fontSize: 20 }}>🌀</Text>
-            </View>
-            <View style={styles.forumStoryTextContainer}>
-              <Text style={[styles.forumStoryTitle, { color: theme.text }]}>Forum Story</Text>
-              <Text style={[styles.forumStorySubtitle, { color: theme.textSecondary }]}>
-                A reflective view of what this group composition may bring
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[styles.forumStoryButton, { backgroundColor: theme.accent + '15' }]}
-            onPress={() => router.push({ pathname: '/forums/story', params: { forumId } })}
-          >
-            <Text style={[styles.forumStoryButtonText, { color: theme.accent }]}>Explore</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
-
-        {/* Forum Dynamics Card */}
+        {/* Forum Dynamics Card - Keep as separate exploration */}
         <TouchableOpacity
           style={[styles.forumDynamicsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
           onPress={() => router.push({ pathname: '/forums/dynamics', params: { forumId } })}
@@ -1718,7 +1667,102 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     paddingLeft: 8,
   },
-  // Live Field Card Styles - FIELD-FIRST design
+  // ============================================
+  // NARRATIVE FLOW STYLES - Continuous experience
+  // ============================================
+  narrativeFlow: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  narrativeSection: {
+    paddingVertical: 16,
+  },
+  narrativeFieldHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  narrativeFieldEmoji: {
+    fontSize: 24,
+    marginRight: 10,
+  },
+  narrativeFieldTemp: {
+    fontSize: 12,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  narrativeFieldText: {
+    fontSize: 17,
+    lineHeight: 26,
+    fontWeight: '400',
+  },
+  narrativeSubtext: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 12,
+    fontStyle: 'italic',
+  },
+  narrativeDivider: {
+    height: 1,
+    marginVertical: 4,
+  },
+  narrativeSectionHint: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'lowercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  narrativePositionText: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
+  },
+  narrativeTrajectoryText: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontStyle: 'italic',
+  },
+  narrativeStoryText: {
+    fontSize: 15,
+    lineHeight: 23,
+  },
+  narrativeStoryLink: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginTop: 10,
+  },
+  narrativeMoveDivider: {
+    height: 2,
+    marginVertical: 8,
+    borderRadius: 1,
+  },
+  narrativeMoveSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 14,
+  },
+  narrativeMoveHint: {
+    fontSize: 16,
+    marginRight: 10,
+    marginTop: 2,
+  },
+  narrativeMoveText: {
+    flex: 1,
+    fontSize: 16,
+    lineHeight: 24,
+    fontStyle: 'italic',
+  },
+  narrativeIdentityNote: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  // Live Field Card Styles - FIELD-FIRST design (legacy, keeping for backwards compat)
   liveFieldCard: {
     padding: 16,
     borderRadius: 12,
