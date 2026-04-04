@@ -16811,8 +16811,10 @@ async def get_daily_transit_window(user_id: str, timezone_str: str = "UTC"):
     
     Scans the current local day (midnight to midnight) for:
     - Moon sign ingress times (exact times when Moon changes signs)
+    - Moon house ingress times (when Moon changes natal houses)
     - Transit-to-natal aspect exact times (when aspects reach minimum orb)
     - Currently active aspects (within 3° orb)
+    - Current house positions for transit planets
     
     All calculations use TRUE SIDEREAL (SVP 31.2836°, J2000).
     
@@ -16824,9 +16826,11 @@ async def get_daily_transit_window(user_id: str, timezone_str: str = "UTC"):
         - date: Local date scanned
         - all_events: List of events sorted by time
         - moon_ingresses: Moon sign changes
+        - house_ingresses: Moon house changes
         - aspect_events: Transit-natal aspect exact times
+        - transit_houses: Current house positions for transit planets
         - current_moon_sign: Current Moon sign
-        - next_moon_sign: Next Moon sign (if ingress today)
+        - current_moon_house: Current Moon house
         - strongest_active_aspect: Tightest current aspect
         - daily_theme: Synthesized daily theme from events
     """
@@ -16847,14 +16851,22 @@ async def get_daily_transit_window(user_id: str, timezone_str: str = "UTC"):
         if not natal_planets:
             raise HTTPException(status_code=400, detail="No natal planet data found for user")
         
+        # Extract house cusps for house tracking
+        houses_data = astrology_data.get('houses', {})
+        house_cusps = houses_data.get('cusps', [])
+        
         # Get user's timezone from profile if not specified
         if timezone_str == "UTC":
             user_tz = user.get('timezone') or user.get('birth_location', {}).get('timezone')
             if user_tz:
                 timezone_str = user_tz
         
-        # Scan daily window
-        window = scan_daily_transit_window(natal_planets, timezone_str)
+        # Scan daily window with house tracking if cusps available
+        window = scan_daily_transit_window(
+            natal_planets, 
+            timezone_str,
+            house_cusps=house_cusps if len(house_cusps) >= 12 else None
+        )
         
         # Build daily theme
         daily_theme = build_daily_theme_from_events(window, natal_planets)
@@ -16867,6 +16879,7 @@ async def get_daily_transit_window(user_id: str, timezone_str: str = "UTC"):
         response["current_active_aspects"] = active_aspects[:5]  # Top 5
         response["user_timezone"] = timezone_str
         response["calculation_method"] = "swiss_ephemeris_true_sidereal"
+        response["house_system"] = houses_data.get('system', 'Equal') if house_cusps else None
         
         logger.info(f"[DailyWindow] Scanned {len(window.all_events)} events for user {user_id} in {timezone_str}")
         return response

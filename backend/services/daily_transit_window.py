@@ -7,6 +7,7 @@ TRUE SIDEREAL DAILY EVENT DETECTION
 
 Scans a full day (local timezone) for all transit events:
 - Moon sign ingress (exact time when Moon changes signs)
+- Moon/planet house ingress (exact time when transit planet changes houses)
 - Transit-to-natal aspects reaching exactitude
 - Major sky events (eclipse windows, station/retrogrades)
 
@@ -14,6 +15,7 @@ Uses Swiss Ephemeris True Sidereal (SVP 31.2836°, J2000) exclusively.
 
 Event Types:
 - MOON_INGRESS: Moon enters a new zodiac sign
+- HOUSE_INGRESS: Transit planet enters a new natal house
 - ASPECT_EXACT: Transit-natal aspect reaches exact orb
 - ASPECT_WINDOW: Transit-natal aspect enters/exits orb window
 - MOON_PHASE: Lunar phase peaks (new/full/quarter)
@@ -37,6 +39,7 @@ logger = logging.getLogger(__name__)
 
 class TransitEventType(str, Enum):
     MOON_INGRESS = "moon_ingress"
+    HOUSE_INGRESS = "house_ingress"
     ASPECT_EXACT = "aspect_exact"
     ASPECT_ENTERS_ORB = "aspect_enters_orb"
     ASPECT_EXITS_ORB = "aspect_exits_orb"
@@ -80,6 +83,10 @@ class TransitEvent:
     from_sign: Optional[str] = None
     to_sign: Optional[str] = None
     
+    # House ingress-specific (optional)
+    from_house: Optional[int] = None
+    to_house: Optional[int] = None
+    
     def to_dict(self) -> Dict[str, Any]:
         return {
             "event_type": self.event_type.value,
@@ -97,6 +104,8 @@ class TransitEvent:
             "orb_at_peak": round(self.orb_at_peak, 2) if self.orb_at_peak else None,
             "from_sign": self.from_sign,
             "to_sign": self.to_sign,
+            "from_house": self.from_house,
+            "to_house": self.to_house,
         }
 
 
@@ -112,13 +121,18 @@ class DailyTransitWindow:
     # Events categorized
     all_events: List[TransitEvent] = field(default_factory=list)
     moon_ingresses: List[TransitEvent] = field(default_factory=list)
+    house_ingresses: List[TransitEvent] = field(default_factory=list)
     aspect_events: List[TransitEvent] = field(default_factory=list)
     
     # Slow-moving transits (active but no exact time today)
     slow_transits_active: List[Dict] = field(default_factory=list)
     
+    # Current house positions for transit planets
+    transit_houses: Dict[str, int] = field(default_factory=dict)
+    
     # Summary
     current_moon_sign: str = ""
+    current_moon_house: int = 0
     next_moon_sign: str = ""
     next_moon_ingress_time: Optional[str] = None
     strongest_active_aspect: Optional[Dict] = None
@@ -133,9 +147,12 @@ class DailyTransitWindow:
             "total_events": len(self.all_events),
             "all_events": [e.to_dict() for e in self.all_events],
             "moon_ingresses": [e.to_dict() for e in self.moon_ingresses],
+            "house_ingresses": [e.to_dict() for e in self.house_ingresses],
             "aspect_events": [e.to_dict() for e in self.aspect_events],
             "slow_transits_active": self.slow_transits_active,
+            "transit_houses": self.transit_houses,
             "current_moon_sign": self.current_moon_sign,
+            "current_moon_house": self.current_moon_house,
             "next_moon_sign": self.next_moon_sign,
             "next_moon_ingress_time": self.next_moon_ingress_time,
             "strongest_active_aspect": self.strongest_active_aspect,
@@ -168,6 +185,179 @@ def sign_to_index(sign: str) -> int:
 def get_sign_boundary(sign: str) -> float:
     """Get the starting longitude of a zodiac sign."""
     return sign_to_index(sign) * 30.0
+
+
+# =============================================================================
+# HOUSE CALCULATION HELPERS
+# =============================================================================
+
+def normalize_longitude(longitude: float) -> float:
+    """Normalize longitude to 0-360 range."""
+    longitude = longitude % 360
+    if longitude < 0:
+        longitude += 360
+    return longitude
+
+
+def longitude_to_house(longitude: float, house_cusps: List[float]) -> int:
+    """
+    Determine which natal house a transit planet is in.
+    
+    Uses the Equal house system (30° per house from Ascendant).
+    House 1 starts at the Ascendant.
+    
+    Args:
+        longitude: Transit planet's sidereal longitude (0-360)
+        house_cusps: List of 12 house cusp longitudes (index 0 = House 1)
+    
+    Returns:
+        House number (1-12)
+    """
+    longitude = normalize_longitude(longitude)
+    
+    # Check each house
+    for i in range(12):
+        cusp_start = normalize_longitude(house_cusps[i])
+        cusp_end = normalize_longitude(house_cusps[(i + 1) % 12])
+        
+        # Handle wrap-around (e.g., House 12 crosses 0°)
+        if cusp_start > cusp_end:
+            # Wrap-around case
+            if longitude >= cusp_start or longitude < cusp_end:
+                return i + 1
+        else:
+            # Normal case
+            if cusp_start <= longitude < cusp_end:
+                return i + 1
+    
+    # Fallback (should not happen)
+    return 1
+
+
+def get_current_transit_houses(
+    dt: datetime,
+    house_cusps: List[float],
+    transit_planets: Optional[List[str]] = None
+) -> Dict[str, int]:
+    """
+    Get current house positions for all transit planets.
+    
+    Args:
+        dt: Datetime for calculation
+        house_cusps: List of 12 house cusp longitudes
+        transit_planets: Planets to track (default: Moon, Sun, Mercury, Venus, Mars)
+    
+    Returns:
+        Dict mapping planet names to house numbers (1-12)
+    """
+    from calculations.sidereal_config import calculate_planet_by_name
+    
+    if transit_planets is None:
+        transit_planets = ["Moon", "Sun", "Mercury", "Venus", "Mars"]
+    
+    positions = {}
+    for planet_name in transit_planets:
+        try:
+            pos = calculate_planet_by_name(planet_name, dt)
+            house = longitude_to_house(pos['longitude'], house_cusps)
+            positions[planet_name] = house
+        except Exception as e:
+            logger.error(f"[HouseCalc] Error for {planet_name}: {e}")
+    
+    return positions
+
+
+def find_house_ingress_times(
+    start_utc: datetime,
+    end_utc: datetime,
+    house_cusps: List[float],
+    planet_name: str = "Moon",
+    interval_minutes: int = 30
+) -> List[Dict[str, Any]]:
+    """
+    Find exact times when a transit planet changes natal houses.
+    
+    Uses binary search for exact ingress time.
+    
+    Args:
+        start_utc: Start of scan window (UTC)
+        end_utc: End of scan window (UTC)
+        house_cusps: List of 12 house cusp longitudes
+        planet_name: Planet to track (default: Moon)
+        interval_minutes: Initial scan interval
+    
+    Returns:
+        List of house ingress events with exact timestamps
+    """
+    from calculations.sidereal_config import calculate_planet_by_name
+    
+    ingresses = []
+    current_time = start_utc
+    
+    # Get initial house
+    pos = calculate_planet_by_name(planet_name, current_time)
+    current_house = longitude_to_house(pos['longitude'], house_cusps)
+    
+    # Scan at intervals
+    while current_time < end_utc:
+        next_time = current_time + timedelta(minutes=interval_minutes)
+        if next_time > end_utc:
+            next_time = end_utc
+        
+        pos = calculate_planet_by_name(planet_name, next_time)
+        next_house = longitude_to_house(pos['longitude'], house_cusps)
+        
+        if next_house != current_house:
+            # House change detected - binary search for exact time
+            exact_time = _binary_search_house_ingress(
+                current_time, next_time, current_house, house_cusps, planet_name
+            )
+            
+            ingresses.append({
+                "timestamp_utc": exact_time,
+                "planet": planet_name,
+                "from_house": current_house,
+                "to_house": next_house,
+            })
+            
+            current_house = next_house
+        
+        current_time = next_time
+    
+    return ingresses
+
+
+def _binary_search_house_ingress(
+    start: datetime,
+    end: datetime,
+    from_house: int,
+    house_cusps: List[float],
+    planet_name: str,
+    precision_minutes: float = 2.0
+) -> datetime:
+    """Binary search to find exact house ingress time."""
+    from calculations.sidereal_config import calculate_planet_by_name
+    
+    while (end - start).total_seconds() > precision_minutes * 60:
+        mid = start + (end - start) / 2
+        pos = calculate_planet_by_name(planet_name, mid)
+        house = longitude_to_house(pos['longitude'], house_cusps)
+        
+        if house == from_house:
+            start = mid
+        else:
+            end = mid
+    
+    return end  # Return the first moment in the new house
+
+
+def _ordinal(n: int) -> str:
+    """Convert number to ordinal string (1st, 2nd, 3rd, etc.)."""
+    if 11 <= (n % 100) <= 13:
+        suffix = 'th'
+    else:
+        suffix = ['th', 'st', 'nd', 'rd', 'th'][min(n % 10, 4)]
+    return f"{n}{suffix}"
 
 
 # =============================================================================
@@ -438,13 +628,15 @@ def get_current_active_aspects(
 def scan_daily_transit_window(
     natal_planets: Dict[str, Dict[str, Any]],
     local_timezone_str: str = "UTC",
-    target_date: Optional[datetime] = None
+    target_date: Optional[datetime] = None,
+    house_cusps: Optional[List[float]] = None
 ) -> DailyTransitWindow:
     """
     Comprehensive daily transit window scan.
     
     Scans the full local day (midnight to midnight) for:
     - Moon sign ingress times
+    - Moon/planet house ingress times (if house_cusps provided)
     - Transit-natal aspect exact times
     - Currently active aspects
     
@@ -452,6 +644,7 @@ def scan_daily_transit_window(
         natal_planets: Dict of natal planet data with 'longitude' key
         local_timezone_str: User's local timezone (e.g., "Asia/Singapore", "America/New_York")
         target_date: Date to scan (default: today in local timezone)
+        house_cusps: Optional list of 12 house cusp longitudes for house tracking
     
     Returns:
         DailyTransitWindow with all events categorized
@@ -496,6 +689,50 @@ def scan_daily_transit_window(
     # Get current Moon position
     moon_now = calculate_planet_by_name("Moon", now_utc)
     result.current_moon_sign = moon_now['sign']
+    
+    # =================================================================
+    # HOUSE TRACKING (if house_cusps provided)
+    # =================================================================
+    if house_cusps and len(house_cusps) >= 12:
+        # Get current house positions for all transit planets
+        result.transit_houses = get_current_transit_houses(now_utc, house_cusps)
+        result.current_moon_house = result.transit_houses.get("Moon", 0)
+        
+        logger.info(f"[DailyWindow] Transit houses: {result.transit_houses}")
+        
+        # Scan for Moon house ingresses (Moon changes houses more than signs in a day)
+        moon_house_ingresses = find_house_ingress_times(
+            scan_start_utc, scan_end_utc, house_cusps, "Moon", interval_minutes=30
+        )
+        
+        for ingress in moon_house_ingresses:
+            timestamp_utc = ingress['timestamp_utc']
+            timestamp_local = timestamp_utc.astimezone(local_tz)
+            minutes_from_now = int((timestamp_utc - now_utc).total_seconds() / 60)
+            
+            if minutes_from_now < -60:
+                timing = EventTiming.PASSED
+            elif minutes_from_now < 60:
+                timing = EventTiming.CURRENT
+            else:
+                timing = EventTiming.UPCOMING
+            
+            event = TransitEvent(
+                event_type=TransitEventType.HOUSE_INGRESS,
+                timestamp_utc=timestamp_utc,
+                timestamp_local=timestamp_local,
+                local_timezone=local_timezone_str,
+                description=f"Moon enters {_ordinal(ingress['to_house'])} house",
+                significance="moderate",
+                timing=timing,
+                minutes_from_now=minutes_from_now,
+                transit_planet="Moon",
+                from_house=ingress['from_house'],
+                to_house=ingress['to_house'],
+            )
+            
+            result.house_ingresses.append(event)
+            result.all_events.append(event)
     
     # =================================================================
     # SCAN 1: Moon Ingresses (faster interval - Moon moves quickly)
