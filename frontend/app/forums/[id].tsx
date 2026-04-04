@@ -29,7 +29,9 @@ import {
   getForumMemberLens,
   ForumMemberLensData,
   getPatternDiagnosis,
-  PatternDiagnosisResponse
+  PatternDiagnosisResponse,
+  getForumLiveField,
+  ForumLiveFieldResponse
 } from '../../services/api';
 import ForumChatView from '../../components/ForumChatView';
 import Constants from 'expo-constants';
@@ -341,6 +343,10 @@ export default function ForumHomeScreen() {
   const [forumPatternLoading, setForumPatternLoading] = useState(false);
   const [showForumPattern, setShowForumPattern] = useState(false);
   
+  // Live Field State - Real-time field dynamics
+  const [liveField, setLiveField] = useState<ForumLiveFieldResponse | null>(null);
+  const [liveFieldLoading, setLiveFieldLoading] = useState(false);
+  
   // Member profile state
   const [showPatternSignals, setShowPatternSignals] = useState(false);
 
@@ -351,18 +357,20 @@ export default function ForumHomeScreen() {
     else setLoading(true);
     
     try {
-      const [forumData, reflectionsData, exerciseData, membersData, pulseData] = await Promise.all([
+      const [forumData, reflectionsData, exerciseData, membersData, pulseData, liveFieldData] = await Promise.all([
         getForum(forumId, user.id),
         getSharedReflections(forumId, user.id),
         getForumExercise(forumId, user.id),
         getForumMembers(forumId, user.id),
         getForumPulse(forumId, user.id),
+        getForumLiveField(forumId, user.id).catch(() => null), // Don't fail if Live Field errors
       ]);
       setForum(forumData);
       setReflections(reflectionsData.reflections);
       setHasSubmitted(exerciseData.has_submitted);
       setMembers(membersData.members);
       setPulse(pulseData);
+      setLiveField(liveFieldData);
       setError(null);
     } catch (err: any) {
       console.error('[Forum] Error fetching data:', err);
@@ -682,6 +690,78 @@ export default function ForumHomeScreen() {
           </View>
           <Text style={[styles.askMirrorArrow, { color: theme.accent }]}>→</Text>
         </TouchableOpacity>
+
+        {/* ============================================
+            LIVE FIELD - Real-time field dynamics (FIELD-FIRST)
+            ============================================ */}
+        {liveField && (
+          <View style={[styles.liveFieldCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
+            {/* Header with temperature indicator */}
+            <View style={styles.liveFieldHeader}>
+              <View style={styles.liveFieldTitleRow}>
+                <Text style={{ fontSize: 18, marginRight: 8 }}>
+                  {liveField.field_temperature === 'warm' ? '🔥' : 
+                   liveField.field_temperature === 'charged' ? '⚡' :
+                   liveField.field_temperature === 'still' ? '🌊' : '❄️'}
+                </Text>
+                <Text style={[styles.liveFieldTitle, { color: theme.text }]}>Live Field</Text>
+              </View>
+              <View style={[styles.liveFieldBadge, { backgroundColor: theme.accent + '20' }]}>
+                <Text style={[styles.liveFieldBadgeText, { color: theme.accent }]}>
+                  {liveField.field_temperature}
+                </Text>
+              </View>
+            </View>
+            
+            {/* Field Reading - Present tense observation */}
+            <Text style={[styles.liveFieldReading, { color: theme.text }]}>
+              {liveField.field_reading}
+            </Text>
+            
+            {/* What Hasn't Landed */}
+            {liveField.what_hasnt_landed && (
+              <View style={[styles.liveFieldSection, { backgroundColor: theme.background }]}>
+                <Text style={[styles.liveFieldSectionLabel, { color: theme.textSecondary }]}>
+                  What hasn't landed
+                </Text>
+                <Text style={[styles.liveFieldSectionText, { color: theme.text }]}>
+                  {liveField.what_hasnt_landed}
+                </Text>
+              </View>
+            )}
+            
+            {/* What the Room Needs */}
+            {liveField.what_room_needs && (
+              <View style={[styles.liveFieldSection, { backgroundColor: theme.background }]}>
+                <Text style={[styles.liveFieldSectionLabel, { color: theme.textSecondary }]}>
+                  What the room might need
+                </Text>
+                <Text style={[styles.liveFieldSectionText, { color: theme.text }]}>
+                  {liveField.what_room_needs}
+                </Text>
+              </View>
+            )}
+            
+            {/* Your Shift - What user can notice/do */}
+            {liveField.your_shift && (
+              <View style={[styles.liveFieldYourShift, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
+                <Text style={[styles.liveFieldYourShiftLabel, { color: theme.accent }]}>
+                  Your shift
+                </Text>
+                <Text style={[styles.liveFieldYourShiftText, { color: theme.text }]}>
+                  {liveField.your_shift}
+                </Text>
+              </View>
+            )}
+            
+            {/* Identity Note - Only if present, light touch */}
+            {liveField.identity_note && (
+              <Text style={[styles.liveFieldIdentityNote, { color: theme.textSecondary }]}>
+                {liveField.identity_note}
+              </Text>
+            )}
+          </View>
+        )}
 
         {/* Forum Story Card */}
         <TouchableOpacity
@@ -1572,6 +1652,80 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     paddingLeft: 8,
+  },
+  // Live Field Card Styles - FIELD-FIRST design
+  liveFieldCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  liveFieldHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  liveFieldTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  liveFieldTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  liveFieldBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  liveFieldBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  liveFieldReading: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  liveFieldSection: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  liveFieldSectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  liveFieldSectionText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  liveFieldYourShift: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  liveFieldYourShiftLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  liveFieldYourShiftText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  liveFieldIdentityNote: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 10,
+    fontStyle: 'italic',
   },
   // Forum Story Card
   forumStoryCard: {

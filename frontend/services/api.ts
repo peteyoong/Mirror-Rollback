@@ -1124,6 +1124,45 @@ export const getForumDynamicsContext = async (
 };
 
 // =====================================================
+// FORUM LIVE FIELD - Real-time field dynamics reading
+// =====================================================
+
+export interface ForumLiveFieldResponse {
+  success: boolean;
+  forum_id: string;
+  generated_at: string;
+  
+  // Core field reading
+  field_reading: string;
+  what_hasnt_landed: string | null;
+  what_room_needs: string | null;
+  your_shift: string | null;
+  
+  // Metadata
+  field_temperature: 'warm' | 'cool' | 'charged' | 'still';
+  detected_dynamics: string[];
+  identity_note: string | null;
+  
+  // Debug data
+  debug?: {
+    member_count: number;
+    total_activity: number;
+    silent_count: number;
+    frequency_pattern: string;
+  };
+}
+
+export const getForumLiveField = async (
+  forumId: string,
+  userId: string
+): Promise<ForumLiveFieldResponse> => {
+  const response = await apiWithRetry.get(`/forums/${forumId}/live-field`, {
+    params: { user_id: userId }
+  });
+  return response.data;
+};
+
+// =====================================================
 // FORUM CHAT TYPES & API
 // =====================================================
 

@@ -26697,6 +26697,51 @@ Remember: Write a warm, thoughtful reflection in 3-5 paragraphs. End with a refl
         raise HTTPException(status_code=500, detail="Failed to generate forum story")
 
 
+
+# =====================================================================
+# FORUM LIVE FIELD - Real-time field dynamics reading
+# =====================================================================
+
+@api_router.get("/forums/{forum_id}/live-field")
+async def get_forum_live_field(forum_id: str, user_id: str):
+    """
+    Get a live field reading for a forum.
+    
+    FIELD-FIRST architecture - describes what's happening NOW in the space,
+    not static composition summaries or personality analysis.
+    
+    Returns:
+    - field_reading: Present-tense observation of the space
+    - what_hasnt_landed: What might be unresolved
+    - what_room_needs: What might help
+    - your_shift: Invitation for the user to reflect
+    """
+    from services.forum_live_field import generate_forum_live_field
+    
+    logger.info(f"[ForumLiveField] Getting live field for forum: {forum_id}")
+    
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    
+    # Check membership
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active"
+    })
+    
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+    
+    try:
+        result = await generate_forum_live_field(db, forum_id, user_id)
+        return result
+    except Exception as e:
+        logger.error(f"[ForumLiveField] Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate live field reading")
+
+
+
 # =====================================================================
 # PAIRWISE DYNAMICS - Reflective comparison between two forum members
 # =====================================================================
