@@ -14118,6 +14118,62 @@ async def get_astro_expert_diagnosis(user_id: str, timeframe: str = "today"):
         }
 
 
+
+# =============================================================================
+# RELATIONSHIP INSIGHT ENDPOINT
+# =============================================================================
+@api_router.get("/relationship-insight/{user_id}")
+async def get_relationship_insight_endpoint(
+    user_id: str,
+    other_user_id: Optional[str] = None,
+    other_name: str = "them",
+    relationship_type: str = "relationship",
+    context: str = ""
+):
+    """
+    V1.0: Generate relationship insight for 1:1 dynamics.
+    
+    Centered on USER, not the other person.
+    Helps user understand what's happening and what to shift.
+    
+    Returns 6-section structure:
+    1. ESSENCE - What they are / how they move
+    2. FRICTION - Where it clashes with you
+    3. TENSION - What happens between you
+    4. YOUR SHIFT - What YOU need to adjust (MOST IMPORTANT)
+    5. GIFT - What unlocks if you do this well
+    6. TRY THIS - ONE specific action
+    
+    CRITICAL RULES:
+    - Always center the USER, not the other person
+    - Never suggest what the other person should do
+    - Make it feel specific, relational, and slightly confronting
+    """
+    try:
+        from services.relationship_insight_engine import get_relationship_insight
+        
+        result = await get_relationship_insight(
+            db=db,
+            user_id=user_id,
+            other_user_id=other_user_id,
+            other_name=other_name,
+            relationship_type=relationship_type,
+            relationship_context=context,
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"[RelationshipInsight] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+
 # =============================================================================
 # ASTROLOGY DETERMINISTIC CHART ENDPOINT (Full Data Exposure)
 # =============================================================================
