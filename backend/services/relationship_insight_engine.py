@@ -1,4 +1,4 @@
-"""Relationship Insight Engine V1.0
+"""Relationship Insight Engine V2.0
 
 Generates 1:1 dynamic reflections that help the user understand:
 1) What is happening between them
@@ -16,14 +16,19 @@ STRUCTURE:
 2. FRICTION - Where it clashes with you (1-2 lines)
 3. TENSION - What happens between you (1-2 lines)
 4. YOUR SHIFT - What YOU need to adjust (2-3 lines) - MOST IMPORTANT
-5. GIFT - What unlocks if you do this well (1-2 lines)
-6. TRY THIS - ONE specific action
+5. GIFT - Why this person matters in your life (1-2 lines)
+6. TRY THIS - ONE specific behavioral action
+
+V2.0 UPGRADES:
+- Deeper dynamic layer (initiation/reflection, momentum/attunement, etc.)
+- Stronger gift language (why they matter, not just what happens)
+- Behavioral try-this (usable in actual moments, not therapy exercises)
 
 TONE: Direct, grounded, human. Slight edge is okay.
 """
 
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime, timezone
 import hashlib
 
@@ -31,481 +36,383 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
-# CORE DYNAMIC PATTERNS
+# DEEP DYNAMIC LAYER (V2.0)
 # =============================================================================
+# These are the deeper relational dynamics that go beyond surface patterns
 
-# How different types naturally move/operate
-ESSENCE_PATTERNS = {
-    # Speed patterns
-    "slow_processor": [
-        "They take time to feel what's true before moving.",
-        "They need to sit with things before they know.",
-        "They process by slowing down, not speeding up.",
-    ],
-    "fast_mover": [
-        "They move when something feels clear. They don't wait.",
-        "They trust their first read and act on it.",
-        "Hesitation frustrates them. Clarity comes through motion.",
-    ],
-    # Emotional patterns
-    "emotionally_guarded": [
-        "They don't show everything. That's not coldness—it's protection.",
-        "They feel deeply but share selectively.",
-        "You won't always know what's happening inside them.",
-    ],
-    "emotionally_open": [
-        "They lead with how they feel. It's not a choice—it's how they're built.",
-        "Their emotions are visible, even when they try to hide them.",
-        "They process out loud. Silence makes things worse for them.",
-    ],
-    # Decision patterns
-    "needs_certainty": [
-        "They need to know before they move.",
-        "Ambiguity makes them contract, not expand.",
-        "They want the map before they walk.",
-    ],
-    "comfortable_with_uncertainty": [
-        "They're okay not knowing. That's where they find freedom.",
-        "They trust the path will clarify as they walk.",
-        "Too much planning feels like a cage to them.",
-    ],
-    # Control patterns
-    "needs_control": [
-        "They need to feel like they're steering.",
-        "Chaos doesn't excite them—it destabilizes them.",
-        "They hold tight because loose feels dangerous.",
-    ],
-    "goes_with_flow": [
-        "They adapt. That's their superpower and their blind spot.",
-        "They don't grip—they adjust.",
-        "Control isn't their comfort zone.",
-    ],
-    # Communication patterns
-    "direct_communicator": [
-        "They say what they mean. Don't read between the lines.",
-        "Subtlety isn't their language.",
-        "If they haven't said it, they probably haven't thought it yet.",
-    ],
-    "indirect_communicator": [
-        "They communicate through implication, not declaration.",
-        "What they don't say matters as much as what they do.",
-        "You have to read the subtext with them.",
-    ],
-    # Conflict patterns
-    "avoids_conflict": [
-        "They'd rather keep peace than be right.",
-        "Confrontation costs them more than it costs you.",
-        "They absorb tension instead of expressing it.",
-    ],
-    "engages_conflict": [
-        "They don't shy from friction. Sometimes they seek it.",
-        "Tension clarifies things for them.",
-        "They'd rather fight than fake harmony.",
-    ],
-}
-
-# Friction patterns between different types
-FRICTION_PATTERNS = {
-    ("fast_mover", "slow_processor"): [
-        "You move fast when something feels clear.\nThey slow down when something feels uncertain.",
-        "Your clarity feels like pressure to them.\nTheir pause feels like resistance to you.",
-    ],
-    ("slow_processor", "fast_mover"): [
-        "You need time to feel what's true.\nThey've already decided and moved on.",
-        "Your process feels like stalling to them.\nTheir speed feels like dismissal to you.",
-    ],
-    ("emotionally_open", "emotionally_guarded"): [
-        "You show what you feel.\nThey keep what they feel.",
-        "Your openness feels like exposure to them.\nTheir reserve feels like rejection to you.",
-    ],
-    ("emotionally_guarded", "emotionally_open"): [
-        "You protect what you feel.\nThey broadcast what they feel.",
-        "Their intensity can overwhelm you.\nYour stillness can confuse them.",
-    ],
-    ("needs_certainty", "comfortable_with_uncertainty"): [
-        "You need the plan.\nThey need the room to discover.",
-        "Your structure feels like constraint to them.\nTheir openness feels like chaos to you.",
-    ],
-    ("comfortable_with_uncertainty", "needs_certainty"): [
-        "You're okay not knowing.\nThey need to know before they can relax.",
-        "Their questions feel like doubt to you.\nYour ease feels like carelessness to them.",
-    ],
-    ("needs_control", "goes_with_flow"): [
-        "You hold the wheel.\nThey let the current carry.",
-        "Your grip feels heavy to them.\nTheir looseness feels irresponsible to you.",
-    ],
-    ("goes_with_flow", "needs_control"): [
-        "You adapt and adjust.\nThey plan and execute.",
-        "Their rigidity frustrates you.\nYour flexibility worries them.",
-    ],
-    ("direct_communicator", "indirect_communicator"): [
-        "You say it straight.\nThey imply and suggest.",
-        "Your directness can land hard on them.\nTheir subtlety can feel evasive to you.",
-    ],
-    ("indirect_communicator", "direct_communicator"): [
-        "You communicate in layers.\nThey communicate in statements.",
-        "Their bluntness can feel harsh.\nYour indirectness can feel unclear.",
-    ],
-    ("avoids_conflict", "engages_conflict"): [
-        "You keep the peace.\nThey surface the problem.",
-        "Their confrontation feels aggressive to you.\nYour avoidance feels passive to them.",
-    ],
-    ("engages_conflict", "avoids_conflict"): [
-        "You address things directly.\nThey smooth things over.",
-        "Their deflection frustrates you.\nYour intensity overwhelms them.",
-    ],
-}
-
-# Tension loops - what happens between you
-TENSION_LOOPS = {
-    ("fast_mover", "slow_processor"): [
-        "The more you push for movement, the more they pull back.",
-        "You speed up. They dig in. Nobody moves.",
-        "Your urgency creates their resistance.",
-    ],
-    ("slow_processor", "fast_mover"): [
-        "The more you pause, the more impatient they become.",
-        "You need time. They need action. The gap widens.",
-        "Your slowness triggers their frustration. Their frustration triggers your shutdown.",
-    ],
-    ("emotionally_open", "emotionally_guarded"): [
-        "You reach. They retreat. You reach harder.",
-        "Your openness asks for matching. They can't give it the way you want.",
-        "The more you express, the less they show.",
-    ],
-    ("emotionally_guarded", "emotionally_open"): [
-        "You hold back. They push in. You hold back more.",
-        "Their need for connection feels like demand.",
-        "Your protection triggers their pursuit.",
-    ],
-    ("needs_certainty", "comfortable_with_uncertainty"): [
-        "You ask for plans. They offer possibilities. Neither feels heard.",
-        "Your need to know meets their need to explore.",
-        "The more you pin down, the more they resist commitment.",
-    ],
-    ("comfortable_with_uncertainty", "needs_certainty"): [
-        "You stay open. They need closure. The tension builds.",
-        "Your comfort with ambiguity feels like avoidance to them.",
-        "They ask 'when?' You ask 'why rush?'",
-    ],
-    ("needs_control", "goes_with_flow"): [
-        "You tighten. They loosen. Nothing sticks.",
-        "Your planning meets their improvisation. Both feel unseen.",
-        "The harder you grip, the more they slip away.",
-    ],
-    ("goes_with_flow", "needs_control"): [
-        "You adapt. They direct. You lose yourself.",
-        "Their structure starts to feel like your cage.",
-        "You bend. They don't. Something eventually breaks.",
-    ],
-    ("direct_communicator", "indirect_communicator"): [
-        "You say it. They hear something else.",
-        "Your clarity lands as criticism. Their subtlety lands as confusion.",
-        "The conversation happens on two different levels.",
-    ],
-    ("indirect_communicator", "direct_communicator"): [
-        "You hint. They miss it. You resent them for missing it.",
-        "Your meaning lives between your words. They only hear the words.",
-        "You expect them to read you. They expect you to say it.",
-    ],
-    ("avoids_conflict", "engages_conflict"): [
-        "You smooth. They dig. Nothing gets resolved.",
-        "Their confrontation triggers your retreat. Your retreat triggers their frustration.",
-        "They want to fight it out. You want it to just be okay.",
-    ],
-    ("engages_conflict", "avoids_conflict"): [
-        "You surface things. They bury them. The same issue keeps returning.",
-        "Your directness triggers their shutdown.",
-        "You want resolution. They want peace. Neither gets what they need.",
-    ],
-}
-
-# Your Shift - what the user needs to adjust
-YOUR_SHIFT_PATTERNS = {
-    ("fast_mover", "slow_processor"): [
-        "Don't push for speed here.\nSlow just enough for them to catch what you're already sensing.\nYour pace isn't wrong—but it's not the only right pace.",
-        "Let them arrive at it themselves.\nYour certainty doesn't need their immediate agreement.\nGive them the gap they need.",
-    ],
-    ("slow_processor", "fast_mover"): [
-        "Name what you're processing, even before you've finished.\nYour silence reads as distance to them.\nLet them see the work happening, not just the result.",
-        "You don't have to move their speed.\nBut you do have to signal that you're moving.",
-    ],
-    ("emotionally_open", "emotionally_guarded"): [
-        "Your openness is a gift. But it can feel like demand.\nShow without needing matching.\nLet them come toward you at their pace.",
-        "Don't interpret their quiet as rejection.\nThey're not withholding—they're protecting.\nYour job isn't to crack them open.",
-    ],
-    ("emotionally_guarded", "emotionally_open"): [
-        "You don't have to match their intensity.\nBut give them something to hold onto.\nA little more access, not full exposure.",
-        "Your protection makes sense. But it reads as distance.\nOffer one small window they didn't expect.",
-    ],
-    ("needs_certainty", "comfortable_with_uncertainty"): [
-        "You need the map. They need the territory.\nYour planning isn't wrong—but it can suffocate.\nBuild in room for discovery.",
-        "Let go of needing to know the whole shape.\nOne step at a time works here.\nYour certainty doesn't have to be theirs.",
-    ],
-    ("comfortable_with_uncertainty", "needs_certainty"): [
-        "Your openness feels like chaos to them.\nOffer one anchor they can hold.\nYou don't have to lock everything down—just one thing.",
-        "Give them a timeline. Even a rough one.\nTheir need to know isn't weakness.\nMeet them partway.",
-    ],
-    ("needs_control", "goes_with_flow"): [
-        "Loosen your grip. Just slightly.\nYour need to steer can stall the thing you're building.\nLet them lead somewhere you didn't plan.",
-        "Control isn't bad. But control of everything is exhausting.\nTrust them with one piece you usually hold.",
-    ],
-    ("goes_with_flow", "needs_control"): [
-        "Offer more structure than you naturally would.\nYour flexibility is a gift—but it can feel like absence.\nStep into the frame they need.",
-        "Take a position. Hold it.\nThey need to know where you stand.\nYour adaptability shouldn't erase you.",
-    ],
-    ("direct_communicator", "indirect_communicator"): [
-        "Say it softer. Same truth, less force.\nYour clarity is a gift—but it can cut.\nThey need the message wrapped, not thrown.",
-        "Slow your delivery. Watch their face.\nYour words land harder than you realize.\nMake room for them to receive.",
-    ],
-    ("indirect_communicator", "direct_communicator"): [
-        "Say the thing you're implying.\nThey won't read between your lines.\nYour subtlety is invisible to them.",
-        "Stop expecting them to infer.\nWhat you need, you have to name.\nClarity isn't aggression.",
-    ],
-    ("avoids_conflict", "engages_conflict"): [
-        "The peace you're keeping isn't peaceful.\nSay the thing you're swallowing.\nYour silence is louder than you think.",
-        "Conflict isn't always damage.\nSometimes it's the only way to the other side.\nStep into the friction.",
-    ],
-    ("engages_conflict", "avoids_conflict"): [
-        "Not every issue needs to be surfaced right now.\nYour confrontation triggers their shutdown.\nLower the temperature first.",
-        "Let some things settle before you address them.\nYour urgency to resolve can create more to resolve.\nPick your moments.",
-    ],
-}
-
-# Gift - what unlocks if you shift
-GIFT_PATTERNS = {
-    ("fast_mover", "slow_processor"): [
-        "When you do, their perspective sharpens your direction.",
-        "Their slower pace catches what your speed would miss.",
-        "You move faster together when you let them catch up first.",
-    ],
-    ("slow_processor", "fast_mover"): [
-        "Their momentum carries you past your own hesitation.",
-        "Their decisiveness cuts through your loops.",
-        "Together, you move with both certainty and depth.",
-    ],
-    ("emotionally_open", "emotionally_guarded"): [
-        "Their containment gives your expression somewhere to land.",
-        "When they do open, it means something.",
-        "Their steadiness becomes your anchor.",
-    ],
-    ("emotionally_guarded", "emotionally_open"): [
-        "Their openness invites parts of you you've kept hidden.",
-        "They create space for feelings you didn't know you had.",
-        "Your small openings become bridges.",
-    ],
-    ("needs_certainty", "comfortable_with_uncertainty"): [
-        "Their openness reveals paths you wouldn't have planned.",
-        "Discovery becomes part of the structure.",
-        "You find things together that neither would find alone.",
-    ],
-    ("comfortable_with_uncertainty", "needs_certainty"): [
-        "Their structure gives your exploration direction.",
-        "Grounding becomes freedom, not limitation.",
-        "You discover more because you're not wandering aimlessly.",
-    ],
-    ("needs_control", "goes_with_flow"): [
-        "Their flexibility shows you what you're missing by holding so tight.",
-        "What you let go of creates room for something better.",
-        "Their adaptation makes your plans actually work.",
-    ],
-    ("goes_with_flow", "needs_control"): [
-        "Their structure gives your flexibility a frame.",
-        "Commitment becomes clarifying, not constraining.",
-        "You become more yourself with a shape to work within.",
-    ],
-    ("direct_communicator", "indirect_communicator"): [
-        "Their nuance adds depth to your clarity.",
-        "You learn to hear what isn't said.",
-        "Communication becomes layered instead of flat.",
-    ],
-    ("indirect_communicator", "direct_communicator"): [
-        "Their directness teaches you to trust your own voice.",
-        "You stop hiding behind implication.",
-        "What you need actually gets met.",
-    ],
-    ("avoids_conflict", "engages_conflict"): [
-        "Real peace comes after the hard conversation.",
-        "What you were protecting becomes unnecessary.",
-        "Resolution actually sticks.",
-    ],
-    ("engages_conflict", "avoids_conflict"): [
-        "Some things heal without being opened.",
-        "Their peace shows you what doesn't need fighting.",
-        "You save your energy for what actually matters.",
-    ],
-}
-
-# Try This - one specific action
-TRY_THIS_PATTERNS = {
-    ("fast_mover", "slow_processor"): [
-        "Before deciding, ask: 'What are you still sensing here?'",
-        "Pause for 10 seconds before responding. Let them fill the space.",
-        "Say: 'I'm ready to move. Where are you?'",
-    ],
-    ("slow_processor", "fast_mover"): [
-        "Say: 'I'm still working on this. Here's where I am so far.'",
-        "Give them a timeline: 'I'll have clarity by [time].'",
-        "Name your process: 'I need to sit with this. I'll circle back.'",
-    ],
-    ("emotionally_open", "emotionally_guarded"): [
-        "Share without asking for matching: 'I feel this. You don't have to respond.'",
-        "Ask: 'Is there anything you're holding that you want me to know?'",
-        "Offer silence after you share. Let them come to you.",
-    ],
-    ("emotionally_guarded", "emotionally_open"): [
-        "Name one feeling you wouldn't normally share.",
-        "Say: 'This is hard for me to say, but...'",
-        "Ask them what they need from you emotionally. Listen without defending.",
-    ],
-    ("needs_certainty", "comfortable_with_uncertainty"): [
-        "Ask: 'What would help you feel more free here?'",
-        "Offer a loose plan instead of a tight one.",
-        "Say: 'We don't have to decide everything. What's the one thing?'",
-    ],
-    ("comfortable_with_uncertainty", "needs_certainty"): [
-        "Offer one commitment: 'Here's what I know for sure.'",
-        "Give them a date or a number. Anything concrete.",
-        "Ask: 'What would help you feel grounded here?'",
-    ],
-    ("needs_control", "goes_with_flow"): [
-        "Let them make one decision you'd normally make yourself.",
-        "Ask: 'What would you do if I wasn't managing this?'",
-        "Say: 'I'm letting go of this one. It's yours.'",
-    ],
-    ("goes_with_flow", "needs_control"): [
-        "Take ownership of one thing they usually control.",
-        "Say: 'Here's what I think we should do.' State it clearly.",
-        "Make a decision without consulting them. See what happens.",
-    ],
-    ("direct_communicator", "indirect_communicator"): [
-        "Before speaking, ask: 'How will this land for them?'",
-        "Soften your opener: 'This might come out strong, but...'",
-        "Ask: 'How did that land?' after you say something important.",
-    ],
-    ("indirect_communicator", "direct_communicator"): [
-        "Say the thing you've been implying. Out loud.",
-        "Start with: 'I need to tell you something directly.'",
-        "Ask yourself: 'What am I hoping they'll guess?' Then say it.",
-    ],
-    ("avoids_conflict", "engages_conflict"): [
-        "Name one thing you've been swallowing.",
-        "Say: 'There's something I've been avoiding bringing up.'",
-        "Ask: 'Can we talk about the thing we've been not talking about?'",
-    ],
-    ("engages_conflict", "avoids_conflict"): [
-        "Let one issue go unaddressed. See what happens.",
-        "Say: 'I want to talk about this, but I'll wait until you're ready.'",
-        "Ask: 'Is now a good time, or should we come back to this?'",
-    ],
-}
-
-
-# =============================================================================
-# TYPE DETECTION FROM PROFILE DATA
-# =============================================================================
-
-def detect_user_type(profile_data: Dict[str, Any]) -> List[str]:
-    """Detect user's dominant patterns from their profile."""
-    types = []
+DEEP_DYNAMICS = {
+    # Initiation vs Reflection
+    "initiator": {
+        "essence": [
+            "They start things. Ideas, conversations, decisions — they move first.",
+            "They don't wait to be invited. They create the opening.",
+            "Energy originates with them. They set things in motion.",
+        ],
+        "quality": "initiation",
+    },
+    "reflector": {
+        "essence": [
+            "They respond to what's already there. They don't originate — they deepen.",
+            "They take in before they put out. Their insight comes after contact.",
+            "They mirror back what others can't see in themselves.",
+        ],
+        "quality": "reflection",
+    },
     
-    # From Enneagram
+    # Momentum vs Attunement
+    "momentum_carrier": {
+        "essence": [
+            "They carry energy forward. Stopping costs them.",
+            "They build by moving. Hesitation breaks their flow.",
+            "Their clarity comes from doing, not waiting.",
+        ],
+        "quality": "momentum",
+    },
+    "attunement_holder": {
+        "essence": [
+            "They feel the room before they speak. They read what isn't said.",
+            "Their timing comes from sensing, not deciding.",
+            "They adjust to what's present. That's their intelligence.",
+        ],
+        "quality": "attunement",
+    },
+    
+    # Certainty vs Sensing
+    "certainty_seeker": {
+        "essence": [
+            "They need to know before they move. Ambiguity stalls them.",
+            "They trust what's clear. Vagueness feels dangerous.",
+            "Their confidence comes from knowing where they stand.",
+        ],
+        "quality": "certainty",
+    },
+    "sensor": {
+        "essence": [
+            "They trust what they feel before they understand it.",
+            "Clarity comes last for them. Sensing comes first.",
+            "They know things before they can explain them.",
+        ],
+        "quality": "sensing",
+    },
+    
+    # Expression vs Absorption
+    "expresser": {
+        "essence": [
+            "What they feel, they show. It's not a choice.",
+            "They process by externalizing. Silence is pressure.",
+            "Their inner world is visible. That's both gift and exposure.",
+        ],
+        "quality": "expression",
+    },
+    "absorber": {
+        "essence": [
+            "They take in more than they put out. That's how they learn.",
+            "Their interior is larger than their exterior shows.",
+            "What you see is not all of what they're holding.",
+        ],
+        "quality": "absorption",
+    },
+    
+    # Action vs Atmospheric Reading
+    "action_taker": {
+        "essence": [
+            "They move. That's their answer to most questions.",
+            "Thinking without doing doesn't feel real to them.",
+            "Their knowing comes after their doing, not before.",
+        ],
+        "quality": "action",
+    },
+    "atmospheric_reader": {
+        "essence": [
+            "They read the room before they act. The field tells them what to do.",
+            "They sense what's appropriate before they decide what they want.",
+            "Their intelligence is environmental. Context matters more than conviction.",
+        ],
+        "quality": "atmospheric reading",
+    },
+    
+    # Containment vs Porosity
+    "container": {
+        "essence": [
+            "They hold what they feel. It stays inside until they choose to release it.",
+            "Their boundaries are clear. You know where they end.",
+            "What's theirs stays theirs. That's protection, not coldness.",
+        ],
+        "quality": "containment",
+    },
+    "porous": {
+        "essence": [
+            "They feel what's around them. Others' emotions enter easily.",
+            "Boundaries are harder for them. Not weakness — porosity.",
+            "They carry what isn't theirs. Sometimes without knowing.",
+        ],
+        "quality": "porosity",
+    },
+}
+
+# =============================================================================
+# DEEP FRICTION PATTERNS
+# =============================================================================
+
+DEEP_FRICTION = {
+    ("initiator", "reflector"): {
+        "friction": "You start things. They respond to things.\nYour energy asks for movement. Theirs asks for contact first.",
+        "tension": "You reach. They wait. You reach again.\nYour initiation can feel like demand. Their reflection can feel like absence.",
+        "your_shift": "Let your initiation land before you add to it.\nGive them something to respond to — then stop.\nTheir reflection needs stillness, not more input.",
+        "gift": "They show you what your forward motion obscures.\nWhat you start, they complete — if you let them.",
+        "try_this": "Initiate once. Then wait. Count to five before adding anything.",
+    },
+    ("reflector", "initiator"): {
+        "friction": "They start things. You respond to things.\nTheir speed can feel like pressure. Your pace can feel like hesitation.",
+        "tension": "They move. You need a moment. They move again.\nYour reflection gets crowded by their next idea.",
+        "your_shift": "Speak before you've fully formed it.\nYour response doesn't need to be complete to be valuable.\nLet them see you working, not just the result.",
+        "gift": "They pull things out of you that wouldn't emerge alone.\nTheir initiation is a prompt — not a demand.",
+        "try_this": "Say: 'I'm still landing this. Here's my first thought.'",
+    },
+    
+    ("momentum_carrier", "attunement_holder"): {
+        "friction": "You build by moving. They build by sensing.\nYour forward motion can miss what they're reading.",
+        "tension": "You push. They attune. You push harder.\nWhat feels like responsiveness to you feels like overwhelm to them.",
+        "your_shift": "Your momentum is real. So is their attunement.\nSlowing doesn't break your flow — it deepens it.\nLet their sensing catch up. It's seeing something you missed.",
+        "gift": "They slow you down enough to notice what speed hides.\nTheir attunement catches what your momentum would miss.",
+        "try_this": "Before your next move, ask: 'What are you sensing here?'",
+    },
+    ("attunement_holder", "momentum_carrier"): {
+        "friction": "They carry energy. You read energy.\nYour pace feels slow to them. Their speed feels rough to you.",
+        "tension": "They move. You adjust. They're already somewhere else.\nYour attunement loses its object.",
+        "your_shift": "Their momentum isn't carelessness. It's their way of knowing.\nMatch some of it without abandoning your sensing.\nYou can attune while moving.",
+        "gift": "They bring force to what you feel.\nYour sensing shapes their momentum into something smarter.",
+        "try_this": "Move with them once before pausing to sense.",
+    },
+    
+    ("certainty_seeker", "sensor"): {
+        "friction": "You need to know. They need to feel.\nYour questions can feel like interrogation. Their vagueness can feel like avoidance.",
+        "tension": "You ask for clarity. They offer impressions.\nYour certainty seeks ground. Their sensing stays fluid.",
+        "your_shift": "Not everything can be known before it's lived.\nTheir sensing isn't weakness — it's a different way of reading.\nLet some things stay unresolved longer.",
+        "gift": "They see around corners you haven't reached yet.\nTheir sensing notices what your certainty would filter out.",
+        "try_this": "Instead of 'What do you think?' ask 'What are you picking up on?'",
+    },
+    ("sensor", "certainty_seeker"): {
+        "friction": "They need to know. You need to feel.\nTheir directness can flatten your subtlety.",
+        "tension": "They ask questions. You give impressions.\nThey want a clear answer. You have a felt sense.",
+        "your_shift": "Give them something concrete to hold.\nYour sensing doesn't need to be vague when you share it.\nName one thing you're certain about — even if the rest is still forming.",
+        "gift": "They ground what you sense into something usable.\nYour impressions become actionable through them.",
+        "try_this": "Offer one concrete thing: 'I don't have the whole picture, but I'm certain about this.'",
+    },
+    
+    ("expresser", "absorber"): {
+        "friction": "You show what you feel. They hold what they feel.\nYour visibility can feel like exposure to them.",
+        "tension": "You reach out. They take in.\nYour expression meets a depth you can't see the bottom of.",
+        "your_shift": "Your expression is a gift. But it can feel like demand.\nShow without needing matching.\nWhat they hold is larger than what they show.",
+        "gift": "They receive what you give in a way most people can't.\nYour expression lands somewhere real.",
+        "try_this": "Share something without asking for response. Say: 'You don't need to reply.'",
+    },
+    ("absorber", "expresser"): {
+        "friction": "They show what they feel. You hold what you feel.\nTheir expression can feel like a lot coming at you.",
+        "tension": "They reach. You take in. They wonder if you're there.\nWhat you're holding doesn't reach the surface.",
+        "your_shift": "Let something small surface.\nThey're not asking for everything — just something.\nYour small expressions mean more to them than your silence.",
+        "gift": "They draw out what you wouldn't express alone.\nTheir visibility invites yours.",
+        "try_this": "Name one feeling you're holding. Just one.",
+    },
+    
+    ("action_taker", "atmospheric_reader"): {
+        "friction": "You move. They read the room.\nYour action can feel abrupt. Their reading can feel stalled.",
+        "tension": "You act. They sense. You've already changed the room they were reading.\nYour doing can override what they're perceiving.",
+        "your_shift": "Your action is real. So is the field they're reading.\nLet them sense before you move.\nWhat they see might change what you do.",
+        "gift": "They read what your action creates — and tell you what you can't see.\nTheir perception completes your motion.",
+        "try_this": "Before acting, ask: 'What's the room saying?'",
+    },
+    ("atmospheric_reader", "action_taker"): {
+        "friction": "They move. You read.\nTheir action can disturb what you're sensing.",
+        "tension": "They act. You're still reading. The field has already changed.\nYour sense of timing doesn't match their sense of readiness.",
+        "your_shift": "Let some of their action in before you assess it.\nYour reading can include their movement, not just resist it.\nSometimes the action clarifies what reading couldn't.",
+        "gift": "They bring motion to what you perceive.\nYour atmospheric reading shapes where their action lands.",
+        "try_this": "Let them act once. Read the result. Then share what you see.",
+    },
+    
+    # Cross-type dynamics (initiator + attunement, momentum + sensing, etc.)
+    ("initiator", "attunement_holder"): {
+        "friction": "You start things. They feel into things.\nYour forward motion meets their environmental reading.",
+        "tension": "You move. They sense. You've already moved again.\nWhat you initiate, they're still metabolizing.",
+        "your_shift": "Slow your initiations. Let one land fully.\nTheir attunement isn't hesitation — it's a different kind of intelligence.\nGive them the room to sense what you've started.",
+        "gift": "They catch what your initiation misses.\nYour starting becomes smarter when it includes their sensing.",
+        "try_this": "Start something. Then ask: 'What are you sensing here?' Wait for the full answer.",
+    },
+    ("attunement_holder", "initiator"): {
+        "friction": "They start things. You feel into things.\nTheir energy can overwhelm your sensing.",
+        "tension": "They initiate. You attune. They've initiated again.\nYour tempo doesn't match their pace.",
+        "your_shift": "Let their initiation land without immediately attuning to it.\nYou can respond without first having fully sensed.\nSometimes action teaches what attunement can't.",
+        "gift": "They pull you into motion before you've finished reading.\nThat forward energy shows you what you wouldn't have moved toward alone.",
+        "try_this": "Say yes to one thing before you've fully felt into it. See what happens.",
+    },
+    
+    ("momentum_carrier", "sensor"): {
+        "friction": "You carry energy forward. They feel before they move.\nYour momentum can outrun their knowing.",
+        "tension": "You build through doing. They trust impressions.\nYour motion can drown out what they're sensing.",
+        "your_shift": "Your momentum is real. But it's not the only signal.\nPause mid-motion to ask what they're picking up.\nTheir sensing sees around corners you haven't reached.",
+        "gift": "They sense what's coming before you get there.\nYour momentum lands better when it includes their feeling.",
+        "try_this": "Mid-action, pause and ask: 'What are you picking up on here?'",
+    },
+    ("sensor", "momentum_carrier"): {
+        "friction": "They carry energy forward. You feel before you move.\nTheir pace can feel like too much, too fast.",
+        "tension": "They build. You sense. The gap widens.\nWhat you're feeling gets lost in their forward motion.",
+        "your_shift": "Let your sensing inform their momentum without stopping it.\nSpeak your impressions while they're moving.\nYour input doesn't require their pause.",
+        "gift": "Your sensing gives their momentum direction.\nTogether, you move with both force and feeling.",
+        "try_this": "Share one impression while they're still moving. Don't wait until they stop.",
+    },
+    
+    ("expresser", "container"): {
+        "friction": "You show what you feel. They hold what they feel.\nYour expression can feel like demand. Their containment can feel like rejection.",
+        "tension": "You reach. They hold. You wonder what's there.\nWhat you give isn't matched in kind. That's not coldness — it's their structure.",
+        "your_shift": "Your expression is generous. But it needs less return.\nShow without requiring them to show back.\nTheir containment isn't a wall — it's just how they're built.",
+        "gift": "They receive what you give without flooding.\nYour expression lands somewhere stable.",
+        "try_this": "Express something without asking for response. End with: 'You don't have to reply.'",
+    },
+    ("container", "expresser"): {
+        "friction": "They show what they feel. You hold what you feel.\nTheir openness can feel like a lot. Your reserve can confuse them.",
+        "tension": "They share. You take it in. They wonder if you're there.\nWhat they give seems to disappear into your holding.",
+        "your_shift": "Give them something small. A signal that you're receiving.\nYour containment is protection — but they need to see past it.\nOne small opening changes everything.",
+        "gift": "They draw out what you hold.\nYour small expressions mean more because they're rare.",
+        "try_this": "Name one thing you're holding that relates to what they just shared.",
+    },
+    
+    ("certainty_seeker", "attunement_holder"): {
+        "friction": "You need to know. They need to feel the room.\nYour questions can interrupt their sensing.",
+        "tension": "You ask for clarity. They're reading the field.\nDifferent intelligences, different timings.",
+        "your_shift": "Your certainty isn't wrong. But it's not the only way to know.\nLet them sense without requiring translation into facts.\nSometimes the feeling is the answer.",
+        "gift": "They bring information your questions can't reach.\nTheir sensing completes your knowing.",
+        "try_this": "Instead of asking 'What do you think?', ask 'What's the feeling here?'",
+    },
+    ("attunement_holder", "certainty_seeker"): {
+        "friction": "They need to know. You need to feel the room.\nTheir directness can flatten your nuance.",
+        "tension": "They ask. You sense. Your answers don't satisfy their questions.\nYou speak in impressions. They want facts.",
+        "your_shift": "Give them one certainty to hold. Even if the rest is still forming.\nYour sensing doesn't have to stay vague when you share it.\nMeet their clarity need without abandoning your own way of knowing.",
+        "gift": "They ground what you sense into something usable.\nYour impressions become actionable through their structure.",
+        "try_this": "Start with: 'Here's one thing I'm certain about.' Then add the sensing.",
+    },
+    
+    ("action_taker", "absorber"): {
+        "friction": "You move. They take in.\nYour action can overwhelm their absorption.",
+        "tension": "You do. They hold. You've done more before they've processed the first thing.\nYour doing fills the space they need.",
+        "your_shift": "Leave room between actions.\nWhat you do lands deeper when there's space around it.\nTheir absorption isn't passivity — it's how they learn.",
+        "gift": "They take in your action at a depth you can't see.\nWhat you do matters more because of how they receive it.",
+        "try_this": "Do one thing. Then leave space. Ask: 'What are you holding from that?'",
+    },
+    ("absorber", "action_taker"): {
+        "friction": "They move. You take in.\nTheir doing can outpace your absorption.",
+        "tension": "They act. You're still processing. The actions accumulate.\nYou're holding more than you can show.",
+        "your_shift": "Let some of what they do pass through without holding it.\nYou don't have to absorb everything.\nSurface what you're holding before it becomes too much.",
+        "gift": "Their action gives you something to work with.\nYour absorption transforms what they do into something deeper.",
+        "try_this": "Before you've fully processed, say: 'Here's what I'm holding so far.'",
+    },
+    
+    ("container", "porous"): {
+        "friction": "You hold your edges. They feel everything.\nYour containment can feel like withholding. Their porosity can feel like flooding.",
+        "tension": "You keep what's yours. They take in what's not theirs.\nYour boundaries protect you. Their openness absorbs.",
+        "your_shift": "Your containment isn't coldness. But it can read that way.\nOffer a door, not a wall.\nThey can't enter what you don't open.",
+        "gift": "They bring feeling into spaces you've protected.\nTheir porosity softens your edges without breaking them.",
+        "try_this": "Name one thing you're holding that they haven't seen.",
+    },
+    ("porous", "container"): {
+        "friction": "They hold their edges. You feel everything.\nYou absorb what they contain. That imbalance can tire you.",
+        "tension": "You feel them. They hold themselves.\nWhat you're carrying may not be theirs to feel back.",
+        "your_shift": "Their containment isn't rejection. It's how they're built.\nYou don't have to hold everything they don't show.\nCreate some edge of your own. Just a little.",
+        "gift": "They provide structure when your edges blur.\nTheir containment gives you something to push against.",
+        "try_this": "Notice what you're carrying that isn't yours. Put one thing down.",
+    },
+}
+
+# =============================================================================
+# TYPE DETECTION (V2.0 - Deeper)
+# =============================================================================
+
+def detect_deep_type(profile_data: Dict[str, Any], context: str = "") -> str:
+    """Detect user's deep dynamic type from profile and context."""
+    
+    # From Enneagram (more nuanced mapping)
     enneagram = profile_data.get("enneagram", {})
     enneagram_type = enneagram.get("type")
     
+    enneagram_deep_map = {
+        1: "certainty_seeker",    # Needs to know what's right
+        2: "porous",              # Absorbs others' needs
+        3: "momentum_carrier",    # Builds through doing
+        4: "absorber",            # Takes in deeply
+        5: "atmospheric_reader",  # Reads the field
+        6: "certainty_seeker",    # Needs ground
+        7: "initiator",           # Starts things
+        8: "action_taker",        # Moves first
+        9: "attunement_holder",   # Senses the room
+    }
+    
+    # Context overrides
+    context_lower = context.lower()
+    
+    if any(w in context_lower for w in ["starts things", "initiates", "leads", "begins"]):
+        return "initiator"
+    if any(w in context_lower for w in ["responds", "reflects", "mirrors", "deepens"]):
+        return "reflector"
+    if any(w in context_lower for w in ["moves forward", "momentum", "keeps going", "doesn't stop"]):
+        return "momentum_carrier"
+    if any(w in context_lower for w in ["feels the room", "senses", "attunes", "adjusts"]):
+        return "attunement_holder"
+    if any(w in context_lower for w in ["needs to know", "certain", "clear", "direct"]):
+        return "certainty_seeker"
+    if any(w in context_lower for w in ["feels", "senses", "impressions", "intuitive"]):
+        return "sensor"
+    if any(w in context_lower for w in ["expressive", "shows feelings", "visible", "open"]):
+        return "expresser"
+    if any(w in context_lower for w in ["takes in", "absorbs", "holds", "quiet"]):
+        return "absorber"
+    if any(w in context_lower for w in ["acts", "does", "moves", "action"]):
+        return "action_taker"
+    if any(w in context_lower for w in ["reads the room", "atmospheric", "sensitive to environment"]):
+        return "atmospheric_reader"
+    if any(w in context_lower for w in ["contained", "boundaried", "holds back", "protected"]):
+        return "container"
+    if any(w in context_lower for w in ["porous", "absorbs emotions", "feels others", "no boundaries"]):
+        return "porous"
+    
+    # Fall back to enneagram
     if enneagram_type:
-        type_map = {
-            1: ["needs_certainty", "direct_communicator", "engages_conflict"],
-            2: ["emotionally_open", "indirect_communicator", "avoids_conflict"],
-            3: ["fast_mover", "direct_communicator", "needs_control"],
-            4: ["slow_processor", "emotionally_open", "indirect_communicator"],
-            5: ["slow_processor", "emotionally_guarded", "avoids_conflict"],
-            6: ["needs_certainty", "indirect_communicator", "avoids_conflict"],
-            7: ["fast_mover", "comfortable_with_uncertainty", "avoids_conflict"],
-            8: ["fast_mover", "direct_communicator", "engages_conflict", "needs_control"],
-            9: ["slow_processor", "avoids_conflict", "goes_with_flow"],
-        }
-        types.extend(type_map.get(enneagram_type, []))
+        return enneagram_deep_map.get(enneagram_type, "initiator")
     
-    # From Astrology (Sun sign element)
-    astrology = profile_data.get("astrology", {})
-    sun_sign = astrology.get("sun_sign", "").lower()
-    
-    fire_signs = ["aries", "leo", "sagittarius"]
-    earth_signs = ["taurus", "virgo", "capricorn"]
-    air_signs = ["gemini", "libra", "aquarius"]
-    water_signs = ["cancer", "scorpio", "pisces"]
-    
-    if sun_sign in fire_signs:
-        types.extend(["fast_mover", "direct_communicator"])
-    elif sun_sign in earth_signs:
-        types.extend(["slow_processor", "needs_certainty"])
-    elif sun_sign in air_signs:
-        types.extend(["comfortable_with_uncertainty", "direct_communicator"])
-    elif sun_sign in water_signs:
-        types.extend(["emotionally_open", "indirect_communicator"])
-    
-    # Default if nothing detected
-    if not types:
-        types = ["fast_mover", "emotionally_open"]
-    
-    # Dedupe and return
-    return list(set(types))
+    return "initiator"
 
 
-def detect_other_type(other_profile: Dict[str, Any], relationship_context: str = "") -> List[str]:
-    """Detect other person's type from their profile or context."""
-    types = []
-    
-    # Try to detect from profile first
-    if other_profile:
-        types = detect_user_type(other_profile)
-    
-    # Override/supplement from context keywords
-    context_lower = relationship_context.lower()
-    
-    if any(w in context_lower for w in ["slow", "takes time", "careful", "hesitant"]):
-        types.append("slow_processor")
-    if any(w in context_lower for w in ["fast", "quick", "decisive", "impulsive"]):
-        types.append("fast_mover")
-    if any(w in context_lower for w in ["closed", "guarded", "quiet", "reserved"]):
-        types.append("emotionally_guarded")
-    if any(w in context_lower for w in ["emotional", "sensitive", "expressive"]):
-        types.append("emotionally_open")
-    if any(w in context_lower for w in ["controlling", "needs control", "rigid"]):
-        types.append("needs_control")
-    if any(w in context_lower for w in ["flexible", "easygoing", "adaptable"]):
-        types.append("goes_with_flow")
-    if any(w in context_lower for w in ["direct", "blunt", "straightforward"]):
-        types.append("direct_communicator")
-    if any(w in context_lower for w in ["indirect", "subtle", "hints"]):
-        types.append("indirect_communicator")
-    if any(w in context_lower for w in ["avoids conflict", "peacekeeper", "non-confrontational"]):
-        types.append("avoids_conflict")
-    if any(w in context_lower for w in ["confrontational", "direct about problems"]):
-        types.append("engages_conflict")
-    
-    # Default
-    if not types:
-        types = ["slow_processor", "emotionally_guarded"]
-    
-    return list(set(types))
+def get_complementary_type(user_type: str) -> str:
+    """Get the complementary/contrasting type for interesting dynamics."""
+    complements = {
+        "initiator": "reflector",
+        "reflector": "initiator",
+        "momentum_carrier": "attunement_holder",
+        "attunement_holder": "momentum_carrier",
+        "certainty_seeker": "sensor",
+        "sensor": "certainty_seeker",
+        "expresser": "absorber",
+        "absorber": "expresser",
+        "action_taker": "atmospheric_reader",
+        "atmospheric_reader": "action_taker",
+        "container": "porous",
+        "porous": "container",
+    }
+    return complements.get(user_type, "reflector")
 
 
 # =============================================================================
-# MAIN GENERATOR
+# MAIN GENERATOR V2.0
 # =============================================================================
 
 def generate_relationship_insight(
     user_profile: Dict[str, Any],
     other_profile: Optional[Dict[str, Any]] = None,
     other_name: str = "them",
-    relationship_type: str = "relationship",  # relationship, friendship, family, work
-    relationship_context: str = "",  # User-provided context about the dynamic
+    relationship_type: str = "relationship",
+    relationship_context: str = "",
     seed: str = ""
 ) -> Dict[str, Any]:
     """
-    Generate a 1:1 relationship insight.
+    V2.0: Generate a 1:1 relationship insight with deeper dynamics.
     
     Centered on USER, not the other person.
     Helps user understand what's happening and what to shift.
@@ -516,60 +423,74 @@ def generate_relationship_insight(
         seed = f"{user_profile.get('user_id', '')}:{other_name}:{datetime.now().strftime('%Y-%m-%d')}"
     seed_hash = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
     
-    # Detect types
-    user_types = detect_user_type(user_profile)
-    other_types = detect_other_type(other_profile or {}, relationship_context)
+    # Detect deep types
+    user_type = detect_deep_type(user_profile, "")  # User's own type
+    other_type = detect_deep_type(other_profile or {}, relationship_context)  # Other's type from context
     
-    # Find primary dynamic pair
-    # Pick the most contrasting pair for interesting friction
-    dynamic_pair = None
-    for u_type in user_types:
-        for o_type in other_types:
-            if (u_type, o_type) in FRICTION_PATTERNS:
-                dynamic_pair = (u_type, o_type)
-                break
-        if dynamic_pair:
-            break
+    # If no context, use complementary type for interesting dynamic
+    if not relationship_context and not other_profile:
+        other_type = get_complementary_type(user_type)
     
-    # Fallback to first available
-    if not dynamic_pair:
-        dynamic_pair = (user_types[0], other_types[0])
+    dynamic_pair = (user_type, other_type)
     
-    user_type, other_type = dynamic_pair
+    # Get deep dynamic content
+    deep_content = DEEP_FRICTION.get(dynamic_pair)
     
-    # Select content
-    def select(patterns: dict, key: tuple, fallback_key: str = None) -> str:
-        options = patterns.get(key, patterns.get(fallback_key, ["Content not available"]))
-        if isinstance(options, list):
-            return options[seed_hash % len(options)]
-        return options
+    if not deep_content:
+        # Try reversed pair
+        reversed_pair = (other_type, user_type)
+        deep_content = DEEP_FRICTION.get(reversed_pair)
+        
+        if deep_content:
+            # We found the reversed pair - need to flip perspective
+            dynamic_pair = reversed_pair
     
-    # Generate sections
-    essence = select(ESSENCE_PATTERNS, other_type, "slow_processor")
-    friction = select(FRICTION_PATTERNS, dynamic_pair, ("fast_mover", "slow_processor"))
-    tension = select(TENSION_LOOPS, dynamic_pair, ("fast_mover", "slow_processor"))
-    your_shift = select(YOUR_SHIFT_PATTERNS, dynamic_pair, ("fast_mover", "slow_processor"))
-    gift = select(GIFT_PATTERNS, dynamic_pair, ("fast_mover", "slow_processor"))
-    try_this = select(TRY_THIS_PATTERNS, dynamic_pair, ("fast_mover", "slow_processor"))
+    # If still no match, try to find closest match by qualities
+    if not deep_content:
+        # Map types to broad categories for fallback matching
+        initiation_types = ["initiator", "action_taker", "momentum_carrier", "expresser"]
+        reflection_types = ["reflector", "atmospheric_reader", "attunement_holder", "absorber", "sensor"]
+        certainty_types = ["certainty_seeker", "container"]
+        fluid_types = ["porous", "sensor", "attunement_holder"]
+        
+        # Determine fallback pair
+        user_is_initiating = user_type in initiation_types
+        other_is_reflecting = other_type in reflection_types
+        
+        if user_is_initiating and other_is_reflecting:
+            dynamic_pair = ("initiator", "reflector")
+        elif not user_is_initiating and not other_is_reflecting:
+            dynamic_pair = ("reflector", "initiator")
+        else:
+            dynamic_pair = ("initiator", "reflector")
+        
+        deep_content = DEEP_FRICTION[dynamic_pair]
+    
+    # Get essence
+    other_deep = DEEP_DYNAMICS.get(other_type, DEEP_DYNAMICS["reflector"])
+    essence_options = other_deep["essence"]
+    essence = essence_options[seed_hash % len(essence_options)]
     
     return {
         "success": True,
-        "version": "v1.0",
+        "version": "v2.0",
         "other_name": other_name,
         "relationship_type": relationship_type,
         
         # The 6-section structure
         "essence": essence,
-        "friction": friction,
-        "tension": tension,
-        "your_shift": your_shift,
-        "gift": gift,
-        "try_this": try_this,
+        "friction": deep_content["friction"],
+        "tension": deep_content["tension"],
+        "your_shift": deep_content["your_shift"],
+        "gift": deep_content["gift"],
+        "try_this": deep_content["try_this"],
         
         # Metadata
-        "dynamic_pair": {
+        "dynamic": {
             "user_type": user_type,
             "other_type": other_type,
+            "user_quality": DEEP_DYNAMICS.get(user_type, {}).get("quality", "unknown"),
+            "other_quality": DEEP_DYNAMICS.get(other_type, {}).get("quality", "unknown"),
         },
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }

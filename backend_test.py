@@ -1,326 +1,226 @@
 #!/usr/bin/env python3
+"""
+Backend Testing Script for V2.0 Relationship Insight Engine
+Testing the specific endpoints and requirements from the review request.
+"""
 
-import requests
+import asyncio
+import aiohttp
 import json
 import sys
-from typing import Dict, List, Any
+from typing import Dict, Any, List
 
-# Backend URL from frontend .env
+# Backend URL from environment
 BACKEND_URL = "https://deployment-fix-25.preview.emergentagent.com/api"
 
-# Test user ID from review request
-TEST_USER_ID = "697f0c6abf35c0528ff06954"
-
-def test_home_synthesis():
-    """
-    Test Home Synthesis endpoint for V5.2 language requirements:
-    - Language is more DIRECT and confronting (shorter phrases, no generic explanations)
-    - the_call should be short and sharp
-    - the_edge should present a clear binary choice
-    - No phrases like "This connects to your tendency..."
-    """
-    print("🧪 TESTING HOME SYNTHESIS ENDPOINT")
-    print("=" * 60)
+class RelationshipInsightTester:
+    def __init__(self):
+        self.session = None
+        self.test_results = []
+        
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+        return self
+        
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
     
-    url = f"{BACKEND_URL}/home-synthesis/{TEST_USER_ID}"
+    def log_test(self, test_name: str, passed: bool, details: str = ""):
+        """Log test result"""
+        status = "✅ PASSED" if passed else "❌ FAILED"
+        print(f"{status}: {test_name}")
+        if details:
+            print(f"   {details}")
+        self.test_results.append({
+            "test": test_name,
+            "passed": passed,
+            "details": details
+        })
     
-    try:
-        response = requests.get(url, timeout=30)
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            print(f"❌ FAILED: Expected 200, got {response.status_code}")
-            print(f"Response: {response.text}")
-            return False
+    async def test_relationship_insight_endpoint(self, user_id: str, other_name: str, context: str, test_name: str):
+        """Test a specific relationship insight endpoint call"""
+        try:
+            url = f"{BACKEND_URL}/relationship-insight/{user_id}"
+            params = {
+                "other_name": other_name,
+                "context": context
+            }
             
-        data = response.json()
-        print(f"Response time: {response.elapsed.total_seconds():.2f}s")
-        
-        # Check required fields
-        required_fields = ['the_call', 'the_edge']
-        missing_fields = [field for field in required_fields if field not in data]
-        if missing_fields:
-            print(f"❌ FAILED: Missing required fields: {missing_fields}")
-            return False
+            print(f"\n🧪 Testing: {test_name}")
+            print(f"URL: {url}")
+            print(f"Params: {params}")
             
-        # Test the_call for directness
-        the_call = data.get('the_call', '')
-        print(f"\n📝 the_call: \"{the_call}\"")
-        print(f"Length: {len(the_call)} characters")
+            async with self.session.get(url, params=params) as response:
+                response_text = await response.text()
+                
+                if response.status != 200:
+                    self.log_test(f"{test_name} - HTTP Status", False, f"Expected 200, got {response.status}")
+                    print(f"Response: {response_text}")
+                    return None
+                
+                self.log_test(f"{test_name} - HTTP Status", True, f"Status: {response.status}")
+                
+                try:
+                    data = json.loads(response_text)
+                except json.JSONDecodeError as e:
+                    self.log_test(f"{test_name} - JSON Parse", False, f"Invalid JSON: {e}")
+                    return None
+                
+                self.log_test(f"{test_name} - JSON Parse", True, "Valid JSON response")
+                
+                # Test 1: success: true
+                success = data.get("success")
+                self.log_test(f"{test_name} - Success Field", success is True, f"success: {success}")
+                
+                # Test 2: version: v2.0
+                version = data.get("version")
+                self.log_test(f"{test_name} - Version Field", version == "v2.0", f"version: {version}")
+                
+                # Test 3: All 6 sections present
+                required_sections = ["essence", "friction", "tension", "your_shift", "gift", "try_this"]
+                all_sections_present = True
+                missing_sections = []
+                
+                for section in required_sections:
+                    if section not in data:
+                        all_sections_present = False
+                        missing_sections.append(section)
+                
+                self.log_test(f"{test_name} - All 6 Sections Present", all_sections_present, 
+                             f"Missing: {missing_sections}" if missing_sections else "All sections present")
+                
+                # Test 4: Dynamic metadata shows user_quality and other_quality
+                dynamic = data.get("dynamic", {})
+                has_user_quality = "user_quality" in dynamic
+                has_other_quality = "other_quality" in dynamic
+                
+                self.log_test(f"{test_name} - Dynamic Metadata", has_user_quality and has_other_quality,
+                             f"user_quality: {dynamic.get('user_quality')}, other_quality: {dynamic.get('other_quality')}")
+                
+                # Quality checks
+                await self.check_content_quality(data, test_name)
+                
+                return data
+                
+        except Exception as e:
+            self.log_test(f"{test_name} - Request", False, f"Exception: {e}")
+            return None
+    
+    async def check_content_quality(self, data: Dict[str, Any], test_name: str):
+        """Check content quality requirements"""
         
-        # Check for directness (should be short and sharp)
-        if len(the_call) > 100:
-            print(f"⚠️  WARNING: the_call might be too long ({len(the_call)} chars) - should be short and sharp")
+        # Check YOUR SHIFT is actionable and centered on USER
+        your_shift = data.get("your_shift", "")
         
-        # Test the_edge for binary choice
-        the_edge = data.get('the_edge', '')
-        print(f"\n🔥 the_edge: \"{the_edge}\"")
-        print(f"Length: {len(the_edge)} characters")
-        
-        # Check for forbidden phrases
-        forbidden_phrases = [
-            "This connects to your tendency",
-            "This is the same pattern showing up again",
-            "you tend to",
-            "this relates to"
+        # Should not suggest what other person should do
+        forbidden_other_phrases = [
+            "they should", "they need to", "tell them", "ask them to", "make them"
         ]
         
-        full_text = f"{the_call} {the_edge}".lower()
-        found_forbidden = []
-        for phrase in forbidden_phrases:
-            if phrase.lower() in full_text:
-                found_forbidden.append(phrase)
+        has_forbidden_other = any(phrase in your_shift.lower() for phrase in forbidden_other_phrases)
+        self.log_test(f"{test_name} - YOUR SHIFT User-Centered", not has_forbidden_other,
+                     f"No suggestions about other person: {not has_forbidden_other}")
         
-        if found_forbidden:
-            print(f"❌ FAILED: Found forbidden phrases: {found_forbidden}")
-            return False
+        # Check GIFT explains why person matters
+        gift = data.get("gift", "")
+        gift_has_meaning = len(gift) > 20 and ("matter" in gift.lower() or "bring" in gift.lower() or "show" in gift.lower())
+        self.log_test(f"{test_name} - GIFT Meaningful", gift_has_meaning,
+                     f"Gift explains value: {gift[:100]}...")
+        
+        # Check TRY THIS is behavioral action
+        try_this = data.get("try_this", "")
+        is_behavioral = len(try_this) > 10 and not any(phrase in try_this.lower() for phrase in ["therapy", "counseling", "meditate"])
+        self.log_test(f"{test_name} - TRY THIS Behavioral", is_behavioral,
+                     f"Behavioral action: {try_this[:100]}...")
+        
+        # Check for forbidden generic phrases
+        all_content = f"{data.get('essence', '')} {data.get('friction', '')} {data.get('tension', '')} {your_shift} {gift} {try_this}"
+        
+        forbidden_generic = ["hold space", "be present"]
+        has_generic = any(phrase in all_content.lower() for phrase in forbidden_generic)
+        self.log_test(f"{test_name} - No Generic Phrases", not has_generic,
+                     f"No 'hold space' or 'be present': {not has_generic}")
+        
+        # Check for overly long explanatory sentences (should be direct)
+        sentences = all_content.split('.')
+        long_sentences = [s for s in sentences if len(s.strip()) > 150]
+        has_long_sentences = len(long_sentences) > 2
+        self.log_test(f"{test_name} - Direct Language", not has_long_sentences,
+                     f"Not overly explanatory: {not has_long_sentences}")
+    
+    async def run_all_tests(self):
+        """Run all the tests specified in the review request"""
+        
+        print("🎯 TESTING V2.0 RELATIONSHIP INSIGHT ENGINE")
+        print("=" * 60)
+        
+        # Test cases from review request
+        test_cases = [
+            {
+                "user_id": "697f0c6abf35c0528ff06954",
+                "other_name": "Mel",
+                "context": "She senses the room. Attunes before acting.",
+                "test_name": "Mel - Attunement Type"
+            },
+            {
+                "user_id": "697f0c6abf35c0528ff06954", 
+                "other_name": "Jake",
+                "context": "He carries momentum forward. Doesn't stop.",
+                "test_name": "Jake - Momentum Type"
+            },
+            {
+                "user_id": "697f0c6abf35c0528ff06954",
+                "other_name": "Sarah", 
+                "context": "She holds what she feels. Contained. Protected.",
+                "test_name": "Sarah - Container Type"
+            }
+        ]
+        
+        for test_case in test_cases:
+            await self.test_relationship_insight_endpoint(
+                test_case["user_id"],
+                test_case["other_name"], 
+                test_case["context"],
+                test_case["test_name"]
+            )
+            print()  # Add spacing between tests
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 TEST SUMMARY")
+        print("=" * 60)
+        
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["passed"])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests} ✅")
+        print(f"Failed: {failed_tests} ❌")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        if failed_tests > 0:
+            print("\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["passed"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return failed_tests == 0
+
+
+async def main():
+    """Main test runner"""
+    async with RelationshipInsightTester() as tester:
+        success = await tester.run_all_tests()
+        
+        if success:
+            print("\n🎉 ALL TESTS PASSED! V2.0 Relationship Insight Engine is working correctly.")
+            sys.exit(0)
         else:
-            print("✅ PASSED: No forbidden explanatory phrases found")
-        
-        # Check for directness indicators
-        direct_indicators = ["you do this when", "again.", "this isn't new"]
-        found_direct = []
-        for indicator in direct_indicators:
-            if indicator.lower() in full_text:
-                found_direct.append(indicator)
-        
-        if found_direct:
-            print(f"✅ PASSED: Found direct language indicators: {found_direct}")
-        
-        print("\n✅ HOME SYNTHESIS TEST PASSED")
-        return True
-        
-    except Exception as e:
-        print(f"❌ FAILED: Exception occurred: {e}")
-        return False
+            print("\n💥 SOME TESTS FAILED! Check the details above.")
+            sys.exit(1)
 
-def test_astro_expert_horizons():
-    """
-    Test Astro Expert across all 3 horizons for distinct content:
-    - how_it_interacts[0] should be DIFFERENT for each timeframe
-    - what_to_do should be DIFFERENT for each timeframe
-    - No repetition of generic phrases across horizons
-    """
-    print("\n🧪 TESTING ASTRO EXPERT ACROSS ALL 3 HORIZONS")
-    print("=" * 60)
-    
-    timeframes = ['today', 'week', 'month']
-    responses = {}
-    
-    # Fetch all three timeframes
-    for timeframe in timeframes:
-        url = f"{BACKEND_URL}/astro-expert/{TEST_USER_ID}?timeframe={timeframe}"
-        
-        try:
-            response = requests.get(url, timeout=30)
-            print(f"\n📅 TIMEFRAME: {timeframe.upper()}")
-            print(f"Status: {response.status_code}")
-            
-            if response.status_code != 200:
-                print(f"❌ FAILED: Expected 200, got {response.status_code}")
-                print(f"Response: {response.text}")
-                return False
-                
-            data = response.json()
-            responses[timeframe] = data
-            print(f"Response time: {response.elapsed.total_seconds():.2f}s")
-            
-            # Check required fields
-            required_fields = ['how_it_interacts', 'what_to_do']
-            missing_fields = [field for field in required_fields if field not in data]
-            if missing_fields:
-                print(f"❌ FAILED: Missing required fields: {missing_fields}")
-                return False
-            
-            # Display key content
-            how_it_interacts = data.get('how_it_interacts', [])
-            what_to_do = data.get('what_to_do', [])
-            
-            if how_it_interacts:
-                print(f"how_it_interacts[0]: \"{how_it_interacts[0]}\"")
-            if what_to_do:
-                print(f"what_to_do[0]: \"{what_to_do[0]}\"")
-                
-        except Exception as e:
-            print(f"❌ FAILED: Exception occurred for {timeframe}: {e}")
-            return False
-    
-    # Verify DISTINCT content across horizons
-    print("\n🔍 VERIFYING DISTINCT CONTENT ACROSS HORIZONS")
-    print("-" * 50)
-    
-    # Check how_it_interacts[0] distinctness
-    how_it_interacts_texts = []
-    for timeframe in timeframes:
-        how_it_interacts = responses[timeframe].get('how_it_interacts', [])
-        if how_it_interacts:
-            how_it_interacts_texts.append(how_it_interacts[0])
-    
-    if len(set(how_it_interacts_texts)) != len(how_it_interacts_texts):
-        print("❌ FAILED: how_it_interacts[0] content is NOT distinct across timeframes")
-        for i, text in enumerate(how_it_interacts_texts):
-            print(f"  {timeframes[i]}: {text}")
-        return False
-    else:
-        print("✅ PASSED: how_it_interacts[0] content is DISTINCT across timeframes")
-        for i, text in enumerate(how_it_interacts_texts):
-            print(f"  {timeframes[i]}: {text}")
-    
-    # Check what_to_do distinctness and timeframe appropriateness
-    what_to_do_texts = []
-    for timeframe in timeframes:
-        what_to_do = responses[timeframe].get('what_to_do', [])
-        if what_to_do:
-            what_to_do_texts.append(what_to_do[0])
-    
-    if len(set(what_to_do_texts)) != len(what_to_do_texts):
-        print("❌ FAILED: what_to_do content is NOT distinct across timeframes")
-        for i, text in enumerate(what_to_do_texts):
-            print(f"  {timeframes[i]}: {text}")
-        return False
-    else:
-        print("✅ PASSED: what_to_do content is DISTINCT across timeframes")
-        for i, text in enumerate(what_to_do_texts):
-            print(f"  {timeframes[i]}: {text}")
-    
-    # Check timeframe appropriateness
-    print("\n🎯 VERIFYING TIMEFRAME APPROPRIATENESS")
-    print("-" * 40)
-    
-    today_text = what_to_do_texts[0].lower()
-    week_text = what_to_do_texts[1].lower()
-    month_text = what_to_do_texts[2].lower()
-    
-    # TODAY should have immediate, behavioral actions
-    immediate_indicators = ['today', 'now', 'right now', 'this moment', 'immediately']
-    today_has_immediate = any(indicator in today_text for indicator in immediate_indicators)
-    
-    # WEEK should have pattern-tracking actions
-    pattern_indicators = ['week', 'pattern', 'track', 'notice', 'observe', 'this week']
-    week_has_pattern = any(indicator in week_text for indicator in pattern_indicators)
-    
-    # MONTH should have arc/identity reflection actions
-    arc_indicators = ['month', 'arc', 'identity', 'reflection', 'long-term', 'this month']
-    month_has_arc = any(indicator in month_text for indicator in arc_indicators)
-    
-    if today_has_immediate:
-        print("✅ PASSED: TODAY has immediate/behavioral language")
-    else:
-        print("⚠️  WARNING: TODAY might lack immediate/behavioral language")
-    
-    if week_has_pattern:
-        print("✅ PASSED: WEEK has pattern-tracking language")
-    else:
-        print("⚠️  WARNING: WEEK might lack pattern-tracking language")
-    
-    if month_has_arc:
-        print("✅ PASSED: MONTH has arc/identity language")
-    else:
-        print("⚠️  WARNING: MONTH might lack arc/identity language")
-    
-    print("\n✅ ASTRO EXPERT HORIZONS TEST PASSED")
-    return True
-
-def test_language_directness():
-    """
-    Test overall language directness across all endpoints
-    """
-    print("\n🧪 TESTING LANGUAGE DIRECTNESS")
-    print("=" * 60)
-    
-    # Test both endpoints for direct language
-    endpoints = [
-        f"{BACKEND_URL}/home-synthesis/{TEST_USER_ID}",
-        f"{BACKEND_URL}/astro-expert/{TEST_USER_ID}?timeframe=today"
-    ]
-    
-    all_text = ""
-    
-    for endpoint in endpoints:
-        try:
-            response = requests.get(endpoint, timeout=30)
-            if response.status_code == 200:
-                data = response.json()
-                # Extract all text content
-                all_text += json.dumps(data, ensure_ascii=False) + " "
-        except Exception as e:
-            print(f"⚠️  WARNING: Could not fetch {endpoint}: {e}")
-    
-    all_text = all_text.lower()
-    
-    # Check for forbidden explanatory phrases
-    forbidden_phrases = [
-        "this connects to your tendency",
-        "this is the same pattern showing up again"
-    ]
-    
-    found_forbidden = []
-    for phrase in forbidden_phrases:
-        if phrase in all_text:
-            found_forbidden.append(phrase)
-    
-    # Check for preferred direct phrases
-    direct_phrases = [
-        "you do this when",
-        "this isn't new — you've been here before",
-        "again. you've been here before"
-    ]
-    
-    found_direct = []
-    for phrase in direct_phrases:
-        if phrase in all_text:
-            found_direct.append(phrase)
-    
-    if found_forbidden:
-        print(f"❌ FAILED: Found forbidden explanatory phrases: {found_forbidden}")
-        return False
-    else:
-        print("✅ PASSED: No forbidden explanatory phrases found")
-    
-    if found_direct:
-        print(f"✅ PASSED: Found direct language patterns: {found_direct}")
-    else:
-        print("⚠️  INFO: No specific direct language patterns detected (may still be direct)")
-    
-    print("\n✅ LANGUAGE DIRECTNESS TEST PASSED")
-    return True
-
-def main():
-    """Run all V5.2 language tests"""
-    print("🚀 STARTING V5.2 LANGUAGE TESTING")
-    print("=" * 80)
-    print(f"Backend URL: {BACKEND_URL}")
-    print(f"Test User ID: {TEST_USER_ID}")
-    print("=" * 80)
-    
-    tests = [
-        ("Home Synthesis", test_home_synthesis),
-        ("Astro Expert Horizons", test_astro_expert_horizons),
-        ("Language Directness", test_language_directness)
-    ]
-    
-    passed = 0
-    total = len(tests)
-    
-    for test_name, test_func in tests:
-        try:
-            if test_func():
-                passed += 1
-            else:
-                print(f"\n❌ {test_name} FAILED")
-        except Exception as e:
-            print(f"\n❌ {test_name} FAILED with exception: {e}")
-    
-    print("\n" + "=" * 80)
-    print(f"📊 TEST RESULTS: {passed}/{total} TESTS PASSED")
-    
-    if passed == total:
-        print("🎉 ALL V5.2 LANGUAGE TESTS PASSED!")
-        return True
-    else:
-        print(f"❌ {total - passed} TESTS FAILED")
-        return False
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    asyncio.run(main())
