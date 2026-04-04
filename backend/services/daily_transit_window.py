@@ -114,6 +114,9 @@ class DailyTransitWindow:
     moon_ingresses: List[TransitEvent] = field(default_factory=list)
     aspect_events: List[TransitEvent] = field(default_factory=list)
     
+    # Slow-moving transits (active but no exact time today)
+    slow_transits_active: List[Dict] = field(default_factory=list)
+    
     # Summary
     current_moon_sign: str = ""
     next_moon_sign: str = ""
@@ -131,6 +134,7 @@ class DailyTransitWindow:
             "all_events": [e.to_dict() for e in self.all_events],
             "moon_ingresses": [e.to_dict() for e in self.moon_ingresses],
             "aspect_events": [e.to_dict() for e in self.aspect_events],
+            "slow_transits_active": self.slow_transits_active,
             "current_moon_sign": self.current_moon_sign,
             "next_moon_sign": self.next_moon_sign,
             "next_moon_ingress_time": self.next_moon_ingress_time,
@@ -533,15 +537,14 @@ def scan_daily_transit_window(
             result.next_moon_ingress_time = timestamp_local.strftime("%I:%M %p")
     
     # =================================================================
-    # SCAN 2: Aspect Exact Times (optimized - larger interval, only Moon/Sun)
-    # For faster response, only track Moon and Sun aspects
+    # SCAN 2: Aspect Exact Times (Moon, Sun, Mercury, Venus, Mars)
     # =================================================================
     aspect_exacts = find_aspect_exact_times(
         natal_planets,
         scan_start_utc,
         scan_end_utc,
-        transit_planets=["Moon", "Sun"],  # Only fast-moving planets for daily
-        interval_minutes=60  # Larger interval for speed
+        transit_planets=["Moon", "Sun", "Mercury", "Venus", "Mars"],
+        interval_minutes=60  # Hourly scan for speed
     )
     
     for aspect in aspect_exacts:
@@ -580,6 +583,26 @@ def scan_daily_transit_window(
     active_aspects = get_current_active_aspects(natal_planets, now_utc, max_orb_for_active=3.0)
     if active_aspects:
         result.strongest_active_aspect = active_aspects[0]
+    
+    # =================================================================
+    # IDENTIFY SLOW-MOVING TRANSITS (Mercury, Venus, Mars)
+    # These don't reach exact within a day but are still active
+    # =================================================================
+    timed_transit_planets = set(e.transit_planet for e in result.aspect_events if e.transit_planet)
+    slow_transit_names = ["Mercury", "Venus", "Mars"]
+    
+    for aspect in active_aspects:
+        transit_planet = aspect['transit_planet']
+        # If this planet has NO timed events but IS in active aspects, it's a slow transit
+        if transit_planet in slow_transit_names and transit_planet not in timed_transit_planets:
+            result.slow_transits_active.append({
+                "transit_planet": aspect['transit_planet'],
+                "natal_planet": aspect['natal_planet'],
+                "aspect_type": aspect['aspect_type'],
+                "orb": aspect['orb'],
+                "description": aspect['description'],
+                "note": "Active all day (slow-moving transit)",
+            })
     
     # Sort all events by time
     result.all_events.sort(key=lambda e: e.timestamp_utc)

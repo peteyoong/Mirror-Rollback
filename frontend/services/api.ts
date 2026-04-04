@@ -1702,4 +1702,100 @@ export const getRelationshipNarrativeFlow = async (
   return response.data;
 };
 
+
+// ============================================================
+// DAILY TRANSIT WINDOW API (True Sidereal)
+// ============================================================
+
+export interface DailyTransitWindowResponse {
+  date: string;
+  local_timezone: string;
+  scan_start_utc: string;
+  scan_end_utc: string;
+  computed_at: string;
+  total_events: number;
+  
+  // Events
+  all_events: Array<{
+    event_type: string;
+    timestamp_utc: string;
+    timestamp_local: string;
+    local_time: string;
+    local_timezone: string;
+    description: string;
+    significance: string;
+    timing: 'passed' | 'current' | 'upcoming';
+    minutes_from_now: number;
+    transit_planet?: string;
+    natal_planet?: string;
+    aspect_type?: string;
+    orb_at_peak?: number;
+    from_sign?: string;
+    to_sign?: string;
+  }>;
+  
+  moon_ingresses: Array<any>;
+  aspect_events: Array<any>;
+  slow_transits_active: Array<{
+    transit_planet: string;
+    natal_planet: string;
+    aspect_type: string;
+    orb: number;
+    description: string;
+    note: string;
+  }>;
+  
+  // Summary
+  current_moon_sign: string;
+  next_moon_sign?: string;
+  next_moon_ingress_time?: string;
+  strongest_active_aspect?: {
+    transit_planet: string;
+    natal_planet: string;
+    aspect_type: string;
+    orb: number;
+    is_applying: boolean;
+    description: string;
+  };
+  current_active_aspects?: Array<any>;
+  
+  // Theme
+  daily_theme?: {
+    primary_theme: string;
+    moon_context: {
+      current_sign: string;
+      next_sign?: string;
+      ingress_time?: string;
+    };
+    sun_context: {
+      sign: string;
+      degree: number;
+    };
+    theme_keywords: string[];
+    upcoming_events: any[];
+  };
+  
+  error?: string;
+}
+
+/**
+ * Get daily transit window scan using TRUE SIDEREAL calculations.
+ * 
+ * Scans the full local day (midnight to midnight) for:
+ * - Moon sign ingress times
+ * - Transit-to-natal aspect exact times
+ * - Currently active aspects (within 3° orb)
+ * - Slow-moving transits (Mercury, Venus, Mars)
+ * 
+ * All calculations use Swiss Ephemeris True Sidereal (SVP 31.2836°, J2000)
+ */
+export const getDailyTransitWindow = async (
+  userId: string,
+  timezone: string = 'UTC'
+): Promise<DailyTransitWindowResponse> => {
+  const params = new URLSearchParams({ timezone_str: timezone });
+  const response = await apiWithRetry.get(`/astrology/daily-window/${userId}?${params}`);
+  return response.data;
+};
+
 export default api;
