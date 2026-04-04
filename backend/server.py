@@ -26528,20 +26528,49 @@ FORUM_STORY_SYSTEM_PROMPT = """You are Emergent!, a reflective facilitator helpi
 YOUR ROLE:
 Generate a calm, thoughtful narrative about the group's composition based on their combined lens data (Human Design, Enneagram, Astrology, Numerology, and Pattern work).
 
+=== CRITICAL: FORUM CONTEXT ONLY ===
+You are describing THE SPACE, THE FIELD, THE CIRCLE, THE GROUP — NOT individuals.
+This is NOT a personal insight. This is a collective composition reflection.
+
+ALWAYS SPEAK ABOUT:
+- "the room" / "the space" / "the field" / "the circle"
+- "this group" / "this configuration" / "this mix"
+- "the dynamic between" / "the tension in the space"
+- "what this composition may bring"
+- collective patterns and systemic relationships
+
+NEVER SPEAK AS IF TO AN INDIVIDUAL:
+- NEVER say "you've been here before"
+- NEVER say "part of you"
+- NEVER say "something in you"
+- NEVER say "you always" or "you never"
+- NEVER use personal psychological diagnosis language
+- NEVER make it sound like a Home insight about one person
+
 TONE GUIDELINES:
 - Reflective facilitator, not analyst
 - Non-deterministic and exploratory
 - Calm, warm, and grounded
 - Agency-preserving - the group decides meaning
+- Sound like you're describing a room, not reading a person
 
 USE LANGUAGE LIKE:
-- "may suggest"
-- "might reflect"
-- "could create space for"
-- "often brings"
-- "may invite"
+- "this space may hold..."
+- "the group might find..."
 - "this mix sometimes..."
+- "the field may carry..."
 - "groups like this often find..."
+- "this configuration tends to..."
+- "the dynamic between these energies..."
+- "something in this circle..."
+
+FORBIDDEN PHRASES (NEVER USE):
+- "you've been here before" → instead: "something in this dynamic may feel familiar"
+- "part of you" → instead: "part of this space" or "some in this circle"
+- "something in you" → instead: "something in the field"
+- "you always" → instead: "this group often"
+- "you never" → instead: "this space rarely"
+- "your pattern" → instead: "the pattern in this circle"
 
 AVOID:
 - Mystical or prophetic claims ("you were brought together for...")
@@ -26550,6 +26579,7 @@ AVOID:
 - Long essays
 - Analytical frameworks or categories
 - Markdown headers (###) or bold formatting
+- Personal/individual psychological interpretations
 
 OUTPUT FORMAT:
 Write exactly 3 sections followed by a reflective question. Use these EXACT section markers:
@@ -26566,8 +26596,73 @@ One paragraph about possible tensions or growth opportunities when different per
 [QUESTION]
 A single reflective question for the group to consider together.
 
-Keep each section to 2-4 sentences. Write like a wise facilitator offering a gentle reflection.
+Keep each section to 2-4 sentences. Write like a wise facilitator offering a gentle reflection about THE SPACE, not about any individual.
 """
+
+# =============================================================================
+# FORUM STORY SANITIZER - Post-generation guard against Home language leakage
+# =============================================================================
+
+FORUM_STORY_FORBIDDEN_PHRASES = {
+    # phrase: replacement
+    "you've been here before": "something in this dynamic may feel familiar",
+    "you have been here before": "something in this dynamic may feel familiar",
+    "part of you": "part of this space",
+    "something in you": "something in the field",
+    "you always": "this group often",
+    "you never": "this space rarely",
+    "your pattern": "the pattern in this circle",
+    "your tendency": "the tendency in this space",
+    "you recognize": "the room recognizes",
+    "you feel": "the space holds",
+    "you sense": "the field carries",
+    "you know": "the group knows",
+    "deep down you": "deep in this space",
+    "within you": "within this circle",
+}
+
+
+def sanitize_forum_story(story_text: str) -> str:
+    """
+    Post-generation sanitizer that rewrites any leaked personal phrasing
+    into field-based phrasing.
+    
+    Returns sanitized story text.
+    """
+    if not story_text:
+        return story_text
+    
+    result = story_text
+    
+    # Apply all replacements (case-insensitive)
+    for forbidden, replacement in FORUM_STORY_FORBIDDEN_PHRASES.items():
+        # Replace lowercase
+        result = result.replace(forbidden, replacement)
+        # Replace capitalized (sentence start)
+        result = result.replace(forbidden.capitalize(), replacement.capitalize())
+        # Replace uppercase
+        result = result.replace(forbidden.upper(), replacement.upper())
+    
+    return result
+
+
+def validate_forum_story(story_text: str) -> tuple[bool, list[str]]:
+    """
+    Validate that forum story doesn't contain forbidden phrases.
+    
+    Returns: (is_valid, list_of_violations)
+    """
+    if not story_text:
+        return True, []
+    
+    text_lower = story_text.lower()
+    violations = []
+    
+    for forbidden in FORUM_STORY_FORBIDDEN_PHRASES.keys():
+        if forbidden.lower() in text_lower:
+            violations.append(forbidden)
+    
+    return len(violations) == 0, violations
 
 
 @api_router.get("/forums/{forum_id}/story")
@@ -26664,6 +26759,14 @@ Remember: Write a warm, thoughtful reflection in 3-5 paragraphs. End with a refl
                 timeout=60.0
             )
             logger.info(f"[ForumStory] Story generated, length={len(story_text) if story_text else 0}")
+            
+            # POST-GENERATION SANITIZATION: Ensure no Home language leaks through
+            is_valid, violations = validate_forum_story(story_text)
+            if not is_valid:
+                logger.warning(f"[ForumStory] Detected forbidden phrases before sanitization: {violations}")
+                story_text = sanitize_forum_story(story_text)
+                logger.info(f"[ForumStory] Sanitized story to remove Home-style language")
+            
         except asyncio.TimeoutError:
             logger.error(f"[ForumStory] LLM timeout for forum {forum_id}")
             raise HTTPException(status_code=504, detail="Mirror is taking too long. Please try again.")
