@@ -205,18 +205,54 @@ def calculate_lunar_cycle_info(dt: Optional[datetime] = None) -> Dict[str, Any]:
 
 
 # =============================================================================
-# MOON-TO-GATE MAPPING - Task 50
+# MOON-TO-GATE MAPPING - TRUE SIDEREAL (Swiss Ephemeris)
+# =============================================================================
+# FIXED: Now uses canonical True Sidereal Swiss Ephemeris config
+# instead of linear approximation. Aligned with:
+# - SVP: 31.2836° (Fixed)
+# - Mode: SIDM_USER
+# - Epoch: J2000
 # =============================================================================
 
 def calculate_moon_longitude(dt: Optional[datetime] = None) -> float:
     """
-    Calculate the Moon's approximate sidereal longitude.
+    Calculate the Moon's TRUE SIDEREAL longitude using Swiss Ephemeris.
     
-    Uses a simplified calculation based on:
-    - Reference point: Moon position at a known time
-    - Moon's average daily motion (~13.176°/day)
+    FIXED: Previously used linear approximation which accumulated drift error.
+    Now uses canonical sidereal_config.py for accurate calculations.
     
-    Reference: January 11, 2024 11:57 UTC - New Moon in Capricorn (~270° sidereal)
+    Args:
+        dt: Datetime for calculation (default: now UTC)
+    
+    Returns:
+        Moon's sidereal longitude (0-360)
+    """
+    try:
+        from calculations.sidereal_config import calculate_planet_by_name
+        
+        if dt is None:
+            dt = datetime.now(timezone.utc)
+        
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        
+        # Use TRUE SIDEREAL calculation from canonical config
+        moon_pos = calculate_planet_by_name("Moon", dt)
+        
+        logger.debug(f"[LunarCycle] Moon TRUE SIDEREAL: {moon_pos['longitude']:.2f}° ({moon_pos['sign']})")
+        
+        return moon_pos['longitude']
+        
+    except Exception as e:
+        logger.error(f"[LunarCycle] Error in TRUE SIDEREAL calculation, falling back: {e}")
+        # Emergency fallback - should not happen in production
+        return _calculate_moon_longitude_fallback(dt)
+
+
+def _calculate_moon_longitude_fallback(dt: Optional[datetime] = None) -> float:
+    """
+    DEPRECATED FALLBACK: Linear approximation for emergency use only.
+    This should NOT be used in normal operation.
     """
     if dt is None:
         dt = datetime.now(timezone.utc)
@@ -224,19 +260,13 @@ def calculate_moon_longitude(dt: Optional[datetime] = None) -> float:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     
-    # Reference: New Moon on Jan 11, 2024 at ~270° (Capricorn)
-    # This is sidereal longitude (relative to fixed stars)
-    reference_time = datetime(2024, 1, 11, 11, 57, 0, tzinfo=timezone.utc)
-    reference_longitude = 270.0  # Capricorn start
+    logger.warning("[LunarCycle] Using DEPRECATED linear approximation fallback!")
     
-    # Calculate days since reference
+    reference_time = datetime(2024, 1, 11, 11, 57, 0, tzinfo=timezone.utc)
+    reference_longitude = 270.0
     delta = dt - reference_time
     days_since = delta.total_seconds() / 86400.0
-    
-    # Moon moves ~13.176°/day through the zodiac
     longitude_traveled = days_since * MOON_DAILY_MOTION
-    
-    # Calculate current sidereal longitude (0-360)
     current_longitude = (reference_longitude + longitude_traveled) % 360.0
     
     return current_longitude
@@ -246,16 +276,27 @@ def get_current_moon_gate(dt: Optional[datetime] = None) -> Dict[str, Any]:
     """
     Get the Human Design gate activated by the current Moon position.
     
+    Uses TRUE SIDEREAL Swiss Ephemeris calculation (via sidereal_config.py).
     Maps Moon's sidereal longitude to HD gate using the HD Rave Mandala.
-    Returns gate number, line, and gate information from the dictionary.
+    
+    Returns gate number, line, sign, and gate information from the dictionary.
     """
     try:
-        # Import the HD gate wheel and gate dictionary
         from calculations.human_design import longitude_to_gate
+        from calculations.sidereal_config import calculate_planet_by_name, longitude_to_sign_degree
         from services.lunar_gates_dictionary import get_gate_data
         
-        # Calculate Moon's current sidereal longitude
-        moon_longitude = calculate_moon_longitude(dt)
+        if dt is None:
+            dt = datetime.now(timezone.utc)
+        
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        
+        # Use TRUE SIDEREAL calculation from canonical config
+        moon_pos = calculate_planet_by_name("Moon", dt)
+        moon_longitude = moon_pos['longitude']
+        moon_sign = moon_pos['sign']
+        moon_degree = moon_pos['degree']
         
         # Convert to HD gate
         gate_info = longitude_to_gate(moon_longitude)
@@ -265,10 +306,12 @@ def get_current_moon_gate(dt: Optional[datetime] = None) -> Dict[str, Any]:
         # Get the gate interpretation data
         gate_data = get_gate_data(gate_number)
         
-        logger.info(f"[LunarGate] Moon at {moon_longitude:.2f}° -> Gate {gate_number}.{gate_line}")
+        logger.info(f"[LunarGate] Moon TRUE SIDEREAL at {moon_longitude:.2f}° ({moon_sign}) -> Gate {gate_number}.{gate_line}")
         
         return {
-            "moon_longitude": round(moon_longitude, 2),
+            "moon_longitude": round(moon_longitude, 4),
+            "moon_sign": moon_sign,
+            "moon_degree_in_sign": round(moon_degree, 2),
             "current_moon_gate": gate_number,
             "gate_line": gate_line,
             "gate_formatted": f"{gate_number}.{gate_line}",
@@ -277,6 +320,7 @@ def get_current_moon_gate(dt: Optional[datetime] = None) -> Dict[str, Any]:
             "center": gate_data.get("center", ""),
             "gate_reflection_message": gate_data.get("reflection", ""),
             "gate_reflective_question": gate_data.get("question", ""),
+            "calculation_method": "swiss_ephemeris_true_sidereal",
         }
         
     except Exception as e:

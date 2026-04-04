@@ -16651,7 +16651,157 @@ async def get_human_design_field_signals(user_id: str):
         }
 
 
-@api_router.get("/human-design/deep-dive/{user_id}")
+@api_router.get("/astrology/transit-aspects/{user_id}")
+async def get_transit_natal_aspects(user_id: str, include_daily_window: bool = False):
+    """
+    Get TRUE SIDEREAL transit-to-natal aspects for a user.
+    
+    Computes deterministic aspects between current transits and natal planets:
+    - Conjunction (0° ± 8°)
+    - Opposition (180° ± 8°)
+    - Trine (120° ± 8°)
+    - Square (90° ± 7°)
+    - Sextile (60° ± 6°)
+    - Quincunx (150° ± 3°)
+    - Semi-sextile (30° ± 2°)
+    
+    Uses Swiss Ephemeris True Sidereal (SVP 31.2836°, J2000) for both
+    transit and natal positions.
+    
+    Args:
+        user_id: User ID
+        include_daily_window: If true, also scan the full day for exact times
+    
+    Returns:
+        - current_aspects: Aspects at this moment
+        - major_aspects: Major aspects only (conjunction, opposition, trine, square, sextile)
+        - exact_aspects: Aspects with orb < 1°
+        - daily_window: (optional) Full day scan with exact times
+    """
+    try:
+        from services.transit_natal_aspects import (
+            compute_transit_natal_aspects,
+            compute_daily_aspect_window,
+            get_current_transit_aspects_for_user,
+        )
+        from calculations.sidereal_config import debug_transit_positions
+        
+        # Get user's natal chart
+        user, chart = await get_user_astrology_data(user_id)
+        
+        # Extract natal planet positions from astrology sub-document
+        astrology_data = chart.get('astrology', {})
+        natal_planets = astrology_data.get('planets', {})
+        
+        if not natal_planets:
+            raise HTTPException(status_code=400, detail="No natal planet data found for user")
+        
+        # Compute current snapshot
+        now = datetime.now(timezone.utc)
+        
+        # Build chart structure for the aspect calculator
+        chart_for_aspects = {'planets': natal_planets}
+        aspects_data = get_current_transit_aspects_for_user(chart_for_aspects, now)
+        
+        # Add transit positions debug info
+        transit_debug = debug_transit_positions(now, user.get('email', user_id))
+        aspects_data["transit_positions"] = transit_debug["planets"]
+        aspects_data["sidereal_config"] = transit_debug["sidereal_config"]
+        
+        # Optionally compute daily window
+        if include_daily_window:
+            daily_data = compute_daily_aspect_window(natal_planets, now, interval_hours=2)
+            aspects_data["daily_window"] = daily_data
+        
+        logger.info(f"[TransitAspects] Computed {aspects_data['total_aspects']} aspects for user {user_id}")
+        return aspects_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Transit aspects error for {user_id}: {e}")
+        return {
+            "computed_at": datetime.now(timezone.utc).isoformat(),
+            "total_aspects": 0,
+            "major_aspects": [],
+            "minor_aspects": [],
+            "exact_aspects": [],
+            "error": str(e),
+        }
+
+
+@api_router.get("/astrology/transit-debug/{user_id}")
+async def get_transit_debug(user_id: str):
+    """
+    DEBUG ENDPOINT: Verify True Sidereal transit calculations.
+    
+    Returns:
+    - Current transit positions (True Sidereal)
+    - Natal positions (True Sidereal)
+    - Transit-to-natal aspects
+    - Calculation method verification
+    
+    Use this to verify Mirror transits match external True Sidereal sources
+    like Genetic Matrix or Athen Chimenti framework.
+    """
+    try:
+        from calculations.sidereal_config import debug_transit_positions, get_all_transiting_planets
+        from services.transit_natal_aspects import compute_transit_natal_aspects
+        
+        # Get user's natal chart
+        user, chart = await get_user_astrology_data(user_id)
+        
+        # Extract natal planet positions from astrology sub-document
+        astrology_data = chart.get('astrology', {})
+        natal_planets = astrology_data.get('planets', {})
+        
+        now = datetime.now(timezone.utc)
+        
+        # Get full transit debug
+        transit_debug = debug_transit_positions(now, user.get('email', user_id))
+        
+        # Get all transiting planets
+        all_transits = get_all_transiting_planets(now)
+        
+        # Compute aspects
+        aspects = compute_transit_natal_aspects(natal_planets, now)
+        
+        return {
+            "debug_for": user.get('email', user_id),
+            "computed_at": now.isoformat(),
+            "sidereal_config": transit_debug["sidereal_config"],
+            "transit_positions": {
+                name: {
+                    "longitude": round(pos['longitude'], 4),
+                    "sign": pos['sign'],
+                    "degree": round(pos['degree'], 2),
+                    "retrograde": pos.get('retrograde', False),
+                }
+                for name, pos in all_transits.items()
+            },
+            "natal_positions": {
+                name: {
+                    "longitude": round(data.get('longitude', 0), 4),
+                    "sign": data.get('sign', 'Unknown'),
+                }
+                for name, data in natal_planets.items()
+            },
+            "aspects_found": len(aspects),
+            "top_5_aspects": [
+                {
+                    "description": a.description,
+                    "orb": round(a.orb, 2),
+                    "is_exact": a.is_exact,
+                }
+                for a in aspects[:5]
+            ],
+            "calculation_method": "swiss_ephemeris_true_sidereal",
+            "svp_degrees": 31.2836,
+        }
+        
+    except Exception as e:
+        logger.error(f"Transit debug error for {user_id}: {e}")
+        return {"error": str(e)}
 async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
     """
     Generate Deep Dive - Full Human Design profile including Type, Strategy, Authority,

@@ -716,16 +716,25 @@ def unify_signals_around_theme(
 
 
 # =============================================================================
-# CURRENT TRANSIT CALCULATIONS
+# CURRENT TRANSIT CALCULATIONS - TRUE SIDEREAL (Swiss Ephemeris)
+# =============================================================================
+# FIXED: Now uses canonical True Sidereal Swiss Ephemeris config
+# instead of linear approximation. All calculations aligned with:
+# - SVP: 31.2836° (Fixed)
+# - Mode: SIDM_USER
+# - Epoch: J2000
 # =============================================================================
 
 def calculate_sun_gate(dt: Optional[datetime] = None) -> Dict[str, Any]:
     """
-    Calculate the current Sun gate based on sidereal position.
-    Sun moves approximately 1° per day through the zodiac.
+    Calculate the current Sun gate using TRUE SIDEREAL Swiss Ephemeris.
+    
+    FIXED: Previously used linear approximation which was ~338° off.
+    Now uses canonical sidereal_config.py for accurate calculations.
     """
     try:
         from calculations.human_design import longitude_to_gate
+        from calculations.sidereal_config import calculate_planet_by_name
         
         if dt is None:
             dt = datetime.now(timezone.utc)
@@ -733,78 +742,104 @@ def calculate_sun_gate(dt: Optional[datetime] = None) -> Dict[str, Any]:
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
         
-        # Reference: Vernal equinox 2024 (Sun at 0° Aries tropical, ~5° Pisces sidereal)
-        # March 20, 2024 03:06 UTC
-        reference_time = datetime(2024, 3, 20, 3, 6, 0, tzinfo=timezone.utc)
-        reference_longitude = 350.0  # ~350° sidereal (late Pisces/early Aries)
-        
-        # Calculate days since reference
-        delta = dt - reference_time
-        days_since = delta.total_seconds() / 86400.0
-        
-        # Sun moves ~0.9856°/day
-        sun_daily_motion = 360.0 / 365.25
-        longitude_traveled = days_since * sun_daily_motion
-        
-        # Calculate current sidereal longitude
-        current_longitude = (reference_longitude + longitude_traveled) % 360.0
+        # Use TRUE SIDEREAL calculation from canonical config
+        sun_pos = calculate_planet_by_name("Sun", dt)
+        current_longitude = sun_pos['longitude']
         
         # Convert to HD gate
         gate_info = longitude_to_gate(current_longitude)
         
+        logger.debug(f"[TransitSignals] Sun TRUE SIDEREAL: {current_longitude:.2f}° ({sun_pos['sign']})")
+        
         return {
             "planet": "Sun",
-            "longitude": round(current_longitude, 2),
+            "longitude": round(current_longitude, 4),
+            "sign": sun_pos['sign'],
+            "degree_in_sign": round(sun_pos['degree'], 2),
             "gate": gate_info.get('gate', 1),
             "line": gate_info.get('line', 1),
             "center": GATE_TO_CENTER.get(gate_info.get('gate', 1), "Unknown"),
+            "retrograde": sun_pos.get('retrograde', False),
+            "calculation_method": "swiss_ephemeris_true_sidereal",
         }
     except Exception as e:
         logger.error(f"Error calculating Sun gate: {e}")
-        return {"planet": "Sun", "gate": 1, "line": 1, "center": "G"}
+        return {"planet": "Sun", "gate": 1, "line": 1, "center": "G", "error": str(e)}
 
 
 def calculate_earth_gate(sun_gate_info: Dict) -> Dict[str, Any]:
     """
     Calculate Earth gate (always opposite Sun, 180° away).
+    Uses the sidereal longitude from Sun calculation.
     """
     try:
         from calculations.human_design import longitude_to_gate
+        from calculations.sidereal_config import longitude_to_sign_degree, normalize_degrees
         
-        earth_longitude = (sun_gate_info.get("longitude", 0) + 180) % 360
+        sun_longitude = sun_gate_info.get("longitude", 0)
+        earth_longitude = normalize_degrees(sun_longitude + 180)
+        
+        # Get sign info
+        sign_info = longitude_to_sign_degree(earth_longitude)
+        
+        # Convert to HD gate
         gate_info = longitude_to_gate(earth_longitude)
         
         return {
             "planet": "Earth",
-            "longitude": round(earth_longitude, 2),
+            "longitude": round(earth_longitude, 4),
+            "sign": sign_info['sign'],
+            "degree_in_sign": round(sign_info['degree'], 2),
             "gate": gate_info.get('gate', 1),
             "line": gate_info.get('line', 1),
             "center": GATE_TO_CENTER.get(gate_info.get('gate', 1), "Unknown"),
+            "calculation_method": "swiss_ephemeris_true_sidereal",
         }
     except Exception as e:
         logger.error(f"Error calculating Earth gate: {e}")
-        return {"planet": "Earth", "gate": 2, "line": 1, "center": "G"}
+        return {"planet": "Earth", "gate": 2, "line": 1, "center": "G", "error": str(e)}
 
 
 def calculate_moon_gate_transit(dt: Optional[datetime] = None) -> Dict[str, Any]:
     """
-    Calculate current Moon gate using existing lunar_cycle service.
+    Calculate current Moon gate using TRUE SIDEREAL Swiss Ephemeris.
+    
+    FIXED: Previously used linear approximation which was ~5° off.
+    Now uses canonical sidereal_config.py for accurate calculations.
     """
     try:
-        from services.lunar_cycle import get_current_moon_gate
+        from calculations.human_design import longitude_to_gate
+        from calculations.sidereal_config import calculate_planet_by_name
         
-        moon_data = get_current_moon_gate(dt)
+        if dt is None:
+            dt = datetime.now(timezone.utc)
+        
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        
+        # Use TRUE SIDEREAL calculation from canonical config
+        moon_pos = calculate_planet_by_name("Moon", dt)
+        current_longitude = moon_pos['longitude']
+        
+        # Convert to HD gate
+        gate_info = longitude_to_gate(current_longitude)
+        
+        logger.debug(f"[TransitSignals] Moon TRUE SIDEREAL: {current_longitude:.2f}° ({moon_pos['sign']})")
         
         return {
             "planet": "Moon",
-            "longitude": moon_data.get("moon_longitude", 0),
-            "gate": moon_data.get("current_moon_gate", 1),
-            "line": moon_data.get("gate_line", 1),
-            "center": GATE_TO_CENTER.get(moon_data.get("current_moon_gate", 1), "Unknown"),
+            "longitude": round(current_longitude, 4),
+            "sign": moon_pos['sign'],
+            "degree_in_sign": round(moon_pos['degree'], 2),
+            "gate": gate_info.get('gate', 1),
+            "line": gate_info.get('line', 1),
+            "center": GATE_TO_CENTER.get(gate_info.get('gate', 1), "Unknown"),
+            "retrograde": moon_pos.get('retrograde', False),
+            "calculation_method": "swiss_ephemeris_true_sidereal",
         }
     except Exception as e:
         logger.error(f"Error calculating Moon gate: {e}")
-        return {"planet": "Moon", "gate": 28, "line": 1, "center": "Spleen"}
+        return {"planet": "Moon", "gate": 28, "line": 1, "center": "Spleen", "error": str(e)}
 
 
 def get_current_transits(dt: Optional[datetime] = None) -> List[Dict[str, Any]]:
