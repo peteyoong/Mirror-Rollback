@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
@@ -30197,6 +30197,169 @@ async def validate_engagement_loop(user_id: str):
     Validate engagement loop for a user.
     Returns comprehensive debug info for the engagement adaptation system.
     """
+
+
+# ==========================================================================
+# RESONANCE TRACKING API
+# ==========================================================================
+
+class ResonanceTrackRequest(BaseModel):
+    """Request to track a resonance interaction."""
+    pattern_signature: str
+    context: str  # home, forum, lens, card, etc.
+    source_type: Optional[str] = None
+    source_id: Optional[str] = None
+    resonance: bool = True
+
+
+@api_router.post("/resonance/track")
+async def track_resonance(request: Request):
+    """
+    Track a user's resonance interaction with a pattern/insight.
+    
+    This captures low-friction recognition signals without gamification.
+    
+    Stores:
+    {
+      user_id,
+      pattern_signature,
+      context,
+      timestamp,
+      resonance: true
+    }
+    
+    GUARDRAILS:
+    - No counters or social signals
+    - No gamification
+    - Keep tone reflective, not rewarding
+    """
+    try:
+        body = await request.json()
+        
+        # Get user from auth header or body
+        auth_header = request.headers.get("Authorization", "")
+        user_id = None
+        
+        if auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            # Try to decode user from token
+            try:
+                import jwt
+                payload = jwt.decode(token, options={"verify_signature": False})
+                user_id = payload.get("user_id") or payload.get("sub")
+            except:
+                pass
+        
+        if not user_id:
+            user_id = body.get("user_id", "anonymous")
+        
+        pattern_signature = body.get("pattern_signature", "unknown")
+        context = body.get("context", "unknown")
+        source_type = body.get("source_type")
+        source_id = body.get("source_id")
+        
+        # Store resonance event
+        from datetime import datetime, timezone
+        
+        resonance_doc = {
+            "user_id": user_id,
+            "pattern_signature": pattern_signature,
+            "context": context,
+            "source_type": source_type,
+            "source_id": source_id,
+            "resonance": True,
+            "timestamp": datetime.now(timezone.utc),
+        }
+        
+        # Store in resonances collection
+        await db.resonances.insert_one(resonance_doc)
+        
+        logger.info(f"[Resonance] Tracked: user={user_id[:8] if len(user_id) > 8 else user_id}, pattern={pattern_signature}, context={context}")
+        
+        return {
+            "success": True,
+            "message": "Resonance tracked",
+            "pattern_signature": pattern_signature,
+        }
+        
+    except Exception as e:
+        logger.error(f"[Resonance] Error tracking: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/resonance/history/{user_id}")
+async def get_resonance_history(user_id: str, limit: int = 50):
+    """
+    Get a user's resonance history.
+    Used for pattern recognition and signal strength analysis.
+    """
+    try:
+        resonances = await db.resonances.find(
+            {"user_id": user_id}
+        ).sort("timestamp", -1).limit(limit).to_list(length=limit)
+        
+        # Convert ObjectId to string
+        for r in resonances:
+            r["_id"] = str(r["_id"])
+            if r.get("timestamp"):
+                r["timestamp"] = r["timestamp"].isoformat()
+        
+        return {
+            "success": True,
+            "resonances": resonances,
+            "count": len(resonances),
+        }
+        
+    except Exception as e:
+        logger.error(f"[Resonance] Error getting history: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@api_router.get("/resonance/patterns/{user_id}")
+async def get_resonance_patterns(user_id: str):
+    """
+    Get aggregated pattern resonance stats for a user.
+    Shows which patterns the user resonates with most.
+    """
+    try:
+        # Aggregate by pattern_signature
+        pipeline = [
+            {"$match": {"user_id": user_id}},
+            {"$group": {
+                "_id": "$pattern_signature",
+                "count": {"$sum": 1},
+                "contexts": {"$addToSet": "$context"},
+                "last_resonance": {"$max": "$timestamp"},
+            }},
+            {"$sort": {"count": -1}},
+            {"$limit": 20},
+        ]
+        
+        results = await db.resonances.aggregate(pipeline).to_list(length=20)
+        
+        patterns = []
+        for r in results:
+            patterns.append({
+                "pattern_signature": r["_id"],
+                "resonance_count": r["count"],
+                "contexts": r["contexts"],
+                "last_resonance": r["last_resonance"].isoformat() if r.get("last_resonance") else None,
+            })
+        
+        return {
+            "success": True,
+            "patterns": patterns,
+            "total_patterns": len(patterns),
+        }
+        
+    except Exception as e:
+        logger.error(f"[Resonance] Error getting patterns: {e}")
+        return {"success": False, "error": str(e)}
+
+
+# ==========================================================================
+# END RESONANCE TRACKING
+# ==========================================================================
     try:
         from services.engagement_adaptation import (
             get_last_engagement,
