@@ -20,7 +20,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 
 export interface MirrorHeroData {
   title: string;
@@ -66,7 +66,7 @@ export default function MirrorHeroCard({ data, isLoading }: Props) {
           There's something here today asking for your attention. You might not have words for it yet—and that's okay. Sometimes the naming comes after the noticing.
         </Text>
         <View style={[styles.ctaContainer, { borderTopColor: theme.border }]}>
-          <InlineReflectButton
+          <InlineResonanceReflect
             source={{
               lens: 'mirror',
               type: 'daily_hero',
@@ -74,6 +74,8 @@ export default function MirrorHeroCard({ data, isLoading }: Props) {
               value: 'Today feels like it has something in it.',
               id: `hero_${new Date().toISOString().split('T')[0]}`,
             }}
+            patternSignature="daily_hero_empty"
+            context="home"
             prompt="What feels most present right now?"
           />
         </View>
@@ -107,7 +109,7 @@ export default function MirrorHeroCard({ data, isLoading }: Props) {
 
       {/* Single CTA */}
       <View style={[styles.ctaContainer, { borderTopColor: theme.border }]}>
-        <InlineReflectButton
+        <InlineResonanceReflect
           source={{
             lens: 'mirror',
             type: 'daily_hero',
@@ -115,6 +117,8 @@ export default function MirrorHeroCard({ data, isLoading }: Props) {
             value: data.body,
             id: `hero_${data.date || new Date().toISOString().split('T')[0]}`,
           }}
+          patternSignature={`daily_hero_${data.pattern_id || 'insight'}`}
+          context="home"
           prompt={data.reflectPrompt || "What feels true about this?"}
         />
       </View>

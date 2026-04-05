@@ -13,7 +13,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 
 // Types - Mirror format
 export interface DailyInsight {
@@ -130,9 +130,9 @@ export default function HomeInsightCard({ insight, isLoading }: Props) {
         </Text>
       )}
 
-      {/* Reflect CTA */}
+      {/* Resonance + Reflect CTA */}
       <View style={[styles.ctaContainer, { borderTopColor: theme.border }]}>
-        <InlineReflectButton
+        <InlineResonanceReflect
           source={{
             lens: 'patterns',
             type: 'daily_insight',
@@ -140,6 +140,8 @@ export default function HomeInsightCard({ insight, isLoading }: Props) {
             value: mirror.body,
             id: `insight_${insight.date}`,
           }}
+          patternSignature={`daily_insight_${insight.pattern_id}`}
+          context="home"
           prompt={`What feels familiar about this moment?`}
         />
       </View>

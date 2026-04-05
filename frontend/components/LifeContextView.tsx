@@ -12,7 +12,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { getLifeContext, LifeContextResponse, LifeContextType } from '../services/api';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 import { LifelineTimeline } from './lifeline';
 import PeopleLens from './PeopleLens';
 
@@ -160,7 +160,7 @@ export default function LifeContextView({ userId, initialContext = 'lifeline', o
           <View style={styles.sectionContent}>
             <Text style={styles.sectionBody}>{section.body}</Text>
             {isReflect && (
-              <InlineReflectButton
+              <InlineResonanceReflect
                 source={{
                   lens: 'life',
                   area: activeContext,

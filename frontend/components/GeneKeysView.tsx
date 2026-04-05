@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 import api from '../services/api';
 
 interface SphereData {
@@ -322,7 +322,7 @@ export default function GeneKeysView({ userId }: Props) {
           </View>
 
           {/* Reflect Button */}
-          <InlineReflectButton
+          <InlineResonanceReflect
             source={{
               lens: 'gene_keys',
               type: selectedSphere.sphere_name.toLowerCase().replace(/\s+/g, '_'),

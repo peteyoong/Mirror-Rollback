@@ -14,7 +14,7 @@ import {
 import { useTheme, ThemeColors } from '../contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 import KeystoneReferenceLink from './KeystoneReferenceLink';
 import EnneagramWheel, { ENNEAGRAM_SCHEMA } from './EnneagramWheel';
 import { 

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 
 interface GateData {
   gate_number: number;
@@ -203,7 +203,7 @@ export default function DefinedGatesView({ userId }: Props) {
 
             {/* Reflect Button */}
             <View style={styles.reflectContainer}>
-              <InlineReflectButton
+              <InlineResonanceReflect
                 source={{
                   lens: 'human_design',
                   type: 'gate',

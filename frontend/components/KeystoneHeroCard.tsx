@@ -18,7 +18,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 
 export interface KeystonePatternData {
   pattern_id: string;
@@ -74,7 +74,7 @@ export default function KeystoneHeroCard({ data, isLoading }: Props) {
           </Text>
         </View>
         <View style={[styles.ctaContainer, { borderTopColor: theme.border }]}>
-          <InlineReflectButton
+          <InlineResonanceReflect
             source={{
               lens: 'keystone',
               type: 'daily_pattern',
@@ -118,7 +118,7 @@ export default function KeystoneHeroCard({ data, isLoading }: Props) {
 
       {/* Single CTA */}
       <View style={[styles.ctaContainer, { borderTopColor: theme.border }]}>
-        <InlineReflectButton
+        <InlineResonanceReflect
           source={{
             lens: 'keystone',
             type: 'daily_pattern',

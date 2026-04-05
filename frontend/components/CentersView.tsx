@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -222,7 +222,7 @@ const CentersView = forwardRef<CentersViewHandle, Props>(({ userId }, ref) => {
 
             {/* Reflect Button */}
             <View style={styles.reflectContainer}>
-              <InlineReflectButton
+              <InlineResonanceReflect
                 source={{
                   lens: 'human_design',
                   type: 'center',

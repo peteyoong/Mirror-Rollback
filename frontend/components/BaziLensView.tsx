@@ -23,7 +23,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 import api from '../services/api';
 
 // =============================================================================
@@ -652,7 +652,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             </Text>
             
             <View style={styles.reflectButtonContainer}>
-              <InlineReflectButton
+              <InlineResonanceReflect
                 source={{
                   lens: 'bazi',
                   type: 'reflection',

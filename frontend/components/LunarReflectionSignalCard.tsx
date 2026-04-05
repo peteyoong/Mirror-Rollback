@@ -19,7 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 
 // =============================================================================
 // TYPES
@@ -298,7 +298,7 @@ export default function LunarReflectionSignalCard({
         {/* Reflect Button */}
         {data.reflective_question && (
           <View style={[styles.reflectButtonContainer, { borderTopColor: theme.border }]}>
-            <InlineReflectButton
+            <InlineResonanceReflect
               source={{
                 lens: 'human_design',
                 type: data.current_moon_gate ? 'lunar_gate' : 'lunar_cycle',

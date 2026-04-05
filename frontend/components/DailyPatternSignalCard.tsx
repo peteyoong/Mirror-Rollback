@@ -10,7 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { getDailyPatternSignal, DailyPatternSignalResponse } from '../services/api';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 
 interface DailyPatternSignalCardProps {
   userId: string;
@@ -180,7 +180,7 @@ export default function DailyPatternSignalCard({ userId, onStateChange }: DailyP
 
         {/* Reflect Button - Clean CTA */}
         <View style={[styles.reflectButtonContainer, { borderTopColor: theme.border }]}>
-          <InlineReflectButton
+          <InlineResonanceReflect
             source={{
               lens: 'patterns',
               type: 'daily_pattern_signal',

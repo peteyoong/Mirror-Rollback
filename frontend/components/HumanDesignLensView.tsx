@@ -64,7 +64,7 @@ import GeneKeysView from './GeneKeysView';
 import CentersView, { CentersViewHandle } from './CentersView';
 import DefinedGatesView from './DefinedGatesView';
 import { ForumContextBanner } from './ForumContextBanner';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 import { UniversalReflectionModal, ReflectionSource } from './UniversalReflectionModal';
 import KeystoneReferenceLink from './KeystoneReferenceLink';
 
@@ -1721,7 +1721,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
             </View>
 
             {/* Reflect Button */}
-            <InlineReflectButton
+            <InlineResonanceReflect
               source={{
                 lens: 'human_design',
                 type: key,
@@ -1797,7 +1797,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
 
           {/* Reflect Button */}
-          <InlineReflectButton
+          <InlineResonanceReflect
             source={{
               lens: 'human_design',
               type: key,
@@ -1927,7 +1927,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
           </View>
 
           {/* Reflect Button */}
-          <InlineReflectButton
+          <InlineResonanceReflect
             source={{
               lens: 'human_design',
               type: key,
@@ -2659,7 +2659,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
 
             {/* Reflect Button */}
             {key !== 'centers' && (
-              <InlineReflectButton
+              <InlineResonanceReflect
                 source={{
                   lens: 'human_design',
                   type: key,

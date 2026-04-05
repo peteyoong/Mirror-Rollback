@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { InlineReflectButton } from './UniversalReflectButton';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 import axios from 'axios';
 import Constants from 'expo-constants';
 import api from '../services/api';
@@ -475,7 +475,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             {/* Debug: Show section-level metrics */}
             <SectionDebug label={section.label} body={section.body} index={index} />
             {/* Reflect Button */}
-            <InlineReflectButton
+            <InlineResonanceReflect
               source={{
                 lens: 'numerology',
                 type: section.label.toLowerCase().replace(/\s+/g, '_'),
