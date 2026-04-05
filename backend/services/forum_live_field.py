@@ -69,6 +69,16 @@ from services.pattern_language_context import (
     FORUM_PATTERN_LANGUAGE,
 )
 
+# V6.0: Import recognition language system
+from services.recognition_language import (
+    transform_to_recognition_language,
+    remove_system_language,
+    soften_dramatic_language,
+    get_open_reflection_ending,
+    get_environmental_context,
+    validate_recognition_output,
+)
+
 logger = logging.getLogger(__name__)
 
 

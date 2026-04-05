@@ -20,6 +20,14 @@ V5.0 UPGRADES:
 1. DOMINANCE SCORING - Select ONLY highest scoring pattern
 2. BEHAVIORAL LANGUAGE ENFORCEMENT - Every line maps to real behavior
 3. EXPRESSION ANGLE ROTATION - Prevent repetition with angle cycling
+
+V6.0 UPGRADES (Recognition Language):
+1. RECOGNITION FIRST - Start with observable behavior, not explanations
+2. SYSTEM INVISIBILITY - No mention of astrology/HD/Enneagram
+3. ENVIRONMENTAL CONTEXT - "This shows up more in [context]"
+4. NO IDENTITY LOCKING - Situational language, not identity statements
+5. REDUCED DRAMA - Grounded, observable phrasing
+6. OPEN REFLECTION ENDINGS - Questions, not instructions
 """
 
 import logging
@@ -27,6 +35,20 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, Optional, List, Tuple
 import hashlib
 import re
+
+# V6.0: Import recognition language system
+from services.recognition_language import (
+    transform_to_recognition_language,
+    get_recognition_opener,
+    get_environmental_context,
+    get_open_reflection_ending,
+    remove_system_language,
+    soften_dramatic_language,
+    convert_identity_to_situational,
+    validate_recognition_output,
+    build_pattern_context,
+    PatternContext,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -236,6 +258,7 @@ def enforce_behavioral_language(text: str) -> str:
     """
     Reject vague/poetic abstraction and convert to concrete behavioral statements.
     
+    V6.0: Also applies recognition language transformations.
     Every line must map to a REAL human behavior or decision moment.
     """
     result = text
@@ -246,6 +269,11 @@ def enforce_behavioral_language(text: str) -> str:
             # Case-insensitive replacement
             pattern = re.compile(re.escape(vague), re.IGNORECASE)
             result = pattern.sub(behavioral, result)
+    
+    # V6.0: Apply recognition language transformations
+    result = remove_system_language(result)
+    result = soften_dramatic_language(result)
+    result = convert_identity_to_situational(result)
     
     # Check for remaining vague phrases and flag
     for phrase in VAGUE_PHRASES:
