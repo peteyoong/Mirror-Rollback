@@ -357,14 +357,65 @@ def generate_pattern_synthesis(
 def generate_consequence_line(life_path: int, missing_numbers: List[int]) -> str:
     """Generate the consequence/result line based on pattern."""
     
+    # Premium consequence phrasing - specific to pattern combinations
     consequences = {
-        (1, 2): "So you often end up ahead of people — and alone in it.",
-        (1, 4): "So you start strong but the follow-through costs extra energy.",
-        (2, 1): "So you feel everything but acting on it takes effort.",
-        (3, 7): "So you express before you've fully understood.",
-        (5, 4): "So you crave change but struggle to sustain what you build.",
-        (7, 3): "So you know deeply but communicating it is work.",
-        (11, 4): "So you see far ahead but building the bridge there is frustrating.",
+        # Life Path 1 combinations
+        (1, 2): "The result: you move faster than others can follow, and the gap becomes isolating.",
+        (1, 4): "The result: strong starts without sustained follow-through—momentum fades when structure is required.",
+        (1, 5): "The result: clarity of direction meets inflexibility—when plans fail, recovery is slow.",
+        (1, 3): "The result: action without articulation—you do but don't explain.",
+        
+        # Life Path 2 combinations
+        (2, 1): "The result: you sense what's needed but hesitate to initiate—awareness without action.",
+        (2, 3): "The result: you feel everything but struggle to voice it—insight stays internal.",
+        (2, 4): "The result: intuition without structure—you know but can't systematize.",
+        
+        # Life Path 3 combinations  
+        (3, 7): "The result: words arrive before understanding—expression outruns depth.",
+        (3, 4): "The result: creative impulse without sustained execution—ideas scatter.",
+        (3, 2): "The result: expression without reception—you speak but don't hear.",
+        
+        # Life Path 4 combinations
+        (4, 5): "The result: solid foundations but rigid response to change—stability becomes stagnation.",
+        (4, 3): "The result: structure without spark—systems that work but don't inspire.",
+        (4, 2): "The result: method without connection—process that excludes.",
+        
+        # Life Path 5 combinations
+        (5, 4): "The result: constant motion without lasting structure—freedom becomes fragmentation.",
+        (5, 2): "The result: restless change meets disconnection—movement without relational anchoring.",
+        (5, 3): "The result: experience without expression—life lived but not shared.",
+        
+        # Life Path 6 combinations
+        (6, 1): "The result: responsibility without self-direction—you wait for others to need you.",
+        (6, 5): "The result: commitment that becomes confinement—care that can't adapt.",
+        (6, 2): "The result: giving without receiving signals—care that misreads the room.",
+        
+        # Life Path 7 combinations
+        (7, 3): "The result: deep knowing without clear expression—insight that can't translate.",
+        (7, 1): "The result: understanding without initiative—you analyze but don't act.",
+        (7, 2): "The result: solitary wisdom—truth that remains unshared.",
+        
+        # Life Path 8 combinations
+        (8, 2): "The result: drive for results without relational attunement—success that isolates.",
+        (8, 6): "The result: power focus without nurturing—achievement that neglects care.",
+        (8, 3): "The result: material success without creative expression—wealth without meaning.",
+        
+        # Life Path 9 combinations
+        (9, 4): "The result: broad vision without grounded execution—ideals that don't materialize.",
+        (9, 1): "The result: completion without new beginnings—endings that don't lead anywhere.",
+        (9, 2): "The result: universal compassion without personal connection—loving humanity but not people.",
+        
+        # Master Number combinations
+        (11, 4): "The result: visionary clarity outpaces practical building—you see far but bridge-building frustrates.",
+        (11, 2): "The result: heightened sensitivity without integration—awareness becomes overwhelm.",
+        (11, 3): "The result: receiving signals but not transmitting—vision trapped inside.",
+        (22, 5): "The result: master building meets inflexibility—grand structures that can't adapt.",
+        (22, 3): "The result: vast ambition without voice—plans that can't be communicated.",
+        (22, 2): "The result: building empires without bridges—creation that excludes.",
+        (33, 1): "The result: deep compassion without self-assertion—healing others while neglecting self.",
+        (33, 7): "The result: nurturing presence without analytical boundary—absorbing what should be observed.",
+        (33, 3): "The result: feeling everything but expressing little—wisdom that stays silent.",
+        (33, 5): "The result: stable healing presence that can't evolve—care that becomes calcified.",
     }
     
     for missing in missing_numbers[:2]:
@@ -372,8 +423,11 @@ def generate_consequence_line(life_path: int, missing_numbers: List[int]) -> str
         if key in consequences:
             return consequences[key]
     
-    # Default
-    return "So the pattern keeps running — sometimes serving you, sometimes not."
+    # Improved generic fallback - still premium
+    if missing_numbers:
+        return f"The result: what comes naturally ({life_path}) exceeds what must be built ({missing_numbers[0]})—strength outpaces support."
+    
+    return "The result: the pattern amplifies what's easy while revealing what requires conscious effort."
 
 
 # =============================================================================

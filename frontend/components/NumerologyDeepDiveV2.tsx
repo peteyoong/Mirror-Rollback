@@ -661,7 +661,7 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
           style={styles.sectionHeader}
           onPress={() => toggleSection('loshu')}
         >
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>ENERGY MAP (Lo Shu)</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>ENERGY MAP (Lo Shu Grid)</Text>
           <Ionicons
             name={expandedSections.has('loshu') ? 'chevron-up' : 'chevron-down'}
             size={18}
@@ -709,11 +709,11 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
             <View style={styles.gridLegend}>
               <View style={styles.legendItem}>
                 <View style={[styles.legendDot, { backgroundColor: theme.accent }]} />
-                <Text style={[styles.legendText, { color: theme.textSecondary }]}>Present: {present_numbers.join(', ')}</Text>
+                <Text style={[styles.legendText, { color: theme.textSecondary }]}>Naturally present: {present_numbers.join(', ')}</Text>
               </View>
               <View style={styles.legendItem}>
                 <View style={[styles.legendDot, { backgroundColor: theme.textTertiary }]} />
-                <Text style={[styles.legendText, { color: theme.textSecondary }]}>Missing: {missing_numbers.join(', ')}</Text>
+                <Text style={[styles.legendText, { color: theme.textSecondary }]}>Not naturally available: {missing_numbers.join(', ')}</Text>
               </View>
             </View>
           </View>
@@ -751,9 +751,9 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
               </Text>
             </View>
             <View style={styles.computationItem}>
-              <Text style={[styles.computationLabel, { color: theme.text }]}>Lo Shu (Vedic)</Text>
+              <Text style={[styles.computationLabel, { color: theme.text }]}>Lo Shu Grid (birth-date distribution)</Text>
               <Text style={[styles.computationValue, { color: theme.textSecondary }]}>
-                Birth date → digit distribution → Energy Map (present/missing numbers)
+                Birth date digits → Energy Map (naturally present / not naturally available)
               </Text>
             </View>
 
