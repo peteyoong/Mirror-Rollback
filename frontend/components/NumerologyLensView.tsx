@@ -27,6 +27,8 @@ import {
 } from '../utils/stableUserId';
 // Import NumerologyPatternView for Deep Dive tab
 import NumerologyDeepDivePattern from './NumerologyDeepDivePattern';
+// Import new V2 Summary component
+import NumerologySummaryV2 from './NumerologySummaryV2';
 
 // === V1-SAFE DEV FALLBACK FOR BACKEND URL ===
 // Web preview proxy /api is unreliable, so we need a direct backend URL fallback
@@ -852,6 +854,14 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             {/* Still show core numbers on Deep Dive even with error */}
             {activeTab === 'deep_dive' && renderCoreNumbers()}
           </View>
+        ) : activeTab === 'summary' ? (
+          /* ===== SUMMARY TAB: Uses new V2 component with computed data ===== */
+          <NumerologySummaryV2
+            userId={userId}
+            onOpenChat={onOpenChat}
+            existingName={profile?.numerology_full_name}
+            onAddName={openUnlockModal}
+          />
         ) : activeTab === 'deep_dive' ? (
           /* ===== DEEP DIVE TAB: Uses new NumerologyDeepDivePattern component ===== */
           <NumerologyDeepDivePattern

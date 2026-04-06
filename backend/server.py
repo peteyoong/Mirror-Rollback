@@ -19106,6 +19106,63 @@ def extract_numerology_data(chart: dict, user: dict) -> dict:
     }
 
 
+# =============================================================================
+# NUMEROLOGY COMPUTE ENDPOINT (DETERMINISTIC - NO LLM)
+# =============================================================================
+
+@api_router.get("/numerology/compute/{user_id}")
+async def get_numerology_compute(user_id: str):
+    """
+    Get deterministic numerology computations.
+    
+    This endpoint returns PURE COMPUTED DATA with no LLM interpretation.
+    
+    COMPUTE ≠ SURFACED ≠ INTERPRETED
+    
+    Returns:
+        - input: {full_name, birth_date}
+        - pythagorean: {life_path, expression, soul_urge, personality, name_breakdown}
+        - lo_shu: {digit_counts, grid, missing_numbers, present_numbers}
+        - tensions: behavioral mappings for missing numbers
+        - synthesis: combined pattern interpretation
+    """
+    from services.numerology_compute_service import compute_numerology_deterministic
+    from datetime import datetime as dt
+    
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get birth date
+        birth_date_str = user.get("birth_date")
+        if not birth_date_str:
+            raise HTTPException(status_code=400, detail="Birth date required for numerology")
+        
+        # Parse birth date
+        if isinstance(birth_date_str, str):
+            birth_date = dt.fromisoformat(birth_date_str.replace('Z', '+00:00'))
+        else:
+            birth_date = birth_date_str
+        
+        # Get full name (optional)
+        full_name = user.get("numerology_full_name") or user.get("full_birth_name")
+        
+        # Compute deterministic numerology
+        result = compute_numerology_deterministic(
+            birth_date=birth_date,
+            full_name=full_name
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[NUMEROLOGY_COMPUTE] Error for user {user_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/numerology/summary/{user_id}")
 async def get_numerology_summary(user_id: str):
     """
