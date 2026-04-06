@@ -21,6 +21,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { InlineResonanceReflect } from './ResonanceReflectButtons';
 
 interface HomeSynthesisData {
   success: boolean;
@@ -198,6 +199,22 @@ const HomeSynthesisCard: React.FC<HomeSynthesisCardProps> = ({
         <Ionicons name="arrow-forward" size={18} color={theme.textInverse || '#FFFFFF'} />
       </TouchableOpacity>
 
+      {/* Resonance + Reflect Footer */}
+      <View style={[styles.resonanceFooter, { borderTopColor: theme.border }]}>
+        <InlineResonanceReflect
+          source={{
+            lens: 'home',
+            type: 'home_synthesis',
+            name: 'Home Insight',
+            value: synthesis.the_call,
+            id: `home_synthesis_${synthesis.date}`,
+          }}
+          patternSignature={synthesis.pattern_key}
+          context="home"
+          prompt={synthesis.the_edge}
+        />
+      </View>
+
     </View>
   );
 };
@@ -306,6 +323,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.2,
+  },
+  resonanceFooter: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });
 

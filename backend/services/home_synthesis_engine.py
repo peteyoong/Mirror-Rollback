@@ -419,16 +419,17 @@ async def get_next_expression_angle(
 # =============================================================================
 
 RETURNING_PHRASES = [
-    "This was here yesterday. Still unresolved.",
-    "Back again. You know what this is.",
-    "This showed up recently. It hasn't left.",
+    "You looked at this yesterday and walked away. It's still here.",
+    "The thing you put down is back on the table. It didn't resolve itself.",
+    "This showed up recently. You chose not to deal with it. Now it's louder.",
+    "You've already seen what this is. The question is whether you'll act on it.",
 ]
 
 RECURRING_PHRASES = [
-    "Again. You keep doing this.",
-    "Same pattern. Different day.",
-    "This one won't leave until you face it.",
-    "You've circled this before.",
+    "You keep circling the same choice without making it. That delay is now shaping everything around it.",
+    "This is the third time this pattern has surfaced. It's not asking for understanding anymore — it's asking for a decision.",
+    "You've been here before. Multiple times. The loop continues because something remains unaddressed.",
+    "Same situation, same hesitation. The pattern persists because the underlying move hasn't been made.",
 ]
 
 
@@ -461,11 +462,11 @@ def get_pattern_state_language(
 # =============================================================================
 
 SOURCE_HINT_PHRASES = [
-    "This is showing up across multiple areas right now.",
-    "This isn't random — something deeper is driving it today.",
-    "Multiple signals are pointing at the same thing.",
-    "This is coming from more than one direction.",
-    "Several parts of your system are flagging the same tension.",
+    "Your emotional pattern and your strategic pattern are pointing at the same stuck point.",
+    "This isn't just showing up in one area — it's affecting decisions across your life right now.",
+    "Multiple systems are flagging the same tension. That convergence is meaningful.",
+    "The same hesitation is appearing in different contexts. That's not coincidence — it's signal.",
+    "What's showing up here is also affecting how you're moving in other areas. It's connected.",
 ]
 
 
