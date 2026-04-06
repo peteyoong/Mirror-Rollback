@@ -11,7 +11,7 @@ import sys
 from typing import Dict, Any, List
 
 # Backend URL from environment
-BACKEND_URL = "https://sidereal-sync-app.preview.emergentagent.com/api"
+BACKEND_URL = "https://pattern-interrupt.preview.emergentagent.com/api"
 
 class RelationshipInsightV33Tester:
     def __init__(self):

@@ -61,6 +61,7 @@ interface NumerologyCompute {
     lines: string[];
     summary: string;
   };
+  daily_watch_for?: string;
   computation_version: string;
   computed_at: string;
 }
@@ -110,6 +111,15 @@ export default function NumerologySummaryV2({ userId, onOpenChat, existingName, 
 
     return (
       <View style={[styles.card, styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* Daily Watch-For Cue - subtle bridge from interrupt logic */}
+        {data.daily_watch_for && (
+          <View style={[styles.watchForContainer, { borderBottomColor: theme.border }]}>
+            <Text style={[styles.watchForText, { color: theme.textSecondary }]}>
+              {data.daily_watch_for}
+            </Text>
+          </View>
+        )}
+        
         <Text style={[styles.cardLabel, { color: theme.textTertiary }]}>PATTERN SUMMARY</Text>
         {data.synthesis.lines.map((line, index) => (
           <Text key={index} style={[styles.summaryLine, { color: theme.text }]}>
@@ -509,6 +519,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 16,
     lineHeight: 18,
+  },
+
+  // Watch For Cue
+  watchForContainer: {
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+  },
+  watchForText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 20,
   },
 
   // Pattern Summary

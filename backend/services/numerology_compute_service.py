@@ -570,7 +570,8 @@ MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
             "Start one thing without waiting for permission",
             "Say 'I'll take the first step' out loud",
         ],
-        "why_works": "You're building the initiation muscle that doesn't come naturally. Starting creates clarity."
+        "why_works": "You're building the initiation muscle that doesn't come naturally. Starting creates clarity.",
+        "watch_for": "Watch for waiting for permission that won't come."
     },
     2: {
         "actions": [
@@ -578,7 +579,8 @@ MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
             "Pause and name what you're sensing: 'I'm noticing...'",
             "Check alignment with one person before proceeding",
         ],
-        "why_works": "You're skipping the translation step. Others aren't tracking what's obvious to you."
+        "why_works": "You're skipping the translation step. Others aren't tracking what's obvious to you.",
+        "watch_for": "Watch for assuming others see what feels obvious to you."
     },
     3: {
         "actions": [
@@ -586,7 +588,8 @@ MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
             "Finish this phrase out loud: 'What I haven't said is...'",
             "Share the incomplete version rather than waiting for perfection",
         ],
-        "why_works": "Expression is how insight becomes real. What stays inside doesn't count."
+        "why_works": "Expression is how insight becomes real. What stays inside doesn't count.",
+        "watch_for": "Watch for holding insight without saying it."
     },
     4: {
         "actions": [
@@ -594,7 +597,8 @@ MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
             "Ask: 'What structure would make this sustainable?'",
             "Commit to finishing before starting something new",
         ],
-        "why_works": "You're strong at starting but weak at sustaining. Structure is the bridge."
+        "why_works": "You're strong at starting but weak at sustaining. Structure is the bridge.",
+        "watch_for": "Watch for starting without a plan to sustain."
     },
     5: {
         "actions": [
@@ -602,7 +606,8 @@ MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
             "Ask: 'What would adapting look like here?'",
             "Make a small change instead of a big one",
         ],
-        "why_works": "You get stuck because flexibility doesn't come naturally. Small pivots build the muscle."
+        "why_works": "You get stuck because flexibility doesn't come naturally. Small pivots build the muscle.",
+        "watch_for": "Watch for staying stuck when a small pivot would help."
     },
     6: {
         "actions": [
@@ -610,7 +615,8 @@ MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
             "Offer support without attaching to outcome",
             "Let one thing be imperfect without fixing it",
         ],
-        "why_works": "You over-function to feel useful. Restraint is the intervention."
+        "why_works": "You over-function to feel useful. Restraint is the intervention.",
+        "watch_for": "Watch for taking on what isn't yours to carry."
     },
     7: {
         "actions": [
@@ -618,7 +624,8 @@ MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
             "Ask yourself: 'What do I actually know here?'",
             "Name the gap between what you sense and what you've proven",
         ],
-        "why_works": "You act before processing. The pause creates depth that surface speed misses."
+        "why_works": "You act before processing. The pause creates depth that surface speed misses.",
+        "watch_for": "Watch for moving before you've fully understood."
     },
     8: {
         "actions": [
@@ -626,7 +633,8 @@ MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
             "Ask: 'What result would make this worth it?'",
             "Notice what you're measuring and why",
         ],
-        "why_works": "You avoid the material dimension. Naming the stakes grounds you."
+        "why_works": "You avoid the material dimension. Naming the stakes grounds you.",
+        "watch_for": "Watch for ignoring results until consequences arrive."
     },
     9: {
         "actions": [
@@ -634,7 +642,8 @@ MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
             "Name what's ending rather than just feeling it",
             "Let one thing be finished before starting the next",
         ],
-        "why_works": "Endings pile up when you don't mark them. Naming creates closure."
+        "why_works": "Endings pile up when you don't mark them. Naming creates closure.",
+        "watch_for": "Watch for dragging what's finished into what's next."
     },
 }
 
@@ -713,6 +722,21 @@ def get_interrupt_mechanism(missing_number: int) -> str:
     return mechanisms.get(missing_number, "pattern awareness")
 
 
+def generate_daily_watch_for(missing_numbers: List[int]) -> str:
+    """
+    Generate a single short 'watch for' cue for daily use.
+    
+    Under 14 words. No mystical language. Immediately usable.
+    Derived from the interrupt logic.
+    """
+    if not missing_numbers:
+        return "Watch for patterns running without your awareness."
+    
+    primary_missing = missing_numbers[0]
+    interrupt_data = MISSING_NUMBER_INTERRUPTS.get(primary_missing, MISSING_NUMBER_INTERRUPTS[2])
+    return interrupt_data.get("watch_for", "Watch for the pattern running on autopilot.")
+
+
 # =============================================================================
 # MAIN COMPUTE FUNCTION
 # =============================================================================
@@ -778,6 +802,9 @@ def compute_numerology_deterministic(
         missing_numbers=lo_shu["missing_numbers"]
     )
     
+    # === DAILY WATCH FOR (Lightweight bridge cue) ===
+    daily_watch_for = generate_daily_watch_for(lo_shu["missing_numbers"])
+    
     return {
         "input": {
             "full_name": full_name,
@@ -788,6 +815,7 @@ def compute_numerology_deterministic(
         "tensions": tensions,
         "synthesis": synthesis,
         "pattern_interrupt": pattern_interrupt,
+        "daily_watch_for": daily_watch_for,
         "computation_version": "mirror-numerology-v2",
         "computed_at": datetime.now().isoformat()
     }
