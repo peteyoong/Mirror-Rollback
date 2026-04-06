@@ -113,7 +113,7 @@ export function ResonanceReflectButtons({
     
     // Store resonance data (fire and forget)
     try {
-      await api.post('/api/resonance/track', {
+      await api.post('/resonance/track', {
         pattern_signature: patternSignature || source.id || 'unknown',
         context: context,
         source_type: source.type,
@@ -296,7 +296,7 @@ export function InlineResonanceReflect({
     
     // Track resonance
     try {
-      await api.post('/api/resonance/track', {
+      await api.post('/resonance/track', {
         pattern_signature: patternSignature || source.id || 'unknown',
         context,
         source_type: source.type,

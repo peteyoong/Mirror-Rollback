@@ -27,8 +27,9 @@ import {
 } from '../utils/stableUserId';
 // Import NumerologyPatternView for Deep Dive tab
 import NumerologyDeepDivePattern from './NumerologyDeepDivePattern';
-// Import new V2 Summary component
+// Import new V2 components
 import NumerologySummaryV2 from './NumerologySummaryV2';
+import NumerologyDeepDiveV2 from './NumerologyDeepDiveV2';
 
 // === V1-SAFE DEV FALLBACK FOR BACKEND URL ===
 // Web preview proxy /api is unreliable, so we need a direct backend URL fallback
@@ -863,8 +864,8 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
             onAddName={openUnlockModal}
           />
         ) : activeTab === 'deep_dive' ? (
-          /* ===== DEEP DIVE TAB: Uses new NumerologyDeepDivePattern component ===== */
-          <NumerologyDeepDivePattern
+          /* ===== DEEP DIVE TAB: Uses new V2 component aligned with Summary ===== */
+          <NumerologyDeepDiveV2
             userId={userId}
             onOpenChat={onOpenChat}
             existingName={profile?.numerology_full_name}
