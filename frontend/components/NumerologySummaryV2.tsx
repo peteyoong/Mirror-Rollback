@@ -111,10 +111,11 @@ export default function NumerologySummaryV2({ userId, onOpenChat, existingName, 
 
     return (
       <View style={[styles.card, styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        {/* Daily Watch-For Cue - subtle bridge from interrupt logic */}
+        {/* Daily Watch-For Cue - prominent daily-use bridge */}
         {data.daily_watch_for && (
-          <View style={[styles.watchForContainer, { borderBottomColor: theme.border }]}>
-            <Text style={[styles.watchForText, { color: theme.textSecondary }]}>
+          <View style={[styles.watchForContainer, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+            <Text style={[styles.watchForLabel, { color: theme.accent }]}>WATCH FOR TODAY</Text>
+            <Text style={[styles.watchForText, { color: theme.text }]}>
               {data.daily_watch_for}
             </Text>
           </View>
@@ -521,16 +522,23 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // Watch For Cue
+  // Watch For Cue - Prominent daily-use bridge
   watchForContainer: {
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  watchForLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 6,
   },
   watchForText: {
-    fontSize: 13,
-    fontStyle: 'italic',
-    lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: '500',
   },
 
   // Pattern Summary

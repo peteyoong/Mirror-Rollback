@@ -518,7 +518,7 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
               {data.lo_shu.missing_numbers.length > 0 && (
                 <View style={styles.contributionItem}>
                   <Text style={[styles.contributionLabel, { color: theme.textTertiary }]}>
-                    Missing: {data.lo_shu.missing_numbers.slice(0, 3).join(', ')}
+                    Not naturally available: {data.lo_shu.missing_numbers.slice(0, 3).join(', ')}
                   </Text>
                   <Text style={[styles.contributionValue, { color: theme.text }]}>Energies that require conscious effort</Text>
                 </View>
@@ -956,14 +956,14 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
         </TouchableOpacity>
       )}
 
-      {/* Secondary Action: Go Deeper */}
+      {/* Secondary Action: Ask about pattern */}
       <TouchableOpacity
         style={[styles.secondaryAction, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}
         onPress={onOpenChat}
       >
         <Ionicons name="chatbubble-outline" size={18} color={theme.textSecondary} />
         <Text style={[styles.secondaryActionText, { color: theme.textSecondary }]}>
-          Go deeper into this pattern
+          Ask about this pattern
         </Text>
       </TouchableOpacity>
 
