@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { InsightCardFooter } from '../InsightCardFooter';
 
 import {
   FullChartData,
@@ -1931,27 +1932,21 @@ Over time, it can also become a place of unusual depth, care, and understanding.
                           </Text>
                         </View>
                         
-                        {/* Actions */}
-                        <View style={styles.deepDiveActions}>
-                          <TouchableOpacity
-                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent + '10' }]}
-                            onPress={() => onReflect(card)}
-                          >
-                            <Text style={[styles.deepDiveActionText, { color: theme.accent }]}>Reflect</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.deepDiveActionButton, { backgroundColor: theme.surfaceLight }]}
-                            onPress={() => onJournal(card)}
-                          >
-                            <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Journal</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent, borderColor: theme.accent }]}
-                            onPress={() => onAskMirror(card)}
-                          >
-                            <Text style={[styles.deepDiveActionText, { color: theme.background }]}>Ask Mirror</Text>
-                          </TouchableOpacity>
-                        </View>
+                        {/* Unified Insight Card Footer - [ ✨ That resonates ] [ Reflect ] */}
+                        <InsightCardFooter
+                          source={{
+                            lens: 'astrology',
+                            type: 'astro_deep_dive',
+                            name: card.title,
+                            value: card.whatThisIs,
+                            id: `astro_deep_dive_${card.id}`,
+                          }}
+                          patternSignature={`astro_deep_dive_${card.id}`}
+                          context="astrology_deep_dive"
+                          prompt={cleanText(howPressureBuilds.reflectionQuestion)}
+                          showBorder={true}
+                          borderColor={theme.border}
+                        />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -2071,27 +2066,21 @@ Over time, it can also become a place of unusual depth, care, and understanding.
                           </Text>
                         </View>
                         
-                        {/* Actions */}
-                        <View style={styles.deepDiveActions}>
-                          <TouchableOpacity
-                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent + '10' }]}
-                            onPress={() => onReflect(card)}
-                          >
-                            <Text style={[styles.deepDiveActionText, { color: theme.accent }]}>Reflect</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.deepDiveActionButton, { backgroundColor: theme.surfaceLight }]}
-                            onPress={() => onJournal(card)}
-                          >
-                            <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Journal</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent, borderColor: theme.accent }]}
-                            onPress={() => onAskMirror(card)}
-                          >
-                            <Text style={[styles.deepDiveActionText, { color: theme.background }]}>Ask Mirror</Text>
-                          </TouchableOpacity>
-                        </View>
+                        {/* Unified Insight Card Footer - [ ✨ That resonates ] [ Reflect ] */}
+                        <InsightCardFooter
+                          source={{
+                            lens: 'astrology',
+                            type: 'astro_deep_dive',
+                            name: card.title,
+                            value: card.whatThisIs,
+                            id: `astro_deep_dive_${card.id}`,
+                          }}
+                          patternSignature={`astro_deep_dive_${card.id}`}
+                          context="astrology_deep_dive"
+                          prompt={cleanText(nodesContent.reflectionQuestion)}
+                          showBorder={true}
+                          borderColor={theme.border}
+                        />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -2202,27 +2191,21 @@ Over time, it can also become a place of unusual depth, care, and understanding.
                           </Text>
                         </View>
                         
-                        {/* Actions */}
-                        <View style={styles.deepDiveActions}>
-                          <TouchableOpacity
-                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent + '10' }]}
-                            onPress={() => onReflect(card)}
-                          >
-                            <Text style={[styles.deepDiveActionText, { color: theme.accent }]}>Reflect</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.deepDiveActionButton, { backgroundColor: theme.surfaceLight }]}
-                            onPress={() => onJournal(card)}
-                          >
-                            <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Journal</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.deepDiveActionButton, { backgroundColor: theme.accent, borderColor: theme.accent }]}
-                            onPress={() => onAskMirror(card)}
-                          >
-                            <Text style={[styles.deepDiveActionText, { color: theme.background }]}>Ask Mirror</Text>
-                          </TouchableOpacity>
-                        </View>
+                        {/* Unified Insight Card Footer - [ ✨ That resonates ] [ Reflect ] */}
+                        <InsightCardFooter
+                          source={{
+                            lens: 'astrology',
+                            type: 'astro_deep_dive',
+                            name: card.title,
+                            value: card.whatThisIs,
+                            id: `astro_deep_dive_${card.id}`,
+                          }}
+                          patternSignature={`astro_deep_dive_${card.id}`}
+                          context="astrology_deep_dive"
+                          prompt={cleanText(chironContent.reflectionQuestion)}
+                          showBorder={true}
+                          borderColor={theme.border}
+                        />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -2342,27 +2325,21 @@ Over time, it can also become a place of unusual depth, care, and understanding.
                         </>
                       )}
 
-                      {/* Actions */}
-                      <View style={styles.deepDiveActions}>
-                        <TouchableOpacity
-                          style={[styles.deepDiveActionButton, { borderColor: theme.border }]}
-                          onPress={() => onReflect(card)}
-                        >
-                          <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Reflect</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[styles.deepDiveActionButton, { borderColor: theme.border }]}
-                          onPress={() => onJournal(card)}
-                        >
-                          <Text style={[styles.deepDiveActionText, { color: theme.textSecondary }]}>Journal</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[styles.deepDiveActionButton, { backgroundColor: theme.accent, borderColor: theme.accent }]}
-                          onPress={() => onAskMirror(card)}
-                        >
-                          <Text style={[styles.deepDiveActionText, { color: theme.background }]}>Ask Mirror</Text>
-                        </TouchableOpacity>
-                      </View>
+                      {/* Unified Insight Card Footer - [ ✨ That resonates ] [ Reflect ] */}
+                      <InsightCardFooter
+                        source={{
+                          lens: 'astrology',
+                          type: 'astro_deep_dive',
+                          name: card.title,
+                          value: card.whatThisIs,
+                          id: `astro_deep_dive_${card.id}`,
+                        }}
+                        patternSignature={`astro_deep_dive_${card.id}`}
+                        context="astrology_deep_dive"
+                        prompt={mirrorLayer?.reflection || card.whatThisIs}
+                        showBorder={true}
+                        borderColor={theme.border}
+                      />
                     </View>
                   )}
                 </TouchableOpacity>

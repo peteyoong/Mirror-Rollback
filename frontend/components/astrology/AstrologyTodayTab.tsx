@@ -14,6 +14,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import TrueSiderealTransitsCard from '../TrueSiderealTransitsCard';
+import { InsightCardFooter } from '../InsightCardFooter';
 
 import {
   FullChartData,
@@ -419,16 +420,30 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
           </View>
 
           {/* 6. ONE QUESTION */}
-          <TouchableOpacity 
+          <View 
             style={[styles.questionSection, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}
-            onPress={handleReflect}
-            activeOpacity={0.7}
           >
             <Ionicons name="help-circle-outline" size={20} color={theme.accent} />
             <Text style={[styles.questionText, { color: theme.text }]}>
               {content.one_question}
             </Text>
-          </TouchableOpacity>
+          </View>
+
+          {/* UNIFIED INSIGHT CARD FOOTER - [ ✨ That resonates ] [ Reflect ] */}
+          <InsightCardFooter
+            source={{
+              lens: 'astrology',
+              type: `astro_synthesis_${activeAltitude}`,
+              name: content.todays_theme,
+              value: content.whats_happening?.join(' ') || '',
+              id: `astro_${activeAltitude}_${content.date || new Date().toISOString().split('T')[0]}`,
+            }}
+            patternSignature={`astro_${activeAltitude}_${content.date || new Date().toISOString().split('T')[0]}`}
+            context={`astrology_${activeAltitude}`}
+            prompt={content.one_question}
+            showBorder={true}
+            borderColor={theme.border}
+          />
 
         </View>
       )}
