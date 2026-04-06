@@ -339,40 +339,12 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
       </View>
 
       {/* ============================================================ */}
-      {/* TRUE SIDEREAL TRANSITS CARD - Deterministic Data First */}
-      {/* Shows: Strongest aspect, Moon context, upcoming events */}
-      {/* Only shown for "Today" view */}
+      {/* HIERARCHY INVERSION (v6.0):                                  */}
+      {/* 1. MAIN SYNTHESIS CARD (top) - Master astrologer message     */}
+      {/* 2. SUPPORTING INTERPRETATION BLOCKS                          */}
+      {/* 3. TRANSIT EVIDENCE (below) - Supporting data                */}
+      {/* 4. EXPANDABLE TECHNICAL DETAILS                              */}
       {/* ============================================================ */}
-      {activeAltitude === 'today' && (
-        <View style={styles.trueSiderealSection}>
-          <TrueSiderealTransitsCard
-            userId={userId}
-            timezone="Asia/Singapore"
-            theme={{
-              background: theme.background,
-              surface: theme.surface,
-              surfaceLight: theme.surfaceLight || theme.surface,
-              text: theme.text,
-              textSecondary: theme.textSecondary,
-              textTertiary: theme.textTertiary,
-              accent: theme.accent,
-              border: theme.border,
-            }}
-            compact={false}
-          />
-        </View>
-      )}
-
-      {/* Section Divider between data and interpretation */}
-      {activeAltitude === 'today' && !loading && content && (
-        <View style={[styles.sectionDivider, { borderColor: theme.border }]}>
-          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-          <Text style={[styles.dividerText, { color: theme.textTertiary }]}>
-            INTERPRETATION
-          </Text>
-          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
-        </View>
-      )}
 
       {/* LOADING STATE */}
       {loading && (
@@ -396,7 +368,9 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
         </View>
       )}
 
-      {/* V5.0: PRIMARY EXPERT INTERPRETATION */}
+      {/* ============================================================ */}
+      {/* 1. MAIN SYNTHESIS CARD - Master Astrologer Voice First       */}
+      {/* ============================================================ */}
       {content && !loading && (
         <View style={[styles.expertContainer, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
           
@@ -479,6 +453,40 @@ const AstrologyTodayTab: React.FC<AstrologyTodayTabProps> = ({
             cache_key: {content.scope_debug.cache_key?.slice(0, 40)}...
           </Text>
         </View>
+      )}
+
+      {/* ============================================================ */}
+      {/* 3. TRANSIT EVIDENCE - Supporting data (BELOW interpretation) */}
+      {/* Shows: Strongest aspect, Moon context, upcoming events       */}
+      {/* ============================================================ */}
+      {activeAltitude === 'today' && !loading && content && (
+        <>
+          <View style={[styles.sectionDivider, { borderColor: theme.border }]}>
+            <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+            <Text style={[styles.dividerText, { color: theme.textTertiary }]}>
+              TRANSIT EVIDENCE
+            </Text>
+            <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+          </View>
+          
+          <View style={styles.trueSiderealSection}>
+            <TrueSiderealTransitsCard
+              userId={userId}
+              timezone="Asia/Singapore"
+              theme={{
+                background: theme.background,
+                surface: theme.surface,
+                surfaceLight: theme.surfaceLight || theme.surface,
+                text: theme.text,
+                textSecondary: theme.textSecondary,
+                textTertiary: theme.textTertiary,
+                accent: theme.accent,
+                border: theme.border,
+              }}
+              compact={false}
+            />
+          </View>
+        </>
       )}
 
       {/* Ask Mirror Button */}
