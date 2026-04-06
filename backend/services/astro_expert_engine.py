@@ -493,18 +493,19 @@ async def generate_astro_expert_diagnosis(
         
         logger.info(f"[AstroExpert] Horizon: {timeframe}, Event: {event_type}, Sign: {event_sign}")
     else:
-        # No dominant event - use planet-based theme WITH HORIZON DIFFERENTIATION
-        # V6.0: Use master astrologer voice, not generic templates
+        # No dominant event - use planet-based theme WITH GENUINE HORIZON SEPARATION
+        # V6.1: Use truly distinct altitude voices that pass the "blind test"
         from services.master_astrologer_content import (
-            get_authoritative_home_title,
-            get_master_synthesis_voice,
+            get_horizon_theme,
+            get_horizon_body,
+            get_master_synthesis,
             get_horizon_job,
         )
         
         # Detect pattern from planet tension
         base_tension = planet_info.get('tension', planet_info['pressure'].title())
         
-        # Map planet tensions to authoritative pattern keys
+        # Map planet tensions to pattern keys
         tension_to_pattern = {
             "pressure": "identity_pressure",
             "doubt": "self_doubt_loop",
@@ -526,23 +527,12 @@ async def generate_astro_expert_diagnosis(
                 pattern_key = key
                 break
         
-        # Generate horizon-specific theme with master astrologer voice
+        # Generate genuinely different altitude content
         seed = hash(f"{user_id}:{today}:{timeframe}")
         
-        if timeframe == "today":
-            # TODAY: Immediate lived pressure
-            todays_theme = get_authoritative_home_title(pattern_key, seed)
-            theme_description = get_master_synthesis_voice("today", seed)
-        elif timeframe == "week":
-            # WEEK: What keeps returning - recurring dynamic
-            horizon_job = get_horizon_job("week")
-            todays_theme = f"This week's recurring edge: {get_authoritative_home_title(pattern_key, seed + 1).lower()}"
-            theme_description = get_master_synthesis_voice("week", seed)
-        else:  # month
-            # MONTH: Larger arc - what's being reorganized
-            horizon_job = get_horizon_job("month")
-            todays_theme = f"This month is teaching: {get_authoritative_home_title(pattern_key, seed + 2).lower()}"
-            theme_description = get_master_synthesis_voice("month", seed)
+        # Get theme and synthesis for this specific horizon
+        todays_theme = get_horizon_theme(timeframe, pattern_key, seed)
+        theme_description = get_master_synthesis(timeframe, seed)
         
         event_what_it_means = theme_description
         event_felt_texture = []
