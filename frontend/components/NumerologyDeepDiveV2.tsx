@@ -66,6 +66,14 @@ interface NumerologyCompute {
     lines: string[];
     summary: string;
   };
+  pattern_interrupt?: {
+    trigger_conditions: string[];
+    default_behavior: string[];
+    interrupt_actions: string[];
+    why_this_works: string;
+    primary_driver: string;
+    mechanism: string;
+  };
 }
 
 interface Props {
@@ -554,6 +562,85 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
     );
   };
 
+  const renderPatternInterrupt = () => {
+    if (!data?.pattern_interrupt) return null;
+
+    const { trigger_conditions, default_behavior, interrupt_actions, why_this_works, mechanism } = data.pattern_interrupt;
+
+    return (
+      <View style={[styles.card, styles.interruptCard, { backgroundColor: theme.surface, borderColor: theme.accent + '40' }]}>
+        <TouchableOpacity
+          style={styles.sectionHeader}
+          onPress={() => toggleSection('interrupt')}
+        >
+          <View style={styles.interruptHeader}>
+            <Ionicons name="flash" size={16} color={theme.accent} />
+            <Text style={[styles.sectionTitle, { color: theme.text, marginLeft: 8 }]}>WHEN THIS PATTERN TRIGGERS</Text>
+          </View>
+          <Ionicons
+            name={expandedSections.has('interrupt') ? 'chevron-up' : 'chevron-down'}
+            size={18}
+            color={theme.textTertiary}
+          />
+        </TouchableOpacity>
+
+        {expandedSections.has('interrupt') && (
+          <View style={styles.sectionContent}>
+            {/* Trigger Conditions */}
+            <View style={styles.interruptSection}>
+              <Text style={[styles.interruptLabel, { color: theme.textTertiary }]}>TRIGGER CONDITIONS</Text>
+              {trigger_conditions.map((trigger, index) => (
+                <View key={index} style={styles.bulletItem}>
+                  <View style={[styles.bullet, { backgroundColor: theme.accent }]} />
+                  <Text style={[styles.bulletText, { color: theme.text }]}>{trigger}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Default Behavior */}
+            <View style={styles.interruptSection}>
+              <Text style={[styles.interruptLabel, { color: theme.textTertiary }]}>DEFAULT BEHAVIOR</Text>
+              {default_behavior.map((behavior, index) => (
+                <View key={index} style={styles.bulletItem}>
+                  <View style={[styles.bullet, { backgroundColor: '#FFB74D' }]} />
+                  <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{behavior}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* THE INTERRUPT - Key Block */}
+            <View style={[styles.interruptBlock, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
+              <View style={styles.interruptBlockHeader}>
+                <Ionicons name="hand-left" size={18} color={theme.accent} />
+                <Text style={[styles.interruptBlockTitle, { color: theme.accent }]}>THE INTERRUPT</Text>
+              </View>
+              <Text style={[styles.interruptBlockSubtitle, { color: theme.textSecondary }]}>
+                Under 30 seconds • In the moment
+              </Text>
+              {interrupt_actions.map((action, index) => (
+                <View key={index} style={styles.interruptAction}>
+                  <Text style={[styles.interruptActionNumber, { color: theme.accent }]}>{index + 1}</Text>
+                  <Text style={[styles.interruptActionText, { color: theme.text }]}>{action}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* WHY THIS WORKS */}
+            <View style={styles.whyWorksSection}>
+              <Text style={[styles.whyWorksLabel, { color: theme.textTertiary }]}>WHY THIS WORKS</Text>
+              <Text style={[styles.whyWorksText, { color: theme.textSecondary }]}>{why_this_works}</Text>
+              <View style={styles.mechanismBadge}>
+                <Text style={[styles.mechanismText, { color: theme.textTertiary }]}>
+                  Addressing: {mechanism}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const renderWhatItCosts = () => {
     const content = getPatternContent();
     if (!content) return null;
@@ -824,6 +911,9 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
 
       {/* C. How It Shows Up */}
       {renderHowItShowsUp()}
+
+      {/* NEW: When This Pattern Triggers - Pattern Interrupt Layer */}
+      {renderPatternInterrupt()}
 
       {/* D. What It Costs */}
       {renderWhatItCosts()}
@@ -1340,5 +1430,83 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+
+  // Pattern Interrupt Styles
+  interruptCard: {
+    borderLeftWidth: 3,
+  },
+  interruptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  interruptSection: {
+    marginBottom: 16,
+  },
+  interruptLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginBottom: 10,
+  },
+  interruptBlock: {
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  interruptBlockHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  interruptBlockTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  interruptBlockSubtitle: {
+    fontSize: 11,
+    marginBottom: 14,
+  },
+  interruptAction: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 10,
+  },
+  interruptActionNumber: {
+    fontSize: 14,
+    fontWeight: '700',
+    width: 20,
+  },
+  interruptActionText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  whyWorksSection: {
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(128, 128, 128, 0.2)',
+  },
+  whyWorksLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginBottom: 6,
+  },
+  whyWorksText: {
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  mechanismBadge: {
+    marginTop: 4,
+  },
+  mechanismText: {
+    fontSize: 11,
+    fontStyle: 'italic',
   },
 });

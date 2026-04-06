@@ -431,6 +431,289 @@ def generate_consequence_line(life_path: int, missing_numbers: List[int]) -> str
 
 
 # =============================================================================
+# PATTERN INTERRUPT GENERATOR (Real-time behavioral layer)
+# =============================================================================
+
+# Trigger conditions by Life Path
+LIFE_PATH_TRIGGERS: Dict[int, List[str]] = {
+    1: [
+        "You're about to make a decision and notice others hesitating",
+        "Someone asks for your input but you've already moved past the question",
+        "A meeting or conversation feels too slow and you want to cut through it",
+    ],
+    2: [
+        "You sense tension in a room but no one has named it yet",
+        "Someone's words don't match what you're picking up from them",
+        "You're about to accommodate when part of you wants to push back",
+    ],
+    3: [
+        "You're mid-sentence and notice you haven't finished your last thought",
+        "An idea excites you and you want to share it immediately",
+        "Silence in a conversation makes you want to fill the space",
+    ],
+    4: [
+        "Someone suggests changing a plan you've already committed to",
+        "A system you built isn't being followed the way you designed it",
+        "You notice something isn't 'right' but others seem unbothered",
+    ],
+    5: [
+        "You feel stuck in a routine that used to work",
+        "A commitment starts to feel like a cage",
+        "You're considering a change just because the current option feels stale",
+    ],
+    6: [
+        "Someone has a problem and you immediately feel responsible for solving it",
+        "You're about to say yes when you haven't been asked",
+        "You notice yourself adjusting to make someone else more comfortable",
+    ],
+    7: [
+        "You're asked to decide before you've had time to think",
+        "Your gut says something but your mind hasn't caught up",
+        "A conversation feels too surface-level to engage with",
+    ],
+    8: [
+        "You're tracking the outcome of a situation before it's finished",
+        "Someone's approach feels inefficient and you want to correct it",
+        "You notice you're calculating what you'll get from an interaction",
+    ],
+    9: [
+        "You're already seeing the end of something that just started",
+        "A situation feels like something you've already resolved internally",
+        "You're detaching from something others are still attached to",
+    ],
+    11: [
+        "You're sensing something invisible to others and they're not seeing it",
+        "Your intuition is firing but you can't explain why",
+        "You feel overwhelmed by signals others seem immune to",
+    ],
+    22: [
+        "The vision in your head doesn't match what's being built",
+        "You're frustrated that others can't see what you see",
+        "A project feels too small for what you know is possible",
+    ],
+    33: [
+        "You're absorbing someone's emotional state without meaning to",
+        "You feel responsible for healing something that isn't yours",
+        "Your compassion is extending beyond your capacity",
+    ],
+}
+
+# Default behaviors by Life Path
+LIFE_PATH_DEFAULTS: Dict[int, List[str]] = {
+    1: [
+        "Move forward without confirming alignment",
+        "Assume others will catch up",
+        "Skip the translation step because it feels slow",
+    ],
+    2: [
+        "Adjust to what you're sensing rather than naming it",
+        "Defer to keep the peace",
+        "Absorb the tension rather than addressing it",
+    ],
+    3: [
+        "Express before processing",
+        "Fill silence with words",
+        "Move to the next idea before landing the current one",
+    ],
+    4: [
+        "Resist the change and defend the existing system",
+        "Get frustrated when others don't follow the process",
+        "Double down on structure when flexibility is needed",
+    ],
+    5: [
+        "Make a change for the sake of change",
+        "Exit before seeing what staying could offer",
+        "Mistake restlessness for insight",
+    ],
+    6: [
+        "Take on the problem without being asked",
+        "Sacrifice your position to maintain harmony",
+        "Over-function so others don't have to step up",
+    ],
+    7: [
+        "Withdraw rather than engage at a shallow level",
+        "Delay action until analysis is complete (it never is)",
+        "Dismiss what can't be proven internally",
+    ],
+    8: [
+        "Optimize for outcome before understanding the situation",
+        "Correct others before building rapport",
+        "Measure the value of the moment while still in it",
+    ],
+    9: [
+        "Let go before the process is complete",
+        "Detach emotionally while still physically present",
+        "Assume completion when others are still invested",
+    ],
+    11: [
+        "Overwhelm yourself by trying to process everything you sense",
+        "Expect others to see what you see without explanation",
+        "Retreat when the signals become too much",
+    ],
+    22: [
+        "Push the vision harder when others don't understand",
+        "Get frustrated with incremental progress",
+        "Dismiss practical constraints as small thinking",
+    ],
+    33: [
+        "Absorb what others carry without filtering",
+        "Neglect your own needs to attend to others",
+        "Lose your boundary in service of healing",
+    ],
+}
+
+# Interrupt actions by missing number (primary driver)
+MISSING_NUMBER_INTERRUPTS: Dict[int, Dict[str, Any]] = {
+    1: {
+        "actions": [
+            "Name what you want before naming what others need",
+            "Start one thing without waiting for permission",
+            "Say 'I'll take the first step' out loud",
+        ],
+        "why_works": "You're building the initiation muscle that doesn't come naturally. Starting creates clarity."
+    },
+    2: {
+        "actions": [
+            "Ask: 'Does this land for you?' before moving on",
+            "Pause and name what you're sensing: 'I'm noticing...'",
+            "Check alignment with one person before proceeding",
+        ],
+        "why_works": "You're skipping the translation step. Others aren't tracking what's obvious to you."
+    },
+    3: {
+        "actions": [
+            "Say one sentence that captures what you're holding",
+            "Finish this phrase out loud: 'What I haven't said is...'",
+            "Share the incomplete version rather than waiting for perfection",
+        ],
+        "why_works": "Expression is how insight becomes real. What stays inside doesn't count."
+    },
+    4: {
+        "actions": [
+            "Write down one next step before doing anything else",
+            "Ask: 'What structure would make this sustainable?'",
+            "Commit to finishing before starting something new",
+        ],
+        "why_works": "You're strong at starting but weak at sustaining. Structure is the bridge."
+    },
+    5: {
+        "actions": [
+            "Name two options and pick one in 10 seconds",
+            "Ask: 'What would adapting look like here?'",
+            "Make a small change instead of a big one",
+        ],
+        "why_works": "You get stuck because flexibility doesn't come naturally. Small pivots build the muscle."
+    },
+    6: {
+        "actions": [
+            "Ask: 'Is this mine to carry?' before acting",
+            "Offer support without attaching to outcome",
+            "Let one thing be imperfect without fixing it",
+        ],
+        "why_works": "You over-function to feel useful. Restraint is the intervention."
+    },
+    7: {
+        "actions": [
+            "Take 30 seconds to sit with the question before responding",
+            "Ask yourself: 'What do I actually know here?'",
+            "Name the gap between what you sense and what you've proven",
+        ],
+        "why_works": "You act before processing. The pause creates depth that surface speed misses."
+    },
+    8: {
+        "actions": [
+            "Name the concrete outcome you're tracking",
+            "Ask: 'What result would make this worth it?'",
+            "Notice what you're measuring and why",
+        ],
+        "why_works": "You avoid the material dimension. Naming the stakes grounds you."
+    },
+    9: {
+        "actions": [
+            "Ask: 'What am I ready to release here?'",
+            "Name what's ending rather than just feeling it",
+            "Let one thing be finished before starting the next",
+        ],
+        "why_works": "Endings pile up when you don't mark them. Naming creates closure."
+    },
+}
+
+def generate_pattern_interrupt(
+    life_path: int,
+    expression: Optional[int],
+    soul_urge: Optional[int],
+    missing_numbers: List[int]
+) -> Dict[str, Any]:
+    """
+    Generate real-time pattern interrupt content.
+    
+    This is NOT reflection or journaling.
+    This is a real-time pattern interrupt layer.
+    
+    Structure:
+    - trigger_conditions: situations where pattern activates
+    - default_behavior: what user tends to do automatically
+    - interrupt_actions: 2-3 actions under 30 seconds
+    - why_this_works: mechanism explanation
+    """
+    
+    # Get triggers based on Life Path
+    lp_key = life_path if life_path in LIFE_PATH_TRIGGERS else (life_path % 9 or 9)
+    triggers = LIFE_PATH_TRIGGERS.get(lp_key, LIFE_PATH_TRIGGERS[1])
+    
+    # Get default behaviors based on Life Path
+    defaults = LIFE_PATH_DEFAULTS.get(lp_key, LIFE_PATH_DEFAULTS[1])
+    
+    # Get interrupt actions based on primary missing number
+    primary_missing = missing_numbers[0] if missing_numbers else 2  # Default to 2 (translation)
+    interrupt_data = MISSING_NUMBER_INTERRUPTS.get(primary_missing, MISSING_NUMBER_INTERRUPTS[2])
+    
+    # Refine trigger language based on Expression if available
+    refined_triggers = triggers.copy()
+    if expression:
+        # Expression affects how triggers manifest externally
+        if expression in [1, 8]:  # Leadership/Power expressions
+            refined_triggers[0] = refined_triggers[0].replace("notice others", "see others falling behind")
+        elif expression in [2, 6]:  # Collaborative/Caring expressions
+            refined_triggers[0] = refined_triggers[0].replace("notice others", "feel others struggling to keep up")
+    
+    # Refine why_works based on Soul Urge if available
+    why_works = interrupt_data["why_works"]
+    if soul_urge:
+        if soul_urge == 3:  # Soul Urge for expression
+            why_works += " Your soul wants to express—give it an outlet."
+        elif soul_urge == 7:  # Soul Urge for understanding
+            why_works += " Your soul wants depth—the pause honors that."
+        elif soul_urge == 1:  # Soul Urge for independence
+            why_works += " Your soul wants to lead—this lets you lead yourself first."
+    
+    return {
+        "trigger_conditions": refined_triggers,
+        "default_behavior": defaults[:3],  # Max 3
+        "interrupt_actions": interrupt_data["actions"],
+        "why_this_works": why_works,
+        "primary_driver": f"Missing {primary_missing}",
+        "mechanism": get_interrupt_mechanism(primary_missing),
+    }
+
+
+def get_interrupt_mechanism(missing_number: int) -> str:
+    """Get the core mechanism being addressed by the interrupt."""
+    mechanisms = {
+        1: "self-initiation",
+        2: "alignment / translation",
+        3: "expression",
+        4: "structure / sustainability",
+        5: "adaptability / movement",
+        6: "responsibility boundaries",
+        7: "reflection / processing",
+        8: "material grounding",
+        9: "completion / release",
+    }
+    return mechanisms.get(missing_number, "pattern awareness")
+
+
+# =============================================================================
 # MAIN COMPUTE FUNCTION
 # =============================================================================
 
@@ -487,6 +770,14 @@ def compute_numerology_deterministic(
         missing_numbers=lo_shu["missing_numbers"]
     )
     
+    # === PATTERN INTERRUPT (Real-time behavioral layer) ===
+    pattern_interrupt = generate_pattern_interrupt(
+        life_path=life_path,
+        expression=pythagorean["expression"],
+        soul_urge=pythagorean["soul_urge"],
+        missing_numbers=lo_shu["missing_numbers"]
+    )
+    
     return {
         "input": {
             "full_name": full_name,
@@ -496,6 +787,7 @@ def compute_numerology_deterministic(
         "lo_shu": lo_shu,
         "tensions": tensions,
         "synthesis": synthesis,
+        "pattern_interrupt": pattern_interrupt,
         "computation_version": "mirror-numerology-v2",
         "computed_at": datetime.now().isoformat()
     }
