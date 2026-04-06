@@ -89,7 +89,7 @@ export default function NumerologySummaryV2({ userId, onOpenChat, existingName, 
       try {
         setIsLoading(true);
         setError(null);
-        const response = await api.get(`/api/numerology/compute/${userId}`);
+        const response = await api.get(`/numerology/compute/${userId}`);
         setData(response.data);
       } catch (err: any) {
         console.error('[NumerologySummaryV2] Error:', err);
@@ -395,7 +395,7 @@ export default function NumerologySummaryV2({ userId, onOpenChat, existingName, 
             setError(null);
             setIsLoading(true);
             // Re-fetch
-            api.get(`/api/numerology/compute/${userId}`)
+            api.get(`/numerology/compute/${userId}`)
               .then(response => setData(response.data))
               .catch(err => setError(err.response?.data?.detail || 'Failed to load'))
               .finally(() => setIsLoading(false));
