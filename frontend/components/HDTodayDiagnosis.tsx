@@ -16,6 +16,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import { InsightCardFooter } from './InsightCardFooter';
 
 interface HDDiagnosisData {
   success: boolean;
@@ -166,18 +167,21 @@ const HDTodayDiagnosis: React.FC<HDTodayDiagnosisProps> = ({
         </View>
       </View>
       
-      {/* Reflect CTA */}
-      {onReflect && (
-        <TouchableOpacity 
-          style={[styles.reflectButton, { borderColor: theme.accent }]}
-          onPress={handleReflect}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.reflectButtonText, { color: theme.accent }]}>
-            Reflect on this →
-          </Text>
-        </TouchableOpacity>
-      )}
+      {/* Unified Insight Card Footer (Resonate + Reflect) - replaces old Reflect CTA */}
+      <InsightCardFooter
+        source={{
+          lens: 'human_design',
+          type: 'hd_today_diagnosis',
+          name: diagnosis.title,
+          value: diagnosis.body,
+          id: `hd_diagnosis_${diagnosis.date}`,
+        }}
+        patternSignature={`hd_diagnosis_${diagnosis.date}_${hdType}`}
+        context="human_design_today"
+        prompt={`Reflecting on: "${diagnosis.title}"\n\n${diagnosis.body}`}
+        showBorder={true}
+        borderColor={theme.border}
+      />
       
       {/* ============================================ */}
       {/* SIGNALS SECTION - Collapsible */}

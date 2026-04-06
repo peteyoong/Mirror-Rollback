@@ -23,6 +23,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
 import PatternConversationPanel, { ExploreWithMirrorButton } from '../PatternConversationPanel';
+import { InsightCardFooter } from '../InsightCardFooter';
 
 // Types
 interface ArchetypeNarrative {
@@ -244,16 +245,26 @@ export default function PatternArchetypeCard() {
         </View>
       )}
 
-      {/* Reflection Question - Always Visible */}
-      <View style={[styles.reflectionBox, { backgroundColor: COLORS.accentLight }]}>
-        <Ionicons name="help-circle-outline" size={18} color={COLORS.accent} />
-        <Text style={[styles.reflectionText, { color: theme.text }]}>
-          {narrative.reflection_question}
-        </Text>
-      </View>
+      {/* Unified Insight Card Footer (Resonate + Reflect) */}
+      <InsightCardFooter
+        source={{
+          lens: 'patterns',
+          type: 'pattern_archetype',
+          name: archetype.name,
+          value: narrative.summary,
+          id: `pattern_archetype_${archetype.id}`,
+        }}
+        patternSignature={`pattern_archetype_${archetype.id}`}
+        context="patterns_archetype"
+        prompt={narrative.reflection_question}
+        showBorder={true}
+        borderColor={theme.border}
+      />
 
-      {/* Task 76: Conversation Entry Point */}
-      <ExploreWithMirrorButton onPress={() => setShowConversation(true)} />
+      {/* Task 76: Conversation Entry Point - Now secondary action */}
+      <View style={styles.secondaryActionContainer}>
+        <ExploreWithMirrorButton onPress={() => setShowConversation(true)} />
+      </View>
 
       {/* Secondary Archetype Hint */}
       {data.secondary_archetype && data.secondary_archetype.score >= 0.6 && (
@@ -397,5 +408,8 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     fontSize: 12,
+  },
+  secondaryActionContainer: {
+    marginTop: 12,
   },
 });

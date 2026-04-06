@@ -1,36 +1,45 @@
 <analysis>original_problem_statement: 
-The user wanted to implement the 5-part continuous Relationship Narrative Flow in the frontend. Following that, the user ordered a strict debug pass and overhaul of the application's Today transit calculations. The previous transit system relied on incorrect linear approximations and tropical references. The requirement was to convert all transit calculations to use True Sidereal Swiss Ephemeris (matching Chimenti-style reports), implement deterministic daily window scanning (timed events, slow transits, house ingresses) for all 10 planets, and surface this cleanly in the Today UI.
+The user wanted to implement the 5-part continuous Relationship Narrative Flow in the frontend. Following that, the user ordered a strict debug pass and overhaul of the application's Today transit calculations to use True Sidereal Swiss Ephemeris. The user also required specific layout hierarchies for Astrology Today. Recently, the user has focused heavily on qualitative content upgrades: making Home/Forum language distinct, implementing a Recognition First, System Invisible language rule, differentiating Today/Week/Month voices, and implementing a system-wide Resonate + Reflect UX interaction model to replace disparate Journal buttons.
 
 PRODUCT REQUIREMENTS:
-- **Relationship Narrative**: Implement a 5-part continuous flow (Field State, Your Position, Trajectory, Story, The Move).
-- **True Sidereal Transits**: Transits must strictly use Swiss Ephemeris with SIDM_USER, SVP 31.2836, J2000 epoch, and 0.0 yearly increment.
-- **Daily Window Scanner**: Must track daily exact transit-to-natal aspects, slow/outer planet transits, Moon sign context, and house ingresses (Equal house system).
-- **Today UI Hierarchy**: Deterministic transit card placed above the LLM interpretation. Strict hierarchy: Hero aspect, Moon context, top 3 timed events, top 3 slow transits, show more expander, and a dev/debug provenance footer.
+- **Relationship Narrative & True Sidereal Transits**: Implement continuous flow and deterministic daily window scanning.
+- **Language & Voice Separation**: Home (internal experience) vs. Forum (relational space) pattern language separation. Distinct interpretive altitudes for Today (immediate), Week (recurring), and Month (chapter-level) transits.
+- **Mirror Language Upgrade**: Outputs must start with recognition, remove system language (astrology/HD terms), avoid identity locking, and end with open reflection.
+- **Interaction Model**: System-wide use of a unified insight card footer: . Removal of duplicate Journal buttons. Ask Mirror must act as a secondary action placed outside/below the card content.
 
 **User's preferred language**: English
-(INSTRUCT NEXT AGENT: You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only. In this case, respond in English.)
+(INSTRUCT NEXT AGENT: You MUST automatically detect the user's primary language from the messages inside the trajectory tag and INSTRUCT next agent to respond in the user's preferred language only. In this case, respond in English.)
 
 **what currently exists?** 
-The Relationship Narrative Flow UI (, ) is complete and validated. The backend astrology engine was successfully overhauled. Incorrect linear approximations were removed and replaced with a canonical True Sidereal config (). A daily transit window scanner () was built and API endpoints were added to serve precise timed events, slow/outer planet transits, and house placements for all 10 planets. A foundational frontend component () was created and embedded into the Today tab.
+The True Sidereal Transit engine and Daily Window Scanner are fully functional. The Astrology Today UI hierarchy has been successfully inverted so that Master Astrologer Synthesis appears *above* the raw transit evidence. The backend now utilizes  to sanitize system terms and  to differentiate Home vs. Forum outputs.  provides distinct, non-templated voices for Today/Week/Month. A deployment automation script () copies the frontend build directly to the backend's . The Resonance tracking API endpoint () has been created, and the agent has just started implementing the system-wide unified card footer ().
 
 **Last working item**: 
-    - Last item agent was working: Analyzing the uploaded  PDF to perform a focused house discrepancy check (explaining why the external report says Moon in 4th while Mirror says Moon in 10th) and updating  to follow the user's strict UI display hierarchy rules.
+    - Last item agent was working: Creating and applying a system-wide unified interaction footer () with  buttons across ALL insight cards (e.g., AstroExpertCard, AstroTodayDiagnosis, Lens cards, Deep Dive cards), and removing redundant Journal buttons and inline Ask Mirror buttons.
     - Status: IN PROGRESS
-    - Agent Testing Done: N (For the final UI integration and discrepancy check)
-    - Which testing method agent to use? both (python -c/bash for data discrepancy logic; screenshot tool for UI validation)
+    - Agent Testing Done: N
+    - Which testing method agent to use? both (Frontend screenshot tool for UI layout verification across different lenses/cards; backend testing agent to verify  integration across all endpoints).
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:  
-  Issue 1: Architectural Logic Duplication (Forum vs Relationship Field Engines) (P1)
-     - Attempted fixes: Agent mapped out duplicated logic previously.
+  Issue 1: System-Wide Insight Card Footer Integration (P0)
+     - Attempted fixes: The agent successfully applied the footer to  but missed the shared insight cards (Astro, Lenses, etc.). The agent just created .
+     - Next debug checklist: Integrate  into all files found in  and  (e.g., AstroExpertCard, AstroTodayDiagnosis, DailyFocusCard, PatternTimeline, etc.). Ensure redundant Journal buttons are deleted. Move Ask Mirror / Ask about today to the bottom of the page, outside the card.
+     - Why fix this issue and what will be achieved with the fix? Ensures a consistent interaction model across the entire product, reducing Reflect fatigue while capturing low-friction resonance signals.
+     - Status: IN PROGRESS
+     - Is recurring issue? Y (Interaction inconsistencies have been a recurring theme)
+     - Should Test frontend/backend/both after fix? frontend
+     - Blocked on other issue: None
+
+  Issue 2: Architectural Logic Duplication (Forum vs Relationship Field Engines) (P1)
+     - Attempted fixes: Mapped out duplicated logic previously.
      - Next debug checklist: Abstract shared signal extraction from  and  into a base .
      - Why fix this issue and what will be achieved with the fix? Prevents parallel intelligence systems.
-     - Status: BLOCKED (User explicitly ordered: Do not refactor architecture yet. First make the event model complete.)
+     - Status: BLOCKED (User previously ordered: Do not refactor architecture yet. First make the event model complete.)
      - Is recurring issue? N
      - Should Test frontend/backend/both after fix? backend
-     - Blocked on other issue: Task 1 (Finalizing Today UI)
+     - Blocked on other issue: Issue 1
 
-  Issue 2: Monolithic  (P2)
+  Issue 3: Monolithic  (P2)
      - Attempted fixes: None. File is over 30k lines.
      - Next debug checklist: Move routing logic to .
      - Why fix this issue and what will be achieved with the fix? Context limits and easier maintenance.
@@ -40,16 +49,15 @@ The Relationship Narrative Flow UI (, ) is complete and validated. The backend a
      - Blocked on other issue: None
 
 **In progress Task List**: 
-  Task 1: Finalize Today UI Surfacing & House Discrepancy Check (P0)
-     - Where to resume: Read the parsed analysis of the  PDF. First, answer the user's discrepancy check (Why does Chimenti say Moon in 4th while Mirror says Moon in 10th? Verify timestamp, timezone, house frame). Second, update  with the strict hierarchy: hero aspect, Moon context, next 3 timed events, top 3 slow transits, show more toggle, and a lightweight dev footer showing True Sidereal, SVP 31.2836, house system, timezone, and timestamp.
-     - What will be achieved with this? A clean, trustworthy, mobile-friendly Today UI grounded in accurate True Sidereal data.
+  Task 1: Complete the Unified Interaction Model Integration (P0)
+     - Where to resume: You have just created . Now, modify all shared card components to import and use this footer. Pass the necessary  and  props to ensure resonance tracking works. Remove any old  and  button imports from these files.
+     - What will be achieved with this? A clean, predictable user experience across the app.
      - Status: IN PROGRESS
      - Should Test frontend/backend/both after fix? both
      - Blocked on something: None
 
 **Upcoming and Future Tasks**
     Upcoming Tasks:
-    - Consolidate field intelligence logic into shared primitives based on architecture review (P1).
     - Wire  to the identity relationship pattern endpoint (P1).
     - Add more sophisticated journal sentiment analysis for breakthrough detection (P1).
     - Add backend persistence for saved people (currently uses AsyncStorage) (P1).
@@ -59,14 +67,86 @@ The Relationship Narrative Flow UI (, ) is complete and validated. The backend a
     - Refactor Frontend Monoliths (, , ) (P2).
 
 **Completed work in this session**
-- Implemented  frontend using a shared  (DONE)
-- Found and removed incorrect linear/tropical transit approximations in  and  (DONE)
-- Created  for canonical True Sidereal settings (DONE)
-- Implemented deterministic transit-to-natal aspects (DONE)
-- Created  to scan daily events for all 10 planets (DONE)
-- Added house tracking and house ingress detection to daily window scanner (DONE)
-- Added  endpoint (DONE)
-- Created  and injected it into  (DONE)
+- Finalized Today UI Surfacing & Hierarchy (Synthesis first, Transits second) (DONE)
+- Addressed deployment/stale bundle issues and added visible build markers (DONE)
+- Separated Home vs. Forum Pattern Language in  (DONE)
+- Implemented Mirror Language Upgrade (Recognition First) via  (DONE)
+- Automated deployment build prep via ==============================================
+  Mirror Build Script v1.0
+==============================================
+
+[1/3] Building frontend for web...
+env: load .env
+env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_DEBUG_MIRROR EXPO_PUBLIC_BUILD_VERSION EXPO_PUBLIC_BUILD_ID
+Fast resolver is enabled.
+Starting Metro Bundler
+Static rendering is enabled. Learn more: https://docs.expo.dev/router/reference/static-rendering/
+λ Bundled 1959ms node_modules/expo-router/node/render.js (1664 modules)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 93.2% (1417/1468)
+λ node_modules/expo-router/node/render.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 96.4% (1634/1664)
+Web Bundled 2507ms node_modules/expo-router/entry.js (1609 modules)
+
+› web bundles (1):
+_expo/static/js/web/entry-81e4e7edfed7f082305ae467400c9dec.js (4.42 MB)
+
+› Static routes (41):
+/life (41.5 kB)
+/ (index) (41.5 kB)
+/lenses (41.5 kB)
+/signals (41.5 kB)
+/welcome (41.5 kB)
+/reflect (41.5 kB)
+/_sitemap (40.4 kB)
+/patterns (41.5 kB)
+/+not-found (40.4 kB)
+/(tabs)/life (41.5 kB)
+/forums/[id] (41.5 kB)
+/forums/join (41.5 kB)
+/pattern-lens (41.5 kB)
+/(tabs) (41.5 kB)
+/forums (41.5 kB)
+/forums/story (41.5 kB)
+/todays-mirror (41.5 kB)
+/(tabs)/lenses (41.5 kB)
+/forums/create (41.5 kB)
+/lenses/[lens] (41.5 kB)
+/(tabs)/reflect (41.5 kB)
+/forums/updates (41.5 kB)
+/lifeline-upload (41.5 kB)
+/reflection-chat (41.5 kB)
+/(tabs)/patterns (41.5 kB)
+/enneagram (41.5 kB)
+/forums/dynamics (41.5 kB)
+/forums/exercise (41.5 kB)
+/forums/mappings (41.5 kB)
+/forums/pairwise (41.5 kB)
+/forums/patterns (41.5 kB)
+/onboarding (41.5 kB)
+/forum-pattern-map (41.5 kB)
+/enneagram/results (41.5 kB)
+/questionnaire (41.5 kB)
+/relationship-insight (41.5 kB)
+/enneagram/assessment (41.5 kB)
+/lifeline-import-review (41.5 kB)
+/enneagram/self-declare (41.5 kB)
+/lifeline-imported-sources (41.5 kB)
+/settings/experience-preferences (41.5 kB)
+
+Exported: dist
+
+[2/3] Copying dist to backend/web_dist...
+
+[3/3] Verifying build...
+Bundle: entry-81e4e7edfed7f082305ae467400c9dec.js
+
+==============================================
+  Build Complete!
+  Frontend is ready in /app/backend/web_dist
+  You can now deploy.
+============================================== and  folder (DONE)
+- Differentiated interpretive voices for Today/Week/Month in  (DONE)
+- Made Homepage titles/content highly specific to concrete behavioral tensions (DONE)
+- Created the  endpoint (DONE)
 
 **Earlier issues found/mentioned but not fixed**
    Issue 1: Monolithic 
@@ -77,79 +157,228 @@ The Relationship Narrative Flow UI (, ) is complete and validated. The backend a
 
 **Known issue recurrence from previous fork**
   - Issue recurrence in previous fork:  monolith causing context limits.
-  - Recurrence count: 14
+  - Recurrence count: 15
   - Status: PENDING REFACTOR
+  
+  - Issue recurrence in previous fork: Stale Frontend Deployment Bundle
+  - Recurrence count: 2 (Addressed in this session by automating the  copy to , but user still struggles with Emergent platform deployment slot mechanics).
+  - Status: RESOLVED TECHNICALLY (Requires user to use UI properly)
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **True Sidereal Swiss Ephemeris**: strict configuration using , SVP 31.2836°, J2000 epoch, and 0.0 yearly increment.
-- **Daily Window Scanning**: Computing exact aspect times, slow transits, and house/sign ingresses within a localized daily timezone window.
-- **Equal House System**: Ascendant is calculated, and houses are evenly distributed in 30-degree segments.
+- **Insight Card Footer ()**: The standard interaction model. Provides  and . Resonance triggers a lightweight API call to  without demanding journaling.
+- **Recognition First Language**: Astrological/HD/Enneagram terms are actively stripped from the output via regex replacements () before reaching the user.
+- **Horizon Altitude Differentiation**: Today = Immediate/Situational; Week = Recurring/Maturing pattern; Month = Chapter-level identity reorganization.
+- **Deployment Mechanics**: The backend serves static frontend files from . To update production, the frontend must be built and copied to this folder before deployment.
 
 **key DB schema**
-  -  (Contains True Sidereal calculated planetary positions for the natal chart).
+  -  (Contains True Sidereal calculated positions).
+  -  (Tracks resonances, bounces, and reflects).
 
 **changes in tech stack**
   - None.
 
 **All files of reference** 
+-  (Just created, needs integration)
 -  (Created)
+-  (Created/Modified)
 -  (Created)
--  (Created)
--  (Created)
--  (Heavily updated)
--  (Updated)
--  (Refactored)
--  (Refactored)
--  (Updated with new endpoints)
+-  (Refactored layout)
+-  (Updated with )
+- ==============================================
+  Mirror Build Script v1.0
+==============================================
+
+[1/3] Building frontend for web...
+env: load .env
+env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_DEBUG_MIRROR EXPO_PUBLIC_BUILD_VERSION EXPO_PUBLIC_BUILD_ID
+Fast resolver is enabled.
+Starting Metro Bundler
+Static rendering is enabled. Learn more: https://docs.expo.dev/router/reference/static-rendering/
+λ Bundled 2076ms node_modules/expo-router/node/render.js (1699 modules)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 92.9% (1380/1432)
+λ node_modules/expo-router/node/render.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1699/1699)
+Web Bundled 2518ms node_modules/expo-router/entry.js (1609 modules)
+
+› web bundles (1):
+_expo/static/js/web/entry-81e4e7edfed7f082305ae467400c9dec.js (4.42 MB)
+
+› Static routes (41):
+/life (41.5 kB)
+/ (index) (41.5 kB)
+/lenses (41.5 kB)
+/signals (41.5 kB)
+/welcome (41.5 kB)
+/reflect (41.5 kB)
+/_sitemap (40.4 kB)
+/patterns (41.5 kB)
+/+not-found (40.4 kB)
+/(tabs)/life (41.5 kB)
+/forums/[id] (41.5 kB)
+/forums/join (41.5 kB)
+/pattern-lens (41.5 kB)
+/(tabs) (41.5 kB)
+/forums (41.5 kB)
+/forums/story (41.5 kB)
+/todays-mirror (41.5 kB)
+/(tabs)/lenses (41.5 kB)
+/forums/create (41.5 kB)
+/lenses/[lens] (41.5 kB)
+/(tabs)/reflect (41.5 kB)
+/forums/updates (41.5 kB)
+/lifeline-upload (41.5 kB)
+/reflection-chat (41.5 kB)
+/(tabs)/patterns (41.5 kB)
+/enneagram (41.5 kB)
+/forums/dynamics (41.5 kB)
+/forums/exercise (41.5 kB)
+/forums/mappings (41.5 kB)
+/forums/pairwise (41.5 kB)
+/forums/patterns (41.5 kB)
+/onboarding (41.5 kB)
+/forum-pattern-map (41.5 kB)
+/enneagram/results (41.5 kB)
+/questionnaire (41.5 kB)
+/relationship-insight (41.5 kB)
+/enneagram/assessment (41.5 kB)
+/lifeline-import-review (41.5 kB)
+/enneagram/self-declare (41.5 kB)
+/lifeline-imported-sources (41.5 kB)
+/settings/experience-preferences (41.5 kB)
+
+Exported: dist
+
+[2/3] Copying dist to backend/web_dist...
+
+[3/3] Verifying build...
+Bundle: entry-81e4e7edfed7f082305ae467400c9dec.js
+
+==============================================
+  Build Complete!
+  Frontend is ready in /app/backend/web_dist
+  You can now deploy.
+============================================== (Created)
 
 **Areas that need refactoring**:
 -  (30k+ lines).
-- Architectural logic abstraction for Forum vs Relationship shared intelligence engines (Deferred per user instructions).
+- Architectural logic abstraction for Forum vs Relationship shared intelligence engines.
+- , ,  cards (need to adopt the new ).
 
 **key api endpoints**
+-  (NEW - Stores lightweight resonance signal)
+-  (Updated to ensure distinct outputs based on scope)
 - 
--  (NEW - Returns daily timed events, slow transits, and house placements)
--  (NEW)
 
 **Critical Info for New Agent**
-- **DO NOT Refactor Architecture Yet**: The user explicitly instructed to finish the True Sidereal event model and Today UI wiring *before* starting any architecture consolidation.
-- **House Discrepancy**: The user specifically wants you to explain why the uploaded Chimenti PDF says Moon in 4th but Mirror calculates Moon in 10th. Check timestamp alignment, timezone differences, and house system calculations. Provide this output to the user clearly.
-- **UI Hierarchy Rules**: Implement the requested visual hierarchy in  to prevent mobile overload. Fast vs. slow signals must be visually distinct. Add the requested dev/debug footer to prove config parity.
+- **SYSTEM-WIDE FOOTER**: The user explicitly called out that the previous agent only patched the Home page with the Resonate button. You *must* integrate  into all reusable insight card components and explicitly remove redundant Journal buttons. 
+- **Ask Mirror Position**: Move Ask Mirror calls to action to the *bottom of the page* (secondary action), completely outside the insight card wrappers.
+- **Do not modify frontend  URL variables.**
+- **Deployment Automation**: If you rebuild the frontend, run ==============================================
+  Mirror Build Script v1.0
+==============================================
+
+[1/3] Building frontend for web...
+env: load .env
+env: export EXPO_TUNNEL_SUBDOMAIN EXPO_PACKAGER_HOSTNAME EXPO_PUBLIC_BACKEND_URL EXPO_USE_FAST_RESOLVER METRO_CACHE_ROOT EXPO_PACKAGER_PROXY_URL EXPO_PUBLIC_DEBUG_MIRROR EXPO_PUBLIC_BUILD_VERSION EXPO_PUBLIC_BUILD_ID
+Fast resolver is enabled.
+Starting Metro Bundler
+Static rendering is enabled. Learn more: https://docs.expo.dev/router/reference/static-rendering/
+λ Bundled 1921ms node_modules/expo-router/node/render.js (1699 modules)
+Web Bundled 2508ms node_modules/expo-router/entry.js (1609 modules)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.9% (1609/1609)
+
+› web bundles (1):
+_expo/static/js/web/entry-81e4e7edfed7f082305ae467400c9dec.js (4.42 MB)
+
+› Static routes (41):
+/life (41.5 kB)
+/ (index) (41.5 kB)
+/lenses (41.5 kB)
+/signals (41.5 kB)
+/welcome (41.5 kB)
+/reflect (41.5 kB)
+/_sitemap (40.4 kB)
+/patterns (41.5 kB)
+/+not-found (40.4 kB)
+/(tabs)/life (41.5 kB)
+/forums/[id] (41.5 kB)
+/forums/join (41.5 kB)
+/pattern-lens (41.5 kB)
+/(tabs) (41.5 kB)
+/forums (41.5 kB)
+/forums/story (41.5 kB)
+/todays-mirror (41.5 kB)
+/(tabs)/lenses (41.5 kB)
+/forums/create (41.5 kB)
+/lenses/[lens] (41.5 kB)
+/(tabs)/reflect (41.5 kB)
+/forums/updates (41.5 kB)
+/lifeline-upload (41.5 kB)
+/reflection-chat (41.5 kB)
+/(tabs)/patterns (41.5 kB)
+/enneagram (41.5 kB)
+/forums/dynamics (41.5 kB)
+/forums/exercise (41.5 kB)
+/forums/mappings (41.5 kB)
+/forums/pairwise (41.5 kB)
+/forums/patterns (41.5 kB)
+/onboarding (41.5 kB)
+/forum-pattern-map (41.5 kB)
+/enneagram/results (41.5 kB)
+/questionnaire (41.5 kB)
+/relationship-insight (41.5 kB)
+/enneagram/assessment (41.5 kB)
+/lifeline-import-review (41.5 kB)
+/enneagram/self-declare (41.5 kB)
+/lifeline-imported-sources (41.5 kB)
+/settings/experience-preferences (41.5 kB)
+
+Exported: dist
+
+[2/3] Copying dist to backend/web_dist...
+
+[3/3] Verifying build...
+Bundle: entry-81e4e7edfed7f082305ae467400c9dec.js
+
+==============================================
+  Build Complete!
+  Frontend is ready in /app/backend/web_dist
+  You can now deploy.
+============================================== to ensure  is updated before considering the task done.
 
 **documents and test reports created in this job**
-- External PDF provided:  (Analyzed but findings not yet presented to user).
+- None in this specific fork segment.
 
 **Last 10 User Messages and any pending HUMAN messages** 
 1.  (Completed)
-2.  (Completed)
-3.  (Completed)
-4.  (Completed)
-5.  (Completed)
-6.  (Completed)
-7.  (Completed)
-8.  (Completed)
-9.  (Completed)
-10.  (**PENDING - Start here**)
+2.  (Completed - identified stale bundle).
+3.  (Completed - clarified difference between preview container and production slot).
+4.  (Completed).
+5.  (Completed).
+6.  (Completed for Home only).
+7.  (Completed via ).
+8.  (Completed).
+9.  (Completed).
+10.  (**PENDING - Start Here**)
 
 **Project Health Check:**
-- Broken: None.
+- Broken: Interaction Model consistency (Insight cards lack unified footer, duplicate Journal buttons exist).
 - Mocked: Saved relationships list still uses AsyncStorage.
 
 **3rd Party Integrations**
 - OpenAI GPT-4o — uses Emergent LLM Key
 
 **Testing status**
-  - Testing agent used after significant changes: NO (Manual bash/python testing used).
+  - Testing agent used after significant changes: NO (Manual bash/python blind tests used).
   - Troubleshoot agent used after agent stuck in loop: NO.
   - Test files created: None.
   - Known regressions: None.
 
 **Credentials to test flow:**
 - User ID to test: 
-- Email:  (Melissa's chart data)
+- Email: 
 
 **What agent forgot to execute**
-- The agent successfully analyzed the uploaded Chimenti PDF using the  but the session ended before the agent could run the house discrepancy check or update  with the requested strict UI hierarchy and dev/debug footer. The next agent must resume directly from these two pending action items.</analysis>
+- The agent created the  component but was stopped before injecting it into the various shared lens and astrology cards (, , etc.). The agent also needs to clean up the redundant Journal buttons and properly reposition the Ask Mirror component to the bottom of the affected pages. Start directly with these file refactors.</analysis>

@@ -26,6 +26,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
+import { InsightCardFooter } from './InsightCardFooter';
 
 // ===== V6 THREE-LAYER INTERFACES =====
 
@@ -522,16 +523,21 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
           </View>
         ) : null}
 
-        {/* ===== CTA: Reflect on this ===== */}
-        <TouchableOpacity
-          style={[styles.reflectButton, { backgroundColor: theme.accent }]}
-          onPress={handleReflect}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.reflectButtonText, { color: theme.textInverse }]}>
-            Reflect on this
-          </Text>
-        </TouchableOpacity>
+        {/* ===== Unified Insight Card Footer (Resonate + Reflect) ===== */}
+        <InsightCardFooter
+          source={{
+            lens: 'patterns',
+            type: 'pattern_card',
+            name: coreInsight?.title || pattern.title,
+            value: coreInsight?.text || pattern.what_you_may_be,
+            id: `pattern_${patternData.pattern_id || 'main'}`,
+          }}
+          patternSignature={`pattern_${patternData.pattern_id || 'main'}`}
+          context="patterns_home"
+          prompt={coreInsight?.text || pattern.what_you_may_be}
+          showBorder={true}
+          borderColor={theme.border}
+        />
 
         {/* V6 Three-Layer mode: NO challenge/genius blocks, NO signals indicator */}
         {/* Friction and Practical are lightweight usefulness layers, not legacy blocks */}
@@ -679,16 +685,21 @@ export default function PatternCard({ userId, onPatternLoaded }: PatternCardProp
         </>
       )}
 
-      {/* CTA: Reflect on this */}
-      <TouchableOpacity
-        style={[styles.reflectButton, { backgroundColor: theme.accent }]}
-        onPress={handleReflect}
-        activeOpacity={0.8}
-      >
-        <Text style={[styles.reflectButtonText, { color: theme.textInverse }]}>
-          Reflect on this
-        </Text>
-      </TouchableOpacity>
+      {/* Unified Insight Card Footer (Resonate + Reflect) */}
+      <InsightCardFooter
+        source={{
+          lens: 'patterns',
+          type: 'pattern_card_legacy',
+          name: dailyAngle?.angle_title || personalPattern?.selected_pattern_title || pattern.title,
+          value: pattern.what_you_may_be,
+          id: `pattern_legacy_${patternData.pattern_id || 'main'}`,
+        }}
+        patternSignature={`pattern_legacy_${patternData.pattern_id || 'main'}`}
+        context="patterns_home"
+        prompt={pattern.what_you_may_be}
+        showBorder={true}
+        borderColor={theme.border}
+      />
 
       {/* V4: Signal strength indicator with clustered evidence counts */}
       {(evidencePanel || personalPattern?.signal_strength || patternData.signal_strength) && (

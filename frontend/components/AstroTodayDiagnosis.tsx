@@ -16,6 +16,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import { InsightCardFooter } from './InsightCardFooter';
 
 interface AstroDiagnosisData {
   success: boolean;
@@ -163,18 +164,21 @@ const AstroTodayDiagnosis: React.FC<AstroTodayDiagnosisProps> = ({
         </View>
       </View>
       
-      {/* Reflect CTA */}
-      {onReflect && (
-        <TouchableOpacity 
-          style={[styles.reflectButton, { borderColor: theme.accent }]}
-          onPress={handleReflect}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.reflectButtonText, { color: theme.accent }]}>
-            Reflect on this →
-          </Text>
-        </TouchableOpacity>
-      )}
+      {/* Unified Insight Card Footer (Resonate + Reflect) - replaces old Reflect CTA */}
+      <InsightCardFooter
+        source={{
+          lens: 'astrology',
+          type: 'astro_today_diagnosis',
+          name: diagnosis.title,
+          value: diagnosis.body,
+          id: `astro_diagnosis_${diagnosis.date}`,
+        }}
+        patternSignature={`astro_diagnosis_${diagnosis.date}`}
+        context="astrology_today"
+        prompt={`Reflecting on: "${diagnosis.title}"\n\n${diagnosis.body}`}
+        showBorder={true}
+        borderColor={theme.border}
+      />
       
       {/* ============================================ */}
       {/* SIGNALS SECTION - Collapsible */}

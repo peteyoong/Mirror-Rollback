@@ -12,6 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../services/api';
+import { InsightCardFooter } from './InsightCardFooter';
 
 interface LensDiagnosisData {
   success: boolean;
@@ -183,17 +184,21 @@ export const LensTodayDiagnosis: React.FC<LensTodayDiagnosisProps> = ({
           </Text>
         </View>
         
-        {/* Reflect CTA */}
-        {onReflect && (
-          <TouchableOpacity 
-            style={[styles.reflectButton, { borderColor: theme.accent }]}
-            onPress={handleReflect}
-          >
-            <Text style={[styles.reflectButtonText, { color: theme.accent }]}>
-              Reflect on this →
-            </Text>
-          </TouchableOpacity>
-        )}
+        {/* Unified Insight Card Footer (Resonate + Reflect) - replaces old Reflect CTA */}
+        <InsightCardFooter
+          source={{
+            lens: lens,
+            type: `${lens}_today_diagnosis`,
+            name: diagnosis.title,
+            value: diagnosis.body,
+            id: `${lens}_diagnosis_${diagnosis.date}`,
+          }}
+          patternSignature={`${lens}_diagnosis_${diagnosis.date}`}
+          context={`${lens}_today`}
+          prompt={`Reflecting on: "${diagnosis.title}"\n\n${diagnosis.body}`}
+          showBorder={true}
+          borderColor={theme.border}
+        />
       </View>
       
       {/* ============================================ */}

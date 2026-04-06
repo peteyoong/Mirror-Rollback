@@ -28,6 +28,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import { InsightCardFooter } from './InsightCardFooter';
 
 interface EventPriority {
   has_dominant_event: boolean;
@@ -305,16 +306,28 @@ const AstroExpertCard: React.FC<AstroExpertCardProps> = ({
       </View>
 
       {/* 6. ONE QUESTION */}
-      <TouchableOpacity 
-        style={[styles.questionSection, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}
-        onPress={handleReflect}
-        activeOpacity={0.7}
-      >
+      <View style={[styles.questionSection, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}>
         <Ionicons name="help-circle-outline" size={20} color={theme.accent} />
         <Text style={[styles.questionText, { color: theme.text }]}>
           {data.one_question}
         </Text>
-      </TouchableOpacity>
+      </View>
+
+      {/* Unified Insight Card Footer (Resonate + Reflect) */}
+      <InsightCardFooter
+        source={{
+          lens: 'astrology',
+          type: `astro_expert_${timeframe}`,
+          name: `Astrology ${timeframe === 'today' ? 'Today' : timeframe === 'week' ? 'This Week' : 'This Month'}`,
+          value: data.todays_theme,
+          id: `astro_expert_${timeframe}_${data.date}`,
+        }}
+        patternSignature={`astro_expert_${timeframe}_${data.date}`}
+        context={`astrology_${timeframe}`}
+        prompt={data.one_question}
+        showBorder={true}
+        borderColor={theme.border}
+      />
 
       {/* Collapsible: Raw Signals */}
       <TouchableOpacity
