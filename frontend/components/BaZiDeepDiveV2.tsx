@@ -87,6 +87,30 @@ interface DeepDiveResponse {
   day_master: DayMaster;
 }
 
+// Full chart pillar interface (from /api/bazi/{user_id}/full)
+interface FullChartPillar {
+  stem: string;
+  stem_pinyin: string;
+  branch: string;
+  branch_pinyin: string;
+  animal: string;
+  animal_name: string;
+  animal_emoji: string;
+  stem_element: string;
+  branch_element: string;
+  meaning_label: string;
+}
+
+interface FullChartData {
+  success: boolean;
+  pillars: {
+    year: FullChartPillar;
+    month: FullChartPillar;
+    day: FullChartPillar;
+    hour: FullChartPillar;
+  };
+}
+
 // =============================================================================
 // DESIGN SYSTEM - Premium, Grounded, Sharp
 // =============================================================================
@@ -170,6 +194,7 @@ export default function BaZiDeepDiveV2({
 }) {
   const { theme } = useTheme();
   const [data, setData] = useState<DeepDiveResponse | null>(null);
+  const [fullChart, setFullChart] = useState<FullChartData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -178,13 +203,24 @@ export default function BaZiDeepDiveV2({
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`${BACKEND_BASE_URL}/api/bazi/${userId}/deep-dive`);
-        const result = await response.json();
         
-        if (result.success) {
-          setData(result);
+        // Fetch both deep dive and full chart in parallel
+        const [deepDiveRes, fullChartRes] = await Promise.all([
+          fetch(`${BACKEND_BASE_URL}/api/bazi/${userId}/deep-dive`),
+          fetch(`${BACKEND_BASE_URL}/api/bazi/${userId}/full`),
+        ]);
+        
+        const deepDiveResult = await deepDiveRes.json();
+        const fullChartResult = await fullChartRes.json();
+        
+        if (deepDiveResult.success) {
+          setData(deepDiveResult);
         } else {
-          setError(result.detail || 'Failed to load BaZi deep dive');
+          setError(deepDiveResult.detail || 'Failed to load BaZi deep dive');
+        }
+        
+        if (fullChartResult.success) {
+          setFullChart(fullChartResult);
         }
       } catch (err) {
         setError('Failed to connect to server');
@@ -251,9 +287,88 @@ export default function BaZiDeepDiveV2({
 
   const deepDive = data.deep_dive;
   const dayMaster = data.day_master;
+  const pillars = fullChart?.pillars;
+
+  // Render the compact pillar cards for "Your Chart" section
+  const renderChartPillars = () => {
+    if (!pillars) return null;
+    
+    const pillarOrder: Array<'year' | 'month' | 'day' | 'hour'> = ['year', 'month', 'day', 'hour'];
+    const pillarLabels: Record<string, string> = {
+      year: 'Roots',
+      month: 'Work',
+      day: 'Self',
+      hour: 'Inner World',
+    };
+    
+    return (
+      <View style={styles.chartPillarsRow}>
+        {pillarOrder.map((key) => {
+          const pillar = pillars[key];
+          const isDay = key === 'day';
+          
+          return (
+            <View 
+              key={key} 
+              style={[
+                styles.chartPillarCard,
+                { 
+                  backgroundColor: theme.surfaceLight, 
+                  borderColor: isDay ? elementColor : theme.border,
+                  borderWidth: isDay ? 1.5 : StyleSheet.hairlineWidth,
+                },
+                isDay && { shadowColor: elementColor, shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
+              ]}
+            >
+              {/* Core label for Day pillar */}
+              {isDay && (
+                <View style={[styles.coreBadge, { backgroundColor: elementColor }]}>
+                  <Text style={styles.coreBadgeText}>Core</Text>
+                </View>
+              )}
+              
+              {/* Pillar Label */}
+              <Text style={[styles.chartPillarLabel, { color: theme.textTertiary }]}>
+                {pillarLabels[key]}
+              </Text>
+              
+              {/* Animal Emoji */}
+              <Text style={styles.chartPillarEmoji}>{pillar.animal_emoji}</Text>
+              
+              {/* Animal Name */}
+              <Text style={[styles.chartPillarAnimal, { color: theme.text }]}>
+                {pillar.animal_name}
+              </Text>
+              
+              {/* Stem-Branch Label */}
+              <Text style={[styles.chartPillarStem, { color: theme.textTertiary }]}>
+                {pillar.stem_pinyin}-{pillar.branch_pinyin}
+              </Text>
+              
+              {/* Element dot */}
+              <View style={[styles.chartPillarDot, { backgroundColor: ELEMENT_COLORS[pillar.stem_element] || BAZI_COLORS.muted }]} />
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
+      
+      {/* ============================================= */}
+      {/* YOUR CHART - Visual Anchor at Top */}
+      {/* ============================================= */}
+      {pillars && (
+        <View style={styles.yourChartSection}>
+          <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>YOUR CHART</Text>
+          {renderChartPillars()}
+          <Text style={[styles.chartHelperText, { color: theme.textTertiary }]}>
+            Read as a whole — not one pillar alone.
+          </Text>
+        </View>
+      )}
       
       {/* ============================================= */}
       {/* CORE PATTERN - Sharp Opening */}
@@ -464,6 +579,74 @@ const styles = StyleSheet.create({
   retryText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  
+  // Your Chart Section (Visual Anchor)
+  yourChartSection: {
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  chartPillarsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 10,
+  },
+  chartPillarCard: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  coreBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -4,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  coreBadgeText: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#000',
+    letterSpacing: 0.3,
+  },
+  chartPillarLabel: {
+    fontSize: 8,
+    fontWeight: '600',
+    letterSpacing: 0.4,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  chartPillarEmoji: {
+    fontSize: 22,
+    marginBottom: 2,
+  },
+  chartPillarAnimal: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  chartPillarStem: {
+    fontSize: 9,
+    opacity: 0.7,
+  },
+  chartPillarDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 4,
+  },
+  chartHelperText: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    opacity: 0.5,
   },
   
   // Sections
