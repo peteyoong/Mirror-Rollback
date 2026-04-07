@@ -578,3 +578,264 @@ def _get_chinese_name(element: str, polarity: str) -> str:
         ("Water", "Yin"): "Gui (癸)",
     }
     return names.get((element, polarity), f"{polarity} {element}")
+
+
+# =============================================================================
+# PILLAR INTERPRETATIONS - Your Chart, Read Simply
+# =============================================================================
+
+PILLAR_MEANINGS = {
+    "year": {
+        "domain": "Roots",
+        "represents": "ancestry, early environment, social face",
+    },
+    "month": {
+        "domain": "Work",
+        "represents": "career, how others see you professionally, parents",
+    },
+    "day": {
+        "domain": "Self",
+        "represents": "core identity, marriage, adult self",
+    },
+    "hour": {
+        "domain": "Inner World",
+        "represents": "private self, children, later years, subconscious drives",
+    },
+}
+
+# Animal-based behavioral tendency descriptions
+ANIMAL_BEHAVIORS = {
+    "Rat": "seeks advantage, moves in shadows, resourceful to a fault",
+    "Ox": "slow to start, impossible to stop, stubborn beyond reason",
+    "Tiger": "leads without permission, restless when caged",
+    "Rabbit": "diplomatic surface, calculating underneath",
+    "Dragon": "believes their own mythology, demands recognition",
+    "Snake": "thinks ten moves ahead, trusts no one fully",
+    "Horse": "can't stay still, abandons before being abandoned",
+    "Goat": "needs belonging more than independence, gives too much",
+    "Monkey": "clever enough to trick themselves, restless mind",
+    "Rooster": "critical eye that misses nothing—including flaws",
+    "Dog": "loyal to a fault, anxious about betrayal",
+    "Pig": "generous to the point of naivety, comfort-seeking",
+}
+
+# Element dynamics in pillars
+ELEMENT_IN_PILLAR = {
+    ("Wood", "year"): "Your roots push toward growth, even if the soil isn't ready.",
+    ("Wood", "month"): "You expand professionally whether invited or not.",
+    ("Wood", "day"): "Your core self is always reaching, always building.",
+    ("Wood", "hour"): "Privately, you're never done growing—but who sees it?",
+    
+    ("Fire", "year"): "You came from heat—drama, visibility, or both.",
+    ("Fire", "month"): "Your career demands attention. You give it.",
+    ("Fire", "day"): "Your identity burns bright. Sustainable or not.",
+    ("Fire", "hour"): "Inside, you're always performing—even alone.",
+    
+    ("Earth", "year"): "Your foundation is stability. But stability can become stagnation.",
+    ("Earth", "month"): "You're the reliable one at work. Do they see you or use you?",
+    ("Earth", "day"): "Your core is grounded. Too grounded to move when you should.",
+    ("Earth", "hour"): "Your inner world craves security. At what cost?",
+    
+    ("Metal", "year"): "You inherited precision—or rigidity disguised as it.",
+    ("Metal", "month"): "Your work requires standards. You enforce them.",
+    ("Metal", "day"): "Your identity is sharp. Others notice the edge.",
+    ("Metal", "hour"): "Inside, you're refining constantly. Perfectionism or presence?",
+    
+    ("Water", "year"): "Your roots flow. Adaptable—or rootless.",
+    ("Water", "month"): "Your career shifts shape. Strategic or scattered?",
+    ("Water", "day"): "Your core identity is fluid. Freedom or avoidance?",
+    ("Water", "hour"): "Your inner world is deep. Wisdom or withdrawal?",
+}
+
+
+def interpret_pillar(pillar_data: Dict, position: str) -> Dict[str, str]:
+    """
+    Interpret a single pillar in behavioral terms.
+    
+    Returns:
+    {
+        "domain": "Roots" / "Work" / "Self" / "Inner World",
+        "animal": "Tiger",
+        "element_note": "Your roots push toward growth...",
+        "behavioral": "You lead without permission...",
+    }
+    """
+    meaning = PILLAR_MEANINGS.get(position, {"domain": position.title(), "represents": ""})
+    animal = pillar_data.get("animal_name", pillar_data.get("animal", "Unknown"))
+    stem_element = pillar_data.get("stem_element", "")
+    
+    return {
+        "domain": meaning["domain"],
+        "animal": animal,
+        "element_note": ELEMENT_IN_PILLAR.get((stem_element, position), ""),
+        "behavioral": ANIMAL_BEHAVIORS.get(animal, ""),
+    }
+
+
+def synthesize_pillars(pillar_interpretations: Dict[str, Dict]) -> str:
+    """
+    Create a combined behavioral pattern from all four pillars.
+    This is the "one synthesized pattern" requirement.
+    """
+    year = pillar_interpretations.get("year", {})
+    month = pillar_interpretations.get("month", {})
+    day = pillar_interpretations.get("day", {})
+    hour = pillar_interpretations.get("hour", {})
+    
+    # Extract animals
+    year_animal = year.get("animal", "")
+    day_animal = day.get("animal", "")
+    hour_animal = hour.get("animal", "")
+    
+    # Build synthesis based on animal combinations
+    if year_animal in ["Tiger", "Dragon", "Horse"] and day_animal in ["Rabbit", "Goat", "Pig"]:
+        return "You present as bold externally, but your core craves harmony. The gap creates exhaustion—performing strength while needing softness."
+    
+    if year_animal in ["Rat", "Monkey"] and hour_animal in ["Dog", "Ox"]:
+        return "Your outer cleverness hides inner loyalty anxiety. You strategize in public, worry in private."
+    
+    if day_animal == hour_animal:
+        return f"Your outer and inner selves align—{day_animal} energy runs all the way through. Consistent, but also one-dimensional."
+    
+    if year_animal in ["Snake", "Rooster"] and day_animal in ["Tiger", "Dragon"]:
+        return "Your roots calculate, your core demands. Others experience intensity; you experience internal strategy."
+    
+    # Default synthesis based on any animal combination
+    animals_present = [year_animal, month.get("animal", ""), day_animal, hour_animal]
+    animals_present = [a for a in animals_present if a]
+    
+    if len(set(animals_present)) == 4:
+        return "Your four pillars pull in different directions. Versatile—or scattered. The question is whether you're adaptive or avoiding coherence."
+    
+    return f"Your chart shows {day_animal} at your core, shaped by {year_animal} roots. The tension between inheritance and identity defines your pattern."
+
+
+# =============================================================================
+# THE REAL TENSION - Emotional landing paragraph
+# =============================================================================
+
+REAL_TENSION_TEMPLATES = {
+    ("Wood", "Yang"): "You've spent your life starting things—projects, relationships, conversations. The tension isn't whether you can begin. It's whether you can stay. Every time you moved on, you told yourself it was strategic. But some of those things deserved more than your momentum. The pattern isn't wrong. It's incomplete.",
+    
+    ("Wood", "Yin"): "You've survived by bending. And it's worked—you're still here when others broke. But somewhere along the way, bending became automatic. You don't know what shape you'd be if you stopped adapting. The tension isn't whether you're flexible. It's whether you remember what you're flexible toward.",
+    
+    ("Fire", "Yang"): "People have always watched you. And you've learned to perform—even when you don't mean to. The tension isn't the attention. It's the distance between what they see and who you are when the lights are off. You've been visible so long, you're not sure you know yourself in the dark.",
+    
+    ("Fire", "Yin"): "You've warmed rooms your whole life. Held space when others couldn't. The tension isn't whether you can sustain. It's whether anyone has ever asked what you need to burn. You've stayed lit for so long, you've forgotten what it feels like to be fed instead of feeding.",
+    
+    ("Earth", "Yang"): "People have leaned on you since before you were ready. And you held. You always held. The tension isn't the weight—you can carry it. It's that you've been standing so long, you've forgotten how to sit down. What happens when the mountain realizes it's tired?",
+    
+    ("Earth", "Yin"): "You've grown things. People. Projects. Relationships. They flourished around you, and that felt like enough. But the tension isn't about what you've nurtured. It's about what you've neglected: yourself. You gave until giving became the only way you knew how to exist.",
+    
+    ("Metal", "Yang"): "You cut through. Always have. When others hesitate, you decide. The tension isn't the clarity—it's the collateral. You've learned to move past the wounds you leave. The question is whether that's strength or avoidance wearing its armor.",
+    
+    ("Metal", "Yin"): "You notice everything. The flaw in the fabric. The gap in the logic. The thing no one else caught. The tension isn't your precision—it's your exhaustion. You've been refining so long, you've forgotten that some things don't need to be perfect. They just need to be done.",
+    
+    ("Water", "Yang"): "You've flowed around every obstacle in your path. Adapted. Moved. Found another way when the first one closed. The tension isn't your adaptability—it's the question you've been avoiding: are you flowing toward something, or just away from everything?",
+    
+    ("Water", "Yin"): "You've understood things before you could explain them. Sensed undercurrents no one else noticed. The tension isn't your depth—it's your silence. You've known so much and shared so little. The isolation isn't happening to you. You've been building it.",
+}
+
+
+def generate_deep_dive_v2(
+    day_master_element: str,
+    day_master_polarity: str,
+    day_master_strength: str,
+    pillars: Dict[str, Dict],
+    dominant_elements: List[str],
+    missing_elements: List[str],
+    ten_gods: Optional[List[Dict]] = None,
+) -> Dict[str, Any]:
+    """
+    Generate the full BaZi Deep Dive in the confrontational Mirror style.
+    
+    Returns the complete structure:
+    {
+        "core_pattern": str,
+        "the_tension": str,
+        "what_this_costs_you": [str],
+        "why_this_exists": str,
+        "your_chart_read_simply": {
+            "year": {...},
+            "month": {...},
+            "day": {...},
+            "hour": {...},
+            "synthesis": str,
+        },
+        "when_this_backfires": [str],
+        "the_real_tension": str,
+        "one_shift": str,
+    }
+    """
+    key = (day_master_element, day_master_polarity)
+    
+    # Core Pattern - the sharp opening
+    core_truth = CORE_TRUTH_TEMPLATES.get(key, {})
+    core_pattern = core_truth.get("line1", "You have a pattern that runs deeper than you admit.")
+    
+    # The Tension - two forces pulling
+    tension_templates = {
+        ("Wood", "Yang"): "You want to lead—but you also want to move on before anyone depends on you.",
+        ("Wood", "Yin"): "You want to be yourself—but you keep shaping around what others need.",
+        ("Fire", "Yang"): "You want to be seen—but you're tired of performing.",
+        ("Fire", "Yin"): "You want to be cared for—but you keep being the caretaker.",
+        ("Earth", "Yang"): "You want to rest—but you can't stop holding everyone else up.",
+        ("Earth", "Yin"): "You want to receive—but giving is the only way you know how to connect.",
+        ("Metal", "Yang"): "You want connection—but you keep cutting through instead of staying.",
+        ("Metal", "Yin"): "You want it done—but you can't stop perfecting.",
+        ("Water", "Yang"): "You want stability—but stillness feels like death.",
+        ("Water", "Yin"): "You want to be understood—but you won't let anyone close enough.",
+    }
+    the_tension = tension_templates.get(key, "Two parts of you are pulling in opposite directions.")
+    
+    # What This Costs You
+    costs_data = WHAT_THIS_COSTS_TEMPLATES.get(key, {})
+    what_this_costs = [
+        costs_data.get("energy", "Energy spent maintaining the pattern"),
+        costs_data.get("relationships", "Relationships that couldn't meet you"),
+        costs_data.get("opportunities", "Opportunities that passed while you repeated"),
+    ]
+    
+    # Add element-specific costs
+    if "Fire" in missing_elements:
+        what_this_costs.append("Visibility you avoided because it felt unsafe")
+    if "Water" in missing_elements:
+        what_this_costs.append("Depth you skipped because it was inconvenient")
+    if "Metal" in missing_elements:
+        what_this_costs.append("Decisions delayed because you couldn't cut clean")
+    
+    # Why This Exists - light BaZi reference
+    why_this_exists = f"Your Day Master is {day_master_polarity} {day_master_element}—the part of you that holds the pattern. With {', '.join(dominant_elements) if dominant_elements else 'balanced elements'} dominant and {', '.join(missing_elements) if missing_elements else 'no elements'} less available, your chart amplifies certain tendencies while leaving others underdeveloped."
+    
+    # Your Chart, Read Simply - pillar interpretations
+    pillar_interpretations = {}
+    for position in ["year", "month", "day", "hour"]:
+        pillar_data = pillars.get(position, {})
+        if pillar_data:
+            pillar_interpretations[position] = interpret_pillar(pillar_data, position)
+    
+    synthesis = synthesize_pillars(pillar_interpretations)
+    
+    # When This Backfires
+    when_backfires = WHEN_THIS_BACKFIRES_TEMPLATES.get(key, [])[:4]
+    
+    # The Real Tension - emotional landing
+    the_real_tension = REAL_TENSION_TEMPLATES.get(key, "The pattern isn't the problem. The repetition without awareness is.")
+    
+    # One Shift
+    one_shift = ONE_SHIFT_TEMPLATES.get(key, "Notice the pattern before it runs. That's the only shift that matters.")
+    
+    return {
+        "core_pattern": core_pattern,
+        "the_tension": the_tension,
+        "what_this_costs_you": what_this_costs[:5],  # Limit to 5
+        "why_this_exists": why_this_exists,
+        "your_chart_read_simply": {
+            **pillar_interpretations,
+            "synthesis": synthesis,
+        },
+        "when_this_backfires": when_backfires,
+        "the_real_tension": the_real_tension,
+        "one_shift": one_shift,
+    }
+

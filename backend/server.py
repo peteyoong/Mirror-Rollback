@@ -20362,6 +20362,92 @@ async def get_bazi_insight(user_id: str):
         raise HTTPException(status_code=500, detail="Failed to generate BaZi insight")
 
 
+# =====================================================================
+# BAZI DEEP DIVE V2 - Confrontational Mirror Style
+# =====================================================================
+
+@api_router.get("/bazi/{user_id}/deep-dive")
+async def get_bazi_deep_dive(user_id: str):
+    """
+    Get BaZi Deep Dive in confrontational Mirror style.
+    
+    This is NOT a traditional BaZi reading - it's a pattern-focused,
+    tension-revealing deep dive that makes the user feel "that's exactly me."
+    
+    Structure:
+    1. core_pattern: Sharp, confronting truth
+    2. the_tension: Internal conflict - two forces pulling
+    3. what_this_costs_you: 3-5 real-life consequences
+    4. why_this_exists: Brief BaZi reference
+    5. your_chart_read_simply: All 4 pillars interpreted behaviorally + synthesis
+    6. when_this_backfires: Short bullets
+    7. the_real_tension: Emotional landing paragraph
+    8. one_shift: Clear behavioral move
+    """
+    from services.bazi_insight_layer import generate_deep_dive_v2
+    
+    try:
+        # Get user data
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check for required birth data
+        birth_date = user.get("birth_date")
+        if not birth_date:
+            raise HTTPException(
+                status_code=400, 
+                detail="Birth date is required for BaZi calculation."
+            )
+        
+        birth_time = user.get("birth_time")
+        timezone = user.get("timezone")
+        
+        # Compute V2 BaZi chart
+        chart = compute_bazi_chart_v2(
+            birth_date=birth_date,
+            birth_time=birth_time,
+            timezone=timezone,
+            include_timing=True
+        )
+        
+        # Get elements info
+        elements = chart.get("elements", {})
+        dominant_elements = elements.get("dominant", [])
+        weak_elements = elements.get("weak", [])
+        
+        # Generate deep dive
+        deep_dive = generate_deep_dive_v2(
+            day_master_element=chart["day_master"]["element"],
+            day_master_polarity=chart["day_master"]["polarity"],
+            day_master_strength=chart["day_master"]["strength"],
+            pillars=chart.get("pillars", {}),
+            dominant_elements=dominant_elements,
+            missing_elements=weak_elements,
+            ten_gods=chart.get("deep_dive", {}).get("ten_gods_detailed", []),
+        )
+        
+        logger.info(f"[BaZi DeepDive V2] Generated for user {user_id[:8]}: DM={chart['day_master']['polarity']} {chart['day_master']['element']}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "deep_dive": deep_dive,
+            "day_master": {
+                "element": chart["day_master"]["element"],
+                "polarity": chart["day_master"]["polarity"],
+                "strength": chart["day_master"]["strength"],
+            },
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[BaZi DeepDive V2] Error for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Failed to generate BaZi deep dive")
+
 
 # =====================================================================
 # BAZI TODAY ENDPOINT - UNIFIED TIMING INTELLIGENCE
