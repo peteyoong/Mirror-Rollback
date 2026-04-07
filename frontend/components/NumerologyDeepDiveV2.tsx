@@ -972,64 +972,94 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
         Pattern notation, not identity. A lens for noticing, not a truth to follow.
       </Text>
 
-      {/* Name Modal */}
+      {/* Name Modal - Fixed for mobile web */}
       <Modal
         visible={showNameModal}
         animationType="slide"
         transparent
         onRequestClose={() => setShowNameModal(false)}
+        statusBarTranslucent={true}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        {/* Overlay backdrop - tappable to close */}
+        <TouchableOpacity 
           style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowNameModal(false)}
         >
-          <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setShowNameModal(false)}
+          {/* Prevent touches on modal content from closing */}
+          <TouchableOpacity 
+            activeOpacity={1} 
+            onPress={(e) => e.stopPropagation()}
+            style={{ width: '100%' }}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+              style={styles.keyboardAvoidingContainer}
             >
-              <Ionicons name="close" size={24} color={theme.textSecondary} />
-            </TouchableOpacity>
+              <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => setShowNameModal(false)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons name="close" size={24} color={theme.textSecondary} />
+                </TouchableOpacity>
 
-            <Text style={[styles.modalTitle, { color: theme.text }]}>
-              Your Full Birth Name
-            </Text>
-            <Text style={[styles.modalSubtitle, { color: theme.textTertiary }]}>
-              As given at birth — used for Pythagorean calculation
-            </Text>
+                {/* Scrollable content area */}
+                <ScrollView 
+                  style={styles.modalScrollContent}
+                  contentContainerStyle={styles.modalScrollContentContainer}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  bounces={false}
+                >
+                  <Text style={[styles.modalTitle, { color: theme.text }]}>
+                    Your Full Birth Name
+                  </Text>
+                  <Text style={[styles.modalSubtitle, { color: theme.textTertiary }]}>
+                    As given at birth — used for Pythagorean calculation
+                  </Text>
 
-            <TextInput
-              style={[styles.nameInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.background }]}
-              placeholder="e.g., John Michael Smith"
-              placeholderTextColor={theme.textTertiary}
-              value={nameInput}
-              onChangeText={setNameInput}
-              autoCapitalize="words"
-              autoCorrect={false}
-              autoFocus
-            />
+                  <TextInput
+                    style={[styles.nameInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.background }]}
+                    placeholder="e.g., John Michael Smith"
+                    placeholderTextColor={theme.textTertiary}
+                    value={nameInput}
+                    onChangeText={setNameInput}
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                    autoFocus={Platform.OS !== 'web'}
+                    returnKeyType="done"
+                    blurOnSubmit={true}
+                    onSubmitEditing={handleSaveName}
+                  />
+                </ScrollView>
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalSecondaryButton, { backgroundColor: theme.background }]}
-                onPress={() => setShowNameModal(false)}
-              >
-                <Text style={[styles.modalSecondaryButtonText, { color: theme.text }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalPrimaryButton, { backgroundColor: theme.accent }]}
-                onPress={handleSaveName}
-                disabled={isSavingName}
-              >
-                {isSavingName ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.modalPrimaryButtonText}>Unlock</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
+                {/* STICKY ACTION BUTTONS - Always visible at bottom */}
+                <View style={[styles.modalActionsSticky, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
+                  <TouchableOpacity
+                    style={[styles.modalSecondaryButton, { backgroundColor: theme.background }]}
+                    onPress={() => setShowNameModal(false)}
+                  >
+                    <Text style={[styles.modalSecondaryButtonText, { color: theme.text }]}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalPrimaryButton, { backgroundColor: theme.accent }]}
+                    onPress={handleSaveName}
+                    disabled={isSavingName}
+                  >
+                    {isSavingName ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.modalPrimaryButtonText}>Unlock</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </KeyboardAvoidingView>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </ScrollView>
   );
@@ -1372,22 +1402,39 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
 
-  // Modal
+  // Modal - Fixed for mobile web
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+  },
+  keyboardAvoidingContainer: {
+    width: '100%',
+    maxHeight: '90%',
   },
   modalContainer: {
-    borderRadius: 16,
-    padding: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    maxHeight: '100%',
+    minHeight: 280,
+  },
+  modalScrollContent: {
+    flexGrow: 0,
+    flexShrink: 1,
+    maxHeight: 180,
+  },
+  modalScrollContentContainer: {
+    paddingBottom: 16,
   },
   modalCloseButton: {
     position: 'absolute',
     top: 16,
     right: 16,
-    padding: 4,
+    padding: 8,
+    zIndex: 1,
   },
   modalTitle: {
     fontSize: 20,
@@ -1410,11 +1457,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
+  modalActionsSticky: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    marginTop: 8,
+  },
   modalSecondaryButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
   },
   modalSecondaryButtonText: {
     fontSize: 16,
@@ -1425,6 +1481,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
   },
   modalPrimaryButtonText: {
     fontSize: 16,

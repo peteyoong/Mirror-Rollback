@@ -678,6 +678,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
   };
 
   // Render the unlock modal - ALWAYS shows TextInput when in 'input' step
+  // Fixed for mobile web: proper keyboard handling, safe areas, and sticky action buttons
   const renderUnlockModal = () => {
     // Log when modal renders
     if (isDebugEnabled() && unlockModalVisible) {
@@ -695,115 +696,142 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
         animationType="slide"
         transparent={true}
         onRequestClose={closeUnlockModal}
+        statusBarTranslucent={true}
       >
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        {/* Overlay backdrop - tappable to close */}
+        <TouchableOpacity 
           style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closeUnlockModal}
         >
-          <View style={styles.unlockModalContainer}>
-            {/* Close button */}
-            <TouchableOpacity 
-              style={styles.modalCloseButton}
-              onPress={closeUnlockModal}
+          {/* Prevent touches on modal content from closing */}
+          <TouchableOpacity 
+            activeOpacity={1} 
+            onPress={(e) => e.stopPropagation()}
+            style={{ width: '100%' }}
+          >
+            <KeyboardAvoidingView 
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+              style={styles.keyboardAvoidingContainer}
             >
-              <Ionicons name="close" size={24} color={theme.textSecondary} />
-            </TouchableOpacity>
+              <View style={[styles.unlockModalContainer, { backgroundColor: theme.surface }]}>
+                {/* Close button */}
+                <TouchableOpacity 
+                  style={styles.modalCloseButton}
+                  onPress={closeUnlockModal}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons name="close" size={24} color={theme.textSecondary} />
+                </TouchableOpacity>
 
-            {/* INPUT STEP - Always show TextInput for add/edit */}
-            {unlockStep === 'input' && (
-              <>
-                <View style={styles.modalIconContainer}>
-                  <Ionicons name="person-outline" size={32} color={theme.accent} />
-                </View>
-                <Text style={styles.modalTitle}>
-                  {modalMode === 'edit' ? 'Edit Your Name' : 'Your Full Birth Name'}
-                </Text>
-                <Text style={styles.modalSubtitle}>
-                  {modalMode === 'edit' ? 'Update your birth name' : 'As given at birth'}
-                </Text>
-                
-                <View style={styles.modalBody}>
-                  <Text style={styles.modalText}>
-                    {modalMode === 'edit' 
-                      ? 'Update the name used for numerology calculations.'
-                      : 'Enter your full birth name to unlock Expression, Soul Urge, and Personality numbers.'
-                    }
-                  </Text>
-                  
-                  {/* TEXTINPUT - Always rendered when step === 'input' */}
-                  {(() => {
-                    // Log when TextInput mounts
-                    if (!inputRendered) {
-                      console.log('[DEBUG_MIRROR] 📝 TextInput MOUNTING - mode:', modalMode);
-                      // Use setTimeout to avoid state update during render
-                      setTimeout(() => setInputRendered(true), 0);
-                    }
-                    return (
-                      <TextInput
-                        style={styles.nameInput}
-                        placeholder="e.g., John Michael Smith"
-                        placeholderTextColor={theme.textTertiary}
-                        value={modalInputName}
-                        onChangeText={(text) => {
-                          // Preserve the full text including spaces
-                          setModalInputName(text);
-                        }}
-                        autoCapitalize="words"
-                        autoCorrect={false}
-                        autoFocus={true}
-                        multiline={false}
-                        returnKeyType="done"
-                        blurOnSubmit={true}
-                        onSubmitEditing={handleUnlockSubmit}
-                        maxLength={100}
-                        textContentType="name"
-                      />
-                    );
-                  })()}
-                  
-                  {unlockError && (
-                    <Text style={styles.unlockErrorText}>{unlockError}</Text>
-                  )}
-                  
-                  <Text style={styles.privacyNote}>
-                    Your name is stored securely and used only for these calculations.
-                  </Text>
-                </View>
-
-                <View style={styles.modalActions}>
-                  <TouchableOpacity 
-                    style={styles.modalSecondaryButton}
-                    onPress={closeUnlockModal}
-                  >
-                    <Text style={styles.modalSecondaryButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.modalPrimaryButton, isUnlocking && styles.disabledButton]}
-                    onPress={handleUnlockSubmit}
-                    disabled={isUnlocking}
-                  >
-                    {isUnlocking ? (
-                      <ActivityIndicator size="small" color={theme.textInverse} />
-                    ) : (
-                      <Text style={styles.modalPrimaryButtonText}>
-                        {modalMode === 'edit' ? 'Save' : 'Unlock'}
+                {/* INPUT STEP - Always show TextInput for add/edit */}
+                {unlockStep === 'input' && (
+                  <>
+                    {/* Scrollable content area */}
+                    <ScrollView 
+                      style={styles.modalScrollContent}
+                      contentContainerStyle={styles.modalScrollContentContainer}
+                      showsVerticalScrollIndicator={false}
+                      keyboardShouldPersistTaps="handled"
+                      bounces={false}
+                    >
+                      <View style={styles.modalIconContainer}>
+                        <Ionicons name="person-outline" size={32} color={theme.accent} />
+                      </View>
+                      <Text style={[styles.modalTitle, { color: theme.text }]}>
+                        {modalMode === 'edit' ? 'Edit Your Name' : 'Your Full Birth Name'}
                       </Text>
+                      <Text style={[styles.modalSubtitle, { color: theme.textSecondary }]}>
+                        {modalMode === 'edit' ? 'Update your birth name' : 'As given at birth'}
+                      </Text>
+                      
+                      <View style={styles.modalBody}>
+                        <Text style={[styles.modalText, { color: theme.textSecondary }]}>
+                          {modalMode === 'edit' 
+                            ? 'Update the name used for numerology calculations.'
+                            : 'Enter your full birth name to unlock Expression, Soul Urge, and Personality numbers.'
+                          }
+                        </Text>
+                        
+                        {/* TEXTINPUT - Always rendered when step === 'input' */}
+                        {(() => {
+                          // Log when TextInput mounts
+                          if (!inputRendered) {
+                            console.log('[DEBUG_MIRROR] 📝 TextInput MOUNTING - mode:', modalMode);
+                            // Use setTimeout to avoid state update during render
+                            setTimeout(() => setInputRendered(true), 0);
+                          }
+                          return (
+                            <TextInput
+                              style={[styles.nameInput, { borderColor: theme.border }]}
+                              placeholder="e.g., John Michael Smith"
+                              placeholderTextColor={theme.textTertiary}
+                              value={modalInputName}
+                              onChangeText={(text) => {
+                                // Preserve the full text including spaces
+                                setModalInputName(text);
+                              }}
+                              autoCapitalize="words"
+                              autoCorrect={false}
+                              autoFocus={Platform.OS !== 'web'}
+                              multiline={false}
+                              returnKeyType="done"
+                              blurOnSubmit={true}
+                              onSubmitEditing={handleUnlockSubmit}
+                              maxLength={100}
+                              textContentType="name"
+                            />
+                          );
+                        })()}
+                        
+                        {unlockError && (
+                          <Text style={styles.unlockErrorText}>{unlockError}</Text>
+                        )}
+                        
+                        <Text style={[styles.privacyNote, { color: theme.textTertiary }]}>
+                          Your name is stored securely and used only for these calculations.
+                        </Text>
+                      </View>
+                    </ScrollView>
+
+                    {/* STICKY ACTION BUTTONS - Always visible at bottom */}
+                    <View style={[styles.modalActionsSticky, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
+                      <TouchableOpacity 
+                        style={[styles.modalSecondaryButton, { backgroundColor: theme.surfaceLight }]}
+                        onPress={closeUnlockModal}
+                      >
+                        <Text style={[styles.modalSecondaryButtonText, { color: theme.text }]}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.modalPrimaryButton, { backgroundColor: theme.accent }, isUnlocking && styles.disabledButton]}
+                        onPress={handleUnlockSubmit}
+                        disabled={isUnlocking}
+                      >
+                        {isUnlocking ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <Text style={[styles.modalPrimaryButtonText, { color: '#FFFFFF' }]}>
+                            {modalMode === 'edit' ? 'Save' : 'Unlock'}
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Debug info at bottom of modal */}
+                    {isDebugEnabled() && (
+                      <View style={styles.modalDebug}>
+                        <Text style={[styles.modalDebugText, { color: theme.textTertiary }]}>
+                          mode: {modalMode} | input_rendered: {inputRendered ? 'YES' : 'NO'}
+                        </Text>
+                      </View>
                     )}
-                  </TouchableOpacity>
-                </View>
-                
-                {/* Debug info at bottom of modal */}
-                {isDebugEnabled() && (
-                  <View style={styles.modalDebug}>
-                    <Text style={styles.modalDebugText}>
-                      mode: {modalMode} | input_rendered: {inputRendered ? 'YES' : 'NO'}
-                    </Text>
-                  </View>
+                  </>
                 )}
-              </>
-            )}
-          </View>
-        </KeyboardAvoidingView>
+              </View>
+            </KeyboardAvoidingView>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     );
   };
@@ -1216,19 +1244,35 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontStyle: 'italic',
   },
-  // Unlock Modal Styles
+  // Unlock Modal Styles - Fixed for mobile web
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
   },
+  keyboardAvoidingContainer: {
+    width: '100%',
+    maxHeight: '90%',
+  },
   unlockModalContainer: {
-    backgroundColor: "transparent",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
-    maxHeight: '85%',
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    ...Platform.select({
+      web: { paddingBottom: 24 },
+      default: { paddingBottom: 40 },
+    }),
+    maxHeight: '100%',
+    minHeight: 320,
+  },
+  modalScrollContent: {
+    flexGrow: 0,
+    flexShrink: 1,
+    maxHeight: 280,
+  },
+  modalScrollContentContainer: {
+    paddingBottom: 16,
   },
   modalCloseButton: {
     position: 'absolute',
@@ -1286,29 +1330,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
+  modalActionsSticky: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    marginTop: 8,
+  },
   modalSecondaryButton: {
     flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: "transparent",
+    minHeight: 48,
   },
   modalSecondaryButtonText: {
     fontSize: 15,
     fontWeight: '500',
-    color: "inherit",
   },
   modalPrimaryButton: {
     flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: "transparent",
+    minHeight: 48,
   },
   modalPrimaryButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: "inherit",
   },
   disabledButton: {
     opacity: 0.6,
