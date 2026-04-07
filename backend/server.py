@@ -19116,7 +19116,8 @@ def extract_numerology_data(chart: dict, user: dict) -> dict:
         "personality_description": get_desc(personality),
         "has_name_numbers": has_name_numbers,
         "user_birth_date": user.get("birth_date"),
-        "full_birth_name": user.get("numerology_full_name") or user.get("full_birth_name")
+        # IDENTITY ISOLATION: Only use numerology_full_name - NO fallback to full_birth_name
+        "full_birth_name": user.get("numerology_full_name")
     }
 
 
@@ -19129,9 +19130,8 @@ async def get_numerology_compute(user_id: str):
     """
     Get deterministic numerology computations.
     
-    This endpoint returns PURE COMPUTED DATA with no LLM interpretation.
-    
-    COMPUTE ≠ SURFACED ≠ INTERPRETED
+    IDENTITY ISOLATION: This endpoint ONLY uses data from the authenticated user's record.
+    No fallback to forum members, cached names, or any external sources.
     
     Returns:
         - input: {full_name, birth_date}
@@ -19144,9 +19144,19 @@ async def get_numerology_compute(user_id: str):
     from datetime import datetime as dt
     
     try:
+        # DEFENSIVE: Validate user_id format
+        if not user_id or len(user_id) != 24:
+            logger.error(f"[NUMEROLOGY_COMPUTE] Invalid user_id format: {user_id}")
+            raise HTTPException(status_code=400, detail="Invalid user ID format")
+        
+        # Fetch ONLY from the user's own record - NO fallbacks
         user = await db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
+            logger.error(f"[NUMEROLOGY_COMPUTE] User not found: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # IDENTITY VALIDATION: Log the user being accessed
+        logger.info(f"[NUMEROLOGY_COMPUTE] Computing for user_id={user_id[:8]}...")
         
         # Get birth date
         birth_date_str = user.get("birth_date")
@@ -19159,14 +19169,26 @@ async def get_numerology_compute(user_id: str):
         else:
             birth_date = birth_date_str
         
-        # Get full name (optional)
-        full_name = user.get("numerology_full_name") or user.get("full_birth_name")
+        # STRICT NAME SOURCE: Only use numerology_full_name from THIS user's record
+        # DO NOT fallback to full_birth_name or any other source
+        full_name = user.get("numerology_full_name")
+        
+        # IDENTITY VALIDATION LOG
+        logger.info(f"[NUMEROLOGY_COMPUTE] user_id={user_id[:8]} name_source=numerology_full_name name_present={bool(full_name)} name_value={full_name[:10] + '...' if full_name and len(full_name) > 10 else full_name}")
         
         # Compute deterministic numerology
         result = compute_numerology_deterministic(
             birth_date=birth_date,
             full_name=full_name
         )
+        
+        # Add identity validation metadata
+        result["_identity"] = {
+            "user_id": user_id,
+            "name_source": "user.numerology_full_name",
+            "name_present": bool(full_name),
+            "validated": True
+        }
         
         return result
         
@@ -19303,8 +19325,8 @@ async def get_numerology_pattern(user_id: str):
         else:
             birth_date = birth_date_str
         
-        # Get full name if available
-        full_name = user.get("numerology_full_name") or user.get("full_birth_name")
+        # Get full name ONLY from user's numerology_full_name - NO fallbacks
+        full_name = user.get("numerology_full_name")
         
         # Compute pattern data
         pattern_data = await compute_numerology_pattern(

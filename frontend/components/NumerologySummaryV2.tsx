@@ -191,15 +191,47 @@ export default function NumerologySummaryV2({ userId, onOpenChat, existingName, 
           </View>
         </View>
 
-        {/* Add Name CTA if missing */}
+        {/* Add Name CTA if missing - more prominent */}
         {!hasNameNumbers && onAddName && (
-          <TouchableOpacity
-            style={[styles.addNameButton, { borderColor: theme.accent }]}
-            onPress={onAddName}
-          >
-            <Ionicons name="add-circle-outline" size={18} color={theme.accent} />
-            <Text style={[styles.addNameText, { color: theme.accent }]}>Add birth name to unlock</Text>
-          </TouchableOpacity>
+          <View style={[styles.nameStatusContainer, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '20' }]}>
+            <View style={styles.nameStatusHeader}>
+              <Ionicons name="information-circle-outline" size={18} color={theme.accent} />
+              <Text style={[styles.nameStatusTitle, { color: theme.accent }]}>Name-Based Numerology Inactive</Text>
+            </View>
+            <Text style={[styles.nameStatusText, { color: theme.textSecondary }]}>
+              Full name not added — Expression, Soul Urge, and Personality numbers are unavailable.
+            </Text>
+            <TouchableOpacity
+              style={[styles.addNameButton, { backgroundColor: theme.accent }]}
+              onPress={onAddName}
+            >
+              <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
+              <Text style={[styles.addNameText, { color: '#FFFFFF' }]}>Add Full Birth Name</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        
+        {/* Show existing name with edit option */}
+        {hasNameNumbers && existingName && (
+          <View style={[styles.nameDisplayContainer, { borderColor: theme.border }]}>
+            <View style={styles.nameDisplayRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.nameDisplayLabel, { color: theme.textTertiary }]}>NAME USED</Text>
+                <Text style={[styles.nameDisplayValue, { color: theme.text }]} numberOfLines={1}>
+                  {existingName}
+                </Text>
+              </View>
+              {onAddName && (
+                <TouchableOpacity
+                  style={[styles.editNameButton, { backgroundColor: theme.surfaceLight }]}
+                  onPress={onAddName}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons name="pencil-outline" size={16} color={theme.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
         )}
       </View>
     );
@@ -571,15 +603,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 16,
     paddingVertical: 12,
-    borderWidth: 1,
+    paddingHorizontal: 16,
     borderRadius: 8,
-    borderStyle: 'dashed',
   },
   addNameText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 
   // Lo Shu Grid
@@ -724,6 +754,55 @@ const styles = StyleSheet.create({
   tensionLabel: {
     fontSize: 11,
     marginTop: 4,
+  },
+
+  // Name Status (when missing)
+  nameStatusContainer: {
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  nameStatusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  nameStatusTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  nameStatusText: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 12,
+  },
+
+  // Name Display (when present)
+  nameDisplayContainer: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  },
+  nameDisplayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  nameDisplayLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  nameDisplayValue: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  editNameButton: {
+    padding: 8,
+    borderRadius: 8,
   },
 
   // Ask Mirror
