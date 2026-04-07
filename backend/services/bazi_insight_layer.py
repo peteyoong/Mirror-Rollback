@@ -689,25 +689,25 @@ def synthesize_pillars(pillar_interpretations: Dict[str, Dict]) -> str:
     
     # Build synthesis based on animal combinations
     if year_animal in ["Tiger", "Dragon", "Horse"] and day_animal in ["Rabbit", "Goat", "Pig"]:
-        return "You present as bold externally, but your core craves harmony. The gap creates exhaustion—performing strength while needing softness."
+        return "You show up bold in public but need softness at home. That gap is real—you're performing energy you don't naturally have."
     
     if year_animal in ["Rat", "Monkey"] and hour_animal in ["Dog", "Ox"]:
-        return "Your outer cleverness hides inner loyalty anxiety. You strategize in public, worry in private."
+        return "Quick on the surface, cautious underneath. You problem-solve fast but second-guess yourself when no one's watching."
     
     if day_animal == hour_animal:
-        return f"Your outer and inner selves align—{day_animal} energy runs all the way through. Consistent, but also one-dimensional."
+        return f"{day_animal} through and through—your core and private self match. Less tension, but also less range."
     
     if year_animal in ["Snake", "Rooster"] and day_animal in ["Tiger", "Dragon"]:
-        return "Your roots calculate, your core demands. Others experience intensity; you experience internal strategy."
+        return "Strategic roots, forceful core. Others feel your intensity; you see it as calculated."
     
     # Default synthesis based on any animal combination
     animals_present = [year_animal, month.get("animal", ""), day_animal, hour_animal]
     animals_present = [a for a in animals_present if a]
     
     if len(set(animals_present)) == 4:
-        return "Your four pillars pull in different directions. Versatile—or scattered. The question is whether you're adaptive or avoiding coherence."
+        return "Four different animals, four different pulls. You're adaptable—or scattered, depending on the day."
     
-    return f"Your chart shows {day_animal} at your core, shaped by {year_animal} roots. The tension between inheritance and identity defines your pattern."
+    return f"{day_animal} at your core, {year_animal} in your roots. How you were raised shapes how you show up."
 
 
 # =============================================================================

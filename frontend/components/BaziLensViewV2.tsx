@@ -1791,10 +1791,10 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         {activeTab === 'summary' && (
           <>
             {renderTabBlurb()}
-            {renderCoreSignature()}
-            {renderChartPattern()}
             {renderFourPillars()}
             {renderCombinedInterpretation()}
+            {renderCoreSignature()}
+            {renderChartPattern()}
             {renderTimingPreview()}
             {renderUnifiedAskSection('summary')}
           </>

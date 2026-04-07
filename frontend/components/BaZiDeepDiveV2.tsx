@@ -397,10 +397,10 @@ export default function BaZiDeepDiveV2({
       </View>
       
       {/* ============================================= */}
-      {/* CORE PATTERN - Sharp Opening */}
+      {/* THE PATTERN - Sharp Opening (No duplicate "Core Pattern") */}
       {/* ============================================= */}
       <View style={[styles.section, styles.corePatternSection, { borderLeftColor: elementColor }]}>
-        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>CORE PATTERN</Text>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>THE PATTERN</Text>
         <Text style={[styles.corePatternText, { color: theme.text }]}>
           {deepDive.core_pattern}
         </Text>
@@ -622,51 +622,51 @@ const styles = StyleSheet.create({
   },
   chartPillarCard: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    borderRadius: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 5,
+    borderRadius: 8,
     alignItems: 'center',
     position: 'relative',
   },
   coreBadge: {
     position: 'absolute',
-    top: -6,
-    right: -4,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 4,
+    top: -5,
+    right: -3,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
   },
   coreBadgeText: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: '700',
     color: '#000',
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   chartPillarLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: '600',
-    letterSpacing: 0.4,
-    marginBottom: 4,
+    letterSpacing: 0.3,
+    marginBottom: 2,
     textTransform: 'uppercase',
   },
   chartPillarEmoji: {
-    fontSize: 22,
-    marginBottom: 2,
+    fontSize: 18,
+    marginBottom: 1,
   },
   chartPillarAnimal: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   chartPillarStem: {
-    fontSize: 9,
+    fontSize: 8,
     opacity: 0.7,
   },
   chartPillarDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 4,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    marginTop: 3,
   },
   chartHelperText: {
     fontSize: 11,
