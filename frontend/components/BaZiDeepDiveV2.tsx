@@ -103,11 +103,13 @@ interface FullChartPillar {
 
 interface FullChartData {
   success: boolean;
-  pillars: {
-    year: FullChartPillar;
-    month: FullChartPillar;
-    day: FullChartPillar;
-    hour: FullChartPillar;
+  chart: {
+    pillars: {
+      year: FullChartPillar;
+      month: FullChartPillar;
+      day: FullChartPillar;
+      hour: FullChartPillar;
+    };
   };
 }
 
@@ -204,6 +206,9 @@ export default function BaZiDeepDiveV2({
         setLoading(true);
         setError(null);
         
+        console.log('[BaZi DeepDive V2] Starting fetch for userId:', userId);
+        console.log('[BaZi DeepDive V2] BACKEND_BASE_URL:', BACKEND_BASE_URL);
+        
         // Fetch both deep dive and full chart in parallel
         const [deepDiveRes, fullChartRes] = await Promise.all([
           fetch(`${BACKEND_BASE_URL}/api/bazi/${userId}/deep-dive`),
@@ -213,6 +218,11 @@ export default function BaZiDeepDiveV2({
         const deepDiveResult = await deepDiveRes.json();
         const fullChartResult = await fullChartRes.json();
         
+        console.log('[BaZi DeepDive V2] Deep dive result:', deepDiveResult?.success ? 'SUCCESS' : 'FAILED');
+        console.log('[BaZi DeepDive V2] Full chart result:', fullChartResult?.success ? 'SUCCESS' : 'FAILED');
+        console.log('[BaZi DeepDive V2] Full chart pillars:', fullChartResult?.chart?.pillars ? 'PRESENT' : 'MISSING');
+        console.log('[BaZi DeepDive V2] Full chart keys:', fullChartResult ? Object.keys(fullChartResult) : 'N/A');
+        
         if (deepDiveResult.success) {
           setData(deepDiveResult);
         } else {
@@ -220,11 +230,14 @@ export default function BaZiDeepDiveV2({
         }
         
         if (fullChartResult.success) {
+          console.log('[BaZi DeepDive V2] Setting fullChart state');
           setFullChart(fullChartResult);
+        } else {
+          console.log('[BaZi DeepDive V2] Full chart fetch failed, pillars will be null');
         }
       } catch (err) {
         setError('Failed to connect to server');
-        console.error('[BaZi DeepDive V2]', err);
+        console.error('[BaZi DeepDive V2] Fetch error:', err);
       } finally {
         setLoading(false);
       }
@@ -287,7 +300,12 @@ export default function BaZiDeepDiveV2({
 
   const deepDive = data.deep_dive;
   const dayMaster = data.day_master;
-  const pillars = fullChart?.pillars;
+  const pillars = fullChart?.chart?.pillars;
+  
+  console.log('[BaZi DeepDive V2] Rendering with:');
+  console.log('  - deepDive:', deepDive ? 'present' : 'missing');
+  console.log('  - fullChart:', fullChart ? 'present' : 'missing');
+  console.log('  - pillars:', pillars ? 'present' : 'missing');
 
   // Render the compact pillar cards for "Your Chart" section
   const renderChartPillars = () => {
@@ -360,15 +378,23 @@ export default function BaZiDeepDiveV2({
       {/* ============================================= */}
       {/* YOUR CHART - Visual Anchor at Top */}
       {/* ============================================= */}
-      {pillars && (
-        <View style={styles.yourChartSection}>
-          <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>YOUR CHART</Text>
-          {renderChartPillars()}
-          <Text style={[styles.chartHelperText, { color: theme.textTertiary }]}>
-            Read as a whole — not one pillar alone.
-          </Text>
-        </View>
-      )}
+      <View style={styles.yourChartSection}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>YOUR CHART</Text>
+        {pillars ? (
+          <>
+            {renderChartPillars()}
+            <Text style={[styles.chartHelperText, { color: theme.textTertiary }]}>
+              Read as a whole — not one pillar alone.
+            </Text>
+          </>
+        ) : (
+          <View style={[styles.chartFallback, { backgroundColor: theme.surfaceLight, borderColor: theme.border }]}>
+            <Text style={[styles.chartFallbackText, { color: theme.textTertiary }]}>
+              Loading chart pillars...
+            </Text>
+          </View>
+        )}
+      </View>
       
       {/* ============================================= */}
       {/* CORE PATTERN - Sharp Opening */}
@@ -647,6 +673,18 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     opacity: 0.5,
+  },
+  chartFallback: {
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 80,
+  },
+  chartFallbackText: {
+    fontSize: 12,
+    fontStyle: 'italic',
   },
   
   // Sections
