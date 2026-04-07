@@ -92,6 +92,9 @@ from services.lifeline_ingestion import (
     IMPORT_STATUS_REVIEWED,
 )
 
+# Import Deployment Guard for build validation
+from deployment_guard import get_build_info, validate_deployment, log_deployment_status, get_build_stamp
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -6773,11 +6776,22 @@ async def api_health_check():
         # Count lifeline events
         lifeline_count = await db.lifeline_events.count_documents({})
         
+        # Get build info from deployment guard
+        build_info = get_build_info()
+        
         return {
             "ok": True,
             "service": "backend",
             "status": "healthy",
             "timestamp": datetime.now(timezone.utc).isoformat(),
+            "build": {
+                "stamp": get_build_stamp(),
+                "git_revision": build_info["git_revision"],
+                "git_dirty": build_info["git_dirty"],
+                "deployed_bundle": build_info["deployed_bundle"],
+                "source_files": build_info["source_files"],
+                "validation": build_info["validation"],
+            },
             "debug": {
                 "env": os.environ.get('ENV', 'unknown'),
                 "db_name": db_name,
@@ -30601,6 +30615,12 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     """Initialize resources at server startup"""
+    # Log deployment status at startup
+    logger.info("[Startup] Running deployment guard validation...")
+    deployment_valid = log_deployment_status()
+    if not deployment_valid:
+        logger.error("[Startup] ⚠️ DEPLOYMENT VALIDATION FAILED - Live may not match source!")
+    
     # Clear deep dive cache on startup to ensure fresh content
     logger.info("[Startup] Clearing deep dive cache to ensure fresh content...")
     try:
