@@ -844,10 +844,11 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
               </Text>
             </View>
 
-            {data.input.full_name && (
+            {/* IDENTITY ISOLATION: Use existingName from props (user profile), NOT data.input.full_name */}
+            {existingName && (
               <View style={styles.inputDisplay}>
                 <Text style={[styles.inputLabel, { color: theme.textTertiary }]}>Name used:</Text>
-                <Text style={[styles.inputValue, { color: theme.text }]}>{data.input.full_name}</Text>
+                <Text style={[styles.inputValue, { color: theme.text }]}>{existingName}</Text>
               </View>
             )}
             <View style={styles.inputDisplay}>
@@ -943,8 +944,8 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
         borderColor={theme.border}
       />
 
-      {/* Add Name Link */}
-      {!data.input.full_name && (
+      {/* Add Name Link - IDENTITY ISOLATION: Use existingName from props */}
+      {!existingName && (
         <TouchableOpacity
           style={[styles.addNameLink, { borderColor: theme.border }]}
           onPress={() => setShowNameModal(true)}
