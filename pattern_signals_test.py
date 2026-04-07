@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL configuration
-BACKEND_URL = "https://pattern-interrupt.preview.emergentagent.com/api"
+BACKEND_URL = "https://infallible-albattani.preview.emergentagent.com/api"
 
 # Test users from the review request
 TEST_USERS = [

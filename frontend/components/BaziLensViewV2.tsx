@@ -38,7 +38,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../services/api';
 import KeystoneReferenceLink from './KeystoneReferenceLink';
-import BaZiInsightDeepDive from './BaZiInsightDeepDive';
+import BaZiDeepDiveV2 from './BaZiDeepDiveV2';
 
 // =============================================================================
 // INTERFACES (V2 Response Shape)
@@ -194,6 +194,44 @@ interface DeepDiveV2 {
   ten_gods_detailed: TenGodDetailed[];
   hidden_dynamics: HiddenDynamic[];
   life_pattern: LifePattern;
+}
+
+// Deep Dive V2 - Confrontational Master-Level Reading
+interface PillarInterpretationV2 {
+  domain: string;
+  animal: string;
+  element_note: string;
+  behavioral: string;
+}
+
+interface ChartReadSimplyV2 {
+  year?: PillarInterpretationV2;
+  month?: PillarInterpretationV2;
+  day?: PillarInterpretationV2;
+  hour?: PillarInterpretationV2;
+  synthesis: string;
+}
+
+interface DeepDiveV2Data {
+  core_pattern: string;
+  the_tension: string;
+  what_this_costs_you: string[];
+  why_this_exists: string;
+  your_chart_read_simply: ChartReadSimplyV2;
+  when_this_backfires: string[];
+  the_real_tension: string;
+  one_shift: string;
+}
+
+interface DeepDiveV2Response {
+  success: boolean;
+  user_id: string;
+  deep_dive: DeepDiveV2Data;
+  day_master: {
+    element: string;
+    polarity: string;
+    strength: string;
+  };
 }
 
 // Adaptive Intelligence Interfaces
@@ -359,6 +397,10 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
   // BaZi Today State
   const [baziToday, setBaziToday] = useState<BaziTodayData | null>(null);
   const [baziTodayLoading, setBaziTodayLoading] = useState(false);
+  
+  // Deep Dive V2 State (for Summary tab combined interpretation)
+  const [deepDiveV2, setDeepDiveV2] = useState<DeepDiveV2Data | null>(null);
+  const [deepDiveDayMaster, setDeepDiveDayMaster] = useState<{element: string; polarity: string; strength: string;} | null>(null);
 
   // Load BaZi data with adaptive content
   const loadBaziData = useCallback(async (refresh = false) => {
@@ -370,12 +412,13 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
     setError(null);
 
     try {
-      // Load chart, adaptive content, feedback, and today data
-      const [chartResponse, adaptiveResponse, feedbackResponse, todayResponse] = await Promise.all([
+      // Load chart, adaptive content, feedback, today data, and deep dive synthesis
+      const [chartResponse, adaptiveResponse, feedbackResponse, todayResponse, deepDiveResponse] = await Promise.all([
         api.get<BaziResponseV2>(`/bazi/${userId}/full`),
         api.get(`/bazi/${userId}/adaptive`).catch(() => null),
         api.get(`/bazi/${userId}/feedback`).catch(() => null),
         api.get<BaziTodayData>(`/bazi/${userId}/today`).catch(() => null),
+        api.get(`/bazi/${userId}/deep-dive`).catch(() => null),
       ]);
       
       if (chartResponse.data.success) {
@@ -397,6 +440,12 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
       // Load BaZi Today
       if (todayResponse?.data?.success) {
         setBaziToday(todayResponse.data);
+      }
+      
+      // Load Deep Dive V2 (Master-level reading)
+      if (deepDiveResponse?.data?.success) {
+        setDeepDiveV2(deepDiveResponse.data.deep_dive);
+        setDeepDiveDayMaster(deepDiveResponse.data.day_master);
       }
     } catch (err: any) {
       console.error('[BaZi V2] Load error:', err);
@@ -646,6 +695,62 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         <Text style={[styles.pillarsNote, { color: theme.textTertiary }]}>
           Year = Roots • Month = Work • Day = Self • Hour = Inner World
         </Text>
+      </View>
+    );
+  };
+
+  // E. Combined Interpretation Block - Master-Level Pattern Summary
+  const renderCombinedInterpretation = () => {
+    if (!deepDiveV2) return null;
+    
+    const ELEMENT_COLORS_MAP: Record<string, string> = {
+      Wood: '#7CB08A',
+      Fire: '#D4836A',
+      Earth: '#C4A484',
+      Metal: '#A8B5C4',
+      Water: '#6B8BA4',
+    };
+    
+    const elementColor = deepDiveDayMaster?.element 
+      ? ELEMENT_COLORS_MAP[deepDiveDayMaster.element] || '#C9A962'
+      : '#C9A962';
+    
+    return (
+      <View style={[styles.combinedInterpretationSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={[styles.combinedInterpretationHeader, { borderLeftColor: elementColor }]}>
+          <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>CORE PATTERN</Text>
+          <Text style={[styles.combinedCorePattern, { color: theme.text }]}>
+            {deepDiveV2.core_pattern}
+          </Text>
+        </View>
+        
+        {/* The Tension */}
+        <View style={[styles.combinedTensionBox, { backgroundColor: theme.background }]}>
+          <Text style={[styles.combinedTensionLabel, { color: theme.textTertiary }]}>THE TENSION</Text>
+          <Text style={[styles.combinedTensionText, { color: theme.textSecondary }]}>
+            {deepDiveV2.the_tension}
+          </Text>
+        </View>
+        
+        {/* Chart Synthesis */}
+        {deepDiveV2.your_chart_read_simply?.synthesis && (
+          <View style={[styles.combinedSynthesisBox, { backgroundColor: 'rgba(201, 169, 98, 0.08)', borderColor: 'rgba(201, 169, 98, 0.2)' }]}>
+            <Text style={[styles.combinedSynthesisLabel, { color: '#C9A962' }]}>COMBINED PATTERN</Text>
+            <Text style={[styles.combinedSynthesisText, { color: theme.text }]}>
+              {deepDiveV2.your_chart_read_simply.synthesis}
+            </Text>
+          </View>
+        )}
+        
+        {/* Link to Deep Dive */}
+        <TouchableOpacity 
+          style={[styles.goToDeepDiveButton, { borderColor: theme.border }]}
+          onPress={() => setActiveTab('deep_dive')}
+        >
+          <Ionicons name="layers-outline" size={16} color={theme.textSecondary} />
+          <Text style={[styles.goToDeepDiveText, { color: theme.text }]}>See Full Deep Dive</Text>
+          <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
+        </TouchableOpacity>
       </View>
     );
   };
@@ -1689,6 +1794,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
             {renderCoreSignature()}
             {renderChartPattern()}
             {renderFourPillars()}
+            {renderCombinedInterpretation()}
             {renderTimingPreview()}
             {renderUnifiedAskSection('summary')}
           </>
@@ -1729,9 +1835,9 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
         {activeTab === 'deep_dive' && (
           <>
             {renderTabBlurb()}
-            <BaZiInsightDeepDive 
+            <BaZiDeepDiveV2 
               userId={userId} 
-              onOpenChat={() => handleAskAboutLens('deep_dive')}
+              onOpenChat={() => onOpenChat()}
             />
           </>
         )}
@@ -1993,6 +2099,70 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+
+  // Combined Interpretation Block (Summary Tab)
+  combinedInterpretationSection: {
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  combinedInterpretationHeader: {
+    borderLeftWidth: 3,
+    paddingLeft: 12,
+    marginBottom: 14,
+  },
+  combinedCorePattern: {
+    fontSize: 17,
+    fontWeight: '600',
+    lineHeight: 24,
+  },
+  combinedTensionBox: {
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 14,
+  },
+  combinedTensionLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  combinedTensionText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    lineHeight: 21,
+  },
+  combinedSynthesisBox: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  combinedSynthesisLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  combinedSynthesisText: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 22,
+  },
+  goToDeepDiveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 8,
+  },
+  goToDeepDiveText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 
   // Timing Preview
