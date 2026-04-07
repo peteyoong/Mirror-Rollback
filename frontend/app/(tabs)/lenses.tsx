@@ -19,6 +19,13 @@ import { ForumContextBanner } from '../../components/ForumContextBanner';
 import { getLenses } from '../../services/api';
 // Removed Ionicons - using text-based alternatives for web compatibility
 
+// =============================================================================
+// FEATURE FLAGS
+// =============================================================================
+// Consciousness lens is not sufficiently differentiated/personalized yet.
+// It will return as a tone/governor layer or behavior-inferred meta layer.
+const FEATURE_CONSCIOUSNESS_LENS = false;
+
 interface Lens {
   name: string;
   description: string;
@@ -31,7 +38,8 @@ const LENS_KEYS: { [key: string]: string } = {
   'True Sidereal Astrology': 'astrology',
   'Human Design': 'human_design',
   'Numerology': 'numerology',
-  'Levels of Consciousness': 'consciousness',
+  // Consciousness lens disabled - will return as meta layer
+  ...(FEATURE_CONSCIOUSNESS_LENS ? { 'Levels of Consciousness': 'consciousness' } : {}),
   'Enneagram': 'enneagram',
   'BaZi': 'bazi',
 };
@@ -51,7 +59,11 @@ export default function LensesScreen() {
     setIsLoading(true);
     try {
       const data = await getLenses();
-      setLenses(data.lenses);
+      // Filter out Consciousness lens if feature flag is disabled
+      const filteredLenses = FEATURE_CONSCIOUSNESS_LENS 
+        ? data.lenses 
+        : data.lenses.filter((lens: Lens) => lens.name !== 'Levels of Consciousness');
+      setLenses(filteredLenses);
     } catch (err) {
       console.error('Load lenses error:', err);
     } finally {

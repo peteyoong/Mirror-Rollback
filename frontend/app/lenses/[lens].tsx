@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -27,6 +27,12 @@ import NumerologyLensView from '../../components/NumerologyLensView';
 import EnneagramLensView from '../../components/EnneagramLensView';
 import BaziLensView from '../../components/BaziLensViewV2';
 
+// =============================================================================
+// FEATURE FLAGS
+// =============================================================================
+// Consciousness lens is disabled - will return as tone/governor layer
+const FEATURE_CONSCIOUSNESS_LENS = false;
+
 // Lens metadata
 const LENS_META: { [key: string]: { name: string; icon: string } } = {
   astrology: { name: 'True Sidereal Astrology', icon: 'planet-outline' },
@@ -34,7 +40,8 @@ const LENS_META: { [key: string]: { name: string; icon: string } } = {
   numerology: { name: 'Numerology', icon: 'calculator-outline' },
   enneagram: { name: 'Enneagram', icon: 'git-branch-outline' },
   bazi: { name: 'BaZi', icon: 'apps-outline' },
-  consciousness: { name: 'Consciousness', icon: 'eye-outline' },
+  // Consciousness disabled - kept for future meta layer integration
+  ...(FEATURE_CONSCIOUSNESS_LENS ? { consciousness: { name: 'Consciousness', icon: 'eye-outline' } } : {}),
 };
 
 // Mirror Moment content per lens and mode
@@ -274,6 +281,17 @@ export default function LensDetail() {
   const [chatInput, setChatInput] = useState('');
   const { user, chart } = useAppStore();
   
+  // FEATURE FLAG CHECK: Redirect unknown/disabled lenses to main lenses page
+  const isValidLens = lens && LENS_META[lens];
+  
+  // Redirect to lenses page if lens is invalid or disabled
+  useEffect(() => {
+    if (lens && !isValidLens) {
+      console.warn(`[LensDetail] Unknown or disabled lens: ${lens} - redirecting to /lenses`);
+      router.replace('/(tabs)/lenses');
+    }
+  }, [lens, isValidLens, router]);
+  
   // Lens Chat Modal state
   const [lensChatVisible, setLensChatVisible] = useState(false);
   const [lensChatInitialMessage, setLensChatInitialMessage] = useState<string | null>(null);
@@ -289,6 +307,11 @@ export default function LensDetail() {
     setLensChatVisible(false);
     setLensChatInitialMessage(null);
   }, []);
+  
+  // If lens is invalid, show nothing while redirecting
+  if (!isValidLens) {
+    return null;
+  }
   
   const lensMeta = LENS_META[lens as string] || { name: 'Lens', icon: 'help-outline' };
   const mirrorContent = MIRROR_CONTENT[lens as string]?.[activeTab === 'snapshot' ? 'summary' : activeTab] || MIRROR_CONTENT.astrology.summary;
