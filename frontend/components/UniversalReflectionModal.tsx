@@ -19,7 +19,7 @@ import { getUserForums, createJournalEntry, submitForumReflection, Forum } from 
 
 // Source metadata interface
 export interface ReflectionSource {
-  lens: 'patterns' | 'human_design' | 'life' | 'enneagram' | 'astrology' | 'numerology' | 'gene_keys';
+  lens: 'patterns' | 'human_design' | 'life' | 'enneagram' | 'astrology' | 'numerology' | 'gene_keys' | 'bazi';
   area?: string;        // e.g., 'relationships', 'work', 'self' for life
   section?: string;     // e.g., 'overview', 'today', 'explore', 'reflect'
   name: string;         // Human-readable name e.g., 'Emotional Authority'
@@ -124,11 +124,12 @@ export function UniversalReflectionModal({
       'astrology': 'Astrology',
       'numerology': 'Numerology',
       'gene_keys': 'Gene Keys',
+      'bazi': 'BaZi',
     };
-    parts.push(lensNames[source.lens] || source.lens);
+    parts.push(lensNames[source?.lens] || source?.lens || 'Unknown');
     
     // Area (for Life)
-    if (source.area) {
+    if (source?.area) {
       const areaNames: Record<string, string> = {
         'relationships': 'Relationships',
         'work': 'Work',
@@ -138,7 +139,7 @@ export function UniversalReflectionModal({
     }
     
     // Name
-    if (source.name) {
+    if (source?.name) {
       parts.push(source.name);
     }
     
@@ -147,13 +148,13 @@ export function UniversalReflectionModal({
 
   const buildMetadata = () => {
     return {
-      source_lens: source.lens,
-      source_area: source.area,
-      source_section: source.section,
-      source_name: source.name,
-      source_type: source.type,
-      source_id: source.id,
-      source_value: source.value,
+      source_lens: source?.lens,
+      source_area: source?.area,
+      source_section: source?.section,
+      source_name: source?.name,
+      source_type: source?.type,
+      source_id: source?.id,
+      source_value: source?.value,
       timestamp: new Date().toISOString(),
     };
   };
@@ -186,7 +187,7 @@ export function UniversalReflectionModal({
       if (saveToJournal) {
         savePromises.push(
           createJournalEntry(user.id, reflectionText, {
-            journal_source: `${source.lens}_${source.type || source.area || 'reflection'}`,
+            journal_source: `${source?.lens || 'unknown'}_${source?.type || source?.area || 'reflection'}`,
             category: getSourceSummary(),
             ...metadata,
           })
@@ -198,7 +199,7 @@ export function UniversalReflectionModal({
         savePromises.push(
           submitForumReflection(forum.id, {
             user_id: user.id,
-            selected_domain: source.id || `${source.lens}_${source.type || source.name}`,
+            selected_domain: source?.id || `${source?.lens || 'unknown'}_${source?.type || source?.name || 'reflection'}`,
             reflection_text: reflectionText,
             is_shared: forum.isShared,
           })

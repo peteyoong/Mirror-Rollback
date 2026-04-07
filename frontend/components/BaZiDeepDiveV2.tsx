@@ -393,10 +393,17 @@ export default function BaZiDeepDiveV2({
       {/* UNIFIED FOOTER */}
       {/* ============================================= */}
       <InsightCardFooter 
-        insightType="bazi_deep_dive"
-        insightId={userId}
-        primaryLabel="That resonates"
-        secondaryLabel="Reflect"
+        source={{
+          lens: 'bazi',
+          section: 'deep_dive',
+          name: deepDive.core_pattern || 'BaZi Deep Dive',
+          type: 'deep_dive',
+          id: `bazi_deep_dive_${userId}`,
+          value: deepDive.the_real_tension || deepDive.core_pattern || '',
+        }}
+        patternSignature={`bazi_deep_dive_${dayMaster.element.toLowerCase()}`}
+        context="bazi_deep_dive"
+        prompt="What stands out in this reading? What feels true?"
       />
 
       {/* Ask About This Pattern */}

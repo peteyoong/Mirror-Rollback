@@ -114,10 +114,10 @@ export function ResonanceReflectButtons({
     // Store resonance data (fire and forget)
     try {
       await api.post('/resonance/track', {
-        pattern_signature: patternSignature || source.id || 'unknown',
+        pattern_signature: patternSignature || source?.id || 'unknown',
         context: context,
-        source_type: source.type,
-        source_id: source.id,
+        source_type: source?.type,
+        source_id: source?.id,
         resonance: true,
       });
     } catch (error) {
@@ -297,10 +297,10 @@ export function InlineResonanceReflect({
     // Track resonance
     try {
       await api.post('/resonance/track', {
-        pattern_signature: patternSignature || source.id || 'unknown',
+        pattern_signature: patternSignature || source?.id || 'unknown',
         context,
-        source_type: source.type,
-        source_id: source.id,
+        source_type: source?.type,
+        source_id: source?.id,
         resonance: true,
       });
     } catch (e) {
