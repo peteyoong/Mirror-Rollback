@@ -13973,6 +13973,81 @@ async def get_home_synthesis(user_id: str):
 
 
 # =============================================================================
+# V6.0: TENSION ENGINE - Real-Time Tension Resolution System
+# =============================================================================
+@api_router.get("/home-tension/{user_id}")
+async def get_home_tension(user_id: str):
+    """
+    V6.0: Tension Engine - Real-Time Tension Resolution.
+    
+    Mirror is NOT a lens aggregator.
+    Mirror is a REAL-TIME TENSION ENGINE.
+    
+    This endpoint:
+    1. Extracts signals from each lens (Pattern Memory weighted highest)
+    2. Clusters similar tensions
+    3. Resolves to ONE dominant tension
+    4. Generates sharp, immediate language
+    
+    DOMINANCE WEIGHTS:
+    - Pattern Memory: 0.45 (highest)
+    - Cross-lens agreement: 0.25
+    - Intensity: 0.15
+    - Recency: 0.15
+    
+    LANGUAGE RULES:
+    - Second person ("you")
+    - No soft language: NO "tend to", "may", "might", "often"
+    - Sharp, direct, immediate
+    
+    Returns:
+    - tension_label: "Push vs Hold"
+    - energy_title: "Still Hesitating"
+    - moment: "You're hesitating again — and you know it."
+    - supporting_line: "You've seen this before."
+    - micro_shift: "Move before you feel ready."
+    - drivers: [{ source, text }, ...]
+    - driver_synthesis: "You're trying to move — but not trusting the move."
+    - confidence: 0.85
+    - intensity: 0.72
+    - fallback_used: false
+    """
+    try:
+        from services.tension_engine import generate_tension_moment
+        
+        # Generate the tension moment
+        result = await generate_tension_moment(db, user_id)
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            **result
+        }
+        
+    except Exception as e:
+        logger.error(f"[TensionEngine] Error for user {user_id}: {e}", exc_info=True)
+        
+        # Return low-confidence fallback
+        return {
+            "success": True,
+            "user_id": user_id,
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "tension_label": "Unclear",
+            "energy_title": "Something Building",
+            "moment": "Something is building, but not fully clear yet.",
+            "supporting_line": "Stay with it.",
+            "micro_shift": "Notice what's happening without naming it.",
+            "drivers": [],
+            "driver_synthesis": "The signal is forming.",
+            "confidence": 0.2,
+            "intensity": 0.3,
+            "fallback_used": True,
+            "error": str(e)
+        }
+
+
+# =============================================================================
 # V5.0: ASTROLOGY EXPERT INTERPRETER
 # =============================================================================
 @api_router.get("/astro-expert/{user_id}")

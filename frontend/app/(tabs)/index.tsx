@@ -25,6 +25,7 @@ import DebugComputeInputs from '../../components/DebugComputeInputs';
 
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import HomeSynthesisCard from '../../components/HomeSynthesisCard';
+import TensionCard from '../../components/TensionCard';
 import ActionCard from '../../components/ActionCard';
 import { useExperienceControls } from '../../hooks/useExperienceControls';
 import { HOME_LAYOUT, MirrorMode } from '../../types/mirror-profile';
@@ -397,15 +398,17 @@ export default function MirrorScreen() {
             =================================================================== */}
         
         {/* ===================================================================
-            POSITION 1: TODAY'S PATTERN (Always first - primary card)
-            V5.0: Using HomeSynthesisCard for 4-block decisive synthesis
+            POSITION 1: TODAY'S TENSION (Always first - primary card)
+            V6.0: TensionCard - Real-Time Tension Engine
+            Mirror is NOT a lens aggregator. Mirror is a TENSION ENGINE.
+            
+            HomeSynthesisCard kept as silent fallback if TensionCard fails.
             =================================================================== */}
         {user?.id && (
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <HomeSynthesisCard 
+            <TensionCard 
               userId={user.id} 
               theme={theme}
-              onNavigateToAstro={() => router.push('/(tabs)/lenses')}
             />
           </View>
         )}
