@@ -57,20 +57,27 @@ interface WhyDriver {
 
 interface TensionData {
   success: boolean;
-  mode: 'converged' | 'repeating' | 'low_signal';  // V2: Confidence mode
-  trigger_confidence?: 'recurring_only' | 'recurring_plus_trigger' | 'strongly_active_now';  // V3.2
-  tension_label: string;
-  energy_title: string;
+  mode: 'converged' | 'repeating' | 'low_signal';
+  trigger_confidence?: 'recurring_only' | 'recurring_plus_trigger' | 'strongly_active_now';
+  // V3.3: New clarity fields
   moment: string;
-  // V3.1 Life Area Context
-  life_area_context?: LifeAreaContext | null;
-  // V3 Scene Engine fields
-  object_of_tension?: string;  // What this is about (decision, conversation, etc.)
-  contradiction?: string;       // The felt pull in opposite directions
-  current_cost?: string;        // What this is costing right now
-  avoided_move?: string;        // The thing not being done
+  cause_line?: string;        // Why now, human language
+  where?: string;             // Life area
+  about?: string;             // Explicit object (mandatory)
+  contradiction?: string;
+  current_cost?: string;
   supporting_line: string;
+  why_now_plain?: string;     // Visible why now
+  pattern_reason?: string;    // Behavioral tendency
+  why_now_technical?: string; // Hidden astrology
+  tension_label_dynamic?: string;  // Situation-specific label
+  tension_label: string;      // Generic label for compat
+  energy_title: string;
+  avoided_move?: string;
   micro_shift: string;
+  // V3.1 Life Area Context (backward compat)
+  life_area_context?: LifeAreaContext | null;
+  object_of_tension?: string;  // Alias for 'about'
   // V3.2: Split WHY layers
   why_recurring?: WhyDriver[];
   why_now?: WhyDriver[];
@@ -226,43 +233,50 @@ const TensionCard: React.FC<TensionCardProps> = ({
         </Text>
       </View>
 
-      {/* The Moment - Sharp, direct */}
+      {/* V3.3: Real-world moment */}
       <Text style={[styles.moment, { color: theme.text }]}>
         {tension.moment}
       </Text>
 
-      {/* V3.1 Life Area Context - Grounding the tension */}
-      {tension.life_area_context && tension.life_area_context.label && (
+      {/* V3.3: Cause line (why now, human language) */}
+      {tension.cause_line && (
+        <Text style={[styles.causeLine, { color: theme.textSecondary }]}>
+          {tension.cause_line}
+        </Text>
+      )}
+
+      {/* V3.3: Where (life area) */}
+      {(tension.where || tension.life_area_context?.label) && (
         <View style={styles.lifeAreaRow}>
           <Text style={[styles.lifeAreaLabel, { color: theme.textTertiary }]}>
             Where:
           </Text>
           <Text style={[styles.lifeAreaText, { color: theme.textSecondary }]}>
-            {tension.life_area_context.label}
+            {tension.where || tension.life_area_context?.label}
           </Text>
         </View>
       )}
 
-      {/* V3 Scene Engine: Object of Tension */}
-      {tension.object_of_tension && (
+      {/* V3.3: About (explicit object - mandatory) */}
+      {(tension.about || tension.object_of_tension) && (
         <View style={[styles.sceneObjectRow, { borderColor: theme.border }]}>
           <Text style={[styles.sceneObjectLabel, { color: theme.textTertiary }]}>
             About:
           </Text>
           <Text style={[styles.sceneObjectText, { color: theme.textSecondary }]}>
-            {tension.object_of_tension}
+            {tension.about || tension.object_of_tension}
           </Text>
         </View>
       )}
 
-      {/* V3 Scene Engine: Contradiction */}
+      {/* V3.3: Tight contradiction */}
       {tension.contradiction && (
         <Text style={[styles.contradictionText, { color: theme.text }]}>
           {tension.contradiction}
         </Text>
       )}
 
-      {/* V3 Scene Engine: Current Cost */}
+      {/* V3.3: Current cost */}
       {tension.current_cost && (
         <View style={[styles.costRow, { backgroundColor: intensityColor + '12' }]}>
           <Ionicons name="warning-outline" size={14} color={intensityColor} />
@@ -297,105 +311,37 @@ const TensionCard: React.FC<TensionCardProps> = ({
       {expanded && (
         <View style={[styles.expandedSection, { backgroundColor: theme.cardBackground || theme.background, borderColor: theme.border }]}>
           
-          {/* V3.2: WHY THIS KEEPS HAPPENING */}
-          {tension.why_recurring && tension.why_recurring.length > 0 && (
+          {/* V3.3: Section A - WHAT'S HAPPENING NOW (plain language) */}
+          {tension.why_now_plain && (
             <>
-              <Text style={[styles.expandedHeader, { color: theme.textTertiary }]}>
-                WHY THIS KEEPS HAPPENING
+              <Text style={[styles.expandedHeader, { color: intensityColor }]}>
+                WHAT'S HAPPENING NOW
               </Text>
-              <View style={styles.driversList}>
-                {tension.why_recurring.map((driver, index) => (
-                  <View key={`recurring-${index}`} style={styles.driverRow}>
-                    <View style={styles.driverBullet}>
-                      <Ionicons 
-                        name="repeat-outline" 
-                        size={12} 
-                        color={theme.textTertiary} 
-                      />
-                    </View>
-                    <View style={styles.driverContent}>
-                      <Text style={[styles.driverSource, { color: theme.textTertiary }]}>
-                        {driver.source}
-                      </Text>
-                      <Text style={[styles.driverText, { color: theme.textSecondary }]}>
-                        {driver.text}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
+              <Text style={[styles.whyNowPlainText, { color: theme.text }]}>
+                {tension.why_now_plain}
+              </Text>
             </>
           )}
 
-          {/* V3.2: WHY IT'S ACTIVE NOW */}
-          {tension.why_now && tension.why_now.length > 0 && (
+          {/* V3.3: Section B - WHAT'S DRIVING IT (pattern/tendency) */}
+          {tension.pattern_reason && (
             <>
-              <Text style={[styles.expandedHeader, { color: intensityColor, marginTop: 16 }]}>
-                WHY IT'S ACTIVE NOW
+              <Text style={[styles.expandedHeader, { color: theme.textTertiary, marginTop: 16 }]}>
+                THE PATTERN
               </Text>
-              <View style={styles.driversList}>
-                {tension.why_now.map((driver, index) => (
-                  <View key={`now-${index}`} style={styles.driverRow}>
-                    <View style={styles.driverBullet}>
-                      <Ionicons 
-                        name="flash-outline" 
-                        size={12} 
-                        color={intensityColor} 
-                      />
-                    </View>
-                    <View style={styles.driverContent}>
-                      <Text style={[styles.driverSource, { color: intensityColor }]}>
-                        {driver.source}
-                      </Text>
-                      <Text style={[styles.driverText, { color: theme.textSecondary }]}>
-                        {driver.text}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
+              <Text style={[styles.patternReasonText, { color: theme.textSecondary }]}>
+                {tension.pattern_reason}
+              </Text>
             </>
           )}
 
-          {/* Fallback to legacy drivers if no split WHY data */}
-          {(!tension.why_recurring || tension.why_recurring.length === 0) && 
-           (!tension.why_now || tension.why_now.length === 0) && 
-           tension.drivers.length > 0 && (
-            <>
-              <Text style={[styles.expandedHeader, { color: theme.textTertiary }]}>
-                WHAT'S DRIVING THIS
-              </Text>
-              <View style={styles.driversList}>
-                {tension.drivers.map((driver, index) => (
-                  <View key={index} style={styles.driverRow}>
-                    <View style={styles.driverBullet}>
-                      <Ionicons 
-                        name={(SOURCE_ICONS[driver.source] || 'ellipse') as any} 
-                        size={12} 
-                        color={theme.textTertiary} 
-                      />
-                    </View>
-                    <View style={styles.driverContent}>
-                      <Text style={[styles.driverSource, { color: theme.textTertiary }]}>
-                        {SOURCE_LABELS[driver.source] || driver.source}
-                      </Text>
-                      <Text style={[styles.driverText, { color: theme.textSecondary }]}>
-                        {driver.text}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </>
-          )}
-
-          {/* Tension Label */}
+          {/* V3.3: Dynamic Tension Label (situation-specific) */}
           <View style={[styles.tensionLabelBox, { borderColor: intensityColor + '30', marginTop: 16 }]}>
             <Text style={[styles.tensionLabelHeader, { color: theme.textTertiary }]}>
               THE TENSION
             </Text>
             <Text style={[styles.tensionLabel, { color: theme.text }]}>
-              {tension.tension_label}
+              {tension.tension_label_dynamic || tension.tension_label}
             </Text>
           </View>
 
@@ -406,7 +352,19 @@ const TensionCard: React.FC<TensionCardProps> = ({
             </Text>
           </View>
 
-          {/* V3 Scene Engine: Avoided Move */}
+          {/* V3.3: Section C - TECHNICAL (optional, astrology hidden layer) */}
+          {tension.why_now_technical && (
+            <View style={[styles.technicalBox, { borderColor: theme.border }]}>
+              <Text style={[styles.technicalHeader, { color: theme.textTertiary }]}>
+                TECHNICAL
+              </Text>
+              <Text style={[styles.technicalText, { color: theme.textTertiary }]}>
+                {tension.why_now_technical}
+              </Text>
+            </View>
+          )}
+
+          {/* Avoided Move */}
           {tension.avoided_move && (
             <View style={[styles.avoidedMoveBox, { backgroundColor: theme.cardBackground || theme.background }]}>
               <Text style={[styles.avoidedMoveLabel, { color: theme.textTertiary }]}>
@@ -491,6 +449,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 28,
     marginBottom: 8,
+  },
+
+  // V3.3: Cause line (why now)
+  causeLine: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
 
   // V3.1 Life Area Context
@@ -590,6 +556,43 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.8,
     marginBottom: 12,
+  },
+
+  // V3.3: Why now plain text
+  whyNowPlainText: {
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+
+  // V3.3: Pattern reason text
+  patternReasonText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
+    marginBottom: 16,
+  },
+
+  // V3.3: Technical section (hidden layer)
+  technicalBox: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    opacity: 0.7,
+  },
+  technicalHeader: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  technicalText: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontStyle: 'italic',
   },
 
   // Drivers

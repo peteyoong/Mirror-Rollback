@@ -1,45 +1,46 @@
 """
-Tension Engine V3.2 - Scene-Based Tension Resolution System
+Tension Engine V3.3 - Real-World Clarity System
 
 CORE PRINCIPLE:
 Mirror is NOT a lens aggregator.
-Mirror is a REAL-TIME SCENE ENGINE.
+Mirror is a REAL-TIME SCENE ENGINE that speaks in plain language.
 
-V3.2 EVOLUTION:
-Home must separate LONG-TERM WHY from CURRENT TRIGGER.
-- WHY THIS KEEPS HAPPENING: Pattern Memory, Enneagram, BaZi, HD
-- WHY IT'S ACTIVE NOW: Astrology transits, house activation, recent spike
+V3.3 EVOLUTION: EVENT → CAUSE → OBJECT → TENSION → MOVE
+Every card must be instantly understandable to a non-astrology user.
+User should immediately think: "yes, I know exactly what this is about"
 
-A resonant Home card contains:
-1. A CONCRETE OBJECT (the decision, conversation, message, move, unresolved thing)
-2. A FELT CONTRADICTION (you want X but you keep doing Y)
-3. A CURRENT STAKE (what this is costing right now)
-4. A SCENE-LIKE QUALITY (catches the user in the act)
-5. A LIFE AREA CONTEXT (grounds the tension in a real part of life)
-6. SEPARATED WHY LAYERS (recurring baseline vs current activation)
+V3.3 REQUIREMENTS:
+1. REAL-WORLD EVENT HOOK (moment): Something actually happening, not internal state
+2. CLEAR HUMAN CAUSE (cause_line): Why now, in human language (no astrology terms)
+3. EXPLICIT OBJECT (about): Concrete, real-life thing (decision, conversation, work)
+4. TIGHT CONTRADICTION: Simple and sharp, no fluff
+5. DYNAMIC TENSION LABEL: Situation-based, not generic ("Say it vs perfect it" not "Push vs Hold")
 
-V3.2 OUTPUT FIELDS:
-- moment: Sharp opening line (house-contextualized when strong)
-- life_area_context: Where in life this is happening
-- object_of_tension: What this is about (decision, conversation, etc.)
-- contradiction: The felt pull in opposite directions (house-shaped when possible)
-- current_cost: What this is costing right now (house-shaped when possible)
-- avoided_move: The thing not being done
-- why_recurring: Drivers explaining long-term pattern (PM, Enneagram, BaZi, HD)
-- why_now: Drivers explaining current activation (Astrology, recency spike)
-- trigger_confidence: recurring_only | recurring_plus_trigger | strongly_active_now
+V3.3 OUTPUT STRUCTURE:
+{
+  "moment": "... (real-world event)",
+  "cause_line": "... (why now, human language)",
+  "where": "... (life area)",
+  "about": "... (clear object)",
+  "contradiction": "...",
+  "current_cost": "...",
+  "supporting_line": "...",
+  "why_now_plain": "... (visible, no astrology)",
+  "pattern_reason": "... (behavioral tendency)",
+  "why_now_technical": "... (hidden, astrology details)",
+  "tension_label_dynamic": "... (situation-specific)",
+  "avoided_move": "...",
+  "micro_shift": "..."
+}
 
-LANGUAGE RULES:
-- PREFER: decision, conversation, move, message, commitment, naming, saying, acting
-- AVOID LEADING WITH: hesitation, tendency, pattern, dynamic, signal
-- HOUSE CONTEXT SHAPES COPY when confidence > 0.6
+LANGUAGE RULES (STRICT):
+- No vague words unless tied to object ("this", "it", "something" cannot stand alone)
+- Every sentence must be instantly understandable
+- No "self-help" tone, no over-explanation
+- Must feel like observation, not interpretation
+- Transits DRIVE the system but are HIDDEN (only in technical layer)
 
-CONFIDENCE MODES:
-- CONVERGED: 2+ strong lens signals → scene-based bold moment
-- REPEATING: Pattern memory strong → pattern-aware but still scene-based
-- LOW_SIGNAL: Weak evidence → observational, no bold claims
-
-OUTPUT: One scene, one contradiction, one cost.
+SUCCESS: Non-astrology user should NOT ask "what does this mean?"
 """
 
 import logging
@@ -1136,6 +1137,335 @@ V3_ENERGY_TITLES = {
         "Not saying it",
         "Swallowing it",
         "Silence building"
+    ]
+}
+
+
+# =============================================================================
+# V3.3: REAL-WORLD EVENT TEMPLATES (NOT INTERNAL STATES)
+# User should immediately think: "yes, I know exactly what this is about"
+# =============================================================================
+
+V33_REAL_WORLD_MOMENTS = {
+    "push_vs_hold": [
+        "You're sitting on a decision you already understand.",
+        "You're holding back a conversation that would move things forward.",
+        "There's a message you keep editing instead of sending.",
+        "You're circling a commitment instead of making it.",
+        "You're waiting for the right moment that keeps not arriving."
+    ],
+    "control_vs_flow": [
+        "You're managing something that would work better without your grip.",
+        "You keep checking on something that needs space.",
+        "You're steering a situation that wants to unfold on its own.",
+        "You're over-preparing for something that requires trust.",
+        "You're adjusting something that's already good enough."
+    ],
+    "precision_vs_progress": [
+        "You're refining something that should already be out.",
+        "You're polishing work that's ready to be seen.",
+        "You're editing instead of shipping.",
+        "You're holding back finished work for one more pass.",
+        "You're waiting until it's perfect, which means waiting."
+    ],
+    "visible_vs_hidden": [
+        "You're holding back something that wants to be shared.",
+        "You're staying quiet when there's something to say.",
+        "You're keeping your work to yourself when it's ready for others.",
+        "You're making yourself smaller than the space you could fill.",
+        "You're watching from the side when you could be in the room."
+    ],
+    "logic_vs_instinct": [
+        "You're researching a decision your gut already made.",
+        "You're looking for more information when you have enough.",
+        "You're thinking through something that needs feeling.",
+        "You're asking for opinions when you already know.",
+        "You're building a case for what you already believe."
+    ],
+    "self_vs_others": [
+        "You're adjusting your schedule around someone else's needs.",
+        "You're saying yes to something you want to decline.",
+        "You're prioritizing their comfort over your boundary.",
+        "You're taking care of their needs while ignoring your own.",
+        "You're keeping peace at the cost of your truth."
+    ],
+    "rest_vs_push": [
+        "You're pushing through exhaustion instead of resting.",
+        "You're adding more to a plate that's already full.",
+        "You're treating tiredness as weakness instead of information.",
+        "You're overriding your body's signals to keep going.",
+        "You're saying yes when your system is saying no."
+    ],
+    "clarity_vs_chaos": [
+        "You're trying to think your way to clarity that won't come from thinking.",
+        "You're searching for certainty in a situation that requires trust.",
+        "You're gathering more data when action would reveal more.",
+        "You're looking for the answer in the wrong place.",
+        "You're waiting for clarity that comes from doing, not thinking."
+    ],
+    "trust_vs_doubt": [
+        "You're double-checking something that's already been verified.",
+        "You're looking for reassurance when you've already decided.",
+        "You're asking 'are you sure?' when the answer is yes.",
+        "You're reviewing something that doesn't need another pass.",
+        "You're seeking certainty that won't come until you act."
+    ],
+    "expression_vs_suppression": [
+        "You're swallowing words that want to come out.",
+        "You're editing your truth before speaking it.",
+        "You're sitting on something that needs to be said.",
+        "You're holding back an honest response.",
+        "You're keeping quiet when silence is costing you."
+    ]
+}
+
+# V3.3: DYNAMIC TENSION LABELS (situation-specific, not generic)
+V33_DYNAMIC_TENSION_LABELS = {
+    "push_vs_hold": ["Act vs Wait", "Move vs Prepare", "Do it vs Think about it", "Decide vs Delay"],
+    "control_vs_flow": ["Grip vs Trust", "Manage vs Allow", "Steer vs Release", "Control vs Let go"],
+    "precision_vs_progress": ["Polish vs Ship", "Perfect vs Done", "Refine vs Release", "Edit vs Send"],
+    "visible_vs_hidden": ["Show up vs Hold back", "Speak vs Stay quiet", "Be seen vs Stay safe", "Share vs Protect"],
+    "logic_vs_instinct": ["Think vs Feel", "Research vs Decide", "Analyze vs Trust", "Know vs Do"],
+    "self_vs_others": ["Your needs vs Their needs", "Your truth vs Their comfort", "Boundary vs Peace", "Yes vs No"],
+    "rest_vs_push": ["Rest vs Push", "Stop vs Continue", "Pause vs Power through", "Enough vs More"],
+    "clarity_vs_chaos": ["Act vs Wait for clarity", "Trust vs Know for sure", "Move vs Understand first"],
+    "trust_vs_doubt": ["Trust vs Verify", "Proceed vs Check again", "Believe vs Doubt", "Act vs Reassure"],
+    "expression_vs_suppression": ["Say it vs Swallow it", "Speak vs Edit", "Truth vs Peace", "Express vs Suppress"]
+}
+
+# V3.3: CAUSE LINES (why now, in human language - NO astrology terms)
+V33_CAUSE_LINES = {
+    "push_vs_hold": [
+        "There's pressure right now to act before everything feels ready.",
+        "Something is asking you to move, and you're not moving yet.",
+        "The window is open. You're aware of it. You haven't stepped through.",
+        "You're being pushed toward action, but choosing preparation instead.",
+        "The moment is here. You're still getting ready for it."
+    ],
+    "control_vs_flow": [
+        "Something needs to happen without your management right now.",
+        "You're being asked to trust what you can't control.",
+        "The situation is asking for release, not more grip.",
+        "There's an invitation to step back and let things move.",
+        "What you're holding wants to be let go."
+    ],
+    "precision_vs_progress": [
+        "Something is pushing for expression, not refinement.",
+        "You're being called to ship, not polish.",
+        "The work wants to be seen. You're still editing.",
+        "There's pressure to release what's ready.",
+        "Done is being asked for. Perfect is being offered."
+    ],
+    "visible_vs_hidden": [
+        "There's an opening to be seen that you're not taking.",
+        "Something in you wants to show up. Another part is holding back.",
+        "Visibility is available. You're choosing invisibility.",
+        "You could take up more space right now. You're not.",
+        "There's room for you to speak. You're staying quiet."
+    ],
+    "logic_vs_instinct": [
+        "Your gut has an answer. Your mind is still researching.",
+        "You already know. You're looking for permission.",
+        "The feeling is clear. The thinking hasn't caught up.",
+        "Your instinct spoke first. Your logic is trying to verify.",
+        "The answer exists. You're building a case around it."
+    ],
+    "self_vs_others": [
+        "Your needs are being overridden by someone else's.",
+        "There's a boundary that wants to exist. You haven't named it.",
+        "You're putting their comfort ahead of your truth.",
+        "Something in you wants to say no. You're saying yes instead.",
+        "You're adapting when you could be asserting."
+    ],
+    "rest_vs_push": [
+        "Your system is asking for pause. You're not listening.",
+        "There's a signal to stop. You're pushing through it.",
+        "Rest is being requested. You're overriding the request.",
+        "Your body knows what it needs. Your mind is arguing.",
+        "The push is costing more than it's producing."
+    ],
+    "clarity_vs_chaos": [
+        "Clarity won't come from more thinking right now.",
+        "Action would reveal more than analysis.",
+        "You're seeking certainty that only movement can provide.",
+        "The fog won't lift from waiting. It lifts from walking.",
+        "What you need to know will come from doing."
+    ],
+    "trust_vs_doubt": [
+        "The reassurance you're seeking won't come from checking again.",
+        "You've already verified. You're still doubting.",
+        "Trust is being asked for. Doubt is being offered.",
+        "Certainty won't come from more information.",
+        "You're looking for proof that only action can provide."
+    ],
+    "expression_vs_suppression": [
+        "Something in you needs to be said right now.",
+        "The words are ready. You're holding them back.",
+        "There's a truth pressing forward. You're editing it.",
+        "Silence is costing more than speaking would.",
+        "What's unsaid is louder than what's spoken."
+    ]
+}
+
+# V3.3: TIGHT CONTRADICTIONS (simple and sharp, no fluff)
+V33_TIGHT_CONTRADICTIONS = {
+    "push_vs_hold": [
+        "You know what to do. You're waiting anyway.",
+        "The answer is clear. The action isn't happening.",
+        "Ready to move. Still standing still.",
+        "Part of you is ready. Part of you wants certainty first.",
+        "You understand. You're not acting on it."
+    ],
+    "control_vs_flow": [
+        "Wanting it to work. Not letting it work.",
+        "Trust is available. You're choosing grip instead.",
+        "Release would help. You're holding tighter.",
+        "You want ease. You're creating friction.",
+        "The way forward is letting go. You're holding on."
+    ],
+    "precision_vs_progress": [
+        "It's ready. You're still refining.",
+        "Good enough exists. You're not accepting it.",
+        "Done is available. Perfect is being chased.",
+        "Ship it or keep editing. You're choosing editing.",
+        "The work is finished. You're still working on it."
+    ],
+    "visible_vs_hidden": [
+        "Want to be seen. Choosing to hide.",
+        "Something to say. Staying quiet.",
+        "Room to take up. Making yourself smaller.",
+        "Ready to show up. Holding back.",
+        "Space is available. You're not filling it."
+    ],
+    "logic_vs_instinct": [
+        "You feel it. You're still thinking about it.",
+        "The gut says yes. The mind says 'but...'",
+        "You know. You're looking for proof.",
+        "The answer is felt. You're building a case.",
+        "Instinct is clear. Logic is arguing."
+    ],
+    "self_vs_others": [
+        "Your need exists. You're prioritizing theirs.",
+        "Truth is available. You're protecting their comfort.",
+        "Boundary is ready. Peace is being kept instead.",
+        "You want to say no. You're saying yes.",
+        "Your truth is here. Their feelings come first."
+    ],
+    "rest_vs_push": [
+        "Body says stop. You're still going.",
+        "Rest is needed. Push is happening.",
+        "The signal is clear. You're ignoring it.",
+        "Enough is here. More is being demanded.",
+        "Pause is asked for. You're powering through."
+    ],
+    "clarity_vs_chaos": [
+        "Action would help. Thinking is happening.",
+        "Movement creates clarity. You're staying still.",
+        "Doing would reveal. Waiting is chosen.",
+        "The answer comes from moving. You're analyzing.",
+        "Clarity lives in action. You're seeking it in thought."
+    ],
+    "trust_vs_doubt": [
+        "Done checking. Still doubting.",
+        "Verified. Not believed.",
+        "Evidence exists. Trust doesn't.",
+        "You've confirmed. You're still unsure.",
+        "Proof is there. You're looking for more."
+    ],
+    "expression_vs_suppression": [
+        "Words are ready. Silence is chosen.",
+        "Truth is available. It's being edited.",
+        "Something to say. Nothing being said.",
+        "The real thing is held back.",
+        "Speak or swallow. You're swallowing."
+    ]
+}
+
+# V3.3: PATTERN REASONS (behavioral tendency, plain language)
+V33_PATTERN_REASONS = {
+    "push_vs_hold": "You tend to wait until it feels right. It rarely does.",
+    "control_vs_flow": "You default to managing when you feel uncertain.",
+    "precision_vs_progress": "You'd rather perfect than be seen imperfect.",
+    "visible_vs_hidden": "Safety feels like staying small. It's not.",
+    "logic_vs_instinct": "You trust thinking more than feeling. That's the pattern.",
+    "self_vs_others": "You accommodate before asserting. That's the habit.",
+    "rest_vs_push": "You override your body. It keeps track.",
+    "clarity_vs_chaos": "You seek understanding before acting. Sometimes action is understanding.",
+    "trust_vs_doubt": "Doubt feels like protection. It's mostly delay.",
+    "expression_vs_suppression": "You edit before you speak. Sometimes the edit is silence."
+}
+
+# V3.3: EXPLICIT OBJECTS (mandatory, concrete)
+V33_EXPLICIT_OBJECTS = {
+    "push_vs_hold": [
+        "the decision you've been circling",
+        "the conversation you haven't had",
+        "the message you keep not sending",
+        "the commitment you haven't named out loud",
+        "the move you keep almost making"
+    ],
+    "control_vs_flow": [
+        "the situation you keep checking on",
+        "the outcome you're trying to manage",
+        "the thing you won't let unfold without you",
+        "the process you keep interrupting",
+        "the result you're gripping too tightly"
+    ],
+    "precision_vs_progress": [
+        "the work you're not ready to show",
+        "the thing that's done but you keep refining",
+        "the project that's ready but not released",
+        "the draft that keeps getting edited",
+        "the creation that's waiting to be seen"
+    ],
+    "visible_vs_hidden": [
+        "the thing you haven't shared yet",
+        "the truth you're keeping to yourself",
+        "the voice you're not using",
+        "the opinion you're not offering",
+        "the space you're not taking"
+    ],
+    "logic_vs_instinct": [
+        "the choice you already know the answer to",
+        "the decision your gut already made",
+        "the thing you're researching instead of doing",
+        "the answer you keep looking for permission on",
+        "the knowing you're not acting on"
+    ],
+    "self_vs_others": [
+        "the boundary you haven't named",
+        "the no you're not saying",
+        "the yes that should be a no",
+        "the need you're not expressing",
+        "the truth you're softening for them"
+    ],
+    "rest_vs_push": [
+        "the pause you're not taking",
+        "the rest you're postponing",
+        "the break you keep skipping",
+        "the recovery you're delaying",
+        "the stop you're not allowing"
+    ],
+    "clarity_vs_chaos": [
+        "the action that would create clarity",
+        "the step you're overthinking",
+        "the move that would reveal the path",
+        "the experiment you're not running",
+        "the doing you're replacing with thinking"
+    ],
+    "trust_vs_doubt": [
+        "the thing you've already verified",
+        "the decision you keep second-guessing",
+        "the choice you've made but not committed to",
+        "the plan you keep questioning",
+        "the answer you have but don't trust"
+    ],
+    "expression_vs_suppression": [
+        "the thing you haven't said yet",
+        "the truth you're sitting on",
+        "the words you keep editing",
+        "the response you're holding back",
+        "the conversation you're avoiding"
     ]
 }
 
@@ -2291,49 +2621,101 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
     # V3.1: Derive life area context for grounding (do this early so we can shape copy)
     life_area = await derive_life_area_context(db, user_id, dominant_signals, dominant_cluster)
     life_area_context = None
+    house_num = None
     if life_area:
+        house_num = life_area.house
         life_area_context = {
             "label": life_area.label,
             "source": life_area.source,
             "house": life_area.house,
             "confidence": round(life_area.confidence, 2)
         }
-        logger.info(f"[TensionEngine V3.2] Life area: {life_area.label} (source={life_area.source}, conf={life_area.confidence})")
+        logger.info(f"[TensionEngine V3.3] Life area: {life_area.label} (source={life_area.source}, conf={life_area.confidence})")
     
-    # V3.2: Apply house context to shape copy when confidence is strong
-    moment, contradiction, current_cost = apply_house_context_to_copy(
-        life_area,
-        dominant_cluster,
-        default_moment,
-        default_contradiction,
-        default_cost
-    )
+    # V3.3: Use real-world moment templates
+    v33_moments = V33_REAL_WORLD_MOMENTS.get(dominant_cluster, V33_REAL_WORLD_MOMENTS.get("push_vs_hold"))
+    moment = v33_moments[seed % len(v33_moments)]
+    
+    # V3.3: Apply house context to shape moment if strong confidence
+    if life_area and life_area.confidence >= 0.6 and house_num:
+        house_moments = HOUSE_CONTEXTUALIZED_MOMENTS.get(house_num, {})
+        if dominant_cluster in house_moments:
+            moment = house_moments[dominant_cluster]
+    
+    # V3.3: Get cause line (why now, human language)
+    cause_lines = V33_CAUSE_LINES.get(dominant_cluster, V33_CAUSE_LINES.get("push_vs_hold"))
+    cause_line = cause_lines[seed % len(cause_lines)]
+    
+    # V3.3: Get explicit object (mandatory)
+    objects = V33_EXPLICIT_OBJECTS.get(dominant_cluster, V33_EXPLICIT_OBJECTS.get("push_vs_hold"))
+    about = objects[seed % len(objects)]
+    
+    # V3.3: Get tight contradiction
+    contradictions = V33_TIGHT_CONTRADICTIONS.get(dominant_cluster, V33_TIGHT_CONTRADICTIONS.get("push_vs_hold"))
+    contradiction = contradictions[seed % len(contradictions)]
+    
+    # V3.3: Apply house context to contradiction if strong
+    if life_area and life_area.confidence >= 0.6 and house_num:
+        if house_num in HOUSE_CONTEXTUALIZED_CONTRADICTIONS:
+            contradiction = HOUSE_CONTEXTUALIZED_CONTRADICTIONS[house_num]
+    
+    # V3.3: Get current cost (house-shaped if possible)
+    current_cost = scene["costs"][seed % len(scene["costs"])]
+    if life_area and life_area.confidence >= 0.6 and house_num:
+        if house_num in HOUSE_CONTEXTUALIZED_COSTS:
+            current_cost = HOUSE_CONTEXTUALIZED_COSTS[house_num]
+    
+    # V3.3: Dynamic tension label (situation-specific)
+    dynamic_labels = V33_DYNAMIC_TENSION_LABELS.get(dominant_cluster, ["Move vs Wait"])
+    tension_label_dynamic = dynamic_labels[seed % len(dynamic_labels)]
+    
+    # V3.3: Pattern reason (behavioral tendency)
+    pattern_reason = V33_PATTERN_REASONS.get(dominant_cluster, "This is a recurring pattern.")
     
     # V3.2: Determine trigger confidence
     trigger_confidence = determine_trigger_confidence(dominant_signals)
-    logger.info(f"[TensionEngine V3.2] Trigger confidence: {trigger_confidence.value}")
+    logger.info(f"[TensionEngine V3.3] Trigger confidence: {trigger_confidence.value}")
     
     # V3.2: Split drivers into why_recurring and why_now
     why_recurring, why_now = split_drivers_by_why(dominant_signals)
+    
+    # V3.3: Generate why_now_plain (visible, no astrology terms)
+    if trigger_confidence == TriggerConfidence.STRONGLY_ACTIVE_NOW:
+        why_now_plain = cause_line  # Use the cause line directly
+    elif trigger_confidence == TriggerConfidence.RECURRING_PLUS_TRIGGER:
+        why_now_plain = "Something is amplifying this pattern right now."
+    else:
+        why_now_plain = "This is a recurring pattern, not a new trigger."
+    
+    # V3.3: Technical explanation (hidden layer, only for debug/accordion)
+    why_now_technical = None
+    for signal in dominant_signals:
+        if signal.source == "astrology":
+            transit = signal.raw_data.get("transit", "") or signal.raw_data.get("aspect", "")
+            if transit:
+                why_now_technical = f"Transit activation: {transit}"
+            else:
+                why_now_technical = "Current planetary positions are activating this area of your chart."
+            break
     
     # Mode-specific supporting line
     if mode == ConfidenceMode.CONVERGED:
         supporting_line = CONVERGED_SUPPORTING[seed % len(CONVERGED_SUPPORTING)]
     elif mode == ConfidenceMode.REPEATING:
-        # V3.2: For repeating, be honest about what's driving it
+        # V3.3: Be honest about recurrence
         if trigger_confidence == TriggerConfidence.RECURRING_ONLY:
             supporting_variations = [
-                "This keeps happening. Not just today.",
-                "You've been here before. The pattern is structural.",
-                "This is a familiar stuck point, not a new one.",
+                "This keeps happening. The pattern is real.",
+                "You've been here before. That's the information.",
+                "This is familiar territory. That's worth noticing.",
                 "The recurrence is the message."
             ]
         else:
             supporting_variations = [
-                f"You've circled {object_of_tension} before. Something is amplifying it now.",
-                "This scene is familiar, but today it's louder.",
-                "You've been here before. Today, something's pushing it forward.",
-                "The pattern is recognizable. Today, it's pressing."
+                f"You've circled {about} before. Today it's pressing.",
+                "This is familiar, but something is amplifying it now.",
+                "You've been here before. Today, it's louder.",
+                "The pattern is back, and it's asking for attention."
             ]
         supporting_line = supporting_variations[seed % len(supporting_variations)]
     else:
@@ -2341,7 +2723,7 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
     
     micro_shift = f"Start with {avoided_move}." if len(avoided_move) < 30 else scene["avoided_moves"][(seed + 1) % len(scene["avoided_moves"])]
     
-    # V3.2: Generate synthesis based on trigger confidence
+    # V3.3: Generate synthesis based on trigger confidence
     driver_synthesis = generate_v32_synthesis(
         trigger_confidence,
         why_recurring,
@@ -2349,7 +2731,7 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
         life_area.label if life_area else None
     )
     
-    # Keep old drivers format for backward compatibility, but add new structure
+    # Keep old drivers format for backward compatibility
     drivers = generate_v3_drivers(dominant_signals)
     
     # Calculate overall confidence and intensity
@@ -2358,28 +2740,38 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
     
     return {
         "mode": mode.value,
-        "trigger_confidence": trigger_confidence.value,  # V3.2: NEW
-        "tension_label": tension_label,
-        "energy_title": energy_title,
+        "trigger_confidence": trigger_confidence.value,
+        # V3.3: New output structure
         "moment": moment,
-        "life_area_context": life_area_context,
-        "object_of_tension": object_of_tension,
+        "cause_line": cause_line,
+        "where": life_area.label if life_area else None,
+        "about": about,
         "contradiction": contradiction,
         "current_cost": current_cost,
-        "avoided_move": avoided_move,
         "supporting_line": supporting_line,
+        # V3.3: WHY layers (visible)
+        "why_now_plain": why_now_plain,
+        "pattern_reason": pattern_reason,
+        # V3.3: Technical (hidden)
+        "why_now_technical": why_now_technical,
+        # V3.3: Dynamic tension label
+        "tension_label_dynamic": tension_label_dynamic,
+        "tension_label": tension_label,  # Keep old for compat
+        "energy_title": energy_title,
+        "avoided_move": avoided_move,
         "micro_shift": micro_shift,
-        # V3.2: Split WHY layers
+        # V3.2 backward compat
+        "life_area_context": life_area_context,
+        "object_of_tension": about,  # Alias for compat
         "why_recurring": why_recurring,
         "why_now": why_now,
-        # Keep old drivers for backward compat
         "drivers": drivers,
         "driver_synthesis": driver_synthesis,
         "confidence": round(avg_confidence, 2),
         "intensity": round(avg_intensity, 2),
         "fallback_used": False,
         "debug": {
-            "version": "v3.2_scene_engine",
+            "version": "v3.3_clarity_engine",
             "cluster": dominant_cluster,
             "dominance_score": round(dominance_score, 2),
             "signal_count": len(signals),
