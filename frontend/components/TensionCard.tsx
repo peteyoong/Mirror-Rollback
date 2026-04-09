@@ -44,6 +44,7 @@ interface TensionDriver {
 
 interface TensionData {
   success: boolean;
+  mode: 'converged' | 'repeating' | 'low_signal';  // V2: Confidence mode
   tension_label: string;
   energy_title: string;
   moment: string;
@@ -54,6 +55,14 @@ interface TensionData {
   confidence: number;
   intensity: number;
   fallback_used: boolean;
+  debug?: {
+    cluster: string;
+    dominance_score: number;
+    signal_count: number;
+    strong_signal_count: number;
+    mode_reason: string;
+    signals_used: string[];
+  };
 }
 
 interface TensionCardProps {

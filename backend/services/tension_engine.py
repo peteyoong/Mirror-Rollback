@@ -1,16 +1,20 @@
 """
-Tension Engine V1.0 - Real-Time Tension Resolution System
+Tension Engine V2.0 - Real-Time Tension Resolution System
 
 CORE PRINCIPLE:
 Mirror is NOT a lens aggregator.
 Mirror is a REAL-TIME TENSION ENGINE.
 
-This engine:
-1. Extracts standardized signals from each lens
-2. Clusters similar tensions
-3. Scores dominance (Pattern Memory weighted highest)
-4. Resolves to ONE dominant tension
-5. Generates sharp, immediate language
+V2.0 CHANGES:
+- 3 confidence modes: CONVERGED, REPEATING, LOW_SIGNAL
+- Requires real multi-lens evidence for strong output
+- Honest language when evidence is thin
+- Better driver text (concrete, not filler)
+
+CONFIDENCE MODES:
+- MODE A (CONVERGED): 2+ strong lens signals align → bold moment card
+- MODE B (REPEATING): Pattern memory strong, multi-lens weak → recurrence card
+- MODE C (LOW_SIGNAL): Evidence weak → modest, observational card
 
 DOMINANCE WEIGHTS:
 - Pattern Memory: 0.45 (highest)
@@ -20,18 +24,30 @@ DOMINANCE WEIGHTS:
 
 DOMAINS: action, decision, emotion, relationship, control
 
-OUTPUT: One tension, one moment, one truth.
+OUTPUT: One tension, one moment, honest confidence level.
 """
 
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional, Tuple
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from collections import defaultdict
+from enum import Enum
 import hashlib
 import random
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# CONFIDENCE MODES
+# =============================================================================
+
+class ConfidenceMode(Enum):
+    """Three modes based on evidence strength."""
+    CONVERGED = "converged"      # 2+ strong lens signals align
+    REPEATING = "repeating"      # Pattern memory strong, multi-lens weak
+    LOW_SIGNAL = "low_signal"    # Evidence weak overall
 
 
 # =============================================================================
@@ -47,7 +63,8 @@ class TensionSignal:
     confidence: float      # 0.0 - 1.0
     domain: str            # action, decision, emotion, relationship, control
     source: str            # pattern_memory, astrology, human_design, bazi, enneagram
-    raw_data: Dict = None  # Original lens data for evidence
+    raw_data: Dict = field(default_factory=dict)  # Original lens data for evidence
+    evidence_text: str = ""  # Concrete evidence statement for this signal
 
 
 # =============================================================================
@@ -419,6 +436,220 @@ MICRO_SHIFTS = {
 
 
 # =============================================================================
+# V2: MODE-SPECIFIC MOMENT TEMPLATES
+# =============================================================================
+
+# MODE A: CONVERGED - Strong multi-lens alignment (bold, undeniable)
+CONVERGED_MOMENTS = {
+    "push_vs_hold": [
+        "You already know. You still haven't moved.",
+        "The hesitation isn't confusion anymore. It's avoidance.",
+        "You're stalling in the name of clarity.",
+        "Every lens is saying the same thing: move.",
+        "This is the moment you keep rehearsing but not taking."
+    ],
+    "control_vs_flow": [
+        "You're managing what needs to unfold.",
+        "The grip is showing up everywhere.",
+        "This isn't planning. It's resisting.",
+        "Every system in you is trying to hold something still.",
+        "You're trying to control the uncontrollable."
+    ],
+    "precision_vs_progress": [
+        "You're perfecting instead of completing.",
+        "The polish is the procrastination.",
+        "This isn't quality control. It's hiding.",
+        "You've crossed from careful into stuck.",
+        "Done is the word you're avoiding."
+    ],
+    "visible_vs_hidden": [
+        "You're ready to be seen. You're still hiding.",
+        "The world is waiting. You're not showing up.",
+        "Every part of you is pulling back.",
+        "Invisibility isn't protecting you anymore.",
+        "You're making yourself smaller than you are."
+    ],
+    "logic_vs_instinct": [
+        "You know the answer. You're talking yourself out of it.",
+        "The gut spoke. The head overruled.",
+        "Analysis is your delay tactic.",
+        "More thinking won't change what you already know.",
+        "You're researching what you should be doing."
+    ],
+    "self_vs_others": [
+        "You're disappearing into someone else's needs.",
+        "The resentment is building. You're still saying yes.",
+        "Their comfort is costing you.",
+        "You've been overfunctioning again.",
+        "You're giving what you need for yourself."
+    ],
+    "rest_vs_push": [
+        "You're pushing past empty.",
+        "Your body is asking. Your mind is refusing.",
+        "This isn't discipline. It's depletion.",
+        "Every signal says rest. You're ignoring them all.",
+        "You're running on fumes and calling it commitment."
+    ],
+    "clarity_vs_chaos": [
+        "You're looking for certainty that doesn't exist.",
+        "The fog isn't lifting because you keep stirring it.",
+        "Too many options is another word for avoidance.",
+        "You're spinning because landing feels risky.",
+        "Clarity won't come from more thinking."
+    ],
+    "trust_vs_doubt": [
+        "You're questioning what you already decided.",
+        "The doubt is running the show now.",
+        "Proof isn't coming. You have to choose.",
+        "This isn't skepticism. It's self-sabotage.",
+        "You're waiting for permission that won't arrive."
+    ],
+    "expression_vs_suppression": [
+        "The words are ready. You're choking them back.",
+        "What you're not saying is building pressure.",
+        "Silence isn't peace right now. It's avoidance.",
+        "You're protecting something that doesn't need protecting.",
+        "This truth wants out. You're holding the door closed."
+    ]
+}
+
+# MODE B: REPEATING - Pattern memory strong, limited multi-lens (honest recurrence)
+REPEATING_MOMENTS = {
+    "push_vs_hold": [
+        "This hesitation is repeating again.",
+        "You've been here before. Same stall.",
+        "The pattern is familiar: almost moving, then not.",
+        "This is the same spot you keep returning to.",
+        "Hesitation is your default. It's showing again."
+    ],
+    "control_vs_flow": [
+        "This grip is familiar.",
+        "You've tried to control this before.",
+        "The pattern: tighten, then wonder why nothing moves.",
+        "Control mode activated. Again.",
+        "You keep returning to managing instead of allowing."
+    ],
+    "precision_vs_progress": [
+        "The perfectionism is back.",
+        "Same pattern: refine instead of release.",
+        "You've done this editing loop before.",
+        "Quality as delay. Again.",
+        "This polishing pattern is repeating."
+    ],
+    "visible_vs_hidden": [
+        "You're pulling back again. Same pattern.",
+        "Hiding is familiar territory.",
+        "This shrinking is something you've done before.",
+        "The invisibility pattern is active.",
+        "You keep returning to the shadows."
+    ],
+    "logic_vs_instinct": [
+        "Overthinking. Again.",
+        "You've analyzed your way out of action before.",
+        "This is a familiar loop: think instead of do.",
+        "The head-over-gut pattern is back.",
+        "Same loop: research, doubt, stall."
+    ],
+    "self_vs_others": [
+        "Over-giving is showing up again.",
+        "This pattern: their needs first, yours ignored.",
+        "You've been here before. Giving too much.",
+        "The accommodation pattern is active.",
+        "Same dynamic: them first, you later."
+    ],
+    "rest_vs_push": [
+        "Pushing past tired. Again.",
+        "This pattern: ignore the body, keep going.",
+        "You've depleted yourself this way before.",
+        "The override pattern is back.",
+        "Same loop: exhaustion ignored."
+    ],
+    "clarity_vs_chaos": [
+        "Scattered again. Same pattern.",
+        "You've spun like this before.",
+        "The too-many-directions pattern is active.",
+        "This confusion loop is familiar.",
+        "Same pattern: options without decisions."
+    ],
+    "trust_vs_doubt": [
+        "Doubt is back. Same pattern.",
+        "You've questioned like this before.",
+        "The suspicion loop is active.",
+        "This is familiar: trust, then pull back.",
+        "Same pattern: wait for proof that won't come."
+    ],
+    "expression_vs_suppression": [
+        "Holding back again. Same pattern.",
+        "You've swallowed words like this before.",
+        "The silence pattern is active.",
+        "Same loop: things unsaid building up.",
+        "This suppression is familiar."
+    ]
+}
+
+# MODE C: LOW_SIGNAL - Weak evidence (modest, observational)
+LOW_SIGNAL_MOMENTS = {
+    "default": [
+        "Something is building, but not fully clear yet.",
+        "There's movement happening. Hard to name yet.",
+        "A signal is forming. Not loud yet.",
+        "Something is present. Watching it.",
+        "Quiet activity. Worth noticing."
+    ]
+}
+
+# V2: Mode-specific energy titles
+CONVERGED_TITLES = [
+    "Multiple Signals Aligning",
+    "Clear Convergence",
+    "Strong Signal",
+    "Undeniable",
+    "Everything Pointing Here"
+]
+
+REPEATING_TITLES = [
+    "Familiar Pattern",
+    "Here Again",
+    "Recurring",
+    "Same Territory", 
+    "Pattern Repeating"
+]
+
+LOW_SIGNAL_TITLES = [
+    "Watching",
+    "Something Forming",
+    "Quiet Signal",
+    "Early Movement",
+    "Not Clear Yet"
+]
+
+# V2: Mode-specific supporting lines
+CONVERGED_SUPPORTING = [
+    "Multiple lenses agree.",
+    "Hard to argue with this one.",
+    "Everything is pointing the same direction.",
+    "Not just one signal.",
+    "Convergence."
+]
+
+REPEATING_SUPPORTING = [
+    "This pattern keeps returning.",
+    "You've seen this before.",
+    "Familiar territory.",
+    "Same place, different day.",
+    "The pattern is consistent."
+]
+
+LOW_SIGNAL_SUPPORTING = [
+    "Signal is forming.",
+    "Too early to be sure.",
+    "Stay with it.",
+    "Not enough evidence yet.",
+    "Watching."
+]
+
+
+# =============================================================================
 # SIGNAL EXTRACTION FROM LENSES
 # =============================================================================
 
@@ -489,7 +720,8 @@ async def extract_pattern_memory_signal(db, user_id: str) -> Optional[TensionSig
                 "frequency": frequency,
                 "recent_date": recent_date,
                 "cluster": cluster_key
-            }
+            },
+            evidence_text=f"This same pattern has repeated {frequency} times in the last two weeks." if frequency >= 3 else "This pattern is returning."
         )
     except Exception as e:
         logger.error(f"[TensionEngine] Pattern memory extraction failed: {e}")
@@ -553,7 +785,8 @@ async def extract_astrology_signal(db, user_id: str) -> Optional[TensionSignal]:
                 "theme": tension_text,
                 "intensity": intensity,
                 "cluster": cluster_key
-            }
+            },
+            evidence_text="Current transits are applying pressure to your chart."
         )
     except Exception as e:
         logger.error(f"[TensionEngine] Astrology extraction failed: {e}")
@@ -614,7 +847,8 @@ async def extract_human_design_signal(db, user_id: str) -> Optional[TensionSigna
                 "type": hd_type,
                 "authority": authority,
                 "cluster": cluster_key
-            }
+            },
+            evidence_text=tension_text
         )
     except Exception as e:
         logger.error(f"[TensionEngine] Human Design extraction failed: {e}")
@@ -658,7 +892,8 @@ async def extract_bazi_signal(db, user_id: str) -> Optional[TensionSignal]:
             raw_data={
                 "insight": today_insight,
                 "cluster": cluster_key
-            }
+            },
+            evidence_text="Your chart structure favors precision over speed."
         )
     except Exception as e:
         logger.error(f"[TensionEngine] BaZi extraction failed: {e}")
@@ -710,7 +945,8 @@ async def extract_enneagram_signal(db, user_id: str) -> Optional[TensionSignal]:
             raw_data={
                 "type": enneagram_type,
                 "cluster": cluster_key
-            }
+            },
+            evidence_text=tension_text
         )
     except Exception as e:
         logger.error(f"[TensionEngine] Enneagram extraction failed: {e}")
@@ -925,92 +1161,162 @@ def generate_driver_synthesis(cluster_key: str, signals: List[TensionSignal]) ->
 
 async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
     """
-    Main function: Generate the Home tension moment.
+    V2: Generate the Home tension moment with confidence modes.
     
-    Returns the complete API response with:
+    CONFIDENCE MODES:
+    - CONVERGED: 2+ strong lens signals align → bold moment card
+    - REPEATING: Pattern memory strong, multi-lens weak → recurrence card
+    - LOW_SIGNAL: Evidence weak → modest, observational card
+    
+    Returns:
+    - mode: which confidence mode was selected
     - tension_label
     - energy_title
     - moment
     - supporting_line
     - micro_shift
-    - drivers
+    - drivers (with concrete evidence text)
     - driver_synthesis
     - confidence
     - intensity
-    - fallback_used
+    - debug info
     """
-    logger.info(f"[TensionEngine] Generating tension for user {user_id}")
+    logger.info(f"[TensionEngine V2] Generating tension for user {user_id}")
     
-    # Collect signals from all lenses (prioritize Pattern Memory, Astrology, HD)
+    # Collect signals from all lenses
     signals = []
+    signal_debug = {}
     
     # Pattern Memory - HIGHEST PRIORITY
     pm_signal = await extract_pattern_memory_signal(db, user_id)
     if pm_signal:
         signals.append(pm_signal)
-        logger.info(f"[TensionEngine] Pattern Memory signal: {pm_signal.tension}")
+        signal_debug["pattern_memory"] = {
+            "found": True,
+            "tension": pm_signal.tension,
+            "confidence": pm_signal.confidence,
+            "intensity": pm_signal.intensity,
+            "evidence": pm_signal.evidence_text
+        }
+        logger.info(f"[TensionEngine V2] Pattern Memory: {pm_signal.tension} (conf={pm_signal.confidence:.2f})")
+    else:
+        signal_debug["pattern_memory"] = {"found": False}
     
     # Astrology
     astro_signal = await extract_astrology_signal(db, user_id)
     if astro_signal:
         signals.append(astro_signal)
-        logger.info(f"[TensionEngine] Astrology signal: {astro_signal.tension}")
+        signal_debug["astrology"] = {
+            "found": True,
+            "tension": astro_signal.tension,
+            "confidence": astro_signal.confidence,
+            "intensity": astro_signal.intensity,
+            "evidence": astro_signal.evidence_text
+        }
+        logger.info(f"[TensionEngine V2] Astrology: {astro_signal.tension} (conf={astro_signal.confidence:.2f})")
+    else:
+        signal_debug["astrology"] = {"found": False}
     
     # Human Design
     hd_signal = await extract_human_design_signal(db, user_id)
     if hd_signal:
         signals.append(hd_signal)
-        logger.info(f"[TensionEngine] Human Design signal: {hd_signal.tension}")
+        signal_debug["human_design"] = {
+            "found": True,
+            "tension": hd_signal.tension,
+            "confidence": hd_signal.confidence,
+            "intensity": hd_signal.intensity,
+            "evidence": hd_signal.evidence_text
+        }
+        logger.info(f"[TensionEngine V2] Human Design: {hd_signal.tension} (conf={hd_signal.confidence:.2f})")
+    else:
+        signal_debug["human_design"] = {"found": False}
     
-    # BaZi (secondary priority)
+    # BaZi
     bazi_signal = await extract_bazi_signal(db, user_id)
     if bazi_signal:
         signals.append(bazi_signal)
-        logger.info(f"[TensionEngine] BaZi signal: {bazi_signal.tension}")
+        signal_debug["bazi"] = {
+            "found": True,
+            "tension": bazi_signal.tension,
+            "confidence": bazi_signal.confidence,
+            "intensity": bazi_signal.intensity,
+            "evidence": bazi_signal.evidence_text
+        }
+        logger.info(f"[TensionEngine V2] BaZi: {bazi_signal.tension} (conf={bazi_signal.confidence:.2f})")
+    else:
+        signal_debug["bazi"] = {"found": False}
     
-    # Enneagram (secondary priority)
+    # Enneagram
     enneagram_signal = await extract_enneagram_signal(db, user_id)
     if enneagram_signal:
         signals.append(enneagram_signal)
-        logger.info(f"[TensionEngine] Enneagram signal: {enneagram_signal.tension}")
+        signal_debug["enneagram"] = {
+            "found": True,
+            "tension": enneagram_signal.tension,
+            "confidence": enneagram_signal.confidence,
+            "intensity": enneagram_signal.intensity,
+            "evidence": enneagram_signal.evidence_text
+        }
+        logger.info(f"[TensionEngine V2] Enneagram: {enneagram_signal.tension} (conf={enneagram_signal.confidence:.2f})")
+    else:
+        signal_debug["enneagram"] = {"found": False}
+    
+    # Count strong signals (confidence >= 0.6 and not pattern_memory alone)
+    non_pm_signals = [s for s in signals if s.source != "pattern_memory"]
+    strong_non_pm = [s for s in non_pm_signals if s.confidence >= 0.6]
+    has_strong_pm = pm_signal is not None and pm_signal.confidence >= 0.6
+    
+    # Determine confidence mode
+    total_signals = len(signals)
+    strong_signals = len([s for s in signals if s.confidence >= 0.6])
+    
+    if len(strong_non_pm) >= 2 or (len(strong_non_pm) >= 1 and has_strong_pm and total_signals >= 3):
+        mode = ConfidenceMode.CONVERGED
+    elif has_strong_pm and total_signals <= 2:
+        mode = ConfidenceMode.REPEATING
+    elif total_signals >= 1:
+        # At least one signal but not converged
+        if has_strong_pm:
+            mode = ConfidenceMode.REPEATING
+        else:
+            mode = ConfidenceMode.LOW_SIGNAL
+    else:
+        mode = ConfidenceMode.LOW_SIGNAL
+    
+    logger.info(f"[TensionEngine V2] Mode: {mode.value} (total={total_signals}, strong_non_pm={len(strong_non_pm)}, has_strong_pm={has_strong_pm})")
     
     # Handle no signals case
     if not signals:
-        logger.warning(f"[TensionEngine] No signals extracted for user {user_id}")
-        return {
-            "tension_label": "Unclear",
-            "energy_title": "Something Building",
-            "moment": "Something is building, but not fully clear yet.",
-            "supporting_line": "Stay with it.",
-            "micro_shift": "Notice what's happening without naming it.",
-            "drivers": [],
-            "driver_synthesis": "The signal is forming.",
-            "confidence": 0.3,
-            "intensity": 0.4,
-            "fallback_used": True
-        }
+        logger.warning(f"[TensionEngine V2] No signals for user {user_id}")
+        return _generate_low_signal_response(user_id, signal_debug)
     
-    # Cluster signals
+    # Cluster signals and select dominant
     clustered = cluster_signals(signals)
-    logger.info(f"[TensionEngine] Clustered into {len(clustered)} groups")
-    
-    # Select dominant tension
     dominant_cluster, dominant_signals, dominance_score = select_dominant_tension(clustered)
-    logger.info(f"[TensionEngine] Dominant: {dominant_cluster} (score: {dominance_score:.2f})")
+    logger.info(f"[TensionEngine V2] Dominant cluster: {dominant_cluster} (score={dominance_score:.2f})")
     
-    # Generate seed for variety (changes daily)
+    # Generate seed for variety
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     seed = int(hashlib.md5(f"{user_id}:{date_str}".encode()).hexdigest()[:8], 16)
     
-    # Generate language
+    # Generate mode-appropriate content
     cluster_info = TENSION_CLUSTERS.get(dominant_cluster, {})
     tension_label = cluster_info.get("label", "Tension")
     
-    energy_title = generate_energy_title(dominant_cluster, seed)
-    moment = generate_moment(dominant_cluster, seed)
-    supporting_line = generate_supporting_line(dominant_signals, dominance_score, seed)
+    if mode == ConfidenceMode.CONVERGED:
+        energy_title = generate_converged_energy_title(seed)
+        moment = generate_converged_moment(dominant_cluster, seed)
+        supporting_line = generate_converged_supporting(seed)
+    elif mode == ConfidenceMode.REPEATING:
+        energy_title = generate_repeating_energy_title(seed)
+        moment = generate_repeating_moment(dominant_cluster, seed)
+        supporting_line = generate_repeating_supporting(seed)
+    else:  # LOW_SIGNAL
+        return _generate_low_signal_response(user_id, signal_debug, dominant_cluster, dominant_signals)
+    
     micro_shift = generate_micro_shift(dominant_cluster, seed)
-    drivers = generate_drivers(dominant_signals)
+    drivers = generate_v2_drivers(dominant_signals)
     driver_synthesis = generate_driver_synthesis(dominant_cluster, dominant_signals)
     
     # Calculate overall confidence and intensity
@@ -1018,6 +1324,7 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
     avg_intensity = sum(s.intensity for s in dominant_signals) / len(dominant_signals)
     
     return {
+        "mode": mode.value,
         "tension_label": tension_label,
         "energy_title": energy_title,
         "moment": moment,
@@ -1032,6 +1339,162 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
             "cluster": dominant_cluster,
             "dominance_score": round(dominance_score, 2),
             "signal_count": len(signals),
-            "signals_used": [s.source for s in dominant_signals]
+            "strong_signal_count": strong_signals,
+            "mode_reason": f"non_pm_strong={len(strong_non_pm)}, has_pm={has_strong_pm}, total={total_signals}",
+            "signals_used": [s.source for s in dominant_signals],
+            "all_signals": signal_debug
         }
     }
+
+
+def _generate_low_signal_response(
+    user_id: str,
+    signal_debug: Dict,
+    dominant_cluster: str = None,
+    dominant_signals: List[TensionSignal] = None
+) -> Dict[str, Any]:
+    """Generate a modest, honest low-signal response."""
+    seed = int(hashlib.md5(user_id.encode()).hexdigest()[:8], 16)
+    
+    moments = LOW_SIGNAL_MOMENTS["default"]
+    titles = LOW_SIGNAL_TITLES
+    supporting = LOW_SIGNAL_SUPPORTING
+    
+    return {
+        "mode": ConfidenceMode.LOW_SIGNAL.value,
+        "tension_label": "Forming",
+        "energy_title": titles[seed % len(titles)],
+        "moment": moments[seed % len(moments)],
+        "supporting_line": supporting[seed % len(supporting)],
+        "micro_shift": "Notice what's present without forcing a name.",
+        "drivers": [],
+        "driver_synthesis": "Not enough clarity yet to say more.",
+        "confidence": 0.3,
+        "intensity": 0.3,
+        "fallback_used": True,
+        "debug": {
+            "cluster": dominant_cluster,
+            "dominance_score": 0.0,
+            "signal_count": len(dominant_signals) if dominant_signals else 0,
+            "strong_signal_count": 0,
+            "mode_reason": "low_signal_evidence",
+            "signals_used": [],
+            "all_signals": signal_debug
+        }
+    }
+
+
+# =============================================================================
+# V2: MODE-SPECIFIC GENERATORS
+# =============================================================================
+
+def generate_converged_energy_title(seed: int) -> str:
+    """Energy title for converged mode (bold)."""
+    return CONVERGED_TITLES[seed % len(CONVERGED_TITLES)]
+
+
+def generate_repeating_energy_title(seed: int) -> str:
+    """Energy title for repeating mode (honest recurrence)."""
+    return REPEATING_TITLES[seed % len(REPEATING_TITLES)]
+
+
+def generate_converged_moment(cluster_key: str, seed: int) -> str:
+    """Moment text for converged mode (bold, undeniable)."""
+    moments = CONVERGED_MOMENTS.get(cluster_key, CONVERGED_MOMENTS.get("push_vs_hold", []))
+    return moments[seed % len(moments)]
+
+
+def generate_repeating_moment(cluster_key: str, seed: int) -> str:
+    """Moment text for repeating mode (honest recurrence)."""
+    moments = REPEATING_MOMENTS.get(cluster_key, REPEATING_MOMENTS.get("push_vs_hold", []))
+    return moments[seed % len(moments)]
+
+
+def generate_converged_supporting(seed: int) -> str:
+    """Supporting line for converged mode."""
+    return CONVERGED_SUPPORTING[seed % len(CONVERGED_SUPPORTING)]
+
+
+def generate_repeating_supporting(seed: int) -> str:
+    """Supporting line for repeating mode."""
+    return REPEATING_SUPPORTING[seed % len(REPEATING_SUPPORTING)]
+
+
+def generate_v2_drivers(signals: List[TensionSignal]) -> List[Dict[str, str]]:
+    """
+    V2: Generate concrete, evidence-based driver text.
+    NOT filler. Real statements.
+    """
+    drivers = []
+    
+    for signal in signals:
+        # Use the evidence_text if available, otherwise generate based on source
+        if signal.evidence_text:
+            text = signal.evidence_text
+        else:
+            text = _generate_driver_evidence(signal)
+        
+        drivers.append({
+            "source": signal.source,
+            "text": text
+        })
+    
+    return drivers
+
+
+def _generate_driver_evidence(signal: TensionSignal) -> str:
+    """Generate concrete evidence text for a signal."""
+    source = signal.source
+    raw = signal.raw_data or {}
+    
+    if source == "pattern_memory":
+        freq = raw.get("frequency", 0)
+        if freq >= 5:
+            return f"This same hesitation has repeated {freq} times in two weeks."
+        elif freq >= 3:
+            return f"This pattern has shown up {freq} times recently."
+        elif freq >= 1:
+            return "This is a returning pattern."
+        else:
+            return "Pattern memory active."
+    
+    elif source == "astrology":
+        theme = raw.get("theme", "")
+        if "momentum" in theme.lower():
+            return "Momentum is rising, but conviction is blurred."
+        elif "tension" in theme.lower():
+            return "Transit tension is active in your chart today."
+        else:
+            return "Current transits are applying pressure."
+    
+    elif source == "human_design":
+        hd_type = raw.get("type", "")
+        authority = raw.get("authority", "")
+        if authority == "Emotional":
+            return "Your emotional wave hasn't settled yet."
+        elif authority == "Sacral":
+            return "Your body knows. You're not listening."
+        elif authority == "Splenic":
+            return "The instinct is there. You're overriding it."
+        elif hd_type == "Projector":
+            return "You're pushing for recognition instead of waiting."
+        elif hd_type == "Generator":
+            return "You're initiating instead of responding."
+        else:
+            return f"Your {hd_type} mechanics are creating friction."
+    
+    elif source == "bazi":
+        return "Your chart structure favors precision over speed."
+    
+    elif source == "enneagram":
+        etype = raw.get("type", "")
+        if "1" in str(etype):
+            return "The inner critic is loud right now."
+        elif "6" in str(etype):
+            return "You're scanning for what could go wrong."
+        elif "9" in str(etype):
+            return "Avoidance is protecting you from conflict."
+        else:
+            return "Defense pattern activated."
+    
+    return signal.tension or "Signal detected."
