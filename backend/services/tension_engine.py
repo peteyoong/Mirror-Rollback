@@ -1,31 +1,38 @@
 """
-Tension Engine V3.0 - Scene-Based Tension Resolution System
+Tension Engine V3.2 - Scene-Based Tension Resolution System
 
 CORE PRINCIPLE:
 Mirror is NOT a lens aggregator.
 Mirror is a REAL-TIME SCENE ENGINE.
 
-V3.0 EVOLUTION:
-Home must not just identify a tension CATEGORY. It must identify a LIVED MOMENT.
+V3.2 EVOLUTION:
+Home must separate LONG-TERM WHY from CURRENT TRIGGER.
+- WHY THIS KEEPS HAPPENING: Pattern Memory, Enneagram, BaZi, HD
+- WHY IT'S ACTIVE NOW: Astrology transits, house activation, recent spike
 
-A resonant Home card contains 4 things:
+A resonant Home card contains:
 1. A CONCRETE OBJECT (the decision, conversation, message, move, unresolved thing)
 2. A FELT CONTRADICTION (you want X but you keep doing Y)
 3. A CURRENT STAKE (what this is costing right now)
 4. A SCENE-LIKE QUALITY (catches the user in the act)
+5. A LIFE AREA CONTEXT (grounds the tension in a real part of life)
+6. SEPARATED WHY LAYERS (recurring baseline vs current activation)
 
-V3.0 OUTPUT FIELDS:
-- moment: Sharp opening line
+V3.2 OUTPUT FIELDS:
+- moment: Sharp opening line (house-contextualized when strong)
+- life_area_context: Where in life this is happening
 - object_of_tension: What this is about (decision, conversation, etc.)
-- contradiction: The felt pull in opposite directions
-- current_cost: What this is costing right now
+- contradiction: The felt pull in opposite directions (house-shaped when possible)
+- current_cost: What this is costing right now (house-shaped when possible)
 - avoided_move: The thing not being done
-- supporting_line: Reinforcement
-- micro_shift: One action
+- why_recurring: Drivers explaining long-term pattern (PM, Enneagram, BaZi, HD)
+- why_now: Drivers explaining current activation (Astrology, recency spike)
+- trigger_confidence: recurring_only | recurring_plus_trigger | strongly_active_now
 
 LANGUAGE RULES:
 - PREFER: decision, conversation, move, message, commitment, naming, saying, acting
 - AVOID LEADING WITH: hesitation, tendency, pattern, dynamic, signal
+- HOUSE CONTEXT SHAPES COPY when confidence > 0.6
 
 CONFIDENCE MODES:
 - CONVERGED: 2+ strong lens signals → scene-based bold moment
@@ -56,6 +63,24 @@ class ConfidenceMode(Enum):
     CONVERGED = "converged"      # 2+ strong lens signals align
     REPEATING = "repeating"      # Pattern memory strong, multi-lens weak
     LOW_SIGNAL = "low_signal"    # Evidence weak overall
+
+
+class TriggerConfidence(Enum):
+    """V3.2: Distinguishes between recurring pattern vs current activation."""
+    RECURRING_ONLY = "recurring_only"               # Only pattern memory, no current trigger
+    RECURRING_PLUS_TRIGGER = "recurring_plus_trigger"  # Pattern + some current signal
+    STRONGLY_ACTIVE_NOW = "strongly_active_now"     # Strong current activation evidence
+
+
+# =============================================================================
+# SOURCE CLASSIFICATION: RECURRING vs NOW
+# =============================================================================
+
+# Sources that explain WHY THIS KEEPS HAPPENING (baseline/structural)
+RECURRING_SOURCES = {"pattern_memory", "enneagram", "bazi", "human_design"}
+
+# Sources that explain WHY IT'S ACTIVE NOW (current trigger)
+NOW_SOURCES = {"astrology"}  # Transits, house activations, recent spikes
 
 
 # =============================================================================
@@ -1171,6 +1196,120 @@ CLUSTER_LIFE_AREA_CONFIDENCE = {
 }
 
 
+# =============================================================================
+# V3.2: HOUSE-CONTEXTUALIZED COPY TEMPLATES
+# When life_area confidence > 0.6, use these to shape moment/contradiction/cost
+# =============================================================================
+
+HOUSE_CONTEXTUALIZED_MOMENTS = {
+    # House 1: Self and identity
+    1: {
+        "push_vs_hold": "You're still deciding who to be instead of being it.",
+        "control_vs_flow": "You're managing your image instead of expressing yourself.",
+        "visible_vs_hidden": "You're hiding who you are instead of showing it.",
+        "precision_vs_progress": "You're refining how you present instead of actually showing up.",
+    },
+    # House 2: Money and value
+    2: {
+        "push_vs_hold": "You're circling the financial move instead of making it.",
+        "control_vs_flow": "You're gripping the money situation instead of letting it move.",
+        "trust_vs_doubt": "You're checking the numbers again instead of trusting your value.",
+    },
+    # House 3: Communication and decisions
+    3: {
+        "push_vs_hold": "The message is written. You're still not sending it.",
+        "expression_vs_suppression": "The words are ready. You're holding them back.",
+        "logic_vs_instinct": "You're overthinking what needs saying instead of saying it.",
+    },
+    # House 4: Home and family
+    4: {
+        "push_vs_hold": "You're avoiding the family conversation that needs to happen.",
+        "self_vs_others": "You're prioritizing their comfort over your boundary.",
+        "expression_vs_suppression": "There's something you've never said to them.",
+    },
+    # House 5: Expression and creativity
+    5: {
+        "push_vs_hold": "The creative thing is ready. You're still not releasing it.",
+        "visible_vs_hidden": "You want to be seen, but you're still hiding the work.",
+        "precision_vs_progress": "You're refining the work instead of sharing it.",
+    },
+    # House 6: Work rhythm and daily systems
+    6: {
+        "push_vs_hold": "You know what needs changing in your routine. You're not doing it.",
+        "rest_vs_push": "Your body is asking for rest. You're pushing through.",
+        "control_vs_flow": "You're micromanaging your schedule instead of flowing with it.",
+    },
+    # House 7: Relationship and commitment
+    7: {
+        "push_vs_hold": "You're avoiding the conversation that would change everything.",
+        "self_vs_others": "You're giving more than you're receiving in this.",
+        "expression_vs_suppression": "There's something you haven't named to them yet.",
+        "trust_vs_doubt": "You're waiting for certainty before committing.",
+    },
+    # House 8: Intimacy and shared stakes
+    8: {
+        "push_vs_hold": "The vulnerability is asking to come forward. You're holding it.",
+        "trust_vs_doubt": "You want to trust. You're still protecting yourself.",
+        "control_vs_flow": "You're controlling what you let them see.",
+    },
+    # House 9: Meaning and direction
+    9: {
+        "push_vs_hold": "You know where you want to go. You're not starting the journey.",
+        "clarity_vs_chaos": "You're looking for more meaning instead of making meaning.",
+        "logic_vs_instinct": "You're researching the path instead of walking it.",
+    },
+    # House 10: Work and visibility
+    10: {
+        "push_vs_hold": "You're rehearsing the career move instead of making it.",
+        "visible_vs_hidden": "You're staying small when it's time to be seen professionally.",
+        "precision_vs_progress": "You're polishing instead of publishing.",
+        "control_vs_flow": "You're managing your reputation instead of just doing the work.",
+    },
+    # House 11: Community and future vision
+    11: {
+        "push_vs_hold": "You're thinking about the community move instead of joining.",
+        "visible_vs_hidden": "You want to belong, but you're not putting yourself out there.",
+        "self_vs_others": "You're fitting in instead of showing what makes you different.",
+    },
+    # House 12: Inner world and avoidance
+    12: {
+        "push_vs_hold": "There's something you're avoiding looking at.",
+        "clarity_vs_chaos": "You're staying busy to avoid what's underneath.",
+        "expression_vs_suppression": "There's something you've never admitted to yourself.",
+    },
+}
+
+HOUSE_CONTEXTUALIZED_CONTRADICTIONS = {
+    1: "You want to be yourself, but you keep performing a version.",
+    2: "You want financial freedom, but you're not making the move that would create it.",
+    3: "You know what to say, but you keep editing instead of speaking.",
+    4: "You want peace at home, but you're avoiding the conversation that would create it.",
+    5: "You want to create, but you're waiting until it's safe to be seen.",
+    6: "You want sustainable rhythm, but you keep overriding your own signals.",
+    7: "You want connection, but you're holding something back from them.",
+    8: "You want to be known, but you're controlling what they can see.",
+    9: "You want direction, but you keep researching instead of moving.",
+    10: "You want recognition, but you're not letting the work be visible.",
+    11: "You want to belong, but you're not showing up as yourself.",
+    12: "You want clarity, but you're avoiding the thing that would bring it.",
+}
+
+HOUSE_CONTEXTUALIZED_COSTS = {
+    1: "The longer you perform, the further you drift from yourself.",
+    2: "The opportunity has a window. It's shrinking.",
+    3: "The message unsent is costing more than the conversation would.",
+    4: "The peace you're protecting isn't peace. It's avoidance.",
+    5: "The creative energy you're holding is starting to turn inward.",
+    6: "Your body is keeping score. The exhaustion is building.",
+    7: "The distance in the relationship is growing while you wait.",
+    8: "The walls you've built are keeping out what you actually want.",
+    9: "The direction you're seeking won't come from more thinking.",
+    10: "Your reputation is being shaped by what you're not doing.",
+    11: "The belonging you want requires showing up first.",
+    12: "What you're avoiding is still running the show from underneath.",
+}
+
+
 @dataclass
 class LifeAreaContext:
     """Life area context for grounding the tension."""
@@ -2141,41 +2280,15 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
     scene = V3_SCENE_TEMPLATES.get(dominant_cluster, V3_SCENE_TEMPLATES.get("push_vs_hold"))
     titles = V3_ENERGY_TITLES.get(dominant_cluster, V3_ENERGY_TITLES.get("push_vs_hold"))
     
-    # V3: Scene-based generation
+    # V3: Scene-based generation (defaults)
     energy_title = titles[seed % len(titles)]
-    moment = scene["moments"][seed % len(scene["moments"])]
+    default_moment = scene["moments"][seed % len(scene["moments"])]
     object_of_tension = scene["objects"][seed % len(scene["objects"])]
-    contradiction = scene["contradictions"][seed % len(scene["contradictions"])]
-    current_cost = scene["costs"][seed % len(scene["costs"])]
+    default_contradiction = scene["contradictions"][seed % len(scene["contradictions"])]
+    default_cost = scene["costs"][seed % len(scene["costs"])]
     avoided_move = scene["avoided_moves"][seed % len(scene["avoided_moves"])]
     
-    # Mode-specific supporting line
-    if mode == ConfidenceMode.CONVERGED:
-        supporting_line = CONVERGED_SUPPORTING[seed % len(CONVERGED_SUPPORTING)]
-    elif mode == ConfidenceMode.REPEATING:
-        # V3: For repeating, acknowledge it's a pattern but still scene-based
-        supporting_variations = [
-            f"You've circled {object_of_tension} before.",
-            "This scene is familiar.",
-            "You've been here before. Same stuck point.",
-            f"Same territory: {avoided_move} keeps getting postponed.",
-            "The pattern is recognizable. The moment is now."
-        ]
-        supporting_line = supporting_variations[seed % len(supporting_variations)]
-    else:
-        return _generate_low_signal_response(user_id, signal_debug, dominant_cluster, dominant_signals)
-    
-    micro_shift = f"Start with {avoided_move}." if len(avoided_move) < 30 else scene["avoided_moves"][(seed + 1) % len(scene["avoided_moves"])]
-    drivers = generate_v3_drivers(dominant_signals)
-    
-    # V3: Driver synthesis should answer "why this is showing up"
-    driver_synthesis = generate_v3_synthesis(dominant_cluster, dominant_signals, contradiction, current_cost)
-    
-    # Calculate overall confidence and intensity
-    avg_confidence = sum(s.confidence for s in dominant_signals) / len(dominant_signals)
-    avg_intensity = sum(s.intensity for s in dominant_signals) / len(dominant_signals)
-    
-    # V3.1: Derive life area context for grounding
+    # V3.1: Derive life area context for grounding (do this early so we can shape copy)
     life_area = await derive_life_area_context(db, user_id, dominant_signals, dominant_cluster)
     life_area_context = None
     if life_area:
@@ -2185,10 +2298,67 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
             "house": life_area.house,
             "confidence": round(life_area.confidence, 2)
         }
-        logger.info(f"[TensionEngine V3.1] Life area: {life_area.label} (source={life_area.source})")
+        logger.info(f"[TensionEngine V3.2] Life area: {life_area.label} (source={life_area.source}, conf={life_area.confidence})")
+    
+    # V3.2: Apply house context to shape copy when confidence is strong
+    moment, contradiction, current_cost = apply_house_context_to_copy(
+        life_area,
+        dominant_cluster,
+        default_moment,
+        default_contradiction,
+        default_cost
+    )
+    
+    # V3.2: Determine trigger confidence
+    trigger_confidence = determine_trigger_confidence(dominant_signals)
+    logger.info(f"[TensionEngine V3.2] Trigger confidence: {trigger_confidence.value}")
+    
+    # V3.2: Split drivers into why_recurring and why_now
+    why_recurring, why_now = split_drivers_by_why(dominant_signals)
+    
+    # Mode-specific supporting line
+    if mode == ConfidenceMode.CONVERGED:
+        supporting_line = CONVERGED_SUPPORTING[seed % len(CONVERGED_SUPPORTING)]
+    elif mode == ConfidenceMode.REPEATING:
+        # V3.2: For repeating, be honest about what's driving it
+        if trigger_confidence == TriggerConfidence.RECURRING_ONLY:
+            supporting_variations = [
+                "This keeps happening. Not just today.",
+                "You've been here before. The pattern is structural.",
+                "This is a familiar stuck point, not a new one.",
+                "The recurrence is the message."
+            ]
+        else:
+            supporting_variations = [
+                f"You've circled {object_of_tension} before. Something is amplifying it now.",
+                "This scene is familiar, but today it's louder.",
+                "You've been here before. Today, something's pushing it forward.",
+                "The pattern is recognizable. Today, it's pressing."
+            ]
+        supporting_line = supporting_variations[seed % len(supporting_variations)]
+    else:
+        return _generate_low_signal_response(user_id, signal_debug, dominant_cluster, dominant_signals)
+    
+    micro_shift = f"Start with {avoided_move}." if len(avoided_move) < 30 else scene["avoided_moves"][(seed + 1) % len(scene["avoided_moves"])]
+    
+    # V3.2: Generate synthesis based on trigger confidence
+    driver_synthesis = generate_v32_synthesis(
+        trigger_confidence,
+        why_recurring,
+        why_now,
+        life_area.label if life_area else None
+    )
+    
+    # Keep old drivers format for backward compatibility, but add new structure
+    drivers = generate_v3_drivers(dominant_signals)
+    
+    # Calculate overall confidence and intensity
+    avg_confidence = sum(s.confidence for s in dominant_signals) / len(dominant_signals)
+    avg_intensity = sum(s.intensity for s in dominant_signals) / len(dominant_signals)
     
     return {
         "mode": mode.value,
+        "trigger_confidence": trigger_confidence.value,  # V3.2: NEW
         "tension_label": tension_label,
         "energy_title": energy_title,
         "moment": moment,
@@ -2199,20 +2369,26 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
         "avoided_move": avoided_move,
         "supporting_line": supporting_line,
         "micro_shift": micro_shift,
+        # V3.2: Split WHY layers
+        "why_recurring": why_recurring,
+        "why_now": why_now,
+        # Keep old drivers for backward compat
         "drivers": drivers,
         "driver_synthesis": driver_synthesis,
         "confidence": round(avg_confidence, 2),
         "intensity": round(avg_intensity, 2),
         "fallback_used": False,
         "debug": {
-            "version": "v3.1_scene_engine",
+            "version": "v3.2_scene_engine",
             "cluster": dominant_cluster,
             "dominance_score": round(dominance_score, 2),
             "signal_count": len(signals),
             "strong_signal_count": strong_signals,
+            "trigger_confidence": trigger_confidence.value,
             "mode_reason": f"non_pm_strong={len(strong_non_pm)}, has_pm={has_strong_pm}, total={total_signals}",
             "signals_used": [s.source for s in dominant_signals],
             "life_area_source": life_area.source if life_area else None,
+            "house_copy_applied": life_area is not None and life_area.confidence >= 0.6,
             "all_signals": signal_debug
         }
     }
@@ -2482,4 +2658,201 @@ def generate_v3_synthesis(
     }
     
     return SYNTHESIS_BY_CLUSTER.get(cluster_key, f"The core tension: {contradiction.lower()}")
+
+
+# =============================================================================
+# V3.2: TRIGGER CONFIDENCE AND SPLIT WHY LAYERS
+# =============================================================================
+
+def determine_trigger_confidence(signals: List[TensionSignal]) -> TriggerConfidence:
+    """
+    V3.2: Determine whether this is primarily recurring, has a current trigger, or is strongly active now.
+    
+    Returns:
+    - RECURRING_ONLY: Only pattern memory/structural sources, no current activation
+    - RECURRING_PLUS_TRIGGER: Has both recurring pattern and some current signal
+    - STRONGLY_ACTIVE_NOW: Strong current activation evidence (astrology, recent spike)
+    """
+    recurring_signals = []
+    now_signals = []
+    
+    for signal in signals:
+        if signal.source in RECURRING_SOURCES:
+            recurring_signals.append(signal)
+        if signal.source in NOW_SOURCES:
+            now_signals.append(signal)
+    
+    # Check for strong current activation
+    strong_now = [s for s in now_signals if s.confidence >= 0.7]
+    
+    # Check for recent pattern spike (intensity or frequency indicator)
+    pattern_spike = False
+    for signal in recurring_signals:
+        if signal.source == "pattern_memory":
+            freq = signal.raw_data.get("frequency", 0)
+            if freq >= 4:  # 4+ times in 2 weeks = spike
+                pattern_spike = True
+                break
+    
+    # Determine trigger confidence
+    if strong_now:
+        return TriggerConfidence.STRONGLY_ACTIVE_NOW
+    elif now_signals or pattern_spike:
+        return TriggerConfidence.RECURRING_PLUS_TRIGGER
+    else:
+        return TriggerConfidence.RECURRING_ONLY
+
+
+def split_drivers_by_why(signals: List[TensionSignal]) -> Tuple[List[Dict], List[Dict]]:
+    """
+    V3.2: Split drivers into two categories:
+    - why_recurring: Explains long-term pattern (PM, Enneagram, BaZi, HD)
+    - why_now: Explains current activation (Astrology, recency spike)
+    
+    Returns: (why_recurring_drivers, why_now_drivers)
+    """
+    why_recurring = []
+    why_now = []
+    
+    for signal in signals:
+        source = signal.source
+        raw = signal.raw_data or {}
+        
+        # Generate the driver text (reuse existing logic)
+        if source == "pattern_memory":
+            freq = raw.get("frequency", 0)
+            if freq >= 5:
+                text = f"You've circled this {freq} times in two weeks. This isn't new territory."
+            elif freq >= 3:
+                text = f"This exact pattern has repeated {freq} times recently."
+            else:
+                text = "This isn't the first time you've been here."
+            why_recurring.append({"source": "Pattern Memory", "text": text})
+            
+            # If high frequency, also add to why_now as a spike indicator
+            if freq >= 4:
+                why_now.append({
+                    "source": "Recent Spike",
+                    "text": f"Frequency jumped to {freq} occurrences. Something is pressing."
+                })
+        
+        elif source == "enneagram":
+            etype = raw.get("type", "")
+            if "1" in str(etype):
+                text = "Your perfectionist defense makes this pause predictable."
+            elif "2" in str(etype):
+                text = "Your need to be needed keeps you giving first."
+            elif "3" in str(etype):
+                text = "Image protection is blocking authentic action."
+            elif "4" in str(etype):
+                text = "You wait to feel more before you act."
+            elif "5" in str(etype):
+                text = "You gather instead of using what you have."
+            elif "6" in str(etype):
+                text = "Your doubt pattern makes you scan for problems."
+            elif "7" in str(etype):
+                text = "Keeping options open helps you avoid commitment."
+            elif "8" in str(etype):
+                text = "Control is your default response to uncertainty."
+            elif "9" in str(etype):
+                text = "Peace-keeping keeps you from speaking your truth."
+            else:
+                text = "A core defense pattern is contributing."
+            why_recurring.append({"source": "Enneagram", "text": text})
+        
+        elif source == "human_design":
+            authority = raw.get("authority", "")
+            hd_type = raw.get("type", "")
+            if authority == "Emotional":
+                text = "Your emotional authority requires time. Rushing creates friction."
+            elif authority == "Sacral":
+                text = "Your sacral response is being overruled by thinking."
+            elif authority == "Splenic":
+                text = "Your splenic hits are instant. You're not following them."
+            elif hd_type == "Projector":
+                text = "You initiate when you should wait for recognition."
+            elif hd_type == "Generator":
+                text = "You're initiating instead of responding to life."
+            elif hd_type == "Manifestor":
+                text = "You're asking permission when you should inform and act."
+            else:
+                text = "Your mechanics create predictable friction here."
+            why_recurring.append({"source": "Human Design", "text": text})
+        
+        elif source == "bazi":
+            text = "Your chart structure shows this timing pattern."
+            why_recurring.append({"source": "BaZi", "text": text})
+        
+        elif source == "astrology":
+            # Astrology is a NOW signal
+            transit_info = raw.get("transit", "") or raw.get("aspect", "") or ""
+            if transit_info:
+                text = f"Current transit is pushing this forward: {transit_info}"
+            else:
+                text = "Today's transits are activating this exact tension."
+            why_now.append({"source": "Astrology", "text": text})
+    
+    return why_recurring, why_now
+
+
+def generate_v32_synthesis(
+    trigger_confidence: TriggerConfidence,
+    why_recurring: List[Dict],
+    why_now: List[Dict],
+    life_area_label: Optional[str] = None
+) -> str:
+    """
+    V3.2: Generate synthesis that acknowledges whether this is recurring vs currently triggered.
+    """
+    if trigger_confidence == TriggerConfidence.STRONGLY_ACTIVE_NOW:
+        if life_area_label:
+            return f"This isn't just a pattern—something in your {life_area_label} is actively pushing it forward right now."
+        return "This isn't just a pattern—something is actively pushing it forward right now."
+    
+    elif trigger_confidence == TriggerConfidence.RECURRING_PLUS_TRIGGER:
+        if life_area_label:
+            return f"This is a familiar pattern, and something in your {life_area_label} is amplifying it today."
+        return "This is a familiar pattern, but something is amplifying it today."
+    
+    else:  # RECURRING_ONLY
+        if len(why_recurring) >= 2:
+            return "This keeps happening because multiple parts of your system reinforce it."
+        return "This keeps happening. The pattern is structural, not situational."
+
+
+def apply_house_context_to_copy(
+    life_area: Optional['LifeAreaContext'],
+    cluster: str,
+    default_moment: str,
+    default_contradiction: str,
+    default_cost: str
+) -> Tuple[str, str, str]:
+    """
+    V3.2: Use house context to shape the actual copy when confidence is high enough.
+    
+    Returns: (moment, contradiction, cost) - possibly house-contextualized
+    """
+    if not life_area or life_area.confidence < 0.6:
+        return default_moment, default_contradiction, default_cost
+    
+    house = life_area.house
+    
+    # Try to get house-contextualized moment
+    moment = default_moment
+    if house in HOUSE_CONTEXTUALIZED_MOMENTS:
+        cluster_moments = HOUSE_CONTEXTUALIZED_MOMENTS[house]
+        if cluster in cluster_moments:
+            moment = cluster_moments[cluster]
+    
+    # Try to get house-contextualized contradiction
+    contradiction = default_contradiction
+    if house in HOUSE_CONTEXTUALIZED_CONTRADICTIONS:
+        contradiction = HOUSE_CONTEXTUALIZED_CONTRADICTIONS[house]
+    
+    # Try to get house-contextualized cost
+    cost = default_cost
+    if house in HOUSE_CONTEXTUALIZED_COSTS:
+        cost = HOUSE_CONTEXTUALIZED_COSTS[house]
+    
+    return moment, contradiction, cost
 

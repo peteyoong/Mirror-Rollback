@@ -49,9 +49,16 @@ interface LifeAreaContext {
   confidence: number;
 }
 
+// V3.2: Split WHY drivers
+interface WhyDriver {
+  source: string;
+  text: string;
+}
+
 interface TensionData {
   success: boolean;
   mode: 'converged' | 'repeating' | 'low_signal';  // V2: Confidence mode
+  trigger_confidence?: 'recurring_only' | 'recurring_plus_trigger' | 'strongly_active_now';  // V3.2
   tension_label: string;
   energy_title: string;
   moment: string;
@@ -64,6 +71,10 @@ interface TensionData {
   avoided_move?: string;        // The thing not being done
   supporting_line: string;
   micro_shift: string;
+  // V3.2: Split WHY layers
+  why_recurring?: WhyDriver[];
+  why_now?: WhyDriver[];
+  // Legacy drivers (backward compat)
   drivers: TensionDriver[];
   driver_synthesis: string;
   confidence: number;
@@ -286,36 +297,100 @@ const TensionCard: React.FC<TensionCardProps> = ({
       {expanded && (
         <View style={[styles.expandedSection, { backgroundColor: theme.cardBackground || theme.background, borderColor: theme.border }]}>
           
-          {/* Section Header */}
-          <Text style={[styles.expandedHeader, { color: theme.textTertiary }]}>
-            WHAT'S DRIVING THIS
-          </Text>
-
-          {/* Drivers List */}
-          <View style={styles.driversList}>
-            {tension.drivers.map((driver, index) => (
-              <View key={index} style={styles.driverRow}>
-                <View style={styles.driverBullet}>
-                  <Ionicons 
-                    name={(SOURCE_ICONS[driver.source] || 'ellipse') as any} 
-                    size={12} 
-                    color={theme.textTertiary} 
-                  />
-                </View>
-                <View style={styles.driverContent}>
-                  <Text style={[styles.driverSource, { color: theme.textTertiary }]}>
-                    {SOURCE_LABELS[driver.source] || driver.source}
-                  </Text>
-                  <Text style={[styles.driverText, { color: theme.textSecondary }]}>
-                    {driver.text}
-                  </Text>
-                </View>
+          {/* V3.2: WHY THIS KEEPS HAPPENING */}
+          {tension.why_recurring && tension.why_recurring.length > 0 && (
+            <>
+              <Text style={[styles.expandedHeader, { color: theme.textTertiary }]}>
+                WHY THIS KEEPS HAPPENING
+              </Text>
+              <View style={styles.driversList}>
+                {tension.why_recurring.map((driver, index) => (
+                  <View key={`recurring-${index}`} style={styles.driverRow}>
+                    <View style={styles.driverBullet}>
+                      <Ionicons 
+                        name="repeat-outline" 
+                        size={12} 
+                        color={theme.textTertiary} 
+                      />
+                    </View>
+                    <View style={styles.driverContent}>
+                      <Text style={[styles.driverSource, { color: theme.textTertiary }]}>
+                        {driver.source}
+                      </Text>
+                      <Text style={[styles.driverText, { color: theme.textSecondary }]}>
+                        {driver.text}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
+            </>
+          )}
+
+          {/* V3.2: WHY IT'S ACTIVE NOW */}
+          {tension.why_now && tension.why_now.length > 0 && (
+            <>
+              <Text style={[styles.expandedHeader, { color: intensityColor, marginTop: 16 }]}>
+                WHY IT'S ACTIVE NOW
+              </Text>
+              <View style={styles.driversList}>
+                {tension.why_now.map((driver, index) => (
+                  <View key={`now-${index}`} style={styles.driverRow}>
+                    <View style={styles.driverBullet}>
+                      <Ionicons 
+                        name="flash-outline" 
+                        size={12} 
+                        color={intensityColor} 
+                      />
+                    </View>
+                    <View style={styles.driverContent}>
+                      <Text style={[styles.driverSource, { color: intensityColor }]}>
+                        {driver.source}
+                      </Text>
+                      <Text style={[styles.driverText, { color: theme.textSecondary }]}>
+                        {driver.text}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+
+          {/* Fallback to legacy drivers if no split WHY data */}
+          {(!tension.why_recurring || tension.why_recurring.length === 0) && 
+           (!tension.why_now || tension.why_now.length === 0) && 
+           tension.drivers.length > 0 && (
+            <>
+              <Text style={[styles.expandedHeader, { color: theme.textTertiary }]}>
+                WHAT'S DRIVING THIS
+              </Text>
+              <View style={styles.driversList}>
+                {tension.drivers.map((driver, index) => (
+                  <View key={index} style={styles.driverRow}>
+                    <View style={styles.driverBullet}>
+                      <Ionicons 
+                        name={(SOURCE_ICONS[driver.source] || 'ellipse') as any} 
+                        size={12} 
+                        color={theme.textTertiary} 
+                      />
+                    </View>
+                    <View style={styles.driverContent}>
+                      <Text style={[styles.driverSource, { color: theme.textTertiary }]}>
+                        {SOURCE_LABELS[driver.source] || driver.source}
+                      </Text>
+                      <Text style={[styles.driverText, { color: theme.textSecondary }]}>
+                        {driver.text}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
 
           {/* Tension Label */}
-          <View style={[styles.tensionLabelBox, { borderColor: intensityColor + '30' }]}>
+          <View style={[styles.tensionLabelBox, { borderColor: intensityColor + '30', marginTop: 16 }]}>
             <Text style={[styles.tensionLabelHeader, { color: theme.textTertiary }]}>
               THE TENSION
             </Text>
