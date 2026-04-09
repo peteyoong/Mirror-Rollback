@@ -48,6 +48,11 @@ interface TensionData {
   tension_label: string;
   energy_title: string;
   moment: string;
+  // V3 Scene Engine fields
+  object_of_tension?: string;  // What this is about (decision, conversation, etc.)
+  contradiction?: string;       // The felt pull in opposite directions
+  current_cost?: string;        // What this is costing right now
+  avoided_move?: string;        // The thing not being done
   supporting_line: string;
   micro_shift: string;
   drivers: TensionDriver[];
@@ -206,6 +211,35 @@ const TensionCard: React.FC<TensionCardProps> = ({
         {tension.moment}
       </Text>
 
+      {/* V3 Scene Engine: Object of Tension */}
+      {tension.object_of_tension && (
+        <View style={[styles.sceneObjectRow, { borderColor: theme.border }]}>
+          <Text style={[styles.sceneObjectLabel, { color: theme.textTertiary }]}>
+            About:
+          </Text>
+          <Text style={[styles.sceneObjectText, { color: theme.textSecondary }]}>
+            {tension.object_of_tension}
+          </Text>
+        </View>
+      )}
+
+      {/* V3 Scene Engine: Contradiction */}
+      {tension.contradiction && (
+        <Text style={[styles.contradictionText, { color: theme.text }]}>
+          {tension.contradiction}
+        </Text>
+      )}
+
+      {/* V3 Scene Engine: Current Cost */}
+      {tension.current_cost && (
+        <View style={[styles.costRow, { backgroundColor: intensityColor + '12' }]}>
+          <Ionicons name="warning-outline" size={14} color={intensityColor} />
+          <Text style={[styles.costText, { color: theme.textSecondary }]}>
+            {tension.current_cost}
+          </Text>
+        </View>
+      )}
+
       {/* Supporting Line */}
       <Text style={[styles.supportingLine, { color: theme.textTertiary }]}>
         {tension.supporting_line}
@@ -275,6 +309,18 @@ const TensionCard: React.FC<TensionCardProps> = ({
               {tension.driver_synthesis}
             </Text>
           </View>
+
+          {/* V3 Scene Engine: Avoided Move */}
+          {tension.avoided_move && (
+            <View style={[styles.avoidedMoveBox, { backgroundColor: theme.cardBackground || theme.background }]}>
+              <Text style={[styles.avoidedMoveLabel, { color: theme.textTertiary }]}>
+                THE AVOIDED MOVE
+              </Text>
+              <Text style={[styles.avoidedMoveText, { color: theme.text }]}>
+                {tension.avoided_move}
+              </Text>
+            </View>
+          )}
 
           {/* Micro-Shift */}
           {tension.micro_shift && (
@@ -356,6 +402,52 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 16,
+  },
+
+  // V3 Scene Engine: Object of Tension
+  sceneObjectRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  sceneObjectLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginRight: 6,
+  },
+  sceneObjectText: {
+    flex: 1,
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+
+  // V3 Scene Engine: Contradiction
+  contradictionText: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 12,
+    fontWeight: '500',
+  },
+
+  // V3 Scene Engine: Current Cost
+  costRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  costText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
   },
 
   // CTA Button
@@ -449,6 +541,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 22,
     fontStyle: 'italic',
+  },
+
+  // V3 Scene Engine: Avoided Move
+  avoidedMoveBox: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderStyle: 'dashed',
+  },
+  avoidedMoveLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginBottom: 4,
+  },
+  avoidedMoveText: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
   },
 
   // Micro-Shift

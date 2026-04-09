@@ -1,30 +1,38 @@
 """
-Tension Engine V2.0 - Real-Time Tension Resolution System
+Tension Engine V3.0 - Scene-Based Tension Resolution System
 
 CORE PRINCIPLE:
 Mirror is NOT a lens aggregator.
-Mirror is a REAL-TIME TENSION ENGINE.
+Mirror is a REAL-TIME SCENE ENGINE.
 
-V2.0 CHANGES:
-- 3 confidence modes: CONVERGED, REPEATING, LOW_SIGNAL
-- Requires real multi-lens evidence for strong output
-- Honest language when evidence is thin
-- Better driver text (concrete, not filler)
+V3.0 EVOLUTION:
+Home must not just identify a tension CATEGORY. It must identify a LIVED MOMENT.
+
+A resonant Home card contains 4 things:
+1. A CONCRETE OBJECT (the decision, conversation, message, move, unresolved thing)
+2. A FELT CONTRADICTION (you want X but you keep doing Y)
+3. A CURRENT STAKE (what this is costing right now)
+4. A SCENE-LIKE QUALITY (catches the user in the act)
+
+V3.0 OUTPUT FIELDS:
+- moment: Sharp opening line
+- object_of_tension: What this is about (decision, conversation, etc.)
+- contradiction: The felt pull in opposite directions
+- current_cost: What this is costing right now
+- avoided_move: The thing not being done
+- supporting_line: Reinforcement
+- micro_shift: One action
+
+LANGUAGE RULES:
+- PREFER: decision, conversation, move, message, commitment, naming, saying, acting
+- AVOID LEADING WITH: hesitation, tendency, pattern, dynamic, signal
 
 CONFIDENCE MODES:
-- MODE A (CONVERGED): 2+ strong lens signals align → bold moment card
-- MODE B (REPEATING): Pattern memory strong, multi-lens weak → recurrence card
-- MODE C (LOW_SIGNAL): Evidence weak → modest, observational card
+- CONVERGED: 2+ strong lens signals → scene-based bold moment
+- REPEATING: Pattern memory strong → pattern-aware but still scene-based
+- LOW_SIGNAL: Weak evidence → observational, no bold claims
 
-DOMINANCE WEIGHTS:
-- Pattern Memory: 0.45 (highest)
-- Cross-lens agreement: 0.25
-- Intensity: 0.15
-- Recency: 0.15
-
-DOMAINS: action, decision, emotion, relationship, control
-
-OUTPUT: One tension, one moment, honest confidence level.
+OUTPUT: One scene, one contradiction, one cost.
 """
 
 import logging
@@ -647,6 +655,464 @@ LOW_SIGNAL_SUPPORTING = [
     "Not enough evidence yet.",
     "Watching."
 ]
+
+
+# =============================================================================
+# V3: SCENE ENGINE - Concrete, lived-moment language
+# =============================================================================
+
+# V3 Scene Templates: Each cluster has concrete scenes with all 4 elements:
+# - object_of_tension: what this is about (decision, conversation, etc.)
+# - contradiction: the felt pull
+# - current_cost: what this is costing now
+# - avoided_move: the thing not being done
+
+V3_SCENE_TEMPLATES = {
+    "push_vs_hold": {
+        "objects": [
+            "the decision you keep circling",
+            "the move you almost made",
+            "the conversation you're avoiding",
+            "the message sitting unsent",
+            "the commitment you haven't named"
+        ],
+        "moments": [
+            "You already know what needs naming.",
+            "The opening is there. You're still circling.",
+            "You've thought about this more than you've acted on it.",
+            "Something is waiting to be done. You're not doing it.",
+            "You're rehearsing instead of moving."
+        ],
+        "contradictions": [
+            "You want to move, but you keep preparing.",
+            "You want closure, but you keep postponing contact.",
+            "You know what to do, but you're waiting for certainty.",
+            "The impulse is there, but you're second-guessing it.",
+            "Part of you is ready. Part of you is stalling."
+        ],
+        "costs": [
+            "The pressure stays alive because nothing has been named.",
+            "The delay is costing energy.",
+            "You're spending more effort avoiding than it would take to act.",
+            "The weight of this follows you into other things.",
+            "You're carrying what you could resolve."
+        ],
+        "avoided_moves": [
+            "making the actual move",
+            "saying the thing out loud",
+            "committing to one direction",
+            "starting before you're sure",
+            "naming what you already know"
+        ]
+    },
+    "control_vs_flow": {
+        "objects": [
+            "a situation you're trying to manage",
+            "something that needs to unfold on its own",
+            "the outcome you're gripping",
+            "the process you keep intervening in",
+            "the thing that wants to move without you"
+        ],
+        "moments": [
+            "You're managing what needs to unfold.",
+            "The tighter you hold, the more friction you create.",
+            "You're interfering with something that doesn't need you.",
+            "Control is running the show right now.",
+            "You're trying to force a shape onto something alive."
+        ],
+        "contradictions": [
+            "You want it to work, but you won't let it breathe.",
+            "You want progress, but you keep adjusting.",
+            "You say you trust it, but you keep checking.",
+            "You want ease, but you're overengineering.",
+            "You want flow, but you keep directing."
+        ],
+        "costs": [
+            "The thing you're managing is resisting your grip.",
+            "Your energy is going into steering instead of receiving.",
+            "You're exhausting yourself trying to hold the shape.",
+            "Control is blocking the very outcome you want.",
+            "You're working harder than necessary."
+        ],
+        "avoided_moves": [
+            "letting go for one day",
+            "not checking or adjusting",
+            "allowing the outcome to arrive differently",
+            "trusting the process without managing it",
+            "stepping back"
+        ]
+    },
+    "precision_vs_progress": {
+        "objects": [
+            "the thing that's almost ready but not shipped",
+            "the work you keep refining",
+            "the message you've edited five times",
+            "the project that's 90% done",
+            "the decision you keep polishing instead of making"
+        ],
+        "moments": [
+            "You're perfecting what needs to ship.",
+            "The last 10% is where you're hiding.",
+            "Refinement has become delay.",
+            "You've crossed from careful into stuck.",
+            "Done is the word you're avoiding."
+        ],
+        "contradictions": [
+            "You want it out there, but you keep improving it.",
+            "You want to finish, but you're afraid of flaws.",
+            "You say you're almost done, but you keep finding more.",
+            "You want to be seen, but not before it's perfect.",
+            "You're ready, but you keep editing."
+        ],
+        "costs": [
+            "Nothing is landing while you keep polishing.",
+            "Feedback you need can't arrive until you release.",
+            "You're stuck in refinement instead of learning.",
+            "The world can't respond to what it hasn't seen.",
+            "You're protecting yourself with quality."
+        ],
+        "avoided_moves": [
+            "sending it at 80%",
+            "releasing before you're fully ready",
+            "letting it be imperfect",
+            "saying 'done' and moving on",
+            "shipping today"
+        ]
+    },
+    "visible_vs_hidden": {
+        "objects": [
+            "something you're not showing",
+            "a part of you that wants to be seen",
+            "the thing you're holding back",
+            "the work you haven't shared",
+            "the truth you're protecting"
+        ],
+        "moments": [
+            "You're making yourself smaller than you are.",
+            "Something wants to be seen. You're hiding it.",
+            "You're curating what's visible.",
+            "There's more of you than you're showing.",
+            "You're playing safe with your presence."
+        ],
+        "contradictions": [
+            "You want recognition, but you're staying invisible.",
+            "You want connection, but you're holding back.",
+            "You want to be known, but you're filtering.",
+            "You crave visibility, but you fear exposure.",
+            "Part of you wants out. Part of you is shrinking."
+        ],
+        "costs": [
+            "The world can't respond to what it can't see.",
+            "Connection requires showing up as you are.",
+            "You're paying the price of invisibility.",
+            "Protection is becoming isolation.",
+            "Opportunity can't find what's hidden."
+        ],
+        "avoided_moves": [
+            "showing the unpolished version",
+            "letting yourself be seen as you are",
+            "sharing before you're ready",
+            "taking up more space",
+            "stepping into the light"
+        ]
+    },
+    "logic_vs_instinct": {
+        "objects": [
+            "a decision your gut already made",
+            "the answer you keep researching",
+            "what your body knows",
+            "the thing you're analyzing past the point of usefulness",
+            "the choice you're overthinking"
+        ],
+        "moments": [
+            "You already know. You're just not trusting it.",
+            "Your gut said something. Your head overruled.",
+            "More thinking won't change what you already feel.",
+            "The answer is there. You're looking past it.",
+            "You're researching what you should be doing."
+        ],
+        "contradictions": [
+            "You want certainty, but you're ignoring what's already clear.",
+            "You say you don't know, but your body does.",
+            "You're asking for data when you need courage.",
+            "You want proof for something that doesn't work that way.",
+            "The answer is available. You're not accepting it."
+        ],
+        "costs": [
+            "Time is passing while you keep analyzing.",
+            "The moment to act is slipping.",
+            "Your gut is losing trust in you.",
+            "You're expending mental energy instead of moving.",
+            "Analysis is becoming avoidance."
+        ],
+        "avoided_moves": [
+            "acting on the first answer",
+            "trusting what your body told you",
+            "deciding without more research",
+            "following the instinct",
+            "letting the gut lead"
+        ]
+    },
+    "self_vs_others": {
+        "objects": [
+            "someone else's need that's taking priority",
+            "the yes you said when you meant no",
+            "the boundary you didn't hold",
+            "the thing you're doing for them instead of you",
+            "the resentment that's building"
+        ],
+        "moments": [
+            "You're giving more than you have.",
+            "Someone else's need is running your schedule.",
+            "You said yes when you meant something else.",
+            "Your own priorities are at the bottom of the list.",
+            "You're disappearing into someone else's story."
+        ],
+        "contradictions": [
+            "You want to help, but you're losing yourself.",
+            "You care about them, but you're neglecting you.",
+            "You want harmony, but resentment is building.",
+            "You want to give, but you're running empty.",
+            "You say it's fine. It isn't."
+        ],
+        "costs": [
+            "Your own needs keep getting pushed back.",
+            "Resentment is building under the surface.",
+            "You're exhausting yourself for someone else's comfort.",
+            "What you need isn't getting any attention.",
+            "Your presence is becoming performance."
+        ],
+        "avoided_moves": [
+            "saying no to the next request",
+            "putting yourself first once",
+            "letting them figure it out",
+            "taking something back for yourself",
+            "naming what you actually need"
+        ]
+    },
+    "rest_vs_push": {
+        "objects": [
+            "the fatigue you're ignoring",
+            "the break you keep postponing",
+            "the rest your body is asking for",
+            "the energy you're forcing",
+            "the tiredness you're pushing past"
+        ],
+        "moments": [
+            "You're running on fumes.",
+            "Your body is asking for something your mind won't give.",
+            "You're forcing energy that isn't there.",
+            "The tank is empty. You're still driving.",
+            "Rest is available. You're refusing it."
+        ],
+        "contradictions": [
+            "You want to perform, but your system is depleted.",
+            "You want to keep going, but your body is done.",
+            "You call it discipline. Your body calls it depletion.",
+            "You want results, but you're working from empty.",
+            "You're pushing through something that's asking you to stop."
+        ],
+        "costs": [
+            "Everything you do is costing more than it should.",
+            "Quality is dropping because you're depleted.",
+            "Your capacity is shrinking the harder you push.",
+            "You're accumulating a debt you'll pay later.",
+            "Your system is learning to distrust you."
+        ],
+        "avoided_moves": [
+            "stopping before you're forced to",
+            "resting without earning it",
+            "ending the day incomplete",
+            "taking the break now",
+            "honoring what your body said"
+        ]
+    },
+    "clarity_vs_chaos": {
+        "objects": [
+            "the decision you keep circling without landing",
+            "the confusion that won't resolve",
+            "the too-many-options situation",
+            "the direction you can't find",
+            "the fog that won't lift"
+        ],
+        "moments": [
+            "You don't know what to do next. And that's real.",
+            "Too many options is another kind of stuck.",
+            "You're spinning without landing.",
+            "The fog isn't lifting. Pretending it is won't help.",
+            "Clarity isn't coming from more thinking."
+        ],
+        "contradictions": [
+            "You want a direction, but you keep adding options.",
+            "You want certainty, but nothing feels certain.",
+            "You're seeking clarity through more input.",
+            "You want to land, but you keep orbiting.",
+            "You say you need more info. You actually need a choice."
+        ],
+        "costs": [
+            "Energy is going into spinning, not moving.",
+            "The longer you wait, the harder choosing feels.",
+            "Options are multiplying while clarity shrinks.",
+            "Indecision is draining you more than any wrong choice would.",
+            "You're getting nowhere fast."
+        ],
+        "avoided_moves": [
+            "picking one direction for now",
+            "eliminating options instead of adding them",
+            "committing for 24 hours",
+            "acting without full clarity",
+            "accepting the not-knowing and moving anyway"
+        ]
+    },
+    "trust_vs_doubt": {
+        "objects": [
+            "something you decided but keep questioning",
+            "someone you believe but keep checking",
+            "a choice that's already made",
+            "the commitment you're second-guessing",
+            "the trust you keep withdrawing"
+        ],
+        "moments": [
+            "You're questioning what you already decided.",
+            "Doubt is running the show now.",
+            "You keep reopening what was settled.",
+            "The checking is becoming the problem.",
+            "You're waiting for certainty that won't arrive."
+        ],
+        "contradictions": [
+            "You committed, but you keep reviewing.",
+            "You want to trust, but you keep testing.",
+            "You made a choice, but you're still shopping.",
+            "You said yes, but you're still unsure.",
+            "You want to believe. You can't stop doubting."
+        ],
+        "costs": [
+            "The thing you chose can't land while you keep questioning it.",
+            "Trust can't build while you keep testing.",
+            "You're paying attention to doubt instead of building forward.",
+            "The relationship to this decision is fraying.",
+            "You're eroding your own commitment."
+        ],
+        "avoided_moves": [
+            "acting as if you trust",
+            "stopping the checking",
+            "letting the decision rest",
+            "giving it a real chance before reviewing",
+            "choosing trust over proof"
+        ]
+    },
+    "expression_vs_suppression": {
+        "objects": [
+            "something you haven't said",
+            "the words you're holding back",
+            "the conversation you've been avoiding",
+            "what wants to come out",
+            "the truth stuck in your throat"
+        ],
+        "moments": [
+            "There's something you're not saying.",
+            "The words are ready. You're holding them back.",
+            "You're keeping the peace at your own expense.",
+            "What's unsaid is building pressure.",
+            "You're swallowing what needs to come out."
+        ],
+        "contradictions": [
+            "You want to be heard, but you're staying silent.",
+            "You want resolution, but you won't speak plainly.",
+            "You want closeness, but you're withholding.",
+            "You say it's fine. It isn't fine.",
+            "You want truth, but you're managing their comfort."
+        ],
+        "costs": [
+            "The pressure stays alive because nothing has been named.",
+            "Distance is growing from what remains unspoken.",
+            "You're holding tension that belongs in words.",
+            "The relationship can't move past what isn't said.",
+            "Your silence is costing you."
+        ],
+        "avoided_moves": [
+            "saying the thing out loud",
+            "naming what still doesn't sit right",
+            "speaking before you have it perfect",
+            "letting them know what you're actually thinking",
+            "saying the unsaid part first"
+        ]
+    }
+}
+
+# V3: Energy titles that feel scene-aware, not category-based
+V3_ENERGY_TITLES = {
+    "push_vs_hold": [
+        "Still circling it",
+        "Almost moved",
+        "Not yet",
+        "The opening is there",
+        "Still rehearsing"
+    ],
+    "control_vs_flow": [
+        "Gripping",
+        "Managing again",
+        "Not letting go",
+        "Forcing the shape",
+        "Won't stop steering"
+    ],
+    "precision_vs_progress": [
+        "Still refining",
+        "Almost done, again",
+        "Hiding in quality",
+        "One more pass",
+        "Not shipping"
+    ],
+    "visible_vs_hidden": [
+        "Playing small",
+        "Not showing up",
+        "Staying back",
+        "Holding it in",
+        "Invisible mode"
+    ],
+    "logic_vs_instinct": [
+        "In your head",
+        "Ignoring the gut",
+        "Analyzing again",
+        "Not trusting it",
+        "Researching what you know"
+    ],
+    "self_vs_others": [
+        "Their needs first",
+        "Said yes again",
+        "Running empty for them",
+        "Boundary blur",
+        "Losing yourself"
+    ],
+    "rest_vs_push": [
+        "Past empty",
+        "Forcing it",
+        "Ignoring the body",
+        "Won't stop",
+        "Depleted"
+    ],
+    "clarity_vs_chaos": [
+        "Spinning",
+        "Too many options",
+        "Can't land",
+        "In the fog",
+        "No direction"
+    ],
+    "trust_vs_doubt": [
+        "Questioning again",
+        "Can't stop checking",
+        "Reopening it",
+        "Doubt running",
+        "Waiting for proof"
+    ],
+    "expression_vs_suppression": [
+        "Holding it back",
+        "Words stuck",
+        "Not saying it",
+        "Swallowing it",
+        "Silence building"
+    ]
+}
 
 
 # =============================================================================
@@ -1284,40 +1750,59 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
     else:
         mode = ConfidenceMode.LOW_SIGNAL
     
-    logger.info(f"[TensionEngine V2] Mode: {mode.value} (total={total_signals}, strong_non_pm={len(strong_non_pm)}, has_strong_pm={has_strong_pm})")
+    logger.info(f"[TensionEngine V3] Mode: {mode.value} (total={total_signals}, strong_non_pm={len(strong_non_pm)}, has_strong_pm={has_strong_pm})")
     
     # Handle no signals case
     if not signals:
-        logger.warning(f"[TensionEngine V2] No signals for user {user_id}")
+        logger.warning(f"[TensionEngine V3] No signals for user {user_id}")
         return _generate_low_signal_response(user_id, signal_debug)
     
     # Cluster signals and select dominant
     clustered = cluster_signals(signals)
     dominant_cluster, dominant_signals, dominance_score = select_dominant_tension(clustered)
-    logger.info(f"[TensionEngine V2] Dominant cluster: {dominant_cluster} (score={dominance_score:.2f})")
+    logger.info(f"[TensionEngine V3] Dominant cluster: {dominant_cluster} (score={dominance_score:.2f})")
     
     # Generate seed for variety
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     seed = int(hashlib.md5(f"{user_id}:{date_str}".encode()).hexdigest()[:8], 16)
     
-    # Generate mode-appropriate content
+    # V3: Generate scene-based content
     cluster_info = TENSION_CLUSTERS.get(dominant_cluster, {})
     tension_label = cluster_info.get("label", "Tension")
     
+    # Get V3 scene templates for this cluster
+    scene = V3_SCENE_TEMPLATES.get(dominant_cluster, V3_SCENE_TEMPLATES.get("push_vs_hold"))
+    titles = V3_ENERGY_TITLES.get(dominant_cluster, V3_ENERGY_TITLES.get("push_vs_hold"))
+    
+    # V3: Scene-based generation
+    energy_title = titles[seed % len(titles)]
+    moment = scene["moments"][seed % len(scene["moments"])]
+    object_of_tension = scene["objects"][seed % len(scene["objects"])]
+    contradiction = scene["contradictions"][seed % len(scene["contradictions"])]
+    current_cost = scene["costs"][seed % len(scene["costs"])]
+    avoided_move = scene["avoided_moves"][seed % len(scene["avoided_moves"])]
+    
+    # Mode-specific supporting line
     if mode == ConfidenceMode.CONVERGED:
-        energy_title = generate_converged_energy_title(seed)
-        moment = generate_converged_moment(dominant_cluster, seed)
-        supporting_line = generate_converged_supporting(seed)
+        supporting_line = CONVERGED_SUPPORTING[seed % len(CONVERGED_SUPPORTING)]
     elif mode == ConfidenceMode.REPEATING:
-        energy_title = generate_repeating_energy_title(seed)
-        moment = generate_repeating_moment(dominant_cluster, seed)
-        supporting_line = generate_repeating_supporting(seed)
-    else:  # LOW_SIGNAL
+        # V3: For repeating, acknowledge it's a pattern but still scene-based
+        supporting_variations = [
+            f"You've circled {object_of_tension} before.",
+            "This scene is familiar.",
+            "You've been here before. Same stuck point.",
+            f"Same territory: {avoided_move} keeps getting postponed.",
+            "The pattern is recognizable. The moment is now."
+        ]
+        supporting_line = supporting_variations[seed % len(supporting_variations)]
+    else:
         return _generate_low_signal_response(user_id, signal_debug, dominant_cluster, dominant_signals)
     
-    micro_shift = generate_micro_shift(dominant_cluster, seed)
-    drivers = generate_v2_drivers(dominant_signals)
-    driver_synthesis = generate_driver_synthesis(dominant_cluster, dominant_signals)
+    micro_shift = f"Start with {avoided_move}." if len(avoided_move) < 30 else scene["avoided_moves"][(seed + 1) % len(scene["avoided_moves"])]
+    drivers = generate_v3_drivers(dominant_signals)
+    
+    # V3: Driver synthesis should answer "why this is showing up"
+    driver_synthesis = generate_v3_synthesis(dominant_cluster, dominant_signals, contradiction, current_cost)
     
     # Calculate overall confidence and intensity
     avg_confidence = sum(s.confidence for s in dominant_signals) / len(dominant_signals)
@@ -1328,6 +1813,10 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
         "tension_label": tension_label,
         "energy_title": energy_title,
         "moment": moment,
+        "object_of_tension": object_of_tension,
+        "contradiction": contradiction,
+        "current_cost": current_cost,
+        "avoided_move": avoided_move,
         "supporting_line": supporting_line,
         "micro_shift": micro_shift,
         "drivers": drivers,
@@ -1336,6 +1825,7 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
         "intensity": round(avg_intensity, 2),
         "fallback_used": False,
         "debug": {
+            "version": "v3_scene_engine",
             "cluster": dominant_cluster,
             "dominance_score": round(dominance_score, 2),
             "signal_count": len(signals),
@@ -1498,3 +1988,117 @@ def _generate_driver_evidence(signal: TensionSignal) -> str:
             return "Defense pattern activated."
     
     return signal.tension or "Signal detected."
+
+
+# =============================================================================
+# V3: SCENE-BASED DRIVER AND SYNTHESIS GENERATORS
+# =============================================================================
+
+def generate_v3_drivers(signals: List[TensionSignal]) -> List[Dict[str, str]]:
+    """
+    V3: Generate concrete, situation-aware driver text.
+    Each driver should answer: what is THIS source saying about THIS situation?
+    """
+    drivers = []
+    
+    for signal in signals:
+        source = signal.source
+        raw = signal.raw_data or {}
+        
+        if source == "pattern_memory":
+            freq = raw.get("frequency", 0)
+            if freq >= 5:
+                text = f"You've circled this same decision {freq} times in two weeks."
+            elif freq >= 3:
+                text = f"This exact stuck point has shown up {freq} times recently."
+            else:
+                text = "This isn't the first time you've been here."
+        
+        elif source == "astrology":
+            text = "Transits are pushing for movement your system isn't making."
+        
+        elif source == "human_design":
+            authority = raw.get("authority", "")
+            if authority == "Emotional":
+                text = "Your emotional clarity hasn't arrived yet. You're acting before it does."
+            elif authority == "Sacral":
+                text = "Your body has an answer. Your mind is overruling it."
+            elif authority == "Splenic":
+                text = "There's an instinct you're not following."
+            else:
+                text = "Your mechanics are creating friction with what you're trying to do."
+        
+        elif source == "bazi":
+            text = "Your chart structure makes this kind of pause predictable."
+        
+        elif source == "enneagram":
+            etype = raw.get("type", "")
+            if "1" in str(etype):
+                text = "The perfectionist voice is holding you back."
+            elif "2" in str(etype):
+                text = "You're prioritizing their comfort over your need."
+            elif "3" in str(etype):
+                text = "You're protecting an image instead of moving."
+            elif "4" in str(etype):
+                text = "You're waiting to feel more before you act."
+            elif "5" in str(etype):
+                text = "You're gathering more information instead of using what you have."
+            elif "6" in str(etype):
+                text = "You're scanning for problems instead of acting."
+            elif "7" in str(etype):
+                text = "You're keeping options open to avoid commitment."
+            elif "8" in str(etype):
+                text = "You're trying to control instead of allow."
+            elif "9" in str(etype):
+                text = "You're keeping the peace at your expense."
+            else:
+                text = "A defense pattern is active."
+        
+        else:
+            text = signal.evidence_text or "Signal detected."
+        
+        drivers.append({
+            "source": source,
+            "text": text
+        })
+    
+    return drivers
+
+
+def generate_v3_synthesis(
+    cluster_key: str,
+    signals: List[TensionSignal],
+    contradiction: str,
+    current_cost: str
+) -> str:
+    """
+    V3: Generate driver synthesis that explains WHY this is showing up.
+    Should feel like insight, not category label.
+    """
+    signal_count = len(signals)
+    sources = [s.source for s in signals]
+    
+    # If multiple lenses agree, highlight the convergence
+    if signal_count >= 3:
+        return f"This isn't just one thing. Multiple parts of your system are pointing at the same stuck point: {contradiction.lower()}"
+    
+    # If pattern memory is primary
+    if "pattern_memory" in sources and signal_count <= 2:
+        return "This is less about today and more about a repeated moment you keep arriving at."
+    
+    # Cluster-specific synthesis
+    SYNTHESIS_BY_CLUSTER = {
+        "push_vs_hold": "You're not confused about what to do. You're avoiding the discomfort of doing it.",
+        "control_vs_flow": "The grip isn't protecting anything. It's creating the friction you're trying to avoid.",
+        "precision_vs_progress": "Quality isn't the real issue. Fear of being seen imperfect is.",
+        "visible_vs_hidden": "You want to be seen, but you're doing everything to stay invisible.",
+        "logic_vs_instinct": "The answer already exists. You're looking for permission, not information.",
+        "self_vs_others": "You're losing yourself in someone else's needs while yours go unmet.",
+        "rest_vs_push": "You're treating depletion like weakness instead of a signal.",
+        "clarity_vs_chaos": "You're looking for clarity through thinking. It won't come that way.",
+        "trust_vs_doubt": "Checking again won't give you certainty. Only action will.",
+        "expression_vs_suppression": "The pressure isn't going away because the thing hasn't been said."
+    }
+    
+    return SYNTHESIS_BY_CLUSTER.get(cluster_key, f"The core tension: {contradiction.lower()}")
+
