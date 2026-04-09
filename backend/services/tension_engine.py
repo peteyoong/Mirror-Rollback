@@ -1116,6 +1116,364 @@ V3_ENERGY_TITLES = {
 
 
 # =============================================================================
+# HOUSE → PLAIN ENGLISH LIFE AREA MAPPING
+# =============================================================================
+
+HOUSE_TO_LIFE_AREA = {
+    1: "self and identity",
+    2: "money and value",
+    3: "communication and decisions",
+    4: "home and family",
+    5: "expression and creativity",
+    6: "work rhythm and daily systems",
+    7: "relationship and commitment",
+    8: "intimacy and shared stakes",
+    9: "meaning and direction",
+    10: "work and visibility",
+    11: "community and future vision",
+    12: "inner world and avoidance",
+}
+
+# BaZi domain → life area mapping
+BAZI_DOMAIN_TO_LIFE_AREA = {
+    "wealth": ("money and value", 2),
+    "career": ("work and visibility", 10),
+    "relationship": ("relationship and commitment", 7),
+    "health": ("work rhythm and daily systems", 6),
+    "creativity": ("expression and creativity", 5),
+    "authority": ("work and visibility", 10),
+    "resource": ("money and value", 2),
+    "output": ("expression and creativity", 5),
+    "power": ("intimacy and shared stakes", 8),
+    "companion": ("relationship and commitment", 7),
+}
+
+# Tension cluster → default life area mapping (fallback)
+CLUSTER_TO_LIFE_AREA = {
+    "push_vs_hold": ("decisions and action", 3),
+    "control_vs_flow": ("self and identity", 1),
+    "precision_vs_progress": ("work and visibility", 10),
+    "visible_vs_hidden": ("expression and creativity", 5),
+    "logic_vs_instinct": ("communication and decisions", 3),
+    "self_vs_others": ("relationship and commitment", 7),
+    "rest_vs_push": ("work rhythm and daily systems", 6),
+    "clarity_vs_chaos": ("meaning and direction", 9),
+    "trust_vs_doubt": ("intimacy and shared stakes", 8),
+    "expression_vs_suppression": ("communication and decisions", 3),
+}
+
+# Cluster-specific confidence boost (some clusters strongly imply life area)
+CLUSTER_LIFE_AREA_CONFIDENCE = {
+    "self_vs_others": 0.55,  # Clearly about relationships
+    "rest_vs_push": 0.55,   # Clearly about work/daily rhythm
+    "precision_vs_progress": 0.52,  # Often about work
+    "visible_vs_hidden": 0.52,  # Often about expression/creativity
+}
+
+
+@dataclass
+class LifeAreaContext:
+    """Life area context for grounding the tension."""
+    label: str
+    source: str  # astrology_house, bazi_domain, pattern_memory, cluster_default
+    house: Optional[int] = None
+    confidence: float = 0.5
+
+
+async def derive_life_area_context(
+    db,
+    user_id: str,
+    signals: List['TensionSignal'],
+    dominant_cluster: str
+) -> Optional[LifeAreaContext]:
+    """
+    Derive the life area context from multiple sources.
+    
+    Priority order:
+    1. Astrology house activation (transits → natal houses)
+    2. BaZi domain mapping (if clear)
+    3. Pattern Memory context
+    4. Cluster default (lowest priority)
+    
+    Returns None if confidence < 0.5
+    """
+    life_area_candidates = []
+    
+    # 1. Try to get astrology house from transit data
+    try:
+        astro_context = await _get_astrology_life_area(db, user_id)
+        if astro_context:
+            life_area_candidates.append(astro_context)
+    except Exception as e:
+        logger.debug(f"[LifeArea] Astrology extraction failed: {e}")
+    
+    # 2. Check BaZi domain from signals
+    for signal in signals:
+        if signal.source == "bazi" and signal.raw_data:
+            bazi_context = _get_bazi_life_area(signal)
+            if bazi_context:
+                life_area_candidates.append(bazi_context)
+                break
+    
+    # 3. Check Pattern Memory for domain hints
+    for signal in signals:
+        if signal.source == "pattern_memory" and signal.raw_data:
+            pm_context = _get_pattern_memory_life_area(signal)
+            if pm_context:
+                life_area_candidates.append(pm_context)
+                break
+    
+    # 4. Cluster default (lowest priority, use boosted confidence for some clusters)
+    if dominant_cluster in CLUSTER_TO_LIFE_AREA:
+        label, house = CLUSTER_TO_LIFE_AREA[dominant_cluster]
+        base_confidence = CLUSTER_LIFE_AREA_CONFIDENCE.get(dominant_cluster, 0.4)
+        life_area_candidates.append(LifeAreaContext(
+            label=label,
+            source="cluster_default",
+            house=house,
+            confidence=base_confidence
+        ))
+    
+    # Select highest confidence candidate
+    if not life_area_candidates:
+        return None
+    
+    best_candidate = max(life_area_candidates, key=lambda x: x.confidence)
+    
+    # Don't return if confidence is too low
+    if best_candidate.confidence < 0.5:
+        logger.info(f"[LifeArea] No high-confidence life area (best: {best_candidate.confidence})")
+        return None
+    
+    logger.info(f"[LifeArea] Selected: {best_candidate.label} (source={best_candidate.source}, conf={best_candidate.confidence})")
+    return best_candidate
+
+
+async def _get_astrology_life_area(db, user_id: str) -> Optional[LifeAreaContext]:
+    """Get life area from astrology transits hitting natal houses."""
+    try:
+        from services.daily_transit_window import scan_daily_transit_window, get_current_transit_houses
+        
+        # Get user's chart
+        chart = await db.astrology_charts.find_one({"user_id": user_id})
+        if not chart:
+            return None
+        
+        house_cusps = chart.get("house_cusps", [])
+        if not house_cusps or len(house_cusps) < 12:
+            return None
+        
+        # Get current transit positions
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        
+        # Scan for active transit events
+        transit_data = scan_daily_transit_window(
+            now,
+            chart.get("planet_positions", {}),
+            house_cusps
+        )
+        
+        if not transit_data:
+            return None
+        
+        # Look for the most activated house
+        activated_houses = {}
+        
+        # Check transit house positions (where transiting planets currently are)
+        transit_houses = transit_data.get("transit_houses", {})
+        for planet, house in transit_houses.items():
+            if planet in ["Sun", "Moon", "Mercury", "Venus", "Mars"]:  # Personal planets
+                weight = 1.0 if planet in ["Sun", "Moon"] else 0.7
+                activated_houses[house] = activated_houses.get(house, 0) + weight
+        
+        # Check active aspects - the houses being aspected
+        active_aspects = transit_data.get("active_aspects", [])
+        for aspect in active_aspects:
+            if isinstance(aspect, dict):
+                # If aspect targets a natal planet, find which house it rules
+                natal_planet = aspect.get("natal_planet", "")
+                if natal_planet:
+                    # Simple mapping: natal planet's house position
+                    natal_positions = chart.get("planet_positions", {})
+                    if natal_planet in natal_positions:
+                        from services.daily_transit_window import longitude_to_house
+                        natal_lon = natal_positions[natal_planet].get("longitude", 0)
+                        house = longitude_to_house(natal_lon, house_cusps)
+                        activated_houses[house] = activated_houses.get(house, 0) + 0.8
+        
+        # Check house ingresses
+        house_ingresses = transit_data.get("house_ingresses", [])
+        for ingress in house_ingresses:
+            if isinstance(ingress, dict):
+                to_house = ingress.get("to_house")
+                if to_house:
+                    activated_houses[to_house] = activated_houses.get(to_house, 0) + 1.2
+        
+        if not activated_houses:
+            # Fallback: use current Moon house
+            moon_house = transit_data.get("current_moon_house", 0)
+            if moon_house and moon_house in HOUSE_TO_LIFE_AREA:
+                return LifeAreaContext(
+                    label=HOUSE_TO_LIFE_AREA[moon_house],
+                    source="astrology_house",
+                    house=moon_house,
+                    confidence=0.55
+                )
+            return None
+        
+        # Get most activated house
+        dominant_house = max(activated_houses.items(), key=lambda x: x[1])
+        house_num = dominant_house[0]
+        activation_score = dominant_house[1]
+        
+        if house_num not in HOUSE_TO_LIFE_AREA:
+            return None
+        
+        # Calculate confidence based on activation strength
+        confidence = min(0.85, 0.5 + (activation_score * 0.1))
+        
+        return LifeAreaContext(
+            label=HOUSE_TO_LIFE_AREA[house_num],
+            source="astrology_house",
+            house=house_num,
+            confidence=confidence
+        )
+        
+    except Exception as e:
+        logger.error(f"[LifeArea] Astrology extraction error: {e}")
+        return None
+
+
+def _get_bazi_life_area(signal: 'TensionSignal') -> Optional[LifeAreaContext]:
+    """Extract life area from BaZi signal."""
+    raw_data = signal.raw_data or {}
+    insight = raw_data.get("insight", {})
+    
+    # Look for domain indicators in the insight
+    domain = insight.get("domain", "") or insight.get("area", "") or ""
+    domain_lower = domain.lower()
+    
+    for key, (label, house) in BAZI_DOMAIN_TO_LIFE_AREA.items():
+        if key in domain_lower:
+            return LifeAreaContext(
+                label=label,
+                source="bazi_domain",
+                house=house,
+                confidence=0.65
+            )
+    
+    # Check tension text for domain hints
+    tension = signal.tension.lower() if signal.tension else ""
+    if any(w in tension for w in ["career", "work", "job", "profession"]):
+        return LifeAreaContext(
+            label="work and visibility",
+            source="bazi_domain",
+            house=10,
+            confidence=0.6
+        )
+    if any(w in tension for w in ["relationship", "partner", "marriage"]):
+        return LifeAreaContext(
+            label="relationship and commitment",
+            source="bazi_domain",
+            house=7,
+            confidence=0.6
+        )
+    if any(w in tension for w in ["money", "wealth", "finance"]):
+        return LifeAreaContext(
+            label="money and value",
+            source="bazi_domain",
+            house=2,
+            confidence=0.6
+        )
+    
+    return None
+
+
+def _get_pattern_memory_life_area(signal: 'TensionSignal') -> Optional[LifeAreaContext]:
+    """Extract life area from Pattern Memory signal."""
+    raw_data = signal.raw_data or {}
+    
+    # Look for domain/context in pattern memory
+    context = raw_data.get("context", "") or raw_data.get("domain", "") or ""
+    context_lower = context.lower()
+    
+    # Also check the tension text itself and any evidence
+    tension = signal.tension.lower() if signal.tension else ""
+    evidence = signal.evidence_text.lower() if signal.evidence_text else ""
+    cluster = raw_data.get("cluster", "")
+    combined = f"{context_lower} {tension} {evidence} {cluster}"
+    
+    # Domain detection with broader patterns
+    work_patterns = ["work", "career", "job", "project", "boss", "colleague", "deadline", 
+                     "meeting", "email", "client", "professional", "office", "team"]
+    relationship_patterns = ["relationship", "partner", "spouse", "dating", "commitment",
+                            "marriage", "boyfriend", "girlfriend", "love", "intimacy"]
+    money_patterns = ["money", "finance", "income", "spending", "value", "budget", 
+                     "salary", "investment", "debt", "pay"]
+    family_patterns = ["family", "home", "parent", "child", "mother", "father", "sibling",
+                      "kids", "house", "domestic"]
+    creative_patterns = ["creative", "express", "art", "write", "create", "design", 
+                        "music", "perform", "show", "visible"]
+    decision_patterns = ["decision", "choice", "communicate", "speak", "message", 
+                        "conversation", "tell", "say", "ask", "discuss"]
+    identity_patterns = ["identity", "self", "who i am", "authentic", "real me",
+                        "purpose", "meaning", "direction"]
+    
+    if any(w in combined for w in work_patterns):
+        return LifeAreaContext(
+            label="work and visibility",
+            source="pattern_memory",
+            house=10,
+            confidence=0.7
+        )
+    if any(w in combined for w in relationship_patterns):
+        return LifeAreaContext(
+            label="relationship and commitment",
+            source="pattern_memory",
+            house=7,
+            confidence=0.7
+        )
+    if any(w in combined for w in money_patterns):
+        return LifeAreaContext(
+            label="money and value",
+            source="pattern_memory",
+            house=2,
+            confidence=0.65
+        )
+    if any(w in combined for w in family_patterns):
+        return LifeAreaContext(
+            label="home and family",
+            source="pattern_memory",
+            house=4,
+            confidence=0.7
+        )
+    if any(w in combined for w in creative_patterns):
+        return LifeAreaContext(
+            label="expression and creativity",
+            source="pattern_memory",
+            house=5,
+            confidence=0.65
+        )
+    if any(w in combined for w in decision_patterns):
+        return LifeAreaContext(
+            label="communication and decisions",
+            source="pattern_memory",
+            house=3,
+            confidence=0.6
+        )
+    if any(w in combined for w in identity_patterns):
+        return LifeAreaContext(
+            label="self and identity",
+            source="pattern_memory",
+            house=1,
+            confidence=0.6
+        )
+    
+    return None
+
+
+# =============================================================================
 # SIGNAL EXTRACTION FROM LENSES
 # =============================================================================
 
@@ -1130,9 +1488,10 @@ async def extract_pattern_memory_signal(db, user_id: str) -> Optional[TensionSig
             logger.info(f"[TensionEngine] No pattern history for user {user_id}")
             return None
         
-        # Count pattern frequencies
+        # Count pattern frequencies and track context
         pattern_counts = defaultdict(int)
         pattern_recency = {}
+        pattern_context = {}  # Track context/domain for each pattern
         
         for entry in history:
             # Look for tension or pattern_key in the entry
@@ -1144,6 +1503,10 @@ async def extract_pattern_memory_signal(db, user_id: str) -> Optional[TensionSig
                     if isinstance(entry_date, datetime):
                         entry_date = entry_date.strftime("%Y-%m-%d")
                     pattern_recency[tension] = str(entry_date)[:10]
+                # Track context for life area detection
+                context = entry.get("context", "") or entry.get("domain", "") or entry.get("area", "")
+                if context:
+                    pattern_context[tension] = context
         
         if not pattern_counts:
             return None
@@ -1168,12 +1531,15 @@ async def extract_pattern_memory_signal(db, user_id: str) -> Optional[TensionSig
                     confidence = 0.85
                 elif days_ago <= 7:
                     confidence = 0.7
-            except:
+            except Exception:
                 pass
         
         # Map to cluster
         cluster_key = _find_matching_cluster(pattern_key)
         cluster = TENSION_CLUSTERS.get(cluster_key, {})
+        
+        # Get context for this pattern
+        context = pattern_context.get(pattern_key, "")
         
         return TensionSignal(
             tension=pattern_key,
@@ -1185,7 +1551,8 @@ async def extract_pattern_memory_signal(db, user_id: str) -> Optional[TensionSig
             raw_data={
                 "frequency": frequency,
                 "recent_date": recent_date,
-                "cluster": cluster_key
+                "cluster": cluster_key,
+                "context": context  # Include context for life area detection
             },
             evidence_text=f"This same pattern has repeated {frequency} times in the last two weeks." if frequency >= 3 else "This pattern is returning."
         )
@@ -1808,11 +2175,24 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
     avg_confidence = sum(s.confidence for s in dominant_signals) / len(dominant_signals)
     avg_intensity = sum(s.intensity for s in dominant_signals) / len(dominant_signals)
     
+    # V3.1: Derive life area context for grounding
+    life_area = await derive_life_area_context(db, user_id, dominant_signals, dominant_cluster)
+    life_area_context = None
+    if life_area:
+        life_area_context = {
+            "label": life_area.label,
+            "source": life_area.source,
+            "house": life_area.house,
+            "confidence": round(life_area.confidence, 2)
+        }
+        logger.info(f"[TensionEngine V3.1] Life area: {life_area.label} (source={life_area.source})")
+    
     return {
         "mode": mode.value,
         "tension_label": tension_label,
         "energy_title": energy_title,
         "moment": moment,
+        "life_area_context": life_area_context,
         "object_of_tension": object_of_tension,
         "contradiction": contradiction,
         "current_cost": current_cost,
@@ -1825,13 +2205,14 @@ async def generate_tension_moment(db, user_id: str) -> Dict[str, Any]:
         "intensity": round(avg_intensity, 2),
         "fallback_used": False,
         "debug": {
-            "version": "v3_scene_engine",
+            "version": "v3.1_scene_engine",
             "cluster": dominant_cluster,
             "dominance_score": round(dominance_score, 2),
             "signal_count": len(signals),
             "strong_signal_count": strong_signals,
             "mode_reason": f"non_pm_strong={len(strong_non_pm)}, has_pm={has_strong_pm}, total={total_signals}",
             "signals_used": [s.source for s in dominant_signals],
+            "life_area_source": life_area.source if life_area else None,
             "all_signals": signal_debug
         }
     }

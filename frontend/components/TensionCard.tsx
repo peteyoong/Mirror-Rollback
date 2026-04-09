@@ -42,12 +42,21 @@ interface TensionDriver {
   text: string;
 }
 
+interface LifeAreaContext {
+  label: string;
+  source: string;  // astrology_house, bazi_domain, pattern_memory, cluster_default
+  house?: number;
+  confidence: number;
+}
+
 interface TensionData {
   success: boolean;
   mode: 'converged' | 'repeating' | 'low_signal';  // V2: Confidence mode
   tension_label: string;
   energy_title: string;
   moment: string;
+  // V3.1 Life Area Context
+  life_area_context?: LifeAreaContext | null;
   // V3 Scene Engine fields
   object_of_tension?: string;  // What this is about (decision, conversation, etc.)
   contradiction?: string;       // The felt pull in opposite directions
@@ -210,6 +219,18 @@ const TensionCard: React.FC<TensionCardProps> = ({
       <Text style={[styles.moment, { color: theme.text }]}>
         {tension.moment}
       </Text>
+
+      {/* V3.1 Life Area Context - Grounding the tension */}
+      {tension.life_area_context && tension.life_area_context.label && (
+        <View style={styles.lifeAreaRow}>
+          <Text style={[styles.lifeAreaLabel, { color: theme.textTertiary }]}>
+            Where:
+          </Text>
+          <Text style={[styles.lifeAreaText, { color: theme.textSecondary }]}>
+            {tension.life_area_context.label}
+          </Text>
+        </View>
+      )}
 
       {/* V3 Scene Engine: Object of Tension */}
       {tension.object_of_tension && (
@@ -395,6 +416,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 28,
     marginBottom: 8,
+  },
+
+  // V3.1 Life Area Context
+  lifeAreaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 6,
+  },
+  lifeAreaLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  lifeAreaText: {
+    fontSize: 13,
+    fontStyle: 'italic',
   },
 
   // Supporting Line
