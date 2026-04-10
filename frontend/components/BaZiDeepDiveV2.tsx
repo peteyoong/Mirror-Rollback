@@ -24,6 +24,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -36,9 +37,16 @@ const EXPO_PUBLIC_BACKEND_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND
   || '';
 
 const getBackendBaseUrl = () => {
-  if (typeof window !== 'undefined' && !EXPO_PUBLIC_BACKEND_URL) {
+  // For web: use same origin (API calls go to /api/* which nginx routes to backend)
+  if (typeof window !== 'undefined' && Platform.OS === 'web') {
+    // If we have a configured backend URL, use it; otherwise use same origin
+    if (EXPO_PUBLIC_BACKEND_URL) {
+      return EXPO_PUBLIC_BACKEND_URL;
+    }
+    // Fallback to same origin - works for deployed apps where nginx routes /api to backend
     return '';
   }
+  // For native apps, must use the configured backend URL
   return EXPO_PUBLIC_BACKEND_URL;
 };
 
