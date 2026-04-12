@@ -14230,6 +14230,111 @@ async def get_home_insight_v4(user_id: str):
         }
 
 
+
+# =============================================================================
+# V5.0: HOME INSIGHT - PATTERN ENGINE FINAL FORM
+# =============================================================================
+@api_router.get("/home-insight-v5/{user_id}")
+async def get_home_insight_v5(user_id: str):
+    """
+    V5 Home Insight - Pattern Engine Final Form
+    
+    CORE IDENTITY:
+    Home = Pattern across time (identity + recurrence)
+    Today = Moment inside the day (situational + interrupt)
+    
+    Home must feel like: "This keeps happening to me."
+    NOT: "This is happening today."
+    
+    V5 OUTPUT STRUCTURE:
+    - pattern_label: max 3-4 words
+    - headline: Pattern-based, not "today"
+    - identity_mirror: One sharp identity-level reflection (NEW)
+    - whats_going_on: Pattern loops, no abstraction
+    - where_it_shows_up: ONE dominant life area
+    - what_you_may_be_doing: Repeated behaviors, loops
+    - what_this_creates: Quiet cost
+    - the_move: Pattern-level trajectory shift
+    - why_showing_up: Collapsible proof layer
+    """
+    try:
+        from services.home_insight_v5 import generate_home_insight_v5, build_v5_narrative
+        from services.tension_engine import generate_tension_moment
+        
+        # Get raw tension data to extract cluster and signals
+        raw_tension = await generate_tension_moment(db, user_id)
+        
+        # Extract cluster and signals
+        cluster = raw_tension.get("debug", {}).get("cluster", "push_vs_hold")
+        house = None
+        if raw_tension.get("life_area_context"):
+            house = raw_tension["life_area_context"].get("house")
+        
+        trigger_confidence = raw_tension.get("trigger_confidence", "recurring_only")
+        
+        # Build signals summary for proof layer
+        signals_summary = []
+        if raw_tension.get("why_recurring"):
+            for driver in raw_tension["why_recurring"]:
+                signals_summary.append(f"{driver.get('source', 'Signal')}: {driver.get('text', '')}")
+        if raw_tension.get("why_now"):
+            for driver in raw_tension["why_now"]:
+                signals_summary.append(f"{driver.get('source', 'Signal')}: {driver.get('text', '')}")
+        
+        # Generate V5 insight (pattern engine)
+        insight = generate_home_insight_v5(
+            cluster=cluster,
+            house=house,
+            trigger_confidence=trigger_confidence,
+            signals_summary=signals_summary if signals_summary else None,
+        )
+        
+        # Add narrative for backward compatibility
+        insight["narrative"] = build_v5_narrative(insight)
+        
+        # Add original tension data for reference
+        insight["raw_tension_data"] = {
+            "cluster": cluster,
+            "intensity": raw_tension.get("intensity", 0.5),
+            "confidence": raw_tension.get("confidence", 0.5),
+            "trigger_confidence": trigger_confidence,
+        }
+        
+        logger.info(f"[HomeV5] Generated for {user_id[:8]}: pattern={insight['pattern_label']}, cluster={cluster}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            **insight
+        }
+        
+    except Exception as e:
+        logger.error(f"[HomeV5] Error for user {user_id}: {e}", exc_info=True)
+        
+        # Return graceful fallback
+        return {
+            "success": True,
+            "user_id": user_id,
+            "version": "v5_fallback",
+            "pattern_label": "Something Recurring",
+            "headline": "There's a pattern forming — something that keeps coming back.",
+            "identity_mirror": "This isn't new. You've been here before — and you know it.",
+            "whats_going_on": [
+                "Something familiar is cycling back.",
+                "The full shape hasn't become clear yet, but you recognize the feeling.",
+            ],
+            "where_it_shows_up": "In situations where a familiar response replays itself.",
+            "what_you_may_be_doing": [
+                "Moving through a pattern you've moved through before — without fully seeing it.",
+            ],
+            "what_this_creates": "A quiet sense that something keeps repeating — even if you can't name it yet.",
+            "the_move": "Just notice what feels familiar right now. That recognition is the beginning.",
+            "why_showing_up": None,
+            "fallback_used": True,
+        }
+
+
+
 # =============================================================================
 # V5.0: ASTROLOGY EXPERT INTERPRETER
 # =============================================================================
