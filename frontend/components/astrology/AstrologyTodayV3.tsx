@@ -60,10 +60,9 @@ const EXPO_PUBLIC_BACKEND_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND
   || '';
 
 const getBackendBaseUrl = () => {
+  // On web (both preview and deployed), use relative URLs
+  // so API calls go to the same origin regardless of domain
   if (typeof window !== 'undefined' && Platform.OS === 'web') {
-    if (EXPO_PUBLIC_BACKEND_URL) {
-      return EXPO_PUBLIC_BACKEND_URL;
-    }
     return '';
   }
   return EXPO_PUBLIC_BACKEND_URL;

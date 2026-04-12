@@ -36,45 +36,25 @@ import NumerologyDeepDiveV2 from './NumerologyDeepDiveV2';
 const DEV_BACKEND_FALLBACK = 'http://localhost:8001'; // Direct backend in dev
 
 function getBackendBaseUrl(): string {
-  // 1. Try EXPO_PUBLIC_BACKEND_URL from env (works for all builds)
-  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
-    if (__DEV__) {
-      console.log('[NumerologyLensView] Using EXPO_PUBLIC_BACKEND_URL:', envUrl);
-    }
-    return envUrl;
-  }
-  
-  // 2. Try expo-constants extra config
-  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
-  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
-    if (__DEV__) {
-      console.log('[NumerologyLensView] Using Constants extra URL:', extraUrl);
-    }
-    return extraUrl;
-  }
-  
-  // 3. For web platform, check if we're in dev/preview mode
+  // For web: ALWAYS use relative URLs so API calls go to same origin
+  // This works for both preview and deployed domains
   if (Platform.OS === 'web') {
-    // Check if hostname indicates local dev or preview environment
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1';
-    // Only use dev fallback for actual localhost, NOT for deployed .emergent.host domains
-    const isDevPreview = hostname.includes('.preview.emergentagent.com');
-    
-    if (isLocalDev) {
-      // Local development only - use direct backend URL
-      if (__DEV__) {
-        console.log('[NumerologyLensView] Using DEV_BACKEND_FALLBACK:', DEV_BACKEND_FALLBACK);
-      }
-      return DEV_BACKEND_FALLBACK;
-    }
-    // Production/deployed web (including .emergent.host): use relative URL
-    // The ingress/proxy will route /api/* to the backend
     return '';
   }
   
-  // 4. Native fallback
+  // For native: try EXPO_PUBLIC_BACKEND_URL from env
+  const envUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.length > 0) {
+    return envUrl;
+  }
+  
+  // Try expo-constants extra config
+  const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
+  if (extraUrl && typeof extraUrl === 'string' && extraUrl.length > 0) {
+    return extraUrl;
+  }
+  
+  // Native fallback
   return DEV_BACKEND_FALLBACK;
 }
 

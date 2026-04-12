@@ -22,11 +22,8 @@ const EXPO_PUBLIC_BACKEND_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND
   || '';
 
 const getBackendBaseUrl = () => {
-  // For web: use same origin (API calls go to /api/* which nginx routes to backend)
+  // For web: ALWAYS use relative URLs so API calls go to same origin
   if (typeof window !== 'undefined' && Platform.OS === 'web') {
-    if (EXPO_PUBLIC_BACKEND_URL) {
-      return EXPO_PUBLIC_BACKEND_URL;
-    }
     return '';
   }
   return EXPO_PUBLIC_BACKEND_URL;
