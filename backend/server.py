@@ -11796,6 +11796,87 @@ async def get_astrology_today_v2(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/astrology/today-v3/{user_id}")
+async def get_astrology_today_v3(user_id: str):
+    """
+    Astrology Today V3 — Real-World Clarity Engine
+    
+    MANDATORY OUTPUT FORMAT:
+    - headline: One clear sentence
+    - whats_happening: 2-3 real-world dynamics
+    - how_it_shows_up: 2-3 observable behaviors
+    - what_it_feels_like: 2-3 physical/emotional signals
+    - the_move: Small behavioral shift (not advice)
+    - where_context: Life area if available
+    - technical: Hidden layer for expandable
+    
+    SUCCESS CRITERIA:
+    Non-astrology user should immediately understand without asking "what does this mean?"
+    """
+    try:
+        from services.astrology_today_v3 import (
+            generate_today_from_transit,
+            build_narrative_v3
+        )
+        from services.field_signals import detect_transit_convergence
+        
+        # Get transit stack (real data from field_signals)
+        transit_stack = detect_transit_convergence()
+        day_class = transit_stack.get("classification", "normal_flow")
+        
+        # Get user's chart data for personalization
+        chart_data = None
+        try:
+            # Try to get from deep dive cache
+            cached_dd = await db.deep_dive_cache.find_one({"user_id": user_id, "lens": "astrology"})
+            if cached_dd and cached_dd.get("core_placements"):
+                placements = cached_dd.get("core_placements", {})
+                sun = placements.get("sun")
+                moon = placements.get("moon")
+                asc = placements.get("ascendant")
+                
+                chart_data = {
+                    "sun_sign": sun.get("sign") if isinstance(sun, dict) else sun,
+                    "moon_sign": moon.get("sign") if isinstance(moon, dict) else moon,
+                    "rising_sign": asc.get("sign") if isinstance(asc, dict) else asc,
+                }
+            
+            # Alternative: check if user has stored chart data
+            if not chart_data:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+                if user and user.get("birth_chart"):
+                    bc = user.get("birth_chart", {})
+                    chart_data = {
+                        "sun_sign": bc.get("sun_sign"),
+                        "moon_sign": bc.get("moon_sign"),
+                        "rising_sign": bc.get("rising_sign") or bc.get("ascendant_sign"),
+                    }
+                    
+        except Exception as e:
+            logger.debug(f"[AstrologyV3] Could not load chart data: {e}")
+        
+        # Get activated house from transit if available
+        activated_house = transit_stack.get("activated_house")
+        transit_stack["activated_house"] = activated_house
+        
+        # Generate V3 insight with mandatory structure
+        insight = generate_today_from_transit(
+            transit_stack=transit_stack,
+            day_class=day_class,
+            chart_data=chart_data
+        )
+        
+        # Also build narrative for backward compatibility
+        insight["narrative"] = build_narrative_v3(insight)
+        
+        logger.info(f"[AstrologyV3] Generated insight for {user_id[:8]}: tension={insight.get('tension_type')}, day_class={day_class}")
+        
+        return insight
+        
+    except Exception as e:
+        logger.error(f"Astrology today V3 error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @api_router.get("/astrology/snapshot/{user_id}")
 async def get_astrology_snapshot_3alt(user_id: str):

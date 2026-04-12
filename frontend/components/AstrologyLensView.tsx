@@ -22,6 +22,7 @@ import {
 // Import the new tab components
 import AstrologyAtAGlanceTab from './astrology/AstrologyAtAGlanceTab';
 import AstrologyTodayTab from './astrology/AstrologyTodayTab';
+import AstrologyTodayV3 from './astrology/AstrologyTodayV3';
 import AstrologyDeepDiveTab from './astrology/AstrologyDeepDiveTab';
 import AstrologyTimelineTab from './astrology/AstrologyTimelineTab';
 
@@ -275,14 +276,12 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
     }
     
     if (activeTab === 'today') {
+      // V3: Use the new Real-World Clarity Engine
       return (
-        <AstrologyTodayTab
+        <AstrologyTodayV3
           userId={userId}
-          fullChartData={fullChartData}
           theme={theme}
-          onOpenChat={onOpenChat}
           onReflect={handleTodayReflect}
-          onSwitchToTimeline={() => setActiveTab('timeline')}
         />
       );
     }
