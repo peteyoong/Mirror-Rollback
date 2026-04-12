@@ -25,7 +25,7 @@ import DebugComputeInputs from '../../components/DebugComputeInputs';
 
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import HomeSynthesisCard from '../../components/HomeSynthesisCard';
-import TensionCard from '../../components/TensionCard';
+import HomeInsightV4Card from '../../components/HomeInsightV4Card';
 import ActionCard from '../../components/ActionCard';
 import { useExperienceControls } from '../../hooks/useExperienceControls';
 import { HOME_LAYOUT, MirrorMode } from '../../types/mirror-profile';
@@ -406,9 +406,10 @@ export default function MirrorScreen() {
             =================================================================== */}
         {user?.id && (
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <TensionCard 
+            <HomeInsightV4Card 
               userId={user.id} 
               theme={theme}
+              onReflect={(question) => router.push('/reflection-chat')}
             />
           </View>
         )}

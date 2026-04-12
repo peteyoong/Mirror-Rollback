@@ -14128,6 +14128,108 @@ async def get_home_tension(user_id: str):
         }
 
 
+@api_router.get("/home-insight-v4/{user_id}")
+async def get_home_insight_v4(user_id: str):
+    """
+    V4 Home Insight - Earned Claims & Progressive Reveal
+    
+    CORE PRINCIPLE:
+    Every strong statement must be EARNED, not assumed.
+    User should feel RECOGNIZED, not ACCUSED.
+    
+    V4 OUTPUT STRUCTURE:
+    - pattern_label: "Still Circling It" (max 4 words)
+    - headline: "Grounded, specific, not accusatory"
+    - whats_going_on: ["Real-world dynamics"]
+    - where_it_shows_up: "Life area anchor"
+    - what_you_may_be_doing: ["Observable behaviors"]
+    - what_this_creates: "Consequence, not dramatic"
+    - the_move: "Small non-prescriptive shift"
+    - why_showing_up: {...}  // Hidden proof layer
+    
+    SUCCESS CRITERIA:
+    - User recognizes instantly ("oh shit, that's me")
+    - Does NOT feel judged or accused
+    - Does NOT ask "how do you know this?"
+    - Feels slightly seen, not pushed
+    """
+    try:
+        from services.home_insight_v4 import generate_home_insight_v4, build_v4_narrative
+        from services.tension_engine import generate_tension_moment
+        
+        # First get the raw tension data to extract cluster and signals
+        raw_tension = await generate_tension_moment(db, user_id)
+        
+        # Extract cluster and signals for V4
+        cluster = raw_tension.get("debug", {}).get("cluster", "push_vs_hold")
+        house = None
+        if raw_tension.get("life_area_context"):
+            house = raw_tension["life_area_context"].get("house")
+        
+        trigger_confidence = raw_tension.get("trigger_confidence", "recurring_only")
+        signals_used = raw_tension.get("debug", {}).get("signals_used", [])
+        
+        # Build signals summary for proof layer
+        signals_summary = []
+        if raw_tension.get("why_recurring"):
+            for driver in raw_tension["why_recurring"]:
+                signals_summary.append(f"{driver.get('source', 'Signal')}: {driver.get('text', '')}")
+        if raw_tension.get("why_now"):
+            for driver in raw_tension["why_now"]:
+                signals_summary.append(f"{driver.get('source', 'Signal')}: {driver.get('text', '')}")
+        
+        # Generate V4 insight with earned claims
+        insight = generate_home_insight_v4(
+            cluster=cluster,
+            house=house,
+            trigger_confidence=trigger_confidence,
+            signals_summary=signals_summary if signals_summary else None,
+        )
+        
+        # Add narrative for backward compatibility
+        insight["narrative"] = build_v4_narrative(insight)
+        
+        # Add original tension data for reference
+        insight["raw_tension_data"] = {
+            "cluster": cluster,
+            "intensity": raw_tension.get("intensity", 0.5),
+            "confidence": raw_tension.get("confidence", 0.5),
+            "trigger_confidence": trigger_confidence,
+        }
+        
+        logger.info(f"[HomeV4] Generated for {user_id[:8]}: pattern={insight['pattern_label']}, cluster={cluster}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            **insight
+        }
+        
+    except Exception as e:
+        logger.error(f"[HomeV4] Error for user {user_id}: {e}", exc_info=True)
+        
+        # Return graceful fallback
+        return {
+            "success": True,
+            "user_id": user_id,
+            "version": "v4_fallback",
+            "pattern_label": "Something Building",
+            "headline": "There's something forming — but it's not fully clear yet.",
+            "whats_going_on": [
+                "Something is developing in the background.",
+                "The full shape hasn't become visible yet.",
+            ],
+            "where_it_shows_up": "This may be showing up somewhere you haven't fully noticed.",
+            "what_you_may_be_doing": [
+                "Moving through the day without full awareness of what's building.",
+            ],
+            "what_this_creates": "A subtle sense that something is in motion — even if unnamed.",
+            "the_move": "Just notice what keeps coming back to your attention today.",
+            "why_showing_up": None,
+            "fallback_used": True,
+        }
+
+
 # =============================================================================
 # V5.0: ASTROLOGY EXPERT INTERPRETER
 # =============================================================================

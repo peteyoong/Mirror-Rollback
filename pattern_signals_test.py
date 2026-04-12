@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 # Backend URL configuration
-BACKEND_URL = "https://tension-engine-v3.preview.emergentagent.com/api"
+BACKEND_URL = "https://astrology-today-v3.preview.emergentagent.com/api"
 
 # Test users from the review request
 TEST_USERS = [
