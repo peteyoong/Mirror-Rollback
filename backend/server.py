@@ -31029,22 +31029,36 @@ if ACTUAL_WEB_BUILD_PATH:
     if (ACTUAL_WEB_BUILD_PATH / "assets").exists():
         app.mount("/assets", StaticFiles(directory=str(ACTUAL_WEB_BUILD_PATH / "assets")), name="assets")
     
-    # Serve index.html for root
+    # Serve index.html for root - NO CACHE to prevent stale deploys
     @app.get("/")
     async def serve_root():
-        return FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
+        return FileResponse(
+            str(ACTUAL_WEB_BUILD_PATH / "index.html"),
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        )
     
     # Catch-all route for SPA - serves index.html for all non-API routes
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Serve the SPA for all non-API, non-static routes."""
-        # Check if it's a static file
+        # Check if it's a static file (hashed assets are fine to cache)
         file_path = ACTUAL_WEB_BUILD_PATH / full_path
         if file_path.exists() and file_path.is_file():
             return FileResponse(str(file_path))
         
-        # For all other routes, serve index.html (SPA routing)
-        return FileResponse(str(ACTUAL_WEB_BUILD_PATH / "index.html"))
+        # For all other routes, serve index.html (SPA routing) - NO CACHE
+        return FileResponse(
+            str(ACTUAL_WEB_BUILD_PATH / "index.html"),
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        )
 else:
     logger.warning(f"[Startup] Web build not found. Checked paths: {WEB_BUILD_PATH}, {FALLBACK_WEB_PATHS}")
     
