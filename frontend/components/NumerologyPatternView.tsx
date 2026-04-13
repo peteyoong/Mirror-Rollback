@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     flex: 1,
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   mainSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     marginBottom: 20,
   },
 
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   coreNumberLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -549,21 +549,21 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
     marginBottom: 4,
   },
   sectionSubtitle: {
-    fontSize: 12,
-    marginBottom: 12,
+    fontSize: 14,
+    marginBottom: 16,
   },
   gridContainer: {
     borderWidth: 2,
     borderRadius: 12,
     overflow: 'hidden',
     alignSelf: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   gridRow: {
     flexDirection: 'row',
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   legendText: {
-    fontSize: 12,
+    fontSize: 14,
   },
 
   // Core Pattern
@@ -619,15 +619,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   corePatternLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   corePatternText: {
     fontSize: 16,
     fontWeight: '600',
-    lineHeight: 24,
+    lineHeight: 28,
   },
 
   // Sections
@@ -653,8 +653,8 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
   },
 
   // Tension
@@ -671,23 +671,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   tensionA: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   tensionVs: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
   },
   tensionB: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   tensionDescription: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 28,
     textAlign: 'center',
   },
 
@@ -699,14 +699,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   mirrorMomentLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   mirrorMomentText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 27,
     fontStyle: 'italic',
   },
   
@@ -718,14 +718,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   reflectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   reflectionText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 27,
     fontStyle: 'italic',
   },
 
@@ -742,11 +742,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   unlockButtonTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   unlockButtonSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
   },
 
   // Name Display
@@ -763,13 +763,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nameDisplayLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   nameDisplayValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     marginTop: 2,
   },
@@ -785,13 +785,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   askMirrorText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
 
   // Footer
   footer: {
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
   },
@@ -827,7 +827,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   modalSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   modalSecondaryButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   modalPrimaryButton: {
@@ -859,7 +859,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   modalPrimaryButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: '#fff',
   },

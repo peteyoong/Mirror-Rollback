@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   teaserHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   iconContainer: {
     width: 28,
@@ -308,14 +308,14 @@ const styles = StyleSheet.create({
   },
   teaserTitle: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     letterSpacing: -0.2,
   },
   teaserSummary: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 10,
+    fontSize: 16,
+    lineHeight: 28,
+    marginBottom: 14,
   },
   signalBadges: {
     flexDirection: 'row',
@@ -330,12 +330,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   signalBadgeText: {
-    fontSize: 11,
+    fontSize: 14,
   },
   loadingBar: {
     height: 12,
     borderRadius: 6,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   
   // Full synthesis styles
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   fullSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   signalBadgesRow: {
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   signalLabel: {
-    fontSize: 12,
+    fontSize: 14,
     marginRight: 4,
   },
   signalBadgeFull: {
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   signalBadgeTextFull: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   insightsContainer: {
@@ -419,26 +419,26 @@ const styles = StyleSheet.create({
   },
   insightText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
   },
   questionText: {
     fontWeight: '500',
     fontStyle: 'italic',
   },
   footer: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 16,
   },
   lowDataMessage: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
     fontStyle: 'italic',
   },
   lowDataHint: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 10,
   },
 });

@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   loadingSubtext: {
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.textTertiary,
   },
   errorContainer: {
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   errorText: {
-    fontSize: 15,
+    fontSize: 17,
     color: Colors.textSecondary,
     textAlign: 'center',
   },
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   retryButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: Colors.text,
   },
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   contextTabLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     color: Colors.textTertiary,
     marginTop: 4,
@@ -376,10 +376,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.text,
     letterSpacing: -0.3,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   contextDescription: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.textTertiary,
     fontStyle: 'italic',
   },
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sectionLabel: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: Colors.text,
   },
@@ -415,8 +415,8 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   sectionBody: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 32,
     color: Colors.textSecondary,
   },
   journalCTA: {
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   journalCTAText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     color: Colors.accent,
   },
@@ -444,11 +444,11 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   footerText: {
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.textTertiary,
     textAlign: 'center',
     fontStyle: 'italic',
-    lineHeight: 20,
+    lineHeight: 25,
   },
   modalOverlay: {
     flex: 1,
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.text,
     textAlign: 'center',
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   optionHint: {
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.textTertiary,
   },
   cancelButton: {

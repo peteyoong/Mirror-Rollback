@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
   },
   scrollContent: {
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sourceLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sourceValue: {
-    fontSize: 14,
+    fontSize: 16,
     marginTop: 4,
   },
   promptCard: {
@@ -499,24 +499,24 @@ const styles = StyleSheet.create({
   },
   promptText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   inputSection: {
     marginBottom: 20,
   },
   sectionLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   textInput: {
     borderWidth: 1,
     borderRadius: 12,
     padding: 14,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     minHeight: 120,
   },
   destinationsSection: {
@@ -544,19 +544,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   destinationName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   destinationHint: {
-    fontSize: 13,
+    fontSize: 16,
   },
   forumsLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   loadingForums: {
     flexDirection: 'row',
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   shareToggle: {
     flexDirection: 'row',
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   shareLabel: {
-    fontSize: 13,
+    fontSize: 16,
   },
   noForumsCard: {
     flexDirection: 'row',
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   noForumsText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   errorCard: {
     flexDirection: 'row',
@@ -611,10 +611,10 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 12,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     flex: 1,
   },
   successCard: {
@@ -623,10 +623,10 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 12,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   successText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   footer: {
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   saveSummary: {
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
   },

@@ -224,7 +224,7 @@ const MicroMirrorCard: React.FC<MicroMirrorCardProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginTop: 12,
-    marginBottom: 8,
+    marginBottom: 14,
     borderRadius: 12,
     borderWidth: 1,
     overflow: 'hidden',
@@ -241,20 +241,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   mirrorLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
   tapHint: {
-    fontSize: 10,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   recognitionLine: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
     fontStyle: 'italic',
     fontWeight: '500',
   },
@@ -265,8 +265,8 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(139, 92, 246, 0.15)',
   },
   choiceLine: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
     marginTop: 4,
   },
   actionsContainer: {
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   dismissButton: {
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   dismissText: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 });

@@ -412,11 +412,11 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   resonanceText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   resonanceTextCompact: {
-    fontSize: 13,
+    fontSize: 16,
   },
   glowOverlay: {
     borderRadius: 8,
@@ -442,11 +442,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   reflectText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   reflectTextCompact: {
-    fontSize: 13,
+    fontSize: 16,
   },
 
   // Reflect hint
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   reflectHintText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   inlineResonanceText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   inlineReflect: {
@@ -486,11 +486,11 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   inlineReflectText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   hintText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 });

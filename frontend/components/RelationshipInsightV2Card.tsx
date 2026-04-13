@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   errorContainer: {
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryBtn: {
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
 
@@ -400,14 +400,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   storyHeadline: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
-    lineHeight: 28,
-    marginBottom: 12,
+    lineHeight: 32,
+    marginBottom: 16,
   },
   storySummary: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
   },
 
   // Layer 2: Patterns
@@ -416,18 +416,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   bulletRow: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: 14,
     paddingRight: 8,
   },
   bulletDash: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 10,
     marginTop: 1,
     width: 16,
@@ -435,8 +435,8 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   giftSection: {
     paddingHorizontal: 20,
@@ -463,10 +463,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   signalsToggleText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   signalsContainer: {
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   signalGroupLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -496,22 +496,22 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   signalChannel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   signalName: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   signalTranslation: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   signalText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     paddingLeft: 4,
   },
 

@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headline: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     marginBottom: 2,
   },

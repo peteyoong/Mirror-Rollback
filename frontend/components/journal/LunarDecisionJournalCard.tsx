@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   moonIcon: {
-    fontSize: 18,
+    fontSize: 22,
   },
   title: {
     fontSize: 11,
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   lunarDay: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   phaseBadge: {

@@ -1447,7 +1447,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   forumPatternTitle: {
     fontSize: 16,
@@ -1455,7 +1455,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   forumPatternSub: {
-    fontSize: 14,
+    fontSize: 16,
     marginBottom: 14,
   },
   forumPatternButton: {
@@ -1464,24 +1464,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   forumPatternButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   forumPatternResult: {
     gap: 10,
   },
   forumPatternResultTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   forumPatternResultText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   forumPatternResultWisdom: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
-    lineHeight: 19,
+    lineHeight: 32,
   },
   forumPatternRefreshBtn: {
     paddingVertical: 8,
@@ -1492,7 +1492,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   forumPatternRefreshText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   
@@ -1504,17 +1504,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   realLifeMeaningTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   realLifeMeaningContent: {
     gap: 6,
   },
   realLifeMeaningText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   
   loadingContainer: {
@@ -1524,7 +1524,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   header: {
@@ -1542,7 +1542,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   headerRight: {
@@ -1558,7 +1558,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   inviteButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   errorContainer: {
@@ -1573,7 +1573,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   content: {
@@ -1592,21 +1592,21 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   forumDescription: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
   // Members Quick List
   membersSection: {
     padding: 16,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   membersTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   membersList: {
     flexDirection: 'row',
@@ -1626,15 +1626,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   memberInitial: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   memberName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   memberRole: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   // Ask Mirror Button
@@ -1669,10 +1669,10 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   askMirrorSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
   },
   askMirrorArrow: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     paddingLeft: 8,
   },
@@ -1690,26 +1690,26 @@ const styles = StyleSheet.create({
   narrativeFieldHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   narrativeFieldEmoji: {
     fontSize: 24,
     marginRight: 10,
   },
   narrativeFieldTemp: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   narrativeFieldText: {
     fontSize: 17,
-    lineHeight: 26,
+    lineHeight: 30,
     fontWeight: '400',
   },
   narrativeSubtext: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     marginTop: 12,
     fontStyle: 'italic',
   },
@@ -1718,28 +1718,28 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   narrativeSectionHint: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'lowercase',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   narrativePositionText: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 32,
     fontWeight: '400',
   },
   narrativeTrajectoryText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     fontStyle: 'italic',
   },
   narrativeStoryText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
   },
   narrativeStoryLink: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     marginTop: 10,
   },
@@ -1761,12 +1761,12 @@ const styles = StyleSheet.create({
   narrativeMoveText: {
     flex: 1,
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   narrativeIdentityNote: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     marginTop: 12,
     fontStyle: 'italic',
     textAlign: 'center',
@@ -1782,7 +1782,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   liveFieldTitleRow: {
     flexDirection: 'row',
@@ -1798,30 +1798,30 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   liveFieldBadgeText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'capitalize',
   },
   liveFieldReading: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 12,
+    fontSize: 17,
+    lineHeight: 30,
+    marginBottom: 16,
   },
   liveFieldSection: {
     padding: 12,
     borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   liveFieldSectionLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   liveFieldSectionText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   liveFieldYourShift: {
     padding: 12,
@@ -1830,18 +1830,18 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   liveFieldYourShiftLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 6,
   },
   liveFieldYourShiftText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   liveFieldIdentityNote: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
     marginTop: 10,
     fontStyle: 'italic',
   },
@@ -1850,7 +1850,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   liveFieldPositionHeader: {
     flexDirection: 'row',
@@ -1858,21 +1858,21 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   liveFieldPositionLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   liveFieldPositionText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   // TRAJECTORY (IF NOTHING CHANGES) styles
   liveFieldTrajectoryCard: {
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   liveFieldTrajectoryHeader: {
     flexDirection: 'row',
@@ -1880,14 +1880,14 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   liveFieldTrajectoryLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   liveFieldTrajectoryText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   // THE MOVE - Subtle action opening styles
@@ -1902,17 +1902,17 @@ const styles = StyleSheet.create({
   liveFieldTheMoveHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   liveFieldTheMoveLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
   liveFieldTheMoveText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   // Forum Story Card
@@ -1926,7 +1926,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   forumStoryIcon: {
     width: 40,
@@ -1944,8 +1944,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   forumStorySubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
   forumStoryButton: {
     alignSelf: 'flex-start',
@@ -1954,7 +1954,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   forumStoryButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   // Forum Dynamics Card Styles
@@ -1968,7 +1968,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   forumDynamicsIcon: {
     width: 40,
@@ -1986,8 +1986,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   forumDynamicsSubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
   forumDynamicsButton: {
     alignSelf: 'flex-start',
@@ -1996,7 +1996,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   forumDynamicsButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   // Forum Pulse Styles
@@ -2007,7 +2007,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   pulseSectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -2015,10 +2015,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   pulseBlockLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   themeTags: {
     flexDirection: 'row',
@@ -2035,11 +2035,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   themeTagText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   themeTagCount: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   activityStats: {
@@ -2052,12 +2052,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     marginBottom: 2,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -2075,7 +2075,7 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   hdTypeName: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     marginBottom: 2,
   },
@@ -2090,8 +2090,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   lensInsightText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   // Member Lens Cards
@@ -2106,28 +2106,28 @@ const styles = StyleSheet.create({
   memberLensName: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   memberLensDetails: {
     gap: 4,
   },
   memberLensType: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   memberLensEnneagram: {
-    fontSize: 13,
+    fontSize: 16,
   },
   memberLensActive: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   memberLensEmpty: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   memberLensAuthority: {
-    fontSize: 12,
+    fontSize: 14,
   },
   // Lens Data Loading
   lensLoadingContainer: {
@@ -2136,7 +2136,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   lensLoadingText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   // Lens Data Container
@@ -2149,10 +2149,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   lensSectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   lensRow: {
     flexDirection: 'row',
@@ -2164,18 +2164,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   lensLabel: {
-    fontSize: 13,
+    fontSize: 16,
     flex: 1,
   },
   lensValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     flex: 1.5,
     textAlign: 'right',
   },
   lensValueSmall: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
     marginTop: 4,
   },
   patternTags: {
@@ -2190,12 +2190,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   patternTagText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   askMirrorButton: {
     marginTop: 20,
-    marginBottom: 8,
+    marginBottom: 14,
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -2203,11 +2203,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   askMirrorButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   askMirrorHint: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 4,
     fontStyle: 'italic',
   },
@@ -2225,7 +2225,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   humanProfileInitial: {
     fontSize: 28,
@@ -2237,7 +2237,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   humanProfileArchetype: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   humanProfileContent: {
@@ -2252,45 +2252,45 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   humanSectionTitleFelt: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 16,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
   humanSectionTextFelt: {
     fontSize: 16,
-    lineHeight: 26,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   
   humanSection: {
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 1,
   },
   humanSectionHighlight: {
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 1,
   },
   humanSectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: 14,
     letterSpacing: 0.3,
   },
   humanSectionTitleHighlight: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: 14,
     letterSpacing: 0.3,
   },
   humanSectionText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
   },
   patternSignalsToggle: {
     flexDirection: 'row',
@@ -2302,10 +2302,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   patternSignalsToggleText: {
-    fontSize: 13,
+    fontSize: 16,
   },
   patternSignalsChevron: {
-    fontSize: 12,
+    fontSize: 14,
   },
   patternSignalsContent: {
     paddingVertical: 12,
@@ -2321,38 +2321,38 @@ const styles = StyleSheet.create({
   humanSectionWarning: {
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 1,
   },
   humanSectionTitleWarning: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: 14,
     letterSpacing: 0.3,
   },
   
   // NEW: Text with line breaks for "How to work with them"
   humanSectionTextLines: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 32,
   },
   
   // NEW: Micro-trigger box
   microTriggerBox: {
     borderRadius: 10,
     padding: 14,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 1,
     borderStyle: 'dashed',
   },
   microTriggerLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     marginBottom: 6,
   },
   microTriggerText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   
@@ -2384,7 +2384,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   mirrorProfileSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
   },
   mirrorProfileChevron: {
     fontSize: 24,
@@ -2398,21 +2398,21 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   exerciseHeader: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   exerciseLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
   },
   exerciseTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   exerciseDescription: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     marginBottom: 20,
   },
   beginButton: {
@@ -2425,7 +2425,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   submittedNote: {
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
     marginTop: 12,
   },
@@ -2433,7 +2433,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -2445,16 +2445,16 @@ const styles = StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 40,
-    marginBottom: 12,
+    marginBottom: 16,
     opacity: 0.5,
   },
   emptyText: {
-    fontSize: 15,
+    fontSize: 17,
     textAlign: 'center',
     marginBottom: 4,
   },
   emptySubtext: {
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
   },
   reflectionsList: {
@@ -2469,22 +2469,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   reflectionAuthor: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   reflectionDomain: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   reflectionText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   expandHint: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 8,
     fontStyle: 'italic',
   },
@@ -2516,16 +2516,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   modalClose: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '300',
     padding: 4,
   },
   modalSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     marginBottom: 16,
   },
   modalScrollContent: {
@@ -2543,14 +2543,14 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   memberProfileInitial: {
     fontSize: 26,
     fontWeight: '600',
   },
   memberProfileName: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 20,
     textAlign: 'center',
@@ -2568,14 +2568,14 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   profileLabel: {
-    fontSize: 14,
+    fontSize: 16,
   },
   profileValue: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   profileEmpty: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     marginTop: 16,
     fontStyle: 'italic',
@@ -2587,13 +2587,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   modalReflectionAuthor: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 6,
   },
   modalReflectionText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   
   // Type Members Modal
@@ -2622,11 +2622,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   typeMemberName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   typeMemberProfile: {
-    fontSize: 13,
+    fontSize: 16,
     marginTop: 2,
   },
   
@@ -2636,25 +2636,25 @@ const styles = StyleSheet.create({
   },
   insightMainText: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 32,
   },
   insightNote: {
     padding: 14,
     borderRadius: 12,
   },
   insightNoteText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
   insightDisclaimer: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
   },
   
   // Lens Insight Hint
   lensInsightHint: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 6,
     fontStyle: 'italic',
   },

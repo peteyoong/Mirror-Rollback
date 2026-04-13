@@ -564,7 +564,7 @@ export default function AstrologyTimelineSection({
 const styles = StyleSheet.create({
   container: {
     marginTop: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   headerContainer: {
     flexDirection: 'row',
@@ -579,17 +579,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   sectionSubtitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
     marginTop: 2,
   },
   expandIcon: {
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: 12,
   },
   contentContainer: {
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   altitudeIntro: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 16,
   },
@@ -612,14 +612,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   yearThemeLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   yearThemeText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     fontWeight: '500',
   },
 
@@ -628,14 +628,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   primaryArcLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   primaryArcText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
 
   // Phases
@@ -643,15 +643,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   phasesLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   phaseCard: {
     borderRadius: 10,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 14,
     overflow: 'hidden',
   },
   phaseHeader: {
@@ -666,19 +666,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryBadge: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 8,
   },
   phaseDateRange: {
-    fontSize: 11,
+    fontSize: 14,
   },
   phaseName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     marginTop: 2,
   },
   phaseExpandIcon: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '300',
   },
   phaseDetails: {
@@ -689,16 +689,16 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   phaseSection: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   phaseSectionTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
   },
   phaseBullet: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     marginLeft: 4,
   },
 
@@ -707,60 +707,60 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   turningPointsLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   turningPointCard: {
     padding: 14,
     borderRadius: 10,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   turningPointDate: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   turningPointSection: {
-    marginBottom: 10,
+    marginBottom: 14,
   },
   turningPointSectionTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 3,
   },
   turningPointText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Decision Windows
   decisionWindowsContainer: {
-    marginBottom: 8,
+    marginBottom: 14,
   },
   decisionWindowsLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   decisionWindowCard: {
     padding: 14,
     borderRadius: 10,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   decisionWindowDateRange: {
-    fontSize: 11,
+    fontSize: 14,
     marginBottom: 6,
   },
   decisionWindowPrompt: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
     fontWeight: '500',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   decisionOutcomes: {
     gap: 8,
@@ -770,12 +770,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   decisionOutcomeLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 3,
   },
   decisionOutcomeText: {
-    fontSize: 12,
+    fontSize: 14,
     lineHeight: 17,
   },
 });

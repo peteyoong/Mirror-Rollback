@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     flex: 1,
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -543,15 +543,15 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
   },
   cardLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   helperText: {
-    fontSize: 12,
+    fontSize: 14,
     marginBottom: 16,
-    lineHeight: 18,
+    lineHeight: 31,
   },
 
   // Watch For Cue - Prominent daily-use bridge
@@ -562,22 +562,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   watchForLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
     marginBottom: 6,
   },
   watchForText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontWeight: '500',
   },
 
   // Pattern Summary
   summaryLine: {
-    fontSize: 15,
-    lineHeight: 24,
-    marginBottom: 8,
+    fontSize: 17,
+    lineHeight: 32,
+    marginBottom: 14,
   },
 
   // Blueprint
@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   blueprintLabel: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 4,
   },
   addNameButton: {
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   addNameText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
 
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
   gridRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   gridCell: {
     width: 60,
@@ -635,11 +635,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   gridCount: {
-    fontSize: 10,
+    fontSize: 14,
     marginTop: 2,
   },
   gridEmpty: {
-    fontSize: 20,
+    fontSize: 24,
   },
   missingSection: {
     marginTop: 16,
@@ -648,25 +648,25 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(128, 128, 128, 0.2)',
   },
   missingSectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   missingNumbers: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   missingHelper: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
   },
   presentSection: {
     marginTop: 12,
   },
   presentSectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 6,
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   collapsibleLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   computationContent: {
@@ -691,11 +691,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   computationText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   computationNote: {
-    fontSize: 10,
+    fontSize: 14,
     marginTop: 12,
   },
   nameBreakdown: {
@@ -705,10 +705,10 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(128, 128, 128, 0.2)',
   },
   breakdownLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   breakdownGrid: {
     flexDirection: 'row',
@@ -721,11 +721,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   breakdownLetter: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   breakdownValue: {
-    fontSize: 10,
+    fontSize: 14,
     marginTop: 2,
   },
   breakdownSpace: {
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
   // Tensions
   tensionItem: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 16,
     gap: 12,
   },
   tensionBullet: {
@@ -748,11 +748,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tensionBehavioral: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
   },
   tensionLabel: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 4,
   },
 
@@ -767,16 +767,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   nameStatusTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   nameStatusText: {
-    fontSize: 13,
-    lineHeight: 19,
-    marginBottom: 12,
+    fontSize: 16,
+    lineHeight: 32,
+    marginBottom: 16,
   },
 
   // Name Display (when present)
@@ -791,13 +791,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   nameDisplayLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   nameDisplayValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   editNameButton: {
@@ -816,15 +816,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   askMirrorText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
   // Footer
   footer: {
-    fontSize: 11,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 16,
+    lineHeight: 30,
   },
 });

@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     padding: 24,
@@ -331,11 +331,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   
@@ -345,19 +345,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   patternLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
   },
   
   // Headline
   headline: {
-    fontSize: 19,
+    fontSize: 22,
     fontWeight: '600',
-    lineHeight: 26,
+    lineHeight: 30,
     marginBottom: 20,
   },
   
@@ -366,16 +366,16 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   
   // Bullets
   bulletRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 14,
     paddingRight: 8,
   },
   bulletIcon: {
@@ -384,8 +384,8 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   
   // Where Section
@@ -399,8 +399,8 @@ const styles = StyleSheet.create({
   },
   whereText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
     fontStyle: 'italic',
   },
   
@@ -411,14 +411,14 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   createsLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   createsText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   
   // The Move Section
@@ -426,18 +426,18 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   moveLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   moveText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: 30,
   },
   
   // Proof Section
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   proofToggleText: {
-    fontSize: 12,
+    fontSize: 14,
   },
   proofSection: {
     padding: 14,
@@ -460,13 +460,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   proofNote: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   proofSignal: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
     marginBottom: 4,
   },
 });

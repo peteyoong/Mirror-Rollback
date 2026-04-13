@@ -276,11 +276,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
   },
   explorePairButton: {
     flexDirection: 'row',
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   explorePairText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   explorePairArrow: {
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loadingText: {
-    fontSize: 15,
+    fontSize: 17,
     marginTop: 16,
   },
   errorContainer: {
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    fontSize: 15,
+    fontSize: 17,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   sectionsContainer: {
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   distributionLabel: {
-    fontSize: 15,
+    fontSize: 17,
     flex: 1,
   },
   distributionBadge: {
@@ -358,15 +358,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   distributionCount: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   distributionMeta: {
-    fontSize: 13,
+    fontSize: 16,
   },
   reflectiveText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
     fontStyle: 'italic',
   },
   memberCountNote: {
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   memberCountText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 });

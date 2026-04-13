@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     padding: 24,
@@ -320,11 +320,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   card: {
@@ -339,15 +339,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   headlineText: {
-    fontSize: 21,
+    fontSize: 24,
     fontWeight: '600',
     lineHeight: 30,
   },
   whereContext: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
     marginTop: 10,
-    lineHeight: 21,
+    lineHeight: 30,
   },
   
   // Sections
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   bulletText: {
     flex: 1,
     fontSize: 16,
-    lineHeight: 25,
+    lineHeight: 32,
   },
   
   // The Move
@@ -399,15 +399,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   moveLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   moveText: {
     fontSize: 16,
     fontWeight: '500',
-    lineHeight: 25,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   technicalToggleText: {
-    fontSize: 13,
+    fontSize: 16,
   },
   technicalSection: {
     padding: 14,
@@ -431,8 +431,8 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   technicalText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
     marginBottom: 5,
   },

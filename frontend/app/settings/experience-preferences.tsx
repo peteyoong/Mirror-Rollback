@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     marginTop: 8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   intro: {
     fontSize: 16,
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   pill: {
     paddingHorizontal: 18,
@@ -472,15 +472,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   pillText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   
   // Preview
   preview: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
-    lineHeight: 19,
+    lineHeight: 28,
   },
   
   // Option List (for Support Style)
@@ -501,11 +501,11 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   optionLabel: {
-    fontSize: 15,
+    fontSize: 17,
     marginBottom: 4,
   },
   optionPreview: {
-    fontSize: 12,
+    fontSize: 14,
     lineHeight: 17,
   },
   
@@ -535,25 +535,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   microConfirmation: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   tonePreview: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
     paddingHorizontal: 20,
-    lineHeight: 20,
+    lineHeight: 25,
   },
   
   // Footer
   footer: {
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   footerSubtle: {
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
     opacity: 0.7,

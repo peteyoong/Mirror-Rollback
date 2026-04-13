@@ -308,7 +308,7 @@ export default CentersView;
 const styles = StyleSheet.create({
   container: {
     marginTop: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   // Parent Accordion
   accordionHeader: {
@@ -328,11 +328,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   accordionSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   accordionChevron: {
-    fontSize: 12,
+    fontSize: 14,
   },
   accordionContent: {
     marginTop: 8,
@@ -344,35 +344,35 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: 16,
   },
   errorContainer: {
     paddingVertical: 40,
     alignItems: 'center',
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
   },
   
   // Old styles (kept for reference)
   sectionHeader: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionHeaderTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1.5,
     marginBottom: 4,
   },
   sectionHeaderMeta: {
-    fontSize: 12,
+    fontSize: 14,
   },
   
   // Intro
   introText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 28,
     marginBottom: 16,
   },
   
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   centerName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -409,15 +409,15 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   centerStatus: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   centerGates: {
-    fontSize: 11,
+    fontSize: 14,
     marginLeft: 8,
   },
   expandIcon: {
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: 8,
   },
   
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   themeTag: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   
@@ -447,30 +447,30 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   sectionBody: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
   },
   
   // Experiments
   experimentRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   experimentBullet: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 8,
     marginTop: 1,
   },
   experimentText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 28,
   },
   
   // Remember block
@@ -481,14 +481,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   rememberLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   rememberText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 28,
     fontStyle: 'italic',
   },
   

@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 12,

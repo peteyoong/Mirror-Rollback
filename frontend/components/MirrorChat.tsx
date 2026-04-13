@@ -1209,13 +1209,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     color: Colors.text,
     letterSpacing: -0.3,
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.textTertiary,
     marginTop: 2,
     fontStyle: 'italic',
@@ -1228,7 +1228,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   lensTagText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
@@ -1244,7 +1244,7 @@ const styles = StyleSheet.create({
   // Memory Card
   memoryCard: {
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 14,
     backgroundColor: '#FDFCFA',
     borderRadius: 14,
     overflow: 'hidden',
@@ -1262,7 +1262,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   memoryTitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     color: Colors.textSecondary,
     letterSpacing: -0.2,
@@ -1277,7 +1277,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   memorySectionLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.textTertiary,
     textTransform: 'uppercase',
@@ -1285,9 +1285,9 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   memoryItem: {
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.text,
-    lineHeight: 19,
+    lineHeight: 32,
     marginBottom: 2,
   },
   stateContainer: {
@@ -1297,7 +1297,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   stateLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.textTertiary,
   },
   stateValue: {
@@ -1309,7 +1309,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   detailsToggleText: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.accent,
     fontWeight: '500',
   },
@@ -1320,7 +1320,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   evidenceLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.textTertiary,
     textTransform: 'uppercase',
@@ -1329,7 +1329,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   evidenceItem: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.textTertiary,
     fontStyle: 'italic',
     lineHeight: 17,
@@ -1338,7 +1338,7 @@ const styles = StyleSheet.create({
   },
   memoryFooter: {
     marginTop: 14,
-    fontSize: 11,
+    fontSize: 14,
     color: Colors.textTertiary,
     fontStyle: 'italic',
     textAlign: 'center',
@@ -1356,16 +1356,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.border,
-    marginBottom: 8,
+    marginBottom: 14,
     gap: 6,
   },
   threadPillText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     color: Colors.text,
   },
   threadPillDate: {
-    fontSize: 11,
+    fontSize: 14,
     color: Colors.textTertiary,
   },
 
@@ -1380,21 +1380,21 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(139, 92, 246, 0.3)',
-    marginBottom: 8,
+    marginBottom: 14,
     marginHorizontal: 16,
     gap: 8,
   },
   dominantTruthChipIcon: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.accent,
     marginTop: 2,
   },
   dominantTruthChipText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     color: Colors.accent,
     flex: 1,
-    lineHeight: 18,
+    lineHeight: 31,
   },
 
   // Thread Modal
@@ -1421,7 +1421,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   threadModalTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.textTertiary,
     letterSpacing: 1.5,
@@ -1430,13 +1430,13 @@ const styles = StyleSheet.create({
   },
   threadModalKeystone: {
     fontSize: 16,
-    lineHeight: 26,
+    lineHeight: 30,
     color: Colors.text,
     marginBottom: 16,
   },
   threadModalAffirmation: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
     color: Colors.textSecondary,
     fontStyle: 'italic',
     marginBottom: 20,
@@ -1447,15 +1447,15 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   threadModalReflectLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.textTertiary,
     letterSpacing: 1.2,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   threadModalReflectQuestion: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 32,
     color: Colors.text,
   },
   threadModalFooter: {
@@ -1465,7 +1465,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
   },
   threadModalFooterText: {
-    fontSize: 11,
+    fontSize: 14,
     color: Colors.textTertiary,
     textAlign: 'center',
     fontStyle: 'italic',
@@ -1481,7 +1481,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageWrapper: {
-    marginBottom: 10,
+    marginBottom: 14,
     maxWidth: '82%',
   },
   userWrapper: {
@@ -1510,8 +1510,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   messageText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
   userText: {
     color: Colors.surface,
@@ -1540,8 +1540,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     color: Colors.error,
   },
   
@@ -1551,14 +1551,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   systemText: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.textTertiary,
     fontStyle: 'italic',
     textAlign: 'center',
   },
   
   timestamp: {
-    fontSize: 11,
+    fontSize: 14,
     color: Colors.textTertiary,
     marginTop: 4,
     opacity: 0.7,
@@ -1610,7 +1610,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.textSecondary,
     fontStyle: 'italic',
   },
@@ -1646,7 +1646,7 @@ const styles = StyleSheet.create({
     minHeight: 36,
     paddingVertical: 8,
     paddingTop: Platform.OS === 'ios' ? 10 : 8,
-    lineHeight: 22,
+    lineHeight: 30,
   },
   sendButton: {
     width: 34,
@@ -1662,10 +1662,10 @@ const styles = StyleSheet.create({
   },
   // Transparency line
   transparencyLine: {
-    fontSize: 11,
+    fontSize: 14,
     color: Colors.textTertiary,
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
     opacity: 0.6,
     fontStyle: 'italic',
   },

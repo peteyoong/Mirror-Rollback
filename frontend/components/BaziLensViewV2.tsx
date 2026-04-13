@@ -768,7 +768,7 @@ export default function BaziLensView({ userId, onOpenChat }: Props) {
     
     return (
       <View style={styles.timingPreviewSection}>
-        <Text style={[styles.sectionLabel, { color: theme.textTertiary, marginBottom: 12, marginLeft: 4 }]}>
+        <Text style={[styles.sectionLabel, { color: theme.textTertiary, marginBottom: 16, marginLeft: 4 }]}>
           TIMING
         </Text>
         
@@ -1871,7 +1871,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     flex: 1,
@@ -1887,7 +1887,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     marginTop: 8,
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -1898,7 +1898,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   retryButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   header: {
@@ -1912,7 +1912,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     marginTop: 4,
   },
 
@@ -1920,7 +1920,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 14,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
@@ -1935,7 +1935,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#007AFF',
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   
   // Tab Blurb
@@ -1944,13 +1944,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   tabBlurbTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 4,
   },
   tabBlurbText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Core Signature Card
@@ -1963,7 +1963,7 @@ const styles = StyleSheet.create({
   signatureHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   elementBadge: {
     width: 56,
@@ -1984,7 +1984,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   signatureDetail: {
-    fontSize: 14,
+    fontSize: 16,
     marginTop: 2,
   },
   keywordsRow: {
@@ -1999,21 +1999,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   keywordText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   signatureDescription: {
-    fontSize: 14,
-    lineHeight: 21,
-    marginBottom: 12,
+    fontSize: 16,
+    lineHeight: 30,
+    marginBottom: 16,
   },
   strengthNote: {
     padding: 12,
     borderRadius: 8,
   },
   strengthNoteText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
 
@@ -2025,10 +2025,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   patternGrid: {
     flexDirection: 'row',
@@ -2039,17 +2039,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   patternItemLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
   },
   patternItemValue: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   patternInterpretation: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
 
   // Pillars Section
@@ -2062,7 +2062,7 @@ const styles = StyleSheet.create({
   pillarsGrid: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   pillarCard: {
     flex: 1,
@@ -2082,12 +2082,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   pillarAnimalName: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 2,
   },
   pillarChars: {
-    fontSize: 10,
+    fontSize: 14,
   },
   pillarElementDot: {
     width: 8,
@@ -2096,7 +2096,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   pillarsNote: {
-    fontSize: 11,
+    fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
   },
@@ -2116,7 +2116,7 @@ const styles = StyleSheet.create({
   combinedCorePattern: {
     fontSize: 17,
     fontWeight: '600',
-    lineHeight: 24,
+    lineHeight: 32,
   },
   combinedTensionBox: {
     padding: 14,
@@ -2124,15 +2124,15 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   combinedTensionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   combinedTensionText: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
-    lineHeight: 21,
+    lineHeight: 30,
   },
   combinedSynthesisBox: {
     padding: 14,
@@ -2144,12 +2144,12 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   combinedSynthesisText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: 30,
   },
   goToDeepDiveButton: {
     flexDirection: 'row',
@@ -2161,7 +2161,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   goToDeepDiveText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -2181,10 +2181,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   timingPreviewLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   interactionBadge: {
@@ -2193,13 +2193,13 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   interactionText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'capitalize',
   },
   timingPreviewDesc: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
   viewSnapshotButton: {
     flexDirection: 'row',
@@ -2211,7 +2211,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   viewSnapshotText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     marginRight: 4,
   },
@@ -2229,7 +2229,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   askSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     marginBottom: 14,
   },
   promptsList: {
@@ -2258,11 +2258,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   primaryAskSubtext: {
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
     marginTop: 12,
     marginBottom: 20,
-    lineHeight: 18,
+    lineHeight: 31,
   },
   suggestedQuestionsSection: {
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -2270,10 +2270,10 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   suggestedQuestionsLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.8,
-    marginBottom: 12,
+    marginBottom: 16,
     textTransform: 'uppercase',
   },
   suggestedQuestionsList: {
@@ -2289,8 +2289,8 @@ const styles = StyleSheet.create({
   },
   suggestedQuestionText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Snapshot Cards
@@ -2307,7 +2307,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   snapshotLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -2326,7 +2326,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   elementPillText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   tenGodPill: {
@@ -2335,7 +2335,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   tenGodPillText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
   },
   interactionRow: {
@@ -2358,7 +2358,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   interactionLabelText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   contentBlocks: {
@@ -2367,14 +2367,14 @@ const styles = StyleSheet.create({
   },
   contentBlock: {},
   contentBlockLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   contentBlockText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   reflectionBox: {
     marginHorizontal: 16,
@@ -2383,16 +2383,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   reflectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   reflectionText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
     fontStyle: 'italic',
-    lineHeight: 22,
+    lineHeight: 30,
   },
   askButtonContainer: {
     padding: 16,
@@ -2414,7 +2414,7 @@ const styles = StyleSheet.create({
   },
   snapshotAskText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -2429,12 +2429,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   deepDiveSectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     marginBottom: 4,
   },
   deepDiveSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     marginBottom: 16,
   },
 
@@ -2470,7 +2470,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   strengthBadgeText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -2480,37 +2480,37 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   reasoningTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   reasoningItem: {
     flexDirection: 'row',
     marginBottom: 6,
   },
   reasoningBullet: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 8,
-    lineHeight: 20,
+    lineHeight: 32,
   },
   reasoningText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   implicationBox: {
     marginBottom: 16,
   },
   implicationLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   implicationText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     fontWeight: '500',
   },
 
@@ -2518,7 +2518,7 @@ const styles = StyleSheet.create({
   supportsGrid: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   supportsCard: {
     flex: 1,
@@ -2527,14 +2527,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   supportsLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   supportsDescription: {
-    fontSize: 12,
-    marginBottom: 12,
+    fontSize: 14,
+    marginBottom: 16,
   },
   elementsList: {
     gap: 8,
@@ -2544,11 +2544,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   elementItemIcon: {
-    fontSize: 18,
+    fontSize: 22,
     marginRight: 8,
   },
   elementItemName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -2563,7 +2563,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tenGodName: {
     fontSize: 16,
@@ -2574,7 +2574,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   tenGodPresenceText: {
-    fontSize: 11,
+    fontSize: 14,
   },
   tenGodStrengthBadge: {
     paddingHorizontal: 8,
@@ -2582,13 +2582,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   tenGodStrengthText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   tenGodBehavior: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     marginBottom: 14,
   },
   tenGodITA: {
@@ -2606,8 +2606,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   itaText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
   stressBox: {
     padding: 12,
@@ -2620,8 +2620,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   stressText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
 
@@ -2630,12 +2630,12 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   hiddenHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   hiddenElementBadge: {
     width: 40,
@@ -2646,18 +2646,18 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   hiddenElementIcon: {
-    fontSize: 20,
+    fontSize: 24,
   },
   hiddenInfo: {
     flex: 1,
   },
   hiddenPillar: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   hiddenStem: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   hiddenTenGod: {
@@ -2666,34 +2666,34 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   hiddenTenGodText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
   },
   hiddenMeaning: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Life Pattern
   lifePatternCard: {
     padding: 14,
     borderRadius: 10,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   lifePatternHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   lifePatternLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
     marginLeft: 8,
   },
   lifePatternText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   askButtonsRow: {
     marginTop: 8,
@@ -2715,7 +2715,7 @@ const styles = StyleSheet.create({
   },
   deepDiveAskText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -2731,9 +2731,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   feedbackQuestion: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
   },
   feedbackButtons: {
@@ -2752,7 +2752,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   feedbackBtnText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   feedbackConfirmed: {
@@ -2766,7 +2766,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   feedbackConfirmedText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 
@@ -2778,10 +2778,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   realLifeCheckTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   realLifeCheckItems: {
     gap: 10,
@@ -2793,8 +2793,8 @@ const styles = StyleSheet.create({
   },
   realLifeCheckText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Today Connection
@@ -2808,21 +2808,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   todayConnectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   todayConnectionText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontWeight: '500',
   },
   todayConnectionSubtext: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     marginTop: 8,
   },
   pressureNoteBox: {
@@ -2831,8 +2831,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   pressureNoteText: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
   },
 
   // Contextual Prompts
@@ -2856,20 +2856,20 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   reflectionPromptsTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   reflectionPromptItem: {
     marginBottom: 6,
   },
   reflectionPromptText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
 
@@ -2886,7 +2886,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontStyle: 'italic',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 32,
   },
 
   // Why Pattern
@@ -2896,14 +2896,14 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   whyPatternLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   whyPatternText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Hidden Layers Behavioral
@@ -2913,17 +2913,17 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   hiddenBehavioralLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   hiddenBehavioralText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   hiddenShowsUp: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 8,
     fontStyle: 'italic',
   },
@@ -2933,7 +2933,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   contextualPromptsSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 4,
   },
   questionButton: {
@@ -2949,13 +2949,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   questionEmoji: {
-    fontSize: 18,
+    fontSize: 22,
     marginRight: 12,
   },
   questionText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontWeight: '500',
   },
   
@@ -2989,14 +2989,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   todayElementName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
   },
   todayDateInfo: {
     alignItems: 'flex-end',
   },
   todayDateLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   todayStemBranch: {
@@ -3004,8 +3004,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   todayToneMeaning: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     padding: 16,
   },
   
@@ -3021,7 +3021,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     marginTop: 10,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tenGodBadge: {
     paddingHorizontal: 12,
@@ -3029,14 +3029,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   tenGodBadgeText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   interactionsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   interactionBadgeLg: {
     flexDirection: 'row',
@@ -3052,7 +3052,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   interactionLabelLg: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     textTransform: 'capitalize',
   },
@@ -3064,12 +3064,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   strengthShiftLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   strengthShiftValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   
@@ -3081,10 +3081,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   todayImplicationText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     marginTop: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   behavioralHintBox: {
     flexDirection: 'row',
@@ -3095,8 +3095,8 @@ const styles = StyleSheet.create({
   },
   behavioralHintText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
   
   // What To Watch Card
@@ -3110,15 +3110,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   watchHeaderText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   pressurePointsList: {
-    marginBottom: 12,
+    marginBottom: 16,
     gap: 8,
   },
   pressurePointItem: {
@@ -3126,22 +3126,22 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   pressurePointBullet: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 8,
     marginTop: 2,
   },
   pressurePointText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   riskNoteBox: {
     padding: 12,
     borderRadius: 8,
   },
   riskNoteText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   
@@ -3156,17 +3156,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   helpsHeaderText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   practicalText: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 12,
+    fontSize: 17,
+    lineHeight: 30,
+    marginBottom: 16,
   },
   elementSupportBox: {
     flexDirection: 'row',
@@ -3176,12 +3176,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   elementSupportIcon: {
-    fontSize: 20,
+    fontSize: 24,
   },
   elementSupportText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
   
   // Pattern Link Card
@@ -3195,15 +3195,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   patternLinkLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   patternLinkText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
 });

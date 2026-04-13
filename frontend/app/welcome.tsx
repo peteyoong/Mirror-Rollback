@@ -376,9 +376,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   bridgeLine: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 28,
     fontStyle: 'italic',
   },
   
@@ -415,12 +415,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   secondaryActionText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '400',
     color: 'rgba(255, 255, 255, 0.52)',
   },
   secondaryActionDivider: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'rgba(255, 255, 255, 0.3)',
   },
   
@@ -441,12 +441,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   forumLinkText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '400',
     color: 'rgba(255, 255, 255, 0.4)',
   },
   forumDivider: {
-    fontSize: 13,
+    fontSize: 16,
     color: 'rgba(255, 255, 255, 0.25)',
   },
   
@@ -467,13 +467,13 @@ const styles = StyleSheet.create({
   loginTitle: {
     fontSize: 22,
     fontWeight: '500',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   loginSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     marginBottom: 24,
-    lineHeight: 20,
+    lineHeight: 25,
   },
   input: {
     width: '100%',
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   textButton: {
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '400',
   },
 });

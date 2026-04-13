@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     letterSpacing: -0.3,
   },
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 8,
   },

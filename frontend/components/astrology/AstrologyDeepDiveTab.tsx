@@ -2370,23 +2370,23 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     padding: 20,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   unifiedPatternLabel: {
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   unifiedPatternHeadline: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
-    lineHeight: 24,
-    marginBottom: 12,
+    lineHeight: 32,
+    marginBottom: 16,
   },
   unifiedPatternCore: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     marginBottom: 16,
   },
   unifiedPatternTensionBox: {
@@ -2394,14 +2394,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   unifiedPatternTension: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   
   // Pattern connector line (links cards to unified pattern)
   patternConnectorLine: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     fontWeight: '500',
     marginBottom: 4,
@@ -2418,18 +2418,18 @@ const styles = StyleSheet.create({
   sectionHeader: {
     paddingVertical: 12,
     paddingHorizontal: 4,
-    marginBottom: 8,
+    marginBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     letterSpacing: 0.3,
     marginBottom: 4,
   },
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     opacity: 0.7,
   },
@@ -2438,7 +2438,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   groupLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
     marginBottom: 4,
@@ -2461,22 +2461,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   deepDiveExpandIcon: {
-    fontSize: 12,
+    fontSize: 14,
   },
   deepDiveCardSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   recognitionLine: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
-    lineHeight: 20,
+    lineHeight: 32,
     marginTop: 10,
     opacity: 0.9,
   },
   deepDiveCardPreview: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     marginTop: 8,
     fontStyle: 'italic',
   },
@@ -2494,31 +2494,31 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   deepDiveSectionText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
   },
   
   // Master Insight styles
   masterInsightText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
     fontWeight: '400',
   },
   
   // Mirror Layer styles
   mirrorSectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   mirrorSectionText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
   },
   whereItShowsUpItem: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     paddingLeft: 4,
     marginTop: 6,
   },
@@ -2535,8 +2535,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   practicalShiftText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     fontWeight: '500',
     fontStyle: 'italic',
   },
@@ -2548,8 +2548,8 @@ const styles = StyleSheet.create({
   },
   
   deepDiveNoticeBullet: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     paddingLeft: 4,
   },
   deepDiveTensionGiftRow: {
@@ -2569,8 +2569,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   deepDiveTensionText: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
   },
   deepDiveGiftCard: {
     flex: 1,
@@ -2585,8 +2585,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   deepDiveGiftText: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
   },
   deepDiveReflection: {
     borderRadius: 10,
@@ -2597,11 +2597,11 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   deepDiveReflectionText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   deepDiveActions: {
@@ -2617,14 +2617,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deepDiveActionText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   planetImportanceLine: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: 32,
     paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: 'rgba(139, 128, 99, 0.04)',
@@ -2633,8 +2633,8 @@ const styles = StyleSheet.create({
     borderLeftColor: 'rgba(139, 128, 99, 0.3)',
   },
   bulletItem: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     marginBottom: 6,
     paddingLeft: 4,
   },

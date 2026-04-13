@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 12,
   },
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     flex: 1,
   },
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   tipBullet: {
-    fontSize: 18,
+    fontSize: 22,
     marginRight: 10,
     marginTop: -2,
   },

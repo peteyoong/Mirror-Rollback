@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   headerRight: {
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
     borderRadius: 16,
     padding: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   userBubble: {
     alignSelf: 'flex-end',
@@ -442,17 +442,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   mirrorIcon: {
-    fontSize: 14,
+    fontSize: 16,
   },
   mirrorLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   messageText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
   },
   referencedEvents: {
     marginTop: 10,
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   eventTagText: {
-    fontSize: 11,
+    fontSize: 14,
   },
   loadingRow: {
     flexDirection: 'row',
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   errorContainer: {
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#EF4444',
-    fontSize: 13,
+    fontSize: 16,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     maxHeight: 100,
-    fontSize: 15,
+    fontSize: 17,
   },
   sendButton: {
     width: 36,
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   exploreButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   compactButton: {
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   compactButtonText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
 });

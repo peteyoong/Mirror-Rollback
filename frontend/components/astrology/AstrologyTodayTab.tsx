@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   altitudeText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   loadingContainer: {
@@ -557,18 +557,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     alignItems: 'center',
     paddingVertical: 40,
   },
   errorText: {
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 16,
+    marginBottom: 16,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   expertContainer: {
@@ -595,16 +595,16 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   themeLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 6,
   },
   themeText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
-    lineHeight: 26,
+    lineHeight: 30,
     letterSpacing: -0.3,
   },
   section: {
@@ -623,11 +623,11 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
   bulletItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 14,
     paddingRight: 8,
   },
   bulletDot: {
@@ -647,8 +647,8 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
   questionSection: {
     flexDirection: 'row',
@@ -661,10 +661,10 @@ const styles = StyleSheet.create({
   },
   questionText: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
     fontStyle: 'italic',
-    lineHeight: 22,
+    lineHeight: 30,
   },
   rawSignalsWrapper: {
     marginTop: 8,
@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   rawSignalsToggleText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   rawSignalsContainer: {
@@ -692,11 +692,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   rawSignalsLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   rawTransitRow: {
     flexDirection: 'row',
@@ -705,10 +705,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   rawTransitAspect: {
-    fontSize: 13,
+    fontSize: 16,
   },
   rawTransitOrb: {
-    fontSize: 11,
+    fontSize: 14,
   },
   rawChipsRow: {
     flexDirection: 'row',
@@ -721,14 +721,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   rawChipText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   rawHousesText: {
-    fontSize: 13,
+    fontSize: 16,
   },
   rawDominantText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   askMirrorButton: {
@@ -740,7 +740,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   askMirrorText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   
@@ -761,7 +761,7 @@ const styles = StyleSheet.create({
     height: 1,
   },
   dividerText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
     marginHorizontal: 12,
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     marginTop: 12,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   scopeDebugText: {
     fontSize: 9,

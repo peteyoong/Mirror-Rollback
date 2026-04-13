@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {},
   tabText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   content: {
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   errorContainer: {
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 });

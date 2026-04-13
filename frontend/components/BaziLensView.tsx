@@ -779,11 +779,11 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 14,
+    fontSize: 16,
   },
   loadingSubtext: {
     marginTop: 6,
-    fontSize: 12,
+    fontSize: 14,
   },
   errorContainer: {
     flex: 1,
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     marginTop: 8,
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -810,7 +810,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   retryButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   header: {
@@ -822,7 +822,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     marginTop: 4,
   },
 
@@ -842,13 +842,13 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   sectionContent: {
     paddingVertical: 12,
     paddingHorizontal: 4,
-    marginBottom: 12,
+    marginBottom: 16,
   },
 
   // Day Master Card
@@ -856,13 +856,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   dayMasterLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   dayMasterRow: {
     flexDirection: 'row',
@@ -877,11 +877,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dayMasterPinyin: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   dayMasterPolarity: {
-    fontSize: 13,
+    fontSize: 16,
     marginTop: 2,
   },
   elementBadge: {
@@ -897,20 +897,20 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   summaryLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   summaryText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   summarySubtext: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Balance Row
@@ -925,13 +925,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   balanceLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   balanceValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -940,7 +940,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   pillarCard: {
     flex: 1,
@@ -951,10 +951,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pillarLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   pillarCharacters: {
     flexDirection: 'row',
@@ -968,7 +968,7 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   characterPinyin: {
-    fontSize: 10,
+    fontSize: 14,
     marginTop: 2,
   },
   elementDot: {
@@ -981,10 +981,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   animalText: {
-    fontSize: 11,
+    fontSize: 14,
   },
   pillarsNote: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -1004,7 +1004,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   elementName: {
-    fontSize: 14,
+    fontSize: 16,
     minWidth: 50,
   },
   elementTag: {
@@ -1013,7 +1013,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   elementTagText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
   },
   elementBarContainer: {
@@ -1026,7 +1026,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   elementValue: {
-    fontSize: 12,
+    fontSize: 14,
     minWidth: 30,
   },
   elementSummary: {
@@ -1035,14 +1035,14 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   elementSummaryText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
 
   // Ten Gods
   tenGodsIntro: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     marginBottom: 16,
   },
   tenGodsGrid: {
@@ -1058,24 +1058,24 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   tenGodPillar: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   tenGodLabel: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   tenGodMeaning: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 4,
   },
   tenGodsNote: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     marginTop: 16,
-    lineHeight: 18,
+    lineHeight: 31,
   },
 
   // Reflection
@@ -1088,37 +1088,37 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   reflectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   reflectionText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   reflectionQuestion: {
     padding: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   questionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   questionText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
     fontStyle: 'italic',
-    lineHeight: 22,
+    lineHeight: 30,
   },
   reflectButtonContainer: {
     marginTop: 16,
     alignItems: 'flex-start',
   },
   reflectionFooter: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 16,

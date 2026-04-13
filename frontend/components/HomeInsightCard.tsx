@@ -169,9 +169,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
-    lineHeight: 26,
+    lineHeight: 30,
     marginBottom: 12,
   },
   body: {

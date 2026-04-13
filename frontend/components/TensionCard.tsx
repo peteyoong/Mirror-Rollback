@@ -409,17 +409,17 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   energyTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
     gap: 8,
   },
   intensityDot: {
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   energyTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
@@ -445,17 +445,17 @@ const styles = StyleSheet.create({
 
   // Moment
   moment: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
-    lineHeight: 28,
-    marginBottom: 8,
+    lineHeight: 32,
+    marginBottom: 14,
   },
 
   // V3.3: Cause line (why now)
   causeLine: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 12,
+    fontSize: 16,
+    lineHeight: 32,
+    marginBottom: 16,
     fontStyle: 'italic',
   },
 
@@ -463,21 +463,21 @@ const styles = StyleSheet.create({
   lifeAreaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
     gap: 6,
   },
   lifeAreaLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   lifeAreaText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
 
   // Supporting Line
   supportingLine: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
     marginBottom: 16,
   },
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   sceneObjectRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderRadius: 8,
@@ -494,21 +494,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.03)',
   },
   sceneObjectLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     marginRight: 6,
   },
   sceneObjectText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
 
   // V3 Scene Engine: Contradiction
   contradictionText: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 12,
+    fontSize: 17,
+    lineHeight: 30,
+    marginBottom: 16,
     fontWeight: '500',
   },
 
@@ -520,12 +520,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   costText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
 
   // CTA Button
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   ctaText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -552,24 +552,24 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   expandedHeader: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
 
   // V3.3: Why now plain text
   whyNowPlainText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: 30,
     marginBottom: 16,
   },
 
   // V3.3: Pattern reason text
   patternReasonText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
     marginBottom: 16,
   },
@@ -590,8 +590,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   technicalText: {
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 14,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
 
@@ -614,15 +614,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   driverSource: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
     marginBottom: 2,
   },
   driverText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
 
   // Tension Label
@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 8,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 16,
     alignItems: 'center',
   },
   tensionLabelHeader: {
@@ -649,12 +649,12 @@ const styles = StyleSheet.create({
   synthesisBox: {
     paddingLeft: 12,
     borderLeftWidth: 3,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   synthesisText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
 
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     borderStyle: 'dashed',
@@ -675,9 +675,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   avoidedMoveText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: 32,
   },
 
   // Micro-Shift
@@ -693,8 +693,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   microShiftText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
 });
 

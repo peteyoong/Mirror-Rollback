@@ -158,9 +158,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   hookLine: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '500',
-    lineHeight: 28,
+    lineHeight: 32,
     textAlign: 'center',
     marginBottom: 8,
   },

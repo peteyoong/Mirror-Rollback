@@ -920,7 +920,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeButtonText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '400',
   },
   headerCenter: {
@@ -1083,7 +1083,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   profileValue: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     color: Colors.text,
     marginBottom: 2,

@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   modalSubtitle: {

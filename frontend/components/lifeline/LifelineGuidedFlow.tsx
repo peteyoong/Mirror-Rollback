@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   mainPrompt: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 8,
   },

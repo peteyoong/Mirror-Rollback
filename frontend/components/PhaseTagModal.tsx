@@ -231,15 +231,15 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   phaseIcon: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 6,
   },
   phaseTagText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   humanMeaning: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   dateContext: {
@@ -251,19 +251,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateLabel: {
-    fontSize: 12,
+    fontSize: 14,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   dateValue: {
-    fontSize: 14,
+    fontSize: 16,
   },
   whyTagged: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
   },
   insightContainer: {
     marginHorizontal: 20,
@@ -272,8 +272,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   insight: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 28,
     fontStyle: 'italic',
   },
   seeRelatedBtn: {
@@ -282,10 +282,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   seeRelatedText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   closeBtn: {
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   closeText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 });

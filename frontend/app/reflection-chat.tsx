@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   userBubble: {
     alignSelf: 'flex-end',
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 32,
   },
   userText: {
     color: Colors.text,
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   // Loading state styles
   loadingBubbleContainer: {
     alignSelf: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   loadingBubble: {
     flexDirection: 'row',
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 10,
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.textSecondary,
     fontStyle: 'italic',
   },
@@ -473,11 +473,11 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
   },
   microPromptText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.textSecondary,
     fontStyle: 'italic',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 25,
   },
   microPromptDismiss: {
     marginTop: 10,
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   microPromptDismissText: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.textTertiary,
     textDecorationLine: 'underline',
   },

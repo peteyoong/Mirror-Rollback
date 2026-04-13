@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     paddingVertical: 40,
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     marginTop: 12,
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginTop: 8,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   chartPillarCard: {
     flex: 1,
@@ -654,11 +654,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   chartPillarEmoji: {
-    fontSize: 18,
+    fontSize: 22,
     marginBottom: 1,
   },
   chartPillarAnimal: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 1,
   },
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   chartHelperText: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
     opacity: 0.5,
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
     minHeight: 80,
   },
   chartFallbackText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   
@@ -699,10 +699,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   sectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   
   // Core Pattern
@@ -715,9 +715,9 @@ const styles = StyleSheet.create({
     paddingLeft: 14,
   },
   corePatternText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
-    lineHeight: 28,
+    lineHeight: 32,
   },
   
   // Tension
@@ -725,14 +725,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     fontStyle: 'italic',
-    lineHeight: 24,
+    lineHeight: 32,
   },
   
   // Costs
   costItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 14,
     gap: 10,
   },
   costBullet: {
@@ -743,15 +743,15 @@ const styles = StyleSheet.create({
   },
   costText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   
   // Why This Exists
   whyText: {
-    fontSize: 14,
-    lineHeight: 21,
-    marginBottom: 12,
+    fontSize: 16,
+    lineHeight: 30,
+    marginBottom: 16,
   },
   dayMasterBadge: {
     flexDirection: 'row',
@@ -764,11 +764,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dayMasterLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   dayMasterStrength: {
-    fontSize: 11,
+    fontSize: 14,
   },
   
   // Chart Section
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   pillarDomain: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -801,14 +801,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   pillarBehavioral: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
-    lineHeight: 19,
+    lineHeight: 32,
     marginBottom: 6,
   },
   pillarElementNote: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
   },
   
   // Synthesis
@@ -822,25 +822,25 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   synthesisText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
-    lineHeight: 23,
+    lineHeight: 31,
   },
   
   // Backfire
   backfireItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 14,
     gap: 8,
   },
   backfireText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   
   // Real Tension
@@ -853,8 +853,8 @@ const styles = StyleSheet.create({
     paddingLeft: 14,
   },
   realTensionText: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 32,
   },
   
   // One Shift
@@ -864,12 +864,12 @@ const styles = StyleSheet.create({
   shiftHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   shiftText: {
     fontSize: 16,
     fontWeight: '600',
-    lineHeight: 24,
+    lineHeight: 32,
   },
   
   // Ask Button
@@ -884,13 +884,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   askButtonText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   
   // Disclaimer
   disclaimer: {
     marginTop: 16,
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
   },

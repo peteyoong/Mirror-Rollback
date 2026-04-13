@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 20,
     textAlign: 'center',

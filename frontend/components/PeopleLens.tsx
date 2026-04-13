@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 15,
+    fontSize: 17,
     fontStyle: 'italic',
   },
   errorContainer: {
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   errorText: {
-    fontSize: 15,
+    fontSize: 17,
     textAlign: 'center',
   },
   retryButton: {
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   retryButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -617,7 +617,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   patternSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   
@@ -625,18 +625,18 @@ const styles = StyleSheet.create({
   patternCard: {
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth,
   },
   sectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1.2,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   patternText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     marginBottom: 4,
   },
   
@@ -645,18 +645,18 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     paddingLeft: 16,
     paddingVertical: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   growthEdgeLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.5,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   growthEdgeText: {
     fontSize: 16,
     fontWeight: '500',
-    lineHeight: 25,
+    lineHeight: 32,
     marginBottom: 6,
   },
   
@@ -664,17 +664,17 @@ const styles = StyleSheet.create({
   giftCard: {
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   giftLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1.2,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   giftText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     fontStyle: 'italic',
     marginBottom: 4,
   },
@@ -683,18 +683,18 @@ const styles = StyleSheet.create({
   teachingCard: {
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth,
   },
   teachingLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   teachingText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     marginBottom: 4,
   },
   
@@ -708,16 +708,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   tryThisLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.2,
   },
   tryThisText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     fontWeight: '500',
   },
 
@@ -734,12 +734,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   peopleSectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 2,
   },
   peopleSectionSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
   },
   peopleContent: {
     gap: 10,
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyPeopleText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   
@@ -785,12 +785,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   personName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 2,
   },
   personType: {
-    fontSize: 12,
+    fontSize: 14,
   },
   
   // Add person button
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   addPersonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -848,13 +848,13 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   inputHint: {
-    fontSize: 13,
-    marginBottom: 12,
+    fontSize: 16,
+    marginBottom: 16,
   },
   textInput: {
     fontSize: 16,
@@ -887,7 +887,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   typeOptionText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -896,7 +896,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   suggestionChip: {
     paddingHorizontal: 12,
@@ -905,7 +905,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   suggestionText: {
-    fontSize: 13,
+    fontSize: 16,
   },
 });
 

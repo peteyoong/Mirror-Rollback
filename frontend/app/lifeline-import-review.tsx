@@ -1095,7 +1095,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 12,
     textAlign: 'center',

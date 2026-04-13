@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   icon: {
-    fontSize: 18,
+    fontSize: 22,
     marginRight: 8,
   },
   title: {

@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   
   // FIX 1: Primary entry button
@@ -685,17 +685,17 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   label: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.8,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 14,
     letterSpacing: -0.3,
@@ -706,18 +706,18 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   diagnosisText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     fontWeight: '500',
   },
   
   // V1: Memory line (quiet, under the main flow)
   memoryLineContainer: {
-    marginBottom: 12,
+    marginBottom: 16,
     paddingHorizontal: 4,
   },
   memoryLineText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     fontWeight: '400',
   },
@@ -730,9 +730,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   interactionQuestion: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
   },
   interactionButtonsRow: {
@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   interactionBtnText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   interactionOptionsCol: {
@@ -762,14 +762,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   interactionOptionText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
   },
   interactionAck: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
   },
   
@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   microReflectText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   
@@ -792,8 +792,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   momentText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontWeight: '500',
   },
   
@@ -807,7 +807,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '600',
     letterSpacing: 0.8,
-    marginBottom: 10,
+    marginBottom: 14,
     textAlign: 'center',
   },
   workWithPatternButtons: {
@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   workWithBtnText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   
@@ -836,8 +836,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   wisdomText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   
   // Expander
@@ -849,11 +849,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   expanderToggleText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   expanderArrow: {
-    fontSize: 10,
+    fontSize: 14,
   },
   
   // Expanded content
@@ -863,7 +863,7 @@ const styles = StyleSheet.create({
   evidenceItem: {
     borderLeftWidth: 2,
     paddingLeft: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   evidenceLabel: {
     fontSize: 9,
@@ -872,19 +872,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   evidenceText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
   seeAllLink: {
     paddingVertical: 8,
     alignItems: 'center',
   },
   seeAllText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   noEvidenceText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
     paddingVertical: 8,
@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   ctaArrow: {
@@ -921,8 +921,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   bridgeText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
 });

@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   modeButtonText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   memberPickerButton: {
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
   },
   memberPickerText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
   },
   memberPickerDropdown: {
     position: 'absolute',
@@ -468,11 +468,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   memberPickerItemName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   memberPickerItemType: {
-    fontSize: 12,
+    fontSize: 14,
   },
   memberPickerEmpty: {
     padding: 20,
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   memberEmptyText: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   memberPickerClose: {
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   memberPickerCloseText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   messagesContainer: {
@@ -517,19 +517,19 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: 16,
   },
   suggestedContainer: {
     alignItems: 'center',
     paddingTop: 24,
   },
   suggestedTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   suggestedSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     marginBottom: 24,
   },
   suggestedPrompts: {
@@ -543,8 +543,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   suggestedPromptText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   messageGroup: {
     marginBottom: 20,
@@ -557,12 +557,12 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   messageMode: {
-    fontSize: 11,
+    fontSize: 14,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   mirrorLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -575,8 +575,8 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
   },
   userMessageText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   mirrorMessage: {
     padding: 14,
@@ -586,8 +586,8 @@ const styles = StyleSheet.create({
     maxWidth: '95%',
   },
   mirrorMessageText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
   },
   loadingMessage: {
     flexDirection: 'row',
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   loadingMessageText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   errorContainer: {
@@ -606,14 +606,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
   },
   errorText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 16,
     marginRight: 8,
   },
   inputContainer: {
@@ -632,7 +632,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
-    fontSize: 15,
+    fontSize: 17,
     textAlignVertical: 'center',
   },
   sendButton: {

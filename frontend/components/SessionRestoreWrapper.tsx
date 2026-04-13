@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.text,
     marginTop: 16,
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     color: Colors.text,
     marginTop: 16,

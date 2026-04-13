@@ -672,12 +672,12 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
   headerSubtitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
     letterSpacing: 0.5,
     marginTop: 2,
@@ -688,11 +688,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   userName: {
-    fontSize: 14,
+    fontSize: 16,
     maxWidth: 120,
   },
   chevron: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '400',
     marginLeft: 2,
   },
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   restoringText: {
-    fontSize: 14,
+    fontSize: 16,
     marginTop: 8,
   },
   loadingContainer: {
@@ -736,8 +736,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroSupport: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     fontStyle: 'italic',
     marginBottom: 24,
     paddingLeft: 14,
@@ -745,8 +745,8 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.border,
   },
   heroEcho: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
     marginBottom: 16,
     paddingVertical: 10,
@@ -757,8 +757,8 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.accent,
   },
   heroCause: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     marginBottom: 16,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -776,8 +776,8 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   heroDecisionReplayText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   heroPhaseLine: {
@@ -788,8 +788,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   heroPhaseLineText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontWeight: '500',
   },
   heroAwarenessPrompt: {
@@ -800,14 +800,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   heroAwarenessLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   heroAwarenessText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
   },
   heroCTA: {
     alignSelf: 'flex-start',
@@ -829,13 +829,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   influencesTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1.2,
-    marginBottom: 12,
+    marginBottom: 16,
     opacity: 0.7,
   },
   influencesList: {
@@ -852,8 +852,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   influenceText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
 
   // =========================================================================
@@ -869,7 +869,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   doorwayIcon: {
     fontSize: 28,
@@ -884,8 +884,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   doorwaySubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
   doorwayChevron: {
     fontSize: 22,
@@ -905,15 +905,15 @@ const styles = StyleSheet.create({
   },
   doorwayIconSmall: {
     fontSize: 22,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   doorwayTitleSmall: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     marginBottom: 4,
   },
   doorwaySubtext: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '400',
   },
 
@@ -933,20 +933,20 @@ const styles = StyleSheet.create({
   lifelineBridge: {
     marginHorizontal: 20,
     marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 14,
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
   },
   lifelineBridgeLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   lifelineBridgeText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     marginBottom: 16,
   },
   lifelineBridgeCTA: {
@@ -960,7 +960,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   lifelineBridgeCount: {
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 10,
   },
@@ -975,31 +975,31 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   continuityTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1.2,
-    marginBottom: 12,
+    marginBottom: 16,
     opacity: 0.7,
   },
   continuityCard: {
     padding: 14,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   continuityLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
     letterSpacing: 0.3,
     marginBottom: 6,
   },
   continuityText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   tensionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     marginBottom: 4,
   },
@@ -1017,16 +1017,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   depthTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1.2,
     opacity: 0.7,
   },
   depthLink: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   patternPills: {
@@ -1043,12 +1043,12 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   patternPillText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   patternPillBadge: {
     marginLeft: 4,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
 
@@ -1080,12 +1080,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   forumsTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 2,
   },
   forumsSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
   },
   forumsChevron: {
     fontSize: 22,
@@ -1134,7 +1134,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   settingsSectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     paddingHorizontal: 16,
@@ -1163,11 +1163,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   checkmark: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   appVersion: {
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 20,
     marginBottom: 40,
@@ -1182,10 +1182,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   lensesExploreLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   lensesExploreTitle: {
     fontSize: 17,
@@ -1193,15 +1193,15 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   lensesExploreDescription: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 12,
+    fontSize: 16,
+    lineHeight: 32,
+    marginBottom: 16,
   },
   lensesExploreFooter: {
     marginTop: 4,
   },
   lensesExploreCta: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   
@@ -1221,11 +1221,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   forumFooterText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '400',
   },
   forumFooterDivider: {
-    fontSize: 13,
+    fontSize: 16,
     opacity: 0.5,
   },
   
@@ -1238,7 +1238,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buildVersionText: {
-    fontSize: 10,
+    fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     opacity: 0.6,
   },

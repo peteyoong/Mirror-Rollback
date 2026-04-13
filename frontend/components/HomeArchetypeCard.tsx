@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   archetypeIcon: {
-    fontSize: 18,
+    fontSize: 22,
   },
   headerText: {
     flex: 1,

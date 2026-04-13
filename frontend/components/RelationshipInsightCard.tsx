@@ -215,16 +215,16 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     padding: 32,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     fontWeight: '600',
   },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   connectionSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     letterSpacing: 0.3,
   },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signalNoteText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   breakthroughText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.3,
   },

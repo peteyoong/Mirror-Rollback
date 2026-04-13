@@ -277,11 +277,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   stepSubtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     color: Colors.textSecondary,
     marginBottom: 24,
   },
@@ -322,13 +322,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   typeName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: Colors.text,
     marginBottom: 2,
   },
   typeBrief: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.textTertiary,
   },
   
@@ -344,8 +344,8 @@ const styles = StyleSheet.create({
   },
   noteText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     color: Colors.textTertiary,
   },
   
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   assessmentLinkText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.textTertiary,
     textDecorationLine: 'underline',
   },
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   selectedTypeLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.textTertiary,
     letterSpacing: 0.5,
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   selectedTypeValue: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.text,
   },
@@ -409,17 +409,17 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   wingNumber: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: Colors.text,
   },
   wingName: {
-    fontSize: 15,
+    fontSize: 17,
     color: Colors.textSecondary,
   },
   wingDesc: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     color: Colors.textTertiary,
   },
   
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 16,
     color: '#ff6b6b',
     textAlign: 'center',
   },
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   savingText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.textSecondary,
   },
   

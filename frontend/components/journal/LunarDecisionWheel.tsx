@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   centerIcon: {
-    fontSize: 20,
+    fontSize: 24,
     marginBottom: 4,
   },
   centerLabel: {
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   modalGate: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 2,
   },

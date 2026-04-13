@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: 16,
     letterSpacing: 0.3,
   },
   errorContainer: {
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
   },
 
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   elementBadgeText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     lineHeight: 32,
-    marginBottom: 10,
+    marginBottom: 14,
     letterSpacing: -0.4,
   },
   heroLine2: {
@@ -543,10 +543,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   patternLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   patternList: {
     gap: 10,
@@ -565,8 +565,8 @@ const styles = StyleSheet.create({
   },
   patternText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
   },
   sectionDivider: {
     height: 1,
@@ -584,14 +584,14 @@ const styles = StyleSheet.create({
     borderLeftColor: 'rgba(201, 169, 98, 0.3)',
   },
   geniusLine1: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 27,
     fontWeight: '500',
     marginBottom: 6,
   },
   geniusLine2: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
     opacity: 0.85,
   },
 
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   costHeader: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.2,
     marginBottom: 16,
@@ -614,14 +614,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   costCategory: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   costValue: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 28,
   },
 
   // ==========================================================================
@@ -638,14 +638,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   shiftLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   shiftText: {
     fontSize: 16,
-    lineHeight: 25,
+    lineHeight: 28,
     fontWeight: '500',
   },
 
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   proofContainer: {
-    marginBottom: 8,
+    marginBottom: 14,
   },
   proofHeader: {
     flexDirection: 'row',
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   proofTitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     letterSpacing: 0.2,
   },
@@ -678,13 +678,13 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   proofText: {
-    fontSize: 13,
-    lineHeight: 20,
-    marginBottom: 8,
+    fontSize: 16,
+    lineHeight: 28,
+    marginBottom: 14,
   },
   proofNote: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 27,
     fontStyle: 'italic',
   },
 
@@ -700,10 +700,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chartLabel: {
-    fontSize: 12,
+    fontSize: 14,
   },
   chartValue: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   chartValueRow: {
@@ -724,7 +724,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   elementPillText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
   },
   pillarsBox: {
@@ -734,10 +734,10 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.06)',
   },
   pillarsLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: 16,
     textTransform: 'uppercase',
   },
   pillarsRow: {
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   pillarValue: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   ctaText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
 
@@ -781,10 +781,10 @@ const styles = StyleSheet.create({
   // FOOTER
   // ==========================================================================
   footer: {
-    fontSize: 11,
+    fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
     letterSpacing: 0.2,
-    marginBottom: 8,
+    marginBottom: 14,
   },
 });

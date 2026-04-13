@@ -824,7 +824,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   
@@ -834,7 +834,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -844,19 +844,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   headerLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.5,
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   
   // Pattern title
   patternTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 20,
   },
@@ -866,16 +866,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   
   // What you may be
   whatYouMayBe: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 32,
   },
   
   // Challenge
@@ -887,32 +887,32 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   bulletPoint: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 8,
     marginTop: 2,
   },
   challengeText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     flex: 1,
   },
   
   // Genius
   geniusDescription: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 8,
+    fontSize: 17,
+    lineHeight: 30,
+    marginBottom: 14,
   },
   archetype: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     fontStyle: 'italic',
   },
   
   // Micro shifts
   microShift: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
     marginBottom: 6,
   },
@@ -928,7 +928,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   timingContextItem: {
     flexDirection: 'row',
@@ -936,12 +936,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   timingBullet: {
-    fontSize: 10,
+    fontSize: 14,
     marginRight: 6,
     marginTop: 2,
   },
   timingContextText: {
-    fontSize: 12,
+    fontSize: 14,
     lineHeight: 17,
     flex: 1,
     fontStyle: 'italic',
@@ -966,12 +966,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signalIndicator: {
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
   },
   signalExpandHint: {
-    fontSize: 10,
+    fontSize: 14,
   },
   
   // Collapsible signals section
@@ -981,7 +981,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   signalsSectionTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.2,
     marginBottom: 16,
@@ -990,9 +990,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   signalSourceLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   signalItem: {
     flexDirection: 'row',
@@ -1001,20 +1001,20 @@ const styles = StyleSheet.create({
     paddingLeft: 4,
   },
   signalBullet: {
-    fontSize: 12,
+    fontSize: 14,
     marginRight: 8,
     marginTop: 1,
   },
   signalText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     flex: 1,
   },
   
   // V2: Timing note (secondary)
   timingNote: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
     marginTop: 16,
     paddingLeft: 12,
@@ -1024,7 +1024,7 @@ const styles = StyleSheet.create({
   
   // V2: Evidence summary
   evidenceSummary: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 12,
     fontStyle: 'italic',
   },
@@ -1032,7 +1032,7 @@ const styles = StyleSheet.create({
   // V2: Secondary timing context (downgraded)
   timingContextSecondary: {
     marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 14,
     padding: 10,
     borderRadius: 8,
     borderWidth: 1,
@@ -1047,7 +1047,7 @@ const styles = StyleSheet.create({
   
   // V2: Signal source hint
   signalSourceHint: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'normal',
   },
   
@@ -1055,7 +1055,7 @@ const styles = StyleSheet.create({
   sourceHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
     gap: 8,
   },
   primaryBadge: {
@@ -1069,21 +1069,21 @@ const styles = StyleSheet.create({
   evidenceItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: 14,
     paddingLeft: 4,
   },
   evidenceContent: {
     flex: 1,
   },
   matchedKeyword: {
-    fontSize: 10,
+    fontSize: 14,
     fontStyle: 'italic',
     marginTop: 2,
   },
   
   // V2: Total matches summary
   totalMatches: {
-    fontSize: 11,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
@@ -1091,16 +1091,16 @@ const styles = StyleSheet.create({
   
   // V4: Core connection subline
   coreConnection: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     marginTop: 12,
     fontStyle: 'italic',
   },
   
   // V4: Evidence summary line
   evidenceSummaryLine: {
-    fontSize: 12,
-    marginBottom: 12,
+    fontSize: 14,
+    marginBottom: 16,
     fontStyle: 'italic',
   },
   
@@ -1113,13 +1113,13 @@ const styles = StyleSheet.create({
   
   // V4: Snippet date
   snippetDate: {
-    fontSize: 10,
+    fontSize: 14,
     marginTop: 2,
   },
   
   // V4: More snippets indicator
   moreSnippets: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
     marginTop: 4,
     paddingLeft: 16,
@@ -1130,7 +1130,7 @@ const styles = StyleSheet.create({
   // Core insight text (the one sharp sentence)
   coreInsightText: {
     fontSize: 17,
-    lineHeight: 26,
+    lineHeight: 30,
     fontWeight: '500',
   },
   
@@ -1146,11 +1146,11 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   whyShowingUpText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   
@@ -1169,15 +1169,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   derivationTriggerText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   derivationArrow: {
-    fontSize: 12,
+    fontSize: 14,
     marginLeft: 8,
   },
   convergenceBadge: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     marginTop: 6,
     textAlign: 'center',
@@ -1194,18 +1194,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   lensName: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     width: 100,
   },
   lensArrow: {
-    fontSize: 13,
+    fontSize: 16,
     marginHorizontal: 8,
     marginTop: 1,
   },
   lensSignal: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     flex: 1,
   },
   
@@ -1221,11 +1221,11 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   frictionText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   
@@ -1234,17 +1234,17 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   practicalLabel: {
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   practicalText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontWeight: '500',
   },
   
@@ -1263,8 +1263,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   driverText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     flex: 1,
     marginLeft: 4,
   },

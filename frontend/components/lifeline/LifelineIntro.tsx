@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   hookLine: {
-    fontSize: 21,
+    fontSize: 24,
     fontWeight: '500',
     lineHeight: 30,
     textAlign: 'center',

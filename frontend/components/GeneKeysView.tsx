@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     paddingVertical: 60,
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   
@@ -374,18 +374,18 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   introTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 4,
   },
   introSubtext: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     marginBottom: 14,
   },
   introBody: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   howToUseHeader: {
     flexDirection: 'row',
@@ -394,11 +394,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   howToUseTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   howToUseChevron: {
-    fontSize: 11,
+    fontSize: 14,
     marginLeft: 6,
   },
   howToUseContent: {
@@ -406,8 +406,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   howToUseItem: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
   
   // Sequence Section
@@ -415,15 +415,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sequenceHeader: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sequenceTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 2,
   },
   sequenceDescription: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   sphereGrid: {
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   sphereGeneKey: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   sphereShadow: {
-    fontSize: 10,
+    fontSize: 14,
     flex: 1,
   },
   sphereArrow: {
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   sphereGift: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '500',
     flex: 1,
   },
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailSphereLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   detailGeneKeyTitle: {
     fontSize: 22,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   spectrumInline: {
     flexDirection: 'row',
@@ -503,36 +503,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   spectrumText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   spectrumArrowSmall: {
-    fontSize: 11,
+    fontSize: 14,
     opacity: 0.6,
   },
   sectionCard: {
     borderRadius: 10,
     padding: 14,
-    marginBottom: 10,
+    marginBottom: 14,
     borderWidth: 1,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.3,
-    marginBottom: 8,
+    marginBottom: 14,
     textTransform: 'uppercase',
   },
   sectionBody: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   tipsContainer: {
     gap: 6,
   },
   tipLine: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   rememberCard: {
     borderRadius: 10,
@@ -541,19 +541,19 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
   },
   rememberLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 6,
     textTransform: 'uppercase',
   },
   rememberText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   footer: {
-    fontSize: 11,
+    fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
     opacity: 0.7,

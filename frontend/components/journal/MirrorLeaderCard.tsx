@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     lineHeight: 24,
   },

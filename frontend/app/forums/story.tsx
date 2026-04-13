@@ -235,11 +235,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   loadingSubtext: {
-    fontSize: 13,
+    fontSize: 16,
     marginTop: 6,
     fontStyle: 'italic',
   },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    fontSize: 15,
+    fontSize: 17,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   storyContainer: {
@@ -281,14 +281,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     letterSpacing: 0.3,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionContent: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 28,
     letterSpacing: 0.2,
   },
   questionSection: {
@@ -298,15 +298,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   questionLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   questionText: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 28,
     fontStyle: 'italic',
   },
   metaContainer: {
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   metaText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   refreshButton: {
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   refreshButtonText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   footerNote: {
@@ -333,8 +333,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   footerNoteText: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 27,
     textAlign: 'center',
     fontStyle: 'italic',
   },

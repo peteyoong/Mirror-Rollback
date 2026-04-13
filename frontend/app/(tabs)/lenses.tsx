@@ -120,7 +120,7 @@ export default function LensesScreen() {
                 
                 <View style={styles.infoSection}>
                   <View style={styles.infoRow}>
-                    <Text style={{ fontSize: 14, color: theme.textSecondary }}>✓</Text>
+                    <Text style={{ fontSize: 16, color: theme.textSecondary }}>✓</Text>
                     <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Helps with:</Text>
                   </View>
                   <Text style={[styles.infoText, { color: theme.textTertiary }]}>{lens.helps_with}</Text>
@@ -128,7 +128,7 @@ export default function LensesScreen() {
 
                 <View style={styles.infoSection}>
                   <View style={styles.infoRow}>
-                    <Text style={{ fontSize: 14, color: theme.textTertiary }}>✗</Text>
+                    <Text style={{ fontSize: 16, color: theme.textTertiary }}>✗</Text>
                     <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>Does not:</Text>
                   </View>
                   <Text style={[styles.infoText, { color: theme.textTertiary }]}>{lens.does_not}</Text>
@@ -139,7 +139,7 @@ export default function LensesScreen() {
                   onPress={() => handleViewSummary(lens.name)}
                 >
                   <Text style={[styles.viewButtonText, { color: theme.buttonPrimaryText }]}>View Summary</Text>
-                  <Text style={{ fontSize: 14, color: theme.buttonPrimaryText }}>→</Text>
+                  <Text style={{ fontSize: 16, color: theme.buttonPrimaryText }}>→</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -185,11 +185,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     color: Colors.textSecondary,
   },
   lensesContainer: {
@@ -202,19 +202,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   lensName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   lensDescription: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     color: Colors.textSecondary,
     marginBottom: 16,
   },
   infoSection: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   infoRow: {
     flexDirection: 'row',
@@ -222,14 +222,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   infoLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     color: Colors.textSecondary,
     marginLeft: 6,
   },
   infoText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     color: Colors.textTertiary,
     marginLeft: 22,
   },
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   viewButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: Colors.background,
   },
@@ -255,14 +255,14 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   footerText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     color: Colors.textTertiary,
     fontStyle: 'italic',
     textAlign: 'center',
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.error,
   },
   spacer: {

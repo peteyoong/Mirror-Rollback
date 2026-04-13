@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyStateText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
 
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   big3Item: {
     alignItems: 'center',
@@ -298,14 +298,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   big3Sign: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   heroDescriptor: {
-    fontSize: 13,
+    fontSize: 16,
     textAlign: 'center',
     fontStyle: 'italic',
-    lineHeight: 18,
+    lineHeight: 27,
   },
 
   // SECTION 2: Chart Spine
@@ -315,14 +315,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   spineStatement: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 28,
     marginBottom: 6,
   },
 
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   },
   arenaItem: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   arenaRank: {
     fontSize: 16,
@@ -346,17 +346,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   arenaLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
   },
   arenaExplanation: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 28,
     marginBottom: 2,
   },
   arenaIgnored: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     marginTop: 4,
     lineHeight: 17,
@@ -381,13 +381,13 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   pressureLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     marginBottom: 2,
   },
   pressureDesc: {
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 14,
+    lineHeight: 26,
   },
 
   // SECTION 5: Current Chapter
@@ -403,13 +403,13 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   chapterTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 6,
   },
   chapterDescription: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 28,
   },
 
   // Ask Button
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   askButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
 });

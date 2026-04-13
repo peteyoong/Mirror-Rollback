@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   assessmentTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.text,
     marginBottom: 8,

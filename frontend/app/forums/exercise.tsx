@@ -1637,7 +1637,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   header: {
@@ -1672,24 +1672,24 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   stepTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   title: {
     fontSize: 26,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     marginBottom: 24,
   },
   introText: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 32,
     marginBottom: 24,
   },
   // Pattern Landscape Preview (Intro screen)
@@ -1700,7 +1700,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   landscapeTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -1711,7 +1711,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   landscapeLoadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   landscapeSummary: {
     flexDirection: 'row',
@@ -1725,11 +1725,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   statusPillText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   landscapeQuiet: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   // New card-based pattern landscape styles
@@ -1740,7 +1740,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   landscapeSectionTitle: {
     fontSize: 16,
@@ -1751,7 +1751,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   changeSelectionText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   landscapeLoadingCard: {
@@ -1765,7 +1765,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   landscapeDomainCards: {
     gap: 10,
@@ -1791,8 +1791,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   landscapeDomainSummary: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   // Intro screen interpretation preview (legacy - kept for compatibility)
@@ -1803,13 +1803,13 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   interpretationDomainTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   // Inline interpretation preview - directly below selected card
   inlineInterpretationPreview: {
     marginTop: 4,
-    marginBottom: 10,
+    marginBottom: 14,
     marginLeft: 8,
     padding: 16,
     borderRadius: 12,
@@ -1822,22 +1822,22 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   inlineInterpretationTitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   inlineInterpretationText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   inlineWhyActive: {
     padding: 10,
     borderRadius: 8,
   },
   inlineWhyActiveText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -1862,7 +1862,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   landscapeDomainName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     flex: 1,
   },
@@ -1872,7 +1872,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   landscapeStatusText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   alternateOption: {
@@ -1880,7 +1880,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   alternateOptionText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   infoBox: {
     padding: 20,
@@ -1889,13 +1889,13 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   infoTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   infoItem: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
     marginBottom: 4,
   },
   primaryButton: {
@@ -1920,23 +1920,23 @@ const styles = StyleSheet.create({
   },
   sourceIcon: {
     fontSize: 28,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sourceTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 6,
   },
   sourceDesc: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     paddingRight: 24,
   },
   checkmark: {
     position: 'absolute',
     top: 16,
     right: 16,
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
   },
   // Domain selection
@@ -1966,8 +1966,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   domainSummary: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
     marginTop: 8,
   },
   statusBadge: {
@@ -1976,7 +1976,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
@@ -1995,16 +1995,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   interpretationLoadingText: {
-    fontSize: 13,
+    fontSize: 16,
   },
   interpretationHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   interpretationLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
   },
@@ -2014,12 +2014,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   signalStrengthText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
   },
   interpretationText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   // Story/Challenge/Genius sections
   interpretationSection: {
@@ -2027,13 +2027,13 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   interpretationSectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   interpretationSectionText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   whyActiveHint: {
     marginTop: 16,
@@ -2041,7 +2041,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   whyActiveHintText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -2051,24 +2051,24 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   whyActiveLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 6,
     textTransform: 'uppercase',
   },
   whyActiveText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   interpretationSignal: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     marginTop: 10,
   },
   interpretationEmpty: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
     paddingVertical: 8,
@@ -2089,7 +2089,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   lensDesc: {
-    fontSize: 13,
+    fontSize: 16,
     paddingRight: 24,
   },
   // HD insights list
@@ -2109,11 +2109,11 @@ const styles = StyleSheet.create({
     paddingRight: 30,
   },
   hdInsightName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   hdInsightValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   // Guidance
@@ -2125,7 +2125,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   guidanceBadgeText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   guidanceValue: {
@@ -2143,18 +2143,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   guidanceLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   guidanceText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   guidanceIntro: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
   // Prompts
   promptsBox: {
@@ -2164,20 +2164,20 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   promptsLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   promptItem: {
-    fontSize: 14,
-    lineHeight: 21,
-    marginBottom: 8,
+    fontSize: 16,
+    lineHeight: 30,
+    marginBottom: 14,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   textArea: {
     paddingHorizontal: 16,
@@ -2186,11 +2186,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     fontSize: 16,
     minHeight: 180,
-    lineHeight: 24,
+    lineHeight: 32,
     marginBottom: 16,
   },
   hint: {
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
   },
@@ -2210,8 +2210,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   privacyOptionDesc: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     paddingRight: 24,
   },
   // Destination checkboxes (new)
@@ -2237,7 +2237,7 @@ const styles = StyleSheet.create({
   },
   checkboxCheck: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   destinationTextContainer: {
@@ -2249,8 +2249,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   destinationOptionDesc: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   // Complete
   completeContent: {
@@ -2267,12 +2267,12 @@ const styles = StyleSheet.create({
   completeTitle: {
     fontSize: 24,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
   },
   completeSubtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     textAlign: 'center',
   },
 });

@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 8,
     textAlign: 'center',
@@ -515,10 +515,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalTopic: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '500',
     fontStyle: 'italic',
-    lineHeight: 26,
+    lineHeight: 30,
     marginBottom: 4,
   },
   modalDates: {

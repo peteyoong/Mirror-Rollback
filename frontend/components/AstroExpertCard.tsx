@@ -416,15 +416,15 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 12,
-    fontSize: 14,
+    fontSize: 16,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     paddingVertical: 16,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     fontWeight: '600',
   },
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   eventBadgeTiming: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -462,20 +462,20 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   themeLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     marginBottom: 6,
   },
   themeText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
-    lineHeight: 26,
+    lineHeight: 30,
     letterSpacing: -0.3,
   },
   moonPhaseText: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 8,
   },
   section: {
@@ -494,11 +494,11 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   bulletItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 14,
     paddingRight: 8,
   },
   bulletDot: {
@@ -523,8 +523,8 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
   mainEventText: {
     fontWeight: '600',
@@ -540,10 +540,10 @@ const styles = StyleSheet.create({
   },
   questionText: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
     fontStyle: 'italic',
-    lineHeight: 22,
+    lineHeight: 30,
   },
   signalsToggle: {
     flexDirection: 'row',
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   signalsToggleText: {
-    fontSize: 12,
+    fontSize: 14,
   },
   signalsContainer: {
     marginTop: 12,
@@ -561,11 +561,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   signalsLabel: {
-    fontSize: 12,
+    fontSize: 14,
     marginBottom: 4,
   },
   signalsDetail: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 2,
   },
 });

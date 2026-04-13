@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     paddingVertical: 40,
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
 
   // 1. Continuation (whisper)
   continuation: {
-    fontSize: 13,
+    fontSize: 16,
     opacity: 0.6,
     marginBottom: 24,
     fontStyle: 'italic',
@@ -632,13 +632,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   lifePathLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   lifePathNumber: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
   },
 
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
 
   // 3. Echo (reinforcement)
   echoText: {
-    fontSize: 14,
+    fontSize: 16,
     marginBottom: 16,
     opacity: 0.7,
   },
@@ -674,10 +674,10 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   premiumSectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.3,
-    marginBottom: 12,
+    marginBottom: 16,
     textTransform: 'lowercase',
   },
   premiumBulletList: {
@@ -696,8 +696,8 @@ const styles = StyleSheet.create({
   },
   premiumBulletText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
 
   // 7. Genius (subtle accent)
@@ -715,8 +715,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   geniusText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     fontWeight: '500',
   },
 
@@ -731,14 +731,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   costLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
   costValue: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // 9. Shift Section (pause moment)
@@ -757,16 +757,16 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
   shiftLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   shiftText: {
     fontSize: 16,
     fontWeight: '500',
-    lineHeight: 24,
+    lineHeight: 32,
   },
 
   // 10. Proof Section (collapsibles)
@@ -783,7 +783,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(128, 128, 128, 0.2)',
   },
   collapsibleTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   collapsibleContent: {
@@ -801,7 +801,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   identityLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
@@ -813,7 +813,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   identityDesc: {
-    fontSize: 10,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 
@@ -822,13 +822,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tensionPair: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
   },
   tensionDesc: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Add Name Link
@@ -839,7 +839,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   addNameLinkText: {
-    fontSize: 13,
+    fontSize: 16,
   },
 
   // Explore CTA
@@ -854,7 +854,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   exploreCTAText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
 
@@ -874,23 +874,23 @@ const styles = StyleSheet.create({
   },
   systemBannerText: {
     flex: 1,
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
   },
 
   // Layer Headers (Core vs Identity)
   layerHeader: {
     borderLeftWidth: 3,
     paddingLeft: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   layerLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
   },
   layerSubLabel: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 2,
   },
 
@@ -908,7 +908,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   coreNumberLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -935,13 +935,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   identityNumberLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   identityNumberValue: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
   },
   identityNumberDesc: {
@@ -960,18 +960,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
     marginBottom: 4,
   },
   sectionSubtitle: {
-    fontSize: 12,
-    marginBottom: 12,
+    fontSize: 14,
+    marginBottom: 16,
   },
   sectionSubtitleWarning: {
-    fontSize: 11,
-    marginBottom: 10,
+    fontSize: 14,
+    marginBottom: 14,
     fontStyle: 'italic',
   },
   gridContainer: {
@@ -979,7 +979,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     alignSelf: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   gridRow: {
     flexDirection: 'row',
@@ -993,11 +993,11 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   gridCellText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
   },
   gridCellMultiple: {
-    fontSize: 14,
+    fontSize: 16,
     letterSpacing: 4,
   },
   gridCellLabel: {
@@ -1024,7 +1024,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   legendText: {
-    fontSize: 11,
+    fontSize: 14,
   },
 
   // Core Pattern
@@ -1036,15 +1036,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   corePatternLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
     marginBottom: 6,
   },
   corePatternText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
-    lineHeight: 22,
+    lineHeight: 30,
   },
 
   // Sections
@@ -1070,8 +1070,8 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Tension
@@ -1091,20 +1091,20 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   tensionA: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   tensionVs: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
   },
   tensionB: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   tensionDescription: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
     textAlign: 'center',
   },
 
@@ -1119,13 +1119,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   costLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   costText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Balance Section
@@ -1137,14 +1137,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   balanceLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
     marginBottom: 6,
   },
   balanceText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontWeight: '500',
   },
 
@@ -1156,14 +1156,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   reflectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
     marginBottom: 6,
   },
   reflectionText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
 
@@ -1176,10 +1176,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     paddingVertical: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   addNameButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -1191,16 +1191,16 @@ const styles = StyleSheet.create({
     gap: 8,
     borderRadius: 12,
     paddingVertical: 14,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   askMirrorText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
 
   // Footer
   footer: {
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     fontStyle: 'italic',
     marginBottom: 16,
@@ -1237,7 +1237,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   modalSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -1259,7 +1259,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   modalSecondaryButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   modalPrimaryButton: {
@@ -1269,7 +1269,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   modalPrimaryButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: '#fff',
   },

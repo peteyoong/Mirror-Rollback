@@ -487,11 +487,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   centered: {
@@ -502,16 +502,16 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 14,
+    fontSize: 16,
   },
   errorText: {
     marginTop: 12,
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   emptyText: {
     marginTop: 12,
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   scrollView: {
@@ -532,16 +532,16 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   introText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     marginBottom: 16,
-    lineHeight: 18,
+    lineHeight: 31,
   },
   mappingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     borderRadius: 12,
     borderWidth: 1,
   },
@@ -555,12 +555,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   headline: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     marginBottom: 4,
   },
   watchOut: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   // Modal styles
@@ -582,11 +582,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   modalSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   modalScroll: {
@@ -603,21 +603,21 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   sectionLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
-    marginBottom: 8,
-    lineHeight: 24,
+    marginBottom: 14,
+    lineHeight: 32,
   },
   sectionText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
   // V2 3-Layer Styles
   storyCard: {
@@ -627,20 +627,20 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   storyHeadline: {
-    fontSize: 21,
+    fontSize: 24,
     fontWeight: '600',
-    lineHeight: 29,
+    lineHeight: 32,
     marginBottom: 14,
   },
   storySummary: {
     fontSize: 16,
-    lineHeight: 25,
+    lineHeight: 32,
   },
   patternSection: {
     marginBottom: 24,
   },
   patternLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 14,
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   patternBulletDash: {
-    fontSize: 15,
+    fontSize: 17,
     marginRight: 10,
     marginTop: 2,
     width: 16,
@@ -659,8 +659,8 @@ const styles = StyleSheet.create({
   },
   patternBulletText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
   },
   giftSection: {
     paddingLeft: 16,
@@ -681,11 +681,11 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   signalsToggleText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   signalsNote: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 14,
@@ -702,13 +702,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 10,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   channelGates: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   gateBox: {
     alignItems: 'center',
@@ -719,13 +719,13 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   gateLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '500',
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   gateNumber: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   channelConnector: {
@@ -738,7 +738,7 @@ const styles = StyleSheet.create({
     width: 12,
   },
   channelId: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     marginHorizontal: 4,
   },
@@ -746,10 +746,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   channelTranslation: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
-    lineHeight: 22,
-    marginBottom: 12,
+    lineHeight: 30,
+    marginBottom: 16,
     fontStyle: 'italic',
   },
   lensSection: {
@@ -764,7 +764,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   lensSignalIcon: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 10,
     marginTop: 2,
     width: 16,
@@ -772,18 +772,18 @@ const styles = StyleSheet.create({
   },
   lensSignalText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
   },
   channelName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 6,
   },
   channelTheme: {
-    fontSize: 14,
+    fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
-    lineHeight: 21,
+    lineHeight: 30,
   },
 });

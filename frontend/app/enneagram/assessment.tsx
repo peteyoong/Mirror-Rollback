@@ -2041,7 +2041,7 @@ const styles = StyleSheet.create({
     marginLeft: -4,
   },
   sectionIndicator: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
@@ -2081,7 +2081,7 @@ const styles = StyleSheet.create({
   },
   introCopy: {
     fontSize: 16,
-    lineHeight: 26,
+    lineHeight: 30,
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 40,
@@ -2105,7 +2105,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   questionNumber: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     color: Colors.textTertiary,
     textAlign: 'center',
@@ -2113,7 +2113,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   questionText: {
-    fontSize: 20,
+    fontSize: 24,
     lineHeight: 30,
     color: Colors.text,
     textAlign: 'center',
@@ -2146,20 +2146,20 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   likertValue: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
   },
   likertLabel: {
-    fontSize: 15,
+    fontSize: 17,
     color: Colors.text,
     flex: 1,
   },
   
   // Forced Choice
   forcedChoicePrompt: {
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 24,
+    lineHeight: 32,
     color: Colors.text,
     textAlign: 'center',
     marginBottom: 32,
@@ -2187,13 +2187,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   forcedChoiceLetter: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.text,
   },
   forcedChoiceText: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 32,
     color: Colors.text,
   },
   forcedChoiceDivider: {
@@ -2208,7 +2208,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
   },
   dividerText: {
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.textTertiary,
     fontWeight: '500',
   },
@@ -2221,15 +2221,15 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   placeholderTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     color: Colors.text,
     marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   placeholderText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
@@ -2253,8 +2253,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   interpretingSubtext: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     color: Colors.textSecondary,
     textAlign: 'center',
   },
@@ -2268,12 +2268,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: 16,
     marginTop: 16,
   },
   calibrationSubtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     color: Colors.textSecondary,
     marginBottom: 32,
   },
@@ -2284,7 +2284,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   calibrationOptions: {
     flexDirection: 'row',
@@ -2305,7 +2305,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.text,
   },
   calibrationOptionText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: Colors.text,
     textAlign: 'center',

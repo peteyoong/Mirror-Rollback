@@ -274,13 +274,13 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 8,
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     padding: 16,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   headerLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
     marginBottom: 6,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   // Body
   diagnosisBody: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 28,
     marginBottom: 16,
   },
   
@@ -316,8 +316,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   bridgeText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
     fontStyle: 'italic',
   },
   
@@ -334,14 +334,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   guidanceLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   guidanceText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 28,
   },
   
   // Reflect Button
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   reflectButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   signalsHeaderText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   signalsContent: {
@@ -382,10 +382,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   signalGroupLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   
   // Gate Row
@@ -399,11 +399,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gateNumber: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   gateCenter: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   geneKeyInfo: {
@@ -411,10 +411,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   shadowText: {
-    fontSize: 13,
+    fontSize: 16,
   },
   giftText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     marginTop: 2,
   },
@@ -425,18 +425,18 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   designLabel: {
-    fontSize: 13,
+    fontSize: 16,
     width: 70,
   },
   designValue: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   
   // Centers
   centersText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 28,
   },
 });
 

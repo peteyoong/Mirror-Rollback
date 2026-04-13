@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   arrow: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '500',
   },
 });

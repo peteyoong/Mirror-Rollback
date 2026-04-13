@@ -280,7 +280,7 @@ export default function JournalEntryItem({
               onPress={() => onReflect(content)}
               disabled={isReflectDisabled}
             >
-              <Text style={{ fontSize: 12, color: isReflectDisabled ? theme.textTertiary : theme.accent }}>✦</Text>
+              <Text style={{ fontSize: 14, color: isReflectDisabled ? theme.textTertiary : theme.accent }}>✦</Text>
               <Text style={[
                 styles.reflectButtonText,
                 { color: isReflectDisabled ? theme.textTertiary : theme.accent }
@@ -395,13 +395,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 14,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -409,11 +409,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   savedLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
   },
   date: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.textTertiary,
   },
   // Phase pill tag styles
@@ -426,10 +426,10 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   phaseIcon: {
-    fontSize: 10,
+    fontSize: 14,
   },
   phasePillText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
   },
   headerActions: {
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   reflectButtonText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.accent,
   },
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   menuDots: {
-    fontSize: 14,
+    fontSize: 16,
     letterSpacing: 1,
     fontWeight: '700',
   },
@@ -484,15 +484,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   menuItemText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   menuItemDelete: {
     // Color set dynamically
   },
   content: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
     color: Colors.textSecondary,
   },
   themesContainer: {
@@ -509,21 +509,21 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   themeText: {
-    fontSize: 11,
+    fontSize: 14,
     color: Colors.textTertiary,
   },
   
   // Edit mode styles
   editingLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
   },
   editInput: {
     borderRadius: 10,
     borderWidth: 1,
     padding: 12,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
     minHeight: 100,
     maxHeight: 200,
     textAlignVertical: 'top',
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   editCancelText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   editSaveButton: {
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   editSaveText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#fff',
   },
@@ -578,11 +578,11 @@ const styles = StyleSheet.create({
   deleteModalTitle: {
     fontSize: 17,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
     textAlign: 'center',
   },
   deleteModalSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deleteModalCancelText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   deleteModalConfirmButton: {
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deleteModalConfirmText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: '#fff',
   },

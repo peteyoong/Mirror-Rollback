@@ -1087,7 +1087,7 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   errorContainer: {
     flex: 1,
@@ -1097,7 +1097,7 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -1106,7 +1106,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
@@ -1127,7 +1127,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -1142,10 +1142,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   lifePathLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
@@ -1154,26 +1154,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   headline: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
-    lineHeight: 26,
+    lineHeight: 30,
   },
 
   // Body
   bodyText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
   },
   helperText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Bullets
   bulletItem: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   bullet: {
     width: 6,
@@ -1183,8 +1183,8 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
   },
 
   // Number contributions
@@ -1201,11 +1201,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   contributionLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   contributionValue: {
-    fontSize: 12,
+    fontSize: 14,
     flex: 1,
     textAlign: 'right',
     marginLeft: 16,
@@ -1219,14 +1219,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   warningLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   warningText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
 
   // Build section
@@ -1239,7 +1239,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   missingBadge: {
     width: 32,
@@ -1254,22 +1254,22 @@ const styles = StyleSheet.create({
   },
   buildTitle: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: 32,
   },
   buildSubtitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   buildBulletItem: {
     marginBottom: 6,
   },
   buildBulletText: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
   },
   watchForBox: {
     marginTop: 12,
@@ -1277,24 +1277,24 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   watchForLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
   },
   watchForText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
 
   // Grid
   gridContainer: {
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   gridRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   gridCell: {
     width: 56,
@@ -1309,11 +1309,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   gridCount: {
-    fontSize: 10,
+    fontSize: 14,
     marginTop: 2,
   },
   gridEmpty: {
-    fontSize: 18,
+    fontSize: 22,
   },
   gridLegend: {
     flexDirection: 'row',
@@ -1331,26 +1331,26 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   legendText: {
-    fontSize: 12,
+    fontSize: 14,
   },
 
   // Computation
   computationNote: {
-    fontSize: 12,
-    marginBottom: 12,
+    fontSize: 14,
+    marginBottom: 16,
     fontStyle: 'italic',
   },
   computationItem: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   computationLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
   },
   computationValue: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
   },
   inputDisplay: {
     flexDirection: 'row',
@@ -1358,10 +1358,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   inputLabel: {
-    fontSize: 12,
+    fontSize: 14,
   },
   inputValue: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
 
@@ -1377,7 +1377,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   addNameText: {
-    fontSize: 13,
+    fontSize: 16,
   },
 
   // Secondary action
@@ -1391,16 +1391,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   secondaryActionText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
 
   // Footer
   footer: {
-    fontSize: 11,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 16,
+    lineHeight: 30,
   },
 
   // Modal - Fixed for mobile web
@@ -1438,13 +1438,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
     marginTop: 8,
   },
   modalSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     marginBottom: 24,
   },
   nameInput: {
@@ -1503,10 +1503,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   interruptLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   interruptBlock: {
     padding: 16,
@@ -1521,29 +1521,29 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   interruptBlockTitle: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   interruptBlockSubtitle: {
-    fontSize: 11,
+    fontSize: 14,
     marginBottom: 14,
   },
   interruptAction: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   interruptActionNumber: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     width: 20,
   },
   interruptActionText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   whyWorksSection: {
     paddingTop: 12,
@@ -1551,21 +1551,21 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(128, 128, 128, 0.2)',
   },
   whyWorksLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   whyWorksText: {
-    fontSize: 13,
-    lineHeight: 20,
-    marginBottom: 8,
+    fontSize: 16,
+    lineHeight: 32,
+    marginBottom: 14,
   },
   mechanismBadge: {
     marginTop: 4,
   },
   mechanismText: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 });

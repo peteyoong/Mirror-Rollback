@@ -327,11 +327,11 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   
@@ -354,12 +354,12 @@ const styles = StyleSheet.create({
   diagnosisTitle: {
     fontSize: 22,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 16,
     lineHeight: 28,
   },
   diagnosisBody: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 28,
     marginBottom: 16,
   },
   
@@ -372,8 +372,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   bridgeText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 26,
     fontStyle: 'italic',
   },
   
@@ -382,14 +382,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   misstepLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   misstepText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
   },
   
   // Better Move
@@ -397,14 +397,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   betterMoveLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   betterMoveText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
     fontWeight: '500',
   },
   
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   reflectButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   signalsHeaderText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   signalsContent: {
@@ -445,14 +445,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   signalGroupLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   signalText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 28,
     marginBottom: 4,
   },
   
@@ -467,11 +467,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gateNumber: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   gateCenter: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   geneKeyInfo: {
@@ -479,10 +479,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   shadowText: {
-    fontSize: 13,
+    fontSize: 16,
   },
   giftText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     marginTop: 2,
   },
@@ -494,11 +494,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   houseNumber: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   houseArea: {
-    fontSize: 14,
+    fontSize: 16,
   },
 });
 

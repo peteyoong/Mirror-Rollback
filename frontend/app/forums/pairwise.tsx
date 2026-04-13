@@ -411,11 +411,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -423,14 +423,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     fontStyle: 'italic',
   },
@@ -444,10 +444,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pickerLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   pickerButton: {
     flexDirection: 'row',
@@ -462,14 +462,14 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   pickerText: {
-    fontSize: 14,
+    fontSize: 16,
     flex: 1,
   },
   connectionSymbol: {
     paddingBottom: 12,
   },
   connectionText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
   },
   exploreButton: {
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   reflectionContainer: {
@@ -509,13 +509,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   reflectionSectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   reflectionText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
   },
   questionSection: {
     padding: 16,
@@ -523,15 +523,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   questionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   questionText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
     fontStyle: 'italic',
   },
   pickerDropdown: {
@@ -561,11 +561,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   pickerItemName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   pickerItemType: {
-    fontSize: 12,
+    fontSize: 14,
   },
   pickerClose: {
     alignItems: 'center',
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   pickerCloseText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   footerNote: {
@@ -581,8 +581,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   footerNoteText: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 31,
     textAlign: 'center',
     fontStyle: 'italic',
   },

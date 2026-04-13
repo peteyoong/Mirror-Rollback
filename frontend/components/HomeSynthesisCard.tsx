@@ -245,15 +245,15 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 12,
-    fontSize: 14,
+    fontSize: 16,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     paddingVertical: 16,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     fontWeight: '600',
   },
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   stateDot: {
     width: 6,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   stateText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -292,10 +292,10 @@ const styles = StyleSheet.create({
   },
   theReality: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 28,
   },
   sourceHint: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     marginBottom: 16,
     paddingHorizontal: 4,
@@ -306,8 +306,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   theEdge: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
     fontWeight: '500',
   },
   ctaButton: {

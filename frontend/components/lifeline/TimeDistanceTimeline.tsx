@@ -501,13 +501,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   revealText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '500',
     textAlign: 'center',
     marginBottom: 4,
   },
   revealTextSecond: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '500',
     textAlign: 'center',
   },

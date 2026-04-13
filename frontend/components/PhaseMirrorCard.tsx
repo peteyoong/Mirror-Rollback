@@ -375,7 +375,7 @@ const PhaseMirrorCard: React.FC<PhaseMirrorCardProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginTop: 10,
-    marginBottom: 10,
+    marginBottom: 14,
     borderRadius: 14,
     borderWidth: 1,
     padding: 16,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    marginBottom: 12,
+    marginBottom: 16,
     gap: 8,
   },
   phaseTag: {
@@ -396,26 +396,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   phaseIcon: {
-    fontSize: 12,
+    fontSize: 14,
     marginRight: 5,
   },
   phaseTagText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   humanMeaning: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   soundsLikeLine: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 28,
     marginBottom: 6,
   },
   largerContextLine: {
-    fontSize: 13,
-    lineHeight: 19,
-    marginBottom: 12,
+    fontSize: 16,
+    lineHeight: 28,
+    marginBottom: 16,
   },
   // Level 1: Repeat Detection
   repeatSection: {
@@ -423,29 +423,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   repeatLine: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
   },
   repeatSubline: {
-    fontSize: 12,
+    fontSize: 14,
   },
   // Level 2: Recurring Patterns
   patternsSection: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   patternsSectionTitle: {
-    fontSize: 10,
+    fontSize: 14,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   patternItem: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 27,
     marginLeft: 4,
     marginBottom: 2,
   },
@@ -455,9 +455,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   compressedLeadIn: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   compressedPatternContainer: {
     paddingVertical: 12,
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   },
   compressedPatternLine: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 28,
     fontStyle: 'italic',
     fontWeight: '500',
   },
@@ -478,100 +478,100 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   identityEchoLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   identityEchoText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 28,
   },
   // V2.7: Angle Line - Transit-based amplifier
   angleLineSection: {
-    marginBottom: 12,
+    marginBottom: 16,
     paddingLeft: 8,
   },
   angleLineLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 4,
   },
   angleLineText: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 27,
     fontStyle: 'italic',
   },
   // V3: Facet Line - Where the pattern is most active
   facetLineSection: {
-    marginBottom: 12,
+    marginBottom: 16,
     paddingLeft: 8,
   },
   facetLineLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 4,
   },
   facetLineText: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 27,
   },
   // V3.1: Facet Memory Line - Pattern over time
   facetMemorySection: {
-    marginBottom: 12,
+    marginBottom: 16,
     paddingLeft: 8,
   },
   facetMemoryText: {
-    fontSize: 11,
+    fontSize: 14,
     lineHeight: 17,
     fontStyle: 'italic',
   },
   // V3.2: Facet Progression Line - Movement over time
   facetProgressionSection: {
-    marginBottom: 12,
+    marginBottom: 16,
     paddingLeft: 8,
   },
   facetProgressionText: {
-    fontSize: 11,
+    fontSize: 14,
     lineHeight: 17,
     fontStyle: 'italic',
   },
   // Level 3: Tension Insight
   tensionSection: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tensionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 4,
   },
   tensionInsight: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 27,
   },
   // Emotional quote
   emotionalContainer: {
     borderLeftWidth: 2,
     paddingLeft: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   emotionalLine: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 28,
     fontStyle: 'italic',
   },
   // CTA area
   ctaPrefix: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   ctaRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   primaryCta: {
     flex: 1,
@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryCtaText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   secondaryCta: {
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryCtaText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   dismissButton: {
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   dismissText: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
   },
 });

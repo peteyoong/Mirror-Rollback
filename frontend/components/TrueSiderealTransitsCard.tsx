@@ -687,31 +687,31 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 8,
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     padding: 16,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     fontWeight: '600',
   },
   
   // Header
   header: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     letterSpacing: -0.3,
   },
   headerDate: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   
@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   keywordText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
     textTransform: 'lowercase',
   },
@@ -739,21 +739,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     padding: 14,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   heroHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   heroLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   heroExactTime: {
-    fontSize: 11,
+    fontSize: 14,
   },
   heroContent: {
     alignItems: 'center',
@@ -765,12 +765,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   heroDescription: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     marginBottom: 4,
   },
   heroOrb: {
-    fontSize: 12,
+    fontSize: 14,
   },
   
   // Moon Card
@@ -800,7 +800,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   moonIngress: {
-    fontSize: 12,
+    fontSize: 14,
   },
   
   // Section Header
@@ -808,17 +808,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   
   // Events List
   eventsList: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   eventRow: {
     flexDirection: 'row',
@@ -830,18 +830,18 @@ const styles = StyleSheet.create({
     width: 70,
   },
   eventTimeText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   eventDetails: {
     flex: 1,
   },
   eventPlanet: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   eventOrb: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 2,
   },
   majorBadge: {
@@ -852,14 +852,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   majorBadgeText: {
-    fontSize: 10,
+    fontSize: 14,
   },
   noEventsContainer: {
     padding: 16,
     alignItems: 'center',
   },
   noEventsText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   
@@ -876,7 +876,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   slowLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
@@ -890,10 +890,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   slowPlanet: {
-    fontSize: 14,
+    fontSize: 16,
   },
   slowOrb: {
-    fontSize: 12,
+    fontSize: 14,
   },
   
   // Footer
@@ -902,7 +902,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    fontSize: 10,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   
@@ -911,13 +911,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   moonHouse: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   
   // Section Count
   sectionCount: {
-    fontSize: 10,
+    fontSize: 14,
     marginLeft: 4,
   },
   
@@ -930,7 +930,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   showMoreText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   slowCount: {
-    fontSize: 10,
+    fontSize: 14,
   },
   
   // Slow Item Left (for outer planet badge)
@@ -982,11 +982,11 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   debugBadgeText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
   },
   debugSvp: {
-    fontSize: 10,
+    fontSize: 14,
   },
   debugDetails: {
     marginTop: 10,
@@ -1000,10 +1000,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   debugLabel: {
-    fontSize: 11,
+    fontSize: 14,
   },
   debugValue: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
   },
 });

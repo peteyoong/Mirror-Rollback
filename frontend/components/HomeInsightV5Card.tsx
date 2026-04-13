@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   errorContainer: {
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   retryButton: {
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   
@@ -349,16 +349,16 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   patternLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
   },
   
   // Headline - Pattern-based
   headline: {
-    fontSize: 21,
+    fontSize: 24,
     fontWeight: '600',
-    lineHeight: 29,
+    lineHeight: 32,
     marginBottom: 18,
     letterSpacing: 0.1,
   },
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   identityMirrorText: {
     fontSize: 16,
     fontStyle: 'italic',
-    lineHeight: 24,
+    lineHeight: 32,
     fontWeight: '400',
     letterSpacing: 0.1,
   },
@@ -383,20 +383,20 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   
   // Bullets - Pattern-focused
   bulletRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 16,
     paddingRight: 8,
   },
   bulletDash: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '400',
     marginRight: 10,
     marginTop: 2,
@@ -405,8 +405,8 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
   },
   
   // Where Section - ONE dominant area
@@ -420,8 +420,8 @@ const styles = StyleSheet.create({
   },
   whereText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   
@@ -432,14 +432,14 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   createsLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   createsText: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 31,
   },
   
   // The Move - Pattern-level trajectory shift
@@ -450,15 +450,15 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   moveLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   moveText: {
     fontSize: 16,
     fontWeight: '500',
-    lineHeight: 25,
+    lineHeight: 32,
   },
   
   // Proof Section - Collapsible
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   proofToggleText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '400',
   },
   proofSection: {
@@ -482,14 +482,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   proofNote: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
-    marginBottom: 8,
-    lineHeight: 18,
+    marginBottom: 14,
+    lineHeight: 31,
   },
   proofSignal: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     marginBottom: 5,
   },
 });

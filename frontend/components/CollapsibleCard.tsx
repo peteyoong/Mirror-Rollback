@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderLeftWidth: 3,
-    marginBottom: 12,
+    marginBottom: 16,
     overflow: 'hidden',
   },
   header: {
@@ -326,16 +326,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 16,
     marginTop: 4,
-    lineHeight: 18,
+    lineHeight: 27,
   },
   chevron: {
-    fontSize: 12,
+    fontSize: 14,
   },
   content: {
     padding: 16,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
 
   // Nested Collapsible
   nestedContainer: {
-    marginBottom: 8,
+    marginBottom: 14,
     borderRadius: 8,
     borderWidth: 1,
     overflow: 'hidden',
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
   },
   nestedChevron: {
-    fontSize: 10,
+    fontSize: 14,
     marginRight: 8,
   },
   nestedTitleContainer: {
@@ -374,11 +374,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   nestedTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   nestedSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   nestedContent: {
@@ -395,21 +395,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 4,
-    marginBottom: 8,
+    marginBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   sectionIcon: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 8,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   sectionCount: {
-    fontSize: 12,
+    fontSize: 14,
     marginLeft: 4,
   },
 });

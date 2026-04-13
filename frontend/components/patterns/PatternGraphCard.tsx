@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     marginBottom: 12,
     paddingHorizontal: 20,
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
   },
   momentumBadge: {

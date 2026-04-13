@@ -948,7 +948,7 @@ const styles = StyleSheet.create({
   },
   healthBannerText: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   userIdChangedBanner: {
@@ -962,7 +962,7 @@ const styles = StyleSheet.create({
   },
   userIdChangedBannerText: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   tabContainer: {
@@ -983,7 +983,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
     color: "inherit",
   },
@@ -1003,7 +1003,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
     color: "inherit",
   },
   errorContainer: {
@@ -1012,7 +1012,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 16,
     color: "inherit",
     textAlign: 'center',
   },
@@ -1023,18 +1023,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryText: {
-    fontSize: 14,
+    fontSize: 16,
     color: "inherit",
     fontWeight: '500',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     color: "inherit",
-    marginBottom: 8,
+    marginBottom: 14,
   },
   dateLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: "inherit",
     marginBottom: 16,
   },
@@ -1048,12 +1048,12 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   coreNumbersTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: "inherit",
     letterSpacing: 1,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   coreNumbersRow: {
     flexDirection: 'row',
@@ -1065,7 +1065,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   numberLabel: {
-    fontSize: 10,
+    fontSize: 14,
     color: "inherit",
     marginBottom: 4,
   },
@@ -1099,12 +1099,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cycleLabel: {
-    fontSize: 10,
+    fontSize: 14,
     color: "inherit",
     marginBottom: 4,
   },
   cycleNumber: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     color: "inherit",
   },
@@ -1123,7 +1123,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   expandButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     color: "inherit",
     fontWeight: '500',
   },
@@ -1132,7 +1132,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -1140,14 +1140,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionLabel: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: "inherit",
     flex: 1,
   },
   sectionBody: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
     color: "inherit",
     marginTop: 12,
   },
@@ -1160,15 +1160,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   mirrorPromptLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: "inherit",
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   mirrorPromptText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     color: "inherit",
     fontStyle: 'italic',
   },
@@ -1187,15 +1187,15 @@ const styles = StyleSheet.create({
   },
   unlockText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 16,
     color: "inherit",
-    lineHeight: 20,
+    lineHeight: 32,
   },
   unlockTextContainer: {
     flex: 1,
   },
   unlockCta: {
-    fontSize: 12,
+    fontSize: 14,
     color: "inherit",
     marginTop: 4,
     fontWeight: '500',
@@ -1212,13 +1212,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   askMirrorText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: "inherit",
   },
   // Footer
   footer: {
-    fontSize: 12,
+    fontSize: 14,
     color: "inherit",
     textAlign: 'center',
     marginTop: 20,
@@ -1274,7 +1274,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   modalSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: "inherit",
     textAlign: 'center',
     marginBottom: 20,
@@ -1283,8 +1283,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   modalText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     color: "inherit",
     marginBottom: 16,
   },
@@ -1295,14 +1295,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bulletItem: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 30,
     color: "inherit",
-    marginBottom: 8,
+    marginBottom: 14,
   },
   modalNote: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 32,
     color: "inherit",
     fontStyle: 'italic',
   },
@@ -1326,7 +1326,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   modalSecondaryButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
   },
   modalPrimaryButton: {
@@ -1338,7 +1338,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   modalPrimaryButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   disabledButton: {
@@ -1350,18 +1350,18 @@ const styles = StyleSheet.create({
     padding: 16,
     fontSize: 16,
     color: '#000000',
-    marginBottom: 12,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     minHeight: 52,
   },
   unlockErrorText: {
-    fontSize: 13,
+    fontSize: 16,
     color: '#e74c3c',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   privacyNote: {
-    fontSize: 12,
+    fontSize: 14,
     color: "inherit",
     fontStyle: 'italic',
   },
@@ -1386,13 +1386,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   unlockButtonTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: "inherit",
     marginBottom: 2,
   },
   unlockButtonSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     color: 'rgba(255, 255, 255, 0.7)',
   },
   // Full Name Display (when entered)
@@ -1411,14 +1411,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fullNameLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: "inherit",
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   fullNameValue: {
-    fontSize: 15,
+    fontSize: 17,
     color: "inherit",
     fontWeight: '500',
   },
@@ -1434,7 +1434,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   modalDebugText: {
-    fontSize: 10,
+    fontSize: 14,
     color: "inherit",
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },

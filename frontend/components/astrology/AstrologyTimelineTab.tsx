@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     letterSpacing: 0.3,
     marginBottom: 4,
@@ -911,7 +911,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   phaseExpandIcon: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '300',
     marginLeft: 8,
   },

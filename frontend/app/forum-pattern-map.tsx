@@ -478,14 +478,14 @@ const styles = StyleSheet.create({
     fontSize: 36,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
   },
   emptyText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -499,14 +499,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   screenLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1.5,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
   statsCard: {
     flexDirection: 'row',
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -548,24 +548,24 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 4,
   },
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     marginBottom: 16,
   },
   patternCard: {
     borderRadius: 12,
     borderWidth: 1,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   patternHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   patternIconBadge: {
     width: 40,
@@ -576,19 +576,19 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   patternIcon: {
-    fontSize: 20,
+    fontSize: 24,
   },
   patternHeaderText: {
     flex: 1,
   },
   patternLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
     marginBottom: 2,
   },
   patternYears: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   memberCountBadge: {
@@ -597,13 +597,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   memberCountText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   patternSummary: {
-    fontSize: 14,
-    lineHeight: 21,
-    marginBottom: 12,
+    fontSize: 16,
+    lineHeight: 30,
+    marginBottom: 16,
   },
   memberAvatars: {
     flexDirection: 'row',
@@ -619,11 +619,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   memberAvatarText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   moreMembers: {
-    fontSize: 12,
+    fontSize: 14,
     marginLeft: 16,
   },
   timelineContainer: {
@@ -666,10 +666,10 @@ const styles = StyleSheet.create({
   clusterStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   clusterStat: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   clusterStatDot: {
@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sampleEvent: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 2,
   },
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerNoteText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
   },

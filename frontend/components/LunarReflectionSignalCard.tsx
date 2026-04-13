@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   titleRow: {
     flexDirection: 'row',
@@ -351,10 +351,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   moonIcon: {
-    fontSize: 18,
+    fontSize: 22,
   },
   cardTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   phaseBadgeText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   // Task 50: Gate Section Styles
@@ -391,22 +391,22 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   gateNumber: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   gateTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     flex: 1,
   },
   gateTheme: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
     marginBottom: 4,
   },
   gateCenter: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
     letterSpacing: 0.5,
   },
@@ -437,14 +437,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   progressLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '500',
   },
   reflectionMessage: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 32,
     fontWeight: '400',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   guidanceBlock: {
     paddingLeft: 12,
@@ -453,8 +453,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   guidanceText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   questionBlock: {
@@ -462,14 +462,14 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   questionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
     marginBottom: 6,
   },
   questionText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontWeight: '400',
   },
   timingRow: {
@@ -485,11 +485,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   timingValue: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
   },
   timingLabel: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 2,
   },
   timingDivider: {

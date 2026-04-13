@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -139,18 +139,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   label: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.8,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   summary: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
     marginBottom: 16,
   },
   signalGroups: {
@@ -166,10 +166,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   groupIcon: {
-    fontSize: 14,
+    fontSize: 16,
   },
   groupTitle: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -180,13 +180,13 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   signalLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     marginBottom: 2,
   },
   signalMeaning: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 27,
   },
   synthesisBox: {
     marginTop: 16,
@@ -200,8 +200,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   synthesisText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 28,
     fontStyle: 'italic',
   },
   seeAllLink: {
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   seeAllText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
 });

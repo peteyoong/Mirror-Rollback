@@ -463,8 +463,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   introSubtext: {
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 17,
+    lineHeight: 26,
   },
   
   // Section Card
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   sectionSubtext: {
-    fontSize: 13,
+    fontSize: 16,
     marginBottom: 16,
   },
   
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
   },
   checkinLabel: {
     width: 100,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   checkinInput: {
@@ -503,15 +503,15 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 8,
     paddingHorizontal: 12,
-    fontSize: 14,
+    fontSize: 16,
     borderWidth: 1,
   },
   
   // Update Area Fields
   fieldLabel: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   emotionsRow: {
     marginBottom: 14,
@@ -520,18 +520,18 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 8,
     paddingHorizontal: 12,
-    fontSize: 14,
+    fontSize: 16,
     borderWidth: 1,
   },
   updateTextRow: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   updateTextInput: {
     minHeight: 100,
     borderRadius: 10,
     padding: 12,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 26,
     borderWidth: 1,
   },
   journalToggleRow: {
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   journalToggleLabel: {
-    fontSize: 13,
+    fontSize: 16,
   },
   
   // Saved Summary
@@ -557,12 +557,12 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   savedSubtitle: {
-    fontSize: 14,
-    marginBottom: 8,
+    fontSize: 16,
+    marginBottom: 14,
   },
   savedItem: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 26,
   },
   
   // Actions
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   secondaryButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
 });

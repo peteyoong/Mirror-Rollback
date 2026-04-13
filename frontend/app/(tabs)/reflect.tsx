@@ -1198,7 +1198,7 @@ export default function JournalScreen() {
           style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
           onPress={() => setViewMode('journal')}
         >
-          <Text style={{ fontSize: 14, color: viewMode === 'journal' ? Colors.accent : Colors.textSecondary }}>☰</Text>
+          <Text style={{ fontSize: 16, color: viewMode === 'journal' ? Colors.accent : Colors.textSecondary }}>☰</Text>
           <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
             Journal
           </Text>
@@ -1207,7 +1207,7 @@ export default function JournalScreen() {
           style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
           onPress={() => setViewMode('mirror')}
         >
-          <Text style={{ fontSize: 14, color: viewMode === 'mirror' ? Colors.accent : Colors.textSecondary }}>✦</Text>
+          <Text style={{ fontSize: 16, color: viewMode === 'mirror' ? Colors.accent : Colors.textSecondary }}>✦</Text>
           <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
             Mirror
           </Text>
@@ -1218,7 +1218,7 @@ export default function JournalScreen() {
             style={[styles.modeButton, (viewMode === 'lunar' || viewMode === 'lunar-history') && styles.modeButtonActive]}
             onPress={() => setViewMode('lunar')}
           >
-            <Text style={{ fontSize: 14, color: (viewMode === 'lunar' || viewMode === 'lunar-history') ? '#C0C8D4' : Colors.textSecondary }}>🌙</Text>
+            <Text style={{ fontSize: 16, color: (viewMode === 'lunar' || viewMode === 'lunar-history') ? '#C0C8D4' : Colors.textSecondary }}>🌙</Text>
             <Text style={[styles.modeButtonText, (viewMode === 'lunar' || viewMode === 'lunar-history') && { color: '#C0C8D4' }]}>
               Lunar
             </Text>
@@ -2020,7 +2020,7 @@ export default function JournalScreen() {
                     style={[styles.dismissButton, { backgroundColor: theme.surfaceLight }]}
                     onPress={dismissKeyboard}
                   >
-                    <Text style={{ fontSize: 18, color: theme.textSecondary }}>▼</Text>
+                    <Text style={{ fontSize: 22, color: theme.textSecondary }}>▼</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -2035,7 +2035,7 @@ export default function JournalScreen() {
                   {isSubmitting ? (
                     <ActivityIndicator size="small" color={theme.background} />
                   ) : (
-                    <Text style={{ fontSize: 18, color: theme.background }}>✓</Text>
+                    <Text style={{ fontSize: 22, color: theme.background }}>✓</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -2051,7 +2051,7 @@ export default function JournalScreen() {
                   onPress={handleReflectCurrentEntry}
                   disabled={reflectionModalVisible}
                 >
-                  <Text style={{ fontSize: 14, color: reflectionModalVisible ? Colors.textTertiary : Colors.accent }}>✦</Text>
+                  <Text style={{ fontSize: 16, color: reflectionModalVisible ? Colors.textTertiary : Colors.accent }}>✦</Text>
                   <Text style={[
                     styles.reflectCurrentText,
                     reflectionModalVisible && styles.reflectTextDisabled
@@ -2327,24 +2327,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   threadLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   threadSavingLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontStyle: 'italic',
   },
   threadEntryContent: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
   },
   threadPhaseTag: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 8,
     fontStyle: 'italic',
   },
@@ -2354,8 +2354,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   threadMirrorText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
     marginTop: 6,
   },
@@ -2371,7 +2371,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   threadMirrorActionText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   threadPatternRecognition: {
@@ -2380,8 +2380,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   threadPatternText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     marginTop: 4,
     fontStyle: 'italic',
   },
@@ -2406,8 +2406,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   reinforcementText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
     fontStyle: 'italic',
     textAlign: 'center',
   },
@@ -2419,7 +2419,7 @@ const styles = StyleSheet.create({
   // Dominant Truth Prompt Card (Master Layer Integration) - COMPACT VERSION
   dominantTruthPromptCard: {
     marginHorizontal: 24,
-    marginBottom: 10, // Reduced from 16
+    marginBottom: 14, // Reduced from 16
     paddingVertical: 10, // Reduced from 16
     paddingHorizontal: 14,
     borderRadius: 10,
@@ -2436,13 +2436,13 @@ const styles = StyleSheet.create({
     marginBottom: 3, // Reduced from 8
   },
   dominantTruthPromptQuestion: {
-    fontSize: 13, // Reduced from 15
-    lineHeight: 18, // Reduced from 22
+    fontSize: 16, // Reduced from 15
+    lineHeight: 31, // Reduced from 22
     fontStyle: 'italic',
     flex: 1,
   },
   dominantTruthPromptCTA: {
-    fontSize: 12, // Reduced from 13
+    fontSize: 14, // Reduced from 13
     fontWeight: '600',
     marginLeft: 10,
   },
@@ -2459,7 +2459,7 @@ const styles = StyleSheet.create({
     padding: 3,
     marginHorizontal: 24,
     marginTop: 10, // Reduced from 16
-    marginBottom: 10, // Reduced from 16
+    marginBottom: 14, // Reduced from 16
   },
   modeButton: {
     flex: 1,
@@ -2474,7 +2474,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent + '15',
   },
   modeButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
@@ -2489,14 +2489,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.textTertiary,
   },
   inputSection: {
-    marginBottom: 12, // Reduced from 24 - tighter spacing
+    marginBottom: 16, // Reduced from 24 - tighter spacing
   },
   inputContainer: {
     flexDirection: 'row',
@@ -2507,7 +2507,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
-    fontSize: 15,
+    fontSize: 17,
     color: Colors.text,
     minHeight: 120, // Increased from 80 - much larger writing area
     maxHeight: 200, // Increased from 160
@@ -2554,7 +2554,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   reflectCurrentText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
     color: Colors.accent,
   },
@@ -2568,20 +2568,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.error,
   },
   // FIX 8: Captured feedback styles
   capturedFeedback: {
     marginTop: 8,
-    marginBottom: 8,
+    marginBottom: 14,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
     alignSelf: 'center',
   },
   capturedFeedbackText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   listContent: {
@@ -2589,34 +2589,34 @@ const styles = StyleSheet.create({
   },
   // Mini connection line style
   connectionLine: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
     marginTop: 4,
   },
   // Reverse Prompt Card styles (Journal ↔ Timeline connection)
   reversePromptCard: {
     marginTop: 10,
-    marginBottom: 10,
+    marginBottom: 14,
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
   },
   reversePromptLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   reversePromptText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 25,
     fontStyle: 'italic',
   },
   reversePromptHint: {
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 8,
     fontStyle: 'italic',
   },
@@ -2627,13 +2627,13 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.textSecondary,
     marginTop: 16,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.textTertiary,
     textAlign: 'center',
     marginTop: 8,
@@ -2656,7 +2656,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   timelineSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.textTertiary,
     marginTop: 4,
     fontStyle: 'italic',
@@ -2671,7 +2671,7 @@ const styles = StyleSheet.create({
   timelineDateHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   timelineDateDot: {
     width: 10,
@@ -2680,12 +2680,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   timelineDateLabel: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     flex: 1,
   },
   timelineEntryCount: {
-    fontSize: 12,
+    fontSize: 14,
   },
   timelineEntriesLine: {
     borderLeftWidth: 2,
@@ -2702,10 +2702,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   timelineEntryTime: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   timelineThemes: {
@@ -2718,13 +2718,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   timelineThemeText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '500',
   },
   timelineEntryPreview: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 12,
+    fontSize: 16,
+    lineHeight: 25,
+    marginBottom: 16,
   },
   timelineReflectButton: {
     flexDirection: 'row',
@@ -2736,7 +2736,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   timelineReflectText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   timelineEmpty: {
@@ -2746,15 +2746,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   timelineEmptyTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginTop: 16,
   },
   timelineEmptySubtext: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 20,
+    lineHeight: 25,
   },
   timelineStartButton: {
     marginTop: 20,
@@ -2763,7 +2763,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   timelineStartButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   // Mirror Insight card styles
@@ -2776,7 +2776,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   insightLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -2787,14 +2787,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   journalLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
   timelineInsightText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 30,
     fontStyle: 'italic',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   // Task 51: Lunar Decision Journal Styles
   lunarSubNav: {
@@ -2812,7 +2812,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#C0C8D4',
   },
   lunarSubNavText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.textSecondary,
   },
   lunarSubNavTextActive: {
@@ -2826,14 +2826,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   lunarPromptLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
     marginBottom: 6,
   },
   lunarPromptText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   // Task 54: Success banner styles
@@ -2846,7 +2846,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   lunarSuccessText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: '#81C784',
   },
@@ -2862,19 +2862,19 @@ const styles = StyleSheet.create({
   lunarIntroTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
     letterSpacing: -0.3,
   },
   lunarIntroText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
   },
   lunarWheelSection: {
     marginBottom: 16,
     alignItems: 'center',
   },
   lunarWheelInstruction: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     marginTop: 8,
     textAlign: 'center',
@@ -2886,27 +2886,27 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   lunarReflectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   lunarReflectionGateInfo: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   lunarReflectionGate: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
   },
   lunarReflectionGateTitle: {
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: 4,
   },
   lunarReflectionPrompt: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 30,
     fontStyle: 'italic',
   },
   lunarJournalInputSection: {
@@ -2916,14 +2916,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   lunarJournalInputLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
     marginBottom: 6,
   },
   lunarJournalInputPrompt: {
-    fontSize: 13,
-    marginBottom: 12,
+    fontSize: 16,
+    marginBottom: 16,
   },
   lunarJournalInputContainer: {
     gap: 10,
@@ -2932,8 +2932,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     padding: 12,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 25,
     minHeight: 80,
   },
   lunarJournalSubmitButton: {
@@ -2948,10 +2948,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   lunarTimelineSectionTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 16,
     paddingHorizontal: 4,
   },
   lunarSynthesisSection: {
@@ -2963,10 +2963,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   lunarLimitNoteText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 31,
   },
   // ═══════════════════════════════════════════════════════════════════════════
   // Task 63: Decision-First Lunar UX Styles
@@ -2976,20 +2976,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   decisionsSectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 4,
     letterSpacing: -0.3,
   },
   decisionsSectionSubtitle: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
   decisionCard: {
     borderRadius: 12,
     borderWidth: 1.5,
     padding: 14,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   decisionCardActive: {
     borderWidth: 1.5,
@@ -3011,13 +3011,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   decisionCardTopic: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: 25,
     marginBottom: 4,
   },
   decisionCardDays: {
-    fontSize: 12,
+    fontSize: 14,
   },
   decisionCardBadge: {
     paddingHorizontal: 8,
@@ -3025,7 +3025,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   decisionCardBadgeText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
     color: '#81C784',
   },
@@ -3048,17 +3048,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noDecisionsTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   noDecisionsText: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 32,
     textAlign: 'center',
   },
   addDecisionSection: {
-    marginBottom: 8,
+    marginBottom: 14,
   },
   simpleAddButton: {
     borderWidth: 1.5,
@@ -3070,7 +3070,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   simpleAddButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   decisionLimitNote: {
@@ -3079,7 +3079,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   decisionLimitNoteText: {
-    fontSize: 12,
+    fontSize: 14,
     fontStyle: 'italic',
     textAlign: 'center',
     lineHeight: 17,
@@ -3091,19 +3091,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   selectedDecisionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   selectedDecisionTopic: {
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 6,
-    lineHeight: 22,
+    lineHeight: 30,
   },
   selectedDecisionDays: {
-    fontSize: 13,
+    fontSize: 16,
     fontStyle: 'italic',
   },
   // Task 64: Today's Reflection Card Styles
@@ -3114,10 +3114,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   todayReflectionHeader: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   todayReflectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -3127,25 +3127,25 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   todayGateText: {
-    fontSize: 14,
+    fontSize: 16,
   },
   todayGateTitle: {
-    fontSize: 13,
+    fontSize: 16,
     marginLeft: 4,
   },
   todayPrompt: {
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 16,
+    marginBottom: 16,
     fontStyle: 'italic',
   },
   todayInput: {
     borderRadius: 10,
     borderWidth: 1,
     padding: 12,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 25,
     minHeight: 100,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   addReflectionButton: {
     borderRadius: 8,
@@ -3155,7 +3155,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addReflectionButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: '#1A1D24',
   },
@@ -3164,10 +3164,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   reflectionTimelineTitle: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 16,
     paddingHorizontal: 4,
   },
   reflectionEntry: {
@@ -3181,31 +3181,31 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   reflectionEntryDay: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '600',
   },
   reflectionEntryGate: {
-    fontSize: 12,
+    fontSize: 14,
   },
   // Task 68: Improved reflection entry card styling
   reflectionEntryCard: {
     borderRadius: 12,
     borderWidth: 1,
     padding: 14,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   reflectionEntryMeta: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     marginBottom: 6,
   },
   reflectionEntryContent: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 25,
     fontStyle: 'italic',
   },
   reflectionEntryDate: {
-    fontSize: 12,
+    fontSize: 14,
   },
   // New styles for restructured lunar view
   decisionSelectorSection: {
@@ -3230,7 +3230,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   decisionSelectorText: {
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: '500',
   },
   decisionSelectorDot: {
@@ -3244,40 +3244,40 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   decisionHeaderLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   decisionHeaderTopic: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
-    marginBottom: 8,
-    lineHeight: 24,
+    marginBottom: 14,
+    lineHeight: 32,
   },
   decisionHeaderStatus: {
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 16,
+    marginBottom: 16,
   },
   // Task 68: Improved status row styling
   decisionHeaderStatusRow: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   decisionHeaderStatusDay: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '500',
     marginBottom: 2,
   },
   decisionHeaderStatusPhase: {
-    fontSize: 13,
+    fontSize: 16,
   },
   decisionHeaderDivider: {
     height: 1,
     marginVertical: 12,
   },
   decisionHeaderDescription: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
   noDecisionCard: {
     borderRadius: 16,
@@ -3287,15 +3287,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   noDecisionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
     textAlign: 'center',
   },
   noDecisionText: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 25,
     marginBottom: 20,
   },
   instructionCard: {
@@ -3305,13 +3305,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   instructionTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   instructionText: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
   },
   todaysLensCard: {
     borderRadius: 16,
@@ -3320,10 +3320,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   todaysLensLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 8,
+    marginBottom: 14,
   },
   todaysLensGate: {
     fontSize: 16,
@@ -3332,15 +3332,15 @@ const styles = StyleSheet.create({
   },
   // Task 68: Gate/Line styling
   todaysLensGateRow: {
-    marginBottom: 8,
+    marginBottom: 14,
   },
   todaysLensLine: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 2,
   },
   todaysLensTheme: {
-    fontSize: 14,
-    marginBottom: 12,
+    fontSize: 16,
+    marginBottom: 16,
     fontStyle: 'italic',
   },
   todaysLensDivider: {
@@ -3353,13 +3353,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   todaysLensObservationIcon: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 8,
     marginTop: 1,
   },
   todaysLensObservation: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
     flex: 1,
   },
   todaysLensPromptBox: {
@@ -3373,8 +3373,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   todaysLensPrompt: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
     fontWeight: '500',
   },
   reflectionInputCard: {
@@ -3384,16 +3384,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   reflectionInputLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   reflectionTextInput: {
     borderRadius: 12,
     borderWidth: 1,
     padding: 16,
-    fontSize: 15,
+    fontSize: 17,
     minHeight: 120,
     textAlignVertical: 'top',
     marginBottom: 16,
@@ -3405,18 +3405,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveReflectionButtonText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     color: '#1A1D24',
   },
   lunarWheelSectionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1,
     marginBottom: 4,
   },
   lunarWheelSectionHint: {
-    fontSize: 12,
+    fontSize: 14,
     marginBottom: 16,
   },
   addAnotherSection: {
@@ -3431,7 +3431,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addAnotherButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   // Task 67: Cycle Completion Banner styles
@@ -3444,7 +3444,7 @@ const styles = StyleSheet.create({
   cycleCompletionBannerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   cycleCompletionBannerIcon: {
     fontSize: 24,
@@ -3454,12 +3454,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cycleCompletionBannerTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 2,
   },
   cycleCompletionBannerSubtitle: {
-    fontSize: 13,
+    fontSize: 16,
   },
   cycleCompletionBannerButton: {
     borderRadius: 10,
@@ -3468,13 +3468,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cycleCompletionBannerButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#1A1D24',
   },
   cycleCompletionBannerBody: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 31,
     marginTop: 4,
   },
   // Task 70: Debug Panel styles
@@ -3486,20 +3486,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   debugPanelTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 14,
   },
   debugPanelSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     marginTop: 12,
     marginBottom: 4,
   },
   debugPanelText: {
-    fontSize: 11,
+    fontSize: 14,
     fontFamily: 'monospace',
-    lineHeight: 16,
+    lineHeight: 30,
   },
   // ============================================
   // DECISION JOURNEY CARD STYLES
@@ -3513,26 +3513,26 @@ const styles = StyleSheet.create({
   journeyDayRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   journeyDayIcon: {
-    fontSize: 18,
+    fontSize: 22,
     marginRight: 8,
   },
   journeyDayText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   journeyPhaseLabel: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
-    lineHeight: 28,
-    marginBottom: 12,
+    lineHeight: 32,
+    marginBottom: 16,
   },
   journeyHook: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 32,
     marginBottom: 16,
   },
   journeyDecisionAnchor: {
@@ -3541,7 +3541,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   journeyDecisionLabel: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
@@ -3550,7 +3550,7 @@ const styles = StyleSheet.create({
   journeyDecisionTopic: {
     fontSize: 16,
     fontWeight: '500',
-    lineHeight: 24,
+    lineHeight: 32,
     fontStyle: 'italic',
   },
   journeyStartCta: {
@@ -3562,7 +3562,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   journeyStartCtaText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
   journeyCompletionBanner: {
@@ -3571,12 +3571,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   journeyCompletionText: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 4,
   },
   journeyCompletionSub: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 25,
   },
 });
