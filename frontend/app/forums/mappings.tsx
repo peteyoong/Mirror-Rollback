@@ -280,16 +280,106 @@ export default function ForumMappingsScreen() {
                       </View>
                     ))}
 
-                    {/* Placeholder sections for future systems */}
-                    {signals?.astrology && signals.astrology.length > 0 && (
-                      <Text style={[styles.signalsNote, { color: theme.textTertiary, marginTop: 16 }]}>
-                        ASTROLOGICAL DYNAMICS
-                      </Text>
+                    {/* ASTROLOGY SIGNALS */}
+                    {signals?.astrology && (
+                      (signals.astrology.attraction?.length > 0 || signals.astrology.tension?.length > 0 || signals.astrology.growth?.length > 0) && (
+                        <View style={styles.lensSection}>
+                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                            ASTROLOGICAL DYNAMICS
+                          </Text>
+                          {signals.astrology.attraction?.map((item: string, i: number) => (
+                            <View key={`aa-${i}`} style={styles.lensSignalRow}>
+                              <Text style={[styles.lensSignalIcon, { color: '#D4A574' }]}>✦</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            </View>
+                          ))}
+                          {signals.astrology.tension?.map((item: string, i: number) => (
+                            <View key={`at-${i}`} style={styles.lensSignalRow}>
+                              <Text style={[styles.lensSignalIcon, { color: '#CF6679' }]}>⚡</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            </View>
+                          ))}
+                          {signals.astrology.growth?.map((item: string, i: number) => (
+                            <View key={`ag-${i}`} style={styles.lensSignalRow}>
+                              <Text style={[styles.lensSignalIcon, { color: '#81C784' }]}>↑</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )
                     )}
-                    {signals?.enneagram && (signals.enneagram.gift_to_them?.length > 0 || signals.enneagram.gift_to_you?.length > 0) && (
-                      <Text style={[styles.signalsNote, { color: theme.textTertiary, marginTop: 16 }]}>
-                        GROWTH GIFTS
-                      </Text>
+
+                    {/* ENNEAGRAM SIGNALS */}
+                    {signals?.enneagram && (
+                      (signals.enneagram.how_you_help_them?.length > 0 || signals.enneagram.how_they_help_you?.length > 0) && (
+                        <View style={styles.lensSection}>
+                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                            GROWTH GIFTS
+                          </Text>
+                          {signals.enneagram.how_you_help_them?.map((item: string, i: number) => (
+                            <View key={`eyt-${i}`} style={styles.lensSignalRow}>
+                              <Text style={[styles.lensSignalIcon, { color: '#CE93D8' }]}>→</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            </View>
+                          ))}
+                          {signals.enneagram.how_they_help_you?.map((item: string, i: number) => (
+                            <View key={`ety-${i}`} style={styles.lensSignalRow}>
+                              <Text style={[styles.lensSignalIcon, { color: '#CE93D8' }]}>←</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            </View>
+                          ))}
+                          {signals.enneagram.friction_pattern?.map((item: string, i: number) => (
+                            <View key={`efp-${i}`} style={styles.lensSignalRow}>
+                              <Text style={[styles.lensSignalIcon, { color: '#CF6679' }]}>⚡</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )
+                    )}
+
+                    {/* NUMEROLOGY SIGNALS (only if present) */}
+                    {signals?.numerology && signals.numerology.themes?.length > 0 && (
+                      <View style={styles.lensSection}>
+                        <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                          NUMBER RESONANCE
+                        </Text>
+                        {signals.numerology.themes.map((item: string, i: number) => (
+                          <View key={`nt-${i}`} style={styles.lensSignalRow}>
+                            <Text style={[styles.lensSignalIcon, { color: '#90CAF9' }]}>◇</Text>
+                            <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {/* BAZI SIGNALS (only if present) */}
+                    {signals?.bazi && (
+                      (signals.bazi.support?.length > 0 || signals.bazi.tension?.length > 0) && (
+                        <View style={styles.lensSection}>
+                          <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                            ELEMENTAL DYNAMICS
+                          </Text>
+                          {signals.bazi.support?.map((item: string, i: number) => (
+                            <View key={`bs-${i}`} style={styles.lensSignalRow}>
+                              <Text style={[styles.lensSignalIcon, { color: '#81C784' }]}>+</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            </View>
+                          ))}
+                          {signals.bazi.tension?.map((item: string, i: number) => (
+                            <View key={`bt-${i}`} style={styles.lensSignalRow}>
+                              <Text style={[styles.lensSignalIcon, { color: '#CF6679' }]}>−</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            </View>
+                          ))}
+                          {signals.bazi.growth?.map((item: string, i: number) => (
+                            <View key={`bg-${i}`} style={styles.lensSignalRow}>
+                              <Text style={[styles.lensSignalIcon, { color: '#90CAF9' }]}>↑</Text>
+                              <Text style={[styles.lensSignalText, { color: theme.textSecondary }]}>{item}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )
                     )}
                   </View>
                 )}
@@ -661,6 +751,29 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 12,
     fontStyle: 'italic',
+  },
+  lensSection: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(128,128,128,0.15)',
+  },
+  lensSignalRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    paddingRight: 8,
+  },
+  lensSignalIcon: {
+    fontSize: 13,
+    marginRight: 10,
+    marginTop: 2,
+    width: 16,
+    textAlign: 'center',
+  },
+  lensSignalText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
   },
   channelName: {
     fontSize: 14,

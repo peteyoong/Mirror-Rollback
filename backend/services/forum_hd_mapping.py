@@ -246,6 +246,423 @@ CHANNEL_INTERPRETATIONS = {
 }
 
 
+# =============================================================================
+# ASTROLOGY SYNASTRY — Real cross-aspect relationship signals
+# =============================================================================
+
+ELEMENT_MAP = {
+    "Aries": "fire", "Leo": "fire", "Sagittarius": "fire",
+    "Taurus": "earth", "Virgo": "earth", "Capricorn": "earth",
+    "Gemini": "air", "Libra": "air", "Aquarius": "air",
+    "Cancer": "water", "Scorpio": "water", "Pisces": "water",
+}
+
+MODALITY_MAP = {
+    "Aries": "cardinal", "Cancer": "cardinal", "Libra": "cardinal", "Capricorn": "cardinal",
+    "Taurus": "fixed", "Leo": "fixed", "Scorpio": "fixed", "Aquarius": "fixed",
+    "Gemini": "mutable", "Virgo": "mutable", "Sagittarius": "mutable", "Pisces": "mutable",
+}
+
+# Compatible elements for attraction
+ELEMENT_ATTRACTION = {
+    ("fire", "air"): True, ("air", "fire"): True,
+    ("earth", "water"): True, ("water", "earth"): True,
+    ("fire", "fire"): True, ("air", "air"): True,
+}
+
+# Tension elements
+ELEMENT_TENSION = {
+    ("fire", "water"): True, ("water", "fire"): True,
+    ("earth", "air"): True, ("air", "earth"): True,
+}
+
+# Aspect definitions (orb in degrees for synastry)
+SYNASTRY_ASPECTS = {
+    "conjunction": {"angle": 0, "orb": 8, "nature": "fusion"},
+    "opposition": {"angle": 180, "orb": 8, "nature": "polarity"},
+    "trine": {"angle": 120, "orb": 7, "nature": "harmony"},
+    "square": {"angle": 90, "orb": 7, "nature": "tension"},
+    "sextile": {"angle": 60, "orb": 5, "nature": "opportunity"},
+}
+
+
+def compute_astrology_signals(
+    chart_a: Dict[str, Any],
+    chart_b: Dict[str, Any],
+    name_a: str = "You",
+    name_b: str = "them",
+) -> Optional[Dict[str, List[str]]]:
+    """Compute real astrology synastry signals between two charts."""
+    astro_a = chart_a.get("astrology", {}) if chart_a else {}
+    astro_b = chart_b.get("astrology", {}) if chart_b else {}
+    
+    planets_a = astro_a.get("planets", {})
+    planets_b = astro_b.get("planets", {})
+    
+    if not planets_a or not planets_b:
+        return None
+    
+    attraction = []
+    tension = []
+    growth = []
+    
+    # Helper to get planet data
+    def get_planet(planets, name):
+        for key in [name, name.capitalize(), name.lower()]:
+            if key in planets:
+                return planets[key]
+        return None
+    
+    # Core relationship planets
+    sun_a = get_planet(planets_a, "Sun")
+    moon_a = get_planet(planets_a, "Moon")
+    venus_a = get_planet(planets_a, "Venus")
+    mars_a = get_planet(planets_a, "Mars")
+    
+    sun_b = get_planet(planets_b, "Sun")
+    moon_b = get_planet(planets_b, "Moon")
+    venus_b = get_planet(planets_b, "Venus")
+    mars_b = get_planet(planets_b, "Mars")
+    
+    mercury_a = get_planet(planets_a, "Mercury")
+    mercury_b = get_planet(planets_b, "Mercury")
+    jupiter_a = get_planet(planets_a, "Jupiter")
+    jupiter_b = get_planet(planets_b, "Jupiter")
+    saturn_a = get_planet(planets_a, "Saturn")
+    saturn_b = get_planet(planets_b, "Saturn")
+    
+    def sign_of(p):
+        return p.get("sign", "") if p else ""
+    
+    def degree_of(p):
+        return float(p.get("degree", 0)) if p else 0
+    
+    def element_of(sign):
+        return ELEMENT_MAP.get(sign, "")
+    
+    def check_aspect(deg_a, deg_b):
+        """Check if two absolute degrees form a synastry aspect."""
+        diff = abs(deg_a - deg_b)
+        if diff > 180:
+            diff = 360 - diff
+        for asp_name, asp_def in SYNASTRY_ASPECTS.items():
+            if abs(diff - asp_def["angle"]) <= asp_def["orb"]:
+                return asp_name, asp_def["nature"]
+        return None, None
+    
+    # Compute absolute degree (sign position * 30 + degree in sign)
+    SIGN_ORDER = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+                   "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+    
+    def abs_degree(planet):
+        if not planet:
+            return 0
+        sign = sign_of(planet)
+        deg = degree_of(planet)
+        idx = SIGN_ORDER.index(sign) if sign in SIGN_ORDER else 0
+        return idx * 30 + deg
+    
+    # ========= SUN-MOON DYNAMICS (primary) =========
+    
+    # Sun-Moon cross (strongest synastry indicator)
+    if sun_a and moon_b:
+        asp, nature = check_aspect(abs_degree(sun_a), abs_degree(moon_b))
+        if asp == "conjunction" or asp == "trine":
+            attraction.append(f"Your core identity naturally resonates with {name_b}'s emotional world — there's an instinctive sense of being understood")
+        elif asp == "opposition":
+            attraction.append(f"There's a magnetic pull between your sense of self and {name_b}'s emotional nature — opposites that complete each other")
+        elif asp == "square":
+            tension.append(f"Your identity and {name_b}'s emotional needs can clash — what you express may not land the way you intend")
+    
+    if sun_b and moon_a:
+        asp, nature = check_aspect(abs_degree(sun_b), abs_degree(moon_a))
+        if asp == "conjunction" or asp == "trine":
+            attraction.append(f"{name_b}'s presence tends to calm or stabilize your emotional state without effort")
+        elif asp == "square":
+            tension.append(f"{name_b}'s directness can stir your emotional reactions — not always comfortably")
+    
+    # ========= VENUS DYNAMICS (love language) =========
+    
+    if venus_a and venus_b:
+        el_a = element_of(sign_of(venus_a))
+        el_b = element_of(sign_of(venus_b))
+        asp, nature = check_aspect(abs_degree(venus_a), abs_degree(venus_b))
+        
+        if asp in ["conjunction", "trine", "sextile"]:
+            attraction.append(f"Your love languages are naturally compatible — what you each value and enjoy overlaps")
+        elif asp == "square":
+            tension.append(f"You show care differently — what feels like love to one may not register for the other")
+        elif (el_a, el_b) in ELEMENT_ATTRACTION:
+            attraction.append(f"There's a natural aesthetic and emotional compatibility in what you each find beautiful or meaningful")
+    
+    # ========= MARS DYNAMICS (drive/conflict) =========
+    
+    if mars_a and mars_b:
+        asp, nature = check_aspect(abs_degree(mars_a), abs_degree(mars_b))
+        if asp == "conjunction":
+            tension.append(f"You activate each other's drive and assertiveness — energizing, but can escalate into competition")
+        elif asp == "opposition":
+            growth.append(f"Your action styles are opposite but complementary — together you cover more ground than alone")
+        elif asp == "square":
+            tension.append(f"You may trigger each other's frustration patterns — especially around pace, timing, or initiative")
+        elif asp == "trine":
+            attraction.append(f"Your energy and drive naturally flow together — action feels easier when you're aligned")
+    
+    # ========= VENUS-MARS CROSS (desire) =========
+    
+    if venus_a and mars_b:
+        asp, nature = check_aspect(abs_degree(venus_a), abs_degree(mars_b))
+        if asp in ["conjunction", "trine", "opposition"]:
+            attraction.append(f"There's a natural pull between your receptive side and {name_b}'s initiative — a classic attraction dynamic")
+    
+    if venus_b and mars_a:
+        asp, nature = check_aspect(abs_degree(venus_b), abs_degree(mars_a))
+        if asp in ["conjunction", "trine", "opposition"]:
+            attraction.append(f"{name_b}'s softness meets your drive — this creates a dynamic that feels both activating and grounding")
+    
+    # ========= MERCURY (communication) =========
+    
+    if mercury_a and mercury_b:
+        el_a = element_of(sign_of(mercury_a))
+        el_b = element_of(sign_of(mercury_b))
+        asp, nature = check_aspect(abs_degree(mercury_a), abs_degree(mercury_b))
+        
+        if asp in ["conjunction", "trine", "sextile"]:
+            attraction.append(f"Your thinking styles are compatible — conversation flows without excessive translation")
+        elif asp == "square":
+            tension.append(f"You process and communicate differently — misunderstandings come from different mental frameworks, not bad intent")
+        elif el_a == el_b:
+            attraction.append(f"You think in similar elements — your mental wavelengths overlap naturally")
+    
+    # ========= SATURN CROSS (growth/structure) =========
+    
+    if saturn_a and sun_b:
+        asp, nature = check_aspect(abs_degree(saturn_a), abs_degree(sun_b))
+        if asp in ["conjunction", "square", "opposition"]:
+            growth.append(f"You bring structure and accountability to {name_b}'s expression — this can feel grounding or restrictive depending on timing")
+    
+    if saturn_b and sun_a:
+        asp, nature = check_aspect(abs_degree(saturn_b), abs_degree(sun_a))
+        if asp in ["conjunction", "square", "opposition"]:
+            growth.append(f"{name_b} brings a reality check to your ambitions — uncomfortable but often exactly what's needed")
+    
+    # ========= JUPITER CROSS (expansion) =========
+    
+    if jupiter_a and sun_b:
+        asp, nature = check_aspect(abs_degree(jupiter_a), abs_degree(sun_b))
+        if asp in ["conjunction", "trine", "sextile"]:
+            growth.append(f"You naturally expand {name_b}'s sense of what's possible — your optimism lifts them")
+    
+    if jupiter_b and sun_a:
+        asp, nature = check_aspect(abs_degree(jupiter_b), abs_degree(sun_a))
+        if asp in ["conjunction", "trine", "sextile"]:
+            growth.append(f"{name_b} broadens your perspective in ways you wouldn't access alone")
+    
+    # ========= ELEMENT OVERVIEW =========
+    
+    if sun_a and sun_b:
+        el_a = element_of(sign_of(sun_a))
+        el_b = element_of(sign_of(sun_b))
+        if el_a and el_b and not attraction:
+            if (el_a, el_b) in ELEMENT_ATTRACTION:
+                attraction.append(f"Your core energies ({el_a} and {el_b}) naturally feed each other")
+            elif (el_a, el_b) in ELEMENT_TENSION:
+                growth.append(f"Your core energies ({el_a} and {el_b}) challenge each other — tension that creates expansion when held well")
+    
+    # Only return if we have meaningful content
+    total = len(attraction) + len(tension) + len(growth)
+    if total == 0:
+        return None
+    
+    # Cap to avoid noise
+    return {
+        "attraction": attraction[:4],
+        "tension": tension[:3],
+        "growth": growth[:3],
+    }
+
+
+# =============================================================================
+# ENNEAGRAM RELATIONSHIP SIGNALS
+# =============================================================================
+
+ENNEAGRAM_GIFTS = {
+    1: {"gives": "clarity, integrity, and a push toward doing things right", "needs": "permission to be imperfect"},
+    2: {"gives": "warmth, attunement, and emotional availability", "needs": "recognition without having to earn it"},
+    3: {"gives": "momentum, ambition, and a model of getting things done", "needs": "to be valued beyond their output"},
+    4: {"gives": "depth, emotional honesty, and an invitation to feel fully", "needs": "to be seen without being fixed"},
+    5: {"gives": "perspective, insight, and a capacity to see what others miss", "needs": "space that isn't interpreted as disconnection"},
+    6: {"gives": "loyalty, preparation, and a steady presence in uncertainty", "needs": "trust that isn't constantly re-tested"},
+    7: {"gives": "expansion, lightness, and permission to explore possibility", "needs": "to be met in their depth, not just their energy"},
+    8: {"gives": "protection, directness, and a force that clears the path", "needs": "vulnerability to be received, not weaponized"},
+    9: {"gives": "peace, acceptance, and the ability to hold space for all sides", "needs": "their own voice to matter as much as others'"},
+}
+
+ENNEAGRAM_FRICTION_MAP = {
+    (7, 1): "Freedom meets standards — one wants options, the other wants correctness. The tension is between expansion and precision.",
+    (7, 2): "Lightness meets attachment — one moves fast, the other needs closeness. The gap is about emotional presence vs freedom.",
+    (7, 3): "Two forward-movers, but for different reasons — one seeks experience, the other seeks achievement. Alignment requires slowing down.",
+    (7, 4): "Optimism meets emotional depth — one reframes, the other insists on feeling fully. The friction is about emotional honesty vs emotional avoidance.",
+    (7, 5): "Expansiveness meets containment — one overflows, the other conserves. The tension is about energy management.",
+    (7, 6): "Possibility meets caution — one leaps, the other prepares. The friction is about trust in the unknown.",
+    (7, 7): "Double expansion — exciting but can lack grounding. The friction appears when reality interrupts the plan.",
+    (7, 8): "Two intense forces — one seeks freedom, the other seeks control. The tension is about who sets the direction.",
+    (7, 9): "Momentum meets stillness — one pushes for action, the other resists being pushed. The friction is about pace.",
+    (8, 1): "Power meets principle — both strong, but one leads with force and the other with correctness.",
+    (8, 2): "Intensity meets warmth — the challenge is vulnerability without control.",
+    (8, 4): "Raw force meets deep feeling — both intense, but express it completely differently.",
+    (8, 9): "Force meets yielding — one pushes, the other absorbs. The tension is about voice and power.",
+    (1, 9): "Standards meet acceptance — one corrects, the other accommodates. The friction is about engagement vs peace.",
+    (4, 9): "Depth meets calm — one intensifies, the other smooths. The tension is about emotional presence.",
+}
+
+
+def compute_enneagram_signals(
+    user_data_a: Dict[str, Any],
+    user_data_b: Dict[str, Any],
+    name_a: str = "You",
+    name_b: str = "them",
+) -> Optional[Dict[str, List[str]]]:
+    """Compute enneagram relationship signals between two people."""
+    enn_a = user_data_a.get("enneagram", {}) if user_data_a else {}
+    enn_b = user_data_b.get("enneagram", {}) if user_data_b else {}
+    
+    core_a = enn_a.get("inferred_core")
+    core_b = enn_b.get("inferred_core")
+    
+    if not core_a or not core_b:
+        return None
+    
+    try:
+        core_a = int(core_a)
+        core_b = int(core_b)
+    except (ValueError, TypeError):
+        return None
+    
+    gifts_a = ENNEAGRAM_GIFTS.get(core_a, {})
+    gifts_b = ENNEAGRAM_GIFTS.get(core_b, {})
+    
+    how_you_help_them = []
+    how_they_help_you = []
+    friction_pattern = []
+    
+    if gifts_a.get("gives"):
+        how_you_help_them.append(f"You bring {gifts_a['gives']}")
+    if gifts_b.get("gives"):
+        how_they_help_you.append(f"{name_b} brings {gifts_b['gives']}")
+    
+    if gifts_b.get("needs"):
+        how_you_help_them.append(f"What {name_b} needs most: {gifts_b['needs']}")
+    if gifts_a.get("needs"):
+        how_they_help_you.append(f"What you need most: {gifts_a['needs']}")
+    
+    # Friction pattern
+    pair = (core_a, core_b)
+    reverse_pair = (core_b, core_a)
+    
+    if pair in ENNEAGRAM_FRICTION_MAP:
+        friction_pattern.append(ENNEAGRAM_FRICTION_MAP[pair])
+    elif reverse_pair in ENNEAGRAM_FRICTION_MAP:
+        friction_pattern.append(ENNEAGRAM_FRICTION_MAP[reverse_pair])
+    else:
+        if core_a == core_b:
+            friction_pattern.append(f"Two {core_a}s together amplify the same patterns — what works doubles, but so do the blind spots.")
+    
+    return {
+        "how_you_help_them": how_you_help_them,
+        "how_they_help_you": how_they_help_you,
+        "friction_pattern": friction_pattern,
+    }
+
+
+# =============================================================================
+# NUMEROLOGY RELATIONSHIP SIGNALS
+# =============================================================================
+
+NUMEROLOGY_MEANINGS = {
+    1: "independence, leadership, initiation",
+    2: "partnership, sensitivity, cooperation",
+    3: "expression, creativity, communication",
+    4: "structure, stability, foundation",
+    5: "freedom, change, adaptability",
+    6: "responsibility, nurturing, harmony",
+    7: "introspection, analysis, spiritual depth",
+    8: "power, abundance, authority",
+    9: "compassion, completion, universal understanding",
+    11: "intuition, spiritual insight, heightened sensitivity",
+    22: "master builder, large-scale vision, practical idealism",
+    33: "master teacher, healing through compassion, selfless service",
+}
+
+
+def compute_numerology_signals(
+    chart_a: Dict[str, Any],
+    chart_b: Dict[str, Any],
+    name_a: str = "You",
+    name_b: str = "them",
+) -> Optional[Dict[str, List[str]]]:
+    """Compute numerology relationship signals. Returns None if not meaningful."""
+    num_a = chart_a.get("numerology", {}) if chart_a else {}
+    num_b = chart_b.get("numerology", {}) if chart_b else {}
+    
+    if not num_a or not num_b:
+        return None
+    
+    lp_a = num_a.get("life_path", {}).get("number")
+    lp_b = num_b.get("life_path", {}).get("number")
+    exp_a = num_a.get("expression", {}).get("number")
+    exp_b = num_b.get("expression", {}).get("number")
+    soul_a = num_a.get("soul_urge", {}).get("number")
+    soul_b = num_b.get("soul_urge", {}).get("number")
+    
+    if not lp_a or not lp_b:
+        return None
+    
+    themes = []
+    
+    # Check for shared numbers (strong resonance)
+    all_a = set(filter(None, [lp_a, exp_a, soul_a]))
+    all_b = set(filter(None, [lp_b, exp_b, soul_b]))
+    shared = all_a & all_b
+    
+    if shared:
+        for num in shared:
+            meaning = NUMEROLOGY_MEANINGS.get(num, "")
+            if meaning:
+                themes.append(f"You share the number {num} ({meaning}) — this creates natural resonance in how you approach life")
+    
+    # Check if one person's Life Path matches another's Expression/Soul
+    if lp_a and lp_a in all_b and lp_a not in shared:
+        meaning = NUMEROLOGY_MEANINGS.get(lp_a, "")
+        themes.append(f"Your Life Path ({lp_a}) aligns with something core in {name_b} — {meaning}")
+    
+    if lp_b and lp_b in all_a and lp_b not in shared:
+        meaning = NUMEROLOGY_MEANINGS.get(lp_b, "")
+        themes.append(f"{name_b}'s Life Path ({lp_b}) aligns with something core in you — {meaning}")
+    
+    # Master numbers
+    master_a = [n for n in all_a if n in (11, 22, 33)]
+    master_b = [n for n in all_b if n in (11, 22, 33)]
+    
+    if master_a and master_b:
+        themes.append(f"Both of you carry master numbers ({', '.join(str(n) for n in master_a)} and {', '.join(str(n) for n in master_b)}) — this connection operates at a higher frequency than most")
+    
+    # Complementary numbers (1+2, 3+4, 5+6, 7+8)
+    complements = {(1,2), (2,1), (3,4), (4,3), (5,6), (6,5), (7,8), (8,7)}
+    if lp_a and lp_b:
+        reduced_a = lp_a if lp_a < 10 else (lp_a % 10 or lp_a // 10)
+        reduced_b = lp_b if lp_b < 10 else (lp_b % 10 or lp_b // 10)
+        if (reduced_a, reduced_b) in complements:
+            themes.append(f"Your core numbers are natural complements — one initiates what the other receives")
+    
+    # Only return if truly meaningful (2+ themes)
+    if len(themes) < 2:
+        return None
+    
+    return {"themes": themes[:4]}
+
+
+
 def get_user_gates(user_data: Dict[str, Any], chart_data: Dict[str, Any] = None) -> List[int]:
     """
     Extract all active gates from a user's Human Design data.
@@ -355,6 +772,10 @@ def generate_mapping_interpretation(
     current_user_name: str,
     member_name: str,
     completed_channels: List[Dict[str, Any]],
+    chart_a: Dict[str, Any] = None,
+    chart_b: Dict[str, Any] = None,
+    user_a: Dict[str, Any] = None,
+    user_b: Dict[str, Any] = None,
 ) -> Dict[str, Any]:
     """
     Generate 3-LAYER relationship interpretation.
@@ -513,7 +934,7 @@ def generate_mapping_interpretation(
     gifts = gifts[:3]
     
     # =========================================================================
-    # LAYER 3: SIGNALS — HD channels as proof + placeholders
+    # LAYER 3: SIGNALS — Multi-lens proof layer
     # =========================================================================
     
     # Build HD signals with 1-line plain language translations
@@ -550,6 +971,13 @@ def generate_mapping_interpretation(
             "their_gate": c["gate_b"],
         })
     
+    # Compute multi-lens signals (real data, not placeholders)
+    astrology_signals = compute_astrology_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
+    enneagram_signals = compute_enneagram_signals(user_a, user_b, current_user_name, member_name) if user_a and user_b else None
+    numerology_signals = compute_numerology_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
+    # BaZi: only compute if both have bazi data
+    bazi_signals = None  # Will be populated when BaZi data is available
+    
     return {
         "member_name": member_name,
         # V2 3-LAYER STRUCTURE
@@ -564,10 +992,10 @@ def generate_mapping_interpretation(
         },
         "signals": {
             "human_design": hd_signals,
-            "astrology": [],
-            "bazi": [],
-            "enneagram": [],
-            "numerology": [],
+            "astrology": astrology_signals,
+            "bazi": bazi_signals,
+            "enneagram": enneagram_signals,
+            "numerology": numerology_signals,
         },
         # BACKWARD COMPAT (old fields still available)
         "headline": story_headline,
@@ -639,11 +1067,15 @@ async def get_forum_member_mappings(
             # Find completed channels
             completed_channels = find_completed_channels(current_user_gates, member_gates)
             
-            # Generate interpretation
+            # Generate interpretation with multi-lens signals
             mapping = generate_mapping_interpretation(
                 current_user_name=current_user_name,
                 member_name=member_name,
                 completed_channels=completed_channels,
+                chart_a=current_chart,
+                chart_b=member_chart,
+                user_a=current_user,
+                user_b=member,
             )
             mapping["member_id"] = str(member_id)
             
