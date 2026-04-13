@@ -336,34 +336,35 @@ const styles = StyleSheet.create({
   
   // Headline
   headlineSection: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   headlineText: {
-    fontSize: 20,
+    fontSize: 21,
     fontWeight: '600',
-    lineHeight: 28,
+    lineHeight: 30,
   },
   whereContext: {
-    fontSize: 13,
+    fontSize: 14,
     fontStyle: 'italic',
-    marginTop: 8,
+    marginTop: 10,
+    lineHeight: 21,
   },
   
   // Sections
   section: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   highlightedSection: {
-    padding: 16,
+    padding: 18,
     borderRadius: 12,
     marginHorizontal: -4,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   sectionTitle: {
     fontSize: 11,
@@ -376,37 +377,37 @@ const styles = StyleSheet.create({
   bulletRow: {
     flexDirection: 'row',
     paddingLeft: 4,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   bulletDot: {
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    marginTop: 7,
+    marginTop: 8,
     marginRight: 10,
   },
   bulletText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 25,
   },
   
   // The Move
   moveSection: {
-    paddingLeft: 14,
+    paddingLeft: 16,
     borderLeftWidth: 3,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   moveLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   moveText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: 25,
     fontStyle: 'italic',
   },
   
@@ -416,12 +417,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: 8,
+    marginTop: 10,
   },
   technicalToggleText: {
-    fontSize: 12,
+    fontSize: 13,
   },
   technicalSection: {
     padding: 14,
@@ -430,10 +431,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   technicalText: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 13,
+    lineHeight: 20,
     fontStyle: 'italic',
-    marginBottom: 4,
+    marginBottom: 5,
   },
 });
 

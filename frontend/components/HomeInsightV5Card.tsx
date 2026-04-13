@@ -307,7 +307,7 @@ const HomeInsightV5Card: React.FC<HomeInsightV5CardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: 22,
     borderRadius: 16,
     borderWidth: 1,
   },
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   // Pattern Label
   patternLabelRow: {
     flexDirection: 'row',
-    marginBottom: 14,
+    marginBottom: 16,
   },
   patternLabelPill: {
     paddingHorizontal: 10,
@@ -349,116 +349,116 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   patternLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
   },
   
   // Headline - Pattern-based
   headline: {
-    fontSize: 19,
+    fontSize: 21,
     fontWeight: '600',
-    lineHeight: 27,
-    marginBottom: 16,
+    lineHeight: 29,
+    marginBottom: 18,
     letterSpacing: 0.1,
   },
   
   // Identity Mirror - NEW in V5
   identityMirrorContainer: {
     borderLeftWidth: 3,
-    paddingLeft: 14,
-    paddingVertical: 8,
-    marginBottom: 22,
+    paddingLeft: 16,
+    paddingVertical: 10,
+    marginBottom: 24,
   },
   identityMirrorText: {
-    fontSize: 15,
+    fontSize: 16,
     fontStyle: 'italic',
-    lineHeight: 22,
+    lineHeight: 24,
     fontWeight: '400',
     letterSpacing: 0.1,
   },
   
   // Sections
   section: {
-    marginBottom: 18,
+    marginBottom: 22,
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   
   // Bullets - Pattern-focused
   bulletRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 12,
     paddingRight: 8,
   },
   bulletDash: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '400',
     marginRight: 10,
-    marginTop: 1,
+    marginTop: 2,
     width: 14,
     textAlign: 'center',
   },
   bulletText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 23,
   },
   
   // Where Section - ONE dominant area
   whereSection: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: 12,
+    padding: 14,
     borderRadius: 8,
-    marginBottom: 18,
+    marginBottom: 22,
     gap: 8,
   },
   whereText: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 21,
     fontStyle: 'italic',
   },
   
   // Creates Section - Quiet cost
   createsSection: {
-    paddingLeft: 14,
+    paddingLeft: 16,
     borderLeftWidth: 3,
-    marginBottom: 18,
+    marginBottom: 22,
   },
   createsLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   createsText: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 15,
+    lineHeight: 23,
   },
   
   // The Move - Pattern-level trajectory shift
   moveSection: {
-    padding: 16,
+    padding: 18,
     borderRadius: 12,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   moveLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   moveText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '500',
-    lineHeight: 23,
+    lineHeight: 25,
   },
   
   // Proof Section - Collapsible
@@ -467,12 +467,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: 6,
+    marginTop: 8,
   },
   proofToggleText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '400',
   },
   proofSection: {
@@ -482,15 +482,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   proofNote: {
-    fontSize: 11,
+    fontSize: 12,
     fontStyle: 'italic',
     marginBottom: 8,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   proofSignal: {
-    fontSize: 12,
-    lineHeight: 18,
-    marginBottom: 4,
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 5,
   },
 });
 
