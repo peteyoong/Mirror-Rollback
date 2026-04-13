@@ -292,7 +292,9 @@ def compute_astrology_signals(
     name_a: str = "You",
     name_b: str = "them",
 ) -> Optional[Dict[str, List[str]]]:
-    """Compute real astrology synastry signals between two charts."""
+    """Compute HIGH-CONVICTION astrology synastry signals. Only uses Sun-Moon, Venus-Mars,
+    Venus-Venus, Mars-Mars, Saturn-personal, Mercury-Mercury. Each signal must describe
+    observable interaction behavior, not abstract traits."""
     astro_a = chart_a.get("astrology", {}) if chart_a else {}
     astro_b = chart_b.get("astrology", {}) if chart_b else {}
     
@@ -306,214 +308,205 @@ def compute_astrology_signals(
     tension = []
     growth = []
     
-    # Helper to get planet data
     def get_planet(planets, name):
         for key in [name, name.capitalize(), name.lower()]:
             if key in planets:
                 return planets[key]
         return None
     
-    # Core relationship planets
     sun_a = get_planet(planets_a, "Sun")
     moon_a = get_planet(planets_a, "Moon")
     venus_a = get_planet(planets_a, "Venus")
     mars_a = get_planet(planets_a, "Mars")
-    
     sun_b = get_planet(planets_b, "Sun")
     moon_b = get_planet(planets_b, "Moon")
     venus_b = get_planet(planets_b, "Venus")
     mars_b = get_planet(planets_b, "Mars")
-    
     mercury_a = get_planet(planets_a, "Mercury")
     mercury_b = get_planet(planets_b, "Mercury")
-    jupiter_a = get_planet(planets_a, "Jupiter")
-    jupiter_b = get_planet(planets_b, "Jupiter")
     saturn_a = get_planet(planets_a, "Saturn")
     saturn_b = get_planet(planets_b, "Saturn")
     
     def sign_of(p):
         return p.get("sign", "") if p else ""
-    
     def degree_of(p):
         return float(p.get("degree", 0)) if p else 0
     
-    def element_of(sign):
-        return ELEMENT_MAP.get(sign, "")
-    
-    def check_aspect(deg_a, deg_b):
-        """Check if two absolute degrees form a synastry aspect."""
-        diff = abs(deg_a - deg_b)
-        if diff > 180:
-            diff = 360 - diff
-        for asp_name, asp_def in SYNASTRY_ASPECTS.items():
-            if abs(diff - asp_def["angle"]) <= asp_def["orb"]:
-                return asp_name, asp_def["nature"]
-        return None, None
-    
-    # Compute absolute degree (sign position * 30 + degree in sign)
     SIGN_ORDER = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
                    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
     
     def abs_degree(planet):
-        if not planet:
-            return 0
+        if not planet: return 0
         sign = sign_of(planet)
-        deg = degree_of(planet)
         idx = SIGN_ORDER.index(sign) if sign in SIGN_ORDER else 0
-        return idx * 30 + deg
+        return idx * 30 + degree_of(planet)
     
-    # ========= SUN-MOON DYNAMICS (primary) =========
-    
-    # Sun-Moon cross (strongest synastry indicator)
-    if sun_a and moon_b:
-        asp, nature = check_aspect(abs_degree(sun_a), abs_degree(moon_b))
-        if asp == "conjunction" or asp == "trine":
-            attraction.append(f"Your core identity naturally resonates with {name_b}'s emotional world — there's an instinctive sense of being understood")
-        elif asp == "opposition":
-            attraction.append(f"There's a magnetic pull between your sense of self and {name_b}'s emotional nature — opposites that complete each other")
-        elif asp == "square":
-            tension.append(f"Your identity and {name_b}'s emotional needs can clash — what you express may not land the way you intend")
-    
-    if sun_b and moon_a:
-        asp, nature = check_aspect(abs_degree(sun_b), abs_degree(moon_a))
-        if asp == "conjunction" or asp == "trine":
-            attraction.append(f"{name_b}'s presence tends to calm or stabilize your emotional state without effort")
-        elif asp == "square":
-            tension.append(f"{name_b}'s directness can stir your emotional reactions — not always comfortably")
-    
-    # ========= VENUS DYNAMICS (love language) =========
-    
-    if venus_a and venus_b:
-        el_a = element_of(sign_of(venus_a))
-        el_b = element_of(sign_of(venus_b))
-        asp, nature = check_aspect(abs_degree(venus_a), abs_degree(venus_b))
-        
-        if asp in ["conjunction", "trine", "sextile"]:
-            attraction.append(f"Your love languages are naturally compatible — what you each value and enjoy overlaps")
-        elif asp == "square":
-            tension.append(f"You show care differently — what feels like love to one may not register for the other")
-        elif (el_a, el_b) in ELEMENT_ATTRACTION:
-            attraction.append(f"There's a natural aesthetic and emotional compatibility in what you each find beautiful or meaningful")
-    
-    # ========= MARS DYNAMICS (drive/conflict) =========
-    
-    if mars_a and mars_b:
-        asp, nature = check_aspect(abs_degree(mars_a), abs_degree(mars_b))
-        if asp == "conjunction":
-            tension.append(f"You activate each other's drive and assertiveness — energizing, but can escalate into competition")
-        elif asp == "opposition":
-            growth.append(f"Your action styles are opposite but complementary — together you cover more ground than alone")
-        elif asp == "square":
-            tension.append(f"You may trigger each other's frustration patterns — especially around pace, timing, or initiative")
-        elif asp == "trine":
-            attraction.append(f"Your energy and drive naturally flow together — action feels easier when you're aligned")
-    
-    # ========= VENUS-MARS CROSS (desire) =========
-    
-    if venus_a and mars_b:
-        asp, nature = check_aspect(abs_degree(venus_a), abs_degree(mars_b))
-        if asp in ["conjunction", "trine", "opposition"]:
-            attraction.append(f"There's a natural pull between your receptive side and {name_b}'s initiative — a classic attraction dynamic")
-    
-    if venus_b and mars_a:
-        asp, nature = check_aspect(abs_degree(venus_b), abs_degree(mars_a))
-        if asp in ["conjunction", "trine", "opposition"]:
-            attraction.append(f"{name_b}'s softness meets your drive — this creates a dynamic that feels both activating and grounding")
-    
-    # ========= MERCURY (communication) =========
-    
-    if mercury_a and mercury_b:
-        el_a = element_of(sign_of(mercury_a))
-        el_b = element_of(sign_of(mercury_b))
-        asp, nature = check_aspect(abs_degree(mercury_a), abs_degree(mercury_b))
-        
-        if asp in ["conjunction", "trine", "sextile"]:
-            attraction.append(f"Your thinking styles are compatible — conversation flows without excessive translation")
-        elif asp == "square":
-            tension.append(f"You process and communicate differently — misunderstandings come from different mental frameworks, not bad intent")
-        elif el_a == el_b:
-            attraction.append(f"You think in similar elements — your mental wavelengths overlap naturally")
-    
-    # ========= SATURN CROSS (growth/structure) =========
-    
-    if saturn_a and sun_b:
-        asp, nature = check_aspect(abs_degree(saturn_a), abs_degree(sun_b))
-        if asp in ["conjunction", "square", "opposition"]:
-            growth.append(f"You bring structure and accountability to {name_b}'s expression — this can feel grounding or restrictive depending on timing")
-    
-    if saturn_b and sun_a:
-        asp, nature = check_aspect(abs_degree(saturn_b), abs_degree(sun_a))
-        if asp in ["conjunction", "square", "opposition"]:
-            growth.append(f"{name_b} brings a reality check to your ambitions — uncomfortable but often exactly what's needed")
-    
-    # ========= JUPITER CROSS (expansion) =========
-    
-    if jupiter_a and sun_b:
-        asp, nature = check_aspect(abs_degree(jupiter_a), abs_degree(sun_b))
-        if asp in ["conjunction", "trine", "sextile"]:
-            growth.append(f"You naturally expand {name_b}'s sense of what's possible — your optimism lifts them")
-    
-    if jupiter_b and sun_a:
-        asp, nature = check_aspect(abs_degree(jupiter_b), abs_degree(sun_a))
-        if asp in ["conjunction", "trine", "sextile"]:
-            growth.append(f"{name_b} broadens your perspective in ways you wouldn't access alone")
-    
-    # ========= ELEMENT OVERVIEW =========
-    
-    if sun_a and sun_b:
-        el_a = element_of(sign_of(sun_a))
-        el_b = element_of(sign_of(sun_b))
-        if el_a and el_b and not attraction:
-            if (el_a, el_b) in ELEMENT_ATTRACTION:
-                attraction.append(f"Your core energies ({el_a} and {el_b}) naturally feed each other")
-            elif (el_a, el_b) in ELEMENT_TENSION:
-                growth.append(f"Your core energies ({el_a} and {el_b}) challenge each other — tension that creates expansion when held well")
-    
-    # Only return if we have meaningful content
-    total = len(attraction) + len(tension) + len(growth)
-    if total == 0:
+    def check_aspect(deg_a, deg_b):
+        diff = abs(deg_a - deg_b)
+        if diff > 180: diff = 360 - diff
+        for asp_name, asp_def in SYNASTRY_ASPECTS.items():
+            if abs(diff - asp_def["angle"]) <= asp_def["orb"]:
+                return asp_name
         return None
     
-    # Cap to avoid noise
-    return {
-        "attraction": attraction[:4],
-        "tension": tension[:3],
-        "growth": growth[:3],
-    }
+    # ===== SUN-MOON CROSS (strongest synastry indicator) =====
+    if sun_a and moon_b:
+        asp = check_aspect(abs_degree(sun_a), abs_degree(moon_b))
+        if asp == "conjunction":
+            attraction.append(f"You tend to understand {name_b}'s emotional reactions before she explains them — which creates closeness but can blur boundaries")
+        elif asp == "trine":
+            attraction.append(f"When {name_b} is upset, you instinctively know how to meet it — there's an ease in emotional repair between you")
+        elif asp == "opposition":
+            attraction.append(f"You and {name_b} are drawn to each other's differences — the pull is magnetic, but keeping balance requires awareness")
+        elif asp == "square":
+            tension.append(f"What you express and what {name_b} needs emotionally don't always line up — the mismatch creates friction that feels personal even when it isn't")
+    
+    if sun_b and moon_a:
+        asp = check_aspect(abs_degree(sun_b), abs_degree(moon_a))
+        if asp in ("conjunction", "trine"):
+            attraction.append(f"{name_b}'s presence settles something in you — you feel less reactive and more grounded when she's steady")
+        elif asp == "square":
+            tension.append(f"{name_b} can trigger emotional reactions in you that feel disproportionate — it's not about what was said, it's about what was activated")
+    
+    # ===== VENUS-VENUS (shared values / love language) =====
+    if venus_a and venus_b:
+        asp = check_aspect(abs_degree(venus_a), abs_degree(venus_b))
+        if asp == "conjunction":
+            attraction.append(f"You value the same things in a relationship — comfort, beauty, ease tend to look the same to both of you")
+        elif asp == "trine" or asp == "sextile":
+            attraction.append(f"How you each show love is naturally received by the other — gestures land without needing translation")
+        elif asp == "square":
+            tension.append(f"You show care differently — one of you may feel unloved while the other feels unappreciated, even when both are trying")
+    
+    # ===== VENUS-MARS CROSS (desire / attraction) =====
+    if venus_a and mars_b:
+        asp = check_aspect(abs_degree(venus_a), abs_degree(mars_b))
+        if asp in ("conjunction", "trine", "opposition"):
+            attraction.append(f"There's a pull where {name_b}'s initiative meets your receptivity — one pursues while the other draws in, and that dance sustains itself")
+    
+    if venus_b and mars_a:
+        asp = check_aspect(abs_degree(venus_b), abs_degree(mars_a))
+        if asp in ("conjunction", "trine", "opposition"):
+            attraction.append(f"Your drive activates something soft in {name_b} — she opens up in response to your directness, not despite it")
+    
+    # ===== MARS-MARS (conflict style) =====
+    if mars_a and mars_b:
+        asp = check_aspect(abs_degree(mars_a), abs_degree(mars_b))
+        if asp == "conjunction":
+            tension.append(f"You fight the same way — when conflict happens, you escalate in sync rather than balancing each other out")
+        elif asp == "square":
+            tension.append(f"Your action styles clash — one pushes while the other resists, and the timing mismatch creates real frustration")
+        elif asp == "trine":
+            attraction.append(f"When you need to act together — decide, move, handle something — your energy aligns without negotiation")
+        elif asp == "opposition":
+            growth.append(f"You approach problems from opposite directions, which means together you cover angles neither would alone — if you stop competing")
+    
+    # ===== MERCURY-MERCURY (communication) =====
+    if mercury_a and mercury_b:
+        asp = check_aspect(abs_degree(mercury_a), abs_degree(mercury_b))
+        if asp == "conjunction" or asp == "trine":
+            attraction.append(f"Conversations between you flow — you finish each other's thoughts or arrive at the same conclusion from different starting points")
+        elif asp == "square":
+            tension.append(f"You process information differently enough that the same conversation can feel productive to one and circular to the other")
+    
+    # ===== SATURN CROSS (growth / structure) =====
+    if saturn_a and sun_b:
+        asp = check_aspect(abs_degree(saturn_a), abs_degree(sun_b))
+        if asp in ("conjunction", "square", "opposition"):
+            growth.append(f"You hold {name_b} to a higher standard than most people do — she grows because of it, but may resist in the moment")
+    
+    if saturn_b and sun_a:
+        asp = check_aspect(abs_degree(saturn_b), abs_degree(sun_a))
+        if asp in ("conjunction", "square", "opposition"):
+            growth.append(f"{name_b} grounds your ambition in reality — what she reflects back isn't what you want to hear, but it's usually what you need")
+    
+    # ===== QUALITY GATE: drop if < 2 total signals =====
+    total = len(attraction) + len(tension) + len(growth)
+    if total < 2:
+        return None
+    
+    result = {}
+    if attraction: result["attraction"] = attraction[:2]
+    if tension: result["tension"] = tension[:2]
+    if growth: result["growth"] = growth[:2]
+    
+    return result if result else None
 
 
 # =============================================================================
 # ENNEAGRAM RELATIONSHIP SIGNALS
 # =============================================================================
 
-ENNEAGRAM_GIFTS = {
-    1: {"gives": "clarity, integrity, and a push toward doing things right", "needs": "permission to be imperfect"},
-    2: {"gives": "warmth, attunement, and emotional availability", "needs": "recognition without having to earn it"},
-    3: {"gives": "momentum, ambition, and a model of getting things done", "needs": "to be valued beyond their output"},
-    4: {"gives": "depth, emotional honesty, and an invitation to feel fully", "needs": "to be seen without being fixed"},
-    5: {"gives": "perspective, insight, and a capacity to see what others miss", "needs": "space that isn't interpreted as disconnection"},
-    6: {"gives": "loyalty, preparation, and a steady presence in uncertainty", "needs": "trust that isn't constantly re-tested"},
-    7: {"gives": "expansion, lightness, and permission to explore possibility", "needs": "to be met in their depth, not just their energy"},
-    8: {"gives": "protection, directness, and a force that clears the path", "needs": "vulnerability to be received, not weaponized"},
-    9: {"gives": "peace, acceptance, and the ability to hold space for all sides", "needs": "their own voice to matter as much as others'"},
+ENNEAGRAM_RELATIONAL = {
+    1: {
+        "unlocks_in_other": "a clearer sense of what actually matters — your standards cut through their noise",
+        "needs_from_other": "permission to let go of getting it right, without feeling like they've failed you",
+        "core_fear": "being wrong or morally flawed",
+    },
+    2: {
+        "unlocks_in_other": "a feeling of being genuinely cared for — you attune to what they need before they ask",
+        "needs_from_other": "to be seen for who they are, not just what they give",
+        "core_fear": "being unwanted or unworthy of love",
+    },
+    3: {
+        "unlocks_in_other": "forward motion and a belief that things can actually get done",
+        "needs_from_other": "to be valued for who they are when they stop performing — not just for what they produce",
+        "core_fear": "being worthless or without inherent value",
+    },
+    4: {
+        "unlocks_in_other": "emotional depth and honesty — you name what others skirt around",
+        "needs_from_other": "to be received without being fixed — their pain is not a problem to solve",
+        "core_fear": "having no identity or personal significance",
+    },
+    5: {
+        "unlocks_in_other": "a quieter, more observant perspective — you see what others miss because you're not in the fray",
+        "needs_from_other": "space that isn't interpreted as pulling away — their withdrawal is how they refuel",
+        "core_fear": "being useless, incapable, or overwhelmed",
+    },
+    6: {
+        "unlocks_in_other": "a steadiness in uncertainty — you show up when others leave",
+        "needs_from_other": "consistency that proves itself over time — their trust is earned, not given",
+        "core_fear": "being without support or guidance",
+    },
+    7: {
+        "unlocks_in_other": "possibilities they wouldn't consider alone — you expand what feels available",
+        "needs_from_other": "to be met in their depth, not just their energy — the lightness hides something real",
+        "core_fear": "being trapped in pain or deprivation",
+    },
+    8: {
+        "unlocks_in_other": "a sense that someone has their back — you clear the path and don't flinch",
+        "needs_from_other": "for their vulnerability to be held, not used — the softness under the strength is the real person",
+        "core_fear": "being controlled or harmed by others",
+    },
+    9: {
+        "unlocks_in_other": "a calm that isn't performance — you genuinely accept what's here",
+        "needs_from_other": "to be asked what they want, and for that answer to actually matter",
+        "core_fear": "loss, separation, or conflict that fragments connection",
+    },
 }
 
 ENNEAGRAM_FRICTION_MAP = {
-    (7, 1): "Freedom meets standards — one wants options, the other wants correctness. The tension is between expansion and precision.",
-    (7, 2): "Lightness meets attachment — one moves fast, the other needs closeness. The gap is about emotional presence vs freedom.",
-    (7, 3): "Two forward-movers, but for different reasons — one seeks experience, the other seeks achievement. Alignment requires slowing down.",
-    (7, 4): "Optimism meets emotional depth — one reframes, the other insists on feeling fully. The friction is about emotional honesty vs emotional avoidance.",
-    (7, 5): "Expansiveness meets containment — one overflows, the other conserves. The tension is about energy management.",
-    (7, 6): "Possibility meets caution — one leaps, the other prepares. The friction is about trust in the unknown.",
-    (7, 7): "Double expansion — exciting but can lack grounding. The friction appears when reality interrupts the plan.",
-    (7, 8): "Two intense forces — one seeks freedom, the other seeks control. The tension is about who sets the direction.",
-    (7, 9): "Momentum meets stillness — one pushes for action, the other resists being pushed. The friction is about pace.",
-    (8, 1): "Power meets principle — both strong, but one leads with force and the other with correctness.",
-    (8, 2): "Intensity meets warmth — the challenge is vulnerability without control.",
-    (8, 4): "Raw force meets deep feeling — both intense, but express it completely differently.",
-    (8, 9): "Force meets yielding — one pushes, the other absorbs. The tension is about voice and power.",
-    (1, 9): "Standards meet acceptance — one corrects, the other accommodates. The friction is about engagement vs peace.",
-    (4, 9): "Depth meets calm — one intensifies, the other smooths. The tension is about emotional presence.",
+    (7, 3): "You open doors she wants to walk through — but you struggle to stay in one room long enough for her to finish what she started. She builds toward outcomes; you chase the next spark. The friction is between commitment to a path and freedom to explore.",
+    (7, 4): "You reframe what she insists on feeling. She needs to sit in it; you need to move past it. The friction: emotional honesty vs emotional escape.",
+    (7, 1): "You want options; she wants correctness. Your spontaneity feels irresponsible to her. Her standards feel limiting to you.",
+    (7, 2): "You run toward experience; she runs toward people. The gap: you may not circle back when she needs closeness.",
+    (7, 5): "You overflow; she conserves. Your energy can feel intrusive to her retreat. Her silence can feel like rejection of your world.",
+    (7, 6): "You leap; she prepares. Your optimism feels reckless to her. Her caution feels like a cage to you.",
+    (7, 7): "Double expansion, double avoidance. Everything is exciting until something real needs to be faced.",
+    (7, 8): "Two big energies — you seek freedom, she seeks control. Who sets the direction becomes the recurring argument.",
+    (7, 9): "You push for action; she pushes back by going still. Your energy overwhelms her pace. Her passivity frustrates yours.",
+    (3, 1): "She holds standards; you hold results. The gap: you cut corners she can't accept.",
+    (3, 2): "She gives to be needed; you perform to be valued. Both strategies avoid the same question: 'Am I enough without this?'",
+    (3, 4): "She wants depth; you want progress. Your efficiency dismisses her process. Her intensity slows your momentum.",
+    (3, 5): "She observes; you perform. She needs space you read as disengagement. You need audience she reads as surface.",
+    (3, 7): "Both forward-movers. The friction: one seeks achievement, the other seeks experience. Alignment requires slowing down.",
+    (3, 8): "Both powerful. The tension is about who leads — and neither backs down easily.",
+    (3, 9): "You push forward; she accommodates until she doesn't. Then the resentment surfaces all at once.",
+    (8, 1): "Power meets principle — you lead with force, she leads with correctness. Collision happens when both feel right.",
+    (8, 2): "Your intensity meets her warmth. The challenge: vulnerability without control.",
+    (8, 9): "You push; she absorbs. Eventually what she absorbed comes back, and neither of you is ready for it.",
+    (1, 9): "She accepts; you correct. Your standards feel like criticism of her nature. Her peace feels like complacency to you.",
+    (4, 9): "She goes still; you go deep. Your intensity can feel like an assault on her calm.",
 }
 
 
@@ -523,7 +516,7 @@ def compute_enneagram_signals(
     name_a: str = "You",
     name_b: str = "them",
 ) -> Optional[Dict[str, List[str]]]:
-    """Compute enneagram relationship signals between two people."""
+    """Compute DIRECTIONAL enneagram relationship signals. Requires both types."""
     enn_a = user_data_a.get("enneagram", {}) if user_data_a else {}
     enn_b = user_data_b.get("enneagram", {}) if user_data_b else {}
     
@@ -539,24 +532,26 @@ def compute_enneagram_signals(
     except (ValueError, TypeError):
         return None
     
-    gifts_a = ENNEAGRAM_GIFTS.get(core_a, {})
-    gifts_b = ENNEAGRAM_GIFTS.get(core_b, {})
+    rel_a = ENNEAGRAM_RELATIONAL.get(core_a, {})
+    rel_b = ENNEAGRAM_RELATIONAL.get(core_b, {})
     
     how_you_help_them = []
     how_they_help_you = []
     friction_pattern = []
     
-    if gifts_a.get("gives"):
-        how_you_help_them.append(f"You bring {gifts_a['gives']}")
-    if gifts_b.get("gives"):
-        how_they_help_you.append(f"{name_b} brings {gifts_b['gives']}")
+    # Directional gifts — what each unlocks in the other
+    if rel_a.get("unlocks_in_other"):
+        how_you_help_them.append(f"You → {name_b}: {rel_a['unlocks_in_other']}")
+    if rel_b.get("unlocks_in_other"):
+        how_they_help_you.append(f"{name_b} → you: {rel_b['unlocks_in_other']}")
     
-    if gifts_b.get("needs"):
-        how_you_help_them.append(f"What {name_b} needs most: {gifts_b['needs']}")
-    if gifts_a.get("needs"):
-        how_they_help_you.append(f"What you need most: {gifts_a['needs']}")
+    # Directional needs — what each person needs most
+    if rel_b.get("needs_from_other"):
+        how_you_help_them.append(f"What {name_b} needs most from you: {rel_b['needs_from_other']}")
+    if rel_a.get("needs_from_other"):
+        how_they_help_you.append(f"What you need most from {name_b}: {rel_a['needs_from_other']}")
     
-    # Friction pattern
+    # Friction — rooted in core fear/desire interaction
     pair = (core_a, core_b)
     reverse_pair = (core_b, core_a)
     
@@ -564,14 +559,14 @@ def compute_enneagram_signals(
         friction_pattern.append(ENNEAGRAM_FRICTION_MAP[pair])
     elif reverse_pair in ENNEAGRAM_FRICTION_MAP:
         friction_pattern.append(ENNEAGRAM_FRICTION_MAP[reverse_pair])
-    else:
-        if core_a == core_b:
-            friction_pattern.append(f"Two {core_a}s together amplify the same patterns — what works doubles, but so do the blind spots.")
+    elif core_a == core_b:
+        fear = rel_a.get("core_fear", "the same thing")
+        friction_pattern.append(f"Two {core_a}s share the same blind spot. You both fear {fear} — so neither of you catches it when the pattern activates.")
     
     return {
-        "how_you_help_them": how_you_help_them,
-        "how_they_help_you": how_they_help_you,
-        "friction_pattern": friction_pattern,
+        "how_you_help_them": how_you_help_them[:2],
+        "how_they_help_you": how_they_help_you[:2],
+        "friction_pattern": friction_pattern[:1],
     }
 
 
@@ -595,7 +590,7 @@ def compute_bazi_signals(
     name_a: str = "You",
     name_b: str = "them",
 ) -> Optional[Dict[str, List[str]]]:
-    """Compute BaZi relationship signals based on Day Master element interaction."""
+    """Compute BaZi relationship signals. Translates element interactions into lived dynamics."""
     bazi_a = chart_a.get("bazi", {}) if chart_a else {}
     bazi_b = chart_b.get("bazi", {}) if chart_b else {}
     
@@ -617,49 +612,47 @@ def compute_bazi_signals(
     tension_list = []
     growth = []
     
-    # Same element
-    if el_a == el_b:
-        support.append(f"You share the same core element ({el_a}) — there's a natural understanding in how you both process energy")
-        if str_a == str_b:
-            support.append(f"Both of your Day Masters are {str_a.lower()} — you meet each other at similar energy levels")
-        else:
-            growth.append(f"One of you carries this element more strongly than the other — the balance creates a natural teacher-student dynamic")
-    
-    # A produces B (A supports B)
+    # A produces B (A nourishes B's element)
     if BAZI_ELEMENT_CYCLE.get(el_a) == el_b:
-        support.append(f"Your energy ({el_a}) naturally feeds {name_b}'s ({el_b}) — you strengthen what they need most")
-        growth.append(f"This giving direction can feel fulfilling but also draining if not reciprocated")
+        support.append(f"You tend to bring structure and direction when {name_b} is more fluid or uncertain — your energy naturally feeds what she needs to move forward")
+        growth.append(f"This nourishing direction works best when acknowledged — otherwise you may feel like you're giving more than you're receiving")
     
-    # B produces A (B supports A)
+    # B produces A
     if BAZI_ELEMENT_CYCLE.get(el_b) == el_a:
-        support.append(f"{name_b}'s energy ({el_b}) naturally feeds yours ({el_a}) — they strengthen what you need most")
+        support.append(f"{name_b} stabilizes something in you that tends to scatter — her presence gives your energy somewhere to land")
     
     # A controls B
     if BAZI_CONTROL_CYCLE.get(el_a) == el_b:
-        tension_list.append(f"Your element ({el_a}) restrains {name_b}'s ({el_b}) — this can feel like structure or pressure depending on timing")
-        growth.append(f"This control dynamic pushes {name_b} to develop resilience — uncomfortable but growth-producing")
+        tension_list.append(f"Your natural way of being can feel restraining to {name_b} — what you experience as helpful, she may experience as limiting")
+        growth.append(f"This dynamic pushes {name_b} to build resilience — but only works if the pressure is conscious, not automatic")
     
     # B controls A
     if BAZI_CONTROL_CYCLE.get(el_b) == el_a:
-        tension_list.append(f"{name_b}'s element ({el_b}) restrains yours ({el_a}) — their presence can challenge your natural tendencies")
-        growth.append(f"Being held in check by {name_b} forces you to find new ways of expressing your energy")
+        tension_list.append(f"{name_b}'s energy can check yours in ways that feel frustrating — she holds you to a different standard than you'd choose")
     
-    # Strength dynamics
-    if str_a and str_b:
-        if str_a == "strong" and str_b == "weak":
-            support.append(f"Your strong {el_a} presence can stabilize {name_b}'s more receptive energy — you ground what they can't anchor alone")
-        elif str_a == "weak" and str_b == "strong":
-            support.append(f"{name_b}'s strong {el_b} presence provides a foundation your energy can lean on")
+    # Same element
+    if el_a == el_b:
+        support.append(f"You process energy the same way — there's an ease in how you both approach decisions, conflict, and rest")
+        if str_a != str_b:
+            growth.append(f"One of you carries this energy more strongly — the quieter one learns to assert, the louder one learns to listen")
     
+    # Strength dynamics — translated to lived behavior
+    if str_a == "strong" and str_b == "weak" and el_a != el_b:
+        support.append(f"You tend to anchor things when {name_b} feels ungrounded — your steadiness is something she leans on even if she doesn't name it")
+    elif str_a == "weak" and str_b == "strong" and el_a != el_b:
+        support.append(f"{name_b}'s solidity gives you something to push against without breaking — she holds ground you need")
+    
+    # Quality gate
     total = len(support) + len(tension_list) + len(growth)
-    if total == 0:
+    if total < 2:
         return None
     
-    return {
-        "support": support[:3],
-        "tension": tension_list[:2],
-        "growth": growth[:3],
-    }
+    result = {}
+    if support: result["support"] = support[:2]
+    if tension_list: result["tension"] = tension_list[:2]
+    if growth: result["growth"] = growth[:2]
+    
+    return result if result else None
 
 
 
@@ -686,7 +679,7 @@ def compute_numerology_signals(
     name_a: str = "You",
     name_b: str = "them",
 ) -> Optional[Dict[str, List[str]]]:
-    """Compute numerology relationship signals. Returns None if not meaningful."""
+    """Compute numerology signals. ONLY returns if genuinely strong resonance exists."""
     num_a = chart_a.get("numerology", {}) if chart_a else {}
     num_b = chart_b.get("numerology", {}) if chart_b else {}
     
@@ -705,46 +698,43 @@ def compute_numerology_signals(
     
     themes = []
     
-    # Check for shared numbers (strong resonance)
+    # Grounded numerology translations
+    NUM_LIVED = {
+        1: "independence and initiative — things move when someone takes the first step",
+        2: "partnership and sensitivity — connection deepens through listening, not leading",
+        3: "expression and communication — things tend to move forward when you talk, not when you hold back",
+        4: "structure and reliability — trust builds through consistency, not grand gestures",
+        5: "freedom and change — growth happens through disruption, not stability",
+        6: "responsibility and nurturing — what matters most is who you show up for",
+        7: "depth and introspection — understanding comes from going inward, not outward",
+        8: "power and authority — dynamics around control and resources are amplified",
+        9: "compassion and release — letting go is the path forward, not holding on",
+        11: "heightened intuition and sensitivity — you both pick up on things most people miss, which creates depth but also intensity",
+        22: "large-scale vision and practical idealism — together you think bigger than most couples allow themselves to",
+        33: "deep compassion and selfless service — what you build together serves more than just the two of you",
+    }
+    
+    # Shared core numbers (strongest signal)
     all_a = set(filter(None, [lp_a, exp_a, soul_a]))
     all_b = set(filter(None, [lp_b, exp_b, soul_b]))
     shared = all_a & all_b
     
-    if shared:
-        for num in shared:
-            meaning = NUMEROLOGY_MEANINGS.get(num, "")
-            if meaning:
-                themes.append(f"You share the number {num} ({meaning}) — this creates natural resonance in how you approach life")
+    for num in shared:
+        lived = NUM_LIVED.get(num)
+        if lived:
+            themes.append(f"You both process life through {lived}")
     
-    # Check if one person's Life Path matches another's Expression/Soul
-    if lp_a and lp_a in all_b and lp_a not in shared:
-        meaning = NUMEROLOGY_MEANINGS.get(lp_a, "")
-        themes.append(f"Your Life Path ({lp_a}) aligns with something core in {name_b} — {meaning}")
-    
-    if lp_b and lp_b in all_a and lp_b not in shared:
-        meaning = NUMEROLOGY_MEANINGS.get(lp_b, "")
-        themes.append(f"{name_b}'s Life Path ({lp_b}) aligns with something core in you — {meaning}")
-    
-    # Master numbers
+    # Both carry master numbers (11, 22, 33)
     master_a = [n for n in all_a if n in (11, 22, 33)]
     master_b = [n for n in all_b if n in (11, 22, 33)]
-    
     if master_a and master_b:
-        themes.append(f"Both of you carry master numbers ({', '.join(str(n) for n in master_a)} and {', '.join(str(n) for n in master_b)}) — this connection operates at a higher frequency than most")
+        themes.append(f"Both of you carry master numbers ({', '.join(str(n) for n in master_a)} and {', '.join(str(n) for n in master_b)}) — this connection operates at an intensity most relationships don't reach")
     
-    # Complementary numbers (1+2, 3+4, 5+6, 7+8)
-    complements = {(1,2), (2,1), (3,4), (4,3), (5,6), (6,5), (7,8), (8,7)}
-    if lp_a and lp_b:
-        reduced_a = lp_a if lp_a < 10 else (lp_a % 10 or lp_a // 10)
-        reduced_b = lp_b if lp_b < 10 else (lp_b % 10 or lp_b // 10)
-        if (reduced_a, reduced_b) in complements:
-            themes.append(f"Your core numbers are natural complements — one initiates what the other receives")
-    
-    # Only return if truly meaningful (2+ themes)
+    # STRICT quality gate: need 2+ genuinely strong themes
     if len(themes) < 2:
         return None
     
-    return {"themes": themes[:4]}
+    return {"themes": themes[:2]}
 
 
 
