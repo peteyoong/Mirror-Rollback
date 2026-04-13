@@ -100,7 +100,7 @@ export default function ForumMappingsScreen() {
     </TouchableOpacity>
   );
 
-  // Render the detail modal
+  // Render the detail modal - V2 3-Layer Architecture
   const renderDetailModal = () => {
     if (!selectedMember) return null;
 
@@ -133,58 +133,96 @@ export default function ForumMappingsScreen() {
             contentContainerStyle={styles.modalContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Section 1: What happens when you're together */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-                What happens when you're together
-              </Text>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>
+            {/* ================================================ */}
+            {/* LAYER 1: STORY (Synthesis)                       */}
+            {/* ================================================ */}
+            <View style={[styles.storyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.storyHeadline, { color: theme.text }]}>
                 {selectedMember.headline}
               </Text>
-              <Text style={[styles.sectionText, { color: theme.textSecondary }]}>
+              <Text style={[styles.storySummary, { color: theme.textSecondary }]}>
                 {selectedMember.description}
               </Text>
             </View>
 
-            {/* Section 2: What works well */}
-            <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-                What works well
+            {/* ================================================ */}
+            {/* LAYER 2: PATTERNS (Behaviors)                    */}
+            {/* ================================================ */}
+            
+            {/* What happens between you */}
+            <View style={styles.patternSection}>
+              <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                WHAT HAPPENS BETWEEN YOU
               </Text>
-              <Text style={[styles.sectionText, { color: theme.text }]}>
-                {selectedMember.what_works}
-              </Text>
+              {selectedMember.what_works && selectedMember.what_works.split(',').map((item: string, i: number) => (
+                <View key={`wh-${i}`} style={styles.patternBulletRow}>
+                  <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>›</Text>
+                  <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                    {item.trim()}
+                  </Text>
+                </View>
+              ))}
             </View>
 
-            {/* Section 3: What to watch */}
-            <View style={[styles.section, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-                What to watch
+            {/* Where friction shows up */}
+            <View style={styles.patternSection}>
+              <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                WHERE FRICTION SHOWS UP
               </Text>
-              <Text style={[styles.sectionText, { color: theme.text }]}>
-                {selectedMember.what_to_watch}
-              </Text>
+              {selectedMember.what_to_watch && selectedMember.what_to_watch.split('.').filter((s: string) => s.trim()).map((item: string, i: number) => (
+                <View key={`fr-${i}`} style={styles.patternBulletRow}>
+                  <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>⚡</Text>
+                  <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                    {item.trim()}
+                  </Text>
+                </View>
+              ))}
             </View>
 
-            {/* Section 4: Why this happens (expandable) */}
+            {/* What you give each other */}
+            <View style={[styles.giftSection, { borderLeftColor: (theme.accent || '#8B5CF6') + '50' }]}>
+              <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                WHAT YOU GIVE EACH OTHER
+              </Text>
+              <View style={styles.patternBulletRow}>
+                <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>✦</Text>
+                <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                  {selectedMember.why_this_happens.length} energetic connections that create depth between you
+                </Text>
+              </View>
+              <View style={styles.patternBulletRow}>
+                <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>✦</Text>
+                <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                  {selectedMember.what_works || 'A dynamic that wouldn\'t exist without both of you'}
+                </Text>
+              </View>
+            </View>
+
+            {/* ================================================ */}
+            {/* LAYER 3: SIGNALS (Proof — expandable)            */}
+            {/* ================================================ */}
             {selectedMember.why_this_happens.length > 0 && (
-              <View style={styles.section}>
+              <View style={styles.signalsSection}>
                 <TouchableOpacity
-                  style={styles.expandableHeader}
+                  style={[styles.signalsToggle, { borderColor: theme.border }]}
                   onPress={() => setShowWhyExpanded(!showWhyExpanded)}
+                  activeOpacity={0.7}
                 >
-                  <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
-                    Why this happens
+                  <Text style={[styles.signalsToggleText, { color: theme.textSecondary }]}>
+                    {showWhyExpanded ? 'Hide what drives this' : 'Why this is so strong'}
                   </Text>
                   <Ionicons
                     name={showWhyExpanded ? "chevron-up" : "chevron-down"}
-                    size={20}
+                    size={16}
                     color={theme.textTertiary}
                   />
                 </TouchableOpacity>
 
                 {showWhyExpanded && (
                   <View style={styles.whyContent}>
+                    <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
+                      DESIGN CONNECTIONS
+                    </Text>
                     {selectedMember.why_this_happens.map((channel, index) => (
                       <View 
                         key={channel.channel} 
@@ -461,6 +499,77 @@ const styles = StyleSheet.create({
   sectionText: {
     fontSize: 15,
     lineHeight: 22,
+  },
+  // V2 3-Layer Styles
+  storyCard: {
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 24,
+  },
+  storyHeadline: {
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 28,
+    marginBottom: 12,
+  },
+  storySummary: {
+    fontSize: 15,
+    lineHeight: 23,
+  },
+  patternSection: {
+    marginBottom: 20,
+  },
+  patternLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginBottom: 12,
+  },
+  patternBulletRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    paddingRight: 8,
+  },
+  patternBulletDash: {
+    fontSize: 14,
+    marginRight: 10,
+    marginTop: 1,
+    width: 16,
+    textAlign: 'center',
+  },
+  patternBulletText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  giftSection: {
+    paddingLeft: 14,
+    borderLeftWidth: 3,
+    marginBottom: 20,
+  },
+  signalsSection: {
+    marginTop: 8,
+  },
+  signalsToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  signalsToggleText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  signalsNote: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 12,
   },
   expandableHeader: {
     flexDirection: 'row',
