@@ -576,8 +576,93 @@ def compute_enneagram_signals(
 
 
 # =============================================================================
-# NUMEROLOGY RELATIONSHIP SIGNALS
+# BAZI RELATIONSHIP SIGNALS — Element interaction dynamics
 # =============================================================================
+
+BAZI_ELEMENT_CYCLE = {
+    # Productive: element produces the next
+    "Wood": "Fire", "Fire": "Earth", "Earth": "Metal", "Metal": "Water", "Water": "Wood",
+}
+BAZI_CONTROL_CYCLE = {
+    # Controlling: element controls/restrains
+    "Wood": "Earth", "Fire": "Metal", "Earth": "Water", "Metal": "Wood", "Water": "Fire",
+}
+
+
+def compute_bazi_signals(
+    chart_a: Dict[str, Any],
+    chart_b: Dict[str, Any],
+    name_a: str = "You",
+    name_b: str = "them",
+) -> Optional[Dict[str, List[str]]]:
+    """Compute BaZi relationship signals based on Day Master element interaction."""
+    bazi_a = chart_a.get("bazi", {}) if chart_a else {}
+    bazi_b = chart_b.get("bazi", {}) if chart_b else {}
+    
+    if not bazi_a or not bazi_b:
+        return None
+    
+    dm_a = bazi_a.get("day_master", {})
+    dm_b = bazi_b.get("day_master", {})
+    
+    el_a = dm_a.get("element", "")
+    el_b = dm_b.get("element", "")
+    str_a = dm_a.get("strength", "")
+    str_b = dm_b.get("strength", "")
+    
+    if not el_a or not el_b:
+        return None
+    
+    support = []
+    tension_list = []
+    growth = []
+    
+    # Same element
+    if el_a == el_b:
+        support.append(f"You share the same core element ({el_a}) — there's a natural understanding in how you both process energy")
+        if str_a == str_b:
+            support.append(f"Both of your Day Masters are {str_a.lower()} — you meet each other at similar energy levels")
+        else:
+            growth.append(f"One of you carries this element more strongly than the other — the balance creates a natural teacher-student dynamic")
+    
+    # A produces B (A supports B)
+    if BAZI_ELEMENT_CYCLE.get(el_a) == el_b:
+        support.append(f"Your energy ({el_a}) naturally feeds {name_b}'s ({el_b}) — you strengthen what they need most")
+        growth.append(f"This giving direction can feel fulfilling but also draining if not reciprocated")
+    
+    # B produces A (B supports A)
+    if BAZI_ELEMENT_CYCLE.get(el_b) == el_a:
+        support.append(f"{name_b}'s energy ({el_b}) naturally feeds yours ({el_a}) — they strengthen what you need most")
+    
+    # A controls B
+    if BAZI_CONTROL_CYCLE.get(el_a) == el_b:
+        tension_list.append(f"Your element ({el_a}) restrains {name_b}'s ({el_b}) — this can feel like structure or pressure depending on timing")
+        growth.append(f"This control dynamic pushes {name_b} to develop resilience — uncomfortable but growth-producing")
+    
+    # B controls A
+    if BAZI_CONTROL_CYCLE.get(el_b) == el_a:
+        tension_list.append(f"{name_b}'s element ({el_b}) restrains yours ({el_a}) — their presence can challenge your natural tendencies")
+        growth.append(f"Being held in check by {name_b} forces you to find new ways of expressing your energy")
+    
+    # Strength dynamics
+    if str_a and str_b:
+        if str_a == "strong" and str_b == "weak":
+            support.append(f"Your strong {el_a} presence can stabilize {name_b}'s more receptive energy — you ground what they can't anchor alone")
+        elif str_a == "weak" and str_b == "strong":
+            support.append(f"{name_b}'s strong {el_b} presence provides a foundation your energy can lean on")
+    
+    total = len(support) + len(tension_list) + len(growth)
+    if total == 0:
+        return None
+    
+    return {
+        "support": support[:3],
+        "tension": tension_list[:2],
+        "growth": growth[:3],
+    }
+
+
+
 
 NUMEROLOGY_MEANINGS = {
     1: "independence, leadership, initiation",
@@ -975,8 +1060,8 @@ def generate_mapping_interpretation(
     astrology_signals = compute_astrology_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
     enneagram_signals = compute_enneagram_signals(user_a, user_b, current_user_name, member_name) if user_a and user_b else None
     numerology_signals = compute_numerology_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
-    # BaZi: only compute if both have bazi data
-    bazi_signals = None  # Will be populated when BaZi data is available
+    # BaZi: compute from chart data
+    bazi_signals = compute_bazi_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
     
     return {
         "member_name": member_name,
