@@ -106,6 +106,9 @@ export default function MirrorScreen() {
   // Settings modal
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   
+  // Forum membership state — show forum card if user has joined any
+  const [hasJoinedForums, setHasJoinedForums] = useState(false);
+  
   // App state tracking for engagement
   const appState = useRef(AppState.currentState);
 
@@ -259,6 +262,7 @@ export default function MirrorScreen() {
       // REMOVED: loadKeystonePattern - PatternCard handles its own data
       loadRecentReflection(),
       loadLifelineCount(),
+      loadForumMembership(),
     ]);
     
     setIsLoading(false);
@@ -296,6 +300,19 @@ export default function MirrorScreen() {
       }
     } catch (err) {
       console.log('[RecentReflection] Failed to load:', err);
+    }
+  };
+
+  const loadForumMembership = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const response = await api.get(`/forums/user/${user.id}`);
+      const forums = response.data?.forums || [];
+      setHasJoinedForums(forums.length > 0);
+    } catch (err) {
+      console.log('[ForumMembership] Failed to check:', err);
+      setHasJoinedForums(false);
     }
   };
 
@@ -572,7 +589,7 @@ export default function MirrorScreen() {
             POSITION 6: FORUMS (Mode-dependent)
             Hidden in grounding and directive for focus
             =================================================================== */}
-        {homeLayout.showForums && (
+        {(homeLayout.showForums || hasJoinedForums) && (
           <TouchableOpacity 
             style={[styles.forumsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={() => router.push('/forums')}
