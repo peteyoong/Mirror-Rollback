@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import { getForumDynamicsContext, ForumDynamicsContext } from '../../services/api';
@@ -113,6 +114,9 @@ export default function ForumDynamicsScreen() {
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Text style={[styles.backText, { color: theme.accent }]}>← Back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.replace('/(tabs)')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ padding: 8 }}>
+          <Ionicons name="home-outline" size={22} color={theme.text} />
         </TouchableOpacity>
       </View>
 
@@ -247,6 +251,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,

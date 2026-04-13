@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import { useForumContext } from '../../contexts/ForumContext';
@@ -575,6 +576,9 @@ export default function ForumHomeScreen() {
             <Text style={[styles.inviteButtonText, { color: theme.accent }]}>
               {copied ? '✓ Copied' : 'Invite'}
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.replace('/(tabs)')} style={styles.homeButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Ionicons name="home-outline" size={22} color={theme.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -1542,7 +1546,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   headerRight: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  homeButton: {
+    padding: 8,
   },
   inviteButton: {
     paddingHorizontal: 16,

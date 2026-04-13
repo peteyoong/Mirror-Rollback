@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import { getUserForums, Forum } from '../../services/api';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ForumsHomeScreen() {
   const { theme } = useTheme();
@@ -63,6 +64,10 @@ export default function ForumsHomeScreen() {
     router.back();
   };
 
+  const handleGoHome = () => {
+    router.replace('/(tabs)');
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
@@ -84,7 +89,9 @@ export default function ForumsHomeScreen() {
           <Text style={[styles.backText, { color: theme.accent }]}>← Back</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Forums</Text>
-        <View style={styles.backButton} />
+        <TouchableOpacity onPress={handleGoHome} style={styles.homeButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Ionicons name="home-outline" size={22} color={theme.text} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -202,6 +209,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     width: 60,
+  },
+  homeButton: {
+    width: 60,
+    alignItems: 'flex-end',
   },
   backText: {
     fontSize: 16,

@@ -25,6 +25,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import api from '../../services/api';
@@ -253,7 +254,9 @@ export default function ForumUpdatesScreen() {
             <Text style={[styles.backText, { color: theme.accent }]}>← Back</Text>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Forum Update</Text>
-          <View style={styles.headerRight} />
+          <TouchableOpacity onPress={() => router.replace('/(tabs)')} style={styles.headerRight} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Ionicons name="home-outline" size={22} color={theme.text} />
+          </TouchableOpacity>
         </View>
         
         <ScrollView
