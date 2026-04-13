@@ -357,76 +357,226 @@ def generate_mapping_interpretation(
     completed_channels: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
     """
-    Generate a human-readable interpretation of the mapping between two people.
+    Generate 3-LAYER relationship interpretation.
+    
+    Layer 1: STORY (emotional hook)
+    Layer 2: PATTERNS (behavioral recognition)
+    Layer 3: SIGNALS (HD proof + placeholders)
     """
     
     if not completed_channels:
-        # No completed channels - return a soft interpretation
         return {
             "member_name": member_name,
-            "headline": "Connection may rely more on conscious effort",
-            "description": "You don't have automatic energetic completions with this person. That's not bad—it means your connection is built through awareness and intention rather than unconscious energetic pull.",
-            "what_works": "Clear communication, intentional time together, shared interests",
-            "what_to_watch": "Don't force connection. Some relationships work through words, not energy.",
-            "why_this_happens": [],
+            "story": {
+                "headline": "Your connection runs on intention, not automatic pull.",
+                "summary": "You don't have energetic completions pulling you together unconsciously. That means what exists between you is built — through choice, presence, and attention. That's not less real. It's just different.",
+            },
+            "patterns": {
+                "what_happens": [
+                    "Connection requires more conscious effort — it doesn't just flow automatically",
+                    "You may notice periods of natural distance that aren't about disconnection",
+                ],
+                "tensions": [
+                    "One of you may feel like they're doing more work to maintain the connection",
+                ],
+                "gifts": [
+                    "What you build together is fully yours — not driven by unconscious energetic pull",
+                ],
+            },
+            "signals": {
+                "human_design": [],
+                "astrology": [],
+                "bazi": [],
+                "enneagram": [],
+                "numerology": [],
+            },
             "channel_count": 0,
             "strength_score": 0,
         }
     
-    # Sort by priority (could be weighted by channel importance)
-    # For now, just use count
     channel_count = len(completed_channels)
     
-    # Generate headline based on strongest channel
-    primary_channel = completed_channels[0]
-    channel_interp = CHANNEL_INTERPRETATIONS.get(
-        primary_channel["channel_id"],
-        CHANNEL_INTERPRETATIONS["default"]
-    )
+    # =========================================================================
+    # LAYER 1: STORY — Emotional, sharp, specific to connection type
+    # =========================================================================
     
-    # Build combined interpretation
-    if channel_count == 1:
-        headline = channel_interp["headline"]
-        description = channel_interp["description"]
+    # Categorize connection themes
+    themes = [c["relational"] for c in completed_channels]
+    channel_ids = [c["channel_id"] for c in completed_channels]
+    
+    # Check for specific powerful combos
+    has_intimacy = "6-59" in channel_ids
+    has_community = "37-40" in channel_ids
+    has_authenticity = "10-20" in channel_ids
+    has_power = "34-57" in channel_ids
+    has_listening = "13-33" in channel_ids
+    has_money = "21-45" in channel_ids
+    has_adventure = "35-36" in channel_ids
+    
+    if channel_count >= 4:
+        if has_intimacy and has_community:
+            story_headline = "This connection runs deep and wide — it touches both your emotional core and your sense of belonging."
+            story_summary = f"With {channel_count} active channels between you, this isn't a surface-level dynamic. You complete each other in ways that create real pull — the kind where silence feels full and distance feels temporary."
+        elif has_intimacy:
+            story_headline = "There's an intensity here that most connections don't reach."
+            story_summary = f"You have {channel_count} energetic completions pulling you together. The intimacy channel means barriers dissolve faster than usual between you. That's powerful — and sometimes overwhelming."
+        else:
+            story_headline = "You don't just connect — you activate each other."
+            story_summary = f"With {channel_count} electromagnetic completions, your presence changes something in each other. This is a connection that runs on energy, not just words."
+    elif channel_count == 3:
+        story_headline = "There's a triangulation of energy here that creates real depth."
+        story_summary = "Three connection points means this dynamic has range — it touches different parts of your life and creates a pull that's hard to ignore."
     elif channel_count == 2:
-        headline = f"Strong natural momentum between you"
-        themes = [c["relational"] for c in completed_channels[:2]]
-        description = f"You complete each other in {themes[0]} and {themes[1]}. This creates real energetic pull."
+        story_headline = "Two clear lines of energy run between you."
+        story_summary = "This isn't a single-note connection. You complete each other in two distinct ways, which means the dynamic has both depth and texture."
     else:
-        headline = f"Multiple natural completions between you"
-        description = f"You have {channel_count} electromagnetic connections. There's significant energetic interplay here that can feel both exciting and intense."
+        # Single channel — use specific interpretation
+        primary = completed_channels[0]
+        ch_data = CHANNEL_INTERPRETATIONS.get(primary["channel_id"], CHANNEL_INTERPRETATIONS["default"])
+        story_headline = ch_data["headline"]
+        story_summary = ch_data["description"]
     
-    # Build what works and what to watch
-    what_works_parts = [channel_interp["what_works"]]
-    what_to_watch_parts = [channel_interp["what_to_watch"]]
+    # =========================================================================
+    # LAYER 2: PATTERNS — Behavioral, "this is EXACTLY what happens"
+    # =========================================================================
     
-    for c in completed_channels[1:3]:  # Add up to 2 more
-        c_interp = CHANNEL_INTERPRETATIONS.get(c["channel_id"], CHANNEL_INTERPRETATIONS["default"])
-        if c_interp["what_works"] not in what_works_parts:
-            what_works_parts.append(c_interp["what_works"].split(",")[0].strip())
-        if c_interp["what_to_watch"] not in what_to_watch_parts:
-            what_to_watch_parts.append(c_interp["what_to_watch"].split(".")[0].strip())
+    what_happens = []
+    tensions = []
+    gifts = []
     
-    # Build why_this_happens for detail view
-    why_this_happens = []
+    # Generate behavioral patterns based on actual channels
     for c in completed_channels:
-        why_this_happens.append({
-            "channel": c["channel_id"],
-            "name": c["name"],
+        cid = c["channel_id"]
+        rel = c["relational"]
+        
+        # What happens — observable behaviors
+        WHAT_HAPPENS_MAP = {
+            "6-59": "You tend to bypass each other's emotional walls faster than either of you expected",
+            "37-40": "There's an unspoken agreement between you — a sense of loyalty that formed before you discussed it",
+            "10-20": "When you're together, you both become more openly yourselves — less filtering, more truth",
+            "13-33": "One of you speaks while the other deeply absorbs — and the listener often sees more than the speaker realizes",
+            "27-50": "You naturally look out for what matters to each other — sometimes before being asked",
+            "21-45": "Money, resources, or control dynamics surface between you — not always comfortably",
+            "35-36": "You pull each other toward new experiences — sometimes before either of you is ready",
+            "5-15": "Your natural rhythms and timing sync up in ways that feel effortless",
+            "34-57": "There's an instinctive trust between you that doesn't need explanation",
+            "32-54": "You push each other to grow — sometimes gently, sometimes through friction",
+            "39-55": "Emotions run deep and unpredictable between you — rich but not always comfortable",
+            "28-38": "You challenge each other's sense of purpose — which can feel like pressure or liberation",
+        }
+        
+        if cid in WHAT_HAPPENS_MAP:
+            what_happens.append(WHAT_HAPPENS_MAP[cid])
+        else:
+            what_happens.append(f"There's a natural completion in {rel} that creates pull between you")
+        
+        # Tensions — where friction shows up
+        TENSION_MAP = {
+            "6-59": "The emotional depth can feel overwhelming — one of you may pull back when it gets too close",
+            "37-40": "Unspoken expectations can build up — what feels 'agreed' may not actually be shared",
+            "10-20": "Raw authenticity can accidentally land as bluntness — timing matters",
+            "21-45": "Control or resource dynamics may create a power imbalance if not named",
+            "35-36": "The drive for novelty can destabilize what's already working",
+            "32-54": "Growth-pushing can feel like criticism if the intention isn't clear",
+            "39-55": "Emotional provocation — one of you may trigger deep feelings in the other without meaning to",
+        }
+        
+        if cid in TENSION_MAP:
+            tensions.append(TENSION_MAP[cid])
+        
+        # Gifts — how you help each other grow
+        GIFT_MAP = {
+            "6-59": f"{member_name} helps you access emotional depth you'd normally protect",
+            "37-40": f"Together you create a sense of belonging that neither of you has alone",
+            "10-20": f"{member_name} gives you permission to be more authentically yourself",
+            "13-33": f"One of you holds space that allows the other to process and release",
+            "27-50": f"You protect and nurture what matters to each other — without being asked",
+            "5-15": f"Your shared rhythm creates a container of ease that other relationships don't have",
+            "34-57": f"There's an instinctive safety between you that allows faster trust",
+            "35-36": f"{member_name} pulls you toward experiences you'd avoid alone — and that expands you",
+        }
+        
+        if cid in GIFT_MAP:
+            gifts.append(GIFT_MAP[cid])
+    
+    # Ensure minimum content
+    if not what_happens:
+        what_happens = [f"There's a natural energetic pull between you that activates when you're together"]
+    if not tensions:
+        tensions = ["The intensity of the connection can create pressure if expectations aren't aligned"]
+    if not gifts:
+        gifts = [f"Together you access something neither of you has alone — that's the gift of completion"]
+    
+    # Limit to best items
+    what_happens = what_happens[:4]
+    tensions = tensions[:3]
+    gifts = gifts[:3]
+    
+    # =========================================================================
+    # LAYER 3: SIGNALS — HD channels as proof + placeholders
+    # =========================================================================
+    
+    # Build HD signals with 1-line plain language translations
+    hd_signals = []
+    for c in completed_channels:
+        cid = c["channel_id"]
+        
+        # Plain language translation per channel
+        TRANSLATION_MAP = {
+            "5-15": "Your natural rhythms align — you feel 'in sync' without trying",
+            "6-59": "You break through each other's emotional walls naturally",
+            "21-45": "Resources, money, or control become a live wire between you",
+            "35-36": "You push each other toward adventure and new emotional territory",
+            "37-40": "Loyalty and mutual agreements form fast — and feel binding",
+            "10-20": "You give each other permission to be more real",
+            "13-33": "Deep listening flows naturally — one speaks, the other truly hears",
+            "27-50": "You instinctively protect what matters to each other",
+            "34-57": "There's a gut-level trust that doesn't need words",
+            "32-54": "You drive each other toward growth — sometimes uncomfortably",
+            "39-55": "Emotions run deeper and more unpredictably between you",
+            "28-38": "You challenge each other's sense of meaning and purpose",
+            "18-58": "You push each other toward improvement — through honest feedback",
+            "12-22": "Emotional expression between you is amplified — moods are shared",
+        }
+        
+        translation = TRANSLATION_MAP.get(cid, f"Energy flows between your {c['relational']} — this shapes how you interact")
+        
+        hd_signals.append({
+            "channel": cid,
+            "name": f"Channel of {c['name']}",
             "theme": c["theme"],
+            "translation": translation,
             "your_gate": c["gate_a"],
             "their_gate": c["gate_b"],
         })
     
     return {
         "member_name": member_name,
-        "headline": headline,
-        "description": description,
-        "what_works": ", ".join(what_works_parts[:3]),
-        "what_to_watch": ". ".join(what_to_watch_parts[:2]) + ".",
-        "why_this_happens": why_this_happens,
+        # V2 3-LAYER STRUCTURE
+        "story": {
+            "headline": story_headline,
+            "summary": story_summary,
+        },
+        "patterns": {
+            "what_happens": what_happens,
+            "tensions": tensions,
+            "gifts": gifts,
+        },
+        "signals": {
+            "human_design": hd_signals,
+            "astrology": [],
+            "bazi": [],
+            "enneagram": [],
+            "numerology": [],
+        },
+        # BACKWARD COMPAT (old fields still available)
+        "headline": story_headline,
+        "description": story_summary,
+        "what_works": ", ".join(gifts[:2]) if gifts else "Presence, allowing the dynamic to unfold naturally",
+        "what_to_watch": ". ".join(tensions[:2]) if tensions else "Notice what emerges. Some completions bring intensity that needs awareness.",
+        "why_this_happens": hd_signals,
         "channel_count": channel_count,
-        "strength_score": min(channel_count * 20 + 10, 100),  # Score for sorting
+        "strength_score": min(channel_count * 20 + 10, 100),
     }
 
 

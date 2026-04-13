@@ -104,6 +104,12 @@ export default function ForumMappingsScreen() {
   const renderDetailModal = () => {
     if (!selectedMember) return null;
 
+    // Read from 3-layer structure with backward compat fallbacks
+    const story = (selectedMember as any).story || { headline: selectedMember.headline, summary: selectedMember.description };
+    const patterns = (selectedMember as any).patterns || null;
+    const signals = (selectedMember as any).signals || null;
+    const hdSignals = signals?.human_design || selectedMember.why_this_happens || [];
+
     return (
       <Modal
         visible={!!selectedMember}
@@ -134,74 +140,79 @@ export default function ForumMappingsScreen() {
             showsVerticalScrollIndicator={false}
           >
             {/* ================================================ */}
-            {/* LAYER 1: STORY (Synthesis)                       */}
+            {/* LAYER 1: STORY                                   */}
+            {/* Emotional hook — feels like "this is us"         */}
             {/* ================================================ */}
             <View style={[styles.storyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <Text style={[styles.storyHeadline, { color: theme.text }]}>
-                {selectedMember.headline}
+                {story.headline}
               </Text>
               <Text style={[styles.storySummary, { color: theme.textSecondary }]}>
-                {selectedMember.description}
+                {story.summary}
               </Text>
             </View>
 
             {/* ================================================ */}
-            {/* LAYER 2: PATTERNS (Behaviors)                    */}
+            {/* LAYER 2: PATTERNS                                */}
+            {/* Behavioral — "this is EXACTLY what happens"      */}
             {/* ================================================ */}
             
-            {/* What happens between you */}
-            <View style={styles.patternSection}>
-              <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
-                WHAT HAPPENS BETWEEN YOU
-              </Text>
-              {selectedMember.what_works && selectedMember.what_works.split(',').map((item: string, i: number) => (
-                <View key={`wh-${i}`} style={styles.patternBulletRow}>
-                  <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>›</Text>
-                  <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
-                    {item.trim()}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Where friction shows up */}
-            <View style={styles.patternSection}>
-              <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
-                WHERE FRICTION SHOWS UP
-              </Text>
-              {selectedMember.what_to_watch && selectedMember.what_to_watch.split('.').filter((s: string) => s.trim()).map((item: string, i: number) => (
-                <View key={`fr-${i}`} style={styles.patternBulletRow}>
-                  <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>⚡</Text>
-                  <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
-                    {item.trim()}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            {/* What you give each other */}
-            <View style={[styles.giftSection, { borderLeftColor: (theme.accent || '#8B5CF6') + '50' }]}>
-              <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
-                WHAT YOU GIVE EACH OTHER
-              </Text>
-              <View style={styles.patternBulletRow}>
-                <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>✦</Text>
-                <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
-                  {selectedMember.why_this_happens.length} energetic connections that create depth between you
+            {/* What Happens Between You */}
+            {patterns?.what_happens && patterns.what_happens.length > 0 && (
+              <View style={styles.patternSection}>
+                <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                  WHAT HAPPENS BETWEEN YOU
                 </Text>
+                {patterns.what_happens.map((item: string, i: number) => (
+                  <View key={`wh-${i}`} style={styles.patternBulletRow}>
+                    <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>›</Text>
+                    <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                      {item}
+                    </Text>
+                  </View>
+                ))}
               </View>
-              <View style={styles.patternBulletRow}>
-                <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>✦</Text>
-                <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
-                  {selectedMember.what_works || 'A dynamic that wouldn\'t exist without both of you'}
+            )}
+
+            {/* Where Friction Shows Up */}
+            {patterns?.tensions && patterns.tensions.length > 0 && (
+              <View style={styles.patternSection}>
+                <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                  WHERE FRICTION SHOWS UP
                 </Text>
+                {patterns.tensions.map((item: string, i: number) => (
+                  <View key={`fr-${i}`} style={styles.patternBulletRow}>
+                    <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>⚡</Text>
+                    <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                      {item}
+                    </Text>
+                  </View>
+                ))}
               </View>
-            </View>
+            )}
+
+            {/* What You Give Each Other */}
+            {patterns?.gifts && patterns.gifts.length > 0 && (
+              <View style={[styles.giftSection, { borderLeftColor: (theme.accent || '#8B5CF6') + '50' }]}>
+                <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                  WHAT YOU GIVE EACH OTHER
+                </Text>
+                {patterns.gifts.map((item: string, i: number) => (
+                  <View key={`gf-${i}`} style={styles.patternBulletRow}>
+                    <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>✦</Text>
+                    <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                      {item}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
 
             {/* ================================================ */}
-            {/* LAYER 3: SIGNALS (Proof — expandable)            */}
+            {/* LAYER 3: SIGNALS (Collapsible proof layer)       */}
+            {/* "Why this is so strong" — HD channels + future   */}
             {/* ================================================ */}
-            {selectedMember.why_this_happens.length > 0 && (
+            {hdSignals.length > 0 && (
               <View style={styles.signalsSection}>
                 <TouchableOpacity
                   style={[styles.signalsToggle, { borderColor: theme.border }]}
@@ -223,7 +234,7 @@ export default function ForumMappingsScreen() {
                     <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
                       DESIGN CONNECTIONS
                     </Text>
-                    {selectedMember.why_this_happens.map((channel, index) => (
+                    {hdSignals.map((channel: any, index: number) => (
                       <View 
                         key={channel.channel} 
                         style={[
@@ -231,6 +242,12 @@ export default function ForumMappingsScreen() {
                           { backgroundColor: theme.surface, borderColor: theme.border }
                         ]}
                       >
+                        {/* Translation line — plain language */}
+                        {channel.translation && (
+                          <Text style={[styles.channelTranslation, { color: theme.text }]}>
+                            {channel.translation}
+                          </Text>
+                        )}
                         <View style={styles.channelGates}>
                           <View style={[styles.gateBox, { borderColor: theme.border }]}>
                             <Text style={[styles.gateLabel, { color: theme.textTertiary }]}>You</Text>
@@ -262,6 +279,18 @@ export default function ForumMappingsScreen() {
                         </View>
                       </View>
                     ))}
+
+                    {/* Placeholder sections for future systems */}
+                    {signals?.astrology && signals.astrology.length > 0 && (
+                      <Text style={[styles.signalsNote, { color: theme.textTertiary, marginTop: 16 }]}>
+                        ASTROLOGICAL DYNAMICS
+                      </Text>
+                    )}
+                    {signals?.enneagram && (signals.enneagram.gift_to_them?.length > 0 || signals.enneagram.gift_to_you?.length > 0) && (
+                      <Text style={[styles.signalsNote, { color: theme.textTertiary, marginTop: 16 }]}>
+                        GROWTH GIFTS
+                      </Text>
+                    )}
                   </View>
                 )}
               </View>
@@ -625,6 +654,13 @@ const styles = StyleSheet.create({
   },
   channelInfo: {
     alignItems: 'center',
+  },
+  channelTranslation: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
   channelName: {
     fontSize: 14,
