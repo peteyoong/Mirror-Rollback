@@ -14497,6 +14497,143 @@ async def get_astro_expert_diagnosis(user_id: str, timeframe: str = "today"):
 
 
 # =============================================================================
+
+# =============================================================================
+# RELATIONSHIP INSIGHT V2 — 3-LAYER ARCHITECTURE
+# =============================================================================
+@api_router.get("/relationship-insight-v2/{user_id}")
+async def get_relationship_insight_v2_endpoint(
+    user_id: str,
+    other_user_id: Optional[str] = None,
+    other_name: str = "them",
+    relationship_type: str = "relationship",
+    context: str = ""
+):
+    """
+    V2: 3-Layer Relationship Insight Architecture
+    
+    Layer 1 = STORY (Synthesis) - emotional, concise
+    Layer 2 = PATTERNS (Behaviors) - "this is exactly what happens"
+    Layer 3 = SIGNALS (Proof) - "how does it know this??"
+    """
+    try:
+        from services.relationship_insight_engine import (
+            detect_deep_type,
+            get_complementary_type,
+            DEEP_FRICTION,
+            DEEP_DYNAMICS,
+        )
+        from services.relationship_3layer import generate_3layer_insight
+        import hashlib
+        
+        # Get user data
+        user = await db.users.find_one({"_id": user_id})
+        user_profile = {
+            "user_id": user_id,
+            "enneagram": user.get("enneagram", {}) if user else {},
+            "astrology": user.get("astrology", {}) if user else {},
+        }
+        
+        # Get other user profile if provided
+        other_profile = None
+        if other_user_id:
+            other_user = await db.users.find_one({"_id": other_user_id})
+            if other_user:
+                other_profile = {
+                    "user_id": other_user_id,
+                    "enneagram": other_user.get("enneagram", {}),
+                    "astrology": other_user.get("astrology", {}),
+                }
+        
+        # Generate seed
+        seed = f"{user_id}:{other_name}:{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+        seed_hash = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
+        
+        # Detect types
+        user_type = detect_deep_type(user_profile, "")
+        other_type = detect_deep_type(other_profile or {}, context)
+        
+        if not context and not other_profile:
+            other_type = get_complementary_type(user_type)
+        
+        # Get deep content for pattern fallback
+        dynamic_pair = (user_type, other_type)
+        deep_content = DEEP_FRICTION.get(dynamic_pair)
+        if not deep_content:
+            reversed_pair = (other_type, user_type)
+            deep_content = DEEP_FRICTION.get(reversed_pair)
+        if not deep_content:
+            deep_content = DEEP_FRICTION.get(("initiator", "reflector"), {})
+        
+        # Build HD signals from existing chart data
+        hd_signals = []
+        try:
+            user_chart = await db.charts.find_one({"user_id": user_id})
+            if user_chart and user_chart.get("human_design"):
+                hd = user_chart["human_design"]
+                channels = hd.get("defined_channels", [])
+                for ch in channels[:5]:
+                    g1 = ch.get("gate1", "?")
+                    g2 = ch.get("gate2", "?")
+                    centers = ch.get("centers", [])
+                    center_str = " + ".join(centers) if centers else "Unknown"
+                    hd_signals.append({
+                        "channel": f"{g1}-{g2}",
+                        "name": f"{center_str} Connection",
+                        "translation": f"Energy flows between your {center_str.lower()} — this shapes how you two interact",
+                    })
+        except Exception as e:
+            logger.warning(f"[RelV2] HD signals error: {e}")
+        
+        # Generate the 3-layer insight
+        result = generate_3layer_insight(
+            user_type=user_type,
+            other_type=other_type,
+            other_name=other_name,
+            deep_content=deep_content,
+            seed_hash=seed_hash,
+            hd_signals=hd_signals if hd_signals else None,
+        )
+        
+        result["user_id"] = user_id
+        
+        logger.info(f"[RelV2] Generated 3-layer for {user_id[:8]} + {other_name}: {user_type} x {other_type}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"[RelV2] Error: {e}", exc_info=True)
+        return {
+            "success": True,
+            "version": "v5_3layer_fallback",
+            "other_name": other_name,
+            "story": {
+                "headline": "Something real is happening between you two.",
+                "summary": "This connection activates a dynamic worth paying attention to. It's not always comfortable, but it's always real.",
+            },
+            "patterns": {
+                "what_happens": [
+                    "You approach situations from different angles — and that creates a dynamic",
+                    "There's a recurring dance between how each of you processes things",
+                ],
+                "tensions": [
+                    "Different styles can be misread as lack of care",
+                ],
+                "gifts": [
+                    "They activate something in you that wouldn't surface alone",
+                ],
+            },
+            "signals": {
+                "human_design": [],
+                "astrology": {"attraction": [], "tension": [], "growth": []},
+                "bazi": {"strengthens": [], "drains": [], "activates_growth": []},
+                "enneagram": {"gift_to_them": [], "gift_to_you": []},
+                "numerology": {"complementarity": [], "missing_traits": []},
+            },
+            "fallback_used": True,
+        }
+
+
 # RELATIONSHIP INSIGHT ENDPOINT
 # =============================================================================
 @api_router.get("/relationship-insight/{user_id}")

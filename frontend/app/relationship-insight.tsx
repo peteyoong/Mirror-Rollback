@@ -1,12 +1,12 @@
 /**
- * Relationship Insight Screen
+ * Relationship Insight Screen — V2 3-Layer Architecture
  * 
- * A dedicated screen to view 1:1 dynamic insight for a specific relationship.
  * Route: /relationship-insight?name=Mel&context=...
  * 
- * This screen shows:
- * - Essence, Friction, Tension, Your Shift, Gift, Try This
- * - With YOUR SHIFT as the most emphasized section
+ * 3-Layer Progressive Reveal:
+ * Layer 1 = STORY (Default view)
+ * Layer 2 = PATTERNS (Scroll to reveal)
+ * Layer 3 = SIGNALS (Expandable "Why this is so strong")
  */
 
 import React from 'react';
@@ -14,7 +14,7 @@ import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAppStore } from '../store';
 import { useTheme } from '../contexts/ThemeContext';
-import RelationshipInsightCard from '../components/RelationshipInsightCard';
+import RelationshipInsightV2Card from '../components/RelationshipInsightV2Card';
 
 export default function RelationshipInsightScreen() {
   const router = useRouter();
@@ -38,7 +38,7 @@ export default function RelationshipInsightScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       
       <View style={styles.content}>
-        <RelationshipInsightCard
+        <RelationshipInsightV2Card
           userId={userId}
           otherName={otherName}
           relationshipContext={relationshipContext}
