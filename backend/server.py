@@ -143,9 +143,9 @@ ACTUAL_WEB_BUILD_PATH = find_web_build()
 
 # Root endpoint for health check
 @app.get("/health")
-async def health_check(login_email: Optional[str] = None):
-    """Health check endpoint. Also handles login via GET to bypass CDN POST caching."""
-    if login_email:
+async def health_check():
+    """Health check endpoint for deployment verification."""
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 @app.get("/_auth")
 async def auth_login_endpoint(email: str, _t: str = ""):
