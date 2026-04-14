@@ -191,43 +191,6 @@ async def auth_login_endpoint(email: str, _t: str = ""):
         return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
 
 
-        # Login mode
-        try:
-            email = login_email.strip().lower()
-            user = await db.users.find_one({"email": email})
-            if not user:
-                return JSONResponse(
-                    content={"success": False, "error": "no_account", "detail": "No account found with this email."},
-                    headers={"Cache-Control": "no-store, max-age=0"}
-                )
-            user_id = str(user["_id"])
-            chart = await db.charts.find_one({"user_id": user_id})
-            user_resp = {
-                "id": user_id, "name": user.get("name"), "email": user.get("email"),
-                "birth_date": str(user.get("birth_date")) if user.get("birth_date") else None,
-                "birth_time": user.get("birth_time"),
-                "city": user.get("city"), "country": user.get("country"),
-                "created_at": user.get("created_at").isoformat() if hasattr(user.get("created_at"), "isoformat") else None
-            }
-            chart_resp = None
-            if chart:
-                chart_resp = {
-                    "id": str(chart["_id"]), "user_id": chart["user_id"],
-                    "astrology": chart.get("astrology"), "numerology": chart.get("numerology"),
-                    "human_design": chart.get("human_design"),
-                    "calculated_at": str(chart.get("calculated_at")) if chart.get("calculated_at") else None
-                }
-            logger.info(f"[HealthLogin] User {user_id} logged in via health endpoint")
-            return JSONResponse(
-                content={"success": True, "user": user_resp, "chart": chart_resp},
-                headers={"Cache-Control": "no-store, max-age=0"}
-            )
-        except Exception as e:
-            logger.error(f"HealthLogin error: {e}")
-            return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
-    
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
-
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
 # This ensures API routes take precedence over the catch-all static file handler
 
