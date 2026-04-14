@@ -3915,6 +3915,12 @@ class LoginRequest(BaseModel):
     email: str
 
 
+@api_router.post("/users/auth")
+async def login_user_v2(request: LoginRequest):
+    """Alias for /users/login to bypass CDN cached 404 responses."""
+    return await login_user(request)
+
+
 @api_router.post("/users/login")
 async def login_user(request: LoginRequest):
     """
@@ -3931,7 +3937,10 @@ async def login_user(request: LoginRequest):
         user = await db.users.find_one({"email": email})
         
         if not user:
-            raise HTTPException(status_code=404, detail="No account found with this email. Please create a new account.")
+            return JSONResponse(
+                status_code=200,
+                content={"success": False, "error": "no_account", "detail": "No account found with this email. Please create a new account."}
+            )
         
         user_id = str(user["_id"])
         
@@ -25798,6 +25807,42 @@ async def create_forum(data: ForumCreate):
     }
 
 
+
+@api_router.delete("/forums/{forum_id}")
+async def delete_forum(forum_id: str, user_id: str):
+    """
+    Delete a forum. Only the forum creator can delete it.
+    Removes the forum and all member records.
+    """
+    try:
+        forum = await db.forums.find_one({"_id": ObjectId(forum_id)})
+        if not forum:
+            raise HTTPException(status_code=404, detail="Forum not found")
+        
+        # Only creator can delete
+        if forum.get("created_by") != user_id:
+            raise HTTPException(status_code=403, detail="Only the forum creator can delete this forum")
+        
+        # Delete forum members
+        delete_members = await db.forum_members.delete_many({"forum_id": forum_id})
+        
+        # Delete forum
+        await db.forums.delete_one({"_id": ObjectId(forum_id)})
+        
+        logger.info(f"[Forums] Deleted forum {forum_id} ({forum.get('name')}) by user {user_id[:8]}, removed {delete_members.deleted_count} members")
+        
+        return {
+            "success": True,
+            "message": f"Forum '{forum.get('name')}' deleted",
+            "members_removed": delete_members.deleted_count,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Forums] Error deleting forum {forum_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/forums/user/{user_id}")
 async def get_user_forums(user_id: str):
     """
@@ -31240,6 +31285,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Middleware to prevent CDN/proxy from caching API responses (especially error responses)
+# This prevents Google Cloud CDN from caching 404s for login attempts
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class NoCacheAPIMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # Add no-cache headers to all /api/ responses
+        if request.url.path.startswith("/api"):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["CDN-Cache-Control"] = "no-store"
+            response.headers["Surrogate-Control"] = "no-store"
+        return response
+
+app.add_middleware(NoCacheAPIMiddleware)
+
 
 
 @app.on_event("startup")

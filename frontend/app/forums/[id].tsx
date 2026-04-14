@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Modal,
   Pressable,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -422,6 +423,33 @@ export default function ForumHomeScreen() {
     await Clipboard.setStringAsync(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDeleteForum = async () => {
+    if (!forum || !user?.id) return;
+    if (forum.created_by !== user.id) {
+      Alert.alert('Not Allowed', 'Only the forum creator can delete this forum.');
+      return;
+    }
+    Alert.alert(
+      'Delete Forum',
+      `Are you sure you want to delete "${forum.name}"? This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/forums/${id}?user_id=${user.id}`);
+              router.replace('/(tabs)');
+            } catch (err: any) {
+              Alert.alert('Error', err?.response?.data?.detail || 'Failed to delete forum');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const toggleReflection = (id: string) => {
@@ -1102,6 +1130,20 @@ export default function ForumHomeScreen() {
             </View>
           )}
         </View>
+
+        {/* Delete Forum — only visible to creator */}
+        {forum && user?.id && forum.created_by === user.id && (
+          <TouchableOpacity 
+            onPress={handleDeleteForum} 
+            style={[styles.deleteForumButton, { borderColor: '#CF6679' }]}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="trash-outline" size={16} color="#CF6679" />
+            <Text style={styles.deleteForumText}>Delete Forum</Text>
+          </TouchableOpacity>
+        )}
+
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* ============================================
@@ -1552,6 +1594,22 @@ const styles = StyleSheet.create({
   },
   homeButton: {
     padding: 8,
+  },
+  deleteForumButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    marginHorizontal: 20,
+    marginTop: 24,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  deleteForumText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#CF6679',
   },
   inviteButton: {
     paddingHorizontal: 16,

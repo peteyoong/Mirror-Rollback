@@ -131,7 +131,7 @@ export default function Welcome() {
           router.replace('/(tabs)');
         }
       } else {
-        setError('Login failed. Please try again.');
+        setError(result.detail || 'No account found with this email. Please create a new account.');
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || err.message || 'Login failed. Please try again.';
