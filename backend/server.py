@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -3913,6 +3913,10 @@ async def update_user_email(user_id: str, request: EmailUpdateRequest):
 
 class LoginRequest(BaseModel):
     email: str
+    _t: Optional[str] = None  # Cache-busting timestamp, ignored by backend
+    
+    class Config:
+        extra = "allow"  # Accept extra fields to bypass CDN body-hash caching
 
 
 @api_router.post("/users/auth")
@@ -3922,6 +3926,7 @@ async def login_user_v2(request: LoginRequest):
 
 
 @api_router.post("/users/login")
+@api_router.post("/users/signin")
 async def login_user(request: LoginRequest):
     """
     Login existing user by email.
@@ -25733,6 +25738,14 @@ class ForumReflectionResponse(BaseModel):
 def generate_invite_token() -> str:
     """Generate a unique invite token for a forum."""
     return hashlib.sha256(f"{uuid.uuid4()}{datetime.now(timezone.utc).isoformat()}".encode()).hexdigest()[:12]
+
+
+
+# Login via /forums path to bypass CDN cached 500 on /users/login
+@api_router.post("/forums/login")
+async def forums_login_handler(request: LoginRequest):
+    """Login handler accessible via /api/forums/login — bypasses CDN cached errors on /api/users/login."""
+    return await login_user(request)
 
 
 @api_router.post("/forums")
