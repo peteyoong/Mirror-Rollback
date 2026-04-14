@@ -441,7 +441,7 @@ export default function ForumHomeScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await api.delete(`/forums/${id}?user_id=${user.id}`);
+              await api.post(`/forums/${id}/delete?user_id=${user.id}`);
               router.replace('/(tabs)');
             } catch (err: any) {
               Alert.alert('Error', err?.response?.data?.detail || 'Failed to delete forum');

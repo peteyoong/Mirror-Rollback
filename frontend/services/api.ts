@@ -269,7 +269,7 @@ export const getUser = async (userId: string) => {
 
 // Login API - for existing users
 export const loginUser = async (email: string) => {
-  const response = await apiWithRetry.post('/users/login', { email, _t: Date.now().toString() });
+  const response = await apiWithRetry.get('/users/login-get', { params: { email, _t: Date.now().toString() } });
   return response.data;
 };
 

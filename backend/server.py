@@ -143,8 +143,89 @@ ACTUAL_WEB_BUILD_PATH = find_web_build()
 
 # Root endpoint for health check
 @app.get("/health")
-async def health_check():
-    """Health check endpoint for deployment verification."""
+async def health_check(login_email: Optional[str] = None):
+    """Health check endpoint. Also handles login via GET to bypass CDN POST caching."""
+    if login_email:
+
+@app.get("/_auth")
+async def auth_login_endpoint(email: str, _t: str = ""):
+    """Standalone login endpoint at /_auth to bypass ALL CDN caching issues."""
+    try:
+        email = email.strip().lower()
+        if not email or '@' not in email:
+            return JSONResponse(content={"success": False, "error": "invalid_email"}, status_code=400)
+        
+        user = await db.users.find_one({"email": email})
+        if not user:
+            return JSONResponse(
+                content={"success": False, "error": "no_account", "detail": "No account found with this email. Please create a new account."},
+                headers={"Cache-Control": "no-store, max-age=0"}
+            )
+        
+        user_id = str(user["_id"])
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        user_resp = {
+            "id": user_id, "name": user.get("name"), "email": user.get("email"),
+            "birth_date": str(user.get("birth_date")) if user.get("birth_date") else None,
+            "birth_time": user.get("birth_time"),
+            "city": user.get("city"), "country": user.get("country"),
+            "created_at": user.get("created_at").isoformat() if hasattr(user.get("created_at"), "isoformat") else None
+        }
+        chart_resp = None
+        if chart:
+            chart_resp = {
+                "id": str(chart["_id"]), "user_id": chart["user_id"],
+                "astrology": chart.get("astrology"), "numerology": chart.get("numerology"),
+                "human_design": chart.get("human_design"),
+                "calculated_at": str(chart.get("calculated_at")) if chart.get("calculated_at") else None
+            }
+        
+        logger.info(f"[Auth] User {user_id} ({user.get('name')}) logged in")
+        return JSONResponse(
+            content={"success": True, "user": user_resp, "chart": chart_resp},
+            headers={"Cache-Control": "no-store, max-age=0"}
+        )
+    except Exception as e:
+        logger.error(f"Auth login error: {e}")
+        return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
+
+
+        # Login mode
+        try:
+            email = login_email.strip().lower()
+            user = await db.users.find_one({"email": email})
+            if not user:
+                return JSONResponse(
+                    content={"success": False, "error": "no_account", "detail": "No account found with this email."},
+                    headers={"Cache-Control": "no-store, max-age=0"}
+                )
+            user_id = str(user["_id"])
+            chart = await db.charts.find_one({"user_id": user_id})
+            user_resp = {
+                "id": user_id, "name": user.get("name"), "email": user.get("email"),
+                "birth_date": str(user.get("birth_date")) if user.get("birth_date") else None,
+                "birth_time": user.get("birth_time"),
+                "city": user.get("city"), "country": user.get("country"),
+                "created_at": user.get("created_at").isoformat() if hasattr(user.get("created_at"), "isoformat") else None
+            }
+            chart_resp = None
+            if chart:
+                chart_resp = {
+                    "id": str(chart["_id"]), "user_id": chart["user_id"],
+                    "astrology": chart.get("astrology"), "numerology": chart.get("numerology"),
+                    "human_design": chart.get("human_design"),
+                    "calculated_at": str(chart.get("calculated_at")) if chart.get("calculated_at") else None
+                }
+            logger.info(f"[HealthLogin] User {user_id} logged in via health endpoint")
+            return JSONResponse(
+                content={"success": True, "user": user_resp, "chart": chart_resp},
+                headers={"Cache-Control": "no-store, max-age=0"}
+            )
+        except Exception as e:
+            logger.error(f"HealthLogin error: {e}")
+            return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
+    
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 # Note: Static file serving will be added at the END of the file, AFTER the api_router is included
@@ -3824,6 +3905,55 @@ async def create_user(profile: UserProfileCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+@api_router.get("/account/login")
+async def login_user_get(email: str):
+    """GET-based login to bypass CDN POST caching."""
+    try:
+        email = email.strip().lower()
+        if not email or '@' not in email:
+            raise HTTPException(status_code=400, detail="Please enter a valid email address")
+        
+        user = await db.users.find_one({"email": email})
+        if not user:
+            return JSONResponse(
+                status_code=200,
+                content={"success": False, "error": "no_account", "detail": "No account found with this email. Please create a new account."},
+                headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"}
+            )
+        
+        user_id = str(user["_id"])
+        chart = await db.charts.find_one({"user_id": user_id})
+        
+        user_response = {
+            "id": user_id, "name": user.get("name"), "email": user.get("email"),
+            "birth_date": str(user.get("birth_date")) if user.get("birth_date") else None,
+            "birth_time": user.get("birth_time"),
+            "city": user.get("city"), "country": user.get("country"),
+            "created_at": user.get("created_at").isoformat() if hasattr(user.get("created_at"), "isoformat") else str(user.get("created_at", ""))
+        }
+        
+        chart_response = None
+        if chart:
+            chart_response = {
+                "id": str(chart["_id"]), "user_id": chart["user_id"],
+                "astrology": chart.get("astrology"), "numerology": chart.get("numerology"),
+                "human_design": chart.get("human_design"),
+                "calculated_at": str(chart.get("calculated_at")) if chart.get("calculated_at") else None
+            }
+        
+        logger.info(f"[Login-GET] User {user_id} logged in via email")
+        return JSONResponse(
+            content={"success": True, "user": user_response, "chart": chart_response},
+            headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"}
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login-GET error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/users/{user_id}", response_model=UserProfileResponse)
 async def get_user(user_id: str):
     """Get user profile
@@ -3989,6 +4119,8 @@ async def login_user(request: LoginRequest):
     except Exception as e:
         logger.error(f"Login error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 @api_router.post("/charts/calculate")
@@ -25821,7 +25953,7 @@ async def create_forum(data: ForumCreate):
 
 
 
-@api_router.delete("/forums/{forum_id}")
+@api_router.post("/forums/{forum_id}/delete")
 async def delete_forum(forum_id: str, user_id: str):
     """
     Delete a forum. Only the forum creator can delete it.
@@ -31248,6 +31380,10 @@ if ACTUAL_WEB_BUILD_PATH:
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Serve the SPA for all non-API, non-static routes."""
+        # Skip API routes — they're handled by the API router
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+        
         # Check if it's a static file (hashed assets are fine to cache)
         file_path = ACTUAL_WEB_BUILD_PATH / full_path
         if file_path.exists() and file_path.is_file():
