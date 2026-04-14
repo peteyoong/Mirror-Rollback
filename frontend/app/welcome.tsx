@@ -134,7 +134,10 @@ export default function Welcome() {
         setError(result.detail || 'No account found with this email. Please create a new account.');
       }
     } catch (err: any) {
-      const errorMsg = err.response?.data?.detail || err.message || 'Login failed. Please try again.';
+      const rawDetail = err.response?.data?.detail;
+      const errorMsg = typeof rawDetail === 'string' 
+        ? rawDetail 
+        : (rawDetail?.message || err.message || 'Login failed. Please try again.');
       setError(errorMsg);
     } finally {
       setIsLoading(false);

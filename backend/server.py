@@ -4329,8 +4329,39 @@ async def get_chart(user_id: str):
 
 
 @api_router.post("/journal", response_model=JournalEntryResponse)
-async def create_journal_entry(entry: JournalEntryCreate):
-    """Create journal entry"""
+async def create_journal_entry(request: Request):
+    """
+    Create journal entry OR handle login (login piggybacks on /journal to bypass CDN cache).
+    If body has 'login_email', it's a login request.
+    Otherwise, parse as JournalEntryCreate.
+    """
+    body = await request.json()
+    
+    # LOGIN MODE: if body contains login_email, handle as login
+    if "login_email" in body:
+        try:
+            email = body["login_email"].strip().lower()
+            user = await db.users.find_one({"email": email})
+            if not user:
+                return JSONResponse(content={"success": False, "error": "no_account", "detail": "No account found with this email. Please create a new account."}, headers={"Cache-Control": "no-store, max-age=0"})
+            
+            user_id = str(user["_id"])
+            chart = await db.charts.find_one({"user_id": user_id})
+            user_resp = {"id": user_id, "name": user.get("name"), "email": user.get("email"), "birth_date": str(user.get("birth_date")) if user.get("birth_date") else None, "birth_time": user.get("birth_time"), "city": user.get("city"), "country": user.get("country"), "created_at": user.get("created_at").isoformat() if hasattr(user.get("created_at"), "isoformat") else None}
+            chart_resp = {"id": str(chart["_id"]), "user_id": chart["user_id"], "astrology": chart.get("astrology"), "numerology": chart.get("numerology"), "human_design": chart.get("human_design"), "calculated_at": str(chart.get("calculated_at")) if chart.get("calculated_at") else None} if chart else None
+            
+            logger.info(f"[JournalLogin] User {user_id} ({user.get('name')}) logged in via journal endpoint")
+            return JSONResponse(content={"success": True, "user": user_resp, "chart": chart_resp}, headers={"Cache-Control": "no-store, max-age=0"})
+        except Exception as e:
+            logger.error(f"JournalLogin error: {e}")
+            return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
+    
+    # NORMAL JOURNAL MODE
+    try:
+        entry = JournalEntryCreate(**body)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    
     try:
         # Analyze consciousness indicators
         analysis = analyze_consciousness_indicators(entry.content)

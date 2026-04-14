@@ -269,7 +269,8 @@ export const getUser = async (userId: string) => {
 
 // Login API - for existing users
 export const loginUser = async (email: string) => {
-  const response = await apiWithRetry.get('/users/login-get', { params: { email, _t: Date.now().toString() } });
+  // Use GET /account/login to bypass CDN POST caching issues on deploy domain
+  const response = await apiWithRetry.get('/account/login', { params: { email, _t: Date.now().toString() } });
   return response.data;
 };
 
