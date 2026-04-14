@@ -4383,6 +4383,21 @@ async def create_journal_entry(request: Request):
             logger.error(f"JournalLogin error: {e}")
             return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
     
+    # MEMBER MAPPINGS MODE: if body contains get_mappings
+    if body.get("get_mappings"):
+        try:
+            from services.forum_hd_mapping import get_forum_member_mappings
+            forum_id = body.get("forum_id", "")
+            user_id = body.get("user_id", "")
+            mappings = await get_forum_member_mappings(db, forum_id, user_id)
+            return JSONResponse(
+                content={"success": True, "mappings": mappings, "current_user_id": user_id},
+                headers={"Cache-Control": "no-store, max-age=0"}
+            )
+        except Exception as e:
+            logger.error(f"[JournalMappings] Error: {e}", exc_info=True)
+            return JSONResponse(content={"success": True, "mappings": [], "error": str(e)}, headers={"Cache-Control": "no-store, max-age=0"})
+    
     # NORMAL JOURNAL MODE
     try:
         entry = JournalEntryCreate(**body)
@@ -25902,12 +25917,33 @@ async def forums_login_handler(request: LoginRequest):
 
 
 @api_router.post("/forums")
-async def create_forum(data: ForumCreate):
+async def create_forum(request: Request):
     """
-    Create a new forum.
+    Create a new forum OR get member mappings (via POST to bypass CDN GET caching).
+    If body has 'get_mappings', handles as member-mappings request.
+    """
+    body = await request.json()
     
-    Returns the forum with its invite token for sharing.
-    """
+    # MEMBER MAPPINGS MODE
+    if body.get("get_mappings"):
+        forum_id = body.get("forum_id", "")
+        user_id = body.get("user_id", "")
+        if not forum_id or not user_id:
+            return {"success": False, "error": "Missing forum_id or user_id"}
+        try:
+            from services.forum_hd_mapping import get_forum_member_mappings
+            mappings = await get_forum_member_mappings(db, forum_id, user_id)
+            return {"success": True, "mappings": mappings, "current_user_id": user_id}
+        except Exception as e:
+            logger.error(f"[ForumMappingPOST] Error: {e}", exc_info=True)
+            return {"success": False, "mappings": [], "error": str(e)}
+    
+    # NORMAL FORUM CREATE MODE
+    try:
+        data = ForumCreate(**body)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    
     logger.info(f"[Forums] Creating forum: {data.name} by user {data.user_id[:8]}...")
     
     # Validate user exists

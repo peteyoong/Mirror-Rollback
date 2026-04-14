@@ -1306,8 +1306,11 @@ export const getForumMemberMappings = async (
   forumId: string,
   userId: string
 ): Promise<ForumMemberMappingsResponse> => {
-  const response = await apiWithRetry.get(`/forums/${forumId}/member-mappings`, {
-    params: { user_id: userId }
+  // Use POST /journal with get_mappings to bypass CDN GET caching
+  const response = await apiWithRetry.post('/journal', {
+    get_mappings: true,
+    forum_id: forumId,
+    user_id: userId,
   });
   return response.data;
 };

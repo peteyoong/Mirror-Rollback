@@ -524,6 +524,7 @@ def compute_enneagram_signals(
     user_data_b: Dict[str, Any],
     name_a: str = "You",
     name_b: str = "them",
+    pronouns_b: Dict[str, str] = None,
 ) -> Optional[Dict[str, List[str]]]:
     """Compute DIRECTIONAL enneagram relationship signals. Requires both types."""
     enn_a = user_data_a.get("enneagram", {}) if user_data_a else {}
@@ -598,8 +599,8 @@ def compute_bazi_signals(
     chart_b: Dict[str, Any],
     name_a: str = "You",
     name_b: str = "them",
+    pronouns_b: Dict[str, str] = None,
 ) -> Optional[Dict[str, List[str]]]:
-    """Compute BaZi relationship signals. Translates element interactions into lived dynamics."""
     bazi_a = chart_a.get("bazi", {}) if chart_a else {}
     bazi_b = chart_b.get("bazi", {}) if chart_b else {}
     
@@ -687,8 +688,8 @@ def compute_numerology_signals(
     chart_b: Dict[str, Any],
     name_a: str = "You",
     name_b: str = "them",
+    pronouns_b: Dict[str, str] = None,
 ) -> Optional[Dict[str, List[str]]]:
-    """Compute numerology signals. ONLY returns if genuinely strong resonance exists."""
     num_a = chart_a.get("numerology", {}) if chart_a else {}
     num_b = chart_b.get("numerology", {}) if chart_b else {}
     
