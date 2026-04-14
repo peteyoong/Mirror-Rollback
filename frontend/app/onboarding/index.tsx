@@ -200,6 +200,7 @@ export default function Onboarding() {
       // Create user - include latitude/longitude if available (from fallback cities)
       const userData = await createUser({
         name: name || undefined,
+        email: email || undefined,
         birth_date: birthDate,
         birth_time: birthTime || undefined,
         city: selectedLocation.city,

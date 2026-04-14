@@ -295,6 +295,7 @@ class UserProfile(BaseModel):
 
 class UserProfileCreate(BaseModel):
     name: Optional[str] = None
+    email: Optional[str] = None
     birth_date: str  # YYYY-MM-DD
     birth_time: Optional[str] = None  # HH:MM
     city: str
@@ -3803,6 +3804,10 @@ async def create_user(profile: UserProfileCreate):
             "timezone_minutes": parsed_timezone_minutes,
             "created_at": datetime.now(timezone.utc)
         }
+        
+        # Save email if provided during registration
+        if profile.email:
+            user_data["email"] = profile.email.strip().lower()
         
         result = await db.users.insert_one(user_data)
         
@@ -25829,10 +25834,10 @@ async def get_user_forums(user_id: str):
                 "id": str(forum["_id"]),
                 "name": forum["name"],
                 "description": forum.get("description"),
-                "invite_token": forum["invite_token"],
-                "created_by": forum["created_by"],
+                "invite_token": forum.get("invite_token", ""),
+                "created_by": forum.get("created_by", ""),
                 "member_count": member_count,
-                "created_at": forum["created_at"].isoformat(),
+                "created_at": forum.get("created_at", datetime.now(timezone.utc)).isoformat() if hasattr(forum.get("created_at", ""), "isoformat") else str(forum.get("created_at", "")),
             })
     
     return {"forums": forums}
