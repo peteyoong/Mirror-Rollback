@@ -27226,6 +27226,7 @@ async def get_forum_member_lens(forum_id: str, member_user_id: str, user_id: str
 # FORUM HD MAPPING - "How they map to me"
 # =============================================================================
 @api_router.get("/forums/{forum_id}/member-mappings")
+@api_router.get("/forums/{forum_id}/relationship-map")
 async def get_forum_member_mappings(forum_id: str, user_id: str):
     """
     Get "How they map to me" - HD channel-completion based mappings

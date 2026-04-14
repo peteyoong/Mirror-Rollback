@@ -1153,21 +1153,35 @@ async def get_forum_member_mappings(
         # Get current user data
         current_user = await db.users.find_one({"_id": ObjectId(current_user_id)})
         if not current_user:
+            # Try string _id (some production records use string instead of ObjectId)
+            current_user = await db.users.find_one({"_id": current_user_id})
+        if not current_user:
             logger.error(f"[ForumMapping] Current user {current_user_id} not found")
             return []
         
         # Get current user's chart (HD data)
         current_chart = await db.charts.find_one({"user_id": current_user_id})
+        if not current_chart:
+            current_chart = await db.charts.find_one({"user_id": str(current_user_id)})
         current_user_gates = get_user_gates(current_user, current_chart)
         current_user_name = current_user.get("name", "You")
         
-        logger.info(f"[ForumMapping] User {current_user_id[:8]} has {len(current_user_gates)} gates: {current_user_gates[:5]}...")
+        logger.info(f"[ForumMapping] User {current_user_id[:8]} ({current_user_name}) has {len(current_user_gates)} gates")
         
         # Get all forum members from forum_members collection
         memberships = await db.forum_members.find({
             "forum_id": forum_id,
             "status": "active"
         }).to_list(100)
+        
+        # Also try without status filter if no members found
+        if not memberships:
+            memberships = await db.forum_members.find({
+                "forum_id": forum_id,
+            }).to_list(100)
+            logger.info(f"[ForumMapping] Found {len(memberships)} members without status filter")
+        
+        logger.info(f"[ForumMapping] Found {len(memberships)} memberships for forum {forum_id}")
         
         mappings = []
         
@@ -1176,18 +1190,28 @@ async def get_forum_member_mappings(
             if member_id == current_user_id:
                 continue  # Skip self
             
-            # Get member data
-            member = await db.users.find_one({"_id": ObjectId(str(member_id))})
+            # Get member data - try both ObjectId and string lookups
+            member = None
+            try:
+                member = await db.users.find_one({"_id": ObjectId(str(member_id))})
+            except Exception:
+                pass
             if not member:
+                member = await db.users.find_one({"_id": member_id})
+            if not member:
+                logger.warning(f"[ForumMapping] Member {member_id} not found in users collection")
                 continue
             
-            member_name = member.get("name", "Unknown")
+            member_name = member.get("name") or membership.get("name") or "Unknown"
             
-            # Get member's chart (HD data)
+            # Get member's chart (HD data) - try multiple lookups
             member_chart = await db.charts.find_one({"user_id": str(member_id)})
+            if not member_chart:
+                member_chart = await db.charts.find_one({"user_id": member_id})
+            
             member_gates = get_user_gates(member, member_chart)
             
-            logger.info(f"[ForumMapping] Member {member_name} has {len(member_gates)} gates: {member_gates[:5]}...")
+            logger.info(f"[ForumMapping] Member {member_name} ({member_id[:8] if member_id else '?'}) has {len(member_gates)} gates, chart={'YES' if member_chart else 'NO'}")
             
             # Find completed channels
             completed_channels = find_completed_channels(current_user_gates, member_gates)
