@@ -36,6 +36,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | ''>('');
   
   // Separate date fields
   const [birthDay, setBirthDay] = useState('');
@@ -201,6 +202,7 @@ export default function Onboarding() {
       const userData = await createUser({
         name: name || undefined,
         email: email || undefined,
+        gender: gender || undefined,
         birth_date: birthDate,
         birth_time: birthTime || undefined,
         city: selectedLocation.city,
@@ -299,6 +301,25 @@ export default function Onboarding() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
+              </View>
+
+              {/* Gender Selector */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Gender *</Text>
+                <View style={styles.genderRow}>
+                  <TouchableOpacity
+                    style={[styles.genderButton, gender === 'male' && styles.genderButtonActive]}
+                    onPress={() => setGender('male')}
+                  >
+                    <Text style={[styles.genderButtonText, gender === 'male' && styles.genderButtonTextActive]}>Male</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.genderButton, gender === 'female' && styles.genderButtonActive]}
+                    onPress={() => setGender('female')}
+                  >
+                    <Text style={[styles.genderButtonText, gender === 'female' && styles.genderButtonTextActive]}>Female</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Birth Date - Separate DD/MM/YYYY boxes */}
@@ -624,6 +645,32 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   // Date fields
+  genderRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  genderButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+  },
+  genderButtonActive: {
+    borderColor: Colors.accent,
+    backgroundColor: Colors.accent + '15',
+  },
+  genderButtonText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  genderButtonTextActive: {
+    color: Colors.accent,
+    fontWeight: '600',
+  },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',

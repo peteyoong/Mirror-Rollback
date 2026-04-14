@@ -340,6 +340,7 @@ class UserProfile(BaseModel):
 class UserProfileCreate(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
+    gender: Optional[str] = None  # "male" or "female"
     birth_date: str  # YYYY-MM-DD
     birth_time: Optional[str] = None  # HH:MM
     city: str
@@ -3853,6 +3854,10 @@ async def create_user(profile: UserProfileCreate):
         if profile.email:
             user_data["email"] = profile.email.strip().lower()
         
+        # Save gender if provided
+        if profile.gender:
+            user_data["gender"] = profile.gender.strip().lower()
+        
         result = await db.users.insert_one(user_data)
         
         return UserProfileResponse(
@@ -3870,7 +3875,7 @@ async def create_user(profile: UserProfileCreate):
 
 
 @api_router.get("/account/login")
-async def login_user_get(email: str):
+async def login_user_get(email: str, set_gender: Optional[str] = None):
     """GET-based login to bypass CDN POST caching."""
     try:
         email = email.strip().lower()
@@ -3906,6 +3911,12 @@ async def login_user_get(email: str):
             }
         
         logger.info(f"[Login-GET] User {user_id} logged in via email")
+        
+        # If set_gender provided, update the user's gender
+        if set_gender and set_gender.lower() in ("male", "female"):
+            await db.users.update_one({"_id": user["_id"]}, {"$set": {"gender": set_gender.lower()}})
+            logger.info(f"[Login-GET] Set gender={set_gender.lower()} for user {user_id}")
+        
         return JSONResponse(
             content={"success": True, "user": user_response, "chart": chart_response},
             headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"}
@@ -4002,6 +4013,22 @@ async def update_user_email(user_id: str, request: EmailUpdateRequest):
     except Exception as e:
         logger.error(f"Update email error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/account/set-gender")
+async def update_user_gender(user_id: str, gender: str):
+    """Update user gender (male/female)."""
+    try:
+        gender = gender.strip().lower()
+        if gender not in ("male", "female"):
+            raise HTTPException(status_code=400, detail="Gender must be 'male' or 'female'")
+        result = await db.users.update_one({"_id": ObjectId(user_id)}, {"$set": {"gender": gender}})
+        return {"success": True, "message": f"Gender set to {gender}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 class LoginRequest(BaseModel):

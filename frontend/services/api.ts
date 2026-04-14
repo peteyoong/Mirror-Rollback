@@ -250,6 +250,7 @@ export const getDailyPatternSignal = async (userId: string): Promise<DailyPatter
 export const createUser = async (data: {
   name?: string;
   email?: string;
+  gender?: string;
   birth_date: string;
   birth_time?: string;
   city: string;

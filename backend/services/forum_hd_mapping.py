@@ -250,6 +250,14 @@ CHANNEL_INTERPRETATIONS = {
 # ASTROLOGY SYNASTRY — Real cross-aspect relationship signals
 # =============================================================================
 
+
+def _resolve_pronouns(pronouns_b: Dict[str, str] = None) -> tuple:
+    """Resolve he/him/his pronouns from pronouns_b dict. Defaults to they/them."""
+    if pronouns_b:
+        return pronouns_b.get("he", "they"), pronouns_b.get("him", "them"), pronouns_b.get("his", "their")
+    return "they", "them", "their"
+
+
 ELEMENT_MAP = {
     "Aries": "fire", "Leo": "fire", "Sagittarius": "fire",
     "Taurus": "earth", "Virgo": "earth", "Capricorn": "earth",
@@ -291,6 +299,7 @@ def compute_astrology_signals(
     chart_b: Dict[str, Any],
     name_a: str = "You",
     name_b: str = "them",
+    pronouns_b: Dict[str, str] = None,
 ) -> Optional[Dict[str, List[str]]]:
     """Compute HIGH-CONVICTION astrology synastry signals. Only uses Sun-Moon, Venus-Mars,
     Venus-Venus, Mars-Mars, Saturn-personal, Mercury-Mercury. Each signal must describe
@@ -854,6 +863,18 @@ def generate_mapping_interpretation(
 ) -> Dict[str, Any]:
     """
     Generate 3-LAYER relationship interpretation.
+    Uses gender from user records for correct pronouns.
+    """
+    # Resolve pronouns from gender
+    gender_b = (user_b or {}).get("gender", "").lower() if user_b else ""
+    if gender_b == "male":
+        him = "him"; his = "his"; he = "he"; her_obj = "him"; her_pos = "his"; she = "he"
+    elif gender_b == "female":
+        him = "her"; his = "her"; he = "she"; her_obj = "her"; her_pos = "her"; she = "she"
+    else:
+        him = "them"; his = "their"; he = "they"; her_obj = "them"; her_pos = "their"; she = "they"
+    """
+    Generate 3-LAYER relationship interpretation.
     
     Layer 1: STORY (emotional hook)
     Layer 2: PATTERNS (behavioral recognition)
@@ -1047,12 +1068,41 @@ def generate_mapping_interpretation(
         })
     
     # Compute multi-lens signals (real data, not placeholders)
-    astrology_signals = compute_astrology_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
-    enneagram_signals = compute_enneagram_signals(user_a, user_b, current_user_name, member_name) if user_a and user_b else None
-    numerology_signals = compute_numerology_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
+    # Pass pronouns for gender-correct output
+    pronouns_b = {"he": he, "him": him, "his": his, "she": she}
+    astrology_signals = compute_astrology_signals(chart_a, chart_b, current_user_name, member_name, pronouns_b) if chart_a and chart_b else None
+    enneagram_signals = compute_enneagram_signals(user_a, user_b, current_user_name, member_name, pronouns_b) if user_a and user_b else None
+    numerology_signals = compute_numerology_signals(chart_a, chart_b, current_user_name, member_name, pronouns_b) if chart_a and chart_b else None
     # BaZi: compute from chart data
-    bazi_signals = compute_bazi_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
+    bazi_signals = compute_bazi_signals(chart_a, chart_b, current_user_name, member_name, pronouns_b) if chart_a and chart_b else None
     
+    # Post-process ALL text output to use correct pronouns based on gender
+    def _fix_pronouns(text):
+        if not text or not isinstance(text, str) or gender_b == "female":
+            return text
+        text = text.replace(" she ", f" {he} ").replace(" she's ", f" {he}'s ").replace(" she.", f" {he}.")
+        text = text.replace("She ", f"{he.capitalize()} ").replace("She's ", f"{he.capitalize()}'s ")
+        text = text.replace(" her ", f" {his} ").replace(" her.", f" {his}.")
+        text = text.replace("Her ", f"{his.capitalize()} ")
+        return text
+    
+    def _fix_signals(obj):
+        if obj is None: return None
+        if isinstance(obj, dict): return {k: _fix_signals(v) for k, v in obj.items()}
+        if isinstance(obj, list): return [_fix_pronouns(i) if isinstance(i, str) else _fix_signals(i) for i in obj]
+        if isinstance(obj, str): return _fix_pronouns(obj)
+        return obj
+
+    astrology_signals = _fix_signals(astrology_signals)
+    enneagram_signals = _fix_signals(enneagram_signals)
+    bazi_signals = _fix_signals(bazi_signals)
+    numerology_signals = _fix_signals(numerology_signals)
+    story_headline = _fix_pronouns(story_headline)
+    story_summary = _fix_pronouns(story_summary)
+    what_happens = [_fix_pronouns(x) for x in what_happens]
+    tensions = [_fix_pronouns(x) for x in tensions]
+    gifts = [_fix_pronouns(x) for x in gifts]
+
     return {
         "member_name": member_name,
         # V2 3-LAYER STRUCTURE
