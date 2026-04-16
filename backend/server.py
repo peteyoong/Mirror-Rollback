@@ -4392,13 +4392,24 @@ async def create_journal_entry(request: Request):
             forum_id = body.get("forum_id", "")
             user_id = body.get("user_id", "")
             mappings = await get_forum_member_mappings(db, forum_id, user_id)
+            # Use 201 status to bypass CDN caching (CDN typically only caches 200)
+            # Add ALL possible no-cache headers to force CDN bypass
             return JSONResponse(
                 content={"success": True, "mappings": mappings, "current_user_id": user_id},
-                headers={"Cache-Control": "no-store, max-age=0"}
+                status_code=201,
+                headers={
+                    "Cache-Control": "private, no-store, no-cache, must-revalidate, max-age=0",
+                    "CDN-Cache-Control": "no-store",
+                    "Cloudflare-CDN-Cache-Control": "no-store",
+                    "Surrogate-Control": "no-store",
+                    "Pragma": "no-cache",
+                    "Vary": "*",
+                    "Expires": "0",
+                }
             )
         except Exception as e:
             logger.error(f"[JournalMappings] Error: {e}", exc_info=True)
-            return JSONResponse(content={"success": True, "mappings": [], "error": str(e)}, headers={"Cache-Control": "no-store, max-age=0"})
+            return JSONResponse(content={"success": True, "mappings": [], "error": str(e)}, status_code=201, headers={"Cache-Control": "private, no-store, max-age=0", "Vary": "*"})
     
     # NORMAL JOURNAL MODE
     try:
