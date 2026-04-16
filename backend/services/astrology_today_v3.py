@@ -420,6 +420,44 @@ def generate_today_v3(
     }
 
 
+# =============================================================================
+# HUMAN-READABLE EVENT TYPE MAPPING
+# =============================================================================
+# Maps raw event type keys to clear, understandable descriptions
+
+EVENT_TYPE_READABLE = {
+    "new_moon": "New Moon — A reset cycle is active",
+    "full_moon": "Full Moon — Clarity and illumination peaking",
+    "waning_crescent": "Waning Crescent — Completion and release phase",
+    "waxing_crescent": "Waxing Crescent — New intentions beginning to form",
+    "first_quarter": "First Quarter Moon — Tension between old and new",
+    "last_quarter": "Last Quarter Moon — Letting go of what's done",
+    "eclipse_solar": "Solar Eclipse — Significant reset or turning point",
+    "eclipse_lunar": "Lunar Eclipse — Deep emotional recalibration",
+    "equinox": "Equinox — Balance point between seasons",
+    "solstice": "Solstice — Peak or turning point in the yearly cycle",
+    "saturn_sign_change": "Saturn Sign Change — Shifting long-term structures",
+    "jupiter_sign_change": "Jupiter Sign Change — New growth direction emerging",
+}
+
+
+def _format_event_type_readable(event_type: str, theme: str = "") -> str:
+    """Convert a raw event type key to a human-readable description."""
+    if not event_type:
+        return ""
+    
+    # Check direct mapping first
+    readable = EVENT_TYPE_READABLE.get(event_type)
+    if readable:
+        return readable
+    
+    # Fallback: format the type string nicely
+    formatted = event_type.replace("_", " ").title()
+    if theme:
+        return f"{formatted} — {theme}"
+    return formatted
+
+
 def generate_today_from_transit(
     transit_stack: Dict[str, Any],
     day_class: str = "normal_flow",
@@ -440,15 +478,28 @@ def generate_today_from_transit(
     # Get sun sign from chart
     sun_sign = chart_data.get("sun_sign") if chart_data else None
     
-    # Build transit info for technical layer
+    # Build transit info for technical layer (human-readable descriptions)
     events = transit_stack.get("events", [])
     transit_info = None
     if events:
-        event_names = [
-            e.get("name", e.get("type", "")) if isinstance(e, dict) else str(e)
-            for e in events
-        ]
-        transit_info = ", ".join([e for e in event_names if e])
+        readable_parts = []
+        for e in events:
+            if isinstance(e, dict):
+                event_type = e.get("type", "")
+                headline = e.get("headline", "")
+                theme = e.get("theme", "")
+                # Use headline if available, otherwise map type to readable name
+                if headline:
+                    readable_parts.append(headline)
+                else:
+                    readable_name = _format_event_type_readable(event_type, theme)
+                    if readable_name:
+                        readable_parts.append(readable_name)
+            else:
+                readable_name = _format_event_type_readable(str(e), "")
+                if readable_name:
+                    readable_parts.append(readable_name)
+        transit_info = " · ".join(readable_parts) if readable_parts else None
     
     return generate_today_v3(
         tension_type=tension_type,

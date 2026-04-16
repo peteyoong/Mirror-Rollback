@@ -264,14 +264,28 @@ const AstrologyTodayV3: React.FC<AstrologyTodayV3Props> = ({
 
         {technicalExpanded && data.technical && (
           <View style={[styles.technicalSection, { backgroundColor: theme.cardBackground || theme.background, borderColor: theme.border }]}>
+            <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>
+              WHAT'S BEHIND THIS
+            </Text>
             {data.technical.transit_info && (
-              <Text style={[styles.technicalText, { color: theme.textTertiary }]}>
-                {data.technical.transit_info}
-              </Text>
+              <View style={styles.technicalRow}>
+                <Ionicons name="planet-outline" size={14} color={theme.textTertiary} style={{ marginRight: 8, marginTop: 2 }} />
+                <Text style={[styles.technicalText, { color: theme.textSecondary }]}>
+                  {data.technical.transit_info}
+                </Text>
+              </View>
             )}
             {data.technical.activated_house && data.technical.house_meaning && (
-              <Text style={[styles.technicalText, { color: theme.textTertiary }]}>
-                House {data.technical.activated_house}: {data.technical.house_meaning}
+              <View style={styles.technicalRow}>
+                <Ionicons name="home-outline" size={14} color={theme.textTertiary} style={{ marginRight: 8, marginTop: 2 }} />
+                <Text style={[styles.technicalText, { color: theme.textSecondary }]}>
+                  House {data.technical.activated_house}: {data.technical.house_meaning}
+                </Text>
+              </View>
+            )}
+            {!data.technical.transit_info && !data.technical.activated_house && (
+              <Text style={[styles.technicalText, { color: theme.textTertiary, fontStyle: 'italic' }]}>
+                General field energy — no single transit dominating
               </Text>
             )}
           </View>
@@ -430,11 +444,22 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     marginTop: 12,
   },
+  technicalLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 12,
+    textTransform: 'uppercase',
+  },
+  technicalRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
   technicalText: {
-    fontSize: 16,
-    lineHeight: 32,
-    fontStyle: 'italic',
-    marginBottom: 5,
+    fontSize: 15,
+    lineHeight: 24,
+    flex: 1,
   },
 });
 
