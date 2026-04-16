@@ -26072,46 +26072,96 @@ async def delete_forum(forum_id: str, user_id: str):
 @api_router.get("/fix-deployed-data")
 async def fix_deployed_data():
     """
-    Manual trigger for data migrations. Call this from browser after deployment
-    to fix database state (names, charts, ayanamsa, etc.)
+    Comprehensive data fix for deployed DB. Seeds ALL missing data:
+    - Fixes user names
+    - Seeds enneagram types for known users
+    - Recomputes charts with correct SVP ayanamsa
+    - Computes BaZi charts
     """
-    results = {"fixes": [], "errors": []}
+    results = {"fixes": [], "errors": [], "version": "v3-comprehensive"}
     
     try:
         from bson import ObjectId
+        
+        # =====================================================
+        # STEP 1: Fix user names and seed enneagram data
+        # =====================================================
+        
+        # Pete's enneagram data (Type 7w8)
+        PETE_ENNEAGRAM = {"inferred_core": 7, "inferred_wing": 8, "confidence": 0.4946, "confidence_tier": "high", "enneagram_computed_details": {"center": "head", "hornevian_group": "assertive", "harmonic_group": "positive_outlook", "object_relations": "frustration", "social_style_tags": ["enthusiast", "epicure", "optimistic", "scattered", "adventurous", "versatile"], "stress_line_to": 1, "growth_line_to": 5}, "convergence_summary": "Multiple lenses align with Type 7 patterns.", "source": "inferred"}
+        
+        # Mel's enneagram data (Type 3w4)
+        MEL_ENNEAGRAM = {"inferred_core": 3, "inferred_wing": 4, "confidence": 0.85, "confidence_tier": "high", "enneagram_computed_details": {"center": "heart", "hornevian_group": "assertive", "harmonic_group": "competency", "object_relations": "attachment", "social_style_tags": ["achiever", "performer"]}, "source": "user_declared"}
+        
+        # Fix Pete
+        pete = await db.users.find_one({"email": "pete@pulsifi.me"})
+        if pete:
+            pete_updates = {}
+            if not pete.get("enneagram") or not pete.get("enneagram", {}).get("inferred_core"):
+                pete_updates["enneagram"] = PETE_ENNEAGRAM
+                results["fixes"].append("Seeded Pete enneagram: Type 7w8")
+            else:
+                results["fixes"].append(f"Pete enneagram already set: Type {pete['enneagram'].get('inferred_core')}")
+            
+            if not pete.get("timezone"):
+                pete_updates["timezone"] = "+07:00"
+            
+            if pete_updates:
+                await db.users.update_one({"_id": pete["_id"]}, {"$set": pete_updates})
+        else:
+            results["errors"].append("Pete user not found (pete@pulsifi.me)")
+        
+        # Fix Mel
+        mel = await db.users.find_one({"email": "mel@test.com"})
+        if mel:
+            mel_updates = {}
+            old_name = mel.get("name", "")
+            if old_name != "Mel":
+                mel_updates["name"] = "Mel"
+                results["fixes"].append(f"Fixed Mel name: {old_name} → Mel")
+            
+            if not mel.get("enneagram") or not mel.get("enneagram", {}).get("inferred_core"):
+                mel_updates["enneagram"] = MEL_ENNEAGRAM
+                results["fixes"].append("Seeded Mel enneagram: Type 3w4")
+            else:
+                results["fixes"].append(f"Mel enneagram already set: Type {mel['enneagram'].get('inferred_core')}")
+            
+            if not mel.get("timezone"):
+                mel_updates["timezone"] = "Asia/Kuala_Lumpur"
+                results["fixes"].append("Set Mel timezone")
+            
+            if not mel.get("gender"):
+                mel_updates["gender"] = "female"
+            
+            if mel_updates:
+                await db.users.update_one({"_id": mel["_id"]}, {"$set": mel_updates})
+        else:
+            results["errors"].append("Mel user not found (mel@test.com)")
+        
+        # =====================================================
+        # STEP 2: Recompute charts with wrong ayanamsa + add BaZi
+        # =====================================================
         from calculations.astrology import get_full_natal_chart
         from services.bazi_engine import compute_bazi_chart
         from datetime import datetime, timedelta, timezone as dt_timezone
         import pytz
         
-        # 1. Fix Mel's name
-        mel = await db.users.find_one({"email": "mel@test.com"})
-        if mel:
-            old_name = mel.get("name")
-            if old_name != "Mel":
-                await db.users.update_one({"_id": mel["_id"]}, {"$set": {"name": "Mel"}})
-                results["fixes"].append(f"Fixed name: {old_name} → Mel")
-            else:
-                results["fixes"].append("Mel name already correct")
-            
-            # Fix timezone if missing
-            if not mel.get("timezone"):
-                await db.users.update_one({"_id": mel["_id"]}, {"$set": {"timezone": "Asia/Kuala_Lumpur"}})
-                results["fixes"].append("Set Mel timezone to Asia/Kuala_Lumpur")
-        
-        # 2. Recompute charts with wrong ayanamsa
         charts_fixed = 0
-        charts_skipped = 0
+        charts_ok = 0
+        
         async for chart in db.charts.find():
+            user_id = chart.get("user_id")
             ds = chart.get("debug_stamp", {})
             sid = ds.get("sidereal_settings_used", {}) if ds else {}
             svp = sid.get("svp_degrees") if sid else None
+            has_bazi = bool(chart.get("bazi"))
             
-            if svp == 31.2836:
-                charts_skipped += 1
+            needs_fix = (svp != 31.2836) or (not has_bazi)
+            
+            if not needs_fix:
+                charts_ok += 1
                 continue
             
-            user_id = chart.get("user_id")
             try:
                 user = await db.users.find_one({"_id": ObjectId(user_id)})
                 if not user:
@@ -26120,27 +26170,16 @@ async def fix_deployed_data():
                 birth_date = user.get("birth_date")
                 birth_time = user.get("birth_time")
                 if not birth_date or not birth_time:
-                    results["errors"].append(f"Skip {user.get('name')}: no birth data")
                     continue
                 
-                # Fix timezone
-                tz_str = user.get("timezone")
-                if not tz_str:
-                    loc = user.get("birth_location", {})
-                    country = (loc.get("country") or "").lower()
-                    if "malaysia" in country:
-                        tz_str = "Asia/Kuala_Lumpur"
-                        await db.users.update_one({"_id": user["_id"]}, {"$set": {"timezone": tz_str}})
-                
-                if not tz_str:
-                    tz_str = "+08:00"
+                tz_str = user.get("timezone") or "+08:00"
                 
                 # Parse date
                 bd_str = str(birth_date).split(" ")[0]
                 parts = bd_str.split("-")
                 year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
                 
-                # Parse time (handle AM/PM)
+                # Parse time
                 time_s = str(birth_time).strip().lower()
                 is_pm = "pm" in time_s
                 is_am = "am" in time_s
@@ -26153,49 +26192,64 @@ async def fix_deployed_data():
                 
                 # Build datetime
                 try:
-                    if tz_str.startswith("+") or tz_str.startswith("-"):
+                    if tz_str.startswith(("+", "-")):
                         sign = 1 if tz_str.startswith("+") else -1
-                        tz_p = tz_str.replace("+","").replace("-","").split(":")
+                        tz_p = tz_str.lstrip("+-").split(":")
                         offset = dt_timezone(timedelta(hours=sign*int(tz_p[0]), minutes=sign*(int(tz_p[1]) if len(tz_p)>1 else 0)))
                         birth_dt = datetime(year, month, day, hour, minute, tzinfo=offset)
                     else:
                         tz = pytz.timezone(tz_str)
                         birth_dt = tz.localize(datetime(year, month, day, hour, minute))
-                except:
+                except Exception:
                     birth_dt = datetime(year, month, day, hour, minute)
                 
-                lat = (user.get("birth_location") or {}).get("latitude") or user.get("latitude") or 0.0
-                lon = (user.get("birth_location") or {}).get("longitude") or user.get("longitude") or 0.0
+                lat = float((user.get("birth_location") or {}).get("latitude") or user.get("latitude") or 0)
+                lon = float((user.get("birth_location") or {}).get("longitude") or user.get("longitude") or 0)
                 
-                # Recompute astrology
-                astro_chart = None
-                try:
-                    astro_chart = get_full_natal_chart(birth_dt, float(lat), float(lon))
-                except Exception as e:
-                    results["errors"].append(f"Astro fail {user.get('name')}: {str(e)[:60]}")
+                update = {}
                 
-                # Recompute BaZi
-                bazi_chart = None
-                try:
-                    bazi_chart = compute_bazi_chart(f"{year}-{month:02d}-{day:02d}", f"{hour:02d}:{minute:02d}", tz_str)
-                except Exception as e:
-                    results["errors"].append(f"BaZi fail {user.get('name')}: {str(e)[:60]}")
+                # Recompute astrology if SVP wrong
+                if svp != 31.2836:
+                    try:
+                        astro = get_full_natal_chart(birth_dt, lat, lon)
+                        if astro:
+                            update["astrology"] = astro
+                    except Exception as e:
+                        results["errors"].append(f"Astro {user.get('name')}: {str(e)[:50]}")
                 
-                update = {"debug_stamp": {"sidereal_settings_used": {"svp_degrees": 31.2836, "reference_year": 2000, "yearly_increment": 0.0}, "computed_at_iso": datetime.utcnow().isoformat(), "migration": "manual_fix"}}
-                if astro_chart: update["astrology"] = astro_chart
-                if bazi_chart: update["bazi"] = bazi_chart
+                # Compute BaZi if missing
+                if not has_bazi:
+                    try:
+                        bazi = compute_bazi_chart(f"{year}-{month:02d}-{day:02d}", f"{hour:02d}:{minute:02d}", tz_str)
+                        if bazi:
+                            update["bazi"] = bazi
+                    except Exception as e:
+                        results["errors"].append(f"BaZi {user.get('name')}: {str(e)[:50]}")
+                
+                update["debug_stamp"] = {
+                    "sidereal_settings_used": {"svp_degrees": 31.2836, "reference_year": 2000, "yearly_increment": 0.0},
+                    "computed_at_iso": datetime.utcnow().isoformat(),
+                    "migration": "manual_fix_v3",
+                }
                 
                 await db.charts.update_one({"user_id": user_id}, {"$set": update})
                 charts_fixed += 1
-                results["fixes"].append(f"Recomputed chart: {user.get('name')} (astro={'✓' if astro_chart else '✗'}, bazi={'✓' if bazi_chart else '✗'})")
+                results["fixes"].append(f"Fixed chart: {user.get('name')} (svp={'fix' if svp!=31.2836 else 'ok'}, bazi={'add' if not has_bazi else 'ok'})")
                 
             except Exception as e:
-                results["errors"].append(f"Error {user_id}: {str(e)[:80]}")
+                results["errors"].append(f"Chart {user_id}: {str(e)[:60]}")
         
-        results["fixes"].append(f"Charts: {charts_fixed} fixed, {charts_skipped} already correct")
+        results["summary"] = {
+            "charts_fixed": charts_fixed,
+            "charts_already_ok": charts_ok,
+            "total_fixes": len(results["fixes"]),
+            "total_errors": len(results["errors"]),
+        }
         
     except Exception as e:
-        results["errors"].append(f"Migration error: {str(e)}")
+        import traceback
+        results["errors"].append(f"Fatal: {str(e)}")
+        results["traceback"] = traceback.format_exc()
     
     return JSONResponse(content=results, headers={"Cache-Control": "no-store"})
 
