@@ -1306,13 +1306,12 @@ export const getForumMemberMappings = async (
   forumId: string,
   userId: string
 ): Promise<ForumMemberMappingsResponse> => {
-  // Use POST /journal with get_mappings to bypass CDN GET caching
-  // Add cache-buster timestamp to force fresh response even if CDN caches POST
-  const response = await apiWithRetry.post('/journal', {
-    get_mappings: true,
+  // Use a unique URL path with cache-buster to completely bypass CDN edge caching
+  // Cloudflare caches by URL+method, so changing the URL path forces fresh fetch
+  const cacheBuster = Date.now();
+  const response = await apiWithRetry.post(`/forum-mappings?_cb=${cacheBuster}`, {
     forum_id: forumId,
     user_id: userId,
-    _t: Date.now(),
   });
   return response.data;
 };
