@@ -26064,6 +26064,142 @@ async def delete_forum(forum_id: str, user_id: str):
 
 
 
+
+# =====================================================
+# MANUAL DATA FIX ENDPOINT — call from browser to fix deployed DB
+# Visit: https://mirror-lens-fixes.emergent.host/api/fix-deployed-data
+# =====================================================
+@api_router.get("/fix-deployed-data")
+async def fix_deployed_data():
+    """
+    Manual trigger for data migrations. Call this from browser after deployment
+    to fix database state (names, charts, ayanamsa, etc.)
+    """
+    results = {"fixes": [], "errors": []}
+    
+    try:
+        from bson import ObjectId
+        from calculations.astrology import get_full_natal_chart
+        from services.bazi_engine import compute_bazi_chart
+        from datetime import datetime, timedelta, timezone as dt_timezone
+        import pytz
+        
+        # 1. Fix Mel's name
+        mel = await db.users.find_one({"email": "mel@test.com"})
+        if mel:
+            old_name = mel.get("name")
+            if old_name != "Mel":
+                await db.users.update_one({"_id": mel["_id"]}, {"$set": {"name": "Mel"}})
+                results["fixes"].append(f"Fixed name: {old_name} → Mel")
+            else:
+                results["fixes"].append("Mel name already correct")
+            
+            # Fix timezone if missing
+            if not mel.get("timezone"):
+                await db.users.update_one({"_id": mel["_id"]}, {"$set": {"timezone": "Asia/Kuala_Lumpur"}})
+                results["fixes"].append("Set Mel timezone to Asia/Kuala_Lumpur")
+        
+        # 2. Recompute charts with wrong ayanamsa
+        charts_fixed = 0
+        charts_skipped = 0
+        async for chart in db.charts.find():
+            ds = chart.get("debug_stamp", {})
+            sid = ds.get("sidereal_settings_used", {}) if ds else {}
+            svp = sid.get("svp_degrees") if sid else None
+            
+            if svp == 31.2836:
+                charts_skipped += 1
+                continue
+            
+            user_id = chart.get("user_id")
+            try:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+                if not user:
+                    continue
+                
+                birth_date = user.get("birth_date")
+                birth_time = user.get("birth_time")
+                if not birth_date or not birth_time:
+                    results["errors"].append(f"Skip {user.get('name')}: no birth data")
+                    continue
+                
+                # Fix timezone
+                tz_str = user.get("timezone")
+                if not tz_str:
+                    loc = user.get("birth_location", {})
+                    country = (loc.get("country") or "").lower()
+                    if "malaysia" in country:
+                        tz_str = "Asia/Kuala_Lumpur"
+                        await db.users.update_one({"_id": user["_id"]}, {"$set": {"timezone": tz_str}})
+                
+                if not tz_str:
+                    tz_str = "+08:00"
+                
+                # Parse date
+                bd_str = str(birth_date).split(" ")[0]
+                parts = bd_str.split("-")
+                year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+                
+                # Parse time (handle AM/PM)
+                time_s = str(birth_time).strip().lower()
+                is_pm = "pm" in time_s
+                is_am = "am" in time_s
+                time_s = time_s.replace("am", "").replace("pm", "").strip()
+                tp = time_s.split(":")
+                hour = int(tp[0])
+                minute = int(tp[1]) if len(tp) > 1 else 0
+                if is_pm and hour < 12: hour += 12
+                if is_am and hour == 12: hour = 0
+                
+                # Build datetime
+                try:
+                    if tz_str.startswith("+") or tz_str.startswith("-"):
+                        sign = 1 if tz_str.startswith("+") else -1
+                        tz_p = tz_str.replace("+","").replace("-","").split(":")
+                        offset = dt_timezone(timedelta(hours=sign*int(tz_p[0]), minutes=sign*(int(tz_p[1]) if len(tz_p)>1 else 0)))
+                        birth_dt = datetime(year, month, day, hour, minute, tzinfo=offset)
+                    else:
+                        tz = pytz.timezone(tz_str)
+                        birth_dt = tz.localize(datetime(year, month, day, hour, minute))
+                except:
+                    birth_dt = datetime(year, month, day, hour, minute)
+                
+                lat = (user.get("birth_location") or {}).get("latitude") or user.get("latitude") or 0.0
+                lon = (user.get("birth_location") or {}).get("longitude") or user.get("longitude") or 0.0
+                
+                # Recompute astrology
+                astro_chart = None
+                try:
+                    astro_chart = get_full_natal_chart(birth_dt, float(lat), float(lon))
+                except Exception as e:
+                    results["errors"].append(f"Astro fail {user.get('name')}: {str(e)[:60]}")
+                
+                # Recompute BaZi
+                bazi_chart = None
+                try:
+                    bazi_chart = compute_bazi_chart(f"{year}-{month:02d}-{day:02d}", f"{hour:02d}:{minute:02d}", tz_str)
+                except Exception as e:
+                    results["errors"].append(f"BaZi fail {user.get('name')}: {str(e)[:60]}")
+                
+                update = {"debug_stamp": {"sidereal_settings_used": {"svp_degrees": 31.2836, "reference_year": 2000, "yearly_increment": 0.0}, "computed_at_iso": datetime.utcnow().isoformat(), "migration": "manual_fix"}}
+                if astro_chart: update["astrology"] = astro_chart
+                if bazi_chart: update["bazi"] = bazi_chart
+                
+                await db.charts.update_one({"user_id": user_id}, {"$set": update})
+                charts_fixed += 1
+                results["fixes"].append(f"Recomputed chart: {user.get('name')} (astro={'✓' if astro_chart else '✗'}, bazi={'✓' if bazi_chart else '✗'})")
+                
+            except Exception as e:
+                results["errors"].append(f"Error {user_id}: {str(e)[:80]}")
+        
+        results["fixes"].append(f"Charts: {charts_fixed} fixed, {charts_skipped} already correct")
+        
+    except Exception as e:
+        results["errors"].append(f"Migration error: {str(e)}")
+    
+    return JSONResponse(content=results, headers={"Cache-Control": "no-store"})
+
+
 # =====================================================
 # DEDICATED FORUM MAPPINGS ENDPOINT
 # New endpoint to bypass CDN cache on old POST /journal path
