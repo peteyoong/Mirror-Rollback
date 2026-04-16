@@ -26111,8 +26111,25 @@ async def fix_deployed_data():
         else:
             results["errors"].append("Pete user not found (pete@pulsifi.me)")
         
-        # Fix Mel
+        # Fix Mel - search by multiple methods since email may differ
         mel = await db.users.find_one({"email": "mel@test.com"})
+        if not mel:
+            mel = await db.users.find_one({"name": "Melissa"})
+        if not mel:
+            mel = await db.users.find_one({"name": "Mel"})
+        if not mel:
+            # Try finding by forum membership with Pete
+            if pete:
+                pete_forums = await db.forum_members.find({"user_id": str(pete["_id"])}).to_list(10)
+                for fm in pete_forums:
+                    other_members = await db.forum_members.find({"forum_id": fm["forum_id"], "user_id": {"$ne": str(pete["_id"])}}).to_list(10)
+                    for om in other_members:
+                        candidate = await db.users.find_one({"_id": ObjectId(om["user_id"])})
+                        if candidate and candidate.get("name", "").lower() in ["mel", "melissa"]:
+                            mel = candidate
+                            break
+                    if mel:
+                        break
         if mel:
             mel_updates = {}
             old_name = mel.get("name", "")
