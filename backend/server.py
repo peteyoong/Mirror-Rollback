@@ -7183,6 +7183,11 @@ async def mirror_chat(request: MirrorChatRequest):
                         if planet:
                             context_parts.append(f"{planet_name}: {planet.get('formatted', 'Unknown')}")
                     
+                    # DEBUG: Log Neptune source for data integrity verification
+                    neptune_data = planets.get('Neptune', {})
+                    svp_used = chart.get('debug_stamp', {}).get('sidereal_settings_used', {}).get('svp_degrees', 'unknown')
+                    logger.info(f"[MIRROR_CHAT] Neptune source=stored_chart, sign={neptune_data.get('sign')}, degree={neptune_data.get('degree', 0):.2f}, lon={neptune_data.get('longitude', 0):.2f}, SVP={svp_used}")
+                    
                     # Add Lunar Nodes - CRITICAL for complete astrology readings
                     nodes = astro.get('nodes', {})
                     north_node = nodes.get('north', {})
