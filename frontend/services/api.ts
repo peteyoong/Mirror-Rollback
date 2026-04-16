@@ -1307,10 +1307,12 @@ export const getForumMemberMappings = async (
   userId: string
 ): Promise<ForumMemberMappingsResponse> => {
   // Use POST /journal with get_mappings to bypass CDN GET caching
+  // Add cache-buster timestamp to force fresh response even if CDN caches POST
   const response = await apiWithRetry.post('/journal', {
     get_mappings: true,
     forum_id: forumId,
     user_id: userId,
+    _t: Date.now(),
   });
   return response.data;
 };

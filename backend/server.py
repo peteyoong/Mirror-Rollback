@@ -31501,9 +31501,16 @@ from starlette.middleware.base import BaseHTTPMiddleware
 class NoCacheAPIMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         response = await call_next(request)
+        path = request.url.path
         # Add no-cache headers to all /api/ responses
-        if request.url.path.startswith("/api"):
+        if path.startswith("/api"):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["CDN-Cache-Control"] = "no-store"
+            response.headers["Surrogate-Control"] = "no-store"
+        # Also prevent caching of HTML pages (SPA entry points)
+        elif path == "/" or (not path.startswith("/_expo") and not path.startswith("/assets") and "." not in path.split("/")[-1]):
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
             response.headers["CDN-Cache-Control"] = "no-store"
             response.headers["Surrogate-Control"] = "no-store"
