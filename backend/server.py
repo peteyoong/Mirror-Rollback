@@ -31741,12 +31741,11 @@ async def startup():
     
     # =========================================================================
     # DATA MIGRATION: Fix charts with wrong ayanamsa + ensure data integrity
+    # Runs in background to avoid blocking startup
     # =========================================================================
-    logger.info("[Startup] Running data migration checks...")
-    try:
-        await run_startup_data_migrations()
-    except Exception as e:
-        logger.error(f"[Startup] Data migration error: {e}", exc_info=True)
+    logger.info("[Startup] Data migrations will run in background...")
+    import asyncio
+    asyncio.ensure_future(_safe_run_migrations())
     
     # Initialize Enneagram Knowledge Base
     pdf_path = os.environ.get('ENNEAGRAM_PDF_PATH', '/app/backend/data/JOH_Book_1.pdf')
@@ -31755,6 +31754,17 @@ async def startup():
         logger.info("[Startup] Enneagram Knowledge Base initialized successfully")
     else:
         logger.warning("[Startup] Enneagram Knowledge Base not available (PDF missing or error)")
+
+
+async def _safe_run_migrations():
+    """Run migrations safely in background - never crash the server"""
+    import asyncio as _asyncio
+    try:
+        await _asyncio.sleep(2)  # Wait for server to fully start
+        logger.info("[Migration] Starting background data migrations...")
+        await run_startup_data_migrations()
+    except Exception as e:
+        logger.error(f"[Migration] Background migration failed (non-fatal): {e}")
 
 
 async def run_startup_data_migrations():
