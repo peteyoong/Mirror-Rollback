@@ -1,6 +1,8 @@
 from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Form, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.responses import Response as StarletteResponse
+from starlette.types import Scope
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -4383,7 +4385,7 @@ async def create_journal_entry(request: Request):
             logger.error(f"JournalLogin error: {e}")
             return JSONResponse(content={"success": False, "error": str(e)}, status_code=500)
     
-    # MEMBER MAPPINGS MODE: if body contains get_mappings
+    # MEMBER MAPPINGS MODE: if body contains get_mappings (legacy path)
     if body.get("get_mappings"):
         try:
             from services.forum_hd_mapping import get_forum_member_mappings
@@ -26045,6 +26047,41 @@ async def delete_forum(forum_id: str, user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+# =====================================================
+# DEDICATED FORUM MAPPINGS ENDPOINT
+# New endpoint to bypass CDN cache on old POST /journal path
+# =====================================================
+@api_router.post("/forum-mappings")
+async def get_forum_mappings_dedicated(request: Request):
+    """
+    Dedicated endpoint for forum member mappings.
+    Bypasses CDN caching that affected the old POST /journal path.
+    """
+    try:
+        body = await request.json()
+        from services.forum_hd_mapping import get_forum_member_mappings
+        forum_id = body.get("forum_id", "")
+        user_id = body.get("user_id", "")
+        mappings = await get_forum_member_mappings(db, forum_id, user_id)
+        return JSONResponse(
+            content={"success": True, "mappings": mappings, "current_user_id": user_id},
+            headers={
+                "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+                "CDN-Cache-Control": "no-store",
+                "Cloudflare-CDN-Cache-Control": "no-store",
+                "Pragma": "no-cache",
+            }
+        )
+    except Exception as e:
+        logger.error(f"[ForumMappings] Error: {e}", exc_info=True)
+        return JSONResponse(
+            content={"success": True, "mappings": [], "error": str(e)},
+            headers={"Cache-Control": "no-store, max-age=0"}
+        )
+
+
+
 @api_router.get("/forums/user/{user_id}")
 async def get_user_forums(user_id: str):
     """
@@ -31411,13 +31448,26 @@ app.include_router(api_router)
 if ACTUAL_WEB_BUILD_PATH:
     logger.info(f"[Startup] Serving web build from {ACTUAL_WEB_BUILD_PATH}")
     
-    # Mount static assets
+    # Custom StaticFiles that adds no-cache headers to JS/CSS to prevent CDN caching
+    class NoCacheStaticFiles(StaticFiles):
+        async def get_response(self, path: str, scope: Scope) -> StarletteResponse:
+            response = await super().get_response(path, scope)
+            # Force CDN revalidation for JS/CSS to prevent stale bundles
+            if path.lower().endswith(('.js', '.css', '.html')):
+                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+                response.headers["CDN-Cache-Control"] = "no-store"
+                response.headers["Cloudflare-CDN-Cache-Control"] = "no-store"
+                response.headers["Surrogate-Control"] = "no-store"
+                response.headers["Pragma"] = "no-cache"
+            return response
+    
+    # Mount static assets with no-cache for JS/CSS
     if (ACTUAL_WEB_BUILD_PATH / "_expo").exists():
-        app.mount("/_expo", StaticFiles(directory=str(ACTUAL_WEB_BUILD_PATH / "_expo")), name="expo_static")
+        app.mount("/_expo", NoCacheStaticFiles(directory=str(ACTUAL_WEB_BUILD_PATH / "_expo")), name="expo_static")
     
     # Mount assets folder if it exists
     if (ACTUAL_WEB_BUILD_PATH / "assets").exists():
-        app.mount("/assets", StaticFiles(directory=str(ACTUAL_WEB_BUILD_PATH / "assets")), name="assets")
+        app.mount("/assets", NoCacheStaticFiles(directory=str(ACTUAL_WEB_BUILD_PATH / "assets")), name="assets")
     
     # Serve index.html for root - NO CACHE to prevent stale deploys
     @app.get("/")
