@@ -31603,6 +31603,15 @@ async def startup():
     except Exception as e:
         logger.warning(f"[Startup] Could not clear cache: {e}")
     
+    # =========================================================================
+    # DATA MIGRATION: Fix charts with wrong ayanamsa + ensure data integrity
+    # =========================================================================
+    logger.info("[Startup] Running data migration checks...")
+    try:
+        await run_startup_data_migrations()
+    except Exception as e:
+        logger.error(f"[Startup] Data migration error: {e}", exc_info=True)
+    
     # Initialize Enneagram Knowledge Base
     pdf_path = os.environ.get('ENNEAGRAM_PDF_PATH', '/app/backend/data/JOH_Book_1.pdf')
     kb_ready = initialize_knowledge_base(pdf_path)
@@ -31610,6 +31619,159 @@ async def startup():
         logger.info("[Startup] Enneagram Knowledge Base initialized successfully")
     else:
         logger.warning("[Startup] Enneagram Knowledge Base not available (PDF missing or error)")
+
+
+async def run_startup_data_migrations():
+    """
+    Auto-fix database state on startup to ensure deployed versions have correct data.
+    This handles cases where the deployed DB snapshot is from an earlier state.
+    """
+    from bson import ObjectId
+    
+    # --- Migration 1: Recompute charts missing SVP True Sidereal ---
+    charts_cursor = db.charts.find({})
+    charts_needing_recompute = []
+    async for chart in charts_cursor:
+        debug_stamp = chart.get("debug_stamp", {})
+        sid_settings = debug_stamp.get("sidereal_settings_used", {}) if debug_stamp else {}
+        svp_used = sid_settings.get("svp_degrees") if sid_settings else None
+        
+        if svp_used != 31.2836:
+            user_id = chart.get("user_id")
+            charts_needing_recompute.append(user_id)
+    
+    if charts_needing_recompute:
+        logger.info(f"[Migration] Found {len(charts_needing_recompute)} charts needing SVP recomputation")
+        for user_id in charts_needing_recompute:
+            try:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+                if not user:
+                    continue
+                
+                birth_date = user.get("birth_date")
+                birth_time = user.get("birth_time")
+                if not birth_date or not birth_time:
+                    continue
+                
+                # Ensure timezone is set
+                if not user.get("timezone"):
+                    city = (user.get("birth_location") or {}).get("city", "")
+                    country = (user.get("birth_location") or {}).get("country", "")
+                    if "malaysia" in country.lower() or city.lower() in ["kuala lumpur", "melaka", "penang"]:
+                        await db.users.update_one({"_id": user["_id"]}, {"$set": {"timezone": "Asia/Kuala_Lumpur"}})
+                        user["timezone"] = "Asia/Kuala_Lumpur"
+                
+                # Recompute chart via the existing calculation logic
+                from calculations.astrology import get_full_natal_chart
+                from services.bazi_engine import compute_bazi_chart
+                
+                birth_dt_str = str(birth_date).split(" ")[0] if birth_date else None
+                if not birth_dt_str:
+                    continue
+                
+                tz_str = user.get("timezone", "+08:00")
+                lat = (user.get("birth_location") or {}).get("latitude") or user.get("latitude")
+                lon = (user.get("birth_location") or {}).get("longitude") or user.get("longitude")
+                
+                # Parse birth datetime
+                from datetime import datetime
+                import pytz
+                
+                try:
+                    parts = birth_dt_str.split("-")
+                    year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+                    # Handle various time formats: "01:25", "1:25am", "13:25"
+                    time_str = str(birth_time).strip().lower()
+                    is_pm = "pm" in time_str
+                    is_am = "am" in time_str
+                    time_str = time_str.replace("am", "").replace("pm", "").strip()
+                    time_parts = time_str.split(":")
+                    hour = int(time_parts[0])
+                    minute = int(time_parts[1]) if len(time_parts) > 1 else 0
+                    if is_pm and hour < 12:
+                        hour += 12
+                    if is_am and hour == 12:
+                        hour = 0
+                except (ValueError, IndexError):
+                    continue
+                
+                # Build birth datetime for astrology
+                try:
+                    if tz_str and tz_str.startswith("+") or tz_str.startswith("-"):
+                        # Offset string like "+08:00"
+                        from datetime import timedelta, timezone as dt_timezone
+                        sign = 1 if tz_str.startswith("+") else -1
+                        tz_parts = tz_str.replace("+","").replace("-","").split(":")
+                        tz_hours = int(tz_parts[0])
+                        tz_mins = int(tz_parts[1]) if len(tz_parts) > 1 else 0
+                        offset = dt_timezone(timedelta(hours=sign * tz_hours, minutes=sign * tz_mins))
+                        birth_dt = datetime(year, month, day, hour, minute, tzinfo=offset)
+                    else:
+                        # Named timezone
+                        tz = pytz.timezone(tz_str)
+                        birth_dt = tz.localize(datetime(year, month, day, hour, minute))
+                except Exception:
+                    birth_dt = datetime(year, month, day, hour, minute)
+                
+                # Compute astrology chart with correct SVP
+                try:
+                    astro_chart = get_full_natal_chart(birth_dt, lat or 0.0, lon or 0.0)
+                except Exception as e:
+                    logger.warning(f"[Migration] Astro recompute failed for {user_id}: {e}")
+                    astro_chart = None
+                
+                # Compute BaZi chart
+                try:
+                    birth_date_str = f"{year}-{month:02d}-{day:02d}"
+                    birth_time_str = f"{hour:02d}:{minute:02d}"
+                    bazi_chart = compute_bazi_chart(birth_date_str, birth_time_str, tz_str)
+                except Exception as e:
+                    logger.warning(f"[Migration] BaZi compute failed for {user_id}: {e}")
+                    bazi_chart = None
+                
+                # Update chart
+                update_fields = {
+                    "debug_stamp": {
+                        "sidereal_settings_used": {"svp_degrees": 31.2836, "reference_year": 2000, "yearly_increment": 0.0},
+                        "computed_at_iso": datetime.utcnow().isoformat(),
+                        "migration": "startup_svp_fix",
+                    }
+                }
+                if astro_chart:
+                    update_fields["astrology"] = astro_chart
+                if bazi_chart:
+                    update_fields["bazi"] = bazi_chart
+                
+                await db.charts.update_one(
+                    {"user_id": user_id},
+                    {"$set": update_fields}
+                )
+                logger.info(f"[Migration] Recomputed chart for user {user.get('name', user_id)}: SVP=31.2836, astro={'YES' if astro_chart else 'NO'}, bazi={'YES' if bazi_chart else 'NO'}")
+                
+            except Exception as e:
+                logger.error(f"[Migration] Chart recompute error for {user_id}: {e}")
+    else:
+        logger.info("[Migration] All charts have correct SVP ayanamsa ✓")
+    
+    # --- Migration 2: Fix known user data issues ---
+    # Fix Mel's name if still "Melissa"
+    mel = await db.users.find_one({"email": "mel@test.com"})
+    if mel and mel.get("name") == "Melissa":
+        await db.users.update_one({"_id": mel["_id"]}, {"$set": {"name": "Mel"}})
+        logger.info("[Migration] Fixed Mel's name: Melissa → Mel")
+    
+    # Ensure timezone is set for Malaysian users
+    async for user in db.users.find({"timezone": None}):
+        loc = user.get("birth_location", {})
+        country = (loc.get("country") or "").lower()
+        if "malaysia" in country:
+            await db.users.update_one(
+                {"_id": user["_id"]},
+                {"$set": {"timezone": "Asia/Kuala_Lumpur"}}
+            )
+            logger.info(f"[Migration] Set timezone for {user.get('name')}: Asia/Kuala_Lumpur")
+    
+    logger.info("[Migration] Startup data migrations complete ✓")
 
 
 @app.on_event("shutdown")
