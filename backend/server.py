@@ -26068,8 +26068,8 @@ async def fix_deployed_data():
         KNOWN_USERS = [
             {"emails": ["pete@pulsifi.me"], "names": ["Pete"], "enneagram": PETE_ENNEAGRAM},
             {"emails": ["mel@test.com"], "names": ["Mel", "Melissa"], "enneagram": MEL_ENNEAGRAM, "fix_name": "Mel", "fix_gender": "female", "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Melaka", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501}},
-            {"emails": ["thaddeus.yoong@test.com"], "names": ["Thaddeus Yoong", "Thaddy", "Thaddeus"], "enneagram": THADDY_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Kuala Lumpur", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}},
-            {"emails": ["isaac.yoong@test.com"], "names": ["Isaac Yoong", "Isaac"], "enneagram": ISAAC_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Kuala Lumpur", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}},
+            {"emails": ["thaddeus.yoong@test.com"], "names": ["Thaddeus Yoong", "Thaddy", "Thaddeus"], "enneagram": THADDY_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}},
+            {"emails": ["isaac.yoong@test.com"], "names": ["Isaac Yoong", "Isaac"], "enneagram": ISAAC_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}},
         ]
         
         # Process all known users
@@ -26116,16 +26116,23 @@ async def fix_deployed_data():
                 updates["timezone"] = known["fix_timezone"]
                 results["fixes"].append(f"Set {user_name} timezone: {known['fix_timezone']}")
             
-            # Fix birth_location if specified and missing lat/lon
+            # Fix birth_location if specified — ALWAYS correct wrong city names
             if known.get("fix_location"):
                 loc = user.get("birth_location", {})
+                current_city = (loc.get("city") or "").lower()
+                correct_city = known["fix_location"]["city"].lower()
                 has_lat = loc.get("latitude") or user.get("latitude")
                 has_lon = loc.get("longitude") or user.get("longitude")
-                if not has_lat or not has_lon:
+                
+                # Overwrite if city is wrong OR lat/lon missing
+                if current_city != correct_city or not has_lat or not has_lon:
                     updates["birth_location"] = known["fix_location"]
                     updates["latitude"] = known["fix_location"]["latitude"]
                     updates["longitude"] = known["fix_location"]["longitude"]
-                    results["fixes"].append(f"Set {user_name} birth_location: {known['fix_location']['city']}")
+                    if current_city and current_city != correct_city:
+                        results["fixes"].append(f"Corrected {user_name} birth_location: {loc.get('city','?')} → {known['fix_location']['city']}")
+                    else:
+                        results["fixes"].append(f"Set {user_name} birth_location: {known['fix_location']['city']}")
             
             if updates:
                 await db.users.update_one({"_id": user["_id"]}, {"$set": updates})
