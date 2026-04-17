@@ -546,6 +546,7 @@ def compute_enneagram_signals(
     core_b = enn_b.get("inferred_core")
     
     if not core_a or not core_b:
+        logger.debug(f"[Enneagram] Missing: A={core_a}, B={core_b}")
         return None
     
     try:
@@ -553,6 +554,9 @@ def compute_enneagram_signals(
         core_b = int(core_b)
     except (ValueError, TypeError):
         return None
+    
+    wing_a = enn_a.get("inferred_wing")
+    wing_b = enn_b.get("inferred_wing")
     
     rel_a = ENNEAGRAM_RELATIONAL.get(core_a, {})
     rel_b = ENNEAGRAM_RELATIONAL.get(core_b, {})
@@ -585,11 +589,41 @@ def compute_enneagram_signals(
         fear = rel_a.get("core_fear", "the same thing")
         friction_pattern.append(f"Two {core_a}s share the same blind spot. You both fear {fear} — so neither of you catches it when the pattern activates.")
     
-    return {
-        "how_you_help_them": how_you_help_them[:2],
-        "how_they_help_you": how_they_help_you[:2],
-        "friction_pattern": friction_pattern[:1],
-    }
+    # FALLBACK: If relational data is sparse, generate from core type descriptions
+    if not how_you_help_them and not how_they_help_you:
+        # Use center-based interaction
+        center_a = enn_a.get("enneagram_computed_details", {}).get("center", "")
+        center_b = enn_b.get("enneagram_computed_details", {}).get("center", "")
+        
+        center_gifts = {
+            ("head", "heart"): (f"Your thinking helps {name_b} step back from emotional reactivity", f"{name_b}'s emotional awareness shows you what logic misses"),
+            ("head", "gut"): (f"Your analysis gives {name_b}'s instincts a framework", f"{name_b}'s decisiveness cuts through your overthinking"),
+            ("heart", "gut"): (f"Your emotional intelligence softens {name_b}'s directness", f"{name_b}'s groundedness helps you stop performing"),
+            ("heart", "head"): (f"Your warmth makes {name_b} feel safe enough to think out loud", f"{name_b}'s clarity helps you see past emotion"),
+            ("gut", "head"): (f"Your decisiveness helps {name_b} stop analyzing and start moving", f"{name_b}'s perspective shows you options you'd skip"),
+            ("gut", "heart"): (f"Your strength gives {name_b} permission to be vulnerable", f"{name_b}'s empathy reveals what you're actually feeling"),
+        }
+        
+        pair_key = (center_a, center_b)
+        if pair_key in center_gifts:
+            how_you_help_them.append(center_gifts[pair_key][0])
+            how_they_help_you.append(center_gifts[pair_key][1])
+        elif center_a and center_b:
+            how_you_help_them.append(f"As a Type {core_a}, you bring {rel_a.get('core_desire', 'a different perspective')} into this dynamic")
+            how_they_help_you.append(f"As a Type {core_b}, {name_b} brings {rel_b.get('core_desire', 'a complementary lens')} into this dynamic")
+    
+    # Always return something if we have core types
+    result = {}
+    if how_you_help_them: result["how_you_help_them"] = how_you_help_them[:2]
+    if how_they_help_you: result["how_they_help_you"] = how_they_help_you[:2]
+    if friction_pattern: result["friction_pattern"] = friction_pattern[:1]
+    
+    # If result is totally empty but we have types, add a baseline
+    if not result:
+        result["how_you_help_them"] = [f"Type {core_a} and Type {core_b} see the world from different centers — this creates a natural complementarity"]
+        result["how_they_help_you"] = [f"{name_b}'s Type {core_b} perspective balances what your Type {core_a} tends to overlook"]
+    
+    return result
 
 
 # =============================================================================
@@ -634,45 +668,116 @@ def compute_bazi_signals(
     tension_list = []
     growth = []
     
-    # A produces B (A nourishes B's element)
+    # === DAY MASTER NATURE INTERACTION ===
+    kw_a = dm_a.get("keywords", [])
+    kw_b = dm_b.get("keywords", [])
+    desc_a = dm_a.get("description", "")
+    desc_b = dm_b.get("description", "")
+    
+    if kw_a and kw_b:
+        support.append(f"Your core nature is {', '.join(kw_a[:2])} ({el_a}) — {name_b}'s is {', '.join(kw_b[:2])} ({el_b})")
+    
+    # === ELEMENT CYCLE DYNAMICS ===
+    # A produces B
     if BAZI_ELEMENT_CYCLE.get(el_a) == el_b:
-        support.append(f"You tend to bring structure and direction when {name_b} is more fluid or uncertain — your energy naturally feeds what she needs to move forward")
-        growth.append(f"This nourishing direction works best when acknowledged — otherwise you may feel like you're giving more than you're receiving")
+        support.append(f"Your {el_a} energy naturally nourishes {name_b}'s {el_b} — you feed what they need to grow")
+        growth.append(f"This works best when acknowledged — otherwise you may feel like you're giving more than you're receiving")
     
     # B produces A
     if BAZI_ELEMENT_CYCLE.get(el_b) == el_a:
-        support.append(f"{name_b} stabilizes something in you that tends to scatter — her presence gives your energy somewhere to land")
+        support.append(f"{name_b}'s {el_b} energy stabilizes your {el_a} — their presence gives your energy somewhere to land")
     
     # A controls B
     if BAZI_CONTROL_CYCLE.get(el_a) == el_b:
-        tension_list.append(f"Your natural way of being can feel restraining to {name_b} — what you experience as helpful, she may experience as limiting")
-        growth.append(f"This dynamic pushes {name_b} to build resilience — but only works if the pressure is conscious, not automatic")
+        tension_list.append(f"Your {el_a} naturally restrains {name_b}'s {el_b} — what you see as helpful, they may feel as limiting")
+        growth.append(f"This pushes {name_b} to build resilience — but only works when the pressure is conscious")
     
     # B controls A
     if BAZI_CONTROL_CYCLE.get(el_b) == el_a:
-        tension_list.append(f"{name_b}'s energy can check yours in ways that feel frustrating — she holds you to a different standard than you'd choose")
+        tension_list.append(f"{name_b}'s {el_b} energy checks your {el_a} — they hold you to a standard you wouldn't choose for yourself")
     
     # Same element
     if el_a == el_b:
-        support.append(f"You process energy the same way — there's an ease in how you both approach decisions, conflict, and rest")
+        support.append(f"You process energy the same way — there's an ease in how you both approach decisions and conflict")
         if str_a != str_b:
-            growth.append(f"One of you carries this energy more strongly — the quieter one learns to assert, the louder one learns to listen")
+            growth.append(f"One carries this more strongly — the quieter one learns to assert, the louder one learns to listen")
     
-    # Strength dynamics — translated to lived behavior
+    # Strength dynamics
     if str_a == "strong" and str_b == "weak" and el_a != el_b:
-        support.append(f"You tend to anchor things when {name_b} feels ungrounded — your steadiness is something she leans on even if she doesn't name it")
+        support.append(f"You anchor things when {name_b} feels ungrounded — your steadiness is something they lean on")
     elif str_a == "weak" and str_b == "strong" and el_a != el_b:
-        support.append(f"{name_b}'s solidity gives you something to push against without breaking — she holds ground you need")
+        support.append(f"{name_b}'s solidity gives you something to push against without breaking")
     
-    # Quality gate — require at least 1 real signal
-    total = len(support) + len(tension_list) + len(growth)
-    if total < 1:
-        return None
+    # === ANIMAL SIGN INTERACTION ===
+    pillars_a = bazi_a.get("pillars", {})
+    pillars_b = bazi_b.get("pillars", {})
     
+    year_a = pillars_a.get("year", {})
+    year_b = pillars_b.get("year", {})
+    day_a = pillars_a.get("day", {})
+    day_b = pillars_b.get("day", {})
+    
+    animal_a = year_a.get("animal_name", "")
+    animal_b = year_b.get("animal_name", "")
+    animal_emoji_a = year_a.get("animal_emoji", "")
+    animal_emoji_b = year_b.get("animal_emoji", "")
+    
+    day_animal_a = day_a.get("animal_name", "")
+    day_animal_b = day_b.get("animal_name", "")
+    
+    # Chinese zodiac compatibility
+    ZODIAC_CLASHES = {
+        ("Rat", "Horse"), ("Ox", "Goat"), ("Tiger", "Monkey"),
+        ("Rabbit", "Rooster"), ("Dragon", "Dog"), ("Snake", "Pig"),
+    }
+    ZODIAC_HARMONY = {
+        ("Rat", "Dragon"), ("Rat", "Monkey"),
+        ("Ox", "Snake"), ("Ox", "Rooster"),
+        ("Tiger", "Horse"), ("Tiger", "Dog"),
+        ("Rabbit", "Goat"), ("Rabbit", "Pig"),
+        ("Dragon", "Monkey"), ("Dragon", "Rat"),
+        ("Snake", "Rooster"), ("Snake", "Ox"),
+        ("Horse", "Dog"), ("Horse", "Tiger"),
+        ("Goat", "Pig"), ("Goat", "Rabbit"),
+        ("Monkey", "Rat"), ("Monkey", "Dragon"),
+        ("Rooster", "Ox"), ("Rooster", "Snake"),
+        ("Dog", "Tiger"), ("Dog", "Horse"),
+        ("Pig", "Rabbit"), ("Pig", "Goat"),
+    }
+    
+    if animal_a and animal_b:
+        pair = (animal_a, animal_b)
+        pair_rev = (animal_b, animal_a)
+        
+        if pair in ZODIAC_CLASHES or pair_rev in ZODIAC_CLASHES:
+            tension_list.append(f"{animal_emoji_a} {animal_a} and {animal_emoji_b} {animal_b} clash in Chinese astrology — your social instincts and generational patterns pull in opposing directions")
+        elif pair in ZODIAC_HARMONY or pair_rev in ZODIAC_HARMONY:
+            support.append(f"{animal_emoji_a} {animal_a} and {animal_emoji_b} {animal_b} are natural allies — your generational rhythms harmonize and you intuitively understand each other's timing")
+        elif animal_a == animal_b:
+            support.append(f"Both {animal_emoji_a} {animal_a} — you share the same generational instinct, which creates deep familiarity but also shared blind spots")
+        elif animal_a and animal_b:
+            growth.append(f"{animal_emoji_a} {animal_a} meets {animal_emoji_b} {animal_b} — different generational energies that expand each other's perspective")
+    
+    # Day animal (inner self) interaction
+    if day_animal_a and day_animal_b and day_animal_a != day_animal_b:
+        day_pair = (day_animal_a, day_animal_b)
+        day_pair_rev = (day_animal_b, day_animal_a)
+        if day_pair in ZODIAC_CLASHES or day_pair_rev in ZODIAC_CLASHES:
+            tension_list.append(f"Your inner natures ({day_animal_a} vs {day_animal_b}) create friction in private — how you are at home may clash")
+        elif day_pair in ZODIAC_HARMONY or day_pair_rev in ZODIAC_HARMONY:
+            support.append(f"Your inner natures ({day_animal_a} and {day_animal_b}) flow together — at your core, you get each other")
+    
+    # Always return if we have any data
     result = {}
-    if support: result["support"] = support[:2]
+    if support: result["support"] = support[:3]
     if tension_list: result["tension"] = tension_list[:2]
     if growth: result["growth"] = growth[:2]
+    
+    # Fallback: if we have elements but no signals generated, create baseline
+    if not result and el_a and el_b:
+        result["support"] = [f"Your {el_a} nature and {name_b}'s {el_b} nature create a specific energetic dynamic"]
+        if animal_a and animal_b:
+            result["growth"] = [f"{animal_emoji_a} {animal_a} and {animal_emoji_b} {animal_b} bring different generational perspectives"]
     
     return result if result else None
 
