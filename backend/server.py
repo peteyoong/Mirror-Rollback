@@ -26067,7 +26067,7 @@ async def fix_deployed_data():
         # Define all known users with their enneagram data
         KNOWN_USERS = [
             {"emails": ["pete@pulsifi.me"], "names": ["Pete"], "enneagram": PETE_ENNEAGRAM},
-            {"emails": ["mel@test.com"], "names": ["Mel", "Melissa"], "enneagram": MEL_ENNEAGRAM, "fix_name": "Mel", "fix_gender": "female", "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Melaka", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501}},
+            {"emails": ["mel@test.com", "melissa.mars@gmail.com"], "names": ["Mel", "Melissa", "Melissa Mars"], "enneagram": MEL_ENNEAGRAM, "fix_name": "Mel", "fix_gender": "female", "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Melaka", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501}},
             {"emails": ["thaddeus.yoong@test.com"], "names": ["Thaddeus Yoong", "Thaddy", "Thaddeus"], "enneagram": THADDY_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}},
             {"emails": ["isaac.yoong@test.com"], "names": ["Isaac Yoong", "Isaac"], "enneagram": ISAAC_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}},
         ]
@@ -32015,8 +32015,8 @@ async def run_startup_data_migrations():
                           "source": "inferred"},
         },
         {
-            "emails": ["mel@test.com"],
-            "names": ["Mel", "Melissa"],
+            "emails": ["mel@test.com", "melissa.mars@gmail.com"],
+            "names": ["Mel", "Melissa", "Melissa Mars"],
             "enneagram": {"inferred_core": 3, "inferred_wing": 4, "confidence": 0.85, "confidence_tier": "high",
                           "enneagram_computed_details": {"center": "heart", "hornevian_group": "assertive", "harmonic_group": "competency"},
                           "source": "user_declared"},

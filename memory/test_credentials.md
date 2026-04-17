@@ -7,11 +7,11 @@
 - Notes: User with 45 lifeline events, used for testing Lifeline functionality
 
 ## Mel (Pete's wife)
-- Email: mel@test.com
-- User ID: 697ec826ad4b18f75bf42616
+- Email: mel@test.com (dev) / melissa.mars@gmail.com (production/deployed)
+- User ID: 697ec826ad4b18f75bf42616 (dev) / 69b50ecb2b86cfb90750ec04 (deployed Yoong family forum member as "Melissa ")
 - HD Type: Reflector (3/5)
 - Birth: 13 July 1981, 07:25, Melaka, Malaysia
-- Notes: Verified HD data from Genetic Matrix screenshots
+- Notes: Verified HD data from Genetic Matrix screenshots. Deployed account uses melissa.mars@gmail.com.
 
 ## Isaac Yoong
 - Email: isaac.yoong@test.com
