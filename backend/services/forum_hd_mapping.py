@@ -398,6 +398,18 @@ def compute_astrology_signals(
         if asp in ("conjunction", "trine", "opposition"):
             attraction.append(f"Your drive activates something soft in {name_b} — she opens up in response to your directness, not despite it")
     
+    # ===== MOON-MOON (emotional resonance) =====
+    if moon_a and moon_b:
+        asp = check_aspect(abs_degree(moon_a), abs_degree(moon_b))
+        if asp == "conjunction":
+            attraction.append(f"Your emotional instincts are wired the same way — you react to things at the same speed and in the same register, which creates a wordless understanding")
+        elif asp == "trine":
+            attraction.append(f"You process emotions in compatible ways — what soothes one tends to soothe the other, which makes emotional repair easier")
+        elif asp == "opposition":
+            tension.append(f"Your emotional needs pull in opposite directions — what settles you can unsettle {name_b}, and vice versa")
+        elif asp == "square":
+            tension.append(f"Your emotional rhythms clash — one needs space when the other needs closeness, creating a mismatch that feels personal")
+    
     # ===== MARS-MARS (conflict style) =====
     if mars_a and mars_b:
         asp = check_aspect(abs_degree(mars_a), abs_degree(mars_b))
@@ -429,9 +441,9 @@ def compute_astrology_signals(
         if asp in ("conjunction", "square", "opposition"):
             growth.append(f"{name_b} grounds your ambition in reality — what she reflects back isn't what you want to hear, but it's usually what you need")
     
-    # ===== QUALITY GATE: drop if < 2 total signals =====
+    # ===== QUALITY GATE: require at least 1 real signal =====
     total = len(attraction) + len(tension) + len(growth)
-    if total < 2:
+    if total < 1:
         return None
     
     result = {}
@@ -652,9 +664,9 @@ def compute_bazi_signals(
     elif str_a == "weak" and str_b == "strong" and el_a != el_b:
         support.append(f"{name_b}'s solidity gives you something to push against without breaking — she holds ground you need")
     
-    # Quality gate
+    # Quality gate — require at least 1 real signal
     total = len(support) + len(tension_list) + len(growth)
-    if total < 2:
+    if total < 1:
         return None
     
     result = {}
