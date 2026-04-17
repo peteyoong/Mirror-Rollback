@@ -593,8 +593,20 @@ async def generate_home_signal_grounded(db, user_id: str, now: Optional[datetime
             "generated_at": now.isoformat(),
         }
 
-    # Pick layer drivers
-    trigger_sig = _pick(signals, "transit", "stellium", "lunar_event", "hd_activation")
+    # Pick layer drivers.
+    # TRIGGER priority: per-user signals FIRST (transit/HD activation) — these name
+    # what today is doing specifically to THIS user's chart. Only fall back to
+    # global signals (stellium, lunar event) if no per-user signal is strong enough.
+    user_specific_triggers = [s for s in signals if s.source in ("transit", "hd_activation")]
+    global_triggers = [s for s in signals if s.source in ("stellium", "lunar_event")]
+
+    trigger_sig = None
+    if user_specific_triggers:
+        # Strongest user-specific signal wins
+        trigger_sig = max(user_specific_triggers, key=lambda s: s.weight)
+    elif global_triggers:
+        trigger_sig = max(global_triggers, key=lambda s: s.weight)
+
     pattern_sig = _pick(signals, "pattern_recurrence")
 
     # We need at minimum (a) a trigger AND (b) either a pattern recurrence or a second astro signal
