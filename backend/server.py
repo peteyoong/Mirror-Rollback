@@ -26297,6 +26297,30 @@ async def get_user_forums(user_id: str):
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=400, detail="Invalid user_id format")
     
+    return await _get_user_forums_data(user_id)
+
+
+@api_router.post("/get-user-forums")
+async def get_user_forums_post(request: Request):
+    """
+    POST version of get-user-forums to bypass CDN caching on deployed domain.
+    """
+    body = await request.json()
+    user_id = body.get("user_id", "")
+    
+    if not user_id or not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id")
+    
+    logger.info(f"[Forums] POST getting forums for user: {user_id[:8]}...")
+    result = await _get_user_forums_data(user_id)
+    return JSONResponse(content=result, headers={
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "CDN-Cache-Control": "no-store",
+    })
+
+
+async def _get_user_forums_data(user_id: str) -> dict:
+    """Shared helper for both GET and POST forum list endpoints."""
     # Get all forum memberships for this user
     memberships = await db.forum_members.find({
         "user_id": user_id,

@@ -856,7 +856,8 @@ export const createForum = async (data: {
 
 // Get user's forums
 export const getUserForums = async (userId: string): Promise<{ forums: Forum[] }> => {
-  const response = await apiWithRetry.get(`/forums/user/${userId}`);
+  // Use POST to bypass CDN caching of GET requests on deployed domain
+  const response = await apiWithRetry.post(`/get-user-forums?_cb=${Date.now()}`, { user_id: userId });
   return response.data;
 };
 
