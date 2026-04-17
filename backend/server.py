@@ -12019,92 +12019,27 @@ async def get_astrology_today_v3(user_id: str):
     Non-astrology user should immediately understand without asking "what does this mean?"
     """
     try:
-        from services.astrology_today_v3 import (
-            generate_today_from_transit,
-            build_narrative_v3
-        )
-        from services.field_signals import detect_transit_convergence
+        from services.astrology_today_engine import generate_today_intelligence
         
-        # Get transit stack (real data from field_signals)
-        transit_stack = detect_transit_convergence()
-        day_class = transit_stack.get("classification", "normal_flow")
+        # Get user's stored chart for natal data
+        stored_chart = await db.charts.find_one({"user_id": user_id})
         
-        # Get user's chart data for personalization
-        chart_data = None
+        natal_planets = {}
         natal_house_cusps = None
-        try:
-            # Primary source: stored chart in charts collection
-            stored_chart = await db.charts.find_one({"user_id": user_id})
-            if stored_chart:
-                astro = stored_chart.get("astrology", {})
-                planets = astro.get("planets", {})
-                houses = astro.get("houses", {})
-                sun = planets.get("Sun", {})
-                moon = planets.get("Moon", {})
-                cusps_list = houses.get("formatted_cusps", [])
-                rising = cusps_list[0] if cusps_list else {}
-                
-                chart_data = {
-                    "sun_sign": sun.get("sign") if isinstance(sun, dict) else None,
-                    "moon_sign": moon.get("sign") if isinstance(moon, dict) else None,
-                    "rising_sign": rising.get("sign") if isinstance(rising, dict) else None,
-                }
-                # Store house cusps for activated house computation
-                natal_house_cusps = houses.get("cusps", [])
-            
-            # Fallback: deep dive cache
-            if not chart_data:
-                cached_dd = await db.deep_dive_cache.find_one({"user_id": user_id, "lens": "astrology"})
-                if cached_dd and cached_dd.get("core_placements"):
-                    placements = cached_dd.get("core_placements", {})
-                    sun = placements.get("sun")
-                    moon = placements.get("moon")
-                    asc = placements.get("ascendant")
-                    chart_data = {
-                        "sun_sign": sun.get("sign") if isinstance(sun, dict) else sun,
-                        "moon_sign": moon.get("sign") if isinstance(moon, dict) else moon,
-                        "rising_sign": asc.get("sign") if isinstance(asc, dict) else asc,
-                    }
-                    
-        except Exception as e:
-            logger.debug(f"[AstrologyV3] Could not load chart data: {e}")
         
-        # Compute activated house from transiting Sun + user's natal houses
-        activated_house = transit_stack.get("activated_house")
-        if not activated_house and natal_house_cusps and len(natal_house_cusps) == 12:
-            try:
-                import swisseph as swe
-                from datetime import datetime as _dt, timezone as _tz
-                now = _dt.now(_tz.utc)
-                jd = swe.julday(now.year, now.month, now.day, now.hour + now.minute / 60.0)
-                sun_trop = swe.calc_ut(jd, swe.SUN, swe.FLG_SWIEPH)[0][0]
-                for i in range(12):
-                    c_start = natal_house_cusps[i]
-                    c_end = natal_house_cusps[(i + 1) % 12]
-                    if c_end < c_start:
-                        if sun_trop >= c_start or sun_trop < c_end:
-                            activated_house = i + 1
-                            break
-                    else:
-                        if c_start <= sun_trop < c_end:
-                            activated_house = i + 1
-                            break
-            except Exception as e:
-                logger.debug(f"[AstrologyV3] House computation error: {e}")
+        if stored_chart:
+            astro = stored_chart.get("astrology", {})
+            natal_planets = astro.get("planets", {})
+            natal_house_cusps = astro.get("houses", {}).get("cusps", None)
         
-        transit_stack["activated_house"] = activated_house
-        
-        # Generate V3 insight with mandatory structure
-        insight = generate_today_from_transit(
-            transit_stack=transit_stack,
-            day_class=day_class,
-            chart_data=chart_data
+        # Generate intelligence from ranked transit signals
+        insight = generate_today_intelligence(
+            user_id=user_id,
+            natal_planets=natal_planets,
+            natal_house_cusps=natal_house_cusps,
         )
         
-        # Also build narrative for backward compatibility
-        insight["narrative"] = build_narrative_v3(insight)
-        
-        logger.info(f"[AstrologyV3] Generated insight for {user_id[:8]}: tension={insight.get('tension_type')}, day_class={day_class}")
+        logger.info(f"[AstrologyV3] Generated insight for {user_id[:8]}: type={insight.get('tension_type')}, class={insight.get('day_class')}")
         
         return insight
         

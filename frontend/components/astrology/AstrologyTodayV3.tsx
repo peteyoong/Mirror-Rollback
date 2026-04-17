@@ -42,9 +42,20 @@ interface AstrologyTodayV3Data {
   the_move: string;
   where_context?: string | null;
   technical?: {
+    // Legacy fields
     transit_info?: string;
     activated_house?: number;
     house_meaning?: string;
+    // New structured proof layer
+    dominant_pattern?: string;
+    pattern_detail?: string;
+    active_transits?: string[];
+    sign_emphasis?: string[];
+    house_emphasis?: string[];
+    slow_planet_backdrop?: string[];
+    day_tags?: string[];
+    tension_score?: number;
+    flow_score?: number;
   } | null;
   tension_type: string;
   day_class: string;
@@ -267,26 +278,88 @@ const AstrologyTodayV3: React.FC<AstrologyTodayV3Props> = ({
             <Text style={[styles.technicalLabel, { color: theme.textTertiary }]}>
               WHAT'S BEHIND THIS
             </Text>
-            {data.technical.transit_info && (
+            
+            {/* Dominant Pattern */}
+            {data.technical.dominant_pattern && (
+              <View style={styles.technicalRow}>
+                <Ionicons name="flash-outline" size={14} color={theme.accent || '#FF6B35'} style={{ marginRight: 8, marginTop: 2 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.technicalText, { color: theme.text, fontWeight: '600' }]}>
+                    {data.technical.dominant_pattern}
+                  </Text>
+                  {data.technical.pattern_detail ? (
+                    <Text style={[styles.technicalText, { color: theme.textSecondary, marginTop: 2 }]}>
+                      {data.technical.pattern_detail}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+            )}
+            
+            {/* Active Transits */}
+            {data.technical.active_transits && data.technical.active_transits.length > 0 && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.proofSectionLabel, { color: theme.textTertiary }]}>
+                  ACTIVE TRANSITS
+                </Text>
+                {data.technical.active_transits.map((t: string, i: number) => (
+                  <Text key={i} style={[styles.proofItem, { color: theme.textSecondary }]}>
+                    {t}
+                  </Text>
+                ))}
+              </View>
+            )}
+            
+            {/* Sign Emphasis */}
+            {data.technical.sign_emphasis && data.technical.sign_emphasis.length > 0 && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.proofSectionLabel, { color: theme.textTertiary }]}>
+                  SIGN CONCENTRATION
+                </Text>
+                {data.technical.sign_emphasis.map((s: string, i: number) => (
+                  <Text key={i} style={[styles.proofItem, { color: theme.textSecondary }]}>
+                    {s}
+                  </Text>
+                ))}
+              </View>
+            )}
+            
+            {/* House Emphasis */}
+            {data.technical.house_emphasis && data.technical.house_emphasis.length > 0 && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.proofSectionLabel, { color: theme.textTertiary }]}>
+                  LIFE AREAS ACTIVATED
+                </Text>
+                {data.technical.house_emphasis.map((h: string, i: number) => (
+                  <Text key={i} style={[styles.proofItem, { color: theme.textSecondary }]}>
+                    {h}
+                  </Text>
+                ))}
+              </View>
+            )}
+            
+            {/* Slow Planet Backdrop */}
+            {data.technical.slow_planet_backdrop && data.technical.slow_planet_backdrop.length > 0 && (
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.proofSectionLabel, { color: theme.textTertiary }]}>
+                  LONGER-CYCLE BACKDROP
+                </Text>
+                {data.technical.slow_planet_backdrop.map((p: string, i: number) => (
+                  <Text key={i} style={[styles.proofItem, { color: theme.textTertiary }]}>
+                    {p}
+                  </Text>
+                ))}
+              </View>
+            )}
+            
+            {/* Legacy fallback */}
+            {!data.technical.dominant_pattern && data.technical.transit_info && (
               <View style={styles.technicalRow}>
                 <Ionicons name="planet-outline" size={14} color={theme.textTertiary} style={{ marginRight: 8, marginTop: 2 }} />
                 <Text style={[styles.technicalText, { color: theme.textSecondary }]}>
                   {data.technical.transit_info}
                 </Text>
               </View>
-            )}
-            {data.technical.activated_house && data.technical.house_meaning && (
-              <View style={styles.technicalRow}>
-                <Ionicons name="home-outline" size={14} color={theme.textTertiary} style={{ marginRight: 8, marginTop: 2 }} />
-                <Text style={[styles.technicalText, { color: theme.textSecondary }]}>
-                  House {data.technical.activated_house}: {data.technical.house_meaning}
-                </Text>
-              </View>
-            )}
-            {!data.technical.transit_info && !data.technical.activated_house && (
-              <Text style={[styles.technicalText, { color: theme.textTertiary, fontStyle: 'italic' }]}>
-                General field energy — no single transit dominating
-              </Text>
             )}
           </View>
         )}
@@ -460,6 +533,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     flex: 1,
+  },
+  proofSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.0,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  proofItem: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 4,
+    paddingLeft: 4,
   },
 });
 
