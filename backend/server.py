@@ -1669,7 +1669,9 @@ ASTROLOGY_DEEP_DIVE_PROMPT = """Explain the user's core astrology structure.
 =============================================================================
 DATA AVAILABILITY RULE (Computed ≠ Surfaced)
 =============================================================================
-CRITICAL: The user's FULL True Sidereal natal chart has been computed in the 
+CRITICAL: Mirror uses ONE canonical astrology system — **True Sidereal-M (Chimeri-aligned, SVP=31.2836° at J2000)**. This is a 12-sign sidereal system, not tropical and not the 13-sign Ophiuchus system. If the user mentions Ophiuchus or brings up a placement they saw elsewhere, acknowledge the difference in one sentence and answer from Mirror's actual computed placement. Do NOT say "in most astrology we use the 12-sign zodiac" or "I use the 12-sign zodiac" — Mirror specifically uses True Sidereal-M, period.
+
+The user's FULL True Sidereal-M natal chart has been computed in the 
 background, including ALL planets (Mercury, Venus, Mars, Jupiter, Saturn, 
 Uranus, Neptune, Pluto), Nodes (North/South), all 12 houses, angles (MC, IC), 
 and aspects. This data EXISTS in the computed chart JSON provided below.
@@ -26093,10 +26095,60 @@ async def delete_forum(forum_id: str, user_id: str):
 
 
 # =====================================================
-# CANONICAL ASTRONOMY DIAGNOSTIC
-# Single-source-of-truth proof that Astrology + HD consume identical positions
-# Visit: /api/diagnostics/canonical-astronomy/{user_id}
+# CANONICAL ASTRO SYSTEM DIAGNOSTIC (system-wide, no user)
+# GET /api/diagnostics/astro-system
+# Returns the single canonical config enforced across Astrology + HD chat/chart/today
 # =====================================================
+@api_router.get("/diagnostics/astro-system")
+async def diagnose_astro_system():
+    """Returns the canonical astrology/HD runtime config — the single source of truth."""
+    from services.canonical_astronomy import (
+        CANONICAL_SIDEREAL_CONFIG,
+        SVP_DEGREES,
+        J2000_EPOCH,
+        CANONICAL_PLANET_SET,
+        assert_canonical_sidereal_mode_active,
+        CanonicalAstronomyDriftError,
+    )
+    ok = True
+    guard_error = None
+    try:
+        assert_canonical_sidereal_mode_active()
+    except CanonicalAstronomyDriftError as e:
+        ok = False
+        guard_error = str(e)
+    return {
+        "astro_system": "True Sidereal-M (canonical user-defined, Chimeri-aligned)",
+        "zodiac_mode": "true_sidereal",
+        "ayanamsa_or_svp": SVP_DEGREES,
+        "reference_epoch_jd": J2000_EPOCH,
+        "yearly_increment": 0.0,
+        "ophiuchus_enabled": False,  # 12-sign canonical; Ophiuchus handled as interpretive layer in chat
+        "hd_source_system": "True Sidereal-M — HD reads its planet longitudes from the SAME canonical layer as Astrology",
+        "canonical_config": CANONICAL_SIDEREAL_CONFIG,
+        "canonical_planet_set": CANONICAL_PLANET_SET,
+        "single_source_of_truth": "/app/backend/services/canonical_astronomy.compute_canonical_birth_positions",
+        "consumed_by": [
+            "GET /api/astrology/chart/{user_id}        (via calculations.astrology.get_full_natal_chart)",
+            "GET /api/astrology-today/{user_id}        (via services.astrology_today_engine)",
+            "GET /api/astrology/deep-dive/{user_id}    (via stored chart from same canonical compute)",
+            "GET /api/human-design/chart/{user_id}     (via calculations.human_design, _get_sun_sidereal → canonical flags)",
+            "GET /api/human-design/today/{user_id}     (via same canonical HD chart)",
+            "POST /api/mirror/chat (lens=astrology)    (reads stored chart — same canonical source)",
+            "POST /api/mirror/chat (lens=human_design) (reads stored HD — same canonical source)",
+            "POST /api/forum-mappings                  (reads each member's canonical chart)",
+        ],
+        "runtime_guard_active": ok,
+        "runtime_guard_error": guard_error,
+        "removed_legacy_paths": [
+            "calculations.human_design._get_sun_sidereal (old manual tropical−SVP subtraction → now canonical flags)",
+            "calculations.astrology.get_full_natal_chart (old silent local-as-UTC drift → now UTC-normalized)",
+            "migration chart recompute (was only astrology+bazi → now includes HD via canonical path)",
+        ],
+    }
+
+
+
 @api_router.get("/diagnostics/canonical-astronomy/{user_id}")
 async def diagnose_canonical_astronomy(user_id: str):
     """
@@ -26549,8 +26601,43 @@ async def get_forum_mappings_dedicated(request: Request):
         forum_id = body.get("forum_id", "")
         user_id = body.get("user_id", "")
         mappings = await get_forum_member_mappings(db, forum_id, user_id)
+        
+        # DEV debug block — per-member signal presence audit
+        debug_block = []
+        for m in mappings:
+            signals = m.get("signals", {}) or {}
+            bazi = signals.get("bazi") or {}
+            # Check if any bazi string contains an animal emoji
+            animals_present = False
+            for k in ("support", "tension", "growth"):
+                for s in (bazi.get(k) or []):
+                    if any(e in (s or "") for e in ["🐒","🐉","🐲","🐴","🐓","🐅","🐂","🐇","🐍","🐕","🐐","🐖","🐀","🐑","🐏"]):
+                        animals_present = True
+                        break
+                if animals_present:
+                    break
+            debug_block.append({
+                "user_id": m.get("member_id") or m.get("user_id"),
+                "user_name": m.get("member_name"),
+                "signals_present": {
+                    "hd": bool(signals.get("human_design")),
+                    "astrology": bool(signals.get("astrology")),
+                    "enneagram": bool(signals.get("enneagram")),
+                    "bazi": bool(signals.get("bazi")),
+                    "animal_signs": animals_present,
+                },
+            })
+        
         return JSONResponse(
-            content={"success": True, "mappings": mappings, "current_user_id": user_id},
+            content={
+                "success": True,
+                "mappings": mappings,
+                "current_user_id": user_id,
+                "_debug": {
+                    "astro_system": "True Sidereal-M (canonical)",
+                    "members_audit": debug_block,
+                },
+            },
             headers={
                 "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
                 "CDN-Cache-Control": "no-store",
