@@ -26067,9 +26067,9 @@ async def fix_deployed_data():
         # Define all known users with their enneagram data
         KNOWN_USERS = [
             {"emails": ["pete@pulsifi.me"], "names": ["Pete"], "enneagram": PETE_ENNEAGRAM},
-            {"emails": ["mel@test.com", "melissa.mars@gmail.com"], "names": ["Mel", "Melissa", "Melissa Mars"], "enneagram": MEL_ENNEAGRAM, "fix_name": "Mel", "fix_gender": "female", "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Melaka", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501}},
-            {"emails": ["thaddeus.yoong@test.com"], "names": ["Thaddeus Yoong", "Thaddy", "Thaddeus"], "enneagram": THADDY_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}},
-            {"emails": ["isaac.yoong@test.com"], "names": ["Isaac Yoong", "Isaac"], "enneagram": ISAAC_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}},
+            {"emails": ["mel@test.com", "melissa.mars@gmail.com"], "names": ["Mel", "Melissa", "Melissa Mars"], "enneagram": MEL_ENNEAGRAM, "fix_name": "Mel", "fix_gender": "female", "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Melaka", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501}, "fix_birth_date": "1981-07-13", "fix_birth_time": "07:25"},
+            {"emails": ["thaddeus.yoong@test.com"], "names": ["Thaddeus Yoong", "Thaddy", "Thaddeus"], "enneagram": THADDY_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}, "fix_birth_date": "2014-06-23", "fix_birth_time": "18:17"},
+            {"emails": ["isaac.yoong@test.com"], "names": ["Isaac Yoong", "Isaac"], "enneagram": ISAAC_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}, "fix_birth_date": "2012-04-05", "fix_birth_time": "05:25"},
         ]
         
         # Process ALL matching users (including duplicates like "Melissa " with trailing space,
@@ -26127,6 +26127,18 @@ async def fix_deployed_data():
                     updates["timezone"] = known["fix_timezone"]
                     results["fixes"].append(f"Set {user_name} timezone: {known['fix_timezone']}")
                 
+                # Force-enforce birth_date / birth_time when specified (these must match verified data)
+                if known.get("fix_birth_date"):
+                    current_bd = str(user.get("birth_date") or "").split(" ")[0]
+                    if current_bd != known["fix_birth_date"]:
+                        updates["birth_date"] = known["fix_birth_date"]
+                        results["fixes"].append(f"Corrected {user_name} birth_date: {current_bd or '(none)'} → {known['fix_birth_date']}")
+                if known.get("fix_birth_time"):
+                    current_bt = str(user.get("birth_time") or "").strip()
+                    if current_bt != known["fix_birth_time"]:
+                        updates["birth_time"] = known["fix_birth_time"]
+                        results["fixes"].append(f"Corrected {user_name} birth_time: {current_bt or '(none)'} → {known['fix_birth_time']}")
+                
                 # Fix birth_location if specified — ALWAYS correct wrong city names
                 if known.get("fix_location"):
                     loc = user.get("birth_location", {}) or {}
@@ -26146,6 +26158,12 @@ async def fix_deployed_data():
                 
                 if updates:
                     await db.users.update_one({"_id": user["_id"]}, {"$set": updates})
+                    # If identity-impacting fields changed, invalidate chart to force recompute
+                    if any(k in updates for k in ("birth_date", "birth_time", "birth_location", "latitude", "longitude", "timezone")):
+                        await db.charts.update_one(
+                            {"user_id": str(user["_id"])},
+                            {"$set": {"debug_stamp.sidereal_settings_used.svp_degrees": 0.0}}
+                        )
         
         # =====================================================
         # STEP 2: Recompute charts with wrong ayanamsa + add BaZi
@@ -32024,6 +32042,8 @@ async def run_startup_data_migrations():
             "fix_gender": "female",
             "fix_timezone": "Asia/Kuala_Lumpur",
             "fix_location": {"city": "Melaka", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501},
+            "fix_birth_date": "1981-07-13",
+            "fix_birth_time": "07:25",
         },
         {
             "emails": ["thaddeus.yoong@test.com"],
@@ -32033,6 +32053,8 @@ async def run_startup_data_migrations():
                           "source": "user_declared"},
             "fix_timezone": "Asia/Kuala_Lumpur",
             "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067},
+            "fix_birth_date": "2014-06-23",
+            "fix_birth_time": "18:17",
         },
         {
             "emails": ["isaac.yoong@test.com"],
@@ -32042,6 +32064,8 @@ async def run_startup_data_migrations():
                           "source": "user_declared"},
             "fix_timezone": "Asia/Kuala_Lumpur",
             "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067},
+            "fix_birth_date": "2012-04-05",
+            "fix_birth_time": "05:25",
         },
     ]
     
@@ -32098,6 +32122,18 @@ async def run_startup_data_migrations():
                 updates["timezone"] = known["fix_timezone"]
                 logger.info(f"[Migration] Set timezone for {user_name}")
             
+            # Force-enforce birth_date / birth_time when verified (triggers chart recompute below)
+            if known.get("fix_birth_date"):
+                current_bd = str(user.get("birth_date") or "").split(" ")[0]
+                if current_bd != known["fix_birth_date"]:
+                    updates["birth_date"] = known["fix_birth_date"]
+                    logger.info(f"[Migration] Corrected {user_name} birth_date: {current_bd or '(none)'} → {known['fix_birth_date']}")
+            if known.get("fix_birth_time"):
+                current_bt = str(user.get("birth_time") or "").strip()
+                if current_bt != known["fix_birth_time"]:
+                    updates["birth_time"] = known["fix_birth_time"]
+                    logger.info(f"[Migration] Corrected {user_name} birth_time: {current_bt or '(none)'} → {known['fix_birth_time']}")
+            
             # Fix birth_location if specified and wrong
             if known.get("fix_location"):
                 loc = user.get("birth_location", {}) or {}
@@ -32112,6 +32148,94 @@ async def run_startup_data_migrations():
             
             if updates:
                 await db.users.update_one({"_id": user["_id"]}, {"$set": updates})
+                # Invalidate chart so Migration 1 will recompute it on this same run
+                if any(k in updates for k in ("birth_date", "birth_time", "birth_location", "latitude", "longitude", "timezone")):
+                    await db.charts.update_one(
+                        {"user_id": str(user["_id"])},
+                        {"$set": {"debug_stamp.sidereal_settings_used.svp_degrees": 0.0}}
+                    )
+    
+    # --- Migration 3: After user-data fixes, re-run chart recompute for invalidated users ---
+    # (We do a second pass in case Migration 2 updated birth data that invalidated chart freshness.)
+    charts_cursor_2 = db.charts.find({})
+    second_pass = []
+    async for chart in charts_cursor_2:
+        ds = chart.get("debug_stamp", {}) or {}
+        svp = (ds.get("sidereal_settings_used") or {}).get("svp_degrees")
+        bazi = chart.get("bazi") or {}
+        yp = (bazi.get("pillars") or {}).get("year") or (bazi.get("pillars") or {}).get("year_pillar") or {}
+        incomplete = not bazi or not yp.get("animal_name") or not yp.get("animal_emoji")
+        if svp != 31.2836 or incomplete:
+            second_pass.append(chart.get("user_id"))
+    
+    if second_pass:
+        logger.info(f"[Migration] Second pass: {len(second_pass)} chart(s) need recompute after user data fixes")
+        for user_id in second_pass:
+            try:
+                user = await db.users.find_one({"_id": ObjectId(user_id)})
+                if not user:
+                    continue
+                birth_date = user.get("birth_date")
+                birth_time = user.get("birth_time")
+                if not birth_date or not birth_time:
+                    continue
+                
+                bd_str = str(birth_date).split(" ")[0]
+                parts = bd_str.split("-")
+                year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+                
+                time_s = str(birth_time).strip().lower()
+                is_pm = "pm" in time_s
+                is_am = "am" in time_s
+                time_s = time_s.replace("am", "").replace("pm", "").strip()
+                tp = time_s.split(":")
+                hour = int(tp[0])
+                minute = int(tp[1]) if len(tp) > 1 else 0
+                if is_pm and hour < 12: hour += 12
+                if is_am and hour == 12: hour = 0
+                
+                tz_str = user.get("timezone") or "+08:00"
+                lat = (user.get("birth_location") or {}).get("latitude") or user.get("latitude") or 0.0
+                lon = (user.get("birth_location") or {}).get("longitude") or user.get("longitude") or 0.0
+                
+                from datetime import timedelta, timezone as _dt_tz
+                try:
+                    if tz_str and (tz_str.startswith("+") or tz_str.startswith("-")):
+                        sign = 1 if tz_str.startswith("+") else -1
+                        tz_parts = tz_str.lstrip("+-").split(":")
+                        offset = _dt_tz(timedelta(hours=sign*int(tz_parts[0]), minutes=sign*(int(tz_parts[1]) if len(tz_parts) > 1 else 0)))
+                        birth_dt = datetime(year, month, day, hour, minute, tzinfo=offset)
+                    else:
+                        import pytz as _pytz
+                        tz_obj = _pytz.timezone(tz_str)
+                        birth_dt = tz_obj.localize(datetime(year, month, day, hour, minute))
+                except Exception:
+                    birth_dt = datetime(year, month, day, hour, minute)
+                
+                try:
+                    astro_chart = get_full_natal_chart(birth_dt, float(lat), float(lon))
+                except Exception:
+                    astro_chart = None
+                try:
+                    bazi_chart = compute_bazi_chart_v2(f"{year}-{month:02d}-{day:02d}", f"{hour:02d}:{minute:02d}", tz_str, include_timing=False)
+                except Exception:
+                    bazi_chart = None
+                
+                update_fields = {
+                    "debug_stamp": {
+                        "sidereal_settings_used": {"svp_degrees": 31.2836, "reference_year": 2000, "yearly_increment": 0.0},
+                        "computed_at_iso": datetime.utcnow().isoformat(),
+                        "migration": "startup_post_userfix_pass",
+                    }
+                }
+                if astro_chart:
+                    update_fields["astrology"] = astro_chart
+                if bazi_chart:
+                    update_fields["bazi"] = bazi_chart
+                await db.charts.update_one({"user_id": user_id}, {"$set": update_fields})
+                logger.info(f"[Migration] Second-pass recompute for {user.get('name', user_id)}: astro={'YES' if astro_chart else 'NO'}, bazi={'YES' if bazi_chart else 'NO'}")
+            except Exception as e:
+                logger.error(f"[Migration] Second-pass error for {user_id}: {e}")
     
     logger.info("[Migration] Startup data migrations complete ✓")
 

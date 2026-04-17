@@ -4004,6 +4004,43 @@ backend:
             returns 4 forums (FM TEST 1, FM Test 2, Pete & Mel, Yoong family)
           - GET /api/forums/69dda348de9cb1c83c0780fa/members?user_id=697f0c6abf35c0528ff06954 →
             200 OK, returns 4 members
+      - working: true
+        agent: "testing"
+        comment: |
+          RE-VERIFICATION AFTER EMAIL ALIAS + BIRTH_DATE/TIME ENFORCEMENT + CHART INVALIDATION (Apr 2026) ✅
+
+          Ran /app/backend_test.py against http://localhost:8001 — 28/28 assertions passed.
+
+          A) GET /api/fix-deployed-data:
+             - 200 OK, errors=[]
+             - fixes: Pete=12, Mel=2 (incl. "Mel " trailing space), Thaddeus Yoong=1,
+               Isaac Yoong=1 (total 16 fixes, charts_already_ok=148, total_errors=0)
+             - No crash from new fix_birth_date / fix_birth_time / chart-invalidation code path.
+
+          B) POST /api/forum-mappings {forum_id:"69dda348de9cb1c83c0780fa",
+             user_id:"697f0c6abf35c0528ff06954"}:
+             - 200 OK, mappings.length == 3 (Thaddeus Yoong, Mel, Isaac Yoong)
+             - For EACH member: signals.enneagram non-null (how_you_help_them=2,
+               how_they_help_you=2); signals.bazi non-null with animal emojis in strings;
+               signals.astrology non-null; signals.human_design is array (3–5 channels).
+             - Confirmed animal emoji strings:
+               * Thaddeus (growth): "🐒 Monkey meets 🐴 Horse — different generational energies..."
+               * Mel (growth): "🐒 Monkey meets 🐓 Rooster — different generational energies..."
+               * Isaac (support): "🐒 Monkey and 🐲 Dragon are natural allies..."
+
+          C) POST /api/get-user-forums {user_id:"697f0c6abf35c0528ff06954"}:
+             - 200 OK, forums array length=4 returned.
+
+          D) /var/log/supervisor/backend.err.log scan:
+             - No Python Tracebacks / ERROR / Exception entries related to new code paths.
+             - Only benign startup WARNING about Enneagram KB PDF (pre-existing, unrelated).
+             - Migration logs show successful chart recomputes (Pete, Thaddeus, Mel, Isaac,
+               plus other users) with no failures.
+
+          CONCLUSION: All 3 new changes work correctly without regression:
+          1. melissa.mars@gmail.com alias integrated without issues.
+          2. Birth_date/birth_time enforcement seeded via fix-deployed-data path without errors.
+          3. Chart-invalidation + second-pass recompute executed cleanly.
 
 test_plan:
   current_focus: []
