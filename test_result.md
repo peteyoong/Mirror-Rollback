@@ -8162,10 +8162,91 @@ backend:
 
 test_plan:
   current_focus:
-    - "Home Insight V6 Signal-Grounded Engine"
+    - "Canonical Astronomy Validation Layer"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+  - task: "Canonical Astronomy Validation Layer"
+    implemented: true
+    working: true
+    file: "/app/backend/services/canonical_astronomy.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          CANONICAL ASTRONOMY VALIDATION LAYER — ALL 44 ASSERTIONS PASS ✅
+
+          Test script: /app/canonical_astronomy_test.py
+          Backend URL: https://forum-signals-fix.preview.emergentagent.com/api
+
+          === A) Canonical diagnostic endpoint for Pete AND Mel ===
+
+          GET /api/diagnostics/canonical-astronomy/697f0c6abf35c0528ff06954 (Pete) → HTTP 200 ✅
+          GET /api/diagnostics/canonical-astronomy/697ec826ad4b18f75bf42616 (Mel) → HTTP 200 ✅
+
+          For BOTH users (identical pattern):
+          - pass == true ✅
+          - summary starts with "✓" → "✓ Astrology and HD both consume canonical True Sidereal positions with zero drift." ✅
+          - astrology_drift.pass == true ✅
+          - hd_personality_drift.pass == true ✅
+          - hd_design_drift.pass == true ✅
+          - sample_sun_cross_lens_match.astrology_matches_canonical == true ✅
+          - sample_sun_cross_lens_match.hd_matches_canonical == true ✅
+          - Three-way Sun longitude equality at 6 decimal places ✅
+          - canonical.canonical_layer.sidereal_config.svp_degrees == 31.2836 ✅
+          - canonical.canonical_layer.sidereal_config.ayanamsa_type == "SIDM_USER" ✅
+          - canonical.canonical_layer.sidereal_config.ephemeris_flag == "FLG_SWIEPH | FLG_SIDEREAL" ✅
+          - canonical.canonical_layer.fingerprint is a 16-char hex string ✅
+            * Pete fingerprint: 21ea991906fecb12
+            * Mel fingerprint:  7d79584ee446493f
+
+          === B) Runtime anti-drift guard (locked config verification) ===
+          sidereal_config returned matches the locked canonical config for BOTH users:
+          - svp_degrees = 31.2836 ✅
+          - reference_epoch = "J2000" ✅
+          - yearly_increment = 0.0 ✅
+          - ayanamsa_type = "SIDM_USER" ✅
+          - ephemeris_flag = "FLG_SWIEPH | FLG_SIDEREAL" ✅
+          - house_system = "equal" ✅
+          The endpoint calls assert_canonical_sidereal_mode_active() and returned 200 with the
+          exact locked config — confirms no other code flipped swe.set_sid_mode.
+
+          === C) No regression on existing endpoints ===
+          - GET /api/home-insight-v5/697f0c6abf35c0528ff06954
+              → HTTP 200, version="v6_signal_grounded", render_mode="signal_grounded",
+                layers.trigger non-empty
+                ("Neptune is sitting directly on how you act on what you want today —
+                 it's concentrated, not diffused.") ✅
+          - POST /api/forum-mappings {"forum_id":"69dda348de9cb1c83c0780fa","user_id":Pete}
+              → HTTP 200, 3 mappings returned, all have enneagram + bazi + astrology + HD signals ✅
+          - GET /api/fix-deployed-data → HTTP 200 with errors: [] ✅
+
+          === D) Sun longitude report (6 dp, three-way exact equality) ===
+          Pete (697f0c6abf35c0528ff06954):
+            canonical_sun_longitude      = 340.262047
+            astrology_sun_longitude      = 340.262047
+            hd_personality_sun_longitude = 340.262047
+
+          Mel (697ec826ad4b18f75bf42616):
+            canonical_sun_longitude      = 79.489163
+            astrology_sun_longitude      = 79.489163
+            hd_personality_sun_longitude = 79.489163
+
+          Both users show literal three-way exact equality at 6 decimal places, proving
+          Astrology + Human Design read from the SAME canonical True Sidereal source layer
+          with zero drift.
+
+          📊 TEST RESULTS: 44/44 ASSERTIONS PASSED (100%)
+
+          CONCLUSION: The Canonical Astronomy validation layer is fully functional.
+          The single-source-of-truth refactor is working correctly. Astrology and Human Design
+          both consume identical canonical True Sidereal positions, runtime anti-drift guards
+          are active with the locked config (SVP=31.2836, J2000, yearly_increment=0.0,
+          SIDM_USER, equal houses), and no existing endpoints regressed.
 
   - task: "Home Insight V6 Signal-Grounded Engine"
     implemented: true

@@ -26111,6 +26111,189 @@ async def delete_forum(forum_id: str, user_id: str):
 
 
 
+
+# =====================================================
+# CANONICAL ASTRONOMY DIAGNOSTIC
+# Single-source-of-truth proof that Astrology + HD consume identical positions
+# Visit: /api/diagnostics/canonical-astronomy/{user_id}
+# =====================================================
+@api_router.get("/diagnostics/canonical-astronomy/{user_id}")
+async def diagnose_canonical_astronomy(user_id: str):
+    """
+    Validates that Astrology + Human Design are reading from the SAME canonical
+    True Sidereal source layer. Compares each lens's stored planetary longitudes
+    against a freshly computed canonical reference and reports any drift.
+    
+    Returns:
+        {
+          "canonical": {...},            # the single source of truth
+          "astrology_drift": {...},      # astrology vs canonical (should pass)
+          "hd_personality_drift": {...}, # HD personality-side vs canonical (should pass)
+          "hd_design_drift": {...},      # HD design-side vs canonical design positions
+          "pass": bool,                  # overall — true iff no drift anywhere
+          "summary": "..."
+        }
+    """
+    from bson import ObjectId
+    from services.canonical_astronomy import (
+        compute_canonical_birth_positions,
+        assert_no_drift,
+        assert_canonical_sidereal_mode_active,
+        build_diagnostic_report,
+        CanonicalAstronomyDriftError,
+    )
+    import pytz
+
+    # Runtime anti-drift check: if any code has flipped the global sid mode,
+    # this raises before we produce a misleading "pass".
+    try:
+        assert_canonical_sidereal_mode_active()
+    except CanonicalAstronomyDriftError as e:
+        raise HTTPException(status_code=500, detail=f"Canonical sidereal mode violation: {e}")
+
+    # Load user
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+    except Exception:
+        user = await db.users.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+
+    # Parse birth datetime → UTC
+    bd = str(user.get("birth_date") or "").split(" ")[0]
+    bt = str(user.get("birth_time") or "").strip()
+    if not bd or not bt:
+        raise HTTPException(status_code=400, detail="User missing birth_date/birth_time")
+
+    try:
+        y, m, d = [int(x) for x in bd.split("-")[:3]]
+        time_s = bt.lower().replace("am", "").replace("pm", "").strip()
+        is_pm = "pm" in bt.lower()
+        is_am = "am" in bt.lower()
+        parts = time_s.split(":")
+        hour = int(parts[0])
+        minute = int(parts[1]) if len(parts) > 1 else 0
+        if is_pm and hour < 12:
+            hour += 12
+        if is_am and hour == 12:
+            hour = 0
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Bad birth datetime: {e}")
+
+    tz_str = user.get("timezone") or "+08:00"
+    try:
+        if tz_str.startswith("+") or tz_str.startswith("-"):
+            sign = 1 if tz_str.startswith("+") else -1
+            tzparts = tz_str.lstrip("+-").split(":")
+            offset = timezone(timedelta(
+                hours=sign * int(tzparts[0]),
+                minutes=sign * (int(tzparts[1]) if len(tzparts) > 1 else 0),
+            ))
+            birth_local = datetime(y, m, d, hour, minute, tzinfo=offset)
+        else:
+            tz_obj = pytz.timezone(tz_str)
+            birth_local = tz_obj.localize(datetime(y, m, d, hour, minute))
+    except Exception:
+        birth_local = datetime(y, m, d, hour, minute, tzinfo=timezone.utc)
+
+    birth_utc = birth_local.astimezone(timezone.utc)
+    lat = (user.get("birth_location") or {}).get("latitude") or user.get("latitude") or 0.0
+    lon = (user.get("birth_location") or {}).get("longitude") or user.get("longitude") or 0.0
+
+    # Compute canonical
+    canonical = compute_canonical_birth_positions(
+        birth_datetime_utc=birth_utc,
+        latitude=float(lat),
+        longitude=float(lon),
+        birth_timezone=tz_str,
+        birth_datetime_local=birth_local,
+    )
+
+    # Load stored astrology & HD charts
+    chart = await db.charts.find_one({"user_id": str(user["_id"])})
+    astrology_positions = {}
+    hd_personality_positions = {}
+    hd_design_positions = {}
+    if chart:
+        astrology_positions = ((chart.get("astrology") or {}).get("planets")) or {}
+        hd = chart.get("human_design") or {}
+        # HD payload stores planet positions at {hd.personality[planet].position.longitude}
+        # and {hd.design[planet].position.longitude}
+        hd_pd = hd.get("personality") or hd.get("personality_data") or {}
+        hd_dd = hd.get("design") or hd.get("design_data") or {}
+        for p, v in (hd_pd or {}).items():
+            if isinstance(v, dict):
+                lon_v = (
+                    v.get("longitude")
+                    or (v.get("position") or {}).get("longitude")
+                )
+                if lon_v is not None:
+                    hd_personality_positions[p] = {"longitude": lon_v}
+        for p, v in (hd_dd or {}).items():
+            if isinstance(v, dict):
+                lon_v = (
+                    v.get("longitude")
+                    or (v.get("position") or {}).get("longitude")
+                )
+                if lon_v is not None:
+                    hd_design_positions[p] = {"longitude": lon_v}
+
+    # Drift checks (non-raising — we want the full report)
+    astrology_report = assert_no_drift(
+        "astrology", canonical, astrology_positions, "personality", raise_on_drift=False
+    ) if astrology_positions else {"lens": "astrology", "pass": False, "note": "no stored astrology positions"}
+
+    hd_pers_report = assert_no_drift(
+        "human_design.personality", canonical, hd_personality_positions, "personality", raise_on_drift=False
+    ) if hd_personality_positions else {"lens": "human_design.personality", "pass": False, "note": "no stored HD personality positions"}
+
+    hd_des_report = assert_no_drift(
+        "human_design.design", canonical, hd_design_positions, "design", raise_on_drift=False
+    ) if hd_design_positions else {"lens": "human_design.design", "pass": False, "note": "no stored HD design positions"}
+
+    overall_pass = (
+        astrology_report.get("pass", False)
+        and hd_pers_report.get("pass", False)
+        and hd_des_report.get("pass", False)
+    )
+
+    # Sample Sun/Moon match (human-readable proof)
+    sample_match = None
+    try:
+        p_sun = canonical.personality_positions.get("Sun", {}).get("longitude")
+        a_sun = (astrology_positions.get("Sun") or {}).get("longitude")
+        hd_sun = (hd_personality_positions.get("Sun") or {}).get("longitude")
+        sample_match = {
+            "canonical_sun_longitude": round(p_sun, 6) if p_sun is not None else None,
+            "astrology_sun_longitude": round(a_sun, 6) if a_sun is not None else None,
+            "hd_personality_sun_longitude": round(hd_sun, 6) if hd_sun is not None else None,
+            "astrology_matches_canonical": (
+                abs(p_sun - a_sun) < 0.01 if (p_sun is not None and a_sun is not None) else None
+            ),
+            "hd_matches_canonical": (
+                abs(p_sun - hd_sun) < 0.01 if (p_sun is not None and hd_sun is not None) else None
+            ),
+        }
+    except Exception:
+        pass
+
+    return {
+        "user_id": str(user["_id"]),
+        "user_name": user.get("name"),
+        "pass": overall_pass,
+        "summary": (
+            "✓ Astrology and HD both consume canonical True Sidereal positions with zero drift."
+            if overall_pass
+            else "✗ DRIFT DETECTED — see drift reports below for per-planet deltas."
+        ),
+        "canonical": build_diagnostic_report(canonical),
+        "astrology_drift": astrology_report,
+        "hd_personality_drift": hd_pers_report,
+        "hd_design_drift": hd_des_report,
+        "sample_sun_cross_lens_match": sample_match,
+    }
+
+
 # =====================================================
 # MANUAL DATA FIX ENDPOINT — call from browser to fix deployed DB
 # Visit: https://mirror-lens-fixes.emergent.host/api/fix-deployed-data
@@ -32080,6 +32263,16 @@ async def run_startup_data_migrations():
                     logger.warning(f"[Migration] BaZi compute failed for {user_id}: {e}")
                     bazi_chart = None
                 
+                # Compute Human Design — uses the SAME canonical sidereal source
+                # layer as astrology (get_full_natal_chart + _get_sun_sidereal now
+                # both route through sidereal_config canonical flags).
+                hd_chart = None
+                try:
+                    from calculations.human_design import get_human_design_chart
+                    hd_chart = get_human_design_chart(birth_dt, lat or 0.0, lon or 0.0)
+                except Exception as e:
+                    logger.warning(f"[Migration] HD compute failed for {user_id}: {e}")
+                
                 # Update chart
                 update_fields = {
                     "debug_stamp": {
@@ -32092,12 +32285,14 @@ async def run_startup_data_migrations():
                     update_fields["astrology"] = astro_chart
                 if bazi_chart:
                     update_fields["bazi"] = bazi_chart
+                if hd_chart:
+                    update_fields["human_design"] = hd_chart
                 
                 await db.charts.update_one(
                     {"user_id": user_id},
                     {"$set": update_fields}
                 )
-                logger.info(f"[Migration] Recomputed chart for user {user.get('name', user_id)}: SVP=31.2836, astro={'YES' if astro_chart else 'NO'}, bazi={'YES' if bazi_chart else 'NO'}")
+                logger.info(f"[Migration] Recomputed chart for user {user.get('name', user_id)}: SVP=31.2836, astro={'YES' if astro_chart else 'NO'}, bazi={'YES' if bazi_chart else 'NO'}, hd={'YES' if hd_chart else 'NO'}")
                 
             except Exception as e:
                 logger.error(f"[Migration] Chart recompute error for {user_id}: {e}")

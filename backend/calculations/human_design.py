@@ -887,8 +887,10 @@ def calculate_design_date(birth_datetime: datetime, lat: float = 0, lon: float =
     late_bound = birth_datetime - timedelta(days=70)
     
     # Binary search parameters
-    tolerance = 0.01  # degrees
-    max_iterations = 50
+    # Tolerance matches canonical_astronomy._solve_design_datetime so both solvers
+    # converge to the same design timestamp — keeping HD and Astrology in sync.
+    tolerance = 0.001  # degrees (~3.6 arcseconds; ~0.1 minutes of time)
+    max_iterations = 60
     
     low = early_bound
     high = late_bound
@@ -937,35 +939,42 @@ def calculate_design_date(birth_datetime: datetime, lat: float = 0, lon: float =
 
 
 def _get_sun_sidereal(dt: datetime, svp_degrees: float = 31.2836) -> float:
-    """Get sidereal Sun longitude at a given datetime
-    
-    Uses tropical calculation minus fixed SVP.
-    
+    """Get sidereal Sun longitude at a given datetime.
+
+    CANONICAL PATH: Uses Swiss Ephemeris SIDM_USER mode via the canonical
+    sidereal_config initialization — the same path Astrology uses. Does NOT
+    do manual tropical-minus-SVP subtraction (which bypasses sidereal mode
+    precision and can silently fall back to Moshier when FLG_SWIEPH is unset).
+
     Args:
         dt: UTC datetime
-        svp_degrees: Sidereal Vernal Point offset
-    
+        svp_degrees: Kept for API compatibility; ignored. Canonical SVP is enforced.
+
     Returns:
-        Sidereal Sun longitude (0-360)
+        Sidereal Sun longitude (0-360), identical to what Astrology would read.
     """
-    # Convert to Julian Day
+    # Route through the canonical sidereal config so HD and Astrology can
+    # never drift: same FLG_SWIEPH | FLG_SIDEREAL flag combination, same
+    # SIDM_USER mode, same SVP, same ephemeris path.
+    from calculations.sidereal_config import (
+        _ensure_ephemeris_initialized as _canon_init,
+        CALC_FLAGS_SIDEREAL as _CANON_FLAGS,
+        normalize_degrees as _canon_norm,
+    )
+
+    _canon_init()
+
     if dt.tzinfo is not None:
-        # Convert to UTC if timezone-aware
         utc_dt = dt.astimezone(timezone.utc)
     else:
         utc_dt = dt
-    
+
     decimal_hour = utc_dt.hour + utc_dt.minute / 60.0 + utc_dt.second / 3600.0
     jd = swe.julday(utc_dt.year, utc_dt.month, utc_dt.day, decimal_hour)
-    
-    # Get tropical Sun position
-    result = swe.calc_ut(jd, swe.SUN, 0)
-    tropical_sun = result[0][0]
-    
-    # Convert to sidereal using fixed SVP
-    sidereal_sun = normalize_degrees(tropical_sun - svp_degrees)
-    
-    return sidereal_sun
+
+    # CANONICAL sidereal Sun (same flags Astrology uses)
+    result = swe.calc_ut(jd, swe.SUN, _CANON_FLAGS)
+    return _canon_norm(result[0][0])
 
 
 def _angular_difference(a: float, b: float) -> float:

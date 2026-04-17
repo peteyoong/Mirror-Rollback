@@ -27,7 +27,7 @@ Ground Truth Test Case (Mel):
 - SVP: 31.2836 degrees at year 2000, yearly_increment=0.0
 """
 import swisseph as swe
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 import math
 import os
@@ -440,6 +440,15 @@ def get_full_natal_chart(
     if house_system != "Equal":
         raise ValueError(f"House system '{house_system}' not supported. Project Mirror requires 'Equal' houses ONLY.")
     
+    # =========================================================================
+    # NORMALIZE TIMEZONE — Canonical Astronomy Contract
+    # =========================================================================
+    # If the caller passes a tz-aware datetime, convert to UTC first. Otherwise
+    # assume it's already UTC (per this function's docstring contract).
+    # This eliminates the class of drift bugs where local time was used as-if-UTC.
+    if birth_datetime.tzinfo is not None:
+        birth_datetime = birth_datetime.astimezone(timezone.utc)
+
     # =========================================================================
     # CALCULATE JULIAN DAY
     # =========================================================================
