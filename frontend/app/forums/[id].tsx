@@ -10,6 +10,7 @@ import {
   Modal,
   Pressable,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -428,9 +429,41 @@ export default function ForumHomeScreen() {
   const handleDeleteForum = async () => {
     if (!forum || !user?.id) return;
     if (forum.created_by !== user.id) {
-      Alert.alert('Not Allowed', 'Only the forum creator can delete this forum.');
+      if (Platform.OS === 'web') {
+        // eslint-disable-next-line no-alert
+        window.alert('Only the forum creator can delete this forum.');
+      } else {
+        Alert.alert('Not Allowed', 'Only the forum creator can delete this forum.');
+      }
       return;
     }
+    
+    const performDelete = async () => {
+      try {
+        await api.post(`/forums/${id}/delete?user_id=${user.id}`);
+        router.replace('/(tabs)');
+      } catch (err: any) {
+        const msg = err?.response?.data?.detail || 'Failed to delete forum';
+        if (Platform.OS === 'web') {
+          // eslint-disable-next-line no-alert
+          window.alert(`Error: ${msg}`);
+        } else {
+          Alert.alert('Error', msg);
+        }
+      }
+    };
+    
+    if (Platform.OS === 'web') {
+      // Alert.alert destructive callback doesn't fire on React Native Web;
+      // use window.confirm instead so the Delete action actually runs.
+      // eslint-disable-next-line no-alert
+      const ok = typeof window !== 'undefined' && window.confirm(`Are you sure you want to delete "${forum.name}"? This cannot be undone.`);
+      if (ok) {
+        await performDelete();
+      }
+      return;
+    }
+    
     Alert.alert(
       'Delete Forum',
       `Are you sure you want to delete "${forum.name}"? This cannot be undone.`,
@@ -439,14 +472,7 @@ export default function ForumHomeScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.post(`/forums/${id}/delete?user_id=${user.id}`);
-              router.replace('/(tabs)');
-            } catch (err: any) {
-              Alert.alert('Error', err?.response?.data?.detail || 'Failed to delete forum');
-            }
-          },
+          onPress: performDelete,
         },
       ]
     );
