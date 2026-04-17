@@ -12031,37 +12031,67 @@ async def get_astrology_today_v3(user_id: str):
         
         # Get user's chart data for personalization
         chart_data = None
+        natal_house_cusps = None
         try:
-            # Try to get from deep dive cache
-            cached_dd = await db.deep_dive_cache.find_one({"user_id": user_id, "lens": "astrology"})
-            if cached_dd and cached_dd.get("core_placements"):
-                placements = cached_dd.get("core_placements", {})
-                sun = placements.get("sun")
-                moon = placements.get("moon")
-                asc = placements.get("ascendant")
+            # Primary source: stored chart in charts collection
+            stored_chart = await db.charts.find_one({"user_id": user_id})
+            if stored_chart:
+                astro = stored_chart.get("astrology", {})
+                planets = astro.get("planets", {})
+                houses = astro.get("houses", {})
+                sun = planets.get("Sun", {})
+                moon = planets.get("Moon", {})
+                cusps_list = houses.get("formatted_cusps", [])
+                rising = cusps_list[0] if cusps_list else {}
                 
                 chart_data = {
-                    "sun_sign": sun.get("sign") if isinstance(sun, dict) else sun,
-                    "moon_sign": moon.get("sign") if isinstance(moon, dict) else moon,
-                    "rising_sign": asc.get("sign") if isinstance(asc, dict) else asc,
+                    "sun_sign": sun.get("sign") if isinstance(sun, dict) else None,
+                    "moon_sign": moon.get("sign") if isinstance(moon, dict) else None,
+                    "rising_sign": rising.get("sign") if isinstance(rising, dict) else None,
                 }
+                # Store house cusps for activated house computation
+                natal_house_cusps = houses.get("cusps", [])
             
-            # Alternative: check if user has stored chart data
+            # Fallback: deep dive cache
             if not chart_data:
-                user = await db.users.find_one({"_id": ObjectId(user_id)})
-                if user and user.get("birth_chart"):
-                    bc = user.get("birth_chart", {})
+                cached_dd = await db.deep_dive_cache.find_one({"user_id": user_id, "lens": "astrology"})
+                if cached_dd and cached_dd.get("core_placements"):
+                    placements = cached_dd.get("core_placements", {})
+                    sun = placements.get("sun")
+                    moon = placements.get("moon")
+                    asc = placements.get("ascendant")
                     chart_data = {
-                        "sun_sign": bc.get("sun_sign"),
-                        "moon_sign": bc.get("moon_sign"),
-                        "rising_sign": bc.get("rising_sign") or bc.get("ascendant_sign"),
+                        "sun_sign": sun.get("sign") if isinstance(sun, dict) else sun,
+                        "moon_sign": moon.get("sign") if isinstance(moon, dict) else moon,
+                        "rising_sign": asc.get("sign") if isinstance(asc, dict) else asc,
                     }
                     
         except Exception as e:
             logger.debug(f"[AstrologyV3] Could not load chart data: {e}")
         
-        # Get activated house from transit if available
+        # Compute activated house from transiting Sun + user's natal houses
         activated_house = transit_stack.get("activated_house")
+        if not activated_house and natal_house_cusps and len(natal_house_cusps) == 12:
+            try:
+                import swisseph as swe
+                from datetime import datetime as _dt, timezone as _tz
+                now = _dt.now(_tz.utc)
+                jd = swe.julday(now.year, now.month, now.day, now.hour + now.minute / 60.0)
+                sun_trop = swe.calc_ut(jd, swe.SUN, swe.FLG_SWIEPH)[0][0]
+                for i in range(12):
+                    c_start = natal_house_cusps[i]
+                    c_end = natal_house_cusps[(i + 1) % 12]
+                    if c_end < c_start:
+                        if sun_trop >= c_start or sun_trop < c_end:
+                            activated_house = i + 1
+                            break
+                    else:
+                        if c_start <= sun_trop < c_end:
+                            activated_house = i + 1
+                            break
+            except Exception as e:
+                logger.debug(f"[AstrologyV3] House computation error: {e}")
+        
         transit_stack["activated_house"] = activated_house
         
         # Generate V3 insight with mandatory structure
@@ -26093,67 +26123,66 @@ async def fix_deployed_data():
         # Mel's enneagram data (Type 3w4)
         MEL_ENNEAGRAM = {"inferred_core": 3, "inferred_wing": 4, "confidence": 0.85, "confidence_tier": "high", "enneagram_computed_details": {"center": "heart", "hornevian_group": "assertive", "harmonic_group": "competency", "object_relations": "attachment", "social_style_tags": ["achiever", "performer"]}, "source": "user_declared"}
         
-        # Fix Pete
-        pete = await db.users.find_one({"email": "pete@pulsifi.me"})
-        if pete:
-            pete_updates = {}
-            if not pete.get("enneagram") or not pete.get("enneagram", {}).get("inferred_core"):
-                pete_updates["enneagram"] = PETE_ENNEAGRAM
-                results["fixes"].append("Seeded Pete enneagram: Type 7w8")
-            else:
-                results["fixes"].append(f"Pete enneagram already set: Type {pete['enneagram'].get('inferred_core')}")
-            
-            if not pete.get("timezone"):
-                pete_updates["timezone"] = "+07:00"
-            
-            if pete_updates:
-                await db.users.update_one({"_id": pete["_id"]}, {"$set": pete_updates})
-        else:
-            results["errors"].append("Pete user not found (pete@pulsifi.me)")
+        # Thaddeus enneagram data (Type 4w3)
+        THADDY_ENNEAGRAM = {"inferred_core": 4, "inferred_wing": 3, "confidence": 0.85, "confidence_tier": "high", "enneagram_computed_details": {"center": "heart", "hornevian_group": "withdrawn", "harmonic_group": "reactive", "object_relations": "frustration", "social_style_tags": ["individualist", "artist", "sensitive", "expressive"]}, "source": "user_declared"}
         
-        # Fix Mel - search by multiple methods since email may differ
-        mel = await db.users.find_one({"email": "mel@test.com"})
-        if not mel:
-            mel = await db.users.find_one({"name": "Melissa"})
-        if not mel:
-            mel = await db.users.find_one({"name": "Mel"})
-        if not mel:
-            # Try finding by forum membership with Pete
-            if pete:
-                pete_forums = await db.forum_members.find({"user_id": str(pete["_id"])}).to_list(10)
-                for fm in pete_forums:
-                    other_members = await db.forum_members.find({"forum_id": fm["forum_id"], "user_id": {"$ne": str(pete["_id"])}}).to_list(10)
-                    for om in other_members:
-                        candidate = await db.users.find_one({"_id": ObjectId(om["user_id"])})
-                        if candidate and candidate.get("name", "").lower() in ["mel", "melissa"]:
-                            mel = candidate
-                            break
-                    if mel:
+        # Isaac enneagram data (Type 8w7)
+        ISAAC_ENNEAGRAM = {"inferred_core": 8, "inferred_wing": 7, "confidence": 0.85, "confidence_tier": "high", "enneagram_computed_details": {"center": "gut", "hornevian_group": "assertive", "harmonic_group": "reactive", "object_relations": "rejection", "social_style_tags": ["challenger", "protector", "decisive", "confrontational"]}, "source": "user_declared"}
+        
+        # Define all known users with their enneagram data
+        KNOWN_USERS = [
+            {"emails": ["pete@pulsifi.me"], "names": ["Pete"], "enneagram": PETE_ENNEAGRAM},
+            {"emails": ["mel@test.com"], "names": ["Mel", "Melissa"], "enneagram": MEL_ENNEAGRAM, "fix_name": "Mel", "fix_gender": "female", "fix_timezone": "Asia/Kuala_Lumpur"},
+            {"emails": ["thaddeus.yoong@test.com"], "names": ["Thaddeus Yoong", "Thaddy", "Thaddeus"], "enneagram": THADDY_ENNEAGRAM},
+            {"emails": ["isaac.yoong@test.com"], "names": ["Isaac Yoong", "Isaac"], "enneagram": ISAAC_ENNEAGRAM},
+        ]
+        
+        # Process all known users
+        for known in KNOWN_USERS:
+            user = None
+            for email in known.get("emails", []):
+                user = await db.users.find_one({"email": email})
+                if user:
+                    break
+            if not user:
+                for name in known.get("names", []):
+                    user = await db.users.find_one({"name": name})
+                    if user:
                         break
-        if mel:
-            mel_updates = {}
-            old_name = mel.get("name", "")
-            if old_name != "Mel":
-                mel_updates["name"] = "Mel"
-                results["fixes"].append(f"Fixed Mel name: {old_name} → Mel")
             
-            if not mel.get("enneagram") or not mel.get("enneagram", {}).get("inferred_core"):
-                mel_updates["enneagram"] = MEL_ENNEAGRAM
-                results["fixes"].append("Seeded Mel enneagram: Type 3w4")
+            if not user:
+                results["errors"].append(f"User not found: {known.get('names', ['?'])[0]} (tried emails={known.get('emails')}, names={known.get('names')})")
+                continue
+            
+            user_name = user.get("name", "?")
+            updates = {}
+            
+            # Seed enneagram if missing
+            existing_enn = user.get("enneagram", {})
+            if not existing_enn or not existing_enn.get("inferred_core"):
+                updates["enneagram"] = known["enneagram"]
+                core = known["enneagram"]["inferred_core"]
+                wing = known["enneagram"].get("inferred_wing", "?")
+                results["fixes"].append(f"Seeded {user_name} enneagram: Type {core}w{wing}")
             else:
-                results["fixes"].append(f"Mel enneagram already set: Type {mel['enneagram'].get('inferred_core')}")
+                results["fixes"].append(f"{user_name} enneagram already set: Type {existing_enn.get('inferred_core')}w{existing_enn.get('inferred_wing', '?')}")
             
-            if not mel.get("timezone"):
-                mel_updates["timezone"] = "Asia/Kuala_Lumpur"
-                results["fixes"].append("Set Mel timezone")
+            # Fix name if specified
+            if known.get("fix_name") and user.get("name") != known["fix_name"]:
+                updates["name"] = known["fix_name"]
+                results["fixes"].append(f"Fixed {user_name} name → {known['fix_name']}")
             
-            if not mel.get("gender"):
-                mel_updates["gender"] = "female"
+            # Fix gender if specified
+            if known.get("fix_gender") and not user.get("gender"):
+                updates["gender"] = known["fix_gender"]
             
-            if mel_updates:
-                await db.users.update_one({"_id": mel["_id"]}, {"$set": mel_updates})
-        else:
-            results["errors"].append("Mel user not found (mel@test.com)")
+            # Fix timezone if specified
+            if known.get("fix_timezone") and not user.get("timezone"):
+                updates["timezone"] = known["fix_timezone"]
+                results["fixes"].append(f"Set {user_name} timezone: {known['fix_timezone']}")
+            
+            if updates:
+                await db.users.update_one({"_id": user["_id"]}, {"$set": updates})
         
         # =====================================================
         # STEP 2: Recompute charts with wrong ayanamsa + add BaZi
