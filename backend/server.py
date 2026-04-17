@@ -14428,6 +14428,87 @@ async def get_home_insight_v5(user_id: str):
     - why_showing_up: Collapsible proof layer
     """
     try:
+        # ================================================================
+        # V6 SIGNAL-GROUNDED LAYER (preferred when >=2 real signals present)
+        # ================================================================
+        try:
+            from services.home_signal_grounded import generate_home_signal_grounded
+            grounded = await generate_home_signal_grounded(db, user_id)
+            if grounded.get("render"):
+                logger.info(
+                    f"[HomeV6] Signal-grounded render for {user_id[:8]}: "
+                    f"{grounded.get('signal_count')} signals across "
+                    f"{grounded.get('distinct_sources')}"
+                )
+
+                signals_used = grounded.get("signals_used") or []
+
+                # Build "what's going on" bullets from the actual signal stack
+                # (distortion + corroborating signals as plain observations).
+                wgo_bullets: list = []
+                if grounded.get("distortion"):
+                    wgo_bullets.append(grounded["distortion"])
+                # Add up to 2 additional signal labels that aren't the trigger
+                for s in signals_used:
+                    if len(wgo_bullets) >= 3:
+                        break
+                    lbl = s.get("label") or ""
+                    if lbl and lbl not in wgo_bullets:
+                        wgo_bullets.append(lbl)
+
+                # Derive "where it shows up" from highest-weight life-area hint
+                where_it = None
+                for s in signals_used:
+                    ev = s.get("evidence") or {}
+                    if ev.get("transit_sign"):
+                        where_it = f"In how today's {ev['transit_sign']} energy lands on your life."
+                        break
+
+                # Proof layer: flatten signal objects into strings the existing card expects
+                proof_signals = [
+                    f"[{s['source']}] {s['label']}"
+                    for s in signals_used
+                ]
+
+                return {
+                    "success": True,
+                    "user_id": user_id,
+                    "version": grounded["version"],
+                    "render_mode": "signal_grounded",
+                    # Existing card fields (mapped from layered structure)
+                    "pattern_label": "Today",
+                    "headline": grounded["trigger"],
+                    "identity_mirror": grounded["collision"],
+                    "whats_going_on": wgo_bullets,
+                    "where_it_shows_up": where_it,
+                    "what_you_may_be_doing": [],
+                    "what_this_creates": grounded.get("cost"),
+                    "the_move": grounded.get("interrupt"),
+                    "why_showing_up": {
+                        "note": f"Grounded in {grounded.get('signal_count')} live signals across {len(grounded.get('distinct_sources', []))} sources.",
+                        "signals": proof_signals,
+                    },
+                    # New explicit layered contract (forward-looking)
+                    "layers": {
+                        "trigger": grounded["trigger"],
+                        "collision": grounded["collision"],
+                        "distortion": grounded.get("distortion"),
+                        "cost": grounded.get("cost"),
+                        "interrupt": grounded.get("interrupt"),
+                    },
+                    "signals_used": signals_used,
+                    "signal_count": grounded.get("signal_count"),
+                    "distinct_sources": grounded.get("distinct_sources"),
+                    "trigger_confidence": "strongly_active_now",
+                }
+            else:
+                logger.info(
+                    f"[HomeV6] Insufficient signals ({grounded.get('reason')}), "
+                    f"falling back to V5 template for {user_id[:8]}"
+                )
+        except Exception as v6_err:
+            logger.warning(f"[HomeV6] Signal-grounded failed, falling back: {v6_err}", exc_info=True)
+
         from services.home_insight_v5 import generate_home_insight_v5, build_v5_narrative
         from services.tension_engine import generate_tension_moment
         

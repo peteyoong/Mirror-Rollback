@@ -1,238 +1,204 @@
 """
-Backend Tests for Forum Mappings P0 Fixes (Feb 2026)
-
-Verifies:
-  A) /api/forum-mappings returns complete data for all 3 members with
-     non-null enneagram, bazi (w/ animal emojis), astrology, and HD signals.
-  B) /api/fix-deployed-data seeds ALL duplicate user records for
-     Pete/Mel/Isaac/Thaddeus, with empty errors.
-  C) No regression on /api/get-user-forums and /api/forums/{id}/members.
+Home Insight V6 "Signal-Grounded" Engine — backend regression tests
+Target endpoint: GET /api/home-insight-v5/{user_id}
 """
+import os
 import json
-import re
-import sys
 import requests
 
-BASE_URL = "http://localhost:8001"
+BASE = "https://forum-signals-fix.preview.emergentagent.com/api"
 
-# Test credentials
-PETE_USER_ID = "697f0c6abf35c0528ff06954"
-MEL_USER_ID = "697ec826ad4b18f75bf42616"
-YOONG_FAMILY_FORUM_ID = "69dda348de9cb1c83c0780fa"
-
-EXPECTED_MEMBERS = {"Thaddeus Yoong", "Mel", "Isaac Yoong"}
-
-ANIMAL_EMOJI_PATTERN = re.compile(
-    r"🐀|🐁|🐂|🐃|🐄|🐅|🐆|🐇|🐈|🐉|🐊|🐋|🐌|🐍|🐎|🐏|🐐|🐑|🐒|🐓|🐔|🐕|🐖|🐗|🐘|🐙|🐚|🐛|🐜|🐝|🐞|🐟|🐠|🐡|🐢|🐣|🐤|🐥|🐦|🐧|🐨|🐩|🐪|🐫|🐬|🐭|🐮|🐯|🐰|🐱|🐲|🐳"
-)
+PETE = "697f0c6abf35c0528ff06954"
+MEL = "697ec826ad4b18f75bf42616"
+FAKE = "000000000000000000000000"
 
 results = []
 
 
-def pass_(msg):
-    print(f"  ✅ {msg}")
+def check(name, cond, detail=""):
+    status = "PASS" if cond else "FAIL"
+    results.append((status, name, detail))
+    print(f"[{status}] {name}  {detail if detail else ''}")
+    return cond
 
 
-def fail_(msg):
-    print(f"  ❌ {msg}")
-
-
-def section(name):
-    print(f"\n{'='*70}\n{name}\n{'='*70}")
-
-
-def test_forum_mappings():
-    section("TEST A: POST /api/forum-mappings (complete signals)")
-    url = f"{BASE_URL}/api/forum-mappings"
-    payload = {"forum_id": YOONG_FAMILY_FORUM_ID, "user_id": PETE_USER_ID}
-    try:
-        r = requests.post(url, json=payload, timeout=60)
-    except Exception as e:
-        fail_(f"request failed: {e}")
-        results.append(("A: forum-mappings reachable", False))
-        return
-
-    ok = r.status_code == 200
-    results.append(("A: HTTP 200 OK", ok))
-    (pass_ if ok else fail_)(f"HTTP {r.status_code}")
-    if not ok:
-        print(r.text[:500])
-        return
-
-    data = r.json()
-    mappings = data.get("mappings", [])
-    count_ok = len(mappings) == 3
-    results.append(("A: exactly 3 mappings", count_ok))
-    (pass_ if count_ok else fail_)(f"mappings count = {len(mappings)} (expected 3)")
-
-    names = {m.get("member_name") for m in mappings}
-    names_ok = EXPECTED_MEMBERS.issubset(names)
-    results.append(("A: members Thaddeus/Mel/Isaac present", names_ok))
-    (pass_ if names_ok else fail_)(f"member names: {names}")
-
-    for m in mappings:
-        name = m.get("member_name")
-        signals = m.get("signals") or {}
-        print(f"\n  --- Member: {name} ---")
-
-        enn = signals.get("enneagram")
-        enn_ok = (
-            isinstance(enn, dict)
-            and isinstance(enn.get("how_you_help_them"), list)
-            and isinstance(enn.get("how_they_help_you"), list)
-            and len(enn.get("how_you_help_them") or []) > 0
-            and len(enn.get("how_they_help_you") or []) > 0
+def v6_assertions(label, data):
+    ok = True
+    ok &= check(
+        f"{label}: version==v6_signal_grounded",
+        data.get("version") == "v6_signal_grounded",
+        f"actual={data.get('version')}",
+    )
+    ok &= check(
+        f"{label}: render_mode==signal_grounded",
+        data.get("render_mode") == "signal_grounded",
+        f"actual={data.get('render_mode')}",
+    )
+    layers = data.get("layers") or {}
+    for fld in ("trigger", "collision", "distortion", "interrupt"):
+        v = layers.get(fld)
+        ok &= check(
+            f"{label}: layers.{fld} non-empty string",
+            isinstance(v, str) and len(v.strip()) > 0,
+            f"actual={repr(v)[:80]}",
         )
-        results.append((f"A: {name} enneagram non-null w/ arrays", enn_ok))
-        (pass_ if enn_ok else fail_)(
-            f"enneagram: how_you_help_them={len(enn.get('how_you_help_them') or []) if isinstance(enn, dict) else 'N/A'}, "
-            f"how_they_help_you={len(enn.get('how_they_help_you') or []) if isinstance(enn, dict) else 'N/A'}"
-        )
-
-        bazi = signals.get("bazi")
-        bazi_ok = isinstance(bazi, dict) and len(bazi) > 0
-        results.append((f"A: {name} bazi non-null object", bazi_ok))
-        (pass_ if bazi_ok else fail_)(
-            f"bazi keys={list(bazi.keys()) if isinstance(bazi, dict) else 'N/A'}"
-        )
-
-        if isinstance(bazi, dict):
-            combined = []
-            for key in ("support", "tension", "growth"):
-                arr = bazi.get(key) or []
-                if isinstance(arr, list):
-                    combined.extend(arr)
-            joined = " | ".join(str(x) for x in combined)
-            has_emoji = bool(ANIMAL_EMOJI_PATTERN.search(joined))
-            results.append((f"A: {name} bazi has animal emoji", has_emoji))
-            (pass_ if has_emoji else fail_)(f"bazi animal emoji present: {has_emoji}")
-            if has_emoji:
-                for s in combined:
-                    if ANIMAL_EMOJI_PATTERN.search(str(s)):
-                        print(f"       → '{s}'")
-                        break
-
-        astro = signals.get("astrology")
-        astro_ok = isinstance(astro, dict) and len(astro) > 0
-        results.append((f"A: {name} astrology non-null object", astro_ok))
-        (pass_ if astro_ok else fail_)(
-            f"astrology keys={list(astro.keys()) if isinstance(astro, dict) else 'N/A'}"
-        )
-
-        hd = signals.get("human_design")
-        hd_ok = isinstance(hd, list)
-        results.append((f"A: {name} human_design is array", hd_ok))
-        (pass_ if hd_ok else fail_)(
-            f"human_design type={type(hd).__name__}, len={len(hd) if isinstance(hd, list) else 'N/A'}"
-        )
-
-
-def test_fix_deployed_data():
-    section("TEST B: GET /api/fix-deployed-data (seeds all duplicates)")
-    url = f"{BASE_URL}/api/fix-deployed-data"
-    try:
-        r = requests.get(url, timeout=60)
-    except Exception as e:
-        fail_(f"request failed: {e}")
-        results.append(("B: fix-deployed-data reachable", False))
-        return
-
-    ok = r.status_code == 200
-    results.append(("B: HTTP 200 OK", ok))
-    (pass_ if ok else fail_)(f"HTTP {r.status_code}")
-    if not ok:
-        print(r.text[:500])
-        return
-
-    data = r.json()
-    fixes = data.get("fixes", [])
-    errors = data.get("errors", [])
-
-    errors_ok = len(errors) == 0
-    results.append(("B: errors array is empty", errors_ok))
-    (pass_ if errors_ok else fail_)(f"errors: {errors}")
-
-    pete_count = sum(1 for f in fixes if f.startswith("Pete"))
-    mel_count = sum(1 for f in fixes if f.startswith("Mel"))
-    thad_count = sum(1 for f in fixes if f.startswith("Thaddeus Yoong"))
-    isaac_count = sum(1 for f in fixes if f.startswith("Isaac Yoong"))
-
-    pete_ok = pete_count >= 2
-    mel_ok = mel_count >= 2  # handles "Mel" and "Mel "
-    thad_ok = thad_count >= 1
-    isaac_ok = isaac_count >= 1
-
-    results.append(("B: Pete duplicates (>=2) seeded", pete_ok))
-    (pass_ if pete_ok else fail_)(f"Pete records in fixes: {pete_count}")
-
-    results.append(("B: Mel duplicates (>=2) seeded", mel_ok))
-    (pass_ if mel_ok else fail_)(f"Mel records in fixes: {mel_count}")
-
-    results.append(("B: Thaddeus Yoong seeded (>=1)", thad_ok))
-    (pass_ if thad_ok else fail_)(f"Thaddeus Yoong records in fixes: {thad_count}")
-
-    results.append(("B: Isaac Yoong seeded (>=1)", isaac_ok))
-    (pass_ if isaac_ok else fail_)(f"Isaac Yoong records in fixes: {isaac_count}")
-
-    print(f"\n  Total fixes: {len(fixes)}, summary={data.get('summary')}")
+    ok &= check(
+        f"{label}: signal_count >= 2",
+        (data.get("signal_count") or 0) >= 2,
+        f"actual={data.get('signal_count')}",
+    )
+    ds = data.get("distinct_sources") or []
+    ok &= check(
+        f"{label}: len(distinct_sources) >= 2",
+        len(ds) >= 2,
+        f"actual={ds}",
+    )
+    sigs = data.get("signals_used") or []
+    ok &= check(
+        f"{label}: signals_used non-empty",
+        isinstance(sigs, list) and len(sigs) > 0,
+        f"count={len(sigs)}",
+    )
+    for s in sigs:
+        for k in ("source", "kind", "label", "weight", "evidence"):
+            if k not in s:
+                ok &= check(f"{label}: signal missing key {k}", False, str(s)[:80])
+                break
+    # Back-compat v5 mappings
+    ok &= check(
+        f"{label}: headline == layers.trigger",
+        data.get("headline") == layers.get("trigger"),
+        f"headline={data.get('headline')[:60] if data.get('headline') else None}",
+    )
+    ok &= check(
+        f"{label}: identity_mirror == layers.collision",
+        data.get("identity_mirror") == layers.get("collision"),
+    )
+    ok &= check(
+        f"{label}: the_move == layers.interrupt",
+        data.get("the_move") == layers.get("interrupt"),
+    )
+    wsu = (data.get("why_showing_up") or {}).get("signals") or []
+    ok &= check(
+        f"{label}: why_showing_up.signals non-empty list of strings",
+        isinstance(wsu, list) and len(wsu) > 0 and all(isinstance(x, str) for x in wsu),
+        f"count={len(wsu)}",
+    )
+    return ok
 
 
-def test_get_user_forums():
-    section("TEST C1: POST /api/get-user-forums (regression)")
-    url = f"{BASE_URL}/api/get-user-forums"
-    try:
-        r = requests.post(url, json={"user_id": PETE_USER_ID}, timeout=30)
-    except Exception as e:
-        fail_(f"request failed: {e}")
-        results.append(("C1: get-user-forums reachable", False))
-        return
-    ok = r.status_code == 200
-    results.append(("C1: HTTP 200 OK", ok))
-    (pass_ if ok else fail_)(f"HTTP {r.status_code}")
-    if not ok:
-        return
-    data = r.json()
-    forums = data.get("forums", [])
-    list_ok = isinstance(forums, list) and len(forums) > 0
-    results.append(("C1: forums list non-empty", list_ok))
-    (pass_ if list_ok else fail_)(f"forums count = {len(forums)}")
-
-
-def test_get_forum_members():
-    section("TEST C2: GET /api/forums/{id}/members (regression)")
-    url = f"{BASE_URL}/api/forums/{YOONG_FAMILY_FORUM_ID}/members"
-    try:
-        r = requests.get(url, params={"user_id": PETE_USER_ID}, timeout=30)
-    except Exception as e:
-        fail_(f"request failed: {e}")
-        results.append(("C2: forums/{id}/members reachable", False))
-        return
-    ok = r.status_code == 200
-    results.append(("C2: HTTP 200 OK", ok))
-    (pass_ if ok else fail_)(f"HTTP {r.status_code}")
-    if not ok:
-        return
-    data = r.json()
-    members = data.get("members", [])
-    list_ok = isinstance(members, list) and len(members) > 0
-    results.append(("C2: members list non-empty", list_ok))
-    (pass_ if list_ok else fail_)(f"members count = {len(members)}")
+def traceability(label, data):
+    """Every layer sentence should correspond to at least one signal in signals_used."""
+    sigs = data.get("signals_used") or []
+    sig_labels = [s.get("label") or "" for s in sigs]
+    sig_evidence_blobs = [json.dumps(s.get("evidence") or {}) for s in sigs]
+    layers = data.get("layers") or {}
+    # Heuristic: check that at least a key token from each layer string appears in some signal
+    ok = True
+    for fld in ("trigger", "collision", "distortion", "cost", "interrupt"):
+        txt = layers.get(fld)
+        if not txt:
+            continue
+        # Extract a salient token: first capitalised sign / key phrase
+        tokens = []
+        for key in [
+            "Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio",
+            "Sagittarius","Capricorn","Aquarius","Pisces",
+            "New Moon","Full Moon","stellium","Gate","Neptune","Uranus","Saturn",
+            "Mars","Jupiter","Mercury","Venus","Sun","Moon",
+        ]:
+            if key in txt:
+                tokens.append(key)
+        # Check at least one token appears in any signal label/evidence — trigger layers
+        # like "interrupt" tend to be free-form advice, so we accept if layer has no astro
+        # token OR if any token matches.
+        if tokens:
+            match = any(
+                any(t in sl for sl in sig_labels) or any(t in ev for ev in sig_evidence_blobs)
+                for t in tokens
+            )
+            ok &= check(
+                f"{label}: layer '{fld}' traceable to signals_used (tokens={tokens[:3]})",
+                match,
+            )
+    return ok
 
 
 def main():
-    test_forum_mappings()
-    test_fix_deployed_data()
-    test_get_user_forums()
-    test_get_forum_members()
+    print("\n=== A) Pete (v6 expected) ===")
+    r = requests.get(f"{BASE}/home-insight-v5/{PETE}", timeout=30)
+    check("Pete HTTP 200", r.status_code == 200, f"status={r.status_code}")
+    pete = r.json()
+    v6_assertions("Pete", pete)
+    traceability("Pete", pete)
 
-    section("FINAL SUMMARY")
-    passed = sum(1 for _, ok in results if ok)
-    total = len(results)
-    for label, ok in results:
-        icon = "✅" if ok else "❌"
-        print(f"  {icon} {label}")
-    print(f"\n  {passed}/{total} assertions passed")
-    sys.exit(0 if passed == total else 1)
+    print("\n=== B) Mel (v6 expected) ===")
+    r = requests.get(f"{BASE}/home-insight-v5/{MEL}", timeout=30)
+    check("Mel HTTP 200", r.status_code == 200, f"status={r.status_code}")
+    mel = r.json()
+    v6_assertions("Mel", mel)
+    traceability("Mel", mel)
+
+    print("\n=== Per-user personalization (Pete vs Mel) ===")
+    pt = (pete.get("layers") or {}).get("trigger")
+    mt = (mel.get("layers") or {}).get("trigger")
+    pc = (pete.get("layers") or {}).get("collision")
+    mc = (mel.get("layers") or {}).get("collision")
+    print(f"Pete trigger:   {pt}")
+    print(f"Mel  trigger:   {mt}")
+    print(f"Pete collision: {pc}")
+    print(f"Mel  collision: {mc}")
+    check("Pete.trigger != Mel.trigger", pt != mt)
+    check("Pete.collision != Mel.collision", pc != mc)
+
+    print("\n=== D) Non-existent user (no 500 regression) ===")
+    r = requests.get(f"{BASE}/home-insight-v5/{FAKE}", timeout=30)
+    check("Fake user HTTP 200 (not 500)", r.status_code == 200, f"status={r.status_code}")
+    fake = r.json()
+    check(
+        "Fake user: v5 fallback or v5 template (not v6)",
+        fake.get("version") in ("v5_fallback", "v5_pattern_engine", "v5_template"),
+        f"version={fake.get('version')}",
+    )
+
+    print("\n=== E) Forum-mappings regression ===")
+    r = requests.post(
+        f"{BASE}/forum-mappings",
+        json={
+            "forum_id": "69dda348de9cb1c83c0780fa",
+            "user_id": "697f0c6abf35c0528ff06954",
+        },
+        timeout=30,
+    )
+    check("forum-mappings HTTP 200", r.status_code == 200, f"status={r.status_code}")
+    fm = r.json()
+    check("forum-mappings success=True", fm.get("success") is True)
+    mappings = fm.get("mappings") or []
+    check("forum-mappings 3 members", len(mappings) == 3, f"count={len(mappings)}")
+    emoji_chars = "🐒🐴🐓🐲🐯🐰🐶🐱🐷🐔🐍🐀🐂🐑🐺🐎"
+    for m in mappings:
+        name = m.get("member_name")
+        sig = m.get("signals") or {}
+        enn = sig.get("enneagram")
+        bz = sig.get("bazi") or {}
+        found_emoji = False
+        for arr in ("support", "tension", "growth"):
+            for s in bz.get(arr, []) or []:
+                if any(ch in s for ch in emoji_chars):
+                    found_emoji = True
+                    break
+        check(f"forum-mappings:{name} has enneagram", bool(enn))
+        check(f"forum-mappings:{name} has bazi animal emoji", found_emoji)
+
+    print("\n=== SUMMARY ===")
+    passed = sum(1 for s, *_ in results if s == "PASS")
+    failed = sum(1 for s, *_ in results if s == "FAIL")
+    print(f"TOTAL: {passed + failed}  PASS: {passed}  FAIL: {failed}")
+    if failed:
+        print("\nFailures:")
+        for s, n, d in results:
+            if s == "FAIL":
+                print(f"  - {n}  {d}")
 
 
 if __name__ == "__main__":

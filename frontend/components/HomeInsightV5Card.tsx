@@ -209,59 +209,69 @@ const HomeInsightV5Card: React.FC<HomeInsightV5CardProps> = ({
       {/* ============================================================ */}
       {/* WHAT'S GOING ON - Pattern loops, no abstraction             */}
       {/* ============================================================ */}
-      <View style={styles.section}>
-        <SectionHeader title="WHAT'S GOING ON" theme={theme} />
-        {data.whats_going_on?.map((item, index) => (
-          <BulletItem key={`wgo-${index}`} text={item} theme={theme} />
-        ))}
-      </View>
+      {data.whats_going_on && data.whats_going_on.length > 0 && (
+        <View style={styles.section}>
+          <SectionHeader title="WHAT'S GOING ON" theme={theme} />
+          {data.whats_going_on.map((item, index) => (
+            <BulletItem key={`wgo-${index}`} text={item} theme={theme} />
+          ))}
+        </View>
+      )}
 
       {/* ============================================================ */}
       {/* WHERE IT SHOWS UP - ONE dominant life area                  */}
       {/* ============================================================ */}
-      <View style={[styles.whereSection, { backgroundColor: theme.cardBackground || (theme.background + 'CC') }]}>
-        <Ionicons name="locate-outline" size={13} color={theme.textTertiary} />
-        <Text style={[styles.whereText, { color: theme.textSecondary }]}>
-          {data.where_it_shows_up}
-        </Text>
-      </View>
+      {data.where_it_shows_up ? (
+        <View style={[styles.whereSection, { backgroundColor: theme.cardBackground || (theme.background + 'CC') }]}>
+          <Ionicons name="locate-outline" size={13} color={theme.textTertiary} />
+          <Text style={[styles.whereText, { color: theme.textSecondary }]}>
+            {data.where_it_shows_up}
+          </Text>
+        </View>
+      ) : null}
 
       {/* ============================================================ */}
       {/* WHAT YOU MAY BE DOING - Repeated behaviors, loops           */}
       {/* THE MOST IMPORTANT SECTION                                  */}
       {/* Must feel like: "That's EXACTLY what I do."                 */}
       {/* ============================================================ */}
-      <View style={styles.section}>
-        <SectionHeader title="WHAT YOU MAY BE DOING" theme={theme} />
-        {data.what_you_may_be_doing?.map((item, index) => (
-          <BulletItem key={`doing-${index}`} text={item} theme={theme} icon="dash" />
-        ))}
-      </View>
+      {data.what_you_may_be_doing && data.what_you_may_be_doing.length > 0 && (
+        <View style={styles.section}>
+          <SectionHeader title="WHAT YOU MAY BE DOING" theme={theme} />
+          {data.what_you_may_be_doing.map((item, index) => (
+            <BulletItem key={`doing-${index}`} text={item} theme={theme} icon="dash" />
+          ))}
+        </View>
+      )}
 
       {/* ============================================================ */}
       {/* WHAT THIS CREATES - Quiet, real cost                        */}
       {/* ============================================================ */}
-      <View style={[styles.createsSection, { borderLeftColor: accentColor + '50' }]}>
-        <Text style={[styles.createsLabel, { color: theme.textTertiary }]}>
-          WHAT THIS CREATES
-        </Text>
-        <Text style={[styles.createsText, { color: theme.text }]}>
-          {data.what_this_creates}
-        </Text>
-      </View>
+      {data.what_this_creates ? (
+        <View style={[styles.createsSection, { borderLeftColor: accentColor + '50' }]}>
+          <Text style={[styles.createsLabel, { color: theme.textTertiary }]}>
+            WHAT THIS CREATES
+          </Text>
+          <Text style={[styles.createsText, { color: theme.text }]}>
+            {data.what_this_creates}
+          </Text>
+        </View>
+      ) : null}
 
       {/* ============================================================ */}
       {/* THE MOVE - Pattern-level trajectory shift                   */}
       {/* NOT moment-level interrupt                                  */}
       {/* ============================================================ */}
-      <View style={[styles.moveSection, { backgroundColor: accentColor + '0C', borderColor: accentColor + '25' }]}>
-        <Text style={[styles.moveLabel, { color: accentColor }]}>
-          THE MOVE
-        </Text>
-        <Text style={[styles.moveText, { color: theme.text }]}>
-          {data.the_move}
-        </Text>
-      </View>
+      {data.the_move ? (
+        <View style={[styles.moveSection, { backgroundColor: accentColor + '0C', borderColor: accentColor + '25' }]}>
+          <Text style={[styles.moveLabel, { color: accentColor }]}>
+            THE MOVE
+          </Text>
+          <Text style={[styles.moveText, { color: theme.text }]}>
+            {data.the_move}
+          </Text>
+        </View>
+      ) : null}
 
       {/* ============================================================ */}
       {/* WHY THIS IS SHOWING UP - Collapsible proof layer            */}

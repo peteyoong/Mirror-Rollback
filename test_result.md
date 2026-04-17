@@ -8162,10 +8162,95 @@ backend:
 
 test_plan:
   current_focus:
-    - "V2.0 Relationship Insight Engine" # COMPLETED ✅
+    - "Home Insight V6 Signal-Grounded Engine"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+  - task: "Home Insight V6 Signal-Grounded Engine"
+    implemented: true
+    working: false
+    file: "/app/backend/services/home_signal_grounded.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: |
+          HOME INSIGHT V6 "SIGNAL-GROUNDED" ENGINE TESTING — 45/46 PASS, 1 CRITICAL FAIL ❌
+
+          Endpoint: GET /api/home-insight-v5/{user_id}
+          Test file: /app/backend_test.py
+
+          ✅ PASSING TESTS:
+
+          A) Pete (697f0c6abf35c0528ff06954) — v6 render:
+            - version="v6_signal_grounded" ✅
+            - render_mode="signal_grounded" ✅
+            - layers.trigger / collision / distortion / interrupt all non-empty strings ✅
+            - signal_count=7, distinct_sources=5 (['hd_activation','lunar_event','pattern_recurrence','stellium','transit']) ✅
+            - signals_used: 6 entries, all with source/kind/label/weight/evidence ✅
+            - Back-compat mappings: headline==layers.trigger ✅, identity_mirror==layers.collision ✅,
+              the_move==layers.interrupt ✅
+            - why_showing_up.signals = list of 6 strings ✅
+            - Traceability: trigger token "Aries" appears in signals_used; distortion token "Neptune" appears ✅
+            - Sample Pete trigger:   "Energy is clustered in one place today — 6 planets stacked in Aries."
+            - Sample Pete collision: 'And it\'s meeting a loop you already know: "Something Is Culminating" — the same shape showed up 1 day ago, and the day before that too.'
+
+          B) Mel (697ec826ad4b18f75bf42616) — v6 render:
+            - version="v6_signal_grounded" ✅
+            - All structural fields present and valid ✅
+            - signal_count=6, distinct_sources=4 (['hd_activation','lunar_event','stellium','transit']) ✅
+            - Back-compat mappings, traceability all pass ✅
+            - Sample Mel trigger:    "Energy is clustered in one place today — 6 planets stacked in Aries."
+            - Sample Mel collision:  "And it's not the only pressure: New Moon in Aries — a reset is landing today, not next week"
+            - Mel.collision != Pete.collision ✅
+
+          D) Non-existent user (000000000000000000000000):
+            - Status 200 (no 500 regression) ✅
+            - version="v5_pattern_engine" (template fallback, not v6) ✅
+
+          E) Forum-mappings regression (POST /api/forum-mappings, forum_id=69dda348de9cb1c83c0780fa, user=Pete):
+            - 200 OK, success=true, 3 members returned ✅
+            - Thaddeus Yoong / Mel / Isaac Yoong all have signals.enneagram populated ✅
+            - All 3 have bazi strings with animal emojis (🐒🐲🐴🐓 etc) in support/tension/growth ✅
+            - No regression from v6 wiring ✅
+
+          ❌ CRITICAL FAILURE — Per-user personalization (Pete vs Mel):
+
+          The review explicitly requires:
+            "CRITICAL: the `layers.trigger` AND `layers.collision` strings MUST BE DIFFERENT
+             from Pete's output (proves per-user personalization via natal chart aspects)"
+
+          ACTUAL:
+            Pete.trigger = "Energy is clustered in one place today — 6 planets stacked in Aries."
+            Mel.trigger  = "Energy is clustered in one place today — 6 planets stacked in Aries."
+            → IDENTICAL.
+
+          ROOT CAUSE (confirmed by reading /app/backend/services/home_signal_grounded.py):
+          - Line 597: `trigger_sig = _pick(signals, "transit", "stellium", "lunar_event", "hd_activation")`
+          - `_pick()` returns the FIRST signal matching any listed source; signals are pre-sorted by weight.
+          - For both Pete and Mel today, the stellium signal (6 Aries planets, weight 1.0) ranks #1.
+          - The stellium evidence (sign + count) is GLOBAL (sky-based), not per-user.
+          - `_compose_trigger()` for stellium emits a fixed template that contains NO natal-chart data.
+          - Consequence: every user with ≥2 signals gets the exact same trigger line whenever a
+            stellium is present, defeating "signal-grounded" personalization at the headline.
+
+          Only the COLLISION layer differs between Pete and Mel — because Pete has a `pattern_recurrence`
+          signal ("Something Is Culminating", 1 day ago) which Mel does not, so Mel falls through to
+          the "second astro signal" branch ("And it's not the only pressure: New Moon in Aries…").
+
+          SUGGESTED FIX (for main agent):
+          Re-order trigger selection to prefer per-user transit aspects (source="transit") ABOVE
+          global sky events (stellium / lunar_event) when a transit signal of any weight is present,
+          OR include the user's natal-aspect context in the stellium trigger line (e.g. "…stacked
+          in Aries — and Mars/Mercury/… in your chart lives there").
+
+          The suggested code change is a 1-2 line tweak in _pick ordering in home_signal_grounded.py
+          around line 597. Main agent should decide which design to adopt.
+
+          📊 TEST RESULTS: 45/46 PASSED (97.8%) — 1 critical personalization failure.
 
 agent_communication:
   - agent: "testing"
