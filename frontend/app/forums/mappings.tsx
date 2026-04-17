@@ -310,11 +310,10 @@ export default function ForumMappingsScreen() {
                     )}
 
                     {/* ENNEAGRAM SIGNALS */}
-                    {signals?.enneagram && (
-                      (signals.enneagram.how_you_help_them?.length > 0 || signals.enneagram.how_they_help_you?.length > 0) && (
+                    {signals?.enneagram && Object.keys(signals.enneagram).length > 0 ? (
                         <View style={styles.lensSection}>
                           <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
-                            GROWTH GIFTS
+                            ENNEAGRAM DYNAMICS
                           </Text>
                           {signals.enneagram.how_you_help_them?.map((item: string, i: number) => (
                             <View key={`eyt-${i}`} style={styles.lensSignalRow}>
@@ -335,8 +334,7 @@ export default function ForumMappingsScreen() {
                             </View>
                           ))}
                         </View>
-                      )
-                    )}
+                    ) : null}
 
                     {/* NUMEROLOGY SIGNALS (only if present) */}
                     {signals?.numerology && signals.numerology.themes?.length > 0 && (
@@ -353,9 +351,8 @@ export default function ForumMappingsScreen() {
                       </View>
                     )}
 
-                    {/* BAZI SIGNALS (only if present) */}
-                    {signals?.bazi && (
-                      (signals.bazi.support?.length > 0 || signals.bazi.tension?.length > 0) && (
+                    {/* BAZI SIGNALS */}
+                    {signals?.bazi && Object.keys(signals.bazi).length > 0 ? (
                         <View style={styles.lensSection}>
                           <Text style={[styles.signalsNote, { color: theme.textTertiary }]}>
                             ELEMENTAL DYNAMICS
@@ -379,8 +376,7 @@ export default function ForumMappingsScreen() {
                             </View>
                           ))}
                         </View>
-                      )
-                    )}
+                    ) : null}
                   </View>
                 )}
               </View>
