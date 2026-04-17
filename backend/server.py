@@ -26072,76 +26072,86 @@ async def fix_deployed_data():
             {"emails": ["isaac.yoong@test.com"], "names": ["Isaac Yoong", "Isaac"], "enneagram": ISAAC_ENNEAGRAM, "fix_timezone": "Asia/Kuala_Lumpur", "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067}},
         ]
         
-        # Process all known users
+        # Process ALL matching users (including duplicates like "Melissa " with trailing space,
+        # or forum-only user accounts with different IDs than seeded test emails)
+        import re as _re
         for known in KNOWN_USERS:
-            user = None
-            for email in known.get("emails", []):
-                user = await db.users.find_one({"email": email})
-                if user:
-                    break
-            if not user:
-                for name in known.get("names", []):
-                    user = await db.users.find_one({"name": name})
-                    if user:
-                        break
+            matched_users = []
+            seen_ids = set()
             
-            if not user:
+            # Match by email (case-insensitive)
+            for email in known.get("emails", []):
+                async for u in db.users.find({"email": {"$regex": f"^{_re.escape(email)}$", "$options": "i"}}):
+                    if u["_id"] not in seen_ids:
+                        matched_users.append(u)
+                        seen_ids.add(u["_id"])
+            
+            # Match by name (case-insensitive, tolerating trailing/leading whitespace)
+            for name in known.get("names", []):
+                name_pattern = f"^\\s*{_re.escape(name)}\\s*$"
+                async for u in db.users.find({"name": {"$regex": name_pattern, "$options": "i"}}):
+                    if u["_id"] not in seen_ids:
+                        matched_users.append(u)
+                        seen_ids.add(u["_id"])
+            
+            if not matched_users:
                 results["errors"].append(f"User not found: {known.get('names', ['?'])[0]} (tried emails={known.get('emails')}, names={known.get('names')})")
                 continue
             
-            user_name = user.get("name", "?")
-            updates = {}
-            
-            # Seed enneagram if missing
-            existing_enn = user.get("enneagram", {})
-            if not existing_enn or not existing_enn.get("inferred_core"):
-                updates["enneagram"] = known["enneagram"]
-                core = known["enneagram"]["inferred_core"]
-                wing = known["enneagram"].get("inferred_wing", "?")
-                results["fixes"].append(f"Seeded {user_name} enneagram: Type {core}w{wing}")
-            else:
-                results["fixes"].append(f"{user_name} enneagram already set: Type {existing_enn.get('inferred_core')}w{existing_enn.get('inferred_wing', '?')}")
-            
-            # Fix name if specified
-            if known.get("fix_name") and user.get("name") != known["fix_name"]:
-                updates["name"] = known["fix_name"]
-                results["fixes"].append(f"Fixed {user_name} name → {known['fix_name']}")
-            
-            # Fix gender if specified
-            if known.get("fix_gender") and not user.get("gender"):
-                updates["gender"] = known["fix_gender"]
-            
-            # Fix timezone if specified
-            if known.get("fix_timezone") and not user.get("timezone"):
-                updates["timezone"] = known["fix_timezone"]
-                results["fixes"].append(f"Set {user_name} timezone: {known['fix_timezone']}")
-            
-            # Fix birth_location if specified — ALWAYS correct wrong city names
-            if known.get("fix_location"):
-                loc = user.get("birth_location", {})
-                current_city = (loc.get("city") or "").lower()
-                correct_city = known["fix_location"]["city"].lower()
-                has_lat = loc.get("latitude") or user.get("latitude")
-                has_lon = loc.get("longitude") or user.get("longitude")
+            for user in matched_users:
+                user_name = user.get("name", "?")
+                updates = {}
                 
-                # Overwrite if city is wrong OR lat/lon missing
-                if current_city != correct_city or not has_lat or not has_lon:
-                    updates["birth_location"] = known["fix_location"]
-                    updates["latitude"] = known["fix_location"]["latitude"]
-                    updates["longitude"] = known["fix_location"]["longitude"]
-                    if current_city and current_city != correct_city:
-                        results["fixes"].append(f"Corrected {user_name} birth_location: {loc.get('city','?')} → {known['fix_location']['city']}")
-                    else:
-                        results["fixes"].append(f"Set {user_name} birth_location: {known['fix_location']['city']}")
-            
-            if updates:
-                await db.users.update_one({"_id": user["_id"]}, {"$set": updates})
+                # Seed enneagram if missing
+                existing_enn = user.get("enneagram", {}) or {}
+                if not existing_enn.get("inferred_core"):
+                    updates["enneagram"] = known["enneagram"]
+                    core = known["enneagram"]["inferred_core"]
+                    wing = known["enneagram"].get("inferred_wing", "?")
+                    results["fixes"].append(f"Seeded {user_name} ({user['_id']}) enneagram: Type {core}w{wing}")
+                else:
+                    results["fixes"].append(f"{user_name} ({user['_id']}) enneagram already set: Type {existing_enn.get('inferred_core')}w{existing_enn.get('inferred_wing', '?')}")
+                
+                # Fix name — only when current name is a whitespace/alias variant
+                if known.get("fix_name") and (user.get("name") or "").strip() != known["fix_name"]:
+                    if (user.get("name") or "").strip() in [n.strip() for n in known.get("names", [])]:
+                        updates["name"] = known["fix_name"]
+                        results["fixes"].append(f"Fixed {user_name} name → {known['fix_name']}")
+                
+                # Fix gender if specified
+                if known.get("fix_gender") and not user.get("gender"):
+                    updates["gender"] = known["fix_gender"]
+                
+                # Fix timezone if specified
+                if known.get("fix_timezone") and not user.get("timezone"):
+                    updates["timezone"] = known["fix_timezone"]
+                    results["fixes"].append(f"Set {user_name} timezone: {known['fix_timezone']}")
+                
+                # Fix birth_location if specified — ALWAYS correct wrong city names
+                if known.get("fix_location"):
+                    loc = user.get("birth_location", {}) or {}
+                    current_city = (loc.get("city") or "").lower().strip()
+                    correct_city = known["fix_location"]["city"].lower().strip()
+                    has_lat = loc.get("latitude") or user.get("latitude")
+                    has_lon = loc.get("longitude") or user.get("longitude")
+                    
+                    if current_city != correct_city or not has_lat or not has_lon:
+                        updates["birth_location"] = known["fix_location"]
+                        updates["latitude"] = known["fix_location"]["latitude"]
+                        updates["longitude"] = known["fix_location"]["longitude"]
+                        if current_city and current_city != correct_city:
+                            results["fixes"].append(f"Corrected {user_name} birth_location: {loc.get('city','?')} → {known['fix_location']['city']}")
+                        else:
+                            results["fixes"].append(f"Set {user_name} birth_location: {known['fix_location']['city']}")
+                
+                if updates:
+                    await db.users.update_one({"_id": user["_id"]}, {"$set": updates})
         
         # =====================================================
         # STEP 2: Recompute charts with wrong ayanamsa + add BaZi
         # =====================================================
         from calculations.astrology import get_full_natal_chart
-        from services.bazi_engine import compute_bazi_chart
+        from services.bazi_engine_v2 import compute_bazi_chart_v2
         from datetime import datetime, timedelta, timezone as dt_timezone
         import pytz
         
@@ -26155,7 +26165,15 @@ async def fix_deployed_data():
             svp = sid.get("svp_degrees") if sid else None
             has_bazi = bool(chart.get("bazi"))
             
-            needs_fix = (svp != 31.2836) or (not has_bazi)
+            # Also check if BaZi is COMPLETE (has animal_name/animal_emoji in pillars)
+            bazi_incomplete = False
+            if has_bazi:
+                bazi_pillars = (chart.get("bazi") or {}).get("pillars") or {}
+                year_pillar = bazi_pillars.get("year") or bazi_pillars.get("year_pillar") or {}
+                if not year_pillar.get("animal_name") or not year_pillar.get("animal_emoji"):
+                    bazi_incomplete = True
+            
+            needs_fix = (svp != 31.2836) or (not has_bazi) or bazi_incomplete
             
             if not needs_fix:
                 charts_ok += 1
@@ -26216,10 +26234,10 @@ async def fix_deployed_data():
                     except Exception as e:
                         results["errors"].append(f"Astro {user.get('name')}: {str(e)[:50]}")
                 
-                # Compute BaZi if missing
-                if not has_bazi:
+                # Compute BaZi if missing OR incomplete
+                if not has_bazi or bazi_incomplete:
                     try:
-                        bazi = compute_bazi_chart(f"{year}-{month:02d}-{day:02d}", f"{hour:02d}:{minute:02d}", tz_str)
+                        bazi = compute_bazi_chart_v2(f"{year}-{month:02d}-{day:02d}", f"{hour:02d}:{minute:02d}", tz_str, include_timing=False)
                         if bazi:
                             update["bazi"] = bazi
                     except Exception as e:
@@ -31851,7 +31869,7 @@ async def run_startup_data_migrations():
     """
     from bson import ObjectId
     
-    # --- Migration 1: Recompute charts missing SVP True Sidereal ---
+    # --- Migration 1: Recompute charts missing SVP True Sidereal OR incomplete BaZi ---
     charts_cursor = db.charts.find({})
     charts_needing_recompute = []
     async for chart in charts_cursor:
@@ -31859,7 +31877,18 @@ async def run_startup_data_migrations():
         sid_settings = debug_stamp.get("sidereal_settings_used", {}) if debug_stamp else {}
         svp_used = sid_settings.get("svp_degrees") if sid_settings else None
         
-        if svp_used != 31.2836:
+        # Check if BaZi is complete with animal data
+        bazi = chart.get("bazi") or {}
+        bazi_incomplete = False
+        if bazi:
+            bazi_pillars = bazi.get("pillars") or {}
+            year_pillar = bazi_pillars.get("year") or bazi_pillars.get("year_pillar") or {}
+            if not year_pillar.get("animal_name") or not year_pillar.get("animal_emoji"):
+                bazi_incomplete = True
+        else:
+            bazi_incomplete = True  # Missing entirely
+        
+        if svp_used != 31.2836 or bazi_incomplete:
             user_id = chart.get("user_id")
             charts_needing_recompute.append(user_id)
     
@@ -31886,7 +31915,7 @@ async def run_startup_data_migrations():
                 
                 # Recompute chart via the existing calculation logic
                 from calculations.astrology import get_full_natal_chart
-                from services.bazi_engine import compute_bazi_chart
+                from services.bazi_engine_v2 import compute_bazi_chart_v2
                 
                 birth_dt_str = str(birth_date).split(" ")[0] if birth_date else None
                 if not birth_dt_str:
@@ -31943,11 +31972,11 @@ async def run_startup_data_migrations():
                     logger.warning(f"[Migration] Astro recompute failed for {user_id}: {e}")
                     astro_chart = None
                 
-                # Compute BaZi chart
+                # Compute BaZi chart using V2 (includes animal_name/animal_emoji)
                 try:
                     birth_date_str = f"{year}-{month:02d}-{day:02d}"
                     birth_time_str = f"{hour:02d}:{minute:02d}"
-                    bazi_chart = compute_bazi_chart(birth_date_str, birth_time_str, tz_str)
+                    bazi_chart = compute_bazi_chart_v2(birth_date_str, birth_time_str, tz_str, include_timing=False)
                 except Exception as e:
                     logger.warning(f"[Migration] BaZi compute failed for {user_id}: {e}")
                     bazi_chart = None
@@ -32016,58 +32045,73 @@ async def run_startup_data_migrations():
         },
     ]
     
+    # Find ALL matching user records (deployed DB may have duplicates with trailing
+    # whitespace, case variants, or separate forum-only user docs). Seed each one.
+    import re as _re
     for known in KNOWN_USERS_MIGRATION:
-        user = None
-        for email in known.get("emails", []):
-            user = await db.users.find_one({"email": email})
-            if user:
-                break
-        if not user:
-            for name in known.get("names", []):
-                user = await db.users.find_one({"name": name})
-                if user:
-                    break
+        matched_users = []
+        seen_ids = set()
         
-        if not user:
+        # Match by email (case-insensitive)
+        for email in known.get("emails", []):
+            async for u in db.users.find({"email": {"$regex": f"^{_re.escape(email)}$", "$options": "i"}}):
+                if u["_id"] not in seen_ids:
+                    matched_users.append(u)
+                    seen_ids.add(u["_id"])
+        
+        # Match by name (case-insensitive, tolerating trailing/leading whitespace)
+        for name in known.get("names", []):
+            name_pattern = f"^\\s*{_re.escape(name)}\\s*$"
+            async for u in db.users.find({"name": {"$regex": name_pattern, "$options": "i"}}):
+                if u["_id"] not in seen_ids:
+                    matched_users.append(u)
+                    seen_ids.add(u["_id"])
+        
+        if not matched_users:
             continue
         
-        updates = {}
-        user_name = user.get("name", "?")
-        
-        # Seed enneagram if missing
-        existing_enn = user.get("enneagram", {})
-        if not existing_enn or not existing_enn.get("inferred_core"):
-            updates["enneagram"] = known["enneagram"]
-            logger.info(f"[Migration] Seeded enneagram for {user_name}: Type {known['enneagram']['inferred_core']}w{known['enneagram'].get('inferred_wing','?')}")
-        
-        # Fix name if specified
-        if known.get("fix_name") and user.get("name") != known["fix_name"]:
-            updates["name"] = known["fix_name"]
-            logger.info(f"[Migration] Fixed name: {user.get('name')} → {known['fix_name']}")
-        
-        # Fix gender if specified
-        if known.get("fix_gender") and not user.get("gender"):
-            updates["gender"] = known["fix_gender"]
-        
-        # Fix timezone if specified
-        if known.get("fix_timezone") and not user.get("timezone"):
-            updates["timezone"] = known["fix_timezone"]
-            logger.info(f"[Migration] Set timezone for {user_name}")
-        
-        # Fix birth_location if specified and wrong
-        if known.get("fix_location"):
-            loc = user.get("birth_location", {})
-            current_city = (loc.get("city") or "").lower()
-            correct_city = known["fix_location"]["city"].lower()
-            has_coords = loc.get("latitude") and loc.get("longitude")
-            if current_city != correct_city or not has_coords:
-                updates["birth_location"] = known["fix_location"]
-                updates["latitude"] = known["fix_location"]["latitude"]
-                updates["longitude"] = known["fix_location"]["longitude"]
-                logger.info(f"[Migration] Fixed birth_location for {user_name}: {known['fix_location']['city']}")
-        
-        if updates:
-            await db.users.update_one({"_id": user["_id"]}, {"$set": updates})
+        for user in matched_users:
+            updates = {}
+            user_name = user.get("name", "?")
+            
+            # Seed enneagram if missing
+            existing_enn = user.get("enneagram", {}) or {}
+            if not existing_enn.get("inferred_core"):
+                updates["enneagram"] = known["enneagram"]
+                logger.info(f"[Migration] Seeded enneagram for {user_name} ({user['_id']}): Type {known['enneagram']['inferred_core']}w{known['enneagram'].get('inferred_wing','?')}")
+            
+            # Fix name if specified (e.g., 'Melissa ' → 'Mel' is too aggressive;
+            # only apply when current name equals the fix target modulo whitespace)
+            if known.get("fix_name") and (user.get("name") or "").strip() != known["fix_name"]:
+                # Only rename if the name exactly matches one of the alias names
+                # (so we don't accidentally rename different Melissa's)
+                if (user.get("name") or "").strip() in [n.strip() for n in known.get("names", [])]:
+                    updates["name"] = known["fix_name"]
+                    logger.info(f"[Migration] Fixed name: {user.get('name')} → {known['fix_name']}")
+            
+            # Fix gender if specified
+            if known.get("fix_gender") and not user.get("gender"):
+                updates["gender"] = known["fix_gender"]
+            
+            # Fix timezone if specified
+            if known.get("fix_timezone") and not user.get("timezone"):
+                updates["timezone"] = known["fix_timezone"]
+                logger.info(f"[Migration] Set timezone for {user_name}")
+            
+            # Fix birth_location if specified and wrong
+            if known.get("fix_location"):
+                loc = user.get("birth_location", {}) or {}
+                current_city = (loc.get("city") or "").lower().strip()
+                correct_city = known["fix_location"]["city"].lower().strip()
+                has_coords = loc.get("latitude") and loc.get("longitude")
+                if current_city != correct_city or not has_coords:
+                    updates["birth_location"] = known["fix_location"]
+                    updates["latitude"] = known["fix_location"]["latitude"]
+                    updates["longitude"] = known["fix_location"]["longitude"]
+                    logger.info(f"[Migration] Fixed birth_location for {user_name}: {known['fix_location']['city']}")
+            
+            if updates:
+                await db.users.update_one({"_id": user["_id"]}, {"$set": updates})
     
     logger.info("[Migration] Startup data migrations complete ✓")
 

@@ -203,7 +203,7 @@ backend:
           - Proper error handling verified
           
           **Backend Integration Verified:**
-          - All endpoints accessible via https://multi-lens-signals.preview.emergentagent.com/api
+          - All endpoints accessible via https://forum-signals-fix.preview.emergentagent.com/api
           - Backend URL correctly used (not localhost:8001)
           - Response times excellent (< 30 seconds)
           - Data persistence working correctly
@@ -258,7 +258,7 @@ backend:
           - Pattern extraction working correctly based on entry count threshold
           
           **Backend Integration Verified:**
-          - Endpoint accessible via https://multi-lens-signals.preview.emergentagent.com/api
+          - Endpoint accessible via https://forum-signals-fix.preview.emergentagent.com/api
           - No HTTP errors or timeouts
           - Response times excellent (0.18-0.31s)
           - Backend logs confirm successful processing
@@ -312,7 +312,7 @@ backend:
           - All field types match expected schema
           
           **Backend Integration Verified:**
-          - Endpoint accessible via https://multi-lens-signals.preview.emergentagent.com/api
+          - Endpoint accessible via https://forum-signals-fix.preview.emergentagent.com/api
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -465,7 +465,7 @@ backend:
           - Response time under 5 seconds (0.23s) ✅
           
           📊 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Backend logs confirm successful processing with cross-lens derivation ✅
           - force_refresh parameter working correctly ✅
@@ -547,7 +547,7 @@ backend:
              - All optional fields present with correct data types
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1s for both requests)
           - Backend logs confirm successful processing
@@ -616,7 +616,7 @@ backend:
              - Summary endpoint correctly includes computed name-based numbers in narrative
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing and cache invalidation
@@ -1070,7 +1070,7 @@ backend:
                * incarnation_cross_gates: Consistent ✅ (null)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - JSON structure consistent between Summary and Deep Dive endpoints
@@ -1131,7 +1131,7 @@ backend:
              - Complete Payload: All nested objects preserved correctly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 5 seconds)
           - Backend logs confirm successful processing
@@ -1200,7 +1200,7 @@ backend:
              - Implementation matches review request specifications exactly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing
@@ -1227,7 +1227,7 @@ frontend:
           🚫 CRITICAL ISSUE: Unable to complete login process with peter@test.com
           
           📋 TESTING ATTEMPTED:
-          1. ✅ Successfully accessed Mirror app at https://multi-lens-signals.preview.emergentagent.com
+          1. ✅ Successfully accessed Mirror app at https://forum-signals-fix.preview.emergentagent.com
           2. ✅ Found "Existing User" button and clicked it
           3. ✅ Found email input field and filled with peter@test.com
           4. ❌ Login process failed - unable to proceed to main app interface
@@ -1451,7 +1451,7 @@ frontend:
              - Backend Logs: "[Enneagram] Saved result for user 69819f1a1e4549392d7cb6d1: Type 7w8"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Backend service stable with proper logging
           - Response times acceptable (< 5 seconds)
@@ -1547,7 +1547,7 @@ frontend:
           🧪 COMPREHENSIVE TESTING PERFORMED (2/2 TESTS PASSED):
           
           **Test User:** 6971c81f2b40fd5ef501d375 (Sun=Pisces, Moon=Aries, Ascendant=Sagittarius)
-          **Base URL:** https://multi-lens-signals.preview.emergentagent.com/api
+          **Base URL:** https://forum-signals-fix.preview.emergentagent.com/api
           
           1. ✅ **ASTROLOGY SUMMARY ENDPOINT** (GET /api/astrology/summary/{user_id}):
              - Status: 200 OK, Response time: 5.67 seconds
@@ -1896,7 +1896,7 @@ backend:
           - has_transit_emphasis flag working correctly for frontend highlighting
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing
@@ -1920,7 +1920,7 @@ backend:
              - Successfully parsed as datetime object
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - Gene Keys signals properly mapped to categories
@@ -1994,7 +1994,7 @@ backend:
              - Each signal has required fields: source, label (with optional sphere_name, detail)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - Human Design centers properly mapped to pattern categories
@@ -2058,7 +2058,7 @@ backend:
              - Mirror philosophy preserved: No "you should", maintains agency, reflective language present
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - Gene Keys matching algorithm working correctly with shadow/gift keyword detection
           - Debug logging functional: [GK_MATCH] and [GK_MATCH_DEBUG] entries present
           - Context awareness integration with Mirror Chat system prompt working
@@ -2124,7 +2124,7 @@ backend:
           - Template Content: Rich, reflective interpretations for both defined and undefined states
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -2194,7 +2194,7 @@ backend:
              - Excellent backend integration performance
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -2259,7 +2259,7 @@ backend:
              - Language Compliance: Meets review request specification for signal strength terminology ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing
@@ -2362,7 +2362,7 @@ agent_communication:
       - Content quality meets specifications: practical, reflective, non-jargon-heavy
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (0.27 seconds)
       - ✅ Human Design computation and gates service integration working correctly
       - ✅ Template-based interpretations functioning properly
@@ -2409,7 +2409,7 @@ agent_communication:
       - Response format matches all specified requirements
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (< 2 seconds)
       - ✅ Pattern graph service integration working correctly
       - ✅ Time bucket aggregation functioning properly
@@ -2453,7 +2453,7 @@ agent_communication:
       - Rich template-based interpretations for both defined and undefined states
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (< 1 second)
       - ✅ Human Design computation and centers service integration working correctly
       - ✅ Template-based interpretations (no LLM dependency) functioning properly
@@ -2489,7 +2489,7 @@ agent_communication:
          - Subtle Gene Keys integration when relevant
       
       **Backend Integration Verified:**
-      - ✅ All endpoints accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - ✅ All endpoints accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - ✅ Gene Keys matching algorithm working correctly with shadow/gift detection
       - ✅ Debug logging functional: [GK_MATCH] and [GK_MATCH_DEBUG] entries present
       - ✅ Context awareness integration with Mirror Chat system prompt working
@@ -2669,7 +2669,7 @@ agent_communication:
       - Contract validation system working correctly
       
       🔧 BACKEND INTEGRATION VERIFIED:
-      - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+      - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
       - No HTTP errors or timeouts
       - Response times acceptable (1-3 seconds)
       - Backend logs confirm emergent_generate usage
@@ -2901,7 +2901,7 @@ agent_communication:
       ✅ BACKEND LOGS: Confirm caching working with "[DailyFocus] Returning cached focus" messages
       
       🔧 INTEGRATION VERIFICATION:
-      ✅ Both endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+      ✅ Both endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
       ✅ No HTTP errors or timeouts
       ✅ Backend service stable with no error logs
       ✅ Response times acceptable (< 2 seconds)
@@ -3118,7 +3118,7 @@ agent_communication:
       ❌ CRITICAL ISSUE IDENTIFIED - API ROUTING PROBLEM:
       - Summary tab shows "Unable to load this view right now" error
       - Frontend making requests to http://localhost:3000/api/* (404 errors)
-      - Backend running on port 8001, accessible via https://multi-lens-signals.preview.emergentagent.com/api/*
+      - Backend running on port 8001, accessible via https://forum-signals-fix.preview.emergentagent.com/api/*
       - API service configured for relative URLs on web platform, but proxy routing not working
       - Console logs show: "Failed to load resource: the server responded with a status of 404 (Not Found)"
       
@@ -3168,7 +3168,7 @@ agent_communication:
       - Same API routing problem identified in previous testing sessions
       - Frontend API service uses relative URLs expecting proxy routing (/api/*)
       - Ingress/proxy not routing requests to backend (port 8001)
-      - Backend accessible directly via https://multi-lens-signals.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://forum-signals-fix.preview.emergentagent.com/api/*
       - Affects all lens views (Astrology, Human Design, Numerology)
       
       📊 SHIP GATE TEST RESULTS:
@@ -3224,7 +3224,7 @@ agent_communication:
       🚨 ROOT CAUSE: API ROUTING ISSUE
       - Frontend API service uses relative URLs expecting proxy routing
       - Ingress/proxy not routing /api/* requests to backend (port 8001)
-      - Backend accessible directly via https://multi-lens-signals.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://forum-signals-fix.preview.emergentagent.com/api/*
       - Same issue affects all lens views (Astrology, Human Design, Numerology)
       
       CONCLUSION: The Numerology Full Name Gate UI is implemented correctly and shows proper locked state, but the unlock flow cannot be verified due to API connectivity issues. The frontend correctly displays lock icons for name-based numbers (Expression, Soul Urge) while showing computed numbers for birth date-based calculations (Life Path).
@@ -3325,7 +3325,7 @@ agent_communication:
       ✅ Structure matches specification exactly
       
       **Backend Integration Verified:**
-      - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+      - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
       - Cross-lens derivation working: 3 lenses contributing (Journal, Lifeline, Astrology)
       - Backend logs confirm pattern selection: "relational_reopening" with moderate signal strength
       - force_refresh parameter working correctly for fresh data generation
@@ -3371,7 +3371,7 @@ agent_communication:
       🚫 CRITICAL FINDING: Unable to test Patterns tab accordion functionality due to authentication failure with peter@test.com user.
       
       📋 WHAT WAS TESTED:
-      - ✅ App loads correctly at https://multi-lens-signals.preview.emergentagent.com
+      - ✅ App loads correctly at https://forum-signals-fix.preview.emergentagent.com
       - ✅ Mobile responsiveness confirmed (390x844 viewport)
       - ✅ "Existing User" flow initiates properly
       - ✅ Email input accepts peter@test.com
@@ -3560,7 +3560,7 @@ backend:
              - Exactly 4 weeks returned (within limit) ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.37s - well under requirements)
           - Backend logs confirm successful processing
@@ -3815,7 +3815,7 @@ agent_communication:
              - Response consistency: Identical data between requests ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 1s for all requests) ✅
           - Backend logs confirm successful processing and caching ✅
@@ -3917,6 +3917,94 @@ agent_communication:
       
       CONCLUSION: Task 56 is fully functional and ready for production use.
 
+backend:
+  - task: "Forum Mappings: Multi-user Enneagram Seeding (Duplicate User Records)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          FORUM MAPPINGS P0 FIX #1 (Multi-user Enneagram Seeding) - VERIFIED WORKING ✅
+
+          Test: GET /api/fix-deployed-data
+          - Status: 200 OK
+          - errors: [] (empty as required) ✅
+          - fixes array seeds ALL duplicate user records:
+            * Pete: 12 records seeded (697f0c6a..., 697f5fbc..., 697ee14b..., 697f224b...,
+              697f8642..., 697f8997..., 697fab5e..., 69819dde..., 6983115b..., 69844d90...,
+              6985d0bf..., 69c4c69e...) — all Type 7w8/7wbalanced ✅
+            * Mel: 2 records seeded (697ec826ad4b18f75bf42616 AND "Mel " 69c90702... with
+              trailing space) — both Type 3w4 ✅
+            * Thaddeus Yoong: 1 record (69dd0b2cc92ba973f8838c11) — Type 4w3 ✅
+            * Isaac Yoong: 1 record (69dda348de9cb1c83c0780f8) — Type 8w7 ✅
+          - Summary: total_fixes=16, charts_already_ok=148, total_errors=0
+
+          Also verified in /api/forum-mappings response that Mel's record (which was previously
+          missing enneagram) now returns non-null signals.enneagram with both
+          how_you_help_them and how_they_help_you arrays populated.
+
+          CONCLUSION: find() with case-insensitive + whitespace-tolerant regex correctly
+          catches all duplicate records including "Mel " (trailing space). P0 fix verified.
+
+  - task: "Forum Mappings: BaZi V2 Engine Animal Data"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/services/bazi_engine_v2.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          FORUM MAPPINGS P0 FIX #2 (BaZi V2 Engine Animal Data) - VERIFIED WORKING ✅
+
+          Test: POST /api/forum-mappings with forum_id=69dda348de9cb1c83c0780fa,
+          user_id=697f0c6abf35c0528ff06954 (Pete)
+
+          - Status: 200 OK, Response time: <1s
+          - mappings.length == 3 (Thaddeus Yoong, Mel, Isaac Yoong) ✅
+          - For EACH of the 3 mappings, verified:
+            * signals.enneagram: non-null object with how_you_help_them (2 items) and
+              how_they_help_you (2 items) arrays ✅
+            * signals.bazi: non-null object ✅
+            * signals.bazi.support / tension / growth contains strings with animal emojis:
+              - Thaddeus Yoong (growth): "🐒 Monkey meets 🐴 Horse — different generational
+                energies that expand each other's perspective"
+              - Mel (growth): "🐒 Monkey meets 🐓 Rooster — different generational energies
+                that expand each other's perspective"
+              - Isaac Yoong (support): "🐒 Monkey and 🐲 Dragon are natural allies — your
+                generational rhythms harmonize and you intuitively understand each other's
+                timing" ✅
+            * signals.astrology: non-null object (keys: attraction/tension/growth) ✅
+            * signals.human_design: array (3–5 channels per member) ✅
+
+          CONCLUSION: compute_bazi_chart_v2 migration produces pillars.year/month/day/hour
+          with animal_name and animal_emoji fields. compute_bazi_signals correctly reads
+          these and generates animal interaction strings. P0 fix verified.
+
+  - task: "Forum Mappings Regression: get-user-forums & forum members"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          REGRESSION TESTS - NO BREAKAGE ✅
+          - POST /api/get-user-forums {"user_id":"697f0c6abf35c0528ff06954"} → 200 OK,
+            returns 4 forums (FM TEST 1, FM Test 2, Pete & Mel, Yoong family)
+          - GET /api/forums/69dda348de9cb1c83c0780fa/members?user_id=697f0c6abf35c0528ff06954 →
+            200 OK, returns 4 members
+
 test_plan:
   current_focus: []
   stuck_tasks: []
@@ -3925,6 +4013,69 @@ test_plan:
 
 agent_communication:
     -agent: "testing"
+    -message: |
+      FORUM MAPPINGS P0 FIXES — ALL TESTS PASSED (28/28 assertions) ✅
+
+      Ran /app/backend_test.py against localhost:8001.
+
+      A) POST /api/forum-mappings (forum=Yoong family, user=Pete):
+         - 200 OK, 3 mappings returned (Thaddeus, Mel, Isaac)
+         - Each member: signals.enneagram non-null w/ both array fields populated;
+           signals.bazi non-null; signals.astrology non-null; signals.human_design is array
+         - Animal emojis confirmed in bazi:
+           * Thaddeus (growth): "🐒 Monkey meets 🐴 Horse..."
+           * Mel (growth): "🐒 Monkey meets 🐓 Rooster..."
+           * Isaac (support): "🐒 Monkey and 🐲 Dragon are natural allies..."
+
+      B) GET /api/fix-deployed-data:
+         - 200 OK, errors=[]
+         - fixes array correctly contains ALL duplicates:
+           Pete=12 records, Mel=2 records (incl. "Mel " with trailing space),
+           Thaddeus Yoong=1, Isaac Yoong=1 (total 16 fixes, 148 already ok)
+
+      C) Regression:
+         - POST /api/get-user-forums → 4 forums
+         - GET /api/forums/{id}/members → 4 members
+
+      Both P0 fixes (multi-user enneagram seeding via find() + case-insensitive regex,
+      and BaZi V2 engine with animal_name/animal_emoji) are working correctly.
+      No regressions detected. Main agent: please summarize and finish.
+
+    -previous_agent: "main"
+    -message: "FORUM MAPPINGS FIX (Feb 2026 fork continuation):
+      
+      FIXED TWO P0 ISSUES:
+      
+      1. ENNEAGRAM MISSING FOR MEL/ISAAC in 'How they map to me' forum view
+         Root cause: Deployed DB has DUPLICATE user records (e.g., 'Melissa ' with trailing space,
+         'Mel ' as a separate forum-only account). Old migration used `find_one()` which only seeded
+         the FIRST matching user, leaving duplicate forum-member records with no Enneagram data.
+         
+         Fix: Updated `run_startup_data_migrations()` (/app/backend/server.py ~line 31919) AND
+         `/api/fix-deployed-data` endpoint to use `find()` with case-insensitive + whitespace-tolerant
+         regex matching. Now seeds ALL matching user records.
+      
+      2. BAZI ANIMAL DYNAMICS NOT RENDERING
+         Root cause: Migration used V1 `compute_bazi_chart` which outputs `year_pillar/month_pillar/...`
+         keys WITHOUT `animal_name` or `animal_emoji`. But `forum_hd_mapping.compute_bazi_signals`
+         reads `pillars.year.animal_name` and `pillars.year.animal_emoji` (V2 structure). So animal
+         interaction strings (🐒 Monkey meets 🐴 Horse...) were never generated.
+         
+         Fix: Switched migration to use `compute_bazi_chart_v2` (includes animal_name/emoji with
+         pillars keyed as `year/month/day/hour`). Added `bazi_incomplete` check to force
+         recomputation of any chart where `pillars.year.animal_name` or `animal_emoji` is missing.
+      
+      TESTING NEEDED:
+      - POST /api/forum-mappings with forum_id='69dda348de9cb1c83c0780fa' user_id='697f0c6abf35c0528ff06954'
+        should return Enneagram + BaZi with animal strings for all 3 members (Thaddeus, Mel, Isaac).
+      - Verify `signals.bazi` contains animal emojis (🐒🐉 etc.) in support/tension/growth arrays.
+      - Verify `signals.enneagram` is non-null for all members.
+      
+      FILES MODIFIED:
+      - /app/backend/server.py (fix-deployed-data endpoint + run_startup_data_migrations)
+      - /app/memory/test_credentials.md (corrected Isaac/Thaddeus emails)"
+
+    -previous_testing_agent:
     -message: "COMPREHENSIVE FRONTEND VISUAL TESTING COMPLETED - LIFELINE PATTERNS APP RELEASE READINESS VALIDATION
 
 🎯 PRIMARY FOCUS: LIFELINE PATTERN SYNTHESIS CARD
@@ -4117,7 +4268,7 @@ backend:
                * groups: [] ✅ (empty groups array)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second for all endpoints)
           - Backend logs confirm successful processing
@@ -4205,7 +4356,7 @@ backend:
           - **TOTAL: 48/48 (100% SUCCESS RATE)**
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.26s)
           - Backend logs confirm successful processing: "[BaZi V2] Generated full chart for user 6971c81f2b40fd5ef501d375: Day Master = Xin Metal (strong)"
@@ -4280,7 +4431,7 @@ backend:
              - All expected behavioral expressions present ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.52s) ✅
           - Backend logs confirm successful processing ✅
@@ -4574,7 +4725,7 @@ agent_communication:
              - ✅ Data Consistency: Event count updates properly reflect create/delete operations
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times acceptable (< 10 seconds)
           - Backend logs confirm successful processing:
@@ -4660,7 +4811,7 @@ agent_communication:
                * Year: Bing-Wu (Structure, pressure) - "This year may ask more of you—more structure, more responsibility"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.25s) ✅
           - Backend logs confirm successful processing: "[BaZi V2] Generated full chart for user 6971c81f2b40fd5ef501d375: Day Master = Xin Metal (strong)" ✅
@@ -4793,7 +4944,7 @@ backend:
                ✅ language_modifiers: Complete object with modifier sections for life_pattern and day_master ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.10-0.28s) ✅
           - Backend logs confirm successful feedback storage and processing ✅
@@ -4874,7 +5025,7 @@ backend:
           5. "Why do I still doubt myself when things are flowing?" (Timing-related question)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.25s)
           - Backend logs confirm successful processing
@@ -4912,7 +5063,7 @@ agent_communication:
       **Test User Verification:**
       - Used user_id: 6971c81f2b40fd5ef501d375 as specified
       - Confirmed chart data: Sun=Pisces, Moon=Aries, Ascendant=Sagittarius
-      - Base URL: https://multi-lens-signals.preview.emergentagent.com/api
+      - Base URL: https://forum-signals-fix.preview.emergentagent.com/api
       
       **Backend Integration Verified:**
       - Both endpoints accessible via public URL
@@ -5056,7 +5207,7 @@ agent_communication:
              - Backend regenerates pattern when forced
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.12-0.29s)
           - Backend logs confirm pattern detection working: "Extracted 5 signals from ['astrology', 'enneagram']"
@@ -5134,7 +5285,7 @@ agent_communication:
              - Perfect pattern matching across both users ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (keystone: 0.17-0.31s, astrology: 17.98-48.54s)
           - Backend logs confirm integration: "[AstrologyDeepDive] Added keystone explanation for pattern: direction_shift"
@@ -5221,7 +5372,7 @@ agent_communication:
              - Verified: All responses now include signal_strength field ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 10 seconds for LLM generation)
           - Backend logs confirm successful processing
@@ -5433,7 +5584,7 @@ agent_communication:
       
       **Performance & Integration:**
       - ✅ Response times: 0.11-0.21s (excellent performance)
-      - ✅ Backend URL: https://multi-lens-signals.preview.emergentagent.com/api
+      - ✅ Backend URL: https://forum-signals-fix.preview.emergentagent.com/api
       - ✅ force_refresh parameter required for fresh data generation
       - ✅ All 8 structure validation tests passed
       
@@ -5488,7 +5639,7 @@ agent_communication:
       
       **Test 6: Performance & Integration** ✅
       - Response times excellent: 0.11-0.14s (well under 5s threshold)
-      - Backend URL: https://multi-lens-signals.preview.emergentagent.com/api
+      - Backend URL: https://forum-signals-fix.preview.emergentagent.com/api
       - All endpoints accessible via public URL
       - No HTTP errors or timeouts
       - Backend logs confirm successful processing with no errors
@@ -5531,7 +5682,7 @@ backend:
           7. ✅ V10 Features - Context-aware language generation working correctly
           
           **Backend Integration Verified:**
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during comprehensive testing
           - LLM integration functional (gpt-5.2 via emergentintegrations)
           - Pattern mirror service generating contextual patterns correctly
@@ -5604,7 +5755,7 @@ backend:
           - Error handling working correctly for both invalid and non-existent IDs
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 5 seconds)
           - Database operations working correctly (create, read, update, delete)
@@ -5674,7 +5825,7 @@ backend:
           
           6. ✅ **PERFORMANCE & INTEGRATION**:
              - Response times: 0.11-0.14s (excellent, under 5s threshold)
-             - Public URL accessible: https://multi-lens-signals.preview.emergentagent.com/api
+             - Public URL accessible: https://forum-signals-fix.preview.emergentagent.com/api
              - No HTTP errors or timeouts
              - Backend logs confirm successful processing
              - Pattern engine: normal mode + fallback mode working
@@ -5817,7 +5968,7 @@ agent_communication:
       - Backend integration: All endpoints accessible via correct URL (not localhost)
       
       **Backend Integration Verified:**
-      - All endpoints accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - All endpoints accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - Backend logs confirm successful operations (visible in supervisor logs)
       - Response times excellent (< 30 seconds)
       - Data persistence working correctly
@@ -5896,7 +6047,7 @@ agent_communication:
       - DELETE /api/journal/000000000000000000000000 → Status 404 "Entry not found"
       
       **Backend Integration Verified:**
-      - All endpoints accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - All endpoints accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - Backend logs confirm successful operations:
         * PUT /api/journal/69bfd648affdc9b8ab0696fe HTTP/1.1" 200 OK
         * DELETE /api/journal/69bfd8b324bd3354c4f0ec8e HTTP/1.1" 200 OK
@@ -5942,7 +6093,7 @@ agent_communication:
       - Pattern extraction working correctly based on entry count requirements
       
       **Backend Integration Verified:**
-      - Endpoint accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - Endpoint accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - Backend URL correctly used (not localhost:8001)
       - Response times excellent (0.18-0.31s across multiple tests)
       - Backend logs confirm successful processing
@@ -5988,7 +6139,7 @@ agent_communication:
       - Endpoint returns 200 OK for valid requests ✅
       
       **Backend Integration Verified:**
-      - Endpoint accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - Endpoint accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - Backend URL correctly used (not localhost:8001)
       - Response times excellent (< 1 second)
       - Backend logs confirm successful processing: "GET /api/journal/6971c81f2b40fd5ef501d375/patterns HTTP/1.1" 200 OK
@@ -6254,7 +6405,7 @@ frontend:
           - Motivation: desire (tone 3, left arrow) - "Motivated by attraction and want"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm Variables computation: "[HD Variables] Estimated Variables from lines for user 697f795f1a7a96aa35e283a3: environment=mountains"
@@ -6389,7 +6540,7 @@ frontend:
           ✅ Recompute endpoint working with proper status responses
           
           **Backend Integration Verified:**
-          - All endpoints accessible via https://multi-lens-signals.preview.emergentagent.com/api
+          - All endpoints accessible via https://forum-signals-fix.preview.emergentagent.com/api
           - Response times excellent (< 30 seconds)
           - Backend logs confirm successful HD chart recomputation with planetary longitude data
           - Variables computed from exact Design Sun and Personality Sun positions
@@ -6470,7 +6621,7 @@ backend:
           ✅ Multiple signals are clearly being evaluated differently
           
           **Backend Integration Verified:**
-          - All endpoints accessible via https://multi-lens-signals.preview.emergentagent.com/api
+          - All endpoints accessible via https://forum-signals-fix.preview.emergentagent.com/api
           - Response times excellent (< 5 seconds)
           - Backend logs confirm transit intelligence processing:
             * "[TRANSIT_INTELLIGENCE] User 697f795f1a7a96aa35e283a3 - TODAY signals: ['Mercury->Neptune', 'Moon->Moon', 'Moon->Pluto']"
@@ -6553,7 +6704,7 @@ agent_communication:
       ✅ Multiple signals are clearly being evaluated differently
       
       **Backend Integration Verified:**
-      - All endpoints accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - All endpoints accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - Response times excellent (< 5 seconds)
       - Backend logs confirm transit intelligence processing with proper planet-to-planet mappings
       - Transit differentiation algorithm working correctly across all timeframes
@@ -6601,7 +6752,7 @@ agent_communication:
       ✅ Recompute endpoint working with proper status responses
       
       **Backend Integration Verified:**
-      - All endpoints accessible via https://multi-lens-signals.preview.emergentagent.com/api
+      - All endpoints accessible via https://forum-signals-fix.preview.emergentagent.com/api
       - Response times excellent (< 30 seconds)
       - Backend logs confirm successful HD chart recomputation with planetary longitude data
       - Variables computed from exact Design Sun and Personality Sun positions
@@ -6668,7 +6819,7 @@ agent_communication:
          - Empty state shows "As you reflect during this cycle, patterns will surface here."
       
       BACKEND ENDPOINT TESTED:
-      curl -s "https://multi-lens-signals.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
+      curl -s "https://forum-signals-fix.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
       Returns: {"user_id":"697f795f1a7a96aa35e283a3","cycle_start":"2026-03-18T22:04:48+00:00","cycle_day":6,"entries_in_cycle":0,"synthesis":{"early_cycle":null,"mid_cycle":null,"current_direction":null},"has_enough_data":false,"message":"As you reflect during this cycle, patterns will surface here."}
       
       FILES MODIFIED:
@@ -6712,7 +6863,7 @@ backend:
           - message: for empty state
           
           Manual test with curl confirmed working:
-          curl "https://multi-lens-signals.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
+          curl "https://forum-signals-fix.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
           
           NEEDS TESTING: Verify endpoint works with users who have journal entries
       - working: true
@@ -6751,7 +6902,7 @@ backend:
           - has_enough_data: false (appropriate for invalid user)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing
@@ -6835,7 +6986,7 @@ agent_communication:
          - Empty state shows "As you reflect during this cycle, patterns will surface here."
       
       BACKEND ENDPOINT TESTED:
-      curl -s "https://multi-lens-signals.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
+      curl -s "https://forum-signals-fix.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
       Returns: {"user_id":"697f795f1a7a96aa35e283a3","cycle_start":"2026-03-18T22:04:48+00:00","cycle_day":6,"entries_in_cycle":0,"synthesis":{"early_cycle":null,"mid_cycle":null,"current_direction":null},"has_enough_data":false,"message":"As you reflect during this cycle, patterns will surface here."}
       
       FILES MODIFIED:
@@ -6938,7 +7089,7 @@ agent_communication:
           - Confidence: 0.5, Sources: ["enneagram", "transits"]
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 2 seconds)
           - NOW SIGNAL ENGINE service integration working correctly
@@ -7059,7 +7210,7 @@ agent_communication:
           - Confidence: 0.2 (appropriate for error case) ✅
           
           **Backend Integration Verified:**
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 1 second) ✅
           - Backend logs confirm successful processing ✅
@@ -7106,7 +7257,7 @@ agent_communication:
           - Human Design signals now properly generated for users with chart data
           
           **Backend Integration Verified:**
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - Response time: 0.18 seconds (excellent performance) ✅
           - All signal types now working: astrology (1), human_design (2), pattern_history (2) ✅
           - Multi-source synthesis working correctly ✅
@@ -7169,7 +7320,7 @@ agent_communication:
       - ✅ Backend integration confirmed: Proper logging and processing
       
       **Backend Integration Verified:**
-      - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+      - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
       - Response times excellent (0.280s) ✅
       - Backend logs confirm successful processing ✅
       - High confidence scores (0.95, 0.91) indicating quality diagnosis ✅
@@ -7338,7 +7489,7 @@ agent_communication:
       - questionnaire_answers: All 5 answers persisted correctly ✅
       
       **Backend Integration Verified:**
-      - Endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+      - Endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
       - Response times excellent (< 1 second) ✅
       - Backend logs confirm successful processing:
         * "[MirrorProfile] Not found for user" (initial state)
@@ -7476,7 +7627,7 @@ agent_communication:
           - Data persistence working perfectly ✅
           
           **Backend Integration Verified:**
-          - Endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - Endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -7549,7 +7700,7 @@ agent_communication:
           - ✅ No crashes or 500 errors for invalid inputs
           
           **Backend Integration Verified:**
-          - Endpoint accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - Response times excellent (0.280s) ✅
           - Backend logs confirm successful processing:
             * "[Diagnostician] Generating cross-lens diagnosis for 697f0c6a: The Pause"
@@ -7687,7 +7838,7 @@ agent_communication:
           
           **Test Endpoint:** GET /api/bazi/{user_id}/today
           **Test User:** 697f0c6abf35c0528ff06954 (pete@pulsifi.me)
-          **Backend URL:** https://multi-lens-signals.preview.emergentagent.com
+          **Backend URL:** https://forum-signals-fix.preview.emergentagent.com
           
           **✅ ALL REQUIRED FIELDS VERIFIED:**
           1. ✅ success: true
@@ -7720,7 +7871,7 @@ agent_communication:
             * Response size: 12,482 characters
           
           **✅ BACKEND INTEGRATION VERIFIED:**
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing: "[BaZi Today] Generated for user 697f0c6abf35c0528ff06954: Fire day, interactions=['pressure']"
@@ -7746,7 +7897,7 @@ agent_communication:
       
       **Primary Test:** GET /api/bazi/697f0c6abf35c0528ff06954/today
       **Test User:** 697f0c6abf35c0528ff06954 (pete@pulsifi.me as specified)
-      **Backend URL:** https://multi-lens-signals.preview.emergentagent.com
+      **Backend URL:** https://forum-signals-fix.preview.emergentagent.com
       
       **✅ ALL 7 REQUIRED RESPONSE FIELDS VERIFIED:**
       1. ✅ success: true
@@ -7896,7 +8047,7 @@ backend:
           - horizon_interpretation.horizon_source: "horizon_interpretation_layer" ✅
           
           **✅ BACKEND INTEGRATION VERIFIED:**
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - Response times excellent (< 5 seconds) ✅
           - Backend logs confirm horizon interpretation working: "[AstroExpert] Horizon: today/week/month, Event: full_moon, Sign: Virgo" ✅
           - Event priority engine working correctly with Full Moon detection ✅
@@ -7924,7 +8075,7 @@ backend:
           🎯 ALL REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
           
           **Test 1: POST /api/journal (Create first entry)** ✅
-          - URL: https://multi-lens-signals.preview.emergentagent.com/api/journal
+          - URL: https://forum-signals-fix.preview.emergentagent.com/api/journal
           - Body: {"user_id": "697f0c6abf35c0528ff06954", "content": "Testing normalizer fix - entry 1", "tags": []}
           - Status: 200 OK
           - Response contains all required fields: id, content, themes, created_at ✅
@@ -7934,7 +8085,7 @@ backend:
           - Created At: 2026-03-27T05:49:55.648746+00:00
           
           **Test 2: GET /api/journal/{user_id} (Fetch entries)** ✅
-          - URL: https://multi-lens-signals.preview.emergentagent.com/api/journal/697f0c6abf35c0528ff06954
+          - URL: https://forum-signals-fix.preview.emergentagent.com/api/journal/697f0c6abf35c0528ff06954
           - Status: 200 OK
           - ✅ CRITICAL: Response is an ARRAY (not wrapped in object like {entries: [...]})
           - Number of entries: 20
@@ -7960,7 +8111,7 @@ backend:
             * All entries have required fields (id, content, themes, created_at): True ✅
           
           **Backend Integration Verified:**
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing
@@ -8101,7 +8252,7 @@ agent_communication:
       - horizon_interpretation.horizon_source: "horizon_interpretation_layer" ✅
       
       **✅ BACKEND INTEGRATION VERIFIED:**
-      - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+      - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
       - Response times excellent (< 5 seconds) ✅
       - Backend logs confirm horizon interpretation working: "[AstroExpert] Horizon: today/week/month, Event: full_moon, Sign: Virgo" ✅
       - Event priority engine working correctly with Full Moon detection ✅
@@ -8127,7 +8278,7 @@ agent_communication:
       
       **Primary Focus:** Confirm backend returns correct data shapes that frontend normalizer expects
       **Test User:** 697f0c6abf35c0528ff06954 (as specified in review request)
-      **Backend URL:** https://multi-lens-signals.preview.emergentagent.com/api
+      **Backend URL:** https://forum-signals-fix.preview.emergentagent.com/api
       
       **✅ CRITICAL VERIFICATION - RESPONSE SHAPE:**
       - GET /api/journal/{user_id} returns an **ARRAY** ✅
@@ -8228,7 +8379,7 @@ agent_communication:
       - All content is user-facing and clean ✅
       
       **Backend Integration Verified:**
-      - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+      - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
       - No HTTP errors or timeouts ✅
       - Response times excellent (< 5 seconds) ✅
       - Backend logs confirm successful processing ✅
@@ -8368,7 +8519,7 @@ agent_communication:
           - dynamic: user_quality=initiation, other_quality=sensing
           
           **🔧 BACKEND INTEGRATION VERIFIED:**
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 2 seconds) ✅
           - Backend logs confirm successful processing ✅
@@ -8427,7 +8578,7 @@ agent_communication:
           - No generic phrases like "hold space" or "be present" ✅
           
           **🔧 BACKEND INTEGRATION VERIFIED:**
-          - All endpoints accessible via public URL (https://multi-lens-signals.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 2 seconds) ✅
           - Backend logs confirm successful processing ✅

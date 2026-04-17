@@ -14,13 +14,13 @@
 - Notes: Verified HD data from Genetic Matrix screenshots
 
 ## Isaac Yoong
-- Email: isaac@test.com
+- Email: isaac.yoong@test.com
 - User ID: 69dda348de9cb1c83c0780f8
 - Birth: 5 April 2012, 05:25, Petaling Jaya, Malaysia
 - BaZi Day Master: Fire
 
 ## Thaddeus Yoong
-- Email: thaddeus@test.com
+- Email: thaddeus.yoong@test.com
 - User ID: 69dd0b2cc92ba973f8838c11
 - Birth: 23 June 2014, 18:17, Petaling Jaya, Malaysia
 - BaZi Day Master: Wood

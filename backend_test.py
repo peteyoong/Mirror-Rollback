@@ -1,340 +1,239 @@
-#!/usr/bin/env python3
 """
-Backend Testing Script for V3.3 Relationship Insight Engine - Breakthrough Confidence Levels
-Testing the specific endpoints and requirements from the review request.
-"""
+Backend Tests for Forum Mappings P0 Fixes (Feb 2026)
 
-import asyncio
-import aiohttp
+Verifies:
+  A) /api/forum-mappings returns complete data for all 3 members with
+     non-null enneagram, bazi (w/ animal emojis), astrology, and HD signals.
+  B) /api/fix-deployed-data seeds ALL duplicate user records for
+     Pete/Mel/Isaac/Thaddeus, with empty errors.
+  C) No regression on /api/get-user-forums and /api/forums/{id}/members.
+"""
 import json
+import re
 import sys
-from typing import Dict, Any, List
+import requests
 
-# Backend URL from environment
-BACKEND_URL = "https://multi-lens-signals.preview.emergentagent.com/api"
+BASE_URL = "http://localhost:8001"
 
-class RelationshipInsightV33Tester:
-    def __init__(self):
-        self.session = None
-        self.test_results = []
-        
-    async def __aenter__(self):
-        self.session = aiohttp.ClientSession()
-        return self
-        
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.session:
-            await self.session.close()
-    
-    def log_test(self, test_name: str, passed: bool, details: str = ""):
-        """Log test result"""
-        status = "✅ PASSED" if passed else "❌ FAILED"
-        print(f"{status}: {test_name}")
-        if details:
-            print(f"   {details}")
-        self.test_results.append({
-            "test": test_name,
-            "passed": passed,
-            "details": details
-        })
-    
-    async def test_v33_basic_request(self, user_id: str, other_name: str, context: str):
-        """Test basic V3.3 request with all required fields"""
-        try:
-            url = f"{BACKEND_URL}/relationship-insight/{user_id}"
-            params = {
-                "other_name": other_name,
-                "context": context
-            }
-            
-            print(f"\n🧪 Testing V3.3 Basic Request: {other_name}")
-            print(f"URL: {url}")
-            print(f"Params: {params}")
-            
-            async with self.session.get(url, params=params) as response:
-                response_text = await response.text()
-                
-                if response.status != 200:
-                    self.log_test("Basic Request - HTTP Status", False, f"Expected 200, got {response.status}")
-                    print(f"Response: {response_text}")
-                    return None
-                
-                self.log_test("Basic Request - HTTP Status", True, f"Status: {response.status}")
-                
-                try:
-                    data = json.loads(response_text)
-                except json.JSONDecodeError as e:
-                    self.log_test("Basic Request - JSON Parse", False, f"Invalid JSON: {e}")
-                    return None
-                
-                self.log_test("Basic Request - JSON Parse", True, "Valid JSON response")
-                
-                # V3.3 SPECIFIC TESTS
-                
-                # Test 1: version = "v3.3"
-                version = data.get("version")
-                self.log_test("V3.3 Version Field", version == "v3.3", f"version: {version}")
-                
-                # Test 2: breakthrough_confidence (integer 0-3)
-                breakthrough_confidence = data.get("breakthrough_confidence")
-                is_valid_confidence = isinstance(breakthrough_confidence, int) and 0 <= breakthrough_confidence <= 3
-                self.log_test("V3.3 Breakthrough Confidence", is_valid_confidence, 
-                             f"breakthrough_confidence: {breakthrough_confidence} (type: {type(breakthrough_confidence)})")
-                
-                # Test 3: breakthrough_confidence_label (string: "none", "low", "medium", or "high")
-                breakthrough_label = data.get("breakthrough_confidence_label")
-                valid_labels = ["none", "low", "medium", "high"]
-                is_valid_label = breakthrough_label in valid_labels
-                self.log_test("V3.3 Breakthrough Confidence Label", is_valid_label,
-                             f"breakthrough_confidence_label: {breakthrough_label}")
-                
-                # Test 4: is_breakthrough (boolean)
-                is_breakthrough = data.get("is_breakthrough")
-                is_valid_breakthrough = isinstance(is_breakthrough, bool)
-                self.log_test("V3.3 Is Breakthrough", is_valid_breakthrough,
-                             f"is_breakthrough: {is_breakthrough} (type: {type(is_breakthrough)})")
-                
-                # Test 5: escalation_level (integer 0-3)
-                escalation_level = data.get("escalation_level")
-                is_valid_escalation = isinstance(escalation_level, int) and 0 <= escalation_level <= 3
-                self.log_test("V3.3 Escalation Level", is_valid_escalation,
-                             f"escalation_level: {escalation_level} (type: {type(escalation_level)})")
-                
-                # Test 6: All content sections present
-                required_sections = ["essence", "friction", "tension", "your_shift", "gift", "why_this_connection", "try_this"]
-                all_sections_present = True
-                missing_sections = []
-                
-                for section in required_sections:
-                    if section not in data:
-                        all_sections_present = False
-                        missing_sections.append(section)
-                
-                self.log_test("V3.3 All Content Sections", all_sections_present,
-                             f"Missing: {missing_sections}" if missing_sections else "All 7 sections present")
-                
-                # Test 7: Dynamic object structure
-                dynamic = data.get("dynamic", {})
-                required_dynamic_fields = ["user_type", "other_type", "user_quality", "other_quality"]
-                dynamic_complete = all(field in dynamic for field in required_dynamic_fields)
-                self.log_test("V3.3 Dynamic Object", dynamic_complete,
-                             f"Dynamic fields: {list(dynamic.keys())}")
-                
-                # Test 8: breakthrough_debug exists
-                breakthrough_debug = data.get("breakthrough_debug")
-                has_debug = breakthrough_debug is not None
-                self.log_test("V3.3 Breakthrough Debug", has_debug,
-                             f"breakthrough_debug present: {has_debug}")
-                
-                return data
-                
-        except Exception as e:
-            self.log_test("Basic Request - Exception", False, f"Exception: {e}")
-            return None
-    
-    async def test_v33_pattern_detection(self, user_id: str, other_name: str, context: str):
-        """Test pattern detection by calling same endpoint multiple times"""
-        print(f"\n🧪 Testing V3.3 Pattern Detection: {other_name} (3 calls)")
-        
-        escalation_levels = []
-        
-        for i in range(3):
-            try:
-                url = f"{BACKEND_URL}/relationship-insight/{user_id}"
-                params = {
-                    "other_name": other_name,
-                    "context": context
-                }
-                
-                print(f"   Call {i+1}/3...")
-                
-                async with self.session.get(url, params=params) as response:
-                    if response.status != 200:
-                        self.log_test(f"Pattern Detection Call {i+1}", False, f"HTTP {response.status}")
-                        continue
-                    
-                    data = await response.json()
-                    escalation_level = data.get("escalation_level", 0)
-                    escalation_levels.append(escalation_level)
-                    
-                    print(f"   Call {i+1}: escalation_level = {escalation_level}")
-                    
-                    # Small delay between calls
-                    await asyncio.sleep(0.5)
-                    
-            except Exception as e:
-                self.log_test(f"Pattern Detection Call {i+1}", False, f"Exception: {e}")
-                continue
-        
-        # Check if escalation increased on 3rd+ call
-        if len(escalation_levels) >= 3:
-            third_call_escalation = escalation_levels[2]
-            escalation_increased = third_call_escalation > escalation_levels[0]
-            
-            self.log_test("Pattern Detection - Escalation Increase", escalation_increased,
-                         f"Escalation levels: {escalation_levels}")
-        else:
-            self.log_test("Pattern Detection - Escalation Increase", False, "Not enough successful calls")
-        
-        return escalation_levels
-        """Check content quality requirements"""
-        
-        # Check YOUR SHIFT is actionable and centered on USER
-        your_shift = data.get("your_shift", "")
-        
-        # Should not suggest what other person should do
-        forbidden_other_phrases = [
-            "they should", "they need to", "tell them", "ask them to", "make them"
-        ]
-        
-        has_forbidden_other = any(phrase in your_shift.lower() for phrase in forbidden_other_phrases)
-        self.log_test(f"{test_name} - YOUR SHIFT User-Centered", not has_forbidden_other,
-                     f"No suggestions about other person: {not has_forbidden_other}")
-        
-        # Check GIFT explains why person matters
-        gift = data.get("gift", "")
-        gift_has_meaning = len(gift) > 20 and ("matter" in gift.lower() or "bring" in gift.lower() or "show" in gift.lower())
-        self.log_test(f"{test_name} - GIFT Meaningful", gift_has_meaning,
-                     f"Gift explains value: {gift[:100]}...")
-        
-        # Check TRY THIS is behavioral action
-        try_this = data.get("try_this", "")
-        is_behavioral = len(try_this) > 10 and not any(phrase in try_this.lower() for phrase in ["therapy", "counseling", "meditate"])
-        self.log_test(f"{test_name} - TRY THIS Behavioral", is_behavioral,
-                     f"Behavioral action: {try_this[:100]}...")
-        
-    async def check_content_quality(self, data: Dict[str, Any], test_name: str):
-        """Check content quality requirements for V3.3"""
-        
-        # Check YOUR SHIFT is actionable and centered on USER
-        your_shift = data.get("your_shift", "")
-        
-        # Should not suggest what other person should do
-        forbidden_other_phrases = [
-            "they should", "they need to", "tell them", "ask them to", "make them"
-        ]
-        
-        has_forbidden_other = any(phrase in your_shift.lower() for phrase in forbidden_other_phrases)
-        self.log_test(f"{test_name} - YOUR SHIFT User-Centered", not has_forbidden_other,
-                     f"No suggestions about other person: {not has_forbidden_other}")
-        
-        # Check GIFT explains why person matters
-        gift = data.get("gift", "")
-        gift_has_meaning = len(gift) > 20 and ("matter" in gift.lower() or "bring" in gift.lower() or "show" in gift.lower())
-        self.log_test(f"{test_name} - GIFT Meaningful", gift_has_meaning,
-                     f"Gift explains value: {gift[:100]}...")
-        
-        # Check TRY THIS is behavioral action
-        try_this = data.get("try_this", "")
-        is_behavioral = len(try_this) > 10 and not any(phrase in try_this.lower() for phrase in ["therapy", "counseling", "meditate"])
-        self.log_test(f"{test_name} - TRY THIS Behavioral", is_behavioral,
-                     f"Behavioral action: {try_this[:100]}...")
-        
-        # Check for forbidden generic phrases
-        all_content = f"{data.get('essence', '')} {data.get('friction', '')} {data.get('tension', '')} {your_shift} {gift} {try_this}"
-        
-        forbidden_generic = ["hold space", "be present"]
-        has_generic = any(phrase in all_content.lower() for phrase in forbidden_generic)
-        self.log_test(f"{test_name} - No Generic Phrases", not has_generic,
-                     f"No 'hold space' or 'be present': {not has_generic}")
-    
-    async def run_all_tests(self):
-        """Run all V3.3 tests specified in the review request"""
-        
-        print("🎯 TESTING V3.3 RELATIONSHIP INSIGHT ENGINE - BREAKTHROUGH CONFIDENCE LEVELS")
-        print("=" * 80)
-        
-        # Test user from review request
-        user_id = "697f0c6abf35c0528ff06954"
-        
-        # Test Case 1: Basic Request Test
-        print("\n📋 TEST CASE 1: BASIC REQUEST TEST")
-        print("-" * 50)
-        basic_result = await self.test_v33_basic_request(
-            user_id, 
-            "TestPerson", 
-            "Direct communicator"
+# Test credentials
+PETE_USER_ID = "697f0c6abf35c0528ff06954"
+MEL_USER_ID = "697ec826ad4b18f75bf42616"
+YOONG_FAMILY_FORUM_ID = "69dda348de9cb1c83c0780fa"
+
+EXPECTED_MEMBERS = {"Thaddeus Yoong", "Mel", "Isaac Yoong"}
+
+ANIMAL_EMOJI_PATTERN = re.compile(
+    r"🐀|🐁|🐂|🐃|🐄|🐅|🐆|🐇|🐈|🐉|🐊|🐋|🐌|🐍|🐎|🐏|🐐|🐑|🐒|🐓|🐔|🐕|🐖|🐗|🐘|🐙|🐚|🐛|🐜|🐝|🐞|🐟|🐠|🐡|🐢|🐣|🐤|🐥|🐦|🐧|🐨|🐩|🐪|🐫|🐬|🐭|🐮|🐯|🐰|🐱|🐲|🐳"
+)
+
+results = []
+
+
+def pass_(msg):
+    print(f"  ✅ {msg}")
+
+
+def fail_(msg):
+    print(f"  ❌ {msg}")
+
+
+def section(name):
+    print(f"\n{'='*70}\n{name}\n{'='*70}")
+
+
+def test_forum_mappings():
+    section("TEST A: POST /api/forum-mappings (complete signals)")
+    url = f"{BASE_URL}/api/forum-mappings"
+    payload = {"forum_id": YOONG_FAMILY_FORUM_ID, "user_id": PETE_USER_ID}
+    try:
+        r = requests.post(url, json=payload, timeout=60)
+    except Exception as e:
+        fail_(f"request failed: {e}")
+        results.append(("A: forum-mappings reachable", False))
+        return
+
+    ok = r.status_code == 200
+    results.append(("A: HTTP 200 OK", ok))
+    (pass_ if ok else fail_)(f"HTTP {r.status_code}")
+    if not ok:
+        print(r.text[:500])
+        return
+
+    data = r.json()
+    mappings = data.get("mappings", [])
+    count_ok = len(mappings) == 3
+    results.append(("A: exactly 3 mappings", count_ok))
+    (pass_ if count_ok else fail_)(f"mappings count = {len(mappings)} (expected 3)")
+
+    names = {m.get("member_name") for m in mappings}
+    names_ok = EXPECTED_MEMBERS.issubset(names)
+    results.append(("A: members Thaddeus/Mel/Isaac present", names_ok))
+    (pass_ if names_ok else fail_)(f"member names: {names}")
+
+    for m in mappings:
+        name = m.get("member_name")
+        signals = m.get("signals") or {}
+        print(f"\n  --- Member: {name} ---")
+
+        enn = signals.get("enneagram")
+        enn_ok = (
+            isinstance(enn, dict)
+            and isinstance(enn.get("how_you_help_them"), list)
+            and isinstance(enn.get("how_they_help_you"), list)
+            and len(enn.get("how_you_help_them") or []) > 0
+            and len(enn.get("how_they_help_you") or []) > 0
         )
-        
-        if basic_result:
-            await self.check_content_quality(basic_result, "Basic Request")
-        
-        # Test Case 2: Multiple Requests Test (Pattern Detection)
-        print("\n📋 TEST CASE 2: MULTIPLE REQUESTS TEST (PATTERN DETECTION)")
-        print("-" * 50)
-        await self.test_v33_pattern_detection(
-            user_id,
-            "RecurringTest",
-            "Consistent pattern behavior"
+        results.append((f"A: {name} enneagram non-null w/ arrays", enn_ok))
+        (pass_ if enn_ok else fail_)(
+            f"enneagram: how_you_help_them={len(enn.get('how_you_help_them') or []) if isinstance(enn, dict) else 'N/A'}, "
+            f"how_they_help_you={len(enn.get('how_they_help_you') or []) if isinstance(enn, dict) else 'N/A'}"
         )
-        
-        # Test Case 3: Response Structure Validation (additional test)
-        print("\n📋 TEST CASE 3: RESPONSE STRUCTURE VALIDATION")
-        print("-" * 50)
-        structure_result = await self.test_v33_basic_request(
-            user_id,
-            "StructureTest", 
-            "Testing response structure"
+
+        bazi = signals.get("bazi")
+        bazi_ok = isinstance(bazi, dict) and len(bazi) > 0
+        results.append((f"A: {name} bazi non-null object", bazi_ok))
+        (pass_ if bazi_ok else fail_)(
+            f"bazi keys={list(bazi.keys()) if isinstance(bazi, dict) else 'N/A'}"
         )
-        
-        # Summary
-        print("\n" + "=" * 80)
-        print("📊 V3.3 TEST SUMMARY")
-        print("=" * 80)
-        
-        total_tests = len(self.test_results)
-        passed_tests = sum(1 for result in self.test_results if result["passed"])
-        failed_tests = total_tests - passed_tests
-        
-        print(f"Total Tests: {total_tests}")
-        print(f"Passed: {passed_tests} ✅")
-        print(f"Failed: {failed_tests} ❌")
-        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
-        
-        if failed_tests > 0:
-            print("\n❌ FAILED TESTS:")
-            for result in self.test_results:
-                if not result["passed"]:
-                    print(f"  - {result['test']}: {result['details']}")
-        
-        # Check for critical V3.3 features
-        critical_tests = [
-            "V3.3 Version Field",
-            "V3.3 Breakthrough Confidence", 
-            "V3.3 Breakthrough Confidence Label",
-            "V3.3 Is Breakthrough",
-            "V3.3 Escalation Level",
-            "V3.3 All Content Sections",
-            "V3.3 Dynamic Object",
-            "V3.3 Breakthrough Debug"
-        ]
-        
-        critical_passed = sum(1 for result in self.test_results 
-                            if result["test"] in critical_tests and result["passed"])
-        critical_total = len([r for r in self.test_results if r["test"] in critical_tests])
-        
-        print(f"\n🔥 CRITICAL V3.3 FEATURES: {critical_passed}/{critical_total} PASSED")
-        
-        if critical_passed == critical_total:
-            print("✅ ALL CRITICAL V3.3 FEATURES WORKING!")
-        else:
-            print("❌ SOME CRITICAL V3.3 FEATURES FAILED!")
-        
-        return failed_tests == 0
+
+        if isinstance(bazi, dict):
+            combined = []
+            for key in ("support", "tension", "growth"):
+                arr = bazi.get(key) or []
+                if isinstance(arr, list):
+                    combined.extend(arr)
+            joined = " | ".join(str(x) for x in combined)
+            has_emoji = bool(ANIMAL_EMOJI_PATTERN.search(joined))
+            results.append((f"A: {name} bazi has animal emoji", has_emoji))
+            (pass_ if has_emoji else fail_)(f"bazi animal emoji present: {has_emoji}")
+            if has_emoji:
+                for s in combined:
+                    if ANIMAL_EMOJI_PATTERN.search(str(s)):
+                        print(f"       → '{s}'")
+                        break
+
+        astro = signals.get("astrology")
+        astro_ok = isinstance(astro, dict) and len(astro) > 0
+        results.append((f"A: {name} astrology non-null object", astro_ok))
+        (pass_ if astro_ok else fail_)(
+            f"astrology keys={list(astro.keys()) if isinstance(astro, dict) else 'N/A'}"
+        )
+
+        hd = signals.get("human_design")
+        hd_ok = isinstance(hd, list)
+        results.append((f"A: {name} human_design is array", hd_ok))
+        (pass_ if hd_ok else fail_)(
+            f"human_design type={type(hd).__name__}, len={len(hd) if isinstance(hd, list) else 'N/A'}"
+        )
 
 
-async def main():
-    """Main test runner"""
-    async with RelationshipInsightV33Tester() as tester:
-        success = await tester.run_all_tests()
-        
-        if success:
-            print("\n🎉 ALL V3.3 TESTS PASSED! Breakthrough Confidence Levels are working correctly.")
-            sys.exit(0)
-        else:
-            print("\n💥 SOME V3.3 TESTS FAILED! Check the details above.")
-            sys.exit(1)
+def test_fix_deployed_data():
+    section("TEST B: GET /api/fix-deployed-data (seeds all duplicates)")
+    url = f"{BASE_URL}/api/fix-deployed-data"
+    try:
+        r = requests.get(url, timeout=60)
+    except Exception as e:
+        fail_(f"request failed: {e}")
+        results.append(("B: fix-deployed-data reachable", False))
+        return
+
+    ok = r.status_code == 200
+    results.append(("B: HTTP 200 OK", ok))
+    (pass_ if ok else fail_)(f"HTTP {r.status_code}")
+    if not ok:
+        print(r.text[:500])
+        return
+
+    data = r.json()
+    fixes = data.get("fixes", [])
+    errors = data.get("errors", [])
+
+    errors_ok = len(errors) == 0
+    results.append(("B: errors array is empty", errors_ok))
+    (pass_ if errors_ok else fail_)(f"errors: {errors}")
+
+    pete_count = sum(1 for f in fixes if f.startswith("Pete"))
+    mel_count = sum(1 for f in fixes if f.startswith("Mel"))
+    thad_count = sum(1 for f in fixes if f.startswith("Thaddeus Yoong"))
+    isaac_count = sum(1 for f in fixes if f.startswith("Isaac Yoong"))
+
+    pete_ok = pete_count >= 2
+    mel_ok = mel_count >= 2  # handles "Mel" and "Mel "
+    thad_ok = thad_count >= 1
+    isaac_ok = isaac_count >= 1
+
+    results.append(("B: Pete duplicates (>=2) seeded", pete_ok))
+    (pass_ if pete_ok else fail_)(f"Pete records in fixes: {pete_count}")
+
+    results.append(("B: Mel duplicates (>=2) seeded", mel_ok))
+    (pass_ if mel_ok else fail_)(f"Mel records in fixes: {mel_count}")
+
+    results.append(("B: Thaddeus Yoong seeded (>=1)", thad_ok))
+    (pass_ if thad_ok else fail_)(f"Thaddeus Yoong records in fixes: {thad_count}")
+
+    results.append(("B: Isaac Yoong seeded (>=1)", isaac_ok))
+    (pass_ if isaac_ok else fail_)(f"Isaac Yoong records in fixes: {isaac_count}")
+
+    print(f"\n  Total fixes: {len(fixes)}, summary={data.get('summary')}")
+
+
+def test_get_user_forums():
+    section("TEST C1: POST /api/get-user-forums (regression)")
+    url = f"{BASE_URL}/api/get-user-forums"
+    try:
+        r = requests.post(url, json={"user_id": PETE_USER_ID}, timeout=30)
+    except Exception as e:
+        fail_(f"request failed: {e}")
+        results.append(("C1: get-user-forums reachable", False))
+        return
+    ok = r.status_code == 200
+    results.append(("C1: HTTP 200 OK", ok))
+    (pass_ if ok else fail_)(f"HTTP {r.status_code}")
+    if not ok:
+        return
+    data = r.json()
+    forums = data.get("forums", [])
+    list_ok = isinstance(forums, list) and len(forums) > 0
+    results.append(("C1: forums list non-empty", list_ok))
+    (pass_ if list_ok else fail_)(f"forums count = {len(forums)}")
+
+
+def test_get_forum_members():
+    section("TEST C2: GET /api/forums/{id}/members (regression)")
+    url = f"{BASE_URL}/api/forums/{YOONG_FAMILY_FORUM_ID}/members"
+    try:
+        r = requests.get(url, params={"user_id": PETE_USER_ID}, timeout=30)
+    except Exception as e:
+        fail_(f"request failed: {e}")
+        results.append(("C2: forums/{id}/members reachable", False))
+        return
+    ok = r.status_code == 200
+    results.append(("C2: HTTP 200 OK", ok))
+    (pass_ if ok else fail_)(f"HTTP {r.status_code}")
+    if not ok:
+        return
+    data = r.json()
+    members = data.get("members", [])
+    list_ok = isinstance(members, list) and len(members) > 0
+    results.append(("C2: members list non-empty", list_ok))
+    (pass_ if list_ok else fail_)(f"members count = {len(members)}")
+
+
+def main():
+    test_forum_mappings()
+    test_fix_deployed_data()
+    test_get_user_forums()
+    test_get_forum_members()
+
+    section("FINAL SUMMARY")
+    passed = sum(1 for _, ok in results if ok)
+    total = len(results)
+    for label, ok in results:
+        icon = "✅" if ok else "❌"
+        print(f"  {icon} {label}")
+    print(f"\n  {passed}/{total} assertions passed")
+    sys.exit(0 if passed == total else 1)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
