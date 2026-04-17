@@ -409,47 +409,35 @@ def build_today_narrative(
     day_energy: Dict,
     transit_positions: Dict[str, Dict],
 ) -> Dict[str, Any]:
-    """Build the full Today narrative from ranked signals."""
+    """Build the full Today narrative from ranked signals using
+    FOREGROUND / DESTABILIZER / AMPLIFIER model."""
     
     top_concentration = concentrations[0] if concentrations else None
-    top_aspects = aspects[:3]
     top_house = house_activations[0] if house_activations else None
+    second_house = house_activations[1] if len(house_activations) > 1 else None
     moon = transit_positions.get('Moon', {})
     
     # =========================================================
-    # HEADLINE — The single most important thing about today
+    # EXTRACT SIGNAL LAYERS
     # =========================================================
-    headline = _build_headline(top_concentration, top_aspects, day_energy, moon)
+    layers = _extract_signal_layers(aspects, concentrations, house_activations, day_energy, transit_positions)
     
     # =========================================================
-    # WHAT'S HAPPENING — 2-3 real-world dynamics
+    # BUILD NARRATIVE FROM LAYERS
     # =========================================================
-    whats_happening = _build_whats_happening(top_concentration, top_aspects, day_energy)
+    headline = _build_headline(layers, top_house, day_energy)
+    subhead = _build_subhead(layers, top_house, second_house)
+    whats_happening = _build_whats_happening(layers, day_energy)
+    how_it_shows_up = _build_how_shows_up(layers, top_house, second_house, moon)
+    what_it_feels_like = _build_feelings(layers, day_energy, moon)
+    the_move = _build_the_move(layers, day_energy)
     
-    # =========================================================
-    # HOW IT SHOWS UP — Observable behaviors
-    # =========================================================
-    how_it_shows_up = _build_how_shows_up(top_concentration, top_aspects, top_house, moon)
-    
-    # =========================================================
-    # WHAT IT FEELS LIKE — Physical/emotional signals
-    # =========================================================
-    what_it_feels_like = _build_feelings(top_concentration, day_energy, moon)
-    
-    # =========================================================
-    # THE MOVE — One behavioral shift
-    # =========================================================
-    the_move = _build_the_move(top_concentration, top_aspects, day_energy)
-    
-    # =========================================================
-    # WHERE CONTEXT — Life area
-    # =========================================================
     where_context = None
     if top_house:
         where_context = f"This lands especially in the area of {top_house['context']}."
     
     # =========================================================
-    # TECHNICAL / PROOF LAYER
+    # TECHNICAL / PROOF LAYER (untouched)
     # =========================================================
     technical = _build_proof_layer(aspects, concentrations, house_activations, day_energy, transit_positions)
     
@@ -467,160 +455,472 @@ def build_today_narrative(
     }
 
 
-def _build_headline(conc, aspects, energy, moon) -> str:
-    """Build the main headline from dominant signal."""
-    tags = energy.get('tags', [])
+# =====================================================================
+# SIGNAL LAYER EXTRACTION — Foreground / Destabilizer / Amplifier
+# =====================================================================
+
+# Planet archetypes for narrative synthesis
+PLANET_ARCHETYPE = {
+    'Sun': {'domain': 'identity', 'verb': 'demands visibility', 'distortion': 'ego inflation'},
+    'Moon': {'domain': 'emotional needs', 'verb': 'shifts the emotional weather', 'distortion': 'reactivity'},
+    'Mercury': {'domain': 'thinking and communication', 'verb': 'speeds up the mind', 'distortion': 'overthinking'},
+    'Venus': {'domain': 'relationships and values', 'verb': 'draws toward comfort', 'distortion': 'avoidance through pleasure'},
+    'Mars': {'domain': 'action and drive', 'verb': 'pressures you to act', 'distortion': 'impulsive confrontation'},
+    'Jupiter': {'domain': 'expansion and belief', 'verb': 'amplifies everything', 'distortion': 'overreach and excess'},
+    'Saturn': {'domain': 'structure and limitation', 'verb': 'tightens the frame', 'distortion': 'rigidity and pressure'},
+    'Neptune': {'domain': 'intuition and illusion', 'verb': 'blurs the lines', 'distortion': 'confusion and projection'},
+    'Uranus': {'domain': 'disruption and freedom', 'verb': 'destabilizes the status quo', 'distortion': 'rebellion without direction'},
+    'Pluto': {'domain': 'power and transformation', 'verb': 'exposes what was hidden', 'distortion': 'control and obsession'},
+}
+
+# Aspect natures for role classification
+DESTABILIZER_PLANETS = {'Neptune', 'Pluto', 'Uranus'}
+AMPLIFIER_NATURES = {'tension', 'polarity'}  # squares and oppositions amplify
+AMPLIFIER_PLANETS = {'Jupiter'}  # Jupiter always amplifies
+
+
+def _extract_signal_layers(aspects, concentrations, house_activations, day_energy, transit_positions):
+    """Extract Foreground / Destabilizer / Amplifier from ranked signals."""
     
-    if conc and conc['count'] >= 4:
-        sign = conc['sign']
-        behavior = conc.get('behavior', {})
-        keyword = behavior.get('keyword', 'intensity')
-        
-        headlines = {
-            'Aries': "Everything is pushing you to act — and not gently.",
-            'Taurus': "The pull toward stability is strong. Change feels threatening today.",
-            'Gemini': "Your mind is everywhere at once. Focus is the real challenge.",
-            'Cancer': "Emotional currents are running deep. Protection mode is on.",
-            'Leo': "The need to be seen, heard, or recognized is louder than usual.",
-            'Virgo': "Details are demanding attention. Nothing feels good enough.",
-            'Libra': "Relationships are the weather today. Balance feels impossible.",
-            'Scorpio': "Something hidden wants to surface. Intensity is unavoidable.",
-            'Sagittarius': "Restlessness is the dominant note. Containment feels wrong.",
-            'Capricorn': "Pressure to perform or deliver is real. The stakes feel higher.",
-            'Aquarius': "The urge to break free or push back is driving everything.",
-            'Pisces': "Boundaries are dissolving. What's yours and what's theirs is blurred.",
+    foreground = None
+    destabilizer = None
+    amplifier = None
+    
+    # --- FOREGROUND: The dominant weather ---
+    top_conc = concentrations[0] if concentrations else None
+    if top_conc and top_conc['count'] >= 3:
+        behavior = top_conc.get('behavior', {})
+        foreground = {
+            'type': 'concentration',
+            'sign': top_conc['sign'],
+            'count': top_conc['count'],
+            'planets': top_conc['planets'],
+            'energy': behavior.get('energy', 'intensity'),
+            'keyword': behavior.get('keyword', 'pressure'),
+            'tone': behavior.get('tone', ''),
         }
-        return headlines.get(sign, f"A concentration of energy is building around {keyword}.")
-    
-    if aspects and aspects[0]['score'] > 0.5:
-        asp = aspects[0]
-        if asp['nature'] == 'tension':
-            return f"There's friction between what you want and what the day demands."
-        elif asp['nature'] == 'polarity':
-            return f"You're being pulled in two directions — and both feel real."
-        elif asp['nature'] == 'fusion':
-            return f"Something is amplifying inside you. It's hard to ignore."
-        else:
-            return f"An opening is forming — but you have to notice it to use it."
-    
-    if 'emotionally-charged' in tags:
-        return "The emotional volume is turned up today. Not everything needs a response."
-    
-    if 'action-heavy' in tags:
-        return "The energy is pushing you forward. The question is: toward what?"
-    
-    return "The day has a specific shape to it. Pay attention to what keeps pulling you."
-
-
-def _build_whats_happening(conc, aspects, energy) -> List[str]:
-    """Build 2-3 real-world dynamics."""
-    items = []
-    
-    if conc and conc['count'] >= 3:
-        sign = conc['sign']
-        behavior = conc.get('behavior', {})
-        behaviors = behavior.get('behavior', [])
-        if behaviors:
-            items.append(behaviors[0])
-        if conc['count'] >= 4:
-            items.append(f"With {conc['count']} planets concentrated in one zone, the pressure is focused, not spread out — which makes it harder to avoid")
-    
-    if aspects:
+    elif aspects:
+        # Strongest aspect IS the foreground
         top = aspects[0]
-        if top['nature'] in ('tension', 'polarity'):
-            items.append(f"Your {top['natal_planet'].lower()} instinct — the part of you it represents — is being challenged by current conditions")
-        elif top['nature'] == 'fusion':
-            items.append(f"Current energy is merging with your natal {top['natal_planet'].lower()}, intensifying how it normally operates")
-        else:
-            items.append(f"There's support flowing toward your {top['natal_planet'].lower()} — something is being unlocked or made easier")
-    
-    if not items:
-        items.append("The transit weather today is moderate — no single signal dominates")
-        items.append("This is a day where subtler patterns have room to surface")
-    
-    return items[:3]
-
-
-def _build_how_shows_up(conc, aspects, top_house, moon) -> List[str]:
-    """Build observable behavior predictions."""
-    items = []
-    
-    if conc and conc['count'] >= 3:
-        behaviors = conc.get('behavior', {}).get('behavior', [])
-        items.extend(behaviors[1:3])
-    
-    if top_house:
-        items.append(f"Watch for this showing up around {top_house['context']}")
-    
-    moon_sign = moon.get('sign', '')
-    if moon_sign:
-        moon_behavior = SIGN_BEHAVIOR.get(moon_sign, {})
-        moon_behaviors = moon_behavior.get('behavior', [])
-        if moon_behaviors:
-            items.append(moon_behaviors[0])
-    
-    if not items:
-        items.append("The effects today are subtle — they'll show up in how you respond to small moments, not big events")
-    
-    return items[:3]
-
-
-def _build_feelings(conc, energy, moon) -> List[str]:
-    """Build physical/emotional signals."""
-    items = []
-    
-    if conc and conc['count'] >= 3:
-        feelings = conc.get('behavior', {}).get('feeling', [])
-        items.extend(feelings[:2])
-    
-    moon_sign = moon.get('sign', '')
-    if moon_sign:
-        moon_feelings = SIGN_BEHAVIOR.get(moon_sign, {}).get('feeling', [])
-        if moon_feelings and moon_feelings[0] not in items:
-            items.append(moon_feelings[0])
-    
-    if not items:
-        tags = energy.get('tags', [])
-        if 'tension-heavy' in tags:
-            items.append("a low-grade friction that makes relaxation harder")
-        elif 'emotionally-charged' in tags:
-            items.append("emotional sensitivity that catches you off guard")
-        else:
-            items.append("a background hum of energy — not dramatic but present")
-    
-    return items[:3]
-
-
-def _build_the_move(conc, aspects, energy) -> str:
-    """Build one behavioral shift suggestion."""
-    tags = energy.get('tags', [])
-    
-    if conc and conc['count'] >= 4:
-        sign = conc['sign']
-        moves = {
-            'Aries': "Channel the activation energy into one clear action — don't spray it everywhere.",
-            'Taurus': "Let yourself slow down without guilt. Stability is the move, not stagnation.",
-            'Gemini': "Write down the three things competing for attention. Pick one.",
-            'Cancer': "Check in with yourself before you check in with everyone else.",
-            'Leo': "Create something — even small. The energy needs an outlet.",
-            'Virgo': "Accept 'good enough' for today. Perfection is consuming energy you need elsewhere.",
-            'Libra': "Make one decision you've been deferring. Even a small one breaks the pattern.",
-            'Scorpio': "Name what's actually bothering you — to yourself, not anyone else.",
-            'Sagittarius': "Find one thing to commit to today — even temporarily.",
-            'Capricorn': "Separate what you must do from what you think you should do.",
-            'Aquarius': "Before you rebel, ask: is this about freedom or avoidance?",
-            'Pisces': "Ground yourself in one concrete thing before noon.",
+        archetype = PLANET_ARCHETYPE.get(top['transit_planet'], {})
+        foreground = {
+            'type': 'aspect',
+            'transit_planet': top['transit_planet'],
+            'natal_planet': top['natal_planet'],
+            'aspect_name': top['aspect'],
+            'nature': top['nature'],
+            'domain': archetype.get('domain', 'energy'),
+            'verb': archetype.get('verb', 'is active'),
         }
-        return moves.get(sign, "Focus your energy on the one thing that matters most right now.")
     
+    # --- DESTABILIZER: What complicates or distorts ---
+    for asp in aspects[:8]:
+        tp = asp['transit_planet']
+        # Neptune/Pluto/Uranus aspects destabilize
+        if tp in DESTABILIZER_PLANETS and asp['score'] > 0.15:
+            archetype = PLANET_ARCHETYPE.get(tp, {})
+            natal_arch = PLANET_ARCHETYPE.get(asp['natal_planet'], {})
+            destabilizer = {
+                'planet': tp,
+                'natal_planet': asp['natal_planet'],
+                'aspect': asp['aspect'],
+                'nature': asp['nature'],
+                'distortion': archetype.get('distortion', 'distortion'),
+                'verb': archetype.get('verb', 'complicates'),
+                'natal_domain': natal_arch.get('domain', 'instinct'),
+                'orb': asp['orb'],
+            }
+            break
+    
+    # --- AMPLIFIER: What makes it bigger ---
+    for asp in aspects[:8]:
+        tp = asp['transit_planet']
+        # Jupiter aspects amplify; also squares/oppositions from heavy planets
+        if tp in AMPLIFIER_PLANETS and asp['score'] > 0.1:
+            archetype = PLANET_ARCHETYPE.get(tp, {})
+            natal_arch = PLANET_ARCHETYPE.get(asp['natal_planet'], {})
+            amplifier = {
+                'planet': tp,
+                'natal_planet': asp['natal_planet'],
+                'aspect': asp['aspect'],
+                'distortion': archetype.get('distortion', 'excess'),
+                'verb': archetype.get('verb', 'amplifies'),
+                'natal_domain': natal_arch.get('domain', 'energy'),
+            }
+            break
+        # Saturn squares/oppositions also amplify pressure
+        if tp == 'Saturn' and asp['nature'] in ('tension', 'polarity') and asp['score'] > 0.15:
+            amplifier = {
+                'planet': 'Saturn',
+                'natal_planet': asp['natal_planet'],
+                'aspect': asp['aspect'],
+                'distortion': 'weight and pressure',
+                'verb': 'tightens the frame around',
+                'natal_domain': PLANET_ARCHETYPE.get(asp['natal_planet'], {}).get('domain', 'energy'),
+            }
+            break
+    
+    # --- INTENSITY LEVEL ---
+    total_aspect_score = sum(a['score'] for a in aspects[:10])
+    stellium_count = top_conc['count'] if top_conc else 0
+    
+    if stellium_count >= 5 or total_aspect_score > 4.0:
+        intensity = 'extreme'
+    elif stellium_count >= 3 or total_aspect_score > 2.5:
+        intensity = 'high'
+    elif total_aspect_score > 1.0:
+        intensity = 'moderate'
+    else:
+        intensity = 'low'
+    
+    return {
+        'foreground': foreground,
+        'destabilizer': destabilizer,
+        'amplifier': amplifier,
+        'intensity': intensity,
+        'house_primary': house_activations[0] if house_activations else None,
+        'house_secondary': house_activations[1] if len(house_activations) > 1 else None,
+    }
+
+
+# =====================================================================
+# NARRATIVE BUILDERS — Using Foreground / Destabilizer / Amplifier
+# =====================================================================
+
+def _build_headline(layers, top_house, energy) -> str:
+    """Build headline that captures the core tension, not just the mood."""
+    fg = layers['foreground']
+    dest = layers['destabilizer']
+    amp = layers['amplifier']
+    intensity = layers['intensity']
+    
+    if not fg:
+        return "The day has a specific shape to it. Pay attention to what keeps pulling at you."
+    
+    # Stellium / concentration foreground
+    if fg.get('type') == 'concentration':
+        sign = fg['sign']
+        count = fg['count']
+        
+        # WITH destabilizer — headline captures the tension
+        if dest:
+            tension_headlines = {
+                'Aries': {
+                    'Neptune': "The pressure to move is real — but not everything pushing you is clarity.",
+                    'Pluto': "Something is trying to force a breakthrough, and it won't wait for permission.",
+                    'Uranus': "The urge to act is electric — but it's outrunning your ability to aim.",
+                    '_default': "The push to act is strong, but something underneath is making it harder to land.",
+                },
+                'Taurus': {
+                    'Neptune': "You're holding on tight — but what you're holding may not be what you think it is.",
+                    'Uranus': "Stability feels urgent, but something keeps shaking the ground.",
+                    '_default': "The need for solid ground is real, but the ground keeps shifting.",
+                },
+                'Gemini': {
+                    'Neptune': "Your mind is full of signal — but some of it is noise dressed as insight.",
+                    '_default': "Information is coming fast, and not all of it deserves your attention.",
+                },
+                'Cancer': {
+                    'Neptune': "Emotional pull is strong today — but it's hard to tell what's yours and what's absorbed.",
+                    'Pluto': "Something in the emotional basement is trying to surface, and it's not asking nicely.",
+                    '_default': "Protection mode is running — but some of what you're guarding may need to be released.",
+                },
+                'Leo': {
+                    'Neptune': "The desire to be seen is loud — but what you're showing may not be what's actually there.",
+                    '_default': "Creative pressure is building and it wants an outlet, but the stakes feel inflated.",
+                },
+                'Virgo': {
+                    'Neptune': "The details feel critical — but perfectionism is disguising itself as discernment.",
+                    '_default': "Something demands precision, but the harder you grip, the more it slips.",
+                },
+                'Libra': {
+                    'Pluto': "A relationship dynamic is shifting, and surface diplomacy won't hold.",
+                    '_default': "Balance feels impossible today — every adjustment creates a new imbalance.",
+                },
+                'Scorpio': {
+                    'Neptune': "Something hidden wants out — but the truth is wrapped in multiple layers of feeling.",
+                    '_default': "Intensity is the baseline today. What you uncover may require time to process.",
+                },
+                'Sagittarius': {
+                    'Neptune': "The pull toward meaning is strong — but belief can outrun evidence right now.",
+                    '_default': "Restlessness has a point today — but it needs direction, not just escape.",
+                },
+                'Capricorn': {
+                    'Neptune': "The pressure to perform is real, but the goal line may not be where you think it is.",
+                    '_default': "Structure is under pressure. What felt solid may need rebuilding.",
+                },
+                'Aquarius': {
+                    'Neptune': "The urge to break free is strong — but some of that rebellion is running from something.",
+                    '_default': "Convention feels intolerable, but the alternative isn't clear yet.",
+                },
+                'Pisces': {
+                    'Neptune': "Everything is dissolving at the edges. Clarity isn't available — but trust might be.",
+                    '_default': "Boundaries are thin today. What drifts in may not all belong to you.",
+                },
+            }
+            
+            sign_headlines = tension_headlines.get(sign, {})
+            headline = sign_headlines.get(dest['planet'], sign_headlines.get('_default', ''))
+            if headline:
+                return headline
+        
+        # WITH amplifier but no destabilizer
+        if amp and not dest:
+            if amp['planet'] == 'Jupiter':
+                return f"The {fg['keyword']} energy is enormous today — and Jupiter is making everything feel bigger than it actually is."
+            elif amp['planet'] == 'Saturn':
+                return f"There's {fg['keyword']} pressure, and it's being squeezed into a tighter container than it can comfortably fit."
+        
+        # Concentration only (no destabilizer/amplifier) — pure weather
+        if count >= 5:
+            pure_headlines = {
+                'Aries': "The sky is loaded with fire. Everything is pushing toward action — the question is whether you can aim it.",
+                'Taurus': "A wall of grounding energy is active. Nothing wants to move fast, and that's the point.",
+                'Gemini': "The mental channel is wide open. Information, conversations, and choices are competing for space.",
+                'Cancer': "Emotional gravity is pulling hard today. Home, roots, and protection are the center of everything.",
+                'Leo': "Self-expression can't be contained today. The creative pressure wants out.",
+                'Virgo': "Everything is under a microscope. The drive to fix, refine, and organize is relentless.",
+                'Libra': "Relationships are the entire weather today. Connection, fairness, and compromise dominate.",
+                'Scorpio': "The undercurrent is powerful. Whatever was buried is closer to the surface than you think.",
+                'Sagittarius': "The need for space, meaning, and movement is the dominant force today.",
+                'Capricorn': "Responsibility is the main event. The pressure to deliver is real and structural.",
+                'Aquarius': "Something wants to break pattern. The status quo feels suffocating.",
+                'Pisces': "The edges are soft today. Intuition is louder than logic, and that's not necessarily wrong.",
+            }
+            return pure_headlines.get(sign, f"A massive concentration of {fg['keyword']} energy is active today.")
+        else:
+            return f"The dominant note today is {fg['keyword']} — concentrated, focused, and hard to ignore."
+    
+    # Aspect-driven foreground (no stellium)
+    if fg.get('type') == 'aspect':
+        if dest:
+            return f"Your {fg['domain']} is being activated — but {dest['verb']}, making it harder to act cleanly."
+        return f"Something is touching your {fg['domain']} today. It's specific, not background noise."
+    
+    return "The sky is active today. Pay attention to what pulls at you — it's telling you something."
+
+
+def _build_subhead(layers, top_house, second_house) -> str:
+    """Build a subhead that anchors WHERE this lands in life."""
+    primary = top_house
+    secondary = second_house
+    
+    if primary and secondary:
+        return f"This is showing up around {primary['context']} — with secondary pressure around {secondary['context']}."
+    elif primary:
+        return f"Watch for this in the area of {primary['context']}."
+    return ""
+
+
+def _build_whats_happening(layers, energy) -> List[str]:
+    """Build what's happening using foreground + destabilizer + amplifier."""
+    items = []
+    fg = layers['foreground']
+    dest = layers['destabilizer']
+    amp = layers['amplifier']
+    intensity = layers['intensity']
+    
+    # FOREGROUND — the dominant dynamic
+    if fg and fg.get('type') == 'concentration':
+        sign = fg['sign']
+        count = fg['count']
+        behavior = SIGN_BEHAVIOR.get(sign, {})
+        behaviors = behavior.get('behavior', [])
+        
+        if intensity == 'extreme':
+            items.append(f"{count} planets are concentrated in a single zone — this isn't background noise, it's the whole weather system")
+        elif behaviors:
+            items.append(behaviors[0])
+    elif fg and fg.get('type') == 'aspect':
+        items.append(f"Current transits are directly touching your {fg['domain']} — this makes today personal, not just atmospheric")
+    
+    # DESTABILIZER — what complicates it
+    if dest:
+        dp = dest['planet']
+        if dp == 'Neptune':
+            items.append(f"Neptune is distorting your {dest['natal_domain']} right now — instincts feel present but unreliable, like seeing through fog")
+        elif dp == 'Pluto':
+            items.append(f"Pluto is pressuring your {dest['natal_domain']} — something wants to surface or transform, and it's not asking for permission")
+        elif dp == 'Uranus':
+            items.append(f"Uranus is disrupting your {dest['natal_domain']} — expect sudden shifts in how you think about what's stable")
+        else:
+            items.append(f"Your {dest['natal_domain']} is being complicated by current conditions — what usually feels clear may feel contested")
+    
+    # AMPLIFIER — what makes it bigger
+    if amp:
+        ap = amp['planet']
+        if ap == 'Jupiter':
+            items.append(f"Jupiter is inflating your {amp['natal_domain']} — reactions, beliefs, and emotional responses may all feel bigger than warranted")
+        elif ap == 'Saturn':
+            items.append(f"Saturn is adding weight to your {amp['natal_domain']} — what might normally pass quickly feels heavier and more consequential")
+    
+    if not items:
+        items.append("The transit weather is moderate today — no single signal is dominating, which gives you more room to choose")
+    
+    return items[:3]
+
+
+def _build_how_shows_up(layers, top_house, second_house, moon) -> List[str]:
+    """Build lived scene translations from the signal layers."""
+    items = []
+    fg = layers['foreground']
+    dest = layers['destabilizer']
+    intensity = layers['intensity']
+    
+    # House-based lived scenes
+    if top_house:
+        house = top_house['house']
+        scenes = {
+            1: "You may catch yourself reacting before you've decided what you actually think",
+            2: "Financial decisions or questions of self-worth may feel more charged than usual",
+            3: "Conversations, messages, or a decision you've been deferring may demand attention",
+            4: "Something at home — family, living situation, emotional roots — can't stay backgrounded anymore",
+            5: "A creative or romantic impulse may push through before it's fully formed",
+            6: "Work routines, health habits, or daily obligations may feel more pressured or disrupted",
+            7: "A relationship dynamic — business or personal — may need to be addressed directly",
+            8: "Shared finances, intimacy, or a power dynamic may surface with unexpected force",
+            9: "A belief, plan, or philosophical stance you held may get challenged or expanded",
+            10: "Your public role, reputation, or a career matter may demand more from you today",
+            11: "A friendship, community dynamic, or future goal may shift or demand attention",
+            12: "Something you've been avoiding internally may surface — through dreams, fatigue, or a feeling you can't name",
+        }
+        scene = scenes.get(house, f"Watch for this showing up around {top_house['context']}")
+        items.append(scene)
+    
+    # Destabilizer scene
+    if dest:
+        dp = dest['planet']
+        if dp == 'Neptune':
+            items.append("You may misread a situation or project meaning onto something that isn't there yet")
+        elif dp == 'Pluto':
+            items.append("A power dynamic or emotional undercurrent may surface in a way that surprises you")
+        elif dp == 'Uranus':
+            items.append("Something you thought was settled may suddenly feel uncertain or rearranged")
+    
+    # Moon emotional scene
+    moon_sign = moon.get('sign', '')
+    if moon_sign:
+        moon_scenes = {
+            'Aries': "Emotional reactions are fast and sharp — what you feel, you feel immediately",
+            'Taurus': "Emotionally you want comfort and predictability — disruption feels personal",
+            'Gemini': "Feelings are showing up as thoughts — you're processing emotion through talking or writing",
+            'Cancer': "You're more emotionally porous than usual — other people's moods can land on you",
+            'Leo': "There's an emotional need to be acknowledged or appreciated — invisibility stings",
+            'Virgo': "Worry or self-criticism may be running higher — the inner editor is loud",
+            'Libra': "You're absorbing relational tension — harmony-seeking can look like people-pleasing",
+            'Scorpio': "Emotional intensity is high and it's seeking depth, not surface resolution",
+            'Sagittarius': "Emotionally you're restless — staying put feels like giving up",
+            'Capricorn': "Feelings are getting filtered through duty — you may not let yourself feel what's actually there",
+            'Aquarius': "Emotional detachment is the default — which works until someone needs you present",
+            'Pisces': "Emotional boundaries are thin — what drifts in may not all be yours to carry",
+        }
+        moon_scene = moon_scenes.get(moon_sign)
+        if moon_scene and moon_scene not in items:
+            items.append(moon_scene)
+    
+    if not items:
+        items.append("The effects are subtle — they'll show up in how you respond to small moments, not in big events")
+    
+    return items[:3]
+
+
+def _build_feelings(layers, energy, moon) -> List[str]:
+    """Build feelings proportionate to actual intensity."""
+    items = []
+    fg = layers['foreground']
+    dest = layers['destabilizer']
+    amp = layers['amplifier']
+    intensity = layers['intensity']
+    
+    # Intensity-scaled feelings
+    if fg and fg.get('type') == 'concentration':
+        sign = fg['sign']
+        feelings = SIGN_BEHAVIOR.get(sign, {}).get('feeling', [])
+        
+        if intensity == 'extreme':
+            items.append(f"an intensity that's hard to contain — like the volume is all the way up and there's no dial")
+            if feelings:
+                items.append(feelings[0])
+        elif intensity == 'high':
+            if feelings:
+                items.extend(feelings[:2])
+        else:
+            if feelings:
+                items.append(feelings[0])
+    
+    # Destabilizer feeling overlay
+    if dest:
+        dp = dest['planet']
+        if dp == 'Neptune':
+            items.append("a disorienting quality underneath — like you can feel something but can't quite name it or trust it")
+        elif dp == 'Pluto':
+            items.append("a sense of something churning below the surface — pressure that isn't about today alone")
+        elif dp == 'Uranus':
+            items.append("a restless, electric quality — like something could shift at any moment")
+    
+    # Amplifier feeling overlay
+    if amp and amp['planet'] == 'Jupiter':
+        items.append("everything feels slightly larger than it should — reactions, hopes, and fears are all running hot")
+    
+    if not items:
+        items.append("a background hum of energy — not dramatic, but present enough to shape your responses")
+    
+    return items[:3]
+
+
+def _build_the_move(layers, energy) -> str:
+    """Build one behavioral shift that addresses the actual tension."""
+    fg = layers['foreground']
+    dest = layers['destabilizer']
+    amp = layers['amplifier']
+    intensity = layers['intensity']
+    
+    # Destabilizer + Foreground = specific move
+    if dest and fg:
+        dp = dest['planet']
+        if dp == 'Neptune':
+            if fg.get('sign') in ('Aries', 'Leo', 'Sagittarius'):
+                return "Before you act on the urgency, pause and ask: am I seeing this clearly, or am I seeing what I want to see?"
+            return "Don't trust the first interpretation. Give yourself until tomorrow before you decide what something means."
+        elif dp == 'Pluto':
+            return "Name what's actually bothering you — not the surface version, the real one. You don't have to share it. Just know it."
+        elif dp == 'Uranus':
+            return "If something suddenly changes, resist the urge to immediately fix it. Let the new shape settle before you respond."
+    
+    # Amplifier-driven move
+    if amp and amp['planet'] == 'Jupiter':
+        return "Scale back one reaction today. Whatever feels enormous may be 40% real and 60% amplification."
+    
+    # Concentration-driven move
+    if fg and fg.get('type') == 'concentration':
+        sign = fg.get('sign', '')
+        if intensity == 'extreme':
+            moves = {
+                'Aries': "Pick one target for your energy and commit. Trying to act on everything will scatter what could actually land.",
+                'Taurus': "Choose one area where 'good enough' is acceptable today. You can refine later.",
+                'Gemini': "Write the three things competing for your attention. Pick one and give it thirty real minutes.",
+                'Cancer': "Before you protect someone else, check: are you avoiding something of your own?",
+                'Leo': "Create one thing — even tiny — before the day ends. The pressure is creative, not performative.",
+                'Virgo': "Let one thing be imperfect today. Notice that the world doesn't end.",
+                'Libra': "Make one decision you've been deferring. The discomfort of choosing is less than the cost of waiting.",
+                'Scorpio': "Let one thing stay unresolved today. Not everything needs to be confronted right now.",
+                'Sagittarius': "Ground yourself in one concrete commitment before noon. Freedom is easier with an anchor.",
+                'Capricorn': "Distinguish between what you must do and what you think you should do. Drop one 'should.'",
+                'Aquarius': "Before you rebel, ask yourself what you're actually building. Freedom needs a direction.",
+                'Pisces': "Ground yourself in something physical — a walk, a meal, a list. Your body is more reliable than your feelings today.",
+            }
+            return moves.get(sign, "Focus your energy on the one thing that matters most right now. Let the rest orbit.")
+    
+    # Fallback
+    tags = energy.get('tags', [])
     if 'tension-heavy' in tags:
-        return "Don't try to resolve the tension — just notice where it lands in your body."
+        return "Don't try to resolve the tension. Just notice where it lands in your body — that's where the message is."
     if 'action-heavy' in tags:
-        return "Move your body. The energy is physical and needs a physical outlet."
+        return "Move your body before you make any big decisions. The energy is physical and needs a physical outlet first."
     if 'emotionally-charged' in tags:
-        return "Give yourself permission to feel without having to explain it to anyone."
+        return "Give yourself permission to feel without having to explain or justify it to anyone."
     
-    return "Pay attention to the one moment today that feels slightly different from the rest."
+    return "Pay attention to the one moment today that feels different from the rest. It's pointing at something real."
 
 
 def _build_proof_layer(
