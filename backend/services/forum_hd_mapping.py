@@ -1047,14 +1047,55 @@ def generate_mapping_interpretation(
     has_listening = "13-33" in channel_ids
     has_money = "21-45" in channel_ids
     has_adventure = "35-36" in channel_ids
+    has_rhythm = "5-15" in channel_ids
+    has_logic = "4-63" in channel_ids
+    has_openness = "12-22" in channel_ids
+    has_initiation = "25-51" in channel_ids
+    has_transformation = "32-54" in channel_ids
+    has_abstraction = "47-64" in channel_ids
+    has_emo_wave = "39-55" in channel_ids
+    has_struggle = "28-38" in channel_ids
+    has_caring = "27-50" in channel_ids
+    
+    # =========================================================================
+    # SIGNATURE-BASED HEADLINE — chooses the DOMINANT vibe, not just count.
+    # Generic "deep + wide" is a last resort — we try to pick something that
+    # actually differentiates this person from any other multi-channel connection.
+    # =========================================================================
     
     if channel_count >= 4:
-        if has_intimacy and has_community:
-            story_headline = "This connection runs deep and wide — it touches both your emotional core and your sense of belonging."
+        # Priority ladder: pick the MOST DISTINCTIVE combo present
+        if has_intimacy and has_emo_wave:
+            story_headline = "Your emotional worlds don't stay separate for long — feelings move between you."
+            story_summary = f"With {channel_count} active channels — including the intimacy channel and the emotional wave — this connection is wired to feel, not just function. You process each other's weather in real time."
+        elif has_money and has_intimacy:
+            story_headline = "There's both closeness and control alive in this connection — and neither stays quiet for long."
+            story_summary = f"You have {channel_count} energetic completions pulling you together. Intimacy opens you, but resource and power dynamics surface right alongside it. Both sit at the same table."
+        elif has_rhythm and has_community:
+            story_headline = "Your natural tempo syncs with theirs — belonging forms through shared timing, not just shared history."
+            story_summary = f"With {channel_count} active channels, this dynamic is less about intensity and more about resonance. When you're aligned, it's effortless. When rhythms diverge, the whole thing feels off."
+        elif has_logic and has_transformation:
+            story_headline = "You think things through together — and the thinking itself changes both of you."
+            story_summary = f"With {channel_count} active channels, this connection runs on mental engagement and real growth. You sharpen each other's reasoning; you also push each other past who you were."
+        elif has_adventure and has_initiation:
+            story_headline = "You don't just encourage each other — you start things together, often before you've agreed to."
+            story_summary = f"With {channel_count} electromagnetic completions, momentum builds fast between you. Ideas become plans; plans become action. Pausing is the harder skill."
+        elif has_authenticity and has_listening:
+            story_headline = "When you're together, the masks drop fast — and the listening is real."
+            story_summary = f"With {channel_count} active channels, this connection rewards honesty over performance. Surface talk dissolves quickly; what's left is what actually matters to both of you."
+        elif has_intimacy and has_community:
+            # Original "deep + wide" — now ONLY when no more specific combo applies
+            story_headline = "This connection reaches both your emotional core and your sense of belonging."
             story_summary = f"With {channel_count} active channels between you, this isn't a surface-level dynamic. You complete each other in ways that create real pull — the kind where silence feels full and distance feels temporary."
         elif has_intimacy:
             story_headline = "There's an intensity here that most connections don't reach."
             story_summary = f"You have {channel_count} energetic completions pulling you together. The intimacy channel means barriers dissolve faster than usual between you. That's powerful — and sometimes overwhelming."
+        elif has_caring:
+            story_headline = "You watch over each other in small, noticed ways — that's the spine of this connection."
+            story_summary = f"With {channel_count} active channels, care runs through this dynamic quietly. You remember what matters to them without being asked. They do the same."
+        elif has_struggle:
+            story_headline = "There's real friction in this connection — and it's the productive kind."
+            story_summary = f"With {channel_count} active channels, this dynamic doesn't smooth things over. You challenge each other's sense of purpose. Handled well, it builds both of you. Handled poorly, it burns."
         else:
             story_headline = "You don't just connect — you activate each other."
             story_summary = f"With {channel_count} electromagnetic completions, your presence changes something in each other. This is a connection that runs on energy, not just words."

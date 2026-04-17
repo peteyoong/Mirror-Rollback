@@ -72,33 +72,166 @@ export default function ForumMappingsScreen() {
   };
 
   // Render a single mapping row in the list
-  const renderMappingRow = (mapping: ForumMemberMapping) => (
-    <TouchableOpacity
-      key={mapping.member_id}
-      style={[styles.mappingRow, { backgroundColor: theme.surface, borderColor: theme.border }]}
-      onPress={() => handleMemberPress(mapping)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.mappingContent}>
-        {/* Member Name */}
-        <Text style={[styles.memberName, { color: theme.text }]}>
-          {mapping.member_name}
-        </Text>
-        
-        {/* Headline - scannable in under 10 seconds */}
-        <Text style={[styles.headline, { color: theme.textSecondary }]}>
-          {mapping.headline}
-        </Text>
-        
-        {/* Watch-out line - short, actionable */}
-        <Text style={[styles.watchOut, { color: theme.textTertiary }]}>
-          {mapping.what_to_watch.split('.')[0]}
-        </Text>
-      </View>
-      
-      <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
-    </TouchableOpacity>
-  );
+  // Renders all 4 lenses natively (HD / Astrology / BaZi / Enneagram) so
+  // forum dynamics are scannable without having to open the modal.
+  const renderMappingRow = (mapping: ForumMemberMapping) => {
+    // V2 3-layer structure with backward-compat fallbacks
+    const story = (mapping as any).story || {
+      headline: mapping.headline,
+      summary: mapping.description,
+    };
+    const patterns = (mapping as any).patterns || null;
+    const signals = (mapping as any).signals || {};
+
+    const hdSignals: any[] = signals.human_design || mapping.why_this_happens || [];
+    const astroSignals = signals.astrology || null;
+    const baziSignals = signals.bazi || null;
+    const enneagramSignals = signals.enneagram || null;
+
+    // Prefer a signal-specific tension line over the generic what_to_watch
+    const topTension: string | null =
+      (patterns?.tensions && patterns.tensions[0]) ||
+      (mapping.what_to_watch ? mapping.what_to_watch.split('.')[0] : null);
+    const topGift: string | null =
+      (patterns?.gifts && patterns.gifts[0]) ||
+      (mapping.what_works ? mapping.what_works.split('.')[0] : null);
+
+    // First astrology attraction (sidereal) line
+    const astroAttraction: string | null =
+      astroSignals?.attraction && astroSignals.attraction[0]
+        ? astroSignals.attraction[0]
+        : null;
+
+    // BaZi animal-dynamic line — prefer the one that contains an emoji
+    const baziLines: string[] = [
+      ...(baziSignals?.support || []),
+      ...(baziSignals?.growth || []),
+      ...(baziSignals?.tension || []),
+    ];
+    const animalRegex = /[\u{1F400}-\u{1F43F}\u{1F981}-\u{1F984}\u{1FAE0}-\u{1FAFF}]/u;
+    const baziAnimal: string | null =
+      baziLines.find((s) => animalRegex.test(s)) || baziLines[0] || null;
+
+    // Enneagram gift-exchange line — what this person gives / needs from you
+    const enneagramGift: string | null =
+      (enneagramSignals?.how_you_help_them && enneagramSignals.how_you_help_them[0]) ||
+      (enneagramSignals?.how_they_help_you && enneagramSignals.how_they_help_you[0]) ||
+      null;
+
+    return (
+      <TouchableOpacity
+        key={mapping.member_id}
+        style={[styles.mappingRow, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        onPress={() => handleMemberPress(mapping)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.mappingContent}>
+          {/* Member Name + channel-count badge */}
+          <View style={styles.memberHeaderRow}>
+            <Text style={[styles.memberName, { color: theme.text }]}>
+              {mapping.member_name}
+            </Text>
+            {hdSignals.length > 0 && (
+              <View
+                style={[
+                  styles.channelBadge,
+                  { backgroundColor: theme.surfaceLight || theme.border, borderColor: theme.border },
+                ]}
+              >
+                <Text style={[styles.channelBadgeText, { color: theme.textSecondary }]}>
+                  {hdSignals.length} channel{hdSignals.length === 1 ? '' : 's'}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Headline — signature-driven, unique per member */}
+          <Text style={[styles.headline, { color: theme.textSecondary }]}>
+            {story.headline}
+          </Text>
+
+          {/* 4-LENS NATIVE STRIP — always visible, no modal required */}
+          <View style={styles.lensStrip}>
+            {/* HD lens */}
+            {hdSignals.length > 0 && (
+              <View style={styles.lensRow}>
+                <View style={[styles.lensPill, { backgroundColor: theme.surfaceLight || theme.border }]}>
+                  <Text style={[styles.lensPillText, { color: theme.textSecondary }]}>HD</Text>
+                </View>
+                <Text
+                  style={[styles.lensText, { color: theme.textSecondary }]}
+                  numberOfLines={2}
+                >
+                  {hdSignals[0].translation ||
+                    hdSignals[0].name ||
+                    `Channel ${hdSignals[0].channel}`}
+                </Text>
+              </View>
+            )}
+
+            {/* Astrology lens */}
+            {astroAttraction && (
+              <View style={styles.lensRow}>
+                <View style={[styles.lensPill, { backgroundColor: theme.surfaceLight || theme.border }]}>
+                  <Text style={[styles.lensPillText, { color: theme.textSecondary }]}>Astro</Text>
+                </View>
+                <Text
+                  style={[styles.lensText, { color: theme.textSecondary }]}
+                  numberOfLines={2}
+                >
+                  {astroAttraction}
+                </Text>
+              </View>
+            )}
+
+            {/* BaZi lens (animal dynamic) */}
+            {baziAnimal && (
+              <View style={styles.lensRow}>
+                <View style={[styles.lensPill, { backgroundColor: theme.surfaceLight || theme.border }]}>
+                  <Text style={[styles.lensPillText, { color: theme.textSecondary }]}>BaZi</Text>
+                </View>
+                <Text
+                  style={[styles.lensText, { color: theme.textSecondary }]}
+                  numberOfLines={2}
+                >
+                  {baziAnimal}
+                </Text>
+              </View>
+            )}
+
+            {/* Enneagram lens (gift-exchange) */}
+            {enneagramGift && (
+              <View style={styles.lensRow}>
+                <View style={[styles.lensPill, { backgroundColor: theme.surfaceLight || theme.border }]}>
+                  <Text style={[styles.lensPillText, { color: theme.textSecondary }]}>Enne</Text>
+                </View>
+                <Text
+                  style={[styles.lensText, { color: theme.textSecondary }]}
+                  numberOfLines={2}
+                >
+                  {enneagramGift}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Tension line — specific, actionable */}
+          {topTension && (
+            <Text style={[styles.watchOut, { color: theme.textTertiary }]}>
+              Watch: {topTension}
+            </Text>
+          )}
+          {topGift && (
+            <Text style={[styles.watchOut, { color: theme.textTertiary, marginTop: 2 }]}>
+              Gift: {topGift}
+            </Text>
+          )}
+        </View>
+
+        <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
+      </TouchableOpacity>
+    );
+  };
 
   // Render the detail modal - V2 3-Layer Architecture
   const renderDetailModal = () => {
@@ -550,14 +683,59 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
-  headline: {
-    fontSize: 16,
-    lineHeight: 32,
+  memberHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 4,
   },
+  channelBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  channelBadgeText: {
+    fontSize: 11,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+  },
+  headline: {
+    fontSize: 16,
+    lineHeight: 22,
+    marginBottom: 10,
+  },
+  lensStrip: {
+    marginTop: 4,
+    marginBottom: 8,
+    gap: 6,
+  },
+  lensRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  lensPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    minWidth: 44,
+    alignItems: 'center',
+  },
+  lensPillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  lensText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+  },
   watchOut: {
-    fontSize: 14,
+    fontSize: 13,
     fontStyle: 'italic',
+    lineHeight: 18,
   },
   // Modal styles
   modalContainer: {
