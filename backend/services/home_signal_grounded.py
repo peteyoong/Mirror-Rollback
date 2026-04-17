@@ -451,94 +451,216 @@ def _pick(signals: List[Signal], *sources: str) -> Optional[Signal]:
     return None
 
 
-def _compose_trigger(sig: Signal) -> str:
-    """First line. Must name what is happening TODAY in concrete terms."""
-    if sig.source == "transit":
-        e = sig.evidence
-        nature = e.get("nature", "")
-        if nature == "tension":
-            return f"Pressure is landing on {NATAL_POINT_BEHAVIOR.get(e['natal'], e['natal'])} today — {e['transit']} in {e['transit_sign']} is squaring it."
-        if nature == "polarity":
-            return f"Something in you ({NATAL_POINT_BEHAVIOR.get(e['natal'], e['natal'])}) is being asked to answer back — {e['transit']} is opposite it right now."
-        if nature == "fusion":
-            return f"{e['transit']} is sitting directly on {NATAL_POINT_BEHAVIOR.get(e['natal'], e['natal'])} today — it's concentrated, not diffused."
-        if nature == "flow":
-            return f"There is unusual openness in {NATAL_POINT_BEHAVIOR.get(e['natal'], e['natal'])} today — {e['transit']} is trining it."
-        return f"{e['transit']} is touching {NATAL_POINT_BEHAVIOR.get(e['natal'], e['natal'])} today."
-    if sig.source == "stellium":
-        e = sig.evidence
-        return f"Energy is clustered in one place today — {e['count']} planets stacked in {e['sign']}."
-    if sig.source == "lunar_event":
-        e = sig.evidence
-        if e.get("type") == "new_moon":
-            return f"A reset is landing today — New Moon in {e['sign']}."
-        if e.get("type") == "full_moon":
-            return f"Something hidden is surfacing today — Full Moon in {e['sign']}."
-    if sig.source == "hd_activation":
-        e = sig.evidence
-        return f"Your Gate {e['gate']} ({e.get('theme','')}) is getting pressed on — transit {e['transit_planet']} is sitting on it."
-    return sig.label
-
-
-def _compose_collision(pattern_sig: Signal, trigger_sig: Optional[Signal]) -> str:
-    """Second line — collide today's trigger with the user's known loop."""
-    e = pattern_sig.evidence
-    title = e.get("title", "this loop").strip('"').strip()
-    if trigger_sig:
-        return (
-            f"And it's meeting a loop you already know: \"{title}\" — "
-            f"the same shape showed up {e['last_days_ago']} day"
-            f"{'s' if e['last_days_ago'] != 1 else ''} ago, and the day before that too."
-        )
-    return f"You've been here before — \"{title}\" has surfaced {e['count']}× in two weeks."
-
-
-def _compose_distortion(signals: List[Signal]) -> Optional[str]:
+def _compose_hook(trigger_sig: Signal, pattern_sig: Optional[Signal]) -> str:
     """
-    Distortion layer: is there something that makes today's read unreliable?
-    - Neptune in any aspect → clarity is not stable
-    - Mercury retrograde → signals are garbled
-    - Moon square personal planets → mood is driving interpretation
+    HOOK — first line the user sees.
+    NEVER mentions planets, signs, houses, or astrological terms.
+    Short, sharp, personal — a behavioral pattern line the user recognizes.
+    
+    Priority:
+    1. Pattern memory hit → behavioral line from the loop itself.
+    2. Transit-driven → map aspect nature to behavioral language.
+    3. Stellium / lunar → behavioral implication.
     """
-    # Neptune check
-    for s in signals:
-        if s.source == "transit" and s.evidence.get("transit") == "Neptune":
-            return "The clarity you feel right now isn't stable yet — Neptune is in the picture, so today's read has haze on it."
-        if s.source == "transit" and s.evidence.get("natal") == "Neptune":
-            return "It feels clear, but the ground is soft — Neptune is sitting in this, so don't lock the meaning in yet."
-    # Mercury retrograde check (speed < 0 surfaced elsewhere)
-    for s in signals:
-        if s.source == "transit" and s.evidence.get("transit") == "Mercury" and s.evidence.get("aspect") in ("square", "opposition"):
-            return "Communication is noisy today — what you think you heard may not be what was said."
-    # Moon-driven
-    for s in signals:
-        if s.source == "transit" and s.evidence.get("transit") == "Moon" and s.evidence.get("aspect") == "square":
-            return "The mood is loud today — the urgency you feel belongs more to the hour than to the decision."
-    return None
-
-
-def _compose_cost(pattern_sig: Optional[Signal], trigger_sig: Optional[Signal]) -> Optional[str]:
-    if not pattern_sig:
-        return None
-    e = pattern_sig.evidence
-    if trigger_sig and trigger_sig.evidence.get("nature") == "tension":
-        return f"If this runs again today, you lose the delta — the pressure was supposed to force the move, and the loop eats the pressure instead."
-    return f"The cost of the loop isn't dramatic — it's the quiet erosion of deciding something {e['count']} times and moving it none of them."
-
-
-def _compose_interrupt(signals: List[Signal], trigger_sig: Optional[Signal], pattern_sig: Optional[Signal]) -> str:
-    """Short, sharp, pattern-level move — not generic advice."""
-    if trigger_sig and trigger_sig.source == "transit":
-        nature = trigger_sig.evidence.get("nature", "")
-        if nature in ("tension", "polarity"):
-            return "Name the one thing you'd do if you trusted the signal — then do the smallest version of it today."
-        if nature == "fusion":
-            return "Don't diffuse this. Stay with the one thing that's concentrated right now."
-        if nature == "flow":
-            return "The door is open today. Walk through once — don't plan the whole route."
+    # Pattern-memory HOOK wins if available — it's the most "you know this" line.
     if pattern_sig:
-        return "Before you re-enter the loop, write down the exact sentence you always use to postpone. That sentence is the loop."
-    return "Stay with the signal long enough to act on it once."
+        e = pattern_sig.evidence
+        last = e.get("last_days_ago", 0)
+        if last <= 2:
+            return "You're about to do the thing you said you wouldn't do again."
+        if last <= 7:
+            return "The same decision is back. You haven't changed your answer, just the story around it."
+        return "This is the loop you keep stepping around."
+
+    # Transit-driven behavioral HOOK (no planet language)
+    if trigger_sig.source == "transit":
+        e = trigger_sig.evidence
+        t = e.get("transit", "")
+        n = e.get("natal", "")
+        nature = e.get("nature", "")
+
+        # Nature-specific behavioral leads
+        if t == "Neptune" or n == "Neptune":
+            return "You feel like you have clarity. You don't, yet. You have a preference dressed up as one."
+        if t == "Saturn":
+            if nature == "tension":
+                return "You're powering through something that was meant to be a decision point."
+            if nature == "polarity":
+                return "Something's being asked of you that requires a 'no' you've been avoiding."
+            return "The thing you keep deferring is taking up more room than the thing itself."
+        if t == "Mars":
+            if nature == "tension":
+                return "You want to move, but you keep choreographing the move instead of making it."
+            if nature == "fusion":
+                return "There's one thing you actually want to do today. Everything else is stalling."
+            return "Your body is ahead of your thinking. The plan is catching up, not leading."
+        if t == "Mercury":
+            if nature in ("tension", "opposition"):
+                return "You're over-explaining instead of saying the one thing."
+            return "The clarity you want from talking about it won't come from more talking."
+        if t == "Venus":
+            return "You're managing the relationship instead of being in it."
+        if t == "Jupiter":
+            if nature in ("tension", "square"):
+                return "The openness you feel is real, but your default is to wait until it's safer. It won't get safer."
+            return "Something is actually open today. You're treating it like it might close if you touch it."
+        if t == "Uranus":
+            return "Something you'd normally tolerate just stopped being tolerable."
+        if t == "Pluto":
+            return "You're negotiating with a thing that's already decided."
+        if t == "Moon":
+            return "The urgency you feel right now belongs more to the hour than to the decision."
+        if t == "Sun":
+            if nature == "tension":
+                return "You're arguing with something that's not going to shift by tomorrow."
+            return "The version of you that shows up today is going to set the tone for the week."
+
+    # Stellium HOOK — behavioral, no planet-stacking language
+    if trigger_sig.source == "stellium":
+        return "You keep returning to the same area of your life. The rest is noise right now."
+
+    # Lunar HOOK
+    if trigger_sig.source == "lunar_event":
+        e = trigger_sig.evidence
+        if e.get("type") == "full_moon":
+            return "Something you've been looking past is harder to look past today."
+        if e.get("type") == "new_moon":
+            return "You've been waiting to begin. You're already in the middle of it."
+
+    # HD HOOK
+    if trigger_sig.source == "hd_activation":
+        return "A part of you that's usually quiet has opinions today. You can feel it even if you can't name it."
+
+    # Fallback — still behavioral
+    return "Something in you knows what it wants to do. The rest of you is busy talking around it."
+
+
+def _compose_recognition(trigger_sig: Signal, pattern_sig: Optional[Signal], signals: List[Signal]) -> str:
+    """
+    RECOGNITION — concrete behaviors, not abstract.
+    The user should feel "yes, that's exactly what I'm doing."
+    Derived from pattern recurrence first, then signal nature.
+    """
+    if pattern_sig:
+        e = pattern_sig.evidence
+        last = e.get("last_days_ago", 0)
+        if last <= 2:
+            return (
+                "You're rehearsing the conversation. You're running the pros and cons. "
+                "You're telling yourself you need 'one more day to think.' You don't."
+            )
+        return (
+            "You're researching it again. You're asking a new person the same question. "
+            "You're treating the answer as missing — it's not missing, you just don't like it."
+        )
+
+    if trigger_sig.source == "transit":
+        e = trigger_sig.evidence
+        nature = e.get("nature", "")
+        t = e.get("transit", "")
+
+        if t == "Neptune" or e.get("natal") == "Neptune":
+            return (
+                "You're explaining it to yourself in a way that sounds generous. "
+                "You're leaving out the part that's inconvenient. You're calling it 'nuance.'"
+            )
+        if t == "Saturn":
+            return (
+                "You're treating a structural problem as a mood problem. "
+                "You're 'managing it.' You're waiting for it to resolve itself."
+            )
+        if t == "Mars" and nature in ("tension", "polarity"):
+            return (
+                "You're opening the doc. You're closing the doc. "
+                "You're texting a friend about it instead of doing the two minutes of the thing."
+            )
+        if t == "Mercury":
+            return (
+                "You're sending a paragraph where a sentence would do. "
+                "You're pre-apologizing for the thing before you've said it."
+            )
+        if t == "Jupiter":
+            return (
+                "You're calling it 'being realistic' when you mean 'staying small.' "
+                "You're asking whether, instead of asking how."
+            )
+        if t == "Pluto":
+            return (
+                "You're trying to find a version where nothing has to change. "
+                "You already know that version doesn't exist."
+            )
+        if nature == "fusion":
+            return (
+                "You're adding more things to the list so the main thing doesn't have to be done. "
+                "Every other task is louder than it should be."
+            )
+
+    if trigger_sig.source == "stellium":
+        return (
+            "You're giving every area of your life equal weight on purpose, "
+            "because if one area matters more you have to do something about it."
+        )
+
+    # Fallback recognition
+    return (
+        "You're filling the day with things that are almost the thing. "
+        "Close enough to feel productive. Far enough to stay safe."
+    )
+
+
+def _compose_cost_v2(trigger_sig: Signal, pattern_sig: Optional[Signal]) -> str:
+    """
+    COST — what this actually erodes. Quiet, specific, not dramatic.
+    """
+    if pattern_sig:
+        e = pattern_sig.evidence
+        return (
+            f"What this costs you isn't the decision. It's trust in your own signal — "
+            f"every time you run this loop, the next decision gets a little harder to feel."
+        )
+    if trigger_sig.source == "transit":
+        t = trigger_sig.evidence.get("transit", "")
+        if t == "Neptune" or trigger_sig.evidence.get("natal") == "Neptune":
+            return "What this erodes: your confidence that you'd know if you were kidding yourself."
+        if t == "Saturn":
+            return "What this costs: the thing gets harder the longer you 'manage' it instead of deciding it."
+        if t == "Mars":
+            return "What this creates: a body that's tired from bracing, not from doing."
+        if t == "Mercury":
+            return "What this builds: a version of you who's never fully said what they meant."
+        if t == "Jupiter":
+            return "What this costs: the opening doesn't close — but you stop noticing it's there."
+    return "What this slowly builds: a habit of waiting for the moment to be right, instead of making it."
+
+
+def _compose_move_v2(trigger_sig: Signal, pattern_sig: Optional[Signal]) -> str:
+    """
+    THE MOVE — a minimal behavioral shift, not advice.
+    Pattern-level, but tiny enough to do today.
+    """
+    if pattern_sig:
+        return (
+            "Don't try to break the loop. Write down the exact sentence you use to stay in it. "
+            "That sentence IS the loop."
+        )
+    if trigger_sig.source == "transit":
+        t = trigger_sig.evidence.get("transit", "")
+        n = trigger_sig.evidence.get("natal", "")
+        if t == "Neptune" or n == "Neptune":
+            return "Don't decide what it means today. Pick one small action and let the meaning catch up."
+        if t == "Saturn":
+            return "Name the decision you're actually avoiding — out loud, to one person, in one sentence."
+        if t == "Mars":
+            return "Do the two minutes of the thing. Not the plan for the thing."
+        if t == "Mercury":
+            return "Send the three-sentence version of what you've been drafting."
+        if t == "Jupiter":
+            return "Say yes to the smaller version of the thing, today."
+        if t == "Pluto":
+            return "Stop negotiating. Write down what you're actually willing to lose."
+    if trigger_sig.source == "stellium":
+        return "Pick the one area that's loudest today. Give it 20 minutes of real attention before the rest of the day."
+    return "Do the smallest version of the real thing before doing the bigger version of the stalling thing."
 
 
 # =============================================================================
@@ -619,39 +741,30 @@ async def generate_home_signal_grounded(db, user_id: str, now: Optional[datetime
             "generated_at": now.isoformat(),
         }
 
-    # Build layers
-    trigger_line = _compose_trigger(trigger_sig)
+    # Build BEHAVIORAL layers — planets stay hidden in `signals_used` / `why_showing_up`.
+    # These composers NEVER mention planets, signs, or astrological terms.
+    hook_line        = _compose_hook(trigger_sig, pattern_sig)
+    recognition_line = _compose_recognition(trigger_sig, pattern_sig, signals)
+    cost_line        = _compose_cost_v2(trigger_sig, pattern_sig)
+    move_line        = _compose_move_v2(trigger_sig, pattern_sig)
 
-    collision_line = None
-    if pattern_sig:
-        collision_line = _compose_collision(pattern_sig, trigger_sig)
-    else:
-        # If no pattern recurrence, try second astrological signal for collision
-        other = next((s for s in signals
-                      if s is not trigger_sig and s.source in ("transit", "stellium", "lunar_event")), None)
-        if other:
-            collision_line = f"And it's not the only pressure: {other.label}"
-        else:
-            return {
-                "render": False,
-                "version": "v6_signal_grounded",
-                "reason": "no_collision_signal",
-                "signal_count": len(signals),
-                "generated_at": now.isoformat(),
-            }
-
-    distortion_line = _compose_distortion(signals)
-    cost_line = _compose_cost(pattern_sig, trigger_sig)
-    interrupt_line = _compose_interrupt(signals, trigger_sig, pattern_sig)
+    # Require a pattern OR a second distinct signal for depth — but don't block render
+    # the way the old "collision" gate did. If neither, we still have enough for a
+    # concrete behavioral card with HOOK / RECOGNITION / COST / MOVE.
 
     return {
         "render": True,
         "version": "v6_signal_grounded",
-        "trigger": trigger_line,
-        "collision": collision_line,
-        "distortion": distortion_line,
+        # NEW behavioral-first contract
+        "hook": hook_line,
+        "recognition": recognition_line,
         "cost": cost_line,
-        "interrupt": interrupt_line,
+        "move": move_line,
+        # Back-compat mapping (old keys point at the new behavioral lines)
+        "trigger": hook_line,
+        "collision": recognition_line,
+        "distortion": None,      # no longer surfaced as its own layer — lives in proof
+        "interrupt": move_line,
         "signals_used": [
             {
                 "source": s.source,

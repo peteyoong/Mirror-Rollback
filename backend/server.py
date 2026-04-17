@@ -14443,28 +14443,8 @@ async def get_home_insight_v5(user_id: str):
 
                 signals_used = grounded.get("signals_used") or []
 
-                # Build "what's going on" bullets from the actual signal stack
-                # (distortion + corroborating signals as plain observations).
-                wgo_bullets: list = []
-                if grounded.get("distortion"):
-                    wgo_bullets.append(grounded["distortion"])
-                # Add up to 2 additional signal labels that aren't the trigger
-                for s in signals_used:
-                    if len(wgo_bullets) >= 3:
-                        break
-                    lbl = s.get("label") or ""
-                    if lbl and lbl not in wgo_bullets:
-                        wgo_bullets.append(lbl)
-
-                # Derive "where it shows up" from highest-weight life-area hint
-                where_it = None
-                for s in signals_used:
-                    ev = s.get("evidence") or {}
-                    if ev.get("transit_sign"):
-                        where_it = f"In how today's {ev['transit_sign']} energy lands on your life."
-                        break
-
-                # Proof layer: flatten signal objects into strings the existing card expects
+                # Proof layer is COLLAPSED by default on the card. Astrology lives
+                # here and only here — never in the top 3 lines.
                 proof_signals = [
                     f"[{s['source']}] {s['label']}"
                     for s in signals_used
@@ -14475,26 +14455,26 @@ async def get_home_insight_v5(user_id: str):
                     "user_id": user_id,
                     "version": grounded["version"],
                     "render_mode": "signal_grounded",
-                    # Existing card fields (mapped from layered structure)
+                    # Card contract — BEHAVIORAL layers, no astrology in top 3 lines
                     "pattern_label": "Today",
-                    "headline": grounded["trigger"],
-                    "identity_mirror": grounded["collision"],
-                    "whats_going_on": wgo_bullets,
-                    "where_it_shows_up": where_it,
-                    "what_you_may_be_doing": [],
-                    "what_this_creates": grounded.get("cost"),
-                    "the_move": grounded.get("interrupt"),
+                    "headline": grounded["hook"],             # HOOK — pattern recognition
+                    "identity_mirror": grounded["recognition"],# RECOGNITION — what they're doing
+                    "whats_going_on": [],                      # not used in new contract
+                    "where_it_shows_up": None,                 # not used in new contract
+                    "what_you_may_be_doing": [],               # not used in new contract
+                    "what_this_creates": grounded.get("cost"), # COST
+                    "the_move": grounded.get("move"),          # THE MOVE
+                    # Proof layer (astrology signals) — always COLLAPSED
                     "why_showing_up": {
                         "note": f"Grounded in {grounded.get('signal_count')} live signals across {len(grounded.get('distinct_sources', []))} sources.",
                         "signals": proof_signals,
                     },
-                    # New explicit layered contract (forward-looking)
+                    # New explicit behavioral contract
                     "layers": {
-                        "trigger": grounded["trigger"],
-                        "collision": grounded["collision"],
-                        "distortion": grounded.get("distortion"),
+                        "hook": grounded["hook"],
+                        "recognition": grounded["recognition"],
                         "cost": grounded.get("cost"),
-                        "interrupt": grounded.get("interrupt"),
+                        "move": grounded.get("move"),
                     },
                     "signals_used": signals_used,
                     "signal_count": grounded.get("signal_count"),

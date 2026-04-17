@@ -8250,12 +8250,90 @@ test_plan:
 
   - task: "Home Insight V6 Signal-Grounded Engine"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/services/home_signal_grounded.py, /app/backend/server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          HOME V6 "BEHAVIORAL-FIRST" REFACTOR VERIFICATION — 30/30 ASSERTIONS PASS ✅
+
+          Test file: /app/home_v6_behavioral_test.py
+          Endpoint: GET /api/home-insight-v5/{user_id}
+
+          === Test A — Forbidden words (hard gate) ===
+          Concatenation of layers.hook + layers.recognition + layers.cost checked against
+          whole-word (case-insensitive) forbidden list: 12 planets + 12 signs + 17 astro
+          terms + 5 HD jargon words.
+
+          Pete (697f0c6abf35c0528ff06954):
+            layers.hook        = "You're about to do the thing you said you wouldn't do again."
+            layers.recognition = "You're rehearsing the conversation. You're running the pros and cons. You're telling yourself you need 'one more day to think.' You don't."
+            layers.cost        = "What this costs you isn't the decision. It's trust in your own signal — every time you run this loop, the next decision gets a little harder to feel."
+            → 0 forbidden hits across all 3 top lines ✅
+
+          Mel (697ec826ad4b18f75bf42616):
+            layers.hook        = "Something you'd normally tolerate just stopped being tolerable."
+            layers.recognition = "You're adding more things to the list so the main thing doesn't have to be done. Every other task is louder than it should be."
+            layers.cost        = "What this slowly builds: a habit of waiting for the moment to be right, instead of making it."
+            → 0 forbidden hits across all 3 top lines ✅
+
+          === Test B — Behavioral content ===
+          B1: layers.hook non-empty & starts with behavioral opener — PASS for both users
+          B2: layers.recognition contains concrete "You're…" behavior — PASS (Pete=3 occurrences, Mel=1)
+          B3: layers.cost names impact (costs/erodes/builds/creates) — PASS (Pete: "costs", Mel: "builds")
+          B4: layers.move is imperative — PASS (Pete: "Don't…", Mel: "Do…")
+
+          Pete.move = "Don't try to break the loop. Write down the exact sentence you use to stay in it. That sentence IS the loop."
+          Mel.move  = "Do the smallest version of the real thing before doing the bigger version of the stalling thing."
+
+          === Test C — Astrology stays in proof layer only ===
+          Pete why_showing_up.signals (6 strings) — contains:
+            "[stellium] 6 planets are stacked in Aries (Sun, Moon, Mercury, Mars, Saturn, Neptune)…"
+            "[lunar_event] New Moon in Aries — a reset is landing today, not next week"
+            "[pattern_recurrence] Pattern memory: 'Something Is Culminating' — same pattern hit 1 day ago"
+          Mel why_showing_up.signals (6 strings) — contains:
+            "[stellium] 6 planets are stacked in Aries…"
+            "[transit] Uranus in Taurus is jolting how you process and communicate (natal Mercury in Taurus, conjunction orb 0.5°)"
+          → Astrology is fully preserved in the collapsed proof layer ✅
+
+          === Test D — Per-user differentiation ===
+          Pete.hook = "You're about to do the thing you said you wouldn't do again."
+          Mel.hook  = "Something you'd normally tolerate just stopped being tolerable."
+          → DIFFERENT ✅ (proves composer reads real user-specific signals, not a single template)
+
+          === Back-compat field mappings verified ===
+          For both users:
+            headline          == layers.hook ✅
+            identity_mirror   == layers.recognition ✅
+            what_this_creates == layers.cost ✅
+            the_move          == layers.move ✅
+
+          === Test E — Regressions ===
+          POST /api/forum-mappings {forum_id:69dda348de9cb1c83c0780fa, user_id:Pete}:
+            → 200 OK, 3 mappings, each with signals.{enneagram, bazi, astrology, human_design, numerology} ✅
+          GET /api/diagnostics/canonical-astronomy/Pete:
+            → 200 OK, pass==true ✅
+
+          === Engine diagnostics ===
+          Pete: version=v6_signal_grounded, render_mode=signal_grounded,
+                signal_count=8, sources=[hd_activation, lunar_event, pattern_recurrence, stellium, transit]
+          Mel:  version=v6_signal_grounded, render_mode=signal_grounded,
+                signal_count=6, sources=[hd_activation, lunar_event, stellium, transit]
+
+          📊 TEST RESULTS: 30/30 ASSERTIONS PASSED (100%)
+
+          CONCLUSION: The Home V6 behavioral-first refactor is fully working. The top 3 card
+          lines (hook / recognition / cost) are purely behavioral with ZERO leakage of planet
+          names, sign names, aspect terms, or HD jargon. Astrology signals are properly
+          preserved in the collapsed why_showing_up.signals proof layer. Per-user
+          personalization is confirmed (Pete's hook ≠ Mel's hook), proving the engine reads
+          real user-specific signals. No regressions on forum-mappings or canonical-astronomy
+          endpoints. The earlier personalization failure noted in the previous V6 test run has
+          been fully resolved by the new composer layer.
       - working: false
         agent: "testing"
         comment: |
@@ -8725,6 +8803,59 @@ agent_communication:
           - All endpoints accessible via public URL (https://forum-signals-fix.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 2 seconds) ✅
+
+agent_communication:
+  - agent: "testing"
+    message: |
+      HOME V6 BEHAVIORAL-FIRST REFACTOR — 30/30 ASSERTIONS PASS ✅
+
+      Tested GET /api/home-insight-v5/{user_id} for BOTH Pete and Mel plus two regression
+      endpoints. All assertions (A, B, C, D, E) in the review request pass.
+
+      Test file: /app/home_v6_behavioral_test.py
+
+      Pete.layers (697f0c6abf35c0528ff06954):
+        hook:        "You're about to do the thing you said you wouldn't do again."
+        recognition: "You're rehearsing the conversation. You're running the pros and cons.
+                      You're telling yourself you need 'one more day to think.' You don't."
+        cost:        "What this costs you isn't the decision. It's trust in your own signal
+                      — every time you run this loop, the next decision gets a little harder
+                      to feel."
+        move:        "Don't try to break the loop. Write down the exact sentence you use to
+                      stay in it. That sentence IS the loop."
+
+      Mel.layers (697ec826ad4b18f75bf42616):
+        hook:        "Something you'd normally tolerate just stopped being tolerable."
+        recognition: "You're adding more things to the list so the main thing doesn't have to
+                      be done. Every other task is louder than it should be."
+        cost:        "What this slowly builds: a habit of waiting for the moment to be right,
+                      instead of making it."
+        move:        "Do the smallest version of the real thing before doing the bigger
+                      version of the stalling thing."
+
+      A) Forbidden words in top 3 lines — 0 hits for BOTH users. Clean against 46-word
+         forbidden list (planets, signs, aspects, ayanamsa, house, gate, channel, center,
+         profile, authority, etc.) ✅
+      B) Behavioral content — hook starts behaviorally, recognition contains "You're…",
+         cost uses "costs/builds", move is imperative ("Don't"/"Do") ✅
+      C) why_showing_up.signals preserved: 6 entries for each user; stellium, lunar_event,
+         transit tokens present with full planet/sign language (proving astrology is alive,
+         just hidden in the collapsed proof layer) ✅
+      D) Pete.hook != Mel.hook — DIFFERENT, proving per-user personalization ✅
+      E) POST /api/forum-mappings returns 3 members with enneagram+bazi+astrology+HD+numerology
+         signals. GET /api/diagnostics/canonical-astronomy/Pete still returns pass=true ✅
+
+      Back-compat mappings verified for both users:
+        headline == layers.hook, identity_mirror == layers.recognition,
+        what_this_creates == layers.cost, the_move == layers.move.
+
+      The personalization bug from the previous V6 test (stellium line identical for Pete
+      and Mel) is fully resolved. Engine now uses user_specific_triggers (transit/hd_activation)
+      first and falls back to global signals only when none exist — composers emit
+      purely behavioral language with no astrology leakage.
+
+      No issues found. Refactor complete and verified.
+
           - Backend logs confirm successful processing ✅
           - Context detection working correctly (attunement, momentum, sensing types) ✅
           - Deep dynamic layer V2.0 functioning properly ✅
