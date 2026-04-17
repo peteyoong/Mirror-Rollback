@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import { useForumContext } from '../../contexts/ForumContext';
-import { 
+import api, { 
   getForum, 
   getSharedReflections, 
   ForumReflection, 
