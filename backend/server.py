@@ -31976,23 +31976,98 @@ async def run_startup_data_migrations():
     else:
         logger.info("[Migration] All charts have correct SVP ayanamsa ✓")
     
-    # --- Migration 2: Fix known user data issues ---
-    # Fix Mel's name if still "Melissa"
-    mel = await db.users.find_one({"email": "mel@test.com"})
-    if mel and mel.get("name") == "Melissa":
-        await db.users.update_one({"_id": mel["_id"]}, {"$set": {"name": "Mel"}})
-        logger.info("[Migration] Fixed Mel's name: Melissa → Mel")
+    # --- Migration 2: Seed enneagram + fix known user data ---
+    KNOWN_USERS_MIGRATION = [
+        {
+            "emails": ["pete@pulsifi.me"],
+            "names": ["Pete"],
+            "enneagram": {"inferred_core": 7, "inferred_wing": 8, "confidence": 0.85, "confidence_tier": "high",
+                          "enneagram_computed_details": {"center": "head", "hornevian_group": "assertive", "harmonic_group": "positive_outlook"},
+                          "source": "inferred"},
+        },
+        {
+            "emails": ["mel@test.com"],
+            "names": ["Mel", "Melissa"],
+            "enneagram": {"inferred_core": 3, "inferred_wing": 4, "confidence": 0.85, "confidence_tier": "high",
+                          "enneagram_computed_details": {"center": "heart", "hornevian_group": "assertive", "harmonic_group": "competency"},
+                          "source": "user_declared"},
+            "fix_name": "Mel",
+            "fix_gender": "female",
+            "fix_timezone": "Asia/Kuala_Lumpur",
+            "fix_location": {"city": "Melaka", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501},
+        },
+        {
+            "emails": ["thaddeus.yoong@test.com"],
+            "names": ["Thaddeus Yoong", "Thaddy", "Thaddeus"],
+            "enneagram": {"inferred_core": 4, "inferred_wing": 3, "confidence": 0.85, "confidence_tier": "high",
+                          "enneagram_computed_details": {"center": "heart", "hornevian_group": "withdrawn", "harmonic_group": "reactive"},
+                          "source": "user_declared"},
+            "fix_timezone": "Asia/Kuala_Lumpur",
+            "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067},
+        },
+        {
+            "emails": ["isaac.yoong@test.com"],
+            "names": ["Isaac Yoong", "Isaac"],
+            "enneagram": {"inferred_core": 8, "inferred_wing": 7, "confidence": 0.85, "confidence_tier": "high",
+                          "enneagram_computed_details": {"center": "gut", "hornevian_group": "assertive", "harmonic_group": "reactive"},
+                          "source": "user_declared"},
+            "fix_timezone": "Asia/Kuala_Lumpur",
+            "fix_location": {"city": "Petaling Jaya", "country": "Malaysia", "latitude": 3.1073, "longitude": 101.6067},
+        },
+    ]
     
-    # Ensure timezone is set for Malaysian users
-    async for user in db.users.find({"timezone": None}):
-        loc = user.get("birth_location", {})
-        country = (loc.get("country") or "").lower()
-        if "malaysia" in country:
-            await db.users.update_one(
-                {"_id": user["_id"]},
-                {"$set": {"timezone": "Asia/Kuala_Lumpur"}}
-            )
-            logger.info(f"[Migration] Set timezone for {user.get('name')}: Asia/Kuala_Lumpur")
+    for known in KNOWN_USERS_MIGRATION:
+        user = None
+        for email in known.get("emails", []):
+            user = await db.users.find_one({"email": email})
+            if user:
+                break
+        if not user:
+            for name in known.get("names", []):
+                user = await db.users.find_one({"name": name})
+                if user:
+                    break
+        
+        if not user:
+            continue
+        
+        updates = {}
+        user_name = user.get("name", "?")
+        
+        # Seed enneagram if missing
+        existing_enn = user.get("enneagram", {})
+        if not existing_enn or not existing_enn.get("inferred_core"):
+            updates["enneagram"] = known["enneagram"]
+            logger.info(f"[Migration] Seeded enneagram for {user_name}: Type {known['enneagram']['inferred_core']}w{known['enneagram'].get('inferred_wing','?')}")
+        
+        # Fix name if specified
+        if known.get("fix_name") and user.get("name") != known["fix_name"]:
+            updates["name"] = known["fix_name"]
+            logger.info(f"[Migration] Fixed name: {user.get('name')} → {known['fix_name']}")
+        
+        # Fix gender if specified
+        if known.get("fix_gender") and not user.get("gender"):
+            updates["gender"] = known["fix_gender"]
+        
+        # Fix timezone if specified
+        if known.get("fix_timezone") and not user.get("timezone"):
+            updates["timezone"] = known["fix_timezone"]
+            logger.info(f"[Migration] Set timezone for {user_name}")
+        
+        # Fix birth_location if specified and wrong
+        if known.get("fix_location"):
+            loc = user.get("birth_location", {})
+            current_city = (loc.get("city") or "").lower()
+            correct_city = known["fix_location"]["city"].lower()
+            has_coords = loc.get("latitude") and loc.get("longitude")
+            if current_city != correct_city or not has_coords:
+                updates["birth_location"] = known["fix_location"]
+                updates["latitude"] = known["fix_location"]["latitude"]
+                updates["longitude"] = known["fix_location"]["longitude"]
+                logger.info(f"[Migration] Fixed birth_location for {user_name}: {known['fix_location']['city']}")
+        
+        if updates:
+            await db.users.update_one({"_id": user["_id"]}, {"$set": updates})
     
     logger.info("[Migration] Startup data migrations complete ✓")
 
