@@ -38,19 +38,20 @@ interface BodyOverlay {
   tropical_longitude?: number;
 }
 
-interface RealityLayer {
+interface NarrativeItem {
   body: string;
   zodiac_sign: string;
   constellation: string;
-  text: string;
+  recognition: string;
+  tension: string;
+  reality_layer: string;
+  how_this_shows_up: string[];
+  the_shift: string;
 }
 
 interface OverlayNarrativeV2 {
-  recognition: string;
-  tension: string;
-  reality_layers: RealityLayer[];
-  how_this_shows_up: string[];
-  the_shift: string;
+  version?: string;
+  items: NarrativeItem[];
 }
 
 interface ConstellationOverlay {
@@ -192,86 +193,96 @@ const ConstellationOverlayCard: React.FC<Props> = ({ userId, theme, overlay: pre
 
       {expanded && (
         <View style={styles.body}>
-          {/* Structured 5-section narrative — only when ≥1 placement is in Ophiuchus */}
-          {hasOphiuchus && overlay.overlay_narrative_v2 ? (
-            <View
-              style={[
-                styles.narrativeBox,
-                { backgroundColor: theme.background, borderColor: theme.border },
-              ]}
-            >
-              {/* 1. RECOGNITION */}
-              <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
-                RECOGNITION
-              </Text>
-              <Text style={[styles.narrativeText, { color: theme.text }]}>
-                {overlay.overlay_narrative_v2.recognition}
-              </Text>
-
-              {/* 2. TENSION */}
-              <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
-                TENSION
-              </Text>
-              <Text style={[styles.narrativeText, { color: theme.text }]}>
-                {overlay.overlay_narrative_v2.tension}
-              </Text>
-
-              {/* 3. REALITY LAYER — stacked per Ophiuchus body */}
-              <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
-                REALITY LAYER
-              </Text>
-              {overlay.overlay_narrative_v2.reality_layers.map((rl, idx) => (
-                <View
-                  key={`${rl.body}-${idx}`}
-                  style={[
-                    styles.realityLayer,
-                    idx > 0 && { marginTop: 10 },
-                  ]}
-                >
-                  <Text style={[styles.narrativeText, { color: theme.textSecondary }]}>
-                    In the symbolic system, this reads as{' '}
-                    <Text style={{ color: theme.text, fontWeight: '600' }}>{rl.zodiac_sign}</Text>
-                    .
-                  </Text>
+          {/* Per-body structured narratives — each Ophiuchus placement gets
+              its own full 5-section block. Body-aware, sharp, lived. */}
+          {hasOphiuchus && overlay.overlay_narrative_v2?.items?.length ? (
+            overlay.overlay_narrative_v2.items.map((item, itemIdx) => (
+              <View
+                key={`${item.body}-${itemIdx}`}
+                style={[
+                  styles.narrativeBox,
+                  { backgroundColor: theme.background, borderColor: theme.border },
+                  itemIdx > 0 && { marginTop: 10 },
+                ]}
+              >
+                {/* Body heading — only shown when there are multiple
+                    Ophiuchus placements, to keep single-body view clean. */}
+                {overlay.overlay_narrative_v2!.items.length > 1 ? (
                   <Text
                     style={[
-                      styles.narrativeText,
-                      { color: theme.textSecondary, marginTop: 4 },
+                      styles.bodyHeading,
+                      { color: theme.accent || theme.text },
                     ]}
                   >
-                    But in the actual sky,{' '}
-                    <Text style={{ color: theme.text, fontWeight: '600' }}>{rl.body}</Text> is moving
-                    through{' '}
-                    <Text style={{ color: theme.accent || '#8B5CF6', fontWeight: '700' }}>
-                      {rl.constellation}
-                    </Text>{' '}
-                    — a region that doesn't follow the same clean boundaries.
+                    {item.body} · {item.zodiac_sign} → Ophiuchus
                   </Text>
-                </View>
-              ))}
+                ) : null}
 
-              {/* 4. HOW THIS SHOWS UP */}
-              <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
-                HOW THIS SHOWS UP
-              </Text>
-              <Text style={[styles.narrativeText, { color: theme.textSecondary, marginBottom: 4 }]}>
-                You may:
-              </Text>
-              {overlay.overlay_narrative_v2.how_this_shows_up.map((item, idx) => (
-                <View key={idx} style={styles.bulletRow}>
-                  <Text style={[styles.bullet, { color: theme.textTertiary }]}>•</Text>
-                  <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{item}</Text>
-                </View>
-              ))}
+                {/* 1. RECOGNITION */}
+                <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
+                  RECOGNITION
+                </Text>
+                <Text style={[styles.narrativeText, { color: theme.text }]}>
+                  {item.recognition}
+                </Text>
 
-              {/* 5. THE SHIFT */}
-              <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
-                THE SHIFT
-              </Text>
-              <Text style={[styles.narrativeText, { color: theme.text, fontStyle: 'italic' }]}>
-                {overlay.overlay_narrative_v2.the_shift}
-              </Text>
-            </View>
+                {/* 2. TENSION */}
+                <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
+                  TENSION
+                </Text>
+                <Text style={[styles.narrativeText, { color: theme.text }]}>
+                  {item.tension}
+                </Text>
+
+                {/* 3. REALITY LAYER */}
+                <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
+                  REALITY LAYER
+                </Text>
+                <Text style={[styles.narrativeText, { color: theme.textSecondary }]}>
+                  In the symbolic system, this reads as{' '}
+                  <Text style={{ color: theme.text, fontWeight: '600' }}>{item.zodiac_sign}</Text>
+                  .
+                </Text>
+                <Text
+                  style={[
+                    styles.narrativeText,
+                    { color: theme.textSecondary, marginTop: 4 },
+                  ]}
+                >
+                  But in the actual sky,{' '}
+                  <Text style={{ color: theme.text, fontWeight: '600' }}>{item.body}</Text> is moving
+                  through{' '}
+                  <Text style={{ color: theme.accent || '#8B5CF6', fontWeight: '700' }}>
+                    {item.constellation}
+                  </Text>{' '}
+                  — a region that doesn't follow the same clean boundaries.
+                </Text>
+
+                {/* 4. HOW THIS SHOWS UP */}
+                <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
+                  HOW THIS SHOWS UP
+                </Text>
+                <Text
+                  style={[styles.narrativeText, { color: theme.textSecondary, marginBottom: 4 }]}
+                >
+                  You may:
+                </Text>
+                {item.how_this_shows_up.map((b, bIdx) => (
+                  <View key={bIdx} style={styles.bulletRow}>
+                    <Text style={[styles.bullet, { color: theme.textTertiary }]}>•</Text>
+                    <Text style={[styles.bulletText, { color: theme.textSecondary }]}>{b}</Text>
+                  </View>
+                ))}
+
+                {/* 5. THE SHIFT */}
+                <Text style={[styles.sectionLabel, { color: theme.accent || theme.textSecondary }]}>
+                  THE SHIFT
+                </Text>
+                <Text style={[styles.narrativeText, { color: theme.text, fontStyle: 'italic' }]}>
+                  {item.the_shift}
+                </Text>
+              </View>
+            ))
           ) : null}
 
           {/* Body → constellation table */}
@@ -368,6 +379,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     borderWidth: 1,
+  },
+  bodyHeading: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    marginBottom: 2,
   },
   sectionLabel: {
     fontSize: 10,
