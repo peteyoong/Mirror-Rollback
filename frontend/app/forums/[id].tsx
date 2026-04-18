@@ -785,8 +785,8 @@ export default function ForumHomeScreen() {
           style={[styles.shareUpdateBtn, { backgroundColor: theme.accent }]}
           onPress={() =>
             router.push({
-              pathname: '/forums/pattern-running-me',
-              params: { forumId },
+              pathname: '/forums/updates',
+              params: { forumId, forumName: forum?.name },
             })
           }
           activeOpacity={0.85}

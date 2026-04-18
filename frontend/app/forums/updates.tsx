@@ -96,6 +96,10 @@ export default function ForumUpdatesScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [savedSummary, setSavedSummary] = useState<string[] | null>(null);
+
+  // NEW: one-line title summary for the whole update
+  const [title, setTitle] = useState('');
+  const TITLE_MAX = 80;
   
   // Update check-in field
   const updateCheckin = (key: keyof CheckinState, value: string) => {
@@ -152,6 +156,7 @@ export default function ForumUpdatesScreen() {
       const payload = {
         forum_id: forumId,
         user_id: user.id,
+        title: title.trim(),
         one_word_checkin: checkin,
         updates: {
           work: {
@@ -274,7 +279,35 @@ export default function ForumUpdatesScreen() {
               Capture what's happening before Mirror reflects it back
             </Text>
           </View>
-          
+
+          {/* TITLE (one-line summary, max 80 chars) — NEW */}
+          <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Title</Text>
+            <Text style={[styles.sectionSubtext, { color: theme.textTertiary }]}>
+              One line. What's running you right now?
+            </Text>
+            <TextInput
+              value={title}
+              onChangeText={(t) => setTitle(t.slice(0, TITLE_MAX))}
+              placeholder="e.g. I keep holding back"
+              placeholderTextColor={theme.textTertiary}
+              maxLength={TITLE_MAX}
+              style={{
+                borderWidth: 1,
+                borderColor: theme.border,
+                borderRadius: 10,
+                padding: 12,
+                marginTop: 10,
+                fontSize: 15,
+                color: theme.text,
+                backgroundColor: theme.background,
+              }}
+            />
+            <Text style={{ fontSize: 11, color: theme.textTertiary, marginTop: 4, textAlign: 'right' }}>
+              {TITLE_MAX - title.length} characters left
+            </Text>
+          </View>
+
           {/* PART 1: One-Word Check-In */}
           <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>One-word check-in</Text>
