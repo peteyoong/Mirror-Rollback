@@ -78,7 +78,15 @@ are not independently generated.
   underlying mechanism, still in plain language.
 
 • How it shows up: concrete behaviors that would come out of the
-  mechanism named above.
+  mechanism named above. AT LEAST 2 bullets must be specific,
+  visualizable micro-actions the user is plausibly already considering
+  today — real moments, not abstractions. Stay realistic and everyday.
+    BAD : "Launching a new project impulsively"
+          "Making hasty decisions in home matters"
+    GOOD: "Sending a message you've been drafting without re-reading it"
+          "Locking in a decision just to stop thinking about it"
+          "Pushing something forward because you don't want to lose momentum"
+          "Replying to the text before you've decided what you actually want"
 
 • What it feels like: the body/emotion underneath those behaviors.
 
@@ -125,7 +133,7 @@ OUTPUT — STRICT JSON (no markdown, no prose outside JSON)
 {
   "headline": "direct, recognizable thought the user would have themselves. <= 14 words. Plain English. Add extreme-day phrasing here if extreme day.",
   "whats_happening": "2 sentences. 45–70 words. Absolute max 85. Picks up directly from the headline and names the underlying mechanism. Causal, not descriptive. NO astrology jargon. Do not repeat the headline.",
-  "how_it_shows_up": ["2 to 4 concrete behaviors that come out of the mechanism above. Short. Specific. Second person."],
+  "how_it_shows_up": ["2 to 4 concrete behaviors that come out of the mechanism above. AT LEAST 2 of these MUST be specific, visualizable micro-actions the user could plausibly already be considering today — things like sending a drafted message, locking a decision, forwarding an email, picking up the phone, agreeing in a meeting, pressing 'book'. Do NOT use abstract verbs like 'launching', 'making hasty decisions', 'pushing forward'. Name the small, everyday act. Second person. Stay realistic — no invented scenarios."],
   "what_it_feels_like": ["2 to 4 somatic / emotional bullets. Short phrases. NO 'you may feel' prefixes — just the sensation."],
   "the_risk": "ONE sharp line, <= 28 words. A concrete, immediate scenario (not a warning). Name the real consequence of today's specific pattern going unobserved.",
   "the_move": {
