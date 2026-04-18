@@ -12078,6 +12078,112 @@ async def get_astrology_today_v3(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =============================================================================
+# ASTROLOGY TODAY V4 — Behavior-First Interception Engine
+# =============================================================================
+# Per-user per-day in-memory cache for v4. Key = (user_id, YYYY-MM-DD).
+# Invalidated automatically on date change (key check) and via 4h TTL.
+_ASTRO_TODAY_V4_CACHE: Dict[str, Dict[str, Any]] = {}
+_ASTRO_TODAY_V4_TTL_SECONDS = 4 * 60 * 60  # 4 hours
+
+
+@api_router.get("/astrology/today-v4/{user_id}")
+async def get_astrology_today_v4(user_id: str, nocache: int = 0):
+    """
+    Astrology TODAY V4 — Behavior-First Interception Engine.
+
+    Returns a unified structured response:
+      headline, whats_happening (paragraph), how_it_shows_up (bullets),
+      what_it_feels_like (bullets), the_risk, the_move,
+      time_layer { today, this_week, this_month },
+      why_showing_up [ {signal, effect} ],
+      technical (proof layer)
+
+    LLM-powered narrative via Emergent LLM Key + GPT-4o.
+    Rule-based time windows (LLM phrases only).
+    4-hour per-user per-day cache. Set nocache=1 to bypass.
+    """
+    try:
+        from services.astrology_today_v4_behavior import generate_today_v4
+
+        # --- CACHE CHECK ---
+        now_utc = datetime.now(timezone.utc)
+        day_key = now_utc.strftime("%Y-%m-%d")
+        cache_key = f"{user_id}::{day_key}"
+        if not nocache:
+            entry = _ASTRO_TODAY_V4_CACHE.get(cache_key)
+            if entry:
+                age = (now_utc - entry["stored_at"]).total_seconds()
+                if age < _ASTRO_TODAY_V4_TTL_SECONDS:
+                    logger.info(f"[TodayV4] Cache HIT for {user_id[:8]} age={int(age)}s")
+                    return entry["payload"]
+                else:
+                    # Expired — drop
+                    _ASTRO_TODAY_V4_CACHE.pop(cache_key, None)
+
+        # --- LOAD NATAL DATA ---
+        stored_chart = await db.charts.find_one({"user_id": user_id})
+        natal_planets: Dict[str, Dict] = {}
+        natal_house_cusps = None
+        if stored_chart:
+            astro = stored_chart.get("astrology", {})
+            natal_planets = astro.get("planets", {})
+            natal_house_cusps = astro.get("houses", {}).get("cusps", None)
+
+        # --- GENERATE V4 ---
+        insight = await generate_today_v4(
+            user_id=user_id,
+            natal_planets=natal_planets,
+            natal_house_cusps=natal_house_cusps,
+        )
+
+        # --- OPHIUCHUS DISTORTION INJECTION (preserved) ---
+        try:
+            from services.ophiuchus_distortion import check_today as _ophi_check_today
+            _ophi = _ophi_check_today(
+                stored_chart.get("astrology", {}) if stored_chart else None,
+                insight,
+            )
+            if _ophi.get("inject"):
+                if _ophi.get("happening_line"):
+                    wh = insight.get("whats_happening") or ""
+                    # v4 whats_happening is a paragraph string — append distortion line
+                    if isinstance(wh, str):
+                        insight["whats_happening"] = (wh + " " + _ophi["happening_line"]).strip()
+                    elif isinstance(wh, list):
+                        wh.append(_ophi["happening_line"])
+                if _ophi.get("move_line"):
+                    mv = insight.get("the_move") or ""
+                    if isinstance(mv, str):
+                        insight["the_move"] = (mv + " " + _ophi["move_line"]).strip()
+                insight["distortion_layer"] = {
+                    "active": True,
+                    "reason": _ophi.get("reason"),
+                }
+                logger.info(f"[Ophiuchus] V4 injection for {user_id[:8]}: {_ophi.get('reason')}")
+            else:
+                insight["distortion_layer"] = {"active": False}
+        except Exception as _e:
+            logger.warning(f"[Ophiuchus] V4 injection skipped: {_e}")
+            insight.setdefault("distortion_layer", {"active": False})
+
+        # --- STORE IN CACHE ---
+        _ASTRO_TODAY_V4_CACHE[cache_key] = {
+            "stored_at": now_utc,
+            "payload": insight,
+        }
+        # Prune stale days (lightweight — keep cache bounded)
+        stale_keys = [k for k in _ASTRO_TODAY_V4_CACHE if not k.endswith(day_key)]
+        for k in stale_keys:
+            _ASTRO_TODAY_V4_CACHE.pop(k, None)
+
+        return insight
+
+    except Exception as e:
+        logger.error(f"[TodayV4] endpoint error for {user_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/astrology/snapshot/{user_id}")
 async def get_astrology_snapshot_3alt(user_id: str):
     """

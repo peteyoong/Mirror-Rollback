@@ -158,6 +158,35 @@ user_problem_statement: |
 
 
 backend:
+  - task: "Astrology TODAY V4 — Behavior-First Interception Engine"
+    implemented: true
+    working: true
+    file: "/app/backend/services/astrology_today_v4_behavior.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          New endpoint GET /api/astrology/today-v4/{user_id} returning unified
+          behavior-first narrative. Uses Emergent LLM Key + GPT-4o.
+          Returns: headline, whats_happening (paragraph), how_it_shows_up (bullets),
+          what_it_feels_like (bullets), the_risk, the_move,
+          time_layer (today/this_week/this_month), why_showing_up (accordion),
+          technical (proof layer), intensity, day_class.
+          
+          Rule-based time windows (Moon=today, inner planets=week, outer=month),
+          LLM only rephrases — doesn't invent windows.
+          
+          4hr per-user per-day in-memory cache with date-key invalidation.
+          Ophiuchus distortion injection preserved.
+          
+          Verified locally via curl for user 697f0c6abf35c0528ff06954 — 60 word
+          paragraph, behavioral predictions, sharp risk + move, LLM not fallback.
+          Backend logs confirm: intensity=extreme, day_class=stellium,
+          llm_fallback=False.
+
   - task: "Journal ↔ Timeline Connection"
     implemented: true
     working: true
