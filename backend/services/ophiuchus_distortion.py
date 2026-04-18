@@ -94,6 +94,69 @@ def has_ophiuchus_placement(astrology_chart: Dict[str, Any]) -> Tuple[bool, List
     return bool(bodies), list(bodies)
 
 
+# Luminaries + personal planets we care about most for divergence
+CORE_BODIES_FOR_DIVERGENCE = ("Sun", "Moon", "Mercury", "Venus", "Mars", "Ascendant")
+
+
+# Canonical name map — maps IAU constellation names to their zodiac-sign equivalents.
+# These are *not* considered divergent when only the label differs.
+_CONSTELLATION_ZODIAC_EQUIVALENTS = {
+    "Scorpius": "Scorpio",
+    "Capricornus": "Capricorn",
+    "Aquarius": "Aquarius",
+    "Pisces": "Pisces",
+    "Aries": "Aries",
+    "Taurus": "Taurus",
+    "Gemini": "Gemini",
+    "Cancer": "Cancer",
+    "Leo": "Leo",
+    "Virgo": "Virgo",
+    "Libra": "Libra",
+    "Sagittarius": "Sagittarius",
+    # Ophiuchus deliberately has NO zodiac equivalent.
+}
+
+
+def _is_true_divergence(zodiac_sign: str, constellation: str) -> bool:
+    """True only when the constellation genuinely doesn't match the zodiac sign,
+    after normalizing IAU name variants (Scorpius<->Scorpio, Capricornus<->Capricorn)."""
+    if not zodiac_sign or not constellation:
+        return False
+    canonical = _CONSTELLATION_ZODIAC_EQUIVALENTS.get(constellation, constellation)
+    return canonical != zodiac_sign
+
+
+def has_constellation_divergence(astrology_chart: Dict[str, Any]) -> Tuple[bool, List[Dict[str, str]]]:
+    """
+    Returns (has_divergence, [{body, zodiac_sign, constellation}, ...])
+    for each CORE body whose zodiac_sign != constellation (after normalizing
+    IAU name variants).
+
+    This is the general "reality vs model" check — it's a softer distortion
+    than Ophiuchus alone, but still qualifies as a distortion flag.
+    """
+    if not astrology_chart:
+        return False, []
+    overlay = astrology_chart.get("constellations")
+    if not (overlay and isinstance(overlay, dict) and overlay.get("bodies")):
+        overlay = resolve_constellation_overlay(astrology_chart)
+    bodies = (overlay or {}).get("bodies") or {}
+    divergent: List[Dict[str, str]] = []
+    for body_name in CORE_BODIES_FOR_DIVERGENCE:
+        entry = bodies.get(body_name)
+        if not entry:
+            continue
+        zodiac = entry.get("zodiac_sign") or ""
+        constellation = entry.get("constellation") or ""
+        if _is_true_divergence(zodiac, constellation):
+            divergent.append({
+                "body": body_name,
+                "zodiac_sign": zodiac,
+                "constellation": constellation,
+            })
+    return bool(divergent), divergent
+
+
 # ---------------------------------------------------------------------------
 # Distortion context detection — per surface
 # ---------------------------------------------------------------------------
@@ -184,8 +247,10 @@ def check_today(
         return result
 
     has_ophi, bodies = has_ophiuchus_placement(natal_astro)
-    if not has_ophi:
-        result["reason"] = "no_ophiuchus"
+    has_divergence, divergent = has_constellation_divergence(natal_astro)
+
+    if not has_ophi and not has_divergence:
+        result["reason"] = "no_overlay_mismatch"
         return result
 
     neptune_active = _has_neptune_in_today(today_insight)
@@ -197,21 +262,31 @@ def check_today(
         result["reason"] = "no_distortion_context"
         return result
 
-    # pick the right line
+    # pick the right line — Ophiuchus wins priority (sharper distortion)
     if neptune_active:
         happening = TODAY_HAPPENING_LINE_NEPTUNE
-    elif multi_tension:
+    elif has_ophi and multi_tension:
         happening = TODAY_HAPPENING_LINES[1]  # "not all of it is coming through clearly"
-    else:
+    elif has_ophi:
         happening = TODAY_HAPPENING_LINES[0]
+    else:
+        # General divergence — softer wording
+        happening = "There's a layer here that doesn't fit neatly — the symbolic read and the actual sky aren't pointing at exactly the same thing."
 
     result.update(
         {
             "inject": True,
-            "reason": f"has_ophi={bodies} neptune={neptune_active} conflict={conflict} multi={multi_tension}",
+            "reason": (
+                f"ophi={bodies} divergent={[d['body'] for d in divergent]} "
+                f"neptune={neptune_active} conflict={conflict} multi={multi_tension}"
+            ),
             "happening_line": happening,
             # Only include move line when pressure is genuinely high
             "move_line": TODAY_MOVE_LINE if (conflict or multi_tension) else None,
+            "has_ophiuchus": has_ophi,
+            "ophiuchus_bodies": bodies,
+            "has_divergence": has_divergence,
+            "divergent_bodies": divergent,
         }
     )
     return result

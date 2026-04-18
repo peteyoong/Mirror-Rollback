@@ -70,7 +70,15 @@ interface AstrologyTodayV4Data {
   day_class?: string;
   is_extreme_day?: boolean;
   llm_fallback?: boolean;
-  distortion_layer?: { active?: boolean; reason?: string };
+  distortion_layer?: {
+    active?: boolean;
+    reason?: string;
+    label?: string;
+    has_ophiuchus?: boolean;
+    ophiuchus_bodies?: string[];
+    has_divergence?: boolean;
+    divergent_bodies?: { body: string; zodiac_sign: string; constellation: string }[];
+  };
 }
 
 interface AstrologyTodayV4Props {
@@ -168,7 +176,17 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.accent + '30' }]}>
         {/* HEADLINE */}
         <View style={styles.headlineSection}>
-          {intensityBadge}
+          <View style={styles.badgeRow}>
+            {intensityBadge}
+            {data.distortion_layer?.active && (
+              <View style={[styles.overlayBadge, { borderColor: theme.textTertiary + '60' }]}>
+                <Ionicons name="layers-outline" size={10} color={theme.textTertiary} />
+                <Text style={[styles.overlayBadgeText, { color: theme.textTertiary }]}>
+                  {data.distortion_layer.label || 'Constellation overlay active'}
+                </Text>
+              </View>
+            )}
+          </View>
           <Text style={[styles.headlineText, { color: theme.text }]}>{data.headline}</Text>
         </View>
 
@@ -277,6 +295,34 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
                     <Text style={[styles.whyEffect, { color: theme.textSecondary }]}>{row.effect}</Text>
                   </View>
                 ))}
+                {/* Constellation overlay divergence rows — hidden in accordion */}
+                {data.distortion_layer?.active && (data.distortion_layer?.divergent_bodies?.length || data.distortion_layer?.ophiuchus_bodies?.length) ? (
+                  <View style={[styles.divergenceBlock, { borderTopColor: theme.border }]}>
+                    <Text style={[styles.divergenceHeader, { color: theme.textTertiary }]}>
+                      SKY vs MODEL
+                    </Text>
+                    {(data.distortion_layer.ophiuchus_bodies || []).map((b, i) => (
+                      <View key={`o-${i}`} style={styles.whyRow}>
+                        <Text style={[styles.whySignal, { color: theme.text }]}>{b}</Text>
+                        <Text style={[styles.whyArrow, { color: theme.textTertiary }]}> → </Text>
+                        <Text style={[styles.whyEffect, { color: theme.textSecondary }]}>
+                          passing through Ophiuchus (between Scorpius and Sagittarius)
+                        </Text>
+                      </View>
+                    ))}
+                    {(data.distortion_layer.divergent_bodies || []).slice(0, 4).map((row, i) => (
+                      <View key={`dv-${i}`} style={styles.whyRow}>
+                        <Text style={[styles.whySignal, { color: theme.text }]}>
+                          {row.body}
+                        </Text>
+                        <Text style={[styles.whyArrow, { color: theme.textTertiary }]}> → </Text>
+                        <Text style={[styles.whyEffect, { color: theme.textSecondary }]}>
+                          {row.zodiac_sign} in model · {row.constellation} in sky
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
               </View>
             )}
           </>
@@ -394,6 +440,32 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   intensityBadgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 6 },
+  overlayBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  overlayBadgeText: { fontSize: 10, fontWeight: '600', letterSpacing: 0.6 },
+
+  divergenceBlock: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  divergenceHeader: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
 
   headlineSection: { marginBottom: 20 },
   headlineText: { fontSize: 24, fontWeight: '600', lineHeight: 31 },

@@ -12164,6 +12164,15 @@ async def get_astrology_today_v4(user_id: str, nocache: int = 0):
                 insight["distortion_layer"] = {
                     "active": True,
                     "reason": _ophi.get("reason"),
+                    "has_ophiuchus": _ophi.get("has_ophiuchus", False),
+                    "ophiuchus_bodies": _ophi.get("ophiuchus_bodies", []),
+                    "has_divergence": _ophi.get("has_divergence", False),
+                    "divergent_bodies": _ophi.get("divergent_bodies", []),
+                    "label": (
+                        "Ophiuchus overlay active"
+                        if _ophi.get("has_ophiuchus")
+                        else "Constellation overlay active"
+                    ),
                 }
                 logger.info(f"[Ophiuchus] V4 injection for {user_id[:8]}: {_ophi.get('reason')}")
             else:
