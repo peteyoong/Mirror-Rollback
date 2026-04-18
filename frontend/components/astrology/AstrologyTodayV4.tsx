@@ -49,6 +49,11 @@ interface Technical {
   transit_info?: string;
 }
 
+interface TheMove {
+  action?: string;
+  reflection?: string;
+}
+
 interface AstrologyTodayV4Data {
   version?: string;
   headline: string;
@@ -56,13 +61,14 @@ interface AstrologyTodayV4Data {
   how_it_shows_up: string[];
   what_it_feels_like: string[];
   the_risk: string;
-  the_move: string;
+  the_move: TheMove | string;
   time_layer: TimeLayer;
   why_showing_up: WhyRow[];
   technical?: Technical;
   intensity?: string;
   tension_type?: string;
   day_class?: string;
+  is_extreme_day?: boolean;
   llm_fallback?: boolean;
   distortion_layer?: { active?: boolean; reason?: string };
 }
@@ -149,7 +155,7 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
   if (!data) return null;
 
   const intensityBadge =
-    data.intensity === 'extreme' || data.day_class === 'stellium' ? (
+    data.is_extreme_day || data.intensity === 'extreme' || data.day_class === 'stellium' ? (
       <View style={[styles.intensityBadge, { borderColor: theme.accent + '80' }]}>
         <Text style={[styles.intensityBadgeText, { color: theme.accent }]}>
           NOT A NORMAL DAY
@@ -201,13 +207,30 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
           </View>
         )}
 
-        {/* THE MOVE — primary action */}
-        {!!data.the_move && (
-          <View style={[styles.moveSection, { borderLeftColor: theme.accent }]}>
-            <Text style={[styles.moveLabel, { color: theme.textTertiary }]}>THE MOVE</Text>
-            <Text style={[styles.moveText, { color: theme.text }]}>{data.the_move}</Text>
-          </View>
-        )}
+        {/* THE MOVE — TWO LAYERS: Action + Reflection */}
+        {(() => {
+          const mv = data.the_move;
+          const action = typeof mv === 'string' ? mv : (mv?.action || '');
+          const reflection = typeof mv === 'string' ? '' : (mv?.reflection || '');
+          if (!action && !reflection) return null;
+          return (
+            <View style={[styles.moveSection, { borderLeftColor: theme.accent }]}>
+              <Text style={[styles.moveLabel, { color: theme.textTertiary }]}>THE MOVE</Text>
+              {!!action && (
+                <View style={styles.moveLayer}>
+                  <Text style={[styles.moveLayerTag, { color: theme.accent }]}>ACTION</Text>
+                  <Text style={[styles.moveText, { color: theme.text }]}>{action}</Text>
+                </View>
+              )}
+              {!!reflection && (
+                <View style={styles.moveLayer}>
+                  <Text style={[styles.moveLayerTag, { color: theme.accent }]}>REFLECT</Text>
+                  <Text style={[styles.moveTextItalic, { color: theme.text }]}>{reflection}</Text>
+                </View>
+              )}
+            </View>
+          );
+        })()}
 
         {/* TIME LAYER — compact rows */}
         {data.time_layer && (
@@ -334,7 +357,11 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
             lens: 'astrology',
             type: 'today_v4',
             name: data.headline,
-            value: data.the_move,
+            value: (() => {
+              const mv = data.the_move;
+              if (typeof mv === 'string') return mv;
+              return [mv?.action, mv?.reflection].filter(Boolean).join(' · ');
+            })(),
             id: `astro_today_v4_${new Date().toISOString().slice(0, 10)}`,
           }}
           patternSignature={`astro_today_v4_${new Date().toISOString().slice(0, 10)}`}
@@ -395,7 +422,10 @@ const styles = StyleSheet.create({
 
   moveSection: { paddingLeft: 16, borderLeftWidth: 3, marginBottom: 22 },
   moveLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8, marginBottom: 10 },
-  moveText: { fontSize: 17, fontWeight: '500', lineHeight: 26, fontStyle: 'italic' },
+  moveLayer: { marginBottom: 12 },
+  moveLayerTag: { fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
+  moveText: { fontSize: 16, fontWeight: '500', lineHeight: 25 },
+  moveTextItalic: { fontSize: 16, fontWeight: '500', lineHeight: 25, fontStyle: 'italic' },
 
   timeLayerSection: { marginBottom: 10, paddingTop: 6 },
   timeRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, paddingLeft: 4 },

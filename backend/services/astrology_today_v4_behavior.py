@@ -62,12 +62,42 @@ Every output must feel like:
   "This is exactly what I'm about to do — and I didn't realize it."
 
 ═══════════════════════════════════════════════════════════════
+VOICE RULES (CRITICAL — READ FIRST)
+═══════════════════════════════════════════════════════════════
+The user must feel like ONE PERSON is talking to them, in ONE train
+of thought. All sections must flow from the same diagnosis — they
+are not independently generated.
+
+• Headline: must sound like a thought the user would have themselves,
+  in plain English. Direct. Recognizable. NOT poetic, NOT compressed,
+  NOT clever.
+    BAD : "Initiation frenzy blindsides discernment"
+    GOOD: "You're about to move too fast — and you know it."
+
+• What's happening: picks up from the headline and explains the
+  underlying mechanism, still in plain language.
+
+• How it shows up: concrete behaviors that would come out of the
+  mechanism named above.
+
+• What it feels like: the body/emotion underneath those behaviors.
+
+• The risk: a CONCRETE, IMMEDIATE scenario (not a vague warning).
+  Tie it to today's specific pattern. Name the real consequence.
+    BAD : "Backing yourself into a corner"
+    GOOD: "You commit before you fully understand — and now you're
+           managing something you didn't clearly choose."
+
+• The move: MUST contain TWO parts (see schema below).
+
+═══════════════════════════════════════════════════════════════
 WHAT YOU MUST ANSWER (in order)
 ═══════════════════════════════════════════════════════════════
 1. What am I likely to do today?
 2. What mistake am I likely to make?
 3. What is the pattern underneath that?
-4. What's the one move that interrupts it?
+4. What's the one action that interrupts it, and what's the one
+   question that catches it?
 
 ═══════════════════════════════════════════════════════════════
 ORGANIZING LOGIC (given to you in the input)
@@ -79,17 +109,31 @@ ORGANIZING LOGIC (given to you in the input)
 Compress these into ONE primary thread. Not many competing themes.
 
 ═══════════════════════════════════════════════════════════════
+EXTREME DAY RULE (MANDATORY)
+═══════════════════════════════════════════════════════════════
+If the input has `intensity_signal == "extreme"` OR `has_stellium == true`,
+the headline OR the first sentence of whats_happening MUST explicitly
+state this is NOT a normal day. Use phrasing like:
+   "This isn't a normal day."
+   "Today isn't running on a baseline."
+   "You're not in regular weather right now."
+Skip this rule on normal-intensity days — don't inflate.
+
+═══════════════════════════════════════════════════════════════
 OUTPUT — STRICT JSON (no markdown, no prose outside JSON)
 ═══════════════════════════════════════════════════════════════
 {
-  "headline": "short tension-based behavioral line, <= 14 words, no period required",
-  "whats_happening": "2 sentences. 45–70 words. Absolute max 85. Causal, not descriptive. NO astrology jargon in this field. Do not repeat the headline in different words.",
-  "how_it_shows_up": ["2 to 4 concrete behavioral bullets in second person. Short. Specific. No vague feelings."],
-  "what_it_feels_like": ["2 to 4 somatic / emotional bullets. Short phrases. No 'you may feel' prefixes — just the sensation."],
-  "the_risk": "one sharp line, <= 22 words. The exact mistake they'll make if this goes unobserved. Feels real and immediate.",
-  "the_move": "one clean actionable interrupt. <= 22 words. Concrete. Prefer a delay, a question, or a single act — not advice.",
+  "headline": "direct, recognizable thought the user would have themselves. <= 14 words. Plain English. Add extreme-day phrasing here if extreme day.",
+  "whats_happening": "2 sentences. 45–70 words. Absolute max 85. Picks up directly from the headline and names the underlying mechanism. Causal, not descriptive. NO astrology jargon. Do not repeat the headline.",
+  "how_it_shows_up": ["2 to 4 concrete behaviors that come out of the mechanism above. Short. Specific. Second person."],
+  "what_it_feels_like": ["2 to 4 somatic / emotional bullets. Short phrases. NO 'you may feel' prefixes — just the sensation."],
+  "the_risk": "ONE sharp line, <= 28 words. A concrete, immediate scenario (not a warning). Name the real consequence of today's specific pattern going unobserved.",
+  "the_move": {
+    "action": "ONE behavioral interrupt. <= 20 words. Concrete. A delay, a pause, a single physical act. Example: 'Wait 30–60 minutes before acting or replying.'",
+    "reflection": "ONE reflective question. <= 20 words. Cognitive catch. Starts with What/Where/Am I/How. Example: 'What am I assuming that I don\\'t actually know yet?'"
+  },
   "time_layer": {
-    "today": "short phrase — the immediate condition (already given to you, phrase it clearly)",
+    "today": "short phrase — the immediate condition (given to you, phrase it clearly in natural language)",
     "this_week": "short phrase — pattern recurrence window",
     "this_month": "short phrase — larger cycle"
   }
@@ -98,28 +142,25 @@ OUTPUT — STRICT JSON (no markdown, no prose outside JSON)
 ═══════════════════════════════════════════════════════════════
 HARD RULES (YOU WILL FAIL IF YOU BREAK THESE)
 ═══════════════════════════════════════════════════════════════
-• All 6 narrative sections must read as ONE continuous diagnosis.
-  Each section must causally connect to the last.
-• Use second person ("you") throughout.
-• No raw astrology jargon ("Neptune conjunct Mars") in main narrative.
-  (Transit names ONLY appear in the why_showing_up accordion which
-   you do NOT generate — that's built separately.)
+• All narrative sections must read as ONE continuous diagnosis.
+• The_move MUST have both `action` AND `reflection`. Never just one.
+• On extreme / stellium days, the headline OR first sentence of
+  whats_happening must explicitly flag that this is not a normal day.
+• Second person ("you") throughout the narrative.
+• No raw astrology jargon in the main narrative (no planet names,
+  signs, aspects, degrees). The accordion is generated separately.
 • No vague therapeutic softness ("you may want to consider...").
-• No repeated restatements of the same idea.
 • No spiritual abstraction ("the universe is asking you to...").
-• No lists in the main narrative — bullets only in how/feels sections.
-• Do NOT invent timing windows. Use the timing rules given in input
-  and phrase them in natural language only.
-• If the intensity is 'extreme' or a stellium is present, the output
-  MUST explicitly reflect that this is not a normal day.
+• Do NOT invent timing windows. Use the `timing_windows_given` input.
+• No repeated restatements of the same idea across sections.
 
 ═══════════════════════════════════════════════════════════════
 OUTPUT QUALITY STANDARD
 ═══════════════════════════════════════════════════════════════
 A good response makes the user feel:
-  1. "That's exactly what is happening."
-  2. "That's exactly what I was about to do."
-  3. "Now I know what to watch."
+  1. "That's exactly what I'm about to do."
+  2. "This feels different from yesterday."
+  3. "I know exactly what to change right now."
 
 Return ONLY the JSON. No preamble. No trailing explanation.
 """
@@ -138,10 +179,17 @@ def compute_time_layer(
     """
     Deterministic rule-based timing windows. The LLM is only allowed to
     rephrase these in natural language — never invent them.
+    Produces two tracks per window:
+      *_raw  — technical string for the accordion (planet-name allowed)
+      *_clean — plain-English effect hint for the LLM (no planet names)
     """
     today_notes: List[str] = []
     week_notes: List[str] = []
     month_notes: List[str] = []
+
+    today_clean: List[str] = []
+    week_clean: List[str] = []
+    month_clean: List[str] = []
 
     # --- TODAY: Moon + any aspect with orb < 1° (approaching exactness) ---
     for a in aspects[:6]:
@@ -151,32 +199,34 @@ def compute_time_layer(
             today_notes.append(
                 f"{tp} {a.get('aspect')} {a.get('natal_planet')} ({orb:.1f}° orb)"
             )
+            today_clean.append(PLANET_EFFECT.get(tp, "charged pressure") + " is peaking now")
 
-    # --- THIS WEEK: personal planet aspects (Sun/Mercury/Venus/Mars) ---
+    # --- THIS WEEK: personal planet aspects ---
     for a in aspects[:8]:
         tp = a.get("transit_planet")
         if tp in PERSONAL_PLANETS and a.get("score", 0) > 0.1:
-            week_notes.append(
-                f"{tp} {a.get('aspect')} {a.get('natal_planet')}"
-            )
+            week_notes.append(f"{tp} {a.get('aspect')} {a.get('natal_planet')}")
+            week_clean.append("the same tension shows up again in a few days")
 
     # --- THIS MONTH: slow planet aspects + concentrations ---
     for a in aspects[:8]:
         tp = a.get("transit_planet")
         if tp in OUTER_PLANETS or tp in SOCIAL_PLANETS:
-            month_notes.append(
-                f"{tp} {a.get('aspect')} {a.get('natal_planet')}"
-            )
+            month_notes.append(f"{tp} {a.get('aspect')} {a.get('natal_planet')}")
+            month_clean.append(PLANET_EFFECT.get(tp, "a slower pattern") + " is shaping the backdrop")
     for c in concentrations[:2]:
         if c.get("count", 0) >= 3:
-            month_notes.append(
-                f"{c.get('count')}-planet {c.get('sign')} concentration"
-            )
+            month_notes.append(f"{c.get('count')}-planet {c.get('sign')} concentration")
+            month_clean.append(f"a cluster of {c.get('count', 3)} energies stays focused in one channel")
 
     return {
         "today_raw": today_notes[:2] or ["current sky holding a specific shape"],
         "this_week_raw": week_notes[:2] or ["inner planets moving through active territory"],
         "this_month_raw": month_notes[:2] or ["slower cycles quietly reshaping the ground"],
+        # Clean versions for the LLM (no planet names, no jargon)
+        "today_clean": (today_clean[:2] or ["the sky is sharply active today"]),
+        "this_week_clean": (week_clean[:2] or ["the same pattern will echo in a few days"]),
+        "this_month_clean": (month_clean[:2] or ["a slower cycle is shaping the backdrop"]),
         "has_stellium": any(c.get("count", 0) >= 4 for c in concentrations),
         "intensity_signal": "extreme" if any(c.get("count", 0) >= 5 for c in concentrations) else None,
     }
@@ -304,16 +354,18 @@ async def _call_behavior_llm(
     user_payload = {
         "signal_summary": summary,
         "timing_windows_given": {
-            "today": time_layer_raw.get("today_raw"),
-            "this_week": time_layer_raw.get("this_week_raw"),
-            "this_month": time_layer_raw.get("this_month_raw"),
+            "today": time_layer_raw.get("today_clean") or time_layer_raw.get("today_raw"),
+            "this_week": time_layer_raw.get("this_week_clean") or time_layer_raw.get("this_week_raw"),
+            "this_month": time_layer_raw.get("this_month_clean") or time_layer_raw.get("this_month_raw"),
             "has_stellium": time_layer_raw.get("has_stellium"),
             "intensity_signal": time_layer_raw.get("intensity_signal"),
         },
         "instruction": (
             "Produce the JSON described in the system prompt. Compress the signals "
             "into ONE continuous diagnosis. Rephrase the timing_windows_given into "
-            "natural language — do not invent new windows. Second person only."
+            "natural language — do NOT mention planet names or aspects. Second person only. "
+            "If has_stellium or intensity_signal=='extreme', the headline OR first sentence "
+            "of whats_happening must explicitly flag this is not a normal day."
         ),
     }
 
@@ -394,8 +446,11 @@ def _deterministic_fallback(
             "a buzz that keeps pulling focus",
             "subtle friction under the surface",
         ][:3],
-        "the_risk": "You act on the urgency and later realize you were filling in gaps.",
-        "the_move": "Delay the next move 30–60 minutes. If it still feels true, proceed.",
+        "the_risk": "You act on the urgency and later realize you were filling in gaps you never actually checked.",
+        "the_move": {
+            "action": "Wait 30–60 minutes before acting or replying.",
+            "reflection": "What am I assuming that I don't actually know yet?",
+        },
         "time_layer": {
             "today": "strongest distortion window",
             "this_week": "the micro-pattern repeats",
@@ -461,6 +516,30 @@ async def generate_today_v4(
             narrative = llm_out
             narrative["_fallback"] = False
 
+        # Normalize the_move to always be a dict with action + reflection
+        raw_move = narrative.get("the_move")
+        if isinstance(raw_move, dict):
+            normalized_move = {
+                "action": str(raw_move.get("action", "") or "").strip(),
+                "reflection": str(raw_move.get("reflection", "") or "").strip(),
+            }
+            # If either is missing, backfill from defaults so UI never sees empties
+            if not normalized_move["action"]:
+                normalized_move["action"] = "Wait 30–60 minutes before acting or replying."
+            if not normalized_move["reflection"]:
+                normalized_move["reflection"] = "What am I assuming that I don't actually know yet?"
+        elif isinstance(raw_move, str) and raw_move.strip():
+            # Legacy / fallback single-string move — treat it as the action
+            normalized_move = {
+                "action": raw_move.strip(),
+                "reflection": "What am I assuming that I don't actually know yet?",
+            }
+        else:
+            normalized_move = {
+                "action": "Wait 30–60 minutes before acting or replying.",
+                "reflection": "What am I assuming that I don't actually know yet?",
+            }
+
         # Compose final response
         result = {
             "version": "v4-behavior",
@@ -469,7 +548,7 @@ async def generate_today_v4(
             "how_it_shows_up": narrative.get("how_it_shows_up", [])[:4],
             "what_it_feels_like": narrative.get("what_it_feels_like", [])[:4],
             "the_risk": narrative.get("the_risk", ""),
-            "the_move": narrative.get("the_move", ""),
+            "the_move": normalized_move,
             "time_layer": narrative.get("time_layer", {
                 "today": time_layer_raw["today_raw"][0] if time_layer_raw["today_raw"] else "",
                 "this_week": time_layer_raw["this_week_raw"][0] if time_layer_raw["this_week_raw"] else "",
@@ -480,6 +559,7 @@ async def generate_today_v4(
             "intensity": layers.get("intensity", "moderate"),
             "tension_type": day_energy.get("tags", ["mixed"])[0] if day_energy.get("tags") else "mixed",
             "day_class": "stellium" if time_layer_raw.get("has_stellium") else "transit_dominant",
+            "is_extreme_day": bool(time_layer_raw.get("has_stellium") or layers.get("intensity") == "extreme"),
             "llm_fallback": narrative.get("_fallback", False),
             "success": True,
         }

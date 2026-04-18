@@ -12153,8 +12153,13 @@ async def get_astrology_today_v4(user_id: str, nocache: int = 0):
                     elif isinstance(wh, list):
                         wh.append(_ophi["happening_line"])
                 if _ophi.get("move_line"):
-                    mv = insight.get("the_move") or ""
-                    if isinstance(mv, str):
+                    mv = insight.get("the_move")
+                    if isinstance(mv, dict):
+                        # V4 move: append distortion guidance to the reflection question
+                        existing_ref = (mv.get("reflection") or "").strip()
+                        mv["reflection"] = (existing_ref + " " + _ophi["move_line"]).strip()
+                        insight["the_move"] = mv
+                    elif isinstance(mv, str):
                         insight["the_move"] = (mv + " " + _ophi["move_line"]).strip()
                 insight["distortion_layer"] = {
                     "active": True,
