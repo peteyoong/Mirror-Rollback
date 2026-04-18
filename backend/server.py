@@ -28578,80 +28578,98 @@ async def forum_chat(forum_id: str, request: ForumChatRequest):
 # FORUM STORY - Reflective narrative about the forum's collective composition
 # =====================================================================
 
-FORUM_STORY_SYSTEM_PROMPT = """You are Emergent!, a reflective facilitator helping a forum community explore what their collective composition might suggest about their shared learning space.
+FORUM_STORY_SYSTEM_PROMPT = """You are writing a FIELD READING for a forum of people who share this space together.
 
-YOUR ROLE:
-Generate a calm, thoughtful narrative about the group's composition based on their combined lens data (Human Design, Enneagram, Astrology, Numerology, and Pattern work).
+This is NOT a personality report. This is NOT coaching. This is a short, sharp,
+felt description of what the room is actually like when these people are in it.
 
-=== CRITICAL: FORUM CONTEXT ONLY ===
-You are describing THE SPACE, THE FIELD, THE CIRCLE, THE GROUP — NOT individuals.
-This is NOT a personal insight. This is a collective composition reflection.
+=========================================================================
+CRITICAL: TONE & VOICE
+=========================================================================
 
-ALWAYS SPEAK ABOUT:
-- "the room" / "the space" / "the field" / "the circle"
-- "this group" / "this configuration" / "this mix"
-- "the dynamic between" / "the tension in the space"
-- "what this composition may bring"
-- collective patterns and systemic relationships
+Write like someone who just walked into the room and is naming what they
+notice. Present tense. Short sentences. No fluff, no mysticism, no jargon.
 
-NEVER SPEAK AS IF TO AN INDIVIDUAL:
-- NEVER say "you've been here before"
-- NEVER say "part of you"
-- NEVER say "something in you"
-- NEVER say "you always" or "you never"
-- NEVER use personal psychological diagnosis language
-- NEVER make it sound like a Home insight about one person
+WRITE LIKE THIS:
+- "This space moves fast but doesn't settle quickly."
+- "What feels obvious to one doesn't land the same way for the other."
+- "Momentum and timing don't match."
 
-TONE GUIDELINES:
-- Reflective facilitator, not analyst
-- Non-deterministic and exploratory
-- Calm, warm, and grounded
-- Agency-preserving - the group decides meaning
-- Sound like you're describing a room, not reading a person
+DO NOT WRITE LIKE THIS:
+- "This configuration may suggest..."
+- "The group might find that..."
+- "Perspectives indicate a tendency to..."
 
-USE LANGUAGE LIKE:
-- "this space may hold..."
-- "the group might find..."
-- "this mix sometimes..."
-- "the field may carry..."
-- "groups like this often find..."
-- "this configuration tends to..."
-- "the dynamic between these energies..."
-- "something in this circle..."
+BANNED WORDS/PHRASES (the text must not contain any of these):
+- "may" / "might" / "suggests" / "indicates" / "tends to suggest"
+- "configuration" / "composition" / "perspectives that may be present"
+- "growth edges" / "growth opportunities"
+- system names: "Human Design", "HD", "Generator", "Projector", "Manifestor",
+  "Reflector", "gate", "channel", "centre", "Enneagram type", "Type 1/2/3/…",
+  "Ascendant", "sun sign", "Fire/Earth/Water/Air", "BaZi", "element",
+  "numerology", "life path"
+- coaching phrases: "try to", "you should", "remember to", "notice that"
 
-FORBIDDEN PHRASES (NEVER USE):
-- "you've been here before" → instead: "something in this dynamic may feel familiar"
-- "part of you" → instead: "part of this space" or "some in this circle"
-- "something in you" → instead: "something in the field"
-- "you always" → instead: "this group often"
-- "you never" → instead: "this space rarely"
-- "your pattern" → instead: "the pattern in this circle"
+PREFERRED REPLACEMENTS:
+- "this tends to..." / "in this space..." / "what happens is..."
+- "this room" / "this dynamic" / "this field"
 
-AVOID:
-- Mystical or prophetic claims ("you were brought together for...")
-- Deterministic predictions
-- Lists of statistics or raw numbers
-- Long essays
-- Analytical frameworks or categories
-- Markdown headers (###) or bold formatting
-- Personal/individual psychological interpretations
+NEVER address a single person. Speak about THE ROOM.
 
-OUTPUT FORMAT:
-Write exactly 3 sections followed by a reflective question. Use these EXACT section markers:
+=========================================================================
+OUTPUT FORMAT — EXACTLY 4 SECTIONS, IN THIS ORDER
+=========================================================================
 
-[SECTION:What this circle may bring]
-One paragraph about potential strengths or energies the group composition may offer.
+Use these EXACT markers. Do not rename them.
 
-[SECTION:Perspectives that may be present]
-One paragraph about the diversity of orientations, tempos, or ways of engaging that may exist.
+[SECTION:Field State]
+2-3 lines max. The overall energetic feel of the group. Observational,
+grounded, present-tense. No analysis.
 
-[SECTION:Growth edges this group might explore]
-One paragraph about possible tensions or growth opportunities when different perspectives meet.
+[SECTION:How This Plays Out]
+3-5 concrete, observable behaviours, one per line, each starting with "- ".
+Each bullet must describe something you would actually see or hear in the
+room. No abstract theory, no system jargon.
 
-[QUESTION]
-A single reflective question for the group to consider together.
+[SECTION:Where It Tightens]
+2-4 lines max. Direct, slightly uncomfortable. Name the friction without
+softening it. Show the consequence if unspoken. No "may" / "might".
 
-Keep each section to 2-4 sentences. Write like a wise facilitator offering a gentle reflection about THE SPACE, not about any individual.
+[SECTION:The Opening]
+2-3 lines max. What becomes possible when the tension is allowed. No
+advice, no instructions, no "try to…". Calm, spacious, non-prescriptive.
+
+=========================================================================
+HARD LENGTH LIMIT
+=========================================================================
+
+Total output across all 4 sections MUST be under 160 words. Short sentences
+beat long ones. If you can cut a word, cut it.
+
+=========================================================================
+SECTION SHAPE EXAMPLES
+=========================================================================
+
+[SECTION:Field State]
+This space moves fast but doesn't settle quickly.
+Some energy pushes forward, while another part waits to see what's actually true.
+
+[SECTION:How This Plays Out]
+- One person moves quickly, the other holds back
+- Conversations start aligned but drift into different interpretations
+- What feels obvious to one doesn't land the same way for the other
+
+[SECTION:Where It Tightens]
+Momentum and timing don't match.
+One pushes for movement, the other waits for clarity.
+Left unspoken, this becomes frustration on one side and pressure on the other.
+
+[SECTION:The Opening]
+This works when both speeds are allowed.
+Movement without forcing clarity.
+Clarity without blocking movement.
+
+Do NOT copy these examples. Write something specific to THIS room.
 """
 
 # =============================================================================
@@ -29033,12 +29051,15 @@ async def get_forum_story(forum_id: str, user_id: str):
         context_text = format_dynamics_for_prompt(dynamics)
         
         # Build the full prompt
-        user_message = f"""Based on this forum's composition, write a reflective narrative about what this circle of {len(member_user_ids)} members might bring together.
+        user_message = f"""Based on this forum's composition, write a short FIELD READING
+describing what it is actually like when these {len(member_user_ids)} people are in this room together.
 
-FORUM COMPOSITION:
+FORUM COMPOSITION (internal reference — do NOT name systems, gates, channels,
+types, signs, elements, or numerology in your output):
 {context_text}
 
-Remember: Write a warm, thoughtful reflection in 3-5 paragraphs. End with a reflective question."""
+Write exactly the 4 sections specified in the system prompt. Present tense.
+Observable behaviour. Under 160 words total. No reflective question at the end."""
 
         # Call LLM
         from emergent_contract import emergent_generate
@@ -29064,6 +29085,41 @@ Remember: Write a warm, thoughtful reflection in 3-5 paragraphs. End with a refl
                 logger.warning(f"[ForumStory] Detected forbidden phrases before sanitization: {violations}")
                 story_text = sanitize_forum_story(story_text)
                 logger.info(f"[ForumStory] Sanitized story to remove Home-style language")
+
+            # -------------------------------------------------------------------
+            # OPHIUCHUS DISTORTION LAYER — inject ONE subtle line into the
+            # "Where It Tightens" section if any forum member has an Ophiuchus
+            # placement AND the section already names real friction. No new
+            # section, no use of the word "Ophiuchus".
+            # -------------------------------------------------------------------
+            try:
+                from services.ophiuchus_distortion import has_ophiuchus_placement as _ophi_check
+                any_ophi = False
+                for mid in member_user_ids:
+                    _mc = await db.charts.find_one({"user_id": mid})
+                    if not _mc:
+                        _mc = await db.charts.find_one({"user_id": str(mid)})
+                    if _mc and _ophi_check((_mc.get("astrology") or {}))[0]:
+                        any_ophi = True
+                        break
+                if any_ophi and "[SECTION:Where It Tightens]" in story_text:
+                    _line = (
+                        "Part of what's happening doesn't land cleanly — something "
+                        "is being felt here, but not fully understood."
+                    )
+                    # Append the line into the Where It Tightens section
+                    def _inject(text: str) -> str:
+                        import re as _re
+                        return _re.sub(
+                            r"(\[SECTION:Where It Tightens\]\s*)([\s\S]*?)(?=\s*\[SECTION:|\Z)",
+                            lambda m: f"{m.group(1)}{m.group(2).rstrip()}\n{_line}\n\n",
+                            text,
+                            count=1,
+                        )
+                    story_text = _inject(story_text)
+                    logger.info(f"[Ophiuchus] Forum-story injection for {forum_id}")
+            except Exception as _e:
+                logger.warning(f"[Ophiuchus] Forum-story injection skipped: {_e}")
             
         except asyncio.TimeoutError:
             logger.error(f"[ForumStory] LLM timeout for forum {forum_id}")
