@@ -9264,3 +9264,85 @@ agent_communication:
         — 131 users normalised to canonical `enneagram_type` in one pass.
         Subsequent boots: scanned=36, 0 writes — idempotent ✓
 
+
+  - agent: "main"
+    message: |
+      FORUM PAGE V2 + PATTERN RUNNING ME V2 — full product refactor
+
+      PART 1 — Forum Page Restructure (/app/frontend/app/forums/[id].tsx)
+
+      REMOVED:
+        - "What's happening in this room" header + "Reveal group pattern"
+          CTA (forumPatternCard path)
+        - The 4-section narrativeFlow (Field State / Your Position /
+          If Nothing Changes / What This Space Tends To Become / The Move)
+          — now collapsed into a single hero + position block
+        - "COOL" label + temperature emoji strip
+        - Forum Dynamics + Forum Pulse + Shared Dynamics as always-visible
+          cards
+
+      ADDED:
+        - Story Hero Card ("The Story of This Circle") — 3-5 lines from
+          `liveField.field_reading` + `liveField.what_hasnt_landed`. Tap
+          "See how this plays out →" to lazy-load the behaviour bullets,
+          which are parsed out of the existing /forums/{forum_id}/story
+          endpoint's [SECTION:How This Plays Out] block.
+        - Your Position Card ("Where you are in this") — 2-3 lines from
+          `liveField.your_position`.
+        - Primary CTA "Share Forum Update" → navigates to the new
+          /forums/pattern-running-me screen.
+        - Secondary CTA "Ask Mirror" (unchanged behaviour).
+        - "How they map to me" kept at depth, moved above the analytics.
+        - "VIEW FORUM ANALYTICS ▾" — collapsible block that now holds the
+          Forum Dynamics link + Forum Pulse + Shared Dynamics. Collapsed
+          by default.
+
+      PART 2 — Pattern Running Me V2
+
+      Backend:
+        - /app/backend/services/pattern_running_me_v2.py (NEW) — data
+          contract, emotion vocabulary (10 canonical chips), storage doc
+          builder, Pattern Memory + Forum Field signal projectors.
+        - /app/backend/server.py: new endpoints
+            GET  /api/pattern-running-me/emotions      → canonical vocab
+            POST /api/pattern-running-me               → persist entry
+            GET  /api/pattern-running-me/user/{user_id} → list entries
+          Forum membership gate enforced when `forum_id` is set.
+        - Side effects on submit: writes to `pattern_memory_signals` +
+          (if forum-scoped) `forum_field_signals` collections.
+
+      Frontend:
+        - /app/frontend/app/forums/pattern-running-me.tsx (NEW) — full
+          4-step screen:
+            Step 1 TITLE (max 80 chars, live counter)
+            Step 2 EMOTIONS (multi-select chips, cap of 3)
+            Step 3 STORY (free text, max 5000)
+            Step 4 REFLECTION — appears ONLY after the user starts typing
+                   the story (storyStarted = story.trim().length >= 3).
+                   Three prompts exactly as spec: meaning / importance /
+                   impact.
+        - Submit is disabled until title + ≥1 emotion + story are present.
+
+      Live verification (astro-hd-routes-v6):
+        - Forum page: Hero + Position + Share CTA + Ask Mirror + Map CTA +
+          collapsed analytics rendering cleanly for Pete in the Yoong
+          family forum.
+        - Pattern Running Me V2 at /forums/pattern-running-me?forumId=...
+          → all 4 steps render, Step 4 appears the moment the user starts
+          typing the story, "Share with this circle" button enables once
+          required fields are present. Backend emotions endpoint returns
+          the canonical 10-chip vocab.
+
+      Language rules enforced throughout (no "the system shows", no
+      "this means", no "you should") — present-tense, recognition-only.
+
+      Files changed:
+        NEW: /app/backend/services/pattern_running_me_v2.py
+        NEW: /app/frontend/app/forums/pattern-running-me.tsx
+        EDIT: /app/backend/server.py (Pattern V2 endpoints)
+        EDIT: /app/frontend/app/forums/[id].tsx (V2 restructure)
+
+      Next: user to validate live, then (optional) delete legacy
+      Reveal-Group-Pattern code path + structured-checkin submit flow
+      once the new V2 entries are being ingested downstream.
+

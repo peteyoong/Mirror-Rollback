@@ -344,6 +344,38 @@ export default function ForumHomeScreen() {
   // FIX 4: Forum Pattern State
   const [forumPattern, setForumPattern] = useState<PatternDiagnosisResponse | null>(null);
   const [forumPatternLoading, setForumPatternLoading] = useState(false);
+  // Story Hero expansion (new forum UX)
+  const [storyExpansionOpen, setStoryExpansionOpen] = useState(false);
+  const [storyBullets, setStoryBullets] = useState<string[]>([]);
+  const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
+
+  // Lazy-load the expansion bullets when the user taps "See how this plays out"
+  useEffect(() => {
+    if (!storyExpansionOpen || storyBullets.length > 0 || !forumId || !user?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get(`/forums/${forumId}/story?user_id=${user.id}`);
+        const story: string = res.data?.story || '';
+        // Extract bullets from the [SECTION:How This Plays Out] block
+        const m = story.match(/\[SECTION:How This Plays Out\]\s*([\s\S]*?)(?=\[SECTION:|$)/i);
+        const block = m ? m[1] : '';
+        const bullets = block
+          .split(/\n/)
+          .map((l) => l.trim())
+          .filter((l) => l.startsWith('-'))
+          .map((l) => l.replace(/^[-•]\s*/, ''))
+          .filter(Boolean)
+          .slice(0, 5);
+        if (!cancelled) setStoryBullets(bullets);
+      } catch (e) {
+        if (!cancelled) setStoryBullets(['How this plays out is still coming into focus.']);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [storyExpansionOpen, forumId, user?.id, storyBullets.length]);
   const [showForumPattern, setShowForumPattern] = useState(false);
   
   // Live Field State - Real-time field dynamics
@@ -683,53 +715,88 @@ export default function ForumHomeScreen() {
           </View>
         </View>
 
-        {/* FIX 4: Forum Pattern Entry - "What's happening in this room" */}
-        <View style={[styles.forumPatternCard, { backgroundColor: theme.accent + '08', borderColor: theme.accent + '25' }]}>
-          <Text style={[styles.forumPatternTitle, { color: theme.text }]}>
-            What's happening in this room
-          </Text>
-          <Text style={[styles.forumPatternSub, { color: theme.textSecondary }]}>
-            See the pattern shaping this group right now
-          </Text>
-          
-          {!showForumPattern ? (
-            <TouchableOpacity
-              style={[styles.forumPatternButton, { backgroundColor: theme.accent }]}
-              onPress={handleRevealGroupPattern}
-              disabled={forumPatternLoading}
-            >
-              {forumPatternLoading ? (
-                <ActivityIndicator size="small" color={theme.textInverse} />
-              ) : (
-                <Text style={[styles.forumPatternButtonText, { color: theme.textInverse }]}>
-                  Reveal group pattern
-                </Text>
-              )}
-            </TouchableOpacity>
-          ) : forumPattern ? (
-            <View style={styles.forumPatternResult}>
-              <Text style={[styles.forumPatternResultTitle, { color: theme.accent }]}>
-                {forumPattern.pattern_title}
+        {/* ============================================
+            FORUM STORY HERO — "The Story of This Circle"
+            The room's lived truth in 3-5 lines. No labels, no system talk.
+            Tap to reveal the behavioural expansion bullets.
+            ============================================ */}
+        {liveField && (
+          <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.heroTitle, { color: theme.text }]}>
+              The Story of This Circle
+            </Text>
+            <Text style={[styles.heroBody, { color: theme.text }]}>
+              {liveField.field_reading}
+            </Text>
+            {liveField.what_hasnt_landed ? (
+              <Text style={[styles.heroBody, { color: theme.text, marginTop: 8 }]}>
+                {liveField.what_hasnt_landed}
               </Text>
-              <Text style={[styles.forumPatternResultText, { color: theme.text }]}>
-                {forumPattern.what_is_happening}
-              </Text>
-              <Text style={[styles.forumPatternResultWisdom, { color: theme.textSecondary }]}>
-                {forumPattern.what_would_be_wise}
-              </Text>
-              <TouchableOpacity
-                style={[styles.forumPatternRefreshBtn, { borderColor: theme.border }]}
-                onPress={() => setShowForumPattern(false)}
-              >
-                <Text style={[styles.forumPatternRefreshText, { color: theme.textTertiary }]}>
-                  Hide
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-        </View>
+            ) : null}
 
-        {/* Ask Mirror Button */}
+            <TouchableOpacity
+              style={styles.heroExpansionToggle}
+              onPress={() => setStoryExpansionOpen((v) => !v)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.heroExpansionText, { color: theme.accent }]}>
+                {storyExpansionOpen ? 'Hide' : 'See how this plays out →'}
+              </Text>
+            </TouchableOpacity>
+
+            {storyExpansionOpen ? (
+              <View style={styles.heroExpansionBody}>
+                <Text style={[styles.heroExpansionHeader, { color: theme.textTertiary }]}>
+                  How this tends to play out:
+                </Text>
+                {storyBullets.length === 0 ? (
+                  <ActivityIndicator size="small" color={theme.textTertiary} />
+                ) : (
+                  storyBullets.map((b, i) => (
+                    <View key={i} style={styles.heroBulletRow}>
+                      <Text style={[styles.heroBullet, { color: theme.textTertiary }]}>•</Text>
+                      <Text style={[styles.heroBulletText, { color: theme.textSecondary }]}>{b}</Text>
+                    </View>
+                  ))
+                )}
+              </View>
+            ) : null}
+          </View>
+        )}
+
+        {/* ============================================
+            YOUR POSITION — personal recognition, 2-3 lines
+            ============================================ */}
+        {liveField?.your_position ? (
+          <View style={[styles.positionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.positionLabel, { color: theme.textTertiary }]}>
+              Where you are in this
+            </Text>
+            <Text style={[styles.positionBody, { color: theme.text }]}>
+              {liveField.your_position}
+            </Text>
+          </View>
+        ) : null}
+
+        {/* ============================================
+            SHARE FORUM UPDATE — primary CTA (Pattern Running Me V2)
+            ============================================ */}
+        <TouchableOpacity
+          style={[styles.shareUpdateBtn, { backgroundColor: theme.accent }]}
+          onPress={() =>
+            router.push({
+              pathname: '/forums/pattern-running-me',
+              params: { forumId },
+            })
+          }
+          activeOpacity={0.85}
+        >
+          <Text style={styles.shareUpdateBtnText}>Share Forum Update</Text>
+        </TouchableOpacity>
+
+        {/* ============================================
+            ASK MIRROR — secondary CTA
+            ============================================ */}
         <TouchableOpacity
           style={[styles.askMirrorSection, { backgroundColor: theme.accent + '10', borderColor: theme.accent + '30' }]}
           onPress={openForumChat}
@@ -750,143 +817,7 @@ export default function ForumHomeScreen() {
         </TouchableOpacity>
 
         {/* ============================================
-            FORUM NARRATIVE FLOW
-            A continuous, unfolding experience of this space
-            Order: Field State → Your Position → Trajectory → Story → The Move
-            ============================================ */}
-        {liveField && (
-          <View style={[styles.narrativeFlow, { backgroundColor: theme.surface }]}>
-            
-            {/* === SECTION 1: FIELD STATE (Awareness) === */}
-            <View style={styles.narrativeSection}>
-              <View style={styles.narrativeFieldHeader}>
-                <Text style={[styles.narrativeFieldEmoji]}>
-                  {liveField.field_temperature === 'warm' ? '🔥' : 
-                   liveField.field_temperature === 'charged' ? '⚡' :
-                   liveField.field_temperature === 'still' ? '🌊' : '❄️'}
-                </Text>
-                <Text style={[styles.narrativeFieldTemp, { color: theme.textSecondary }]}>
-                  {liveField.field_temperature}
-                </Text>
-              </View>
-              
-              <Text style={[styles.narrativeFieldText, { color: theme.text }]}>
-                {liveField.field_reading}
-              </Text>
-              
-              {liveField.what_hasnt_landed && (
-                <Text style={[styles.narrativeSubtext, { color: theme.textSecondary }]}>
-                  {liveField.what_hasnt_landed}
-                </Text>
-              )}
-            </View>
-            
-            {/* Subtle divider */}
-            <View style={[styles.narrativeDivider, { backgroundColor: theme.border + '30' }]} />
-            
-            {/* === SECTION 2: YOUR POSITION (Responsibility) === */}
-            {liveField.your_position && (
-              <>
-                <View style={styles.narrativeSection}>
-                  <Text style={[styles.narrativeSectionHint, { color: theme.accent }]}>
-                    your position
-                  </Text>
-                  <Text style={[styles.narrativePositionText, { color: theme.text }]}>
-                    {liveField.your_position}
-                  </Text>
-                </View>
-                
-                <View style={[styles.narrativeDivider, { backgroundColor: theme.border + '30' }]} />
-              </>
-            )}
-            
-            {/* === SECTION 3: TRAJECTORY (Tension) === */}
-            {liveField.trajectory && (
-              <>
-                <View style={styles.narrativeSection}>
-                  <Text style={[
-                    styles.narrativeSectionHint, 
-                    { color: liveField.trajectory_severity === 'positive' ? '#10B981' :
-                             liveField.trajectory_severity === 'moderate' ? '#F59200' : theme.textSecondary }
-                  ]}>
-                    if nothing changes
-                  </Text>
-                  <Text style={[styles.narrativeTrajectoryText, { color: theme.text }]}>
-                    {liveField.trajectory}
-                  </Text>
-                </View>
-                
-                <View style={[styles.narrativeDivider, { backgroundColor: theme.border + '30' }]} />
-              </>
-            )}
-            
-            {/* === SECTION 4: STORY (Meaning - What this space tends to become) === */}
-            <TouchableOpacity 
-              style={styles.narrativeSection}
-              onPress={() => router.push({ pathname: '/forums/story', params: { forumId } })}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.narrativeSectionHint, { color: theme.textSecondary }]}>
-                what this space tends to become
-              </Text>
-              <Text style={[styles.narrativeStoryText, { color: theme.text }]}>
-                Spaces like this often find their own rhythm over time. The mix of energies here may create something none of you could build alone.
-              </Text>
-              <Text style={[styles.narrativeStoryLink, { color: theme.accent }]}>
-                Read the full story →
-              </Text>
-            </TouchableOpacity>
-            
-            {/* === SECTION 5: THE MOVE (Possibility) === */}
-            {liveField.the_move && (
-              <>
-                <View style={[styles.narrativeMoveDivider, { backgroundColor: theme.accent + '20' }]} />
-                
-                <View style={styles.narrativeMoveSection}>
-                  <Text style={[styles.narrativeMoveHint, { color: theme.accent }]}>✦</Text>
-                  <Text style={[styles.narrativeMoveText, { color: theme.text }]}>
-                    {liveField.the_move}
-                  </Text>
-                </View>
-              </>
-            )}
-            
-            {/* Light identity note if present */}
-            {liveField.identity_note && (
-              <Text style={[styles.narrativeIdentityNote, { color: theme.textSecondary }]}>
-                {liveField.identity_note}
-              </Text>
-            )}
-          </View>
-        )}
-
-        {/* Forum Dynamics Card - Keep as separate exploration */}
-        <TouchableOpacity
-          style={[styles.forumDynamicsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-          onPress={() => router.push({ pathname: '/forums/dynamics', params: { forumId } })}
-          activeOpacity={0.7}
-        >
-          <View style={styles.forumDynamicsContent}>
-            <View style={[styles.forumDynamicsIcon, { backgroundColor: theme.accent + '15' }]}>
-              <Text style={{ fontSize: 20 }}>🔮</Text>
-            </View>
-            <View style={styles.forumDynamicsTextContainer}>
-              <Text style={[styles.forumDynamicsTitle, { color: theme.text }]}>Forum Dynamics</Text>
-              <Text style={[styles.forumDynamicsSubtitle, { color: theme.textSecondary }]}>
-                A view of the patterns and diversity within this circle
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[styles.forumDynamicsButton, { backgroundColor: theme.accent + '15' }]}
-            onPress={() => router.push({ pathname: '/forums/dynamics', params: { forumId } })}
-          >
-            <Text style={[styles.forumDynamicsButtonText, { color: theme.accent }]}>Explore</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
-
-        {/* ============================================
-            HOW THEY MAP TO ME - Channel-completion based mappings
+            HOW THEY MAP TO ME — kept as primary exploration CTA
             ============================================ */}
         <TouchableOpacity
           style={[styles.forumDynamicsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
@@ -911,6 +842,46 @@ export default function ForumHomeScreen() {
             <Text style={[styles.forumDynamicsButtonText, { color: theme.accent }]}>View</Text>
           </TouchableOpacity>
         </TouchableOpacity>
+
+        {/* ============================================
+            ANALYTICS — collapsed by default, below everything
+            ============================================ */}
+        <TouchableOpacity
+          style={[styles.analyticsToggle, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
+          onPress={() => setAnalyticsExpanded((v) => !v)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.analyticsToggleText, { color: theme.textSecondary }]}>
+            {analyticsExpanded ? 'HIDE FORUM ANALYTICS ▴' : 'VIEW FORUM ANALYTICS ▾'}
+          </Text>
+        </TouchableOpacity>
+
+        {analyticsExpanded ? (
+          <>
+            {/* Forum Dynamics shortcut */}
+            <TouchableOpacity
+              style={[styles.forumDynamicsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => router.push({ pathname: '/forums/dynamics', params: { forumId } })}
+              activeOpacity={0.7}
+            >
+              <View style={styles.forumDynamicsContent}>
+                <View style={[styles.forumDynamicsIcon, { backgroundColor: theme.accent + '15' }]}>
+                  <Text style={{ fontSize: 20 }}>🔮</Text>
+                </View>
+                <View style={styles.forumDynamicsTextContainer}>
+                  <Text style={[styles.forumDynamicsTitle, { color: theme.text }]}>Forum Dynamics</Text>
+                  <Text style={[styles.forumDynamicsSubtitle, { color: theme.textSecondary }]}>
+                    Energy mix, authority, enneagram diversity, element balance
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={[styles.forumDynamicsButton, { backgroundColor: theme.accent + '15' }]}
+                onPress={() => router.push({ pathname: '/forums/dynamics', params: { forumId } })}
+              >
+                <Text style={[styles.forumDynamicsButtonText, { color: theme.accent }]}>Explore</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
 
         {/* ============================================
             FORUM PULSE - Collective Patterns & Lens Dynamics
@@ -1060,6 +1031,9 @@ export default function ForumHomeScreen() {
             </View>
           </View>
         )}
+        {/* END analytics collapsed block */}
+          </>
+        ) : null}
 
         {/* My Mirror Profile Card */}
         <TouchableOpacity
@@ -1506,6 +1480,100 @@ export default function ForumHomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  // ---- Forum V2 Hero + Position ----
+  heroCard: {
+    marginTop: 12,
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  heroTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 10,
+    letterSpacing: 0.2,
+  },
+  heroBody: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  heroExpansionToggle: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
+  },
+  heroExpansionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  heroExpansionBody: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#00000022',
+  },
+  heroExpansionHeader: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.7,
+    marginBottom: 6,
+  },
+  heroBulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 4,
+    gap: 6,
+  },
+  heroBullet: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  heroBulletText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  positionCard: {
+    marginBottom: 12,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  positionLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  positionBody: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  shareUpdateBtn: {
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  shareUpdateBtnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  analyticsToggle: {
+    marginTop: 6,
+    marginBottom: 6,
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  analyticsToggleText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
   container: {
     flex: 1,
   },
