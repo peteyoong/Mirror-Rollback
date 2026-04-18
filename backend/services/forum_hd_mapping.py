@@ -1386,7 +1386,38 @@ async def get_forum_member_mappings(
                 user_b=member,
             )
             mapping["member_id"] = str(member_id)
-            
+
+            # -----------------------------------------------------------
+            # OPHIUCHUS DISTORTION LAYER — contextual, subtle, 1 bullet,
+            # only when at least one person has Ophiuchus AND the pair's
+            # patterns.tensions already imply misread / projection /
+            # inconsistency. No new section, no Ophiuchus terminology.
+            # -----------------------------------------------------------
+            try:
+                from services.ophiuchus_distortion import check_forum_pair as _ophi_check_pair
+                _pair = _ophi_check_pair(
+                    (current_chart or {}).get("astrology", {}) if current_chart else None,
+                    (member_chart or {}).get("astrology", {}) if member_chart else None,
+                    mapping.get("patterns"),
+                )
+                if _pair.get("inject") and _pair.get("forum_line"):
+                    line = _pair["forum_line"]
+                    patterns = mapping.get("patterns") or {}
+                    tensions = patterns.get("tensions") or []
+                    # append into tensions (the "where friction shows up" list)
+                    if isinstance(tensions, list):
+                        tensions.append(line)
+                        patterns["tensions"] = tensions
+                        mapping["patterns"] = patterns
+                    # and keep backward-compat surface in sync
+                    if mapping.get("what_to_watch"):
+                        mapping["what_to_watch"] = f"{mapping['what_to_watch']}. {line}"
+                    else:
+                        mapping["what_to_watch"] = line
+                    logger.info(f"[Ophiuchus] Forum injection {current_user_name}<->{member_name}: {_pair.get('reason')}")
+            except Exception as _e:
+                logger.warning(f"[Ophiuchus] Forum pair injection skipped: {_e}")
+
             mappings.append(mapping)
             
             logger.info(f"[ForumMapping] {current_user_name} ↔ {member_name}: {len(completed_channels)} channels")

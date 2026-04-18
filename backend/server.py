@@ -12043,6 +12043,34 @@ async def get_astrology_today_v3(user_id: str):
         
         logger.info(f"[AstrologyV3] Generated insight for {user_id[:8]}: type={insight.get('tension_type')}, class={insight.get('day_class')}")
         
+        # -------------------------------------------------------------------
+        # OPHIUCHUS DISTORTION LAYER — contextual injection ONLY when there's
+        # a real distortion context (Neptune / conflicting signals / multi-
+        # planet tension). Adds at most one line to whats_happening and
+        # optionally one to the_move. No new UI.
+        # -------------------------------------------------------------------
+        try:
+            from services.ophiuchus_distortion import check_today as _ophi_check_today
+            _ophi = _ophi_check_today(stored_chart.get("astrology", {}) if stored_chart else None, insight)
+            if _ophi.get("inject"):
+                if _ophi.get("happening_line"):
+                    wh = insight.get("whats_happening")
+                    if isinstance(wh, list):
+                        wh.append(_ophi["happening_line"])
+                    elif isinstance(wh, str) and wh:
+                        insight["whats_happening"] = f"{wh} {_ophi['happening_line']}"
+                    else:
+                        insight["whats_happening"] = [_ophi["happening_line"]]
+                if _ophi.get("move_line"):
+                    mv = insight.get("the_move")
+                    if isinstance(mv, str) and mv:
+                        insight["the_move"] = f"{mv} {_ophi['move_line']}"
+                    elif isinstance(mv, list):
+                        mv.append(_ophi["move_line"])
+                logger.info(f"[Ophiuchus] Today injection for {user_id[:8]}: {_ophi.get('reason')}")
+        except Exception as _e:
+            logger.warning(f"[Ophiuchus] Today injection skipped: {_e}")
+
         return insight
         
     except Exception as e:
@@ -14444,6 +14472,29 @@ async def get_home_insight_v5(user_id: str):
                 )
 
                 signals_used = grounded.get("signals_used") or []
+
+                # ---------------------------------------------------------------
+                # OPHIUCHUS DISTORTION LAYER — contextual, subtle, 1 line, only
+                # on tension/sky-led days when the user has an Ophiuchus
+                # placement. Appended inside the body (cost/recognition),
+                # NEVER in the headline. Does not introduce Ophiuchus terminology.
+                # ---------------------------------------------------------------
+                try:
+                    from services.ophiuchus_distortion import check_home as _ophi_check_home
+                    _chart = await db.charts.find_one({"user_id": user_id})
+                    _natal = (_chart or {}).get("astrology", {}) if _chart else None
+                    _ophi = _ophi_check_home(_natal, grounded)
+                    if _ophi.get("inject") and _ophi.get("home_line"):
+                        _line = _ophi["home_line"]
+                        # Prefer appending to cost (experiential), fall back to
+                        # recognition. Never touch hook / headline.
+                        if grounded.get("cost"):
+                            grounded["cost"] = f"{grounded['cost']} {_line}"
+                        elif grounded.get("recognition"):
+                            grounded["recognition"] = f"{grounded['recognition']} {_line}"
+                        logger.info(f"[Ophiuchus] Home injection for {user_id[:8]}: {_ophi.get('reason')}")
+                except Exception as _e:
+                    logger.warning(f"[Ophiuchus] Home injection skipped: {_e}")
 
                 # Proof layer is COLLAPSED by default on the card. Astrology lives
                 # here and only here — never in the top 3 lines.
