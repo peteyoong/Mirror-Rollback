@@ -75,93 +75,114 @@ CONSTELLATION_GLYPHS: Dict[str, str] = {
 }
 
 # ---------------------------------------------------------------------------
-# Mirror-style overlay narratives. Kept concise: 2-3 lines per body when
-# the placement falls in Ophiuchus (the "hidden" zodiacal constellation),
-# or in Scorpius (which shrinks dramatically under the IAU boundaries).
-# For the other 11 constellations the overlay is identical to the zodiac
-# sign most of the time, so we only surface a narrative when it diverges.
+# Mirror-style overlay narrative — 5-section structure.
+#   RECOGNITION → TENSION → REALITY LAYER → HOW THIS SHOWS UP → THE SHIFT
+#
+# Sections 1, 2, 4, 5 are body-agnostic (same wording regardless of which
+# body falls in Ophiuchus). Section 3 ("REALITY LAYER") is templated per
+# body and uses {zodiac_sign}, {body}, {constellation}.
+#
+# When multiple bodies fall in Ophiuchus we render the shared sections once
+# and stack a REALITY LAYER block per body.
 # ---------------------------------------------------------------------------
 
-OPHIUCHUS_BODY_NARRATIVES: Dict[str, str] = {
-    "Sun": (
-        "If we look at the sky directly, your Sun is currently passing through "
-        "Ophiuchus — the serpent-bearer. This adds a layer of transformation-"
-        "through-healing to your core identity: the part of you that rebuilds "
-        "itself after shedding something."
-    ),
-    "Moon": (
-        "Your Moon passes through Ophiuchus when we read the sky as it actually "
-        "is. Emotionally, this tends to show up as a pull toward depth work, "
-        "hidden material, and the kind of intimacy that involves watching "
-        "something die and something else begin."
-    ),
-    "Mercury": (
-        "Mercury in Ophiuchus — how you think and speak carries a healer's "
-        "cadence. You're wired to ask the question everyone else is avoiding; "
-        "that's a gift when it's invited, and an intrusion when it's not."
-    ),
-    "Venus": (
-        "Venus in Ophiuchus — you're drawn to love that metabolises something. "
-        "The relationships that actually hold you are the ones where both "
-        "people have already seen each other at their rawest."
-    ),
-    "Mars": (
-        "Mars in Ophiuchus — the way you act on desire is serpentine: patient, "
-        "precise, occasionally ruthless. You don't strike unless the moment is "
-        "ripe, and when you do, something transforms."
-    ),
-    "Jupiter": (
-        "Jupiter in Ophiuchus — growth comes through what you're willing to "
-        "heal or witness heal. The classroom isn't a book; it's the room where "
-        "something is actually being released."
-    ),
-    "Saturn": (
-        "Saturn in Ophiuchus — the structures you build are ones that hold "
-        "other people's weight. Mastery here is knowing when to carry, when to "
-        "teach, and when to put the load back down."
-    ),
-    "Uranus": (
-        "Uranus in Ophiuchus — your rebellion is against inherited pain. You "
-        "don't just disrupt for disruption's sake; you break the patterns that "
-        "were quietly running the family, the team, the relationship."
-    ),
-    "Neptune": (
-        "Neptune in Ophiuchus — your imagination is a healing chamber. What "
-        "you dream up, others get to walk through. Be mindful of who you invite."
-    ),
-    "Pluto": (
-        "Pluto in Ophiuchus — the deep-rebirth work of your life involves "
-        "someone else's wound as much as your own. You are built to go into "
-        "the underworld and come back with something useful."
-    ),
-    "Chiron": (
-        "Chiron in Ophiuchus — doubly written as a wounded healer. The wound "
-        "is real. The capacity to help others is also real. They share a root."
-    ),
-    "North Node": (
-        "North Node in Ophiuchus — your growth edge is learning to stay in "
-        "rooms where real healing happens, even when it's uncomfortable, "
-        "instead of routing around them."
-    ),
-    "Ascendant": (
-        "Ascendant in Ophiuchus — people often sense you've already been "
-        "through something. The first impression you leave is depth, not "
-        "brightness — and that opens some doors while closing others."
-    ),
-    "Midheaven": (
-        "Midheaven in Ophiuchus — in the world, you're recognized for depth "
-        "work: roles that involve witnessing, holding, or transforming "
-        "something hidden."
-    ),
-}
-
-# Generic fallback (used for minor bodies or when we don't have a specific line)
-GENERIC_OPHIUCHUS_NARRATIVE = (
-    "Passing through Ophiuchus when we read the sky directly — this placement "
-    "carries an undercurrent of transformation-through-witnessing. It isn't a "
-    "13th sign; it's a reminder that the sky has more texture than any 12-fold "
-    "model can hold."
+NARRATIVE_RECOGNITION = (
+    "There's a part of you that doesn't sit cleanly inside the way you're "
+    "usually described."
 )
+
+NARRATIVE_TENSION = (
+    "Even when something \"fits\" on paper, your actual experience of it "
+    "can feel different — harder to name, harder to stabilize, or slightly "
+    "off from what you expect."
+)
+
+NARRATIVE_REALITY_LAYER_TEMPLATE = (
+    "In the symbolic system, this reads as {zodiac_sign}.\n"
+    "But in the actual sky, {body} is moving through {constellation} — a "
+    "region that doesn't follow the same clean boundaries."
+)
+
+NARRATIVE_HOW_THIS_SHOWS_UP = [
+    "feel something strongly but struggle to define exactly what it is",
+    "move toward something, then question whether you're reading it right",
+    "sense that there's more going on beneath the surface than you can "
+    "fully articulate",
+]
+
+NARRATIVE_THE_SHIFT = (
+    "This isn't confusion to fix — it's a signal that your instinct is "
+    "picking up more than the model can fully explain."
+)
+
+
+def _build_structured_narrative(
+    overlay_bodies: Dict[str, Dict[str, Any]],
+    ophiuchus_bodies: List[str],
+) -> Optional[Dict[str, Any]]:
+    """
+    Build the structured 5-section narrative payload for Ophiuchus
+    placements. Returns None when there are no Ophiuchus bodies.
+    """
+    if not ophiuchus_bodies:
+        return None
+
+    reality_layers: List[Dict[str, str]] = []
+    for body in ophiuchus_bodies:
+        entry = overlay_bodies.get(body) or {}
+        zodiac = entry.get("zodiac_sign") or "its 12-sign position"
+        reality_layers.append(
+            {
+                "body": body,
+                "zodiac_sign": zodiac,
+                "constellation": "Ophiuchus",
+                "text": NARRATIVE_REALITY_LAYER_TEMPLATE.format(
+                    zodiac_sign=zodiac,
+                    body=body,
+                    constellation="Ophiuchus",
+                ),
+            }
+        )
+
+    return {
+        "recognition": NARRATIVE_RECOGNITION,
+        "tension": NARRATIVE_TENSION,
+        "reality_layers": reality_layers,
+        "how_this_shows_up": list(NARRATIVE_HOW_THIS_SHOWS_UP),
+        "the_shift": NARRATIVE_THE_SHIFT,
+    }
+
+
+def _legacy_narrative_from_structured(structured: Dict[str, Any]) -> str:
+    """
+    Flatten the structured narrative into a plain-text form for older
+    clients that only know about `overlay_narrative` (string).
+    """
+    lines: List[str] = [
+        "### RECOGNITION",
+        structured["recognition"],
+        "",
+        "### TENSION",
+        structured["tension"],
+        "",
+        "### REALITY LAYER",
+    ]
+    for rl in structured["reality_layers"]:
+        lines.append(rl["text"])
+        lines.append("")
+    lines += [
+        "### HOW THIS SHOWS UP",
+        *[f"- {b}" for b in structured["how_this_shows_up"]],
+        "",
+        "### THE SHIFT",
+        structured["the_shift"],
+    ]
+    return "\n".join(lines).strip()
+
+
+# Kept as a safety net for places that previously imported these constants.
+OPHIUCHUS_BODY_NARRATIVES: Dict[str, str] = {}
+GENERIC_OPHIUCHUS_NARRATIVE = ""
 
 
 # ---------------------------------------------------------------------------
@@ -307,7 +328,7 @@ def resolve_constellation_overlay(astrology_chart: Dict[str, Any]) -> Dict[str, 
             body_records.append((canonical_name, rec[0], rec[1]))
 
     # Angles (Ascendant + Midheaven) — allow many shapes
-    def _angle_lon(key_variants: List[str]) -> Optional[float]:
+    def _angle(key_variants: List[str]) -> Optional[Tuple[float, Optional[str]]]:
         for k in key_variants:
             v = angles.get(k) if isinstance(angles, dict) else None
             if isinstance(v, dict):
@@ -321,18 +342,19 @@ def resolve_constellation_overlay(astrology_chart: Dict[str, Any]) -> Dict[str, 
                         else None
                     )
                 )
+                sign = v.get("sign") or v.get("sidereal_sign")
                 if lon is not None:
-                    return float(lon)
+                    return (float(lon), sign)
             elif isinstance(v, (int, float)):
-                return float(v) + 28.69
+                return (float(v) + 28.69, None)
         return None
 
-    asc_lon = _angle_lon(["Ascendant", "ascendant", "ASC", "asc"])
-    mc_lon = _angle_lon(["Midheaven", "midheaven", "MC", "mc"])
-    if asc_lon is not None:
-        body_records.append(("Ascendant", asc_lon, None))
-    if mc_lon is not None:
-        body_records.append(("Midheaven", mc_lon, None))
+    asc_rec = _angle(["asc", "Ascendant", "ascendant", "ASC"])
+    mc_rec = _angle(["mc", "Midheaven", "midheaven", "MC"])
+    if asc_rec is not None:
+        body_records.append(("Ascendant", asc_rec[0], asc_rec[1]))
+    if mc_rec is not None:
+        body_records.append(("Midheaven", mc_rec[0], mc_rec[1]))
 
     ophiuchus_bodies: List[str] = []
 
@@ -368,32 +390,12 @@ def resolve_constellation_overlay(astrology_chart: Dict[str, Any]) -> Dict[str, 
     overlay["has_ophiuchus"] = bool(ophiuchus_bodies)
 
     if ophiuchus_bodies:
-        narrative_lines: List[str] = []
-        for body in ophiuchus_bodies:
-            line = OPHIUCHUS_BODY_NARRATIVES.get(body, GENERIC_OPHIUCHUS_NARRATIVE)
-            # Templates for known bodies already start with "<Body> in Ophiuchus"
-            # (except Sun/Moon/Ascendant/Midheaven which use a slightly different
-            # opening). For unknown bodies we prepend a bold header.
-            has_inline_header = (
-                line.lower().startswith(f"{body.lower()} in ophiuchus")
-                or body in ("Sun", "Moon", "Ascendant", "Midheaven")
-            )
-            if has_inline_header:
-                narrative_lines.append(line)
-            else:
-                narrative_lines.append(f"**{body} in Ophiuchus** — {line}")
-
-        preamble = (
-            "Every Mirror chart is computed using the 12-sign True Sidereal "
-            "system. What follows is an *additional* sky-view observation: "
-            "where these bodies actually fall against the IAU constellation "
-            "boundaries — which include Ophiuchus, the serpent-bearer, "
-            "between Scorpius and Sagittarius.\n\n"
-            "Ophiuchus is not a 13th sign. It's a constellation the ecliptic "
-            "crosses, and seeing it named can add texture to a placement you "
-            "already know in the 12-sign frame."
-        )
-        overlay["overlay_narrative"] = preamble + "\n\n" + "\n\n".join(narrative_lines)
+        structured = _build_structured_narrative(overlay["bodies"], ophiuchus_bodies)
+        overlay["overlay_narrative_v2"] = structured
+        overlay["overlay_narrative"] = _legacy_narrative_from_structured(structured)
+    else:
+        overlay["overlay_narrative_v2"] = None
+        overlay["overlay_narrative"] = None
 
     return overlay
 
