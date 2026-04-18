@@ -371,12 +371,12 @@ export default function ForumUpdatesScreen() {
                     color: theme.text,
                     borderColor: theme.border 
                   }]}
-                  placeholder="Share what's real right now..."
+                  placeholder={"What does this say about you?\nWhy is it important to you?\nWhat do you realise about yourself?\nWhy does it bother me?"}
                   placeholderTextColor={theme.textTertiary}
                   value={updates[area.key as keyof UpdatesState].update_text}
                   onChangeText={(text) => updateAreaField(area.key as keyof UpdatesState, 'update_text', text)}
                   multiline
-                  numberOfLines={4}
+                  numberOfLines={6}
                   textAlignVertical="top"
                 />
               </View>
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   updateTextInput: {
-    minHeight: 100,
+    minHeight: 140,
     borderRadius: 10,
     padding: 12,
     fontSize: 17,
