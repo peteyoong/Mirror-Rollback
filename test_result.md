@@ -9135,3 +9135,75 @@ agent_communication:
           non-existent ObjectId the endpoint correctly returns 404. This is
           a pre-existing, app-wide behavior of get_user_astrology_data, not
           specific to the new overlay endpoint.
+
+  - agent: "main"
+    message: |
+      OPHIUCHUS CONSTELLATION OVERLAY — ADDITIVE SECONDARY LAYER
+
+      User requirement: support Ophiuchus without adding a 13th sign, without
+      changing the 12-sign True Sidereal sign calculation, and without
+      breaking any existing astrology output.
+
+      Implementation (all ADDITIVE — no existing code paths altered):
+        1. New service `/app/backend/services/iau_constellations.py`
+           - IAU 1930 ecliptic boundaries for all 13 constellations the
+             Sun's path crosses (Pisces, Aries, Taurus, Gemini, Cancer, Leo,
+             Virgo, Libra, Scorpius, Ophiuchus, Sagittarius, Capricornus,
+             Aquarius).
+           - `lookup_constellation(tropical_longitude)` maps any ecliptic
+             longitude to one of the 13.
+           - `resolve_constellation_overlay(astrology_chart)` reads the
+             chart's per-body tropical_longitude values and returns:
+             `{version, bodies, summary, ophiuchus_bodies, has_ophiuchus,
+               overlay_narrative}`
+           - Mirror-style 2-3 line narratives per body for Ophiuchus
+             placements (Sun, Moon, Mercury…, Ascendant, Midheaven, Node).
+        2. New endpoint `GET /api/astrology/constellations/{user_id}`.
+        3. Existing endpoint `GET /api/astrology/chart/{user_id}` now carries
+           an additive `natal.constellations` block. `natal.signs` /
+           `natal.planets.<Body>.sign` are UNCHANGED.
+        4. Frontend: new collapsible card
+           `/app/frontend/components/astrology/ConstellationOverlayCard.tsx`.
+           - Mounted at the bottom of Astrology *At a Glance* only.
+           - Teaser line when collapsed ("Ascendant passing through Ophiuchus
+             in the actual sky" / "How your placements map to the actual IAU
+             constellations").
+           - Subtle disclaimer: "Secondary layer · the 12-sign True Sidereal
+             frame is unchanged."
+           - Expanded: narrative (only when an Ophiuchus placement exists)
+             + full 12-sign-vs-IAU per-body table with Ophiuchus rows
+             highlighted + footer note re: IAU 1930.
+
+      Verification (backend testing agent, see report above):
+        ✅ Pete: no Ophiuchus bodies.
+        ✅ Mel: Neptune in Ophiuchus.
+        ✅ Isaac: Midheaven in Ophiuchus.
+        ✅ Thaddeus: Ascendant in Ophiuchus.
+        ✅ `overlay.version == "iau_1930_v1"` for all 4 users.
+        ✅ 12-sign zodiac preserved (no body has sign == "Ophiuchus").
+        ✅ Deep-dive regression: HTTP 200 with valid payload.
+        ✅ Forum-mappings regression: 3 distinct headlines for Yoong family.
+
+      Live UI verification (screenshot on astro-hd-routes-v6):
+        ✅ For Thaddeus the overlay card renders at the bottom of Astrology
+           At a Glance, collapsed by default, with the teaser line
+           "Ascendant passing through Ophiuchus in the actual sky".
+        ✅ Tapping the card expands the narrative, the per-body table, and
+           the IAU 1930 footer note.
+
+      Known non-blocking notes:
+        - `/api/astrology/constellations/{user_id}` with a malformed user_id
+          returns HTTP 500 (bson InvalidId) due to shared
+          `get_user_astrology_data()` helper. App-wide pre-existing
+          behaviour, not introduced by this feature.
+
+      Files changed:
+        - /app/backend/services/iau_constellations.py               (NEW)
+        - /app/backend/server.py                                    (+
+            `_safe_resolve_constellation_overlay`, new endpoint,
+            additive `constellations` on `/astrology/chart` response)
+        - /app/frontend/components/astrology/ConstellationOverlayCard.tsx (NEW)
+        - /app/frontend/components/astrology/AstrologyAtAGlanceTab.tsx
+        - /app/frontend/components/AstrologyLensView.tsx
+        - /app/iau_constellations_test.py (test harness)
+
