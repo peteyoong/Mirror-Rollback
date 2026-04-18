@@ -9,7 +9,7 @@ import sys
 import requests
 import json
 
-BASE = "https://astro-hd-routes-v6.preview.emergentagent.com/api"
+BASE = "https://mirror-forum-updates.preview.emergentagent.com/api"
 PETE = "697f0c6abf35c0528ff06954"
 MEL  = "697ec826ad4b18f75bf42616"
 FORUM_YOONG = "69dda348de9cb1c83c0780fa"

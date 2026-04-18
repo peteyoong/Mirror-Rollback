@@ -41,11 +41,11 @@ const CHECKIN_AREAS = [
   { key: 'physically', label: 'Physically', placeholder: 'pained, strong, tired...' },
 ];
 
-// Update areas
+// Update areas (title = per-area one-line summary, max 80 chars)
 const UPDATE_AREAS = [
-  { key: 'work', label: 'Work', emotionPlaceholder: 'pressure, momentum, doubt...' },
-  { key: 'relationships', label: 'Relationships', emotionPlaceholder: 'distance, love, tension...' },
-  { key: 'personal', label: 'Personal', emotionPlaceholder: 'rebuilding, grief, hope...' },
+  { key: 'work', label: 'Work', emotionPlaceholder: 'pressure, momentum, doubt...', titlePlaceholder: 'e.g. rushing to lock a decision' },
+  { key: 'relationships', label: 'Relationships / Family', emotionPlaceholder: 'distance, love, tension...', titlePlaceholder: 'e.g. walking on eggshells again' },
+  { key: 'personal', label: 'Personal', emotionPlaceholder: 'rebuilding, grief, hope...', titlePlaceholder: 'e.g. I keep holding back' },
 ];
 
 interface CheckinState {
@@ -59,6 +59,7 @@ interface CheckinState {
 }
 
 interface UpdateAreaState {
+  title: string;
   emotions: string;
   update_text: string;
   add_to_journal: boolean;
@@ -88,17 +89,16 @@ export default function ForumUpdatesScreen() {
   });
   
   const [updates, setUpdates] = useState<UpdatesState>({
-    work: { emotions: '', update_text: '', add_to_journal: false },
-    relationships: { emotions: '', update_text: '', add_to_journal: false },
-    personal: { emotions: '', update_text: '', add_to_journal: false },
+    work: { title: '', emotions: '', update_text: '', add_to_journal: false },
+    relationships: { title: '', emotions: '', update_text: '', add_to_journal: false },
+    personal: { title: '', emotions: '', update_text: '', add_to_journal: false },
   });
   
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [savedSummary, setSavedSummary] = useState<string[] | null>(null);
 
-  // NEW: one-line title summary for the whole update
-  const [title, setTitle] = useState('');
+  // Per-area title character limit
   const TITLE_MAX = 80;
   
   // Update check-in field
@@ -156,20 +156,22 @@ export default function ForumUpdatesScreen() {
       const payload = {
         forum_id: forumId,
         user_id: user.id,
-        title: title.trim(),
         one_word_checkin: checkin,
         updates: {
           work: {
+            title: updates.work.title.trim(),
             emotions: parseEmotions(updates.work.emotions),
             update_text: updates.work.update_text,
             add_to_journal: updates.work.add_to_journal,
           },
           relationships: {
+            title: updates.relationships.title.trim(),
             emotions: parseEmotions(updates.relationships.emotions),
             update_text: updates.relationships.update_text,
             add_to_journal: updates.relationships.add_to_journal,
           },
           personal: {
+            title: updates.personal.title.trim(),
             emotions: parseEmotions(updates.personal.emotions),
             update_text: updates.personal.update_text,
             add_to_journal: updates.personal.add_to_journal,
@@ -280,34 +282,6 @@ export default function ForumUpdatesScreen() {
             </Text>
           </View>
 
-          {/* TITLE (one-line summary, max 80 chars) — NEW */}
-          <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Title</Text>
-            <Text style={[styles.sectionSubtext, { color: theme.textTertiary }]}>
-              One line. What's running you right now?
-            </Text>
-            <TextInput
-              value={title}
-              onChangeText={(t) => setTitle(t.slice(0, TITLE_MAX))}
-              placeholder="e.g. I keep holding back"
-              placeholderTextColor={theme.textTertiary}
-              maxLength={TITLE_MAX}
-              style={{
-                borderWidth: 1,
-                borderColor: theme.border,
-                borderRadius: 10,
-                padding: 12,
-                marginTop: 10,
-                fontSize: 15,
-                color: theme.text,
-                backgroundColor: theme.background,
-              }}
-            />
-            <Text style={{ fontSize: 11, color: theme.textTertiary, marginTop: 4, textAlign: 'right' }}>
-              {TITLE_MAX - title.length} characters left
-            </Text>
-          </View>
-
           {/* PART 1: One-Word Check-In */}
           <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>One-word check-in</Text>
@@ -346,6 +320,28 @@ export default function ForumUpdatesScreen() {
             >
               <Text style={[styles.sectionTitle, { color: theme.text }]}>{area.label}</Text>
               
+              {/* Title (per-area, one-line summary, max 80 chars) */}
+              <View style={styles.titleRow}>
+                <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>
+                  Title
+                </Text>
+                <TextInput
+                  style={[styles.titleInput, { 
+                    backgroundColor: theme.background, 
+                    color: theme.text,
+                    borderColor: theme.border 
+                  }]}
+                  placeholder={area.titlePlaceholder}
+                  placeholderTextColor={theme.textTertiary}
+                  value={updates[area.key as keyof UpdatesState].title}
+                  onChangeText={(text) => updateAreaField(area.key as keyof UpdatesState, 'title', text.slice(0, TITLE_MAX))}
+                  maxLength={TITLE_MAX}
+                />
+                <Text style={[styles.titleCounter, { color: theme.textTertiary }]}>
+                  {TITLE_MAX - (updates[area.key as keyof UpdatesState].title?.length || 0)} characters left
+                </Text>
+              </View>
+
               {/* Emotions */}
               <View style={styles.emotionsRow}>
                 <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>
@@ -545,6 +541,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 14,
+  },
+  titleRow: {
+    marginBottom: 14,
+  },
+  titleInput: {
+    height: 42,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    borderWidth: 1,
+  },
+  titleCounter: {
+    fontSize: 11,
+    marginTop: 4,
+    textAlign: 'right',
   },
   emotionsRow: {
     marginBottom: 14,

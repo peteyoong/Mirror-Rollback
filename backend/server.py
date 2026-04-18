@@ -27288,6 +27288,7 @@ class ForumUpdateCheckin(BaseModel):
     physically: Optional[str] = ""
 
 class ForumUpdateArea(BaseModel):
+    title: str = ""           # one-line summary per area (max 80 chars)
     emotions: List[str] = []
     update_text: str = ""
     add_to_journal: bool = False
@@ -27295,7 +27296,6 @@ class ForumUpdateArea(BaseModel):
 class ForumUpdateInput(BaseModel):
     forum_id: str
     user_id: str
-    title: Optional[str] = ""  # NEW: optional one-line summary (max 80 chars)
     one_word_checkin: ForumUpdateCheckin
     updates: Dict[str, ForumUpdateArea]  # work, relationships, personal
 
@@ -27408,7 +27408,6 @@ async def save_forum_update(data: ForumUpdateInput):
         "forum_id": data.forum_id,
         "user_id": data.user_id,
         "user_name": user_name,
-        "title": (data.title or "").strip()[:80],
         "created_at": datetime.now(timezone.utc).isoformat(),
         "one_word_checkin": data.one_word_checkin.model_dump(),
         "updates": {k: v.model_dump() for k, v in data.updates.items()},
@@ -27484,7 +27483,6 @@ async def get_forum_updates(forum_id: str, user_id: str, limit: int = 20):
             "id": str(update["_id"]),
             "user_id": update["user_id"],
             "user_name": update.get("user_name", "Anonymous"),
-            "title": update.get("title", ""),
             "created_at": update["created_at"],
             "one_word_checkin": update.get("one_word_checkin", {}),
             "updates": update.get("updates", {}),
@@ -27514,7 +27512,6 @@ async def get_my_forum_update(forum_id: str, user_id: str):
         "found": True,
         "update": {
             "id": str(update["_id"]),
-            "title": update.get("title", ""),
             "created_at": update["created_at"],
             "one_word_checkin": update.get("one_word_checkin", {}),
             "updates": update.get("updates", {}),

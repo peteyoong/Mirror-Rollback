@@ -6,7 +6,7 @@ Additional comprehensive test for Human Design Variables strict computation
 import requests
 import json
 
-BASE_URL = "https://astro-hd-routes-v6.preview.emergentagent.com/api"
+BASE_URL = "https://mirror-forum-updates.preview.emergentagent.com/api"
 
 def test_additional_scenarios():
     """Test additional scenarios to verify strict computation"""

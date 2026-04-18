@@ -14,7 +14,7 @@ import sys
 import time
 import requests
 
-BACKEND_URL = os.environ.get("BACKEND_URL", "https://astro-hd-routes-v6.preview.emergentagent.com")
+BACKEND_URL = os.environ.get("BACKEND_URL", "https://mirror-forum-updates.preview.emergentagent.com")
 API = BACKEND_URL.rstrip("/") + "/api"
 
 USERS = {
