@@ -28,6 +28,7 @@ import {
 
 import { cleanText } from '../../utils/languageGuard';
 import CrossLensChainRow from '../CrossLensChainRow';
+import ConstellationOverlayCard from './ConstellationOverlayCard';
 
 // ============================================
 // PROPS INTERFACE
@@ -42,6 +43,7 @@ interface AstrologyAtAGlanceTabProps {
   setAspectsExpanded: (expanded: boolean) => void;
   tensionsGiftsExpanded: boolean;
   setTensionsGiftsExpanded: (expanded: boolean) => void;
+  userId?: string;
 }
 
 // ============================================
@@ -53,6 +55,7 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
   fullChartData,
   theme,
   onOpenChat,
+  userId,
 }) => {
   // DEFENSIVE GUARD: Ensure placements exists
   const safePlacements = placements && typeof placements === 'object' ? placements : {};
@@ -242,6 +245,22 @@ const AstrologyAtAGlanceTab: React.FC<AstrologyAtAGlanceTabProps> = ({
           </Text>
         </View>
       )}
+
+      {/* ============================================ */}
+      {/* SECONDARY LAYER: Constellation Overlay (Ophiuchus-aware) */}
+      {/* Collapsible, not primary identity. */}
+      {/* ============================================ */}
+      {userId ? (
+        <ConstellationOverlayCard
+          userId={userId}
+          theme={theme}
+          overlay={
+            (safeFullChartData as any)?.natal?.constellations ||
+            (safeFullChartData as any)?.constellations ||
+            null
+          }
+        />
+      ) : null}
 
       {/* Ask Mirror Button */}
       <TouchableOpacity

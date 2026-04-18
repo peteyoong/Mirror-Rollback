@@ -271,6 +271,7 @@ export default function AstrologyLensView({ userId, onOpenChat }: AstrologyLensV
           setAspectsExpanded={setAspectsExpanded}
           tensionsGiftsExpanded={tensionsGiftsExpanded}
           setTensionsGiftsExpanded={setTensionsGiftsExpanded}
+          userId={userId}
         />
       );
     }

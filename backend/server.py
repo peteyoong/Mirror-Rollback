@@ -15302,7 +15302,11 @@ async def get_astrology_full_chart(user_id: str, force_recompute: bool = False):
                     "dominant_modalities": sorted(modality_counts.items(), key=lambda x: x[1], reverse=True),
                     "dominant_houses": [{"house": h, "planets": p} for h, p in dominant_houses],
                     "angular_planets": angular_planets
-                }
+                },
+                # IAU constellation overlay (Ophiuchus-aware) — additive only.
+                # This does NOT replace the 12-sign zodiac; it's a sky-view
+                # layer on top, exposed to the UI as a collapsible section.
+                "constellations": _safe_resolve_constellation_overlay(astro)
             },
             "sect": astro.get('sect'),
             "transits": await _calculate_transit_intelligence(astro, user_id),
@@ -15320,6 +15324,96 @@ async def get_astrology_full_chart(user_id: str, force_recompute: bool = False):
         logger.error(f"[ASTRO_CHART] Error for user {user_id}: {e}")
         import traceback
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# IAU CONSTELLATION OVERLAY (Ophiuchus-aware secondary layer)
+# =============================================================================
+# Additive only — does NOT replace the 12-sign True Sidereal zodiac. See
+# /app/backend/services/iau_constellations.py for details.
+
+def _safe_resolve_constellation_overlay(astro: dict) -> dict:
+    """
+    Thin wrapper so that any failure to compute the overlay never breaks the
+    main chart response. Returns an empty-but-valid overlay on error.
+    """
+    try:
+        from services.iau_constellations import resolve_constellation_overlay
+        return resolve_constellation_overlay(astro or {})
+    except Exception as e:
+        logger.warning(f"[ConstellationOverlay] Failed: {e}", exc_info=False)
+        return {
+            "version": "iau_1930_v1",
+            "bodies": {},
+            "summary": {},
+            "ophiuchus_bodies": [],
+            "has_ophiuchus": False,
+            "overlay_narrative": None,
+        }
+
+
+@api_router.get("/astrology/constellations/{user_id}")
+async def get_astrology_constellation_overlay(user_id: str):
+    """
+    Return the IAU constellation overlay (incl. Ophiuchus) for this user.
+
+    This is a SECONDARY layer on top of the 12-sign True Sidereal zodiac.
+    The primary `signs` field on the chart is untouched. Use this endpoint
+    when the UI wants to show "where is my Sun in the actual sky" without
+    adopting a 13-sign model.
+
+    Response shape:
+      {
+        "success": true,
+        "user_id": "...",
+        "overlay": {
+          "version": "iau_1930_v1",
+          "bodies": {
+            "Sun":       {"constellation": "...", "glyph": "...", "zodiac_sign": "...", "divergent": bool, "tropical_longitude": float},
+            ...
+          },
+          "summary": {
+            "sun_constellation": "...",
+            "moon_constellation": "...",
+            "ascendant_constellation": "...",
+            "mc_constellation": "..."
+          },
+          "ophiuchus_bodies": ["Moon", ...],
+          "has_ophiuchus": bool,
+          "overlay_narrative": "..."   # populated only when has_ophiuchus
+        },
+        "meta": {
+          "note": "Not a 13-sign zodiac. Sky-observation overlay only.",
+          "zodiac_system": "True Sidereal-M (SVP 31.2836)",
+          "boundary_source": "IAU 1930 (Delporte), ecliptic crossings"
+        }
+      }
+    """
+    try:
+        user, chart = await get_user_astrology_data(user_id)
+        astro = chart.get("astrology", {}) if chart else {}
+
+        overlay = _safe_resolve_constellation_overlay(astro)
+
+        return {
+            "success": True,
+            "user_id": user_id,
+            "overlay": overlay,
+            "meta": {
+                "note": (
+                    "Ophiuchus is surfaced as a secondary sky-observation "
+                    "layer. The 12-sign True Sidereal zodiac remains the "
+                    "primary identity frame."
+                ),
+                "zodiac_system": "True Sidereal-M (SVP 31.2836)",
+                "boundary_source": "IAU 1930 (Delporte), ecliptic crossings",
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ConstellationOverlay] Error for user {user_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
