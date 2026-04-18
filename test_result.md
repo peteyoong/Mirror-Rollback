@@ -9207,3 +9207,60 @@ agent_communication:
         - /app/frontend/components/AstrologyLensView.tsx
         - /app/iau_constellations_test.py (test harness)
 
+
+  - agent: "main"
+    message: |
+      FORUM DYNAMICS — CANONICAL ENNEAGRAM + DRIFT AUDIT
+
+      Root cause: `get_member_lens_data` read Enneagram ONLY from
+      `db.enneagram_results`. When `user.enneagram_type` (or
+      `user.enneagram.inferred_core`) was updated via profile flows but the
+      results collection wasn't re-written, Forum Dynamics → Enneagram
+      Diversity showed stale / missing types. `compute_enneagram_signals`
+      in `forum_hd_mapping.py` had the same drift vector (read only from
+      `user.enneagram.inferred_core`).
+
+      Fix (4 parts):
+
+      1. `/app/backend/services/enneagram_source.py` (NEW)
+         - `get_user_enneagram(user) -> int|None` follows the exact
+           fallback chain the spec requires:
+             enneagram_type → enneagram.inferred_core → enneagram.core
+             → legacy scalar enneagram
+         - Core-only (1..9). Never returns wing.
+         - `_normalize_core` tolerates ints, "5", "Type 5", "5w4",
+           dict forms, etc.
+         - `backfill_enneagram_type(db, logger)` = the one-time migration.
+           Only writes to `user.enneagram_type` when missing; never
+           overwrites. Falls back to `enneagram_results` when the user
+           doc has nothing.
+
+      2. `server.py :: get_member_lens_data` — now resolves Enneagram via
+         `get_user_enneagram(user)` FIRST, then uses `enneagram_results`
+         only for wing + assessment metadata when the user doc is empty.
+
+      3. `services/forum_hd_mapping.py :: compute_enneagram_signals` —
+         now uses the shared helper. Wing metadata still reads from the
+         nested enneagram dict.
+
+      4. `server.py :: run_startup_data_migrations` — wired
+         `backfill_enneagram_type` at the end of the migration chain. Also,
+         the Enneagram save endpoint now writes
+         `user.enneagram_type = <canonical core>` alongside the existing
+         `enneagram_results` upsert, closing the drift loop going forward.
+
+      Other Forum Dynamics dimensions (Human Design Energy Mix / Authority
+      Mix / Astrology Element Balance / Numerology Life-Path) all read
+      directly from the `charts` collection — single source, no drift
+      vector. Audit clean.
+
+      Live verification (Yoong family forum, 4 members):
+        Before: Enneagram Diversity was sparse / wrong.
+        After :  {7: 1, 4: 1, 8: 1, 3: 1}
+                  Pete: 7w8 | Thaddeus: 4 | Isaac: 8 | Mel: 3w4
+
+      Backfill stats (live DB, first boot after patch):
+        scanned=167  from_user_doc=27  from_results=104
+        — 131 users normalised to canonical `enneagram_type` in one pass.
+        Subsequent boots: scanned=36, 0 writes — idempotent ✓
+

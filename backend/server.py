@@ -23000,6 +23000,20 @@ async def save_self_declared_enneagram(request: EnneagramSelfDeclareRequest):
             {"$set": result_data},
             upsert=True
         )
+
+        # ALSO sync the canonical field on the user doc so Forum Dynamics
+        # and every other aggregator see the new type immediately. This
+        # closes the drift loop — going forward, `user.enneagram_type` is
+        # always the source of truth.
+        try:
+            from services.enneagram_source import _normalize_core
+            _canonical = _normalize_core(request.enneagram_type)
+            if _canonical is not None:
+                from bson import ObjectId as _OID
+                _match = {"_id": _OID(request.user_id)} if _OID.is_valid(request.user_id) else {"_id": request.user_id}
+                await db.users.update_one(_match, {"$set": {"enneagram_type": _canonical}})
+        except Exception as _e:
+            logger.warning(f"[Enneagram] canonical sync skipped: {_e}")
         
         return {
             "success": True,
@@ -27822,14 +27836,35 @@ async def get_member_lens_data(user_id: str) -> dict:
                 lens_data["numerology"]["personality"] = numerology.get("personality")
         
         # === Enneagram ===
-        # Get effective Enneagram from enneagram_results collection
-        # This handles both assessment results AND self-declared types
+        # CANONICAL RESOLUTION ORDER (see services/enneagram_source.py):
+        #   1. user.enneagram_type          (single source of truth going forward)
+        #   2. user.enneagram.inferred_core
+        #   3. user.enneagram.core
+        #   4. legacy scalar user.enneagram
+        #   5. enneagram_results collection (wing + assessment metadata only
+        #      when the user doc has nothing)
+        #
+        # Previously this block read ONLY from `db.enneagram_results`, which
+        # caused Forum Dynamics → Enneagram Diversity to drift whenever the
+        # user doc was updated but the collection wasn't. That drift is the
+        # root cause of the reported mismatch.
+        from services.enneagram_source import get_user_enneagram
+        core_type = get_user_enneagram(user) if user else None
+        wing_value = None
+
         enneagram_data = await db.enneagram_results.find_one({"user_id": user_id})
         if enneagram_data:
-            # Use core_type or inferred_core (both are stored)
-            core_type = enneagram_data.get("core_type") or enneagram_data.get("inferred_core")
+            # Prefer user-doc canonical core when present; otherwise fall
+            # back to the stored assessment result.
+            if core_type is None:
+                from services.enneagram_source import _normalize_core
+                core_type = _normalize_core(
+                    enneagram_data.get("core_type") or enneagram_data.get("inferred_core")
+                )
+            # Wing always comes from the assessment result (we don't store
+            # a canonical wing on the user doc yet).
             wing_value = enneagram_data.get("wing") or enneagram_data.get("inferred_wing")
-            
+
             # Convert wing to int if it's not "balanced"
             if isinstance(wing_value, str) and wing_value != "balanced":
                 try:
@@ -27838,7 +27873,8 @@ async def get_member_lens_data(user_id: str) -> dict:
                     wing_value = None
             elif wing_value == "balanced":
                 wing_value = None
-            
+
+        if core_type is not None:
             lens_data["enneagram"]["core_type"] = core_type
             lens_data["enneagram"]["wing"] = wing_value
             
@@ -32780,7 +32816,25 @@ async def run_startup_data_migrations():
                 logger.info(f"[Migration] Second-pass recompute for {user.get('name', user_id)}: astro={'YES' if astro_chart else 'NO'}, bazi={'YES' if bazi_chart else 'NO'}")
             except Exception as e:
                 logger.error(f"[Migration] Second-pass error for {user_id}: {e}")
-    
+
+    # === Enneagram canonical backfill ===
+    # Populate `user.enneagram_type` from the fallback chain (nested
+    # inferred_core / nested core / legacy scalar / enneagram_results) for
+    # any user missing the canonical field. Never overwrites existing
+    # values. This is the one-time migration that, combined with the
+    # read-time standardisation in get_member_lens_data, eliminates drift
+    # between Forum Dynamics and the live user profile.
+    try:
+        from services.enneagram_source import backfill_enneagram_type
+        _ennea_summary = await backfill_enneagram_type(db, logger=logger)
+        logger.info(
+            f"[Migration] Enneagram backfill: scanned={_ennea_summary['scanned']} "
+            f"from_user_doc={_ennea_summary['backfilled_from_user_doc']} "
+            f"from_results={_ennea_summary['backfilled_from_results']}"
+        )
+    except Exception as e:
+        logger.error(f"[Migration] Enneagram backfill error: {e}")
+
     logger.info("[Migration] Startup data migrations complete ✓")
 
 

@@ -539,25 +539,27 @@ def compute_enneagram_signals(
     pronouns_b: Dict[str, str] = None,
 ) -> Optional[Dict[str, List[str]]]:
     """Compute DIRECTIONAL enneagram relationship signals. Requires both types."""
-    enn_a = user_data_a.get("enneagram", {}) if user_data_a else {}
-    enn_b = user_data_b.get("enneagram", {}) if user_data_b else {}
-    
-    core_a = enn_a.get("inferred_core")
-    core_b = enn_b.get("inferred_core")
-    
+    # CANONICAL RESOLUTION — use the shared helper so this function honours
+    # the same fallback chain (enneagram_type → enneagram.inferred_core →
+    # enneagram.core → legacy enneagram) as Forum Dynamics + Member Lens.
+    try:
+        from services.enneagram_source import get_user_enneagram
+    except Exception:
+        from enneagram_source import get_user_enneagram  # type: ignore
+
+    core_a = get_user_enneagram(user_data_a)
+    core_b = get_user_enneagram(user_data_b)
+
     if not core_a or not core_b:
         logger.debug(f"[Enneagram] Missing: A={core_a}, B={core_b}")
         return None
-    
-    try:
-        core_a = int(core_a)
-        core_b = int(core_b)
-    except (ValueError, TypeError):
-        return None
-    
-    wing_a = enn_a.get("inferred_wing")
-    wing_b = enn_b.get("inferred_wing")
-    
+
+    # Wing (for metadata only) still lives under enneagram.inferred_wing.
+    enn_a = (user_data_a.get("enneagram") or {}) if isinstance(user_data_a, dict) else {}
+    enn_b = (user_data_b.get("enneagram") or {}) if isinstance(user_data_b, dict) else {}
+    wing_a = enn_a.get("inferred_wing") if isinstance(enn_a, dict) else None
+    wing_b = enn_b.get("inferred_wing") if isinstance(enn_b, dict) else None
+
     rel_a = ENNEAGRAM_RELATIONAL.get(core_a, {})
     rel_b = ENNEAGRAM_RELATIONAL.get(core_b, {})
     
