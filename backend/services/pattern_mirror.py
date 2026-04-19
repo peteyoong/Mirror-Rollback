@@ -23,6 +23,8 @@ Language Rules:
 import os
 import json
 import logging
+
+from llm_model_config import get_primary_model, get_fallback_model
 import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Tuple
@@ -9267,7 +9269,7 @@ async def _generate_pattern_with_llm(
             session_id=f"pattern_mirror_{user_id}_{datetime.now().timestamp()}",
             system_message="You are the Pattern Mirror engine. Return ONLY valid JSON."
         )
-        chat.with_model("openai", "gpt-5.2")
+        chat.with_model("openai", get_primary_model())
         
         response = await chat.send_message(UserMessage(text=prompt))
         response_text = response.strip()

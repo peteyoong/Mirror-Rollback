@@ -1204,7 +1204,13 @@ async def emergent_generate(
             system_message=full_system_prompt
         )
         chat.with_model("openai", model)
-        chat.with_params(max_tokens=max_tokens)  # Apply max_tokens parameter
+        chat.with_params(
+            max_tokens=max_tokens,
+            timeout=45,              # Allow longer for multi-section deep dive
+            request_timeout=45,
+            num_retries=0,           # litellm-level retries off
+            max_retries=0,           # OpenAI SDK-level retries off (litellm>=1.35 passes through)
+        )  # Apply max_tokens + fail-fast timeouts
         
         message = UserMessage(text=user_message)
         response = await chat.send_message(message)

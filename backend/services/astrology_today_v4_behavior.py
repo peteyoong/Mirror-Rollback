@@ -29,11 +29,23 @@ transit classes/duration, then phrased by the LLM.
 
 import os
 import json
+import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 
+try:
+    from llm_model_config import get_primary_model
+except Exception:
+    def get_primary_model():
+        return os.environ.get("OPENAI_PRIMARY_MODEL", "gpt-4o")
+
 logger = logging.getLogger(__name__)
+
+# Hard timeout for the LLM call. When OpenAI/Emergent proxy is
+# returning 502s or slow (Feb 2026), we don't want the whole page to
+# hang — deterministic fallback takes over within this window.
+LLM_TIMEOUT_SECONDS = float(os.environ.get("ASTRO_V4_LLM_TIMEOUT", "18"))
 
 # =====================================================================
 # TRANSIT PLANET CLASSES (governs Time Layer windows)
@@ -383,10 +395,26 @@ async def _call_behavior_llm(
             session_id=f"astro_today_v4_{datetime.now(timezone.utc).strftime('%Y%m%d%H')}",
             system_message=BEHAVIOR_FIRST_SYSTEM_PROMPT,
         )
-        chat.with_model("openai", "gpt-4o")
+        chat.with_model("openai", get_primary_model())
+        # Pass litellm kwargs directly — keeps the request from hanging when
+        # OpenAI/Emergent proxy 502s (Feb 2026 outage). num_retries=0 means
+        # fail fast; request_timeout caps each attempt.
+        try:
+            chat.with_params(
+                timeout=LLM_TIMEOUT_SECONDS,
+                request_timeout=LLM_TIMEOUT_SECONDS,
+                num_retries=0,
+            )
+        except Exception:
+            pass
 
-        response = await chat.send_message(
-            UserMessage(text=json.dumps(user_payload, ensure_ascii=False))
+        # Extra safety net on top — asyncio-level deadline slightly higher
+        # than litellm's own timeout.
+        response = await asyncio.wait_for(
+            chat.send_message(
+                UserMessage(text=json.dumps(user_payload, ensure_ascii=False))
+            ),
+            timeout=LLM_TIMEOUT_SECONDS + 3,
         )
 
         raw = response.strip() if isinstance(response, str) else str(response).strip()
@@ -398,11 +426,15 @@ async def _call_behavior_llm(
 
         parsed = json.loads(raw)
         return parsed
+    except asyncio.TimeoutError:
+        logger.warning(f"[TodayV4] LLM timeout after {LLM_TIMEOUT_SECONDS}s — using deterministic fallback.")
+        return None
     except json.JSONDecodeError as e:
         logger.error(f"[TodayV4] JSON parse error: {e} :: raw={raw[:400] if 'raw' in dir() else 'n/a'}")
         return None
     except Exception as e:
-        logger.error(f"[TodayV4] LLM error: {e}", exc_info=True)
+        # Any LLM / network / 502 / rate-limit — gracefully fall back.
+        logger.warning(f"[TodayV4] LLM call failed ({type(e).__name__}: {str(e)[:200]}) — using deterministic fallback.")
         return None
 
 

@@ -25,6 +25,7 @@ import re
 # Import calculation engines
 from calculations.astrology import get_full_natal_chart, close_ephemeris, ComputeIntegrityError
 from calculations.human_design import get_human_design_chart, get_incarnation_cross_interpretation
+from llm_model_config import get_primary_model, get_fallback_model
 from calculations.gene_keys import get_gene_keys_sequences
 from calculations.numerology import get_full_numerology, get_numerology_cycles
 from calculations.consciousness import get_consciousness_framework, analyze_consciousness_indicators
@@ -3171,7 +3172,7 @@ async def rewrite_for_compliance(original_response: str, violations: Dict[str, L
             session_id=f"guardrail_rewrite_{datetime.now().timestamp()}",
             system_message=rewrite_prompt
         )
-        rewrite_chat.with_model("openai", "gpt-5.2")
+        rewrite_chat.with_model("openai", get_primary_model())
         
         rewrite_message = UserMessage(text="Rewrite the response now.")
         rewritten = await rewrite_chat.send_message(rewrite_message)
@@ -3344,7 +3345,7 @@ async def generate_ai_response(system_prompt: str, user_message: str, user_id: s
             session_id=user_id if user_id else "default",
             system_message=system_prompt + context
         )
-        chat.with_model("openai", "gpt-5.2")
+        chat.with_model("openai", get_primary_model())
         
         # Send message
         message = UserMessage(text=user_message)
@@ -6507,7 +6508,7 @@ Generate a gentle, lens-informed reflection that honors the user's sovereignty."
 
         # Generate response
         response = completion(
-            model="gpt-5.2",
+            model=get_primary_model(),
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
@@ -8111,7 +8112,7 @@ USER SHOULD FEEL:
                         user_id=request.user_id,
                         context=emit_context,
                         additional_system_prompt=system_prompt,
-                        model="gpt-5.2"
+                        model=get_primary_model()
                     ),
                     timeout=90.0  # 90 second timeout for LLM call
                 )
@@ -8177,7 +8178,7 @@ USER SHOULD FEEL:
                 session_id=f"memory_{session_id}",
                 system_message=memory_prompt
             )
-            memory_chat.with_model("openai", "gpt-5.2")
+            memory_chat.with_model("openai", get_primary_model())
             
             # Request structured memory update
             memory_message = UserMessage(text="Analyze the above and generate a memory_update JSON object.")
@@ -10737,7 +10738,7 @@ NEVER: predictions, prescriptions, system names, identity locks
             user_id=user_id,
             context={"date": date_str, "daily_seed": daily_seed, "tone": tone},
             additional_system_prompt=keystone_additional_prompt,
-            model="gpt-5.2"
+            model=get_primary_model()
         )
         
         # Parse response
@@ -11770,10 +11771,33 @@ Rising in {placements['rising_sign']}: Approach to new situations
             session_id=f"astro_summary_{user_id}_{datetime.now().strftime('%Y%m%d')}",
             system_message=system_prompt
         )
-        chat.with_model("openai", "gpt-5.2")
-        
+        chat.with_model("openai", get_primary_model())
+        try:
+            chat.with_params(timeout=18, request_timeout=18, num_retries=0, max_retries=0)
+        except Exception:
+            pass
+
         message = UserMessage(text="Generate the astrology summary for this user. Return ONLY valid JSON.")
-        response_text = await chat.send_message(message)
+        try:
+            import asyncio as _asyncio
+            response_text = await _asyncio.wait_for(chat.send_message(message), timeout=20)
+        except Exception as _llm_e:
+            logger.warning(f"[AstroSummaryProfile] LLM unavailable, returning minimal fallback: {type(_llm_e).__name__}")
+            return {
+                "title": "Your Astrology Profile",
+                "core_placements": {
+                    "sun": placements['sun_sign'],
+                    "moon": placements['moon_sign'],
+                    "ascendant": placements['rising_sign']
+                },
+                "sections": [
+                    {"label": "Your Orientation", "body": f"With {placements['sun_sign']} as your core orientation, there's a particular quality to how you express your sense of self."},
+                    {"label": "How You Process", "body": f"Your {placements['moon_sign']} Moon suggests a specific way of moving through emotional experience."},
+                    {"label": "What Draws You", "body": f"The {placements['rising_sign']} rising lens shapes how you approach new situations."}
+                ],
+                "mirror_prompt": "What in this description feels recognisable to you?",
+                "llm_fallback": True,
+            }
         
         # Parse JSON response
         try:
@@ -11876,10 +11900,39 @@ General atmosphere: supportive of inward focus.
             session_id=f"astro_today_{user_id}_{today_date}",
             system_message=system_prompt
         )
-        chat.with_model("openai", "gpt-5.2")
-        
+        chat.with_model("openai", get_primary_model())
+        # Fail-fast LLM config for OpenAI 502 outage resilience (Feb 2026)
+        try:
+            chat.with_params(
+                timeout=18,
+                request_timeout=18,
+                num_retries=0,
+                max_retries=0,  # OpenAI SDK-level retries off
+            )
+        except Exception:
+            pass
+
         message = UserMessage(text="Generate Today's Snapshot. Return ONLY valid JSON.")
-        response_text = await chat.send_message(message)
+        try:
+            # asyncio-level deadline so the endpoint returns within 20s even
+            # when OpenAI/Emergent proxy is hanging (Feb 2026 502 outage).
+            import asyncio as _asyncio
+            response_text = await _asyncio.wait_for(chat.send_message(message), timeout=20)
+        except Exception as llm_err:
+            logger.warning(f"[AstroSummary] LLM failed, returning minimal fallback: {type(llm_err).__name__}")
+            # Deterministic minimal fallback so the UI renders something instead of hanging
+            return {
+                "success": True,
+                "title": "Today's sky is active",
+                "snapshot": (
+                    f"The symbolic weather is present today with {placements['sun_sign']} Sun and "
+                    f"{placements['moon_sign']} Moon in the foreground. The narrative engine is "
+                    f"temporarily unavailable — try again in a minute."
+                ),
+                "key_themes": ["Reflection", "Calibration"],
+                "tip": "Small, grounded steps today. The deeper reading will return shortly.",
+                "llm_fallback": True,
+            }
         
         # Parse JSON response
         try:
@@ -17063,7 +17116,7 @@ Incarnation Cross: {incarnation_cross}
             session_id=f"hd_summary_{user_id}_{datetime.now().strftime('%Y%m%d')}",
             system_message=system_prompt
         )
-        chat.with_model("openai", "gpt-5.2")
+        chat.with_model("openai", get_primary_model())
         
         message = UserMessage(text="Generate the Human Design summary. Return ONLY valid JSON.")
         response_text = await chat.send_message(message)
@@ -17193,7 +17246,7 @@ Profile: {hd_data['profile']}
             session_id=f"hd_today_{user_id}_{today_date}",
             system_message=system_prompt
         )
-        chat.with_model("openai", "gpt-5.2")
+        chat.with_model("openai", get_primary_model())
         
         message = UserMessage(text="Generate Today's Experiment. Return ONLY valid JSON.")
         response_text = await chat.send_message(message)
@@ -20269,7 +20322,7 @@ async def get_numerology_summary(user_id: str):
             session_id=f"numerology_summary_{user_id}_{datetime.now().strftime('%Y%m%d')}",
             system_message=system_prompt
         )
-        chat.with_model("openai", "gpt-5.2")
+        chat.with_model("openai", get_primary_model())
         
         message = UserMessage(text="Generate the numerology summary for this user. Return ONLY valid JSON.")
         response_text = await chat.send_message(message)
@@ -20420,7 +20473,7 @@ async def get_numerology_today(user_id: str):
             session_id=f"numerology_today_{user_id}_{today_date}",
             system_message=system_prompt
         )
-        chat.with_model("openai", "gpt-5.2")
+        chat.with_model("openai", get_primary_model())
         
         message = UserMessage(text="Generate Today's Snapshot for this user. Return ONLY valid JSON.")
         response_text = await chat.send_message(message)
@@ -28805,7 +28858,7 @@ async def forum_chat(forum_id: str, request: ForumChatRequest):
                     user_id=request.user_id,
                     context={"forum_id": forum_id, "mode": request.mode.value},
                     additional_system_prompt=system_prompt,
-                    model="gpt-5.2"
+                    model=get_primary_model()
                 ),
                 timeout=60.0
             )
@@ -29345,7 +29398,7 @@ Observable behaviour. Under 160 words total. No reflective question at the end."
                     user_id=user_id,
                     context={"forum_id": forum_id},
                     additional_system_prompt=FORUM_STORY_SYSTEM_PROMPT,
-                    model="gpt-5.2"
+                    model=get_primary_model()
                 ),
                 timeout=60.0
             )
@@ -29595,7 +29648,7 @@ Remember: Write a warm, thoughtful reflection. Avoid predictions or deterministi
                     user_id=request.user_id,
                     context={"forum_id": forum_id},
                     additional_system_prompt=PAIRWISE_DYNAMICS_SYSTEM_PROMPT,
-                    model="gpt-5.2"
+                    model=get_primary_model()
                 ),
                 timeout=60.0
             )
