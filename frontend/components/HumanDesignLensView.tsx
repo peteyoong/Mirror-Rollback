@@ -899,6 +899,166 @@ const PROFILE_STORIES: { [key: string]: MechanicStory } = {
 };
 
 // Incarnation Cross Stories (generic by angle, can be expanded)
+// ============================================================
+// CROSS FAMILY STORIES (Mirror-style — Recognition / Tension /
+// How it shows up / The shift). Keyed by cross_family (e.g. "Migration").
+// Angle (RAX/LAX/JXP) is appended as contextual flavor at runtime.
+// ============================================================
+const CROSS_FAMILY_STORIES: { [family: string]: MechanicStory } = {
+  'Migration': {
+    explanation: [
+      'Your life is not meant to stay in one shape. There\'s a current underneath that keeps asking you to move — between places, between identities, between environments — in a way that often doesn\'t fit what others expect from you.',
+      'Movement here isn\'t restlessness. It\'s how you find your actual rhythm. Each transition strips away what you thought you needed and shows you what\'s actually yours.',
+      'You carry something that makes other people move too. When you shift, people around you feel permission to shift.'
+    ],
+    patterns: [
+      'You\'re most alive when something is genuinely changing — new country, new role, new chapter',
+      'Staying static for too long starts to feel like a slow disappearance',
+      'People treat you as a bridge — between groups, between phases, between worlds',
+      'Your identity has visibly changed more than once, and it\'s meant to change again',
+      'You influence the direction of others by the fact of your own movement',
+    ],
+    challenge: 'The trap is treating movement as escape or restlessness — and feeling guilty about it. It\'s not that. The other trap is forcing yourself to stay for safety and slowly dimming.',
+    reflection: 'What are you staying in right now that you already know you\'re moving out of? And what\'s the movement that your body is already preparing for, even if you haven\'t named it yet?',
+  },
+  'Sphinx': {
+    explanation: [
+      'Your life direction is wrapped around the question of who you actually are — not the roles you perform. People are drawn to you partly because you haven\'t fully resolved that question, and they can feel it.',
+      'You\'re designed to be a kind of riddle that points others at their own identity. Not by telling them, but by living yours fully.',
+      'The self-knowing is the curriculum. When you try to skip past it to "just be useful," the direction you\'re seeking quietly disappears.',
+    ],
+    patterns: [
+      'People project a lot onto you — leader, mystery, answer — and you feel the pressure of it',
+      'You\'re either hiding from how visible you actually are, or over-performing to compensate',
+      'Your sense of direction returns when you stop trying to be legible to others',
+      'Moments of being fully yourself have a noticeable effect on the room',
+    ],
+    challenge: 'The trap is outsourcing your direction to other people\'s reads of you. You become what they need instead of what\'s actually here.',
+    reflection: 'Where are you performing an identity versus being one? What\'s the part of you that you keep editing out before anyone sees it?',
+  },
+  'Tension': {
+    explanation: [
+      'Your design holds opposing forces on purpose. Where other people smooth things over, you\'re built to carry the friction until something new comes out of it.',
+      'Ease is not the goal here. Depth is. The struggle is the mechanism — without it, your meaning goes flat.',
+      'You make others take their struggles more seriously by the way you refuse to flatten yours.',
+    ],
+    patterns: [
+      'Life keeps handing you situations with no obvious good answer',
+      'You have more stamina for hard things than the people around you',
+      'Easy choices bore you; you subtly sabotage them',
+      'You help others hold their tension instead of fixing it',
+    ],
+    challenge: 'The trap is collapsing under the weight or glorifying the suffering. Neither is the work. The work is carrying it usefully.',
+    reflection: 'What tension are you trying to resolve right now that\'s actually meant to stay unresolved for longer?',
+  },
+  'Vessel of Love': {
+    explanation: [
+      'You\'re built to hold love in a very physical, embodied way — not as an abstract feeling, but as something that moves through your body and affects the people near you.',
+      'This makes you sensitive to what people are actually carrying, and the way you respond with presence changes the field around you.',
+      'The body is the instrument. Neglect it and the transmission goes muddy.',
+    ],
+    patterns: [
+      'People settle around you without knowing why',
+      'Your physical state directly affects who shows up for you',
+      'You over-give when you\'re disconnected from your body',
+      'Love for you is expressed through presence and action, not words',
+    ],
+    challenge: 'The trap is spiritual bypassing — making the love abstract instead of letting it land through your actual body and actual time.',
+    reflection: 'Where are you withholding presence and calling it self-protection?',
+  },
+  'Consciousness': {
+    explanation: [
+      'You\'re oriented around the drive to understand — not for its own sake, but because clarity is how you contribute.',
+      'You make sense of things other people can\'t hold, and part of your direction is learning to put that clarity somewhere usable.',
+      'Mental clarity is the product. Without it, nothing else in your design lands.',
+    ],
+    patterns: [
+      'You keep re-thinking things until they click',
+      'Vague conversations make you itch',
+      'You can see the logical end of something before others are on board',
+      'You become unstable when you\'re forced to operate without clarity',
+    ],
+    challenge: 'The trap is using mental clarity as a wall against feeling, or waiting for total certainty before doing anything.',
+    reflection: 'What are you clear about that you haven\'t said out loud yet, and to whom?',
+  },
+  'Contagion': {
+    explanation: [
+      'There\'s something about the way you commit that other people catch. Your conviction is transmissible.',
+      'When you\'re fully in, the people around you start moving too. When you\'re half-in, they feel the wobble and pull back.',
+      'You don\'t influence by arguing — you influence by embodying.',
+    ],
+    patterns: [
+      'Your enthusiasm changes the temperature of a room',
+      'People copy your choices more than they admit',
+      'When you lose conviction, things around you visibly stall',
+      'You spread things — ideas, moods, momentum — whether you intend to or not',
+    ],
+    challenge: 'The trap is commitment without clarity — becoming a carrier for something that isn\'t actually yours, and infecting others with it.',
+    reflection: 'What are you half-committed to right now, and how is it showing up in the people around you?',
+  },
+  'Eden': {
+    explanation: [
+      'Your direction runs through emotional experience. You\'re designed to go deep into feeling — joy, loss, longing — because that\'s where your signal lives.',
+      'Crisis is not a detour for you. It\'s the curriculum. The drop is what reveals what\'s actually real.',
+      'You feel things other people edit out. That sensitivity is the compass.',
+    ],
+    patterns: [
+      'Emotional waves move you more than most people realize',
+      'You go quiet during the drop, then clear on the way up',
+      'Superficial environments drain you',
+      'You find paradise briefly, lose it, and that cycle is the point',
+    ],
+    challenge: 'The trap is numbing to stabilize, or building a life that keeps you out of the drop on purpose.',
+    reflection: 'What are you currently avoiding feeling so you don\'t have to feel all of it?',
+  },
+  'Explanation': {
+    explanation: [
+      'You\'re designed to turn complexity into something understandable — not by simplifying it, but by naming what others can\'t quite name yet.',
+      'Your clarity benefits the whole, even when it starts as a personal insight.',
+      'If you keep the insights inside, the direction dries up.',
+    ],
+    patterns: [
+      'You can articulate patterns others feel but can\'t describe',
+      'Your mind keeps circling until it finds the right frame',
+      'People come to you specifically for clarity',
+      'When you withhold your reads, you feel it physically',
+    ],
+    challenge: 'The trap is waiting to be the expert before you speak. The insight expires if you sit on it.',
+    reflection: 'What explanation do you already have that you\'re waiting to earn permission to share?',
+  },
+  'Planning': {
+    explanation: [
+      'Your direction is shaped by your capacity to organize, sequence, and structure. You see the order underneath chaos.',
+      'Structure is not a constraint for you — it\'s how meaning arrives.',
+      'When you resist planning, you end up managing the same mess twice.',
+    ],
+    patterns: [
+      'You instinctively sequence things in your head',
+      'Loose situations disturb you more than they should',
+      'You stabilize groups by the order you bring',
+      'You burn out when asked to operate without structure',
+    ],
+    challenge: 'The trap is rigidifying the structure until there\'s no room for anything alive.',
+    reflection: 'What system are you over-protecting because it makes you feel safe?',
+  },
+  'Service': {
+    explanation: [
+      'Your direction is woven through being useful. You find yourself by what you offer to others, and lose yourself when there\'s no one to serve.',
+      'Service for you is not subservience — it\'s contribution that proves you matter.',
+      'The key is choosing who gets your service, not how much.',
+    ],
+    patterns: [
+      'You instinctively look for where you can help',
+      'Without a recipient for your effort, you drift',
+      'You say yes too quickly and regret it later',
+      'Your boundaries live inside your choices of who to serve',
+    ],
+    challenge: 'The trap is serving out of need to be needed, instead of out of clear contribution.',
+    reflection: 'Who are you serving right now that you wouldn\'t choose if you had clean boundaries?',
+  },
+};
+
+// Fallback: generic angle-level stories (used ONLY when cross_family is unknown)
 const CROSS_STORIES: { [key: string]: MechanicStory } = {
   'Right Angle': {
     explanation: [
@@ -2870,9 +3030,15 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
       case 'incarnation':
         const crossVal = mechanics.incarnation_cross || 'Right Angle Cross';
         const angle = getCrossAngle(crossVal);
+        // Extract cross family name: "Left Angle Cross of Migration 1" -> "Migration"
+        // Falls back to angle-generic only when family not found in map.
+        const familyMatch = crossVal.match(/Cross of ([A-Za-z\s]+?)(?:\s+\d+)?$/);
+        const crossFamily = familyMatch?.[1]?.trim() || '';
         title = crossVal;
-        subtitle = 'Your life purpose theme';
-        story = CROSS_STORIES[angle] || CROSS_STORIES['Right Angle'];
+        subtitle = crossFamily
+          ? `${angle} Cross of ${crossFamily} — your life direction`
+          : 'Your life purpose theme';
+        story = CROSS_FAMILY_STORIES[crossFamily] || CROSS_STORIES[angle] || CROSS_STORIES['Right Angle'];
         break;
     }
     

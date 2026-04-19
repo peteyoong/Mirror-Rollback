@@ -18130,7 +18130,44 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
         }
         
         full_hd_json_str = json_module.dumps(full_hd_summary, indent=2)
-        
+
+        # ============================================================
+        # ENRICH: Look up cross-family-specific themes so LLM writes
+        # specific narrative (e.g. Migration = movement/transition),
+        # NOT a generic "Left Angle Cross — transpersonal karma" fallback.
+        # ============================================================
+        cross_family = incarnation_cross.get('cross_family') if isinstance(incarnation_cross, dict) else None
+        cross_angle = incarnation_cross.get('angle') if isinstance(incarnation_cross, dict) else None
+        cross_gates = incarnation_cross.get('gates') if isinstance(incarnation_cross, dict) else None
+        cross_variant = incarnation_cross.get('variant') if isinstance(incarnation_cross, dict) else None
+
+        cross_themes_block = ""
+        try:
+            if cross_family and cross_angle:
+                _cross_interp = get_incarnation_cross_interpretation(cross_family, cross_angle)
+                _themes = _cross_interp.get("themes") or []
+                _flavor = _cross_interp.get("orientation_flavor") or ""
+                if _themes or _flavor:
+                    cross_themes_block = (
+                        f"\n\nINCARNATION CROSS THEMES (use these verbatim as the scaffold for the cross section — "
+                        f"DO NOT write generic 'transpersonal karma' or 'left angle' language):\n"
+                        f"  Cross family: {cross_family}\n"
+                        f"  Cross angle: {cross_angle}\n"
+                        f"  Specific themes:\n"
+                    )
+                    for t in _themes[:6]:
+                        cross_themes_block += f"    - {t}\n"
+                    if _flavor:
+                        cross_themes_block += f"  Orientation-specific flavor: {_flavor}\n"
+                    cross_themes_block += (
+                        "  The section titled 'Incarnation Cross: Your Life Direction' MUST "
+                        f"be specifically about {cross_family} (NOT about 'left/right/juxtaposition angle' "
+                        "mechanics in general). Reference at least 2 of the specific themes above in concrete, "
+                        "recognizable language. No generic angle-type descriptions."
+                    )
+        except Exception as _e:
+            logger.warning(f"[HD_DEEP_DIVE] Cross enrichment skipped: {_e}")
+
         # Build full prompt with all available HD data (using canonical data)
         system_prompt = HUMAN_DESIGN_GLOBAL_PROMPT + "\n\n" + HUMAN_DESIGN_DEEP_DIVE_PROMPT.format(
             hd_type=hd_type,
@@ -18142,7 +18179,7 @@ async def get_human_design_deep_dive(user_id: str, force_refresh: bool = False):
             defined_centers=defined_centers_str,
             defined_channels=defined_channels_str,
             full_hd_json=full_hd_json_str
-        )
+        ) + cross_themes_block
         
         # ===== USE EMERGENT CONTRACT WITH PLAIN TEXT FORMAT + QUALITY GATE =====
         from emergent_contract import emergent_generate
