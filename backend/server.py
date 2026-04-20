@@ -11513,6 +11513,18 @@ async def check_and_migrate_astrology_chart(user_id: str) -> Tuple[bool, str, di
         if not nodes or not nodes.get('north', {}).get('sign'):
             needs_migration = True
             migration_reason = "missing_nodes"
+
+        # Case 2c: planets dict exists but bodies are empty
+        # (recent corruption: sun/moon/ascendant show up as None/{} downstream).
+        # The canonical chart MUST have sun.sign populated.
+        planets_map = astro.get('planets') or {}
+        sun_entry = planets_map.get('sun') if isinstance(planets_map, dict) else None
+        sun_has_sign = bool(
+            isinstance(sun_entry, dict) and (sun_entry.get('sign') or sun_entry.get('sign_name'))
+        ) or (isinstance(sun_entry, str) and sun_entry.strip())
+        if not sun_has_sign:
+            needs_migration = True
+            migration_reason = "empty_planet_signs"
     
     # Case 3: Empty astrology data
     elif not astro:
@@ -27993,6 +28005,18 @@ async def get_member_lens_data(user_id: str) -> dict:
             "dominant_element": None,
             "dominant_modality": None
         },
+        "bazi": {
+            "day_master_element": None,      # e.g. "Metal"
+            "day_master_polarity": None,     # e.g. "Yin"
+            "day_master_stem": None,         # e.g. "Xin"
+            "day_master_strength": None,     # e.g. "strong"
+            "structure": None,               # top-level structure label
+            "year_animal": None,
+            "month_animal": None,
+            "day_animal": None,
+            "hour_animal": None,
+            "elements": None                 # dict of element counts
+        },
         "numerology": {
             "life_path": None,
             "expression": None,
@@ -28002,6 +28026,16 @@ async def get_member_lens_data(user_id: str) -> dict:
         "patterns": {
             "active_domains": [],
             "recurring_domains": []
+        },
+        # Compute status — frontend can use this to surface "missing birth data"
+        # vs "compute failed" vs "ok" clearly instead of showing empty lenses.
+        "compute_status": {
+            "has_birth_data": False,
+            "astrology_ok": False,
+            "bazi_ok": False,
+            "astrology_recomputed": False,
+            "bazi_recomputed": False,
+            "errors": []
         }
     }
     
@@ -28010,7 +28044,27 @@ async def get_member_lens_data(user_id: str) -> dict:
         user = await db.users.find_one({"_id": ObjectId(user_id)})
         if user:
             lens_data["name"] = user.get("name", "Anonymous")
-        
+            # Detect birth data presence for compute_status
+            has_birth_data = bool(
+                user.get("birth_date")
+                and user.get("birth_time")
+                and (user.get("birth_location", {}).get("latitude") is not None
+                     or user.get("birth_location", {}).get("lat") is not None)
+            )
+            lens_data["compute_status"]["has_birth_data"] = has_birth_data
+
+        # If user has birth data, ensure astrology chart is fresh (auto-migrates
+        # legacy / corrupted chart with empty planets).
+        if user and lens_data["compute_status"]["has_birth_data"]:
+            try:
+                migrated, status_msg, updated = await check_and_migrate_astrology_chart(user_id)
+                if migrated:
+                    logger.info(f"[MemberLens] Astrology migration performed for {user_id[:8]}: {status_msg}")
+                    lens_data["compute_status"]["astrology_recomputed"] = True
+            except Exception as _mig_e:
+                logger.warning(f"[MemberLens] Astrology auto-migration skipped for {user_id[:8]}: {_mig_e}")
+                lens_data["compute_status"]["errors"].append(f"astrology_migration: {_mig_e}")
+
         # Get chart data (contains astrology, human_design, numerology)
         chart = await db.charts.find_one({"user_id": user_id})
         if chart:
@@ -28059,17 +28113,30 @@ async def get_member_lens_data(user_id: str) -> dict:
             # === Astrology ===
             astro = chart.get("astrology", {})
             if astro:
-                planets = astro.get("planets", {})
-                
+                planets = astro.get("planets", {}) or {}
+
+                def _get_planet(pk: str):
+                    """Fetch planet entry by name, case-insensitive. Supports
+                    legacy lowercase ('sun') and canonical title-case ('Sun')."""
+                    if not isinstance(planets, dict):
+                        return {}
+                    if pk in planets:
+                        return planets[pk]
+                    # Try title-case and lower-case variants
+                    for candidate in (pk.title(), pk.lower(), pk.upper()):
+                        if candidate in planets:
+                            return planets[candidate]
+                    return {}
+
                 # Sun
-                sun = planets.get("sun", {})
+                sun = _get_planet("sun")
                 if isinstance(sun, dict):
                     lens_data["astrology"]["sun"] = sun.get("sign")
                 elif isinstance(sun, str):
                     lens_data["astrology"]["sun"] = sun
-                
-                # Moon  
-                moon = planets.get("moon", {})
+
+                # Moon
+                moon = _get_planet("moon")
                 if isinstance(moon, dict):
                     lens_data["astrology"]["moon"] = moon.get("sign")
                 elif isinstance(moon, str):
@@ -28115,6 +28182,71 @@ async def get_member_lens_data(user_id: str) -> dict:
                     lens_data["astrology"]["dominant_element"] = max(element_counts.items(), key=lambda x: x[1])[0]
                 if any(modality_counts.values()):
                     lens_data["astrology"]["dominant_modality"] = max(modality_counts.items(), key=lambda x: x[1])[0]
+
+                # Mark astrology as OK if we ended up with any of sun/moon/rising
+                if any([lens_data["astrology"]["sun"], lens_data["astrology"]["moon"], lens_data["astrology"]["rising"]]):
+                    lens_data["compute_status"]["astrology_ok"] = True
+                else:
+                    logger.warning(
+                        f"[MemberLens] Astrology yielded no sun/moon/rising for {user_id[:8]} "
+                        f"(planets populated={bool(planets)}). Chart may still be corrupted."
+                    )
+                    lens_data["compute_status"]["errors"].append("astrology_empty_after_extract")
+
+            # === BaZi ===
+            # Prefer persisted chart.bazi. If missing but user has birth data,
+            # compute on-demand via bazi_engine_v2 and persist.
+            bazi = chart.get("bazi") or {}
+            if not bazi and lens_data["compute_status"]["has_birth_data"]:
+                try:
+                    from services.bazi_engine_v2 import compute_bazi_chart_v2
+                    bl = user.get("birth_location", {})
+                    lat = bl.get("latitude", bl.get("lat"))
+                    lon = bl.get("longitude", bl.get("lng", bl.get("lon")))
+                    bazi = compute_bazi_chart_v2(
+                        birth_date=str(user.get("birth_date")),
+                        birth_time=str(user.get("birth_time") or "12:00"),
+                        birth_place=bl.get("city", "Unknown"),
+                        latitude=lat,
+                        longitude=lon,
+                        timezone_str=user.get("timezone") or bl.get("timezone") or "UTC",
+                    ) or {}
+                    if bazi:
+                        await db.charts.update_one(
+                            {"user_id": user_id},
+                            {"$set": {"bazi": bazi, "bazi_updated_at": datetime.now(timezone.utc)}},
+                            upsert=True,
+                        )
+                        lens_data["compute_status"]["bazi_recomputed"] = True
+                        logger.info(f"[MemberLens] BaZi computed on-demand for {user_id[:8]}")
+                except Exception as _bazi_e:
+                    logger.warning(f"[MemberLens] BaZi compute failed for {user_id[:8]}: {_bazi_e}")
+                    lens_data["compute_status"]["errors"].append(f"bazi_compute_failed: {_bazi_e}")
+
+            if bazi:
+                dm = bazi.get("day_master", {}) or {}
+                pillars = bazi.get("pillars", {}) or {}
+
+                lens_data["bazi"]["day_master_element"] = dm.get("element")
+                lens_data["bazi"]["day_master_polarity"] = dm.get("polarity")
+                lens_data["bazi"]["day_master_stem"] = dm.get("stem_pinyin") or dm.get("stem")
+                lens_data["bazi"]["day_master_strength"] = dm.get("strength")
+                lens_data["bazi"]["structure"] = (bazi.get("structure_summary") or {}).get("label") or bazi.get("structure")
+                lens_data["bazi"]["year_animal"] = (pillars.get("year") or {}).get("animal_name")
+                lens_data["bazi"]["month_animal"] = (pillars.get("month") or {}).get("animal_name")
+                lens_data["bazi"]["day_animal"] = (pillars.get("day") or {}).get("animal_name")
+                lens_data["bazi"]["hour_animal"] = (pillars.get("hour") or {}).get("animal_name")
+                lens_data["bazi"]["elements"] = bazi.get("elements")
+
+                if lens_data["bazi"]["day_master_element"]:
+                    lens_data["compute_status"]["bazi_ok"] = True
+                else:
+                    logger.warning(f"[MemberLens] BaZi present but day_master.element missing for {user_id[:8]}")
+                    lens_data["compute_status"]["errors"].append("bazi_day_master_missing")
+            elif lens_data["compute_status"]["has_birth_data"]:
+                # Birth data present but BaZi still empty after attempted compute
+                logger.warning(f"[MemberLens] BaZi unavailable for {user_id[:8]} despite birth data")
+                lens_data["compute_status"]["errors"].append("bazi_unavailable")
             
             # === Numerology ===
             numerology = chart.get("numerology", {})
