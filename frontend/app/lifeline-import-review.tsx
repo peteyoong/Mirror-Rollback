@@ -177,8 +177,16 @@ export default function LifelineImportReviewScreen() {
   
   // Save selected events to Lifeline using new v2 architecture
   const saveSelectedEvents = async () => {
+    // Debug: confirm tap is firing (visible in Safari Web Inspector / Metro logs)
+    console.log('[ImportReview] saveSelectedEvents TAPPED', {
+      hasUser: !!user?.id,
+      userId: user?.id,
+      eventCount: events.length,
+      importSourceId,
+    });
+
     if (!user?.id) {
-      Alert.alert('Error', 'Please log in to save events.');
+      Alert.alert('Not signed in', 'Please log in to save events. (If you are logged in, try refreshing the page.)');
       return;
     }
     
@@ -240,12 +248,28 @@ export default function LifelineImportReviewScreen() {
       }
     } catch (err: any) {
       console.error('[ImportReview] Save error:', err);
+      const status = err?.response?.status;
+      const apiMsg = err?.response?.data?.detail || err?.response?.data?.message;
+      let friendly = err?.message || 'Failed to save events. Please try again.';
+      if (status === 404) {
+        friendly = 'The import endpoint is missing on the server. Your deployment may be out of sync — please redeploy, then try again.';
+      } else if (status === 502 || status === 503 || err?.code === 'ERR_NETWORK') {
+        friendly = 'Could not reach the server (502/network). Please wait 30 seconds and try again. If it persists, redeploy the app.';
+      } else if (status >= 500) {
+        friendly = `Server error (${status}). ${apiMsg || 'Please try again shortly.'}`;
+      } else if (apiMsg) {
+        friendly = apiMsg;
+      }
       Alert.alert(
         'Import Failed',
-        err.message || 'Failed to save events. Please try again.',
+        friendly,
         [
           { text: 'OK' },
-        ]
+          {
+            text: 'View Lifeline anyway',
+            onPress: () => router.replace('/(tabs)/life'),
+          },
+        ],
       );
     } finally {
       setSaving(false);
@@ -567,7 +591,22 @@ export default function LifelineImportReviewScreen() {
             {selectedCount} of {totalCount} selected
           </Text>
         </View>
-        <View style={styles.headerRight} />
+        <TouchableOpacity
+          onPress={() => {
+            Alert.alert(
+              'Leave without importing?',
+              'Your selection will be discarded. Continue?',
+              [
+                { text: 'Keep reviewing', style: 'cancel' },
+                { text: 'Go to Lifeline', onPress: () => router.replace('/(tabs)/life') },
+              ],
+            );
+          }}
+          style={styles.homeButton}
+          accessibilityLabel="Home"
+        >
+          <Ionicons name="home-outline" size={22} color={theme.textSecondary} />
+        </TouchableOpacity>
       </View>
       
       {/* Title Section */}
@@ -894,6 +933,13 @@ const styles = StyleSheet.create({
   },
   headerRight: {
     width: 60,
+  },
+  homeButton: {
+    paddingVertical: 8,
+    paddingLeft: 12,
+    paddingRight: 4,
+    minWidth: 44,
+    alignItems: 'flex-end',
   },
   titleSection: {
     paddingHorizontal: 20,
