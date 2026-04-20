@@ -1221,7 +1221,10 @@ def generate_mapping_interpretation(
         
         hd_signals.append({
             "channel": cid,
-            "name": f"Channel of {c['name']}",
+            # Backend returns the short name only (e.g. "Community"); the UI
+            # prepends "Channel of ". Previously this produced
+            # "Channel of Channel of Community".
+            "name": c['name'],
             "theme": c["theme"],
             "translation": translation,
             "your_gate": c["gate_a"],
@@ -1294,6 +1297,53 @@ def generate_mapping_interpretation(
     }
 
 
+async def _ensure_chart_ready(db, user_id: str, user_doc: Dict[str, Any]) -> None:
+    """Trigger the server's migration/auto-compute path so that chart.astrology
+    has populated planet signs and chart.bazi is present before we read them
+    for signal computation. Safe no-op if already complete.
+
+    We do NOT require the server migration to succeed — failures are logged
+    and the downstream signal functions will simply skip that lens.
+    """
+    try:
+        from server import check_and_migrate_astrology_chart  # type: ignore
+        await check_and_migrate_astrology_chart(user_id)
+    except Exception as _e:  # pragma: no cover — defensive
+        logger.warning(f"[ForumMapping] Astrology migration skipped for {user_id[:8]}: {_e}")
+
+    # Auto-compute BaZi if missing
+    try:
+        existing = await db.charts.find_one({"user_id": user_id}, {"bazi": 1})
+        if existing and existing.get("bazi"):
+            return
+        bd = user_doc.get("birth_date")
+        bt = user_doc.get("birth_time")
+        bl = user_doc.get("birth_location") or {}
+        lat = bl.get("latitude", bl.get("lat"))
+        lon = bl.get("longitude", bl.get("lng", bl.get("lon")))
+        if not (bd and bt and lat is not None and lon is not None):
+            return
+        from services.bazi_engine_v2 import compute_bazi_chart_v2
+        bazi = compute_bazi_chart_v2(
+            birth_date=str(bd),
+            birth_time=str(bt),
+            birth_place=bl.get("city", "Unknown"),
+            latitude=lat,
+            longitude=lon,
+            timezone_str=user_doc.get("timezone") or bl.get("timezone") or "UTC",
+        ) or {}
+        if bazi:
+            from datetime import datetime, timezone as _tz
+            await db.charts.update_one(
+                {"user_id": user_id},
+                {"$set": {"bazi": bazi, "bazi_updated_at": datetime.now(_tz.utc)}},
+                upsert=True,
+            )
+            logger.info(f"[ForumMapping] BaZi computed on-demand for {user_id[:8]}")
+    except Exception as _e:
+        logger.warning(f"[ForumMapping] BaZi auto-compute skipped for {user_id[:8]}: {_e}")
+
+
 async def get_forum_member_mappings(
     db,
     forum_id: str,
@@ -1320,6 +1370,9 @@ async def get_forum_member_mappings(
             logger.error(f"[ForumMapping] Current user {current_user_id} not found")
             return []
         
+        # Ensure current user's chart is migrated (empty planets + BaZi) before fetch
+        await _ensure_chart_ready(db, current_user_id, current_user)
+
         # Get current user's chart (HD data)
         current_chart = await db.charts.find_one({"user_id": current_user_id})
         if not current_chart:
@@ -1365,6 +1418,9 @@ async def get_forum_member_mappings(
             
             member_name = member.get("name") or membership.get("name") or "Unknown"
             
+            # Ensure member's chart is migrated (empty planets + BaZi) before fetch
+            await _ensure_chart_ready(db, str(member_id), member)
+
             # Get member's chart (HD data) - try multiple lookups
             member_chart = await db.charts.find_one({"user_id": str(member_id)})
             if not member_chart:
