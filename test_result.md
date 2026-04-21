@@ -9497,3 +9497,87 @@ agent_communication:
       (6/6 checks pass). Recovery CLI added at
       /app/backend/scripts/recover_forum_join.py for the two Pulsifi
       users who may already be stuck on the deployed DB.
+
+# ====================================================================
+# 2026-04-21 (later) — Manual Join Form silent-failure fix
+# ====================================================================
+
+frontend:
+  - task: "Manual Join Forum form (/forums/join) — silent failure on web"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/forums/join/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: >
+          BUG REPRODUCED: User pasted "/forums/join/cb8cd54847e5" on live,
+          tapped Continue, spinner briefly, then stayed on the same page —
+          no success and NO VISIBLE ERROR.
+          ROOT CAUSE: The form used React Native `Alert.alert(...)` for
+          all error / success feedback. `Alert.alert` is unreliable on
+          React Native Web (no-op on some browsers / configs), so the
+          404 "Invalid invite link" response was silently swallowed.
+          SECONDARY: Token `cb8cd54847e5` does not exist on the currently
+          deployed backend (GET /api/forums/invite/cb8cd54847e5 → 404).
+          So even before the Alert issue was fixed, the user had an
+          invalid/stale invite link.
+      - working: true
+        agent: "main"
+        comment: >
+          FIX applied:
+            • Replaced all 4 `Alert.alert` calls with an inline banner
+              rendered in-tree (visible on iOS, Android, and Web).
+            • Added per-step `console.log('[Forums/Join] ...')` lines:
+                - pasted value
+                - normalised token
+                - API path (GET /api/forums/invite/{token} and
+                  POST /api/forums/join/{token})
+                - response status / body / message on failure
+            • Hardened extractToken(): now accepts raw tokens, relative
+              paths (/forums/join/...), and full URLs (via URL()); strips
+              leading/trailing slashes; supports _, - just in case the
+              backend ever changes its token alphabet.
+            • Live "Code to submit: …" hint under the input so the user
+              (and support) can see exactly what token will be sent.
+            • Specific messages per HTTP status:
+                404 → "This invite link is invalid or has expired."
+                400 → server `detail` text
+                401/403 → "Please sign in again and try again."
+                5xx → "Server error. Please try again in a moment."
+                NetworkError → "Could not reach the server…"
+            • Already-member path now takes the user into the forum
+              anyway (with a short "You're already in this forum" info
+              banner) instead of blocking on an Alert.
+            • Auth-required path shows an inline banner instead of a
+              silent no-op.
+          VERIFIED LIVE on preview domain for all 3 input formats using
+          the invalid token `cb8cd54847e5`:
+            raw token            → Code to submit: cb8cd54847e5 → red
+                                    banner "This invite link is invalid
+                                    or has expired." ✅
+            /forums/join/{token} → same normalisation, same visible error ✅
+            full URL             → same normalisation, same visible error ✅
+          VERIFIED LIVE for a valid token (`809555b64b8c`):
+            preview renders forum name + description + member count;
+            CTA switches to "Sign in to Join" when no session. ✅
+          The deep-link `[code].tsx` was also cleaned up: removed Alert
+          usage, added an error banner for transient join failures, and
+          added the same diagnostic logging.
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Second P0 fix complete. The manual Join form no longer fails
+      silently — errors / already-member / sign-in-required all render
+      as an inline banner that works on both mobile and web. Diagnostic
+      logs emit per step so we can trace pasted value → token → API
+      path → response. Token `cb8cd54847e5` is NOT a valid invite on the
+      deployed backend (confirmed via GET /api/forums/invite/cb8cd54847e5
+      → 404); users who had that link need a fresh invite OR the
+      recovery CLI at /app/backend/scripts/recover_forum_join.py to be
+      run against the production DB.
+

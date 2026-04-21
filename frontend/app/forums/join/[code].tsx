@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -46,6 +45,7 @@ export default function JoinForumByCodeScreen() {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const [forumInfo, setForumInfo] = useState<{
     id: string;
     name: string;
@@ -100,23 +100,33 @@ export default function JoinForumByCodeScreen() {
 
     if (didAttemptRef.current) return;
     didAttemptRef.current = true;
+    setJoinError(null);
     setJoining(true);
     try {
+      console.log('[Forums/Join] POST /api/forums/join/' + token, { user_id: user.id });
       const result = await joinForum(token, user.id);
-      if (result.already_member) {
-        Alert.alert('Already a member', `You're already in ${forumInfo.name}.`);
-      }
+      console.log('[Forums/Join] join OK', result);
       // Navigate to forum detail. forums/index refreshes via useFocusEffect.
+      // If already_member, we still just take them straight into the forum.
       router.replace(`/forums/${result.forum_id}`);
     } catch (err: any) {
       didAttemptRef.current = false;
-      console.error('[Forums/Join] join failed', err?.response?.data || err?.message || err);
+      console.error(
+        '[Forums/Join] join failed',
+        'status=', err?.response?.status,
+        'body=', err?.response?.data,
+        'message=', err?.message,
+      );
       const status = err?.response?.status;
       const detail = err?.response?.data?.detail;
       let msg = 'Unable to join this forum. Please try again.';
       if (status === 404) msg = 'This invite link is no longer valid.';
       else if (status === 400 && detail) msg = String(detail);
-      Alert.alert('Error', msg);
+      else if (status === 401 || status === 403) msg = 'Please sign in again and try again.';
+      else if (err?.message === 'Network Error') {
+        msg = 'Could not reach the server. Check your connection and try again.';
+      }
+      setJoinError(msg);
     } finally {
       setJoining(false);
     }
@@ -185,6 +195,11 @@ export default function JoinForumByCodeScreen() {
       </View>
 
       <View style={styles.previewContent}>
+        {joinError ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText}>{joinError}</Text>
+          </View>
+        ) : null}
         <View style={[styles.previewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.previewName, { color: theme.text }]}>
             {forumInfo.name}
@@ -263,4 +278,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButtonText: { fontSize: 16, fontWeight: '600' },
+  errorBanner: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(220, 50, 50, 0.5)',
+    backgroundColor: 'rgba(220, 50, 50, 0.12)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  errorBannerText: {
+    color: '#ff8080',
+    fontSize: 14,
+    lineHeight: 20,
+  },
 });
