@@ -34,7 +34,9 @@ import api, {
   getPatternDiagnosis,
   PatternDiagnosisResponse,
   getForumLiveField,
-  ForumLiveFieldResponse
+  ForumLiveFieldResponse,
+  getForumContributions,
+  ForumContribution,
 } from '../../services/api';
 import ForumChatView from '../../components/ForumChatView';
 import Constants from 'expo-constants';
@@ -381,6 +383,9 @@ export default function ForumHomeScreen() {
   // Live Field State - Real-time field dynamics
   const [liveField, setLiveField] = useState<ForumLiveFieldResponse | null>(null);
   const [liveFieldLoading, setLiveFieldLoading] = useState(false);
+
+  // What Each Person Brings — compact contribution cards
+  const [contributions, setContributions] = useState<ForumContribution[] | null>(null);
   
   // Member profile state
   const [showPatternSignals, setShowPatternSignals] = useState(false);
@@ -392,13 +397,14 @@ export default function ForumHomeScreen() {
     else setLoading(true);
     
     try {
-      const [forumData, reflectionsData, exerciseData, membersData, pulseData, liveFieldData] = await Promise.all([
+      const [forumData, reflectionsData, exerciseData, membersData, pulseData, liveFieldData, contribResp] = await Promise.all([
         getForum(forumId, user.id),
         getSharedReflections(forumId, user.id),
         getForumExercise(forumId, user.id),
         getForumMembers(forumId, user.id),
         getForumPulse(forumId, user.id),
         getForumLiveField(forumId, user.id).catch(() => null), // Don't fail if Live Field errors
+        getForumContributions(forumId, user.id).catch(() => ({ success: false, contributions: [] as ForumContribution[] })),
       ]);
       setForum(forumData);
       setReflections(reflectionsData.reflections);
@@ -406,6 +412,7 @@ export default function ForumHomeScreen() {
       setMembers(membersData.members);
       setPulse(pulseData);
       setLiveField(liveFieldData);
+      setContributions(contribResp?.contributions || []);
       setError(null);
     } catch (err: any) {
       console.error('[Forum] Error fetching data:', err);
@@ -775,6 +782,50 @@ export default function ForumHomeScreen() {
             <Text style={[styles.positionBody, { color: theme.text }]}>
               {liveField.your_position}
             </Text>
+          </View>
+        ) : null}
+
+        {/* ============================================
+            WHAT EACH PERSON BRINGS — compact per-member contribution cards
+            Scannable: name + 2-3 uppercase chips + one-line primary label.
+            Renders inline, NOT behind a "View" button.
+            ============================================ */}
+        {contributions && contributions.length > 0 ? (
+          <View style={[styles.contributionsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.contributionsTitle, { color: theme.text }]}>
+              What Each Person Brings
+            </Text>
+            <Text style={[styles.contributionsSubtitle, { color: theme.textSecondary }]}>
+              The strengths and forces each person naturally brings into this room.
+            </Text>
+
+            {contributions.map((c, idx) => (
+              <View
+                key={c.member_id}
+                style={[
+                  styles.contributionRow,
+                  idx === contributions.length - 1 ? styles.contributionRowLast : null,
+                  { borderBottomColor: theme.border },
+                ]}
+              >
+                <View style={styles.contributionHeader}>
+                  <Text style={[styles.contributionName, { color: theme.text }]}>
+                    {c.name}
+                  </Text>
+                  {c.is_host ? (
+                    <Text style={[styles.contributionHostBadge, { color: theme.textTertiary }]}>
+                      host
+                    </Text>
+                  ) : null}
+                </View>
+                <Text style={[styles.contributionChips, { color: theme.accent }]}>
+                  {(c.attributes || []).join(' · ')}
+                </Text>
+                <Text style={[styles.contributionLabel, { color: theme.textSecondary }]}>
+                  {c.primary_label}
+                </Text>
+              </View>
+            ))}
           </View>
         ) : null}
 
@@ -2809,5 +2860,61 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 6,
     fontStyle: 'italic',
+  },
+
+  // ---------- What Each Person Brings ----------
+  contributionsCard: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 6,
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  contributionsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  contributionsSubtitle: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 14,
+  },
+  contributionRow: {
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  contributionRowLast: {
+    borderBottomWidth: 0,
+    paddingBottom: 8,
+  },
+  contributionHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    marginBottom: 4,
+  },
+  contributionName: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  contributionHostBadge: {
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  contributionChips: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  contributionLabel: {
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

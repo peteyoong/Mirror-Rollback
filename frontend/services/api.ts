@@ -1318,6 +1318,35 @@ export const getForumMemberMappings = async (
 };
 
 // =====================================================
+// WHAT EACH PERSON BRINGS — compact per-member contribution cards
+// =====================================================
+
+export interface ForumContribution {
+  member_id: string;
+  name: string;
+  attributes: string[];
+  primary_label: string;
+  is_host?: boolean;
+}
+
+export interface ForumContributionsResponse {
+  success: boolean;
+  contributions: ForumContribution[];
+  error?: string;
+}
+
+export const getForumContributions = async (
+  forumId: string,
+  userId: string
+): Promise<ForumContributionsResponse> => {
+  const response = await apiWithRetry.get(
+    `/forums/${forumId}/contributions`,
+    { params: { user_id: userId, _cb: Date.now() } }
+  );
+  return response.data;
+};
+
+// =====================================================
 // PATTERN SIGNALS API (Why this is showing up)
 // =====================================================
 

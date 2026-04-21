@@ -28550,6 +28550,54 @@ async def get_forum_member_mappings(forum_id: str, user_id: str):
         }
 
 
+@api_router.get("/forums/{forum_id}/contributions")
+async def get_forum_contributions_endpoint(forum_id: str, user_id: str):
+    """
+    "What Each Person Brings" — compact per-member contribution cards.
+
+    Returns, for every active member, 2–3 uppercase attribute chips plus a
+    single-line primary label derived deterministically from the member's
+    Human Design profile (type + profile + prominent defined centers).
+
+    The requester must be an active member of the forum.
+    """
+    logger.info(f"[ForumContributions] forum={forum_id} by user={user_id[:8]}...")
+
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id format")
+
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "status": "active",
+    })
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this forum")
+
+    try:
+        from services.forum_contributions import get_forum_contributions
+        contributions = await get_forum_contributions(db=db, forum_id=forum_id)
+        return JSONResponse(
+            content={
+                "success": True,
+                "contributions": contributions,
+            },
+            headers={
+                "Cache-Control": "no-store, max-age=0",
+                "CDN-Cache-Control": "no-store",
+            },
+        )
+    except Exception as e:
+        logger.error(f"[ForumContributions] Error: {e}", exc_info=True)
+        return JSONResponse(
+            content={"success": False, "contributions": [], "error": str(e)},
+            headers={"Cache-Control": "no-store, max-age=0"},
+        )
+
+
+
 @api_router.get("/forums/{forum_id}/dynamics-context")
 async def get_forum_dynamics_context(forum_id: str, user_id: str):
     """

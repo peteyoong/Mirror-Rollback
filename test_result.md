@@ -9581,3 +9581,73 @@ agent_communication:
       recovery CLI at /app/backend/scripts/recover_forum_join.py to be
       run against the production DB.
 
+
+# ====================================================================
+# 2026-04-21 — NEW SECTION: "What Each Person Brings"
+# ====================================================================
+
+backend:
+  - task: "What Each Person Brings — per-member contribution derivation + endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/services/forum_contributions.py + /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          New service `services/forum_contributions.py` derives
+          {attributes, primary_label} deterministically from each member's
+          cached Human Design chart: HD type → 2 base chips + anchor label,
+          HD profile → swaps the 3rd chip + label for specificity, defined
+          centers as a fallback modifier. Returns {member_id, name,
+          attributes, primary_label, is_host}. Creator sorted first.
+          New endpoint: GET /api/forums/{forum_id}/contributions?user_id=X
+          (403 if caller isn't an active member of the forum).
+          Verified end-to-end for 3 forums (FM TEST 1 / Yoong family / Pete
+          & Mel): outputs match the target design (Pete→IGNITION · OPENING
+          · PROJECTION, Mel→REFLECTION · SENSITIVITY · EXPERIMENTATION,
+          etc.). ruff lint clean.
+
+frontend:
+  - task: "What Each Person Brings — inline section on /forums/[id]"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/forums/[id].tsx + /app/frontend/services/api.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Added `getForumContributions(forumId, userId)` API wrapper and
+          `ForumContribution` interface to services/api.ts.
+          On forums/[id].tsx:
+            - Imported and fetched contributions in parallel with the
+              existing forum payload (non-blocking .catch fallback).
+            - Rendered a new "What Each Person Brings" card directly
+              below "Where you are in this" and above "Share Forum
+              Update" — inline on the main page, NOT behind the "How
+              they map to me → View" button.
+            - Per member: bold name + optional "HOST" badge, uppercase
+              chips joined with " · ", one-line muted primary_label.
+            - Theme-aware styles (surface/border/accent/textSecondary).
+          Verified live on the sandbox preview (Yoong family forum) —
+          all 4 members render with correct chips + labels exactly as
+          per the target design spec.
+
+agent_communication:
+  - agent: "main"
+    message: >
+      New "What Each Person Brings" section live in the workspace. It is
+      on the main forum page, scannable per-member (name + 2-3 uppercase
+      chips + 1-line label), NOT hidden behind a View button. Data is
+      derived deterministically from each member's HD type + profile +
+      defined centers — no LLM calls, no pair-wise mapping. Backend
+      endpoint is member-guarded and returns cache-disabled JSON.
+      Needs redeploy to mirror-lens-fixes.emergent.host for users to see
+      it on live.
+
