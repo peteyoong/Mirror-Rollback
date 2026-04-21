@@ -1321,12 +1321,19 @@ export const getForumMemberMappings = async (
 // WHAT EACH PERSON BRINGS — compact per-member contribution cards
 // =====================================================
 
+export interface ForumContributionItem {
+  title: string;
+  description: string;
+}
+
 export interface ForumContribution {
   member_id: string;
   name: string;
-  attributes: string[];
-  primary_label: string;
   is_host?: boolean;
+  items: ForumContributionItem[];
+  // Legacy flat fields, still returned by the backend for a rollout window.
+  attributes?: string[];
+  primary_label?: string;
 }
 
 export interface ForumContributionsResponse {

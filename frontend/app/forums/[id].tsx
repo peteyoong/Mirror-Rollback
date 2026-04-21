@@ -818,12 +818,22 @@ export default function ForumHomeScreen() {
                     </Text>
                   ) : null}
                 </View>
-                <Text style={[styles.contributionChips, { color: theme.accent }]}>
-                  {(c.attributes || []).join(' · ')}
-                </Text>
-                <Text style={[styles.contributionLabel, { color: theme.textSecondary }]}>
-                  {c.primary_label}
-                </Text>
+
+                {(c.items && c.items.length > 0
+                  ? c.items
+                  : c.primary_label
+                    ? [{ title: c.name, description: c.primary_label }]
+                    : []
+                ).map((item, i) => (
+                  <View key={i} style={styles.contributionItem}>
+                    <Text style={[styles.contributionItemTitle, { color: theme.text }]}>
+                      {item.title}
+                    </Text>
+                    <Text style={[styles.contributionItemDesc, { color: theme.textSecondary }]}>
+                      {item.description}
+                    </Text>
+                  </View>
+                ))}
               </View>
             ))}
           </View>
@@ -2884,7 +2894,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   contributionRow: {
-    paddingVertical: 14,
+    paddingVertical: 18,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   contributionRowLast: {
@@ -2895,10 +2905,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 10,
   },
   contributionName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
   },
   contributionHostBadge: {
@@ -2906,6 +2916,20 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
+  contributionItem: {
+    marginBottom: 12,
+  },
+  contributionItemTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 3,
+  },
+  contributionItemDesc: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  // Legacy (kept for any older consumer paths, no longer used by the main
+  // forum page):
   contributionChips: {
     fontSize: 11,
     fontWeight: '700',
