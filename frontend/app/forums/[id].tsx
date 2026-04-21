@@ -800,8 +800,6 @@ export default function ForumHomeScreen() {
             </Text>
 
             {contributions.map((c, idx) => {
-              // Preferred (v2): a named superpower + 2 lines.
-              // Fallback: use items[] from older backends.
               const superpower = c.superpower || (c.items?.[0]?.title ?? '');
               const lines =
                 c.lines && c.lines.length > 0
@@ -821,9 +819,16 @@ export default function ForumHomeScreen() {
                     { borderBottomColor: theme.border },
                   ]}
                 >
+                  {/* Single-row heading: "Name — Superpower   host" */}
                   <View style={styles.contributionHeader}>
-                    <Text style={[styles.contributionName, { color: theme.text }]}>
-                      {c.name}
+                    <Text style={[styles.contributionHeadline, { color: theme.text }]}>
+                      <Text style={styles.contributionName}>{c.name}</Text>
+                      {superpower ? (
+                        <Text style={{ color: theme.textSecondary }}> — </Text>
+                      ) : null}
+                      {superpower ? (
+                        <Text style={styles.contributionSuper}>{superpower}</Text>
+                      ) : null}
                     </Text>
                     {c.is_host ? (
                       <Text style={[styles.contributionHostBadge, { color: theme.textTertiary }]}>
@@ -832,16 +837,13 @@ export default function ForumHomeScreen() {
                     ) : null}
                   </View>
 
-                  {superpower ? (
-                    <Text style={[styles.superpowerTitle, { color: theme.text }]}>
-                      {superpower}
-                    </Text>
-                  ) : null}
-
                   {lines.map((line, i) => (
                     <Text
                       key={i}
-                      style={[styles.superpowerLine, { color: theme.textSecondary }]}
+                      style={[
+                        i === 0 ? styles.superpowerLinePrimary : styles.superpowerLineSupport,
+                        { color: i === 0 ? theme.text : theme.textSecondary },
+                      ]}
                     >
                       {line}
                     </Text>
@@ -2941,7 +2943,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  // Superpower format (v2)
+  // Legacy superpower styles (pre v3.1; kept for backward compat if any
+  // older render path references them):
   superpowerTitle: {
     fontSize: 17,
     fontWeight: '700',
