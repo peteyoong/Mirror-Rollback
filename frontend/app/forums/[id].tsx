@@ -799,43 +799,56 @@ export default function ForumHomeScreen() {
               The strengths and forces each person naturally brings into this room.
             </Text>
 
-            {contributions.map((c, idx) => (
-              <View
-                key={c.member_id}
-                style={[
-                  styles.contributionRow,
-                  idx === contributions.length - 1 ? styles.contributionRowLast : null,
-                  { borderBottomColor: theme.border },
-                ]}
-              >
-                <View style={styles.contributionHeader}>
-                  <Text style={[styles.contributionName, { color: theme.text }]}>
-                    {c.name}
-                  </Text>
-                  {c.is_host ? (
-                    <Text style={[styles.contributionHostBadge, { color: theme.textTertiary }]}>
-                      host
+            {contributions.map((c, idx) => {
+              // Preferred (v2): a named superpower + 2 lines.
+              // Fallback: use items[] from older backends.
+              const superpower = c.superpower || (c.items?.[0]?.title ?? '');
+              const lines =
+                c.lines && c.lines.length > 0
+                  ? c.lines
+                  : c.items && c.items.length > 0
+                    ? c.items.map((it) => it.description)
+                    : c.primary_label
+                      ? [c.primary_label]
+                      : [];
+
+              return (
+                <View
+                  key={c.member_id}
+                  style={[
+                    styles.contributionRow,
+                    idx === contributions.length - 1 ? styles.contributionRowLast : null,
+                    { borderBottomColor: theme.border },
+                  ]}
+                >
+                  <View style={styles.contributionHeader}>
+                    <Text style={[styles.contributionName, { color: theme.text }]}>
+                      {c.name}
+                    </Text>
+                    {c.is_host ? (
+                      <Text style={[styles.contributionHostBadge, { color: theme.textTertiary }]}>
+                        host
+                      </Text>
+                    ) : null}
+                  </View>
+
+                  {superpower ? (
+                    <Text style={[styles.superpowerTitle, { color: theme.text }]}>
+                      {superpower}
                     </Text>
                   ) : null}
-                </View>
 
-                {(c.items && c.items.length > 0
-                  ? c.items
-                  : c.primary_label
-                    ? [{ title: c.name, description: c.primary_label }]
-                    : []
-                ).map((item, i) => (
-                  <View key={i} style={styles.contributionItem}>
-                    <Text style={[styles.contributionItemTitle, { color: theme.text }]}>
-                      {item.title}
+                  {lines.map((line, i) => (
+                    <Text
+                      key={i}
+                      style={[styles.superpowerLine, { color: theme.textSecondary }]}
+                    >
+                      {line}
                     </Text>
-                    <Text style={[styles.contributionItemDesc, { color: theme.textSecondary }]}>
-                      {item.description}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ))}
+                  ))}
+                </View>
+              );
+            })}
           </View>
         ) : null}
 
@@ -2927,6 +2940,18 @@ const styles = StyleSheet.create({
   contributionItemDesc: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  // Superpower format (v2)
+  superpowerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 6,
+    letterSpacing: 0.2,
+  },
+  superpowerLine: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 4,
   },
   // Legacy (kept for any older consumer paths, no longer used by the main
   // forum page):

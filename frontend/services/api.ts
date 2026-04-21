@@ -1330,8 +1330,11 @@ export interface ForumContribution {
   member_id: string;
   name: string;
   is_host?: boolean;
-  items: ForumContributionItem[];
-  // Legacy flat fields, still returned by the backend for a rollout window.
+  // Superpower format (v2 — preferred)
+  superpower?: string;
+  lines?: string[];
+  // Legacy item format (kept for older server versions)
+  items?: ForumContributionItem[];
   attributes?: string[];
   primary_label?: string;
 }
