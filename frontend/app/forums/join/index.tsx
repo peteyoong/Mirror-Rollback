@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useAppStore } from '../../store';
-import { getForumByInvite, joinForum } from '../../services/api';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { useAppStore } from '../../../store';
+import { getForumByInvite, joinForum } from '../../../services/api';
 
 export default function JoinForumScreen() {
   const { theme } = useTheme();

@@ -9,7 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import { getUserForums, Forum } from '../../services/api';
@@ -47,6 +47,15 @@ export default function ForumsHomeScreen() {
   useEffect(() => {
     fetchForums();
   }, [fetchForums]);
+
+  // Refresh list whenever the forums tab regains focus (e.g., after join).
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.id) {
+        fetchForums(false);
+      }
+    }, [user?.id, fetchForums])
+  );
 
   const handleCreateForum = () => {
     router.push('/forums/create');
