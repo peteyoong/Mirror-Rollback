@@ -1357,6 +1357,40 @@ export const getForumContributions = async (
 };
 
 // =====================================================
+// FORUM MEMBER SUMMARY CARD (Interactive, inline)
+// =====================================================
+
+export interface ForumMemberSummary {
+  member_id: string;
+  name: string;
+  is_host?: boolean;
+  astrology: string | null;
+  human_design: string | null;
+  bazi: string | null;
+  enneagram: string | null;
+  numerology: string | null;
+  how_they_read: string | null;
+}
+
+export interface ForumMemberSummaryResponse {
+  success: boolean;
+  summary: ForumMemberSummary | null;
+  error?: string;
+}
+
+export const getForumMemberSummary = async (
+  forumId: string,
+  memberId: string,
+  userId: string
+): Promise<ForumMemberSummaryResponse> => {
+  const response = await apiWithRetry.get(
+    `/forums/${forumId}/member-summary/${memberId}`,
+    { params: { user_id: userId, _cb: Date.now() } }
+  );
+  return response.data;
+};
+
+// =====================================================
 // PATTERN SIGNALS API (Why this is showing up)
 // =====================================================
 

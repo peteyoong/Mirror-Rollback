@@ -37,6 +37,8 @@ import api, {
   ForumLiveFieldResponse,
   getForumContributions,
   ForumContribution,
+  getForumMemberSummary,
+  ForumMemberSummary,
 } from '../../services/api';
 import ForumChatView from '../../components/ForumChatView';
 import Constants from 'expo-constants';
@@ -386,6 +388,11 @@ export default function ForumHomeScreen() {
 
   // What Each Person Brings — compact contribution cards
   const [contributions, setContributions] = useState<ForumContribution[] | null>(null);
+
+  // Interactive member summary card — shown inline below the members row
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [memberSummaries, setMemberSummaries] = useState<Record<string, ForumMemberSummary>>({});
+  const [memberSummaryLoading, setMemberSummaryLoading] = useState<string | null>(null);
   
   // Member profile state
   const [showPatternSignals, setShowPatternSignals] = useState(false);
@@ -435,6 +442,31 @@ export default function ForumHomeScreen() {
     clearForumContext();
     router.push('/forums');
   };
+
+  // Interactive Member Summary — tap a member to view a compact multi-lens
+  // summary card inline, right below the members row. Summaries are cached
+  // client-side so repeat taps are instant.
+  const handleSelectMember = useCallback(async (memberId: string) => {
+    if (!user?.id || !forumId) return;
+    // Toggle off when re-tapping the same member
+    if (selectedMemberId === memberId) {
+      setSelectedMemberId(null);
+      return;
+    }
+    setSelectedMemberId(memberId);
+    if (memberSummaries[memberId]) return; // already cached
+    setMemberSummaryLoading(memberId);
+    try {
+      const resp = await getForumMemberSummary(forumId, memberId, user.id);
+      if (resp?.success && resp.summary) {
+        setMemberSummaries((prev) => ({ ...prev, [memberId]: resp.summary! }));
+      }
+    } catch (err) {
+      console.error('[Forum] member summary error:', err);
+    } finally {
+      setMemberSummaryLoading((curr) => (curr === memberId ? null : curr));
+    }
+  }, [user?.id, forumId, selectedMemberId, memberSummaries]);
 
   const handleBeginReflection = () => {
     // Navigate to the Forum Updates page with forum context
@@ -704,22 +736,97 @@ export default function ForumHomeScreen() {
             {members.length} {members.length === 1 ? 'MEMBER' : 'MEMBERS'}
           </Text>
           <View style={styles.membersList}>
-            {members.slice(0, 5).map((member, index) => (
-              <View key={member.user_id} style={styles.memberItem}>
-                <View style={[styles.memberAvatar, { backgroundColor: theme.accent + '20' }]}>
-                  <Text style={[styles.memberInitial, { color: theme.accent }]}>
-                    {member.user_name.charAt(0).toUpperCase()}
+            {members.slice(0, 8).map((member) => {
+              const isSelected = selectedMemberId === member.user_id;
+              return (
+                <TouchableOpacity
+                  key={member.user_id}
+                  onPress={() => handleSelectMember(member.user_id)}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.memberItem,
+                    styles.memberItemTappable,
+                    isSelected && {
+                      backgroundColor: theme.accent + '15',
+                      borderColor: theme.accent,
+                    },
+                    !isSelected && { borderColor: theme.border },
+                  ]}
+                >
+                  <View style={[styles.memberAvatar, { backgroundColor: theme.accent + '20' }]}>
+                    <Text style={[styles.memberInitial, { color: theme.accent }]}>
+                      {member.user_name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={[styles.memberName, { color: theme.text }]}>
+                    {getFirstName(member.user_name)}
+                    {member.role === 'owner' && (
+                      <Text style={[styles.memberRole, { color: theme.textTertiary }]}> • host</Text>
+                    )}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Interactive Member Summary Card — inline, below the row */}
+          {selectedMemberId ? (
+            <View style={[styles.summaryCard, { borderColor: theme.border, backgroundColor: theme.background }]}>
+              {memberSummaryLoading === selectedMemberId && !memberSummaries[selectedMemberId] ? (
+                <View style={styles.summaryLoading}>
+                  <ActivityIndicator size="small" color={theme.textTertiary} />
+                  <Text style={[styles.summaryLoadingText, { color: theme.textTertiary }]}>
+                    Loading summary…
                   </Text>
                 </View>
-                <Text style={[styles.memberName, { color: theme.text }]}>
-                  {getFirstName(member.user_name)}
-                  {member.role === 'owner' && (
-                    <Text style={[styles.memberRole, { color: theme.textTertiary }]}> • host</Text>
-                  )}
+              ) : memberSummaries[selectedMemberId] ? (
+                (() => {
+                  const s = memberSummaries[selectedMemberId];
+                  const Row = ({ label, value }: { label: string; value: string | null }) =>
+                    value ? (
+                      <View style={styles.summaryRow}>
+                        <Text style={[styles.summaryRowLabel, { color: theme.textTertiary }]}>{label}</Text>
+                        <Text style={[styles.summaryRowValue, { color: theme.text }]}>{value}</Text>
+                      </View>
+                    ) : null;
+                  return (
+                    <View>
+                      <View style={styles.summaryHeaderRow}>
+                        <Text style={[styles.summaryName, { color: theme.text }]}>
+                          {s.name}{s.is_host ? <Text style={[styles.memberRole, { color: theme.textTertiary }]}>  •  host</Text> : null}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => setSelectedMemberId(null)}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Ionicons name="close" size={18} color={theme.textTertiary} />
+                        </TouchableOpacity>
+                      </View>
+                      <Row label="Astrology"    value={s.astrology} />
+                      <Row label="Human Design" value={s.human_design} />
+                      <Row label="BaZi"         value={s.bazi} />
+                      <Row label="Enneagram"    value={s.enneagram} />
+                      <Row label="Numerology"   value={s.numerology} />
+                      {s.how_they_read ? (
+                        <View style={[styles.summaryHowBlock, { borderTopColor: theme.border }]}>
+                          <Text style={[styles.summaryHowLabel, { color: theme.textTertiary }]}>
+                            How they read in the room
+                          </Text>
+                          <Text style={[styles.summaryHowText, { color: theme.text }]}>
+                            {s.how_they_read}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  );
+                })()
+              ) : (
+                <Text style={[styles.summaryLoadingText, { color: theme.textTertiary }]}>
+                  No summary available for this member yet.
                 </Text>
-              </View>
-            ))}
-          </View>
+              )}
+            </View>
+          ) : null}
         </View>
 
         {/* ============================================
@@ -1846,6 +1953,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  memberItemTappable: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   memberAvatar: {
     width: 32,
     height: 32,
@@ -1863,6 +1976,67 @@ const styles = StyleSheet.create({
   },
   memberRole: {
     fontSize: 14,
+    fontStyle: 'italic',
+  },
+  // Interactive Member Summary Card — inline, below the members row
+  summaryCard: {
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  summaryLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  summaryLoadingText: {
+    fontSize: 13,
+  },
+  summaryHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  summaryName: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 4,
+    gap: 10,
+  },
+  summaryRowLabel: {
+    width: 104,
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    paddingTop: 2,
+  },
+  summaryRowValue: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  summaryHowBlock: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  summaryHowLabel: {
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  summaryHowText: {
+    fontSize: 14,
+    lineHeight: 20,
     fontStyle: 'italic',
   },
   // Ask Mirror Button
@@ -2955,6 +3129,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     marginBottom: 4,
+  },
+  // v3.1 compact single-row heading styles
+  contributionHeadline: {
+    fontSize: 16,
+    fontWeight: '500',
+    flexShrink: 1,
+    flex: 1,
+  },
+  contributionSuper: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  superpowerLinePrimary: {
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 2,
+  },
+  superpowerLineSupport: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 3,
   },
   // Legacy (kept for any older consumer paths, no longer used by the main
   // forum page):
