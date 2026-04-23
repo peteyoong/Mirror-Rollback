@@ -25743,6 +25743,62 @@ async def get_life_synthesis(context: str, user_id: str, refresh: bool = False):
 
 
 
+def _evidence_layer_llm_factory(session_id: str):
+    from services.evidence_layer import _EVIDENCE_SYSTEM_PROMPT  # noqa
+
+    def _factory():
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message=_EVIDENCE_SYSTEM_PROMPT,
+        )
+        chat.with_model("openai", "gpt-4.1-mini")
+        return chat
+
+    return _factory
+
+
+@api_router.get("/life/{context}/evidence/{user_id}")
+async def get_life_evidence(context: str, user_id: str, refresh: bool = False):
+    """
+    Evidence Layer (Phase 2) — "Why this is showing up".
+    Lazy-loaded: frontend fires this only when the user expands the accordion.
+    Cached 24h per (user, domain).
+    """
+    from services import evidence_layer as el
+
+    domain = (context or "").strip().lower()
+    if domain not in ("relationships", "work", "self"):
+        raise HTTPException(status_code=400, detail="context must be relationships, work, or self")
+
+    cache_key = f"evidence::{user_id}::{domain}"
+    if not refresh:
+        cached = _life_synth_cache_get(cache_key)
+        if cached:
+            return cached
+
+    # Pull the synthesis payload from cache. If not present, generate it first
+    # (this keeps the public API usable even if the UI calls evidence before synthesis).
+    synth = _life_synth_cache_get(f"synth::{user_id}::{domain}")
+    if not synth:
+        synth = await get_life_synthesis(context=domain, user_id=user_id, refresh=False)
+
+    role_card = synth.get("role_card") or {}
+    domain_synthesis = synth.get("domain_synthesis") or {}
+    evidence_signals = synth.get("evidence_signals") or []
+
+    result = await el.generate_evidence_layer(
+        domain=domain,
+        role_card=role_card,
+        domain_synthesis=domain_synthesis,
+        evidence_signals=evidence_signals,
+        llm_chat_factory=_evidence_layer_llm_factory(f"evidence_{user_id}_{domain}") if EMERGENT_LLM_KEY else None,
+    )
+
+    _life_synth_cache_set(cache_key, result)
+    return result
+
+
 @api_router.get("/life/{context}")
 async def get_life_context(context: str, user_id: str):
     """

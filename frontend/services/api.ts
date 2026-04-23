@@ -1455,6 +1455,34 @@ export const getLifeRoleCard = async (
 };
 
 // =====================================================
+// MIRROR EVIDENCE LAYER (Phase 2)
+// =====================================================
+
+export interface LifeEvidenceItem {
+  title: string;
+  explanation: string;
+}
+
+export interface LifeEvidenceResponse {
+  domain: 'relationships' | 'work' | 'self';
+  evidence: LifeEvidenceItem[];
+  generated_at: string;
+  generator_version: string;
+}
+
+export const getLifeEvidence = async (
+  context: 'relationships' | 'work' | 'self',
+  userId: string,
+  refresh: boolean = false
+): Promise<LifeEvidenceResponse> => {
+  const response = await apiWithRetry.get(
+    `/life/${context}/evidence/${userId}`,
+    { params: { refresh: refresh ? 'true' : 'false', _cb: Date.now() } }
+  );
+  return response.data;
+};
+
+// =====================================================
 // PATTERN SIGNALS API (Why this is showing up)
 // =====================================================
 

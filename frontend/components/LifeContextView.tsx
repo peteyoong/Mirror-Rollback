@@ -17,6 +17,8 @@ import {
   LifeContextType,
   getLifeSynthesis,
   LifeSynthesisResponse,
+  getLifeEvidence,
+  LifeEvidenceResponse,
 } from '../services/api';
 import { LifelineTimeline } from './lifeline';
 import PeopleLens from './PeopleLens';
@@ -92,6 +94,28 @@ export default function LifeContextView({
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Evidence Layer — lazy-loaded on expand
+  const [evidenceExpanded, setEvidenceExpanded] = useState<Record<SynthesisDomain, boolean>>({
+    relationships: false,
+    work: false,
+    self: false,
+  });
+  const [evidenceCache, setEvidenceCache] = useState<Record<SynthesisDomain, LifeEvidenceResponse | null>>({
+    relationships: null,
+    work: null,
+    self: null,
+  });
+  const [evidenceLoading, setEvidenceLoading] = useState<Record<SynthesisDomain, boolean>>({
+    relationships: false,
+    work: false,
+    self: false,
+  });
+  const [evidenceError, setEvidenceError] = useState<Record<SynthesisDomain, string | null>>({
+    relationships: null,
+    work: null,
+    self: null,
+  });
+
   const loadSynthesis = useCallback(async (
     domain: SynthesisDomain,
     opts?: { force?: boolean }
@@ -112,6 +136,39 @@ export default function LifeContextView({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
+
+  // Evidence loader — fires only when the user expands the accordion
+  const loadEvidence = useCallback(async (
+    domain: SynthesisDomain,
+    opts?: { force?: boolean }
+  ) => {
+    const force = !!opts?.force;
+    if (!force && evidenceCache[domain]) return;
+    setEvidenceLoading((s) => ({ ...s, [domain]: true }));
+    setEvidenceError((s) => ({ ...s, [domain]: null }));
+    try {
+      const resp = await getLifeEvidence(domain, userId, force);
+      setEvidenceCache((c) => ({ ...c, [domain]: resp }));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unable to load this right now.';
+      console.error(`[LifeContextView] evidence ${domain} error:`, err);
+      setEvidenceError((s) => ({ ...s, [domain]: msg }));
+    } finally {
+      setEvidenceLoading((s) => ({ ...s, [domain]: false }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  const toggleEvidence = useCallback((domain: SynthesisDomain) => {
+    setEvidenceExpanded((s) => {
+      const next = !s[domain];
+      if (next && !evidenceCache[domain]) {
+        // Fire on first expand
+        loadEvidence(domain);
+      }
+      return { ...s, [domain]: next };
+    });
+  }, [evidenceCache, loadEvidence]);
 
   // Load synthesis when the active context is one of the synthesis domains
   useEffect(() => {
@@ -196,7 +253,67 @@ export default function LifeContextView({
     );
   };
 
-  // Lifeline tab unchanged
+  // Evidence expander — "Why this is showing up"
+  const renderEvidenceExpander = (domain: SynthesisDomain) => {
+    const expanded = evidenceExpanded[domain];
+    const ev = evidenceCache[domain];
+    const loading = evidenceLoading[domain];
+    const err = evidenceError[domain];
+
+    return (
+      <View style={styles.evidenceWrap}>
+        <TouchableOpacity
+          style={[
+            styles.evidenceHeader,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+          onPress={() => toggleEvidence(domain)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.evidenceHeaderLabel, { color: theme.textTertiary }]}>
+            Why this is showing up
+          </Text>
+          <Ionicons
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color={theme.textTertiary}
+          />
+        </TouchableOpacity>
+
+        {expanded ? (
+          <View style={[styles.evidenceBody, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            {loading && !ev ? (
+              <View style={styles.evidenceLoading}>
+                <ActivityIndicator size="small" color={theme.textTertiary} />
+                <Text style={[styles.evidenceLoadingText, { color: theme.textTertiary }]}>
+                  Finding the signals…
+                </Text>
+              </View>
+            ) : err && !ev ? (
+              <Text style={[styles.evidenceError, { color: theme.textSecondary }]}>{err}</Text>
+            ) : ev && Array.isArray(ev.evidence) && ev.evidence.length > 0 ? (
+              <View style={styles.evidenceList}>
+                {ev.evidence.map((item, i) => (
+                  <View key={`${domain}-ev-${i}`} style={styles.evidenceItem}>
+                    <Text style={[styles.evidenceTitle, { color: theme.text }]}>
+                      {item.title}
+                    </Text>
+                    <Text style={[styles.evidenceExplanation, { color: theme.textSecondary }]}>
+                      {item.explanation}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={[styles.evidenceError, { color: theme.textTertiary }]}>
+                No strong signals available yet.
+              </Text>
+            )}
+          </View>
+        ) : null}
+      </View>
+    );
+  };
   const renderLifelineTab = () => <LifelineTimeline userId={userId} />;
 
   // People tab — kept AS SUBORDINATE under the synthesis on Relationships
@@ -256,6 +373,9 @@ export default function LifeContextView({
         }
       >
         {renderSynthesisBlock(synth)}
+
+        {/* Why this is showing up — lazy-loaded evidence expander */}
+        {synth ? renderEvidenceExpander(domain) : null}
 
         {/* Relationships: keep People list below synthesis as clearly subordinate */}
         {domain === 'relationships' ? (
@@ -421,6 +541,58 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  // Evidence expander — "Why this is showing up"
+  evidenceWrap: {
+    marginTop: 14,
+    paddingHorizontal: 16,
+  },
+  evidenceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  evidenceHeaderLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  evidenceBody: {
+    marginTop: 6,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  evidenceLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  evidenceLoadingText: {
+    fontSize: 13,
+  },
+  evidenceError: {
+    fontSize: 13,
+  },
+  evidenceList: {
+    gap: 14,
+  },
+  evidenceItem: {
+    gap: 4,
+  },
+  evidenceTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 20,
+  },
+  evidenceExplanation: {
+    fontSize: 13,
+    lineHeight: 20,
   },
   // Kept so legacy references compile if referenced elsewhere
   headerContainer: {
