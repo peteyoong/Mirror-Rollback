@@ -3453,7 +3453,7 @@ export default function HumanDesignLensView({ userId, onOpenChat }: Props) {
                   Gate {gate.gate_number || gate.gate}
                 </Text>
                 <Text style={[styles.hdGlanceGateName, { color: theme.text }]} numberOfLines={1}>
-                  {gate.name || getGateTheme(gate.gate_number || gate.gate) || ''}
+                  {gate.name || getGateTheme(gate.gate_number || gate.gate)?.name || ''}
                 </Text>
               </View>
             ))}
