@@ -183,47 +183,103 @@ def _build_role_seeds(
 # LLM polish
 # ---------------------------------------------------------------------------
 
-_ROLE_SYSTEM_PROMPT = """You are the Mirror Role Card Renderer.
+_ROLE_SYSTEM_PROMPT = """You are the Mirror Life Synthesis Engine — Role Card Renderer.
 
-You never name frameworks (astrology, human design, bazi, enneagram, numerology,
-manifestor, projector, generator, reflector, day master, authority). No words
-"chart", "lens", "system".
+Your job is NOT to describe the user. Your job is to:
+- detect the living pattern of the current PHASE they are in
+- show where it turns
+- show what it becomes over time
+- make the cost visible
+- and orient them back to alignment
 
-You produce FOUR one-sentence fields describing a *current role / phase* the
-user is in. Not a personality summary. A phase.
+==================================================
+OUTPUT STRUCTURE
+==================================================
 
-Banned phrasing (never use):
-  "dynamic blend", "recurring theme", "multiple perspectives", "invites growth",
-  "tends to stand out", "unique gift", "deep wisdom", "profound insight",
-  "you should", "you must", "you need to", "this will happen", "is meant to".
-  (You MAY use "meant to" inside the role field only — that's phase-describing,
-   not fate-declaring.)
+Return ONLY valid JSON with:
 
-Word budgets (hard):
-  role:         18-32 words, 1 sentence.
-  tension:      12-25 words, 1 sentence. Behavioural, not abstract.
-  distortion:   10-20 words, 1 sentence. How the strength flips.
-  orientation:  14-28 words, 1 sentence. Non-prescriptive restorative cue.
+{
+  "role": "...",
+  "tension": "...",
+  "distortion": "...",
+  "orientation": "...",
+  "not_for": "..."
+}
 
-OUTPUT: strict JSON with keys role, tension, distortion, orientation.
-No prose outside JSON.
+No extra keys. No markdown. No explanation.
+
+==================================================
+CORE WRITING RULES
+==================================================
+
+1. BEHAVIOR FIRST. Write what the user DOES, not what they ARE.
+   Bad:  "You are decisive and sharp"
+   Good: "You move first, then refine what you moved"
+
+2. TEMPORAL MOVEMENT. At least one of {role, tension, distortion} MUST include
+   "at first... then...", "over time...", or "what starts as... becomes...".
+
+3. DISTORTION MUST INCLUDE COST. Show what the user does, what it turns into,
+   and what it costs them.
+   Bad:  "You overextend yourself"
+   Good: "You take on more than you intended, and over time what you started
+          becomes something you feel responsible for finishing."
+
+4. ASYMMETRY. Do NOT soften. Avoid "this can sometimes", "you may find".
+   Prefer "this turns when", "this becomes heavy when".
+
+5. NOT_FOR must be a sharp one-liner describing what this phase is NOT for.
+   Example: "This is not a phase for carrying everything yourself."
+
+6. ORIENTATION IS NOT ADVICE. Describe what the pattern needs to function
+   correctly.
+   Bad:  "You should step back"
+   Good: "This pattern works when initiation is followed by space"
+
+7. NO GENERIC LANGUAGE: "dynamic blend", "recurring theme", "invites growth",
+   "multiple perspectives", "tends to", "you may find", "suggests that",
+   "in many ways", "deeply connected to". If it sounds like a horoscope, it
+   is wrong.
+
+8. NO FRAMEWORK NAMES. Never mention chart, lens, system, astrology, human
+   design, bazi, enneagram, numerology, manifestor, projector, generator,
+   reflector, day master, authority, life path.
+
+9. KEEP IT TIGHT. Each field 1-3 sentences. No fluff, no repetition.
+
+==================================================
+QUALITY CHECK BEFORE OUTPUT
+==================================================
+
+Before returning, ensure:
+- Each field contains a clear behaviour
+- At least one field contains time progression
+- distortion shows a cost
+- not_for is present and sharp
+- Language is specific, not general
+
+If not, rewrite internally.
+
+==================================================
+FINAL RULE
+==================================================
+
+It should feel like: "This is exactly what I do... and I can see where it turns."
 """
 
 
 def _build_role_user_message(seeds: Dict[str, Any]) -> str:
-    return (
-        "DETERMINISTIC SEEDS (raw — do not repeat verbatim, synthesise):\n"
-        f"  role_seed:         {seeds['role_seed']}\n"
-        f"  tension_seed:      {seeds['tension_seed']}\n"
-        f"  distortion_seed:   {seeds['distortion_seed']}\n"
-        f"  orientation_seed:  {seeds['orientation_seed']}\n"
-        "\n"
-        "TASK:\n"
-        "  Compress the seeds into four sharp sentences. One role (phase-describing),\n"
-        "  one tension (behavioural), one distortion (how strength flips), one orientation\n"
-        "  (non-prescriptive restorative cue). Output strict JSON with keys role, tension,\n"
-        "  distortion, orientation."
-    )
+    payload = {
+        "role_card_seeds": {
+            "role":               seeds["role_seed"],
+            "tension":            seeds["tension_seed"],
+            "distortion":         seeds["distortion_seed"],
+            "orientation":        seeds["orientation_seed"],
+            "dominant_drivers":   seeds["dominant_drivers"],
+        },
+        "confidence":        seeds["confidence"],
+    }
+    return json.dumps(payload, indent=2, ensure_ascii=False)
 
 
 def _parse_role_json(raw: str) -> Tuple[Optional[Dict[str, str]], List[str]]:
@@ -235,7 +291,7 @@ def _parse_role_json(raw: str) -> Tuple[Optional[Dict[str, str]], List[str]]:
         payload = json.loads(m.group(0))
     except json.JSONDecodeError:
         return None, ["json_parse_error"]
-    for k in ("role", "tension", "distortion", "orientation"):
+    for k in ("role", "tension", "distortion", "orientation", "not_for"):
         v = payload.get(k)
         if isinstance(v, str):
             cleaned, hits = scrub_banned_phrases(v)
@@ -289,6 +345,7 @@ async def generate_role_card(
             "tension":     seeds["tension_seed"].rstrip(".") + ".",
             "distortion":  seeds["distortion_seed"].rstrip(".") + ".",
             "orientation": seeds["orientation_seed"].rstrip(".") + ".",
+            "not_for":     "This is not a phase for proving the pattern, only living it.",
         }
 
     return {
@@ -296,6 +353,7 @@ async def generate_role_card(
         "tension":          payload.get("tension", ""),
         "distortion":       payload.get("distortion", ""),
         "orientation":      payload.get("orientation", ""),
+        "not_for":          payload.get("not_for", ""),
         "confidence":       seeds["confidence"],
         "dominant_drivers": seeds["dominant_drivers"],
         "purple_star_input": seeds["purple_star_input"],
@@ -309,5 +367,16 @@ async def generate_role_card(
             "seed_memory_state":   seeds["memory_state"],
         },
         "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "generator_version": "role_card_v1a",
+        "generator_version": "role_card_v1a2",
     }
+
+
+def build_role_seeds_public(
+    chart: Dict[str, Any],
+    pattern_memory: Optional[Dict[str, Any]] = None,
+    purple_star_input: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Public accessor for deterministic role seeds (used when we want the
+    synthesis engine to render role + domain in a single LLM call).
+    """
+    return _build_role_seeds(chart, pattern_memory, purple_star_input)

@@ -25672,8 +25672,11 @@ async def get_life_role_card(user_id: str, refresh: bool = False):
 @api_router.get("/life/{context}/synthesis/{user_id}")
 async def get_life_synthesis(context: str, user_id: str, refresh: bool = False):
     """
-    Hierarchical Life synthesis (Phase 1a).
+    Hierarchical Life synthesis (Phase 1a, v2 — Mirror Life Synthesis Engine).
     Returns: role_card + domain_synthesis + evidence_signals.
+
+    ONE LLM call per tab — the engine's JSON contract renders both the
+    role_card and the domain block together so they stay coherent.
     """
     from services import life_synthesis_engine as lse
     from services import role_card_engine as rce
@@ -25696,30 +25699,46 @@ async def get_life_synthesis(context: str, user_id: str, refresh: bool = False):
     pattern_memory = await _load_pattern_memory_for_user(user_id)
     lifeline_summary = await _load_lifeline_summary_for_user(user_id)
 
-    synth_task = lse.generate_domain_synthesis(
+    # Build deterministic role seeds so the synthesis renderer gets BOTH
+    # role-card inputs and domain inputs in the SAME LLM call.
+    role_seeds = rce.build_role_seeds_public(
+        chart=chart_doc,
+        pattern_memory=pattern_memory,
+        purple_star_input=None,
+    )
+
+    synth_result = await lse.generate_domain_synthesis(
         chart=chart_doc,
         domain=domain,
         pattern_memory=pattern_memory,
         lifeline_summary=lifeline_summary,
+        role_seeds=role_seeds,
         llm_chat_factory=_life_synth_llm_factory(f"life_synth_{user_id}_{domain}") if EMERGENT_LLM_KEY else None,
     )
 
-    role_cached = _life_synth_cache_get(f"role_card::{user_id}")
-    if role_cached:
-        role_card = role_cached
-        synth_result = await synth_task
-    else:
-        role_task = rce.generate_role_card(
-            chart=chart_doc,
-            pattern_memory=pattern_memory,
-            purple_star_input=None,
-            llm_chat_factory=_role_card_llm_factory(f"role_card_{user_id}") if EMERGENT_LLM_KEY else None,
-        )
-        role_card, synth_result = await asyncio.gather(role_task, synth_task)
-        _life_synth_cache_set(f"role_card::{user_id}", role_card)
-
+    # If the engine returned an inline role_card, hydrate it with confidence +
+    # drivers + the purple-star hook. If the engine skipped role_card, fall
+    # back to the deterministic seeds so the UI always gets a usable card.
+    inline_role = synth_result.get("role_card") or {}
+    if not isinstance(inline_role, dict):
+        inline_role = {}
+    role_card = {
+        "role":             inline_role.get("role") or role_seeds["role_seed"],
+        "tension":          inline_role.get("tension") or role_seeds["tension_seed"],
+        "distortion":       inline_role.get("distortion") or role_seeds["distortion_seed"],
+        "orientation":      inline_role.get("orientation") or role_seeds["orientation_seed"],
+        "not_for":          inline_role.get("not_for") or "This is not a phase for proving the pattern, only living it.",
+        "confidence":       role_seeds["confidence"],
+        "dominant_drivers": role_seeds["dominant_drivers"],
+        "purple_star_input": role_seeds["purple_star_input"],
+        "generated_at":     synth_result["generated_at"],
+        "generator_version": "role_card_v1a2_inline",
+    }
     synth_result["role_card"] = role_card
+
+    # Cache both full response and role-card-only slice
     _life_synth_cache_set(cache_key, synth_result)
+    _life_synth_cache_set(f"role_card::{user_id}", role_card)
     return synth_result
 
 

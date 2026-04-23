@@ -58,23 +58,26 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Style filter — aggressive banned-phrase list per user brief
+# Style filter — banned-phrase list per user's Mirror Life Synthesis Engine spec
 # ---------------------------------------------------------------------------
 
 BANNED_PHRASES: List[str] = [
-    # vague abstractions
-    "dynamic blend", "recurring theme", "multiple perspectives",
-    "invites growth", "tends to stand out", "intuitive sense paired with",
-    "spontaneous action", "emotional clarity unfolds over time",
+    # vague abstractions (spec §8)
+    "dynamic blend", "recurring theme", "invites growth",
+    "multiple perspectives", "tends to", "you may find",
+    "suggests that", "in many ways", "deeply connected to",
+    "intuitive sense paired with", "spontaneous action",
+    "emotional clarity unfolds over time", "tends to stand out",
     "multiple lenses", "various lenses", "several lenses",
     "your chart suggests", "your chart indicates", "this suggests",
-    # prescriptive / guru
+    "this can sometimes", "in certain situations",
+    # prescriptive / guru (spec §7, §8)
     "you should", "you must", "you need to", "you have to",
-    "will happen", "is destined", "is meant to", "this will",
+    "will happen", "is destined", "this will",
     # flatter-without-cost
     "unique gift", "beautiful balance", "powerful combination",
     "deep wisdom", "profound insight", "inner truth",
-    # lens-name leakage (we must not name frameworks)
+    # lens-name leakage (spec: no mention of frameworks)
     "human design", "astrology", "bazi", "ba zi", "day master",
     "enneagram", "numerology", "life path", "incarnation cross",
     "manifestor", "manifesting generator", "projector", "reflector", "generator",
@@ -496,84 +499,221 @@ def build_synthesis_input(
 
 
 # ---------------------------------------------------------------------------
-# LLM rendering prompt
+# LLM rendering prompt — the Mirror Life Synthesis Engine
 # ---------------------------------------------------------------------------
 
-_RENDER_SYSTEM_PROMPT = """You are the Mirror Life Synthesis Renderer.
+_RENDER_SYSTEM_PROMPT = """You are the Mirror Life Synthesis Engine.
 
-You never name frameworks (astrology, human design, bazi, enneagram, numerology,
-incarnation cross, day master, life path, manifestor, projector, etc.). You also
-never use the words "chart", "lens", or "system".
+Your job is NOT to describe the user.
 
-You write in second person. You describe a single LIVING PATTERN — not a trait
-summary, not a list of qualities.
+Your job is to:
+- detect the living pattern
+- show where it turns
+- show what it becomes over time
+- make the cost visible
+- and orient the user back to alignment
 
-Mandatory tone:
-  - recognition-first, not prescriptive
-  - behavioural and specific, not abstract
-  - one pattern, one tension, one distortion, one orientation
-  - tension-based, not flattering
+==================================================
+INPUT
+==================================================
 
-Banned phrasing (never use, under any circumstance):
-  "dynamic blend", "recurring theme", "multiple perspectives", "invites growth",
-  "tends to stand out", "intuitive sense paired with", "spontaneous action",
-  "emotional clarity unfolds over time", "multiple lenses", "this suggests",
-  "you should", "you must", "you need to", "you have to", "unique gift",
-  "deep wisdom", "profound insight", "beautiful balance".
+You will receive structured synthesis data:
 
-Prefer phrasing like:
-  "You move first, then feel responsible for what you moved."
-  "What begins as momentum becomes weight."
-  "You can mistake responsibility for purpose."
-  "This works when initiation is followed by space."
+- role_card:
+  - role
+  - tension
+  - distortion
+  - orientation
+  - dominant_drivers
 
-OUTPUT: strict JSON, no prose outside JSON. Keys in this order:
-  pattern, default_tension, distortion_under_pressure,
-  what_this_pattern_needs, explore, reflect.
+- domain_synthesis:
+  - pattern
+  - default_tension
+  - distortion_under_pressure
+  - what_this_pattern_needs
 
-Word budgets (hard):
-  pattern:                  45-70 words, 2-3 sentences.
-  default_tension:          25-50 words, 1-2 sentences.
-  distortion_under_pressure:25-50 words, 1-2 sentences.
-  what_this_pattern_needs:  20-40 words, 1-2 sentences. Orientation, not advice.
-  explore:                  exactly 2 short probes, max 14 words each.
-  reflect:                  exactly 1 journal prompt, max 18 words.
+- domain: (self | work | relationships)
+
+==================================================
+OUTPUT STRUCTURE
+==================================================
+
+Return ONLY valid JSON with:
+
+{
+  "role_card": {
+    "role": "...",
+    "tension": "...",
+    "distortion": "...",
+    "orientation": "...",
+    "not_for": "...",
+    "confidence": "high|medium|low"
+  },
+  "domain": {
+    "pattern": "...",
+    "default_tension": "...",
+    "distortion_under_pressure": "...",
+    "what_this_pattern_needs": "..."
+  }
+}
+
+No extra keys. No markdown. No explanation.
+
+==================================================
+CORE WRITING RULES (CRITICAL)
+==================================================
+
+1. BEHAVIOR FIRST
+Write what the user DOES — not what they ARE.
+
+Bad:
+"You are intuitive and dynamic"
+
+Good:
+"You move quickly toward things that feel right"
+
+2. INCLUDE TEMPORAL MOVEMENT
+Every section MUST include progression:
+- "at first... then..."
+- "over time..."
+- "what starts as... becomes..."
+If there is no sense of time or escalation, the output is wrong.
+
+3. DISTORTION MUST INCLUDE COST
+This is the most important rule.
+You MUST show:
+- what the user does
+- what it turns into
+- what it costs them
+
+Bad:
+"You overextend yourself"
+
+Good:
+"You take on more than you intended, and over time what you started becomes something you feel responsible for finishing."
+
+4. LEAN INTO ASYMMETRY (TRUTH > BALANCE)
+Do NOT soften the message.
+Avoid: "this can sometimes", "you may find", "in certain situations"
+Prefer: "this turns when", "this becomes heavy when"
+
+5. DOMAIN ANCHORING (MANDATORY)
+You MUST bias language based on domain:
+
+SELF:      inner pressure, identity, self-trust vs self-force, recovery / internal loop
+WORK:      creation vs execution, leverage vs effort, responsibility vs design, scaling vs carrying
+RELATIONSHIPS: initiation, response / silence, misinterpretation, emotional loops
+
+If outputs across domains feel interchangeable, the output is wrong.
+
+6. ROLE CARD MUST INCLUDE "NOT FOR"
+Add a sharp one-liner describing what this phase is NOT for.
+Example: "This is not a phase for carrying everything yourself."
+
+7. ORIENTATION IS NOT ADVICE
+Do NOT tell the user what to do.
+Do describe what the pattern needs to function correctly.
+
+Bad:  "You should step back"
+Good: "This pattern works when initiation is followed by space"
+
+8. NO GENERIC LANGUAGE
+DO NOT use: "dynamic blend", "recurring theme", "invites growth", "multiple perspectives",
+"tends to", "you may find", "suggests that", "in many ways", "deeply connected to".
+If it sounds like a horoscope, it is wrong.
+
+9. KEEP IT TIGHT
+Each field: 1-3 sentences max, no fluff, no repetition.
+
+==================================================
+QUALITY CHECK BEFORE OUTPUT
+==================================================
+
+Before returning, ensure:
+- Each section contains a clear behavior
+- At least one section contains time progression
+- Distortion clearly shows a cost
+- Language is specific, not general
+- Domains feel distinct
+- Role card includes "not_for"
+
+If not, rewrite internally.
+
+==================================================
+EXAMPLE STYLE (REFERENCE ONLY — DO NOT COPY)
+==================================================
+
+Pattern:
+"You move toward things quickly and initiate without waiting. At first this creates momentum, but over time what you begin has a way of becoming something you carry."
+
+Distortion:
+"You keep stepping in to keep things moving, and eventually the system depends on you in a way that becomes difficult to step out of."
+
+Orientation:
+"This works when momentum is followed by space, not continued involvement."
+
+==================================================
+FINAL RULE
+==================================================
+
+Do not explain the system.
+Do not mention lenses.
+Do not sound like analysis.
+
+It should feel like:
+"This is exactly what I do... and I can see where it turns."
 """
 
 
-def build_render_user_message(domain: str, input_bundle: Dict[str, Any]) -> str:
-    """Assemble the deterministic seeds into a compact user message."""
+def build_render_user_message(
+    domain: str,
+    input_bundle: Dict[str, Any],
+    role_seeds: Optional[Dict[str, Any]] = None,
+) -> str:
+    """
+    Assemble the deterministic seeds into a compact structured input for the
+    Mirror Life Synthesis Engine. The engine expects BOTH role_card seeds and
+    domain_synthesis seeds; it returns rendered versions of both.
+    """
     c = input_bundle["compressed_themes"]
-    lines: List[str] = [
-        f"LIFE DOMAIN: {domain}",
-        "",
-        "DETERMINISTIC SEEDS (compressed from all available signals — treat as raw ingredients, not prose to repeat):",
-        f"  core_pattern_seed:    {c['core_pattern_seed']}",
-        f"  default_tension_seed: {c['default_tension_seed']}",
-        f"  distortion_seed:      {c['distortion_seed']}",
-        f"  orientation_seed:     {c['orientation_seed']}",
-    ]
+
+    role_block: Dict[str, Any] = {}
+    if role_seeds:
+        role_block = {
+            "role":              role_seeds.get("role_seed", ""),
+            "tension":           role_seeds.get("tension_seed", ""),
+            "distortion":        role_seeds.get("distortion_seed", ""),
+            "orientation":       role_seeds.get("orientation_seed", ""),
+            "dominant_drivers":  role_seeds.get("dominant_drivers", []),
+        }
+    else:
+        # Role card will not be re-rendered inline; leave seeds minimal so the
+        # model fills with stub coherence (caller will discard role_card block).
+        role_block = {
+            "role":             "",
+            "tension":          "",
+            "distortion":       "",
+            "orientation":      "",
+            "dominant_drivers": [],
+        }
+
+    domain_block = {
+        "pattern":                   c["core_pattern_seed"],
+        "default_tension":           c["default_tension_seed"],
+        "distortion_under_pressure": c["distortion_seed"],
+        "what_this_pattern_needs":   c["orientation_seed"],
+    }
     if c.get("memory_phase"):
-        lines.append(f"  memory_phase:         {c['memory_phase']}")
+        domain_block["memory_phase_note"] = c["memory_phase"]
     if c.get("lifeline_themes"):
-        lines.append(f"  lifeline_echoes:      {', '.join(c['lifeline_themes'])}")
-    lines += [
-        "",
-        "TASK:",
-        "  1. Compress the seeds into ONE living pattern for this domain. Do not list the seeds.",
-        "  2. Name the tension, then the distortion, then the orientation.",
-        "  3. Respect the word budgets and banned phrasing in the system message.",
-        "  4. Output strict JSON with keys: pattern, default_tension, distortion_under_pressure, what_this_pattern_needs, explore (array of 2 strings), reflect (array of 1 string).",
-        "  5. Do not reference the user by name. Do not mention frameworks or lenses.",
-        "",
-        f"DOMAIN FOCUS ({domain}):",
-        {
-            "relationships": "how you initiate contact, what you assume in the silence, what the connection needs from you.",
-            "work":          "how you create, lead, build; where initiation becomes over-carrying.",
-            "self":          "how you hold identity, pressure, recovery, inner direction.",
-        }[domain],
-    ]
-    return "\n".join(lines)
+        domain_block["lifeline_echoes"] = c["lifeline_themes"]
+
+    payload = {
+        "role_card":         role_block,
+        "domain_synthesis":  domain_block,
+        "domain":            domain,
+    }
+    return json.dumps(payload, indent=2, ensure_ascii=False)
 
 
 # ---------------------------------------------------------------------------
@@ -594,9 +734,11 @@ def scrub_banned_phrases(text: str) -> Tuple[str, List[str]]:
 
 
 def _validate_and_clean_render(raw: str) -> Tuple[Optional[Dict[str, Any]], List[str]]:
-    """Parse JSON, run banned-phrase scrub, return (payload_or_none, hits)."""
+    """Parse JSON produced by the Mirror Life Synthesis Engine, run banned-phrase
+    scrub on every string field in {role_card, domain}, and return cleaned
+    payload.
+    """
     all_hits: List[str] = []
-    # Extract JSON blob (model sometimes wraps in ``` or adds preamble)
     m = re.search(r"\{.*\}", raw, re.S)
     if not m:
         return None, ["no_json_detected"]
@@ -606,23 +748,27 @@ def _validate_and_clean_render(raw: str) -> Tuple[Optional[Dict[str, Any]], List
         logger.warning("[LifeSynth] JSON parse failed: %s", e)
         return None, ["json_parse_error"]
 
-    # Scrub each string field; arrays of strings
-    for key in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
-        v = payload.get(key)
-        if isinstance(v, str):
-            cleaned, hits = scrub_banned_phrases(v)
-            payload[key] = cleaned
-            all_hits.extend(hits)
-    for listkey in ("explore", "reflect"):
-        arr = payload.get(listkey)
-        if isinstance(arr, list):
-            out_arr = []
-            for s in arr:
-                if isinstance(s, str):
-                    cleaned, hits = scrub_banned_phrases(s)
-                    out_arr.append(cleaned)
-                    all_hits.extend(hits)
-            payload[listkey] = out_arr
+    # Scrub role_card strings
+    rc = payload.get("role_card") or {}
+    if isinstance(rc, dict):
+        for k in ("role", "tension", "distortion", "orientation", "not_for"):
+            v = rc.get(k)
+            if isinstance(v, str):
+                cleaned, hits = scrub_banned_phrases(v)
+                rc[k] = cleaned
+                all_hits.extend(hits)
+        payload["role_card"] = rc
+
+    # Scrub domain strings
+    dom = payload.get("domain") or payload.get("domain_synthesis") or {}
+    if isinstance(dom, dict):
+        for k in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
+            v = dom.get(k)
+            if isinstance(v, str):
+                cleaned, hits = scrub_banned_phrases(v)
+                dom[k] = cleaned
+                all_hits.extend(hits)
+        payload["domain"] = dom
 
     return payload, all_hits
 
@@ -637,10 +783,13 @@ async def generate_domain_synthesis(
     domain: str,
     pattern_memory: Optional[Dict[str, Any]] = None,
     lifeline_summary: Optional[Dict[str, Any]] = None,
+    role_seeds: Optional[Dict[str, Any]] = None,
     llm_chat_factory=None,  # callable: () -> LlmChat, injected by caller
 ) -> Dict[str, Any]:
     """
-    End-to-end synthesis for a single domain. Exactly ONE LLM call.
+    End-to-end synthesis for a single domain. Exactly ONE LLM call that renders
+    BOTH the role_card AND the domain_synthesis (per Mirror Life Synthesis
+    Engine contract).
 
     llm_chat_factory: a callable that returns a configured LlmChat instance with
     the system message baked in. The caller (server.py) owns LLM provider setup.
@@ -648,7 +797,7 @@ async def generate_domain_synthesis(
     from emergentintegrations.llm.chat import LlmChat, UserMessage  # local import
 
     input_bundle = build_synthesis_input(chart, domain, pattern_memory, lifeline_summary)
-    user_msg = build_render_user_message(domain, input_bundle)
+    user_msg = build_render_user_message(domain, input_bundle, role_seeds=role_seeds)
 
     llm_output_raw: Optional[str] = None
     render_error: Optional[str] = None
@@ -665,43 +814,45 @@ async def generate_domain_synthesis(
             logger.exception("[LifeSynth] LLM render failed")
             render_error = f"llm_render_error: {e}"
 
-    payload: Optional[Dict[str, Any]] = None
+    parsed: Optional[Dict[str, Any]] = None
     if llm_output_raw:
-        payload, render_hits = _validate_and_clean_render(llm_output_raw)
+        parsed, render_hits = _validate_and_clean_render(llm_output_raw)
 
-    # Fallback: use the deterministic seeds directly if LLM failed or was scrubbed empty.
-    if not payload or not payload.get("pattern"):
+    domain_payload: Optional[Dict[str, Any]] = None
+    role_payload: Optional[Dict[str, Any]] = None
+    if parsed:
+        domain_payload = parsed.get("domain")
+        role_payload = parsed.get("role_card")
+
+    # Fallback: deterministic seeds if LLM failed or was scrubbed empty.
+    if not domain_payload or not domain_payload.get("pattern"):
         c = input_bundle["compressed_themes"]
-        payload = {
-            "pattern": _prose_from_seed(c["core_pattern_seed"]),
-            "default_tension": _prose_from_seed(c["default_tension_seed"]),
+        domain_payload = {
+            "pattern":                   _prose_from_seed(c["core_pattern_seed"]),
+            "default_tension":           _prose_from_seed(c["default_tension_seed"]),
             "distortion_under_pressure": _prose_from_seed(c["distortion_seed"]),
-            "what_this_pattern_needs": _prose_from_seed(c["orientation_seed"]),
-            "explore": [
-                "Where is this pattern most alive right now?",
-                "Where does the strength flip into weight?",
-            ],
-            "reflect": [
-                "What would it look like to let this pattern end on time?",
-            ],
+            "what_this_pattern_needs":   _prose_from_seed(c["orientation_seed"]),
         }
 
-    payload["today"] = None  # reserved for P2 modulation
+    # Reserved slots (contract promise to UI / P2)
+    domain_payload.setdefault("today", None)
+    domain_payload.setdefault("explore", [])
+    domain_payload.setdefault("reflect", [])
 
     return {
-        "life_area": domain,
-        "role_card": None,  # filled in by caller via role_card_engine
-        "domain_synthesis": payload,
+        "life_area":        domain,
+        "role_card":        role_payload,  # may be None; caller fills from role_card_engine if needed
+        "domain_synthesis": domain_payload,
         "evidence_signals": input_bundle["evidence_signals"],
         "compressed_themes": input_bundle["compressed_themes"],
-        "confidence": input_bundle["confidence"],
+        "confidence":       input_bundle["confidence"],
         "debug": {
-            "llm_used": llm_output_raw is not None,
-            "render_error": render_error,
+            "llm_used":           llm_output_raw is not None,
+            "render_error":       render_error,
             "banned_phrase_hits": render_hits,
         },
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_synth_v1a",
+        "generated_at":      datetime.now(timezone.utc).isoformat(),
+        "generator_version": "life_synth_v1a2",
     }
 
 
