@@ -25547,6 +25547,183 @@ def format_lens_data_for_prompt(combined_data: dict, context: str) -> str:
     return "\n".join(parts)
 
 
+# ---------------------------------------------------------------------------
+# Phase 1a — Life Synthesis Engine endpoints
+# ---------------------------------------------------------------------------
+# These endpoints deliver the new hierarchical synthesis contract
+# (role card + domain synthesis + evidence signals). They live alongside the
+# legacy /life/{context} endpoint which remains as a fallback (see user brief).
+
+_LIFE_SYNTH_CACHE: Dict[str, Dict[str, Any]] = {}
+_LIFE_SYNTH_CACHE_TTL_SECONDS = 24 * 60 * 60  # 24h
+
+
+def _life_synth_cache_get(key: str) -> Optional[Dict[str, Any]]:
+    entry = _LIFE_SYNTH_CACHE.get(key)
+    if not entry:
+        return None
+    if (datetime.now(timezone.utc).timestamp() - entry["ts"]) > _LIFE_SYNTH_CACHE_TTL_SECONDS:
+        _LIFE_SYNTH_CACHE.pop(key, None)
+        return None
+    return entry["data"]
+
+
+def _life_synth_cache_set(key: str, data: Dict[str, Any]) -> None:
+    _LIFE_SYNTH_CACHE[key] = {"ts": datetime.now(timezone.utc).timestamp(), "data": data}
+
+
+async def _load_pattern_memory_for_user(user_id: str) -> Optional[Dict[str, Any]]:
+    """Best-effort fetch of the user's most recent pattern-memory state.
+    Returns None if unavailable — the engine degrades gracefully.
+    """
+    try:
+        doc = await db.pattern_memory.find_one({"user_id": user_id}, sort=[("updated_at", -1)])
+        if not doc:
+            return None
+        return {
+            "memory_state":    doc.get("memory_state") or doc.get("state"),
+            "evolution_state": doc.get("evolution_state") or doc.get("evolution"),
+            "match_count":     doc.get("match_count") or 0,
+        }
+    except Exception as e:
+        logger.debug(f"[LifeSynth] pattern memory lookup failed for {user_id}: {e}")
+        return None
+
+
+async def _load_lifeline_summary_for_user(user_id: str) -> Optional[Dict[str, Any]]:
+    """Best-effort lifeline summary. P3 will feed this more strongly."""
+    try:
+        cursor = db.lifeline_events.find({"user_id": user_id}).sort("event_date", -1).limit(12)
+        events = [e async for e in cursor]
+        if not events:
+            return None
+        themes: List[str] = []
+        for ev in events:
+            t = ev.get("theme") or ev.get("tag")
+            if isinstance(t, str) and t and t not in themes:
+                themes.append(t)
+            if len(themes) >= 5:
+                break
+        return {"total_events": len(events), "recent_themes": themes}
+    except Exception as e:
+        logger.debug(f"[LifeSynth] lifeline lookup failed for {user_id}: {e}")
+        return None
+
+
+def _life_synth_llm_factory(session_id: str):
+    """Factory returning a fresh LlmChat bound to the synthesis system prompt."""
+    from services.life_synthesis_engine import _RENDER_SYSTEM_PROMPT  # noqa
+
+    def _factory():
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message=_RENDER_SYSTEM_PROMPT,
+        )
+        chat.with_model("openai", "gpt-4.1-mini")
+        return chat
+
+    return _factory
+
+
+def _role_card_llm_factory(session_id: str):
+    from services.role_card_engine import _ROLE_SYSTEM_PROMPT  # noqa
+
+    def _factory():
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message=_ROLE_SYSTEM_PROMPT,
+        )
+        chat.with_model("openai", "gpt-4.1-mini")
+        return chat
+
+    return _factory
+
+
+@api_router.get("/life/role-card/{user_id}")
+async def get_life_role_card(user_id: str, refresh: bool = False):
+    """Role Card — the top anchor card above the Life sub-tabs (Phase 1a)."""
+    from services import role_card_engine as rce
+
+    cache_key = f"role_card::{user_id}"
+    if not refresh:
+        cached = _life_synth_cache_get(cache_key)
+        if cached:
+            return cached
+
+    chart_doc = await db.charts.find_one({"user_id": user_id})
+    if not chart_doc:
+        raise HTTPException(status_code=404, detail="Chart not found for user")
+    chart_doc.pop("_id", None)
+
+    pattern_memory = await _load_pattern_memory_for_user(user_id)
+
+    card = await rce.generate_role_card(
+        chart=chart_doc,
+        pattern_memory=pattern_memory,
+        purple_star_input=None,  # reserved hook — slot in when available
+        llm_chat_factory=_role_card_llm_factory(f"role_card_{user_id}") if EMERGENT_LLM_KEY else None,
+    )
+    _life_synth_cache_set(cache_key, card)
+    return card
+
+
+@api_router.get("/life/{context}/synthesis/{user_id}")
+async def get_life_synthesis(context: str, user_id: str, refresh: bool = False):
+    """
+    Hierarchical Life synthesis (Phase 1a).
+    Returns: role_card + domain_synthesis + evidence_signals.
+    """
+    from services import life_synthesis_engine as lse
+    from services import role_card_engine as rce
+
+    domain = (context or "").strip().lower()
+    if domain not in ("relationships", "work", "self"):
+        raise HTTPException(status_code=400, detail="context must be relationships, work, or self")
+
+    cache_key = f"synth::{user_id}::{domain}"
+    if not refresh:
+        cached = _life_synth_cache_get(cache_key)
+        if cached:
+            return cached
+
+    chart_doc = await db.charts.find_one({"user_id": user_id})
+    if not chart_doc:
+        raise HTTPException(status_code=404, detail="Chart not found for user")
+    chart_doc.pop("_id", None)
+
+    pattern_memory = await _load_pattern_memory_for_user(user_id)
+    lifeline_summary = await _load_lifeline_summary_for_user(user_id)
+
+    synth_task = lse.generate_domain_synthesis(
+        chart=chart_doc,
+        domain=domain,
+        pattern_memory=pattern_memory,
+        lifeline_summary=lifeline_summary,
+        llm_chat_factory=_life_synth_llm_factory(f"life_synth_{user_id}_{domain}") if EMERGENT_LLM_KEY else None,
+    )
+
+    role_cached = _life_synth_cache_get(f"role_card::{user_id}")
+    if role_cached:
+        role_card = role_cached
+        synth_result = await synth_task
+    else:
+        role_task = rce.generate_role_card(
+            chart=chart_doc,
+            pattern_memory=pattern_memory,
+            purple_star_input=None,
+            llm_chat_factory=_role_card_llm_factory(f"role_card_{user_id}") if EMERGENT_LLM_KEY else None,
+        )
+        role_card, synth_result = await asyncio.gather(role_task, synth_task)
+        _life_synth_cache_set(f"role_card::{user_id}", role_card)
+
+    synth_result["role_card"] = role_card
+    _life_synth_cache_set(cache_key, synth_result)
+    return synth_result
+
+
+
 @api_router.get("/life/{context}")
 async def get_life_context(context: str, user_id: str):
     """

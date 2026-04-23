@@ -1,0 +1,313 @@
+"""
+Role Card Engine (Phase 1a)
+===========================
+
+Produces the top anchor "The Role You're In" card that sits above the Life
+sub-tabs. Structured fields only — no paragraph blob.
+
+CONTRACT:
+    {
+        "role":           str,            # "You're in a phase where you build and hand off"
+        "tension":        str,            # "What you start has a way of becoming what you carry"
+        "distortion":     str,            # "You can mistake responsibility for purpose"
+        "orientation":    str,            # "This phase works when you initiate, then let it run without you"
+        "confidence":     "high|medium|low",
+        "dominant_drivers": [str, ...],   # compressed cues, never framework names
+        "purple_star_input": None,        # first-class hook for P-later
+        "generated_at":   iso,
+        "generator_version": "role_card_v1a",
+    }
+
+INPUT PRIORITY (per user brief):
+  1. Purple Star / role logic — NOT WIRED YET (stub hook).
+  2. BaZi structural pattern   — day master element × strength × dominant element(s)
+  3. HD operating style        — type + authority + definition
+  4. Pattern Memory            — memory_state / evolution
+  5. Current transit phase     — optional, degrades gracefully
+
+This file is deterministic + ONE LLM polish call at the end (shared budget
+with the per-domain calls). If LLM is unavailable it falls back to the
+deterministic seeds.
+"""
+from __future__ import annotations
+
+import json
+import logging
+import re
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple
+
+from .life_synthesis_engine import scrub_banned_phrases
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Role matrix: BaZi element × HD type → role phrase + tension + distortion + orientation
+# ---------------------------------------------------------------------------
+
+_ELEMENT_ROLE_BASE: Dict[str, Dict[str, str]] = {
+    "wood": {
+        "role":        "You're in a phase where you're meant to start things",
+        "tension":     "You keep pushing growth after the thing is already grown",
+        "distortion":  "You confuse expansion with progress",
+        "orientation": "This phase works when you prune as often as you plant",
+    },
+    "fire": {
+        "role":        "You're in a phase where you're meant to warm the room and set the pace",
+        "tension":     "Your energy becomes the weather — and you forget you can set it down",
+        "distortion":  "You perform vitality to cover ambient flatness",
+        "orientation": "This phase works when the fire gets to rest without being called weakness",
+    },
+    "earth": {
+        "role":        "You're in a phase where you're meant to build systems — but not carry them",
+        "tension":     "What starts as momentum becomes weight when you stay too long",
+        "distortion":  "You mistake being relied on for being meaningful",
+        "orientation": "This phase works when you initiate, structure, and let the system take over",
+    },
+    "metal": {
+        "role":        "You're in a phase where you're meant to refine and raise the standard",
+        "tension":     "You sharpen past the point where anyone can use it",
+        "distortion":  "You cut for precision and wound the trust in the room",
+        "orientation": "This phase works when one rough edge gets to stay",
+    },
+    "water": {
+        "role":        "You're in a phase where you're meant to sense the undercurrent before it surfaces",
+        "tension":     "You absorb the tone of the room and lose your own line",
+        "distortion":  "You go quiet just when the clear word would have landed",
+        "orientation": "This phase works when you name the thing you already felt",
+    },
+}
+
+# HD type modulates the role base — changes HOW the role operates
+_HD_TYPE_MODULATION: Dict[str, str] = {
+    "manifestor":              "— and the move is yours to make without waiting for permission",
+    "manifesting generator":   "— and the move is to finish one thread before starting the next",
+    "generator":               "— and the move is to respond to what actually lights up",
+    "projector":               "— and the move is to wait for the invitation, then speak precisely",
+    "reflector":               "— and the move is to let a full cycle pass before committing",
+}
+
+_AUTHORITY_NOTE: Dict[str, str] = {
+    "emotional":  "Decisions land clean after the wave, not at its peak.",
+    "sacral":     "The body's yes is what you're listening for.",
+    "splenic":    "The first quiet signal is usually the right one.",
+    "ego":        "What your willpower can sustain is the real measure.",
+    "self-projected": "You know it when you hear yourself say it out loud.",
+    "lunar":      "Clarity comes on a longer arc than most people allow.",
+}
+
+_PATTERN_MEMORY_NOTE: Dict[str, str] = {
+    "recurring_pattern":  "The pattern is cycling, not resolving — that's the signal.",
+    "new_pattern":        "The pattern is fresh. It hasn't yet calcified into a position.",
+    "integrating":        "The pattern is softening through use.",
+    "metabolizing":       "The pattern is being digested, not fought.",
+}
+
+
+# ---------------------------------------------------------------------------
+# Deterministic seed extraction
+# ---------------------------------------------------------------------------
+
+def _build_role_seeds(
+    chart: Dict[str, Any],
+    pattern_memory: Optional[Dict[str, Any]] = None,
+    purple_star_input: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    bazi = chart.get("bazi") or {}
+    dm = bazi.get("day_master") or {}
+    element = (dm.get("element") or "").strip().lower()
+    strength = (dm.get("strength") or "").strip().lower()
+
+    hd = chart.get("human_design") or {}
+    hd_type = (hd.get("type") or "").strip().lower()
+    authority = (hd.get("authority") or "").strip().lower()
+
+    pm = pattern_memory or {}
+    memory_state = (pm.get("memory_state") or pm.get("state") or "").strip().lower()
+
+    # 1. Base role from element
+    base = _ELEMENT_ROLE_BASE.get(element, {
+        "role":        "You're in a phase that doesn't compress into a single posture",
+        "tension":     "You tighten around the parts that already know what to do",
+        "distortion":  "You repeat the same move while expecting a different result",
+        "orientation": "This phase works when you return to why the posture exists",
+    })
+
+    # 2. HD modulation
+    role_suffix = _HD_TYPE_MODULATION.get(hd_type, "")
+    role_full = base["role"] + " " + role_suffix if role_suffix else base["role"]
+
+    # 3. Authority note — appended to orientation, not merged
+    authority_note = _AUTHORITY_NOTE.get(authority)
+
+    # 4. Pattern-memory note
+    memory_note = _PATTERN_MEMORY_NOTE.get(memory_state)
+
+    # Drivers: compressed cues, no framework names
+    drivers: List[str] = []
+    if element:
+        drivers.append(f"{element} posture" + (f" · {strength}" if strength else ""))
+    if hd_type:
+        drivers.append(f"{hd_type} operating style")
+    if authority:
+        drivers.append(f"{authority} decision signal")
+    if memory_state:
+        drivers.append(f"memory: {memory_state.replace('_', ' ')}")
+    if purple_star_input:
+        drivers.append("purple star phase (supplied)")
+
+    # Confidence
+    signal_count = sum(1 for x in (element, hd_type, authority, memory_state) if x)
+    confidence = "high" if signal_count >= 3 else "medium" if signal_count == 2 else "low"
+
+    return {
+        "role_seed":         role_full,
+        "tension_seed":      base["tension"],
+        "distortion_seed":   base["distortion"],
+        "orientation_seed":  base["orientation"]
+                             + (f" {authority_note}" if authority_note else "")
+                             + (f" {memory_note}" if memory_note else ""),
+        "dominant_drivers":  drivers[:5],
+        "confidence":        confidence,
+        "hd_type":           hd_type or None,
+        "authority":         authority or None,
+        "day_master_element": element or None,
+        "day_master_strength": strength or None,
+        "memory_state":      memory_state or None,
+        "purple_star_input": purple_star_input,  # carried through untouched
+    }
+
+
+# ---------------------------------------------------------------------------
+# LLM polish
+# ---------------------------------------------------------------------------
+
+_ROLE_SYSTEM_PROMPT = """You are the Mirror Role Card Renderer.
+
+You never name frameworks (astrology, human design, bazi, enneagram, numerology,
+manifestor, projector, generator, reflector, day master, authority). No words
+"chart", "lens", "system".
+
+You produce FOUR one-sentence fields describing a *current role / phase* the
+user is in. Not a personality summary. A phase.
+
+Banned phrasing (never use):
+  "dynamic blend", "recurring theme", "multiple perspectives", "invites growth",
+  "tends to stand out", "unique gift", "deep wisdom", "profound insight",
+  "you should", "you must", "you need to", "this will happen", "is meant to".
+  (You MAY use "meant to" inside the role field only — that's phase-describing,
+   not fate-declaring.)
+
+Word budgets (hard):
+  role:         18-32 words, 1 sentence.
+  tension:      12-25 words, 1 sentence. Behavioural, not abstract.
+  distortion:   10-20 words, 1 sentence. How the strength flips.
+  orientation:  14-28 words, 1 sentence. Non-prescriptive restorative cue.
+
+OUTPUT: strict JSON with keys role, tension, distortion, orientation.
+No prose outside JSON.
+"""
+
+
+def _build_role_user_message(seeds: Dict[str, Any]) -> str:
+    return (
+        "DETERMINISTIC SEEDS (raw — do not repeat verbatim, synthesise):\n"
+        f"  role_seed:         {seeds['role_seed']}\n"
+        f"  tension_seed:      {seeds['tension_seed']}\n"
+        f"  distortion_seed:   {seeds['distortion_seed']}\n"
+        f"  orientation_seed:  {seeds['orientation_seed']}\n"
+        "\n"
+        "TASK:\n"
+        "  Compress the seeds into four sharp sentences. One role (phase-describing),\n"
+        "  one tension (behavioural), one distortion (how strength flips), one orientation\n"
+        "  (non-prescriptive restorative cue). Output strict JSON with keys role, tension,\n"
+        "  distortion, orientation."
+    )
+
+
+def _parse_role_json(raw: str) -> Tuple[Optional[Dict[str, str]], List[str]]:
+    all_hits: List[str] = []
+    m = re.search(r"\{.*\}", raw, re.S)
+    if not m:
+        return None, ["no_json_detected"]
+    try:
+        payload = json.loads(m.group(0))
+    except json.JSONDecodeError:
+        return None, ["json_parse_error"]
+    for k in ("role", "tension", "distortion", "orientation"):
+        v = payload.get(k)
+        if isinstance(v, str):
+            cleaned, hits = scrub_banned_phrases(v)
+            payload[k] = cleaned.strip()
+            all_hits.extend(hits)
+    return payload, all_hits
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+async def generate_role_card(
+    *,
+    chart: Dict[str, Any],
+    pattern_memory: Optional[Dict[str, Any]] = None,
+    purple_star_input: Optional[Dict[str, Any]] = None,
+    llm_chat_factory=None,
+) -> Dict[str, Any]:
+    """
+    End-to-end role card. ONE LLM call. Falls back to deterministic seeds on
+    any failure.
+    """
+    from emergentintegrations.llm.chat import LlmChat, UserMessage  # local import
+
+    seeds = _build_role_seeds(chart, pattern_memory, purple_star_input)
+    user_msg = _build_role_user_message(seeds)
+
+    llm_output: Optional[str] = None
+    render_error: Optional[str] = None
+    banned_hits: List[str] = []
+
+    if llm_chat_factory is None:
+        render_error = "no_llm_factory"
+    else:
+        try:
+            chat: LlmChat = llm_chat_factory()
+            resp = await chat.send_message(UserMessage(text=user_msg))
+            llm_output = resp if isinstance(resp, str) else str(resp)
+        except Exception as e:
+            logger.exception("[RoleCard] LLM render failed")
+            render_error = f"llm_render_error: {e}"
+
+    payload: Optional[Dict[str, str]] = None
+    if llm_output:
+        payload, banned_hits = _parse_role_json(llm_output)
+
+    if not payload or not payload.get("role"):
+        payload = {
+            "role":        seeds["role_seed"].rstrip(".") + ".",
+            "tension":     seeds["tension_seed"].rstrip(".") + ".",
+            "distortion":  seeds["distortion_seed"].rstrip(".") + ".",
+            "orientation": seeds["orientation_seed"].rstrip(".") + ".",
+        }
+
+    return {
+        "role":             payload.get("role", ""),
+        "tension":          payload.get("tension", ""),
+        "distortion":       payload.get("distortion", ""),
+        "orientation":      payload.get("orientation", ""),
+        "confidence":       seeds["confidence"],
+        "dominant_drivers": seeds["dominant_drivers"],
+        "purple_star_input": seeds["purple_star_input"],
+        "debug": {
+            "llm_used":            llm_output is not None,
+            "render_error":        render_error,
+            "banned_phrase_hits":  banned_hits,
+            "seed_hd_type":        seeds["hd_type"],
+            "seed_authority":      seeds["authority"],
+            "seed_element":        seeds["day_master_element"],
+            "seed_memory_state":   seeds["memory_state"],
+        },
+        "generated_at":     datetime.now(timezone.utc).isoformat(),
+        "generator_version": "role_card_v1a",
+    }
