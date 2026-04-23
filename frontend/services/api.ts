@@ -1391,6 +1391,70 @@ export const getForumMemberSummary = async (
 };
 
 // =====================================================
+// LIFE SYNTHESIS ENGINE (Phase 1a v1a2)
+// =====================================================
+
+export interface LifeRoleCard {
+  role: string;
+  tension: string;
+  distortion: string;
+  orientation: string;
+  not_for: string;
+  confidence: 'high' | 'medium' | 'low';
+  dominant_drivers: string[];
+  purple_star_input?: unknown | null;
+}
+
+export interface LifeDomainSynthesis {
+  pattern: string;
+  default_tension: string;
+  distortion_under_pressure: string;
+  what_this_pattern_needs: string;
+  today?: string | null;
+  explore?: string[];
+  reflect?: string[];
+}
+
+export interface LifeEvidenceSignal {
+  lens: string;
+  signal: string;
+  weight: number;
+}
+
+export interface LifeSynthesisResponse {
+  life_area: 'relationships' | 'work' | 'self';
+  role_card: LifeRoleCard;
+  domain_synthesis: LifeDomainSynthesis;
+  evidence_signals: LifeEvidenceSignal[];
+  confidence: 'high' | 'medium' | 'low';
+  generated_at: string;
+  generator_version: string;
+}
+
+export const getLifeSynthesis = async (
+  context: 'relationships' | 'work' | 'self',
+  userId: string,
+  refresh: boolean = false
+): Promise<LifeSynthesisResponse> => {
+  const response = await apiWithRetry.get(
+    `/life/${context}/synthesis/${userId}`,
+    { params: { refresh: refresh ? 'true' : 'false', _cb: Date.now() } }
+  );
+  return response.data;
+};
+
+export const getLifeRoleCard = async (
+  userId: string,
+  refresh: boolean = false
+): Promise<LifeRoleCard> => {
+  const response = await apiWithRetry.get(
+    `/life/role-card/${userId}`,
+    { params: { refresh: refresh ? 'true' : 'false', _cb: Date.now() } }
+  );
+  return response.data;
+};
+
+// =====================================================
 // PATTERN SIGNALS API (Why this is showing up)
 // =====================================================
 

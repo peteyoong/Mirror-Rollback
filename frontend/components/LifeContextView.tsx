@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,18 +11,25 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import { getLifeContext, LifeContextResponse, LifeContextType } from '../services/api';
-import { InlineResonanceReflect } from './ResonanceReflectButtons';
+import {
+  getLifeContext,
+  LifeContextResponse,
+  LifeContextType,
+  getLifeSynthesis,
+  LifeSynthesisResponse,
+} from '../services/api';
 import { LifelineTimeline } from './lifeline';
 import PeopleLens from './PeopleLens';
+import RoleCard from './RoleCard';
 
 interface Props {
   userId: string;
-  initialContext?: LifeContextType;
+  initialContext?: ExtendedContextType;
   onEventCountChange?: (count: number) => void;
 }
 
-// Extended context config to include Lifeline
+// Sub-tab configuration — Lifeline kept; Relationships/Work/Self run on the
+// new synthesis engine (Phase 1b).
 const CONTEXT_CONFIG = {
   lifeline: {
     icon: 'time-outline' as const,
@@ -46,179 +53,156 @@ const CONTEXT_CONFIG = {
   },
 };
 
-const SECTION_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  'Overview': 'compass-outline',
-  'Today': 'sunny-outline',
-  'Explore': 'search-outline',
-  'Reflect': 'create-outline',
-};
-
 type ExtendedContextType = LifeContextType | 'lifeline';
 
-export default function LifeContextView({ userId, initialContext = 'lifeline', onEventCountChange }: Props) {
+type SynthesisDomain = 'relationships' | 'work' | 'self';
+
+const SYNTH_DOMAINS: ReadonlyArray<SynthesisDomain> = ['relationships', 'work', 'self'];
+
+function isSynthesisDomain(ctx: ExtendedContextType): ctx is SynthesisDomain {
+  return (SYNTH_DOMAINS as readonly string[]).includes(ctx);
+}
+
+export default function LifeContextView({
+  userId,
+  initialContext = 'lifeline',
+  onEventCountChange: _onEventCountChange,
+}: Props) {
   const { theme, isDark } = useTheme();
   const [activeContext, setActiveContext] = useState<ExtendedContextType>(initialContext);
-  const [data, setData] = useState<LifeContextResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [expandedSection, setExpandedSection] = useState<string | null>('Overview');
 
-  useEffect(() => {
-    if (activeContext !== 'lifeline' && activeContext !== 'relationships') {
-      loadContextData();
-    } else {
-      // Lifeline and Relationships have their own loading logic
-      setIsLoading(false);
+  // Legacy data (kept as fallback for any future needs; not rendered)
+  const [_legacyData, setLegacyData] = useState<LifeContextResponse | null>(null);
+
+  // New synthesis state — one entry per domain, lazily hydrated
+  const [synthCache, setSynthCache] = useState<Record<SynthesisDomain, LifeSynthesisResponse | null>>({
+    relationships: null,
+    work: null,
+    self: null,
+  });
+  const [synthLoading, setSynthLoading] = useState<Record<SynthesisDomain, boolean>>({
+    relationships: false,
+    work: false,
+    self: false,
+  });
+  const [synthError, setSynthError] = useState<Record<SynthesisDomain, string | null>>({
+    relationships: null,
+    work: null,
+    self: null,
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const loadSynthesis = useCallback(async (
+    domain: SynthesisDomain,
+    opts?: { force?: boolean }
+  ) => {
+    const force = !!opts?.force;
+    if (!force && synthCache[domain]) return;
+    setSynthLoading((s) => ({ ...s, [domain]: true }));
+    setSynthError((s) => ({ ...s, [domain]: null }));
+    try {
+      const resp = await getLifeSynthesis(domain, userId, force);
+      setSynthCache((c) => ({ ...c, [domain]: resp }));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unable to load this pattern right now.';
+      console.error(`[LifeContextView] synth ${domain} error:`, err);
+      setSynthError((s) => ({ ...s, [domain]: msg }));
+    } finally {
+      setSynthLoading((s) => ({ ...s, [domain]: false }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // Load synthesis when the active context is one of the synthesis domains
+  useEffect(() => {
+    if (isSynthesisDomain(activeContext)) {
+      loadSynthesis(activeContext);
+    }
+  }, [activeContext, loadSynthesis]);
+
+  // Legacy endpoint — only used if we ever need the old Overview/Today/Explore/Reflect
+  // content. Currently unused by the UI but kept for potential fallback.
+  useEffect(() => {
+    if (activeContext === 'lifeline') return;
+    if (!isSynthesisDomain(activeContext)) return;
+    // (no-op — legacy fetch disabled in P1b)
+    void _legacyData;
+    void setLegacyData;
+    void getLifeContext;
   }, [activeContext, userId]);
 
-  const loadContextData = async (forceRefresh = false) => {
-    if (forceRefresh) {
-      setIsRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
-    setError(null);
-
+  const handleRefresh = async () => {
+    if (!isSynthesisDomain(activeContext)) return;
+    setIsRefreshing(true);
     try {
-      const response = await getLifeContext(userId, activeContext);
-      setData(response);
-      setExpandedSection('Overview'); // Reset to Overview on context change
-    } catch (err: any) {
-      console.error(`Life Context ${activeContext} error:`, err);
-      setError('Unable to load this context right now.');
+      await loadSynthesis(activeContext, { force: true });
     } finally {
-      setIsLoading(false);
       setIsRefreshing(false);
     }
   };
 
-  const handleRefresh = () => {
-    loadContextData(true);
-  };
-
-  // Get the current section label for metadata
-  const getCurrentSection = (sectionLabel: string): string => {
-    if (sectionLabel === 'Overview') return 'overview';
-    if (sectionLabel === 'Today') return 'today';
-    if (sectionLabel === 'Explore') return 'explore';
-    if (sectionLabel === 'Reflect') return 'reflect';
-    return sectionLabel.toLowerCase();
-  };
-
   const renderContextTabs = () => (
-    <View style={styles.contextTabsContainer}>
+    <View style={[styles.contextTabsContainer, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
       {(Object.keys(CONTEXT_CONFIG) as ExtendedContextType[]).map((ctx) => {
         const config = CONTEXT_CONFIG[ctx];
         const isActive = activeContext === ctx;
         return (
           <TouchableOpacity
             key={ctx}
-            style={[styles.contextTab, isActive && styles.contextTabActive]}
+            style={styles.contextTab}
             onPress={() => setActiveContext(ctx)}
             activeOpacity={0.7}
           >
             <Ionicons
               name={config.icon}
               size={20}
-              color={isActive ? Colors.text : Colors.textTertiary}
+              color={isActive ? theme.text : theme.textTertiary}
             />
-            <Text style={[styles.contextTabLabel, isActive && styles.contextTabLabelActive]}>
+            <Text style={[styles.contextTabLabel, { color: isActive ? theme.text : theme.textTertiary }]}>
               {config.label}
             </Text>
-            {isActive && <View style={styles.contextTabIndicator} />}
+            {isActive && <View style={[styles.contextTabIndicator, { backgroundColor: theme.accent }]} />}
           </TouchableOpacity>
         );
       })}
     </View>
   );
 
-  const renderSection = (section: { label: string; body: string }, index: number) => {
-    const isExpanded = expandedSection === section.label;
-    const icon = SECTION_ICONS[section.label] || 'ellipse-outline';
-    const isReflect = section.label === 'Reflect';
-
+  // Phase 1b synthesis rendering — strict section labels, no softening.
+  const renderSynthesisBlock = (synth: LifeSynthesisResponse | null) => {
+    if (!synth) return null;
+    const ds = synth.domain_synthesis;
+    const rows: Array<{ label: string; body: string | null | undefined }> = [
+      { label: "The Pattern You're In", body: ds?.pattern },
+      { label: 'Default Tension', body: ds?.default_tension },
+      { label: 'Distortion Under Pressure', body: ds?.distortion_under_pressure },
+      { label: 'What This Pattern Needs', body: ds?.what_this_pattern_needs },
+    ];
     return (
-      <View key={section.label} style={styles.sectionContainer}>
-        <TouchableOpacity
-          style={styles.sectionHeader}
-          onPress={() => setExpandedSection(isExpanded ? null : section.label)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.sectionHeaderLeft}>
-            <Ionicons name={icon} size={18} color={Colors.accent} />
-            <Text style={styles.sectionLabel}>{section.label}</Text>
-          </View>
-          <Ionicons
-            name={isExpanded ? 'chevron-up' : 'chevron-down'}
-            size={18}
-            color={Colors.textTertiary}
-          />
-        </TouchableOpacity>
-        {isExpanded && (
-          <View style={styles.sectionContent}>
-            <Text style={styles.sectionBody}>{section.body}</Text>
-            {isReflect && (
-              <InlineResonanceReflect
-                source={{
-                  lens: 'life',
-                  area: activeContext,
-                  section: getCurrentSection(section.label),
-                  name: CONTEXT_CONFIG[activeContext].label,
-                  type: activeContext,
-                  id: `life_${activeContext}_${getCurrentSection(section.label)}`,
-                }}
-                prompt={section.body}
-              />
-            )}
-          </View>
-        )}
+      <View style={styles.synthStack}>
+        {rows.map((row) => {
+          if (!row.body) return null;
+          return (
+            <View
+              key={row.label}
+              style={[styles.synthSection, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            >
+              <Text style={[styles.synthLabel, { color: theme.textTertiary }]}>{row.label}</Text>
+              <Text style={[styles.synthBody, { color: theme.text }]}>{row.body}</Text>
+            </View>
+          );
+        })}
       </View>
     );
   };
 
-  // Only show loading/error for non-lifeline and non-relationships tabs 
-  // (lifeline and relationships handle their own state)
-  if (activeContext !== 'lifeline' && activeContext !== 'relationships') {
-    if (isLoading) {
-      return (
-        <View style={[styles.container, { backgroundColor: theme.background }]}>
-          {renderContextTabs()}
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.textTertiary} />
-            <Text style={[styles.loadingText, { color: theme.text }]}>Generating your Life context...</Text>
-            <Text style={[styles.loadingSubtext, { color: theme.textTertiary }]}>This may take a moment</Text>
-          </View>
-        </View>
-      );
-    }
+  // Lifeline tab unchanged
+  const renderLifelineTab = () => <LifelineTimeline userId={userId} />;
 
-    if (error) {
-      return (
-        <View style={[styles.container, { backgroundColor: theme.background }]}>
-          {renderContextTabs()}
-          <View style={styles.errorContainer}>
-            <Ionicons name="alert-circle-outline" size={48} color={theme.textTertiary} />
-            <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
-            <TouchableOpacity style={[styles.retryButton, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => loadContextData()}>
-              <Text style={[styles.retryButtonText, { color: theme.text }]}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    }
-  }
-
-  // Render the Lifeline tab content
-  const renderLifelineTab = () => (
-    <LifelineTimeline userId={userId} />
-  );
-
-  // Render the People/Relationships tab content
-  const renderPeopleTab = () => (
-    <PeopleLens 
-      userId={userId} 
+  // People tab — kept AS SUBORDINATE under the synthesis on Relationships
+  const renderPeopleTabBody = () => (
+    <PeopleLens
+      userId={userId}
       theme={{
         background: theme.background,
         surface: theme.surface,
@@ -231,50 +215,90 @@ export default function LifeContextView({ userId, initialContext = 'lifeline', o
     />
   );
 
-  // Render other context tabs (Work, Self)
-  const renderOtherContextTab = () => (
-    <ScrollView
-      style={styles.scrollContainer}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          tintColor={Colors.textTertiary}
-        />
-      }
-    >
-      {/* Context Header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>{data?.title || 'Life'}</Text>
-        <Text style={styles.contextDescription}>
-          {CONTEXT_CONFIG[activeContext].description}
-        </Text>
-      </View>
+  const renderSynthesisTab = (domain: SynthesisDomain) => {
+    const synth = synthCache[domain];
+    const loading = synthLoading[domain];
+    const err = synthError[domain];
 
-      {/* Sections */}
-      <View style={styles.sectionsContainer}>
-        {data?.sections.map((section, index) => renderSection(section, index))}
-      </View>
+    // Show loader only when nothing is cached yet
+    if (loading && !synth) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.textTertiary} />
+          <Text style={[styles.loadingText, { color: theme.text }]}>Reading the pattern…</Text>
+          <Text style={[styles.loadingSubtext, { color: theme.textTertiary }]}>One moment.</Text>
+        </View>
+      );
+    }
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          This isn&apos;t a rule. It&apos;s a pattern you can notice and work with.
-        </Text>
-      </View>
-    </ScrollView>
-  );
+    if (err && !synth) {
+      return (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={44} color={theme.textTertiary} />
+          <Text style={[styles.errorText, { color: theme.textSecondary }]}>{err}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => loadSynthesis(domain, { force: true })}
+          >
+            <Text style={[styles.retryButtonText, { color: theme.text }]}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={theme.textTertiary} />
+        }
+      >
+        {renderSynthesisBlock(synth)}
+
+        {/* Relationships: keep People list below synthesis as clearly subordinate */}
+        {domain === 'relationships' ? (
+          <View style={styles.subordinateSection}>
+            <Text style={[styles.subordinateLabel, { color: theme.textTertiary }]}>Your People</Text>
+            {renderPeopleTabBody()}
+          </View>
+        ) : null}
+
+        <View style={styles.footer}>
+          <Text style={[styles.footerText, { color: theme.textTertiary }]}>
+            This isn&apos;t a rule. It&apos;s a pattern you can notice and work with.
+          </Text>
+        </View>
+      </ScrollView>
+    );
+  };
+
+  // Render role card globally above sub-tabs for synthesis domains — this
+  // makes it the anchor of the Life tab, not just another accordion.
+  const topRoleCard =
+    isSynthesisDomain(activeContext)
+      ? synthCache[activeContext]?.role_card || null
+      : null;
+  const topRoleLoading =
+    isSynthesisDomain(activeContext) ? synthLoading[activeContext] && !topRoleCard : false;
+
+  // Suppress the theme-unused warning and keep the conditional prepared for future use.
+  void isDark;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Anchor: The Role You're In — above the sub-tabs */}
+      {isSynthesisDomain(activeContext) ? (
+        <View style={styles.anchorWrap}>
+          <RoleCard data={topRoleCard} loading={topRoleLoading} />
+        </View>
+      ) : null}
+
       {renderContextTabs()}
-      
-      {/* Conditional rendering based on active tab */}
+
       {activeContext === 'lifeline' && renderLifelineTab()}
-      {activeContext === 'relationships' && renderPeopleTab()}
-      {activeContext !== 'lifeline' && activeContext !== 'relationships' && renderOtherContextTab()}
+      {isSynthesisDomain(activeContext) && renderSynthesisTab(activeContext)}
     </View>
   );
 }
@@ -282,8 +306,41 @@ export default function LifeContextView({ userId, initialContext = 'lifeline', o
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
+  anchorWrap: {
+    paddingTop: 8,
+  },
+  contextTabsContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 8,
+  },
+  contextTab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    gap: 4,
+    position: 'relative',
+  },
+  contextTabLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  contextTabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    height: 2,
+    width: 28,
+    borderRadius: 1,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 80,
+    paddingTop: 4,
+  },
+  // Loading / error
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -293,12 +350,10 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: Colors.textSecondary,
     marginTop: 8,
   },
   loadingSubtext: {
-    fontSize: 16,
-    color: Colors.textTertiary,
+    fontSize: 13,
   },
   errorContainer: {
     flex: 1,
@@ -308,211 +363,107 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   errorText: {
-    fontSize: 17,
-    color: Colors.textSecondary,
+    fontSize: 15,
     textAlign: 'center',
   },
   retryButton: {
+    paddingHorizontal: 20,
     paddingVertical: 10,
-    paddingHorizontal: 24,
-    backgroundColor: Colors.surface,
     borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
   },
   retryButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: Colors.text,
-  },
-  contextTabsContainer: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
-  },
-  contextTab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderRadius: 8,
-    position: 'relative',
-  },
-  contextTabActive: {
-    backgroundColor: Colors.background,
-  },
-  contextTabLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.textTertiary,
-    marginTop: 4,
   },
-  contextTabLabelActive: {
-    color: Colors.text,
+  // Synthesis block
+  synthStack: {
+    paddingHorizontal: 16,
+    gap: 10,
   },
-  contextTabIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    left: '25%',
-    right: '25%',
-    height: 2,
-    backgroundColor: Colors.accent,
-    borderRadius: 1,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 120, // Extra padding for PWA banner overlay
-  },
-  headerContainer: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.text,
-    letterSpacing: -0.3,
-    marginBottom: 14,
-  },
-  contextDescription: {
-    fontSize: 16,
-    color: Colors.textTertiary,
-    fontStyle: 'italic',
-  },
-  sectionsContainer: {
-    gap: 12,
-  },
-  sectionContainer: {
-    backgroundColor: Colors.surface,
+  synthSection: {
+    padding: 16,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    overflow: 'hidden',
+  },
+  synthLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  synthBody: {
+    fontSize: 15,
+    lineHeight: 23,
+  },
+  // Subordinate block (People inside Relationships)
+  subordinateSection: {
+    marginTop: 24,
+    paddingTop: 12,
+    paddingHorizontal: 0,
+  },
+  subordinateLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  // Footer
+  footer: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 12,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  // Kept so legacy references compile if referenced elsewhere
+  headerContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  contextDescription: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
+  sectionsContainer: {
+    padding: 16,
+  },
+  sectionContainer: {
+    marginBottom: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    alignItems: 'center',
   },
   sectionHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   sectionLabel: {
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.text,
   },
   sectionContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    paddingTop: 0,
+    paddingTop: 8,
   },
   sectionBody: {
-    fontSize: 17,
-    lineHeight: 32,
-    color: Colors.textSecondary,
-  },
-  journalCTA: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: Colors.background,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    alignSelf: 'flex-start',
-  },
-  journalCTAText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: Colors.accent,
-  },
-  footer: {
-    marginTop: 32,
-    paddingTop: 24,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
-  },
-  footerText: {
-    fontSize: 16,
-    color: Colors.textTertiary,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    lineHeight: 25,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 14,
+    lineHeight: 22,
     color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  optionsContainer: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  optionPrimary: {
-    backgroundColor: Colors.accent,
-    borderRadius: 12,
-    padding: 16,
-  },
-  optionSecondary: {
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 4,
-  },
-  optionPrimaryText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  optionSecondaryText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  optionHint: {
-    fontSize: 16,
-    color: Colors.textTertiary,
-  },
-  cancelButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  cancelText: {
-    fontSize: 16,
-    color: Colors.textTertiary,
   },
 });
