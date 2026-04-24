@@ -25573,38 +25573,178 @@ def _life_synth_cache_set(key: str, data: Dict[str, Any]) -> None:
 
 
 async def _load_pattern_memory_for_user(user_id: str) -> Optional[Dict[str, Any]]:
-    """Best-effort fetch of the user's most recent pattern-memory state.
-    Returns None if unavailable — the engine degrades gracefully.
+    """
+    Phase 3 — Pattern memory loader.
+
+    Aggregates the last ~30 pattern_memory docs for the user to derive a RICH
+    pattern-memory bundle the synthesis engines can actually learn from:
+
+      * `memory_state`        — "recurring_pattern" when any tension repeats >= 3x,
+                                "new_pattern" on first sighting, else None
+      * `match_count`         — repeat count of the dominant tension
+      * `dominant_tension`    — normalised primary_tension string (or None)
+      * `dominant_title`      — human-readable diagnosis_title matching dominant_tension
+      * `recent_tensions`     — [{tension, count, lens, last_seen}, ...] top 5
+      * `dominant_lens_source`— most common lens_source across docs ("home"/"human_design"/...)
+      * `evolution_state`     — latest non-null evolution_state (if any)
+      * `total_docs`          — count sampled
+
+    Returns None if the user has no pattern_memory at all.
     """
     try:
-        doc = await db.pattern_memory.find_one({"user_id": user_id}, sort=[("updated_at", -1)])
-        if not doc:
+        cursor = db.pattern_memory.find({"user_id": user_id}).sort("stored_at", -1).limit(30)
+        docs = [d async for d in cursor]
+        if not docs:
             return None
+
+        # Count tension recurrences (case-insensitive, normalized)
+        from collections import Counter, defaultdict
+        tension_counter: Counter = Counter()
+        tension_titles: Dict[str, str] = {}
+        tension_lens: Dict[str, Counter] = defaultdict(Counter)
+        tension_last_seen: Dict[str, str] = {}
+        lens_counter: Counter = Counter()
+        evolution_state: Optional[str] = None
+
+        for d in docs:
+            pt = (d.get("primary_tension") or "").strip()
+            if pt:
+                key = pt.lower()
+                tension_counter[key] += 1
+                if key not in tension_titles:
+                    tension_titles[key] = d.get("diagnosis_title") or pt
+                ls = (d.get("lens_source") or "").strip().lower()
+                if ls:
+                    tension_lens[key][ls] += 1
+                    lens_counter[ls] += 1
+                sa = d.get("stored_at")
+                if sa and key not in tension_last_seen:
+                    tension_last_seen[key] = str(sa)
+            if evolution_state is None:
+                ev = d.get("evolution_state") or d.get("evolution")
+                if ev:
+                    evolution_state = str(ev)
+
+        if not tension_counter:
+            # No structured tensions found — bail to None rather than emit fluff
+            return None
+
+        # Dominant tension = highest count, break ties by most recent (first in list)
+        top = tension_counter.most_common(5)
+        dominant_key, dominant_count = top[0]
+        dominant_title = tension_titles.get(dominant_key) or dominant_key
+
+        if dominant_count >= 3:
+            memory_state = "recurring_pattern"
+        elif dominant_count == 1 and len(docs) <= 2:
+            memory_state = "new_pattern"
+        else:
+            memory_state = "known_pattern"
+
+        recent_tensions = [
+            {
+                "tension":   tension_titles.get(k, k),
+                "count":     c,
+                "lens":      (tension_lens[k].most_common(1)[0][0] if tension_lens[k] else None),
+                "last_seen": tension_last_seen.get(k),
+            }
+            for k, c in top
+        ]
+
         return {
-            "memory_state":    doc.get("memory_state") or doc.get("state"),
-            "evolution_state": doc.get("evolution_state") or doc.get("evolution"),
-            "match_count":     doc.get("match_count") or 0,
+            "memory_state":         memory_state,
+            "match_count":          int(dominant_count),
+            "dominant_tension":     dominant_title,
+            "dominant_tension_key": dominant_key,
+            "dominant_lens_source": (lens_counter.most_common(1)[0][0] if lens_counter else None),
+            "evolution_state":      evolution_state,
+            "recent_tensions":      recent_tensions,
+            "total_docs":           len(docs),
         }
     except Exception as e:
         logger.debug(f"[LifeSynth] pattern memory lookup failed for {user_id}: {e}")
         return None
 
 
+# Map lifeline `category` → synthesis domain. Unknown categories fall into "self".
+_LIFELINE_CATEGORY_TO_DOMAIN: Dict[str, str] = {
+    "career":        "work",
+    "work":          "work",
+    "achievement":   "work",
+    "education":     "work",
+    "relationships": "relationships",
+    "family":        "relationships",
+    "romance":       "relationships",
+    "friendship":    "relationships",
+    "identity":      "self",
+    "health":        "self",
+    "move":          "self",
+    "loss":          "self",
+    "spiritual":     "self",
+    "other":         "self",
+}
+
+
 async def _load_lifeline_summary_for_user(user_id: str) -> Optional[Dict[str, Any]]:
-    """Best-effort lifeline summary. P3 will feed this more strongly."""
+    """
+    Phase 3 — Lifeline loader.
+
+    Pulls last ~40 lifeline_events and derives:
+      * `total_events`             — count sampled
+      * `domain_event_counts`      — {work, relationships, self}
+      * `domain_tone_mix`          — per-domain emotional_tone distribution
+      * `domain_recent_titles`     — per-domain titles (up to 4) for prompt use
+      * `recurring_categories`     — categories with >=3 events (phase echoes)
+      * `recent_themes`            — flat back-compat list (titles)
+      * `high_impact_titles`       — titles with impact_score>=8 (optional)
+    """
     try:
-        cursor = db.lifeline_events.find({"user_id": user_id}).sort("event_date", -1).limit(12)
+        cursor = db.lifeline_events.find({"user_id": user_id}).sort("year", -1).limit(60)
         events = [e async for e in cursor]
         if not events:
             return None
-        themes: List[str] = []
+
+        from collections import Counter, defaultdict
+        domain_counts: Counter = Counter()
+        domain_tones: Dict[str, Counter] = defaultdict(Counter)
+        domain_titles: Dict[str, List[str]] = defaultdict(list)
+        category_counts: Counter = Counter()
+        recent_themes: List[str] = []
+        high_impact: List[str] = []
+
         for ev in events:
-            t = ev.get("theme") or ev.get("tag")
-            if isinstance(t, str) and t and t not in themes:
-                themes.append(t)
-            if len(themes) >= 5:
-                break
-        return {"total_events": len(events), "recent_themes": themes}
+            cat_raw = (ev.get("category") or "").strip().lower()
+            domain = _LIFELINE_CATEGORY_TO_DOMAIN.get(cat_raw, "self")
+            domain_counts[domain] += 1
+            category_counts[cat_raw or "other"] += 1
+
+            tone = (ev.get("emotional_tone") or "").strip().lower() or "neutral"
+            domain_tones[domain][tone] += 1
+
+            title = (ev.get("title") or "").strip()
+            if title:
+                # Trim super-long auto-generated titles to a readable length
+                trimmed = title[:120]
+                if len(domain_titles[domain]) < 4:
+                    domain_titles[domain].append(trimmed)
+                if trimmed not in recent_themes and len(recent_themes) < 5:
+                    recent_themes.append(trimmed)
+
+            impact = ev.get("impact_score")
+            if isinstance(impact, (int, float)) and impact >= 8 and title and len(high_impact) < 5:
+                high_impact.append(title[:120])
+
+        recurring_categories = [cat for cat, c in category_counts.items() if c >= 3]
+
+        return {
+            "total_events":         len(events),
+            "domain_event_counts":  dict(domain_counts),
+            "domain_tone_mix":      {d: dict(c) for d, c in domain_tones.items()},
+            "domain_recent_titles": {d: titles for d, titles in domain_titles.items()},
+            "recurring_categories": recurring_categories,
+            "recent_themes":        recent_themes,
+            "high_impact_titles":   high_impact,
+        }
     except Exception as e:
         logger.debug(f"[LifeSynth] lifeline lookup failed for {user_id}: {e}")
         return None
@@ -25658,11 +25798,13 @@ async def get_life_role_card(user_id: str, refresh: bool = False):
     chart_doc.pop("_id", None)
 
     pattern_memory = await _load_pattern_memory_for_user(user_id)
+    lifeline_summary = await _load_lifeline_summary_for_user(user_id)
 
     card = await rce.generate_role_card(
         chart=chart_doc,
         pattern_memory=pattern_memory,
         purple_star_input=None,  # reserved hook — slot in when available
+        lifeline_summary=lifeline_summary,
         llm_chat_factory=_role_card_llm_factory(f"role_card_{user_id}") if EMERGENT_LLM_KEY else None,
     )
     _life_synth_cache_set(cache_key, card)
@@ -25705,6 +25847,7 @@ async def get_life_synthesis(context: str, user_id: str, refresh: bool = False):
         chart=chart_doc,
         pattern_memory=pattern_memory,
         purple_star_input=None,
+        lifeline_summary=lifeline_summary,
     )
 
     synth_result = await lse.generate_domain_synthesis(

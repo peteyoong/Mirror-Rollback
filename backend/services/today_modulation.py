@@ -165,10 +165,28 @@ LOW
   The reader should still feel: "This is me." Not: "This is a softer me."
 
 MEDIUM
-  Noticeable tension. Emphasise difficulty in shifting patterns.
-  Allowed tone:
-      "This may feel harder to step away from today"
-      "This pull may be stronger than usual"
+  Preserve the base sentence structure and tone.
+  Do NOT stack modifiers.
+
+  HARD LIMIT: use AT MOST 1-2 emphasis phrases TOTAL across the four fields.
+  Not one per field — one or two across the whole output. Prefer placing the
+  emphasis on distortion_under_pressure. Keep pattern and needs close to the
+  base.
+
+  Preferred friction phrases (pick ONE or TWO):
+      "harder to step away"
+      "more than usual"
+      "pull is stronger"
+      "shows up more clearly"
+
+  Allowed tone: "This may feel harder to step away from today" — the pattern
+  is the same, the grip is firmer.
+
+  Do NOT introduce urgency language. Do NOT give advice. Do NOT sound like a
+  warning system. Do NOT rewrite the tone into alarm.
+
+  Distortion should be slightly more prominent than pattern and needs — it
+  carries the MEDIUM emphasis, not the other fields.
 
 HIGH
   Active pattern. Emphasise speed of escalation toward distortion.
@@ -285,6 +303,47 @@ _SOFTENING_RE = re.compile(
 )
 
 
+# MEDIUM friction phrases — capped at 2 total across the four fields.
+_MEDIUM_FRICTION_PHRASES = [
+    "harder to step away",
+    "more than usual",
+    "pull is stronger",
+    "shows up more clearly",
+]
+_MEDIUM_FRICTION_RE = re.compile(
+    r"(" + "|".join(re.escape(p) for p in _MEDIUM_FRICTION_PHRASES) + r")",
+    re.IGNORECASE,
+)
+
+
+def _prune_medium_emphasis(payload: Dict[str, Any], max_total: int = 2) -> int:
+    """Strip MEDIUM friction phrases beyond max_total. Keeps first N."""
+    fields = ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs")
+    seen = 0
+    removed = 0
+    for f in fields:
+        txt = payload.get(f)
+        if not isinstance(txt, str) or not txt:
+            continue
+
+        def _replace(match: "re.Match[str]") -> str:
+            nonlocal seen, removed
+            seen += 1
+            if seen <= max_total:
+                return match.group(0)
+            removed += 1
+            return ""
+
+        new_txt = _MEDIUM_FRICTION_RE.sub(_replace, txt)
+        new_txt = re.sub(r"\s{2,}", " ", new_txt)
+        new_txt = re.sub(r"\s+,", ",", new_txt)
+        new_txt = re.sub(r"\s+\.", ".", new_txt)
+        new_txt = re.sub(r",\s*,", ",", new_txt)
+        stripped = new_txt.strip(" ,.;:—")
+        payload[f] = (stripped + ".") if stripped and stripped[-1:] not in ".?!" else stripped
+    return removed
+
+
 def _prune_softeners(payload: Dict[str, Any], max_total: int = 3) -> int:
     """Remove softening qualifiers in excess of max_total across the four
     fields. Keeps the first N hits (by field order) and strips the rest.
@@ -365,10 +424,13 @@ async def generate_today_modulation(
     if llm_output:
         payload, banned_hits = _parse_today_json(llm_output)
 
-    # LOW-only guard: strip softening qualifiers beyond the 3-total budget.
+    # Intensity-specific guards: strip excess qualifier/emphasis phrases.
     qualifiers_removed = 0
-    if payload and intensity_level == "low":
-        qualifiers_removed = _prune_softeners(payload, max_total=3)
+    if payload:
+        if intensity_level == "low":
+            qualifiers_removed = _prune_softeners(payload, max_total=3)
+        elif intensity_level == "medium":
+            qualifiers_removed = _prune_medium_emphasis(payload, max_total=2)
 
     if not payload or not payload.get("distortion_under_pressure"):
         # Lightweight deterministic fallback — paraphrase the original with

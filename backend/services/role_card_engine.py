@@ -100,9 +100,52 @@ _AUTHORITY_NOTE: Dict[str, str] = {
 _PATTERN_MEMORY_NOTE: Dict[str, str] = {
     "recurring_pattern":  "The pattern is cycling, not resolving — that's the signal.",
     "new_pattern":        "The pattern is fresh. It hasn't yet calcified into a position.",
+    "known_pattern":      "The pattern has shown itself before. It's familiar, not new.",
     "integrating":        "The pattern is softening through use.",
     "metabolizing":       "The pattern is being digested, not fought.",
 }
+
+
+def _lifeline_phase_note(lifeline_summary: Optional[Dict[str, Any]]) -> Optional[str]:
+    """
+    Phase 3 — translate aggregated lifeline activity into a phase note for
+    the role card. Only fires when lived history actually shows clusters;
+    stays silent for sparse timelines to avoid inventing a narrative.
+    """
+    if not isinstance(lifeline_summary, dict):
+        return None
+    total = lifeline_summary.get("total_events") or 0
+    counts = lifeline_summary.get("domain_event_counts") or {}
+    recurring = lifeline_summary.get("recurring_categories") or []
+
+    if total < 5:
+        return None
+
+    # Which domain dominates the lived history?
+    dominant = None
+    if counts:
+        dominant = max(counts, key=lambda k: counts.get(k, 0) or 0)
+        if (counts.get(dominant) or 0) < 3:
+            dominant = None
+
+    parts: List[str] = []
+    if dominant == "work":
+        parts.append("this phase has been carried mostly by what you build and where you earn")
+    elif dominant == "relationships":
+        parts.append("this phase has been shaped by the relational ground you've been standing on")
+    elif dominant == "self":
+        parts.append("this phase has been marked by internal shifts, not external ones")
+
+    if any(c in {"move", "loss", "identity"} for c in recurring):
+        parts.append("the lived markers include disruption and identity shifts")
+    elif "career" in recurring or "achievement" in recurring:
+        parts.append("the lived markers cluster around work thresholds")
+
+    if not parts:
+        return None
+    # Keep it one sentence, no prescription.
+    note = "; ".join(parts) + "."
+    return note[0].upper() + note[1:]
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +156,7 @@ def _build_role_seeds(
     chart: Dict[str, Any],
     pattern_memory: Optional[Dict[str, Any]] = None,
     purple_star_input: Optional[Dict[str, Any]] = None,
+    lifeline_summary: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     bazi = chart.get("bazi") or {}
     dm = bazi.get("day_master") or {}
@@ -125,6 +169,8 @@ def _build_role_seeds(
 
     pm = pattern_memory or {}
     memory_state = (pm.get("memory_state") or pm.get("state") or "").strip().lower()
+    dominant_tension = pm.get("dominant_tension")
+    match_count = pm.get("match_count") or 0
 
     # 1. Base role from element
     base = _ELEMENT_ROLE_BASE.get(element, {
@@ -144,6 +190,9 @@ def _build_role_seeds(
     # 4. Pattern-memory note
     memory_note = _PATTERN_MEMORY_NOTE.get(memory_state)
 
+    # 5. Phase-3 lifeline phase note (only when lived history is rich enough)
+    lifeline_note = _lifeline_phase_note(lifeline_summary)
+
     # Drivers: compressed cues, no framework names
     drivers: List[str] = []
     if element:
@@ -154,28 +203,48 @@ def _build_role_seeds(
         drivers.append(f"{authority} decision signal")
     if memory_state:
         drivers.append(f"memory: {memory_state.replace('_', ' ')}")
+    if dominant_tension and match_count >= 2:
+        drivers.append(f"recurring tension ({match_count}×)")
+    if lifeline_summary and (lifeline_summary.get("total_events") or 0) >= 5:
+        drivers.append(f"lived history: {lifeline_summary.get('total_events')} events")
     if purple_star_input:
         drivers.append("purple star phase (supplied)")
 
     # Confidence
     signal_count = sum(1 for x in (element, hd_type, authority, memory_state) if x)
+    if lifeline_note:
+        signal_count += 1
     confidence = "high" if signal_count >= 3 else "medium" if signal_count == 2 else "low"
 
+    orientation_seed = base["orientation"]
+    if authority_note:
+        orientation_seed += f" {authority_note}"
+    if memory_note:
+        orientation_seed += f" {memory_note}"
+    if lifeline_note:
+        orientation_seed += f" {lifeline_note}"
+
+    # Tension seed — sharpened by recurrence when we have it
+    tension_seed = base["tension"]
+    if dominant_tension and match_count >= 3:
+        tension_seed += " — and it has re-formed in this shape more than once"
+
     return {
-        "role_seed":         role_full,
-        "tension_seed":      base["tension"],
-        "distortion_seed":   base["distortion"],
-        "orientation_seed":  base["orientation"]
-                             + (f" {authority_note}" if authority_note else "")
-                             + (f" {memory_note}" if memory_note else ""),
-        "dominant_drivers":  drivers[:5],
-        "confidence":        confidence,
-        "hd_type":           hd_type or None,
-        "authority":         authority or None,
+        "role_seed":          role_full,
+        "tension_seed":       tension_seed,
+        "distortion_seed":    base["distortion"],
+        "orientation_seed":   orientation_seed,
+        "dominant_drivers":   drivers[:6],
+        "confidence":         confidence,
+        "hd_type":            hd_type or None,
+        "authority":          authority or None,
         "day_master_element": element or None,
         "day_master_strength": strength or None,
-        "memory_state":      memory_state or None,
-        "purple_star_input": purple_star_input,  # carried through untouched
+        "memory_state":       memory_state or None,
+        "dominant_tension":   dominant_tension,
+        "match_count":        int(match_count) if isinstance(match_count, (int, float)) else 0,
+        "lifeline_phase_note": lifeline_note,
+        "purple_star_input":  purple_star_input,  # carried through untouched
     }
 
 
@@ -309,6 +378,7 @@ async def generate_role_card(
     chart: Dict[str, Any],
     pattern_memory: Optional[Dict[str, Any]] = None,
     purple_star_input: Optional[Dict[str, Any]] = None,
+    lifeline_summary: Optional[Dict[str, Any]] = None,
     llm_chat_factory=None,
 ) -> Dict[str, Any]:
     """
@@ -317,7 +387,7 @@ async def generate_role_card(
     """
     from emergentintegrations.llm.chat import LlmChat, UserMessage  # local import
 
-    seeds = _build_role_seeds(chart, pattern_memory, purple_star_input)
+    seeds = _build_role_seeds(chart, pattern_memory, purple_star_input, lifeline_summary)
     user_msg = _build_role_user_message(seeds)
 
     llm_output: Optional[str] = None
@@ -375,8 +445,9 @@ def build_role_seeds_public(
     chart: Dict[str, Any],
     pattern_memory: Optional[Dict[str, Any]] = None,
     purple_star_input: Optional[Dict[str, Any]] = None,
+    lifeline_summary: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Public accessor for deterministic role seeds (used when we want the
     synthesis engine to render role + domain in a single LLM call).
     """
-    return _build_role_seeds(chart, pattern_memory, purple_star_input)
+    return _build_role_seeds(chart, pattern_memory, purple_star_input, lifeline_summary)

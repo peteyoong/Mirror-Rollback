@@ -306,21 +306,51 @@ def _extract_pattern_memory(pattern_memory: Optional[Dict[str, Any]]) -> Dict[st
     memory_state = pattern_memory.get("memory_state") or pattern_memory.get("state")
     evolution = pattern_memory.get("evolution_state") or pattern_memory.get("evolution")
     match_count = pattern_memory.get("match_count") or 0
+    dominant_tension = pattern_memory.get("dominant_tension")
+    recent_tensions = pattern_memory.get("recent_tensions") or []
+    dominant_lens = pattern_memory.get("dominant_lens_source")
 
-    phase_hint = None
+    phase_hint: Optional[str] = None
     if memory_state == "recurring_pattern" and match_count >= 3:
-        phase_hint = "the pattern is cycling, not resolving"
+        phase_hint = f"the pattern is cycling — this shape has shown up {int(match_count)} times"
+    elif memory_state == "recurring_pattern":
+        phase_hint = "the pattern has returned before"
     elif memory_state == "new_pattern":
         phase_hint = "the pattern is fresh — still forming its shape"
     elif evolution in ("integrating", "metabolizing"):
         phase_hint = "the pattern is softening through use"
 
+    # Build a "recurring theme" note that can be injected into default_tension seed.
+    # Keep it short + behavioural; never include quoted user text verbatim to avoid
+    # lens-jargon leaking in.
+    recurring_note: Optional[str] = None
+    if dominant_tension and isinstance(match_count, int) and match_count >= 2:
+        # Light sanitisation — lowercase, strip pipe characters, trim length.
+        dt = str(dominant_tension).strip().strip('"').lower()
+        dt = re.sub(r"[^a-z0-9 \-']", " ", dt)
+        dt = re.sub(r"\s+", " ", dt).strip()
+        if dt:
+            recurring_note = f"this shape keeps returning around '{dt}'"
+
+    # Weight scaling — richer memory → stronger weight
+    weight = 0.0
+    if memory_state:
+        weight = 0.55
+    if isinstance(match_count, int) and match_count >= 3:
+        weight = 0.85
+    elif isinstance(match_count, int) and match_count >= 2:
+        weight = 0.7
+
     return {
-        "memory_state": memory_state,
-        "evolution_state": evolution,
-        "match_count": int(match_count) if isinstance(match_count, (int, float)) else 0,
-        "phase_hint": phase_hint,
-        "weight": 0.6 if memory_state else 0.0,
+        "memory_state":      memory_state,
+        "evolution_state":   evolution,
+        "match_count":       int(match_count) if isinstance(match_count, (int, float)) else 0,
+        "dominant_tension":  dominant_tension,
+        "dominant_lens":     dominant_lens,
+        "recent_tensions":   recent_tensions[:3],
+        "phase_hint":        phase_hint,
+        "recurring_note":    recurring_note,
+        "weight":            weight,
     }
 
 
@@ -329,15 +359,67 @@ def _extract_pattern_memory(pattern_memory: Optional[Dict[str, Any]]) -> Dict[st
 # ---------------------------------------------------------------------------
 
 def _extract_lifeline(lifeline_summary: Optional[Dict[str, Any]], domain: str) -> Dict[str, Any]:
+    """
+    Phase 3 — Lifeline extraction per domain.
+
+    Uses the domain-grouped lifeline summary produced by the server loader
+    to produce a per-domain set of echoes that feed directly into synthesis
+    seeds.
+    """
     if not isinstance(lifeline_summary, dict):
         return {"weight": 0.0}
     total = lifeline_summary.get("total_events") or 0
-    recent = lifeline_summary.get("recent_themes") or []
-    themes = [str(t) for t in recent if t][:3]
+
+    domain_counts = lifeline_summary.get("domain_event_counts") or {}
+    domain_tone_mix = lifeline_summary.get("domain_tone_mix") or {}
+    domain_recent_titles = lifeline_summary.get("domain_recent_titles") or {}
+    recurring_categories = lifeline_summary.get("recurring_categories") or []
+
+    domain_event_count = int(domain_counts.get(domain, 0) or 0)
+    tone_dist = domain_tone_mix.get(domain) or {}
+    titles = domain_recent_titles.get(domain) or []
+
+    # Back-compat flat themes
+    flat_themes = [str(t) for t in (lifeline_summary.get("recent_themes") or []) if t][:3]
+
+    # Phase echo: did this domain actually show up in the user's lived history?
+    phase_echo_hint: Optional[str] = None
+    if domain_event_count >= 5:
+        phase_echo_hint = f"this domain has shown up repeatedly across lived history ({domain_event_count} marked events)"
+    elif domain_event_count >= 2:
+        phase_echo_hint = "this domain has appeared more than once in lived history"
+
+    # Emotional-cluster cue: if 'negative' or 'mixed' tones dominate, name it.
+    tone_cue: Optional[str] = None
+    if tone_dist:
+        total_t = sum(tone_dist.values()) or 1
+        neg = (tone_dist.get("negative", 0) + tone_dist.get("mixed", 0)) / total_t
+        pos = tone_dist.get("positive", 0) / total_t
+        if neg >= 0.4 and domain_event_count >= 3:
+            tone_cue = "the emotional colour of these events leans strained"
+        elif pos >= 0.5 and domain_event_count >= 3:
+            tone_cue = "the emotional colour of these events leans alive"
+
+    # Weight: scales with domain event count
+    weight = 0.0
+    if domain_event_count >= 5:
+        weight = 0.7
+    elif domain_event_count >= 2:
+        weight = 0.5
+    elif domain_event_count >= 1 or flat_themes:
+        weight = 0.35
+
     return {
-        "total_events": int(total) if isinstance(total, (int, float)) else 0,
-        "recent_themes": themes,
-        "weight": 0.4 if themes else 0.0,
+        "total_events":         int(total) if isinstance(total, (int, float)) else 0,
+        "domain":               domain,
+        "domain_event_count":   domain_event_count,
+        "domain_titles":        titles[:3],
+        "tone_distribution":    tone_dist,
+        "phase_echo_hint":      phase_echo_hint,
+        "tone_cue":             tone_cue,
+        "recurring_categories": recurring_categories,
+        "recent_themes":        flat_themes,
+        "weight":               weight,
     }
 
 
@@ -356,7 +438,7 @@ def _compress_themes(
     """
     Hierarchy enforced:
       1. core pattern     — cross-lens behavioural compression
-      2. default tension  — where the pattern first strains
+      2. default tension  — where the pattern first strains (recurrence-aware)
       3. distortion       — how the strength flips into a problem
       4. orientation      — what restores the pattern (non-prescriptive)
       5. evidence         — top contributing lenses with weights
@@ -371,7 +453,7 @@ def _compress_themes(
         pattern_parts.append(astro["primary_posture"])
     core_pattern_seed = "; ".join(pattern_parts) or "moves through life in a way that's hard to compress"
 
-    # --- 2. Default tension: HD friction anchors, BaZi strain qualifies
+    # --- 2. Default tension: HD friction + BaZi strain + pattern-memory recurrence
     tension_parts: List[str] = []
     if hd.get("friction"):
         tension_parts.append(hd["friction"])
@@ -379,14 +461,26 @@ def _compress_themes(
         tension_parts.append(bazi["strain"])
     if pm.get("phase_hint"):
         tension_parts.append(pm["phase_hint"])
+    # Phase-3: lifeline echo at the tension layer — where the pattern has
+    # actually been lived in this domain.
+    if ll.get("phase_echo_hint"):
+        tension_parts.append(ll["phase_echo_hint"])
     default_tension_seed = " — ".join(tension_parts) or "tightens where it used to flow"
 
-    # --- 3. Distortion under pressure: HD + BaZi distortion, domain-flavoured
+    # --- 3. Distortion: HD + BaZi distortion, with pattern-memory recurrence
+    #     flag (NOT the user-facing text — the synthesis renderer decides how
+    #     to phrase "this shape keeps returning" without the quoted string).
     dist_parts: List[str] = []
     if hd.get("distortion"):
         dist_parts.append(hd["distortion"])
     if bazi.get("distortion"):
         dist_parts.append(bazi["distortion"])
+    if pm.get("recurring_note"):
+        # Mark the recurring anchor — tells the renderer to show the cost
+        # of the repeating loop, not just the single episode.
+        dist_parts.append("this is not a one-time distortion; it keeps returning with the same shape")
+    if ll.get("tone_cue") == "the emotional colour of these events leans strained":
+        dist_parts.append("lived events in this domain carry the same strained tone")
     distortion_seed = "; ".join(dist_parts) or "the strength repeats itself past the point where it still helps"
 
     # --- 4. Orientation: BaZi restorative + HD restorative
@@ -398,13 +492,18 @@ def _compress_themes(
     orientation_seed = " and ".join(orient_parts) or "returns to the quality the pattern is actually for"
 
     return {
-        "domain": domain,
-        "core_pattern_seed": core_pattern_seed,
+        "domain":               domain,
+        "core_pattern_seed":    core_pattern_seed,
         "default_tension_seed": default_tension_seed,
-        "distortion_seed": distortion_seed,
-        "orientation_seed": orientation_seed,
-        "lifeline_themes": ll.get("recent_themes") or [],
-        "memory_phase": pm.get("phase_hint"),
+        "distortion_seed":      distortion_seed,
+        "orientation_seed":     orientation_seed,
+        "lifeline_themes":      ll.get("recent_themes") or [],
+        "lifeline_titles":      ll.get("domain_titles") or [],
+        "lifeline_echo":        ll.get("phase_echo_hint"),
+        "lifeline_tone_cue":    ll.get("tone_cue"),
+        "memory_phase":         pm.get("phase_hint"),
+        "memory_dominant":      pm.get("dominant_tension"),
+        "memory_match_count":   pm.get("match_count") or 0,
     }
 
 
@@ -432,14 +531,37 @@ def _build_evidence(hd, bazi, astro, pm, ll) -> List[Dict[str, Any]]:
             "weight": round(astro["weight"], 2),
         })
     if pm.get("weight", 0) > 0:
+        # Phase 3 — richer pattern memory signal
+        pm_signal_parts: List[str] = []
+        if pm.get("dominant_tension"):
+            mc = pm.get("match_count") or 0
+            if mc >= 2:
+                pm_signal_parts.append(f"\"{pm['dominant_tension']}\" has repeated {mc}×")
+            else:
+                pm_signal_parts.append(f"tension: {pm['dominant_tension']}")
+        elif pm.get("phase_hint"):
+            pm_signal_parts.append(pm["phase_hint"])
+        else:
+            pm_signal_parts.append(str(pm.get("memory_state") or ""))
         out.append({
-            "lens": "pattern_memory",
-            "signal": pm.get("phase_hint") or (pm.get("memory_state") or ""),
+            "lens":   "pattern_memory",
+            "signal": " — ".join([s for s in pm_signal_parts if s]) or "pattern memory active",
             "weight": round(pm["weight"], 2),
         })
     if ll.get("weight", 0) > 0:
-        themes = ", ".join(ll.get("recent_themes") or [])
-        out.append({"lens": "lifeline_echoes", "signal": themes, "weight": round(ll["weight"], 2)})
+        # Phase 3 — rich lifeline signal per domain
+        ll_signal_parts: List[str] = []
+        if ll.get("domain_event_count", 0) >= 2:
+            ll_signal_parts.append(f"{ll['domain_event_count']} {ll.get('domain', '')} events in lived history")
+        if ll.get("tone_cue"):
+            ll_signal_parts.append(ll["tone_cue"])
+        if not ll_signal_parts:
+            ll_signal_parts.append(", ".join(ll.get("recent_themes") or []))
+        out.append({
+            "lens":   "lifeline_echoes",
+            "signal": " · ".join([s for s in ll_signal_parts if s]) or "lifeline events present",
+            "weight": round(ll["weight"], 2),
+        })
     return sorted(out, key=lambda r: r["weight"], reverse=True)[:5]
 
 
@@ -531,6 +653,15 @@ You will receive structured synthesis data:
   - default_tension
   - distortion_under_pressure
   - what_this_pattern_needs
+  - memory_phase_note           (optional — present if the pattern has history)
+  - recurrence_signal           (optional — {repeat_count, instruction}; when present
+                                  treat the distortion as a loop that keeps re-forming,
+                                  NOT a first-time episode)
+  - lifeline_echoes             (optional — list of past event titles; shorthand for
+                                  how this domain has actually played out in life)
+  - lifeline_note               (optional — domain-level echo: "this domain has shown
+                                  up repeatedly in lived history")
+  - lifeline_tone_cue           (optional — "lived events lean strained/alive")
 
 - domain: (self | work | relationships)
 
@@ -625,6 +756,22 @@ If it sounds like a horoscope, it is wrong.
 9. KEEP IT TIGHT
 Each field: 1-3 sentences max, no fluff, no repetition.
 
+10. RECURRENCE AWARENESS (CRITICAL when recurrence_signal is present)
+When `recurrence_signal.repeat_count >= 2`, this is NOT a first-time episode.
+Write the distortion_under_pressure as a loop that keeps re-forming:
+  - show it returning, not just appearing
+  - acknowledge the cost of repetition (not the cost of one event)
+  - use language like "each time this returns", "this has re-formed before",
+    "you've been here in this shape"
+Do NOT name the user's internal tension verbatim. Do NOT quote framework names.
+Let the REPETITION itself be the weight.
+
+11. LIFELINE AWARENESS (optional)
+When `lifeline_note` or `lifeline_echoes` are present, the pattern is anchored
+in actual lived events in this domain. Lightly ground the default_tension or
+distortion in that lived history. Do NOT invent new events. Do NOT quote event
+titles. Acknowledge that the pattern has left marks, without listing them.
+
 ==================================================
 QUALITY CHECK BEFORE OUTPUT
 ==================================================
@@ -705,8 +852,21 @@ def build_render_user_message(
     }
     if c.get("memory_phase"):
         domain_block["memory_phase_note"] = c["memory_phase"]
-    if c.get("lifeline_themes"):
+    if c.get("memory_match_count") and c.get("memory_match_count") >= 2:
+        # Phase 3 — tell the renderer the pattern has REPEATED, so it
+        # writes the distortion as a CYCLE not a one-off episode.
+        domain_block["recurrence_signal"] = {
+            "repeat_count":          int(c["memory_match_count"]),
+            "instruction":           "this exact shape has shown up multiple times before — write the distortion as a loop that keeps re-forming, not a first-time event",
+        }
+    if c.get("lifeline_titles"):
+        domain_block["lifeline_echoes"] = c["lifeline_titles"]
+    elif c.get("lifeline_themes"):
         domain_block["lifeline_echoes"] = c["lifeline_themes"]
+    if c.get("lifeline_echo"):
+        domain_block["lifeline_note"] = c["lifeline_echo"]
+    if c.get("lifeline_tone_cue"):
+        domain_block["lifeline_tone_cue"] = c["lifeline_tone_cue"]
 
     payload = {
         "role_card":         role_block,

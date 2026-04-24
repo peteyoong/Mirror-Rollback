@@ -232,7 +232,7 @@ backend:
           - Proper error handling verified
           
           **Backend Integration Verified:**
-          - All endpoints accessible via https://superpower-synthesis.preview.emergentagent.com/api
+          - All endpoints accessible via https://tension-mapper.preview.emergentagent.com/api
           - Backend URL correctly used (not localhost:8001)
           - Response times excellent (< 30 seconds)
           - Data persistence working correctly
@@ -287,7 +287,7 @@ backend:
           - Pattern extraction working correctly based on entry count threshold
           
           **Backend Integration Verified:**
-          - Endpoint accessible via https://superpower-synthesis.preview.emergentagent.com/api
+          - Endpoint accessible via https://tension-mapper.preview.emergentagent.com/api
           - No HTTP errors or timeouts
           - Response times excellent (0.18-0.31s)
           - Backend logs confirm successful processing
@@ -341,7 +341,7 @@ backend:
           - All field types match expected schema
           
           **Backend Integration Verified:**
-          - Endpoint accessible via https://superpower-synthesis.preview.emergentagent.com/api
+          - Endpoint accessible via https://tension-mapper.preview.emergentagent.com/api
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -494,7 +494,7 @@ backend:
           - Response time under 5 seconds (0.23s) ✅
           
           📊 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Backend logs confirm successful processing with cross-lens derivation ✅
           - force_refresh parameter working correctly ✅
@@ -576,7 +576,7 @@ backend:
              - All optional fields present with correct data types
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1s for both requests)
           - Backend logs confirm successful processing
@@ -645,7 +645,7 @@ backend:
              - Summary endpoint correctly includes computed name-based numbers in narrative
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing and cache invalidation
@@ -1099,7 +1099,7 @@ backend:
                * incarnation_cross_gates: Consistent ✅ (null)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - JSON structure consistent between Summary and Deep Dive endpoints
@@ -1160,7 +1160,7 @@ backend:
              - Complete Payload: All nested objects preserved correctly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 5 seconds)
           - Backend logs confirm successful processing
@@ -1229,7 +1229,7 @@ backend:
              - Implementation matches review request specifications exactly
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing
@@ -1256,7 +1256,7 @@ frontend:
           🚫 CRITICAL ISSUE: Unable to complete login process with peter@test.com
           
           📋 TESTING ATTEMPTED:
-          1. ✅ Successfully accessed Mirror app at https://superpower-synthesis.preview.emergentagent.com
+          1. ✅ Successfully accessed Mirror app at https://tension-mapper.preview.emergentagent.com
           2. ✅ Found "Existing User" button and clicked it
           3. ✅ Found email input field and filled with peter@test.com
           4. ❌ Login process failed - unable to proceed to main app interface
@@ -1480,7 +1480,7 @@ frontend:
              - Backend Logs: "[Enneagram] Saved result for user 69819f1a1e4549392d7cb6d1: Type 7w8"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Backend service stable with proper logging
           - Response times acceptable (< 5 seconds)
@@ -1576,7 +1576,7 @@ frontend:
           🧪 COMPREHENSIVE TESTING PERFORMED (2/2 TESTS PASSED):
           
           **Test User:** 6971c81f2b40fd5ef501d375 (Sun=Pisces, Moon=Aries, Ascendant=Sagittarius)
-          **Base URL:** https://superpower-synthesis.preview.emergentagent.com/api
+          **Base URL:** https://tension-mapper.preview.emergentagent.com/api
           
           1. ✅ **ASTROLOGY SUMMARY ENDPOINT** (GET /api/astrology/summary/{user_id}):
              - Status: 200 OK, Response time: 5.67 seconds
@@ -1925,7 +1925,7 @@ backend:
           - has_transit_emphasis flag working correctly for frontend highlighting
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 2 seconds)
           - Backend logs confirm successful processing
@@ -1949,7 +1949,7 @@ backend:
              - Successfully parsed as datetime object
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - Gene Keys signals properly mapped to categories
@@ -2023,7 +2023,7 @@ backend:
              - Each signal has required fields: source, label (with optional sphere_name, detail)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (< 30 seconds)
           - Human Design centers properly mapped to pattern categories
@@ -2087,7 +2087,7 @@ backend:
              - Mirror philosophy preserved: No "you should", maintains agency, reflective language present
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - Gene Keys matching algorithm working correctly with shadow/gift keyword detection
           - Debug logging functional: [GK_MATCH] and [GK_MATCH_DEBUG] entries present
           - Context awareness integration with Mirror Chat system prompt working
@@ -2153,7 +2153,7 @@ backend:
           - Template Content: Rich, reflective interpretations for both defined and undefined states
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -2223,7 +2223,7 @@ backend:
              - Excellent backend integration performance
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -2288,7 +2288,7 @@ backend:
              - Language Compliance: Meets review request specification for signal strength terminology ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing
@@ -2391,7 +2391,7 @@ agent_communication:
       - Content quality meets specifications: practical, reflective, non-jargon-heavy
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://tension-mapper.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (0.27 seconds)
       - ✅ Human Design computation and gates service integration working correctly
       - ✅ Template-based interpretations functioning properly
@@ -2438,7 +2438,7 @@ agent_communication:
       - Response format matches all specified requirements
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://tension-mapper.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (< 2 seconds)
       - ✅ Pattern graph service integration working correctly
       - ✅ Time bucket aggregation functioning properly
@@ -2482,7 +2482,7 @@ agent_communication:
       - Rich template-based interpretations for both defined and undefined states
       
       **Backend Integration Verified:**
-      - ✅ Endpoint accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - ✅ Endpoint accessible via https://tension-mapper.preview.emergentagent.com/api
       - ✅ No HTTP errors or timeouts, excellent response times (< 1 second)
       - ✅ Human Design computation and centers service integration working correctly
       - ✅ Template-based interpretations (no LLM dependency) functioning properly
@@ -2518,7 +2518,7 @@ agent_communication:
          - Subtle Gene Keys integration when relevant
       
       **Backend Integration Verified:**
-      - ✅ All endpoints accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - ✅ All endpoints accessible via https://tension-mapper.preview.emergentagent.com/api
       - ✅ Gene Keys matching algorithm working correctly with shadow/gift detection
       - ✅ Debug logging functional: [GK_MATCH] and [GK_MATCH_DEBUG] entries present
       - ✅ Context awareness integration with Mirror Chat system prompt working
@@ -2698,7 +2698,7 @@ agent_communication:
       - Contract validation system working correctly
       
       🔧 BACKEND INTEGRATION VERIFIED:
-      - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+      - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
       - No HTTP errors or timeouts
       - Response times acceptable (1-3 seconds)
       - Backend logs confirm emergent_generate usage
@@ -2930,7 +2930,7 @@ agent_communication:
       ✅ BACKEND LOGS: Confirm caching working with "[DailyFocus] Returning cached focus" messages
       
       🔧 INTEGRATION VERIFICATION:
-      ✅ Both endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+      ✅ Both endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
       ✅ No HTTP errors or timeouts
       ✅ Backend service stable with no error logs
       ✅ Response times acceptable (< 2 seconds)
@@ -3147,7 +3147,7 @@ agent_communication:
       ❌ CRITICAL ISSUE IDENTIFIED - API ROUTING PROBLEM:
       - Summary tab shows "Unable to load this view right now" error
       - Frontend making requests to http://localhost:3000/api/* (404 errors)
-      - Backend running on port 8001, accessible via https://superpower-synthesis.preview.emergentagent.com/api/*
+      - Backend running on port 8001, accessible via https://tension-mapper.preview.emergentagent.com/api/*
       - API service configured for relative URLs on web platform, but proxy routing not working
       - Console logs show: "Failed to load resource: the server responded with a status of 404 (Not Found)"
       
@@ -3197,7 +3197,7 @@ agent_communication:
       - Same API routing problem identified in previous testing sessions
       - Frontend API service uses relative URLs expecting proxy routing (/api/*)
       - Ingress/proxy not routing requests to backend (port 8001)
-      - Backend accessible directly via https://superpower-synthesis.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://tension-mapper.preview.emergentagent.com/api/*
       - Affects all lens views (Astrology, Human Design, Numerology)
       
       📊 SHIP GATE TEST RESULTS:
@@ -3253,7 +3253,7 @@ agent_communication:
       🚨 ROOT CAUSE: API ROUTING ISSUE
       - Frontend API service uses relative URLs expecting proxy routing
       - Ingress/proxy not routing /api/* requests to backend (port 8001)
-      - Backend accessible directly via https://superpower-synthesis.preview.emergentagent.com/api/*
+      - Backend accessible directly via https://tension-mapper.preview.emergentagent.com/api/*
       - Same issue affects all lens views (Astrology, Human Design, Numerology)
       
       CONCLUSION: The Numerology Full Name Gate UI is implemented correctly and shows proper locked state, but the unlock flow cannot be verified due to API connectivity issues. The frontend correctly displays lock icons for name-based numbers (Expression, Soul Urge) while showing computed numbers for birth date-based calculations (Life Path).
@@ -3354,7 +3354,7 @@ agent_communication:
       ✅ Structure matches specification exactly
       
       **Backend Integration Verified:**
-      - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+      - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
       - Cross-lens derivation working: 3 lenses contributing (Journal, Lifeline, Astrology)
       - Backend logs confirm pattern selection: "relational_reopening" with moderate signal strength
       - force_refresh parameter working correctly for fresh data generation
@@ -3400,7 +3400,7 @@ agent_communication:
       🚫 CRITICAL FINDING: Unable to test Patterns tab accordion functionality due to authentication failure with peter@test.com user.
       
       📋 WHAT WAS TESTED:
-      - ✅ App loads correctly at https://superpower-synthesis.preview.emergentagent.com
+      - ✅ App loads correctly at https://tension-mapper.preview.emergentagent.com
       - ✅ Mobile responsiveness confirmed (390x844 viewport)
       - ✅ "Existing User" flow initiates properly
       - ✅ Email input accepts peter@test.com
@@ -3589,7 +3589,7 @@ backend:
              - Exactly 4 weeks returned (within limit) ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.37s - well under requirements)
           - Backend logs confirm successful processing
@@ -3844,7 +3844,7 @@ agent_communication:
              - Response consistency: Identical data between requests ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 1s for all requests) ✅
           - Backend logs confirm successful processing and caching ✅
@@ -4334,7 +4334,7 @@ backend:
                * groups: [] ✅ (empty groups array)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second for all endpoints)
           - Backend logs confirm successful processing
@@ -4422,7 +4422,7 @@ backend:
           - **TOTAL: 48/48 (100% SUCCESS RATE)**
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.26s)
           - Backend logs confirm successful processing: "[BaZi V2] Generated full chart for user 6971c81f2b40fd5ef501d375: Day Master = Xin Metal (strong)"
@@ -4497,7 +4497,7 @@ backend:
              - All expected behavioral expressions present ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.52s) ✅
           - Backend logs confirm successful processing ✅
@@ -4791,7 +4791,7 @@ agent_communication:
              - ✅ Data Consistency: Event count updates properly reflect create/delete operations
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times acceptable (< 10 seconds)
           - Backend logs confirm successful processing:
@@ -4877,7 +4877,7 @@ agent_communication:
                * Year: Bing-Wu (Structure, pressure) - "This year may ask more of you—more structure, more responsibility"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.25s) ✅
           - Backend logs confirm successful processing: "[BaZi V2] Generated full chart for user 6971c81f2b40fd5ef501d375: Day Master = Xin Metal (strong)" ✅
@@ -5010,7 +5010,7 @@ backend:
                ✅ language_modifiers: Complete object with modifier sections for life_pattern and day_master ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (0.10-0.28s) ✅
           - Backend logs confirm successful feedback storage and processing ✅
@@ -5091,7 +5091,7 @@ backend:
           5. "Why do I still doubt myself when things are flowing?" (Timing-related question)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.25s)
           - Backend logs confirm successful processing
@@ -5129,7 +5129,7 @@ agent_communication:
       **Test User Verification:**
       - Used user_id: 6971c81f2b40fd5ef501d375 as specified
       - Confirmed chart data: Sun=Pisces, Moon=Aries, Ascendant=Sagittarius
-      - Base URL: https://superpower-synthesis.preview.emergentagent.com/api
+      - Base URL: https://tension-mapper.preview.emergentagent.com/api
       
       **Backend Integration Verified:**
       - Both endpoints accessible via public URL
@@ -5273,7 +5273,7 @@ agent_communication:
              - Backend regenerates pattern when forced
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (0.12-0.29s)
           - Backend logs confirm pattern detection working: "Extracted 5 signals from ['astrology', 'enneagram']"
@@ -5351,7 +5351,7 @@ agent_communication:
              - Perfect pattern matching across both users ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times acceptable (keystone: 0.17-0.31s, astrology: 17.98-48.54s)
           - Backend logs confirm integration: "[AstrologyDeepDive] Added keystone explanation for pattern: direction_shift"
@@ -5438,7 +5438,7 @@ agent_communication:
              - Verified: All responses now include signal_strength field ✅
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 10 seconds for LLM generation)
           - Backend logs confirm successful processing
@@ -5650,7 +5650,7 @@ agent_communication:
       
       **Performance & Integration:**
       - ✅ Response times: 0.11-0.21s (excellent performance)
-      - ✅ Backend URL: https://superpower-synthesis.preview.emergentagent.com/api
+      - ✅ Backend URL: https://tension-mapper.preview.emergentagent.com/api
       - ✅ force_refresh parameter required for fresh data generation
       - ✅ All 8 structure validation tests passed
       
@@ -5705,7 +5705,7 @@ agent_communication:
       
       **Test 6: Performance & Integration** ✅
       - Response times excellent: 0.11-0.14s (well under 5s threshold)
-      - Backend URL: https://superpower-synthesis.preview.emergentagent.com/api
+      - Backend URL: https://tension-mapper.preview.emergentagent.com/api
       - All endpoints accessible via public URL
       - No HTTP errors or timeouts
       - Backend logs confirm successful processing with no errors
@@ -5748,7 +5748,7 @@ backend:
           7. ✅ V10 Features - Context-aware language generation working correctly
           
           **Backend Integration Verified:**
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during comprehensive testing
           - LLM integration functional (gpt-5.2 via emergentintegrations)
           - Pattern mirror service generating contextual patterns correctly
@@ -5821,7 +5821,7 @@ backend:
           - Error handling working correctly for both invalid and non-existent IDs
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts during testing
           - Response times excellent (< 5 seconds)
           - Database operations working correctly (create, read, update, delete)
@@ -5891,7 +5891,7 @@ backend:
           
           6. ✅ **PERFORMANCE & INTEGRATION**:
              - Response times: 0.11-0.14s (excellent, under 5s threshold)
-             - Public URL accessible: https://superpower-synthesis.preview.emergentagent.com/api
+             - Public URL accessible: https://tension-mapper.preview.emergentagent.com/api
              - No HTTP errors or timeouts
              - Backend logs confirm successful processing
              - Pattern engine: normal mode + fallback mode working
@@ -6034,7 +6034,7 @@ agent_communication:
       - Backend integration: All endpoints accessible via correct URL (not localhost)
       
       **Backend Integration Verified:**
-      - All endpoints accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - All endpoints accessible via https://tension-mapper.preview.emergentagent.com/api
       - Backend logs confirm successful operations (visible in supervisor logs)
       - Response times excellent (< 30 seconds)
       - Data persistence working correctly
@@ -6113,7 +6113,7 @@ agent_communication:
       - DELETE /api/journal/000000000000000000000000 → Status 404 "Entry not found"
       
       **Backend Integration Verified:**
-      - All endpoints accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - All endpoints accessible via https://tension-mapper.preview.emergentagent.com/api
       - Backend logs confirm successful operations:
         * PUT /api/journal/69bfd648affdc9b8ab0696fe HTTP/1.1" 200 OK
         * DELETE /api/journal/69bfd8b324bd3354c4f0ec8e HTTP/1.1" 200 OK
@@ -6159,7 +6159,7 @@ agent_communication:
       - Pattern extraction working correctly based on entry count requirements
       
       **Backend Integration Verified:**
-      - Endpoint accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - Endpoint accessible via https://tension-mapper.preview.emergentagent.com/api
       - Backend URL correctly used (not localhost:8001)
       - Response times excellent (0.18-0.31s across multiple tests)
       - Backend logs confirm successful processing
@@ -6205,7 +6205,7 @@ agent_communication:
       - Endpoint returns 200 OK for valid requests ✅
       
       **Backend Integration Verified:**
-      - Endpoint accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - Endpoint accessible via https://tension-mapper.preview.emergentagent.com/api
       - Backend URL correctly used (not localhost:8001)
       - Response times excellent (< 1 second)
       - Backend logs confirm successful processing: "GET /api/journal/6971c81f2b40fd5ef501d375/patterns HTTP/1.1" 200 OK
@@ -6471,7 +6471,7 @@ frontend:
           - Motivation: desire (tone 3, left arrow) - "Motivated by attraction and want"
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm Variables computation: "[HD Variables] Estimated Variables from lines for user 697f795f1a7a96aa35e283a3: environment=mountains"
@@ -6606,7 +6606,7 @@ frontend:
           ✅ Recompute endpoint working with proper status responses
           
           **Backend Integration Verified:**
-          - All endpoints accessible via https://superpower-synthesis.preview.emergentagent.com/api
+          - All endpoints accessible via https://tension-mapper.preview.emergentagent.com/api
           - Response times excellent (< 30 seconds)
           - Backend logs confirm successful HD chart recomputation with planetary longitude data
           - Variables computed from exact Design Sun and Personality Sun positions
@@ -6687,7 +6687,7 @@ backend:
           ✅ Multiple signals are clearly being evaluated differently
           
           **Backend Integration Verified:**
-          - All endpoints accessible via https://superpower-synthesis.preview.emergentagent.com/api
+          - All endpoints accessible via https://tension-mapper.preview.emergentagent.com/api
           - Response times excellent (< 5 seconds)
           - Backend logs confirm transit intelligence processing:
             * "[TRANSIT_INTELLIGENCE] User 697f795f1a7a96aa35e283a3 - TODAY signals: ['Mercury->Neptune', 'Moon->Moon', 'Moon->Pluto']"
@@ -6770,7 +6770,7 @@ agent_communication:
       ✅ Multiple signals are clearly being evaluated differently
       
       **Backend Integration Verified:**
-      - All endpoints accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - All endpoints accessible via https://tension-mapper.preview.emergentagent.com/api
       - Response times excellent (< 5 seconds)
       - Backend logs confirm transit intelligence processing with proper planet-to-planet mappings
       - Transit differentiation algorithm working correctly across all timeframes
@@ -6818,7 +6818,7 @@ agent_communication:
       ✅ Recompute endpoint working with proper status responses
       
       **Backend Integration Verified:**
-      - All endpoints accessible via https://superpower-synthesis.preview.emergentagent.com/api
+      - All endpoints accessible via https://tension-mapper.preview.emergentagent.com/api
       - Response times excellent (< 30 seconds)
       - Backend logs confirm successful HD chart recomputation with planetary longitude data
       - Variables computed from exact Design Sun and Personality Sun positions
@@ -6885,7 +6885,7 @@ agent_communication:
          - Empty state shows "As you reflect during this cycle, patterns will surface here."
       
       BACKEND ENDPOINT TESTED:
-      curl -s "https://superpower-synthesis.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
+      curl -s "https://tension-mapper.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
       Returns: {"user_id":"697f795f1a7a96aa35e283a3","cycle_start":"2026-03-18T22:04:48+00:00","cycle_day":6,"entries_in_cycle":0,"synthesis":{"early_cycle":null,"mid_cycle":null,"current_direction":null},"has_enough_data":false,"message":"As you reflect during this cycle, patterns will surface here."}
       
       FILES MODIFIED:
@@ -6929,7 +6929,7 @@ backend:
           - message: for empty state
           
           Manual test with curl confirmed working:
-          curl "https://superpower-synthesis.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
+          curl "https://tension-mapper.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
           
           NEEDS TESTING: Verify endpoint works with users who have journal entries
       - working: true
@@ -6968,7 +6968,7 @@ backend:
           - has_enough_data: false (appropriate for invalid user)
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing
@@ -7052,7 +7052,7 @@ agent_communication:
          - Empty state shows "As you reflect during this cycle, patterns will surface here."
       
       BACKEND ENDPOINT TESTED:
-      curl -s "https://superpower-synthesis.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
+      curl -s "https://tension-mapper.preview.emergentagent.com/api/journal/697f795f1a7a96aa35e283a3/reflector-synthesis"
       Returns: {"user_id":"697f795f1a7a96aa35e283a3","cycle_start":"2026-03-18T22:04:48+00:00","cycle_day":6,"entries_in_cycle":0,"synthesis":{"early_cycle":null,"mid_cycle":null,"current_direction":null},"has_enough_data":false,"message":"As you reflect during this cycle, patterns will surface here."}
       
       FILES MODIFIED:
@@ -7155,7 +7155,7 @@ agent_communication:
           - Confidence: 0.5, Sources: ["enneagram", "transits"]
           
           🔧 BACKEND INTEGRATION VERIFIED:
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 2 seconds)
           - NOW SIGNAL ENGINE service integration working correctly
@@ -7276,7 +7276,7 @@ agent_communication:
           - Confidence: 0.2 (appropriate for error case) ✅
           
           **Backend Integration Verified:**
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 1 second) ✅
           - Backend logs confirm successful processing ✅
@@ -7323,7 +7323,7 @@ agent_communication:
           - Human Design signals now properly generated for users with chart data
           
           **Backend Integration Verified:**
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - Response time: 0.18 seconds (excellent performance) ✅
           - All signal types now working: astrology (1), human_design (2), pattern_history (2) ✅
           - Multi-source synthesis working correctly ✅
@@ -7386,7 +7386,7 @@ agent_communication:
       - ✅ Backend integration confirmed: Proper logging and processing
       
       **Backend Integration Verified:**
-      - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+      - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
       - Response times excellent (0.280s) ✅
       - Backend logs confirm successful processing ✅
       - High confidence scores (0.95, 0.91) indicating quality diagnosis ✅
@@ -7555,7 +7555,7 @@ agent_communication:
       - questionnaire_answers: All 5 answers persisted correctly ✅
       
       **Backend Integration Verified:**
-      - Endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+      - Endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
       - Response times excellent (< 1 second) ✅
       - Backend logs confirm successful processing:
         * "[MirrorProfile] Not found for user" (initial state)
@@ -7693,7 +7693,7 @@ agent_communication:
           - Data persistence working perfectly ✅
           
           **Backend Integration Verified:**
-          - Endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - Endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 1 second)
           - Backend logs confirm successful processing
@@ -7766,7 +7766,7 @@ agent_communication:
           - ✅ No crashes or 500 errors for invalid inputs
           
           **Backend Integration Verified:**
-          - Endpoint accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - Endpoint accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - Response times excellent (0.280s) ✅
           - Backend logs confirm successful processing:
             * "[Diagnostician] Generating cross-lens diagnosis for 697f0c6a: The Pause"
@@ -7904,7 +7904,7 @@ agent_communication:
           
           **Test Endpoint:** GET /api/bazi/{user_id}/today
           **Test User:** 697f0c6abf35c0528ff06954 (pete@pulsifi.me)
-          **Backend URL:** https://superpower-synthesis.preview.emergentagent.com
+          **Backend URL:** https://tension-mapper.preview.emergentagent.com
           
           **✅ ALL REQUIRED FIELDS VERIFIED:**
           1. ✅ success: true
@@ -7937,7 +7937,7 @@ agent_communication:
             * Response size: 12,482 characters
           
           **✅ BACKEND INTEGRATION VERIFIED:**
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing: "[BaZi Today] Generated for user 697f0c6abf35c0528ff06954: Fire day, interactions=['pressure']"
@@ -7963,7 +7963,7 @@ agent_communication:
       
       **Primary Test:** GET /api/bazi/697f0c6abf35c0528ff06954/today
       **Test User:** 697f0c6abf35c0528ff06954 (pete@pulsifi.me as specified)
-      **Backend URL:** https://superpower-synthesis.preview.emergentagent.com
+      **Backend URL:** https://tension-mapper.preview.emergentagent.com
       
       **✅ ALL 7 REQUIRED RESPONSE FIELDS VERIFIED:**
       1. ✅ success: true
@@ -8113,7 +8113,7 @@ backend:
           - horizon_interpretation.horizon_source: "horizon_interpretation_layer" ✅
           
           **✅ BACKEND INTEGRATION VERIFIED:**
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - Response times excellent (< 5 seconds) ✅
           - Backend logs confirm horizon interpretation working: "[AstroExpert] Horizon: today/week/month, Event: full_moon, Sign: Virgo" ✅
           - Event priority engine working correctly with Full Moon detection ✅
@@ -8141,7 +8141,7 @@ backend:
           🎯 ALL REVIEW REQUEST REQUIREMENTS 100% VERIFIED:
           
           **Test 1: POST /api/journal (Create first entry)** ✅
-          - URL: https://superpower-synthesis.preview.emergentagent.com/api/journal
+          - URL: https://tension-mapper.preview.emergentagent.com/api/journal
           - Body: {"user_id": "697f0c6abf35c0528ff06954", "content": "Testing normalizer fix - entry 1", "tags": []}
           - Status: 200 OK
           - Response contains all required fields: id, content, themes, created_at ✅
@@ -8151,7 +8151,7 @@ backend:
           - Created At: 2026-03-27T05:49:55.648746+00:00
           
           **Test 2: GET /api/journal/{user_id} (Fetch entries)** ✅
-          - URL: https://superpower-synthesis.preview.emergentagent.com/api/journal/697f0c6abf35c0528ff06954
+          - URL: https://tension-mapper.preview.emergentagent.com/api/journal/697f0c6abf35c0528ff06954
           - Status: 200 OK
           - ✅ CRITICAL: Response is an ARRAY (not wrapped in object like {entries: [...]})
           - Number of entries: 20
@@ -8177,7 +8177,7 @@ backend:
             * All entries have required fields (id, content, themes, created_at): True ✅
           
           **Backend Integration Verified:**
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api)
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api)
           - No HTTP errors or timeouts
           - Response times excellent (< 2 seconds)
           - Backend logs confirm successful processing
@@ -8210,7 +8210,7 @@ test_plan:
           CANONICAL ASTRONOMY VALIDATION LAYER — ALL 44 ASSERTIONS PASS ✅
 
           Test script: /app/canonical_astronomy_test.py
-          Backend URL: https://superpower-synthesis.preview.emergentagent.com/api
+          Backend URL: https://tension-mapper.preview.emergentagent.com/api
 
           === A) Canonical diagnostic endpoint for Pete AND Mel ===
 
@@ -8562,7 +8562,7 @@ agent_communication:
       - horizon_interpretation.horizon_source: "horizon_interpretation_layer" ✅
       
       **✅ BACKEND INTEGRATION VERIFIED:**
-      - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+      - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
       - Response times excellent (< 5 seconds) ✅
       - Backend logs confirm horizon interpretation working: "[AstroExpert] Horizon: today/week/month, Event: full_moon, Sign: Virgo" ✅
       - Event priority engine working correctly with Full Moon detection ✅
@@ -8588,7 +8588,7 @@ agent_communication:
       
       **Primary Focus:** Confirm backend returns correct data shapes that frontend normalizer expects
       **Test User:** 697f0c6abf35c0528ff06954 (as specified in review request)
-      **Backend URL:** https://superpower-synthesis.preview.emergentagent.com/api
+      **Backend URL:** https://tension-mapper.preview.emergentagent.com/api
       
       **✅ CRITICAL VERIFICATION - RESPONSE SHAPE:**
       - GET /api/journal/{user_id} returns an **ARRAY** ✅
@@ -8689,7 +8689,7 @@ agent_communication:
       - All content is user-facing and clean ✅
       
       **Backend Integration Verified:**
-      - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+      - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
       - No HTTP errors or timeouts ✅
       - Response times excellent (< 5 seconds) ✅
       - Backend logs confirm successful processing ✅
@@ -8829,7 +8829,7 @@ agent_communication:
           - dynamic: user_quality=initiation, other_quality=sensing
           
           **🔧 BACKEND INTEGRATION VERIFIED:**
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 2 seconds) ✅
 
@@ -8941,7 +8941,7 @@ agent_communication:
           - No generic phrases like "hold space" or "be present" ✅
           
           **🔧 BACKEND INTEGRATION VERIFIED:**
-          - All endpoints accessible via public URL (https://superpower-synthesis.preview.emergentagent.com/api) ✅
+          - All endpoints accessible via public URL (https://tension-mapper.preview.emergentagent.com/api) ✅
           - No HTTP errors or timeouts ✅
           - Response times excellent (< 2 seconds) ✅
           - Backend logs confirm successful processing ✅
@@ -9679,3 +9679,275 @@ agent_communication:
     message: >
       Interactive Member Summary Cards feature is complete and verified.
       Tapping a member on the forum page now opens a clean inline card (right below the members row) showing Astrology · HD · BaZi · Enneagram · Numerology and a 1-line "How they read in the room" synthesis. Close (×) or re-tap to dismiss. No page reload. Screenshot validated on production preview. Bundle rebuilt and deployed to /app/backend/web_dist/.
+
+
+
+# ====================================================================
+# 2026-04-24 — Life Synthesis Phase 3: Lifeline + Pattern Memory integration
+# ====================================================================
+
+backend:
+  - task: "Today Modulation — MEDIUM intensity output preserves base structure with 1-2 emphasis phrases"
+    implemented: true
+    working: true
+    file: "/app/backend/services/today_modulation.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          VERIFIED via direct engine test (/tmp/test_medium.py) against Pete's synthesis:
+            - Forced intensity=medium via pattern_memory recurring_pattern + match_count=4
+            - LLM output consistently preserves base sentence structure
+            - Emphasis phrase count observed: 1 or 2 across fields (target <=2) ✓
+            - Pruner guard (_prune_medium_emphasis) caps at 2 and removes excess when
+              LLM violates cap — independently unit-tested with synthetic 4-phrase
+              payload, result: 2 removed, 2 retained.
+          Endpoint /api/life/work/today/{user_id} returns HIGH for Pete now (match_count>=3
+          + lifeline events >=3 → score=3 → high) and LOW otherwise. Output respects
+          intensity-specific tone.
+
+  - task: "Pattern Memory loader — aggregate recurrence from real pattern_memory docs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py (_load_pattern_memory_for_user)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: >
+          Pre-Phase 3 bug: loader only read memory_state / evolution_state /
+          match_count from the latest pattern_memory doc. Real docs don't
+          populate those fields — they store `primary_tension`, `pattern_signature`,
+          `lens_source`, `diagnosis_title`. For Pete this meant pattern_memory
+          was effectively empty, so all synthesis output was the "cold start"
+          variant despite 18 stored tensions.
+      - working: true
+        agent: "main"
+        comment: >
+          Rewritten to aggregate last 30 pattern_memory docs:
+            - Counts primary_tension recurrences (case-insensitive, normalised)
+            - Derives memory_state="recurring_pattern" when any tension repeats >=3x,
+              "new_pattern" on first sighting, else "known_pattern"
+            - match_count = highest recurrence count
+            - dominant_tension = human-readable diagnosis_title for the top tension
+            - Returns recent_tensions (top 5), dominant_lens_source, evolution_state
+          Verified live on Pete:
+            match_count=3, dominant_tension="This Shape Again", lens="home",
+            memory_state="recurring_pattern". This flows into Today intensity
+            (now correctly HIGH) and Role Card drivers ("recurring tension (3×)").
+
+  - task: "Lifeline loader — domain-aware grouping from real lifeline_events schema"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py (_load_lifeline_summary_for_user)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: >
+          Pre-Phase 3 bug: loader looked for ev.theme / ev.tag fields that
+          don't exist in the real schema. Real events carry category,
+          emotional_tone, impact_score, title. For Pete (45 events) this
+          returned an empty themes list and 0 weight.
+      - working: true
+        agent: "main"
+        comment: >
+          Rewritten to pull last 60 events and derive:
+            - domain_event_counts  — {work, relationships, self} via category map
+            - domain_tone_mix      — per-domain emotional_tone distribution
+            - domain_recent_titles — per-domain list of recent event titles
+            - recurring_categories — categories with >=3 events
+            - recent_themes / high_impact_titles
+          Category→domain map: Career/Achievement/Education→work,
+          Relationships/Family/Romance/Friendship→relationships,
+          Identity/Health/Move/Loss/Spiritual/Other→self.
+          Verified on Pete: domain_event_counts={work:20, self:20, relationships:5},
+          recurring_categories=["career","other","relationships"].
+
+  - task: "life_synthesis_engine — Pattern Memory + Lifeline extraction upgraded"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_synthesis_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          _extract_pattern_memory now consumes dominant_tension, recent_tensions,
+          match_count and emits:
+            - phase_hint with repeat count
+            - recurring_note ("this shape keeps returning around '...'")
+            - weight scales 0.55 → 0.85 based on recurrence
+          _extract_lifeline now consumes domain_event_counts, domain_tone_mix,
+          domain_recent_titles and emits per-domain:
+            - phase_echo_hint ("this domain has shown up repeatedly...")
+            - tone_cue (strained vs alive)
+            - weight scales 0.35 → 0.7 based on domain event count
+          _compress_themes injects:
+            - lifeline phase_echo into default_tension_seed
+            - recurrence marker into distortion_seed ("not a one-time distortion")
+            - tone cue into distortion_seed when strained
+          _build_evidence now surfaces:
+            - dominant_tension with repeat count (e.g., "This Shape Again" has repeated 3×)
+            - per-domain event count + tone cue
+          build_render_user_message passes new structured signals (recurrence_signal,
+          lifeline_note, lifeline_tone_cue, lifeline_echoes) to the LLM.
+          LLM prompt updated with RECURRENCE AWARENESS + LIFELINE AWARENESS rules.
+
+  - task: "role_card_engine — lifeline_summary input + recurrence-aware seeds"
+    implemented: true
+    working: true
+    file: "/app/backend/services/role_card_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          generate_role_card and build_role_seeds_public now accept
+          lifeline_summary. New _lifeline_phase_note() derives a one-sentence
+          phase note from domain_event_counts + recurring_categories (only
+          fires when total_events>=5 to avoid inventing narrative).
+          tension_seed sharpened by recurrence ("and it has re-formed in
+          this shape more than once") when match_count>=3.
+          dominant_drivers now include "recurring tension (N×)" and
+          "lived history: N events" when present. _PATTERN_MEMORY_NOTE
+          extended with "known_pattern" state.
+          Verified on Pete: role card output includes recurrence language
+          ("reforming your environment repeatedly", "cycles of internal
+          transformation") and confidence="high" backed by 6 drivers.
+
+  - task: "Role Card + Synthesis endpoints — pass lifeline_summary through"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py (get_life_role_card, get_life_synthesis)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          /api/life/role-card/{user_id} now loads lifeline_summary and passes
+          it into rce.generate_role_card. /api/life/{context}/synthesis/{user_id}
+          passes lifeline_summary into rce.build_role_seeds_public so the inline
+          role seeds in the synthesis LLM call are lifeline-aware.
+          End-to-end smoke test on Pete verified:
+            - role-card: confidence=high, 6 drivers including recurrence + lifeline
+            - work/synthesis: distortion explicitly references the loop
+              ("This pattern returns as you isolate yourself... deepening a loop
+              of disconnection"), evidence_signals surface pattern_memory @ 0.85
+              and lifeline_echoes @ 0.7
+            - relationships/self synthesis: domain-distinct output with correct
+              per-domain event counts (5 relationships, 20 self, 20 work)
+            - today/work: intensity=high, reasons=["pattern is cycling","recent lived events echo the pattern"]
+          Cold-start user (Mel, 0 pattern_memory, 0 lifeline events): still
+          produces high-confidence role card from chart alone — graceful
+          degradation preserved.
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus: []
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: >
+      Life Synthesis Phase 3 backend testing complete — 72/72 assertions PASSED (100%).
+
+      Endpoints tested against https://tension-mapper.preview.emergentagent.com/api:
+        GET /api/life/role-card/{user_id}[?refresh=true]
+        GET /api/life/{context}/synthesis/{user_id}?refresh=true (work, relationships, self)
+        GET /api/life/{context}/today/{user_id}?refresh=true (work)
+        GET /api/life/{context}/evidence/{user_id}?refresh=true (work)
+
+      PETE (697f0c6abf35c0528ff06954) — recurring user:
+        * role-card: 200, confidence=high, llm_used=true, banned_phrase_hits=[].
+          dominant_drivers=['metal posture · strong', 'manifestor operating style',
+          'emotional decision signal', 'memory: recurring pattern',
+          'recurring tension (3×)', 'lived history: 45 events']. Both required
+          driver substrings present. No lens names leaked into rendered text.
+        * work synthesis: 200. All 4 domain_synthesis text fields non-empty.
+          evidence_signals (5 items): pattern_memory weight=0.85 signal='"This Shape
+          Again" has repeated 3×'; lifeline_echoes weight=0.7 signal='20 work
+          events in lived history'.
+        * relationships + self syntheses: 200. Domain-distinct content verified —
+          all 4 text fields differ across the 3 domains. Lifeline counts correctly
+          scoped: relationships=5 events, self=20 events, work=20 events.
+        * work today: 200, intensity_level='high', intensity_reasons=
+          ['pattern is cycling', 'recent lived events echo the pattern']. No field
+          stacks more than 2 emphasis phrases.
+        * work evidence: 200, valid JSON dict with evidence array populated.
+
+      MEL (697ec826ad4b18f75bf42616) — cold start:
+        * role-card: 200, confidence='high' (from chart alone), drivers=
+          ['water posture · weak', 'reflector operating style',
+          'lunar decision signal'] — correctly excludes 'recurring tension' and
+          'lived history' (empty pattern_memory + lifeline).
+        * work synthesis: 200 with content despite no pattern_memory/lifeline.
+        * work today: 200, intensity_level='low'.
+
+      Edge cases:
+        * Invalid context (/api/life/foo/synthesis/{pete}) → 400 ✅
+          {"detail":"context must be relationships, work, or self"}
+        * Non-existent user (/api/life/role-card/doesnotexist) → 404 ✅
+          {"detail":"Chart not found for user"}
+
+      Phase 3 integration is fully functional. All acceptance criteria in the
+      review request have been verified. No blockers.
+
+  - agent: "main"
+    message: >
+      Phase 3 complete. Life Synthesis engine and Role Card engine now
+      actively consume Pattern Memory recurrence (aggregated across last 30
+      docs) and Lifeline event history (grouped per domain).
+
+      Key fixes beyond the spec:
+        * Both loaders were reading the wrong schema fields (theme/tag on
+          lifeline; memory_state on pattern_memory) and returning near-empty
+          data for real users. The loaders have been rewritten to consume
+          the actual schema (primary_tension + diagnosis_title + lens_source
+          + category + emotional_tone + impact_score).
+        * Pete (recurring user with 18 tensions + 45 life events) now yields
+          HIGH-confidence role card and HIGH-intensity Today modulation;
+          Mel (cold start) still yields a clean role card from chart alone.
+        * Today Modulation MEDIUM prompt + deterministic pruner verified
+          against synthetic and live payloads — max 2 emphasis phrases total.
+
+      Please run backend tests on the following endpoints with the
+      credentials in /app/memory/test_credentials.md:
+        GET /api/life/role-card/{user_id}                   (Pete, Mel)
+        GET /api/life/{context}/synthesis/{user_id}         (all 3 contexts)
+        GET /api/life/{context}/today/{user_id}?refresh=true (Pete → high, Mel → low)
+        GET /api/life/{context}/evidence/{user_id}
+
+      Acceptance criteria:
+        * 200 for all endpoints, no render errors in debug.
+        * Pete: confidence=high, pattern_memory evidence weight>=0.85,
+          lifeline_echoes weight>=0.5, dominant_drivers includes
+          "recurring tension (N×)" and "lived history: N events".
+        * Mel: still returns a valid role card with confidence>=medium
+          without crashing on empty pattern_memory / lifeline.
+        * Today intensity for Pete should compute "high"; intensity_reasons
+          should include "pattern is cycling" and "recent lived events echo
+          the pattern".
+        * No banned-phrase hits ("human design", "astrology", etc.) in any
+          rendered text field (debug.banned_phrase_hits should be [] or only
+          contain legitimately stripped scrubbing).
