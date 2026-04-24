@@ -609,6 +609,169 @@ def _confidence(hd, bazi, astro, pm) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Domain weighting (Phase 3.2)
+# ---------------------------------------------------------------------------
+#
+# Produces an asymmetric view across work / relationships / self so the Life
+# tab doesn't render three equally-intense stories. Deterministic, inspectable,
+# never exposes scoring language to the end user.
+
+from collections import Counter as _DW_Counter  # alias to avoid shadow
+
+# Pattern-memory lens_source → domain hint. The `home` lens is ambient (not
+# a real domain signal), so we leave it unmapped.
+_PM_LENS_TO_DOMAIN: Dict[str, str] = {
+    "work":          "work",
+    "career":        "work",
+    "relationships": "relationships",
+    "people":        "relationships",
+    "person":        "relationships",
+    "family":        "relationships",
+    "self":          "self",
+    "identity":      "self",
+    "inner":         "self",
+}
+
+
+def _pm_domain_hint(pattern_memory: Optional[Dict[str, Any]]) -> "_DW_Counter":
+    """Count pattern_memory tensions per domain via lens_source."""
+    counts: "_DW_Counter" = _DW_Counter()
+    if not isinstance(pattern_memory, dict):
+        return counts
+    dom_lens = (pattern_memory.get("dominant_lens_source") or "").lower()
+    mapped = _PM_LENS_TO_DOMAIN.get(dom_lens)
+    if mapped:
+        counts[mapped] += 1
+    for rt in (pattern_memory.get("recent_tensions") or [])[:5]:
+        if not isinstance(rt, dict):
+            continue
+        lens = (rt.get("lens") or "").lower()
+        m = _PM_LENS_TO_DOMAIN.get(lens)
+        if m:
+            counts[m] += 1
+    return counts
+
+
+def derive_domain_weights(
+    pattern_memory: Optional[Dict[str, Any]] = None,
+    lifeline_summary: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Deterministic asymmetric scoring across work/relationships/self.
+
+    Composite score per domain:
+        0.5 × normalised_event_count
+        0.3 × normalised_avg_impact (impact_score / 10)
+        0.2 × strain_ratio           (fraction negative+mixed)
+        +   0.1 bump if pattern memory lens points here
+
+    Close-call guard: if the top score is within 15% of the second, no strong
+    primary is assigned — top two become "secondary" and the third
+    "background". Sparse data (<3 total events, no pattern memory) falls back
+    to all-background with confidence="low".
+
+    Returns:
+      {
+        work/relationships/self: "primary|secondary|background",
+        scores, dominant_domain, confidence, reason
+      }
+    """
+    domains = ("work", "relationships", "self")
+
+    ll = lifeline_summary or {}
+    event_counts: Dict[str, int] = {d: int((ll.get("domain_event_counts") or {}).get(d, 0) or 0) for d in domains}
+    avg_impact: Dict[str, float] = {d: float((ll.get("domain_avg_impact") or {}).get(d, 0.0) or 0.0) for d in domains}
+    strain: Dict[str, float] = {d: float((ll.get("domain_strain_ratio") or {}).get(d, 0.0) or 0.0) for d in domains}
+    total_events = int(ll.get("total_events") or 0)
+    pm_hint = _pm_domain_hint(pattern_memory)
+
+    max_count = max(event_counts.values() or [0]) or 1
+    scores: Dict[str, float] = {}
+    for d in domains:
+        norm_count = event_counts[d] / max_count if max_count else 0.0
+        norm_impact = min(avg_impact[d] / 10.0, 1.0)
+        pm_bump = 0.1 if pm_hint.get(d, 0) > 0 else 0.0
+        scores[d] = round(
+            0.5 * norm_count
+            + 0.3 * norm_impact
+            + 0.2 * strain[d]
+            + pm_bump,
+            4,
+        )
+
+    # Sparse-data fallback
+    if total_events < 3 and sum(pm_hint.values()) == 0:
+        return {
+            "work":           "background",
+            "relationships":  "background",
+            "self":            "background",
+            "scores":         scores,
+            "dominant_domain": None,
+            "confidence":     "low",
+            "reason":         "not enough lived history to infer where the pattern is most active",
+        }
+
+    sorted_domains = sorted(domains, key=lambda d: scores[d], reverse=True)
+    top, mid, low = sorted_domains
+    top_score, mid_score = scores[top], scores[mid]
+
+    gap = (top_score - mid_score) / max(top_score, 1e-6) if top_score > 0 else 0.0
+    close_call = gap < 0.15
+
+    weights: Dict[str, str] = {}
+    dominant_domain: Optional[str] = None
+    confidence: str
+    reason: str
+
+    if close_call:
+        weights[top] = "secondary"
+        weights[mid] = "secondary"
+        weights[low] = "background"
+        dominant_domain = None
+        confidence = "medium" if total_events >= 5 else "low"
+        reason = (
+            f"{top} and {mid} both carry noticeable weight; no single domain "
+            f"is clearly dominant right now"
+        )
+    else:
+        weights[top] = "primary"
+        weights[mid] = "secondary"
+        weights[low] = "background"
+        dominant_domain = top
+        if total_events >= 10 and gap >= 0.30:
+            confidence = "high"
+        elif total_events >= 5:
+            confidence = "medium"
+        else:
+            confidence = "low"
+        contribs: List[str] = []
+        if event_counts[top] >= 5:
+            contribs.append(f"{event_counts[top]} lived events")
+        if avg_impact[top] >= 6:
+            contribs.append(f"high-impact moments (avg {avg_impact[top]:.1f})")
+        if strain[top] >= 0.4:
+            contribs.append("strained emotional tone")
+        if pm_hint.get(top, 0):
+            contribs.append("pattern memory points here")
+        reason = (
+            f"{top} is where the pattern is most active"
+            + (" — " + ", ".join(contribs) if contribs else "")
+        )
+
+    return {
+        "work":           weights["work"],
+        "relationships":  weights["relationships"],
+        "self":            weights["self"],
+        "scores":         scores,
+        "dominant_domain": dominant_domain,
+        "confidence":     confidence,
+        "reason":         reason,
+    }
+
+
+
+
+# ---------------------------------------------------------------------------
 # Public entry — signal extraction (deterministic, LLM-free)
 # ---------------------------------------------------------------------------
 
@@ -827,6 +990,43 @@ in actual lived events in this domain. Lightly ground the default_tension or
 distortion in that lived history. Do NOT invent new events. Do NOT quote event
 titles. Acknowledge that the pattern has left marks, without listing them.
 
+12. DOMAIN WEIGHTING (CRITICAL when domain_weight is present)
+
+You will receive `domain_weight`: "primary" | "secondary" | "background".
+
+Adjust output intensity — NOT the root pattern — based on this:
+
+  PRIMARY:
+    - This is the main arena where the pattern is currently active.
+    - Be the most specific and consequential here.
+    - Use the strongest consequence language.
+    - This section can be slightly longer and more vivid than the others.
+    - distortion_under_pressure can run 2-3 sentences.
+
+  SECONDARY:
+    - This is a meaningful spillover arena.
+    - Keep it clear and specific, but LESS dominant than primary.
+    - Show how the pattern affects this domain without making it feel like
+      the centre of the user's life.
+    - 1-2 sentences is usually enough for distortion.
+
+  BACKGROUND:
+    - This domain is present but quieter.
+    - Keep it SHORTER and more internal/subtle than primary and secondary.
+    - Do NOT over-expand the consequence.
+    - Do NOT make it feel equally important.
+    - 1 sentence for distortion is often enough. Needs may be a single line.
+    - Lean toward restraint. Silence is information.
+
+The three domains must NOT feel equally intense. If this tab's output reads
+with the same force as the other two, it is wrong — rewrite with less weight
+if background, more weight if primary.
+
+NEVER expose the words "primary", "secondary", "background", "weight",
+"score", "weighting", or "domain" in the rendered output. The weighting is
+INVISIBLE to the user. Show the asymmetry through length and specificity,
+not through labels.
+
 ==================================================
 QUALITY CHECK BEFORE OUTPUT
 ==================================================
@@ -874,6 +1074,7 @@ def build_render_user_message(
     domain: str,
     input_bundle: Dict[str, Any],
     role_seeds: Optional[Dict[str, Any]] = None,
+    domain_weight_info: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Assemble the deterministic seeds into a compact structured input for the
@@ -908,6 +1109,32 @@ def build_render_user_message(
         "distortion_under_pressure": c["distortion_seed"],
         "what_this_pattern_needs":   c["orientation_seed"],
     }
+
+    # Phase 3.2 — domain weighting. Tells the renderer how dominant this
+    # domain is in the user's current life so outputs feel asymmetric
+    # (primary = main arena, secondary = spillover, background = quieter).
+    if domain_weight_info and domain_weight_info.get(domain):
+        weight = domain_weight_info.get(domain)  # primary | secondary | background
+        instr_map = {
+            "primary": "This is the MAIN ARENA where the pattern is currently "
+                       "active. Be the most specific and consequential here. "
+                       "Use the fullest consequence language. This section may be "
+                       "slightly longer and more vivid than the other two domains.",
+            "secondary": "This is a meaningful SPILLOVER arena. Keep it clear "
+                         "and specific, but less dominant than the primary domain. "
+                         "Show how the pattern affects this domain without making "
+                         "it feel like the centre of the user's life.",
+            "background": "This domain is PRESENT BUT QUIETER. Keep it shorter "
+                          "and more internal/subtle. Do not over-expand the "
+                          "consequence. Do not make it feel equally important to "
+                          "the primary domain. 1-2 sentences total is fine here.",
+        }
+        domain_block["domain_weight"] = {
+            "weight":      weight,
+            "confidence":  domain_weight_info.get("confidence", "medium"),
+            "instruction": instr_map.get(weight, instr_map["secondary"]),
+        }
+
     # Phase 3.1 — explicit domain consequence frame so the LLM has a concrete
     # axis it must hit. Prevents the "same paragraph three times" failure mode.
     frame = _DOMAIN_CONSEQUENCE_FRAME.get(domain)
@@ -1013,6 +1240,7 @@ async def generate_domain_synthesis(
     pattern_memory: Optional[Dict[str, Any]] = None,
     lifeline_summary: Optional[Dict[str, Any]] = None,
     role_seeds: Optional[Dict[str, Any]] = None,
+    domain_weight_info: Optional[Dict[str, Any]] = None,
     llm_chat_factory=None,  # callable: () -> LlmChat, injected by caller
 ) -> Dict[str, Any]:
     """
@@ -1026,7 +1254,12 @@ async def generate_domain_synthesis(
     from emergentintegrations.llm.chat import LlmChat, UserMessage  # local import
 
     input_bundle = build_synthesis_input(chart, domain, pattern_memory, lifeline_summary)
-    user_msg = build_render_user_message(domain, input_bundle, role_seeds=role_seeds)
+    user_msg = build_render_user_message(
+        domain,
+        input_bundle,
+        role_seeds=role_seeds,
+        domain_weight_info=domain_weight_info,
+    )
 
     llm_output_raw: Optional[str] = None
     render_error: Optional[str] = None
@@ -1063,6 +1296,15 @@ async def generate_domain_synthesis(
             "what_this_pattern_needs":   _prose_from_seed(c["orientation_seed"]),
         }
 
+    # Post-render guard: strip any accidental weight vocabulary leakage
+    # ("primary domain", "secondary arena", "background", etc.) from user-facing
+    # text. This is a belt-and-braces safety net — the prompt already forbids
+    # it, but user copy must never expose scoring language.
+    for f in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
+        v = domain_payload.get(f)
+        if isinstance(v, str) and v:
+            domain_payload[f] = _strip_weight_vocab(v)
+
     # Reserved slots (contract promise to UI / P2)
     domain_payload.setdefault("today", None)
     domain_payload.setdefault("explore", [])
@@ -1075,14 +1317,39 @@ async def generate_domain_synthesis(
         "evidence_signals": input_bundle["evidence_signals"],
         "compressed_themes": input_bundle["compressed_themes"],
         "confidence":       input_bundle["confidence"],
+        "domain_weight":        (domain_weight_info or {}).get(domain),
+        "domain_weight_confidence": (domain_weight_info or {}).get("confidence"),
+        "domain_weight_reason":     (domain_weight_info or {}).get("reason"),
         "debug": {
             "llm_used":           llm_output_raw is not None,
             "render_error":       render_error,
             "banned_phrase_hits": render_hits,
+            "domain_weight":      (domain_weight_info or {}).get(domain),
+            "domain_weight_confidence": (domain_weight_info or {}).get("confidence"),
+            "domain_weight_reason":     (domain_weight_info or {}).get("reason"),
+            "domain_weight_scores":     (domain_weight_info or {}).get("scores"),
         },
         "generated_at":      datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_synth_v1a2",
+        "generator_version": "life_synth_v1a3",
     }
+
+
+# Weight vocabulary that must never appear in user-facing copy
+_WEIGHT_VOCAB_RE = re.compile(
+    r"\b(primary|secondary|background)\s+(domain|arena|area|lens)\b|"
+    r"\b(scoring|weighting|weight|score)\b",
+    re.IGNORECASE,
+)
+
+
+def _strip_weight_vocab(text: str) -> str:
+    """Remove any scoring/weighting vocabulary that might leak from the LLM."""
+    if not text:
+        return text
+    cleaned = _WEIGHT_VOCAB_RE.sub("", text)
+    cleaned = re.sub(r"\s{2,}", " ", cleaned)
+    cleaned = re.sub(r"\s+([,.;:!?])", r"\1", cleaned)
+    return cleaned.strip()
 
 
 def _prose_from_seed(seed: str) -> str:

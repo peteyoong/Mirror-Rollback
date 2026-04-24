@@ -25697,6 +25697,8 @@ async def _load_lifeline_summary_for_user(user_id: str) -> Optional[Dict[str, An
       * `recurring_categories`     — categories with >=3 events (phase echoes)
       * `recent_themes`            — flat back-compat list (titles)
       * `high_impact_titles`       — titles with impact_score>=8 (optional)
+      * `domain_avg_impact`        — {work, relationships, self} avg impact_score
+      * `domain_strain_ratio`      — per-domain (negative + mixed) / total tone fraction
     """
     try:
         cursor = db.lifeline_events.find({"user_id": user_id}).sort("year", -1).limit(60)
@@ -25708,6 +25710,8 @@ async def _load_lifeline_summary_for_user(user_id: str) -> Optional[Dict[str, An
         domain_counts: Counter = Counter()
         domain_tones: Dict[str, Counter] = defaultdict(Counter)
         domain_titles: Dict[str, List[str]] = defaultdict(list)
+        domain_impact_sum: Dict[str, float] = defaultdict(float)
+        domain_impact_n: Dict[str, int] = defaultdict(int)
         category_counts: Counter = Counter()
         recent_themes: List[str] = []
         high_impact: List[str] = []
@@ -25731,16 +25735,31 @@ async def _load_lifeline_summary_for_user(user_id: str) -> Optional[Dict[str, An
                     recent_themes.append(trimmed)
 
             impact = ev.get("impact_score")
-            if isinstance(impact, (int, float)) and impact >= 8 and title and len(high_impact) < 5:
-                high_impact.append(title[:120])
+            if isinstance(impact, (int, float)):
+                domain_impact_sum[domain] += float(impact)
+                domain_impact_n[domain] += 1
+                if impact >= 8 and title and len(high_impact) < 5:
+                    high_impact.append(title[:120])
 
         recurring_categories = [cat for cat, c in category_counts.items() if c >= 3]
+
+        domain_avg_impact: Dict[str, float] = {}
+        domain_strain_ratio: Dict[str, float] = {}
+        for d in ("work", "relationships", "self"):
+            n = domain_impact_n.get(d, 0)
+            domain_avg_impact[d] = round(domain_impact_sum[d] / n, 3) if n else 0.0
+            tones = domain_tones.get(d, Counter())
+            total_t = sum(tones.values())
+            strain = (tones.get("negative", 0) + tones.get("mixed", 0))
+            domain_strain_ratio[d] = round(strain / total_t, 3) if total_t else 0.0
 
         return {
             "total_events":         len(events),
             "domain_event_counts":  dict(domain_counts),
             "domain_tone_mix":      {d: dict(c) for d, c in domain_tones.items()},
             "domain_recent_titles": {d: titles for d, titles in domain_titles.items()},
+            "domain_avg_impact":    domain_avg_impact,
+            "domain_strain_ratio":  domain_strain_ratio,
             "recurring_categories": recurring_categories,
             "recent_themes":        recent_themes,
             "high_impact_titles":   high_impact,
@@ -25841,6 +25860,18 @@ async def get_life_synthesis(context: str, user_id: str, refresh: bool = False):
     pattern_memory = await _load_pattern_memory_for_user(user_id)
     lifeline_summary = await _load_lifeline_summary_for_user(user_id)
 
+    # Phase 3.2 — derive domain weights once, use for all 3 synthesis calls.
+    # Cached per-user so all 3 tabs see the same primary/secondary/background
+    # allocation. The weight for THIS domain is what gets passed to the LLM.
+    dw_cache_key = f"dw::{user_id}"
+    domain_weight_info = _life_synth_cache_get(dw_cache_key)
+    if not domain_weight_info or refresh:
+        domain_weight_info = lse.derive_domain_weights(
+            pattern_memory=pattern_memory,
+            lifeline_summary=lifeline_summary,
+        )
+        _life_synth_cache_set(dw_cache_key, domain_weight_info)
+
     # Build deterministic role seeds so the synthesis renderer gets BOTH
     # role-card inputs and domain inputs in the SAME LLM call.
     role_seeds = rce.build_role_seeds_public(
@@ -25856,6 +25887,7 @@ async def get_life_synthesis(context: str, user_id: str, refresh: bool = False):
         pattern_memory=pattern_memory,
         lifeline_summary=lifeline_summary,
         role_seeds=role_seeds,
+        domain_weight_info=domain_weight_info,
         llm_chat_factory=_life_synth_llm_factory(f"life_synth_{user_id}_{domain}") if EMERGENT_LLM_KEY else None,
     )
 

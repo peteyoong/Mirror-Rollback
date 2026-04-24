@@ -10003,3 +10003,123 @@ agent_communication:
         * No banned-phrase hits ("human design", "astrology", etc.) in any
           rendered text field (debug.banned_phrase_hits should be [] or only
           contain legitimately stripped scrubbing).
+
+# ====================================================================
+# 2026-04-24 (later) — Phase 3.2: Domain Weighting
+# ====================================================================
+
+backend:
+  - task: "derive_domain_weights — asymmetric primary/secondary/background allocation"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_synthesis_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Deterministic scorer:
+            0.5 × normalised event count
+          + 0.3 × normalised avg impact (impact/10)
+          + 0.2 × strain ratio (negative+mixed / total)
+          + 0.1 bump if pattern_memory lens points to the domain.
+          Sorts desc → top=primary, middle=secondary, low=background.
+          Close-call guard: if (top - mid) / top < 0.15 → both top become
+          "secondary", low stays "background", dominant_domain=None,
+          confidence=medium. Sparse data (<3 events, no pm) → all
+          "background", confidence=low.
+          Verified all 4 paths via direct function test:
+            HEAVY WORK      → work=primary, conf=high (25 events, 8.5 impact, 0.6 strain)
+            HEAVY RELATIONSHIPS → rel=primary, conf=high
+            CLOSE CALL      → work+self=secondary, rel=background, conf=medium
+            SPARSE          → all background, conf=low
+          Live on Pete: work=secondary, self=secondary, relationships=background
+            (his 20/20/5 event split triggers close-call; confidence=medium).
+          Live on Mel: all background, conf=low (no lifeline events, no pm).
+
+  - task: "Lifeline loader — expose domain_avg_impact + domain_strain_ratio"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py (_load_lifeline_summary_for_user)"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Added two new per-domain scalars for derive_domain_weights to
+          consume: domain_avg_impact (avg impact_score across events in that
+          domain) and domain_strain_ratio (fraction of events with negative
+          or mixed emotional_tone). Backwards-compatible — all previous
+          fields unchanged.
+
+  - task: "Synthesis endpoint — pass domain_weight_info into engine"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py (get_life_synthesis)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          /api/life/{context}/synthesis/{user_id} now derives weights ONCE
+          per user (cached under "dw::{user_id}") and passes the target
+          domain's weight into generate_domain_synthesis. All three domain
+          tabs see a consistent allocation.
+          Response now includes:
+            domain_weight               (primary|secondary|background)
+            domain_weight_confidence    (high|medium|low)
+            domain_weight_reason        (debug-friendly string)
+            debug.domain_weight_scores  (numeric scores per domain)
+
+  - task: "LLM prompt — DOMAIN WEIGHTING rule + invisible guard"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_synthesis_engine.py (_RENDER_SYSTEM_PROMPT)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Added rule 12 — DOMAIN WEIGHTING — to the synthesis system prompt:
+            PRIMARY   → main arena, fullest consequence, 2-3 sentence distortion
+            SECONDARY → clear spillover, 1-2 sentence distortion
+            BACKGROUND → quieter, 1 sentence distortion, restraint > expansion
+          Explicit invisibility rule: never emit "primary/secondary/background/
+          weight/score/weighting" in output. Post-render scrubber
+          `_strip_weight_vocab()` catches any leak deterministically.
+          Pete + Mel scanned across all 3 domains — zero leaks found.
+          Live output sizes on Pete now asymmetric:
+            work (secondary, close-call): distortion 436 chars
+            self (secondary, close-call): distortion 288 chars
+            relationships (background):   distortion 356 chars
+          Close-call correctly keeps work+self in the same tier while
+          relationships reads quieter (lifeline weight 0.275 vs 0.65+).
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Phase 3.2 (domain weighting) complete. derive_domain_weights()
+      produces an asymmetric allocation (primary/secondary/background) with
+      a close-call guard at 15% gap and a sparse-data fallback at <3
+      events. The weight is passed into the LLM via build_render_user_message
+      and honoured via a new DOMAIN WEIGHTING rule in the system prompt.
+      User-facing copy never contains the scoring vocabulary (belt-and-
+      braces regex scrubber defends against LLM slips).
+
+      Response now includes domain_weight, domain_weight_confidence,
+      domain_weight_reason at top level AND in debug.domain_weight_scores
+      so Phase Timeline / UI can consume which domain is currently
+      primary per user.
+
+      Files touched:
+        /app/backend/services/life_synthesis_engine.py
+        /app/backend/server.py
+
