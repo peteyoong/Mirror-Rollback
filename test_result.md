@@ -10108,6 +10108,53 @@ agent_communication:
     message: >
       Phase 3.2 (domain weighting) complete. derive_domain_weights()
       produces an asymmetric allocation (primary/secondary/background) with
+
+# ====================================================================
+# 2026-04-24 (later) — Phase 3.3: Consequence-Depth Domain Weighting
+# ====================================================================
+
+backend:
+  - task: "Domain weighting — consequence-depth (cause → effect → outcome)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_synthesis_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Upgraded DOMAIN WEIGHTING rule from length-based to depth-based.
+          New semantics:
+            PRIMARY   → full cause → effect → outcome chain
+            SECONDARY → cause → effect (stops at effect)
+            BACKGROUND → hint at consequence only (no chain)
+          Instruction payload rewritten to match, SWAP TEST extended with
+          CONSEQUENCE DEPTH TEST, and deterministic post-render
+          `_trim_to_first_clause()` guard added. The trim caps background
+          distortion at ~140 chars and needs at ~120, clips at the first
+          clause boundary >= 60 chars, and strips trailing connector/
+          determiner artifacts ("...for your.", "...and the.", "...to.").
+          Verified on Pete:
+            work (secondary, close-call):     distortion 288ch full chain
+            self (secondary, close-call):     distortion 330ch full chain
+            relationships (background):       distortion 133ch hint-only
+                                              "your precision cuts into the
+                                               trust others have in you."
+          Verified on Mel (cold start, all-background):
+            all three domains: ~135ch one-sentence hints, no chain traced.
+          Lint clean. No weight-vocabulary leaks in user copy.
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Consequence depth is now the primary asymmetry axis. Background
+      tabs read visibly quieter — they don't trace "cause → effect →
+      outcome", just hint at presence. Primary/secondary tabs retain a
+      full chain. The deterministic trim guarantees this even when the
+      LLM over-writes (common on gpt-4.1-mini for compound sentences).
+
       a close-call guard at 15% gap and a sparse-data fallback at <3
       events. The weight is passed into the LLM via build_render_user_message
       and honoured via a new DOMAIN WEIGHTING rule in the system prompt.

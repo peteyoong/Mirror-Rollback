@@ -994,38 +994,42 @@ titles. Acknowledge that the pattern has left marks, without listing them.
 
 You will receive `domain_weight`: "primary" | "secondary" | "background".
 
-Adjust output intensity — NOT the root pattern — based on this:
+Adjust CONSEQUENCE DEPTH — not just length — based on this.
+Importance is expressed through HOW FAR YOU TRACE THE CHAIN, not sentence count.
 
   PRIMARY:
-    - This is the main arena where the pattern is currently active.
-    - Be the most specific and consequential here.
-    - Use the strongest consequence language.
-    - This section can be slightly longer and more vivid than the others.
-    - distortion_under_pressure can run 2-3 sentences.
+    - Must include a FULL CONSEQUENCE CHAIN: cause → effect → outcome.
+    - Show what the user does, what it turns into, AND what it ends up
+      shaping or costing over time.
+    - Feels like: "this is shaping things."
+    - distortion_under_pressure must trace all three links of the chain.
 
   SECONDARY:
-    - This is a meaningful spillover arena.
-    - Keep it clear and specific, but LESS dominant than primary.
-    - Show how the pattern affects this domain without making it feel like
-      the centre of the user's life.
-    - 1-2 sentences is usually enough for distortion.
+    - Show consequence, but SHORTER CHAIN: cause → effect.
+    - Show what the user does and what it turns into, without tracing the
+      full outcome.
+    - Feels like: "this is affecting things."
+    - distortion_under_pressure stops at the effect; it does not fully
+      unfold the outcome.
 
   BACKGROUND:
-    - This domain is present but quieter.
-    - Keep it SHORTER and more internal/subtle than primary and secondary.
-    - Do NOT over-expand the consequence.
-    - Do NOT make it feel equally important.
-    - 1 sentence for distortion is often enough. Needs may be a single line.
-    - Lean toward restraint. Silence is information.
+    - HINT AT CONSEQUENCE ONLY. No full chain.
+    - Name the pattern's presence in this domain; do not unfold it.
+    - Feels like: "this exists, but is not central."
+    - distortion_under_pressure is ONE sentence that acknowledges the
+      pattern shows up here, without describing what it turns into.
 
-The three domains must NOT feel equally intense. If this tab's output reads
-with the same force as the other two, it is wrong — rewrite with less weight
-if background, more weight if primary.
+Importance is CONSEQUENCE DEPTH, not length. A background field should
+feel less consequential even if it has the same word count.
+
+If the background field traces a full chain, it is wrong — collapse it
+to a presence-only acknowledgement.
+If the primary field only names an effect without showing outcome, it is
+wrong — extend the chain.
 
 NEVER expose the words "primary", "secondary", "background", "weight",
-"score", "weighting", or "domain" in the rendered output. The weighting is
-INVISIBLE to the user. Show the asymmetry through length and specificity,
-not through labels.
+"score", "weighting", "chain", or "domain" in the rendered output. The
+weighting is INVISIBLE to the user. Show it through depth, not labels.
 
 ==================================================
 QUALITY CHECK BEFORE OUTPUT
@@ -1041,6 +1045,12 @@ Before returning, ensure:
 - SWAP TEST: could you exchange the word "work" with "relationships" or "self"
   in distortion_under_pressure and the sentence would still read correctly?
   If YES, the output is wrong — rewrite with a domain-specific CONSEQUENCE.
+- CONSEQUENCE DEPTH TEST (when domain_weight is present):
+    PRIMARY   distortion → cause → effect → outcome (full chain present)
+    SECONDARY distortion → cause → effect (stops at effect, no full outcome)
+    BACKGROUND distortion → presence only (no chain, one-sentence acknowledgement)
+  If the background field traces a full chain, collapse it. If the primary
+  field only names an effect without outcome, extend the chain.
 
 If not, rewrite internally.
 
@@ -1116,18 +1126,23 @@ def build_render_user_message(
     if domain_weight_info and domain_weight_info.get(domain):
         weight = domain_weight_info.get(domain)  # primary | secondary | background
         instr_map = {
-            "primary": "This is the MAIN ARENA where the pattern is currently "
-                       "active. Be the most specific and consequential here. "
-                       "Use the fullest consequence language. This section may be "
-                       "slightly longer and more vivid than the other two domains.",
-            "secondary": "This is a meaningful SPILLOVER arena. Keep it clear "
-                         "and specific, but less dominant than the primary domain. "
-                         "Show how the pattern affects this domain without making "
-                         "it feel like the centre of the user's life.",
-            "background": "This domain is PRESENT BUT QUIETER. Keep it shorter "
-                          "and more internal/subtle. Do not over-expand the "
-                          "consequence. Do not make it feel equally important to "
-                          "the primary domain. 1-2 sentences total is fine here.",
+            "primary":
+                "This is the MAIN ARENA where the pattern is currently active. "
+                "distortion_under_pressure MUST trace a FULL CONSEQUENCE CHAIN: "
+                "cause → effect → outcome. Show what the user does, what it "
+                "turns into, AND what it ends up shaping or costing over time. "
+                "Feels like: 'this is shaping things.'",
+            "secondary":
+                "This is a SPILLOVER arena. distortion_under_pressure traces a "
+                "SHORTER CHAIN: cause → effect. Show what the user does and "
+                "what it turns into, but do NOT fully unfold the outcome. "
+                "Feels like: 'this is affecting things.'",
+            "background":
+                "This domain is PRESENT BUT NOT CENTRAL. distortion_under_pressure "
+                "is a HINT AT CONSEQUENCE ONLY — one sentence acknowledging the "
+                "pattern shows up here, without tracing what it turns into. "
+                "Feels like: 'this exists, but is not central.' "
+                "If you trace a full chain for this domain, you have done it wrong.",
         }
         domain_block["domain_weight"] = {
             "weight":      weight,
@@ -1305,6 +1320,24 @@ async def generate_domain_synthesis(
         if isinstance(v, str) and v:
             domain_payload[f] = _strip_weight_vocab(v)
 
+    # Phase 3.2 — Consequence-depth trim for BACKGROUND.
+    # The prompt asks for a "hint at consequence only" one-sentence distortion
+    # when weight=background, but the LLM sometimes traces a full chain even
+    # within a single compound sentence. Deterministically clip at the first
+    # clause boundary (period / semicolon) AND enforce a char cap so the
+    # depth/length matches the weight band.
+    target_weight = (domain_weight_info or {}).get(domain) if domain_weight_info else None
+    if target_weight == "background":
+        # tighter per-field caps — distortion max ~140 chars, needs max ~120
+        caps = {"distortion_under_pressure": 140, "what_this_pattern_needs": 120}
+        for f, cap in caps.items():
+            v = domain_payload.get(f)
+            if not (isinstance(v, str) and v):
+                continue
+            trimmed = _trim_to_first_clause(v, max_chars=cap)
+            if trimmed and len(trimmed) < len(v) * 0.9:
+                domain_payload[f] = trimmed
+
     # Reserved slots (contract promise to UI / P2)
     domain_payload.setdefault("today", None)
     domain_payload.setdefault("explore", [])
@@ -1350,6 +1383,64 @@ def _strip_weight_vocab(text: str) -> str:
     cleaned = re.sub(r"\s{2,}", " ", cleaned)
     cleaned = re.sub(r"\s+([,.;:!?])", r"\1", cleaned)
     return cleaned.strip()
+
+
+def _trim_to_first_clause(text: str, max_chars: int = 140) -> str:
+    """
+    Collapse a compound/long sentence down to the first clause or full sentence,
+    whichever comes first. Used for BACKGROUND-weight fields so they stay a
+    "hint at consequence only" and don't render a full cause → effect → outcome
+    chain.
+    """
+    if not isinstance(text, str):
+        return text
+    t = text.strip()
+    if not t:
+        return t
+    min_clause_chars = max(60, max_chars // 3)
+    boundary_re = re.compile(r"[.!?;](?=\s|$)")
+    cand = None
+    for m in boundary_re.finditer(t):
+        end = m.end()
+        if end < min_clause_chars:
+            continue
+        if end > max_chars + 10:
+            break
+        cand = end
+        break
+
+    if cand is not None:
+        out = t[:cand].rstrip()
+    elif len(t) <= max_chars:
+        out = t
+    else:
+        # Hard cap at nearest space before max_chars
+        out = t[:max_chars].rsplit(" ", 1)[0].rstrip(",;: ")
+        if not out.endswith((".", "!", "?")):
+            out = out + "."
+
+    # Clean dangling punctuation and connector/determiner artifacts that appear
+    # when we cut mid-clause (e.g. "...for your.", "...and the.", "...to the.")
+    if out.endswith(";"):
+        out = out[:-1].rstrip() + "."
+    out = re.sub(
+        r"\b(and|but|while|so|which|that|because|though|although|yet|or|for|to|in|on|at|of|with|by|from)(\s+(the|a|an|your|my|his|her|their|its|our))?\.\s*$",
+        ".",
+        out,
+        flags=re.IGNORECASE,
+    )
+    out = re.sub(
+        r"\b(the|a|an|your|my|his|her|their|its|our)\.\s*$",
+        ".",
+        out,
+        flags=re.IGNORECASE,
+    )
+    # Also strip a trailing comma-only ending we may have left when hard-capping
+    out = re.sub(r"[,;:]\s*\.\s*$", ".", out)
+    out = re.sub(r"\.{2,}", ".", out)
+    # Collapse " ." (orphan period after space)
+    out = re.sub(r"\s+\.\s*$", ".", out)
+    return out.strip()
 
 
 def _prose_from_seed(seed: str) -> str:
