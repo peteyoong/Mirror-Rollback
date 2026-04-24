@@ -264,8 +264,16 @@ async def generate_phases(
                     scrubbed_hits.extend(hits)
                 ph[field] = cleaned
 
+    # Phase 3.4 — deterministic gap detection (no LLM)
+    phase_gap = detect_phase_gap(
+        phases=phases,
+        lifeline_summary=lifeline_summary,
+        pattern_memory=pattern_memory,
+    )
+
     return {
         "phases":       phases,
+        "phase_gap":    phase_gap,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "generator_version": "phase_engine_v1",
         "debug": {
@@ -461,6 +469,94 @@ def _scrub_system_language(text: str) -> (str, List[str]):
 
 # ---------------------------------------------------------------------------
 # Deterministic skeleton (no LLM)
+
+# ---------------------------------------------------------------------------
+# Phase gap detection (deterministic — no LLM)
+# ---------------------------------------------------------------------------
+
+_TRANSITION_KEYWORDS: List[str] = [
+    "then", "shift", "became", "turned", "over time", "began",
+    "at first", "later", "now", "eventually", "started",
+]
+
+
+def detect_phase_gap(
+    phases: List[Dict[str, Any]],
+    lifeline_summary: Optional[Dict[str, Any]],
+    pattern_memory: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """
+    Deterministic detection of missing timeline context.
+
+    Returns:
+      {
+        "show":       bool,
+        "reasons":    ["low_confidence"|"weak_transition"|"sparse_lifeline"|"weak_memory", ...],
+        "confidence": "low" | "medium",
+        "dominant_domain": "work|relationships|self"|None
+          — the dominant domain of the current phase, so the CTA can pre-fill
+            a suggested_category on the add-event flow.
+      }
+    """
+    reasons: List[str] = []
+
+    if not isinstance(phases, list) or not phases:
+        return {"show": False, "reasons": [], "confidence": "low", "dominant_domain": None}
+
+    # A) Any low-confidence phase → nudge
+    if any((p or {}).get("confidence") == "low" for p in phases):
+        reasons.append("low_confidence")
+
+    # B) Weak transitions between adjacent phases
+    def _weak_transition(a: Dict[str, Any], b: Dict[str, Any]) -> bool:
+        combined = ((a.get("description") or "") + " " + (b.get("description") or "")).lower()
+        return not any(k in combined for k in _TRANSITION_KEYWORDS)
+
+    weak_pairs = [
+        (i, i + 1)
+        for i in range(len(phases) - 1)
+        if _weak_transition(phases[i], phases[i + 1])
+    ]
+    if weak_pairs:
+        reasons.append("weak_transition")
+
+    # C) Sparse lifeline in dominant domain(s)
+    domain_counts = (lifeline_summary or {}).get("domain_event_counts") or {}
+    # Accept either domain_counts (spec) or domain_event_counts (our schema)
+    if not domain_counts:
+        domain_counts = (lifeline_summary or {}).get("domain_counts") or {}
+    doms = [(p or {}).get("dominant_domain") for p in phases if (p or {}).get("dominant_domain")]
+    sparse = any(int(domain_counts.get(d, 0) or 0) < 3 for d in doms)
+    if sparse:
+        reasons.append("sparse_lifeline")
+
+    # D) Weak pattern memory
+    mem_state = (pattern_memory or {}).get("memory_state") or ""
+    if mem_state in ("new", "new_pattern", "returning", "known_pattern"):
+        # "known_pattern" = a first repeat but not yet strongly cycling
+        reasons.append("weak_memory")
+
+    show = bool(reasons)
+    confidence = "medium" if len(reasons) >= 2 else "low"
+
+    # Dominant domain = current phase's domain (for prefill)
+    current_dom: Optional[str] = None
+    for p in phases:
+        if (p or {}).get("is_current"):
+            current_dom = (p or {}).get("dominant_domain") or current_dom
+            break
+    if not current_dom and phases:
+        current_dom = (phases[-1] or {}).get("dominant_domain")
+
+    return {
+        "show":            show,
+        "reasons":         reasons,
+        "confidence":      confidence,
+        "dominant_domain": current_dom,
+    }
+
+
+
 # ---------------------------------------------------------------------------
 
 def _deterministic_skeleton(

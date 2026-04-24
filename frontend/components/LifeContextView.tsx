@@ -23,6 +23,7 @@ import {
   LifeTodayResponse,
   getLifePhases,
   LifePhase,
+  LifePhaseGap,
 } from '../services/api';
 import { LifelineTimeline } from './lifeline';
 import PeopleLens from './PeopleLens';
@@ -146,6 +147,16 @@ export default function LifeContextView({
   // Phase Timeline — one fetch per user, shared across the 3 synthesis tabs.
   const [phases, setPhases] = useState<LifePhase[] | null>(null);
   const [phasesLoading, setPhasesLoading] = useState<boolean>(false);
+  const [phaseGap, setPhaseGap] = useState<LifePhaseGap | null>(null);
+
+  // When the Phase Timeline "Add that moment" CTA is tapped we bump this
+  // counter; LifelineTimeline picks it up via its `externalAddRequest` prop
+  // and opens its Add Event editor with the suggested category prefilled.
+  const [lifelineAddRequest, setLifelineAddRequest] = useState<{
+    key: number;
+    suggestedCategory?: string | null;
+    source?: string;
+  } | null>(null);
 
   const loadSynthesis = useCallback(async (
     domain: SynthesisDomain,
@@ -250,10 +261,12 @@ export default function LifeContextView({
     try {
       const resp = await getLifePhases(userId, force);
       setPhases(resp.phases || []);
+      setPhaseGap(resp.phase_gap || null);
     } catch (err) {
       console.warn('[LifeContextView] phases fetch failed:', err);
       // Silent fail — the UI hides when phases are absent.
       setPhases([]);
+      setPhaseGap(null);
     } finally {
       setPhasesLoading(false);
     }
@@ -264,6 +277,32 @@ export default function LifeContextView({
       loadPhases();
     }
   }, [activeContext, phases, phasesLoading, loadPhases]);
+
+  // Phase Timeline CTA — "Add that moment"
+  // 1. Switches the sub-tab to Lifeline so the user lands exactly where
+  //    the new event will live.
+  // 2. Bumps `lifelineAddRequest.key` so LifelineTimeline opens its Add
+  //    Event editor with the suggested category pre-filled.
+  const DOMAIN_TO_CATEGORY: Record<string, string> = {
+    work:          'Career',
+    relationships: 'Relationships',
+    self:          'Identity',
+  };
+  const handlePhaseAddMoment = useCallback(
+    (ctx: { suggested_domain?: string | null }) => {
+      const domain = (ctx?.suggested_domain || '').toLowerCase();
+      const suggestedCategory = DOMAIN_TO_CATEGORY[domain] || null;
+      // Switch to the Lifeline sub-tab so the editor opens in context
+      setActiveContext('lifeline');
+      // Bump the request — LifelineTimeline consumes this via useEffect
+      setLifelineAddRequest(prev => ({
+        key: (prev?.key || 0) + 1,
+        suggestedCategory,
+        source: 'phase_timeline',
+      }));
+    },
+    []
+  );
 
   // Legacy endpoint — only used if we ever need the old Overview/Today/Explore/Reflect
   // content. Currently unused by the UI but kept for potential fallback.
@@ -455,7 +494,12 @@ export default function LifeContextView({
       </View>
     );
   };
-  const renderLifelineTab = () => <LifelineTimeline userId={userId} />;
+  const renderLifelineTab = () => (
+    <LifelineTimeline
+      userId={userId}
+      externalAddRequest={lifelineAddRequest}
+    />
+  );
 
   // People tab — kept AS SUBORDINATE under the synthesis on Relationships
   const renderPeopleTabBody = () => (
@@ -555,7 +599,9 @@ export default function LifeContextView({
           <RoleCard data={topRoleCard} loading={topRoleLoading} />
           <PhaseTimeline
             phases={phases}
+            phaseGap={phaseGap}
             loading={phasesLoading && (phases === null || phases.length === 0)}
+            onAddMoment={handlePhaseAddMoment}
           />
         </View>
       ) : null}

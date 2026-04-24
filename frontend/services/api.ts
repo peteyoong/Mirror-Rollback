@@ -1517,6 +1517,19 @@ export const getLifeToday = async (
 export type LifePhaseDomain = 'work' | 'relationships' | 'self';
 export type LifePhaseConfidence = 'high' | 'medium' | 'low';
 
+export type LifePhaseGapReason =
+  | 'low_confidence'
+  | 'weak_transition'
+  | 'sparse_lifeline'
+  | 'weak_memory';
+
+export interface LifePhaseGap {
+  show: boolean;
+  reasons: LifePhaseGapReason[];
+  confidence: 'low' | 'medium';
+  dominant_domain?: LifePhaseDomain | null;
+}
+
 export interface LifePhase {
   label: string;
   description: string;
@@ -1528,6 +1541,7 @@ export interface LifePhase {
 
 export interface LifePhasesResponse {
   phases: LifePhase[];
+  phase_gap?: LifePhaseGap;
   generated_at: string;
   generator_version: string;
   debug?: Record<string, unknown>;

@@ -10,7 +10,8 @@ import {
   UIManager,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { LifePhase, LifePhaseDomain } from '../services/api';
+import { LifePhase, LifePhaseDomain, LifePhaseGap } from '../services/api';
+import PhaseGapPrompt from './PhaseGapPrompt';
 
 /**
  * Phase Timeline — horizontal meaning layer above the Pattern stack.
@@ -31,7 +32,9 @@ if (
 
 interface Props {
   phases: LifePhase[] | null | undefined;
+  phaseGap?: LifePhaseGap | null;
   loading?: boolean;
+  onAddMoment?: (context: { suggested_domain?: string | null }) => void;
 }
 
 const CARD_WIDTH = 208;
@@ -149,7 +152,7 @@ const PhaseCard = React.memo(function PhaseCard({
   );
 });
 
-export default function PhaseTimeline({ phases, loading }: Props) {
+export default function PhaseTimeline({ phases, phaseGap, loading, onAddMoment }: Props) {
   const { theme } = useTheme();
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
@@ -222,6 +225,9 @@ export default function PhaseTimeline({ phases, loading }: Props) {
           </View>
         ))}
       </ScrollView>
+      {onAddMoment && (
+        <PhaseGapPrompt gap={phaseGap} onAddMoment={onAddMoment} />
+      )}
     </View>
   );
 }

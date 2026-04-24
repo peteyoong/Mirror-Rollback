@@ -50,6 +50,16 @@ interface Props {
   forumId?: string;  // For future Forum reuse
   isCompact?: boolean;
   maxEvents?: number;
+  /**
+   * When this prop changes (via bumped `key`), the LifelineTimeline opens
+   * the Add Event editor with the provided prefill. Used by the Phase
+   * Timeline "Add that moment" CTA.
+   */
+  externalAddRequest?: {
+    key: number;
+    suggestedCategory?: string | null;
+    source?: string;
+  } | null;
 }
 
 interface LifelineResponse {
@@ -76,7 +86,7 @@ interface LifelineSummaryResponse {
   patterns: ExtendedPatternsData;
 }
 
-export default function LifelineTimeline({ userId, forumId, isCompact = false, maxEvents }: Props) {
+export default function LifelineTimeline({ userId, forumId, isCompact = false, maxEvents, externalAddRequest }: Props) {
   const { theme } = useTheme();
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -375,6 +385,17 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
     setPrefillYear(null);
     setShowEditor(true);
   };
+
+  // External trigger — Phase Timeline "Add that moment" CTA.
+  // Opens the editor with a suggested category prefilled.
+  useEffect(() => {
+    if (!externalAddRequest || !externalAddRequest.key) return;
+    setEditingEvent(null);
+    setPrefillYear(null);
+    setPrefillDescription(null);
+    setPrefillCategory(externalAddRequest.suggestedCategory || null);
+    setShowEditor(true);
+  }, [externalAddRequest?.key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Open editor with prefilled year (for gap prompts)
   const handleAddFromGap = (startYear: number, endYear: number) => {

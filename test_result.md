@@ -10389,3 +10389,123 @@ agent_communication:
       Frontend testing agent may be invoked to validate once the user
       approves. Credentials in /app/memory/test_credentials.md.
 
+
+# ====================================================================
+# 2026-04-24 (later) — Phase Timeline Gap Detection + Prompt
+# ====================================================================
+
+backend:
+  - task: "detect_phase_gap — deterministic gap detection for Phase Timeline"
+    implemented: true
+    working: true
+    file: "/app/backend/services/phase_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Pure-Python detector, no LLM. Flags the timeline when any of:
+            * low_confidence   — any phase has confidence=="low"
+            * weak_transition  — adjacent phases share no transition keyword
+              (then/shift/became/turned/over time/began/at first/later/now/
+              eventually/started)
+            * sparse_lifeline  — any phase's dominant_domain has < 3 events
+              in lifeline_summary.domain_event_counts
+            * weak_memory      — pattern_memory.memory_state in
+              {new, new_pattern, returning, known_pattern}
+          Returns {show, reasons, confidence, dominant_domain} — confidence
+          is "medium" if >=2 reasons else "low". dominant_domain is the
+          CURRENT phase's domain (used by frontend to prefill the Lifeline
+          editor's category).
+          Wired into generate_phases() → response now includes "phase_gap".
+          Verified on:
+            Pete (rich): show=false, no prompt shown.
+            Mel (cold start): show=true, reasons=["sparse_lifeline"],
+              confidence="low", dominant_domain="self".
+            Synthetic cold-start (all low conf + no lifeline + new pattern
+              memory): show=true, 4 reasons, confidence="medium",
+              dominant_domain="self".
+            Weak-transition-only synthetic: show=true, 1 reason,
+              confidence="low".
+
+frontend:
+  - task: "PhaseGapPrompt component — soft inline invitation"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/PhaseGapPrompt.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          New inline component (NOT a modal, NOT an alert). Renders ONLY
+          when gap.show === true. Picks ONE copy line by priority order
+          (weak_transition → sparse_lifeline → low_confidence →
+          weak_memory). No icons, no warnings. The prompt is italic
+          textSecondary + muted CTA "+ Add that moment" that calls
+          onAddMoment({suggested_domain}).
+
+  - task: "PhaseTimeline + API wiring for phase_gap"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/PhaseTimeline.tsx, /app/frontend/services/api.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          API types extended: LifePhaseGap, LifePhaseGapReason,
+          LifePhasesResponse.phase_gap. PhaseTimeline now accepts phaseGap
+          + onAddMoment props and renders PhaseGapPrompt AFTER the card
+          scroll when onAddMoment is provided.
+
+  - task: "LifeContextView — onAddMoment handler + Lifeline editor prefill"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/LifeContextView.tsx, /app/frontend/components/lifeline/LifelineTimeline.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          When the PhaseGapPrompt CTA is tapped:
+            1. LifeContextView maps phase_gap.dominant_domain to a Lifeline
+               category (work→Career, relationships→Relationships,
+               self→Identity).
+            2. Switches activeContext to 'lifeline'.
+            3. Bumps a lifelineAddRequest counter (shape: {key, suggestedCategory,
+               source}) — passed to LifelineTimeline as externalAddRequest.
+            4. LifelineTimeline watches externalAddRequest.key via useEffect;
+               on bump, opens its existing Add Event editor with
+               prefillCategory set.
+          No existing Lifeline flows modified. Additive prop; back-compat
+          if externalAddRequest is null/undefined.
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Phase Timeline Gap Detection + Prompting shipped. Backend gap
+      detection is deterministic and ships inside the phases response.
+      Frontend adds a single soft prompt under the timeline that deep-links
+      into the Lifeline editor with the right category pre-selected.
+
+      Acceptance criteria for testing:
+        * Pete (rich data): no prompt appears under timeline.
+        * Mel (cold-start): "Something important here might not be
+          captured yet." + "+ Add that moment" CTA visible.
+        * Tapping CTA switches to the Lifeline sub-tab AND opens the
+          Add Event editor with Category="Identity" (for Mel; depends
+          on dominant_domain).
+        * Only ONE prompt appears at a time (no stacking).
+        * No warning/alert styling — prompt is italic muted text.
+        * No dates, no confidence labels, no "primary/secondary" words
+          visible anywhere.
+
