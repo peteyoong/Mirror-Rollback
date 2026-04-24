@@ -139,21 +139,42 @@ INTENSITY SCALING RULES
 ==================================================
 
 LOW
-  - Very subtle. Add light presence markers.
-  - Do NOT emphasise distortion strongly.
-  - Allowed tone: "This may feel slightly more present today"
+  Do NOT rewrite the tone into a softer or more passive version of the user.
+  Do NOT stack qualifiers. Specifically: never combine more than ONE of
+  these in the same sentence — "lightly", "subtle", "small", "gently",
+  "without much notice", "a bit", "slightly", "smaller ways". Using several
+  of them together is the clearest sign you have done this wrong.
+
+  HARD LIMIT: across the four fields (pattern / default_tension / distortion /
+  needs) you may use at MOST THREE modifiers total. Not three per field —
+  three total. Prefer zero in "needs". Do not add a modifier to a field just
+  to mark it as "today".
+
+  KEEP the same sentence structure and tone as the base synthesis.
+  REDUCE intensity using a single minimal modifier. Preferred modifiers
+  (pick ONE per field, at most):
+      "may"
+      "can"
+      "a bit"
+      "less strongly"
+      "in smaller ways"
+
+  Allowed tone: "This may feel slightly more present today" — not "this is a
+  softer version of you".
+
+  The reader should still feel: "This is me." Not: "This is a softer me."
 
 MEDIUM
-  - Noticeable tension.
-  - Emphasise difficulty in shifting patterns.
-  - Allowed tone: "This may feel harder to step away from today",
-                  "This pull may be stronger than usual"
+  Noticeable tension. Emphasise difficulty in shifting patterns.
+  Allowed tone:
+      "This may feel harder to step away from today"
+      "This pull may be stronger than usual"
 
 HIGH
-  - Active pattern.
-  - Emphasise speed of escalation toward distortion.
-  - Allowed tone: "This can turn more quickly than usual today",
-                  "This may become something you carry faster than expected"
+  Active pattern. Emphasise speed of escalation toward distortion.
+  Allowed tone:
+      "This can turn more quickly than usual today"
+      "This may become something you carry faster than expected"
 
 ==================================================
 CRITICAL
@@ -251,6 +272,52 @@ def _parse_today_json(raw: str) -> Tuple[Optional[Dict[str, Any]], List[str]]:
     return payload, hits
 
 
+# Softening qualifiers — LOW intensity is limited to 3 TOTAL across the four
+# fields. The engine attempts to enforce this via prompt; this regex is the
+# deterministic guardrail that runs after the LLM.
+_SOFTENING_QUALIFIERS = [
+    "lightly", "subtle", "subtly", "small ways", "smaller ways",
+    "gently", "without much notice", "slightly", "a bit",
+]
+_SOFTENING_RE = re.compile(
+    r"\b(" + "|".join(re.escape(q) for q in _SOFTENING_QUALIFIERS) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def _prune_softeners(payload: Dict[str, Any], max_total: int = 3) -> int:
+    """Remove softening qualifiers in excess of max_total across the four
+    fields. Keeps the first N hits (by field order) and strips the rest.
+
+    Returns the number of qualifiers removed.
+    """
+    fields = ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs")
+    seen = 0
+    removed = 0
+
+    for f in fields:
+        txt = payload.get(f)
+        if not isinstance(txt, str) or not txt:
+            continue
+
+        def _replace(match: "re.Match[str]") -> str:
+            nonlocal seen, removed
+            seen += 1
+            if seen <= max_total:
+                return match.group(0)
+            removed += 1
+            return ""
+
+        new_txt = _SOFTENING_RE.sub(_replace, txt)
+        # collapse double spaces / stray commas introduced by removal
+        new_txt = re.sub(r"\s{2,}", " ", new_txt)
+        new_txt = re.sub(r"\s+,", ",", new_txt)
+        new_txt = re.sub(r"\s+\.", ".", new_txt)
+        new_txt = re.sub(r",\s*,", ",", new_txt)
+        payload[f] = new_txt.strip(" ,.;:—") + ("." if new_txt.strip()[-1:] not in ".?!" else "")
+    return removed
+
+
 # ---------------------------------------------------------------------------
 # Public entry
 # ---------------------------------------------------------------------------
@@ -298,6 +365,11 @@ async def generate_today_modulation(
     if llm_output:
         payload, banned_hits = _parse_today_json(llm_output)
 
+    # LOW-only guard: strip softening qualifiers beyond the 3-total budget.
+    qualifiers_removed = 0
+    if payload and intensity_level == "low":
+        qualifiers_removed = _prune_softeners(payload, max_total=3)
+
     if not payload or not payload.get("distortion_under_pressure"):
         # Lightweight deterministic fallback — paraphrase the original with
         # an intensity marker at the front, no invention.
@@ -322,9 +394,10 @@ async def generate_today_modulation(
         "distortion_under_pressure":  payload.get("distortion_under_pressure", ""),
         "what_this_pattern_needs":    payload.get("what_this_pattern_needs", ""),
         "debug": {
-            "llm_used":           llm_output is not None,
-            "render_error":       render_error,
-            "banned_phrase_hits": banned_hits,
+            "llm_used":             llm_output is not None,
+            "render_error":         render_error,
+            "banned_phrase_hits":   banned_hits,
+            "qualifiers_removed":   qualifiers_removed,
         },
         "generated_at":       datetime.now(timezone.utc).isoformat(),
         "generator_version":  "today_modulation_v1",
