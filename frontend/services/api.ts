@@ -1511,6 +1511,40 @@ export const getLifeToday = async (
 };
 
 // =====================================================
+// PHASE TIMELINE (Mirror Phase Engine)
+// =====================================================
+
+export type LifePhaseDomain = 'work' | 'relationships' | 'self';
+export type LifePhaseConfidence = 'high' | 'medium' | 'low';
+
+export interface LifePhase {
+  label: string;
+  description: string;
+  dominant_domain: LifePhaseDomain;
+  pattern_expression: string;
+  is_current: boolean;
+  confidence: LifePhaseConfidence;
+}
+
+export interface LifePhasesResponse {
+  phases: LifePhase[];
+  generated_at: string;
+  generator_version: string;
+  debug?: Record<string, unknown>;
+}
+
+export const getLifePhases = async (
+  userId: string,
+  refresh: boolean = false
+): Promise<LifePhasesResponse> => {
+  const response = await apiWithRetry.get(
+    `/life/phases/${userId}`,
+    { params: { refresh: refresh ? 'true' : 'false', _cb: Date.now() } }
+  );
+  return response.data;
+};
+
+// =====================================================
 // PATTERN SIGNALS API (Why this is showing up)
 // =====================================================
 

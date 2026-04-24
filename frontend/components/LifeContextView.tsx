@@ -21,9 +21,12 @@ import {
   LifeEvidenceResponse,
   getLifeToday,
   LifeTodayResponse,
+  getLifePhases,
+  LifePhase,
 } from '../services/api';
 import { LifelineTimeline } from './lifeline';
 import PeopleLens from './PeopleLens';
+import PhaseTimeline from './PhaseTimeline';
 import RoleCard from './RoleCard';
 
 interface Props {
@@ -140,6 +143,10 @@ export default function LifeContextView({
     self: null,
   });
 
+  // Phase Timeline — one fetch per user, shared across the 3 synthesis tabs.
+  const [phases, setPhases] = useState<LifePhase[] | null>(null);
+  const [phasesLoading, setPhasesLoading] = useState<boolean>(false);
+
   const loadSynthesis = useCallback(async (
     domain: SynthesisDomain,
     opts?: { force?: boolean }
@@ -233,6 +240,30 @@ export default function LifeContextView({
       loadSynthesis(activeContext);
     }
   }, [activeContext, loadSynthesis]);
+
+  // Load phase timeline once when the user first lands on any synthesis tab.
+  // Shared across work/relationships/self (same endpoint, user-level).
+  const loadPhases = useCallback(async (opts?: { force?: boolean }) => {
+    const force = !!opts?.force;
+    if (!force && phases) return;
+    setPhasesLoading(true);
+    try {
+      const resp = await getLifePhases(userId, force);
+      setPhases(resp.phases || []);
+    } catch (err) {
+      console.warn('[LifeContextView] phases fetch failed:', err);
+      // Silent fail — the UI hides when phases are absent.
+      setPhases([]);
+    } finally {
+      setPhasesLoading(false);
+    }
+  }, [userId, phases]);
+
+  useEffect(() => {
+    if (isSynthesisDomain(activeContext) && phases === null && !phasesLoading) {
+      loadPhases();
+    }
+  }, [activeContext, phases, phasesLoading, loadPhases]);
 
   // Legacy endpoint — only used if we ever need the old Overview/Today/Explore/Reflect
   // content. Currently unused by the UI but kept for potential fallback.
@@ -522,6 +553,10 @@ export default function LifeContextView({
       {isSynthesisDomain(activeContext) ? (
         <View style={styles.anchorWrap}>
           <RoleCard data={topRoleCard} loading={topRoleLoading} />
+          <PhaseTimeline
+            phases={phases}
+            loading={phasesLoading && (phases === null || phases.length === 0)}
+          />
         </View>
       ) : null}
 

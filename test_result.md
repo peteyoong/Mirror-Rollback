@@ -10269,3 +10269,123 @@ agent_communication:
       domain asymmetry, and clean copy across all user shapes
       (recurring / cold-start / sparse child).
 
+
+# ====================================================================
+# 2026-04-24 (later) — Phase Timeline UI in Life tab
+# ====================================================================
+
+frontend:
+  - task: "PhaseTimeline component — horizontal scrollable phase cards"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/PhaseTimeline.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          New component. Props: {phases: LifePhase[] | null, loading?: boolean}.
+          Horizontal ScrollView with 3-5 cards at width=208px, gap=14px.
+          Thin timeline line behind cards; each card has a dot aligned to it.
+          Current phase (is_current=true) gets:
+            - transform scale 1.06
+            - 1.5px border (vs hairline for others)
+            - subtle domain-tinted bg (whisper-soft palette)
+            - small "Now" pill (omitted if confidence="low")
+            - stronger dot
+          Domain tint palette (kept whisper-quiet):
+            work          → cool blue-grey
+            relationships → warm rose
+            self          → neutral grey
+          Tap to expand inline (LayoutAnimation, 180ms ease-in-out):
+            reveals pattern_expression italic below description.
+            Only one card expanded at a time.
+            Current phase auto-expanded by default (not when confidence=low).
+          NEVER exposes: dates, confidence labels, domain names,
+          "primary/secondary/background", or technical language.
+          Skeleton shown during initial fetch.
+
+  - task: "getLifePhases API client + LifePhase types"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/services/api.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          Added LifePhase, LifePhaseDomain, LifePhaseConfidence,
+          LifePhasesResponse types + getLifePhases(userId, refresh) helper
+          that hits GET /api/life/phases/{user_id}. Mirrors existing
+          getLifeSynthesis / getLifeEvidence / getLifeToday pattern
+          (retry + cache-buster).
+
+  - task: "LifeContextView — integrate PhaseTimeline above Pattern stack"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/LifeContextView.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          Added user-level `phases` state and `loadPhases()` callback;
+          fetched once (shared across all 3 synthesis tabs) on first
+          landing in any synthesis domain. PhaseTimeline renders inside
+          the anchorWrap directly below the RoleCard and above the
+          sub-tabs. Render order now:
+            1. RoleCard
+            2. PhaseTimeline
+            3. Sub-tab header (relationships/work/self/lifeline)
+            4. Pattern / Default Tension / Distortion / Needs
+            5. Why this is showing up
+            6. Lifeline (separate tab)
+          Metro compiled successfully after expo restart (CI mode means
+          new files need a restart to be picked up).
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 2
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Phase Timeline UI integration in Life tab (frontend)"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Phase Timeline UI is now wired into the Life tab. Frontend tests
+      NOT YET invoked — awaiting explicit user permission per the
+      testing protocol.
+
+      When testing, please verify on Pete (pete@pulsifi.me, user_id
+      697f0c6abf35c0528ff06954):
+        1. After login, navigate to Life tab.
+        2. Tap Relationships / Work / Self — RoleCard anchors at top.
+        3. Directly below RoleCard there is a horizontal scrollable
+           timeline with 3-5 phase cards.
+        4. Exactly ONE card is larger with a subtle "Now" pill and a
+           slightly tinted border / bg.
+        5. Tap a non-current card → expands inline with the pattern
+           expression below (italic, muted).
+        6. Tap the same card again → collapses.
+        7. Timeline remains the SAME across all 3 sub-tabs (it is
+           user-level, not domain-level).
+        8. No "primary/secondary/background", "confidence", or
+           dates/years appear anywhere.
+        9. No console errors, no crash on cold-start user (Mel).
+
+      Frontend testing agent may be invoked to validate once the user
+      approves. Credentials in /app/memory/test_credentials.md.
+
