@@ -25800,6 +25800,22 @@ def _role_card_llm_factory(session_id: str):
     return _factory
 
 
+def _phase_engine_llm_factory(session_id: str):
+    """Factory returning a fresh LlmChat bound to the phase engine prompt."""
+    from services.phase_engine import _PHASE_SYSTEM_PROMPT  # noqa
+
+    def _factory():
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message=_PHASE_SYSTEM_PROMPT,
+        )
+        chat.with_model("openai", "gpt-4.1-mini")
+        return chat
+
+    return _factory
+
+
 @api_router.get("/life/role-card/{user_id}")
 async def get_life_role_card(user_id: str, refresh: bool = False):
     """Role Card — the top anchor card above the Life sub-tabs (Phase 1a)."""
@@ -26039,6 +26055,89 @@ async def get_life_evidence(context: str, user_id: str, refresh: bool = False):
 
     _life_synth_cache_set(cache_key, result)
     return result
+
+
+@api_router.get("/life/phases/{user_id}")
+async def get_life_phases(user_id: str, refresh: bool = False):
+    """
+    Phase Timeline — Mirror Phase Engine.
+
+    Returns 3-5 sequential phases describing how the user's pattern has
+    evolved over time. Exactly one phase is marked `is_current=true`.
+
+    Inputs are sourced from the same pipeline as the Life Synthesis stack:
+      * role seeds (deterministic from chart + pattern memory + lifeline)
+      * domain_weights (life_synthesis_engine.derive_domain_weights)
+      * pattern_memory (server loader)
+      * lifeline_summary (server loader)
+      * today_state.intensity_level (today_modulation.determine_intensity)
+
+    ONE LLM call. Cached per user (bust with ?refresh=true).
+    """
+    from services import life_synthesis_engine as lse
+    from services import role_card_engine as rce
+    from services import phase_engine as pe
+    from services.today_modulation import determine_intensity
+
+    cache_key = f"phases::{user_id}"
+    if not refresh:
+        cached = _life_synth_cache_get(cache_key)
+        if cached:
+            return cached
+
+    # Load chart for role seeds
+    chart_doc = await db.charts.find_one({"user_id": user_id})
+    if not chart_doc:
+        raise HTTPException(status_code=404, detail="Chart not found for user.")
+
+    pattern_memory   = await _load_pattern_memory_for_user(user_id)
+    lifeline_summary = await _load_lifeline_summary_for_user(user_id)
+
+    # Role seeds — feeds into the phase engine as role_card.
+    role_seeds = rce.build_role_seeds_public(
+        chart=chart_doc,
+        pattern_memory=pattern_memory,
+        purple_star_input=None,
+        lifeline_summary=lifeline_summary,
+    )
+    role_card = {
+        "role":        role_seeds.get("role_seed"),
+        "tension":     role_seeds.get("tension_seed"),
+        "distortion":  role_seeds.get("distortion_seed"),
+        "orientation": role_seeds.get("orientation_seed"),
+    }
+
+    # Domain weights — shared across the Life tab (cached)
+    dw_cache_key = f"dw::{user_id}"
+    domain_weights = _life_synth_cache_get(dw_cache_key)
+    if not domain_weights or refresh:
+        domain_weights = lse.derive_domain_weights(
+            pattern_memory=pattern_memory,
+            lifeline_summary=lifeline_summary,
+        )
+        _life_synth_cache_set(dw_cache_key, domain_weights)
+
+    # Today state — intensity only (no LLM). Lifeline recent list proxied
+    # via high_impact_titles presence (3+ titles → echoes).
+    ll_recent = (lifeline_summary or {}).get("high_impact_titles") or []
+    intensity_level, intensity_reasons = determine_intensity(
+        pattern_memory=pattern_memory,
+        lifeline_recent=ll_recent,
+    )
+    today_state = {"intensity_level": intensity_level, "intensity_reasons": intensity_reasons}
+
+    result = await pe.generate_phases(
+        role_card=role_card,
+        domain_weights=domain_weights,
+        pattern_memory=pattern_memory,
+        lifeline_summary=lifeline_summary,
+        today_state=today_state,
+        llm_chat_factory=_phase_engine_llm_factory(f"phase_engine_{user_id}") if EMERGENT_LLM_KEY else None,
+    )
+
+    _life_synth_cache_set(cache_key, result)
+    return result
+
 
 
 @api_router.get("/life/{context}")

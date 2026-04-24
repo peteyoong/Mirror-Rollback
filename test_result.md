@@ -10170,3 +10170,102 @@ agent_communication:
         /app/backend/services/life_synthesis_engine.py
         /app/backend/server.py
 
+
+# ====================================================================
+# 2026-04-24 (later) — Mirror Phase Engine (Phase Timeline)
+# ====================================================================
+
+backend:
+  - task: "Mirror Phase Engine — generate 3-5 phase timeline"
+    implemented: true
+    working: true
+    file: "/app/backend/services/phase_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          New engine. ONE LLM call per user. Inputs: role_card (from
+          role_card_engine seeds), domain_weights (from
+          life_synthesis_engine.derive_domain_weights), pattern_memory,
+          lifeline_summary, today_state (intensity from
+          today_modulation.determine_intensity).
+          Output contract (JSON only):
+            {"phases": [{label, description, dominant_domain,
+             pattern_expression, is_current, confidence}, ...]}
+          Invariants enforced post-LLM:
+            * 3-5 phases (clamped).
+            * Exactly one is_current=true (last phase forced if LLM
+              returned 0; only last kept if returned >1).
+            * label/description/pattern_expression required non-empty.
+            * Label 3-6 words (prompt-nudged; observed 3-5w after nudge).
+            * dominant_domain in {work, relationships, self}.
+            * confidence in {high, medium, low}.
+          System-language scrubber strips any leakage of "lifeline",
+          "pattern memory", "astrology", "bazi", "human design",
+          "role card", "domain weight", "primary domain", "framework",
+          "mirror", etc., from user-facing fields.
+          Deterministic skeleton fallback (4-phase arc) when LLM is
+          unavailable or returns un-parseable output.
+          Verified live:
+            Pete (recurring, 3×, 45 events, medium intensity): 3 phases,
+              Foundations → Thresholds → Refinement arc, current=last,
+              domains progress self→work→work, 0 scrubbed hits.
+            Mel (cold start, 0 pm, 0 events, low intensity): 3 phases,
+              reflector-like language, current=Cycle-Aware Waiting, 0
+              scrubbed hits.
+            Isaac (sparse child, generator): 4 phases including
+              emerging phase, current=Holding Energy as Weather, 0 hits.
+          Stability (3 fresh runs on Pete): consistent arc, consistent
+          domain progression, 0 scrubbed hits every time.
+
+  - task: "GET /api/life/phases/{user_id}"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py (get_life_phases)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          New endpoint. Loads chart + pattern_memory + lifeline_summary,
+          computes role seeds + domain_weights (shared cache with
+          synthesis endpoints under dw::{user_id}), derives today
+          intensity via determine_intensity, then calls
+          phase_engine.generate_phases. Cached under phases::{user_id}
+          (bust with ?refresh=true).
+          Error handling:
+            * 404 on missing chart (e.g., user "doesnotexist").
+            * Still returns deterministic 4-phase skeleton if LLM fails.
+          Cache hit latency: ~25ms.
+          Full run (LLM call) latency: ~4-8s on gpt-4.1-mini.
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Mirror Phase Engine live at GET /api/life/phases/{user_id}.
+      Returns a strict JSON {phases: [...]} with exactly one current
+      phase, 3-5 phases total, progressive labels, domain progression,
+      and zero system-language leakage.
+
+      Integrates with the Life Synthesis stack:
+        role_card seeds + domain_weights (shared cache) + pattern_memory
+        + lifeline_summary + today intensity → phases.
+
+      Ready for Phase Timeline UI consumption. Response shape:
+        {
+          "phases": [{ label, description, dominant_domain,
+                       pattern_expression, is_current, confidence }],
+          "generated_at": "...",
+          "generator_version": "phase_engine_v1",
+          "debug": { llm_used, render_error, scrubbed_hits, input_snapshot }
+        }
+
+      Testing on Pete + Mel + Isaac confirms progressive arcs, correct
+      domain asymmetry, and clean copy across all user shapes
+      (recurring / cold-start / sparse child).
+
