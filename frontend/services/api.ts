@@ -1483,6 +1483,34 @@ export const getLifeEvidence = async (
 };
 
 // =====================================================
+// TODAY MODULATION (Phase 2 continued)
+// =====================================================
+
+export interface LifeTodayResponse {
+  domain: 'relationships' | 'work' | 'self';
+  intensity_level: 'low' | 'medium' | 'high';
+  intensity_reasons: string[];
+  pattern: string;
+  default_tension: string;
+  distortion_under_pressure: string;
+  what_this_pattern_needs: string;
+  generated_at: string;
+  generator_version: string;
+}
+
+export const getLifeToday = async (
+  context: 'relationships' | 'work' | 'self',
+  userId: string,
+  refresh: boolean = false
+): Promise<LifeTodayResponse> => {
+  const response = await apiWithRetry.get(
+    `/life/${context}/today/${userId}`,
+    { params: { refresh: refresh ? 'true' : 'false', _cb: Date.now() } }
+  );
+  return response.data;
+};
+
+// =====================================================
 // PATTERN SIGNALS API (Why this is showing up)
 // =====================================================
 

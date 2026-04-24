@@ -19,6 +19,8 @@ import {
   LifeSynthesisResponse,
   getLifeEvidence,
   LifeEvidenceResponse,
+  getLifeToday,
+  LifeTodayResponse,
 } from '../services/api';
 import { LifelineTimeline } from './lifeline';
 import PeopleLens from './PeopleLens';
@@ -116,6 +118,28 @@ export default function LifeContextView({
     self: null,
   });
 
+  // Today modulation — lazy; same 4 sections re-render with intensity modulation
+  const [todayOn, setTodayOn] = useState<Record<SynthesisDomain, boolean>>({
+    relationships: false,
+    work: false,
+    self: false,
+  });
+  const [todayCache, setTodayCache] = useState<Record<SynthesisDomain, LifeTodayResponse | null>>({
+    relationships: null,
+    work: null,
+    self: null,
+  });
+  const [todayLoading, setTodayLoading] = useState<Record<SynthesisDomain, boolean>>({
+    relationships: false,
+    work: false,
+    self: false,
+  });
+  const [todayError, setTodayError] = useState<Record<SynthesisDomain, string | null>>({
+    relationships: null,
+    work: null,
+    self: null,
+  });
+
   const loadSynthesis = useCallback(async (
     domain: SynthesisDomain,
     opts?: { force?: boolean }
@@ -169,6 +193,39 @@ export default function LifeContextView({
       return { ...s, [domain]: next };
     });
   }, [evidenceCache, loadEvidence]);
+
+  // Today modulation — toggle ON makes the 4 synthesis sections re-render
+  // with intensity-aware modulation of the SAME pattern.
+  const loadToday = useCallback(async (
+    domain: SynthesisDomain,
+    opts?: { force?: boolean }
+  ) => {
+    const force = !!opts?.force;
+    if (!force && todayCache[domain]) return;
+    setTodayLoading((s) => ({ ...s, [domain]: true }));
+    setTodayError((s) => ({ ...s, [domain]: null }));
+    try {
+      const resp = await getLifeToday(domain, userId, force);
+      setTodayCache((c) => ({ ...c, [domain]: resp }));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unable to load today right now.';
+      console.error(`[LifeContextView] today ${domain} error:`, err);
+      setTodayError((s) => ({ ...s, [domain]: msg }));
+    } finally {
+      setTodayLoading((s) => ({ ...s, [domain]: false }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  const toggleToday = useCallback((domain: SynthesisDomain) => {
+    setTodayOn((s) => {
+      const next = !s[domain];
+      if (next && !todayCache[domain]) {
+        loadToday(domain);
+      }
+      return { ...s, [domain]: next };
+    });
+  }, [todayCache, loadToday]);
 
   // Load synthesis when the active context is one of the synthesis domains
   useEffect(() => {
@@ -226,17 +283,70 @@ export default function LifeContextView({
   );
 
   // Phase 1b synthesis rendering — strict section labels, no softening.
-  const renderSynthesisBlock = (synth: LifeSynthesisResponse | null) => {
+  // Phase 2 additions: a subordinate Today toggle that swaps in the
+  // intensity-modulated version of the same 4 sections.
+  const renderSynthesisBlock = (synth: LifeSynthesisResponse | null, domain: SynthesisDomain) => {
     if (!synth) return null;
     const ds = synth.domain_synthesis;
+    const today = todayCache[domain];
+    const on = todayOn[domain];
+    const loading = todayLoading[domain];
+
+    // Use today values when toggled on and loaded; otherwise base synthesis
+    const source = on && today ? {
+      pattern: today.pattern,
+      default_tension: today.default_tension,
+      distortion_under_pressure: today.distortion_under_pressure,
+      what_this_pattern_needs: today.what_this_pattern_needs,
+    } : ds;
+
+    const intensityLabel = today?.intensity_level;
+    const intensityColor =
+      intensityLabel === 'high'   ? '#e08c3a' :
+      intensityLabel === 'medium' ? theme.accent :
+                                    theme.textTertiary;
+
     const rows: Array<{ label: string; body: string | null | undefined }> = [
-      { label: "The Pattern You're In", body: ds?.pattern },
-      { label: 'Default Tension', body: ds?.default_tension },
-      { label: 'Distortion Under Pressure', body: ds?.distortion_under_pressure },
-      { label: 'What This Pattern Needs', body: ds?.what_this_pattern_needs },
+      { label: "The Pattern You're In", body: source?.pattern },
+      { label: 'Default Tension', body: source?.default_tension },
+      { label: 'Distortion Under Pressure', body: source?.distortion_under_pressure },
+      { label: 'What This Pattern Needs', body: source?.what_this_pattern_needs },
     ];
+
     return (
       <View style={styles.synthStack}>
+        {/* Today toggle — subordinate to the synthesis, never competing */}
+        <TouchableOpacity
+          style={[styles.todayToggle, {
+            backgroundColor: on ? theme.accent + '15' : theme.surface,
+            borderColor: on ? theme.accent + '60' : theme.border,
+          }]}
+          onPress={() => toggleToday(domain)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.todayToggleLeft}>
+            <Ionicons
+              name={on ? 'sunny' : 'sunny-outline'}
+              size={14}
+              color={on ? theme.accent : theme.textTertiary}
+            />
+            <Text style={[styles.todayToggleLabel, {
+              color: on ? theme.accent : theme.textTertiary,
+            }]}>
+              {on ? 'Showing today' : 'How this pattern is showing up today'}
+            </Text>
+          </View>
+          {on && loading ? (
+            <ActivityIndicator size="small" color={theme.accent} />
+          ) : on && intensityLabel ? (
+            <Text style={[styles.todayIntensity, { color: intensityColor }]}>
+              {intensityLabel.toUpperCase()}
+            </Text>
+          ) : (
+            <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
+          )}
+        </TouchableOpacity>
+
         {rows.map((row) => {
           if (!row.body) return null;
           return (
@@ -372,7 +482,7 @@ export default function LifeContextView({
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={theme.textTertiary} />
         }
       >
-        {renderSynthesisBlock(synth)}
+        {renderSynthesisBlock(synth, domain)}
 
         {/* Why this is showing up — lazy-loaded evidence expander */}
         {synth ? renderEvidenceExpander(domain) : null}
@@ -531,17 +641,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 8,
   },
-  // Footer
-  footer: {
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
   // Evidence expander — "Why this is showing up"
   evidenceWrap: {
     marginTop: 14,
@@ -593,6 +692,44 @@ const styles = StyleSheet.create({
   evidenceExplanation: {
     fontSize: 13,
     lineHeight: 20,
+  },
+  // Footer
+  footer: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 12,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  // Today toggle — subordinate bar above the synthesis stack
+  todayToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 2,
+  },
+  todayToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  todayToggleLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    flex: 1,
+  },
+  todayIntensity: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
   // Kept so legacy references compile if referenced elsewhere
   headerContainer: {

@@ -25758,6 +25758,73 @@ def _evidence_layer_llm_factory(session_id: str):
     return _factory
 
 
+def _today_modulation_llm_factory(session_id: str):
+    from services.today_modulation import _TODAY_SYSTEM_PROMPT  # noqa
+
+    def _factory():
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message=_TODAY_SYSTEM_PROMPT,
+        )
+        chat.with_model("openai", "gpt-4.1-mini")
+        return chat
+
+    return _factory
+
+
+@api_router.get("/life/{context}/today/{user_id}")
+async def get_life_today_modulation(context: str, user_id: str, refresh: bool = False):
+    """
+    Today Modulation (Phase 2 continued).
+    Same pattern as the domain synthesis — just stronger or softer, per
+    today's intensity. Cached ~2h since intensity can shift intra-day.
+    """
+    from services import today_modulation as tm
+
+    domain = (context or "").strip().lower()
+    if domain not in ("relationships", "work", "self"):
+        raise HTTPException(status_code=400, detail="context must be relationships, work, or self")
+
+    # 2h cache per (user, domain, date-hour-bucket)
+    hour_bucket = datetime.now(timezone.utc).strftime("%Y%m%d_%H")
+    # bucket every 2h to reduce churn
+    hh = int(hour_bucket[-2:])
+    two_h = hh - (hh % 2)
+    bucket = hour_bucket[:-2] + f"{two_h:02d}"
+    cache_key = f"today::{user_id}::{domain}::{bucket}"
+    if not refresh:
+        cached = _life_synth_cache_get(cache_key)
+        if cached:
+            return cached
+
+    # Pull the synthesis (generates if missing)
+    synth = _life_synth_cache_get(f"synth::{user_id}::{domain}")
+    if not synth:
+        synth = await get_life_synthesis(context=domain, user_id=user_id, refresh=False)
+
+    role_card = synth.get("role_card") or {}
+    domain_synthesis = synth.get("domain_synthesis") or {}
+
+    # Best-effort intensity inputs (graceful fallback to 'low')
+    pattern_memory = await _load_pattern_memory_for_user(user_id)
+    lifeline_summary = await _load_lifeline_summary_for_user(user_id)
+    lifeline_recent = (lifeline_summary or {}).get("recent_themes") or []
+
+    result = await tm.generate_today_modulation(
+        domain=domain,
+        role_card=role_card,
+        domain_synthesis=domain_synthesis,
+        pattern_memory=pattern_memory,
+        transit_hits=None,  # reserved — wire real transit feed later
+        lifeline_recent=lifeline_recent,
+        llm_chat_factory=_today_modulation_llm_factory(f"today_{user_id}_{domain}") if EMERGENT_LLM_KEY else None,
+    )
+
+    _life_synth_cache_set(cache_key, result)
+    return result
+
+
 @api_router.get("/life/{context}/evidence/{user_id}")
 async def get_life_evidence(context: str, user_id: str, refresh: bool = False):
     """
