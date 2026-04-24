@@ -9872,6 +9872,58 @@ agent_communication:
     message: >
       Life Synthesis Phase 3 backend testing complete — 72/72 assertions PASSED (100%).
 
+# ====================================================================
+# 2026-04-24 (later) — Domain differentiation hardening
+# ====================================================================
+
+backend:
+  - task: "Life Synthesis — domain-specific CONSEQUENCE frames"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_synthesis_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Earlier Phase 3 output had pattern/tension reading almost identically
+          across self/work/relationships (root HD+BaZi seeds were shared).
+          Hardened as follows:
+            * Added _DOMAIN_CONSEQUENCE_FRAME for self/work/relationships —
+              each with focus / where_it_lands / what_erodes / needs_axis.
+            * _compress_themes now injects the domain frame into distortion_seed
+              and needs_axis into orientation_seed.
+            * build_render_user_message passes domain_frame into the LLM
+              payload with explicit instruction to hit the frame.
+            * System prompt Rule 5 rewritten to DOMAIN DIFFERENTIATION
+              (MANDATORY) with SELF=inward / WORK=execution & leadership /
+              RELATIONSHIPS=connection & trust semantics. Quality check now
+              includes the SWAP TEST.
+            * Explicit "ALL FOUR domain fields must be rewritten as prose,
+              no raw seed fragments" directive added to fix a regression
+              where the LLM was echoing seeds back for pattern/default_tension.
+          Verified live on Pete across all 3 domains — swap test passes:
+            WORK distortion: "the work stops being a collective effort and
+              starts belonging solely to you... the system bypasses your
+              influence and relies on your constant involvement".
+            RELATIONSHIPS distortion: "your partner stops reaching for your
+              true self... eroding their confidence in your signals and
+              causing them to guess your needs rather than ask openly".
+            SELF distortion: "you isolate yourself internally and resent
+              being alone with your self-demands... treating your identity
+              as something to be finished or perfected".
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Domain differentiation now holds. Each domain produces a distinct
+      consequence even when the root pattern (recurring metal + manifestor
+      + emotional + strong) is the same. No banned-phrase leakage, all
+      endpoints still 200. Swap test passes all three fields.
+
+
       Endpoints tested against https://tension-mapper.preview.emergentagent.com/api:
         GET /api/life/role-card/{user_id}[?refresh=true]
         GET /api/life/{context}/synthesis/{user_id}?refresh=true (work, relationships, self)

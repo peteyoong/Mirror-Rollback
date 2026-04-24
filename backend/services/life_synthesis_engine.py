@@ -238,6 +238,32 @@ _DOMAIN_HOUSES: Dict[str, List[int]] = {
     "self":          [1, 4, 12],
 }
 
+
+# Phase 3 — domain-specific consequence frames.
+# These give the LLM a concrete axis for where the pattern LANDS in this
+# domain. They are behavioural, not generic. The LLM must still write the
+# final prose; these just prevent the "same paragraph three times" failure.
+_DOMAIN_CONSEQUENCE_FRAME: Dict[str, Dict[str, str]] = {
+    "self": {
+        "focus":          "turns inward — onto identity, self-pressure, and the relationship with the self",
+        "where_it_lands": "you start treating yourself the way the pattern treats everything else: as something to be refined, completed, or gotten right",
+        "what_erodes":    "self-trust — you stop being able to tell the difference between your own signal and the pressure to keep moving",
+        "needs_axis":     "room to exist without needing to be finished or proving anything",
+    },
+    "work": {
+        "focus":          "shows up in execution, leadership, and what actually gets built",
+        "where_it_lands": "the work starts belonging to you even when it shouldn't — the system routes around you instead of through you",
+        "what_erodes":    "leverage — what was supposed to scale ends up depending on your continued involvement",
+        "needs_axis":     "a handoff point that isn't conditional on you staying in the loop",
+    },
+    "relationships": {
+        "focus":          "shows up in connection, response, and the quality of trust",
+        "where_it_lands": "the other person stops reaching the real you — they reach the version of you that is already moving",
+        "what_erodes":    "trust in the signal — people start to guess at what you want rather than asking, because the pattern has already made the decision",
+        "needs_axis":     "a pause long enough for the other person to actually arrive",
+    },
+}
+
 _SIGN_POSTURE: Dict[str, str] = {
     "aries": "leads with the first move",
     "taurus": "slows until the ground is solid",
@@ -467,28 +493,33 @@ def _compress_themes(
         tension_parts.append(ll["phase_echo_hint"])
     default_tension_seed = " — ".join(tension_parts) or "tightens where it used to flow"
 
-    # --- 3. Distortion: HD + BaZi distortion, with pattern-memory recurrence
-    #     flag (NOT the user-facing text — the synthesis renderer decides how
-    #     to phrase "this shape keeps returning" without the quoted string).
+    # --- 3. Distortion: HD + BaZi distortion, with domain-specific CONSEQUENCE
+    #     (Phase 3.1). The LLM is required to rewrite distortion per domain;
+    #     these seeds give it concrete consequence material to lean on.
+    domain_frame = _DOMAIN_CONSEQUENCE_FRAME.get(domain, {})
     dist_parts: List[str] = []
     if hd.get("distortion"):
         dist_parts.append(hd["distortion"])
     if bazi.get("distortion"):
         dist_parts.append(bazi["distortion"])
+    if domain_frame.get("where_it_lands"):
+        dist_parts.append(domain_frame["where_it_lands"])
+    if domain_frame.get("what_erodes"):
+        dist_parts.append("what erodes: " + domain_frame["what_erodes"])
     if pm.get("recurring_note"):
-        # Mark the recurring anchor — tells the renderer to show the cost
-        # of the repeating loop, not just the single episode.
         dist_parts.append("this is not a one-time distortion; it keeps returning with the same shape")
     if ll.get("tone_cue") == "the emotional colour of these events leans strained":
         dist_parts.append("lived events in this domain carry the same strained tone")
     distortion_seed = "; ".join(dist_parts) or "the strength repeats itself past the point where it still helps"
 
-    # --- 4. Orientation: BaZi restorative + HD restorative
+    # --- 4. Orientation: BaZi restorative + HD restorative + domain needs_axis
     orient_parts: List[str] = []
     if bazi.get("restorative"):
         orient_parts.append(bazi["restorative"])
     if hd.get("restorative"):
         orient_parts.append(hd["restorative"])
+    if domain_frame.get("needs_axis"):
+        orient_parts.append(domain_frame["needs_axis"])
     orientation_seed = " and ".join(orient_parts) or "returns to the quality the pattern is actually for"
 
     return {
@@ -690,6 +721,12 @@ Return ONLY valid JSON with:
 
 No extra keys. No markdown. No explanation.
 
+ALL FOUR DOMAIN FIELDS (pattern, default_tension, distortion_under_pressure,
+what_this_pattern_needs) MUST be rewritten as complete 2nd-person prose.
+Never return raw seed fragments, semi-colon lists, or em-dash chains from
+the input. If a field reads like a seed ("starts without permission; refines,
+discerns..."), you have done it wrong — rewrite as a full sentence.
+
 ==================================================
 CORE WRITING RULES (CRITICAL)
 ==================================================
@@ -728,14 +765,32 @@ Do NOT soften the message.
 Avoid: "this can sometimes", "you may find", "in certain situations"
 Prefer: "this turns when", "this becomes heavy when"
 
-5. DOMAIN ANCHORING (MANDATORY)
-You MUST bias language based on domain:
+5. DOMAIN DIFFERENTIATION (MANDATORY)
 
-SELF:      inner pressure, identity, self-trust vs self-force, recovery / internal loop
-WORK:      creation vs execution, leverage vs effort, responsibility vs design, scaling vs carrying
-RELATIONSHIPS: initiation, response / silence, misinterpretation, emotional loops
+Do NOT restate the same pattern across domains.
 
-If outputs across domains feel interchangeable, the output is wrong.
+The root pattern may be the SAME, but each domain must produce a DIFFERENT
+CONSEQUENCE. Re-describing the pattern itself is not enough — you must show
+where it lands in this specific life area.
+
+  - SELF          → describe how the pattern turns INWARD: identity, self-pressure,
+                    self-trust vs self-force, internal loop, the relationship with
+                    the self.
+  - WORK          → describe how the pattern affects EXECUTION, leadership, and
+                    outcomes: what gets built, what gets dropped, what gets carried,
+                    how others end up working around you.
+  - RELATIONSHIPS → describe how the pattern affects CONNECTION, response, and
+                    trust: how the other person receives you, where the signal gets
+                    lost, what quietly erodes between you.
+
+Each domain's distortion_under_pressure MUST describe a consequence that is
+specific to that domain — not a generic restatement of the pattern. If the
+word "work" / "relationship" / "self" could be swapped between two domains and
+the sentence would still read correctly, the output is wrong — rewrite.
+
+The `pattern` and `default_tension` fields may share some root behaviour
+language, but `distortion_under_pressure` and `what_this_pattern_needs` MUST
+be domain-specific.
 
 6. ROLE CARD MUST INCLUDE "NOT FOR"
 Add a sharp one-liner describing what this phase is NOT for.
@@ -783,6 +838,9 @@ Before returning, ensure:
 - Language is specific, not general
 - Domains feel distinct
 - Role card includes "not_for"
+- SWAP TEST: could you exchange the word "work" with "relationships" or "self"
+  in distortion_under_pressure and the sentence would still read correctly?
+  If YES, the output is wrong — rewrite with a domain-specific CONSEQUENCE.
 
 If not, rewrite internally.
 
@@ -850,6 +908,17 @@ def build_render_user_message(
         "distortion_under_pressure": c["distortion_seed"],
         "what_this_pattern_needs":   c["orientation_seed"],
     }
+    # Phase 3.1 — explicit domain consequence frame so the LLM has a concrete
+    # axis it must hit. Prevents the "same paragraph three times" failure mode.
+    frame = _DOMAIN_CONSEQUENCE_FRAME.get(domain)
+    if frame:
+        domain_block["domain_frame"] = {
+            "focus":          frame["focus"],
+            "where_it_lands": frame["where_it_lands"],
+            "what_erodes":    frame["what_erodes"],
+            "needs_axis":     frame["needs_axis"],
+            "instruction":    "distortion_under_pressure MUST describe `where_it_lands` and `what_erodes` in this specific domain — not a generic restatement of the pattern. Apply the SWAP TEST before finalising.",
+        }
     if c.get("memory_phase"):
         domain_block["memory_phase_note"] = c["memory_phase"]
     if c.get("memory_match_count") and c.get("memory_match_count") >= 2:
