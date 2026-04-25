@@ -10623,3 +10623,115 @@ agent_communication:
       Reflections live in `user_reflections` MongoDB collection and are
       strictly separate from AI insights and Lifeline events.
 
+
+# ====================================================================
+# 2026-04-25 — Ask About My Life (Mirror Life Interpreter)
+# ====================================================================
+
+backend:
+  - task: "POST /api/life/ask/{user_id} — conversational interpreter"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_interpreter.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          New service `life_interpreter.py` + endpoint POST /api/life/ask/{user_id}
+          (body: {domain, question}). 7 chip domains accepted: self, work,
+          money, relationships, health, friends, family. Money/health/
+          friends/family are mapped to the closest synthesis domain (work,
+          self, relationships, relationships) for context, but the chip
+          topic is preserved verbatim in the LLM prompt so answers speak
+          to the actual topic the user asked about.
+
+          ONE LLM call with the verbatim spec system prompt
+          (recognition → pattern → phase → consequence; no advice; no
+          system names). Composes context from cached engine outputs:
+            * role_card seeds (deterministic)
+            * domain_synthesis (cached if exists, else compressed seeds —
+              no extra LLM call needed)
+            * current phase (from cached phases::user_id)
+            * domain_weights dominant_domain hint
+            * pattern_memory dominant_tension + match_count + recurring flag
+            * today intensity (deterministic)
+            * top 3 evidence signals
+          Hard constraints in prompt: no human design / bazi / astrology /
+          horoscope / lifeline / pattern memory / domain weight / framework
+          / generator / manifestor / projector / reflector / day master /
+          profile / mirror / "as an AI" etc. Belt-and-braces regex scrubber
+          on the response.
+          400 on invalid chip; 400 on empty question; 404 on missing chart;
+          deterministic plain-text fallback if LLM unavailable.
+          Answers are 2-4 paragraphs of plain text, capped at 2400 chars.
+          Verified live:
+            Pete + money: "This isn't just about money — it's tied to how
+              you tend to refine work to a high standard..." → grounded,
+              recognises pattern, anchors in phase, traces consequence.
+            Pete + family: speaks specifically to family distance, no
+              banned-phrase hits.
+            Mel + health: scattered-energy answer that anchors on her
+              phase ("waiting" / cycle-aware), no system jargon.
+            All error paths confirmed (400/400/404).
+
+frontend:
+  - task: "AskAboutLifeModal — chips + input + answer"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/AskAboutLifeModal.tsx, /app/frontend/services/api.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          Full-screen modal with "Ask about your life" header. 7 horizontally
+          scrolling chips (Self/Work/Money/Relationships/Health/Friends/
+          Family). Multiline TextInput (max 800 chars), italic placeholder
+          "What's on your mind?". Single CTA "Ask" → activity indicator
+          while loading. Answer renders in a card below the input,
+          paragraphs separated by blank lines. KeyboardAvoidingView,
+          tap-to-dismiss keyboard.
+          API client: askAboutLife(userId, {domain, question}) with 60s
+          timeout (LLM calls can run longer).
+
+  - task: "Ask About My Life entry point in Life tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/LifeContextView.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          New "💬 Ask about my life" pill button rendered between the
+          RoleCard and the PhaseTimeline (centered, primary color). On
+          tap: opens AskAboutLifeModal with the current synthesis
+          domain (self/work/relationships) preselected as the initial
+          chip — the user can swap to any of the 7 chips inside the
+          modal.
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Ask About My Life is wired in. Backend + frontend ready for testing.
+
+      Acceptance criteria:
+        * Tap "💬 Ask about my life" pill on any synthesis tab → modal opens
+          with the active tab's chip preselected.
+        * Switch chips freely; type a question; tap Ask.
+        * Loading spinner while waiting; answer renders below as 2-4
+          paragraphs of plain text.
+        * Money / Health / Friends / Family chips produce answers that
+          speak SPECIFICALLY to those topics (verified for money + family
+          + health on Pete + Mel).
+        * No system jargon (lifeline, bazi, etc.) in any answer.
+        * Empty question → "Type a question first." inline error.
+        * Close button restores the modal to a clean state on next open.
+

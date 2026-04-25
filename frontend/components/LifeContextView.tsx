@@ -29,6 +29,8 @@ import { LifelineTimeline } from './lifeline';
 import PeopleLens from './PeopleLens';
 import PhaseTimeline from './PhaseTimeline';
 import ReflectModal from './ReflectModal';
+import AskAboutLifeModal from './AskAboutLifeModal';
+import { AskLifeChip } from '../services/api';
 import RoleCard from './RoleCard';
 
 interface Props {
@@ -162,6 +164,10 @@ export default function LifeContextView({
   // Reflect modal — quick thought capture from the Life synthesis stack.
   const [reflectOpen, setReflectOpen] = useState<boolean>(false);
   const [reflectDomain, setReflectDomain] = useState<SynthesisDomain>('self');
+
+  // Ask About My Life modal — conversational interpreter
+  const [askOpen, setAskOpen] = useState<boolean>(false);
+  const [askInitialChip, setAskInitialChip] = useState<AskLifeChip>('self');
 
   const loadSynthesis = useCallback(async (
     domain: SynthesisDomain,
@@ -620,6 +626,25 @@ export default function LifeContextView({
       {isSynthesisDomain(activeContext) ? (
         <View style={styles.anchorWrap}>
           <RoleCard data={topRoleCard} loading={topRoleLoading} />
+
+          {/* Ask About My Life — conversational entry point */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              setAskInitialChip(activeContext as AskLifeChip);
+              setAskOpen(true);
+            }}
+            style={[
+              styles.askPill,
+              { backgroundColor: theme.text },
+            ]}
+            hitSlop={6}
+          >
+            <Text style={[styles.askPillText, { color: theme.background }]}>
+              💬 Ask about my life
+            </Text>
+          </TouchableOpacity>
+
           <PhaseTimeline
             phases={phases}
             phaseGap={phaseGap}
@@ -648,6 +673,14 @@ export default function LifeContextView({
         patternHint={
           (phases || []).find(p => p.is_current)?.pattern_expression || null
         }
+      />
+
+      {/* Ask About My Life — full-screen conversational modal */}
+      <AskAboutLifeModal
+        visible={askOpen}
+        onClose={() => setAskOpen(false)}
+        userId={userId}
+        initialDomain={askInitialChip}
       />
     </View>
   );
@@ -838,6 +871,19 @@ const styles = StyleSheet.create({
   reflectBtnText: {
     fontSize: 14,
     fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  // Ask About My Life — primary CTA pill below the role card
+  askPill: {
+    alignSelf: 'center',
+    marginTop: 12,
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 22,
+  },
+  askPillText: {
+    fontSize: 13,
+    fontWeight: '700',
     letterSpacing: 0.3,
   },
   // Today toggle — subordinate bar above the synthesis stack

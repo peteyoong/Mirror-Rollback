@@ -25816,6 +25816,22 @@ def _phase_engine_llm_factory(session_id: str):
     return _factory
 
 
+def _life_interpreter_llm_factory(session_id: str):
+    """Factory returning a fresh LlmChat bound to the Life Interpreter prompt."""
+    from services.life_interpreter import _LIFE_INTERPRETER_SYSTEM_PROMPT  # noqa
+
+    def _factory():
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message=_LIFE_INTERPRETER_SYSTEM_PROMPT,
+        )
+        chat.with_model("openai", "gpt-4.1-mini")
+        return chat
+
+    return _factory
+
+
 @api_router.get("/life/role-card/{user_id}")
 async def get_life_role_card(user_id: str, refresh: bool = False):
     """Role Card — the top anchor card above the Life sub-tabs (Phase 1a)."""
@@ -26136,6 +26152,138 @@ async def get_life_phases(user_id: str, refresh: bool = False):
     )
 
     _life_synth_cache_set(cache_key, result)
+    return result
+
+
+# ====================================================================
+# Reflections — lightweight thought capture from Life tab "Reflect" button
+# ====================================================================
+#
+# This is INTENTIONALLY separate from Lifeline events:
+#   * Reflections capture THINKING — fast, low-friction notes.
+#   * Lifeline captures REALITY — intentional, real-world events.
+# Never mix the two.
+
+
+# ====================================================================
+# Ask About My Life — Mirror Life Interpreter
+# ====================================================================
+#
+# Composes the user's existing engine outputs (role_card seeds,
+# domain_synthesis, current phase, domain_weights, pattern_memory, today
+# intensity, evidence signals) into a structured context and asks the LLM
+# for a grounded plain-text answer. ONE LLM call. No caching — answers are
+# always fresh because the question is unique.
+
+class LifeAskRequest(BaseModel):
+    domain: str  # self|work|money|relationships|health|friends|family
+    question: str
+
+
+@api_router.post("/life/ask/{user_id}")
+async def post_life_ask(user_id: str, body: LifeAskRequest):
+    """Ask About My Life — single LLM-grounded conversational answer."""
+    from services import life_synthesis_engine as lse
+    from services import role_card_engine as rce
+    from services import phase_engine as pe
+    from services import life_interpreter as li
+    from services.today_modulation import determine_intensity
+
+    chip = (body.domain or "").strip().lower()
+    if chip not in li._VALID_CHIPS:
+        raise HTTPException(status_code=400, detail="Invalid domain")
+    question = (body.question or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Question is required")
+    if len(question) > 800:
+        question = question[:800]
+
+    # Choose the synthesis domain to source pattern context from
+    synth_dom = li._CHIP_TO_SYNTH_DOMAIN[chip]
+
+    # Load chart + signals
+    chart_doc = await db.charts.find_one({"user_id": user_id})
+    if not chart_doc:
+        raise HTTPException(status_code=404, detail="Chart not found for user.")
+
+    pattern_memory   = await _load_pattern_memory_for_user(user_id)
+    lifeline_summary = await _load_lifeline_summary_for_user(user_id)
+
+    # Domain weights (cached)
+    dw_cache_key = f"dw::{user_id}"
+    domain_weights = _life_synth_cache_get(dw_cache_key)
+    if not domain_weights:
+        domain_weights = lse.derive_domain_weights(
+            pattern_memory=pattern_memory,
+            lifeline_summary=lifeline_summary,
+        )
+        _life_synth_cache_set(dw_cache_key, domain_weights)
+
+    # Role seeds → role_card context for the interpreter
+    role_seeds = rce.build_role_seeds_public(
+        chart=chart_doc,
+        pattern_memory=pattern_memory,
+        purple_star_input=None,
+        lifeline_summary=lifeline_summary,
+    )
+    role_card_ctx = {
+        "role":        role_seeds.get("role_seed"),
+        "tension":     role_seeds.get("tension_seed"),
+        "distortion":  role_seeds.get("distortion_seed"),
+        "orientation": role_seeds.get("orientation_seed"),
+    }
+
+    # Domain synthesis (cached) — pull from cache if present, else compute
+    # without an LLM call. We only need the seed-level summary for context.
+    synth_cache_key = f"synth::{user_id}::{synth_dom}"
+    synth_cached = _life_synth_cache_get(synth_cache_key)
+    if synth_cached and isinstance(synth_cached, dict):
+        domain_synthesis_ctx = synth_cached.get("domain_synthesis") or {}
+        evidence_signals     = synth_cached.get("evidence_signals") or []
+    else:
+        # Synthesise context from compressed seeds (no extra LLM call)
+        ib = lse.build_synthesis_input(chart_doc, synth_dom, pattern_memory, lifeline_summary)
+        c = ib["compressed_themes"]
+        domain_synthesis_ctx = {
+            "pattern":                   c["core_pattern_seed"],
+            "default_tension":           c["default_tension_seed"],
+            "distortion_under_pressure": c["distortion_seed"],
+            "what_this_pattern_needs":   c["orientation_seed"],
+        }
+        evidence_signals = ib.get("evidence_signals") or []
+
+    # Current phase (cached)
+    phase_cache_key = f"phases::{user_id}"
+    phases_cached = _life_synth_cache_get(phase_cache_key)
+    phase_current: Optional[Dict[str, Any]] = None
+    if phases_cached and isinstance(phases_cached, dict):
+        for p in phases_cached.get("phases") or []:
+            if isinstance(p, dict) and p.get("is_current"):
+                phase_current = p
+                break
+
+    # Today intensity (deterministic, no LLM)
+    ll_recent = (lifeline_summary or {}).get("high_impact_titles") or []
+    intensity_level, intensity_reasons = determine_intensity(
+        pattern_memory=pattern_memory,
+        lifeline_recent=ll_recent,
+    )
+    today_state = {"intensity_level": intensity_level, "intensity_reasons": intensity_reasons}
+
+    result = await li.ask_life_question(
+        chip_domain=chip,
+        question=question,
+        role_card=role_card_ctx,
+        domain_synthesis=domain_synthesis_ctx,
+        phase_current=phase_current,
+        domain_weights=domain_weights,
+        pattern_memory=pattern_memory,
+        today_state=today_state,
+        evidence_signals=evidence_signals,
+        llm_chat_factory=_life_interpreter_llm_factory(
+            f"life_ask_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
+        ) if EMERGENT_LLM_KEY else None,
+    )
     return result
 
 

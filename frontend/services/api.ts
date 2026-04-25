@@ -1598,6 +1598,38 @@ export const listReflections = async (
 };
 
 // =====================================================
+// ASK ABOUT MY LIFE — Mirror Life Interpreter
+// =====================================================
+
+export type AskLifeChip =
+  | 'self' | 'work' | 'money' | 'relationships'
+  | 'health' | 'friends' | 'family';
+
+export interface AskLifeRequest {
+  domain: AskLifeChip;
+  question: string;
+}
+
+export interface AskLifeResponse {
+  answer: string;
+  chip_domain: AskLifeChip;
+  synthesis_domain: 'self' | 'work' | 'relationships';
+  generated_at: string;
+  generator_version: string;
+  debug?: Record<string, unknown>;
+}
+
+export const askAboutLife = async (
+  userId: string,
+  payload: AskLifeRequest
+): Promise<AskLifeResponse> => {
+  const response = await apiWithRetry.post(`/life/ask/${userId}`, payload, {
+    timeout: 60000, // LLM call can take time
+  });
+  return response.data;
+};
+
+// =====================================================
 // PATTERN SIGNALS API (Why this is showing up)
 // =====================================================
 
