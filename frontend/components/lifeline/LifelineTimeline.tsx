@@ -60,6 +60,12 @@ interface Props {
     suggestedCategory?: string | null;
     source?: string;
   } | null;
+  /**
+   * When true, render the timeline body inside a plain `View` instead of
+   * the internal `ScrollView`. Used when the parent already provides
+   * vertical scrolling so we don't nest scroll contexts.
+   */
+  embedded?: boolean;
 }
 
 interface LifelineResponse {
@@ -86,7 +92,7 @@ interface LifelineSummaryResponse {
   patterns: ExtendedPatternsData;
 }
 
-export default function LifelineTimeline({ userId, forumId, isCompact = false, maxEvents, externalAddRequest }: Props) {
+export default function LifelineTimeline({ userId, forumId, isCompact = false, maxEvents, externalAddRequest, embedded = false }: Props) {
   const { theme } = useTheme();
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -567,7 +573,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   // Loading state
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.container, { backgroundColor: theme.background }, embedded ? styles.containerEmbedded : null]}>
         {renderHeader()}
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.textTertiary} />
@@ -580,7 +586,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   // Error state
   if (error) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.container, { backgroundColor: theme.background }, embedded ? styles.containerEmbedded : null]}>
         {renderHeader()}
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
@@ -598,7 +604,7 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   // Empty state - use inline onboarding with full buttons
   if (events.length === 0) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.container, { backgroundColor: theme.background }, embedded ? styles.containerEmbedded : null]}>
         <LifelineInlineOnboarding 
           onStartLifeline={handleAddEvent}
           tabContext="lifeline"
@@ -615,47 +621,65 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
   }
 
   // Timeline with events - using time-distance visualization
+  const timelineBody = (
+    <>
+      {renderHeader()}
+
+      {/* Time-Distance Timeline */}
+      <TimeDistanceTimeline
+        events={events}
+        onEditEvent={handleEditEvent}
+        onDeleteEvent={handleDeleteEvent}
+        isCompact={isCompact}
+        isFirstReveal={false}
+        showEarlyMessages={events.length <= 3}
+        resonanceMap={resonanceMap}
+        onEventLayout={handleEventLayout}
+        highlightedYear={highlightedYear}
+        birthYear={birthYear || undefined}
+      />
+
+      {/* Chart Resonance Section for Pattern Lens */}
+      {resonanceSummary.length > 0 && (
+        <ChartResonanceSection resonances={resonanceSummary} />
+      )}
+
+      <View style={styles.footer}>
+        <Text style={[styles.footerText, { color: theme.textTertiary }]}>
+          Your story is still being written.
+        </Text>
+      </View>
+    </>
+  );
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ScrollView
-        ref={scrollViewRef}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => loadTimeline(true)}
-            tintColor={theme.textTertiary}
-          />
-        }
-      >
-        {renderHeader()}
-        
-        {/* Time-Distance Timeline */}
-        <TimeDistanceTimeline
-          events={events}
-          onEditEvent={handleEditEvent}
-          onDeleteEvent={handleDeleteEvent}
-          isCompact={isCompact}
-          isFirstReveal={false}
-          showEarlyMessages={events.length <= 3}
-          resonanceMap={resonanceMap}
-          onEventLayout={handleEventLayout}
-          highlightedYear={highlightedYear}
-          birthYear={birthYear || undefined}
-        />
-        
-        {/* Chart Resonance Section for Pattern Lens */}
-        {resonanceSummary.length > 0 && (
-          <ChartResonanceSection resonances={resonanceSummary} />
-        )}
-        
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: theme.textTertiary }]}>
-            Your story is still being written.
-          </Text>
+    <View style={[
+      styles.container,
+      { backgroundColor: theme.background },
+      embedded ? styles.containerEmbedded : null,
+    ]}>
+      {embedded ? (
+        // Parent already provides vertical scrolling — render plain View
+        // so we don't nest scroll contexts.
+        <View style={styles.listContent}>
+          {timelineBody}
         </View>
-      </ScrollView>
+      ) : (
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => loadTimeline(true)}
+              tintColor={theme.textTertiary}
+            />
+          }
+        >
+          {timelineBody}
+        </ScrollView>
+      )}
 
       {/* Add to Lifeline Menu */}
       <LifelineAddMenu
@@ -696,6 +720,9 @@ export default function LifelineTimeline({ userId, forumId, isCompact = false, m
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  containerEmbedded: {
+    flex: 0,
   },
   header: {
     marginBottom: 20,

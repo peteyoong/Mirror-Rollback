@@ -526,6 +526,7 @@ export default function LifeContextView({
     <LifelineTimeline
       userId={userId}
       externalAddRequest={lifelineAddRequest}
+      embedded
     />
   );
 
@@ -577,14 +578,7 @@ export default function LifeContextView({
     }
 
     return (
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={theme.textTertiary} />
-        }
-      >
+      <View style={styles.synthTabBody}>
         {renderSynthesisBlock(synth, domain)}
 
         {/* Reflect — quick thought capture (NOT a Lifeline event) */}
@@ -621,7 +615,7 @@ export default function LifeContextView({
             This isn&apos;t a rule. It&apos;s a pattern you can notice and work with.
           </Text>
         </View>
-      </ScrollView>
+      </View>
     );
   };
 
@@ -647,48 +641,65 @@ export default function LifeContextView({
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Anchor block — RoleCard + Ask + PhaseTimeline.
-          Renders unconditionally above the sub-tabs so the user always
-          has the role context, the conversational entry point, and the
-          phase timeline visible regardless of which tab is active. */}
-      <View style={styles.anchorWrap}>
-        <RoleCard data={topRoleCard} loading={topRoleLoading} />
+      <ScrollView
+        style={styles.outerScroll}
+        contentContainerStyle={styles.outerScrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          isSynthesisDomain(activeContext) ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.textTertiary}
+            />
+          ) : undefined
+        }
+      >
+        {/* Anchor block — RoleCard + Ask + PhaseTimeline.
+            Renders unconditionally so the user always has the role
+            context, the conversational entry point, and the phase
+            timeline visible regardless of the active sub-tab. */}
+        <View style={styles.anchorWrap}>
+          <RoleCard data={topRoleCard} loading={topRoleLoading} />
 
-        {/* Ask About My Life — conversational entry point */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => {
-            // Default the chip to the active synthesis domain when on
-            // self/work/relationships; otherwise default to 'self'.
-            const chip: AskLifeChip = isSynthesisDomain(activeContext)
-              ? (activeContext as AskLifeChip)
-              : 'self';
-            setAskInitialChip(chip);
-            setAskOpen(true);
-          }}
-          style={[
-            styles.askPill,
-            { backgroundColor: theme.text },
-          ]}
-          hitSlop={6}
-        >
-          <Text style={[styles.askPillText, { color: theme.background }]}>
-            💬 Ask about my life
-          </Text>
-        </TouchableOpacity>
+          {/* Ask About My Life — conversational entry point */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              const chip: AskLifeChip = isSynthesisDomain(activeContext)
+                ? (activeContext as AskLifeChip)
+                : 'self';
+              setAskInitialChip(chip);
+              setAskOpen(true);
+            }}
+            style={[
+              styles.askPill,
+              { backgroundColor: theme.text },
+            ]}
+            hitSlop={6}
+          >
+            <Text style={[styles.askPillText, { color: theme.background }]}>
+              💬 Ask about my life
+            </Text>
+          </TouchableOpacity>
 
-        <PhaseTimeline
-          phases={phases}
-          phaseGap={phaseGap}
-          loading={phasesLoading && (phases === null || phases.length === 0)}
-          onAddMoment={handlePhaseAddMoment}
-        />
-      </View>
+          {/* Bounded PhaseTimeline — must not eat the page */}
+          <View style={styles.phaseTimelineWrap}>
+            <PhaseTimeline
+              phases={phases}
+              phaseGap={phaseGap}
+              loading={phasesLoading && (phases === null || phases.length === 0)}
+              onAddMoment={handlePhaseAddMoment}
+            />
+          </View>
+        </View>
 
-      {renderContextTabs()}
+        {renderContextTabs()}
 
-      {activeContext === 'lifeline' && renderLifelineTab()}
-      {isSynthesisDomain(activeContext) && renderSynthesisTab(activeContext)}
+        {activeContext === 'lifeline' && renderLifelineTab()}
+        {isSynthesisDomain(activeContext) && renderSynthesisTab(activeContext)}
+      </ScrollView>
 
       {/* Reflect modal — mounted once, opened from any synthesis tab.
           Uses the current phase (from the Phase Timeline data) to enrich
@@ -727,8 +738,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  outerScroll: {
+    flex: 1,
+  },
+  outerScrollContent: {
+    flexGrow: 1,
+    paddingBottom: 160,
+  },
   anchorWrap: {
     paddingTop: 8,
+  },
+  phaseTimelineWrap: {
+    maxHeight: 220,
+    overflow: 'hidden',
+  },
+  synthTabBody: {
+    paddingTop: 4,
+    paddingBottom: 16,
   },
   contextTabsContainer: {
     flexDirection: 'row',
