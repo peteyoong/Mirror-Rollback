@@ -100,6 +100,25 @@ ANSWER RULES
 
 8. Length: 2–4 short paragraphs max.
 
+9. DOMAIN PATTERN ORIGIN (CRITICAL when domain_origin is present in context).
+
+   The context may include a `domain_origin` block with:
+     - domain_pattern_origin: what this life area is really about
+     - domain_tension:        what tension this domain specifically carries
+     - domain_failure_mode:   what fails here under pressure
+     - domain_evolution_hint: how this part of life evolves
+
+   Treat `domain_origin` as the PRIMARY domain-causal axis when answering
+   any question about money / family / health / friends / relationships /
+   work / self. Do NOT reuse a Self / Work / Relationships pattern for
+   chips like money or family — let the domain origin drive the frame so
+   the answer feels specific to that life area.
+
+   NEVER mention the source of this signal. NEVER use the words "palace",
+   "stars", "purple star", "zi wei", "ziwei", "命宫", or any related
+   Chinese terminology. The user should only feel "this part of my life
+   has its own pattern" without ever seeing the engine that produced it.
+
 ==================================================
 FOLLOW-UP RULES
 ==================================================
@@ -251,6 +270,8 @@ def build_context_payload(
     pattern_memory: Optional[Dict[str, Any]],
     today_state: Optional[Dict[str, Any]],
     evidence_signals: Optional[List[Dict[str, Any]]],
+    chart: Optional[Dict[str, Any]] = None,
+    lifeline_summary: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Compose the context the LLM will lean on. Values are kept SHORT to keep
@@ -316,11 +337,35 @@ def build_context_payload(
             if sig:
                 ev_summary.append(_short(sig, 140))
 
+    # Domain origin (Zi Wei domain pattern engine — invisible).
+    # Acts as the PRIMARY domain-causal axis for chips like money / family /
+    # health / friends so those answers don't reuse Self / Work / Relationships
+    # patterns. NEVER surfaced to UI by name.
+    do: Dict[str, Any] = {}
+    try:
+        from .ziwei_domain_engine import generate_ziwei_domain_pattern
+        zw = generate_ziwei_domain_pattern(
+            chip_domain,
+            chart=chart,
+            lifeline_summary=lifeline_summary,
+            pattern_memory=pattern_memory,
+        )
+        if zw and (zw.get("domain_pattern_origin") or zw.get("domain_tension")):
+            do = {
+                "domain_pattern_origin": _short(zw.get("domain_pattern_origin"), 200),
+                "domain_tension":        _short(zw.get("domain_tension"), 200),
+                "domain_failure_mode":   _short(zw.get("domain_failure_mode"), 200),
+                "domain_evolution_hint": _short(zw.get("domain_evolution_hint"), 200),
+            }
+    except Exception as e:
+        logger.warning("[LifeInterp] domain origin unavailable for chip=%s: %s", chip_domain, e)
+
     return {
         "chip":            chip_domain,
         "question":        _short(question, 600),
         "role_card":       rc,
         "domain_synthesis": ds,
+        "domain_origin":   do,
         "current_phase":   ph,
         "active_arena_hint": dw_summary,
         "pattern_memory":  pm,
@@ -410,6 +455,8 @@ async def ask_life_question(
     pattern_memory: Optional[Dict[str, Any]],
     today_state: Optional[Dict[str, Any]],
     evidence_signals: Optional[List[Dict[str, Any]]],
+    chart: Optional[Dict[str, Any]] = None,
+    lifeline_summary: Optional[Dict[str, Any]] = None,
     llm_chat_factory=None,
 ) -> Dict[str, Any]:
     """
@@ -447,6 +494,8 @@ async def ask_life_question(
         pattern_memory=pattern_memory,
         today_state=today_state,
         evidence_signals=evidence_signals,
+        chart=chart,
+        lifeline_summary=lifeline_summary,
     )
     user_msg = _format_context_for_llm(ctx)
 
@@ -523,7 +572,7 @@ async def ask_life_question(
         "chip_domain":      chip,
         "synthesis_domain": synth_dom,
         "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_interpreter_v2",
+        "generator_version": "life_interpreter_v3_ziwei_origin",
         "debug": {
             "llm_used":       answer_raw is not None and render_error is None,
             "render_error":   render_error,

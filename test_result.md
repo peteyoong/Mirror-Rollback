@@ -11062,3 +11062,106 @@ agent_communication:
           arenas with domain-specific consequences, NOT the same
           Manifestor reading repeated three times.
 
+
+  - task: "Zi Wei domain-pattern engine (invisible domain-origin layer)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/ziwei_domain_engine.py, /app/backend/services/life_synthesis_engine.py, /app/backend/services/life_interpreter.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Added a Zi Wei Dou Shu domain-pattern layer that operates
+          INVISIBLY as a domain-origin engine. The user never sees
+          ZiWei / palace / star / Chinese terminology — those are scrubbed
+          from the synthesis prompt and Ask answer prompt, and added to
+          BANNED_PHRASES.
+
+          New module: /app/backend/services/ziwei_domain_engine.py
+            * generate_ziwei_domain_pattern(domain, chart, lifeline_summary,
+              pattern_memory) returns a domain-origin contract:
+                {domain, palace, domain_pattern_origin, domain_tension,
+                 domain_failure_mode, domain_evolution_hint, confidence,
+                 source: "ziwei_placeholder"}
+            * Maps 7 domains → palaces internally (life/career/wealth/spouse/
+              health/friends/parents).
+            * Per-palace base frame describes what the domain is REALLY
+              about — origin, tension, failure mode, evolution hint.
+            * Lightly coloured by available chart data:
+                - BaZi day-master element flavour on tension
+                - Lifeline domain evidence echo on origin
+                - Pattern-memory recurrence count on failure mode
+            * Confidence ladder: high / medium / low-medium / low.
+
+          Integration into Life Synthesis (life_synthesis_engine.py):
+            * generate_domain_synthesis() calls generate_ziwei_domain_pattern()
+              and threads result through _compress_themes() as a new
+              `ziwei` kwarg.
+            * _compress_themes() prepends ziwei_origin/tension/failure/evolve
+              to core_pattern_seed / default_tension_seed / distortion_seed
+              / orientation_seed so ZiWei is the PRIMARY axis.
+            * lens_snapshots["domain_origin"] surfaces the seed (without
+              the palace label) for downstream callers.
+            * build_synthesis_input() emits a `domain_origin` block to the
+              LLM with explicit instruction NEVER to mention the source.
+            * BANNED_PHRASES extended with: zi wei, ziwei, zi wei dou shu,
+              purple star, 命宫/官禄宫/财帛宫/夫妻宫/疾厄宫/交友宫/父母宫,
+              "life palace" / "career palace" / "wealth palace" /
+              "spouse palace" / "health palace" / "friends palace" /
+              "parents palace" / "palace of life|career|wealth".
+            * generator_version bumped: life_synth_v1a4_lensbalance →
+              life_synth_v1a5_ziwei_origin (cache invalidates).
+
+          Integration into Ask About My Life (life_interpreter.py + server.py):
+            * build_context_payload() now accepts `chart` and
+              `lifeline_summary` and computes `domain_origin` for the chip.
+            * ask_life_question() threads `chart` + `lifeline_summary`
+              through to the context.
+            * server.py post_life_ask now passes chart_doc + lifeline_summary
+              into ask_life_question.
+            * System prompt rule "9. DOMAIN PATTERN ORIGIN" added — treats
+              `domain_origin` as PRIMARY axis for money / family / health /
+              friends / etc., with explicit ban on revealing the source
+              (palace/stars/zi wei/ziwei/命宫/Chinese terms).
+            * generator_version bumped: life_interpreter_v2 →
+              life_interpreter_v3_ziwei_origin.
+
+          Verified with refresh=true on Pete (697f0c6abf35c0528ff06954):
+
+          Self / Work / Relationships synthesis tabs — three different
+          causal origins:
+            * Self: identity / inner pressure / self-trust / "treating
+              yourself like a project to be finished".
+            * Work: responsibility / systems / leverage→ownership /
+              "tasks accumulate faster than infrastructure".
+            * Relationships: closeness / pacing / "timing outpaces other's
+              ability to respond".
+
+          Ask About My Life chips — each chip produces a domain-specific
+          answer instead of reused Self/Work/Relationships copy:
+            * Money:    "carry responsibility for raising the standard of
+                         how money flows or is handled".
+            * Family:   "push the pace in your closest relationships,
+                         especially with family".
+            * Health:   "hold a very high internal standard for your
+                         health, refining and pushing beyond what feels
+                         comfortable".
+            * Friends:  "approach to friendships currently sharpens and
+                         refines the connections you have".
+
+          Banned-phrase audit on a money answer: zero hits across
+          'zi wei', 'ziwei', 'purple star', 'palace', '命宫', '官禄',
+          '财帛', '夫妻宫', '疾厄', '交友', '父母宫', 'life palace',
+          'career palace', 'wealth palace'.
+
+          Acceptance criteria met:
+            ✓ each domain has its own causal origin
+            ✓ money / family / health / friends each feel specific
+            ✓ user never sees ZiWei / palace / Chinese terms
+            ✓ no fate language / no predictions
+            ✓ HD operating-style remains a contributing signal but no
+              longer dominates every domain
+

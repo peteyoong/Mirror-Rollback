@@ -82,6 +82,12 @@ BANNED_PHRASES: List[str] = [
     "enneagram", "numerology", "life path", "incarnation cross",
     "manifestor", "manifesting generator", "projector", "reflector", "generator",
     "emotional authority", "sacral authority", "splenic authority",
+    # zi wei dou shu — invisible domain layer; never surface in user copy
+    "zi wei", "ziwei", "zi wei dou shu", "purple star", "purple star astrology",
+    "命宫", "官禄宫", "财帛宫", "夫妻宫", "疾厄宫", "交友宫", "父母宫",
+    "life palace", "career palace", "wealth palace", "spouse palace",
+    "health palace", "friends palace", "parents palace",
+    "palace of life", "palace of career", "palace of wealth",
 ]
 
 BANNED_PHRASE_RE = re.compile(
@@ -460,15 +466,28 @@ def _compress_themes(
     pm: Dict[str, Any],
     ll: Dict[str, Any],
     domain: str,
+    ziwei: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Hierarchy enforced:
-      1. core pattern     — cross-lens behavioural compression
-      2. default tension  — where the pattern first strains (recurrence-aware)
-      3. distortion       — how the strength flips into a problem
-      4. orientation      — what restores the pattern (non-prescriptive)
-      5. evidence         — top contributing lenses with weights
+      0. ziwei domain origin — domain-causal seed (PRIMARY when present)
+      1. core pattern        — cross-lens behavioural compression
+      2. default tension     — where the pattern first strains (recurrence-aware)
+      3. distortion          — how the strength flips into a problem
+      4. orientation         — what restores the pattern (non-prescriptive)
+      5. evidence            — top contributing lenses with weights
+
+    `ziwei` (optional) carries domain-origin seed data. When present, it is
+    the PRIMARY axis — the LLM is steered toward this domain's specific
+    causal frame instead of re-projecting a single global pattern across
+    every domain. NEVER surfaced as a label or quoted string in user copy.
     """
+    ziwei = ziwei or {}
+    ziwei_origin   = (ziwei.get("domain_pattern_origin") or "").strip()
+    ziwei_tension  = (ziwei.get("domain_tension") or "").strip()
+    ziwei_failure  = (ziwei.get("domain_failure_mode") or "").strip()
+    ziwei_evolve   = (ziwei.get("domain_evolution_hint") or "").strip()
+
     # --- 1. Core pattern: domain-weighted composition.
     #
     # Domain lens balance: HD operating-style language must NOT lead every
@@ -530,6 +549,11 @@ def _compress_themes(
             pattern_parts.append(astro["primary_posture"])
     core_pattern_seed = "; ".join(pattern_parts) or "moves through life in a way that's hard to compress"
 
+    # Zi Wei domain origin leads the seed when present — the domain's own
+    # causal axis is more important than any cross-lens compression.
+    if ziwei_origin:
+        core_pattern_seed = ziwei_origin + " — " + core_pattern_seed
+
     # --- 2. Default tension: domain-weighted.
     # Self leans HD friction first; Work leans BaZi strain + lifeline echo;
     # Relationships leans BaZi strain + consequence frame.
@@ -564,6 +588,8 @@ def _compress_themes(
     if ll.get("phase_echo_hint") and ll["phase_echo_hint"] not in tension_parts:
         tension_parts.append(ll["phase_echo_hint"])
     default_tension_seed = " — ".join(tension_parts) or "tightens where it used to flow"
+    if ziwei_tension:
+        default_tension_seed = ziwei_tension + " — " + default_tension_seed
 
     # --- 3. Distortion: HD + BaZi distortion, with domain-specific CONSEQUENCE
     #     (Phase 3.1). The LLM is required to rewrite distortion per domain;
@@ -583,6 +609,8 @@ def _compress_themes(
     if ll.get("tone_cue") == "the emotional colour of these events leans strained":
         dist_parts.append("lived events in this domain carry the same strained tone")
     distortion_seed = "; ".join(dist_parts) or "the strength repeats itself past the point where it still helps"
+    if ziwei_failure:
+        distortion_seed = ziwei_failure + " — " + distortion_seed
 
     # --- 4. Orientation: BaZi restorative + HD restorative + domain needs_axis
     orient_parts: List[str] = []
@@ -593,6 +621,8 @@ def _compress_themes(
     if domain_frame.get("needs_axis"):
         orient_parts.append(domain_frame["needs_axis"])
     orientation_seed = " and ".join(orient_parts) or "returns to the quality the pattern is actually for"
+    if ziwei_evolve:
+        orientation_seed = ziwei_evolve + "; " + orientation_seed
 
     return {
         "domain":               domain,
@@ -867,7 +897,22 @@ def build_synthesis_input(
     pm = _extract_pattern_memory(pattern_memory)
     ll = _extract_lifeline(lifeline_summary, domain)
 
-    compressed = _compress_themes(hd, bazi, astro, pm, ll, domain)
+    # Zi Wei domain-origin layer — invisible domain-pattern source. Acts as
+    # the PRIMARY causal seed so each domain has its own origin instead of
+    # being a re-projection of one global pattern. NEVER surfaced to UI.
+    try:
+        from .ziwei_domain_engine import generate_ziwei_domain_pattern  # local import to keep startup light
+        ziwei = generate_ziwei_domain_pattern(
+            domain,
+            chart=chart,
+            lifeline_summary=lifeline_summary,
+            pattern_memory=pattern_memory,
+        )
+    except Exception as e:
+        logger.warning("[LifeSynth] ziwei domain origin unavailable for domain=%s: %s", domain, e)
+        ziwei = {}
+
+    compressed = _compress_themes(hd, bazi, astro, pm, ll, domain, ziwei=ziwei)
     evidence = _build_evidence(hd, bazi, astro, pm, ll)
     confidence = _confidence(hd, bazi, astro, pm)
 
@@ -882,6 +927,16 @@ def build_synthesis_input(
             "domain_field": astro,
             "pattern_memory": pm,
             "lifeline_echoes": ll,
+            "domain_origin": {
+                "domain_pattern_origin": ziwei.get("domain_pattern_origin"),
+                "domain_tension": ziwei.get("domain_tension"),
+                "domain_failure_mode": ziwei.get("domain_failure_mode"),
+                "domain_evolution_hint": ziwei.get("domain_evolution_hint"),
+                "confidence": ziwei.get("confidence"),
+                "source": ziwei.get("source"),
+                # NOTE: 'palace' field intentionally omitted from snapshots that
+                # might be exposed via debug. Internal-only.
+            },
         },
     }
 
@@ -1074,6 +1129,40 @@ Each domain MUST be governed by its own STRONGEST EVIDENCE:
                     actually receives you
   - SELF          = identity / inner pressure / self-trust / recovery /
                     inner clarity / the relationship with the self
+
+11B. DOMAIN PATTERN ORIGIN (CRITICAL when domain_origin is present)
+
+The render input may include `domain_origin` block:
+  {
+    domain_pattern_origin:  "what this life area is really about",
+    domain_tension:         "what tension this domain carries",
+    domain_failure_mode:    "what specifically fails here under pressure",
+    domain_evolution_hint:  "how this part of life evolves"
+  }
+
+Treat `domain_origin` as the PRIMARY domain-causal axis. It tells you:
+  - what this life area is really about (origin)
+  - what tension this domain specifically carries
+  - what repeats here that is different from other domains
+  - how this part of life evolves
+
+Use it to answer:
+  - "what is this part of life really about?"
+  - "what tension does this specific domain carry?"
+  - "what repeats here in particular?"
+  - "what is moving / evolving here?"
+
+DO NOT derive one global pattern and rewrite it across domains.
+
+DO NOT mention or hint at the source of `domain_origin`. It is an
+internal architecture signal — not user-facing language. NEVER use the
+words "palace", "stars", "purple star", "zi wei", "ziwei", "命宫" or any
+related Chinese terminology.
+
+The output should make the user feel "this part of my life has its own
+pattern" without ever revealing the engine that produced it.
+
+11C. DOMAIN LENS BALANCE — anti-Manifestor-leakage rules
 
 Human Design operating-style language (e.g. "initiate without permission",
 "inform before moving", "wait to respond", "seeing the system before being
@@ -1286,6 +1375,33 @@ def build_render_user_message(
         domain_block["lifeline_note"] = c["lifeline_echo"]
     if c.get("lifeline_tone_cue"):
         domain_block["lifeline_tone_cue"] = c["lifeline_tone_cue"]
+
+    # Domain Pattern Origin — invisible domain-causal axis. Comes from the
+    # zi-wei-domain-engine placeholder. Surfaced to the LLM as a
+    # `domain_origin` block; the LLM treats this as the PRIMARY frame.
+    domain_origin_snapshot = (
+        input_bundle.get("lens_snapshots", {}).get("domain_origin") or {}
+    )
+    if any([
+        domain_origin_snapshot.get("domain_pattern_origin"),
+        domain_origin_snapshot.get("domain_tension"),
+        domain_origin_snapshot.get("domain_failure_mode"),
+        domain_origin_snapshot.get("domain_evolution_hint"),
+    ]):
+        domain_block["domain_origin"] = {
+            "domain_pattern_origin": domain_origin_snapshot.get("domain_pattern_origin", ""),
+            "domain_tension":        domain_origin_snapshot.get("domain_tension", ""),
+            "domain_failure_mode":   domain_origin_snapshot.get("domain_failure_mode", ""),
+            "domain_evolution_hint": domain_origin_snapshot.get("domain_evolution_hint", ""),
+            "instruction":
+                "Treat domain_origin as the PRIMARY domain-causal axis. Use it "
+                "to answer: what is this part of life really about? what "
+                "tension does this domain specifically carry? what repeats "
+                "here? what is moving here? Do NOT mention or hint at the "
+                "source of this signal — never use the words palace, stars, "
+                "purple star, zi wei, ziwei, 命宫, or any related Chinese "
+                "terminology in the user-facing copy.",
+        }
 
     payload = {
         "role_card":         role_block,
@@ -1540,7 +1656,7 @@ async def generate_domain_synthesis(
             "domain_weight_scores":     (domain_weight_info or {}).get("scores"),
         },
         "generated_at":      datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_synth_v1a4_lensbalance",
+        "generator_version": "life_synth_v1a5_ziwei_origin",
     }
 
 

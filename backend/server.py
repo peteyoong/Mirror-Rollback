@@ -26280,6 +26280,8 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
         pattern_memory=pattern_memory,
         today_state=today_state,
         evidence_signals=evidence_signals,
+        chart=chart_doc,
+        lifeline_summary=lifeline_summary,
         llm_chat_factory=_life_interpreter_llm_factory(
             f"life_ask_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
         ) if EMERGENT_LLM_KEY else None,
