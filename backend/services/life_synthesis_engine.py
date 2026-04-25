@@ -469,27 +469,99 @@ def _compress_themes(
       4. orientation      — what restores the pattern (non-prescriptive)
       5. evidence         — top contributing lenses with weights
     """
-    # --- 1. Core pattern: compose HD initiation + BaZi posture + astro primary posture
+    # --- 1. Core pattern: domain-weighted composition.
+    #
+    # Domain lens balance: HD operating-style language must NOT lead every
+    # domain or it makes Work / Relationships / Self all sound like the same
+    # Manifestor reading. Each domain picks its strongest seed first, then
+    # supplements with the other lenses. HD is allowed in EVERY domain, but
+    # only as a contributing signal — never as the lead phrase for Work or
+    # Relationships, where structural / lifeline / connection evidence is
+    # the stronger explanatory frame.
     pattern_parts: List[str] = []
-    if hd.get("initiation"):
-        pattern_parts.append(hd["initiation"])
-    if bazi.get("posture"):
-        pattern_parts.append(bazi["posture"])
-    if astro.get("primary_posture"):
-        pattern_parts.append(astro["primary_posture"])
+    if domain == "self":
+        # Self: HD operating style is most relevant here (it is identity-shaped),
+        # so it can lead. BaZi posture follows. Astro adds tone.
+        if hd.get("initiation"):
+            pattern_parts.append(hd["initiation"])
+        if bazi.get("posture"):
+            pattern_parts.append(bazi["posture"])
+        if astro.get("primary_posture"):
+            pattern_parts.append(astro["primary_posture"])
+    elif domain == "work":
+        # Work: BaZi structural posture leads (closer to systems / execution
+        # / responsibility). Astro 10th-house / career sign follows. HD is
+        # last and skipped if other signals already filled the seed.
+        if bazi.get("posture"):
+            pattern_parts.append(bazi["posture"])
+        if astro.get("primary_posture"):
+            pattern_parts.append(astro["primary_posture"])
+        # Lifeline domain themes feed into Work seed — work-event evidence
+        if ll.get("recent_themes"):
+            pattern_parts.append(
+                "this shape has shown up across "
+                + ", ".join(ll["recent_themes"][:2])
+            )
+        # Only add HD if we still have <2 signals to avoid HD dominance
+        if hd.get("initiation") and len(pattern_parts) < 2:
+            pattern_parts.append(hd["initiation"])
+    elif domain == "relationships":
+        # Relationships: connection / response / trust frame leads via
+        # consequence frame. Astro 7th / 5th / 8th-house posture follows.
+        # BaZi adds element tone. HD last — only if room remains.
+        if astro.get("primary_posture"):
+            pattern_parts.append(astro["primary_posture"])
+        if bazi.get("posture"):
+            pattern_parts.append(bazi["posture"])
+        if ll.get("recent_themes"):
+            pattern_parts.append(
+                "the same shape has surfaced in "
+                + ", ".join(ll["recent_themes"][:2])
+            )
+        if hd.get("initiation") and len(pattern_parts) < 2:
+            pattern_parts.append(hd["initiation"])
+    else:
+        # Fallback (unknown domain): old order preserved.
+        if hd.get("initiation"):
+            pattern_parts.append(hd["initiation"])
+        if bazi.get("posture"):
+            pattern_parts.append(bazi["posture"])
+        if astro.get("primary_posture"):
+            pattern_parts.append(astro["primary_posture"])
     core_pattern_seed = "; ".join(pattern_parts) or "moves through life in a way that's hard to compress"
 
-    # --- 2. Default tension: HD friction + BaZi strain + pattern-memory recurrence
+    # --- 2. Default tension: domain-weighted.
+    # Self leans HD friction first; Work leans BaZi strain + lifeline echo;
+    # Relationships leans BaZi strain + consequence frame.
     tension_parts: List[str] = []
-    if hd.get("friction"):
-        tension_parts.append(hd["friction"])
-    if bazi.get("strain"):
-        tension_parts.append(bazi["strain"])
-    if pm.get("phase_hint"):
+    if domain == "self":
+        if hd.get("friction"):
+            tension_parts.append(hd["friction"])
+        if bazi.get("strain"):
+            tension_parts.append(bazi["strain"])
+    elif domain == "work":
+        if bazi.get("strain"):
+            tension_parts.append(bazi["strain"])
+        if ll.get("phase_echo_hint"):
+            tension_parts.append(ll["phase_echo_hint"])
+        if hd.get("friction") and len(tension_parts) < 2:
+            tension_parts.append(hd["friction"])
+    elif domain == "relationships":
+        if bazi.get("strain"):
+            tension_parts.append(bazi["strain"])
+        if hd.get("friction") and len(tension_parts) < 2:
+            tension_parts.append(hd["friction"])
+    else:
+        if hd.get("friction"):
+            tension_parts.append(hd["friction"])
+        if bazi.get("strain"):
+            tension_parts.append(bazi["strain"])
+
+    # Pattern-memory phase hint and lifeline echo are added at the end for
+    # all domains (they're cross-cutting evidence, not domain-specific lens).
+    if pm.get("phase_hint") and pm["phase_hint"] not in tension_parts:
         tension_parts.append(pm["phase_hint"])
-    # Phase-3: lifeline echo at the tension layer — where the pattern has
-    # actually been lived in this domain.
-    if ll.get("phase_echo_hint"):
+    if ll.get("phase_echo_hint") and ll["phase_echo_hint"] not in tension_parts:
         tension_parts.append(ll["phase_echo_hint"])
     default_tension_seed = " — ".join(tension_parts) or "tightens where it used to flow"
 
@@ -990,6 +1062,42 @@ in actual lived events in this domain. Lightly ground the default_tension or
 distortion in that lived history. Do NOT invent new events. Do NOT quote event
 titles. Acknowledge that the pattern has left marks, without listing them.
 
+11A. DOMAIN LENS BALANCE (CRITICAL — anti-Manifestor-leakage)
+
+Do NOT let one lens explain every domain.
+
+Each domain MUST be governed by its own STRONGEST EVIDENCE:
+  - WORK          = responsibility / systems / execution / career history /
+                    delegation / leverage / what gets built or dropped
+  - RELATIONSHIPS = connection / response / trust / emotional distance /
+                    family / partner / friend dynamics / how the other person
+                    actually receives you
+  - SELF          = identity / inner pressure / self-trust / recovery /
+                    inner clarity / the relationship with the self
+
+Human Design operating-style language (e.g. "initiate without permission",
+"inform before moving", "wait to respond", "seeing the system before being
+asked") is ONE contributing signal. It MUST NOT be the lead frame for every
+domain.
+
+HARD CAP — at most ONE Human-Design-style concept per domain output. The
+following words/phrases together count as Human-Design vocabulary:
+
+  initiate · initiation · permission · approval · informing · inform ·
+  inform-before-moving · move first · move alone · refine the standard ·
+  raise the standard · without asking · without waiting · seeking approval
+
+If you find yourself using ≥ 2 of these in a single domain, REWRITE using
+domain-specific evidence (BaZi structural posture, lifeline lived history,
+astrology house posture, pattern memory recurrence) instead.
+
+ANTI-LEAKAGE TEST: Imagine a reader sees only Work, Relationships, and Self
+side-by-side. If the three paragraphs sound like the same Manifestor reading
+in three costumes, you have failed. Rewrite so:
+  - Work sounds like work systems / responsibility / leverage
+  - Relationships sounds like response gaps / connection / emotional distance
+  - Self sounds like internal pressure / identity / self-trust / recovery
+
 12. DOMAIN WEIGHTING (CRITICAL when domain_weight is present)
 
 You will receive `domain_weight`: "primary" | "secondary" | "background".
@@ -1204,6 +1312,61 @@ def scrub_banned_phrases(text: str) -> Tuple[str, List[str]]:
     return cleaned, hits
 
 
+# ---------------------------------------------------------------------------
+# Domain Lens Balance — anti-Manifestor-leakage cap.
+#
+# After the LLM renders, count Human-Design-style vocabulary across the four
+# domain prose fields. If a single domain trips ≥ 2 HD-vocab hits, log a
+# diagnostic flag (not a hard rewrite — the prompt rule is the primary guard,
+# this is monitoring + safety net so we can detect regressions).
+# ---------------------------------------------------------------------------
+
+_HD_VOCAB_PATTERNS: List[re.Pattern] = [
+    re.compile(p, re.I) for p in [
+        r"\binitiat(?:e|ion|ing|or)\b",
+        r"\bpermission\b",
+        r"\bapproval\b",
+        r"\binform(?:s|ed|ing|-before-moving)?\b",
+        r"\bmove(?:s|d)?\s+(?:first|alone)\b",
+        r"\bwithout\s+(?:asking|waiting|approval|permission)\b",
+        r"\b(?:raise|raises|raising|raised|refine|refines|refining|refined)\s+(?:the\s+)?standard(?:s)?\b",
+        r"\bseek(?:s|ing)?\s+(?:permission|approval)\b",
+        r"\bwait(?:s|ing|ed)?\s+(?:for|to|on)\s+(?:permission|approval|response)\b",
+    ]
+]
+
+
+def _count_hd_vocab(text: str) -> Tuple[int, List[str]]:
+    """Count Human-Design-style vocabulary hits in a string. Returns (count, matched_phrases)."""
+    if not isinstance(text, str) or not text:
+        return 0, []
+    hits: List[str] = []
+    for pat in _HD_VOCAB_PATTERNS:
+        for m in pat.finditer(text):
+            hits.append(m.group(0).lower())
+    return len(hits), hits
+
+
+def _domain_lens_balance_audit(domain_payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Audit a domain payload for HD-vocab over-use. Returns a diagnostic dict
+    with per-field counts. Logs a warning if any field has ≥ 2 HD hits.
+    Used for monitoring; does not rewrite content (prompt + seed weighting
+    are the primary guards).
+    """
+    if not isinstance(domain_payload, dict):
+        return {"hd_total": 0, "fields": {}, "flagged": False}
+    audit: Dict[str, Any] = {"fields": {}, "hd_total": 0, "flagged": False}
+    for field in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
+        v = domain_payload.get(field, "")
+        count, phrases = _count_hd_vocab(v)
+        audit["fields"][field] = {"count": count, "phrases": phrases}
+        audit["hd_total"] += count
+        if count >= 2:
+            audit["flagged"] = True
+    return audit
+
+
 def _validate_and_clean_render(raw: str) -> Tuple[Optional[Dict[str, Any]], List[str]]:
     """Parse JSON produced by the Mirror Life Synthesis Engine, run banned-phrase
     scrub on every string field in {role_card, domain}, and return cleaned
@@ -1338,6 +1501,20 @@ async def generate_domain_synthesis(
             if trimmed and len(trimmed) < len(v) * 0.9:
                 domain_payload[f] = trimmed
 
+    # Domain Lens Balance audit — monitor for HD-vocab over-use. Logged for
+    # diagnostics; the prompt rules + seed weighting are the primary guards.
+    lens_audit = _domain_lens_balance_audit(domain_payload)
+    if lens_audit.get("flagged"):
+        logger.warning(
+            "[LifeSynth] HD-vocab over-use in domain=%s | total_hits=%d | per_field=%s",
+            domain, lens_audit["hd_total"], lens_audit["fields"],
+        )
+    elif lens_audit.get("hd_total", 0) > 0:
+        logger.info(
+            "[LifeSynth] HD-vocab usage in domain=%s | total_hits=%d (under cap)",
+            domain, lens_audit["hd_total"],
+        )
+
     # Reserved slots (contract promise to UI / P2)
     domain_payload.setdefault("today", None)
     domain_payload.setdefault("explore", [])
@@ -1363,7 +1540,7 @@ async def generate_domain_synthesis(
             "domain_weight_scores":     (domain_weight_info or {}).get("scores"),
         },
         "generated_at":      datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_synth_v1a3",
+        "generator_version": "life_synth_v1a4_lensbalance",
     }
 
 

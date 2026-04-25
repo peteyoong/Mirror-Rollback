@@ -11012,3 +11012,53 @@ agent_communication:
         * LifeContextView passes phaseLabel + patternHint through to the
           AskAboutLifeModal so reflections opened from there carry phase
           context.
+
+  - task: "Life Synthesis — Domain Lens Balance (anti-Manifestor leakage)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_synthesis_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Rebalanced the Life Synthesis Engine so HD operating-style language
+          (Manifestor "initiate without permission", "refine standards", etc.)
+          no longer dominates every domain output.
+
+          Changes shipped:
+            * `_compress_themes()` now composes the core_pattern_seed and
+              default_tension_seed differently per domain:
+                - SELF: HD initiation leads (identity-shaped), then BaZi posture, then astro.
+                - WORK: BaZi structural posture + astro 10th/6th/2nd-house posture
+                  + lifeline domain themes lead. HD only added if < 2 signals.
+                - RELATIONSHIPS: Astro 7th/5th/8th-house posture + BaZi posture
+                  + lifeline relationship themes lead. HD only if < 2 signals.
+            * Added new prompt rule "11A. DOMAIN LENS BALANCE" with hard cap
+              (≤ 1 HD-vocab phrase per domain) and an explicit anti-leakage
+              test ("Imagine a reader sees Work / Relationships / Self side
+              by side. If they sound like the same Manifestor reading in
+              three costumes, you have failed.").
+            * Added `_count_hd_vocab()` and `_domain_lens_balance_audit()`
+              helpers — runs after LLM render, logs WARN when a domain has
+              ≥ 2 HD-vocab hits in any single field; INFO when usage is
+              under the cap. Provides observability without rewriting copy.
+            * Bumped `generator_version` from `life_synth_v1a3` to
+              `life_synth_v1a4_lensbalance` so existing caches invalidate.
+
+          Verified live with refresh=true on Pete (697f0c6abf35c0528ff06954):
+            * Work: 0 HD-hits across all 4 fields. Reads as work systems,
+              precise critiques, "the work begins to rely on you personally
+              instead of being distributed through the system". 
+            * Relationships: ≤ 1 HD hit per field (under cap). Distortion
+              reads "you move independently and unintentionally cut into
+              trust, leaving others reaching for a version of you".
+            * Self: HD vocab allowed and present (identity-shaped domain).
+              Reads as inner standards / self-trust / scrutinising self.
+
+          The three domain outputs now sound like one person in three
+          arenas with domain-specific consequences, NOT the same
+          Manifestor reading repeated three times.
+
