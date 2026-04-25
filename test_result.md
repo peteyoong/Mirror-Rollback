@@ -11165,3 +11165,79 @@ agent_communication:
             ✓ HD operating-style remains a contributing signal but no
               longer dominates every domain
 
+
+  - task: "Domain Language Physics (per-domain vocabulary register + audit + retry)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_synthesis_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Added a domain-language-physics layer on top of the existing
+          Zi Wei domain-origin engine. Each life domain now has its own
+          vocabulary register so the three tabs feel like three different
+          worlds for the same person.
+
+          Prompt-side:
+            * New rule "13. DOMAIN LANGUAGE PHYSICS" added to the synthesis
+              system prompt with explicit vocabulary registers + cross-domain
+              avoid-lists per domain:
+                SELF  → internal / reflective / identity-based
+                WORK  → structural / operational / systems-based
+                RELS  → interpersonal / relational / timing-based
+            * Sentence-physics entry point varies per domain:
+                SELF starts from the inner experience.
+                WORK starts from the system or workload.
+                RELS starts from the interaction gap.
+
+          Deterministic post-render audit:
+            * `_DOMAIN_FORBIDDEN_VOCAB` lists per-domain banned words
+              (e.g. WORK forbids self-trust / intimacy / warmth; SELF
+              forbids system / leverage / workflow; RELS forbids workflow /
+              infrastructure / productivity).
+            * `_count_forbidden_vocab()` + `_domain_language_audit()`
+              count cross-domain hits across the 4 prose fields.
+            * Domain is flagged when ≥ 2 hits in a single field OR ≥ 3 hits
+              across all fields.
+
+          Retry-once safety net:
+            * When a domain is flagged AND we have an LLM factory, the
+              engine appends a stronger language-register instruction
+              (with the leaked words listed inline) to the user message
+              and re-renders ONCE.
+            * The retry payload only replaces the original if it improves
+              the audit count. Logs INFO on improvement, WARNING when the
+              retry fails to fix things or when retry itself errors.
+            * If still flagged after retry, the original stays — prompt
+              rules + seed weighting remain the primary guard.
+
+          Generator version bumped: life_synth_v1a5_ziwei_origin →
+          life_synth_v1a6_lang_physics (cache invalidates).
+
+          Verified live with refresh=true on Pete (697f0c6abf35c0528ff06954):
+          forbidden-vocab audit returns ZERO hits across all three
+          synthesis tabs:
+            * Self total_hits=0       (internal/identity register held)
+            * Work total_hits=0       (structural/operational register held)
+            * Relationships total_hits=0 (interpersonal register held)
+
+          Texture differences are now visible in copy:
+            * Self: "internal pressure as a standard for yourself that
+              arises even before external demands appear"
+            * Work: "the of work builds faster than any structure can hold
+              it, causing output to outpace the system designed to carry it"
+            * Relationships: "your attempts to connect often outpace the
+              other person's readiness, causing your signals to arrive
+              before they are able to respond"
+
+          Acceptance criteria met:
+            ✓ Self feels internal / inner pressure / self-trust / identity
+            ✓ Work feels structural / responsibility / load / leverage
+            ✓ Relationships feels interpersonal / response / pacing
+            ✓ Three tabs feel like the same person in three different worlds
+            ✓ Zi Wei domain-origin layer untouched (no source-weight change)
+

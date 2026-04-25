@@ -1229,6 +1229,65 @@ NEVER expose the words "primary", "secondary", "background", "weight",
 weighting is INVISIBLE to the user. Show it through depth, not labels.
 
 ==================================================
+13. DOMAIN LANGUAGE PHYSICS (CRITICAL)
+==================================================
+
+Each domain MUST use a different language field. Two domains can share
+the same person, but they must NOT share the same vocabulary texture or
+the same sentence physics. The user should feel "each part of my life
+has its own intelligence", not "the same engine is describing different
+areas".
+
+▶ SELF — internal / reflective / identity-based language.
+
+   Use words from this register:
+     inner pressure · self-trust · identity · recovery · clarity ·
+     self-correction · inner signal · standard · belonging in yourself ·
+     interior · stillness · weight you carry · what you tell yourself
+
+   AVOID for SELF (these belong to Work):
+     system · leverage · delegation · output · process · infrastructure ·
+     stakeholders · execution · workflow · scaling · ownership
+
+   Sentence physics: START FROM THE INNER EXPERIENCE.
+     e.g. "The pressure begins inside, before anyone asks anything of you."
+
+▶ WORK — structural / operational / systems-based language.
+
+   Use words from this register:
+     responsibility · structure · capacity · leverage · handoff ·
+     ownership · workflow · execution · system · load · distribution ·
+     scaling · the work · the output · the team
+
+   AVOID for WORK (these belong to Self / Relationships):
+     self-trust · inner child · emotional closeness · intimacy ·
+     belonging · love · rejection · being met · warmth
+
+   Sentence physics: START FROM THE SYSTEM OR WORKLOAD.
+     e.g. "The work starts to gather around you before the structure is
+     ready to hold it."
+
+▶ RELATIONSHIPS — interpersonal / relational / timing-based language.
+
+   Use words from this register:
+     response · distance · closeness · trust · timing · repair ·
+     emotional signal · being met · reaching · receiving · warmth ·
+     the pause · the silence between
+
+   AVOID for RELATIONSHIPS (these belong to Work):
+     system · leverage · workflow · delegation · output ·
+     infrastructure · ownership · productivity · scaling · stakeholders
+
+   Sentence physics: START FROM THE INTERACTION GAP.
+     e.g. "The distance forms in the space between your signal and their
+     response."
+
+STRUCTURE VARIATION — Do NOT use the same sentence logic across all
+domains. Avoid the lazy template "you do X → this causes Y → over time
+Z" appearing in all three. Vary the entry point per domain as above so
+the three outputs feel like three different worlds for the same person.
+
+==================================================
 QUALITY CHECK BEFORE OUTPUT
 ==================================================
 
@@ -1483,6 +1542,100 @@ def _domain_lens_balance_audit(domain_payload: Dict[str, Any]) -> Dict[str, Any]
     return audit
 
 
+# ---------------------------------------------------------------------------
+# Domain Language Physics — per-domain forbidden vocabulary audit.
+#
+# Each domain has its own vocabulary register (set in prompt rule 13).
+# After the LLM renders, we count hits of forbidden cross-domain vocabulary
+# and flag any domain that crosses into another domain's register.
+#
+# Self  fails if it leans too operational (system, leverage, workflow, ...).
+# Work  fails if it leans too emotional/identity (self-trust, intimacy, ...).
+# Rels  fails if it leans too operational (system, workflow, output, ...).
+# ---------------------------------------------------------------------------
+
+_DOMAIN_FORBIDDEN_VOCAB: Dict[str, List[str]] = {
+    # Self should not sound like Work
+    "self": [
+        r"\bsystem(?:s)?\b",
+        r"\bleverage\b",
+        r"\bdelegation\b",
+        r"\bworkflow(?:s)?\b",
+        r"\boutput(?:s)?\b",
+        r"\binfrastructure\b",
+        r"\bscaling\b",
+        r"\bstakeholder(?:s)?\b",
+        r"\bhandoff(?:s)?\b",
+        r"\bdistribution\b",
+    ],
+    # Work should not sound like Self / Relationships
+    "work": [
+        r"\bself[- ]trust\b",
+        r"\binner\s+(?:child|signal|voice)\b",
+        r"\bintimacy\b",
+        r"\bbelonging\b",
+        r"\brejection\b",
+        r"\bemotional\s+closeness\b",
+        r"\bbeing\s+met\b",
+        r"\bwarmth\b",
+        r"\blove\b",
+    ],
+    # Relationships should not sound like Work
+    "relationships": [
+        r"\bsystem(?:s)?\b",
+        r"\bleverage\b",
+        r"\bworkflow(?:s)?\b",
+        r"\bdelegation\b",
+        r"\boutput(?:s)?\b",
+        r"\binfrastructure\b",
+        r"\bproductivity\b",
+        r"\bownership\b",
+        r"\bscaling\b",
+        r"\bstakeholder(?:s)?\b",
+    ],
+}
+
+_DOMAIN_FORBIDDEN_PATTERNS: Dict[str, List[re.Pattern]] = {
+    domain: [re.compile(p, re.I) for p in patterns]
+    for domain, patterns in _DOMAIN_FORBIDDEN_VOCAB.items()
+}
+
+
+def _count_forbidden_vocab(text: str, domain: str) -> Tuple[int, List[str]]:
+    """Count cross-domain forbidden vocabulary hits in a string."""
+    if not isinstance(text, str) or not text:
+        return 0, []
+    pats = _DOMAIN_FORBIDDEN_PATTERNS.get(domain.lower())
+    if not pats:
+        return 0, []
+    hits: List[str] = []
+    for pat in pats:
+        for m in pat.finditer(text):
+            hits.append(m.group(0).lower())
+    return len(hits), hits
+
+
+def _domain_language_audit(domain: str, domain_payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Audit a domain payload for cross-domain vocabulary leakage.
+    Domain fails if ≥ 2 forbidden hits in any field, or ≥ 3 across all fields.
+    Returns a diagnostic dict {fields: {...}, total_hits: N, flagged: bool}.
+    """
+    if not isinstance(domain_payload, dict) or not domain:
+        return {"total_hits": 0, "fields": {}, "flagged": False}
+    audit: Dict[str, Any] = {"fields": {}, "total_hits": 0, "flagged": False}
+    for field in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
+        v = domain_payload.get(field, "")
+        count, phrases = _count_forbidden_vocab(v, domain)
+        audit["fields"][field] = {"count": count, "phrases": phrases}
+        audit["total_hits"] += count
+        if count >= 2:
+            audit["flagged"] = True
+    if audit["total_hits"] >= 3:
+        audit["flagged"] = True
+    return audit
+
+
 def _validate_and_clean_render(raw: str) -> Tuple[Optional[Dict[str, Any]], List[str]]:
     """Parse JSON produced by the Mirror Life Synthesis Engine, run banned-phrase
     scrub on every string field in {role_card, domain}, and return cleaned
@@ -1631,6 +1784,86 @@ async def generate_domain_synthesis(
             domain, lens_audit["hd_total"],
         )
 
+    # Domain Language Physics audit — check that the domain stayed within
+    # its own vocabulary register. If it leaked into another domain's
+    # register, regenerate ONCE with a stronger language instruction;
+    # if still failing, log and continue (prompt rules are the primary
+    # guard, this is a safety net).
+    lang_audit = _domain_language_audit(domain, domain_payload)
+    if lang_audit.get("flagged") and llm_chat_factory is not None:
+        logger.warning(
+            "[LifeSynth] domain language leakage in domain=%s | total_hits=%d | per_field=%s — retrying once",
+            domain, lang_audit["total_hits"], lang_audit["fields"],
+        )
+        # Build a stronger language-physics instruction tailored to this domain
+        leaked_words = sorted({
+            w for f in lang_audit["fields"].values() for w in f.get("phrases", [])
+        })
+        register_hint = {
+            "self":          "internal / reflective / identity-based — inner pressure, self-trust, identity, recovery, clarity, self-correction, inner signal, standard, belonging in yourself. AVOID: system, leverage, delegation, workflow, output, infrastructure, scaling, ownership.",
+            "work":          "structural / operational / systems-based — responsibility, structure, capacity, leverage, handoff, ownership, workflow, execution, system, load, distribution, scaling. AVOID: self-trust, inner child, intimacy, belonging, rejection, emotional closeness, being met, warmth, love.",
+            "relationships": "interpersonal / relational / timing-based — response, distance, closeness, trust, timing, repair, emotional signal, being met, reaching, receiving, warmth, the pause. AVOID: system, leverage, workflow, delegation, output, infrastructure, productivity, ownership, scaling.",
+        }.get(domain, "")
+        retry_msg = (
+            user_msg
+            + "\n\n=== RETRY INSTRUCTION (CRITICAL) ===\n"
+            + f"Your previous draft for domain '{domain}' used cross-domain "
+            + "vocabulary that does not belong in this register. Leaked terms: "
+            + (", ".join(leaked_words) if leaked_words else "(see audit)")
+            + ".\nRewrite the entire JSON keeping the same content frame but "
+            + f"strictly within the {domain.upper()} language register: "
+            + register_hint
+            + "\nDo NOT use the leaked terms. Keep all other rules (no banned "
+            + "phrases, no mention of palace/zi wei/ziwei, no mention of "
+            + "weight/primary/secondary/background, etc.)."
+        )
+        try:
+            chat2: LlmChat = llm_chat_factory()
+            resp2 = await chat2.send_message(UserMessage(text=retry_msg))
+            llm_output_raw2 = resp2 if isinstance(resp2, str) else str(resp2)
+            parsed2, _hits2 = _validate_and_clean_render(llm_output_raw2)
+            if parsed2 and isinstance(parsed2.get("domain"), dict) and parsed2["domain"].get("pattern"):
+                # Strip weight vocab on the retry payload too
+                retry_payload = parsed2["domain"]
+                for f in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
+                    v = retry_payload.get(f)
+                    if isinstance(v, str) and v:
+                        retry_payload[f] = _strip_weight_vocab(v)
+                # Apply same background trim if applicable
+                if target_weight == "background":
+                    caps = {"distortion_under_pressure": 140, "what_this_pattern_needs": 120}
+                    for f, cap in caps.items():
+                        v = retry_payload.get(f)
+                        if isinstance(v, str) and v:
+                            trimmed = _trim_to_first_clause(v, max_chars=cap)
+                            if trimmed and len(trimmed) < len(v) * 0.9:
+                                retry_payload[f] = trimmed
+                # Re-audit; only swap in if the retry actually improved things
+                retry_lang_audit = _domain_language_audit(domain, retry_payload)
+                if retry_lang_audit["total_hits"] < lang_audit["total_hits"]:
+                    logger.info(
+                        "[LifeSynth] domain language retry improved domain=%s | %d → %d hits",
+                        domain, lang_audit["total_hits"], retry_lang_audit["total_hits"],
+                    )
+                    domain_payload = retry_payload
+                    if retry_lang_audit.get("flagged"):
+                        logger.warning(
+                            "[LifeSynth] domain language still flagged after retry domain=%s | total_hits=%d",
+                            domain, retry_lang_audit["total_hits"],
+                        )
+                else:
+                    logger.warning(
+                        "[LifeSynth] domain language retry did not improve domain=%s (%d → %d hits) — keeping original",
+                        domain, lang_audit["total_hits"], retry_lang_audit["total_hits"],
+                    )
+        except Exception as e:
+            logger.warning("[LifeSynth] domain language retry failed for domain=%s: %s", domain, e)
+    elif lang_audit.get("total_hits", 0) > 0:
+        logger.info(
+            "[LifeSynth] domain language usage in domain=%s | total_hits=%d (under cap)",
+            domain, lang_audit["total_hits"],
+        )
+
     # Reserved slots (contract promise to UI / P2)
     domain_payload.setdefault("today", None)
     domain_payload.setdefault("explore", [])
@@ -1656,7 +1889,7 @@ async def generate_domain_synthesis(
             "domain_weight_scores":     (domain_weight_info or {}).get("scores"),
         },
         "generated_at":      datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_synth_v1a5_ziwei_origin",
+        "generator_version": "life_synth_v1a6_lang_physics",
     }
 
 
