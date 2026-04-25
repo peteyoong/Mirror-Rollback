@@ -26,7 +26,6 @@ import {
   LifePhaseGap,
 } from '../services/api';
 import { LifelineTimeline } from './lifeline';
-import PeopleLens from './PeopleLens';
 import PhaseTimeline from './PhaseTimeline';
 import ReflectModal from './ReflectModal';
 import AskAboutLifeModal from './AskAboutLifeModal';
@@ -542,22 +541,6 @@ export default function LifeContextView({
     </View>
   );
 
-  // People tab — kept AS SUBORDINATE under the synthesis on Relationships
-  const renderPeopleTabBody = () => (
-    <PeopleLens
-      userId={userId}
-      theme={{
-        background: theme.background,
-        surface: theme.surface,
-        text: theme.text,
-        textSecondary: theme.textSecondary,
-        textTertiary: theme.textTertiary,
-        accent: theme.accent,
-        border: theme.border,
-      }}
-    />
-  );
-
   const renderSynthesisTab = (domain: SynthesisDomain) => {
     const synth = synthCache[domain];
     const loading = synthLoading[domain];
@@ -838,20 +821,6 @@ const styles = StyleSheet.create({
   synthBody: {
     fontSize: 15,
     lineHeight: 23,
-  },
-  // Subordinate block (People inside Relationships)
-  subordinateSection: {
-    marginTop: 24,
-    paddingTop: 12,
-    paddingHorizontal: 0,
-  },
-  subordinateLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    paddingHorizontal: 16,
-    marginBottom: 8,
   },
   // Evidence expander — "Why this is showing up"
   evidenceWrap: {
