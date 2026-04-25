@@ -26073,6 +26073,120 @@ async def get_life_evidence(context: str, user_id: str, refresh: bool = False):
     return result
 
 
+# ---------------------------------------------------------------------------
+# Cross-Domain Pattern Engine — V1
+#
+# Sits ABOVE the per-domain layers (Zi Wei origin / Language Physics /
+# Emotional Gravity). Where those isolate each domain, this surfaces the
+# ONE pattern that appears across Self / Work / Relationships.
+# ---------------------------------------------------------------------------
+
+
+def _cross_domain_llm_factory(session_id: str):
+    """Build an LlmChat for cross-domain pattern recognition (gpt-4.1-mini)."""
+    if not EMERGENT_LLM_KEY:
+        return None
+
+    def factory():
+        from emergentintegrations.llm.chat import LlmChat
+        return LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message="",  # set per-call by the engine
+        ).with_model("openai", "gpt-4.1-mini")
+    return factory
+
+
+@api_router.get("/life/cross-domain/{user_id}")
+async def get_life_cross_domain(user_id: str, refresh: bool = False, debug: bool = False):
+    """
+    Cross-Domain Pattern Engine.
+
+    Recognises the ONE pattern that shows up across Self / Work /
+    Relationships rather than summarising the three. Backend only —
+    no UI yet.
+
+    Pulls Self / Work / Relationships synthesis from the life_synth cache
+    (generating any missing entries on demand), plus pattern_memory and
+    lifeline_summary if available, and returns the structured output:
+
+        {
+          "core_pattern":         "...",
+          "pattern_spine":        "...",
+          "cross_domain_tension": "...",
+          "recognition_line":     "...",
+          "confidence":           "high|medium|low",
+          "generator_version":    "cross_domain_v1"
+        }
+    """
+    from services import cross_domain_engine as cde
+
+    cache_key = f"cross_domain::{user_id}"
+    if not refresh:
+        cached = _life_synth_cache_get(cache_key)
+        if cached:
+            return cached
+
+    # Pull / generate the three domain syntheses
+    self_synth = _life_synth_cache_get(f"synth::{user_id}::self")
+    if not self_synth:
+        self_synth = await get_life_synthesis(context="self", user_id=user_id, refresh=False)
+    work_synth = _life_synth_cache_get(f"synth::{user_id}::work")
+    if not work_synth:
+        work_synth = await get_life_synthesis(context="work", user_id=user_id, refresh=False)
+    rels_synth = _life_synth_cache_get(f"synth::{user_id}::relationships")
+    if not rels_synth:
+        rels_synth = await get_life_synthesis(context="relationships", user_id=user_id, refresh=False)
+
+    # Optional supporting context
+    pattern_memory: Optional[Dict[str, Any]] = None
+    try:
+        pm_doc = await db.pattern_memory.find_one({"user_id": user_id})
+        if pm_doc:
+            pm_doc.pop("_id", None)
+            pattern_memory = pm_doc
+    except Exception as e:
+        logger.warning("[CrossDomain] pattern_memory fetch failed: %s", e)
+
+    lifeline_summary: Optional[Dict[str, Any]] = None
+    try:
+        from services.lifeline_engine import build_lifeline_summary  # type: ignore
+        lifeline_summary = await build_lifeline_summary(user_id=user_id, db=db)
+    except Exception:
+        try:
+            lifeline_doc = await db.lifeline_events.find({"user_id": user_id}).to_list(length=200)
+            lifeline_summary = {"event_count": len(lifeline_doc) if lifeline_doc else 0}
+        except Exception as e:
+            logger.warning("[CrossDomain] lifeline_summary fetch failed: %s", e)
+
+    today_state: Optional[Dict[str, Any]] = None
+    try:
+        ts_doc = await db.today_state.find_one({"user_id": user_id})
+        if ts_doc:
+            ts_doc.pop("_id", None)
+            today_state = ts_doc
+    except Exception:
+        pass
+
+    result = await cde.generate_cross_domain_pattern(
+        self_synth=self_synth,
+        work_synth=work_synth,
+        rels_synth=rels_synth,
+        pattern_memory=pattern_memory,
+        lifeline_summary=lifeline_summary,
+        today_state=today_state,
+        llm_chat_factory=_cross_domain_llm_factory(
+            f"cross_domain_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
+        ),
+        debug=bool(debug),
+    )
+
+    # Cache the result (skip when debug=True so debug runs don't pollute cache)
+    if not debug:
+        _life_synth_cache_set(cache_key, result)
+    return result
+
+
 @api_router.get("/life/phases/{user_id}")
 async def get_life_phases(user_id: str, refresh: bool = False):
     """

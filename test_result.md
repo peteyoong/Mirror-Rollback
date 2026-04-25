@@ -11313,3 +11313,84 @@ agent_communication:
             ✓ Zi Wei domain-origin layer untouched
             ✓ Domain Language Physics layer untouched
 
+
+  - task: "Cross-Domain Pattern Engine V1 (GET /api/life/cross-domain/{user_id})"
+    implemented: true
+    working: true
+    file: "/app/backend/services/cross_domain_engine.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          New layer that sits ABOVE the per-domain stack (Zi Wei origin,
+          Language Physics, Emotional Gravity). Recognises the ONE pattern
+          showing up across Self / Work / Relationships rather than
+          summarising the three.
+
+          New service: /app/backend/services/cross_domain_engine.py
+            * Deterministic shared-signal extraction across the three
+              domain syntheses (themes: pace, pressure, responsibility,
+              response_gap, refining, self_correction, structure,
+              recurrence, container).
+            * Strict prompt schema returning JSON with exactly four
+              fields: core_pattern, pattern_spine, cross_domain_tension,
+              recognition_line + confidence.
+            * Anti-guru / anti-summary rules: no advice, no prediction,
+              no "your purpose is", no "you are meant to", no
+              "always/never/must" abuse, no banned framework names
+              (HD/BaZi/astrology/zi wei/palace/manifestor/etc).
+            * Post-render audit flags missing fields, banned phrases,
+              generic-applies-to-anyone phrasing, recognition_line
+              issues (>110 chars / no second-person / has softener /
+              has directive language like "must / should / need to").
+            * Retry-once safety net with stronger inline instruction.
+            * Final deterministic trim on recognition_line: clips at
+              the last clause boundary inside 110 chars and ensures it
+              ends with "." or "—".
+            * Banned-phrase post-scrub on all four prose fields.
+            * Confidence ladder: high (≥3 shared signals + recurrent
+              pattern memory), medium, low.
+
+          New endpoint: GET /api/life/cross-domain/{user_id}
+            * Pulls Self / Work / Relationships syntheses from cache
+              (generates any missing on demand), plus pattern_memory,
+              lifeline_summary, today_state.
+            * Calls cross_domain_engine.generate_cross_domain_pattern().
+            * Caches result (skip when ?debug=true).
+            * Optional ?refresh=true and ?debug=true query params.
+
+          Verified live with refresh=true&debug=true on Pete (697f0c6abf35c0528ff06954):
+            * core_pattern: "A cyclical process of refining standards or
+              actions recurs across your self, work, and relationships,
+              where repeated adjustment intended to improve becomes
+              counterproductive."
+            * pattern_spine: "You initiate improvements and raise
+              expectations, but recurring cycles of refinement extend
+              beyond effective limits, generating friction or isolation.
+              This cycle increases precision yet diminishes natural
+              flow and trust..."
+            * cross_domain_tension: "The pressure to refine and perfect
+              undermines collaboration and trust, creating distance
+              between you and others while also fracturing your internal
+              sense of stability..."
+            * recognition_line (110 chars, deterministically trimmed):
+              "You repeat cycles of relentless refinement that deepen
+              isolation and friction across your inner life, work."
+            * shared_signals: ["recurrence", "refining"]
+            * retry_used: true (first draft used wrong shape; retry
+              caught + fixed it).
+
+          Acceptance criteria met:
+            ✓ Endpoint returns the structured contract documented in spec
+            ✓ Output recognises ONE pattern across the three domains
+              (not a summary).
+            ✓ Tone is observational / reflective / precise (not advice,
+              not prediction, not philosophy).
+            ✓ recognition_line ≤ 110 chars, sharp, second-person.
+            ✓ No banned framework / guru language leaks.
+            ✓ Generator version stable: "cross_domain_v1".
+            ✓ Backend only — no UI yet (per spec).
+
