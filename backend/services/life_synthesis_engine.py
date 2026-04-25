@@ -1288,6 +1288,57 @@ Z" appearing in all three. Vary the entry point per domain as above so
 the three outputs feel like three different worlds for the same person.
 
 ==================================================
+14. DOMAIN EMOTIONAL GRAVITY (FINAL LAYER — how it LANDS, not what it says)
+==================================================
+
+Beyond vocabulary, each domain must LAND with a different emotional
+gravity. The user should feel "each part of my life is a different
+lived experience", not "the same engine described three areas".
+
+▶ SELF — HIGH INTENSITY · CLOSE RANGE
+   Land as RECOGNITION, not explanation.
+   - Use statements, not analysis.
+   - Reduce softeners. AVOID over-using "tends to", "may", "might",
+     "often", "sometimes", "usually". One softener across the four
+     fields is the max for SELF.
+   - At least ONE sentence should be sharp enough to feel almost
+     uncomfortably direct. Short. Declarative. Second-person present.
+   - The user should feel: "this is about me."
+   - Bad:  "You tend to carry internal pressure to refine yourself over time."
+   - Good: "The pressure starts inside you — before anything is asked."
+
+▶ WORK — MEDIUM INTENSITY · SYSTEM DISTANCE
+   Land as CLARITY about a system.
+   - Frame issues as system dynamics, not personal flaws.
+   - Sentences can be a touch longer and more explanatory than SELF.
+   - Reduce emotional charge. Increase observational distance.
+   - The user should feel: "this is what's happening in the system."
+   - Bad:  "You push yourself too hard and end up overwhelmed."
+   - Good: "The work builds faster than the structure holding it."
+
+▶ RELATIONSHIPS — SOFT INTENSITY · INTERPERSONAL FIELD
+   Land as a SUBTLE, EXPERIENTIAL OBSERVATION.
+   - Softer, relational phrasing. Focus on space, timing, response.
+   - AVOID harsh or absolute language: never, always, must, fail,
+     destroy, ruin, broken, never-ever.
+   - Less analytical, more experiential. Acknowledge what happens
+     between two people without judgment.
+   - The user should feel: "this is what happens between us."
+   - Bad:  "You create distance by acting too quickly."
+   - Good: "The gap forms before either of you names it."
+
+BLADE + ANCHOR enforcement (every section, every domain):
+   1. BLADE  — sharp recognition line, the "I know me" moment.
+   2. ANCHOR — a stabilising explanation or framing immediately after.
+
+   SELF: blade can be very sharp; anchor grounds without softening too much.
+   WORK: blade is OBSERVATIONAL (not emotional); anchor explains structure.
+   RELATIONSHIPS: blade is SUBTLE (not harsh); anchor adds emotional clarity.
+
+The three tabs side-by-side must feel like THREE different lived
+experiences, not three explanations of one thing.
+
+==================================================
 QUALITY CHECK BEFORE OUTPUT
 ==================================================
 
@@ -1543,7 +1594,123 @@ def _domain_lens_balance_audit(domain_payload: Dict[str, Any]) -> Dict[str, Any]
 
 
 # ---------------------------------------------------------------------------
-# Domain Language Physics — per-domain forbidden vocabulary audit.
+# Domain Emotional Gravity — final audit on HOW the insight LANDS.
+#
+# SELF — high intensity / close range. Should land as recognition.
+#   Fails if too many softeners ("tends to", "may", "often", ...) — analytical drift.
+#   Fails if no sharp recognition line is present (every sentence too long/explainery).
+#
+# WORK — medium intensity / system distance. Should land as system clarity.
+#   Fails if it leaks emotional/identity charge (overlap with lang_physics,
+#   so we re-use part of that audit).
+#
+# RELATIONSHIPS — soft intensity / interpersonal field.
+#   Fails if it uses harsh / absolute language (must, never, always, fail,
+#   destroy, ruin, broken).
+# ---------------------------------------------------------------------------
+
+_SOFTENER_RE = re.compile(
+    r"\b(?:tends? to|tend to|may|might|often|sometimes|usually|"
+    r"typically|generally|seems? to|appears? to|seems like|seems? like)\b",
+    re.I,
+)
+
+# A "sharp" SELF line: short (≤ 90 chars), declarative, second-person
+# present, no softener, ends with "." or "—".
+_SECOND_PERSON_RE = re.compile(r"\b(?:you|your)\b", re.I)
+
+# Harsh / absolute language for RELATIONSHIPS audit.
+_HARSH_ABSOLUTE_RE = re.compile(
+    r"\b(?:never|always|must|fail(?:s|ed|ing)?|destroy(?:s|ed|ing)?|"
+    r"ruin(?:s|ed|ing)?|broken|impossible|hopeless|toxic|wrecks?|"
+    r"shatter(?:s|ed|ing)?)\b",
+    re.I,
+)
+
+
+def _has_sharp_recognition_line(payload: Dict[str, Any]) -> bool:
+    """A blade line is short, declarative, second-person, softener-free."""
+    if not isinstance(payload, dict):
+        return False
+    for field in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
+        v = payload.get(field, "")
+        if not isinstance(v, str) or not v:
+            continue
+        for sentence in re.split(r"(?<=[.!?])\s+", v.strip()):
+            s = sentence.strip()
+            if not s or len(s) > 110:
+                continue
+            if _SOFTENER_RE.search(s):
+                continue
+            if not _SECOND_PERSON_RE.search(s):
+                continue
+            return True
+    return False
+
+
+def _count_softeners(payload: Dict[str, Any]) -> Tuple[int, List[str]]:
+    """Count softener phrases across the four prose fields."""
+    if not isinstance(payload, dict):
+        return 0, []
+    hits: List[str] = []
+    for field in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
+        v = payload.get(field, "")
+        if isinstance(v, str) and v:
+            hits.extend(m.group(0).lower() for m in _SOFTENER_RE.finditer(v))
+    return len(hits), hits
+
+
+def _count_harsh_absolutes(payload: Dict[str, Any]) -> Tuple[int, List[str]]:
+    """Count harsh / absolute words across the four prose fields."""
+    if not isinstance(payload, dict):
+        return 0, []
+    hits: List[str] = []
+    for field in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
+        v = payload.get(field, "")
+        if isinstance(v, str) and v:
+            hits.extend(m.group(0).lower() for m in _HARSH_ABSOLUTE_RE.finditer(v))
+    return len(hits), hits
+
+
+def _domain_emotional_gravity_audit(domain: str, domain_payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Returns {flagged, reason, counts}. Used as a TONE audit AFTER the
+    language-physics audit. Only flags clear failures so we don't retry too
+    aggressively.
+    """
+    audit: Dict[str, Any] = {"flagged": False, "reason": "", "counts": {}}
+    if not isinstance(domain_payload, dict) or not domain:
+        return audit
+
+    softener_count, softener_hits = _count_softeners(domain_payload)
+    harsh_count, harsh_hits = _count_harsh_absolutes(domain_payload)
+    audit["counts"] = {
+        "softeners": {"count": softener_count, "phrases": softener_hits},
+        "harsh_absolutes": {"count": harsh_count, "phrases": harsh_hits},
+        "has_sharp_line": _has_sharp_recognition_line(domain_payload),
+    }
+
+    d = domain.lower()
+    if d == "self":
+        # SELF must land as recognition — too many softeners breaks intensity,
+        # absence of any sharp line means the LLM only delivered analysis.
+        if softener_count >= 3:
+            audit["flagged"] = True
+            audit["reason"] = f"self_too_many_softeners ({softener_count})"
+        elif not audit["counts"]["has_sharp_line"]:
+            audit["flagged"] = True
+            audit["reason"] = "self_no_sharp_recognition_line"
+    elif d == "relationships":
+        # RELATIONSHIPS must land subtly — harsh / absolute words break that field.
+        if harsh_count >= 2:
+            audit["flagged"] = True
+            audit["reason"] = f"relationships_too_harsh ({harsh_count})"
+    # WORK tone audit covered by the language-physics layer (emotional/identity
+    # vocab is already forbidden), so no separate gravity rule fires here.
+    return audit
+
+
+
 #
 # Each domain has its own vocabulary register (set in prompt rule 13).
 # After the LLM renders, we count hits of forbidden cross-domain vocabulary
@@ -1864,6 +2031,91 @@ async def generate_domain_synthesis(
             domain, lang_audit["total_hits"],
         )
 
+    # Domain Emotional Gravity audit — final tone layer. Checks HOW the
+    # output LANDS (Self = sharp/close, Work = clear/system-distance,
+    # Relationships = subtle/no-harsh-absolutes). Retry once with a
+    # stronger gravity instruction if flagged; if still failing, log and
+    # continue.
+    gravity_audit = _domain_emotional_gravity_audit(domain, domain_payload)
+    if gravity_audit.get("flagged") and llm_chat_factory is not None:
+        logger.warning(
+            "[LifeSynth] emotional gravity flag in domain=%s | reason=%s | counts=%s — retrying once",
+            domain, gravity_audit.get("reason"), gravity_audit.get("counts"),
+        )
+        gravity_hint = {
+            "self": (
+                "SELF must land as RECOGNITION, not analysis. "
+                "Use short declarative second-person sentences. "
+                "Drop softeners ('tends to', 'may', 'often', 'sometimes', 'usually'). "
+                "Include AT LEAST ONE sharp recognition line that feels almost "
+                "uncomfortably direct — short, declarative, present tense, no softener."
+            ),
+            "work": (
+                "WORK must land as SYSTEM CLARITY. Frame issues as system "
+                "dynamics, not personal flaws. Reduce emotional charge."
+            ),
+            "relationships": (
+                "RELATIONSHIPS must land SUBTLY. Remove harsh / absolute words "
+                "(never, always, must, fail, destroy, ruin, broken, toxic). "
+                "Lean on space, timing, response, repair — not judgment."
+            ),
+        }.get(domain, "")
+        retry_msg2 = (
+            user_msg
+            + "\n\n=== GRAVITY RETRY (CRITICAL) ===\n"
+            + f"Your previous draft for domain '{domain}' did not land with the "
+            + f"correct emotional gravity (audit reason: {gravity_audit.get('reason')}).\n"
+            + gravity_hint
+            + "\nKeep the same content frame and Zi Wei domain origin. Keep all "
+            + "vocabulary-physics rules. Only adjust the TONE / sentence physics."
+        )
+        try:
+            chat3: LlmChat = llm_chat_factory()
+            resp3 = await chat3.send_message(UserMessage(text=retry_msg2))
+            llm_output_raw3 = resp3 if isinstance(resp3, str) else str(resp3)
+            parsed3, _hits3 = _validate_and_clean_render(llm_output_raw3)
+            if parsed3 and isinstance(parsed3.get("domain"), dict) and parsed3["domain"].get("pattern"):
+                retry_payload2 = parsed3["domain"]
+                # Re-apply the same scrub / clause trim guards
+                for f in ("pattern", "default_tension", "distortion_under_pressure", "what_this_pattern_needs"):
+                    v = retry_payload2.get(f)
+                    if isinstance(v, str) and v:
+                        retry_payload2[f] = _strip_weight_vocab(v)
+                if target_weight == "background":
+                    caps = {"distortion_under_pressure": 140, "what_this_pattern_needs": 120}
+                    for f, cap in caps.items():
+                        v = retry_payload2.get(f)
+                        if isinstance(v, str) and v:
+                            trimmed = _trim_to_first_clause(v, max_chars=cap)
+                            if trimmed and len(trimmed) < len(v) * 0.9:
+                                retry_payload2[f] = trimmed
+                # Re-audit gravity AND keep the language audit intact
+                retry_lang = _domain_language_audit(domain, retry_payload2)
+                retry_grav = _domain_emotional_gravity_audit(domain, retry_payload2)
+                # Only swap in if gravity improved AND language didn't regress
+                if not retry_grav.get("flagged") and retry_lang["total_hits"] <= lang_audit["total_hits"] + 1:
+                    logger.info(
+                        "[LifeSynth] gravity retry improved domain=%s (reason resolved)",
+                        domain,
+                    )
+                    domain_payload = retry_payload2
+                else:
+                    logger.warning(
+                        "[LifeSynth] gravity retry did not satisfy guards in domain=%s "
+                        "(grav_flagged=%s, lang_total=%d) — keeping original",
+                        domain, retry_grav.get("flagged"), retry_lang["total_hits"],
+                    )
+        except Exception as e:
+            logger.warning("[LifeSynth] gravity retry failed for domain=%s: %s", domain, e)
+    elif gravity_audit.get("counts"):
+        logger.info(
+            "[LifeSynth] gravity audit pass in domain=%s | sharp_line=%s | softeners=%d | harsh=%d",
+            domain,
+            gravity_audit["counts"].get("has_sharp_line"),
+            gravity_audit["counts"].get("softeners", {}).get("count", 0),
+            gravity_audit["counts"].get("harsh_absolutes", {}).get("count", 0),
+        )
+
     # Reserved slots (contract promise to UI / P2)
     domain_payload.setdefault("today", None)
     domain_payload.setdefault("explore", [])
@@ -1889,7 +2141,7 @@ async def generate_domain_synthesis(
             "domain_weight_scores":     (domain_weight_info or {}).get("scores"),
         },
         "generated_at":      datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_synth_v1a6_lang_physics",
+        "generator_version": "life_synth_v1a7_emotional_gravity",
     }
 
 

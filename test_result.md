@@ -11241,3 +11241,75 @@ agent_communication:
             ✓ Three tabs feel like the same person in three different worlds
             ✓ Zi Wei domain-origin layer untouched (no source-weight change)
 
+
+  - task: "Domain Emotional Gravity (final tone layer + audit + retry)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_synthesis_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Added a final tone layer ("how it LANDS, not what it says") on
+          top of the Zi Wei domain-origin and Domain Language Physics
+          layers. Each domain now lands with its own emotional gravity:
+
+            * SELF  → high intensity / close range / land as RECOGNITION
+            * WORK  → medium intensity / system distance / land as CLARITY
+            * RELS  → soft intensity / interpersonal field / land SUBTLY
+
+          Prompt-side:
+            * New rule "14. DOMAIN EMOTIONAL GRAVITY" added with explicit
+              per-domain intensity guidance, sentence physics, BLADE +
+              ANCHOR enforcement (sharp recognition line + stabilising
+              explanation), and the cardinal "side-by-side test".
+
+          Deterministic post-render audit:
+            * `_SOFTENER_RE` matches "tends to / may / might / often /
+              sometimes / usually / typically / generally / seems to /
+              appears to / seems like".
+            * `_HARSH_ABSOLUTE_RE` matches "never / always / must / fail /
+              destroy / ruin / broken / impossible / hopeless / toxic /
+              wrecks / shatter".
+            * `_has_sharp_recognition_line()` finds short (≤ 110 chars)
+              second-person declarative softener-free sentences.
+            * `_domain_emotional_gravity_audit()` flags:
+                - SELF when ≥ 3 softeners across fields OR no sharp line.
+                - RELATIONSHIPS when ≥ 2 harsh / absolute words.
+                - WORK tone covered by language-physics audit (no separate
+                  rule — emotional/identity vocab is already forbidden).
+
+          Retry-once safety net:
+            * When flagged AND LLM factory available, the engine appends a
+              tailored gravity instruction to the user message and
+              re-renders ONCE.
+            * Retry payload only replaces the original if gravity is no
+              longer flagged AND the language audit didn't regress.
+            * Logs INFO on improvement, WARNING when retry fails to
+              satisfy guards or errors.
+
+          Generator version bumped: life_synth_v1a6_lang_physics →
+          life_synth_v1a7_emotional_gravity (cache invalidates).
+
+          Verified live with refresh=true on Pete (697f0c6abf35c0528ff06954):
+            * Self  → softeners=0, harsh=0, sharp_lines=1.
+              Sharp example: "You replace self-trust with self-correction,
+              treating yourself like an object to perfect."
+            * Work  → softeners=0, harsh=0, sharp_lines=3.
+              Lines lead with system dynamics (responsibility lands on
+              your shoulders before you have agreed).
+            * Rels  → softeners=1 (under cap), harsh=0, sharp_lines=1.
+              Sharp example: "Each time this returns, distance quietly
+              grows between you and the other."
+
+          Acceptance criteria met:
+            ✓ Self feels close, personal, slightly uncomfortable
+            ✓ Work feels clear, structured, externalized
+            ✓ Relationships feels subtle, human, emotionally precise
+            ✓ Three tabs feel like three different lived experiences
+            ✓ Zi Wei domain-origin layer untouched
+            ✓ Domain Language Physics layer untouched
+
