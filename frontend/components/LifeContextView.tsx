@@ -523,11 +523,23 @@ export default function LifeContextView({
     );
   };
   const renderLifelineTab = () => (
-    <LifelineTimeline
-      userId={userId}
-      externalAddRequest={lifelineAddRequest}
-      embedded
-    />
+    <View>
+      {/* PhaseTimeline now lives inside Lifeline — it is part of the
+          story experience, not a global anchor across all tabs. */}
+      <View style={styles.phaseTimelineWrap}>
+        <PhaseTimeline
+          phases={phases}
+          phaseGap={phaseGap}
+          loading={phasesLoading && (phases === null || phases.length === 0)}
+          onAddMoment={handlePhaseAddMoment}
+        />
+      </View>
+      <LifelineTimeline
+        userId={userId}
+        externalAddRequest={lifelineAddRequest}
+        embedded
+      />
+    </View>
   );
 
   // People tab — kept AS SUBORDINATE under the synthesis on Relationships
@@ -602,13 +614,9 @@ export default function LifeContextView({
         {/* Why this is showing up — lazy-loaded evidence expander */}
         {synth ? renderEvidenceExpander(domain) : null}
 
-        {/* Relationships: keep People list below synthesis as clearly subordinate */}
-        {domain === 'relationships' ? (
-          <View style={styles.subordinateSection}>
-            <Text style={[styles.subordinateLabel, { color: theme.textTertiary }]}>Your People</Text>
-            {renderPeopleTabBody()}
-          </View>
-        ) : null}
+        {/* NOTE: The "People in your life" / Add Person block was removed
+            from this tab. People mapping happens elsewhere (Forum / People
+            setup) where birth data can be properly captured. */}
 
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: theme.textTertiary }]}>
@@ -683,16 +691,6 @@ export default function LifeContextView({
               💬 Ask about my life
             </Text>
           </TouchableOpacity>
-
-          {/* Bounded PhaseTimeline — must not eat the page */}
-          <View style={styles.phaseTimelineWrap}>
-            <PhaseTimeline
-              phases={phases}
-              phaseGap={phaseGap}
-              loading={phasesLoading && (phases === null || phases.length === 0)}
-              onAddMoment={handlePhaseAddMoment}
-            />
-          </View>
         </View>
 
         {renderContextTabs()}
