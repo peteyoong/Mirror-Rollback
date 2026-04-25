@@ -681,6 +681,12 @@ export default function LifeContextView({
         onClose={() => setAskOpen(false)}
         userId={userId}
         initialDomain={askInitialChip}
+        phaseLabel={
+          (phases || []).find(p => p.is_current)?.label || null
+        }
+        patternHint={
+          (phases || []).find(p => p.is_current)?.pattern_expression || null
+        }
       />
     </View>
   );

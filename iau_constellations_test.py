@@ -14,7 +14,7 @@ import sys
 import time
 import requests
 
-BACKEND_URL = os.environ.get("BACKEND_URL", "https://tension-mapper.preview.emergentagent.com")
+BACKEND_URL = os.environ.get("BACKEND_URL", "https://reflect-loop-upgrade.preview.emergentagent.com")
 API = BACKEND_URL.rstrip("/") + "/api"
 
 USERS = {

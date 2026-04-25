@@ -54,40 +54,72 @@ You are answering a user's question about their life.
 You MUST base your answer ONLY on the provided context.
 
 ==================================================
-RULES
+OUTPUT FORMAT (CRITICAL)
 ==================================================
 
-1. Start with recognition
-   Show the user you understand their situation.
-   Example: "This isn't random — this comes from how you tend to…"
+Return a single JSON object with EXACTLY two keys:
 
-2. Reference pattern
-   Explain the behaviour clearly.
+{
+  "answer":     "2-4 short plain-text paragraphs, separated by blank lines",
+  "follow_ups": ["question 1", "question 2", "question 3"]
+}
 
-3. Reference phase
-   Anchor the answer in where they are now.
+NO markdown. NO code fences. NO prose before or after the JSON.
+"answer" is plain text only — no headings, no bullets.
+"follow_ups" must contain 2 or 3 items.
+
+==================================================
+ANSWER RULES
+==================================================
+
+1. Start with recognition (VARY the opening — don't always use the same phrase).
+   Use phrases like:
+     - "This isn't random — this comes from how you tend to…"
+     - "This connects back to how you tend to…"
+     - "What you're noticing comes from…"
+     - "This pattern shows up because…"
+     - "What's surfacing here is tied to…"
+   Pick whichever fits the situation; never use the same opening twice in a row.
+
+2. Reference pattern. Explain the behaviour clearly.
+
+3. Reference phase. Anchor the answer in where they are now.
    Example: "Right now, you're in a phase where…"
 
-4. Show consequence
-   Explain what this leads to.
+4. Show consequence. Explain what this leads to.
 
-5. Keep it grounded
-   No mysticism. No vague generalities. No system names.
+5. Keep it grounded. No mysticism. No vague generalities. No system names.
 
-6. Do NOT give direct advice
-   Instead, show:
-     - what's happening
-     - what it leads to
-     - what's becoming visible
+6. Do NOT give direct advice. Show what's happening, what it leads to,
+   what's becoming visible.
 
-7. Tone
-   - calm
-   - clear
-   - direct
-   - slightly confronting when needed
+7. Tone: calm, clear, direct, slightly confronting when needed.
 
-8. Length
-   2–4 paragraphs max.
+8. Length: 2–4 short paragraphs max.
+
+==================================================
+FOLLOW-UP RULES
+==================================================
+
+After the answer, propose 2–3 follow-up questions the user is most likely
+to want to ask next. Each one MUST be:
+
+  - grounded in this user's specific context (their pattern + phase + domain)
+  - a NATURAL next step from the answer just given
+  - 10–12 words MAX
+  - phrased the way the user would phrase it (first person: "my", "I")
+  - NOT a repetition of the original question
+  - NOT generic ("Tell me more", "Can I help you further")
+  - NOT advice ("Should I...?")
+
+Mix 2–3 of these types (you do not need all four):
+
+  TYPE A — DEEPER WHY:           "Why does this keep happening to me?"
+  TYPE B — CROSS-DOMAIN EFFECT:  "How is this showing up in my work?"
+  TYPE C — PHASE-BASED:          "What phase is this moving me into?"
+  TYPE D — PRESENT MOMENT:       "Why does this feel stronger today?"
+
+Do NOT label the type in the output — just write the natural questions.
 
 ==================================================
 ANSWER ABOUT THE EXACT TOPIC THE USER ASKED
@@ -109,14 +141,6 @@ NEVER use the words: "human design", "bazi", "astrology", "horoscope",
 
 NEVER mention you are an AI, a model, an interpreter, or a "mirror".
 NEVER predict the future. NEVER prescribe a fix.
-
-==================================================
-OUTPUT FORMAT
-==================================================
-
-Return PLAIN TEXT only. No JSON. No markdown. No headings. No bullets.
-2 to 4 short paragraphs separated by blank lines. No prefix like
-"Here's an answer:" — start straight into the recognition.
 
 ==================================================
 PRINCIPLE
@@ -323,10 +347,11 @@ def _format_context_for_llm(ctx: Dict[str, Any]) -> str:
             lines.append(f"  - {s}")
         lines.append("")
     lines.append(
-        "Now answer the user's question in 2–4 short paragraphs, plain text "
-        "only. Follow all rules above (recognition → pattern → phase → "
-        "consequence). Speak directly to the user (you/your). Speak to the "
-        f"specific topic they asked about ({ctx['chip']})."
+        "Now produce the JSON object as specified. Speak directly to the "
+        "user (you/your). Speak to the specific topic they asked about "
+        f"({ctx['chip']}). Generate 2–3 follow-up questions in the user's "
+        "first-person voice ('my', 'I'). Vary the opening line of the "
+        "answer — don't always start with 'This isn't just about'."
     )
     return "\n".join(lines)
 
@@ -413,7 +438,11 @@ async def ask_life_question(
             "the events around it."
         )
 
-    answer, banned_hits = _scrub(answer_raw)
+    # Parse JSON {answer, follow_ups}. Fall back to treating the raw text as
+    # the answer if parsing fails — this keeps the API contract resilient.
+    answer_text, follow_ups, parse_error = _parse_interpreter_json(answer_raw, chip)
+
+    answer, banned_hits = _scrub(answer_text)
 
     # Strip leading "Here's...", "Answer:" type prefixes if any sneak through.
     answer = re.sub(
@@ -426,15 +455,35 @@ async def ask_life_question(
     if len(answer) > 2400:
         answer = answer[:2400].rsplit(" ", 1)[0] + "…"
 
+    # Scrub banned phrases from follow-ups; drop any that become empty.
+    cleaned_follow_ups: List[str] = []
+    for f in follow_ups[:3]:
+        if not isinstance(f, str):
+            continue
+        c, hits = _scrub(f)
+        c = c.strip(" -•·").strip()
+        if hits:
+            banned_hits.extend(hits)
+        # Filter out malformed / overly long / overly short
+        if 4 <= len(c) <= 140:
+            cleaned_follow_ups.append(c if c.endswith(("?", ".", "!")) else c + "?")
+
+    # Defensive: if the model didn't supply usable follow-ups, fill with a
+    # context-aware deterministic set (covers the LLM-failure path too).
+    if len(cleaned_follow_ups) < 2:
+        cleaned_follow_ups = _default_follow_ups(chip, pattern_memory, today_state)
+
     return {
         "answer":           answer,
+        "follow_ups":       cleaned_follow_ups[:3],
         "chip_domain":      chip,
         "synthesis_domain": synth_dom,
         "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_interpreter_v1",
+        "generator_version": "life_interpreter_v2",
         "debug": {
             "llm_used":       answer_raw is not None and render_error is None,
             "render_error":   render_error,
+            "parse_error":    parse_error,
             "banned_hits":    banned_hits,
             "context_keys":   {
                 "has_role_card":        bool(ctx["role_card"]),
@@ -446,3 +495,85 @@ async def ask_life_question(
             },
         },
     }
+
+
+# ---------------------------------------------------------------------------
+# JSON parsing helpers
+# ---------------------------------------------------------------------------
+
+def _parse_interpreter_json(raw: str, chip: str) -> tuple[str, List[str], Optional[str]]:
+    """
+    Best-effort parse of the LLM JSON. Returns (answer_text, follow_ups, parse_error).
+    On any failure: treats raw as plain answer and emits empty follow_ups.
+    """
+    import json as _json
+
+    if not raw:
+        return "", [], "empty"
+    s = raw.strip()
+    if s.startswith("```"):
+        s = re.sub(r"^```[a-zA-Z0-9]*\s*\n?", "", s)
+        s = re.sub(r"\n?```\s*$", "", s)
+    first = s.find("{")
+    last = s.rfind("}")
+    if first == -1 or last == -1 or last < first:
+        return s, [], "no_json_object"
+    chunk = s[first:last + 1]
+    try:
+        obj = _json.loads(chunk)
+    except Exception as e:
+        return s, [], f"json_decode_error: {e}"
+    if not isinstance(obj, dict):
+        return s, [], "json_not_object"
+    answer_text = obj.get("answer")
+    follow_ups_raw = obj.get("follow_ups") or []
+    if not isinstance(answer_text, str) or not answer_text.strip():
+        return s, [], "missing_answer_field"
+    if not isinstance(follow_ups_raw, list):
+        follow_ups_raw = []
+    return answer_text.strip(), follow_ups_raw, None
+
+
+def _default_follow_ups(
+    chip: str,
+    pattern_memory: Optional[Dict[str, Any]],
+    today_state: Optional[Dict[str, Any]],
+) -> List[str]:
+    """
+    Deterministic fallback follow-ups when the LLM doesn't produce any.
+    Context-aware: uses chip + recurrence + today intensity to pick the
+    most useful 2-3 questions, in the user's first-person voice.
+    """
+    out: List[str] = []
+    is_recurring = (pattern_memory or {}).get("memory_state") == "recurring_pattern"
+    intensity = (today_state or {}).get("intensity_level")
+
+    if is_recurring:
+        out.append("Why does this keep repeating for me?")
+    if chip == "self":
+        out.append("How is this showing up in my work?")
+    elif chip == "work":
+        out.append("How is this affecting my relationships?")
+    elif chip == "money":
+        out.append("Is this connected to how I work?")
+    elif chip == "relationships":
+        out.append("How does this show up in my work?")
+    elif chip == "health":
+        out.append("Is this tied to what's happening at work?")
+    elif chip == "friends":
+        out.append("Is this the same shape with my family?")
+    elif chip == "family":
+        out.append("Is this the same shape with my friends?")
+    if intensity == "high":
+        out.append("Why does this feel stronger right now?")
+    else:
+        out.append("What phase is this moving me into?")
+    # Dedup + cap
+    seen = set()
+    deduped: List[str] = []
+    for q in out:
+        k = q.lower()
+        if k not in seen:
+            seen.add(k)
+            deduped.append(q)
+    return deduped[:3]

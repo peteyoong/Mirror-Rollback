@@ -1612,6 +1612,7 @@ export interface AskLifeRequest {
 
 export interface AskLifeResponse {
   answer: string;
+  follow_ups?: string[];
   chip_domain: AskLifeChip;
   synthesis_domain: 'self' | 'work' | 'relationships';
   generated_at: string;

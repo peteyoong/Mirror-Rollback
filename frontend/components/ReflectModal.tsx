@@ -34,6 +34,12 @@ interface Props {
   phaseLabel?: string | null;
   patternHint?: string | null;
   onSaved?: () => void;
+  /** Source tag for analytics + DB filtering (e.g. "life_reflect", "ask_reflect"). */
+  source?: string;
+  /** Optional pre-filled text (used when reflecting on an answer). */
+  initialText?: string;
+  /** Optional override for the prompt heading shown above the input. */
+  promptOverride?: string | null;
 }
 
 const PROMPTS: string[] = [
@@ -50,6 +56,9 @@ export default function ReflectModal({
   phaseLabel,
   patternHint,
   onSaved,
+  source,
+  initialText,
+  promptOverride,
 }: Props) {
   const { theme } = useTheme();
   const [text, setText] = useState('');
@@ -62,12 +71,12 @@ export default function ReflectModal({
   // Reset state when modal opens / closes
   useEffect(() => {
     if (visible) {
-      setText('');
+      setText(initialText || '');
       setError(null);
       setSaving(false);
       setSavedFlash(false);
     }
-  }, [visible]);
+  }, [visible, initialText]);
 
   const handleSave = async () => {
     const trimmed = text.trim();
@@ -82,7 +91,7 @@ export default function ReflectModal({
         user_id:      userId,
         text:         trimmed,
         domain,
-        source:       'life_reflect',
+        source:       source || 'life_reflect',
         phase_label:  phaseLabel || null,
         pattern_hint: patternHint || null,
       });
@@ -130,7 +139,7 @@ export default function ReflectModal({
                 </Text>
 
                 <Text style={[styles.prompt, { color: theme.textTertiary }]}>
-                  {PROMPTS[promptIdx]}
+                  {promptOverride || PROMPTS[promptIdx]}
                 </Text>
 
                 <TextInput
