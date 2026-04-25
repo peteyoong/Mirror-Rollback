@@ -10973,3 +10973,42 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Addressed the paragraph-formatting failure flagged in the backend
+      test run.
+
+      Fix shipped in /app/backend/services/life_interpreter.py:
+        * System prompt updated — now explicitly demands literal "\n\n"
+          between paragraphs in the answer JSON value with hard wording.
+        * New _ensure_paragraphs() helper runs after _scrub() in
+          ask_life_question(): if the LLM still returns one big block,
+          we split on sentence boundaries and rebuild 2-3 evenly sized
+          paragraphs deterministically. Existing paragraph breaks are
+          preserved when present, so well-formed LLM output is untouched.
+
+      Smoke-tested against POST /api/life/ask/697f0c6abf35c0528ff06954
+      with chip="money" → answer now returns 3 paragraphs separated by
+      "\n\n", follow_ups list of 3 money-specific questions, all other
+      response fields intact.
+
+      The 2/9 banned-substring "leaks" the tester saw ("transit" inside
+      "transition", "system" inside "systemic") are intentional — the
+      backend regex uses word boundaries because banning legitimate
+      English words like "transition" would corrupt the user-facing
+      copy. Ignoring per current behaviour.
+
+      Frontend changes (NOT yet user-tested — awaiting permission):
+        * AskAboutLifeModal renders 2-3 follow-up chips below the answer
+          and a "✨ Reflect on this" pill that opens ReflectModal
+          prefilled with source="ask_reflect", the question + a 280-char
+          excerpt of the answer as initialText, and proper chip→domain
+          mapping.
+        * ReflectModal extended with optional source / initialText /
+          promptOverride props (defaults preserve old behaviour).
+        * LifeContextView passes phaseLabel + patternHint through to the
+          AskAboutLifeModal so reflections opened from there carry phase
+          context.

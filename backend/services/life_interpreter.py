@@ -60,9 +60,12 @@ OUTPUT FORMAT (CRITICAL)
 Return a single JSON object with EXACTLY two keys:
 
 {
-  "answer":     "2-4 short plain-text paragraphs, separated by blank lines",
+  "answer":     "2-3 short plain-text paragraphs, separated by an EXPLICIT \\n\\n",
   "follow_ups": ["question 1", "question 2", "question 3"]
 }
+
+CRITICAL: the value of "answer" MUST contain at least one literal "\\n\\n"
+to separate paragraphs. Each paragraph: 1-3 sentences max.
 
 NO markdown. NO code fences. NO prose before or after the JSON.
 "answer" is plain text only — no headings, no bullets.
@@ -186,6 +189,42 @@ def _scrub(text: str) -> tuple[str, List[str]]:
     cleaned = re.sub(r"\s+([,.;:!?])", r"\1", cleaned)
     cleaned = re.sub(r"\(\s*\)", "", cleaned)
     return cleaned.strip(), hits
+
+
+def _ensure_paragraphs(text: str, target: int = 3) -> str:
+    """
+    Ensure the answer renders as 2-3 short paragraphs.
+
+    The LLM occasionally collapses everything into a single block. If we
+    detect zero blank-line separators we split on sentence boundaries and
+    rebuild ~`target` evenly sized paragraphs. Existing paragraph breaks
+    are preserved when present.
+    """
+    if not text:
+        return text
+    s = text.strip()
+    # Already paragraph-broken — preserve as-is (the LLM did the right thing).
+    if "\n\n" in s or s.count("\n") >= 2:
+        return s
+
+    # Split into sentences. Greedy enough for the conversational style we use.
+    sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z\"'])", s)
+    sentences = [x.strip() for x in sentences if x and x.strip()]
+    if len(sentences) <= 2:
+        return s  # not enough material to bother splitting
+
+    # Pick number of paragraphs: 2 if 3-4 sentences, else 3.
+    para_count = 2 if len(sentences) <= 4 else min(target, 3)
+    chunk_size = max(1, len(sentences) // para_count)
+    paragraphs: List[str] = []
+    for i in range(para_count):
+        start = i * chunk_size
+        end = (i + 1) * chunk_size if i < para_count - 1 else len(sentences)
+        chunk = " ".join(sentences[start:end]).strip()
+        if chunk:
+            paragraphs.append(chunk)
+    return "\n\n".join(paragraphs)
+
 
 
 # ---------------------------------------------------------------------------
@@ -454,6 +493,11 @@ async def ask_life_question(
     # Cap to a sane length (defence-in-depth — prompt also limits).
     if len(answer) > 2400:
         answer = answer[:2400].rsplit(" ", 1)[0] + "…"
+
+    # Paragraph guard — gpt sometimes returns the whole answer in one
+    # block. Break it into 2-3 paragraphs on sentence boundaries so the
+    # UI can render it as multiple stanzas.
+    answer = _ensure_paragraphs(answer, target=3)
 
     # Scrub banned phrases from follow-ups; drop any that become empty.
     cleaned_follow_ups: List[str] = []
