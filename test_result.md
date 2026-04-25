@@ -10509,3 +10509,117 @@ agent_communication:
         * No dates, no confidence labels, no "primary/secondary" words
           visible anywhere.
 
+
+# ====================================================================
+# 2026-04-24 (later) — Reflect + Phase Prompt simplification
+# ====================================================================
+
+backend:
+  - task: "POST/GET /api/reflections — user thought capture"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Two new endpoints intentionally separate from Lifeline:
+            POST /api/reflections   — saves a fast thought capture
+            GET  /api/reflections/{user_id}?domain= — list recent
+          Stored in a NEW collection `user_reflections` (NOT the existing
+          `reflections` collection used by AI daily-insight feature).
+          Document fields: id, user_id, text (max 4000 chars), domain
+          (self|work|relationships|null), source, phase_label, pattern_hint,
+          created_at.
+          Validation: empty text → 400; invalid domain → 400.
+          Verified live:
+            POST → 200 returns full doc.
+            GET  → 200 returns {"reflections": [...], "count": N}.
+            POST empty → 400. POST invalid domain → 400.
+          Pre-existing AI insights collection is untouched.
+
+frontend:
+  - task: "ReflectModal — bottom-sheet thought capture"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/ReflectModal.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          New modal (transparent fade + bottom sheet feel). Title
+          "Capture what's coming up", a subtle rotating prompt
+          ("What's happening for you right now?" / "What did this bring
+          up?" / "Where do you see this showing up?"), multiline TextInput,
+          KeyboardAvoidingView, Cancel + Save Reflection actions, brief
+          "Saved" flash on success. POSTs to /api/reflections via
+          saveReflection() helper. Auto-focused. 4000-char cap. Save is
+          disabled when empty.
+
+  - task: "Reflect button + ReflectModal mount in LifeContextView"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/LifeContextView.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          Inserted between renderSynthesisBlock() and renderEvidenceExpander()
+          in the synthesis ScrollView. Subtle outlined pill: "✨ Reflect"
+          (centered). On tap: sets reflectDomain to the active synth tab
+          (self/work/relationships) and opens the modal. The modal pulls
+          phase_label and pattern_expression from the CURRENT phase (if
+          any) so saved reflections are anchored to context.
+
+  - task: "Simplified PhaseGapPrompt — single line + Lifeline CTA"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/PhaseGapPrompt.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: >
+          Removed the multi-reason copy mapping. Single, integrity-safe line:
+            "There may be a moment that shaped this shift."
+          CTA renamed: "+ Add Lifeline Event" (was "+ Add that moment").
+          Backend gap detection logic UNCHANGED. The prompt no longer
+          fabricates suggestions about WHAT happened — it only invites
+          the user to add a real lifeline event.
+
+agent_communication:
+  - agent: "main"
+    message: >
+      Reflect capability + simplified phase prompt landed.
+
+      Acceptance criteria for testing (Pete pete@pulsifi.me):
+        * On any of Self / Work / Relationships sub-tabs in the Life tab,
+          a centered "✨ Reflect" pill appears below the Pattern stack
+          (above "Why this is showing up").
+        * Tap → modal opens with title "Capture what's coming up", a
+          subtle italic prompt, a multiline input, and "Save Reflection"
+          / Cancel buttons.
+        * Save → POST /api/reflections succeeds, brief "Saved" flash,
+          modal closes.
+        * GET /api/reflections/{user_id} returns the new entry.
+        * Phase Timeline gap prompt now reads:
+          "There may be a moment that shaped this shift." with CTA
+          "+ Add Lifeline Event" (Mel as the cold-start subject).
+        * Tapping the CTA still deep-links to the Lifeline tab and opens
+          the Add Event editor with the suggested category prefilled
+          (the ONLY prefill — no fake titles, no auto-save).
+
+      Reflections live in `user_reflections` MongoDB collection and are
+      strictly separate from AI insights and Lifeline events.
+

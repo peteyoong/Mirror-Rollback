@@ -26139,6 +26139,76 @@ async def get_life_phases(user_id: str, refresh: bool = False):
     return result
 
 
+# ====================================================================
+# Reflections — lightweight thought capture from Life tab "Reflect" button
+# ====================================================================
+#
+# This is INTENTIONALLY separate from Lifeline events:
+#   * Reflections capture THINKING — fast, low-friction notes.
+#   * Lifeline captures REALITY — intentional, real-world events.
+# Never mix the two.
+
+class ReflectionCreate(BaseModel):
+    user_id: str
+    text: str
+    domain: Optional[str] = None       # "self" | "work" | "relationships" | None
+    source: Optional[str] = "life_reflect"
+    phase_label: Optional[str] = None
+    pattern_hint: Optional[str] = None
+
+
+@api_router.post("/reflections")
+async def create_reflection(body: ReflectionCreate):
+    """Save a quick reflection. Returns the stored doc."""
+    text = (body.text or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Reflection text is required")
+    if len(text) > 4000:
+        text = text[:4000]
+
+    domain = (body.domain or "").strip().lower() or None
+    if domain and domain not in ("self", "work", "relationships"):
+        raise HTTPException(status_code=400, detail="Invalid domain")
+
+    doc = {
+        "id":           str(uuid.uuid4()),
+        "user_id":      body.user_id,
+        "text":         text,
+        "domain":       domain,
+        "source":       (body.source or "life_reflect").strip()[:64] or "life_reflect",
+        "phase_label":  (body.phase_label or "").strip()[:120] or None,
+        "pattern_hint": (body.pattern_hint or "").strip()[:240] or None,
+        "created_at":   datetime.now(timezone.utc),
+    }
+    await db.user_reflections.insert_one(doc)
+    # Mongo's _id is non-serialisable; return a clean shape
+    doc.pop("_id", None)
+    if isinstance(doc.get("created_at"), datetime):
+        doc["created_at"] = doc["created_at"].isoformat()
+    return doc
+
+
+@api_router.get("/reflections/{user_id}")
+async def list_reflections(user_id: str, domain: Optional[str] = None, limit: int = 50):
+    """List most-recent reflections for a user. Optional domain filter."""
+    q: Dict[str, Any] = {"user_id": user_id}
+    if domain:
+        d = domain.strip().lower()
+        if d not in ("self", "work", "relationships"):
+            raise HTTPException(status_code=400, detail="Invalid domain")
+        q["domain"] = d
+    limit = max(1, min(int(limit or 50), 200))
+    cursor = db.user_reflections.find(q).sort("created_at", -1).limit(limit)
+    out: List[Dict[str, Any]] = []
+    async for d in cursor:
+        d.pop("_id", None)
+        if isinstance(d.get("created_at"), datetime):
+            d["created_at"] = d["created_at"].isoformat()
+        out.append(d)
+    return {"reflections": out, "count": len(out)}
+
+
+
 
 @api_router.get("/life/{context}")
 async def get_life_context(context: str, user_id: str):

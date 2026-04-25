@@ -1559,6 +1559,45 @@ export const getLifePhases = async (
 };
 
 // =====================================================
+// REFLECTIONS — quick thought capture from Life tab
+// =====================================================
+
+export interface ReflectionPayload {
+  user_id: string;
+  text: string;
+  domain?: 'self' | 'work' | 'relationships' | null;
+  source?: string;
+  phase_label?: string | null;
+  pattern_hint?: string | null;
+}
+
+export interface Reflection {
+  id: string;
+  user_id: string;
+  text: string;
+  domain: string | null;
+  source: string;
+  phase_label: string | null;
+  pattern_hint: string | null;
+  created_at: string;
+}
+
+export const saveReflection = async (payload: ReflectionPayload): Promise<Reflection> => {
+  const response = await apiWithRetry.post('/reflections', payload);
+  return response.data;
+};
+
+export const listReflections = async (
+  userId: string,
+  domain?: 'self' | 'work' | 'relationships'
+): Promise<{ reflections: Reflection[]; count: number }> => {
+  const response = await apiWithRetry.get(`/reflections/${userId}`, {
+    params: domain ? { domain } : undefined,
+  });
+  return response.data;
+};
+
+// =====================================================
 // PATTERN SIGNALS API (Why this is showing up)
 // =====================================================
 

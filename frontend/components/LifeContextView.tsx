@@ -28,6 +28,7 @@ import {
 import { LifelineTimeline } from './lifeline';
 import PeopleLens from './PeopleLens';
 import PhaseTimeline from './PhaseTimeline';
+import ReflectModal from './ReflectModal';
 import RoleCard from './RoleCard';
 
 interface Props {
@@ -157,6 +158,10 @@ export default function LifeContextView({
     suggestedCategory?: string | null;
     source?: string;
   } | null>(null);
+
+  // Reflect modal — quick thought capture from the Life synthesis stack.
+  const [reflectOpen, setReflectOpen] = useState<boolean>(false);
+  const [reflectDomain, setReflectDomain] = useState<SynthesisDomain>('self');
 
   const loadSynthesis = useCallback(async (
     domain: SynthesisDomain,
@@ -559,6 +564,24 @@ export default function LifeContextView({
       >
         {renderSynthesisBlock(synth, domain)}
 
+        {/* Reflect — quick thought capture (NOT a Lifeline event) */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => {
+            setReflectDomain(domain);
+            setReflectOpen(true);
+          }}
+          hitSlop={6}
+          style={[
+            styles.reflectBtn,
+            { borderColor: theme.border },
+          ]}
+        >
+          <Text style={[styles.reflectBtnText, { color: theme.text }]}>
+            ✨ Reflect
+          </Text>
+        </TouchableOpacity>
+
         {/* Why this is showing up — lazy-loaded evidence expander */}
         {synth ? renderEvidenceExpander(domain) : null}
 
@@ -610,6 +633,22 @@ export default function LifeContextView({
 
       {activeContext === 'lifeline' && renderLifelineTab()}
       {isSynthesisDomain(activeContext) && renderSynthesisTab(activeContext)}
+
+      {/* Reflect modal — mounted once, opened from any synthesis tab.
+          Uses the current phase (from the Phase Timeline data) to enrich
+          the saved reflection with phase_label and pattern_hint. */}
+      <ReflectModal
+        visible={reflectOpen}
+        onClose={() => setReflectOpen(false)}
+        userId={userId}
+        domain={reflectDomain}
+        phaseLabel={
+          (phases || []).find(p => p.is_current)?.label || null
+        }
+        patternHint={
+          (phases || []).find(p => p.is_current)?.pattern_expression || null
+        }
+      />
     </View>
   );
 }
@@ -784,6 +823,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  // Reflect button — quick thought-capture CTA at the bottom of the
+  // synthesis stack (above the "Why this is showing up" expander).
+  reflectBtn: {
+    alignSelf: 'center',
+    marginTop: 18,
+    marginBottom: 4,
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  reflectBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   // Today toggle — subordinate bar above the synthesis stack
   todayToggle: {

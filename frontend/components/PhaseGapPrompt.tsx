@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { LifePhaseGap, LifePhaseGapReason } from '../services/api';
+import { LifePhaseGap } from '../services/api';
 
 /**
  * PhaseGapPrompt — soft, contextual invitation to add a missing moment.
@@ -9,11 +9,11 @@ import { LifePhaseGap, LifePhaseGapReason } from '../services/api';
  * Renders INLINE under the PhaseTimeline cards. Not a modal. Not an alert.
  * Only shown when `gap.show === true`.
  *
- * UX rules (strict):
- *  - Show ONE prompt at a time (pick highest-priority reason).
- *  - Language is observational, never system-y.
- *  - No icons, no warnings, no "missing data" language.
- *  - Easy to ignore — it stays quiet if the user doesn't act.
+ * IMPORTANT (UX integrity):
+ * The prompt does NOT fabricate suggestions about WHAT happened. It only
+ * invites the user to add a real lifeline event for an under-captured phase.
+ * Reflections (thinking) live elsewhere — the "Reflect" button in each
+ * domain tab. Lifeline (reality) is intentional, real-event-only.
  */
 
 interface Props {
@@ -21,36 +21,13 @@ interface Props {
   onAddMoment: (context: { suggested_domain?: string | null }) => void;
 }
 
-// Priority order — we pick the first reason that's present.
-// "weak_transition" first because that's the most specific / evocative.
-const REASON_PRIORITY: LifePhaseGapReason[] = [
-  'weak_transition',
-  'sparse_lifeline',
-  'low_confidence',
-  'weak_memory',
-];
-
-const COPY: Record<LifePhaseGapReason, string> = {
-  low_confidence:   "This part of your story feels a bit incomplete.",
-  weak_transition:  "There's likely a moment where this started to shift.",
-  sparse_lifeline:  "Something important here might not be captured yet.",
-  weak_memory:      "This pattern is emerging, but there's not much history yet.",
-};
-
-function pickCopy(reasons: LifePhaseGapReason[]): string {
-  for (const r of REASON_PRIORITY) {
-    if (reasons.includes(r)) return COPY[r];
-  }
-  // Fallback — should not trigger because gap.show already guards
-  return COPY.sparse_lifeline;
-}
+const PROMPT_COPY = 'There may be a moment that shaped this shift.';
+const CTA_COPY = '+ Add Lifeline Event';
 
 export default function PhaseGapPrompt({ gap, onAddMoment }: Props) {
   const { theme } = useTheme();
 
   if (!gap || !gap.show || !gap.reasons || gap.reasons.length === 0) return null;
-
-  const message = pickCopy(gap.reasons);
 
   const handlePress = () => {
     onAddMoment({ suggested_domain: gap.dominant_domain ?? null });
@@ -59,7 +36,7 @@ export default function PhaseGapPrompt({ gap, onAddMoment }: Props) {
   return (
     <View style={styles.container}>
       <Text style={[styles.promptText, { color: theme.textSecondary }]}>
-        {message}
+        {PROMPT_COPY}
       </Text>
       <Pressable
         onPress={handlePress}
@@ -69,7 +46,7 @@ export default function PhaseGapPrompt({ gap, onAddMoment }: Props) {
           { opacity: pressed ? 0.7 : 1 },
         ]}
       >
-        <Text style={[styles.cta, { color: theme.text }]}>+ Add that moment</Text>
+        <Text style={[styles.cta, { color: theme.text }]}>{CTA_COPY}</Text>
       </Pressable>
     </View>
   );
