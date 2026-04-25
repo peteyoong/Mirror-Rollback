@@ -491,7 +491,7 @@ export default function TimeDistanceTimeline({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    width: '100%',
   },
   
   // Reveal message
