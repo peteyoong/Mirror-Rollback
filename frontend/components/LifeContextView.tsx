@@ -664,10 +664,8 @@ export default function LifeContextView({
           ) : undefined
         }
       >
-        {/* Anchor block — RoleCard + Ask + PhaseTimeline.
-            Renders unconditionally so the user always has the role
-            context, the conversational entry point, and the phase
-            timeline visible regardless of the active sub-tab. */}
+        {/* Anchor block — RoleCard + Ask button.
+            PhaseTimeline now lives inside the Lifeline sub-tab only. */}
         <View style={styles.anchorWrap}>
           <RoleCard data={topRoleCard} loading={topRoleLoading} />
 
