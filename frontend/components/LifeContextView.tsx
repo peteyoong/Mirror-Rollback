@@ -263,6 +263,14 @@ export default function LifeContextView({
     }
   }, [activeContext, loadSynthesis]);
 
+  // Anchor pre-fetch: the RoleCard + PhaseTimeline live above the tabs and
+  // must be populated even when the user is on the Lifeline sub-tab. We
+  // prime the 'self' synthesis once on mount so the role card is ready
+  // before the user switches into a synthesis domain.
+  useEffect(() => {
+    loadSynthesis('self');
+  }, [loadSynthesis]);
+
   // Load phase timeline once when the user first lands on any synthesis tab.
   // Shared across work/relationships/self (same endpoint, user-level).
   const loadPhases = useCallback(async (opts?: { force?: boolean }) => {
@@ -288,6 +296,15 @@ export default function LifeContextView({
       loadPhases();
     }
   }, [activeContext, phases, phasesLoading, loadPhases]);
+
+  // Phases live above the tabs — always load them on mount so the
+  // PhaseTimeline renders regardless of the active sub-tab.
+  useEffect(() => {
+    if (phases === null && !phasesLoading) {
+      loadPhases();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   // Phase Timeline CTA — "Add that moment"
   // 1. Switches the sub-tab to Lifeline so the user lands exactly where
@@ -608,51 +625,65 @@ export default function LifeContextView({
     );
   };
 
-  // Render role card globally above sub-tabs for synthesis domains — this
-  // makes it the anchor of the Life tab, not just another accordion.
+  // Render role card globally above sub-tabs — must be visible on EVERY
+  // tab, including Lifeline. Falls back across cached domains so the card
+  // still shows even if the user has only loaded one synthesis tab.
   const topRoleCard =
-    isSynthesisDomain(activeContext)
-      ? synthCache[activeContext]?.role_card || null
-      : null;
+    (isSynthesisDomain(activeContext) ? synthCache[activeContext]?.role_card : null) ||
+    synthCache.self?.role_card ||
+    synthCache.work?.role_card ||
+    synthCache.relationships?.role_card ||
+    null;
   const topRoleLoading =
-    isSynthesisDomain(activeContext) ? synthLoading[activeContext] && !topRoleCard : false;
+    !topRoleCard && (
+      synthLoading.self ||
+      synthLoading.work ||
+      synthLoading.relationships ||
+      (isSynthesisDomain(activeContext) && synthLoading[activeContext])
+    );
 
   // Suppress the theme-unused warning and keep the conditional prepared for future use.
   void isDark;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Anchor: The Role You're In — above the sub-tabs */}
-      {isSynthesisDomain(activeContext) ? (
-        <View style={styles.anchorWrap}>
-          <RoleCard data={topRoleCard} loading={topRoleLoading} />
+      {/* Anchor block — RoleCard + Ask + PhaseTimeline.
+          Renders unconditionally above the sub-tabs so the user always
+          has the role context, the conversational entry point, and the
+          phase timeline visible regardless of which tab is active. */}
+      <View style={styles.anchorWrap}>
+        <RoleCard data={topRoleCard} loading={topRoleLoading} />
 
-          {/* Ask About My Life — conversational entry point */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => {
-              setAskInitialChip(activeContext as AskLifeChip);
-              setAskOpen(true);
-            }}
-            style={[
-              styles.askPill,
-              { backgroundColor: theme.text },
-            ]}
-            hitSlop={6}
-          >
-            <Text style={[styles.askPillText, { color: theme.background }]}>
-              💬 Ask about my life
-            </Text>
-          </TouchableOpacity>
+        {/* Ask About My Life — conversational entry point */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            // Default the chip to the active synthesis domain when on
+            // self/work/relationships; otherwise default to 'self'.
+            const chip: AskLifeChip = isSynthesisDomain(activeContext)
+              ? (activeContext as AskLifeChip)
+              : 'self';
+            setAskInitialChip(chip);
+            setAskOpen(true);
+          }}
+          style={[
+            styles.askPill,
+            { backgroundColor: theme.text },
+          ]}
+          hitSlop={6}
+        >
+          <Text style={[styles.askPillText, { color: theme.background }]}>
+            💬 Ask about my life
+          </Text>
+        </TouchableOpacity>
 
-          <PhaseTimeline
-            phases={phases}
-            phaseGap={phaseGap}
-            loading={phasesLoading && (phases === null || phases.length === 0)}
-            onAddMoment={handlePhaseAddMoment}
-          />
-        </View>
-      ) : null}
+        <PhaseTimeline
+          phases={phases}
+          phaseGap={phaseGap}
+          loading={phasesLoading && (phases === null || phases.length === 0)}
+          onAddMoment={handlePhaseAddMoment}
+        />
+      </View>
 
       {renderContextTabs()}
 
