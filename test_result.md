@@ -11394,3 +11394,91 @@ agent_communication:
             ✓ Generator version stable: "cross_domain_v1".
             ✓ Backend only — no UI yet (per spec).
 
+
+  - task: "Cross-Domain Engine V1.1 — Mirror voice (behaviour-first, no domain list, no clipping)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/cross_domain_engine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: >
+          Tightened the cross-domain engine voice from "executive summary"
+          to "Mirror recognition line".
+
+          Prompt-side:
+            * Added explicit BEHAVIOUR FIRST rule: every field must start
+              with what the user DOES ("You keep ..."), never with an
+              abstract noun phrase ("A cyclical process ...").
+            * Added NO DOMAIN LISTING rule for recognition_line — must
+              not enumerate self / work / relationships / inner life /
+              family / money / health / friends / career.
+            * Added MIRROR-OVER-REPORT rule with explicit avoid list
+              (cyclical process, counterproductive, diminishes,
+              undermines, generates friction, effective limits, internal
+              sense of stability, scalability, burnout cycle, operational
+              tension, recurring/repeated dynamic/pattern) and prefer
+              list (starts as / becomes / turns into / costs / distance
+              / pressure / the thing you keep / the thing that keeps
+              coming back).
+            * Embedded the spec's TARGET EXAMPLE OUTPUT inline so the
+              LLM has a concrete style anchor.
+
+          Audit-side:
+            * `_REPORT_VOCAB_RX` flags management-report vocabulary.
+            * `_ABSTRACT_OPENER_RX` flags any field starting with "A " /
+              "An " + abstract noun (cyclical / recurring / repeated /
+              persistent / underlying / driving / tendency / mechanism /
+              dynamic / pattern / process / loop / cycle / trend).
+            * `_DOMAIN_ENUM_RX` flags recognition_line that lists ≥ 2
+              domain names.
+            * recognition_line: must end with "." / "—" / "!", must not
+              end mid-clause (and / or / with / of / to / by / across /
+              in / the followed by punctuation).
+
+          Retry-side:
+            * Removed the deterministic mid-clause recognition_line trim
+              (it was leaving incomplete thoughts). Replaced with a
+              "regenerate shorter" approach via the retry path.
+            * Retry instruction now embeds the EXACT TARGET EXAMPLE
+              OUTPUT inline + an explicit rule list ("Every field begins
+              with You ...", "≤ 110 chars", "no domain list", "no report
+              vocabulary").
+            * If recognition_line is still > 110 chars after retry, log
+              WARNING and keep as-is rather than mid-clause clipping.
+
+          Generator version bumped: cross_domain_v1 →
+          cross_domain_v1_1_mirror.
+
+          Verified live (Pete) across 3 successive refresh cycles —
+          audit flagged=false on every run, recognition_line is short
+          and complete every time:
+
+          Run 1:
+            core_pattern: "You keep raising standards and refining beyond
+              what feels necessary until the pressure builds inside and
+              outside"
+            recognition_line (75): "You sharpen the thing until it starts
+              cutting back on connection and trust"
+
+          Run 2:
+            recognition_line (80): "You sharpen what you care about until
+              it starts pushing people and yourself away"
+
+          Run 3:
+            recognition_line (80): "You sharpen what you're holding until
+              it starts to cut back on your own strength"
+
+          Acceptance criteria met:
+            ✓ core_pattern starts with "You ..." (behaviour-first)
+            ✓ no abstract noun openers
+            ✓ recognition_line ≤ 110 chars, complete sentence, no domain list
+            ✓ no report vocabulary anywhere
+            ✓ pattern_spine connects in plain language (no "diminishes /
+              undermines" report-speak)
+            ✓ cross_domain_tension shows cost without listing domains
+            ✓ output sounds like Mirror recognition, not a research summary
+

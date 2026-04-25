@@ -37,7 +37,7 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
-GENERATOR_VERSION = "cross_domain_v1"
+GENERATOR_VERSION = "cross_domain_v1_1_mirror"
 
 
 # ---------------------------------------------------------------------------
@@ -115,41 +115,98 @@ You have three short paragraphs describing the SAME PERSON across three
 different parts of life: Self, Work, Relationships. You also have a list
 of shared signals that appear across at least two of those domains.
 
-Your job is NOT to summarise the three domains. Your job is to RECOGNISE
-the one pattern showing up across all three — the thread the user hasn't
-named yet.
+Your job is NOT to summarise. Your job is to RECOGNISE the ONE pattern
+showing up across all three — the thread the user hasn't named yet.
+
+Make it feel like a Mirror line: sharp, simple, behaviour-first, emotionally
+recognisable. Not analytical. Not a research report. The user should read
+this and feel "oh… that's the same thing happening everywhere", not "this
+is a useful executive summary".
 
 OUTPUT — return ONLY valid JSON (no prose before or after, no markdown):
 
 {
-  "core_pattern":         "ONE sentence describing the repeating behaviour across domains. Neutral. Second-person.",
-  "pattern_spine":        "ONE sentence explaining the underlying mechanism that connects Self / Work / Relationships into one shape.",
-  "cross_domain_tension": "ONE sentence describing the cost of the pattern across domains — what breaks, strains, or repeats.",
-  "recognition_line":     "≤ 110 chars. Sharp. Second-person present. No softeners. The 'oh, that's me' line.",
+  "core_pattern":         "ONE sentence. Starts with WHAT THE USER DOES, not with an abstract noun phrase. Behaviour first.",
+  "pattern_spine":        "ONE sentence (or two short ones). Plain language explanation of the shared mechanism — what starts as one thing and turns into another.",
+  "cross_domain_tension": "ONE sentence describing the COST of the pattern in plain emotional language. Do NOT mechanically list domains.",
+  "recognition_line":     "≤ 110 chars. ONE COMPLETE SENTENCE. The 'oh, that's me' line. Sharp. Second-person present. No domain list. No softeners. Ends in a period.",
   "confidence":           "high | medium | low"
 }
 
-CRITICAL RULES
+==================================================
+HARD RULES
+==================================================
 
-1. NOT a summary. NOT a list. NOT three sentences glued together.
-2. NOT advice. NOT prediction. NOT prescription.
-3. NOT abstract philosophy. Must feel grounded in lived experience.
-4. NOT generic. The output must NOT pass for any other person.
-5. NEVER use:
+1. BEHAVIOUR FIRST
+   Do NOT start core_pattern (or any field) with abstract noun phrases.
+   FORBIDDEN openers / phrases (in any field):
+     - "a cyclical process"
+     - "a recurring pattern" / "a repeated pattern"
+     - "a recurring dynamic" / "a repeated dynamic"
+     - "a tendency"
+     - "a mechanism"
+     - any field starting with "A " followed by an abstract noun.
+   Bad:  "A cyclical process of refinement recurs across your life."
+   Good: "You keep improving the thing until the improvement itself becomes the pressure."
+
+2. NO DOMAIN LISTING IN recognition_line
+   recognition_line MUST NOT enumerate "self", "work", "relationships",
+   "inner life", "family", "money", "health", "friends" as a list. It
+   should capture the pattern without listing where it appears.
+   Bad:  "You repeat cycles of refinement across your inner life, work…"
+   Good: "You sharpen the thing until it starts cutting back."
+
+3. RECOGNITION LINE MUST BE SELF-CONTAINED
+   recognition_line MUST be a complete sentence ending in a period.
+   ≤ 110 characters. NEVER comma-truncated. NEVER ending mid-clause.
+   If it would exceed 110 chars, write a SHORTER one — do not clip.
+
+4. PATTERN SPINE MUST CONNECT, NOT SUMMARISE
+   pattern_spine names the shared mechanism in plain language.
+   Bad:  "This cycle increases precision yet diminishes natural flow."
+   Good: "You begin by improving what feels weak, but the improvement keeps going after the moment has passed."
+
+5. CROSS-DOMAIN TENSION MUST SHOW COST IN HUMAN LANGUAGE
+   Show the cost of the pattern; do NOT enumerate domains as a checklist.
+   Bad:  "undermines collaboration and trust, creating distance…"
+   Good: "What began as care becomes pressure, and what began as clarity starts to feel like distance."
+
+6. MORE MIRROR, LESS REPORT
+   AVOID this management-report vocabulary in ANY field:
+     cyclical process · counterproductive · diminishes · undermines ·
+     generates friction · effective limits · internal sense of stability ·
+     scalability · burnout cycle · operational tension
+   PREFER:
+     starts as · becomes · turns into · costs · distance · pressure ·
+     the thing you meant to improve · the thing you end up carrying ·
+     the thing you keep · the thing that keeps coming back
+
+7. NEVER use:
      - "this is your life pattern"
-     - "you are meant to"
-     - "your purpose is"
+     - "you are meant to" / "your purpose is"
      - "always" / "never" / "must"
      - "destiny" / "fate" / "calling"
-     - banned framework names: human design, bazi, astrology, zi wei,
-       ziwei, palace, stars, manifestor, generator, projector, reflector
-6. Tone: observational, reflective, precise.
-7. recognition_line MUST be ≤ 110 characters, end with "." or "—",
-   contain "you" or "your", and contain NO softener (tends to / may /
-   often / sometimes / usually / typically / generally / seems to /
-   appears to / seems like).
-8. Do NOT quote or paraphrase whole sentences from the per-domain text
-   verbatim. Use them as evidence, not as copy.
+     - banned framework names: human design · bazi · astrology · zi wei ·
+       ziwei · palace · stars · manifestor · generator · projector · reflector
+
+8. Tone: observational, reflective, precise. Not advice. Not prediction.
+   Not abstract philosophy. Must feel grounded in lived experience.
+
+==================================================
+EXAMPLE TARGET OUTPUT
+==================================================
+
+core_pattern:
+"You keep improving what feels unfinished until the improvement itself becomes the pressure."
+
+pattern_spine:
+"What starts as care, precision, or responsibility keeps going past the useful moment. The thing you meant to strengthen starts needing you too much."
+
+cross_domain_tension:
+"The cost is that people step back, systems depend on you, and you turn the same pressure inward."
+
+recognition_line:
+"You sharpen the thing until it starts cutting back."
 
 VOICE
 
@@ -157,9 +214,6 @@ The user should feel:
    "Oh… that's the same thing happening everywhere."
 NOT:
    "This is a summary."
-
-Make it feel like the system just connected the dots the user hadn't
-named yet.
 """
 
 
@@ -232,15 +286,49 @@ _GENERIC_RX = re.compile(
 _SECOND_PERSON_RX = re.compile(r"\b(?:you|your)\b", re.I)
 
 
+# Mirror-vs-report vocabulary blocks. These are forbidden in ANY field
+# because they make the output sound like a management report instead of
+# a recognition line.
+_REPORT_VOCAB_RX = re.compile(
+    r"\b(?:cyclical process|counterproductive|diminish(?:es|ed|ing)?|"
+    r"undermin(?:e|es|ed|ing)|generates? friction|effective limits|"
+    r"internal sense of stability|scalability|burnout cycle|"
+    r"operational tension|recurring dynamic|repeated dynamic|"
+    r"recurring pattern|repeated pattern)\b",
+    re.I,
+)
+
+# Abstract noun openers — fields that start with "A " or "An " followed
+# by an analytical noun phrase. Sniffs the first 25 chars of any field.
+_ABSTRACT_OPENER_RX = re.compile(
+    r"^(?:A|An)\s+(?:cyclical|recurring|repeated|persistent|continuous|"
+    r"underlying|driving|tendency|mechanism|dynamic|pattern|process|"
+    r"loop|cycle|trend)\b",
+    re.I,
+)
+
+# Domain enumeration in recognition_line — flags lists like
+# "self / work / relationships" or "your inner life, work, and family".
+_DOMAIN_ENUM_RX = re.compile(
+    r"\b(self|work|relationships?|inner life|family|money|health|"
+    r"friends|career)\b[^.?!]*?\b(self|work|relationships?|inner life|"
+    r"family|money|health|friends|career)\b",
+    re.I,
+)
+
+
 def _audit(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     Returns {flagged: bool, reasons: [...], counts: {...}}.
     Flags any of:
       - missing required field
       - banned framework / guru phrases
+      - report-y / management vocabulary (cyclical process, undermines, ...)
+      - abstract noun opener on any field ("A cyclical process...")
       - generic-applies-to-anyone phrasing
       - absolute-language abuse (always / never / must)
-      - recognition_line too long, missing 'you', or contains softener
+      - recognition_line: > 110 chars, missing 'you', has softener,
+                          has directive, lists domains, doesn't end in period
     """
     out: Dict[str, Any] = {"flagged": False, "reasons": [], "counts": {}}
     if not isinstance(payload, dict):
@@ -248,8 +336,6 @@ def _audit(payload: Dict[str, Any]) -> Dict[str, Any]:
         out["reasons"].append("payload_not_dict")
         return out
 
-    # Required-field check first — if the LLM returned the wrong shape, all
-    # other audits become noise.
     required = ("core_pattern", "pattern_spine", "cross_domain_tension", "recognition_line")
     for key in required:
         v = payload.get(key)
@@ -259,27 +345,40 @@ def _audit(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     full_text = " ".join(str(payload.get(k, "")) for k in required)
 
+    # Banned framework / guru phrases
     banned = _BANNED_RX.findall(full_text)
     if banned:
         out["flagged"] = True
         out["reasons"].append(f"banned_phrase ({', '.join(set(b.lower() for b in banned))[:120]})")
 
+    # Absolute-language abuse
     absolutes = _ABSOLUTE_RX.findall(full_text)
     if len(absolutes) >= 2:
         out["flagged"] = True
         out["reasons"].append(f"too_many_absolutes ({len(absolutes)})")
 
+    # Generic-applies-to-anyone phrasing
     generic = _GENERIC_RX.findall(full_text)
     if generic:
         out["flagged"] = True
         out["reasons"].append(f"generic ({', '.join(set(g.lower() for g in generic))})")
 
+    # Mirror-vs-report vocabulary
+    report_hits = _REPORT_VOCAB_RX.findall(full_text)
+    if report_hits:
+        out["flagged"] = True
+        out["reasons"].append(f"report_vocab ({', '.join(set(h.lower() for h in report_hits))[:160]})")
+
+    # Abstract noun opener on any field
+    for key in required:
+        v = (payload.get(key) or "").strip()
+        if v and _ABSTRACT_OPENER_RX.match(v):
+            out["flagged"] = True
+            out["reasons"].append(f"abstract_opener:{key}")
+
     # recognition_line specific checks
     rl = (payload.get("recognition_line") or "").strip()
-    if not rl:
-        # already flagged above as missing_or_empty:recognition_line
-        pass
-    else:
+    if rl:
         if len(rl) > 110:
             out["flagged"] = True
             out["reasons"].append(f"recognition_line_too_long ({len(rl)})")
@@ -289,16 +388,27 @@ def _audit(payload: Dict[str, Any]) -> Dict[str, Any]:
         if _SOFTENER_RX.search(rl):
             out["flagged"] = True
             out["reasons"].append("recognition_line_has_softener")
-        # recognition_line is a recognition, not advice — flag any directive
-        # vocabulary inside it specifically.
         if re.search(r"\b(?:must|should|need to|have to)\b", rl, re.I):
             out["flagged"] = True
             out["reasons"].append("recognition_line_has_directive")
+        # Domain enumeration check — recognition_line should NOT list domains
+        if _DOMAIN_ENUM_RX.search(rl):
+            out["flagged"] = True
+            out["reasons"].append("recognition_line_lists_domains")
+        # Must end with a period (or '—' or '!') for completeness
+        if not re.search(r"[.!—]$", rl):
+            out["flagged"] = True
+            out["reasons"].append("recognition_line_not_complete_sentence")
+        # Must not end with a comma, preposition, or 'and'
+        if re.search(r"\b(?:and|or|with|of|to|by|across|in|the)[\s,]*[.!—]?$", rl, re.I):
+            out["flagged"] = True
+            out["reasons"].append("recognition_line_ends_mid_thought")
 
     out["counts"] = {
-        "banned":    len(banned),
-        "absolutes": len(absolutes),
-        "generic":   len(generic),
+        "banned":        len(banned),
+        "absolutes":     len(absolutes),
+        "generic":       len(generic),
+        "report_vocab":  len(report_hits),
         "recognition_line_len": len(rl),
     }
     return out
@@ -407,15 +517,22 @@ async def generate_cross_domain_pattern(
         )
         retry_user_msg = (
             user_msg
-            + "\n\n=== RETRY (CRITICAL) ===\n"
-            + "Your previous draft was flagged: "
+            + "\n\n=== RETRY (CRITICAL — your previous draft was REJECTED) ===\n"
+            + "Reasons your previous draft failed: "
             + "; ".join(audit.get("reasons") or [])
-            + ".\nFix EVERY issue. Keep the JSON shape exactly. The "
-            + "recognition_line MUST be ≤ 110 chars, second-person present, "
-            + "no softener, end with '.' or '—'. Do NOT summarise the three "
-            + "domain paragraphs — recognise the ONE shared pattern. Avoid "
-            + "absolutes (always/never/must). Avoid generic phrases that "
-            + "would apply to anyone."
+            + ".\n\n"
+            + "FOLLOW THE TARGET EXAMPLE BELOW EXACTLY IN STYLE:\n\n"
+            + "core_pattern:        \"You keep improving what feels unfinished until the improvement itself becomes the pressure.\"\n"
+            + "pattern_spine:       \"What starts as care, precision, or responsibility keeps going past the useful moment. The thing you meant to strengthen starts needing you too much.\"\n"
+            + "cross_domain_tension: \"The cost is that people step back, systems depend on you, and you turn the same pressure inward.\"\n"
+            + "recognition_line:    \"You sharpen the thing until it starts cutting back.\"\n\n"
+            + "RULES YOU MUST FOLLOW:\n"
+            + "  - Every field begins with WHAT THE USER DOES (\"You ...\").\n"
+            + "    NEVER begin a field with \"A\", \"An\", \"A cyclical\", \"A recurring\", or any abstract noun phrase.\n"
+            + "  - recognition_line MUST NOT name or list any domains (self, work, relationships, inner life, family, money, health, friends, career).\n"
+            + "  - recognition_line MUST be ≤ 110 chars AND a complete sentence ending in a period. If you cannot fit it under 110 chars, write a SHORTER one — do not let it run long.\n"
+            + "  - No report vocabulary (cyclical process, counterproductive, diminishes, undermines, generates friction, effective limits, internal sense of stability, scalability, burnout cycle, operational tension, recurring dynamic, repeated dynamic, recurring pattern, repeated pattern).\n"
+            + "  - Use Mirror words: starts as / becomes / turns into / costs / distance / pressure / the thing you keep / the thing that keeps coming back.\n"
         )
         payload2, audit2, _ = await _render_once(
             llm_chat_factory=llm_chat_factory,
@@ -434,23 +551,17 @@ async def generate_cross_domain_pattern(
         if isinstance(payload.get(k), str):
             payload[k] = _scrub_banned(payload[k])
 
-    # Hard cap on recognition_line length — if the LLM stayed long after retry,
-    # deterministically trim at the last clause boundary inside 110 chars and
-    # ensure it ends with "." or "—".
-    rl = payload.get("recognition_line")
-    if isinstance(rl, str) and len(rl) > 110:
-        # Try to clip at a clause boundary inside 110 chars.
-        candidate = rl[:110]
-        # prefer cutting at last sentence/clause break in the trimmed window
-        for sep in (". ", "; ", "—", ", "):
-            idx = candidate.rfind(sep)
-            if idx >= 60:  # avoid clipping too aggressively
-                candidate = candidate[:idx + (1 if sep == ", " else len(sep))].rstrip()
-                break
-        candidate = candidate.rstrip(" ,;:—.").rstrip()
-        if not candidate.endswith((".", "—")):
-            candidate += "."
-        payload["recognition_line"] = candidate
+    # Note on recognition_line:
+    # The earlier deterministic trim was REMOVED. If the line is still > 110
+    # chars after the retry, we no longer mid-clause clip — the spec asks for
+    # a complete sentence, not a truncated one. We log a WARNING so we can
+    # tighten the prompt if this happens at scale.
+    rl_final = payload.get("recognition_line")
+    if isinstance(rl_final, str) and len(rl_final) > 110:
+        logger.warning(
+            "[CrossDomain] recognition_line still > 110 chars after retry: %d chars — keeping as-is",
+            len(rl_final),
+        )
 
     # Drop LLM-supplied confidence in favour of the deterministic one when it's
     # missing or invalid; otherwise keep it as long as it's one of high/medium/low.
