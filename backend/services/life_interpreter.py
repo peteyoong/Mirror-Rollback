@@ -147,6 +147,30 @@ ANSWER RULES
         — concrete, specific to the spine.
       - If `cross_domain_pattern` is missing or empty, ignore this rule.
 
+11. IDENTITY RECURRENCE OVERLAY (when recurrence is present in context).
+
+    The context may include a `recurrence` block:
+      - recurrence_detected: True
+      - human_label: a short surface-safe line
+        (e.g. "You've been here before.",
+              "This pattern is returning.",
+              "This is becoming familiar.")
+
+    When `recurrence_detected` is True:
+      * Open the answer with the `human_label` as its OWN first line —
+        EXACTLY as written. No quotes. No paraphrasing. No decoration.
+        It must stand alone, then a blank line, then the rest of the
+        answer in your normal voice.
+      * Slightly INCREASE confidence/directness in the body. Less
+        exploratory ("perhaps", "you might"), more direct
+        ("you do this", "this is the move you make"). The user has
+        earned recognition — match it.
+      * NEVER expose `match_count`, `memory_state`, scoring, or any
+        other internal field. Only the `human_label` itself is
+        surface-safe.
+      * If `recurrence` is missing or `recurrence_detected` is False,
+        IGNORE this rule entirely. Do not invent a recognition line.
+
 ==================================================
 FOLLOW-UP RULES
 ==================================================
@@ -313,6 +337,7 @@ def build_context_payload(
     chart: Optional[Dict[str, Any]] = None,
     lifeline_summary: Optional[Dict[str, Any]] = None,
     cross_domain_pattern: Optional[Dict[str, Any]] = None,
+    recurrence_data: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Compose the context the LLM will lean on. Values are kept SHORT to keep
@@ -420,6 +445,20 @@ def build_context_payload(
                 "confidence":           (cross_domain_pattern.get("confidence") or "").strip().lower() or None,
             }
 
+    # Identity recurrence overlay (subtle anchor — drives the opening
+    # line of the answer when recurrence_detected=True).
+    rec_block: Dict[str, Any] = {}
+    if isinstance(recurrence_data, dict):
+        if recurrence_data.get("recurrence_detected"):
+            human_label = (recurrence_data.get("human_label") or "").strip()
+            if human_label:
+                rec_block = {
+                    "recurrence_detected": True,
+                    "human_label":         _short(human_label, 80),
+                    # NOTE: never expose match_count / memory_state to
+                    # the LLM either — they're not needed for tone.
+                }
+
     return {
         "chip":            chip_domain,
         "question":        _short(question, 600),
@@ -427,6 +466,7 @@ def build_context_payload(
         "domain_synthesis": ds,
         "domain_origin":   do,
         "cross_domain_pattern": cdp,
+        "recurrence":      rec_block,
         "current_phase":   ph,
         "active_arena_hint": dw_summary,
         "pattern_memory":  pm,
@@ -471,6 +511,18 @@ def _format_context_for_llm(ctx: Dict[str, Any]) -> str:
         lines.append("")
     if ctx.get("active_arena_hint"):
         lines.append(f"WHAT IS MOST ACTIVE: {ctx['active_arena_hint']}.")
+        lines.append("")
+    rec = ctx.get("recurrence") or {}
+    if rec.get("recurrence_detected") and rec.get("human_label"):
+        lines.append(
+            "IDENTITY RECURRENCE — the user is in a returning/recurring "
+            "loop. Open the answer with the human_label below as its OWN "
+            "first line, exactly as written (no quotes, no rewording, "
+            "no decoration). Then continue with the rest of your answer "
+            "in your normal voice. Slightly INCREASE confidence (more "
+            "direct, less exploratory) — this user has earned recognition."
+        )
+        lines.append(f"  - human_label (use as line 1, verbatim): {rec['human_label']}")
         lines.append("")
     cdp = ctx.get("cross_domain_pattern") or {}
     if cdp and (cdp.get("core_pattern") or cdp.get("pattern_spine")):
@@ -539,6 +591,7 @@ async def ask_life_question(
     lifeline_summary: Optional[Dict[str, Any]] = None,
     cross_domain_pattern: Optional[Dict[str, Any]] = None,
     decan_index: Optional[int] = None,
+    recurrence_data: Optional[Dict[str, Any]] = None,
     llm_chat_factory=None,
 ) -> Dict[str, Any]:
     """
@@ -579,6 +632,7 @@ async def ask_life_question(
         chart=chart,
         lifeline_summary=lifeline_summary,
         cross_domain_pattern=cross_domain_pattern,
+        recurrence_data=recurrence_data,
     )
     user_msg = _format_context_for_llm(ctx)
 
@@ -683,7 +737,7 @@ async def ask_life_question(
         "chip_domain":      chip,
         "synthesis_domain": synth_dom,
         "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_interpreter_v5_decan_tone",
+        "generator_version": "life_interpreter_v6_recurrence",
         "debug": {
             "llm_used":       answer_raw is not None and render_error is None,
             "render_error":   render_error,
@@ -700,6 +754,7 @@ async def ask_life_question(
                 "has_domain_synthesis":   bool(ctx["domain_synthesis"]),
                 "has_current_phase":      bool(ctx["current_phase"]),
                 "has_cross_domain":       bool(ctx.get("cross_domain_pattern")),
+                "has_recurrence":         bool((ctx.get("recurrence") or {}).get("recurrence_detected")),
                 "today_intensity":        ctx.get("today_intensity"),
                 "is_recurring":           (pattern_memory or {}).get("memory_state") == "recurring_pattern",
                 "evidence_count":         len(ctx.get("evidence") or []),

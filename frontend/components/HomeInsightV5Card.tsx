@@ -43,6 +43,14 @@ interface WhyShowingUp {
   note: string;
 }
 
+interface RecurrenceBlock {
+  memory_state?: string;
+  match_count?: number;
+  human_label?: string | null;
+  recurrence_detected?: boolean;
+  recurrence_confidence?: string;
+}
+
 interface HomeInsightV5Data {
   success: boolean;
   version: string;
@@ -59,6 +67,7 @@ interface HomeInsightV5Data {
   cluster: string;
   house?: number;
   trigger_confidence: string;
+  recurrence?: RecurrenceBlock;
 }
 
 // ============================================
@@ -188,6 +197,17 @@ const HomeInsightV5Card: React.FC<HomeInsightV5CardProps> = ({
           </Text>
         </View>
       </View>
+
+      {/* ============================================================ */}
+      {/* RECURRENCE LABEL - Subtle "you've been here before" line   */}
+      {/* Renders ONLY when recurrence_detected is True. No styling */}
+      {/* changes beyond a small italic line above the headline.    */}
+      {/* ============================================================ */}
+      {data.recurrence?.recurrence_detected && data.recurrence?.human_label ? (
+        <Text style={[styles.recurrenceLabel, { color: theme.textSecondary }]}>
+          {data.recurrence.human_label}
+        </Text>
+      ) : null}
 
       {/* ============================================================ */}
       {/* HEADLINE - Pattern-based, recurrence-anchored               */}
@@ -364,6 +384,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   
+  // Recurrence label — small italic line above headline.
+  // Subtle "you've been here before" recognition (Phase 2).
+  recurrenceLabel: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    fontWeight: '500',
+    lineHeight: 18,
+    marginBottom: 6,
+    opacity: 0.85,
+  },
+
   // Headline - Pattern-based
   headline: {
     fontSize: 24,

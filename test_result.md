@@ -12181,3 +12181,117 @@ backend:
             ✓ Existing Home / Life / Ask / Activation-Now endpoints
               still return 200.
 
+
+  - task: "Recurrence surfacing — Home / Life / Ask (recognition layer)"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/services/life_interpreter.py, backend/services/relationship_insight_engine.py, frontend/components/HomeInsightV5Card.tsx, frontend/components/LifeContextView.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: |
+          [2026-04-26] RECURRENCE RECOGNITION LAYER — surfaced across
+          Home / Life / Ask. Backend + frontend wiring + verified live.
+
+          ### Surface 1 — Home Insight (HomeInsightV5Card)
+          Backend:
+            * /api/home-insight-v5/{user_id} now adds a `recurrence`
+              block to BOTH the V6 signal-grounded return path AND the
+              V5 fallback path.
+            * Failure-safe: detection error logs WARN and returns the
+              default no_history block; never breaks the card.
+            * Surfaces ONLY surface-safe fields (memory_state,
+              match_count, human_label, recurrence_detected,
+              recurrence_confidence). NO _id / signature / score.
+          Frontend:
+            * HomeInsightV5Card.tsx: extended `HomeInsightV5Data` to
+              include optional `recurrence: RecurrenceBlock`.
+            * Renders a small italic line ABOVE `data.headline` when
+              `recurrence?.recurrence_detected && recurrence?.human_label`.
+              Line 1 (italic, 13pt, color: textSecondary) = human_label
+              Line 2 (existing 24pt) = headline (unchanged)
+            * No styling changes to the rest of the card. Hides cleanly
+              when recurrence_detected=false or human_label is null.
+
+          ### Surface 2 — Life Tab (LifeContextView)
+          Backend:
+            * /api/life/role-card/{user_id} now includes a `recurrence`
+              block (same shape as Home).
+            * Failure-safe block returned even on error.
+          Frontend:
+            * LifeContextView.tsx fetches /relationship-pattern/{userId}
+              on mount (1 lightweight call), reads `recurrence` block.
+            * Renders a small italic recognition line UNDER RoleCard
+              and ABOVE the "💬 Ask about my life" pill — only when
+              recurrence_detected && human_label present.
+            * No counts, no explanation, no interaction (pure recognition
+              layer per spec).
+            * Silent failure on API error.
+
+          ### Surface 3 — Ask About My Life (life_interpreter)
+          Backend:
+            * /api/life/ask/{user_id} (post_life_ask) now calls
+              detect_identity_pattern_recurrence() and forwards the
+              full payload to li.ask_life_question(recurrence_data=...).
+            * life_interpreter.py:
+                - build_context_payload accepts recurrence_data.
+                - Internal context block emits a `recurrence` dict ONLY
+                  when recurrence_detected=True (with human_label only —
+                  match_count / memory_state NOT exposed to LLM).
+                - _format_context_for_llm renders an "IDENTITY
+                  RECURRENCE" block instructing the LLM to:
+                    * open with the human_label as line 1, VERBATIM
+                    * slightly INCREASE confidence/directness in body
+                - System prompt rule 11 added (CRITICAL — verbatim
+                  prepend, no quoting/decoration; ignore when
+                  recurrence_detected=false).
+                - Generator version bumped:
+                  life_interpreter_v5_decan_tone →
+                  life_interpreter_v6_recurrence
+                - Debug now includes has_recurrence flag.
+
+          Live verification (Mel with fixture pattern_memory
+          memory_state=recurring_pattern, match_count=5):
+            ✓ /home-insight-v5: recurrence_detected=True,
+              human_label="You've been here before."
+            ✓ /relationship-pattern: same.
+            ✓ /life/ask answer starts with:
+                "You've been here before."
+                ""  (blank line)
+                "What you're noticing comes from how you tend to
+                 absorb the atmosphere..."
+              has_recurrence=True; tone is more direct ("What you're
+              noticing comes from..." instead of "perhaps you're...").
+
+          Live verification (Pete, no fixture, cold-start):
+            ✓ /home-insight-v5: recurrence_detected=False,
+              human_label=null → frontend hides the line cleanly.
+            ✓ /relationship-pattern: same.
+            ✓ /life/ask first line: "This pattern shows up because
+              you operate through a stringent internal standard..."
+              — does NOT start with any recognition phrase.
+              has_recurrence=False.
+
+          Guardrails verified:
+            ✓ NEVER expose match_count / memory_state / scores / IDs
+              in any user-facing payload.
+            ✓ Only `human_label` and `recurrence_detected` consumed by
+              frontend; LLM only sees the human_label string.
+            ✓ Cold-start (no_history) hides the layer everywhere.
+            ✓ first_appearance also hides (engine returns null label
+              for that state).
+            ✓ Network failures fail silently across all 3 surfaces.
+
+          Tests:
+            ✓ /app/backend/tests/test_identity_pattern_recurrence.py
+              still passes 12/12 after wiring changes.
+            ✓ Downstream endpoints unaffected (cross-domain, activation-
+              now, role-card, synthesis all return 200).
+
+          NOTE: needs_retesting=true so the testing agent can run a
+          frontend pass to confirm visual placement and absence of
+          layout regressions on Home and Life tabs.
+

@@ -2096,6 +2096,7 @@ def generate_relationship_pattern(
             "recent_tensions":       list(rec.get("recent_tensions") or [])[:3],
             "recurrence_confidence": rec.get("recurrence_confidence", "low"),
             "human_label":           rec.get("human_label"),  # may be None
+            "recurrence_detected":   bool(rec.get("recurrence_detected")),
         }
 
     return response

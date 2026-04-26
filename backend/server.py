@@ -14688,11 +14688,46 @@ async def get_home_insight_v5(user_id: str):
                     for s in signals_used
                 ]
 
+                # Identity-level recurrence overlay for V6 signal-grounded path.
+                # Failure-safe: a detection error MUST NOT break the card.
+                v6_recurrence_block: Dict[str, Any] = {
+                    "memory_state":          "no_history",
+                    "match_count":           0,
+                    "human_label":           None,
+                    "recurrence_detected":   False,
+                    "recurrence_confidence": "low",
+                }
+                try:
+                    from services.relationship_insight_engine import (
+                        detect_identity_pattern_recurrence,
+                        detect_deep_type,
+                    )
+                    _user_doc = await db.users.find_one({"_id": user_id})
+                    _user_profile = {
+                        "user_id": user_id,
+                        "enneagram": (_user_doc or {}).get("enneagram", {}),
+                        "astrology": (_user_doc or {}).get("astrology", {}),
+                    }
+                    _utype = detect_deep_type(_user_profile, "")
+                    _rec = await detect_identity_pattern_recurrence(
+                        db=db, user_id=user_id, user_type=_utype,
+                    )
+                    v6_recurrence_block = {
+                        "memory_state":          _rec.get("memory_state", "no_history"),
+                        "match_count":           int(_rec.get("match_count") or 0),
+                        "human_label":           _rec.get("human_label"),
+                        "recurrence_detected":   bool(_rec.get("recurrence_detected")),
+                        "recurrence_confidence": _rec.get("recurrence_confidence", "low"),
+                    }
+                except Exception as _re:
+                    logger.warning("[HomeV6] recurrence detection failed: %s", _re)
+
                 return {
                     "success": True,
                     "user_id": user_id,
                     "version": grounded["version"],
                     "render_mode": "signal_grounded",
+                    "recurrence": v6_recurrence_block,
                     # Card contract — BEHAVIORAL layers, no astrology in top 3 lines
                     "pattern_label": "Today",
                     "headline": grounded["hook"],             # HOOK — pattern recognition
@@ -14770,10 +14805,47 @@ async def get_home_insight_v5(user_id: str):
         }
         
         logger.info(f"[HomeV5] Generated for {user_id[:8]}: pattern={insight['pattern_label']}, cluster={cluster}")
-        
+
+        # Identity-level recurrence overlay (subtle prepend on Home).
+        # Failure-safe: a detection error MUST NOT break the insight.
+        recurrence_block: Dict[str, Any] = {
+            "memory_state":          "no_history",
+            "match_count":           0,
+            "human_label":           None,
+            "recurrence_detected":   False,
+            "recurrence_confidence": "low",
+        }
+        try:
+            from services.relationship_insight_engine import (
+                detect_identity_pattern_recurrence,
+                detect_deep_type,
+            )
+            user_doc_for_rec = await db.users.find_one({"_id": user_id})
+            user_profile_for_rec = {
+                "user_id": user_id,
+                "enneagram": (user_doc_for_rec or {}).get("enneagram", {}),
+                "astrology": (user_doc_for_rec or {}).get("astrology", {}),
+            }
+            user_type_for_rec = detect_deep_type(user_profile_for_rec, "")
+            rec_full = await detect_identity_pattern_recurrence(
+                db=db, user_id=user_id, user_type=user_type_for_rec,
+            )
+            # Surface ONLY surface-safe fields. NEVER expose raw IDs,
+            # signatures, scores, or sources internals.
+            recurrence_block = {
+                "memory_state":          rec_full.get("memory_state", "no_history"),
+                "match_count":           int(rec_full.get("match_count") or 0),
+                "human_label":           rec_full.get("human_label"),
+                "recurrence_detected":   bool(rec_full.get("recurrence_detected")),
+                "recurrence_confidence": rec_full.get("recurrence_confidence", "low"),
+            }
+        except Exception as e:
+            logger.warning("[HomeV5] recurrence detection failed: %s", e)
+
         return {
             "success": True,
             "user_id": user_id,
+            "recurrence": recurrence_block,
             **insight
         }
         
@@ -14785,6 +14857,13 @@ async def get_home_insight_v5(user_id: str):
             "success": True,
             "user_id": user_id,
             "version": "v5_fallback",
+            "recurrence": {
+                "memory_state":          "no_history",
+                "match_count":           0,
+                "human_label":           None,
+                "recurrence_detected":   False,
+                "recurrence_confidence": "low",
+            },
             "pattern_label": "Something Recurring",
             "headline": "There's a pattern forming — something that keeps coming back.",
             "identity_mirror": "This isn't new. You've been here before — and you know it.",
@@ -25858,6 +25937,43 @@ async def get_life_role_card(user_id: str, refresh: bool = False):
         lifeline_summary=lifeline_summary,
         llm_chat_factory=_role_card_llm_factory(f"role_card_{user_id}") if EMERGENT_LLM_KEY else None,
     )
+
+    # Identity-level recurrence overlay — surfaced as a subtle italic line
+    # below the RoleCard (frontend renders ONLY when human_label is set).
+    # Failure-safe: any error here MUST NOT break the Life tab.
+    try:
+        from services.relationship_insight_engine import (
+            detect_identity_pattern_recurrence,
+            detect_deep_type,
+        )
+        user_doc_for_rec = await db.users.find_one({"_id": user_id})
+        user_profile_for_rec = {
+            "user_id": user_id,
+            "enneagram": (user_doc_for_rec or {}).get("enneagram", {}),
+            "astrology": (user_doc_for_rec or {}).get("astrology", {}),
+        }
+        user_type_for_rec = detect_deep_type(user_profile_for_rec, "")
+        rec_full = await detect_identity_pattern_recurrence(
+            db=db, user_id=user_id, user_type=user_type_for_rec,
+        )
+        # Surface ONLY surface-safe fields.
+        card["recurrence"] = {
+            "memory_state":          rec_full.get("memory_state", "no_history"),
+            "match_count":           int(rec_full.get("match_count") or 0),
+            "human_label":           rec_full.get("human_label"),
+            "recurrence_detected":   bool(rec_full.get("recurrence_detected")),
+            "recurrence_confidence": rec_full.get("recurrence_confidence", "low"),
+        }
+    except Exception as e:
+        logger.warning("[RoleCard] recurrence detection failed: %s", e)
+        card["recurrence"] = {
+            "memory_state":          "no_history",
+            "match_count":           0,
+            "human_label":           None,
+            "recurrence_detected":   False,
+            "recurrence_confidence": "low",
+        }
+
     _life_synth_cache_set(cache_key, card)
     return card
 
@@ -26556,6 +26672,28 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
     except Exception as e:
         logger.warning("[LifeAsk] decan compute failed: %s", e)
 
+    # Identity recurrence overlay — when recurrence_detected, the
+    # interpreter prepends the human_label as the answer's first line.
+    recurrence_data: Optional[Dict[str, Any]] = None
+    try:
+        from services.relationship_insight_engine import (
+            detect_identity_pattern_recurrence,
+            detect_deep_type,
+        )
+        user_doc_for_rec = await db.users.find_one({"_id": user_id})
+        user_profile_for_rec = {
+            "user_id": user_id,
+            "enneagram": (user_doc_for_rec or {}).get("enneagram", {}),
+            "astrology": (user_doc_for_rec or {}).get("astrology", {}),
+        }
+        user_type_for_rec = detect_deep_type(user_profile_for_rec, "")
+        recurrence_data = await detect_identity_pattern_recurrence(
+            db=db, user_id=user_id, user_type=user_type_for_rec,
+        )
+    except Exception as e:
+        logger.warning("[LifeAsk] recurrence detection failed: %s", e)
+        recurrence_data = None
+
     result = await li.ask_life_question(
         chip_domain=chip,
         question=question,
@@ -26570,6 +26708,7 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
         lifeline_summary=lifeline_summary,
         cross_domain_pattern=cross_domain_pattern,
         decan_index=decan_index_val,
+        recurrence_data=recurrence_data,
         llm_chat_factory=_life_interpreter_llm_factory(
             f"life_ask_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
         ) if EMERGENT_LLM_KEY else None,

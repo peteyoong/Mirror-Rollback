@@ -11,7 +11,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { Colors } from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import {
+import api, {
   getLifeContext,
   LifeContextResponse,
   LifeContextType,
@@ -101,6 +101,34 @@ export default function LifeContextView({
     self: null,
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Identity recurrence — small italic line under RoleCard.
+  // Surfaced ONLY when recurrence_detected; failure-safe.
+  const [recurrenceLabel, setRecurrenceLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const resp = await api.get(`/relationship-pattern/${userId}`);
+        if (cancelled) return;
+        const rec = resp?.data?.recurrence;
+        if (
+          rec?.recurrence_detected &&
+          typeof rec.human_label === 'string' &&
+          rec.human_label.trim()
+        ) {
+          setRecurrenceLabel(rec.human_label.trim());
+        } else {
+          setRecurrenceLabel(null);
+        }
+      } catch {
+        // Silent failure — recurrence is a recognition layer, never blocks Life.
+        if (!cancelled) setRecurrenceLabel(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
 
   // Evidence Layer — lazy-loaded on expand
   const [evidenceExpanded, setEvidenceExpanded] = useState<Record<SynthesisDomain, boolean>>({
@@ -652,6 +680,15 @@ export default function LifeContextView({
         <View style={styles.anchorWrap}>
           <RoleCard data={topRoleCard} loading={topRoleLoading} />
 
+          {/* Identity recurrence — small italic recognition line.
+              Renders ONLY when recurrence_detected. No counts, no
+              explanation, no interaction. */}
+          {recurrenceLabel ? (
+            <Text style={[styles.recurrenceLabel, { color: theme.textSecondary }]}>
+              {recurrenceLabel}
+            </Text>
+          ) : null}
+
           {/* Ask About My Life — conversational entry point */}
           <TouchableOpacity
             activeOpacity={0.8}
@@ -726,6 +763,18 @@ const styles = StyleSheet.create({
   },
   anchorWrap: {
     paddingTop: 8,
+  },
+  // Identity recurrence — small italic recognition line under RoleCard.
+  // No counts, no interactions. Hidden when recurrence_detected=false.
+  recurrenceLabel: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    fontWeight: '500',
+    lineHeight: 18,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 8,
+    opacity: 0.85,
   },
   phaseTimelineWrap: {
     maxHeight: 220,
