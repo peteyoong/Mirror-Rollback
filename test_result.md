@@ -11861,3 +11861,72 @@ agent_communication:
               pressure_inputs, has_cross_domain.
             ✓ Phase 1 complete — backend only, no UI yet (per spec).
 
+
+frontend:
+  - task: "Activation-Now: Home tab UI surface"
+    implemented: true
+    working: "NA"
+    file: "frontend/components/WhyThisIsActiveNowCard.tsx, frontend/app/(tabs)/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: |
+          [2026-04-26] WHY THIS IS ACTIVE NOW — Home tab UI surface.
+
+          Goal: surface the activation-now backend layer on the Home
+          tab as a SUBTLE secondary block under the main insight.
+
+          Files:
+            * NEW: /app/frontend/components/WhyThisIsActiveNowCard.tsx
+              - Lazy fetch (600ms after mount) → GET /api/life/activation-now/{userId}
+              - Session-cache by userId (in-memory) so re-navigation to
+                Home doesn't refetch.
+              - HARD HIDE conditions (no error UI shown to user):
+                  • API failure / timeout → silently hidden
+                  • confidence === "low" → silently hidden
+                  • activation_line empty → silently hidden
+              - Pressure → invisible style modulation:
+                  low    → hairline border, muted accent, opacity 0.55
+                  medium → 1px border, secondary accent, opacity 0.7
+                  high   → 1px border (textTertiary), bolder accent,
+                           opacity 0.85 — warmer tint, NOT warning red
+              - Tap to expand: shows activation_explanation as a smaller
+                paragraph beneath. LayoutAnimation eased in/out.
+              - NO labels visible for pressure/confidence/timing/debug.
+              - Tiny "WHY THIS IS ACTIVE NOW" header (10pt, letter-
+                spaced) with chevron when explanation is expandable.
+            * /app/frontend/app/(tabs)/index.tsx
+              - Imported WhyThisIsActiveNowCard.
+              - Mounted directly UNDER HomeInsightV5Card (Position 1b)
+                with marginTop: -4 to feel attached without crowding.
+              - Conditional on user?.id.
+
+          Acceptance (per spec):
+            ✓ Main insight (HomeInsightV5Card) still dominates — new
+              block is visually secondary (smaller font, muted color,
+              hairline/1px border vs main card).
+            ✓ Renders subtle "Why this is active now" under main card
+              when confidence ≥ medium.
+            ✓ NO astrology / system / "transit" / "energy today" copy —
+              shows ONLY the strings the backend returns.
+            ✓ Pressure affects style only (border width / accent /
+              opacity); no literal label visible.
+            ✓ If backend fails OR confidence is low → block is hidden;
+              Home renders unchanged.
+            ✓ Lazy fetch (600ms delay) → main content paints first.
+            ✓ Session-cache prevents re-fetching on re-navigation.
+
+          Backend already verified (see Activation-Now task above).
+          No changes to backend in this step.
+
+          NOTE: Test users currently all return confidence=low
+          (low intensity + no recurrence in their pattern_memory),
+          which means the card will be HIDDEN for them on Home.
+          That is the CORRECT behavior per spec ("If confidence is
+          low: hide the block entirely"). To see the card render,
+          the user needs medium/high pressure (e.g. recurring
+          pattern + medium-or-high intensity day).
+

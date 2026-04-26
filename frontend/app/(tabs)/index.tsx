@@ -26,6 +26,7 @@ import DebugComputeInputs from '../../components/DebugComputeInputs';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import HomeSynthesisCard from '../../components/HomeSynthesisCard';
 import HomeInsightV5Card from '../../components/HomeInsightV5Card';
+import WhyThisIsActiveNowCard from '../../components/WhyThisIsActiveNowCard';
 import ActionCard from '../../components/ActionCard';
 import { useExperienceControls } from '../../hooks/useExperienceControls';
 import { HOME_LAYOUT, MirrorMode } from '../../types/mirror-profile';
@@ -429,6 +430,16 @@ export default function MirrorScreen() {
               onReflect={(question) => router.push('/reflection-chat')}
             />
           </View>
+        )}
+
+        {/* ===================================================================
+            POSITION 1b: WHY THIS IS ACTIVE NOW (Activation-Now layer)
+            Subtle secondary block under the main insight. Hides itself
+            entirely if confidence is low or fetch fails — main insight
+            always dominates.
+            =================================================================== */}
+        {user?.id && (
+          <WhyThisIsActiveNowCard userId={user.id} theme={theme} />
         )}
 
         {/* ===================================================================
