@@ -11865,11 +11865,11 @@ agent_communication:
 frontend:
   - task: "Activation-Now: Home tab UI surface"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/components/WhyThisIsActiveNowCard.tsx, frontend/app/(tabs)/index.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         -working: "NA"
         -agent: "main"
@@ -11929,6 +11929,58 @@ frontend:
           low: hide the block entirely"). To see the card render,
           the user needs medium/high pressure (e.g. recurring
           pattern + medium-or-high intensity day).
+        -working: true
+        -agent: "testing"
+        -comment: |
+          [2026-04-26] FRONTEND TESTING AGENT — VERIFIED ALL 4 TESTS PASS.
+
+          Tested on iPhone 12 viewport (390×844) with a temporary
+          fixture pattern_memory doc inserted for Mel
+          (memory_state=recurring_pattern, match_count=5) which
+          produced confidence=high, pressure=high.
+
+          Test 1 (card renders for Mel): PASS
+            - Card renders directly under HomeInsightV5Card.
+            - "WHY THIS IS ACTIVE NOW" header visible (10pt uppercase,
+              letter-spaced).
+            - activation_line + chevron-down visible.
+            - Subtle secondary styling — does NOT compete with main
+              insight (smaller font, muted accent, hairline/1px border).
+            - NO banned vocab observed in DOM (no "low", "medium",
+              "high", "confidence", "pressure", "score", "debug",
+              "astrology", "transit", "planet", "house", "decan",
+              "energy", "universe", "chart", or zodiac sign names).
+
+          Test 2 (expand/collapse): PASS
+            - Tap expands activation_explanation with LayoutAnimation.
+            - Chevron rotates down → up.
+            - Second tap collapses cleanly.
+
+          Test 3 (Pete hidden): PASS
+            - Pete (confidence=low) — card silently hidden.
+            - Main HomeInsightV5Card renders normally.
+            - No error toast / loading spinner / empty placeholder.
+
+          Test 4 (network failure resilience): PASS
+            - Pre-fix, the URL had a double-/api/ prefix (404). The
+              card silently hid itself — no error UI surfaced. Spec
+              behavior verified.
+
+          Bug found + fixed by testing agent:
+            File: /app/frontend/components/WhyThisIsActiveNowCard.tsx
+            Issue: api.get('/api/life/activation-now/...') was double-
+                   prefixing because axios `api` instance already adds
+                   /api via baseURL.
+            Fix:   path changed to '/life/activation-now/${userId}'.
+            Verified end-to-end after fix.
+
+          Fixture revert (post-test):
+            * Deleted pattern_memory doc with marker
+              _test_fixture='TEST_FIXTURE_ACTIVATION_NOW_DEMO'.
+            * Re-fetched activation-now for Mel with refresh=true.
+            * Confirmed pressure=low, confidence=low (back to natural
+              state). Mel's Home now correctly hides the card again
+              just like Pete's. NO relaxed threshold left in code.
 
 
 frontend:
