@@ -12188,7 +12188,7 @@ backend:
     file: "backend/server.py, backend/services/life_interpreter.py, backend/services/relationship_insight_engine.py, frontend/components/HomeInsightV5Card.tsx, frontend/components/LifeContextView.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         -working: true
         -agent: "main"
@@ -12294,4 +12294,67 @@ backend:
           NOTE: needs_retesting=true so the testing agent can run a
           frontend pass to confirm visual placement and absence of
           layout regressions on Home and Life tabs.
+        -working: true
+        -agent: "testing"
+        -comment: |
+          [2026-04-26] FRONTEND TESTING AGENT — ALL 6 TESTS PASS.
+
+          Tested on iPhone 12 viewport (390×844) with temporary
+          fixture pattern_memory doc inserted for Mel
+          (memory_state=recurring_pattern, match_count=5).
+
+          Test 1 (Mel Home): PASS
+            ✓ Italic "You've been here before." appears ABOVE the
+              headline in HomeInsightV5Card.
+            ✓ Subtle ~13pt italic, textSecondary color.
+            ✓ Headline (24pt) below unchanged.
+
+          Test 2 (Mel Life): PASS
+            ✓ Italic "You've been here before." appears UNDER RoleCard,
+              ABOVE the "💬 Ask about my life" pill.
+            ✓ No counts / explanation / buttons attached — pure
+              recognition only.
+
+          Test 3 (Mel Ask About My Life): PASS
+            ✓ Answer renders with the recurrence line as the leading
+              first line; body follows on subsequent lines.
+
+          Test 4 (Pete cold-start): PASS
+            ✓ NO italic recurrence line on Home (headline is the FIRST
+              visible content in the card).
+            ✓ NO italic line on Life (RoleCard followed directly by
+              the Ask pill).
+
+          Test 5 (Guardrails): PASS
+            ✓ Scanned all visible UI on both users across Home / Life /
+              Ask. NONE of the banned strings leaked into the UI:
+              match_count, memory_state, recurrence_confidence,
+              recurrence_detected, signature_hash, _id,
+              first_appearance, no_history, returning_pattern,
+              recurring_pattern.
+
+          Test 6 (Layout regression): PASS
+            ✓ Pete's Home and Life layout match the pre-recurrence
+              baseline.
+            ✓ Mel's layout differs only by the small italic line.
+            ✓ Padding, scroll, and card hierarchy unchanged.
+
+          Backend curl confirmation during test run:
+            * Mel /api/home-insight-v5: recurrence_detected=True,
+              human_label="You've been here before."
+            * Pete /api/home-insight-v5: recurrence_detected=False,
+              human_label=null
+
+          Fixture revert (post-test):
+            * Deleted pattern_memory doc with marker
+              _test_fixture='TEST_FIXTURE_RECURRENCE_SURFACE_E2E'.
+            * Re-fetched home-insight-v5 + relationship-pattern for
+              Mel.
+            * Confirmed both endpoints now return
+              recurrence_detected=False, human_label=null.
+            * Verified pattern_memory.count_documents({_test_fixture:
+              {$exists: True}}) == 0. Database is clean.
+
+          ACCEPTANCE: All 6 acceptance criteria from the spec met.
+          No relaxed thresholds left in code or DB.
 
