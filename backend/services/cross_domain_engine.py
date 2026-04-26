@@ -37,7 +37,92 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
-GENERATOR_VERSION = "cross_domain_v1_1_mirror"
+GENERATOR_VERSION = "cross_domain_v1_2_metaphor_variety"
+
+
+# ---------------------------------------------------------------------------
+# Metaphor Variety Control (rule 15)
+#
+# Recognition lines must NOT reuse the same metaphor family across
+# generations for the same user. We keep an in-memory history of the last
+# N metaphor families per user, ask the LLM to AVOID them in the next
+# generation, and run a post-render check that retries if the new line
+# falls back into a recently-used family.
+#
+# Families intentionally overlap with common Mirror voice patterns we've
+# already seen leak repetitively (sharpen / push / build / speed). The
+# "allowed alternative frames" mirror what the spec asked for: physical,
+# relational, temporal, internal — keyed off easy-to-detect verbs.
+# ---------------------------------------------------------------------------
+
+_METAPHOR_FAMILIES: Dict[str, re.Pattern] = {
+    # over-used families — the engine actively rotates these
+    "sharpen_cut":     re.compile(r"\b(?:sharpen(?:s|ed|ing)?|cut(?:s|ting)?|blade|edge|knife|carve)\b", re.I),
+    "push_pull":       re.compile(r"\b(?:push(?:es|ed|ing)?|pull(?:s|ed|ing)?|force(?:s|d)?|forcing|drag(?:s|ged|ging)?)\b", re.I),
+    "build_structure": re.compile(r"\b(?:build(?:s|ing)?|built|structure|scaffold|frame(?:s|d|work)?|hold(?:s|ing)? together)\b", re.I),
+    "speed_pace":      re.compile(r"\b(?:outpace(?:s|d)?|pace|momentum|speed|fast(?:er)?|race(?:s|d)?|sprint)\b", re.I),
+    # alternative frames — preferred when rotation is needed
+    "physical_hold":   re.compile(r"\b(?:hold(?:s|ing)?|holding|carry(?:ing)?|drop(?:s|ped|ping)?|let(?:s|ting)? go|grip|grasp)\b", re.I),
+    "relational":      re.compile(r"\b(?:reach(?:es|ed|ing)?|meet(?:s|ing)?|miss(?:es|ed|ing)?|respond(?:s|ed|ing)?|receive(?:s|d|ing)?|listen(?:s|ed|ing)?)\b", re.I),
+    "temporal":        re.compile(r"\b(?:too early|too long|after the moment|before the space|already passed|keeps going|continu(?:e|es|ed|ing) past)\b", re.I),
+    "internal":        re.compile(r"\b(?:tighten(?:s|ed|ing)?|tight|loosen(?:s|ed|ing)?|release(?:s|d|ing)?|correct(?:s|ed|ing)?|self[- ]correct(?:ion|ing)?|inside)\b", re.I),
+}
+
+_OVERUSED_FAMILIES = ("sharpen_cut", "push_pull", "build_structure", "speed_pace")
+_ALTERNATIVE_FRAMES = ("physical_hold", "relational", "temporal", "internal")
+
+# In-memory recent-metaphor history per user (capacity 5, simple FIFO).
+# Survives across calls within the same backend process. Cleared on restart —
+# acceptable for V1, since cross-domain output is regenerated on refresh.
+_RECENT_METAPHORS_BY_USER: Dict[str, List[str]] = {}
+_RECENT_METAPHORS_CAP = 5
+
+
+def _detect_metaphor_families(text: str) -> List[str]:
+    """Return families whose verbs/words appear in `text` (most distinctive first)."""
+    if not isinstance(text, str) or not text:
+        return []
+    hits: List[str] = []
+    # Check over-used families first, then alternatives
+    for fam in (*_OVERUSED_FAMILIES, *_ALTERNATIVE_FRAMES):
+        if _METAPHOR_FAMILIES[fam].search(text):
+            hits.append(fam)
+    return hits
+
+
+def _record_metaphor_for_user(user_id: Optional[str], families: List[str]) -> None:
+    """Append the families found in this generation to the user's history."""
+    if not user_id or not families:
+        return
+    bucket = _RECENT_METAPHORS_BY_USER.setdefault(user_id, [])
+    for fam in families:
+        bucket.append(fam)
+    if len(bucket) > _RECENT_METAPHORS_CAP:
+        # Keep only the most recent N
+        del bucket[:-_RECENT_METAPHORS_CAP]
+
+
+def _avoid_families_for_user(user_id: Optional[str]) -> List[str]:
+    """Return the families to AVOID for this user (the most recently used)."""
+    if not user_id:
+        return []
+    bucket = _RECENT_METAPHORS_BY_USER.get(user_id, [])
+    # Avoid any family that has appeared in the last 3 generations
+    return list(dict.fromkeys(bucket[-3:]))  # preserves order, deduped
+
+
+def _suggested_frames_for_user(user_id: Optional[str]) -> List[str]:
+    """Return the alternative frames NOT recently used by this user."""
+    avoid = set(_avoid_families_for_user(user_id))
+    return [f for f in _ALTERNATIVE_FRAMES if f not in avoid] or list(_ALTERNATIVE_FRAMES)
+
+
+_FRAME_DESCRIPTIONS: Dict[str, str] = {
+    "physical_hold": "physical (hold, carry, drop, let go, grip, grasp)",
+    "relational":    "relational (reach, meet, miss, respond, receive, listen)",
+    "temporal":      "temporal (start too early, continue too long, after the moment, before the space)",
+    "internal":      "internal (tighten, hold, correct, release, loosen)",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -192,6 +277,22 @@ HARD RULES
 8. Tone: observational, reflective, precise. Not advice. Not prediction.
    Not abstract philosophy. Must feel grounded in lived experience.
 
+9. METAPHOR VARIETY (recognition_line specifically)
+   recognition_line MUST NOT reuse the same metaphor family across
+   generations for the same user. If the input payload contains a
+   `metaphor_avoid` field, you MUST avoid those families in the
+   recognition_line. If it contains a `metaphor_prefer` field, prefer
+   one of those alternative experiential frames.
+   Allowed alternative frames:
+     - physical (hold, carry, drop, let go, grip, grasp)
+     - relational (reach, meet, miss, respond, receive, listen)
+     - temporal (start too early, continue too long, after the moment,
+                 before the space)
+     - internal (tighten, hold, correct, release, loosen)
+   Pick the frame that fits the actual evidence. Do NOT force a frame
+   that does not fit — but do not fall back into a recently-used one
+   either.
+
 ==================================================
 EXAMPLE TARGET OUTPUT
 ==================================================
@@ -225,6 +326,8 @@ def _user_prompt(
     pattern_memory: Optional[Dict[str, Any]],
     lifeline_summary: Optional[Dict[str, Any]],
     today_state: Optional[Dict[str, Any]],
+    avoid_families: Optional[List[str]] = None,
+    suggested_frames: Optional[List[str]] = None,
 ) -> str:
     pm_summary = ""
     if isinstance(pattern_memory, dict):
@@ -258,6 +361,23 @@ def _user_prompt(
             "summarise. Do NOT quote whole sentences from the domain text. "
             "Return JSON exactly as specified by the system prompt.",
     }
+
+    # Metaphor variety: avoid recently-used families for this user, prefer
+    # alternative experiential frames. Sent as additional payload keys so the
+    # LLM can read them in context.
+    if avoid_families:
+        payload["metaphor_avoid"] = (
+            "Do NOT use these metaphor families in recognition_line: "
+            + ", ".join(avoid_families)
+            + ". They have been used recently for this user and would feel "
+            + "stale. Choose a different experiential frame."
+        )
+    if suggested_frames:
+        payload["metaphor_prefer"] = (
+            "Prefer ONE of these alternative frames for recognition_line: "
+            + " | ".join(_FRAME_DESCRIPTIONS.get(f, f) for f in suggested_frames)
+            + ". Pick the one that fits the actual evidence; do not force it."
+        )
     return json.dumps(payload, indent=2, ensure_ascii=False)
 
 
@@ -460,6 +580,7 @@ async def generate_cross_domain_pattern(
     today_state: Optional[Dict[str, Any]] = None,
     llm_chat_factory=None,
     debug: bool = False,
+    user_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Generate the cross-domain pattern recognition. Returns the structured
@@ -501,12 +622,31 @@ async def generate_cross_domain_pattern(
         return result
 
     # First render
-    user_msg = _user_prompt(self_text, work_text, rels_text, shared, pattern_memory, lifeline_summary, today_state)
+    avoid_families = _avoid_families_for_user(user_id)
+    suggested_frames = _suggested_frames_for_user(user_id)
+    user_msg = _user_prompt(
+        self_text, work_text, rels_text, shared, pattern_memory,
+        lifeline_summary, today_state,
+        avoid_families=avoid_families,
+        suggested_frames=suggested_frames,
+    )
     payload, audit, retry_used = await _render_once(
         llm_chat_factory=llm_chat_factory,
         system_prompt=_SYSTEM_PROMPT,
         user_msg=user_msg,
     )
+
+    # Metaphor variety check on the FIRST draft. If recognition_line uses a
+    # recently-used family, mark the audit as flagged so the standard retry
+    # path triggers with the metaphor reasons included.
+    rl_first = (payload.get("recognition_line") or "")
+    metaphor_hits_first = _detect_metaphor_families(rl_first)
+    overlap_first = [f for f in metaphor_hits_first if f in avoid_families]
+    if overlap_first and not audit.get("flagged"):
+        audit["flagged"] = True
+        audit.setdefault("reasons", []).append(
+            f"metaphor_reuse ({', '.join(overlap_first)})"
+        )
 
     # If the audit flagged the result and we have an LLM factory, retry ONCE
     # with a stronger instruction hint inline.
@@ -570,11 +710,22 @@ async def generate_cross_domain_pattern(
         payload["confidence"] = confidence
 
     payload["generator_version"] = GENERATOR_VERSION
+
+    # Record the final recognition_line metaphor family in the user's
+    # rolling history so subsequent calls steer away from the same frame.
+    final_rl = (payload.get("recognition_line") or "")
+    final_families = _detect_metaphor_families(final_rl)
+    _record_metaphor_for_user(user_id, final_families)
+
     if debug:
         payload["debug"] = {
-            "shared_signals": shared,
-            "audit":          audit,
-            "retry_used":     retry_used,
+            "shared_signals":         shared,
+            "audit":                  audit,
+            "retry_used":             retry_used,
+            "metaphor_avoid":         avoid_families,
+            "metaphor_suggested":     suggested_frames,
+            "metaphor_families_used": final_families,
+            "metaphor_history":       list(_RECENT_METAPHORS_BY_USER.get(user_id or "", [])),
         }
     return payload
 

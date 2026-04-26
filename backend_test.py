@@ -18,7 +18,7 @@ import requests
 
 # ---- Config -----------------------------------------------------------------
 
-BASE_URL = "https://reflect-loop-upgrade.preview.emergentagent.com/api"
+BASE_URL = "https://metaphor-control.preview.emergentagent.com/api"
 TIMEOUT = 60
 
 PETE  = "697f0c6abf35c0528ff06954"

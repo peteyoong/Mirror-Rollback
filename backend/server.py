@@ -26179,6 +26179,7 @@ async def get_life_cross_domain(user_id: str, refresh: bool = False, debug: bool
             f"cross_domain_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
         ),
         debug=bool(debug),
+        user_id=user_id,
     )
 
     # Cache the result (skip when debug=True so debug runs don't pollute cache)
@@ -26384,6 +26385,20 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
     )
     today_state = {"intensity_level": intensity_level, "intensity_reasons": intensity_reasons}
 
+    # Cross-Domain Pattern (Phase 2): use as deeper anchoring context for the
+    # follow-up + answer. We use the CACHED payload only — never trigger a
+    # fresh LLM call from inside /life/ask. If the cache is empty (user
+    # hasn't loaded the cross-domain endpoint yet), we silently skip it.
+    cross_domain_pattern: Optional[Dict[str, Any]] = None
+    try:
+        cdp_cached = _life_synth_cache_get(f"cross_domain::{user_id}")
+        if isinstance(cdp_cached, dict) and (
+            cdp_cached.get("core_pattern") or cdp_cached.get("pattern_spine")
+        ):
+            cross_domain_pattern = cdp_cached
+    except Exception as e:
+        logger.warning("[LifeAsk] cross-domain cache fetch failed: %s", e)
+
     result = await li.ask_life_question(
         chip_domain=chip,
         question=question,
@@ -26396,6 +26411,7 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
         evidence_signals=evidence_signals,
         chart=chart_doc,
         lifeline_summary=lifeline_summary,
+        cross_domain_pattern=cross_domain_pattern,
         llm_chat_factory=_life_interpreter_llm_factory(
             f"life_ask_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
         ) if EMERGENT_LLM_KEY else None,

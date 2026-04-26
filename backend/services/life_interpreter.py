@@ -119,6 +119,34 @@ ANSWER RULES
    Chinese terminology. The user should only feel "this part of my life
    has its own pattern" without ever seeing the engine that produced it.
 
+10. CROSS-DOMAIN SPINE (when cross_domain_pattern is present in context).
+
+    The context may include a `cross_domain_pattern` block with:
+      - core_pattern:         the SAME behaviour playing across all life areas
+      - pattern_spine:        the underlying mechanism connecting them
+      - cross_domain_tension: the cost of the pattern across life areas
+      - recognition_line:     a short Mirror-like recognition (≤ 110 chars)
+
+    This is the SINGULAR pattern showing up across the user's entire life,
+    not just this domain. Use it as DEEPER ANCHORING CONTEXT — the user's
+    answer should feel rooted in their broader behaviour, not just this
+    one chip. When relevant, briefly nod to "the same shape that shows up
+    elsewhere in your life" or "the thread you're already running in
+    other parts of your life" — but in YOUR OWN WORDS.
+
+    HARD RULES for cross_domain_pattern:
+      - NEVER quote `recognition_line` verbatim. It is for YOUR anchoring
+        only. Quoting it makes the answer feel canned across sessions.
+      - NEVER quote `core_pattern` or `pattern_spine` word-for-word either.
+      - You MAY paraphrase the spine in 5-10 fresh words if it strengthens
+        the answer.
+      - Follow-up questions of TYPE B (CROSS-DOMAIN EFFECT) SHOULD lean
+        on this spine — that's what makes them feel sharp instead of
+        generic. Example: instead of "How is this showing up in my work?",
+        prefer "Is this why I keep over-tightening when I lead a project?"
+        — concrete, specific to the spine.
+      - If `cross_domain_pattern` is missing or empty, ignore this rule.
+
 ==================================================
 FOLLOW-UP RULES
 ==================================================
@@ -272,6 +300,7 @@ def build_context_payload(
     evidence_signals: Optional[List[Dict[str, Any]]],
     chart: Optional[Dict[str, Any]] = None,
     lifeline_summary: Optional[Dict[str, Any]] = None,
+    cross_domain_pattern: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Compose the context the LLM will lean on. Values are kept SHORT to keep
@@ -360,12 +389,32 @@ def build_context_payload(
     except Exception as e:
         logger.warning("[LifeInterp] domain origin unavailable for chip=%s: %s", chip_domain, e)
 
+    # Cross-domain pattern (Mirror Cross-Domain Engine — invisible).
+    # The single pattern showing up across Self / Work / Relationships.
+    # Used as DEEPER ANCHORING context, not surfaced verbatim.
+    cdp: Dict[str, Any] = {}
+    if isinstance(cross_domain_pattern, dict):
+        core = (cross_domain_pattern.get("core_pattern") or "").strip()
+        spine = (cross_domain_pattern.get("pattern_spine") or "").strip()
+        cost = (cross_domain_pattern.get("cross_domain_tension") or "").strip()
+        rec  = (cross_domain_pattern.get("recognition_line") or "").strip()
+        # Only include if there's actual content (placeholder responses have empty strings)
+        if core or spine or cost:
+            cdp = {
+                "core_pattern":         _short(core, 240),
+                "pattern_spine":        _short(spine, 320),
+                "cross_domain_tension": _short(cost, 240),
+                "recognition_line":     _short(rec, 140),
+                "confidence":           (cross_domain_pattern.get("confidence") or "").strip().lower() or None,
+            }
+
     return {
         "chip":            chip_domain,
         "question":        _short(question, 600),
         "role_card":       rc,
         "domain_synthesis": ds,
         "domain_origin":   do,
+        "cross_domain_pattern": cdp,
         "current_phase":   ph,
         "active_arena_hint": dw_summary,
         "pattern_memory":  pm,
@@ -410,6 +459,25 @@ def _format_context_for_llm(ctx: Dict[str, Any]) -> str:
         lines.append("")
     if ctx.get("active_arena_hint"):
         lines.append(f"WHAT IS MOST ACTIVE: {ctx['active_arena_hint']}.")
+        lines.append("")
+    cdp = ctx.get("cross_domain_pattern") or {}
+    if cdp and (cdp.get("core_pattern") or cdp.get("pattern_spine")):
+        lines.append(
+            "CROSS-DOMAIN PATTERN (the SAME shape showing up across all of "
+            "this user's life — anchor your answer to this, but do NOT "
+            "quote any line verbatim):"
+        )
+        if cdp.get("core_pattern"):
+            lines.append(f"  - core: {cdp['core_pattern']}")
+        if cdp.get("pattern_spine"):
+            lines.append(f"  - spine: {cdp['pattern_spine']}")
+        if cdp.get("cross_domain_tension"):
+            lines.append(f"  - cost: {cdp['cross_domain_tension']}")
+        if cdp.get("recognition_line"):
+            lines.append(
+                f"  - recognition (REFERENCE ONLY — do NOT quote): "
+                f"{cdp['recognition_line']}"
+            )
         lines.append("")
     pm = ctx.get("pattern_memory") or {}
     if pm.get("is_recurring") and pm.get("dominant_tension"):
@@ -457,6 +525,7 @@ async def ask_life_question(
     evidence_signals: Optional[List[Dict[str, Any]]],
     chart: Optional[Dict[str, Any]] = None,
     lifeline_summary: Optional[Dict[str, Any]] = None,
+    cross_domain_pattern: Optional[Dict[str, Any]] = None,
     llm_chat_factory=None,
 ) -> Dict[str, Any]:
     """
@@ -496,6 +565,7 @@ async def ask_life_question(
         evidence_signals=evidence_signals,
         chart=chart,
         lifeline_summary=lifeline_summary,
+        cross_domain_pattern=cross_domain_pattern,
     )
     user_msg = _format_context_for_llm(ctx)
 
@@ -572,19 +642,20 @@ async def ask_life_question(
         "chip_domain":      chip,
         "synthesis_domain": synth_dom,
         "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_interpreter_v3_ziwei_origin",
+        "generator_version": "life_interpreter_v4_cross_domain",
         "debug": {
             "llm_used":       answer_raw is not None and render_error is None,
             "render_error":   render_error,
             "parse_error":    parse_error,
             "banned_hits":    banned_hits,
             "context_keys":   {
-                "has_role_card":        bool(ctx["role_card"]),
-                "has_domain_synthesis": bool(ctx["domain_synthesis"]),
-                "has_current_phase":    bool(ctx["current_phase"]),
-                "today_intensity":      ctx.get("today_intensity"),
-                "is_recurring":         (pattern_memory or {}).get("memory_state") == "recurring_pattern",
-                "evidence_count":       len(ctx.get("evidence") or []),
+                "has_role_card":          bool(ctx["role_card"]),
+                "has_domain_synthesis":   bool(ctx["domain_synthesis"]),
+                "has_current_phase":      bool(ctx["current_phase"]),
+                "has_cross_domain":       bool(ctx.get("cross_domain_pattern")),
+                "today_intensity":        ctx.get("today_intensity"),
+                "is_recurring":           (pattern_memory or {}).get("memory_state") == "recurring_pattern",
+                "evidence_count":         len(ctx.get("evidence") or []),
             },
         },
     }
