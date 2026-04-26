@@ -903,50 +903,208 @@ async def detect_identity_pattern_recurrence(
     db,
     user_id: str,
     user_type: str,
-) -> bool:
+) -> Dict[str, Any]:
     """
-    Detect if the user's identity-level relationship pattern is recurring.
-    
-    Uses journal analysis + pattern memory to determine if user is 
-    experiencing their core relational pattern repeatedly.
-    """
-    try:
-        # Get recent journals
-        journals = await db.journals.find({
-            "user_id": user_id,
-        }).sort("created_at", -1).limit(20).to_list(20)
-        
-        if len(journals) < 3:
-            return False  # Not enough data
-        
-        # Relationship pattern keywords by type
-        pattern_keywords = {
-            "initiator": ["reach", "start", "wait", "silence", "respond", "ignored"],
-            "reflector": ["push", "pressure", "respond", "time", "process", "slow"],
-            "momentum_carrier": ["slow", "pause", "stop", "fast", "impatient", "waiting"],
-            "attunement_holder": ["rush", "fast", "sense", "feel", "read", "pace"],
-            "certainty_seeker": ["unclear", "vague", "know", "sure", "certain", "confused"],
-            "sensor": ["concrete", "specific", "feel", "sense", "impression", "explain"],
-            "expresser": ["silent", "quiet", "share", "show", "open", "match"],
-            "absorber": ["overwhelm", "loud", "quiet", "hold", "take in", "show"],
-            "action_taker": ["slow", "wait", "sense", "read", "move", "act"],
-            "atmospheric_reader": ["fast", "change", "read", "sense", "act", "move"],
-            "container": ["open", "share", "hold", "protect", "wall", "edge"],
-            "porous": ["boundary", "absorb", "feel", "carry", "edge", "protect"],
+    Detect whether the user's IDENTITY-LEVEL relational pattern is returning
+    or recurring, and return rich metadata about the recurrence state.
+
+    Combines two sources:
+      1. pattern_memory collection — the universal recurrence store used by
+         the rest of the Mirror stack (Home, Life, Activation-Now).
+      2. Journal keyword analysis — scoped to this user_type's relational
+         vocabulary. Acts as a secondary confirmation when pattern_memory
+         is sparse.
+
+    Returns:
+        {
+          "memory_state":          "no_history" | "first_appearance" |
+                                   "returning_pattern" | "recurring_pattern",
+          "match_count":           int,
+          "dominant_tension":      str | None,        # human-friendly
+          "recent_tensions":       List[str],         # max 3 human-friendly
+          "recurrence_confidence": "low" | "medium" | "high",
+          "human_label":           str | None,        # surface-safe copy
+          "recurrence_detected":   bool,              # back-compat flag
+          "sources":               {                  # debug-safe metadata
+              "pattern_memory_used": bool,
+              "journal_signal":      "none" | "weak" | "strong",
+          },
         }
-        
-        keywords = pattern_keywords.get(user_type, ["pattern", "relationship"])
-        journal_text = " ".join([j.get("content", "") for j in journals]).lower()
-        
-        # Count keyword occurrences
-        keyword_count = sum(1 for kw in keywords if kw in journal_text)
-        
-        # If keywords appear frequently in recent journals, pattern is recurring
-        return keyword_count >= 4
-        
+
+    HARD RULES:
+        * NEVER expose raw signature IDs, hashes, scoring numbers, or
+          internal pattern keys to the caller's caller.
+        * Cold-start (no journals + no pattern_memory) → memory_state =
+          "no_history", human_label = None.
+        * Malformed pattern_memory docs are tolerated — fields are read
+          via .get with defaults; corrupt docs do not raise.
+    """
+    # ------------------------------------------------------------------
+    # 1) Read pattern_memory (tolerant of malformed docs)
+    # ------------------------------------------------------------------
+    pm_state: str = ""
+    pm_match_count: int = 0
+    pm_dominant_tension: Optional[str] = None
+    pm_recent_tensions: List[str] = []
+    pm_used: bool = False
+
+    try:
+        # Pattern memory is keyed per user; we may have multiple docs over
+        # time, but the canonical "current state" is stored as a single
+        # document. We accept either shape.
+        pm_doc = await db.pattern_memory.find_one({"user_id": user_id})
+        if isinstance(pm_doc, dict):
+            pm_used = True
+
+            raw_state = pm_doc.get("memory_state")
+            if isinstance(raw_state, str):
+                pm_state = raw_state.strip().lower()
+
+            raw_count = pm_doc.get("match_count")
+            if isinstance(raw_count, (int, float)):
+                pm_match_count = int(raw_count)
+
+            # dominant_tension may be stored under different keys in legacy
+            # docs — accept any of these.
+            for key in ("dominant_tension", "primary_tension",
+                        "current_tension", "tension"):
+                v = pm_doc.get(key)
+                if isinstance(v, str) and v.strip():
+                    pm_dominant_tension = v.strip()
+                    break
+
+            # recent_tensions: accept list or str (split on |)
+            raw_recent = pm_doc.get("recent_tensions") or pm_doc.get("tensions")
+            if isinstance(raw_recent, list):
+                pm_recent_tensions = [
+                    str(x).strip() for x in raw_recent
+                    if isinstance(x, (str, int, float)) and str(x).strip()
+                ][:3]
+            elif isinstance(raw_recent, str) and raw_recent.strip():
+                pm_recent_tensions = [
+                    s.strip() for s in raw_recent.split("|") if s.strip()
+                ][:3]
     except Exception as e:
-        logger.error(f"[IdentityPattern] Detection error: {e}")
-        return False
+        # Malformed pattern_memory docs / DB hiccup → degrade gracefully.
+        logger.warning(
+            "[IdentityPattern] pattern_memory read failed for %s: %s",
+            user_id, e,
+        )
+        pm_used = False
+
+    # ------------------------------------------------------------------
+    # 2) Journal keyword signal (secondary confirmation)
+    # ------------------------------------------------------------------
+    journal_signal = "none"
+    journal_count = 0
+    journals_total = 0
+
+    try:
+        journals = await db.journals.find(
+            {"user_id": user_id}
+        ).sort("created_at", -1).limit(20).to_list(20)
+        journals_total = len(journals or [])
+
+        if journals_total >= 3:
+            pattern_keywords = {
+                "initiator":          ["reach", "start", "wait", "silence", "respond", "ignored"],
+                "reflector":          ["push", "pressure", "respond", "time", "process", "slow"],
+                "momentum_carrier":   ["slow", "pause", "stop", "fast", "impatient", "waiting"],
+                "attunement_holder":  ["rush", "fast", "sense", "feel", "read", "pace"],
+                "certainty_seeker":   ["unclear", "vague", "know", "sure", "certain", "confused"],
+                "sensor":             ["concrete", "specific", "feel", "sense", "impression", "explain"],
+                "expresser":          ["silent", "quiet", "share", "show", "open", "match"],
+                "absorber":           ["overwhelm", "loud", "quiet", "hold", "take in", "show"],
+                "action_taker":       ["slow", "wait", "sense", "read", "move", "act"],
+                "atmospheric_reader": ["fast", "change", "read", "sense", "act", "move"],
+                "container":          ["open", "share", "hold", "protect", "wall", "edge"],
+                "porous":             ["boundary", "absorb", "feel", "carry", "edge", "protect"],
+            }
+            keywords = pattern_keywords.get(
+                user_type, ["pattern", "relationship"],
+            )
+            text = " ".join(
+                str(j.get("content", "")) for j in journals if isinstance(j, dict)
+            ).lower()
+            journal_count = sum(1 for kw in keywords if kw in text)
+            if journal_count >= 4:
+                journal_signal = "strong"
+            elif journal_count >= 2:
+                journal_signal = "weak"
+    except Exception as e:
+        logger.warning(
+            "[IdentityPattern] journal read failed for %s: %s",
+            user_id, e,
+        )
+
+    # ------------------------------------------------------------------
+    # 3) Combine signals into a single memory_state
+    # ------------------------------------------------------------------
+    # Default = no_history
+    memory_state = "no_history"
+
+    # If pattern_memory has an explicit state, trust it as the primary.
+    if pm_state in ("recurring_pattern", "returning_pattern", "first_appearance"):
+        memory_state = pm_state
+    elif pm_used and pm_match_count >= 3:
+        memory_state = "recurring_pattern"
+    elif pm_used and pm_match_count == 2:
+        memory_state = "returning_pattern"
+    elif pm_used and pm_match_count == 1:
+        memory_state = "first_appearance"
+
+    # Journal evidence can ESCALATE state but never invent recurrence
+    # from nothing. If pattern_memory said "no record" but journals show
+    # the pattern strongly, surface it as "returning_pattern".
+    if memory_state in ("no_history", "first_appearance") and journal_signal == "strong":
+        memory_state = "returning_pattern"
+
+    # ------------------------------------------------------------------
+    # 4) Effective match_count (use whichever source is higher)
+    # ------------------------------------------------------------------
+    effective_match_count = pm_match_count
+    if memory_state == "returning_pattern" and effective_match_count < 2:
+        effective_match_count = 2
+    if memory_state == "recurring_pattern" and effective_match_count < 3:
+        effective_match_count = 3
+
+    # ------------------------------------------------------------------
+    # 5) Confidence
+    # ------------------------------------------------------------------
+    if memory_state == "recurring_pattern" and (pm_used or journal_signal == "strong"):
+        recurrence_confidence = "high"
+    elif memory_state == "returning_pattern":
+        recurrence_confidence = "medium" if (pm_used and journal_signal != "none") else "medium" if pm_used else "low"
+    elif memory_state == "first_appearance":
+        recurrence_confidence = "low"
+    else:
+        recurrence_confidence = "low"
+
+    # ------------------------------------------------------------------
+    # 6) Human-facing label (surface-safe, no jargon, no IDs)
+    # ------------------------------------------------------------------
+    human_label: Optional[str] = None
+    if memory_state == "recurring_pattern" and effective_match_count >= 3:
+        human_label = "You've been here before."
+    elif memory_state == "recurring_pattern":
+        human_label = "This pattern is returning."
+    elif memory_state == "returning_pattern":
+        human_label = "This is becoming familiar."
+    # first_appearance and no_history → no human_label (don't over-surface)
+
+    return {
+        "memory_state":          memory_state,
+        "match_count":           effective_match_count,
+        "dominant_tension":      pm_dominant_tension,
+        "recent_tensions":       pm_recent_tensions,
+        "recurrence_confidence": recurrence_confidence,
+        "human_label":           human_label,
+        "recurrence_detected":   memory_state in ("returning_pattern", "recurring_pattern"),
+        "sources": {
+            "pattern_memory_used": pm_used,
+            "journal_signal":      journal_signal,
+        },
+    }
 
 
 def generate_identity_meaning(
@@ -1870,7 +2028,8 @@ IDENTITY_PATTERNS = {
 
 def generate_relationship_pattern(
     user_profile: Dict[str, Any],
-    seed: str = ""
+    seed: str = "",
+    recurrence_data: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Generate user's general relationship pattern (identity-level).
@@ -1885,6 +2044,8 @@ def generate_relationship_pattern(
     - Gift: What they bring
     - What Teaching: What relationships are teaching (STABLE)
     - Try This: One actionable suggestion
+    - Recurrence (optional): rich metadata + human-safe label when
+      detect_identity_pattern_recurrence() is wired in by the caller.
     """
     
     # Use STABLE seed (user_id only, NOT date-based)
@@ -1897,26 +2058,47 @@ def generate_relationship_pattern(
     
     # Get identity pattern
     pattern = IDENTITY_PATTERNS.get(user_type, IDENTITY_PATTERNS["initiator"])
+
+    # Recurrence wiring (optional — degrades gracefully on cold start).
+    rec = recurrence_data if isinstance(recurrence_data, dict) else {}
+    recurrence_detected = bool(rec.get("recurrence_detected", False))
     
-    return {
+    response: Dict[str, Any] = {
         "success": True,
-        "version": "v3.0",
+        "version": "v3.1_identity_recurrence",
         "pattern_type": user_type,
         "pattern_quality": DEEP_DYNAMICS.get(user_type, {}).get("quality", "unknown"),
         
-        # The 6-section structure for identity-level (what_teaching now STABLE)
+        # The 6-section structure for identity-level (what_teaching now
+        # uses real recurrence detection when available, else stable form)
         "core_pattern": pattern["core_pattern"],
         "default_tension": pattern["default_tension"],
         "growth_edge": pattern["growth_edge"],
         "gift": pattern["gift"],
         "what_teaching": generate_identity_meaning(
             user_type=user_type,
-            recurrence_detected=False,  # TODO: detect from journal/history
+            recurrence_detected=recurrence_detected,
         ),
         "try_this": pattern["try_this"],
         
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
+
+    # Surface recurrence metadata only when we have recurrence_data.
+    # NEVER expose raw IDs / scoring / internal pattern signatures —
+    # we only forward the human-safe fields plus minimal debug-safe
+    # metadata.
+    if rec:
+        response["recurrence"] = {
+            "memory_state":          rec.get("memory_state", "no_history"),
+            "match_count":           int(rec.get("match_count") or 0),
+            "dominant_tension":      rec.get("dominant_tension"),
+            "recent_tensions":       list(rec.get("recent_tensions") or [])[:3],
+            "recurrence_confidence": rec.get("recurrence_confidence", "low"),
+            "human_label":           rec.get("human_label"),  # may be None
+        }
+
+    return response
 
 
 async def get_relationship_pattern(
@@ -1925,6 +2107,10 @@ async def get_relationship_pattern(
 ) -> Dict[str, Any]:
     """
     Get user's general relationship pattern from database profile.
+
+    Wires detect_identity_pattern_recurrence() to populate the
+    `recurrence` block (memory_state, match_count, dominant_tension,
+    recent_tensions, recurrence_confidence, human_label).
     """
     try:
         # Get user profile
@@ -1934,8 +2120,26 @@ async def get_relationship_pattern(
             "enneagram": user.get("enneagram", {}) if user else {},
             "astrology": user.get("astrology", {}) if user else {},
         }
-        
-        return generate_relationship_pattern(user_profile=user_profile)
+
+        # Detect identity-level recurrence (tolerant of cold-start +
+        # malformed pattern_memory docs).
+        user_type = detect_deep_type(user_profile, "")
+        recurrence_data: Optional[Dict[str, Any]] = None
+        try:
+            recurrence_data = await detect_identity_pattern_recurrence(
+                db=db, user_id=user_id, user_type=user_type,
+            )
+        except Exception as e:
+            logger.warning(
+                "[RelationshipPattern] recurrence detection failed for %s: %s",
+                user_id, e,
+            )
+            recurrence_data = None
+
+        return generate_relationship_pattern(
+            user_profile=user_profile,
+            recurrence_data=recurrence_data,
+        )
         
     except Exception as e:
         logger.error(f"[RelationshipPattern] Error: {e}")

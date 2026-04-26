@@ -12047,3 +12047,137 @@ agent_communication:
       do NOT re-fix this — the path is now correct as `/life/activation-now/${userId}`
       relative to the `api` axios instance whose baseURL already ends in /api.
       All 4 tests pass for Mel (renders + expand/collapse) and Pete (hidden).
+
+backend:
+  - task: "Identity Pattern Recurrence — wired into /api/relationship-pattern endpoint"
+    implemented: true
+    working: true
+    file: "backend/services/relationship_insight_engine.py, backend/tests/test_identity_pattern_recurrence.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: |
+          [2026-04-26] IDENTITY PATTERN RECURRENCE WIRING — DONE.
+
+          Goal: make identity-level recurrence available to the
+          /api/relationship-pattern/{user_id} endpoint and downstream
+          Mirror surfaces (Home, Life, Ask, Activation-Now). Strengthen
+          the "you've been here before" loop reliability without adding
+          new UI yet.
+
+          Changes:
+            * /app/backend/services/relationship_insight_engine.py
+              - REWROTE detect_identity_pattern_recurrence(db, user_id,
+                user_type) to return rich metadata instead of bare bool:
+                  {
+                    memory_state:          "no_history" | "first_appearance"
+                                           | "returning_pattern" | "recurring_pattern",
+                    match_count:           int,
+                    dominant_tension:      str | None,
+                    recent_tensions:       List[str] (max 3),
+                    recurrence_confidence: "low" | "medium" | "high",
+                    human_label:           str | None,   # surface-safe copy
+                    recurrence_detected:   bool,         # back-compat
+                    sources: { pattern_memory_used: bool,
+                               journal_signal: "none|weak|strong" },
+                  }
+              - Combines TWO sources:
+                  (1) pattern_memory collection (canonical, used by Home/
+                      Life/Activation-Now)
+                  (2) Journal keyword analysis scoped to user_type
+                      (secondary confirmation)
+              - Tolerates malformed pattern_memory docs:
+                  * Wrong types (int memory_state, str match_count) → safe
+                    fallback to no_history/0.
+                  * recent_tensions accepts list OR pipe-separated string;
+                    invalid items (None, dicts) filtered out.
+                  * Missing fields → None / empty list / 0.
+                  * DB exceptions caught and logged; never raises.
+              - Cold start (no journals + no pattern_memory) → graceful
+                degradation: memory_state=no_history, human_label=None.
+              - Strong journal signal alone CAN promote no_history /
+                first_appearance → returning_pattern (caps the reach
+                of journal evidence; never invents recurring_pattern
+                without pattern_memory backing).
+
+              - Updated generate_relationship_pattern() to accept
+                optional recurrence_data dict. When present:
+                  * passes recurrence_detected to generate_identity_meaning
+                    so "Same loop. Different face." can prepend the
+                    expanded truth.
+                  * surfaces a `recurrence` block in the response with
+                    ONLY surface-safe fields. NO _id, no signature_hash,
+                    no internal scores leak through.
+                  * version bumped: v3.0 → v3.1_identity_recurrence.
+
+              - Updated get_relationship_pattern() async helper to call
+                detect_identity_pattern_recurrence() first, then forward
+                the payload into generate_relationship_pattern.
+                  * Wrapped in try/except so a recurrence detection
+                    failure CANNOT break the endpoint — falls back to
+                    the stable identity pattern with no recurrence block.
+
+              - Human-facing labels (per spec):
+                  recurring_pattern, match_count >= 3 → "You've been here before."
+                  recurring_pattern, match_count == 2 → "This pattern is returning."
+                  returning_pattern                   → "This is becoming familiar."
+                  first_appearance / no_history       → None  (don't surface)
+
+            * NEW: /app/backend/tests/test_identity_pattern_recurrence.py
+              12 unit tests, all passing:
+                ✓ test_cold_start_no_history
+                ✓ test_first_appearance
+                ✓ test_returning_pattern_via_match_count
+                ✓ test_recurring_pattern_match_count_gte_3
+                ✓ test_recurring_pattern_with_low_match_count_uses_state
+                ✓ test_cold_start_with_strong_journal_signal_promotes_to_returning
+                ✓ test_malformed_pattern_memory_docs (corrupt fields)
+                ✓ test_malformed_recent_tensions_list_with_invalid_items
+                ✓ test_human_label_omitted_for_first_appearance
+                ✓ test_no_raw_ids_or_scores_exposed (verifies _id /
+                  signature_hash / score etc. CANNOT leak through)
+                ✓ test_generate_relationship_pattern_forwards_recurrence
+                ✓ test_generate_relationship_pattern_no_recurrence_block_on_cold_start
+              Tests use fake async DB doubles; no MongoDB required.
+              Run: cd /app/backend && python tests/test_identity_pattern_recurrence.py
+
+          Live verification:
+            * /relationship-pattern/697f0c6abf35c0528ff06954 (Pete) — 200
+              version=v3.1_identity_recurrence,
+              recurrence.memory_state=no_history (no pm doc), human_label=None.
+            * Same for Mel + Isaac (cold-start state — correct).
+            * With temporary fixture (memory_state=recurring_pattern,
+              match_count=5) for Mel:
+                memory_state=recurring_pattern
+                match_count=5
+                dominant_tension="You absorb the room before naming your own position"
+                recent_tensions=['absorb early','translate first','name boundary last']
+                human_label="You've been here before."
+                recurrence_confidence=high
+                what_teaching contains "Same loop. Different face." (loop language activated).
+              Fixture cleaned up after verification.
+
+          Downstream sanity checks (no regressions):
+            * /home-insight-v5/{userId} — 200 OK
+            * /life/cross-domain/{userId} — 200 OK
+            * /life/activation-now/{userId} — 200 OK
+            * /life/ask/{userId} — unchanged path; not exercised here
+              but no shared code paths were modified.
+
+          Acceptance:
+            ✓ detect_identity_pattern_recurrence() upgraded to rich
+              metadata; back-compat flag retained.
+            ✓ Wired into /api/relationship-pattern/{user_id}.
+            ✓ recurrence block returned with memory_state, match_count,
+              dominant_tension, recent_tensions, recurrence_confidence,
+              human_label.
+            ✓ Human labels match spec exactly.
+            ✓ NO raw IDs / signatures / scores exposed in payload.
+            ✓ Cold-start degrades gracefully (no_history + no label).
+            ✓ Malformed pattern_memory docs tolerated (12/12 tests).
+            ✓ Existing Home / Life / Ask / Activation-Now endpoints
+              still return 200.
+
