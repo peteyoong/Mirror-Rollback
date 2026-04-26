@@ -26168,6 +26168,16 @@ async def get_life_cross_domain(user_id: str, refresh: bool = False, debug: bool
     except Exception:
         pass
 
+    # Decan tone (Rule 16) — invisible final-polish layer for cross-domain
+    # output. Fetch chart only if we don't already have it cached/in-scope.
+    decan_index_val: Optional[int] = None
+    try:
+        from services.decan_engine import compute_decan_index
+        chart_for_decan = await db.charts.find_one({"user_id": user_id})
+        decan_index_val = compute_decan_index(chart_for_decan)
+    except Exception as e:
+        logger.warning("[CrossDomain] decan compute failed: %s", e)
+
     result = await cde.generate_cross_domain_pattern(
         self_synth=self_synth,
         work_synth=work_synth,
@@ -26180,6 +26190,7 @@ async def get_life_cross_domain(user_id: str, refresh: bool = False, debug: bool
         ),
         debug=bool(debug),
         user_id=user_id,
+        decan_index=decan_index_val,
     )
 
     # Cache the result (skip when debug=True so debug runs don't pollute cache)
@@ -26399,6 +26410,15 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
     except Exception as e:
         logger.warning("[LifeAsk] cross-domain cache fetch failed: %s", e)
 
+    # Decan tone (Rule 16) — invisible final-polish layer. Computed
+    # deterministically from the user's chart Sun-degree.
+    decan_index_val: Optional[int] = None
+    try:
+        from services.decan_engine import compute_decan_index
+        decan_index_val = compute_decan_index(chart_doc)
+    except Exception as e:
+        logger.warning("[LifeAsk] decan compute failed: %s", e)
+
     result = await li.ask_life_question(
         chip_domain=chip,
         question=question,
@@ -26412,6 +26432,7 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
         chart=chart_doc,
         lifeline_summary=lifeline_summary,
         cross_domain_pattern=cross_domain_pattern,
+        decan_index=decan_index_val,
         llm_chat_factory=_life_interpreter_llm_factory(
             f"life_ask_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
         ) if EMERGENT_LLM_KEY else None,

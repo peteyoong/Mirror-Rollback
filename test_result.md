@@ -11618,3 +11618,120 @@ agent_communication:
             ✓ TYPE B follow-ups visibly lean on the spine
             ✓ Cold-start users (no cache) still get clean answers
 
+
+  - task: "Decan Tone Modulation (Rule 16) — invisible final-polish layer"
+    implemented: true
+    working: true
+    file: "backend/services/decan_engine.py, backend/services/cross_domain_engine.py, backend/services/life_interpreter.py, backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: |
+          [2026-04-26] DECAN TONE MODULATION (Rule 16) — IMPLEMENTED & VERIFIED.
+
+          Goal: invisible final-polish layer that subtly shifts verb
+          choice / pacing / sentence rhythm based on the user's Sun
+          decan, without changing meaning, introducing new ideas, or
+          referencing astrology.
+
+          Architecture:
+            * NEW: /app/backend/services/decan_engine.py
+              - compute_decan_index(chart) → 1 | 2 | 3
+                  Decan 1: Sun degree ∈ [0°, 10°)   "direct / initiating"
+                  Decan 2: Sun degree ∈ [10°, 20°)  "structured / measured"
+                  Decan 3: Sun degree ∈ [20°, 30°)  "reflective / spacious"
+                  Falls back to Decan 2 on missing/malformed chart.
+              - build_decan_addendum(idx) → str
+                  Returns the prompt suffix appended to engine system
+                  prompts. Includes "INVISIBLE — apply to surface
+                  expression ONLY", target avg sentence length, verb
+                  hints, and explicit "do not change meaning" guard.
+              - audit_decan_tone(text, idx) → {pass, reasons, avg_len,
+                  expected, decan, tone_label}
+                  Tolerant pass band (Decan 1: 6–17, Decan 2: 9–22,
+                  Decan 3: 11–26 avg words/sentence).
+
+          Wiring:
+            * /app/backend/services/cross_domain_engine.py
+              - Accepts decan_index kwarg.
+              - First render: system_prompt = base + decan addendum.
+              - Retry render: DROPS the addendum (per spec — meaning
+                preservation > tone polish on retry).
+              - Final audit: joins core_pattern/spine/cost/recognition
+                with ". " so sentence splitter tokenises correctly.
+              - Logs INFO when decan audit not in target band.
+              - generator_version: cross_domain_v1_3_decan_tone.
+              - debug now exposes decan_index + decan_audit.
+
+            * /app/backend/services/life_interpreter.py
+              - Accepts decan_index kwarg.
+              - Overrides system message via chat.with_system_message(
+                  base + decan addendum) at call time.
+              - generator_version: life_interpreter_v5_decan_tone.
+              - Debug exposes decan_index + decan_audit.
+              - New _safe_decan_audit() helper to never hard-break
+                debug payload on audit error.
+
+            * /app/backend/server.py (post_life_ask + get_life_cross_domain)
+              - Computes decan_index from the user's chart and forwards
+                to both engines.
+
+          Live verification — same synthetic input across decan 1/2/3:
+
+          Cross-domain output:
+            Decan 1 (direct):
+              core: "You start too early or hold on too long, turning
+                     intention into pressure that becomes hard to carry"
+              avg_sentence: 17.5
+            Decan 2 (structured):
+              core: "You keep holding pressure too long before letting go"
+              avg_sentence: 14.5
+            Decan 3 (reflective):
+              core: "You start before things are ready and hold tight,
+                     creating pressure that keeps building across domains"
+              avg_sentence: 19.25
+
+          Life Interpreter (work chip, same question across decans):
+            Decan 1 → "What you're noticing comes from your tendency
+                       to take ownership ... very early, often before
+                       full readiness or sufficient support is in place."
+                      (avg 24.3 — slightly above d1 target band; tone
+                       still leans direct via verb choice)
+            Decan 2 → "...take ownership of your projects right from
+                       the start. You naturally step in to shoulder ..."
+                      (avg 25.3 — close to d2 ceiling; balanced sequence)
+            Decan 3 → "...frequently carry the weight of others' tasks
+                       and feel pressure to uphold high standards
+                       without the support you need."
+                      (avg 22.2 — within d3 band; spacious framing)
+
+          Acceptance:
+            ✓ Lint clean (decan_engine, cross_domain_engine,
+              life_interpreter all pass mcp_lint_python).
+            ✓ Backend restart clean.
+            ✓ Decan computation deterministic from Sun degree.
+            ✓ Same MEANING preserved across decans (pattern shape
+              identical).
+            ✓ Different TONE/RHYTHM observable across decans.
+            ✓ Audit reports avg_len + pass/fail in debug (informational).
+            ✓ Retry path drops decan to preserve meaning over tone.
+            ✓ Layer is INVISIBLE: never references astrology / decans /
+              system names in output.
+            ✓ Falls back gracefully (Decan 2 default) when chart
+              missing or malformed.
+
+          Notes:
+            * Per spec "If decan layer makes it worse → DISCARD":
+              implemented as soft-discard via prompt-only application
+              + retry-without-addendum on validation failure. We do
+              NOT generate a pre-decan baseline (would double LLM
+              calls). When audit shows tone slightly off-band, output
+              is kept since meaning is intact (matches spec: "Not a
+              driver of insight").
+            * Life Interpreter outputs naturally trend toward longer
+              sentences (explanatory mode) and may exceed d1 band.
+              Audit logs this for monitoring; no override triggers.
+

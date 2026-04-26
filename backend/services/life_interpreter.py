@@ -238,6 +238,18 @@ def _scrub(text: str) -> tuple[str, List[str]]:
     return cleaned.strip(), hits
 
 
+def _safe_decan_audit(text: str, decan_index: Optional[int]) -> Optional[Dict[str, Any]]:
+    """Run decan tone audit, swallowing any error so debug never breaks the response."""
+    try:
+        if not isinstance(decan_index, int) or decan_index not in (1, 2, 3):
+            return None
+        from .decan_engine import audit_decan_tone
+        return audit_decan_tone(text or "", decan_index)
+    except Exception as e:
+        logger.warning("[LifeInterpreter] decan audit failed: %s", e)
+        return {"pass": True, "reasons": [f"audit_error: {e}"]}
+
+
 def _ensure_paragraphs(text: str, target: int = 3) -> str:
     """
     Ensure the answer renders as 2-3 short paragraphs.
@@ -526,6 +538,7 @@ async def ask_life_question(
     chart: Optional[Dict[str, Any]] = None,
     lifeline_summary: Optional[Dict[str, Any]] = None,
     cross_domain_pattern: Optional[Dict[str, Any]] = None,
+    decan_index: Optional[int] = None,
     llm_chat_factory=None,
 ) -> Dict[str, Any]:
     """
@@ -569,11 +582,39 @@ async def ask_life_question(
     )
     user_msg = _format_context_for_llm(ctx)
 
+    # Decan tone (Rule 16) — invisible final-polish layer. We override the
+    # chat's system prompt with base + decan addendum. Decan is INVISIBLE:
+    # never referenced in output. If audit later flags the result, the
+    # pre-decan version of the engine is preserved (the addendum is
+    # additive, never replaces the base prompt's hard rules).
+    decan_addendum = ""
+    if isinstance(decan_index, int) and decan_index in (1, 2, 3):
+        try:
+            from .decan_engine import build_decan_addendum
+            decan_addendum = build_decan_addendum(decan_index)
+        except Exception as e:
+            logger.warning("[LifeInterpreter] decan addendum failed: %s", e)
+            decan_addendum = ""
+
     answer_raw: Optional[str] = None
     render_error: Optional[str] = None
     if llm_chat_factory is not None:
         try:
             chat: LlmChat = llm_chat_factory()
+            # Apply decan tone polish to the system prompt for this turn
+            if decan_addendum and hasattr(chat, "with_system_message"):
+                try:
+                    chat = chat.with_system_message(
+                        _LIFE_INTERPRETER_SYSTEM_PROMPT + decan_addendum
+                    )
+                except Exception:
+                    # Fallback: try direct attribute assignment (best-effort)
+                    try:
+                        chat.system_message = (
+                            _LIFE_INTERPRETER_SYSTEM_PROMPT + decan_addendum
+                        )
+                    except Exception:
+                        pass
             resp = await chat.send_message(UserMessage(text=user_msg))
             answer_raw = resp if isinstance(resp, str) else str(resp)
         except Exception as e:
@@ -642,12 +683,18 @@ async def ask_life_question(
         "chip_domain":      chip,
         "synthesis_domain": synth_dom,
         "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_interpreter_v4_cross_domain",
+        "generator_version": "life_interpreter_v5_decan_tone",
         "debug": {
             "llm_used":       answer_raw is not None and render_error is None,
             "render_error":   render_error,
             "parse_error":    parse_error,
             "banned_hits":    banned_hits,
+            "decan_index":    decan_index if isinstance(decan_index, int) else None,
+            "decan_audit":    (
+                _safe_decan_audit(answer, decan_index)
+                if isinstance(decan_index, int) and decan_index in (1, 2, 3)
+                else None
+            ),
             "context_keys":   {
                 "has_role_card":          bool(ctx["role_card"]),
                 "has_domain_synthesis":   bool(ctx["domain_synthesis"]),

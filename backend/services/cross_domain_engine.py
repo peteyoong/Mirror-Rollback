@@ -37,7 +37,7 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
-GENERATOR_VERSION = "cross_domain_v1_2_metaphor_variety"
+GENERATOR_VERSION = "cross_domain_v1_3_decan_tone"
 
 
 # ---------------------------------------------------------------------------
@@ -581,6 +581,7 @@ async def generate_cross_domain_pattern(
     llm_chat_factory=None,
     debug: bool = False,
     user_id: Optional[str] = None,
+    decan_index: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Generate the cross-domain pattern recognition. Returns the structured
@@ -621,7 +622,20 @@ async def generate_cross_domain_pattern(
             result["debug"] = {"shared_signals": shared, "audit": {"reason": "no_llm_or_no_text"}, "retry_used": False}
         return result
 
-    # First render
+    # First render — apply decan tone as the FINAL POLISH layer (Rule 16).
+    # Decan is INVISIBLE: never referenced in output. If audit flags the
+    # result, the retry path drops the decan addendum so meaning is
+    # preserved over tone.
+    decan_addendum = ""
+    decan_audit: Dict[str, Any] = {"pass": True, "reasons": ["no_decan"]}
+    if isinstance(decan_index, int) and decan_index in (1, 2, 3):
+        try:
+            from .decan_engine import build_decan_addendum
+            decan_addendum = build_decan_addendum(decan_index)
+        except Exception as e:
+            logger.warning("[CrossDomain] decan addendum failed: %s", e)
+            decan_addendum = ""
+
     avoid_families = _avoid_families_for_user(user_id)
     suggested_frames = _suggested_frames_for_user(user_id)
     user_msg = _user_prompt(
@@ -632,7 +646,7 @@ async def generate_cross_domain_pattern(
     )
     payload, audit, retry_used = await _render_once(
         llm_chat_factory=llm_chat_factory,
-        system_prompt=_SYSTEM_PROMPT,
+        system_prompt=_SYSTEM_PROMPT + decan_addendum,
         user_msg=user_msg,
     )
 
@@ -676,7 +690,7 @@ async def generate_cross_domain_pattern(
         )
         payload2, audit2, _ = await _render_once(
             llm_chat_factory=llm_chat_factory,
-            system_prompt=_SYSTEM_PROMPT,
+            system_prompt=_SYSTEM_PROMPT,  # decan addendum DROPPED on retry — meaning > tone
             user_msg=retry_user_msg,
         )
         # Only swap in if retry has fewer flagged reasons OR resolves it
@@ -717,6 +731,36 @@ async def generate_cross_domain_pattern(
     final_families = _detect_metaphor_families(final_rl)
     _record_metaphor_for_user(user_id, final_families)
 
+    # Decan tone audit (Rule 16) — soft check on the polished output.
+    # Per spec: "If decan layer makes it worse → DISCARD". Concretely:
+    # we only DROP the decan polish on RETRY (already done above by
+    # rendering with the base prompt). The final audit is informational
+    # so we can monitor whether tone is landing.
+    if isinstance(decan_index, int) and decan_index in (1, 2, 3):
+        try:
+            from .decan_engine import audit_decan_tone, get_decan_tone_label
+            # Join fields with ". " so the sentence splitter can tokenise
+            # them correctly. Strip any duplicate trailing punctuation.
+            full_text_for_audit = ". ".join(
+                str(payload.get(k, "")).rstrip(".!? ")
+                for k in ("core_pattern", "pattern_spine",
+                          "cross_domain_tension", "recognition_line")
+                if str(payload.get(k, "")).strip()
+            )
+            if full_text_for_audit:
+                full_text_for_audit += "."
+            decan_audit = audit_decan_tone(full_text_for_audit, decan_index)
+            if not decan_audit.get("pass"):
+                logger.info(
+                    "[CrossDomain] decan tone audit not in target band "
+                    "(decan=%s, label=%s, reasons=%s) — keeping output",
+                    decan_index, get_decan_tone_label(decan_index),
+                    decan_audit.get("reasons"),
+                )
+        except Exception as e:
+            logger.warning("[CrossDomain] decan audit failed: %s", e)
+            decan_audit = {"pass": True, "reasons": [f"audit_error: {e}"]}
+
     if debug:
         payload["debug"] = {
             "shared_signals":         shared,
@@ -726,6 +770,8 @@ async def generate_cross_domain_pattern(
             "metaphor_suggested":     suggested_frames,
             "metaphor_families_used": final_families,
             "metaphor_history":       list(_RECENT_METAPHORS_BY_USER.get(user_id or "", [])),
+            "decan_index":            decan_index if isinstance(decan_index, int) else None,
+            "decan_audit":            decan_audit,
         }
     return payload
 
