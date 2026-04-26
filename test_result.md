@@ -11735,3 +11735,129 @@ agent_communication:
               sentences (explanatory mode) and may exceed d1 band.
               Audit logs this for monitoring; no override triggers.
 
+
+  - task: "Activation-Now Engine (WHY THIS IS HAPPENING NOW timing layer)"
+    implemented: true
+    working: true
+    file: "backend/services/activation_now_engine.py, backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: |
+          [2026-04-26] WHY THIS IS HAPPENING NOW — IMPLEMENTED & VERIFIED.
+
+          Goal: explain WHY a user's existing cross-domain pattern feels
+          active right now. Not a new insight, not prediction, not
+          astrology — anchored to the cached cross-domain pattern.
+
+          Architecture:
+            * NEW: /app/backend/services/activation_now_engine.py
+              - Output contract: activation_line, activation_explanation,
+                activation_pressure (low|medium|high), confidence.
+              - Pressure computed DETERMINISTICALLY from:
+                  intensity (low/medium/high)  +0..3
+                  is_recurring                  +2
+                  match_count >= 3              +1
+                  high_impact_recent >= 2       +1
+                  → score >=5 high, >=3 medium, else low.
+                LLM is told the pressure but cannot change it; the
+                payload is force-overwritten with the deterministic
+                value before returning.
+              - System prompt enforces:
+                  * NO astrology / planet / house / sign / decan /
+                    energy / universe / chart / aspect references.
+                  * Behaviour-first openings.
+                  * MUST connect to the cross-domain spine.
+                  * NO prediction, NO advice, NO mysticism.
+                  * Style: calm, grounded, slightly urgent only when high.
+              - Audit (regex) flags:
+                  banned_phrase, house_or_sign_reference,
+                  prediction_or_directive, mystical_language,
+                  generic_phrasing, not_second_person,
+                  activation_line_too_long (>110), activation_line
+                  not ending in period, activation_explanation
+                  too long (>320), explanation_does_not_connect_to_pattern
+                  (token overlap with spine required when CDP present).
+              - Retry once on hard-flag (excludes soft pressure_mismatch).
+
+            * /app/backend/server.py
+              - NEW endpoint: GET /api/life/activation-now/{user_id}
+                  Optional ?refresh=true to bust cache.
+                  Optional ?debug=true to surface timing_signals,
+                  pressure_inputs, audit, has_cross_domain, retry_used.
+              - Cache 4h (timing-sensitive) via inline _cached_at
+                timestamp checked on read; falls back to default 24h
+                cache TTL ceiling.
+              - Pulls cached cross_domain::{user_id} (does NOT trigger
+                fresh CDP generation — keeps cost predictable).
+              - Pulls pattern_memory and lifeline_summary; computes
+                today_intensity via determine_intensity (no extra LLM).
+
+          Live verification:
+            Pete (low intensity, no recurrence — score 1):
+              line: "You act too soon and push forward before the
+                     timing feels right."
+              expl: "You move ahead before the moment is ready,
+                     skipping necessary pauses..."
+              pressure: low | confidence: low | audit: [] | retry: True
+
+            Mel (low intensity, no recurrence — score 1):
+              line: "You hold onto tensions inside that push you
+                     before the right moment arrives."
+              pressure: low | confidence: low
+
+            Isaac (low intensity, no recurrence — score 1):
+              line: "You continue to hold on passionately beyond
+                     the natural moment."
+              pressure: low | confidence: low
+
+            Synthetic HIGH (recurring x4 + intensity high + 2 echoes
+            — score 7):
+              line: "You keep improving what feels weak until it
+                     begins to challenge you back."
+              expl: "You focus on strengthening what seems unfinished,
+                     but the ongoing effort extends beyond fixing the
+                     initial flaw. This creates pressure as others
+                     rely on you, and you internalize that same demand."
+              pressure: high | confidence: high | audit: []
+
+            Synthetic MEDIUM (recurring x2):
+              line: "You improve what feels weak until the process
+                     starts to challenge you in return."
+              pressure: medium | confidence: high
+
+            Cold start (no cross-domain):
+              line: "You encounter the same shape you've seen before..."
+              has_cross_domain: False | confidence: low
+              (Generic-but-grounded fallback as spec'd.)
+
+            No LLM (deterministic fallback):
+              line: "Something familiar is moving in the background."
+              expl: "The same shape you've seen before is just under
+                     the surface — quiet right now, but already active."
+
+            Cache hit verified: GET without refresh returns 200 in <50ms.
+
+          Acceptance:
+            ✓ Lint clean (mcp_lint_python).
+            ✓ Endpoint returns 200 for all 3 test users.
+            ✓ Audit reasons EMPTY across all live runs (no astrology,
+              no prediction, no mysticism leaked).
+            ✓ Each user produces a DISTINCT activation line that
+              CONNECTS to their pattern spine (token overlap enforced
+              by audit).
+            ✓ Pressure computed deterministically — LLM override
+              disallowed.
+            ✓ Pressure scales as expected: low (default) → medium
+              (recurring x2) → high (recurring x4 + high intensity +
+              echoes).
+            ✓ Confidence scales similarly.
+            ✓ 4h TTL on cache + ?refresh=true to bust.
+            ✓ debug payload exposes timing_signals,
+              pattern_memory_note, audit, retry_used,
+              pressure_inputs, has_cross_domain.
+            ✓ Phase 1 complete — backend only, no UI yet (per spec).
+

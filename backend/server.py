@@ -26199,7 +26199,144 @@ async def get_life_cross_domain(user_id: str, refresh: bool = False, debug: bool
     return result
 
 
-@api_router.get("/life/phases/{user_id}")
+# ====================================================================
+# Activation-Now Engine — "WHY THIS IS HAPPENING NOW" timing layer
+# ====================================================================
+#
+# Backend-only for Phase 1. Surfaces no UI yet. Anchored to the
+# cached cross-domain pattern + today_state + pattern_memory + lifeline.
+# Cached for 4 hours (timing-sensitive, shorter than the synthesis cache).
+
+_ACTIVATION_NOW_TTL_SECONDS = 4 * 60 * 60  # 4 hours
+
+
+def _activation_now_llm_factory(session_id: str):
+    """Build an LlmChat for the activation-now engine (gpt-4.1-mini)."""
+    if not EMERGENT_LLM_KEY:
+        return None
+
+    def factory():
+        from emergentintegrations.llm.chat import LlmChat
+        return LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message="",  # set per-call by the engine
+        ).with_model("openai", "gpt-4.1-mini")
+    return factory
+
+
+@api_router.get("/life/activation-now/{user_id}")
+async def get_life_activation_now(user_id: str, refresh: bool = False, debug: bool = False):
+    """
+    WHY THIS IS HAPPENING NOW — timing activation layer.
+
+    Explains what is activating the user's existing cross-domain pattern
+    RIGHT NOW. Not a new insight, not a prediction. Backend only —
+    no UI yet (Phase 1).
+
+    Cached 4 hours per user (timing-sensitive). Bust with ?refresh=true.
+
+    Returns:
+        {
+          "activation_line":        "...",
+          "activation_explanation": "...",
+          "activation_pressure":    "low|medium|high",
+          "confidence":             "high|medium|low",
+          "generator_version":      "activation_now_v1"
+        }
+    """
+    from services import activation_now_engine as ane
+    from services.today_modulation import determine_intensity
+
+    cache_key = f"activation_now::{user_id}"
+    if not refresh:
+        cached = _life_synth_cache_get(cache_key)
+        if cached:
+            # Enforce 4h TTL specifically for this timing-sensitive layer.
+            cached_at_str = cached.get("_cached_at")
+            if isinstance(cached_at_str, str):
+                try:
+                    cached_at = datetime.fromisoformat(cached_at_str)
+                    age_seconds = (datetime.now(timezone.utc) - cached_at).total_seconds()
+                    if age_seconds <= _ACTIVATION_NOW_TTL_SECONDS:
+                        # Strip internal cache marker before returning
+                        out = {k: v for k, v in cached.items() if k != "_cached_at"}
+                        return out
+                except Exception:
+                    # Malformed timestamp — fall through and regenerate.
+                    pass
+            else:
+                # Pre-existing cache with no timestamp — accept on first hit
+                # but don't trust it forever. The default 24h TTL on the
+                # underlying cache provides a hard ceiling.
+                out = {k: v for k, v in cached.items() if k != "_cached_at"}
+                return out
+
+    # Pull cached cross-domain pattern (do NOT trigger fresh generation
+    # from this endpoint — keeps cost predictable). If missing, the
+    # engine still produces a deterministic placeholder.
+    cross_domain_pattern: Optional[Dict[str, Any]] = None
+    try:
+        cdp_cached = _life_synth_cache_get(f"cross_domain::{user_id}")
+        if isinstance(cdp_cached, dict) and (
+            cdp_cached.get("core_pattern") or cdp_cached.get("pattern_spine")
+        ):
+            cross_domain_pattern = cdp_cached
+    except Exception as e:
+        logger.warning("[ActivationNow] cross-domain cache fetch failed: %s", e)
+
+    # Pull pattern memory + lifeline summary
+    pattern_memory: Optional[Dict[str, Any]] = None
+    try:
+        pm_doc = await db.pattern_memory.find_one({"user_id": user_id})
+        if pm_doc:
+            pm_doc.pop("_id", None)
+            pattern_memory = pm_doc
+    except Exception as e:
+        logger.warning("[ActivationNow] pattern_memory fetch failed: %s", e)
+
+    lifeline_summary: Optional[Dict[str, Any]] = None
+    try:
+        from services.lifeline_engine import build_lifeline_summary  # type: ignore
+        lifeline_summary = await build_lifeline_summary(user_id=user_id, db=db)
+    except Exception:
+        try:
+            lifeline_doc = await db.lifeline_events.find({"user_id": user_id}).to_list(length=200)
+            lifeline_summary = {"event_count": len(lifeline_doc) if lifeline_doc else 0}
+        except Exception as e:
+            logger.warning("[ActivationNow] lifeline_summary fetch failed: %s", e)
+
+    # Today intensity (deterministic — same source as the rest of the Life stack)
+    ll_recent = (lifeline_summary or {}).get("high_impact_titles") or []
+    intensity_level, intensity_reasons = determine_intensity(
+        pattern_memory=pattern_memory,
+        lifeline_recent=ll_recent,
+    )
+    today_state: Dict[str, Any] = {
+        "intensity_level":   intensity_level,
+        "intensity_reasons": intensity_reasons,
+    }
+
+    result = await ane.generate_activation_now(
+        cross_domain_pattern=cross_domain_pattern,
+        today_state=today_state,
+        pattern_memory=pattern_memory,
+        lifeline_summary=lifeline_summary,
+        llm_chat_factory=_activation_now_llm_factory(
+            f"activation_now_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
+        ),
+        debug=bool(debug),
+    )
+
+    # Cache (skip when debug=True so debug runs don't pollute cache).
+    # Activation-now is timing-sensitive (4h); we attach the cache time
+    # to the payload itself and check it on read instead of using a
+    # parallel cache infra.
+    if not debug:
+        cache_payload = dict(result)
+        cache_payload["_cached_at"] = datetime.now(timezone.utc).isoformat()
+        _life_synth_cache_set(cache_key, cache_payload)
+    return result
 async def get_life_phases(user_id: str, refresh: bool = False):
     """
     Phase Timeline — Mirror Phase Engine.
