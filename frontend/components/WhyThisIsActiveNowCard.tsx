@@ -131,8 +131,9 @@ const WhyThisIsActiveNowCard: React.FC<Props> = ({ userId, theme }) => {
     const timer = setTimeout(() => {
       (async () => {
         try {
+          // NOTE: api instance has baseURL ending in `/api`, so do NOT prefix with /api here.
           const res = await api.get<ActivationNowResponse>(
-            `/api/life/activation-now/${userId}`,
+            `/life/activation-now/${userId}`,
             { timeout: 25000 }
           );
           if (cancelledRef.current) return;

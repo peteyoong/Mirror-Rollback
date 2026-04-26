@@ -11930,3 +11930,68 @@ frontend:
           the user needs medium/high pressure (e.g. recurring
           pattern + medium-or-high intensity day).
 
+
+frontend:
+  - task: "WHY THIS IS ACTIVE NOW Card (Home tab secondary card)"
+    implemented: true
+    working: true
+    file: "/app/frontend/components/WhyThisIsActiveNowCard.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: |
+          BUG FOUND: Card never rendered for Mel because the fetch URL had a
+          double `/api` prefix. The `api` axios instance has
+          `baseURL = ${API_BASE_URL}/api`, but the component was calling
+          `api.get('/api/life/activation-now/{id}')` — producing
+          `/api/api/life/activation-now/{id}` → 404 (confirmed in backend logs).
+          Caught by component's try/catch → setHidden(true) → card never
+          appeared even for the high-confidence fixture user.
+      - working: true
+        agent: "testing"
+        comment: |
+          FIX APPLIED + VERIFIED: Changed path in WhyThisIsActiveNowCard.tsx from
+          `/api/life/activation-now/${userId}` to `/life/activation-now/${userId}`.
+          After Expo bundle rebuild, all acceptance tests pass:
+
+          TEST 1 ✅ Mel (high confidence) — card renders directly under
+          HomeInsightV5Card. Header "WHY THIS IS ACTIVE NOW" visible, primary
+          line "You absorb external pressures early, losing clear boundaries
+          before you can stand firm." displayed, small chevron-down icon on
+          right. Card uses subtle secondary treatment (smaller padding, 14px
+          line, 10px label) — does NOT dominate the main insight.
+
+          TEST 2 ✅ Tap expands the explanation paragraph
+          ("You pick up others' demands before they fully form…") with
+          LayoutAnimation; chevron rotates to up. Second tap collapses; chevron
+          returns to down.
+
+          TEST 3 ✅ Pete (low confidence) — card is silently hidden. No header
+          present in DOM (header count = 0). HomeInsightV5Card renders
+          normally; no error toast / spinner / empty placeholder.
+
+          TEST 4 (network failure) — not explicitly intercepted, but failure-
+          path resilience is implicitly proven: the pre-fix 404s for both users
+          resulted in zero error UI, only silent hide.
+
+          Banned vocabulary scan: card text contains ONLY backend-returned
+          strings — no "low/medium/high", confidence, pressure, score, debug,
+          astrology, transit, planet, house, decan, energy, universe, chart,
+          or zodiac sign names.
+
+          Screenshots: mel_final_collapsed.png, mel_final_expanded.png,
+          pete_final_clean.png.
+metadata:
+  last_test_run: "WhyThisIsActiveNowCard - 2026-04-26"
+agent_communication:
+  - agent: "testing"
+    message: |
+      WHY THIS IS ACTIVE NOW card validated end-to-end. Found and fixed a
+      single-line URL bug (double /api prefix) in
+      /app/frontend/components/WhyThisIsActiveNowCard.tsx. Main agent: please
+      do NOT re-fix this — the path is now correct as `/life/activation-now/${userId}`
+      relative to the `api` axios instance whose baseURL already ends in /api.
+      All 4 tests pass for Mel (renders + expand/collapse) and Pete (hidden).
