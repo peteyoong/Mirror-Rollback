@@ -12522,3 +12522,97 @@ agent_communication:
            review request) — that one was not fully covered here.
         3. Remove the "Nav fix v2" debug pill only AFTER Test 1
            passes visually.
+
+  - task: "UI polish — bottom nav labels + accordion chevron standardization"
+    implemented: true
+    working: true
+    file: "frontend/app/(tabs)/_layout.tsx, frontend/components/astrology/AstrologyDeepDiveTab.tsx, plus 25+ components with chevron-down/up standardization"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: |
+          [2026-04-28] TWO UI POLISH FIXES — VERIFIED VISUALLY VIA
+          FRONTEND TESTING AGENT (second pass).
+
+          FIX 1 — Bottom tab bar labels
+            Problem: On iPhone Expo web preview, labels under Mirror /
+            Life / Reflect / Lenses were being clipped (first pass: only
+            ~7px of 12pt label visible).
+
+            Changes to /app/frontend/app/(tabs)/_layout.tsx:
+              - Added useSafeAreaInsets() from react-native-safe-area-context.
+              - Platform-aware bottom padding:
+                  * web: max(insets.bottom, 20)   (Safari chrome floor)
+                  * iOS: insets.bottom or 8
+                  * Android: max(insets.bottom, 12)
+              - Tab bar height raised from 56 → 72 + bottomPadding.
+              - Explicit tabBarLabelStyle:
+                  fontSize 12, fontWeight 500, lineHeight 16,
+                  marginTop 4, marginBottom 2,
+                  includeFontPadding false.
+              - tabBarIconStyle with explicit height 24 / width 32.
+              - Icon <Text> given fontSize 20 / lineHeight 24 /
+                textAlign 'center' so symbols (☽ ❧ ◇ ◉) don't inflate
+                the row height.
+              - Temporary "Nav fix v2" marker pill added during debug
+                to confirm new layout was live on the user's device;
+                REMOVED after verification.
+
+            Visual acceptance (testing agent — iPhone 12 390×844,
+            logged in as Pete):
+              ✓ Mirror label 30.67×16px — full text.
+              ✓ Life   label 18.94×16px — full text.
+              ✓ Reflect label 36.42×16px — full text.
+              ✓ Lenses label 37.88×16px — full text.
+              ✓ Label height = 16px (≥ 14 required). No ellipsis.
+              ✓ 32px gap from last visible label pixel to viewport
+                bottom (comfortable Safari-chrome margin).
+              ✓ Nav fix v2 marker removed.
+
+          FIX 2 — Accordion chevron standardization
+            Problem: Astrology Deep Dive accordions used tiny Unicode
+            triangles (▴/▾) at fontSize 14 instead of Ionicons chevrons.
+            Visually much smaller/fainter than Human Design chevrons.
+            Also a handful of other components had chevron-down/up
+            toggles at sizes 14-18 instead of the HD standard of 20.
+
+            Changes:
+              * /app/frontend/components/astrology/AstrologyDeepDiveTab.tsx
+                - Added `import { Ionicons } from '@expo/vector-icons'`.
+                - Replaced 4 instances of:
+                    <Text style={[styles.deepDiveExpandIcon,{color:...}]}>
+                      {isExpanded ? '▴' : '▾'}
+                    </Text>
+                  with:
+                    <Ionicons
+                      name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                      size={20}
+                      color={theme.textSecondary}
+                    />
+                - Color bumped from textTertiary → textSecondary for
+                  better contrast in dark mode.
+              * 25+ other components — bulk-updated any
+                chevron-down/chevron-up with size < 20 to size 20 via
+                Python regex. chevron-forward (navigation indicators
+                in row items) intentionally left at original smaller
+                sizes since those are not accordion toggles.
+
+            Visual acceptance (testing agent):
+              ✓ No Unicode ▴/▾ characters anywhere in Deep Dive DOM.
+              ✓ Ionicons component mounted; private-use font codepoint
+                (e.g. \\uF241 for chevron) renders inline next to
+                accordion header "Core Identity".
+              ✓ CAVEAT: Expo web renders Ionicons as FONT GLYPHS (not
+                <svg>). Structural replacement confirmed; direct SVG
+                size assertions don't apply on web.
+              ✓ Standardized visually at ~20px matching HD accordions.
+
+          Notes:
+            * Chevron rotation logic untouched — only size / icon
+              source changed, so expand/collapse direction still
+              toggles correctly.
+            * No layout regressions reported.
+
