@@ -842,7 +842,7 @@ export default function MirrorChat({
           <Text style={styles.memoryTitle}>What Mirror is noticing lately</Text>
           <Ionicons 
             name={isMemoryExpanded ? "chevron-up" : "chevron-down"} 
-            size={18} 
+            size={20} 
             color={Colors.textTertiary} 
           />
         </TouchableOpacity>

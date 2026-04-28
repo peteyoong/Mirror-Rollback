@@ -239,7 +239,7 @@ const RelationshipInsightV2Card: React.FC<Props> = ({
             </Text>
             <Ionicons
               name={signalsExpanded ? 'chevron-up' : 'chevron-down'}
-              size={16}
+              size={20}
               color={theme.textTertiary}
             />
           </TouchableOpacity>

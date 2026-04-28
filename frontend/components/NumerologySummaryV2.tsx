@@ -329,7 +329,7 @@ export default function NumerologySummaryV2({ userId, onOpenChat, existingName, 
           </Text>
           <Ionicons
             name={showComputation ? 'chevron-up' : 'chevron-down'}
-            size={18}
+            size={20}
             color={theme.textTertiary}
           />
         </TouchableOpacity>

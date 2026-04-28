@@ -175,7 +175,7 @@ export default function DebugComputeInputs({ userId }: Props) {
         </View>
         <Ionicons 
           name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-          size={16} 
+          size={20} 
           color={Colors.textTertiary} 
         />
       </TouchableOpacity>

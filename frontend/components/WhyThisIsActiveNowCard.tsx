@@ -225,7 +225,7 @@ const WhyThisIsActiveNowCard: React.FC<Props> = ({ userId, theme }) => {
           {hasExplanation && (
             <Ionicons
               name={expanded ? 'chevron-up' : 'chevron-down'}
-              size={14}
+              size={20}
               color={accentColor}
               style={{ opacity: labelOpacity }}
             />

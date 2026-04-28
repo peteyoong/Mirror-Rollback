@@ -214,7 +214,7 @@ export const LensTodayDiagnosis: React.FC<LensTodayDiagnosisProps> = ({
         </Text>
         <Ionicons 
           name={signalsExpanded ? 'chevron-up' : 'chevron-down'} 
-          size={18} 
+          size={20} 
           color={theme.textTertiary} 
         />
       </TouchableOpacity>

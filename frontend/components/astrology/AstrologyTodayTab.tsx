@@ -133,7 +133,7 @@ const RawSignalsSection: React.FC<RawSignalsSectionProps> = ({
         </Text>
         <Ionicons 
           name={expanded ? 'chevron-up' : 'chevron-down'} 
-          size={14} 
+          size={20} 
           color={theme.textTertiary} 
         />
       </TouchableOpacity>

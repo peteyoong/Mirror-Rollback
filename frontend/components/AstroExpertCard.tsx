@@ -339,7 +339,7 @@ const AstroExpertCard: React.FC<AstroExpertCardProps> = ({
         </Text>
         <Ionicons 
           name={signalsExpanded ? 'chevron-up' : 'chevron-down'} 
-          size={16} 
+          size={20} 
           color={theme.textTertiary} 
         />
       </TouchableOpacity>

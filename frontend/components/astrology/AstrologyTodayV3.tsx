@@ -267,7 +267,7 @@ const AstrologyTodayV3: React.FC<AstrologyTodayV3Props> = ({
             </Text>
             <Ionicons
               name={technicalExpanded ? 'chevron-up' : 'chevron-down'}
-              size={14}
+              size={20}
               color={theme.textTertiary}
             />
           </TouchableOpacity>

@@ -308,7 +308,7 @@ const HomeInsightV5Card: React.FC<HomeInsightV5CardProps> = ({
             </Text>
             <Ionicons
               name={proofExpanded ? 'chevron-up' : 'chevron-down'}
-              size={13}
+              size={20}
               color={theme.textTertiary}
             />
           </TouchableOpacity>

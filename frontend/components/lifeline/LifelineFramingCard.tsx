@@ -107,7 +107,7 @@ export default function LifelineFramingCard({
             </Text>
             <Ionicons 
               name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-              size={16} 
+              size={20} 
               color={theme.textTertiary} 
             />
           </View>

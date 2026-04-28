@@ -510,7 +510,7 @@ export default function LifeContextView({
           </Text>
           <Ionicons
             name={expanded ? 'chevron-up' : 'chevron-down'}
-            size={16}
+            size={20}
             color={theme.textTertiary}
           />
         </TouchableOpacity>

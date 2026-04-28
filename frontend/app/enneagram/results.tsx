@@ -307,7 +307,7 @@ export default function EnneagramResults() {
           </View>
           <Ionicons 
             name={debugExpanded ? 'chevron-up' : 'chevron-down'} 
-            size={16} 
+            size={20} 
             color={Colors.textTertiary} 
           />
         </TouchableOpacity>

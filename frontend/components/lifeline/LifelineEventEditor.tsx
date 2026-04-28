@@ -334,7 +334,7 @@ export default function LifelineEventEditor({ visible, event, prefillYear, prefi
               <Text style={[styles.selectText, { color: category ? theme.text : theme.textTertiary }]}>
                 {category || 'Select category'}
               </Text>
-              <Ionicons name={showCategories ? 'chevron-up' : 'chevron-down'} size={18} color={theme.textTertiary} />
+              <Ionicons name={showCategories ? 'chevron-up' : 'chevron-down'} size={20} color={theme.textTertiary} />
             </TouchableOpacity>
             {showCategories && (
               <View style={[styles.optionsList, { backgroundColor: theme.surface, borderColor: theme.border }]}>

@@ -447,7 +447,7 @@ export default function NumerologyLensView({ userId, onOpenChat }: Props) {
           {activeTab === 'deep_dive' && (
             <Ionicons
               name={isExpanded ? 'chevron-up' : 'chevron-down'}
-              size={18}
+              size={20}
               color={theme.textTertiary}
             />
           )}

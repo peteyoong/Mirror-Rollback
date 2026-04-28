@@ -136,7 +136,7 @@ const DebugFooter: React.FC<{
         </Text>
         <Ionicons
           name={expanded ? 'chevron-up' : 'information-circle-outline'}
-          size={12}
+          size={20}
           color={theme.textTertiary}
         />
       </TouchableOpacity>
@@ -394,7 +394,7 @@ const TimedEventsList: React.FC<{
           </Text>
           <Ionicons
             name={expanded ? 'chevron-up' : 'chevron-down'}
-            size={14}
+            size={20}
             color={theme.accent}
           />
         </TouchableOpacity>
@@ -433,7 +433,7 @@ const SlowTransitsSection: React.FC<{
         </View>
         <Ionicons
           name={expanded ? 'chevron-up' : 'chevron-down'}
-          size={16}
+          size={20}
           color={theme.textTertiary}
         />
       </TouchableOpacity>

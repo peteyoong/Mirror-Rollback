@@ -357,7 +357,7 @@ export default function ForumMappingsScreen() {
                   </Text>
                   <Ionicons
                     name={showWhyExpanded ? "chevron-up" : "chevron-down"}
-                    size={16}
+                    size={20}
                     color={theme.textTertiary}
                   />
                 </TouchableOpacity>

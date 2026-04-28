@@ -392,7 +392,7 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
           <Text style={[styles.collapsibleTitle, { color: theme.textSecondary }]}>Your energy map</Text>
           <Ionicons 
             name={showLoShu ? "chevron-up" : "chevron-down"} 
-            size={18} 
+            size={20} 
             color={theme.textTertiary} 
           />
         </TouchableOpacity>
@@ -419,7 +419,7 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
               <Text style={[styles.collapsibleTitle, { color: theme.textSecondary }]}>Your identity numbers</Text>
               <Ionicons 
                 name={showIdentity ? "chevron-up" : "chevron-down"} 
-                size={18} 
+                size={20} 
                 color={theme.textTertiary} 
               />
             </TouchableOpacity>
@@ -460,7 +460,7 @@ export default function NumerologyDeepDivePattern({ userId, onOpenChat, existing
               <Text style={[styles.collapsibleTitle, { color: theme.textSecondary }]}>Tensions to notice</Text>
               <Ionicons 
                 name={showTensions ? "chevron-up" : "chevron-down"} 
-                size={18} 
+                size={20} 
                 color={theme.textTertiary} 
               />
             </TouchableOpacity>

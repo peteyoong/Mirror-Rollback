@@ -282,7 +282,7 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
               </Text>
               <Ionicons
                 name={whyOpen ? 'chevron-up' : 'chevron-down'}
-                size={14}
+                size={20}
                 color={theme.textTertiary}
               />
             </TouchableOpacity>
@@ -341,7 +341,7 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
               </Text>
               <Ionicons
                 name={techOpen ? 'chevron-up' : 'chevron-down'}
-                size={14}
+                size={20}
                 color={theme.textTertiary}
               />
             </TouchableOpacity>

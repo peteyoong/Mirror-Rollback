@@ -302,7 +302,7 @@ const TensionCard: React.FC<TensionCardProps> = ({
         </Text>
         <Ionicons 
           name={expanded ? "chevron-up" : "chevron-forward"} 
-          size={16} 
+          size={20} 
           color={theme.textSecondary} 
         />
       </TouchableOpacity>

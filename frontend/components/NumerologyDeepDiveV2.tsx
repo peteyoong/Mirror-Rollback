@@ -485,7 +485,7 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
           <Text style={[styles.sectionTitle, { color: theme.text }]}>WHY THIS PATTERN FORMS</Text>
           <Ionicons
             name={expandedSections.has('why') ? 'chevron-up' : 'chevron-down'}
-            size={18}
+            size={20}
             color={theme.textTertiary}
           />
         </TouchableOpacity>
@@ -543,7 +543,7 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
           <Text style={[styles.sectionTitle, { color: theme.text }]}>HOW IT SHOWS UP</Text>
           <Ionicons
             name={expandedSections.has('shows') ? 'chevron-up' : 'chevron-down'}
-            size={18}
+            size={20}
             color={theme.textTertiary}
           />
         </TouchableOpacity>
@@ -579,7 +579,7 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
           </View>
           <Ionicons
             name={expandedSections.has('interrupt') ? 'chevron-up' : 'chevron-down'}
-            size={18}
+            size={20}
             color={theme.textTertiary}
           />
         </TouchableOpacity>
@@ -654,7 +654,7 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
           <Text style={[styles.sectionTitle, { color: theme.text }]}>WHAT IT COSTS</Text>
           <Ionicons
             name={expandedSections.has('costs') ? 'chevron-up' : 'chevron-down'}
-            size={18}
+            size={20}
             color={theme.textTertiary}
           />
         </TouchableOpacity>
@@ -693,7 +693,7 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
           <Text style={[styles.sectionTitle, { color: theme.text }]}>WHAT NEEDS TO BE BUILT</Text>
           <Ionicons
             name={expandedSections.has('build') ? 'chevron-up' : 'chevron-down'}
-            size={18}
+            size={20}
             color={theme.textTertiary}
           />
         </TouchableOpacity>
@@ -751,7 +751,7 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
           <Text style={[styles.sectionTitle, { color: theme.text }]}>ENERGY MAP (Lo Shu Grid)</Text>
           <Ionicons
             name={expandedSections.has('loshu') ? 'chevron-up' : 'chevron-down'}
-            size={18}
+            size={20}
             color={theme.textTertiary}
           />
         </TouchableOpacity>
@@ -821,7 +821,7 @@ export default function NumerologyDeepDiveV2({ userId, onOpenChat, existingName,
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>What this is based on</Text>
           <Ionicons
             name={expandedSections.has('computation') ? 'chevron-up' : 'chevron-down'}
-            size={18}
+            size={20}
             color={theme.textTertiary}
           />
         </TouchableOpacity>

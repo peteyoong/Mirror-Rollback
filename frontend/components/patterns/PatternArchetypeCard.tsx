@@ -179,7 +179,7 @@ export default function PatternArchetypeCard() {
         </Text>
         <Ionicons
           name={isExpanded ? 'chevron-up' : 'chevron-down'}
-          size={16}
+          size={20}
           color={COLORS.accent}
         />
       </TouchableOpacity>
