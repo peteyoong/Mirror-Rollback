@@ -1,12 +1,8 @@
 import { Tabs } from 'expo-router';
-import { Text, Platform, View } from 'react-native';
+import { Text, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../contexts/ThemeContext';
 import SessionRestoreWrapper from '../../components/SessionRestoreWrapper';
-
-// Build marker — temporary visible flag to confirm the tab-bar fix is
-// actually running on the user's device. Remove after verification.
-const NAV_FIX_MARKER = 'Nav fix v2';
 
 export default function TabLayout() {
   const { theme } = useTheme();
@@ -19,19 +15,19 @@ export default function TabLayout() {
   // are never clipped by the browser bar.
   let bottomPadding: number;
   if (Platform.OS === 'web') {
-    // Web preview: protect against Safari bottom bar + Expo shell overlay.
     bottomPadding = Math.max(insets.bottom, 20);
   } else if (Platform.OS === 'ios') {
-    // iOS native: use the actual home-indicator inset, with a floor.
     bottomPadding = insets.bottom > 0 ? insets.bottom : 8;
   } else {
-    // Android: gesture bar + a small buffer.
     bottomPadding = Math.max(insets.bottom, 12);
   }
 
-  // Total tab bar height — base 60 for icon + label + top padding, plus
-  // the safe-area bottom padding.
-  const tabBarHeight = 60 + bottomPadding;
+  // Total tab bar height — base 72 for icon (24px) + label (20px) + top
+  // padding (12px) + margin (8px). Plus the safe-area bottom padding.
+  // Calibrated so labels never clip in the Expo web preview where the
+  // testing agent measured only ~7px of label height at the previous
+  // base of 60.
+  const tabBarHeight = 72 + bottomPadding;
 
   return (
     <SessionRestoreWrapper>
@@ -45,25 +41,26 @@ export default function TabLayout() {
             borderTopWidth: 1,
             height: tabBarHeight,
             paddingBottom: bottomPadding,
-            paddingTop: 8,
+            paddingTop: 10,
           },
           // Explicit label style — readable across iPhone preview, Safari
-          // bottom bar, and Expo shell. Font 12px with generous line-height
-          // so descenders aren't clipped.
+          // bottom bar, and Expo shell.
           tabBarLabelStyle: {
             fontSize: 12,
             fontWeight: '500',
             lineHeight: 16,
-            marginTop: 2,
-            marginBottom: 0,
-            paddingBottom: 2,
+            marginTop: 4,
+            marginBottom: 2,
             includeFontPadding: false,
           },
           tabBarIconStyle: {
             marginTop: 0,
+            marginBottom: 0,
+            height: 24,
+            width: 32,
           },
           tabBarItemStyle: {
-            paddingVertical: 2,
+            paddingVertical: 0,
           },
           headerStyle: {
             backgroundColor: theme.background,
@@ -79,7 +76,7 @@ export default function TabLayout() {
             title: 'Mirror',
             headerShown: false,
             tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 20, color, lineHeight: 22 }}>☽</Text>
+              <Text style={{ fontSize: 20, color, lineHeight: 24, textAlign: 'center' }}>☽</Text>
             ),
           }}
         />
@@ -90,7 +87,7 @@ export default function TabLayout() {
           options={{
             title: 'Life',
             tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 20, color, lineHeight: 22 }}>❧</Text>
+              <Text style={{ fontSize: 20, color, lineHeight: 24, textAlign: 'center' }}>❧</Text>
             ),
           }}
         />
@@ -101,12 +98,12 @@ export default function TabLayout() {
           options={{
             title: 'Reflect',
             tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 20, color, lineHeight: 22 }}>◇</Text>
+              <Text style={{ fontSize: 20, color, lineHeight: 24, textAlign: 'center' }}>◇</Text>
             ),
           }}
         />
 
-        {/* Hidden: patterns */}
+        {/* Hidden: patterns route */}
         <Tabs.Screen
           name="patterns"
           options={{
@@ -120,47 +117,11 @@ export default function TabLayout() {
           options={{
             title: 'Lenses',
             tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 20, color, lineHeight: 22 }}>◉</Text>
+              <Text style={{ fontSize: 20, color, lineHeight: 24, textAlign: 'center' }}>◉</Text>
             ),
           }}
         />
       </Tabs>
-
-      {/* =============================================================
-          TEMPORARY BUILD MARKER — proves the new tab layout is deployed
-          on the user's device. Remove after visual verification.
-          ============================================================= */}
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: tabBarHeight + 2,
-          alignItems: 'center',
-          zIndex: 9999,
-        }}
-      >
-        <View
-          style={{
-            backgroundColor: 'rgba(255, 180, 0, 0.92)',
-            paddingHorizontal: 10,
-            paddingVertical: 3,
-            borderRadius: 8,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 10,
-              fontWeight: '700',
-              color: '#000',
-              letterSpacing: 0.4,
-            }}
-          >
-            {NAV_FIX_MARKER}
-          </Text>
-        </View>
-      </View>
     </SessionRestoreWrapper>
   );
 }
