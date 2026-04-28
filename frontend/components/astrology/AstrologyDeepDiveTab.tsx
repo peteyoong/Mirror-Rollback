@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { InsightCardFooter } from '../InsightCardFooter';
 
 import {
@@ -1857,9 +1858,7 @@ Over time, it can also become a place of unusual depth, care, and understanding.
                     <View style={styles.deepDiveCardHeader}>
                       <View style={styles.deepDiveCardTitleRow}>
                         <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{card.title}</Text>
-                        <Text style={[styles.deepDiveExpandIcon, { color: theme.textTertiary }]}>
-                          {isExpanded ? '▴' : '▾'}
-                        </Text>
+                        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={theme.textSecondary} />
                       </View>
                       <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
                       {!isExpanded && (
@@ -1965,9 +1964,7 @@ Over time, it can also become a place of unusual depth, care, and understanding.
                     <View style={styles.deepDiveCardHeader}>
                       <View style={styles.deepDiveCardTitleRow}>
                         <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{card.title}</Text>
-                        <Text style={[styles.deepDiveExpandIcon, { color: theme.textTertiary }]}>
-                          {isExpanded ? '▴' : '▾'}
-                        </Text>
+                        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={theme.textSecondary} />
                       </View>
                       <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
                       {!isExpanded && (
@@ -2099,9 +2096,7 @@ Over time, it can also become a place of unusual depth, care, and understanding.
                     <View style={styles.deepDiveCardHeader}>
                       <View style={styles.deepDiveCardTitleRow}>
                         <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{card.title}</Text>
-                        <Text style={[styles.deepDiveExpandIcon, { color: theme.textTertiary }]}>
-                          {isExpanded ? '▴' : '▾'}
-                        </Text>
+                        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={theme.textSecondary} />
                       </View>
                       <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
                       {!isExpanded && (
@@ -2224,9 +2219,7 @@ Over time, it can also become a place of unusual depth, care, and understanding.
                   <View style={styles.deepDiveCardHeader}>
                     <View style={styles.deepDiveCardTitleRow}>
                       <Text style={[styles.deepDiveCardTitle, { color: theme.text }]}>{card.title}</Text>
-                      <Text style={[styles.deepDiveExpandIcon, { color: theme.textTertiary }]}>
-                        {isExpanded ? '▴' : '▾'}
-                      </Text>
+                      <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={theme.textSecondary} />
                     </View>
                     <Text style={[styles.deepDiveCardSubtitle, { color: theme.textTertiary }]}>{card.subtitle}</Text>
                     

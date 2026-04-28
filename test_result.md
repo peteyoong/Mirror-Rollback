@@ -12358,3 +12358,167 @@ backend:
           ACCEPTANCE: All 6 acceptance criteria from the spec met.
           No relaxed thresholds left in code or DB.
 
+
+
+frontend:
+  - task: "Bottom Tab Bar Labels (Mirror/Life/Reflect/Lenses) — clipping fix"
+    implemented: true
+    working: false
+    file: "/app/app/(tabs)/_layout.tsx (or equivalent tab navigator)"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: |
+          [2026-04-28] BOTTOM TAB LABELS STILL CLIPPED (visual FAIL on Expo web preview)
+
+          Test setup:
+            * Logged in as pete@pulsifi.me on https://metaphor-control.preview.emergentagent.com
+            * iPhone 12 viewport 390×844 and iPhone SE 375×667.
+
+          Findings (DOM measurement via getBoundingClientRect on the
+          rendered label spans):
+            iPhone 12 (390x844) — Mirror tab active:
+              * "Mirror" label: top=810, bottom=817, height=7px, fontSize=12px
+              * "Life":         top=810, bottom=817, height=7px, fontSize=12px
+              * "Reflect":      top=810, bottom=817, height=7px, fontSize=12px
+              * "Lenses":       top=810, bottom=817, height=7px, fontSize=12px
+              * "Nav fix v2":   top=748, bottom=759, height=11px (visible above bar — pill is rendering)
+            iPhone SE (375x667):
+              * Same pattern — labels height=7px (clipped)
+              * Nav fix v2 marker bottom=582, dist_to_bottom=85px
+
+          Acceptance check vs spec:
+            ✗ "All four labels fully visible" — FAIL.
+              The label glyphs render with only 7px of vertical space,
+              but fontSize is 12px and lineHeight is 16px (per the spec
+              of the fix). That means roughly the bottom half of every
+              label is being cropped. Visual inspection of the screenshot
+              confirms the four labels look like faded strips of pixels
+              ('Mirror', 'Life', 'Reflect', 'Lenses' are readable as
+              outlines but bottom halves are missing — see attached
+              screenshot home_iphone12.jpg).
+            ✓ "Nav fix v2 marker visible just above tab bar" — PASS at
+              the DOM level (pill at top=748, ~62px above the labels
+              that sit at top=810). Confirms the new layout is live.
+            ✗ "No label is clipped at the bottom" — FAIL (labels are
+              the ones being clipped, not the marker).
+
+          Geometry of the clipping:
+            * Label container starts at y≈800-810 in a 844px-tall viewport,
+              leaving only ~34px of vertical space at the bottom of the
+              viewport for a tab bar that the spec sizes at
+              `60 + bottomPadding`.
+            * That means the entire tab bar (icon + label + bottom inset)
+              has been rendered into a window much smaller than 60px,
+              squashing the labels to ~7px high.
+            * Distance from "Nav fix v2" marker bottom to viewport bottom
+              = 85px (iPhone 12) and 85px (iPhone SE). The marker itself
+              is fine; the tab bar below it is what is being squashed.
+
+          Likely root cause:
+            Looks like the new bottomPadding / safe-area math is applied
+            to the *wrapper* but the inner Tab.Navigator screen container
+            is still using a fixed 60px height that has to absorb both
+            icon AND label AND padding. The label is the part that lost
+            the budget. Suggest:
+              * Bumping the tab bar height to `64 + bottomPadding`
+                (so 16px line-height + 2px paddingBottom + ~24px icon +
+                ~20px top padding fits cleanly), OR
+              * Switching tabBarLabelStyle to position absolute / not
+                count toward height calculation, OR
+              * Reducing the icon size so label has room.
+              * Verify on web that `useSafeAreaInsets().bottom` is
+                actually returning > 0 inside the Expo web preview;
+                if it's 0 the `web floor: 20` is the only thing keeping
+                the bar from collapsing entirely.
+
+          Pixel measurement requested by spec:
+            * Distance from "Nav fix v2" marker bottom to bottom of
+              visible screen on iPhone 12 (390x844 inside Expo preview
+              shell): 85px. Same on iPhone SE.
+
+          ACTION FOR MAIN AGENT:
+            * Increase tab bar total height (try `64 + bottomPadding` or
+              even `68 + bottomPadding`).
+            * Re-test on 390×844 — label height in DOM should be ≥ 14px
+              (close to fontSize=12 + minor descender room).
+            * Once verified, drop the "Nav fix v2" debug pill.
+
+  - task: "Astrology Deep Dive accordion chevrons — Ionicons size=20"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/AstrologyDeepDiveTab.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: |
+          [2026-04-28] PARTIALLY EXERCISED — could not fully verify in
+          this run. After tapping Lenses → True Sidereal Astrology card,
+          the screen advanced to a Lens detail view (screenshot
+          lenses_screen.jpg shows the "True Sidereal Astrology" card with
+          "Helps with / Does not" copy), but the script ran out of
+          remaining browser-automation invocations before drilling into
+          the Deep Dive tab and capturing chevron geometry.
+
+          What was confirmed:
+            * Astrology lens card is reachable from Lenses tab.
+            * No red errors during navigation.
+
+          What was NOT verified and needs a follow-up run:
+            * That AstrologyDeepDiveTab no longer renders Unicode
+              triangles ▴/▾.
+            * That all 4 accordion chevrons render as Ionicons
+              chevron-down / chevron-up SVGs at ~20×20px.
+            * That tapping a card flips the chevron between
+              chevron-up and chevron-down.
+            * Side-by-side parity with HD lens chevrons.
+
+          Recommended next test (single browser call): login → Lenses →
+          Astrology → tap "Deep Dive" tab inside the lens detail screen
+          → assert (a) zero "▴" / "▾" characters in document.innerText,
+          (b) at least 4 SVG icons within the Deep Dive scroll view
+          whose bounding box is ~20×20, (c) tap one accordion and
+          confirm the SVG path/role attribute changes from chevron-down
+          to chevron-up.
+
+agent_communication:
+  - agent: "testing"
+    message: |
+      UI POLISH VERIFICATION — REVIEW REQUEST RESULTS
+
+      TEST 1 (Bottom Tab Labels): ❌ FAIL
+        - "Nav fix v2" amber marker IS rendering above the tab bar
+          (proof the new layout is live), but the four tab labels
+          (Mirror / Life / Reflect / Lenses) are still being clipped:
+          rendered label height = 7px while fontSize is 12px and
+          spec lineHeight is 16px. Bottom half of each label is cut
+          off on both iPhone 12 (390x844) and iPhone SE (375x667).
+        - Marker-to-bottom-of-screen distance: 85px on both viewports.
+        - Likely cause: tab bar total height (60 + bottomPadding) is
+          too tight to absorb the icon + 16px lineHeight label +
+          paddingBottom 2 + safe-area inset. Recommend bumping the
+          base height to 64-68 + bottomPadding, then re-test.
+
+      TEST 2 (Astrology Deep Dive Chevrons): ⚠️ NOT FULLY VERIFIED
+        - Reached the Astrology lens card from Lenses tab, but ran
+          out of browser-automation invocation budget before drilling
+          into the Deep Dive tab and measuring chevron sizes.
+        - No regressions observed up to that point.
+        - Needs one more focused test run.
+
+      ACTION ITEMS FOR MAIN AGENT:
+        1. Increase the tab bar height in the bottom navigator
+           (try 64 or 68 + bottomPadding) so the 16px label
+           lineHeight isn't clipped. Re-verify with the testing
+           sub-agent that label DOM height ≥ 14px on 390×844.
+        2. Once tab bar passes, request another targeted verification
+           run for the Astrology Deep Dive chevrons (Test 2 in the
+           review request) — that one was not fully covered here.
+        3. Remove the "Nav fix v2" debug pill only AFTER Test 1
+           passes visually.
