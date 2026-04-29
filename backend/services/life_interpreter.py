@@ -818,6 +818,7 @@ def build_context_payload(
                 "domain_relevance":     domain_rel or None,
                 "failure_mode":         _short(failure_mode, 240) or None,
                 "confidence":           confidence or None,
+                "source":               (timeline_context.get("source") or None),
             }
 
     # Question intent — drives the answer structure (contradiction /
@@ -1392,6 +1393,8 @@ async def ask_life_question(
                 "has_activation_now":     bool(ctx.get("activation_now")),
                 "has_phase_context":      bool(ctx.get("phase_context")),
                 "has_timeline_context":   bool(ctx.get("timeline_context")),
+                "timeline_source":        (ctx.get("timeline_context") or {}).get("source") or "none",
+                "timeline_confidence":    (ctx.get("timeline_context") or {}).get("confidence"),
                 "today_intensity":        ctx.get("today_intensity"),
                 "is_recurring":           (pattern_memory or {}).get("memory_state") == "recurring_pattern",
                 "evidence_count":         len(ctx.get("evidence") or []),

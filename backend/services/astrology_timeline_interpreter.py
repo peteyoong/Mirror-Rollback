@@ -679,6 +679,13 @@ def build_timeline_context(
     elif phases or key_turning_points:
         confidence = "medium"
 
+    # Track which upstream produced this — payload's explicit `source`
+    # wins; otherwise we infer from whether we got real phases parsed
+    # out of the payload (real) or fell back to the canonical scaffold.
+    inferred_source = (payload or {}).get("source")
+    if not inferred_source:
+        inferred_source = "real_astrology_timeline" if phases else "deterministic_scaffold"
+
     result: Dict[str, Any] = {
         "year_theme":          year_theme,
         "current_phase":       current_phase,
@@ -687,6 +694,7 @@ def build_timeline_context(
         "domain_relevance":    domain_relevance,
         "failure_mode":        failure_mode,
         "confidence":          confidence,
+        "source":              inferred_source,
     }
 
     # Optional: surface the chip-relevant note for caller convenience.

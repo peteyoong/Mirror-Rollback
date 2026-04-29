@@ -12992,3 +12992,111 @@ agent_communication:
           for non-timeline questions). Frontend untouched (same
           response shape; only debug payload gets richer).
 
+
+
+  - task: "Real Astrology Timeline wiring into Ask About My Life"
+    implemented: true
+    working: true
+    file: "/app/backend/services/astrology_timeline_generator.py, /app/backend/services/astrology_timeline_interpreter.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          REAL ASTROLOGY TIMELINE WIRING — FULL VERIFICATION ✅
+
+          All 18 unit tests + all 7 endpoint scenarios PASS.
+
+          UNIT TESTS (18/18 PASS, 0.03s)
+          ------------------------------
+          cd /app/backend && python -m pytest tests/test_astrology_timeline_generator.py tests/test_astrology_timeline_interpreter.py -v
+          → 18 passed, 0 failed
+
+          ENDPOINT TESTS — POST /api/life/ask/{user_id}
+          ---------------------------------------------
+          Test 2 — Pete contradiction (REAL timeline) ✅
+            POST /api/life/ask/697f0c6abf35c0528ff06954
+              {"domain":"relationships","question":"What's my outlook for relationships this year? I feel it is getting better but my astrology timeline seems to say otherwise."}
+            → HTTP 200, 8.37s
+            • debug.context_keys.has_timeline_context = True ✓
+            • debug.context_keys.timeline_source = "real_astrology_timeline" ✓ (KEY ACCEPTANCE)
+            • debug.context_keys.timeline_confidence = "high" ✓
+            • debug.intent.is_contradiction = True ✓
+            • Chart-driven phase language found: ["communication","emotional","timing"] ✓
+            • Structural timing terms: ["this year","improves","remains under pressure","pattern to watch"] ✓
+            • NO astrology jargon (planet/house/transit/decan/ayanamsa/natal chart/purple star/ziwei/ascendant/sun sign/moon sign) ✓
+            • Answer first 200: "This isn't random — this comes from how you tend to raise your relationship standards sharply, often before the other person can fully show up. Your feeling that things are improving is real, but the …"
+
+          Test 3 — Pete career outlook (work chip) ✅
+            POST /api/life/ask/697f0c6abf35c0528ff06954
+              {"domain":"work","question":"What is the outlook for my career this year?"}
+            → HTTP 200, 7.45s
+            • timeline_source = "real_astrology_timeline" ✓
+            • timeline_confidence = "high" ✓
+            • NO astrology jargon ✓
+            • intent.is_outlook_timing = True
+            • Answer first 200: "What you're noticing in your career this year comes from a phase where you are refining your standards sharply and taking ownership without waiting for others. This sharpening often pushes trust to a …"
+
+          Test 4 — Generic non-timeline question (no activation) ✅
+            POST /api/life/ask/697f0c6abf35c0528ff06954
+              {"domain":"self","question":"Why do I keep falling into the same trap?"}
+            → HTTP 200, 4.49s
+            • has_timeline_context = False ✓
+            • timeline_source = "none" ✓
+            • timeline_confidence = None (correct, no timeline used)
+            • intent.is_why_pattern = True
+            • Answer non-empty (well-formed prose). Timeline service did NOT crash the endpoint.
+
+          Test 5 — Mel cold-start ✅
+            POST /api/life/ask/697ec826ad4b18f75bf42616
+              {"domain":"relationships","question":"What's my outlook this year?"}
+            → HTTP 200, 3.85s
+            • has_timeline_context = True ✓
+            • timeline_source = "real_astrology_timeline" (Mel has full chart) ✓
+              (acceptable values were real_astrology_timeline OR deterministic_scaffold)
+            • timeline_confidence = "high"
+            • No 500.
+
+          Test 6 — Cache sanity (back-to-back) ✅
+            Two identical calls to Pete's contradiction endpoint:
+            • Call 1: HTTP 200, 2.81s
+            • Call 2: HTTP 200, 6.69s (still well under 10s)
+            • timeline_source = "real_astrology_timeline" both times ✓
+
+          Test 7 — HD Incarnation Cross deep-dive regression ✅
+            GET /api/human-design/deep-dive/697f0c6abf35c0528ff06954
+            → HTTP 200, 16.01s
+            • core_mechanics.incarnation_cross == "Left Angle Cross of Migration" ✓
+            • core_mechanics.incarnation_cross_gates == "Gates: 37 · 5 · 40 · 35" ✓
+            • incarnation_cross_structured.cross_name == "Left Angle Cross of Migration" ✓
+            • incarnation_cross_structured does NOT contain "variant" key ✓
+              (structured keys: cross_name, cross_name_raw, cross_family, angle, angle_full, gate_quartet, gates_display, themes, …)
+
+          Backend logs confirm clean LLM execution and one auto-retry on
+          Test 2 (audit flagged contradiction_not_addressed → second pass
+          succeeded — healthy existing audit-layer behaviour). No 500s
+          anywhere. New `timeline_source` and `timeline_confidence` debug
+          fields propagating correctly through life_interpreter into the
+          /life/ask response. Cache reuse works (tests 2 + 6 both hit
+          real_astrology_timeline path; key astro_timeline::{user_id}).
+
+          Test artefact: /app/backend_test_timeline.py
+
+metadata:
+  updated_by: "testing_agent"
+  last_test_run: "2026-04-29 — Real Astrology Timeline wiring verification"
+
+agent_communication:
+    -agent: "testing"
+    -message: |
+      Real Astrology Timeline wiring into Ask About My Life is fully verified.
+        • 18/18 unit tests pass (test_astrology_timeline_generator.py + test_astrology_timeline_interpreter.py)
+        • Tests 2–7 all pass against the public API.
+        • timeline_source="real_astrology_timeline" and timeline_confidence="high" propagating through debug.context_keys for Pete (contradiction + career chips) and Mel.
+        • Generic non-timeline question correctly stays at timeline_source="none" with has_timeline_context=False.
+        • Cache reuse confirmed; second call still <10s and returns identical timeline_source.
+        • HD Incarnation Cross deep-dive regression intact: Left Angle Cross of Migration, gates "37 · 5 · 40 · 35", no "variant" key.
+        • No 500s, no jargon leakage, chart-driven phase language present.
+      No code changes were made by testing agent. Endpoint behaviour matches all acceptance criteria.

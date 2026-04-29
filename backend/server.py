@@ -26824,8 +26824,10 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
     # "timeline" questions to keep latency predictable. Falls back
     # cleanly to a None payload when the question is generic.
     timeline_context_payload: Optional[Dict[str, Any]] = None
+    timeline_source: str = "none"
     try:
         from services import astrology_timeline_interpreter as ati
+        from services import astrology_timeline_generator as atg
 
         # Re-detect intent here (cheaply) so we can short-circuit when
         # the question is generic. The interpreter itself does NOT call
@@ -26847,20 +26849,27 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
             or _timeline_kw
         )
         if _wants_timeline:
-            # Astrology timeline payload — currently no structured upstream
-            # store, so we let the interpreter use its deterministic
-            # 4-phase scaffold. When a structured payload becomes
-            # available (e.g. cached by the astrology-timeline mode in
-            # /mirror/chat), pass it here as `payload`.
+            # 1. Try cached structured astrology timeline first.
             payload: Optional[Dict[str, Any]] = None
             try:
-                # Best-effort: read any cached structured astrology
-                # timeline payload. Today this cache key is unused, but
-                # leaving the hook in place keeps the wiring forward-
-                # compatible.
                 payload = _life_synth_cache_get(f"astro_timeline::{user_id}")
             except Exception:  # noqa: BLE001 — cache is best-effort
                 payload = None
+
+            # 2. Cache miss → generate from chart and cache for future
+            #    requests. Cheap deterministic compute, no LLM call.
+            if not payload:
+                try:
+                    payload = atg.generate_astrology_timeline(chart_doc)
+                    if payload:
+                        _life_synth_cache_set(
+                            f"astro_timeline::{user_id}", payload,
+                        )
+                except Exception as ge:
+                    logger.warning(
+                        "[LifeAsk] astro timeline generator failed: %s", ge,
+                    )
+                    payload = None
 
             timeline_context_payload = ati.build_timeline_context(
                 user_id=user_id,
@@ -26868,9 +26877,16 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
                 current_date=datetime.now(timezone.utc),
                 domain=chip,
             )
+            # Distinguish real chart-derived timeline vs fallback scaffold
+            # for downstream debug visibility.
+            if payload and payload.get("source") == "real_astrology_timeline":
+                timeline_source = "real_astrology_timeline"
+            else:
+                timeline_source = "deterministic_scaffold"
     except Exception as e:
         logger.warning("[LifeAsk] timeline interpreter failed: %s", e)
         timeline_context_payload = None
+        timeline_source = "none"
 
     result = await li.ask_life_question(
         chip_domain=chip,
