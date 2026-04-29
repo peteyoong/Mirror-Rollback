@@ -13100,3 +13100,169 @@ agent_communication:
         • HD Incarnation Cross deep-dive regression intact: Left Angle Cross of Migration, gates "37 · 5 · 40 · 35", no "variant" key.
         • No 500s, no jargon leakage, chart-driven phase language present.
       No code changes were made by testing agent. Endpoint behaviour matches all acceptance criteria.
+
+  - task: "Real Astrology Timeline wired into Ask About My Life (Phase P2)"
+    implemented: true
+    working: true
+    file: "backend/services/astrology_timeline_generator.py (new), backend/services/astrology_timeline_interpreter.py, backend/services/life_interpreter.py, backend/server.py, backend/tests/test_astrology_timeline_generator.py (new)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Replaces the deterministic scaffold fallback with a real,
+          chart-derived astrology timeline that reaches Ask via the
+          `astro_timeline::{user_id}` cache key.
+
+          Architecture
+          ------------
+          The user-facing astrology timeline is currently rendered
+          client-side (frontend AstrologyTimelineTab.tsx) using
+          SIGN_PATTERNS + HOUSE_AREAS lookups. To get the same data
+          server-side without any LLM call, we ported that JS generator
+          to Python verbatim:
+
+            new: backend/services/astrology_timeline_generator.py
+              `generate_astrology_timeline(chart_doc) -> dict|None`
+              - SIGN_PATTERNS table (12 signs, year_theme/arc/tension/
+                cost_of_action/cost_of_waiting) — verbatim copy of FE.
+              - HOUSE_AREAS / HOUSE_SHORT (1..12) — verbatim copy of FE.
+              - Builds 4 phases keyed to current calendar year:
+                  Q1 Recognition, Q2 Confrontation, Q3 Crossroads,
+                  Q4 Integration — each with chart-specific house
+                  language threaded through the description.
+              - Builds 3 turning points (Late April / Mid-August /
+                Early November) with type=confrontation/decision/
+                integration and an `if_avoided` consequence for each.
+              - Builds 3 decision windows (Mar 15-31 / Jun 1-15 /
+                Sep 1-20) with if_act / if_wait branches.
+              - Tags `source: "real_astrology_timeline"`.
+              - Returns None when chart data is missing (Ask falls back
+                to scaffold cleanly).
+
+          Wiring change in /api/life/ask/{user_id}
+          ----------------------------------------
+          For timeline-relevant questions (contradiction / outlook_timing
+          / "this year" / "next year" / "timeline" / "outlook" / "year
+          ahead" / "this period" / "this stretch"):
+            1. Cache lookup: `astro_timeline::{user_id}`.
+            2. Cache miss → generate from chart_doc → cache for reuse.
+            3. Pass payload into `build_timeline_context()` which keeps
+               `source` propagating end-to-end.
+          For all other questions, timeline_context_payload stays None
+          and the generator is NEVER invoked (zero overhead).
+
+          Interpreter upgrade
+          -------------------
+          `astrology_timeline_interpreter.build_timeline_context()` now
+          emits a `source` field:
+            - "real_astrology_timeline" when payload has phases parsed
+              (or carries `source` itself),
+            - "deterministic_scaffold" when no payload was supplied and
+              the canonical Q1..Q4 fallback was used.
+
+          Debug visibility
+          ----------------
+          /api/life/ask response now includes (under `debug.context_keys`):
+            - has_timeline_context : bool
+            - timeline_source       : "real_astrology_timeline"
+                                    | "deterministic_scaffold"
+                                    | "none"
+            - timeline_confidence   : "high" | "medium" | "low" | None
+          life_interpreter.py also propagates `source` through
+          build_context_payload.tl_block so any downstream consumer can
+          inspect it.
+
+          Tests (18 PASS, 0.03s)
+          ----------------------
+          New: tests/test_astrology_timeline_generator.py — 9 cases:
+            ✓ produces expected top-level keys (source/year_theme/arc/
+              phases/turning_points/decision_windows/house_hints/year/
+              generator_version)
+            ✓ returns None when chart missing or empty
+            ✓ uses Sun-sign pattern table verbatim (Pisces vs Capricorn)
+            ✓ threads house areas into phase descriptions (3rd-house
+              "communication", 4th-house "home/emotional", 2nd-house
+              "security")
+            ✓ builds 3 turning points with canonical timing
+              (Late April → confrontation, Mid-August → decision,
+              Early November → integration)
+            ✓ includes current year in all phase periods + turning point
+              timings
+            ✓ pipeline real payload → interpreter → source preserved
+            ✓ pipeline no-payload → source = "deterministic_scaffold"
+            ✓ pipeline domain_relevance picks up house-area keywords
+              (Venus 7th + Saturn 6th → relationships + work)
+
+          Existing: tests/test_astrology_timeline_interpreter.py
+          (9 cases) all still pass.
+
+          Live verification — Pete (697f0c6abf35c0528ff06954)
+          ----------------------------------------------------
+          POST /api/life/ask  domain="relationships"
+            question: "What's my outlook for relationships this year?
+                       I feel it is getting better but my astrology
+                       timeline seems to say otherwise."
+          → HTTP 200, ~5.5s.
+            debug.context_keys.has_timeline_context: True
+            debug.context_keys.timeline_source:    real_astrology_timeline ✓
+            debug.context_keys.timeline_confidence: high                   ✓
+            debug.intent: { primary: "contradiction",
+                            all: ["contradiction","outlook_timing"] }
+
+          Answer (verbatim opening):
+            "What you're noticing comes from the fact that your sense
+             of improvement in relationships is real, but the current
+             timeline insists on pressing a deeper tension beneath
+             that surface.
+
+             Right now, you're in a phase marked by confrontation and
+             crucial choice points around communication and emotional
+             foundations.
+
+             What feels better now may reflect your internal refinements,
+             yet the timeline highlights pressure around unresolved
+             gaps — especially where your pace of reaching out and the
+             response you receive don't line up, risking distance before
+             clarity could form. The pattern to watch is whether you
+             allow one rough edge to stay long enough for real connection
+             to deepen, or if you sharpen too quickly, risking trust.
+             What improves is your clarity and standards; what remains
+             under pressure is timing, mutual arrival, and naming what
+             has been tolerated without conversation."
+
+          Acceptance audit:
+            ✓ References Pete's actual chart (Sun in 3rd =
+              "communication, decisions, and daily routines"; Moon in
+              4th = "home/emotional foundation"). Answer mentions
+              "communication" + "emotional foundations" + "pace" +
+              "timing" — chart-specific language confirmed.
+            ✓ Phase reasoning intact ("confrontation" + "crossroads/
+              choice points").
+            ✓ Spec phrasings present: "What improves is...",
+              "what remains under pressure is...", "The pattern to
+              watch is...".
+            ✓ Zero astrology jargon (no planet/house/transit/decan/
+              ayanamsa references).
+            ✓ Answers the contradiction directly (BLADE LINE +
+              BOTH-CAN-BE-TRUE + PHASE READING + GROUNDED OUTLOOK
+              4-part structure).
+
+          Backend testing agent verdict (7 scenarios)
+          --------------------------------------------
+          All PASS:
+            • Pete contradiction (relationships): real_astrology_timeline
+              / confidence=high, jargon-clean, spec phrasings present
+            • Pete career outlook (work): real_astrology_timeline
+            • Generic non-timeline (self): has_timeline_context=False,
+              timeline_source="none" — endpoint did not crash
+            • Mel cold-start: real_astrology_timeline (Mel has full chart)
+            • Cache sanity (back-to-back): both calls return
+              real_astrology_timeline; cache reuse works
+            • HD Incarnation Cross regression: PASS — no regressions
+
+          Status: ✓ Lint clean (ruff). Backend reloaded cleanly.
+          No frontend changes required (debug fields are additive).
+
