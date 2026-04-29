@@ -34219,6 +34219,17 @@ async def get_resonance_patterns(user_id: str):
 
 
 # Include the router in the main app (MUST BE AFTER ALL @api_router decorators)
+
+# Saved People (relationship subjects) — separate router for cleanliness.
+# Mounts under /api/people/* via the same api_router prefix.
+try:
+    from services.saved_people import build_saved_people_router
+
+    api_router.include_router(build_saved_people_router(db))
+    logger.info("[Startup] saved_people router mounted at /api/people")
+except Exception as _spe:  # noqa: BLE001
+    logger.warning("[Startup] failed to mount saved_people router: %s", _spe)
+
 app.include_router(api_router)
 
 

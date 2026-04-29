@@ -13266,3 +13266,97 @@ agent_communication:
           Status: ✓ Lint clean (ruff). Backend reloaded cleanly.
           No frontend changes required (debug fields are additive).
 
+
+  - task: "Saved People Persistence — backend MVP (P1)"
+    implemented: true
+    working: true
+    file: "backend/services/saved_people.py (new), backend/server.py (router mount), backend/tests/test_saved_people.py (new)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Backend persistence layer for relationship subjects. Stores
+          structured records in `db.saved_people` and exposes CRUD via
+          a sub-router mounted under /api/people/*.
+
+          Data contract enforced by Pydantic + model_validator:
+            REQUIRED at creation:
+              - name (1–120 chars)
+              - relationship_type (closed set: partner / spouse /
+                ex_partner / parent / child / sibling / family_other /
+                friend / close_friend / colleague / boss / report /
+                client / mentor / mentee / other)
+              - birth_date (YYYY-MM-DD, valid calendar date)
+
+            DECISION fields (silent nulls REJECTED):
+              - birth_time (HH:MM 24h, nullable) +
+                birth_time_accuracy ("exact" | "unknown")
+              - birth_location ({city, country, lat?, lng?}, nullable) +
+                birth_location_accuracy ("exact" | "unknown")
+              Rule: value may be null ONLY when its accuracy flag is
+              "unknown". On both create and patch, "exact" + missing
+              value → 422 / 400 with explicit error message.
+
+          Derived helper:
+            precision_level: "high" | "medium" | "low"
+              - high   = both flags exact
+              - medium = exactly one flag exact
+              - low    = both flags unknown
+            Surfaced in every response so downstream lenses
+            (astrology / HD) can degrade precision gracefully while
+            still allowing relationship insight to run.
+
+          UX copy single-source-of-truth:
+            GET /api/people/meta returns the full relationship_types
+            list, accuracy values, and the canonical UX hint:
+              "Birth details improve precision. You can mark as unknown
+               and update later."
+
+          Endpoints (all under /api/people):
+            • GET    /api/people/meta
+            • POST   /api/people/{user_id}                  (create)
+            • GET    /api/people/{user_id}                  (list, newest first)
+            • GET    /api/people/{user_id}/{person_id}      (read)
+            • PATCH  /api/people/{user_id}/{person_id}      (partial update)
+            • DELETE /api/people/{user_id}/{person_id}      (delete)
+
+          Unit tests (15 PASS, 0.20s)
+          ---------------------------
+          tests/test_saved_people.py::
+            ✓ required-fields enforcement (missing name / relationship_type
+              / birth_date all rejected)
+            ✓ relationship_type closed-set + case-insensitive
+            ✓ birth_date format + calendar validity
+            ✓ silent-null birth_time rejected when accuracy=exact
+            ✓ unknown accuracy allows null birth_time
+            ✓ silent-null birth_location rejected when accuracy=exact
+            ✓ unknown accuracy allows null birth_location
+            ✓ invalid accuracy values rejected
+            ✓ HH:MM 24h format enforcement
+            ✓ precision_level high / medium / low
+            ✓ patch model partial validation
+            ✓ relationship_types canonical set
+            ✓ accuracy_values canonical set
+
+          Endpoint live verification (curl, 7 scenarios PASS)
+          ---------------------------------------------------
+            ✓ Create with full data → HTTP 200, precision=high
+            ✓ Silent-null create → HTTP 422 with explicit message
+              ("birth_time is required when birth_time_accuracy is
+               'exact'. Set birth_time_accuracy='unknown' to skip.")
+            ✓ Both unknown → HTTP 200, precision=low, both fields null
+            ✓ List shows both records, newest first
+            ✓ PATCH flipping location to unknown → precision=medium
+            ✓ PATCH attempting silent-null with accuracy=exact →
+              HTTP 400 ("birth_location is required when
+               birth_location_accuracy is 'exact'.")
+            ✓ DELETE cleanup → HTTP 200
+
+          Status: ✓ Lint clean (ruff). Backend reloaded; router
+          mounted at /api/people. No regressions to existing endpoints.
+          Next: frontend "Add Person" sheet UI to consume these endpoints
+          (pending user UX decisions — flow, design, where to surface).
+
