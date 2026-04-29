@@ -776,6 +776,11 @@ def build_context_payload(
     # Timeline context — annual / long-range notes. Only relevant when
     # the user asks about year/timeline/outlook. NEVER quote any source
     # of this data verbatim; treat it as deep ground truth only.
+    # Supports BOTH shapes:
+    #   1. Legacy: {period, notes, themes}
+    #   2. Astrology Timeline Interpreter: {year_theme, current_phase,
+    #      next_phase, key_turning_points, domain_relevance,
+    #      failure_mode, confidence}
     tl_block: Dict[str, Any] = {}
     if isinstance(timeline_context, dict):
         notes = (timeline_context.get("notes") or "").strip()
@@ -783,11 +788,36 @@ def build_context_payload(
         themes = timeline_context.get("themes") or []
         if isinstance(themes, list):
             themes = [str(t).strip() for t in themes if str(t).strip()][:4]
-        if notes or period or themes:
+
+        year_theme = (timeline_context.get("year_theme") or "").strip()
+        current_phase = timeline_context.get("current_phase") or {}
+        next_phase = timeline_context.get("next_phase") or {}
+        key_tps = timeline_context.get("key_turning_points") or []
+        if isinstance(key_tps, list):
+            key_tps = [tp for tp in key_tps if isinstance(tp, dict)][:3]
+        domain_rel = timeline_context.get("domain_relevance") or {}
+        if not isinstance(domain_rel, dict):
+            domain_rel = {}
+        failure_mode = (timeline_context.get("failure_mode") or "").strip()
+        confidence = (timeline_context.get("confidence") or "").strip()
+
+        has_anything = (
+            notes or period or themes
+            or year_theme or current_phase or next_phase
+            or key_tps or domain_rel or failure_mode
+        )
+        if has_anything:
             tl_block = {
-                "period":  _short(period, 80) or None,
-                "notes":   _short(notes, 400) or None,
-                "themes":  themes or None,
+                "period":               _short(period, 80) or None,
+                "notes":                _short(notes, 400) or None,
+                "themes":               themes or None,
+                "year_theme":           _short(year_theme, 200) or None,
+                "current_phase":        current_phase or None,
+                "next_phase":           next_phase or None,
+                "key_turning_points":   key_tps or None,
+                "domain_relevance":     domain_rel or None,
+                "failure_mode":         _short(failure_mode, 240) or None,
+                "confidence":           confidence or None,
             }
 
     # Question intent — drives the answer structure (contradiction /
@@ -936,18 +966,99 @@ def _format_context_for_llm(ctx: Dict[str, Any]) -> str:
         lines.append("")
 
     tl = ctx.get("timeline_context") or {}
-    if tl and (tl.get("notes") or tl.get("themes")):
+    # Recognise both the legacy {period, notes, themes} shape and the
+    # richer Astrology Timeline Interpreter shape (year_theme,
+    # current_phase, next_phase, key_turning_points, domain_relevance,
+    # failure_mode, confidence). Either is sufficient to render.
+    has_legacy = bool(tl.get("notes") or tl.get("themes"))
+    has_rich = bool(
+        tl.get("year_theme")
+        or tl.get("current_phase")
+        or tl.get("next_phase")
+        or tl.get("key_turning_points")
+        or tl.get("domain_relevance")
+    )
+    if tl and (has_legacy or has_rich):
         lines.append("TIMELINE CONTEXT — long-range/annual signals:")
+        # Legacy fields (still supported for back-compat)
         if tl.get("period"):
             lines.append(f"  - period: {tl['period']}")
         if tl.get("notes"):
             lines.append(f"  - notes: {tl['notes']}")
         if tl.get("themes"):
             lines.append(f"  - themes: {', '.join(tl['themes'])}")
+        # Richer structured fields (Astrology Timeline Interpreter)
+        if tl.get("year_theme"):
+            lines.append(f"  - year_theme: {tl['year_theme']}")
+        cur_ph = tl.get("current_phase") or {}
+        if cur_ph:
+            cp_name = cur_ph.get("name") or ""
+            cp_press = cur_ph.get("pressure_type") or ""
+            cp_desc = cur_ph.get("description") or ""
+            cp_period = cur_ph.get("period") or ""
+            lines.append(
+                f"  - current period: {cp_name}"
+                + (f" ({cp_period})" if cp_period else "")
+            )
+            if cp_press:
+                lines.append(f"      pressure: {cp_press}")
+            if cp_desc:
+                lines.append(f"      what's happening: {cp_desc}")
+        nxt_ph = tl.get("next_phase") or {}
+        if nxt_ph:
+            np_name = nxt_ph.get("name") or ""
+            np_press = nxt_ph.get("pressure_type") or ""
+            np_desc = nxt_ph.get("description") or ""
+            np_period = nxt_ph.get("period") or ""
+            lines.append(
+                f"  - emerging period: {np_name}"
+                + (f" ({np_period})" if np_period else "")
+            )
+            if np_press:
+                lines.append(f"      pressure: {np_press}")
+            if np_desc:
+                lines.append(f"      what's coming: {np_desc}")
+        tps = tl.get("key_turning_points") or []
+        if tps:
+            lines.append("  - key turning points:")
+            for tp in tps[:3]:
+                bits: List[str] = []
+                if tp.get("timing"):
+                    bits.append(f"timing={tp['timing']}")
+                if tp.get("type"):
+                    bits.append(f"type={tp['type']}")
+                if tp.get("what_activates"):
+                    bits.append(f"activates={tp['what_activates']}")
+                if tp.get("what_becomes_clear"):
+                    bits.append(f"clarity={tp['what_becomes_clear']}")
+                if tp.get("if_avoided"):
+                    bits.append(f"if_avoided={tp['if_avoided']}")
+                lines.append("      • " + " | ".join(bits))
+        dr = tl.get("domain_relevance") or {}
+        if dr:
+            chip = (ctx.get("chip") or "").lower()
+            chip_note = dr.get(chip)
+            if chip_note:
+                lines.append(f"  - domain note ({chip}): {chip_note}")
+            other = [(k, v) for k, v in dr.items() if k != chip]
+            if other:
+                lines.append(
+                    "  - other domains in play: "
+                    + "; ".join(f"{k}: {v}" for k, v in other[:3])
+                )
+        if tl.get("failure_mode"):
+            lines.append(f"  - failure mode: {tl['failure_mode']}")
+        if tl.get("confidence"):
+            lines.append(f"  - confidence: {tl['confidence']}")
         lines.append(
-            "  Use this for 'this year' / 'outlook' questions. NEVER "
-            "mention astrology / chart / transit / source. Speak as if "
-            "describing the period itself."
+            "  Use this for 'this year' / 'outlook' / contradiction "
+            "questions. Reason WITH the timeline, do NOT summarise it. "
+            "NEVER mention astrology / chart / transit / decan / source. "
+            "Speak as if describing the period itself. Acceptable phrasings: "
+            "'The timeline is not saying no — it is showing pressure around…', "
+            "'What feels better now may be real, but the next period still "
+            "tests…', 'What improves is… What remains under pressure is…', "
+            "'The pattern to watch is…'."
         )
         lines.append("")
     cdp = ctx.get("cross_domain_pattern") or {}

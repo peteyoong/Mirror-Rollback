@@ -1,268 +1,167 @@
-"""
-Backend tests for "Ask About My Life — Follow-ups + Reflect CTA".
-
-Tests:
-1. POST /api/life/ask/{user_id} — verify follow-ups in response
-2. Validation paths (400/400/404)
-3. POST /api/reflections — verify ask_reflect source
-"""
-
-import os
-import re
+"""Integration test for Astrology Timeline Interpreter wiring into /api/life/ask/{user_id}."""
 import json
-import sys
 import time
-from typing import Any, Dict, List, Tuple
-
 import requests
 
-# ---- Config -----------------------------------------------------------------
+BASE = "https://decan-tone.preview.emergentagent.com/api"
+PETE = "697f0c6abf35c0528ff06954"
+MEL = "697ec826ad4b18f75bf42616"
 
-BASE_URL = "https://metaphor-control.preview.emergentagent.com/api"
-TIMEOUT = 60
-
-PETE  = "697f0c6abf35c0528ff06954"
-MEL   = "697ec826ad4b18f75bf42616"
-ISAAC = "69dda348de9cb1c83c0780f8"
-
-BANNED_PHRASES = [
-    "human design", "bazi", "astrology", "horoscope", "natal chart",
-    "transit", "retrograde", "purple star", "ziwei", "lifeline",
-    "pattern memory", "domain weight", "primary domain", "secondary domain",
-    "background domain", "system", "the engine", "framework",
-    "as an ai", "language model",
-]
-
-DOMAIN_KEYWORDS = {
-    "money":   ["money", "finance", "financial", "income", "pay", "earn", "earning", "spend", "spending"],
-    "family":  ["family", "parent", "parents", "mother", "father", "sibling", "household"],
-    "health":  ["body", "energy", "health", "sleep", "stress", "tired"],
-    "friends": ["friend", "friendship", "friendships"],
-}
-
-# ---- Helpers ----------------------------------------------------------------
-
-PASS: List[str] = []
-FAIL: List[Tuple[str, str]] = []
-
-def _log_pass(name: str, info: str = ""):
-    print(f"  PASS: {name} {info}".rstrip())
-    PASS.append(name)
-
-def _log_fail(name: str, info: str = ""):
-    print(f"  FAIL: {name} -- {info}")
-    FAIL.append((name, info))
-
-def _check(cond: bool, name: str, info: str = "") -> bool:
-    if cond:
-        _log_pass(name)
-    else:
-        _log_fail(name, info)
-    return cond
+JARGON = ["planet", "house", "transit", "decan", "ayanamsa", "natal chart", "purple star", "ziwei"]
+TIMELINE_PHRASES = ["this year", "this period", "the period", "improves", "remains under pressure",
+                    "pattern to watch", "crossroads", "this stretch"]
 
 
-def assert_paragraphs(answer: str) -> Tuple[bool, str]:
-    if not isinstance(answer, str) or not answer.strip():
-        return False, "answer empty or non-string"
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", answer.strip()) if p.strip()]
-    if not (2 <= len(paragraphs) <= 4):
-        return False, f"paragraph count = {len(paragraphs)} (need 2-4)"
-    return True, f"{len(paragraphs)} paragraphs"
-
-
-def assert_follow_ups(follow_ups: Any) -> Tuple[bool, str]:
-    if not isinstance(follow_ups, list):
-        return False, f"follow_ups not list: {type(follow_ups)}"
-    if not (2 <= len(follow_ups) <= 3):
-        return False, f"follow_ups length = {len(follow_ups)} (need 2-3)"
-    for i, f in enumerate(follow_ups):
-        if not isinstance(f, str):
-            return False, f"follow_ups[{i}] not string"
-        if not (4 <= len(f) <= 140):
-            return False, f"follow_ups[{i}] length = {len(f)} (need 4-140): {f!r}"
-        if not f.endswith(("?", ".", "!")):
-            return False, f"follow_ups[{i}] does not end with ?,.,!: {f!r}"
-    return True, f"{len(follow_ups)} follow-ups"
-
-
-def find_banned(text: str) -> List[str]:
-    if not text:
-        return []
-    lc = text.lower()
-    hits = []
-    for phrase in BANNED_PHRASES:
-        if phrase in lc:
-            hits.append(phrase)
-    return hits
-
-
-def domain_specificity(chip: str, answer: str, follow_ups: List[str]) -> Tuple[bool, str]:
-    keywords = DOMAIN_KEYWORDS.get(chip)
-    if not keywords:
-        return True, "no specificity check for this chip"
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", answer or "") if p.strip()]
-    found_in_answer = any(any(kw in p.lower() for kw in keywords) for p in paragraphs)
-    found_in_followups = any(any(kw in (f or "").lower() for kw in keywords) for f in (follow_ups or []))
-    if found_in_answer or found_in_followups:
-        loc = "answer" if found_in_answer else "follow_ups"
-        return True, f"matched keyword in {loc}"
-    return False, f"no keyword from {keywords} in answer or follow_ups"
-
-
-# ---- Test cases -------------------------------------------------------------
-
-def test_life_ask(user_id: str, chip: str, question: str, label: str) -> Dict[str, Any]:
-    print(f"\n--- TEST: {label} | user={user_id[:8]}.. | chip={chip} ---")
-    url = f"{BASE_URL}/life/ask/{user_id}"
-    body = {"domain": chip, "question": question}
+def post(user_id, body, label):
+    print(f"\n=== {label} ===")
+    url = f"{BASE}/life/ask/{user_id}"
+    print(f"POST {url}\nBody: {json.dumps(body)}")
     t0 = time.time()
     try:
-        r = requests.post(url, json=body, timeout=TIMEOUT)
-    except requests.RequestException as e:
-        _log_fail(f"{label} request error", str(e))
-        return {}
+        r = requests.post(url, json=body, timeout=120)
+    except Exception as e:
+        print(f"REQUEST FAILED: {e}")
+        return None
     dur = time.time() - t0
-
-    if not _check(r.status_code == 200, f"{label} status 200",
-                  f"got {r.status_code}, body={r.text[:300]}"):
-        return {}
-
+    print(f"HTTP {r.status_code} in {dur:.2f}s")
     try:
         data = r.json()
-    except Exception as e:
-        _log_fail(f"{label} JSON parse", str(e))
-        return {}
-
-    _check(isinstance(data, dict), f"{label} response is dict")
-
-    answer = data.get("answer")
-    ok, info = assert_paragraphs(answer)
-    _check(ok, f"{label} answer 2-4 paragraphs", info)
-
-    follow_ups = data.get("follow_ups")
-    ok, info = assert_follow_ups(follow_ups)
-    _check(ok, f"{label} follow_ups well-formed", info)
-
-    _check(data.get("chip_domain") == chip, f"{label} chip_domain matches",
-           f"got {data.get('chip_domain')}")
-
-    _check(data.get("synthesis_domain") in ("self", "work", "relationships"),
-           f"{label} synthesis_domain valid",
-           f"got {data.get('synthesis_domain')}")
-
-    _check(data.get("generator_version") == "life_interpreter_v2",
-           f"{label} generator_version",
-           f"got {data.get('generator_version')}")
-
-    debug = data.get("debug")
-    _check(isinstance(debug, dict) and "context_keys" in debug,
-           f"{label} debug.context_keys present",
-           f"debug={debug}")
-
-    combined = (answer or "") + "\n" + "\n".join(follow_ups or [])
-    hits = find_banned(combined)
-    _check(len(hits) == 0, f"{label} no banned phrases", f"hits={hits}")
-
-    ok, info = domain_specificity(chip, answer or "", follow_ups or [])
-    _check(ok, f"{label} domain-specificity ({chip})", info)
-
-    print(f"   (took {dur:.1f}s, llm_used={debug.get('llm_used') if isinstance(debug, dict) else '?'}, "
-          f"parse_error={debug.get('parse_error') if isinstance(debug, dict) else '?'})")
-    print(f"   answer preview: {(answer or '')[:160]!r}")
-    print(f"   follow_ups: {follow_ups}")
+    except Exception:
+        print("Non-JSON response:")
+        print(r.text[:500])
+        return {"_status": r.status_code, "_raw": r.text}
+    data["_status"] = r.status_code
     return data
 
 
-def test_validation():
-    print("\n--- TEST: VALIDATION PATHS ---")
-    r = requests.post(f"{BASE_URL}/life/ask/{PETE}",
-                      json={"domain": "unknown", "question": "x"}, timeout=TIMEOUT)
-    _check(r.status_code == 400, "invalid chip -> 400", f"got {r.status_code}, body={r.text[:200]}")
-
-    r = requests.post(f"{BASE_URL}/life/ask/{PETE}",
-                      json={"domain": "self", "question": ""}, timeout=TIMEOUT)
-    _check(r.status_code == 400, "empty question -> 400", f"got {r.status_code}, body={r.text[:200]}")
-
-    r = requests.post(f"{BASE_URL}/life/ask/nonexistent_user",
-                      json={"domain": "self", "question": "why?"}, timeout=TIMEOUT)
-    _check(r.status_code == 404, "nonexistent user -> 404", f"got {r.status_code}, body={r.text[:200]}")
+def check_jargon(answer):
+    a = (answer or "").lower()
+    return [j for j in JARGON if j in a]
 
 
-def test_reflections_ask_reflect():
-    print("\n--- TEST: POST /api/reflections (source=ask_reflect) + GET ---")
-    body = {
-        "user_id": PETE,
-        "text": "This pattern of pulling back when I'm overwhelmed shows up everywhere.",
-        "domain": "self",
-        "source": "ask_reflect",
-        "phase_label": "Building",
-        "pattern_hint": "Why do I keep pulling away from people lately?",
+def check_timeline_phrases(answer):
+    a = (answer or "").lower()
+    return [p for p in TIMELINE_PHRASES if p in a]
+
+
+def report_intent_and_keys(label, data):
+    debug = data.get("debug", {}) or {}
+    intent = debug.get("intent", {}) or {}
+    ck = debug.get("context_keys", {}) or {}
+    print(f"--- {label} debug ---")
+    print(f"intent: {json.dumps(intent, default=str)}")
+    print(f"context_keys: {json.dumps(ck, default=str)}")
+    return intent, ck
+
+
+results = {}
+
+# ---------- TEST 1 ----------
+body1 = {
+    "domain": "relationships",
+    "question": "What's my outlook for relationships this year? I feel it is getting better but my astrology timeline seems to say otherwise.",
+}
+r1 = post(PETE, body1, "TEST 1: Pete contradiction (relationships)")
+if r1:
+    intent1, ck1 = report_intent_and_keys("TEST 1", r1)
+    answer1 = r1.get("answer", "") or ""
+    print(f"answer (first 200): {answer1[:200]}")
+    paragraphs1 = [p for p in answer1.split("\n\n") if p.strip()]
+    jargon1 = check_jargon(answer1)
+    phrases1 = check_timeline_phrases(answer1)
+    results["test1"] = {
+        "status": r1.get("_status"),
+        "has_timeline_context": ck1.get("has_timeline_context"),
+        "primary": intent1.get("primary"),
+        "is_contradiction": intent1.get("is_contradiction"),
+        "is_outlook_timing": intent1.get("is_outlook_timing"),
+        "answer_len": len(answer1),
+        "paragraphs": len(paragraphs1),
+        "jargon_found": jargon1,
+        "timeline_phrases_found": phrases1,
+        "answer_first_200": answer1[:200],
     }
-    r = requests.post(f"{BASE_URL}/reflections", json=body, timeout=TIMEOUT)
-    if not _check(r.status_code == 200, "POST /reflections status 200",
-                  f"got {r.status_code}, body={r.text[:300]}"):
-        return
-    try:
-        doc = r.json()
-    except Exception as e:
-        _log_fail("POST /reflections JSON parse", str(e))
-        return
+else:
+    results["test1"] = {"error": "request failed"}
 
-    _check(doc.get("source") == "ask_reflect", "stored doc.source == ask_reflect",
-           f"got {doc.get('source')}")
-    _check(doc.get("user_id") == PETE, "stored doc.user_id matches")
-    _check(doc.get("domain") == "self", "stored doc.domain == self")
-    _check(doc.get("phase_label") == "Building", "stored doc.phase_label preserved")
-    _check((doc.get("pattern_hint") or "").startswith("Why do I keep pulling"),
-           "stored doc.pattern_hint preserved")
-    reflection_id = doc.get("id")
-    _check(bool(reflection_id), "stored doc.id present")
+# ---------- TEST 2 ----------
+body2 = {"domain": "work", "question": "What is the outlook for my career this year?"}
+r2 = post(PETE, body2, "TEST 2: Pete outlook (career)")
+if r2:
+    intent2, ck2 = report_intent_and_keys("TEST 2", r2)
+    answer2 = r2.get("answer", "") or ""
+    print(f"answer (first 200): {answer2[:200]}")
+    jargon2 = check_jargon(answer2)
+    results["test2"] = {
+        "status": r2.get("_status"),
+        "has_timeline_context": ck2.get("has_timeline_context"),
+        "is_outlook_timing": intent2.get("is_outlook_timing"),
+        "is_contradiction": intent2.get("is_contradiction"),
+        "primary": intent2.get("primary"),
+        "answer_len": len(answer2),
+        "jargon_found": jargon2,
+    }
+else:
+    results["test2"] = {"error": "request failed"}
 
-    r = requests.get(f"{BASE_URL}/reflections/{PETE}", timeout=TIMEOUT)
-    if not _check(r.status_code == 200, "GET /reflections status 200",
-                  f"got {r.status_code}"):
-        return
-    listing = r.json()
-    items = listing.get("reflections") or []
-    found = any(x.get("id") == reflection_id and x.get("source") == "ask_reflect"
-                for x in items)
-    _check(found, "new reflection appears in GET list with source=ask_reflect",
-           f"id={reflection_id}, list_count={len(items)}")
+# ---------- TEST 3 ----------
+body3 = {"domain": "self", "question": "Why do I feel stuck right now?"}
+r3 = post(PETE, body3, "TEST 3: Pete generic (self)")
+if r3:
+    intent3, ck3 = report_intent_and_keys("TEST 3", r3)
+    answer3 = r3.get("answer", "") or ""
+    print(f"answer (first 200): {answer3[:200]}")
+    results["test3"] = {
+        "status": r3.get("_status"),
+        "has_timeline_context": ck3.get("has_timeline_context"),
+        "is_outlook_timing": intent3.get("is_outlook_timing"),
+        "is_contradiction": intent3.get("is_contradiction"),
+        "primary": intent3.get("primary"),
+        "answer_len": len(answer3),
+        "answer_nonempty": bool(answer3.strip()),
+    }
+else:
+    results["test3"] = {"error": "request failed"}
 
+# ---------- TEST 4 ----------
+body4 = {"domain": "relationships", "question": "What's my outlook for relationships this year?"}
+r4 = post(MEL, body4, "TEST 4: Mel cold-start")
+if r4:
+    intent4, ck4 = report_intent_and_keys("TEST 4", r4)
+    answer4 = r4.get("answer", "") or ""
+    print(f"answer (first 200): {answer4[:200]}")
+    results["test4"] = {
+        "status": r4.get("_status"),
+        "has_timeline_context": ck4.get("has_timeline_context"),
+        "answer_nonempty": bool(answer4.strip()),
+        "answer_len": len(answer4),
+    }
+else:
+    results["test4"] = {"error": "request failed"}
 
-# ---- Main -------------------------------------------------------------------
+# ---------- TEST 6 ----------
+print("\n=== TEST 6: HD Incarnation Cross deep-dive ===")
+url6 = f"{BASE}/human-design/deep-dive/{PETE}"
+print(f"GET {url6}")
+t0 = time.time()
+try:
+    r6 = requests.get(url6, timeout=120)
+    dur = time.time() - t0
+    print(f"HTTP {r6.status_code} in {dur:.2f}s")
+    data6 = r6.json()
+    cm = data6.get("core_mechanics", {}) or {}
+    ics = data6.get("incarnation_cross_structured", {}) or {}
+    results["test6"] = {
+        "status": r6.status_code,
+        "core_mechanics.incarnation_cross": cm.get("incarnation_cross"),
+        "core_mechanics.incarnation_cross_gates": cm.get("incarnation_cross_gates"),
+        "ics.cross_name": ics.get("cross_name"),
+        "ics.gates_display": ics.get("gates_display"),
+        "ics_has_variant": "variant" in ics,
+        "ics_keys": list(ics.keys()),
+    }
+except Exception as e:
+    results["test6"] = {"error": str(e)}
 
-def main():
-    print(f"Backend URL: {BASE_URL}")
-    print(f"Timeout: {TIMEOUT}s")
-
-    pete_cases = [
-        ("self",          "Why do I keep pulling away from people lately?"),
-        ("work",          "Why am I dragging my feet at work?"),
-        ("money",         "Why am I always anxious about money lately?"),
-        ("relationships", "Why does the same friction keep showing up in my relationships?"),
-        ("health",        "Why does my body feel tired all the time?"),
-        ("friends",       "Why do my friendships feel distant right now?"),
-        ("family",        "Why does my family situation keep weighing on me?"),
-    ]
-    for chip, q in pete_cases:
-        test_life_ask(PETE, chip, q, f"Pete-{chip}")
-
-    test_life_ask(MEL,   "money", "Why am I always anxious about money lately?", "Mel-money")
-    test_life_ask(ISAAC, "money", "Why am I always anxious about money lately?", "Isaac-money")
-
-    test_validation()
-    test_reflections_ask_reflect()
-
-    print("\n" + "=" * 70)
-    print(f"RESULTS: {len(PASS)} passed, {len(FAIL)} failed")
-    if FAIL:
-        print("\nFAILURES:")
-        for name, info in FAIL:
-            print(f"  - {name}: {info}")
-    print("=" * 70)
-    return 0 if not FAIL else 1
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+print("\n\n========== SUMMARY ==========")
+print(json.dumps(results, indent=2, default=str))

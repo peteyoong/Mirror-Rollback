@@ -12812,3 +12812,183 @@ agent_communication:
           and incarnation_cross_gates, so the new clean strings will surface on the deep-dive UI without
           additional changes.
           Backend syntax check: ast.parse SYNTAX_OK. Backend restarted cleanly.
+
+  - task: "Astrology Timeline Interpreter Layer (lightweight)"
+    implemented: true
+    working: true
+    file: "backend/services/astrology_timeline_interpreter.py (new), backend/services/life_interpreter.py, backend/server.py, backend/tests/test_astrology_timeline_interpreter.py (new)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          ASTROLOGY TIMELINE INTERPRETER WIRING — FULL VERIFICATION COMPLETE ✅
+          All 6 review-request tests PASSED via public preview URL
+          (https://decan-tone.preview.emergentagent.com/api).
+
+          TEST 1 — Pete contradiction (relationships) ✅
+            POST /api/life/ask/697f0c6abf35c0528ff06954
+              {"domain":"relationships","question":"What's my outlook for
+               relationships this year? I feel it is getting better but my
+               astrology timeline seems to say otherwise."}
+            • HTTP 200 in 2.72s
+            • debug.intent = { primary:"contradiction",
+                all:["contradiction","outlook_timing"],
+                is_contradiction:true, is_outlook_timing:true,
+                is_why_pattern:false }
+            • debug.context_keys.has_timeline_context = true ✓
+            • answer_len=938 chars, 3 paragraphs (>=2) ✓
+            • No astrology jargon (planet/house/transit/decan/ayanamsa/
+              natal chart/purple star/ziwei) ✓
+            • Timeline phrases found: ["this year","improves",
+              "remains under pressure","pattern to watch"] ✓
+            • First 200 chars: "It may feel like your relationships are
+              improving, but the timeline is showing real pressure around
+              confrontation and decision points this year. What you're
+              noticing comes from how you tend to sharpen"
+
+          TEST 2 — Pete outlook (work) ✅
+            POST /api/life/ask/697f0c6abf35c0528ff06954
+              {"domain":"work","question":"What is the outlook for my
+               career this year?"}
+            • HTTP 200 in 3.79s
+            • debug.intent = { primary:"outlook_timing",
+                is_contradiction:false, is_outlook_timing:true }
+            • debug.context_keys.has_timeline_context = true ✓
+            • No astrology jargon ✓ (answer_len=1228)
+
+          TEST 3 — Pete generic (self), non-timeline ✅
+            POST /api/life/ask/697f0c6abf35c0528ff06954
+              {"domain":"self","question":"Why do I feel stuck right now?"}
+            • HTTP 200 in 3.82s
+            • debug.intent = { primary:"why_pattern",
+                is_contradiction:false, is_outlook_timing:false }
+            • debug.context_keys.has_timeline_context = false ✓
+              (timeline service correctly NOT invoked)
+            • Answer non-empty (1102 chars), endpoint did not crash ✓
+
+          TEST 4 — Mel cold-start (697ec826ad4b18f75bf42616) ✅
+            POST /api/life/ask/697ec826ad4b18f75bf42616
+              {"domain":"relationships","question":"What's my outlook for
+               relationships this year?"}
+            • HTTP 200 in 2.72s (NOT 500) ✓
+            • debug.context_keys.has_timeline_context = true (deterministic
+              4-phase scaffold engaged from current quarter) ✓
+            • Answer non-empty (971 chars) ✓
+
+          TEST 5 — Unit-level service smoke ✅
+            cd /app/backend && python -m pytest \
+              tests/test_astrology_timeline_interpreter.py -v
+            → 9 passed in 0.02s, 0 failed
+            (Q1/Q2/Q3/Q4 scaffold, turning-point classification, domain
+             relevance, life_interpreter compression, fallback, intent
+             detection)
+
+          TEST 6 — HD Incarnation Cross deep-dive regression ✅
+            GET /api/human-design/deep-dive/697f0c6abf35c0528ff06954
+            • HTTP 200 in 12.18s
+            • core_mechanics.incarnation_cross == "Left Angle Cross of Migration" ✓
+            • core_mechanics.incarnation_cross_gates == "Gates: 37 · 5 · 40 · 35" ✓
+            • incarnation_cross_structured.cross_name == "Left Angle Cross of Migration" ✓
+            • incarnation_cross_structured.gates_display == "Gates: 37 · 5 · 40 · 35" ✓
+            • incarnation_cross_structured does NOT contain "variant" key ✓
+              (keys: cross_name, cross_name_raw, cross_family, angle,
+               angle_full, gate_quartet, gates_display, themes,
+               orientation_flavor)
+
+          Backend logs confirm clean LLM execution and one auto-retry on
+          test 1 (audit flagged contradiction_not_addressed → second pass
+          succeeded — a healthy behaviour of the existing audit layer).
+          No 500s anywhere. All endpoints met SLA.
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Built /app/backend/services/astrology_timeline_interpreter.py with
+          a single public `build_timeline_context(user_id, payload, current_date,
+          domain)` function that returns the structured shape per spec:
+            { year_theme, current_phase{}, next_phase{}, key_turning_points[],
+              domain_relevance{}, failure_mode, confidence }.
+
+          Behaviour
+          ---------
+          * Tolerant to multiple upstream payload shapes (year_question, arc,
+            phases, quarterly_phases, turning_points, primary_turning_points,
+            decision_windows, …). Aliased gracefully.
+          * When payload is missing, returns deterministic 4-quarter scaffold
+            (Recognition / Confrontation / Crossroads / Integration) with
+            canonical pressure_type strings:
+              Q1 → "clarity emerging"
+              Q2 → "avoidance becoming costly"
+              Q3 → "choice point"
+              Q4 → "settling into form"
+          * Keyword-classified pressure_type and turning-point type when the
+            upstream content doesn't carry them.
+          * Domain relevance via weighted regex scan
+            (intimacy/shared resources → relationships + money; visibility/
+            output → work; identity/becoming → self; body/rest → health;
+            family/belonging → family; community/network → friends).
+          * Returns short human-readable notes per domain — never astrology
+            jargon.
+
+          Wiring
+          ------
+          /api/life/ask/{user_id}:
+            • Detects timeline-relevant intents (is_contradiction,
+              is_outlook_timing, "this year"/"next year"/"timeline"/
+              "outlook"/"year ahead"/"this period"/"this stretch").
+            • Calls build_timeline_context with current UTC date + chip.
+            • Cleanly falls back when intent doesn't match (timeline_context
+              stays None and Ask answers as before).
+
+          life_interpreter.py:
+            • build_context_payload now propagates the richer shape
+              alongside the legacy {period, notes, themes} keys (back-compat).
+            • _format_context_for_llm renders year_theme + current/emerging
+              periods with pressure_type, key turning points (timing/type/
+              activates/clarity/if_avoided), per-chip domain notes, failure
+              mode and confidence — and ends with an explicit reasoning
+              instruction (NEVER mention astrology/chart/transit/decan).
+            • debug.context_keys.has_timeline_context becomes True for
+              timeline-relevant questions.
+
+          Tests (all 9 PASS, 0.03s)
+          -------------------------
+          tests/test_astrology_timeline_interpreter.py
+            ✓ test_scaffold_phases_by_quarter[Q1..Q4]   (4 cases)
+            ✓ test_turning_points_parsed_with_classification
+            ✓ test_domain_relevance_intimacy_and_shared_resources
+            ✓ test_life_interpreter_compresses_richer_timeline_context
+            ✓ test_fallback_when_timeline_unavailable
+            ✓ test_intent_detection_for_contradiction_and_outlook
+
+          Live verification — Pete (697f0c6abf35c0528ff06954)
+          ----------------------------------------------------
+          POST /api/life/ask/697f0c6abf35c0528ff06954
+            domain: "relationships"
+            question: "What's my outlook for relationships this year? I feel
+                       it is getting better but my astrology timeline seems
+                       to say otherwise."
+          → HTTP 200, ~6.2s.
+            intent: { primary: "contradiction",
+                      all: ["contradiction","outlook_timing"] }
+            context_keys.has_timeline_context: True ✓
+          Answer pulls structured spine into prose:
+            "Right now, you are in a phase where avoidance of difficult
+             conversations is becoming costly…"
+            "This period doesn't say no to improvement, but it signals that
+             the costs of delaying clearer connection are mounting…"
+            "What improves now is your awareness… what remains under pressure
+             is the need to allow one rough edge to stay…"
+            "The upcoming crossroads will ask you for a clear choice between
+             staying in tension or moving forward with something genuinely
+             settled."
+          NO astrology jargon, NO planet/house/transit references — clean.
+
+          Status: ✓ Lint clean (ruff). Backend reloaded cleanly. No
+          regressions to existing /life/ask flow (timeline_context is None
+          for non-timeline questions). Frontend untouched (same
+          response shape; only debug payload gets richer).
+

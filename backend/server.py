@@ -26818,10 +26818,59 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
     except Exception as e:
         logger.warning("[LifeAsk] phase context build failed: %s", e)
 
-    # Timeline context — long-range/annual notes (placeholder for now).
-    # When a future astrology-timeline integration lands, this can be
-    # populated from that source. Empty dict is harmless.
+    # Timeline context — annual / long-range structured timing reasoning
+    # surfaced via the Astrology Timeline Interpreter (lightweight layer).
+    # Only computed for outlook-timing / contradiction / "this year" /
+    # "timeline" questions to keep latency predictable. Falls back
+    # cleanly to a None payload when the question is generic.
     timeline_context_payload: Optional[Dict[str, Any]] = None
+    try:
+        from services import astrology_timeline_interpreter as ati
+
+        # Re-detect intent here (cheaply) so we can short-circuit when
+        # the question is generic. The interpreter itself does NOT call
+        # the LLM, so this is just a few regexes + a deterministic walk.
+        _intent = li.detect_question_intent(question)
+        _q_lower = (question or "").lower()
+        _timeline_kw = (
+            "this year" in _q_lower
+            or "next year" in _q_lower
+            or "timeline" in _q_lower
+            or "outlook" in _q_lower
+            or "year ahead" in _q_lower
+            or "this period" in _q_lower
+            or "this stretch" in _q_lower
+        )
+        _wants_timeline = (
+            _intent.get("is_contradiction")
+            or _intent.get("is_outlook_timing")
+            or _timeline_kw
+        )
+        if _wants_timeline:
+            # Astrology timeline payload — currently no structured upstream
+            # store, so we let the interpreter use its deterministic
+            # 4-phase scaffold. When a structured payload becomes
+            # available (e.g. cached by the astrology-timeline mode in
+            # /mirror/chat), pass it here as `payload`.
+            payload: Optional[Dict[str, Any]] = None
+            try:
+                # Best-effort: read any cached structured astrology
+                # timeline payload. Today this cache key is unused, but
+                # leaving the hook in place keeps the wiring forward-
+                # compatible.
+                payload = _life_synth_cache_get(f"astro_timeline::{user_id}")
+            except Exception:  # noqa: BLE001 — cache is best-effort
+                payload = None
+
+            timeline_context_payload = ati.build_timeline_context(
+                user_id=user_id,
+                astrology_timeline_payload=payload,
+                current_date=datetime.now(timezone.utc),
+                domain=chip,
+            )
+    except Exception as e:
+        logger.warning("[LifeAsk] timeline interpreter failed: %s", e)
+        timeline_context_payload = None
 
     result = await li.ask_life_question(
         chip_domain=chip,
