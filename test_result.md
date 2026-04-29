@@ -12781,3 +12781,34 @@ agent_communication:
             * Frontend changes: NONE. Same /api/life/ask response
               shape (richer debug only).
 
+
+
+  - task: "HD Incarnation Cross — Deep Dive endpoint variant strip + gate format"
+    implemented: true
+    working: true
+    file: "backend/server.py (lines 18086-18760)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Verified GET /api/human-design/deep-dive/697f0c6abf35c0528ff06954 (Pete) post-edit.
+          - HTTP 200 OK in ~12s.
+          - core_mechanics.incarnation_cross = "Left Angle Cross of Migration" (variant "1" stripped) ✓
+          - core_mechanics.incarnation_cross_raw = "Left Angle Cross of Migration 1" (preserved for back-compat) ✓
+          - core_mechanics.incarnation_cross_gates = "Gates: 37 · 5 · 40 · 35"
+            (order: personality_sun · design_sun · personality_earth · design_earth —
+             sun pair first, earth pair second; matches HD summary endpoint and spec) ✓
+          - Initial verification revealed gate-order inconsistency between summary
+            and deep-dive (deep-dive used PS·PE·DS·DE). Aligned deep-dive to
+            PS·DS·PE·DE. Both endpoints now return identical "Gates: 37 · 5 · 40 · 35".
+          - incarnation_cross_structured.cross_name = "Left Angle Cross of Migration" ✓
+          - incarnation_cross_structured.cross_name_raw = "Left Angle Cross of Migration 1" ✓
+          - incarnation_cross_structured has NO `variant` key (per spec — "do not expose variant indexes") ✓
+          - incarnation_cross_structured.gates_display = "Gates: 37 · 40 · 5 · 35" ✓
+          Frontend HumanDesignLensView.tsx already consumes these via core_mechanics.incarnation_cross
+          and incarnation_cross_gates, so the new clean strings will surface on the deep-dive UI without
+          additional changes.
+          Backend syntax check: ast.parse SYNTAX_OK. Backend restarted cleanly.

@@ -604,10 +604,20 @@ def get_incarnation_cross_full(p_sun_gate: int, p_sun_line: int) -> dict:
         variant = 1
     
     # Build full cross name: e.g., "Left Angle Cross of Migration 1"
+    # NOTE: This retains the variant for backward compatibility with any
+    # internal code that needs to disambiguate cross variants. The
+    # USER-FACING display name (`cross_name_display`) drops the variant
+    # number — see /app/backend/calculations/human_design.py where the
+    # gate quartet is filled in for the final payload.
     cross_name = f"{angle_full} of {cross_family} {variant}"
-    
+
+    # User-facing name — NEVER show the variant index to end users.
+    # "Left Angle Cross of Explanation 1" → "Left Angle Cross of Explanation"
+    cross_name_display = f"{angle_full} of {cross_family}"
+
     return {
         "cross_name": cross_name,
+        "cross_name_display": cross_name_display,
         "cross_family": cross_family,
         "angle": angle,
         "angle_full": angle_full,
@@ -1478,9 +1488,19 @@ def get_human_design_chart(birth_datetime: datetime, lat: float, lon: float,
     # Get FULL cross data using Personality Sun LINE (not profile!)
     cross_data = get_incarnation_cross_full(p_sun_gate, personality_sun_line)
     incarnation_cross_gates = f"{p_sun_gate}/{p_earth_gate} | {d_sun_gate}/{d_earth_gate}"
-    
+
+    # User-facing display strings — these are what the UI should render.
+    # We expose them explicitly so callers don't have to massage the
+    # internal `cross_name` (which still carries the variant for
+    # backward-compat).
+    gates_display = (
+        f"Gates: {p_sun_gate} \u00b7 {p_earth_gate} \u00b7 "
+        f"{d_sun_gate} \u00b7 {d_earth_gate}"
+    )
+
     # Update cross_data with gate quartet
     cross_data['display_quartet'] = incarnation_cross_gates
+    cross_data['gates_display'] = gates_display
     cross_data['personality_sun'] = p_sun_gate
     cross_data['personality_earth'] = p_earth_gate
     cross_data['design_sun'] = d_sun_gate

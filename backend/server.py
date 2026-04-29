@@ -16774,25 +16774,54 @@ def extract_human_design_data(chart: dict) -> dict:
                 design_gates[1]        # Design Earth
             ]
     
-    # Format the gates string for display: "37/5 • 40/35" or "23/43"
+    # Format the gates string for display.
+    # Per spec: "Gates: {gate1} · {gate2} · {gate3} · {gate4}"
+    # The 4 gates are Personality Sun, Personality Earth, Design Sun,
+    # Design Earth.
     if len(incarnation_cross_gates) >= 4:
-        gates_display = f"{incarnation_cross_gates[0]}/{incarnation_cross_gates[1]} • {incarnation_cross_gates[2]}/{incarnation_cross_gates[3]}"
+        gates_display = (
+            f"Gates: {incarnation_cross_gates[0]} \u00b7 "
+            f"{incarnation_cross_gates[1]} \u00b7 "
+            f"{incarnation_cross_gates[2]} \u00b7 "
+            f"{incarnation_cross_gates[3]}"
+        )
     elif len(incarnation_cross_gates) >= 2:
-        gates_display = f"{incarnation_cross_gates[0]}/{incarnation_cross_gates[1]}"
+        gates_display = (
+            f"Gates: {incarnation_cross_gates[0]} \u00b7 "
+            f"{incarnation_cross_gates[1]}"
+        )
     else:
         gates_display = "—"  # Safe placeholder when gates not derivable
-    
-    # Get human-friendly label for the cross
+
+    # Strip the trailing variant index from the cross name for display.
+    # Example: "Left Angle Cross of Explanation 1" -> "Left Angle Cross of Explanation"
+    # NEVER expose line numbers, internal IDs, or variant indexes.
+    incarnation_cross_display = incarnation_cross or "Unknown"
+    if incarnation_cross_display and incarnation_cross_display != "Unknown":
+        # Match a single trailing integer (1, 2, 3, ... or possibly a 0)
+        # at the end of the name. We only strip if the trailing token is
+        # purely digits — preserves crosses whose family name happens to
+        # end in a word we want to keep.
+        incarnation_cross_display = re.sub(
+            r"\s+\d+\s*$", "", incarnation_cross_display
+        ).strip()
+
+    # Get human-friendly label for the cross (legacy field — also clean it)
     incarnation_cross_label = get_incarnation_cross_label(incarnation_cross)
-    
+    if isinstance(incarnation_cross_label, str) and incarnation_cross_label:
+        incarnation_cross_label = re.sub(
+            r"\s+\d+\s*$", "", incarnation_cross_label
+        ).strip()
+
     return {
         "type": hd.get('type', 'Unknown'),
         "strategy": hd.get('strategy', 'Unknown'),
         "authority": hd.get('authority', 'Unknown'),
         "profile": hd.get('profile', 'Unknown'),
         "definition": hd.get('definition', 'Unknown'),
-        "incarnation_cross": incarnation_cross,  # Full raw string
-        "incarnation_cross_label": incarnation_cross_label,  # Human-friendly label
+        "incarnation_cross": incarnation_cross_display,  # User-facing (variant stripped)
+        "incarnation_cross_raw": incarnation_cross,      # Internal — keeps variant for back-compat
+        "incarnation_cross_label": incarnation_cross_label,  # Human-friendly label (also stripped)
         "incarnation_cross_gates": gates_display,  # Formatted gates string for display (never null)
         "defined_centers": hd.get('defined_centers', []),
         "defined_channels": hd.get('defined_channels', []),
@@ -18589,8 +18618,32 @@ You're essentially here for one thing. The specific gates of your cross describe
                 "strategy": strategy_desc,
                 "authority": authority,
                 "profile": profile,
-                "incarnation_cross": incarnation_cross.get('name', 'Unknown'),
-                "incarnation_cross_gates": incarnation_cross.get('gates'),
+                # User-facing cross name — variant index stripped per UI spec.
+                "incarnation_cross": re.sub(
+                    r"\s+\d+\s*$", "",
+                    incarnation_cross.get('name', 'Unknown') or 'Unknown',
+                ).strip(),
+                # Internal — keeps variant for backward-compat.
+                "incarnation_cross_raw": incarnation_cross.get('name', 'Unknown'),
+                # Per spec: "Gates: {p_sun} · {d_sun} · {p_earth} · {d_earth}"
+                # (sun pair first, earth pair second — matches HD summary endpoint)
+                "incarnation_cross_gates": (
+                    incarnation_cross.get('gates_display')
+                    or (
+                        f"Gates: {incarnation_cross.get('personality_sun')} \u00b7 "
+                        f"{incarnation_cross.get('design_sun')} \u00b7 "
+                        f"{incarnation_cross.get('personality_earth')} \u00b7 "
+                        f"{incarnation_cross.get('design_earth')}"
+                    )
+                    if all(
+                        incarnation_cross.get(k) is not None
+                        for k in (
+                            'personality_sun', 'personality_earth',
+                            'design_sun', 'design_earth',
+                        )
+                    )
+                    else incarnation_cross.get('gates', '—')
+                ),
                 "definition": canonical_hd.get('definition', 'Unknown')
             },
             "sections": parse_result.to_sections_list(),
@@ -18609,6 +18662,12 @@ You're essentially here for one thing. The specific gates of your cross describe
             angle_full = incarnation_cross.get('angle_full', 'Right Angle Cross')
             variant = incarnation_cross.get('variant', 1)
             full_cross_name = incarnation_cross.get('cross_name', f"{angle_full} of {cross_family} {variant}")
+
+            # User-facing — variant index stripped per UI spec.
+            cross_name_display = (
+                incarnation_cross.get('cross_name_display')
+                or re.sub(r"\s+\d+\s*$", "", full_cross_name).strip()
+            )
             
             # Get themes for this cross family
             cross_interp = get_incarnation_cross_interpretation(cross_family, angle)
@@ -18621,14 +18680,36 @@ You're essentially here for one thing. The specific gates of your cross describe
                 "design_earth": incarnation_cross.get('design_earth'),
                 "display": incarnation_cross.get('gates', '')
             }
-            
+
+            # Formatted display string per spec: PS · DS · PE · DE.
+            gates_display = (
+                incarnation_cross.get('gates_display')
+                or (
+                    f"Gates: {gate_quartet['personality_sun']} \u00b7 "
+                    f"{gate_quartet['design_sun']} \u00b7 "
+                    f"{gate_quartet['personality_earth']} \u00b7 "
+                    f"{gate_quartet['design_earth']}"
+                )
+                if all(
+                    gate_quartet.get(k) is not None
+                    for k in ('personality_sun', 'personality_earth',
+                              'design_sun', 'design_earth')
+                )
+                else None
+            )
+
             result["incarnation_cross_structured"] = {
-                "cross_name": full_cross_name,
+                "cross_name": cross_name_display,        # User-facing
+                "cross_name_raw": full_cross_name,       # Internal — keeps variant
                 "cross_family": cross_family,
                 "angle": angle,
                 "angle_full": angle_full,
-                "variant": variant,
+                # NOTE: `variant` is intentionally OMITTED from the
+                # user-facing payload per the spec ("Do NOT expose
+                # variant indexes"). The raw name above retains it for
+                # any internal consumer that needs disambiguation.
                 "gate_quartet": gate_quartet,
+                "gates_display": gates_display,          # "Gates: a · b · c · d"
                 "themes": cross_interp["themes"],
                 "orientation_flavor": cross_interp["orientation_flavor"]
             }
