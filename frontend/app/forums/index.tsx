@@ -65,6 +65,10 @@ export default function ForumsHomeScreen() {
     router.push('/forums/join');
   };
 
+  const handleOpenPeopleSetup = () => {
+    router.push('/people' as any);
+  };
+
   const handleOpenForum = (forumId: string) => {
     router.push(`/forums/${forumId}`);
   };
@@ -140,6 +144,30 @@ export default function ForumsHomeScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* People setup entry — separate from forum CRUD. */}
+        <TouchableOpacity
+          style={[styles.peopleSetupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          onPress={handleOpenPeopleSetup}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Open People setup"
+        >
+          <View style={styles.peopleSetupRow}>
+            <View style={styles.peopleSetupIcon}>
+              <Ionicons name="people-outline" size={22} color={theme.text} />
+            </View>
+            <View style={styles.peopleSetupBody}>
+              <Text style={[styles.peopleSetupTitle, { color: theme.text }]}>
+                People setup
+              </Text>
+              <Text style={[styles.peopleSetupSub, { color: theme.textSecondary }]} numberOfLines={2}>
+                Save the people whose pattern with you matters most. Birth details improve precision.
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
+          </View>
+        </TouchableOpacity>
 
         {/* Your Forums Section */}
         <View style={styles.section}>
@@ -245,7 +273,7 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     gap: 12,
-    marginBottom: 32,
+    marginBottom: 16,
   },
   actionButton: {
     paddingVertical: 16,
@@ -266,6 +294,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+  peopleSetupCard: {
+    marginBottom: 24,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  peopleSetupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  peopleSetupIcon: {
+    width: 40, height: 40, borderRadius: 999,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  peopleSetupBody: { flex: 1, gap: 2 },
+  peopleSetupTitle: { fontSize: 15, fontWeight: '600' },
+  peopleSetupSub: { fontSize: 12, lineHeight: 17 },
   section: {
     marginBottom: 24,
   },
