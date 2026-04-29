@@ -26694,6 +26694,54 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
         logger.warning("[LifeAsk] recurrence detection failed: %s", e)
         recurrence_data = None
 
+    # Activation-Now (timing) — pull from cache only; never trigger fresh
+    # generation from /life/ask.
+    activation_now_data: Optional[Dict[str, Any]] = None
+    try:
+        ane_cached = _life_synth_cache_get(f"activation_now::{user_id}")
+        if isinstance(ane_cached, dict) and (
+            ane_cached.get("activation_line")
+            or ane_cached.get("activation_explanation")
+        ):
+            # Strip internal cache marker before passing through.
+            activation_now_data = {
+                k: v for k, v in ane_cached.items() if k != "_cached_at"
+            }
+    except Exception as e:
+        logger.warning("[LifeAsk] activation-now cache fetch failed: %s", e)
+
+    # Phase context — current/previous/emerging phase + dominant domain.
+    # Used heavily for outlook_timing questions. Falls back to the
+    # phase_current passed in if no richer data is available.
+    phase_context_payload: Optional[Dict[str, Any]] = None
+    try:
+        phases_cached = _life_synth_cache_get(f"phases::{user_id}")
+        if isinstance(phases_cached, dict):
+            phases_list = phases_cached.get("phases") or []
+            current_idx = None
+            for i, p in enumerate(phases_list):
+                if isinstance(p, dict) and p.get("is_current"):
+                    current_idx = i
+                    break
+            cur = phases_list[current_idx] if current_idx is not None and current_idx < len(phases_list) else None
+            prev = phases_list[current_idx - 1] if current_idx and current_idx > 0 else None
+            nxt  = phases_list[current_idx + 1] if current_idx is not None and current_idx + 1 < len(phases_list) else None
+            phase_context_payload = {
+                "current_phase_label":   (cur or {}).get("label") or (cur or {}).get("name"),
+                "current_phase_summary": (cur or {}).get("summary") or (cur or {}).get("description"),
+                "previous_phase_label":  (prev or {}).get("label") or (prev or {}).get("name") if prev else None,
+                "next_phase_label":      (nxt or {}).get("label") or (nxt or {}).get("name") if nxt else None,
+                "dominant_domain":       (cur or {}).get("dominant_domain"),
+                "phase_confidence":      (cur or {}).get("confidence"),
+            }
+    except Exception as e:
+        logger.warning("[LifeAsk] phase context build failed: %s", e)
+
+    # Timeline context — long-range/annual notes (placeholder for now).
+    # When a future astrology-timeline integration lands, this can be
+    # populated from that source. Empty dict is harmless.
+    timeline_context_payload: Optional[Dict[str, Any]] = None
+
     result = await li.ask_life_question(
         chip_domain=chip,
         question=question,
@@ -26709,6 +26757,9 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
         cross_domain_pattern=cross_domain_pattern,
         decan_index=decan_index_val,
         recurrence_data=recurrence_data,
+        activation_now_data=activation_now_data,
+        phase_context=phase_context_payload,
+        timeline_context=timeline_context_payload,
         llm_chat_factory=_life_interpreter_llm_factory(
             f"life_ask_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
         ) if EMERGENT_LLM_KEY else None,

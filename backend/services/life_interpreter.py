@@ -171,6 +171,96 @@ ANSWER RULES
       * If `recurrence` is missing or `recurrence_detected` is False,
         IGNORE this rule entirely. Do not invent a recognition line.
 
+12. QUESTION-TENSION REASONING (CRITICAL — when `intent` is in context).
+
+    The context includes an `intent` block telling you what KIND of
+    question this is. You MUST answer the SPECIFIC TENSION inside the
+    user's question, not just restate the domain pattern. If the answer
+    could apply to anyone, it FAILS.
+
+    Intent flags:
+      - intent.is_contradiction:    user holds two truths at once
+      - intent.is_outlook_timing:   user asks about a year/phase/timeline
+      - intent.is_why_pattern:      user asks why something keeps happening
+
+    A) WHEN intent.is_contradiction IS TRUE:
+       USE THIS EXACT 4-PART STRUCTURE (no headings, just paragraphs):
+
+       (1) BLADE LINE — A sharp first sentence that names the tension.
+           Example: "It may feel better because you're calmer, not
+                    because the pattern is finished."
+
+       (2) BOTH CAN BE TRUE — One paragraph explaining how the user's
+           felt sense AND the timeline/phase signal can both be valid.
+           Example: "You may be genuinely more open now, but the phase
+                    you're in still tests what happens when the other
+                    person doesn't meet your pace."
+
+       (3) PHASE / TIMING READING — Use phase_context + activation_now
+           (when present) to ground the contrast in real timing.
+           Example: "The phase you're in is not about sudden ease.
+                    It's about seeing whether the old gap returns when
+                    response is slower than you want."
+
+       (4) GROUNDED OUTLOOK — A non-predictive close:
+              what is actually getting better
+              what is not yet resolved
+              what to watch
+           Example: "What is improving is your awareness. What is still
+                    under pressure is timing, response, and trust."
+           NEVER say "this will happen". Say "the pattern to watch is…"
+
+    B) WHEN intent.is_outlook_timing IS TRUE (without contradiction):
+       Same 4-part structure, but skip part (2) "both can be true" and
+       instead lean harder on phase_context + activation_now to give a
+       grounded reading of the period the user is asking about. Always
+       finish with "what to watch / what is still under pressure".
+
+    C) WHEN intent.is_why_pattern IS TRUE:
+       Anchor the answer in cross_domain_pattern + recurrence (if
+       present). Show the mechanism, not the moral. Make it land.
+
+    D) ALWAYS, regardless of intent:
+       The first sentence MUST address the user's specific question.
+       Do NOT open with a generic pattern recap if the user asked about
+       this year, this phase, or a contradiction.
+
+==================================================
+HARD VOCABULARY BAN (Mirror style — no spiritual filler)
+==================================================
+
+NEVER use any of these phrases or near-equivalents:
+   - "energetic signal(s)"
+   - "internal shift(s)"
+   - "quality of (your) connections"
+   - "others need time to catch up"
+   - "cycle of tuning"
+   - "in alignment with" / "aligned"
+   - "evolving" / "expansion" / "awakening"
+   - "the lessons of" / "lessons from"
+   - "a journey" / "your journey"
+   - "the universe" / "divine" / "sacred"
+   - "trust the process" / "flow with"
+   - "holding space"
+   - "called you in" / "calling you forward"
+   - "deeper truth"
+   - "invitation to"
+   - "higher self"
+
+PREFER concrete, behavior-first phrasing:
+   - "what is actually getting better is…"
+   - "what is not yet resolved is…"
+   - "the timeline is not saying no — it is showing pressure around…"
+   - "this year tests whether…"
+   - "the old pattern returns when…"
+   - "better does not mean finished"
+   - "the pattern to watch is…"
+
+LIMIT hedging modifiers (≤ 3 across the whole answer): "may be",
+"might be", "tends to", "perhaps", "seems like", "kind of", "in
+some ways". One or two are fine. Four+ makes the answer feel
+evasive — don't.
+
 ==================================================
 FOLLOW-UP RULES
 ==================================================
@@ -237,6 +327,195 @@ _BANNED_RE = re.compile(
     r"day master|profile)\b",
     re.IGNORECASE,
 )
+
+# ---------------------------------------------------------------------------
+# QUESTION INTENT DETECTOR (deterministic — no LLM)
+# ---------------------------------------------------------------------------
+#
+# Maps the user's free-text question to one or more intent categories so the
+# system prompt can tell the LLM "this is a contradiction question — answer
+# the contrast directly" instead of falling back to a generic pattern recap.
+
+_INTENT_OUTLOOK_RE = re.compile(
+    r"\b(this year|next year|the rest of (the )?year|by year|by the end of|"
+    r"outlook|timeline|coming months?|coming weeks?|next (?:few )?months?|"
+    r"phase|chapter|when does|how long|in (?:the )?short[- ]?term|"
+    r"in (?:the )?long[- ]?term)\b",
+    re.IGNORECASE,
+)
+
+# Contradictions: "feels X but Y", "I feel … but timeline …", etc.
+_INTENT_CONTRADICTION_RE = re.compile(
+    r"(?:i\s+feel(?:ing)?[^.?!]{0,80}\bbut\b)|"
+    r"(?:\bbut\b[^.?!]{0,40}(?:timeline|astrology|chart|forecast|prediction|signs|points|says))|"
+    r"(?:seems? to (?:say|indicate|suggest)\s*otherwise)|"
+    r"(?:contradict\w*)|"
+    r"(?:on (?:one|the other) hand)|"
+    r"(?:yet[^.?!]{0,80}(?:says?|shows?|indicates?))|"
+    r"(?:doesn'?t match)",
+    re.IGNORECASE,
+)
+
+_INTENT_WHY_PATTERN_RE = re.compile(
+    r"\b(why (?:do|does|am|is)\s+(?:i|this|it)|why (?:do|does)?\s*"
+    r"(?:i|this|it)?\s*keeps?|keeps? happening|"
+    r"again and again|over and over|stuck in|same (?:thing|loop|pattern))\b",
+    re.IGNORECASE,
+)
+
+
+def detect_question_intent(question: str) -> Dict[str, Any]:
+    """
+    Detect what kind of question the user is actually asking.
+
+    Returns:
+      {
+        "primary":     str,                  # primary intent
+        "all":         List[str],            # all matched intents (in order)
+        "is_contradiction":    bool,
+        "is_outlook_timing":   bool,
+        "is_why_pattern":      bool,
+      }
+
+    Categories (per spec):
+      - outlook_timing      ("this year", "next year", "outlook", "timeline", "phase")
+      - contradiction       ("I feel X but timeline says Y", "seems to say otherwise")
+      - why_pattern         ("why does this keep happening")
+      - domain_explanation  (default fallback)
+    """
+    q = question or ""
+    matches: List[str] = []
+
+    is_contradiction = bool(_INTENT_CONTRADICTION_RE.search(q))
+    is_outlook = bool(_INTENT_OUTLOOK_RE.search(q))
+    is_why = bool(_INTENT_WHY_PATTERN_RE.search(q))
+
+    # Order matters: contradiction is the highest-priority signal because
+    # it tells us the user is holding two truths at once.
+    if is_contradiction:
+        matches.append("contradiction")
+    if is_outlook:
+        matches.append("outlook_timing")
+    if is_why:
+        matches.append("why_pattern")
+    if not matches:
+        matches.append("domain_explanation")
+
+    return {
+        "primary":            matches[0],
+        "all":                matches,
+        "is_contradiction":   is_contradiction,
+        "is_outlook_timing":  is_outlook,
+        "is_why_pattern":     is_why,
+    }
+
+
+# ---------------------------------------------------------------------------
+# GENERIC-FILLER AUDIT (catches the failure modes from the user's complaint)
+# ---------------------------------------------------------------------------
+#
+# These phrases triggered the user's complaint that answers feel generic.
+# We flag and retry once with a sharper instruction.
+
+_GENERIC_FILLER_RX = re.compile(
+    r"\b("
+    r"energetic signal[s]?|"
+    r"internal shift[s]?|"
+    r"quality of (?:your )?connection[s]?|"
+    r"others? need time to catch up|"
+    r"cycle of tuning|"
+    r"in alignment|"
+    r"alignment with|"
+    r"evolving|"
+    r"on (?:a |this )?journey|"
+    r"this is (?:an? |the )?invitation|"
+    r"sacred|"
+    r"divine|"
+    r"the universe|"
+    r"higher self|"
+    r"trust the process|"
+    r"flow with|"
+    r"(?:emotional |spiritual )?expansion|"
+    r"awakening|"
+    r"the lessons? (?:of|in)|"
+    r"holding space|"
+    r"calling you (?:in|forward|home)|"
+    r"deeper truth"
+    r")\b",
+    re.IGNORECASE,
+)
+
+# Hedging language that softens a Mirror answer into vagueness.
+_HEDGE_RX = re.compile(
+    r"\b(may be|might be|tends to|perhaps|seems? like|kind of|sort of|"
+    r"in some ways?|in many ways?|on (?:some|many) levels?|"
+    r"a bit|somewhat|relatively|fairly|quite a bit)\b",
+    re.IGNORECASE,
+)
+
+
+def audit_generic_filler(answer: str, intent: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Flag answers that fall back to generic spiritual / hedging language
+    instead of answering the specific tension the user asked about.
+
+    Returns:
+      {
+        "flagged":  bool,
+        "reasons":  List[str],
+        "filler":   List[str],   # specific filler phrases caught
+        "hedges":   int,         # count of hedges (≤2 OK, ≥4 flagged)
+      }
+    """
+    out: Dict[str, Any] = {"flagged": False, "reasons": [], "filler": [], "hedges": 0}
+    if not isinstance(answer, str) or not answer.strip():
+        return out
+
+    filler_hits = _GENERIC_FILLER_RX.findall(answer)
+    if filler_hits:
+        out["flagged"] = True
+        out["filler"] = list(set(s.lower() for s in filler_hits))[:8]
+        out["reasons"].append(f"generic_filler ({', '.join(out['filler'])})")
+
+    hedges = _HEDGE_RX.findall(answer)
+    out["hedges"] = len(hedges)
+    if len(hedges) >= 4:
+        out["flagged"] = True
+        out["reasons"].append(f"hedging_overload ({len(hedges)} soft modifiers)")
+
+    # Contradiction-specific check: the answer must address the contrast.
+    # We require at least one "both can be true" / "different things" / "X
+    # but Y" / "what is improving" / "what is not yet" structure.
+    if intent.get("is_contradiction"):
+        contrast_markers = re.compile(
+            r"\b(both (?:can|are) (?:true|valid)|different things|"
+            r"two (?:things|truths)|what is (?:actually )?(?:improving|"
+            r"changing|getting better|not yet|still under)|"
+            r"better (?:does not|doesn't) mean|"
+            r"timeline is not saying|"
+            r"yes.{0,20}(?:and|but)|"
+            r"it (?:can|may) feel|"
+            r"calmer.{0,30}not (?:because|that))\b",
+            re.IGNORECASE,
+        )
+        if not contrast_markers.search(answer):
+            out["flagged"] = True
+            out["reasons"].append("contradiction_not_addressed")
+
+    # Outlook-specific check: must mention the phase/timing dimension.
+    if intent.get("is_outlook_timing"):
+        timing_markers = re.compile(
+            r"\b(phase|this year|tests? whether|what to watch|"
+            r"still under pressure|not (?:yet )?(?:resolved|finished|"
+            r"smooth)|pattern to watch|the gap|the old pattern)\b",
+            re.IGNORECASE,
+        )
+        if not timing_markers.search(answer):
+            out["flagged"] = True
+            out["reasons"].append("outlook_lacks_phase_or_timing_anchor")
+
+    return out
+
 
 _AI_SELF_RE = re.compile(
     r"\b(as an ai|i am an ai|i'm an ai|as a model|as a language model|"
@@ -338,6 +617,10 @@ def build_context_payload(
     lifeline_summary: Optional[Dict[str, Any]] = None,
     cross_domain_pattern: Optional[Dict[str, Any]] = None,
     recurrence_data: Optional[Dict[str, Any]] = None,
+    activation_now_data: Optional[Dict[str, Any]] = None,
+    phase_context: Optional[Dict[str, Any]] = None,
+    timeline_context: Optional[Dict[str, Any]] = None,
+    intent: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Compose the context the LLM will lean on. Values are kept SHORT to keep
@@ -459,14 +742,77 @@ def build_context_payload(
                     # the LLM either — they're not needed for tone.
                 }
 
+    # Activation-Now block — used as TIMING evidence for "why now" and
+    # outlook questions. The LLM never references the system that
+    # produced these strings.
+    ane_block: Dict[str, Any] = {}
+    if isinstance(activation_now_data, dict):
+        line = (activation_now_data.get("activation_line") or "").strip()
+        expl = (activation_now_data.get("activation_explanation") or "").strip()
+        pressure = (activation_now_data.get("activation_pressure") or "").strip().lower()
+        if line or expl:
+            ane_block = {
+                "activation_line":        _short(line, 110),
+                "activation_explanation": _short(expl, 320),
+                "activation_pressure":    pressure or None,
+            }
+
+    # Phase context — current/previous/emerging phase labels + dominant
+    # domain. Used heavily for outlook_timing questions.
+    phase_block: Dict[str, Any] = {}
+    if isinstance(phase_context, dict):
+        phase_block = {
+            "current_phase_label":   _short(str(phase_context.get("current_phase_label") or ""), 80) or None,
+            "current_phase_summary": _short(str(phase_context.get("current_phase_summary") or ""), 280) or None,
+            "previous_phase_label":  _short(str(phase_context.get("previous_phase_label") or ""), 80) or None,
+            "next_phase_label":      _short(str(phase_context.get("next_phase_label") or ""), 80) or None,
+            "dominant_domain":       (phase_context.get("dominant_domain") or "") or None,
+            "phase_confidence":      (phase_context.get("phase_confidence") or "") or None,
+        }
+        # Drop the block entirely if every field is empty
+        if not any(v for v in phase_block.values()):
+            phase_block = {}
+
+    # Timeline context — annual / long-range notes. Only relevant when
+    # the user asks about year/timeline/outlook. NEVER quote any source
+    # of this data verbatim; treat it as deep ground truth only.
+    tl_block: Dict[str, Any] = {}
+    if isinstance(timeline_context, dict):
+        notes = (timeline_context.get("notes") or "").strip()
+        period = (timeline_context.get("period") or "").strip()
+        themes = timeline_context.get("themes") or []
+        if isinstance(themes, list):
+            themes = [str(t).strip() for t in themes if str(t).strip()][:4]
+        if notes or period or themes:
+            tl_block = {
+                "period":  _short(period, 80) or None,
+                "notes":   _short(notes, 400) or None,
+                "themes":  themes or None,
+            }
+
+    # Question intent — drives the answer structure (contradiction /
+    # outlook / why_pattern / domain_explanation).
+    intent_block: Dict[str, Any] = {}
+    if isinstance(intent, dict) and intent.get("primary"):
+        intent_block = {
+            "primary":           intent.get("primary"),
+            "is_contradiction":  bool(intent.get("is_contradiction")),
+            "is_outlook_timing": bool(intent.get("is_outlook_timing")),
+            "is_why_pattern":    bool(intent.get("is_why_pattern")),
+        }
+
     return {
         "chip":            chip_domain,
         "question":        _short(question, 600),
+        "intent":          intent_block,
         "role_card":       rc,
         "domain_synthesis": ds,
         "domain_origin":   do,
         "cross_domain_pattern": cdp,
         "recurrence":      rec_block,
+        "activation_now":  ane_block,
+        "phase_context":   phase_block,
+        "timeline_context": tl_block,
         "current_phase":   ph,
         "active_arena_hint": dw_summary,
         "pattern_memory":  pm,
@@ -523,6 +869,86 @@ def _format_context_for_llm(ctx: Dict[str, Any]) -> str:
             "direct, less exploratory) — this user has earned recognition."
         )
         lines.append(f"  - human_label (use as line 1, verbatim): {rec['human_label']}")
+        lines.append("")
+
+    intent = ctx.get("intent") or {}
+    if intent.get("primary"):
+        lines.append("QUESTION INTENT — what kind of question this is:")
+        lines.append(f"  - primary:           {intent.get('primary')}")
+        lines.append(f"  - is_contradiction:  {intent.get('is_contradiction')}")
+        lines.append(f"  - is_outlook_timing: {intent.get('is_outlook_timing')}")
+        lines.append(f"  - is_why_pattern:    {intent.get('is_why_pattern')}")
+        if intent.get("is_contradiction"):
+            lines.append(
+                "  → ANSWER THE CONTRADICTION DIRECTLY using the 4-part "
+                "structure (BLADE LINE / BOTH CAN BE TRUE / PHASE READING / "
+                "GROUNDED OUTLOOK). Do NOT just restate the domain pattern."
+            )
+        elif intent.get("is_outlook_timing"):
+            lines.append(
+                "  → ANCHOR the answer in phase + timing. Lean on "
+                "phase_context and activation_now. End with 'what to "
+                "watch / what is still under pressure'. Do NOT predict."
+            )
+        elif intent.get("is_why_pattern"):
+            lines.append(
+                "  → Show the MECHANISM. Use cross_domain_pattern + "
+                "recurrence to anchor the answer. Make it land."
+            )
+        lines.append("")
+
+    phase_ctx = ctx.get("phase_context") or {}
+    if phase_ctx and any(phase_ctx.values()):
+        lines.append("PHASE CONTEXT — where the user is in their life arc:")
+        if phase_ctx.get("current_phase_label"):
+            lines.append(f"  - current phase: {phase_ctx['current_phase_label']}")
+        if phase_ctx.get("current_phase_summary"):
+            lines.append(f"      summary: {phase_ctx['current_phase_summary']}")
+        if phase_ctx.get("previous_phase_label"):
+            lines.append(f"  - previous phase: {phase_ctx['previous_phase_label']}")
+        if phase_ctx.get("next_phase_label"):
+            lines.append(f"  - emerging phase: {phase_ctx['next_phase_label']}")
+        if phase_ctx.get("dominant_domain"):
+            lines.append(f"  - dominant domain: {phase_ctx['dominant_domain']}")
+        lines.append(
+            "  Use phase context to ground outlook/timing answers. NEVER "
+            "name 'phase' as a system; speak about 'this period' or 'this "
+            "year' or 'this stretch'."
+        )
+        lines.append("")
+
+    ane = ctx.get("activation_now") or {}
+    if ane and (ane.get("activation_line") or ane.get("activation_explanation")):
+        lines.append(
+            "ACTIVATION NOW — what is making the pattern feel active "
+            "right now (already verified; safe to use as TIMING evidence):"
+        )
+        if ane.get("activation_line"):
+            lines.append(f"  - line: {ane['activation_line']}")
+        if ane.get("activation_explanation"):
+            lines.append(f"  - reason: {ane['activation_explanation']}")
+        if ane.get("activation_pressure"):
+            lines.append(f"  - pressure: {ane['activation_pressure']}")
+        lines.append(
+            "  Use this to answer 'why now' / outlook timing questions. "
+            "Paraphrase, don't quote verbatim."
+        )
+        lines.append("")
+
+    tl = ctx.get("timeline_context") or {}
+    if tl and (tl.get("notes") or tl.get("themes")):
+        lines.append("TIMELINE CONTEXT — long-range/annual signals:")
+        if tl.get("period"):
+            lines.append(f"  - period: {tl['period']}")
+        if tl.get("notes"):
+            lines.append(f"  - notes: {tl['notes']}")
+        if tl.get("themes"):
+            lines.append(f"  - themes: {', '.join(tl['themes'])}")
+        lines.append(
+            "  Use this for 'this year' / 'outlook' questions. NEVER "
+            "mention astrology / chart / transit / source. Speak as if "
+            "describing the period itself."
+        )
         lines.append("")
     cdp = ctx.get("cross_domain_pattern") or {}
     if cdp and (cdp.get("core_pattern") or cdp.get("pattern_spine")):
@@ -592,6 +1018,9 @@ async def ask_life_question(
     cross_domain_pattern: Optional[Dict[str, Any]] = None,
     decan_index: Optional[int] = None,
     recurrence_data: Optional[Dict[str, Any]] = None,
+    activation_now_data: Optional[Dict[str, Any]] = None,
+    phase_context: Optional[Dict[str, Any]] = None,
+    timeline_context: Optional[Dict[str, Any]] = None,
     llm_chat_factory=None,
 ) -> Dict[str, Any]:
     """
@@ -619,6 +1048,11 @@ async def ask_life_question(
     if len(q) > 600:
         q = q[:600]
 
+    # Detect question intent so the LLM can answer the SPECIFIC tension
+    # (contradiction / outlook / why_pattern) instead of falling back to
+    # a generic pattern recap.
+    intent = detect_question_intent(q)
+
     ctx = build_context_payload(
         chip_domain=chip,
         question=q,
@@ -633,6 +1067,10 @@ async def ask_life_question(
         lifeline_summary=lifeline_summary,
         cross_domain_pattern=cross_domain_pattern,
         recurrence_data=recurrence_data,
+        activation_now_data=activation_now_data,
+        phase_context=phase_context,
+        timeline_context=timeline_context,
+        intent=intent,
     )
     user_msg = _format_context_for_llm(ctx)
 
@@ -713,6 +1151,88 @@ async def ask_life_question(
     # UI can render it as multiple stanzas.
     answer = _ensure_paragraphs(answer, target=3)
 
+    # ------------------------------------------------------------------
+    # GENERIC-FILLER AUDIT + RETRY (Phase 7 — answer-quality enforcement)
+    # ------------------------------------------------------------------
+    # If the answer falls back to vague spiritual filler OR (for
+    # contradiction/outlook questions) fails to address the actual
+    # tension, retry once with a sharper instruction.
+    audit_quality = audit_generic_filler(answer, intent)
+    quality_retry_used = False
+    if audit_quality.get("flagged") and llm_chat_factory is not None:
+        logger.warning(
+            "[LifeInterpreter] answer-quality audit flagged (intent=%s, "
+            "reasons=%s) — retrying once",
+            intent.get("primary"), audit_quality.get("reasons"),
+        )
+        retry_hint = (
+            "\n\n=== RETRY (CRITICAL — your previous answer was REJECTED) ===\n"
+            "Your previous draft was flagged for: "
+            + "; ".join(audit_quality.get("reasons") or [])
+            + ".\n\n"
+            "ANSWER THE EXACT TENSION IN THE USER'S QUESTION.\n"
+            "Do NOT summarize the relationship pattern.\n"
+            "Do NOT use any of: energetic signal, internal shift, quality "
+            "of connection, in alignment, evolving, expansion, awakening, "
+            "lessons, journey, the universe, divine, sacred, trust the "
+            "process, holding space, calling you, deeper truth, "
+            "invitation, higher self.\n"
+        )
+        if intent.get("is_contradiction"):
+            retry_hint += (
+                "This is a CONTRADICTION question. Use the 4-part "
+                "structure:\n"
+                "  1) BLADE LINE — sharp first sentence naming the tension\n"
+                "  2) BOTH CAN BE TRUE — explain how felt sense AND "
+                "timeline can both be valid\n"
+                "  3) PHASE READING — anchor in phase + activation_now\n"
+                "  4) GROUNDED OUTLOOK — what is improving, what is "
+                "still under pressure, what to watch (NEVER predict)\n"
+            )
+        elif intent.get("is_outlook_timing"):
+            retry_hint += (
+                "This is an OUTLOOK/TIMING question. Anchor in phase + "
+                "activation_now. End with 'what to watch / what is still "
+                "under pressure'. Do NOT predict.\n"
+            )
+        retry_user_msg = user_msg + retry_hint
+        try:
+            chat2: LlmChat = llm_chat_factory()
+            if hasattr(chat2, "with_system_message"):
+                try:
+                    chat2 = chat2.with_system_message(
+                        _LIFE_INTERPRETER_SYSTEM_PROMPT
+                        + (decan_addendum if isinstance(decan_index, int)
+                           and decan_index in (1, 2, 3) else "")
+                    )
+                except Exception:
+                    pass
+            resp2 = await chat2.send_message(UserMessage(text=retry_user_msg))
+            answer_raw2 = resp2 if isinstance(resp2, str) else str(resp2)
+            answer_text2, follow_ups2, _ = _parse_interpreter_json(answer_raw2, chip)
+            if answer_text2 and answer_text2.strip():
+                answer2 = re.sub(
+                    r"\s+\n", "\n",
+                    answer_text2.replace("\\n", "\n").strip(),
+                )
+                if len(answer2) > 2400:
+                    answer2 = answer2[:2400].rsplit(" ", 1)[0] + "…"
+                answer2 = _ensure_paragraphs(answer2, target=3)
+                audit_quality2 = audit_generic_filler(answer2, intent)
+                # Prefer retry if it cleaned up at least one issue OR
+                # at least did not get worse.
+                if (not audit_quality2.get("flagged")) or (
+                    len(audit_quality2.get("reasons") or [])
+                    < len(audit_quality.get("reasons") or [])
+                ):
+                    answer = answer2
+                    if isinstance(follow_ups2, list) and len(follow_ups2) >= 2:
+                        follow_ups = follow_ups2
+                    audit_quality = audit_quality2
+                    quality_retry_used = True
+        except Exception as e:
+            logger.warning("[LifeInterpreter] retry pass failed: %s", e)
+
     # Scrub banned phrases from follow-ups; drop any that become empty.
     cleaned_follow_ups: List[str] = []
     for f in follow_ups[:3]:
@@ -737,7 +1257,7 @@ async def ask_life_question(
         "chip_domain":      chip,
         "synthesis_domain": synth_dom,
         "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "generator_version": "life_interpreter_v6_recurrence",
+        "generator_version": "life_interpreter_v7_question_tension",
         "debug": {
             "llm_used":       answer_raw is not None and render_error is None,
             "render_error":   render_error,
@@ -749,12 +1269,18 @@ async def ask_life_question(
                 if isinstance(decan_index, int) and decan_index in (1, 2, 3)
                 else None
             ),
+            "intent":             intent,
+            "quality_audit":      audit_quality,
+            "quality_retry_used": quality_retry_used,
             "context_keys":   {
                 "has_role_card":          bool(ctx["role_card"]),
                 "has_domain_synthesis":   bool(ctx["domain_synthesis"]),
                 "has_current_phase":      bool(ctx["current_phase"]),
                 "has_cross_domain":       bool(ctx.get("cross_domain_pattern")),
                 "has_recurrence":         bool((ctx.get("recurrence") or {}).get("recurrence_detected")),
+                "has_activation_now":     bool(ctx.get("activation_now")),
+                "has_phase_context":      bool(ctx.get("phase_context")),
+                "has_timeline_context":   bool(ctx.get("timeline_context")),
                 "today_intensity":        ctx.get("today_intensity"),
                 "is_recurring":           (pattern_memory or {}).get("memory_state") == "recurring_pattern",
                 "evidence_count":         len(ctx.get("evidence") or []),

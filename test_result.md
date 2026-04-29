@@ -12616,3 +12616,168 @@ agent_communication:
               toggles correctly.
             * No layout regressions reported.
 
+
+  - task: "Ask About My Life — sharper question-tension reasoning"
+    implemented: true
+    working: true
+    file: "backend/services/life_interpreter.py, backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: |
+          [2026-04-29] ASK ABOUT MY LIFE — REASONING-QUALITY UPGRADE.
+
+          User feedback: previous answers were "too generic" — used
+          phrases like "internal shifts", "energetic signals", "cycle
+          of tuning", "alignment", and didn't address contradictions
+          (e.g. "I feel it's better but timeline says otherwise").
+          Goal: make Ask answer the SPECIFIC tension in the question,
+          not just restate the domain pattern.
+
+          Changes — /app/backend/services/life_interpreter.py
+          --------------------------------------------------------------
+          1) NEW: detect_question_intent(question) — deterministic
+             regex-based classifier that tags every question with one
+             or more intents:
+               - contradiction      (highest priority)
+               - outlook_timing
+               - why_pattern
+               - domain_explanation (default fallback)
+             Returns flags is_contradiction / is_outlook_timing /
+             is_why_pattern that drive answer structure.
+
+          2) NEW context blocks (passed through ask_life_question and
+             rendered in _format_context_for_llm):
+               - intent           — drives the answer structure
+               - activation_now   — timing signal (line + explanation +
+                                    pressure)
+               - phase_context    — current/previous/emerging phase
+                                    labels + dominant_domain +
+                                    confidence
+               - timeline_context — long-range / annual notes
+                                    (placeholder; filled when astrology
+                                    timeline integration lands)
+
+          3) NEW system prompt rule 12: QUESTION-TENSION REASONING
+             with mandatory 4-part structure when contradiction is
+             detected:
+                 (1) BLADE LINE — sharp first sentence naming the tension
+                 (2) BOTH CAN BE TRUE — felt sense + timeline both valid
+                 (3) PHASE READING — anchor in phase + activation_now
+                 (4) GROUNDED OUTLOOK — improving / under pressure /
+                     pattern to watch (NEVER predict)
+             Different (lighter) structure for outlook_timing alone.
+             why_pattern uses cross_domain + recurrence for mechanism.
+
+          4) HARD vocabulary ban appended to system prompt:
+             "energetic signal(s)", "internal shift(s)", "quality of
+             your connections", "others need time to catch up",
+             "cycle of tuning", "in alignment with", "evolving",
+             "expansion", "awakening", "the lessons of", "your
+             journey", "the universe", "divine", "sacred", "trust the
+             process", "flow with", "holding space", "calling you in",
+             "deeper truth", "invitation", "higher self".
+             Hedging modifiers limited to ≤ 3 across the answer.
+
+          5) NEW post-render audit_generic_filler(answer, intent):
+                - Catches filler phrases.
+                - Counts hedges.
+                - For contradictions: REQUIRES a contrast structure
+                  (e.g. "both can be true", "what is improving",
+                  "what is not yet", "calmer not because").
+                - For outlook_timing: REQUIRES phase/timing anchor
+                  language ("phase", "this year", "pattern to watch",
+                  "still under pressure").
+
+          6) ONE retry pass on flag — sends a CRITICAL retry hint
+             with intent-specific instructions ("answer the EXACT
+             tension", structure rules, banned vocab list). Keeps
+             retry only if it cleaned at least one issue.
+
+          7) generator_version bumped: v6_recurrence → v7_question_tension.
+             Debug payload now includes intent, quality_audit,
+             quality_retry_used, has_phase_context, has_activation_now,
+             has_timeline_context.
+
+          Changes — /app/backend/server.py (post_life_ask)
+          --------------------------------------------------------------
+          - Pulls cached activation_now::{user_id} (cache-only; never
+            triggers fresh generation from /life/ask).
+          - Builds phase_context from cached phases::{user_id}:
+              current_phase + previous + next + dominant_domain.
+          - timeline_context payload reserved for future astrology-
+            timeline integration.
+
+          Live verification — exact user-reported question:
+          --------------------------------------------------------------
+          User: Pete (697f0c6abf35c0528ff06954)
+          Q:    "What's my outlook for relationships this year? I feel
+                 it is getting better but my astrology timeline seems
+                 to say otherwise."
+          Domain: relationships
+
+          Detected intent:
+            primary: contradiction
+            all:     [contradiction, outlook_timing]
+
+          Context used:
+            has_activation_now: True   (cache hit)
+            has_phase_context:  False  (no phases cache yet)
+            has_cross_domain:   False
+            has_recurrence:     False
+
+          Quality audit: pass=True, reasons=[], retry_used=False
+          Generator version: life_interpreter_v7_question_tension
+
+          ANSWER (verbatim):
+            "It may feel like your relationships are improving because
+             you are refining your boundaries and raising standards,
+             but the timeline signals pressure around whether these
+             adjustments actually land well with others. Both realities
+             coexist: you do see progress in how you engage and expect
+             more from connections, but the phase you are in tests
+             whether your timing and the other person's response can
+             genuinely sync without creating distance or
+             misunderstanding.
+
+             Right now, you're in a phase where your moves come sharply
+             and cleanly only after the initial emotional waves settle,
+             not at their peak. This rhythm is tough because it repeats
+             a cycle you've encountered before, where refinement tips
+             over into cutting too deep, jeopardizing trust before
+             clarity arrives.
+
+             What is improving is your ability to notice and adjust
+             your pacing. What remains under pressure is the risk of
+             cutting too sharply and the challenge of allowing enough
+             pause for others to match your pace and truly arrive. The
+             pattern to watch is whether one rough edge can linger
+             long enough to let real connection move forward rather
+             than retract into distance."
+
+          Acceptance check (vs spec audit list):
+            ✓ Answers the exact contradiction in the question.
+            ✓ Uses 4-part structure (BLADE LINE / BOTH / PHASE /
+              GROUNDED OUTLOOK).
+            ✓ Specific to Pete's pattern (refinement, timing,
+              cutting too deep) — would NOT apply to anyone.
+            ✓ Uses phase/timing anchor language.
+            ✓ NO banned filler: no "energetic signals", "internal
+              shifts", "cycle of tuning", "alignment", "evolving".
+            ✓ NO prediction — uses "the pattern to watch is...".
+            ✓ NO astrology / chart / transit / decan / Zi Wei /
+              Purple Star / planet / house references.
+            ✓ Direct, second-person, behavior-first.
+            ✓ Limited hedging.
+
+          Notes:
+            * Lint clean across life_interpreter.py.
+            * Backend restarts cleanly.
+            * Cache-only activation-now keeps cost predictable —
+              /life/ask never triggers an extra LLM call.
+            * Frontend changes: NONE. Same /api/life/ask response
+              shape (richer debug only).
+
