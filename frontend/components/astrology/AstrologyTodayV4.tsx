@@ -49,6 +49,61 @@ interface Technical {
   transit_info?: string;
 }
 
+// ---------------------------------------------------------------------------
+// v5 proof-payload shape (from /api/astrology/today-v5)
+// ---------------------------------------------------------------------------
+//
+// The v5 backend exposes a richer signal map that includes lunation,
+// ingress, and outer-planet activity — categories the v4 frontend
+// signal map was previously blind to. We fetch v5 in parallel with
+// v4 (cheap, deterministic, ~30ms) and merge its categorical signals
+// into the top of the existing "Why it's showing up" accordion.
+//
+// v4 narrative remains the source of truth for the user-facing text;
+// v5 only contributes proof-layer rows.
+
+interface V5DominantSignal {
+  type?: string;
+  label?: string;
+  planet?: string;
+  from_sign?: string;
+  to_sign?: string;
+  hours?: number;
+  days?: number;
+  at_utc?: string;
+  transit?: string;
+  aspect?: string;
+  natal?: string;
+  orb?: number;
+  applying?: boolean;
+  house?: number;
+  bodies?: string[];
+  sign?: string;
+  transit_sign?: string;
+  natal_sign?: string;
+}
+
+interface V5MoonPhase {
+  phase_human?: string;
+  phase_key?: string;
+  sun_moon_angle_deg?: number;
+  nearest_full_moon?: { hours_offset?: number; within_48h?: boolean; within_7d?: boolean } | null;
+  nearest_new_moon?:  { hours_offset?: number; within_48h?: boolean; within_7d?: boolean } | null;
+}
+
+interface V5Proof {
+  dominant_signal?: V5DominantSignal | null;
+  secondary_signals?: V5DominantSignal[];
+  background_signals?: V5DominantSignal[];
+  active_categories?: string[];
+  signal_conflict?: boolean;
+  intensity?: string;
+  moon_phase?: V5MoonPhase;
+  tight_aspect_count?: number;
+  aspect_count?: number;
+  outer_backdrop?: { planet: string; sign: string; retrograde?: boolean }[];
+}
+
 interface TheMove {
   action?: string;
   reflection?: string;
@@ -111,8 +166,185 @@ const SectionHeader: React.FC<{ title: string; icon: any; theme: any }> = ({
   </View>
 );
 
+// ---------------------------------------------------------------------------
+// v5 → signal-map row builder
+// ---------------------------------------------------------------------------
+//
+// Order priority (per user spec):
+//   1. Tier 1 lunation (Full Moon / New Moon ±48h)
+//   2. Tier 1 outer-planet ingress
+//   3. Heavy ingress (Saturn / Jupiter ±7d)
+//   4. Personal ingress (Mercury / Venus / Mars ±3d)
+//   5. Tight aspects + clusters appear via the existing v4 rows
+//      (we don't double-render those here).
+//   6. Outer-planet backdrop derived from secondary_signals
+//
+// If `active_categories` includes a category but no row was produced
+// (e.g. payload lacks moon_phase detail), we emit a debug fallback
+// row so the signal map never silently omits a backend-detected
+// category.
+
+interface V5SignalRow { signal: string; effect: string }
+
+function _hoursPhrase(h?: number): string {
+  if (typeof h !== 'number' || !isFinite(h)) return '';
+  const abs = Math.abs(h);
+  if (abs < 1) {
+    return h > 0 ? 'within the next hour' : 'just now';
+  }
+  if (abs < 48) {
+    const rounded = Math.round(abs);
+    return h > 0 ? `in ${rounded}h` : `${rounded}h ago`;
+  }
+  const days = Math.round(abs / 24);
+  return h > 0 ? `in ${days}d` : `${days}d ago`;
+}
+
+function _signalForLunation(mp: V5MoonPhase | undefined): V5SignalRow | null {
+  if (!mp) return null;
+  const fm = mp.nearest_full_moon;
+  const nm = mp.nearest_new_moon;
+  if (fm && fm.within_48h) {
+    const h = fm.hours_offset;
+    const when = _hoursPhrase(h);
+    const verb = (typeof h === 'number' && h < 0) ? `peaked ${when}` : `active ${when}`;
+    return {
+      signal: `Full Moon ${verb}`,
+      effect: 'culmination / visibility peak — something is reaching a point where it can be seen',
+    };
+  }
+  if (nm && nm.within_48h) {
+    const h = nm.hours_offset;
+    const when = _hoursPhrase(h);
+    const verb = (typeof h === 'number' && h < 0) ? `passed ${when}` : `active ${when}`;
+    return {
+      signal: `New Moon ${verb}`,
+      effect: 'seeding window — quiet ground for what wants to begin, not for proving',
+    };
+  }
+  return null;
+}
+
+function _ingressEffect(planet?: string): string {
+  switch (planet) {
+    case 'Uranus':
+      return 'long-cycle shift in communication, ideas, networks — disruption and reinvention';
+    case 'Neptune':
+      return 'long-cycle shift in meaning, dissolving old certainties';
+    case 'Pluto':
+      return 'long-cycle shift in power, control, and what has to be released';
+    case 'Saturn':
+      return 'structural pressure shift — what holds weight is being reorganised';
+    case 'Jupiter':
+      return 'expansion shift — where growth and excess will gather next';
+    case 'Mars':
+      return 'short-cycle shift in drive and how you push';
+    case 'Venus':
+      return 'short-cycle shift in connection, attraction, and value';
+    case 'Mercury':
+      return 'short-cycle shift in pace, speech, and decision-making';
+    case 'Sun':
+      return 'monthly chapter change — the focus of the month rotates';
+    case 'Moon':
+      return 'short emotional frame change';
+    default:
+      return 'new long-cycle emphasis is opening';
+  }
+}
+
+function _signalForIngress(sig: V5DominantSignal | undefined): V5SignalRow | null {
+  if (!sig) return null;
+  if (!sig.type || !sig.planet || !sig.to_sign) return null;
+  if (!['outer_ingress', 'heavy_ingress', 'personal_ingress'].includes(sig.type)) return null;
+  const days = sig.days;
+  const when = (typeof days === 'number' && Math.abs(days) > 0.1)
+    ? (days > 0 ? `in ${Math.round(days * 10) / 10}d` : `${Math.round(Math.abs(days) * 10) / 10}d ago`)
+    : 'today';
+  return {
+    signal: `${sig.planet} → ${sig.to_sign} (${when})`,
+    effect: _ingressEffect(sig.planet),
+  };
+}
+
+function _signalForOuterBackdrop(sig: V5DominantSignal | undefined): V5SignalRow | null {
+  if (!sig) return null;
+  // Surface outer-planet sign placement when it appears in
+  // secondary/background. Skip if it's already represented as an
+  // ingress row.
+  if (sig.type === 'outer_ingress') return null;
+  const planet = sig.planet || sig.transit;
+  if (!planet || !['Uranus', 'Neptune', 'Pluto'].includes(planet)) return null;
+  const sign = sig.sign || sig.to_sign || sig.transit_sign;
+  if (!sign) return null;
+  return {
+    signal: `${planet} in ${sign}`,
+    effect: _ingressEffect(planet),
+  };
+}
+
+function buildV5SignalRows(proof: V5Proof | null): V5SignalRow[] {
+  if (!proof) return [];
+  const rows: V5SignalRow[] = [];
+  const seen = new Set<string>();
+  const push = (r: V5SignalRow | null) => {
+    if (!r) return;
+    const k = r.signal.toLowerCase();
+    if (seen.has(k)) return;
+    seen.add(k);
+    rows.push(r);
+  };
+
+  // 1. Lunation
+  push(_signalForLunation(proof.moon_phase));
+
+  // 2-4. Ingresses — dominant first, then secondary
+  push(_signalForIngress(proof.dominant_signal || undefined));
+  for (const s of proof.secondary_signals || []) {
+    push(_signalForIngress(s));
+  }
+
+  // 5. Outer-planet backdrop — first from explicit outer_backdrop list
+  //    (always populated from current sky), then from secondary signals.
+  for (const ob of proof.outer_backdrop || []) {
+    if (ob?.planet && ob?.sign) {
+      push({
+        signal: `${ob.planet} in ${ob.sign}${ob.retrograde ? ' (retrograde)' : ''}`,
+        effect: _ingressEffect(ob.planet),
+      });
+    }
+  }
+  for (const s of proof.secondary_signals || []) {
+    push(_signalForOuterBackdrop(s));
+  }
+  for (const s of proof.background_signals || []) {
+    push(_signalForOuterBackdrop(s));
+  }
+
+  // Fallback rows: if backend says a category is active but we
+  // produced no row, surface a debug placeholder so we never silently
+  // omit a detected signal.
+  const cats = (proof.active_categories || []).map((c) => c.toLowerCase());
+  const haveLunation = rows.some((r) => /(full|new) moon/i.test(r.signal));
+  const haveIngress  = rows.some((r) => /→/.test(r.signal));
+  if (cats.includes('lunation') && !haveLunation) {
+    rows.unshift({
+      signal: 'Lunation signal detected',
+      effect: 'details unavailable in proof payload',
+    });
+  }
+  if (cats.includes('ingress') && !haveIngress) {
+    rows.push({
+      signal: 'Ingress signal detected',
+      effect: 'details unavailable in proof payload',
+    });
+  }
+
+  return rows;
+}
+
 const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onReflect }) => {
   const [data, setData] = useState<AstrologyTodayV4Data | null>(null);
+  const [v5Proof, setV5Proof] = useState<V5Proof | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
@@ -126,11 +358,40 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
     try {
       setLoading(true);
       setErr(null);
-      const res = await fetch(`${APP_BASE}/api/astrology/today-v4/${userId}`);
-      if (!res.ok) throw new Error('Failed to load today intelligence');
-      const json = await res.json();
-      setData(json);
+      // Fetch v4 narrative and v5 proof in parallel. v5 is best-effort —
+      // any failure leaves the existing v4 signal map intact.
+      const [v4Res, v5Res] = await Promise.allSettled([
+        fetch(`${APP_BASE}/api/astrology/today-v4/${userId}`),
+        fetch(`${APP_BASE}/api/astrology/today-v5/${userId}`),
+      ]);
+
+      if (v4Res.status === 'fulfilled' && v4Res.value.ok) {
+        const json = await v4Res.value.json();
+        setData(json);
+      } else {
+        throw new Error('Failed to load today intelligence');
+      }
+
+      if (v5Res.status === 'fulfilled' && v5Res.value.ok) {
+        try {
+          const v5json = await v5Res.value.json();
+          const proof: V5Proof = v5json?.why_this_is_showing_up || {};
+          // signal_conflict + active_categories live one level up — pull
+          // them in for the fallback-row branch.
+          if (typeof v5json?.signal_conflict !== 'undefined' && proof.signal_conflict === undefined) {
+            proof.signal_conflict = !!v5json.signal_conflict;
+          }
+          setV5Proof(proof);
+        } catch (parseErr) {
+          // eslint-disable-next-line no-console
+          console.warn('[AstrologyTodayV4] v5 proof parse failed', parseErr);
+          setV5Proof(null);
+        }
+      } else {
+        setV5Proof(null);
+      }
     } catch (e: any) {
+      // eslint-disable-next-line no-console
       console.error('[AstrologyTodayV4] Error:', e);
       setErr(e.message || 'Failed to load');
     } finally {
@@ -270,7 +531,7 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
         )}
 
         {/* WHY IT'S SHOWING UP — collapsible accordion */}
-        {data.why_showing_up?.length > 0 && (
+        {(data.why_showing_up?.length > 0 || (v5Proof && (v5Proof.dominant_signal || v5Proof.moon_phase || (v5Proof.active_categories || []).length))) && (
           <>
             <TouchableOpacity
               style={[styles.accordionToggle, { borderColor: theme.border }]}
@@ -288,7 +549,29 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
             </TouchableOpacity>
             {whyOpen && (
               <View style={[styles.whySection, { backgroundColor: theme.cardBackground || theme.background, borderColor: theme.border }]}>
-                {data.why_showing_up.map((row, i) => (
+                {/* v5 categorical signals — lunation / ingress / outer-planet
+                    backdrop. These are surfaced from /today-v5's proof
+                    payload. The main narrative remains jargon-free; the
+                    signal map is allowed to show astrology terms. */}
+                {(() => {
+                  const rows = buildV5SignalRows(v5Proof);
+                  if (rows.length === 0) return null;
+                  return (
+                    <View style={[styles.v5HeadBlock, { borderBottomColor: theme.border }]}>
+                      <Text style={[styles.v5HeadLabel, { color: theme.textTertiary }]}>
+                        ACTIVE TIMING SIGNALS
+                      </Text>
+                      {rows.map((row, i) => (
+                        <View key={`v5-${i}`} style={styles.whyRow}>
+                          <Text style={[styles.whySignal, { color: theme.text }]}>{row.signal}</Text>
+                          <Text style={[styles.whyArrow, { color: theme.textTertiary }]}> → </Text>
+                          <Text style={[styles.whyEffect, { color: theme.textSecondary }]}>{row.effect}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  );
+                })()}
+                {data.why_showing_up?.map((row, i) => (
                   <View key={`w-${i}`} style={styles.whyRow}>
                     <Text style={[styles.whySignal, { color: theme.text }]}>{row.signal}</Text>
                     <Text style={[styles.whyArrow, { color: theme.textTertiary }]}> → </Text>
@@ -516,6 +799,18 @@ const styles = StyleSheet.create({
   accordionToggleText: { fontSize: 14 },
 
   whySection: { padding: 12, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, marginTop: 8 },
+  v5HeadBlock: {
+    paddingBottom: 10,
+    marginBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  v5HeadLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
   whyRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 },
   whySignal: { fontSize: 13, fontWeight: '500' },
   whyArrow: { fontSize: 13 },

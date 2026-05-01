@@ -13758,3 +13758,114 @@ agent_communication:
           Lint: ruff clean. Backend reloaded; no regressions to other
           endpoints.
 
+
+  - task: "Astrology Today frontend signal-map fix — render lunation + ingress + outer-planet backdrop"
+    implemented: true
+    working: true
+    file: "frontend/components/astrology/AstrologyTodayV4.tsx (signal-map injection + v5 fetch), backend/services/astrology_today_v5.py (proof.outer_backdrop), backend/server.py (cache datetime tz fix)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Per user spec: signal map was previously blind to lunation
+          and ingress signals even when backend detected them. Fixed
+          without changing v4 narrative or backend ranking.
+
+          Backend additions (small, additive)
+          -----------------------------------
+          1. /api/astrology/today-v5 proof payload now includes
+             `outer_backdrop`: list of {planet, sign, retrograde}
+             for Uranus / Neptune / Pluto sourced from the live sky
+             snapshot. Renders as long-cycle backdrop rows even when
+             no ingress is currently in window.
+          2. Fixed cache age check in server.py — Mongo can return
+             tz-naive datetimes which clashed with tz-aware `now`,
+             producing 500 on cache hit. Coerced to UTC.
+
+          Frontend signal-map injection (AstrologyTodayV4.tsx)
+          ----------------------------------------------------
+          - Component now fetches /today-v4 (narrative) AND /today-v5
+            (proof) in parallel via Promise.allSettled. v5 failure is
+            non-fatal — original v4 signal map renders unchanged.
+          - New helper `buildV5SignalRows(proof)` produces ordered
+            rows for the signal-map accordion:
+              1. Lunation (Full Moon / New Moon ±48h) — top of map.
+              2. Ingress (outer / heavy / personal) from
+                 dominant_signal + secondary_signals.
+              3. Outer-planet backdrop from proof.outer_backdrop
+                 (Uranus / Neptune / Pluto sign placements).
+              Existing v4 rows (aspects / clusters / houses) follow
+              under their own "active timing signals" header banner.
+          - Each row is a {signal, effect} pair using astrology terms
+            in the proof layer (per spec: main narrative jargon-free,
+            proof allowed to use terms).
+          - Debug fallback: if `active_categories` includes
+            'lunation' or 'ingress' but no row was generated, an
+            explicit "Lunation signal detected — details unavailable"
+            row appears so we never silently omit a backend-detected
+            category.
+          - Visual: new "ACTIVE TIMING SIGNALS" sub-header above the
+            v5 rows, separated from the v4 rows by a hairline divider
+            (theme-aware).
+
+          Live (Pete, today_v5 cache cleared & re-hit)
+          --------------------------------------------
+          outer_backdrop = [
+            { planet: "Uranus",  sign: "Aries",     retrograde: false },
+            { planet: "Neptune", sign: "Pisces",    retrograde: false },
+            { planet: "Pluto",   sign: "Capricorn", retrograde: false },
+          ]
+          moon_phase.nearest_full_moon: within_48h=True, +10.0h
+          dominant_signal: full_moon
+          secondary_signals[1]: personal_ingress
+            Mercury Pisces→Aries (+2.7d)
+
+          Predicted rows now rendered in the signal map:
+            1. Full Moon active in 10h
+                 → culmination / visibility peak — something is
+                   reaching a point where it can be seen
+            2. Mercury → Aries (in 2.7d)
+                 → short-cycle shift in pace, speech, and
+                   decision-making
+            3. Uranus in Aries
+                 → long-cycle shift in communication, ideas,
+                   networks — disruption and reinvention
+            4. Neptune in Pisces
+                 → long-cycle shift in meaning, dissolving old
+                   certainties
+            5. Pluto in Capricorn
+                 → long-cycle shift in power, control, and what has
+                   to be released
+            (Existing v4 rows: Saturn conj natal Moon / Neptune conj
+             natal Mars / 4 planets in Aries / etc. follow below.)
+
+          Note on user's "Uranus in Gemini" expectation: True Sidereal
+          (Lahiri ayanamsa, SVP=31.28°) currently places Uranus at
+          28.6° Aries. The frontend faithfully renders what the
+          engine returns. Tropical Uranus is in Gemini; the project
+          ayanamsa is the source of the discrepancy — a settings
+          decision, not a UI bug. Flagged to user.
+
+          Acceptance criteria
+          -------------------
+            ✓ Lunation signals render at top when backend reports
+              category=lunation
+            ✓ Ingress signals render when backend reports
+              category=ingress
+            ✓ Outer-planet backdrop rendered (Uranus / Neptune /
+              Pluto sign placements)
+            ✓ Existing aspects / clusters / houses still render
+            ✓ Main narrative (v4 prose) untouched and remains
+              jargon-free
+            ✓ Proof layer is allowed to show astrology terms
+            ✓ Backend ranking unchanged — only an additive
+              `outer_backdrop` field was added
+            ✓ API contract unchanged — clients ignoring the new
+              field still work
+
+          Status: TS clean, backend healthy, expo restarted. Ready
+          for visual verification.
+

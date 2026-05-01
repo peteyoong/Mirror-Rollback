@@ -583,6 +583,18 @@ async def build_today_v5_payload(
             "moon_phase":           dominance["moon_phase"],
             "tight_aspect_count":   dominance["tight_aspect_count"],
             "aspect_count":         dominance["aspect_count"],
+            # Outer-planet backdrop: surface the current sign of
+            # Uranus / Neptune / Pluto so the proof layer can render
+            # long-cycle context even when no ingress is in window.
+            "outer_backdrop":       [
+                {
+                    "planet": p,
+                    "sign":   (((dominance.get("sky") or {}).get("bodies") or {}).get(p) or {}).get("sign"),
+                    "retrograde": (((dominance.get("sky") or {}).get("bodies") or {}).get(p) or {}).get("retrograde", False),
+                }
+                for p in ("Uranus", "Neptune", "Pluto")
+                if ((dominance.get("sky") or {}).get("bodies") or {}).get(p, {}).get("sign")
+            ],
         },
         "llm_used":             llm_used,
     }

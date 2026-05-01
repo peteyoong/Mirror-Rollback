@@ -34296,10 +34296,18 @@ async def get_astrology_today_v5(user_id: str) -> Dict[str, Any]:
             {"user_id": user_id, "date": today_str},
         )
         if cached and cached.get("generated_at"):
-            age = (now - cached["generated_at"]).total_seconds() if isinstance(cached["generated_at"], _dt) else 9999
+            ga = cached["generated_at"]
+            if isinstance(ga, _dt) and ga.tzinfo is None:
+                ga = ga.replace(tzinfo=timezone.utc)
+            try:
+                age = (now - ga).total_seconds() if isinstance(ga, _dt) else 9999
+            except Exception:
+                age = 9999
             if age < 6 * 3600:
                 cached.pop("_id", None)
                 cached["from_cache"] = True
+                if isinstance(cached.get("generated_at"), _dt):
+                    cached["generated_at"] = cached["generated_at"].isoformat()
                 return cached
 
         payload = await build_today_v5_payload(
