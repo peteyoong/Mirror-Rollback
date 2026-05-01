@@ -121,7 +121,7 @@ interface AstrologyTodayV4Data {
   what_it_feels_like: string[];
   the_risk: string;
   the_move: TheMove | string;
-  time_layer: TimeLayer;
+  time_layer?: TimeLayer;
   why_showing_up: WhyRow[];
   technical?: Technical;
   intensity?: string;
@@ -129,6 +129,7 @@ interface AstrologyTodayV4Data {
   day_class?: string;
   is_extreme_day?: boolean;
   llm_fallback?: boolean;
+  success?: boolean;
   distortion_layer?: {
     active?: boolean;
     reason?: string;

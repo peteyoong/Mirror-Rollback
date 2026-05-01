@@ -13869,3 +13869,51 @@ agent_communication:
           Status: TS clean, backend healthy, expo restarted. Ready
           for visual verification.
 
+  - task: "AstrologyTodayV4.tsx — TS error fix (V5-only payload mapping)"
+    implemented: true
+    working: true
+    file: "frontend/components/astrology/AstrologyTodayV4.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: |
+          Component refactored in previous session to fetch from
+          /api/astrology/today-v5 only (single source of truth, no
+          longer mixing tropical v4 narrative with sidereal v5 proof).
+          However the mapping shape used `time_layer: undefined` and
+          `success: true` which violated the TS interface
+          (`TimeLayer` was non-optional and `success` was missing).
+          `npx tsc --noEmit` reported:
+            error TS2322: Type 'undefined' is not assignable to type
+              'TimeLayer'
+            error TS2353: Object literal may only specify known
+              properties, and 'success' does not exist in type
+              'AstrologyTodayV4Data'
+
+      - working: true
+        agent: "main"
+        comment: |
+          Fixed by relaxing the `AstrologyTodayV4Data` interface:
+            - `time_layer: TimeLayer` → `time_layer?: TimeLayer`
+              (v5 doesn't carry a 3-row time layer; renderer already
+              guards with `data.time_layer && ...`)
+            - added `success?: boolean` to the interface
+
+          Verified:
+            - `npx tsc --noEmit` reports 0 errors in
+              AstrologyTodayV4.tsx (other repo-wide TS errors are
+              pre-existing in unrelated files: reflect.tsx, lenses,
+              etc. — out of scope for this fix).
+            - `/api/astrology/today-v5/697f0c6abf35c0528ff06954`
+              returns the expected payload shape; mapping reads
+              `v5json.why_this_is_showing_up` (proof) and
+              `v5json.sections.{core_message,how_it_shows_up,
+              the_risk,the_move}` correctly.
+            - Component compiles; expo restarted cleanly.
+
+          Frontend Today screen now consumes V5 exclusively — no
+          more tropical/sidereal contradictions on the same screen.
+
