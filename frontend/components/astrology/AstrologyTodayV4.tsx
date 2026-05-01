@@ -1,18 +1,22 @@
 /**
  * AstrologyTodayV4 — Behavior-First Interception Engine (Frontend)
  * =================================================================
- * Renders the v4 unified narrative from /api/astrology/today-v4/{userId}.
+ * Renders the canonical v5 narrative from /api/astrology/today-v5/{userId}.
+ *
+ * NOTE: this component file is still named V4 for path stability, but
+ * its data source is the v5 transit-dominance engine. v4 was removed
+ * because it produced TROPICAL outer-planet placements that contradicted
+ * v5's TRUE SIDEREAL placements on the same screen.
  *
  * Visual order (reads as ONE diagnosis, not disconnected sections):
- *   HEADLINE        — tension-based pattern recognition
- *   WHAT'S HAPPENING — single paragraph (causal synthesis)
- *   HOW IT SHOWS UP — 2-4 behavioral bullets
- *   WHAT IT FEELS LIKE — 2-4 somatic/emotional bullets
- *   THE RISK        — single sharp consequence line (emphasized card)
- *   THE MOVE        — single actionable interrupt (primary card)
- *   TIME LAYER      — today / this week / this month (compact rows)
- *   WHY IT'S SHOWING UP — collapsed accordion (signal → effect)
- *   TECHNICAL       — existing proof layer (secondary, collapsed)
+ *   HEADLINE         — first sentence of v5 core_message (deterministic)
+ *   WHAT'S HAPPENING — the rest of v5 core_message (HOOK / BODY / EDGE)
+ *   HOW IT SHOWS UP  — v5 sections.how_it_shows_up bullets (concrete)
+ *   THE RISK         — v5 sections.the_risk
+ *   THE MOVE         — v5 sections.the_move (action + reflect; non-prescriptive)
+ *   WHY IT'S SHOWING UP — accordion sourced entirely from v5 proof
+ *                          (lunation → ingress → outer backdrop → ...)
+ *   TECHNICAL        — derived from v5 dominant + secondary signals only
  */
 
 import React, { useEffect, useState } from 'react';
@@ -358,38 +362,100 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
     try {
       setLoading(true);
       setErr(null);
-      // Fetch v4 narrative and v5 proof in parallel. v5 is best-effort —
-      // any failure leaves the existing v4 signal map intact.
-      const [v4Res, v5Res] = await Promise.allSettled([
-        fetch(`${APP_BASE}/api/astrology/today-v4/${userId}`),
-        fetch(`${APP_BASE}/api/astrology/today-v5/${userId}`),
-      ]);
+      // SOURCE OF TRUTH: /today-v5 only. We previously also fetched
+      // /today-v4 for narrative, but that produced contradictory
+      // outer-planet placements on the same screen because v4 uses
+      // TROPICAL zodiac while v5 uses TRUE SIDEREAL. Mixing the two
+      // showed Uranus in Gemini (tropical) AND Uranus in Aries
+      // (sidereal) on the same day. The v5 engine is the canonical
+      // source for both narrative and proof — see test_result.md
+      // entry "Today page mixed v4 + v5 fix".
+      const v5Res = await fetch(`${APP_BASE}/api/astrology/today-v5/${userId}`);
+      if (!v5Res.ok) throw new Error('Failed to load today intelligence');
+      const v5json: any = await v5Res.json();
 
-      if (v4Res.status === 'fulfilled' && v4Res.value.ok) {
-        const json = await v4Res.value.json();
-        setData(json);
-      } else {
-        throw new Error('Failed to load today intelligence');
+      // Pull proof payload for the signal map.
+      const proof: V5Proof = v5json?.why_this_is_showing_up || {};
+      if (typeof v5json?.signal_conflict !== 'undefined' && proof.signal_conflict === undefined) {
+        proof.signal_conflict = !!v5json.signal_conflict;
+      }
+      setV5Proof(proof);
+
+      // Map v5 payload → AstrologyTodayV4Data so the existing
+      // renderer keeps working without a UI rewrite. v5 sections:
+      //   { core_message, how_it_shows_up: string[], the_risk,
+      //     the_move: { action, reflect } }
+      const sections = v5json?.sections || {};
+      const core: string = sections.core_message || v5json?.headline || '';
+
+      // Split the core message into a hooky headline (first sentence)
+      // + a fuller "what's happening" body. The split point is the
+      // first sentence-ending punctuation that's followed by a space.
+      let headline = '';
+      let whats_happening = core;
+      const m = core.match(/^([^.!?]+[.!?])\s+(.*)$/s);
+      if (m) {
+        headline = m[1].trim();
+        whats_happening = m[2].trim();
       }
 
-      if (v5Res.status === 'fulfilled' && v5Res.value.ok) {
-        try {
-          const v5json = await v5Res.value.json();
-          const proof: V5Proof = v5json?.why_this_is_showing_up || {};
-          // signal_conflict + active_categories live one level up — pull
-          // them in for the fallback-row branch.
-          if (typeof v5json?.signal_conflict !== 'undefined' && proof.signal_conflict === undefined) {
-            proof.signal_conflict = !!v5json.signal_conflict;
-          }
-          setV5Proof(proof);
-        } catch (parseErr) {
-          // eslint-disable-next-line no-console
-          console.warn('[AstrologyTodayV4] v5 proof parse failed', parseErr);
-          setV5Proof(null);
-        }
-      } else {
-        setV5Proof(null);
+      // The Move — render the non-prescriptive {action, reflect}
+      // shape as two clearly labelled lines.
+      const moveObj = sections.the_move || {};
+      let theMoveStr = '';
+      if (moveObj.action || moveObj.reflect) {
+        theMoveStr = [
+          moveObj.action ? `Action — ${moveObj.action}` : '',
+          moveObj.reflect ? `Reflect — ${moveObj.reflect}` : '',
+        ].filter(Boolean).join('\n\n');
       }
+
+      const mapped: AstrologyTodayV4Data = {
+        version: 'v5',
+        headline,
+        whats_happening,
+        how_it_shows_up: Array.isArray(sections.how_it_shows_up)
+          ? sections.how_it_shows_up
+          : [],
+        // Removed in v5 per spec — explicitly empty so the section hides.
+        what_it_feels_like: [],
+        the_risk: sections.the_risk || '',
+        the_move: theMoveStr,
+        // v5 doesn't carry a 3-row time_layer; keep optional and empty.
+        time_layer: undefined,
+        // The signal-map is now built entirely from v5 (see
+        // buildV5SignalRows). Leaving why_showing_up empty so the
+        // component falls through to the v5-derived rows only and
+        // doesn't render any v4 prose-derived rows.
+        why_showing_up: [],
+        // Build a v5-only technical block. We deliberately DROP the
+        // old `slow_planet_backdrop` field because that was the
+        // tropical-zodiac bleed that contradicted the proof layer.
+        technical: {
+          dominant_pattern: (proof.dominant_signal?.label
+            || v5json?.why_today_is_different
+            || ''),
+          pattern_detail: v5json?.why_today_is_different || '',
+          active_transits: (proof.secondary_signals || [])
+            .filter((s: any) => s?.transit && s?.aspect && s?.natal)
+            .slice(0, 6)
+            .map((s: any) =>
+              `${s.transit} ${s.aspect} natal ${s.natal} (${(s.orb ?? 0).toFixed(1)}° ${s.applying ? 'applying' : 'separating'})`,
+            ),
+          sign_emphasis: undefined,    // not exposed by v5 in this shape
+          house_emphasis: undefined,
+          slow_planet_backdrop: undefined,  // intentionally removed (sidereal-only via signal map)
+          transit_info: '',
+        } as Technical,
+        intensity: v5json?.intensity || 'medium',
+        tension_type: v5json?.signal_conflict ? 'tension' : 'flow',
+        day_class: v5json?.intensity === 'high' ? 'extreme' : v5json?.intensity || 'normal',
+        is_extreme_day: v5json?.intensity === 'high',
+        llm_fallback: !v5json?.llm_used,
+        success: true,
+        distortion_layer: undefined,
+      };
+      setData(mapped);
     } catch (e: any) {
       // eslint-disable-next-line no-console
       console.error('[AstrologyTodayV4] Error:', e);
