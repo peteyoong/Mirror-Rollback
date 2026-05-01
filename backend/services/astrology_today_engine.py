@@ -199,15 +199,29 @@ ASPECT_INTERPRETATIONS = {
 
 
 def get_current_transits(dt: Optional[datetime] = None) -> Dict[str, Dict]:
-    """Get all current planet positions (tropical)."""
+    """Get all current planet positions (TRUE SIDEREAL).
+
+    Defensive fix (May 2026): historically this used `swe.FLG_SWIEPH`
+    only, which produced TROPICAL longitudes — a leak that contradicted
+    the canonical Mirror sidereal config (SVP=31.2836°, J2000, no
+    yearly increment) used by every other engine (natal chart, At-a-
+    Glance, Deep Dive, transit-debug, V5 Today). The v4 endpoint is
+    deprecated, but this function is still imported by older code
+    paths, so we explicitly switch to the canonical SIDM_USER mode
+    here to prevent future tropical leakage.
+    """
     if not dt:
         dt = datetime.now(timezone.utc)
     jd = swe.julday(dt.year, dt.month, dt.day, dt.hour + dt.minute / 60.0)
-    
+
+    # Canonical Mirror sidereal config — must match
+    # `calculations.sidereal_config.SVP_DEGREES` and `J2000_EPOCH`.
+    swe.set_sid_mode(swe.SIDM_USER, 2451545.0, 31.2836)
+
     positions = {}
     for name, pid in PLANETS.items():
-        result = swe.calc_ut(jd, pid, swe.FLG_SWIEPH)
-        lon = result[0][0]
+        result = swe.calc_ut(jd, pid, swe.FLG_SWIEPH | swe.FLG_SIDEREAL)
+        lon = result[0][0] % 360.0
         speed = result[0][3]
         sign_idx = int(lon / 30) % 12
         positions[name] = {

@@ -401,14 +401,15 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
       }
 
       // The Move — render the non-prescriptive {action, reflect}
-      // shape as two clearly labelled lines.
+      // shape as two clean lines without the redundant "Action —" /
+      // "Reflect —" prefixes (the action sentence is already an action
+      // and the reflect sentence is already a question).
       const moveObj = sections.the_move || {};
       let theMoveStr = '';
       if (moveObj.action || moveObj.reflect) {
-        theMoveStr = [
-          moveObj.action ? `Action — ${moveObj.action}` : '',
-          moveObj.reflect ? `Reflect — ${moveObj.reflect}` : '',
-        ].filter(Boolean).join('\n\n');
+        theMoveStr = [moveObj.action, moveObj.reflect]
+          .filter((s: any) => typeof s === 'string' && s.trim().length > 0)
+          .join('\n\n');
       }
 
       const mapped: AstrologyTodayV4Data = {

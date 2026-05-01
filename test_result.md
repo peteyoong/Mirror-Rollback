@@ -13917,3 +13917,106 @@ agent_communication:
           Frontend Today screen now consumes V5 exclusively — no
           more tropical/sidereal contradictions on the same screen.
 
+  - task: "Promote V5 → default Today endpoint + patch v4 tropical leak"
+    implemented: true
+    working: true
+    file: "backend/server.py (GET /api/astrology/today), backend/services/astrology_today_engine.py (get_current_transits), frontend/components/astrology/AstrologyTodayV4.tsx (Move label cleanup)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          1) FLIPPED DEFAULT ENDPOINT TO V5 (canonical Mirror chart engine)
+             ----------------------------------------------------------------
+             `GET /api/astrology/today/{user_id}` now delegates fully to
+             `get_astrology_today_v5(user_id)`. No fallback to v4. The
+             6h cache (db.daily_astrology) and continuity-aware
+             generation are inherited from the v5 implementation.
+
+             Verified payload top-level keys after flip:
+                ['date','user_id','background_signals','body_markdown',
+                 'continuity','dominant_signal','generated_at',
+                 'headline','intensity','llm_used','secondary_signals',
+                 'sections','signal_conflict','signature_changed',
+                 'signature_hash','sky','timestamp_utc',
+                 'why_this_is_showing_up','why_today_is_different',
+                 'from_cache']
+             Pure V5. No v4-only fields (mirror_prompt / title / tip)
+             leak through.
+
+          2) DIAGNOSTIC: ROOT CAUSE OF "URANUS IN GEMINI" BENCHMARK
+             ----------------------------------------------------------------
+             User reported V5 outer planets (Uranus in Aries, Neptune in
+             Pisces, Pluto in Capricorn) didn't match expected
+             (Uranus in Gemini, Neptune in Aries, Pluto in Aquarius).
+
+             Investigation showed those "expected" tropical-looking
+             positions came from a single legacy function:
+                services/astrology_today_engine.py :: get_current_transits
+             It used `swe.calc_ut(jd, pid, swe.FLG_SWIEPH)` *without*
+             FLG_SIDEREAL, returning TROPICAL longitudes. This populated
+             the v4 `technical.slow_planet_backdrop` field with tropical
+             signs. Every other surface (natal chart, At-a-Glance, Deep
+             Dive, transit-debug, V5) uses
+             `calculate_planet_position_sidereal` from the canonical
+             `sidereal_config` module (SIDM_USER, SVP=31.2836°,
+             J2000_EPOCH, yearly_increment=0). Cross-checked against
+             `/api/astrology/transit-debug/{user_id}` — all canonical
+             surfaces agree:
+                Uranus  → 28.64° Aries
+                Neptune → 1.62°  Pisces
+                Pluto   → 3.85°  Capricorn
+             V5 was correct all along. The benchmark was a tropical
+             leak in the deprecated v4 engine.
+
+          3) DEFENSIVE PATCH: V4 TROPICAL LEAK
+             ----------------------------------------------------------------
+             Updated `services/astrology_today_engine.get_current_transits`
+             to use canonical SIDM_USER (SVP=31.2836°, J2000):
+                swe.set_sid_mode(swe.SIDM_USER, 2451545.0, 31.2836)
+                swe.calc_ut(jd, pid, swe.FLG_SWIEPH | swe.FLG_SIDEREAL)
+             V4 endpoint now returns:
+                Saturn in Pisces at 8°,  Uranus in Aries at 29°,
+                Neptune in Pisces at 2°, Pluto in Capricorn at 4°.
+             Matches the canonical Mirror chart engine exactly.
+
+          4) FRONTEND COPY POLISH
+             ----------------------------------------------------------------
+             Removed the redundant `Action — ` / `Reflect — ` prefixes
+             when rendering the v5 `the_move` block. The action sentence
+             is already an action and the reflect sentence is already a
+             question, so the labels were noise.
+
+          5) REGRESSION CHECKLIST (all PASSED)
+             ----------------------------------------------------------------
+             A. Today screen
+                ✓ Full Moon visible (dominant_signal.type='full_moon')
+                ✓ Uranus / Neptune / Pluto consistent across narrative,
+                  technical block, and active transits
+                ✓ No "Uranus in Gemini" tropical bleed
+             B. Narrative
+                ✓ No `what_it_feels_like` key in payload
+                ✓ No "Wait 30-60 minutes" prescriptive phrasing
+                ✓ Move section is non-prescriptive {action, reflect}
+             C. API
+                ✓ /api/astrology/today/{user_id} returns v5 narrative
+                  + v5 proof payload
+                ✓ No v4-only fields (mirror_prompt / title / tip)
+                ✓ TS compiles with 0 errors in AstrologyTodayV4.tsx
+
+          6) FINAL ACCEPTANCE
+             ----------------------------------------------------------------
+             ✅ Today endpoint fully powered by v5
+             ✅ No tropical/sidereal mixing anywhere
+             ✅ Outer planet signs match canonical sidereal engine
+             ✅ Narrative aligned with v5 Mirror Language
+             ✅ Frontend renders without errors (npx tsc clean)
+             ✅ No regressions in other lenses (snapshot still 200,
+                chart still 200, transit-debug still 200)
+
+          Backend restarted (supervisorctl restart backend), Expo
+          restarted (supervisorctl restart expo). V5 default live +
+          sidereal integrity confirmed.
+

@@ -11862,125 +11862,18 @@ Rising in {placements['rising_sign']}: Approach to new situations
 @api_router.get("/astrology/today/{user_id}")
 async def get_astrology_today(user_id: str):
     """
-    Generate Today's Snapshot - daily-first astrology timing lens.
-    2-3 themes max, optional "On the horizon" if major alignment within 7 days.
-    
-    Auto-migrates old chart formats before serving data.
-    """
-    import json as json_module
-    
-    try:
-        if not EMERGENT_LLM_KEY:
-            raise HTTPException(status_code=500, detail="AI service not configured")
-        
-        # =====================================================================
-        # AUTO-MIGRATION: Check and migrate old chart formats
-        # =====================================================================
-        migration_performed, migration_status, migrated_chart = await check_and_migrate_astrology_chart(user_id)
-        if migration_performed:
-            logger.info(f"[ASTRO_TODAY] Auto-migrated chart for user {user_id}: {migration_status}")
-        
-        user, chart = await get_user_astrology_data(user_id)
-        placements = extract_astrology_placements(chart)
-        
-        today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        
-        # Build natal context (compact)
-        natal_context = f"""
-Sun: {placements['sun_sign']} (house {placements['sun_house']})
-Moon: {placements['moon_sign']} (house {placements['moon_house']})
-Rising: {placements['rising_sign']}
-"""
-        
-        # Build transit context (simplified symbolic weather)
-        # In production, this would come from ephemeris calculations
-        transit_context = """
-Current planetary emphasis: general themes of reflection and recalibration.
-No major outer planet transits requiring special attention.
-General atmosphere: supportive of inward focus.
-"""
-        
-        # Build full prompt
-        system_prompt = ASTROLOGY_GLOBAL_PROMPT + "\n\n" + ASTROLOGY_TODAY_PROMPT.format(
-            today_date=today_date,
-            natal_context=natal_context,
-            transit_context=transit_context
-        )
-        
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"astro_today_{user_id}_{today_date}",
-            system_message=system_prompt
-        )
-        chat.with_model("openai", get_primary_model())
-        # Fail-fast LLM config for OpenAI 502 outage resilience (Feb 2026)
-        try:
-            chat.with_params(
-                timeout=18,
-                request_timeout=18,
-                num_retries=0,
-                max_retries=0,  # OpenAI SDK-level retries off
-            )
-        except Exception:
-            pass
+    Astrology Today — canonical endpoint.
 
-        message = UserMessage(text="Generate Today's Snapshot. Return ONLY valid JSON.")
-        try:
-            # asyncio-level deadline so the endpoint returns within 20s even
-            # when OpenAI/Emergent proxy is hanging (Feb 2026 502 outage).
-            import asyncio as _asyncio
-            response_text = await _asyncio.wait_for(chat.send_message(message), timeout=20)
-        except Exception as llm_err:
-            logger.warning(f"[AstroSummary] LLM failed, returning minimal fallback: {type(llm_err).__name__}")
-            # Deterministic minimal fallback so the UI renders something instead of hanging
-            return {
-                "success": True,
-                "title": "Today's sky is active",
-                "snapshot": (
-                    f"The symbolic weather is present today with {placements['sun_sign']} Sun and "
-                    f"{placements['moon_sign']} Moon in the foreground. The narrative engine is "
-                    f"temporarily unavailable — try again in a minute."
-                ),
-                "key_themes": ["Reflection", "Calibration"],
-                "tip": "Small, grounded steps today. The deeper reading will return shortly.",
-                "llm_fallback": True,
-            }
-        
-        # Parse JSON response
-        try:
-            clean_response = response_text.strip()
-            if clean_response.startswith("```"):
-                lines = clean_response.split("\n")
-                clean_response = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
-            
-            result = json_module.loads(clean_response)
-            
-            # Apply guardrails
-            for section in result.get("sections", []):
-                section["body"] = apply_astrology_guardrails(section["body"])
-            
-            result["mirror_prompt"] = apply_astrology_guardrails(result.get("mirror_prompt", ""))
-            result["date"] = today_date
-            
-            return result
-            
-        except json_module.JSONDecodeError as e:
-            logger.error(f"Failed to parse astrology today JSON: {e}")
-            return {
-                "title": "Today's Snapshot",
-                "date": today_date,
-                "sections": [
-                    {"label": "Today's Quality", "body": "A day that may invite quiet attention to what's already present."},
-                    {"label": "What You May Notice", "body": "Patterns of perception that feel familiar, moments that ask for patience."}
-                ],
-                "mirror_prompt": "What quality does today seem to carry for you?"
-            }
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Astrology today error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    SINGLE SOURCE OF TRUTH: V5 (Transit Dominance Engine, True Sidereal,
+    SVP=31.2836° / J2000 / no precession). All v1-v4 implementations are
+    deprecated. This endpoint now delegates fully to V5 — same caching
+    (6h), same response shape, same Mirror-Language narrative, no
+    fallback to v4.
+
+    See `/api/astrology/today-v5/{user_id}` for the canonical
+    implementation.
+    """
+    return await get_astrology_today_v5(user_id)
 
 
 @api_router.get("/astrology/today-v2/{user_id}")
