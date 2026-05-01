@@ -14020,3 +14020,87 @@ agent_communication:
           restarted (supervisorctl restart expo). V5 default live +
           sidereal integrity confirmed.
 
+  - task: "Home V6 — Today-powered, signal-first, non-generic"
+    implemented: true
+    working: true
+    file: "backend/services/home_insight_v6.py (NEW), backend/server.py (GET /api/home-insight-v6/{user_id}), frontend/components/HomeInsightV6Card.tsx (NEW), frontend/app/(tabs)/index.tsx (Position 1 swap V5→V6)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Built Home V6 anchored on Astrology Today V5's dominant
+          signal. Five fixed sections per the brief:
+            1. THE CALL          – 1-2 line hero hook + tension line
+            2. THE REALITY       – short paragraph, behavioral
+            3. WHERE THIS LANDS  – house arenas in plain language
+            4. THE EDGE          – non-prescriptive trajectory shift
+            5. CTA               – "→ See what's driving this today"
+          CTA pushes user into the Astrology lens (Today screen).
+
+          Variation system
+          ----------------
+          When V5 `signature_hash` matches the previously-served Home
+          V6, the server rotates the entry angle through
+          (`call` → `reality` → `edge` → `call`...) so the same
+          underlying signal produces a freshly-framed Home read instead
+          of repeating. State persisted in `db.home_v6_state`.
+
+          Verification with Pete:
+            CALL #1 → angle=reality, CALL="You're torn between diving
+                      in and holding back…"
+            CALL #2 → angle=edge,    CALL="It's as if you're pulled in
+                      multiple directions…"
+            CALL #3 → angle=call,    CALL="You're itching to take a
+                      stand — but why doesn't it all fit neatly?"
+          Same signature_hash, different angle anchor each time.
+
+          Comparison with Today V5 (acceptance criterion: "same
+          truth, different angle, NOT duplicated"):
+            Today CORE: "You feel pushed to act — but your read of the
+                        situation isn't fully clean."
+            Home  CALL: "You're torn between diving in and holding
+                        back — it's like trying to dance with
+                        conflicting music tracks."
+          Same psychological tension, zoomed-out framing on Home.
+          No verbatim duplication.
+
+          Mirror Language compliance verified:
+            ✓ No "energy" / "alignment" / "vibe" / "manifest" / "shadow"
+              jargon
+            ✓ No prescriptive moves (no "wait 30 minutes", no
+              instructional advice)
+            ✓ Behavior-grounded (the_reality describes what the user is
+              actually doing — replying, deciding, acting)
+            ✓ Tension framing (call lines all use "but / yet" pivots)
+            ✓ Non-generic (changes with rotation; differs from V5 prose)
+
+          Future hooks left empty in payload.future_layers:
+            - pattern_memory
+            - relationship
+            - human_design_timing
+            - bazi
+          (Per spec: do NOT implement yet, but leave extension points.)
+
+          API surface
+          -----------
+          GET /api/home-insight-v6/{user_id}  →
+            {
+              version: "v6",
+              signature_hash, angle,
+              today_signal: {label, type, intensity, conflict},
+              the_call, the_reality, where_this_lands[], the_edge, cta,
+              proof: {dominant_signal, intensity, signal_conflict, house_clusters},
+              future_layers: {pattern_memory, relationship, human_design_timing, bazi},
+              generated_at, success
+            }
+
+          Frontend
+          --------
+          New component HomeInsightV6Card.tsx mounted at Home tab
+          Position 1 (replaced HomeInsightV5Card). CTA navigates to
+          /lenses/astrology. Loading + error + retry states.
+          TS clean.
+

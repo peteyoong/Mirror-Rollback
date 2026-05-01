@@ -26,6 +26,7 @@ import DebugComputeInputs from '../../components/DebugComputeInputs';
 import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCard';
 import HomeSynthesisCard from '../../components/HomeSynthesisCard';
 import HomeInsightV5Card from '../../components/HomeInsightV5Card';
+import HomeInsightV6Card from '../../components/HomeInsightV6Card';
 import WhyThisIsActiveNowCard from '../../components/WhyThisIsActiveNowCard';
 import ActionCard from '../../components/ActionCard';
 import { useExperienceControls } from '../../hooks/useExperienceControls';
@@ -416,18 +417,19 @@ export default function MirrorScreen() {
             =================================================================== */}
         
         {/* ===================================================================
-            POSITION 1: TODAY'S TENSION (Always first - primary card)
-            V6.0: TensionCard - Real-Time Tension Engine
-            Mirror is NOT a lens aggregator. Mirror is a TENSION ENGINE.
-            
-            HomeSynthesisCard kept as silent fallback if TensionCard fails.
+            POSITION 1: HOME V6 (Today-powered, signal-first)
+            Anchored on the V5 Astrology Today dominant signal.
+            5 sections: Call → Reality → Where This Lands → Edge → CTA.
+            CTA pushes user into the Astrology lens (Today screen).
+
+            HomeInsightV5Card kept as silent fallback for now (commented out).
             =================================================================== */}
         {user?.id && (
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-            <HomeInsightV5Card 
-              userId={user.id} 
+            <HomeInsightV6Card
+              userId={user.id}
               theme={theme}
-              onReflect={(question) => router.push('/reflection-chat')}
+              onCtaTap={() => router.push('/lenses/astrology')}
             />
           </View>
         )}

@@ -14512,6 +14512,26 @@ async def get_home_insight_v4(user_id: str):
 # =============================================================================
 # V5.0: HOME INSIGHT - PATTERN ENGINE FINAL FORM
 # =============================================================================
+# =============================================================================
+# V6.0: HOME INSIGHT — Today-Powered, Signal-First, Non-Generic
+# =============================================================================
+# Anchored on the V5 Astrology Today dominant signal.  Renders the same
+# truth as Today but from a zoomed-out, life-level angle.  Five fixed
+# sections (the_call / the_reality / where_this_lands / the_edge / cta)
+# and a signature_hash-based angle rotation that prevents the "same
+# message every day" feeling when sky-state hasn't changed.
+@api_router.get("/home-insight-v6/{user_id}")
+async def get_home_insight_v6(user_id: str) -> Dict[str, Any]:
+    try:
+        from services.home_insight_v6 import build_home_v6_payload
+        payload = await build_home_v6_payload(db, user_id)
+        return payload
+    except Exception as e:
+        logger.exception("[HomeV6] failed for %s: %s", user_id, e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @api_router.get("/home-insight-v5/{user_id}")
 async def get_home_insight_v5(user_id: str):
     """
