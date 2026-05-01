@@ -13453,3 +13453,160 @@ agent_communication:
           mobile preview) is pending user approval — main agent will
           NOT invoke expo_frontend_testing_agent without it.
 
+
+  - task: "Astrology Today Transit Dominance Engine (v5) — P0 → P4"
+    implemented: true
+    working: true
+    file: "backend/services/transit_dominance_engine.py (new), backend/services/astrology_today_v5.py (new), backend/server.py (2 new endpoints), backend/tests/test_transit_dominance_engine.py (new)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Rebuilt the Today astrology pipeline so the daily reflection
+          is genuinely time-aware and no longer repeats. Shipped as
+          /today-v5 — flip-to-default scheduled next session after
+          review (P0–P4 backend complete; P5 frontend accordion
+          parked).
+
+          New module 1: services/transit_dominance_engine.py
+          ---------------------------------------------------
+          Deterministic pipeline, ZERO LLM. Public surface:
+            - get_sky_state(dt) — True Sidereal positions for all 10
+              major bodies + retrograde flag.
+            - compute_moon_phase(dt) — Sun-Moon angle, phase bucket,
+              nearest Full AND New Moon times with hours_offset +
+              within_48h / within_7d flags. Uses a bisection search
+              with discontinuity-aware filtering so New Moon and Full
+              Moon don't collapse to the same time (bug found +
+              fixed during build).
+            - detect_ingresses(dt) — tiered windows by planet speed:
+                outers ±14d, heavy (Saturn/Jupiter) ±7d,
+                personals ±3d, Moon ±2d, Sun ±3d. Bisects to ≤1h
+                precision for each detected sign change.
+            - compute_transit_natal_aspects(sky, natal, dt) — tight
+              orb budget per user spec (conj/opp 3°, trine/square 2°,
+              sextile 1° for STRONG; ≤0.5° for TIGHT tier 1).
+              Applying/separating flagged by resampling at dt+1d.
+            - compute_house_activations(sky, chart_doc) — uses stored
+              natal cusps to count transits per house and flag ≥3
+              clusters.
+            - classify_signals(...) — single ranker producing:
+                TIER 1 OVERRIDE: Full/New Moon ±48h, outer-planet
+                  ingress ±14d, heavy-planet ingress ±7d, tight aspect
+                  ≤0.5°, Moon conj/opp natal luminaries ≤1°.
+                TIER 2 STRONG: Moon sign change, personal ingress ±3d,
+                  strong aspects ≤1.5°, 3+ bodies in one sign,
+                  3+ bodies in one house.
+                TIER 3 BACKGROUND: wide aspects >1.5°.
+            - compute_signature_hash() — blake2b 12-char hash derived
+              from dominant signal type + identity-defining fields +
+              top Tier 2 type. Stable across the same dominance; flips
+              when dominance changes.
+            - build_dominance_payload() — orchestrator returning
+              everything above + `signature_changed` flag vs
+              prior_day_payload.
+            - build_debug_payload() — adds a 7-day sky preview.
+
+          New module 2: services/astrology_today_v5.py
+          --------------------------------------------
+          HYBRID interpreter per user's P3 choice:
+            - PARAGRAPH 1 (headline): DETERMINISTIC template selected
+              by dominant_signal.type. 12 canonical templates
+              + 12 continuity variants. All user-facing sentences are
+              astrology-jargon-free.
+            - PARAGRAPHS 2-4 (where-it-lands / pattern-trigger /
+              watch-for): LLM call (gpt-4o) with a strict style
+              prompt that bans planets, signs, houses, aspects,
+              transits, decans, degrees, moon-phase names
+              ('full moon'/'new moon'/'waxing'/'waning'),
+              'culmination', 'retrograde', 'vibes', 'cosmic'. LLM
+              receives the dominant type + house hint + domain hint
+              + secondary labels — NOT asked to rank or recompute.
+            - Graceful LLM-failure fallback: deterministic sentences
+              for p2-p4 too, so the endpoint NEVER returns an empty
+              body.
+            - Proof payload `why_this_is_showing_up`: structured
+              dominant + secondary + background + moon_phase +
+              tight_aspect_count + intensity. Ready to drive the
+              planned P5 frontend accordion.
+
+          Endpoints (new)
+          ---------------
+            • GET /api/astrology/today-debug/{user_id}
+              Sub-30ms structured dump: sky, phase, ingresses (with
+              from_sign / to_sign / days_offset), full aspect list
+              (orb + applying/separating + natal_house), house
+              activations, ranking, signature_hash, why line, plus
+              a 7-day preview.
+            • GET /api/astrology/today-v5/{user_id}
+              The user-facing payload: headline + 4-paragraph body +
+              paragraphs{} + proof + dominant + intensity +
+              signature + continuity.
+              Persists to Mongo db.daily_astrology keyed on
+              (user_id, date) for continuity reasoning. Returns
+              cached payload when < 6h old.
+
+          Live verification — Pete (697f0c6abf35c0528ff06954)
+          ---------------------------------------------------
+          Today-debug (0.03s):
+            intensity: high
+            dominant: full_moon (Full Moon in 12.3h)
+            moon_phase: Full Moon @ 174.2°
+              nearest_full_moon.within_48h = True
+              nearest_new_moon.hours_offset = −329h (last new moon
+                ~13.7d ago — correct)
+            ingresses: Mercury Pisces→Aries in 2.8d; Moon Virgo→Libra
+              at −0.3d (just happened)
+            transit_natal_aspects: 15 total, 1 tight (Uranus sextile
+              natal Chiron orb=0.498° applying=True house=3).
+              Additional Tier 2 aspects include Jupiter square natal
+              North Node (0.547°) and Mars conjunction natal Saturn
+              (0.902°).
+            signature_hash: 1d2369d840b3
+            why: "The Full Moon is within 48 hours — culmination
+                  energy dominates."
+
+          Today-v5 (3.2s — LLM call):
+            headline: "This is not a subtle day. Something that has
+                      been building is reaching its visible moment —
+                      whatever you can see clearly now is what this
+                      window is for."
+            where_it_lands: mentions communication + relationships +
+                            professional settings (reflects Pete's
+                            3rd-house Sun + 8th-house Jupiter).
+            pattern_trigger: "impulsivity coupled with a desire to
+                            change the status quo may create tension
+                            or missteps, especially in communication"
+            watch_for: "Notice if you find yourself repeatedly
+                        rephrasing messages or feeling uneasy until
+                        you hit 'send' on an email or text."
+            llm_used: True  continuity: False  signature_changed: <prior-payload-absent>
+          No astrology jargon leaked into user-facing body text.
+
+          Acceptance tests (8 PASS, 0.02s)
+          --------------------------------
+          tests/test_transit_dominance_engine.py::
+            ✓ Full Moon within ±48h → Tier 1 dominant
+            ✓ Uranus ingress within ±14d → outer_ingress dominant
+            ✓ Tight aspect ≤0.5° outranks sign cluster
+            ✓ Moon sign change today → Tier 2 with no Tier 1
+            ✓ signature_hash stable when dominance unchanged;
+              flips when dominance changes
+            ✓ No major signal → intensity=low, empty dominant,
+              well-formed payload still emitted
+            ✓ Wide aspect (>1.5°) dominates when no better signal
+            ✓ why_today_is_different names the dominant event
+
+          What's still pending
+          --------------------
+          - P5 frontend proof accordion ("Why this is showing up")
+            consuming the `why_this_is_showing_up` field — parked
+            for user UX decisions (which Today screen/tab consumes
+            it; design pattern; where to place "proof" toggle).
+          - Flip-default: making /today-v5 the canonical
+            /api/astrology/today route pending user review of
+            live output.
+

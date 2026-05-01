@@ -34230,6 +34230,111 @@ try:
 except Exception as _spe:  # noqa: BLE001
     logger.warning("[Startup] failed to mount saved_people router: %s", _spe)
 
+
+# ---------------------------------------------------------------------------
+# Astrology Today v5 — transit-dominance-driven daily engine
+# ---------------------------------------------------------------------------
+#
+# Two endpoints:
+#   GET /api/astrology/today-debug/{user_id}  — verbose structured dump
+#                                               (sky, phase, ingresses,
+#                                                aspects, houses, ranking).
+#   GET /api/astrology/today-v5/{user_id}     — the new user-facing payload:
+#                                               deterministic diagnosis +
+#                                               LLM paragraphs 2-4, plus a
+#                                               proof payload for the UI
+#                                               accordion "Why this is
+#                                               showing up".
+#
+# Continuity: prior day's payload is looked up in db.daily_astrology by
+# (user_id, prior_date) and its signature_hash is compared against
+# today's. When they match the interpretation uses continuity phrasing.
+#
+# Storage: after each successful today-v5 call, the payload is upserted
+# into db.daily_astrology keyed on (user_id, date).
+
+@api_router.get("/astrology/today-debug/{user_id}")
+async def get_astrology_today_debug(user_id: str) -> Dict[str, Any]:
+    """Verbose structured debug output of the transit dominance engine."""
+    try:
+        from services.transit_dominance_engine import build_debug_payload
+        chart = await db.charts.find_one({"user_id": user_id})
+        return build_debug_payload(user_id, chart_doc=chart)
+    except Exception as e:
+        logger.exception("[Astro/today-debug] failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/astrology/today-v5/{user_id}")
+async def get_astrology_today_v5(user_id: str) -> Dict[str, Any]:
+    """Today's astrology reflection, built on the transit-dominance engine.
+    Uses a deterministic diagnosis sentence + LLM paragraphs 2-4. Stores
+    the result for continuity-aware next-day generation."""
+    try:
+        from datetime import datetime as _dt
+        from services.astrology_today_v5 import build_today_v5_payload
+
+        chart = await db.charts.find_one({"user_id": user_id})
+
+        now = _dt.now(timezone.utc)
+        today_str = now.strftime("%Y-%m-%d")
+        yesterday_str = (now - timedelta(days=1)).strftime("%Y-%m-%d")
+
+        # Prior day payload for continuity/signature comparison
+        prior = await db.daily_astrology.find_one(
+            {"user_id": user_id, "date": yesterday_str},
+        )
+        prior_payload = None
+        if prior:
+            prior_payload = {
+                "signature_hash": prior.get("signature_hash"),
+                "sky":            prior.get("sky"),
+            }
+
+        # If today was already generated in the last 6 hours, return cache
+        cached = await db.daily_astrology.find_one(
+            {"user_id": user_id, "date": today_str},
+        )
+        if cached and cached.get("generated_at"):
+            age = (now - cached["generated_at"]).total_seconds() if isinstance(cached["generated_at"], _dt) else 9999
+            if age < 6 * 3600:
+                cached.pop("_id", None)
+                cached["from_cache"] = True
+                return cached
+
+        payload = await build_today_v5_payload(
+            user_id=user_id,
+            chart_doc=chart,
+            prior_day_payload=prior_payload,
+        )
+
+        # Store for tomorrow's continuity pass
+        store = {
+            **payload,
+            "generated_at": now,
+            # Persist the sky snapshot too — tomorrow's prior-Moon-sign
+            # detection uses it.
+            "sky": (
+                __import__("services.transit_dominance_engine", fromlist=["get_sky_state"])
+                .get_sky_state(now)
+            ),
+        }
+        await db.daily_astrology.update_one(
+            {"user_id": user_id, "date": today_str},
+            {"$set": store},
+            upsert=True,
+        )
+        store.pop("_id", None)
+        store["from_cache"] = False
+        # Convert datetime field back to iso for JSON
+        if isinstance(store.get("generated_at"), _dt):
+            store["generated_at"] = store["generated_at"].isoformat()
+        return store
+    except Exception as e:
+        logger.exception("[Astro/today-v5] failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 app.include_router(api_router)
 
 
