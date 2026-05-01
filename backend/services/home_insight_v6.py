@@ -147,7 +147,7 @@ async def build_home_v6_payload(
 
     # 5) Cache + return
     payload = {
-        "version":             "v6",
+        "version":             "v6.1",
         "user_id":             user_id,
         "date":                today_str,
         "signature_hash":      sig_hash,
@@ -164,10 +164,12 @@ async def build_home_v6_payload(
             "signal_conflict": bool(v5.get("signal_conflict")),
             "house_clusters":  house_acts.get("clusters", []),
         },
+        # Pattern Memory layer (v6.1) — only renders on the frontend when
+        # `available` is True AND `confidence == "high"`. Fully optional.
+        "pattern_memory":      await _resolve_pattern_memory(db, user_id, v5),
         # Future hooks — explicitly empty placeholders so the contract is
         # stable when later layers light up.
         "future_layers": {
-            "pattern_memory":      None,
             "relationship":        None,
             "human_design_timing": None,
             "bazi":                None,
@@ -289,43 +291,87 @@ def _format_house_arena_lines(house_acts: Dict[str, Any]) -> List[str]:
 
 _SYSTEM_PROMPT = """You write the HOME card for an app called Mirror.
 
-Your job is to create a *zoomed-out* mirror of the user's most important
-psychological tension RIGHT NOW, anchored on the dominant astrological
-signal you'll be given — but you are NOT writing astrology and you are
-NOT echoing the Today narrative verbatim.
+Your job is to mirror the user's most important psychological tension
+RIGHT NOW, anchored on the dominant astrological signal you'll be
+given — but you are NOT writing astrology and you are NOT echoing
+the Today narrative verbatim.
 
-Mirror Language rules — these are HARD constraints:
-1. Tension framing. Use structures like "You feel pushed to act —
-   but your read of it isn't fully clean." Never motivational, never
-   abstract.
-2. NO jargon. Banned words: "energy", "alignment", "vibe", "frequency",
-   "manifest", "flow", "block", "shadow", anything astrological.
-3. Be grounded in BEHAVIOR. Say what the person is actually doing or
-   about to do. Not what they're "feeling".
-4. Slightly confronting but never harsh. The card should make a person
-   think "Yeah… that's exactly what's happening."
-5. Be SPECIFIC. Vague is the enemy.
-6. The MOVE is non-prescriptive. No "wait 30 minutes", no advice. State
-   the *trajectory shift* available — what to see more clearly before
-   committing.
-7. Same truth as Today, different angle. Do NOT copy any sentence from
-   the Today payload you'll be given. Reframe it from a higher altitude.
+Mirror Language rules — these are HARD constraints. Violations are
+rejected.
+
+LANGUAGE STYLE
+1. Blunt. Concrete. Behavioral.
+2. NO metaphors. Banned phrasings:
+   - "whirlwind", "dancing with", "hazy landscape", "fog of",
+     "cobbling together", "quell the discomfort", "swirl of",
+     "tides of", "winds of", "tapestry", "kaleidoscope", anything
+     poetic.
+3. NO jargon. Banned words: "energy", "alignment", "vibe",
+   "frequency", "manifest", "flow", "block", "shadow", "tension is
+   real" (cliché), anything astrological.
+4. NO coaching tone. Banned moves: "Pause to assess", "Consider",
+   "Try", "You should", "Take a breath", "Step back and ask
+   yourself".
+5. Slightly confronting but NEVER harsh. The card should make a
+   person think "Yeah… that's exactly what's happening."
+
+SECTION FORMAT (HARD)
+
+THE_CALL  (max 2 short lines)
+  Format must be: "You're [behavior] — but [truth underneath]."
+  Example shapes:
+    - "You're moving fast — but your read of the situation is not
+      clean yet."
+    - "You're trying to close the loop — but something still doesn't
+      add up."
+    - "You're ready to act — but the signal isn't clean enough to
+      trust fully."
+
+THE_REALITY  (max 2 short sentences, plain)
+  Describe the actual behavior — replying, deciding, pushing, settling
+  — and name the gap underneath it. No imagery. No coaching.
+  Example shape:
+    "You may be replying, deciding, or pushing something forward just
+    to reduce pressure. But some of the pieces still need a second
+    look."
+
+WHERE_THIS_LANDS
+  An ARRAY of 2-3 short plain-life domain lines. NEVER reuse the
+  exact wording from the input — produce concise plain-life arenas.
+  Allowed phrasings include: "Communication and decisions",
+  "Home and personal environment", "Creative expression",
+  "Work and daily rhythm", "Relationships", "Money and security".
+
+THE_EDGE  (1-2 sentences, observational only)
+  MUST be observational, not advisory. Banned: "Pause", "Consider",
+  "Try", "You should", "Step back". Use shapes like:
+    - "The tension isn't only in the situation — part of it is in how
+      quickly you're reading it."
+    - "The danger isn't movement. It's moving before the picture is
+      clear."
+    - "The risk isn't in acting. It's in acting without a second
+      look."
+
+CTA
+  Always: "→ See what's driving this today"
 
 Output: STRICT JSON, no markdown, no commentary, exactly these keys:
 {
-  "the_call":         "1-2 sentence hero. Hook + tension line.",
-  "the_reality":      "Short paragraph (2-4 sentences). What's actually happening behaviorally — pressure mixed with incomplete information / contradictory pulls / urgency that doesn't match the data.",
-  "where_this_lands": ["short", "plain-language", "life-area lines (max 3)"],
-  "the_edge":         "The move. 1-2 sentences. Non-prescriptive trajectory shift.",
+  "the_call":         "...",
+  "the_reality":      "...",
+  "where_this_lands": ["...", "...", "..."],
+  "the_edge":         "...",
   "cta":              "→ See what's driving this today"
 }
 
 The "angle" you'll be told to use determines which section anchors
 strongest:
-- call    → lead with a sharp hook on the dominant tension
+- call    → lead with a sharper hook on the dominant tension
 - reality → lead with the behavioral mechanics underneath
-- edge    → lead with the trajectory shift
-The other sections still render but the chosen angle is the loudest."""
+- edge    → lead with the observational truth about HOW the user is reading the situation
+
+The other sections still render but the chosen angle is the loudest
+voice."""
 
 
 def _build_user_prompt(
@@ -473,3 +519,173 @@ def _deterministic_fallback(
         "the_edge":         edge,
         "cta":              "→ See what's driving this today",
     }
+
+
+
+# ---------------------------------------------------------------------------
+# Pattern Memory layer (v6.1)
+# ---------------------------------------------------------------------------
+# Light, deterministic — looks across `db.pattern_memory` and
+# `db.reflections` (last 30 days) for recurrence of today's tension.
+# Only returns `available=True, confidence="high"` when at least one
+# of these holds:
+#   * Same `tension_hash` appeared 2+ times in the last 30 days.
+#   * Same `primary_tension` text appeared 2+ times in the last 30 days.
+#   * A reflection in the last 30 days mentions the same theme keywords
+#     as today's dominant signal.
+#
+# The summary line is built from a curated set of safe, non-overclaiming
+# phrasings — never echoes raw private journal text, never says
+# "you always", never diagnoses.
+
+_SAFE_RECURRENCE_LINES = (
+    "This has shown up before when uncertainty feels hard to sit with.",
+    "A recent reflection points to a similar pattern.",
+    "There's a familiar move here: trying to regain control by moving faster.",
+    "This is not the first time pressure has made speed feel necessary.",
+    "There's a similar shape from a recent stretch — pushing to settle "
+    "something before it's fully clear.",
+)
+
+
+def _theme_for_signal(v5: Dict[str, Any]) -> str:
+    """Compact internal label for the dominant signal's theme."""
+    ds = v5.get("dominant_signal") or {}
+    t = (ds.get("type") or "").lower()
+    if "full_moon" in t:
+        return "speed_under_uncertainty"
+    if "new_moon" in t:
+        return "premature_initiation"
+    if "ingress" in t:
+        return "shift_in_focus"
+    if "tight_aspect" in t:
+        return "tight_pressure"
+    if v5.get("signal_conflict"):
+        return "competing_pulls"
+    return "background_pattern"
+
+
+def _summary_for_theme(theme: str, count: int) -> str:
+    """Pick a safe summary line. Deterministic by theme + count parity
+    so the line stays stable across cache reads but varies per user
+    over time."""
+    if theme in ("speed_under_uncertainty", "premature_initiation",
+                 "tight_pressure"):
+        idx = (count + 0) % len(_SAFE_RECURRENCE_LINES)
+    elif theme == "competing_pulls":
+        idx = (count + 1) % len(_SAFE_RECURRENCE_LINES)
+    else:
+        idx = (count + 2) % len(_SAFE_RECURRENCE_LINES)
+    return _SAFE_RECURRENCE_LINES[idx]
+
+
+async def _resolve_pattern_memory(
+    db, user_id: str, v5: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Detect light recurrence and return a safe Mirror Remembers block.
+
+    Output contract:
+        available=True, confidence="high"  → render
+        available=False                    → hide
+    """
+    try:
+        from datetime import timedelta
+        cutoff_dt  = datetime.now(timezone.utc) - timedelta(days=30)
+        cutoff_iso = cutoff_dt.isoformat()
+        # Some legacy docs store `stored_at` as a string (ISO) instead of
+        # a datetime — the cutoff condition supports both shapes via $or.
+        cutoff_q = {"$or": [
+            {"stored_at": {"$gte": cutoff_dt}},
+            {"stored_at": {"$gte": cutoff_iso}},
+            {"date":      {"$gte": cutoff_dt.strftime("%Y-%m-%d")}},
+        ]}
+
+        # 1) Same tension_hash count in last 30 days (highest signal)
+        try:
+            today_pm = await db.pattern_memory.find_one(
+                {"user_id": user_id},
+                sort=[("stored_at", -1)],
+            )
+        except Exception:
+            today_pm = None
+
+        target_hash = (today_pm or {}).get("tension_hash") if today_pm else None
+        target_tension = (today_pm or {}).get("primary_tension") if today_pm else None
+
+        same_hash_count = 0
+        same_tension_count = 0
+        try:
+            if target_hash:
+                same_hash_count = await db.pattern_memory.count_documents({
+                    "$and": [
+                        {"user_id":      user_id},
+                        {"tension_hash": target_hash},
+                        cutoff_q,
+                    ],
+                })
+            if target_tension:
+                same_tension_count = await db.pattern_memory.count_documents({
+                    "$and": [
+                        {"user_id":         user_id},
+                        {"primary_tension": target_tension},
+                        cutoff_q,
+                    ],
+                })
+        except Exception as e:
+            logger.warning("[HomeV6/PM] count failed: %s", e)
+
+        # 2) Reflection mentions in last 30 days (handle both date types)
+        recent_reflection_count = 0
+        try:
+            recent_reflection_count = await db.reflections.count_documents({
+                "$and": [
+                    {"user_id": user_id},
+                    {"$or": [
+                        {"created_at": {"$gte": cutoff_dt}},
+                        {"created_at": {"$gte": cutoff_iso}},
+                    ]},
+                ],
+            })
+        except Exception:
+            pass
+
+        theme = _theme_for_signal(v5)
+
+        # Decide: high-confidence recurrence?
+        if same_hash_count >= 2:
+            return {
+                "available":     True,
+                "confidence":    "high",
+                "theme":         theme,
+                "summary":       _summary_for_theme(theme, same_hash_count),
+                "source_type":   "pattern_memory_hash",
+                "source_count":  int(same_hash_count),
+            }
+        if same_tension_count >= 2:
+            return {
+                "available":     True,
+                "confidence":    "high",
+                "theme":         theme,
+                "summary":       _summary_for_theme(theme, same_tension_count),
+                "source_type":   "pattern_memory_tension",
+                "source_count":  int(same_tension_count),
+            }
+        if recent_reflection_count >= 2 and (same_hash_count >= 1 or same_tension_count >= 1):
+            # Mixed evidence: pattern_memory hit once + reflections present
+            count = max(same_hash_count, same_tension_count) + recent_reflection_count
+            return {
+                "available":     True,
+                "confidence":    "high",
+                "theme":         theme,
+                "summary":       _summary_for_theme(theme, count),
+                "source_type":   "reflection_plus_pattern",
+                "source_count":  int(count),
+            }
+
+        return {
+            "available":  False,
+            "confidence": "low",
+        }
+    except Exception as e:
+        logger.warning("[HomeV6/PM] resolution failed: %s", e)
+        return {"available": False, "confidence": "low"}

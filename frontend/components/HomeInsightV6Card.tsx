@@ -49,6 +49,15 @@ interface TodaySignal {
   conflict?: boolean;
 }
 
+interface PatternMemoryBlock {
+  available?: boolean;
+  confidence?: 'low' | 'high' | string;
+  theme?: string | null;
+  summary?: string | null;
+  source_type?: string | null;
+  source_count?: number;
+}
+
 interface HomeV6Payload {
   success?: boolean;
   version?: string;
@@ -61,6 +70,7 @@ interface HomeV6Payload {
   where_this_lands: string[];
   the_edge: string;
   cta?: string;
+  pattern_memory?: PatternMemoryBlock;
   proof?: {
     dominant_signal?: string | null;
     intensity?: string | null;
@@ -263,6 +273,39 @@ const HomeInsightV6Card: React.FC<HomeV6CardProps> = ({
         </View>
       ) : null}
 
+      {/* SECTION 4b — MIRROR REMEMBERS (light Pattern Memory layer) */}
+      {/* Renders only when high-confidence recurrence is detected. */}
+      {/* Subtle, smaller than the hero, never overclaims, never quotes */}
+      {/* private journal text — only safe deterministic phrasings.    */}
+      {data.pattern_memory?.available && data.pattern_memory?.confidence === 'high' && data.pattern_memory?.summary ? (
+        <View
+          style={[
+            styles.memoryWrap,
+            {
+              borderColor: theme.border,
+              backgroundColor: theme.background,
+            },
+          ]}
+        >
+          <View style={styles.memoryHeader}>
+            <Ionicons
+              name="ellipse"
+              size={5}
+              color={theme.textTertiary}
+              style={{ marginRight: 6, opacity: 0.6 }}
+            />
+            <Text
+              style={[styles.memoryLabel, { color: theme.textTertiary }]}
+            >
+              MIRROR REMEMBERS
+            </Text>
+          </View>
+          <Text style={[styles.memoryText, { color: theme.textSecondary }]}>
+            {data.pattern_memory.summary}
+          </Text>
+        </View>
+      ) : null}
+
       {/* SECTION 5 — CTA */}
       <TouchableOpacity
         onPress={handleCta}
@@ -391,6 +434,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '500',
+  },
+
+  // SECTION 4b — MIRROR REMEMBERS (subtle, smaller than hero)
+  memoryWrap: {
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 18,
+  },
+  memoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  memoryLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+  },
+  memoryText: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+    opacity: 0.92,
   },
 
   // SECTION 5 — CTA

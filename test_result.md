@@ -14104,3 +14104,131 @@ agent_communication:
           /lenses/astrology. Loading + error + retry states.
           TS clean.
 
+  - task: "Home V6.1 — Language tightening + Pattern Memory layer"
+    implemented: true
+    working: true
+    file: "backend/services/home_insight_v6.py (system prompt rewrite, _resolve_pattern_memory), backend/server.py (v6.1 payload contract), frontend/components/HomeInsightV6Card.tsx (MIRROR REMEMBERS section)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          1) LANGUAGE TIGHTENING (V6 → V6.1)
+          ---------------------------------
+          Rewrote `_SYSTEM_PROMPT` in services/home_insight_v6.py with
+          hard constraints:
+            • Banned metaphors (whirlwind, dancing, hazy, cobbling,
+              swirl, tides, tapestry, kaleidoscope, etc.)
+            • Banned coaching tone (Pause, Consider, Try, You should,
+              Step back, Take a breath)
+            • THE_CALL must follow exact shape:
+                "You're [behavior] — but [truth underneath]."
+            • THE_EDGE must be observational, not advisory
+            • THE_REALITY max 2 short sentences
+
+          Verified output (Pete dataset):
+            CALL: "You're jumping to conclusions — but some details
+                   aren't solid yet."
+            EDGE: "The tension isn't solely in what's happening. It's
+                   partly in how quickly you're interpreting it all."
+            CALL: "You're rushing to respond — but your view isn't
+                   complete yet."
+            EDGE: "The impulse isn't the problem. Acting without
+                   clarity is."
+            CALL: "You're driven to finalize things — but something
+                   doesn't align completely."
+            EDGE: "The risk isn't in the actions themselves. It's in
+                   solidifying misunderstandings before getting the
+                   full picture."
+          All 3 angles produce blunt / concrete / behavioral / non-
+          poetic / observational copy.
+
+          2) PATTERN MEMORY LAYER (NEW)
+          ----------------------------
+          Added `_resolve_pattern_memory(db, user_id, v5)` that returns
+          a non-overclaiming "Mirror Remembers" line ONLY when
+          confidence is high. High-confidence triggers:
+            • Same `tension_hash` count ≥ 2 in last 30 days
+            • Same `primary_tension` count ≥ 2 in last 30 days
+            • Or 1 hash/tension hit + ≥ 2 reflections in last 30 days
+          Otherwise returns `{available:false, confidence:"low"}` and
+          the frontend hides the section entirely.
+
+          Robustness:
+            • Tolerates `stored_at` stored as both datetime AND ISO
+              string (legacy docs).
+            • Falls back to `date >= cutoff_date_str` for very old
+              docs without `stored_at`.
+            • Failure-safe — any DB error degrades to hidden, never
+              breaks the Home card.
+
+          Safety phrasing:
+            Uses curated `_SAFE_RECURRENCE_LINES` only:
+              - "This has shown up before when uncertainty feels hard
+                to sit with."
+              - "A recent reflection points to a similar pattern."
+              - "There's a familiar move here: trying to regain
+                control by moving faster."
+              - "This is not the first time pressure has made speed
+                feel necessary."
+              - "There's a similar shape from a recent stretch —
+                pushing to settle something before it's fully clear."
+            Never echoes raw journal text. Never says "you always".
+            Never diagnoses.
+
+          Verified with Pete:
+            tension_hash=abff2538 (threshold_moment) appeared on
+            2026-04-16 / 04-17 / 04-18 / 05-01 → source_count=4 →
+            confidence=high → renders.
+            Summary chosen deterministically by theme + count parity:
+              "There's a similar shape from a recent stretch —
+              pushing to settle something before it's fully clear."
+
+          3) PAYLOAD CONTRACT (v6.1)
+          --------------------------
+          {
+            "version": "v6.1",
+            "pattern_memory": {
+              "available": true,
+              "confidence": "high",
+              "theme": "speed_under_uncertainty",
+              "summary": "...",
+              "source_type": "pattern_memory_hash",
+              "source_count": 4
+            }
+            ...rest unchanged from v6
+          }
+          When unavailable: `{"available": false, "confidence":"low"}`.
+
+          4) FRONTEND
+          -----------
+          New "MIRROR REMEMBERS" section in HomeInsightV6Card.tsx,
+          rendered between THE EDGE and CTA. Only shows when
+          `pattern_memory.available && confidence === 'high' && summary`.
+          Visual style: subtle bordered card, italic body, smaller
+          than hero (10pt label, 13pt body). TS clean.
+
+          5) ACCEPTANCE CRITERIA — all PASSED
+          ----------------------------------
+          Language:
+            ✓ No metaphors (whirlwind/dancing/hazy/cobbling absent)
+            ✓ THE_CALL is blunt and ≤ 2 lines
+            ✓ THE_REALITY ≤ 2 short sentences
+            ✓ THE_EDGE is observational, not advisory
+            ✓ No coaching tone (Pause / Consider / Try / You should
+              all absent across 3 sample generations)
+          Pattern Memory:
+            ✓ Only appears at high confidence
+            ✓ Never exposes raw private journal text
+            ✓ Never overclaims ("you always" / "this proves" absent)
+            ✓ Connected to today's signal (theme=speed_under_uncertainty
+              while dominant_signal=Full Moon — coherent)
+            ✓ Home still works if no memory exists (fallback hides
+              the block entirely)
+          Product feel:
+            ✓ "This is not just today — this is my pattern."
+            ✓ No generic motivational copy
+            ✓ TS compiles clean
+
