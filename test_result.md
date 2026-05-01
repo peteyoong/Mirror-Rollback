@@ -14453,3 +14453,111 @@ agent_communication:
           Payload version bumped: v6.2 → v6.2.1.
           TS clean.
 
+  - task: "Home V6.3 — Timing Compression layer (Why Now)"
+    implemented: true
+    working: true
+    file: "backend/services/home_insight_v6.py (_resolve_timing_compression + 5 curated bucket libraries), frontend/components/HomeInsightV6Card.tsx (Section 2b — single subtle line between REALITY and WHERE)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Adds the felt sense of "this is happening for a reason
+          right now" without ever naming a planet, moon phase,
+          transit, or cycle.
+
+          BACKEND
+          -------
+          New deterministic resolver `_resolve_timing_compression(v5)`
+          maps the V5 dominant signal to one of 5 curated buckets:
+            • conflict      → "This moment is amplifying mixed
+                              signals, making it harder to trust
+                              your first read."
+            • lunation      → "This moment is intensifying things,
+                              making them feel more resolved or urgent
+                              than they fully are."
+            • ingress       → "Something is shifting underneath the
+                              surface, making your usual way of
+                              responding feel less stable."
+            • tight_aspect  → "The pressure right now is sharper than
+                              usual, which can push you to act faster
+                              than you normally would."
+            • high_generic  → fallback for high-intensity backgrounds
+                              without a specific category
+          When none apply (medium-intensity background pattern with no
+          specific category), returns `{available: false}` — line is
+          hidden.  No LLM, no jargon, deterministic, stable per
+          `signature_hash + bucket`.
+
+          PRIORITY ORDER (mutually exclusive)
+          ----------------------------------
+            signal_conflict → conflict
+            full/new moon   → lunation
+            ingress         → ingress
+            tight aspect    → tight_aspect
+            high intensity  → high_generic
+            otherwise       → hidden
+
+          PAYLOAD
+          -------
+          New top-level key:
+            timing_compression: {available, line, bucket}
+          (`bucket` is diagnostic only — never rendered.)
+
+          FRONTEND
+          --------
+          Section 2b inserted between THE REALITY and WHERE THIS
+          LANDS as a single italic line, slightly lighter opacity
+          (78%), no label, no divider — it reads as part of the
+          narrative, not as a feature.  Renders only when
+          `timing_compression.available && line`.  TS clean.
+
+          VERIFICATION (Pete dataset)
+          ---------------------------
+          Pete's V5 has Full Moon dominant + signal_conflict=true
+          (Pluto in Capricorn pulling against Lunation), so the
+          conflict bucket fires:
+            CALL    : "You're jumping to conclusions — but your
+                      understanding isn't complete yet."
+            REALITY : "You're pushing decisions, sending messages,
+                      or resolving conflicts quickly to ease
+                      immediate discomfort. But not every piece of
+                      the situation is clearly understood."
+            TIMING  : "This moment is amplifying mixed signals,
+                      making it harder to trust your first read."
+            WHERE   : Communication and decisions | Home and
+                      personal environment | Creative expression
+            EDGE    : "The real issue isn't just in making decisions
+                      quickly — it's in doing so before all the
+                      facts are in."
+            MEMORY  : "There's a similar shape from a recent
+                      stretch — pushing to settle something before
+                      it's fully clear."
+
+          Reads as one coherent narrative — not a feature stack.
+
+          BANNED-WORD AUDIT
+          -----------------
+          Audited timing line against banned vocabulary
+            (planet, moon, transit, cycle, cosmic, universe,
+             alignment, mercury, venus, mars, jupiter, saturn,
+             full moon, new moon, retrograde, aspect, ingress,
+             energy, vibe, frequency, manifest)
+          → 0 hits ✅
+
+          ACCEPTANCE — all PASSED
+          -----------------------
+            ✓ Reads like part of the narrative, not a feature
+            ✓ Adds "why now" without explanation
+            ✓ Does not repeat Today
+            ✓ No astrology language
+            ✓ No mystical tone
+            ✓ ≤ 1 sentence
+            ✓ Increases perceived depth
+            ✓ Hidden when no clear timing pressure
+            ✓ Coherent with the rest of the card
+
+          Payload version: v6.2.1 → v6.3.
+

@@ -147,7 +147,7 @@ async def build_home_v6_payload(
 
     # 5) Cache + return
     payload = {
-        "version":             "v6.2.1",
+        "version":             "v6.3",
         "user_id":             user_id,
         "date":                today_str,
         "signature_hash":      sig_hash,
@@ -168,6 +168,7 @@ async def build_home_v6_payload(
         # `available` is True AND `confidence == "high"`. Fully optional.
         "pattern_memory":      await _resolve_pattern_memory(db, user_id, v5),
         "relational_pattern":  await _resolve_relational_pattern(db, user_id, v5),
+        "timing_compression":  _resolve_timing_compression(v5),
         # Future hooks — explicitly empty placeholders so the contract is
         # stable when later layers light up.
         "future_layers": {
@@ -1001,4 +1002,111 @@ async def _resolve_relational_pattern(
             "confidence":      "low",
             "source_verified": False,
         }
+
+
+
+# ---------------------------------------------------------------------------
+# Timing Compression layer (v6.3) — "Why now"
+# ---------------------------------------------------------------------------
+# Single-line subtle insertion between THE REALITY and WHERE THIS LANDS
+# that gives the user the felt sense of "this is happening for a reason
+# right now" — without ever naming a planet, a moon phase, an ingress,
+# a transit, or anything astrological.
+#
+# Generation is fully deterministic (no LLM, no jargon).  The line is
+# selected by mapping the V5 dominant signal type / signal_conflict /
+# intensity to one of a small curated set of phrasings.
+#
+# Critical rules (per Mirror brief):
+#   - max 1 sentence
+#   - reference timing indirectly ("this moment", "right now")
+#   - reinforce the same tension as the rest of the card
+#   - do NOT introduce new ideas
+#   - do NOT mention planets / moon / transit / cycle / cosmic /
+#     universe / alignment
+#   - do NOT sound like advice
+#   - do NOT repeat the_call
+#
+# When no clear timing pressure is present, return
+# `{available: false}` and the frontend hides the line.
+
+# Curated lines, indexed by mapping bucket.  Multiple lines per bucket
+# so the same hash produces the same line (stable per (theme + bucket))
+# but different bucket=>different feel.
+_TIMING_LINES_CONFLICT = (
+    "This moment is amplifying mixed signals, making it harder to trust your first read.",
+    "Right now the noise is louder than the signal, which makes everything feel more certain than it is.",
+)
+_TIMING_LINES_LUNATION = (
+    "This moment is intensifying things, making them feel more resolved or urgent than they fully are.",
+    "Something about this moment is compressing the timeline, pushing what isn't ready into the open.",
+)
+_TIMING_LINES_INGRESS = (
+    "Something is shifting underneath the surface, making your usual way of responding feel less stable.",
+    "The ground feels slightly different right now, which is making your normal moves land differently.",
+)
+_TIMING_LINES_TIGHT_ASPECT = (
+    "The pressure right now is sharper than usual, which can push you to act faster than you normally would.",
+    "Right now the friction is more concentrated than usual, which makes small things feel bigger.",
+)
+_TIMING_LINES_HIGH_GENERIC = (
+    "This moment is amplifying the pressure to move before everything is fully clear.",
+    "Something about this timing is speeding up your response before clarity has settled.",
+)
+
+
+def _timing_pick(lines: tuple, key: str) -> str:
+    if not lines:
+        return ""
+    h = sum(ord(c) for c in (key or "")) % len(lines)
+    return lines[h]
+
+
+def _resolve_timing_compression(v5: Dict[str, Any]) -> Dict[str, Any]:
+    """Map V5 signals → 1-sentence "why now" line.
+
+    No astrology language. No advice. Stable per dominant_signal so
+    repeated reads on the same hash produce the same line — and
+    different signals produce different lines naturally.
+    """
+    try:
+        ds = v5.get("dominant_signal") or {}
+        ds_type = (ds.get("type") or "").lower()
+        ds_label = (ds.get("label") or "").lower()
+        intensity = (v5.get("intensity") or "medium").lower()
+        conflict = bool(v5.get("signal_conflict"))
+        sig_hash = v5.get("signature_hash") or ds_label or "none"
+
+        # Bucket selection (mutually exclusive priority order).
+        bucket = None
+        lines: tuple = ()
+        if conflict:
+            bucket = "conflict"
+            lines = _TIMING_LINES_CONFLICT
+        elif "full_moon" in ds_type or "new_moon" in ds_type or "lunation" in ds_type:
+            bucket = "lunation"
+            lines = _TIMING_LINES_LUNATION
+        elif "ingress" in ds_type:
+            bucket = "ingress"
+            lines = _TIMING_LINES_INGRESS
+        elif "tight_aspect" in ds_type or "aspect" in ds_type:
+            bucket = "tight_aspect"
+            lines = _TIMING_LINES_TIGHT_ASPECT
+        elif intensity == "high":
+            # Fallback for high-intensity backgrounds without a specific
+            # category — keeps the card honest.
+            bucket = "high_generic"
+            lines = _TIMING_LINES_HIGH_GENERIC
+        else:
+            return {"available": False}
+
+        line = _timing_pick(lines, sig_hash + bucket)
+        return {
+            "available": True,
+            "line":      line,
+            "bucket":    bucket,    # diagnostic only — not user-facing
+        }
+    except Exception as e:
+        logger.warning("[HomeV6/Timing] resolution failed: %s", e)
+        return {"available": False}
 

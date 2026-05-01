@@ -70,6 +70,12 @@ interface RelationalPatternBlock {
   theme?: string | null;
 }
 
+interface TimingCompressionBlock {
+  available?: boolean;
+  line?: string | null;
+  bucket?: string | null;
+}
+
 interface HomeV6Payload {
   success?: boolean;
   version?: string;
@@ -84,6 +90,7 @@ interface HomeV6Payload {
   cta?: string;
   pattern_memory?: PatternMemoryBlock;
   relational_pattern?: RelationalPatternBlock;
+  timing_compression?: TimingCompressionBlock;
   proof?: {
     dominant_signal?: string | null;
     intensity?: string | null;
@@ -232,6 +239,17 @@ const HomeInsightV6Card: React.FC<HomeV6CardProps> = ({
       {data.the_reality ? (
         <Text style={[styles.theReality, { color: theme.textSecondary }]}>
           {data.the_reality}
+        </Text>
+      ) : null}
+
+      {/* SECTION 2b — TIMING COMPRESSION ("why now") */}
+      {/* Single-line subtle insertion. No label, no divider, slightly */}
+      {/* lighter opacity so it reads as part of the narrative — not as */}
+      {/* a feature.  Hidden when the V5 sky-state has no clear timing  */}
+      {/* pressure (background_pattern with medium intensity).          */}
+      {data.timing_compression?.available && data.timing_compression?.line ? (
+        <Text style={[styles.timingLine, { color: theme.textSecondary }]}>
+          {data.timing_compression.line}
         </Text>
       ) : null}
 
@@ -447,6 +465,18 @@ const styles = StyleSheet.create({
   theReality: {
     fontSize: 15,
     lineHeight: 23,
+    marginBottom: 18,
+  },
+
+  // SECTION 2b — TIMING COMPRESSION ("why now")
+  // Same body typography as theReality but slightly lighter opacity
+  // and italic so it reads as a continuation, not a new feature.
+  timingLine: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontStyle: 'italic',
+    opacity: 0.78,
+    marginTop: -8,    // tighten vertical rhythm against theReality
     marginBottom: 18,
   },
 
