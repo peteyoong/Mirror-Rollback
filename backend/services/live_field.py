@@ -272,8 +272,70 @@ async def build_live_field_payload(
     theme_counts = Counter(member_themes.values())
     total_members = len(member_ids)
 
-    # 4) Field-state classification
+    # Coverage — members with a fresh V5 row (today preferred, else <=48h).
+    members_with_fresh_v5 = len([
+        uid for uid in member_ids if uid in v5_by_user
+    ])
+    coverage_ratio = (
+        members_with_fresh_v5 / total_members if total_members > 0 else 0.0
+    )
+
+    # ---------------------------------------------------------------
+    # V1.1 SIGNAL COVERAGE RULES — refuse overconfident reads when
+    # too little of the room has a fresh V5 signal.
+    # ---------------------------------------------------------------
+    if coverage_ratio < 0.5:
+        # LOW SIGNAL FIELD — do NOT run the normal classifier.  The
+        # user-position line still varies ("you're more active than
+        # the visible part of the room") so the user sees it's them
+        # bringing most of the signal, not the room being flat.
+        user_theme = member_themes.get(user_id, THEME_DISENGAGED)
+        if user_theme in (THEME_ACCELERATING, THEME_OPPOSING, THEME_HOLDING):
+            user_pos = ("You're more active than the visible part of the "
+                        "room right now.")
+        else:
+            user_pos = ("You're part of the quiet stretch in the room "
+                        "right now — not much signal either way.")
+
+        return {
+            "version":        "lf-v1.1",
+            "forum_id":       forum_id,
+            "available":      True,
+            "field_state":    "low_signal_field",
+            "intensity":      "low",
+            "field_message":  "The room is not giving enough signal yet.",
+            "user_position":  user_pos,
+            "trajectory":     "It's too early to read where this is going.",
+            "story":          "Only part of the room is visible, so this reflects activity more than the full field.",
+            "move":           {"available": False, "line": ""},
+            "signal_coverage": {
+                "members":  total_members,
+                "active":   members_with_fresh_v5,
+                "ratio":    round(coverage_ratio, 3),
+                "tier":     "low",
+            },
+            "stats": {
+                "member_count":     total_members,
+                "members_with_v5":  members_with_fresh_v5,
+                "theme_counts": {
+                    "accelerating": theme_counts.get(THEME_ACCELERATING, 0),
+                    "holding":      theme_counts.get(THEME_HOLDING, 0),
+                    "opposing":     theme_counts.get(THEME_OPPOSING, 0),
+                    "disengaged":   theme_counts.get(THEME_DISENGAGED, 0),
+                    "aligned":      theme_counts.get(THEME_ALIGNED, 0),
+                },
+            },
+            "generated_at":   datetime.now(timezone.utc).isoformat(),
+        }
+
+    # 4) Field-state classification (coverage ≥ 0.5)
     field_state, intensity = _classify_field_state(theme_counts, total_members)
+
+    # Medium coverage → cap intensity at "medium".
+    if 0.5 <= coverage_ratio < 0.75 and intensity == "high":
+        intensity = "medium"
+
+    coverage_tier = "high" if coverage_ratio >= 0.75 else "medium"
 
     # 5) User's own position relative to the field
     user_theme = member_themes.get(user_id, THEME_DISENGAGED)
@@ -294,7 +356,7 @@ async def build_live_field_payload(
     )
 
     return {
-        "version":        "lf-v1",
+        "version":        "lf-v1.1",
         "forum_id":       forum_id,
         "available":      True,
         "field_state":    field_state,
@@ -304,9 +366,15 @@ async def build_live_field_payload(
         "trajectory":     trajectory,
         "story":          story,
         "move":           move_block,
+        "signal_coverage": {
+            "members":  total_members,
+            "active":   members_with_fresh_v5,
+            "ratio":    round(coverage_ratio, 3),
+            "tier":     coverage_tier,
+        },
         "stats": {
             "member_count":     total_members,
-            "members_with_v5":  len([u for u, d in v5_by_user.items() if d]),
+            "members_with_v5":  members_with_fresh_v5,
             "theme_counts": {
                 "accelerating": theme_counts.get(THEME_ACCELERATING, 0),
                 "holding":      theme_counts.get(THEME_HOLDING, 0),

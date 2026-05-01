@@ -14695,3 +14695,91 @@ agent_communication:
           card) remain in place untouched.  Future task: decide
           whether to retire legacy V2 once V1 visual is validated.
 
+  - task: "Forum Live Field V1.1 — Signal Coverage Patch"
+    implemented: true
+    working: true
+    file: "backend/services/live_field.py (coverage tiers + low_signal_field), frontend/components/LiveFieldCard.tsx (LOW SIGNAL label + coverage subtitle)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          PROBLEM
+          -------
+          V1 could still classify a 4-member forum with only 1 fresh
+          V5 signal as `disengagement_field` — an overconfident read
+          of partial visibility.
+
+          FIX
+          ---
+          Added `signal_coverage` computation:
+            coverage_ratio = members_with_fresh_v5 / member_count
+
+          Gating rules:
+            member_count < 3              → insufficient_members
+            coverage_ratio < 0.5          → low_signal_field (do NOT
+                                            run the normal classifier)
+            0.5 ≤ ratio < 0.75            → classify, but force
+                                            intensity = "medium" max
+            ratio ≥ 0.75                  → full classification
+
+          NEW FIELD STATE: low_signal_field
+            field_message: "The room is not giving enough signal yet."
+            trajectory:    "It's too early to read where this is going."
+            story:         "Only part of the room is visible, so this
+                           reflects activity more than the full field."
+            MOVE           hidden
+            user_position  varies:
+              user has signal  → "You're more active than the visible
+                                  part of the room right now."
+              user disengaged  → "You're part of the quiet stretch in
+                                  the room right now — not much signal
+                                  either way."
+
+          Payload additions:
+            signal_coverage: {members, active, ratio, tier}
+            stats.members_with_v5 (was already present, now accurate)
+          Version bumped: lf-v1 → lf-v1.1.
+
+          Frontend changes (LiveFieldCard.tsx):
+            ✓ New LOW SIGNAL badge label
+            ✓ Coverage subtitle "{active} of {total} member(s) active"
+              rendered under the header
+            ✓ MOVE already hidden when move.available===false — no
+              changes needed
+            ✓ TS clean, no regressions
+
+          VERIFICATION
+          ------------
+          Pete forum 69dda348de9cb1c83c0780fa (4 members, 1/4 active):
+            BEFORE: disengagement_field/low (overconfident)
+            AFTER:  low_signal_field/low, coverage=0.25, tier=low
+                    field_message="The room is not giving enough
+                                   signal yet."
+                    user_position="You're more active than the visible
+                                   part of the room right now."
+                    MOVE hidden
+            ✅ Matches the brief exactly.
+
+          Synthetic coverage tier tests:
+            1/4 active (ratio 0.25)   → low_signal_field/low
+            2/4 active (ratio 0.50)   → classify + medium cap
+            3/4 active (ratio 0.75)   → high tier, full classification
+            4/4 active (ratio 1.00)   → high tier, full classification
+          All correct.
+
+          ACCEPTANCE — all PASSED
+          -----------------------
+            ✓ 1/4 active → LOW SIGNAL (not disengagement)
+            ✓ 2/4 active → cautious classification (medium max)
+            ✓ 3/4 or 4/4 active → full classification
+            ✓ No overconfidence when data is partial
+            ✓ No regression on existing behavior (full-coverage forums
+              still classify normally)
+            ✓ Mirror tone preserved
+            ✓ Existing classification logic / curated language sets /
+              endpoint structure unchanged
+            ✓ Legacy V2 endpoint untouched
+

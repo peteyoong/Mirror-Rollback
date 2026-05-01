@@ -57,6 +57,12 @@ interface LiveFieldPayload {
     available?: boolean;
     line?: string;
   };
+  signal_coverage?: {
+    members?: number;
+    active?: number;
+    ratio?: number;
+    tier?: 'low' | 'medium' | 'high' | string;
+  };
   stats?: {
     member_count?: number;
     members_with_v5?: number;
@@ -77,6 +83,7 @@ const FIELD_STATE_LABELS: Record<string, string> = {
   tension_field:       'TENSION',
   disengagement_field: 'QUIET',
   alignment_field:     'ALIGNED',
+  low_signal_field:    'LOW SIGNAL',
 };
 
 // ============================================
@@ -169,6 +176,25 @@ const LiveFieldCard: React.FC<LiveFieldCardProps> = ({ forumId, userId, theme })
           </Text>
         </View>
       </View>
+
+      {/* Coverage subtitle — only shows when we have coverage data. */}
+      {/* Gives the user honest visibility into how much of the room   */}
+      {/* is actually in the read.                                     */}
+      {(() => {
+        const cov = data.signal_coverage;
+        const n = cov?.members ?? data.stats?.member_count;
+        const a = cov?.active ?? data.stats?.members_with_v5;
+        if (typeof n !== 'number' || typeof a !== 'number' || n <= 0) {
+          return null;
+        }
+        return (
+          <Text
+            style={[styles.coverageLine, { color: theme.textTertiary }]}
+          >
+            {a} of {n} member{n === 1 ? '' : 's'} active
+          </Text>
+        );
+      })()}
 
       {/* SECTION 1 — FIELD STATE */}
       {data.field_message ? (
@@ -289,6 +315,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.0,
+  },
+  coverageLine: {
+    fontSize: 11,
+    letterSpacing: 0.3,
+    marginBottom: 14,
+    marginTop: -4,
+    opacity: 0.8,
   },
 
   // SECTION 1
