@@ -649,6 +649,33 @@ def classify_signals(
     else:
         intensity = "low"
 
+    # ---- Signal conflict detection ---------------------------------------
+    # A "conflict" exists when multiple DISTINCT pressure types are live
+    # at the same time — the day isn't a single-theme day. We bucket
+    # the live signals into coarse pressure categories and flag
+    # conflict when ≥2 categories are active at Tier 1/2 level.
+    #
+    # Categories:
+    #   lunation   (full/new moon ±48h)
+    #   ingress    (outer/heavy/personal sign change in window)
+    #   aspect     (tight or strong transit-to-natal)
+    #   moon_move  (moon sign change today, moon-luminary trigger)
+    #   cluster    (sign or house cluster)
+    live: set = set()
+    for s in tier1 + tier2:
+        t = s.get("type", "")
+        if t in ("full_moon", "new_moon"):
+            live.add("lunation")
+        elif t in ("outer_ingress", "heavy_ingress", "personal_ingress"):
+            live.add("ingress")
+        elif t in ("tight_aspect", "strong_aspect"):
+            live.add("aspect")
+        elif t in ("moon_sign_change", "moon_luminary_trigger"):
+            live.add("moon_move")
+        elif t in ("sign_cluster", "house_cluster"):
+            live.add("cluster")
+    signal_conflict = len(live) >= 2
+
     # why_today_is_different — short phrase derived from tier content
     why = _build_why_line(dominant, tier1, tier2, intensity)
 
@@ -660,6 +687,8 @@ def classify_signals(
         "tier2_all":          tier2,
         "tier3_all":          tier3,
         "intensity":          intensity,
+        "signal_conflict":    signal_conflict,
+        "active_categories":  sorted(list(live)),
         "why_today_is_different": why,
     }
 
@@ -787,6 +816,8 @@ def build_dominance_payload(
         "secondary_signals":    classification["secondary_signals"],
         "background_signals":   classification["background_signals"],
         "intensity":            classification["intensity"],
+        "signal_conflict":      classification.get("signal_conflict", False),
+        "active_categories":    classification.get("active_categories", []),
         "why_today_is_different": classification["why_today_is_different"],
         "signature_hash":       sig,
         "signature_changed":    prior_sig is not None and prior_sig != sig,

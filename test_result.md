@@ -13610,3 +13610,151 @@ agent_communication:
             /api/astrology/today route pending user review of
             live output.
 
+
+  - task: "Astrology Today v5 — Mirror Language refinement (narrative layer rewrite)"
+    implemented: true
+    working: true
+    file: "backend/services/astrology_today_v5.py (full rewrite), backend/services/transit_dominance_engine.py (signal_conflict detection), backend/tests/test_astrology_today_v5.py (new, 13 tests)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Narrative layer only — transit engine, classification,
+          API contract, caching, and proof payload are unchanged.
+
+          Engine change (surgical)
+          ------------------------
+          transit_dominance_engine.classify_signals() now emits:
+            - `signal_conflict: bool`
+            - `active_categories: List[str]` ∈
+              {lunation, ingress, aspect, moon_move, cluster}
+          Conflict is True when ≥2 distinct pressure categories are
+          live at Tier 1 or Tier 2 simultaneously. Propagated through
+          build_dominance_payload() so callers see it.
+
+          Interpreter rewrite
+          -------------------
+          New output sections (replaces the old 4-paragraph body):
+            1. CORE MESSAGE — HOOK / BODY / EDGE deterministic prose.
+               - SINGLE-dominance: 10 canonical templates (one per
+                 dominant_signal.type), each written in Mirror Language
+                 (tension-based, no vague vocab).
+               - CONFLICT: single template selected when
+                 signal_conflict is True:
+                   "You feel pushed to act — but your read of the
+                    situation isn't fully clean. There's pressure to
+                    move, to reply, to settle it, just to relieve the
+                    tension in your body. But part of what you're
+                    reacting to isn't fully accurate. You may be
+                    filling gaps, assuming intent, or moving before
+                    the picture is actually clear. Acting too early
+                    here doesn't resolve the situation — it locks you
+                    into it."
+               - Continuity wrapper prepended when
+                 signature_hash === yesterday's.
+            2. HOW IT SHOWS UP — 3-5 concrete behavioural bullets
+               from the LLM. Every bullet must describe a real-world
+               action (replying, agreeing, interrupting, sending
+               before checking). Post-filtered.
+            3. THE RISK — ONE sharp consequence sentence. Not a
+               warning; a prediction.
+            4. THE MOVE — non-prescriptive opening with two keys:
+                 action  — a framing (not an instruction)
+                 reflect — a live tension-form question
+               NO numbers, NO 'should'/'must', NO timing windows.
+
+          Guardrails enforced BOTH in LLM prompt AND as a post-filter:
+            - Banned vague vocab: energy / alignment / flow / projection
+              / vibes / cosmic / stars / universe / resonance /
+              manifest / frequency / muddled.
+            - Banned jargon: planet names, sign names, 'house'/'houses',
+              'aspect'/'transit'/'decan'/'retrograde'/'culmination'/
+              'ingress', moon phase labels ('full moon', 'new moon',
+              'waxing', 'waning', 'lunation'), 'ascendant', 'sun/moon/
+              rising sign', 'ayanamsa', 'natal chart'.
+            - Banned prescriptive tokens: 'should', 'must '.
+            - Regex-blocked: any numeric timing (e.g. '30 minutes',
+              '2 hours', 'three days').
+
+          De-duplication:
+            - Jaccard-style token-set overlap (no embeddings, no deps).
+            - If LLM sections overlap the core message >0.60 ratio on
+              content tokens, regenerate (up to 2 total attempts).
+
+          Fallback path:
+            - If EMERGENT_LLM_KEY missing or LLM fails all retries,
+              deterministic fallback sections ship. Fallback bullets
+              AND move are themselves guardrail-clean (test-enforced).
+
+          Live verification — Pete (697f0c6abf35c0528ff06954)
+          ----------------------------------------------------
+          Cache cleared; endpoint re-hit:
+            signal_conflict: True
+            active_categories: ['aspect','cluster','ingress','lunation']
+              (Full Moon + tight Uranus-Chiron sextile + multiple sign
+               clusters + Mercury Pisces→Aries ingress — all live)
+            intensity: high  |  llm_used: True  |  ~2.5s
+
+          CORE MESSAGE — exactly the acceptance line:
+            "You feel pushed to act — but your read of the situation
+             isn't fully clean. There's pressure to move, to reply,
+             to settle it, just to relieve the tension in your body.
+             But part of what you're reacting to isn't fully accurate.
+             You may be filling gaps, assuming intent, or moving
+             before the picture is actually clear. Acting too early
+             here doesn't resolve the situation — it locks you into
+             it."
+
+          HOW IT SHOWS UP (5 concrete behaviours):
+            - speaking over someone as you finish their sentence for them.
+            - sending an email before double-checking the attached document for errors.
+            - moving on with a task because you're tired of rereading instructions.
+            - answering a call while you still have another caller on hold.
+            - interrupting a meeting with a conclusion based on limited slides.
+
+          THE RISK:
+            "you might end up reinforcing misunderstandings or
+             committing to plans that miss crucial details."
+
+          THE MOVE:
+            action : "pause to notice whether clarity is your true focus
+                      or just quick completion."
+            reflect: "what feels settled in your mind… and what needs a
+                      second pass?"
+
+          Acceptance audit:
+            ✓ Reflects ALL dominant signals (lunation + conflict)
+            ✓ Uses tension language ("pushed … but…")
+            ✓ ZERO vague vocab (energy / alignment / flow / projection)
+            ✓ ZERO astrology jargon
+            ✓ No repetition across sections (each introduces new info)
+            ✓ Non-prescriptive MOVE (no numbers, no "should")
+            ✓ Feels concrete-recognisable ("damn, that's me")
+
+          Tests — 21 PASS, 0.03s (13 new + 8 existing)
+          --------------------------------------------
+          tests/test_astrology_today_v5.py (NEW):
+            ✓ signal_conflict True when ≥2 categories live
+            ✓ signal_conflict False when only one category
+            ✓ core_message uses CONFLICT template when flag True
+            ✓ core_message uses SINGLE template when flag False
+            ✓ continuity wrapper prepended when is_continuity
+            ✓ guardrails catch vague vocab (energy / flow)
+            ✓ guardrails catch astrology jargon (full moon / mercury /
+              retrograde)
+            ✓ guardrails catch 'should' + numeric timing
+            ✓ guardrails pass clean behavioural text
+            ✓ overlap detector catches copy-of-core-message
+            ✓ overlap detector passes new-info sections
+            ✓ fallback sections shape + non-prescriptive move
+            ✓ fallback conflict bullets are behavioural + guardrail-clean
+
+          tests/test_transit_dominance_engine.py (existing — regression):
+            ✓ All 8 original acceptance tests still PASS.
+
+          Lint: ruff clean. Backend reloaded; no regressions to other
+          endpoints.
+
