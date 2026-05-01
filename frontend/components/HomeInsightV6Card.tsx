@@ -58,6 +58,16 @@ interface PatternMemoryBlock {
   source_count?: number;
 }
 
+interface RelationalPatternBlock {
+  available?: boolean;
+  confidence?: 'low' | 'high' | string;
+  type?: 'person' | 'context' | string;
+  label?: string | null;
+  summary?: string | null;
+  source_count?: number;
+  theme?: string | null;
+}
+
 interface HomeV6Payload {
   success?: boolean;
   version?: string;
@@ -71,6 +81,7 @@ interface HomeV6Payload {
   the_edge: string;
   cta?: string;
   pattern_memory?: PatternMemoryBlock;
+  relational_pattern?: RelationalPatternBlock;
   proof?: {
     dominant_signal?: string | null;
     intensity?: string | null;
@@ -302,6 +313,42 @@ const HomeInsightV6Card: React.FC<HomeV6CardProps> = ({
           </View>
           <Text style={[styles.memoryText, { color: theme.textSecondary }]}>
             {data.pattern_memory.summary}
+          </Text>
+        </View>
+      ) : null}
+
+      {/* SECTION 4c — WHERE THIS SHOWS UP WITH PEOPLE (Relational overlay) */}
+      {/* High-confidence only. Person reveal requires saved_people OR     */}
+      {/* organic count ≥ 3 + behavioral theme match. Falls back to        */}
+      {/* a context label ("close conversations") when person reveal is    */}
+      {/* not safe. Stays focused on user behavior — never blames the      */}
+      {/* other person, never quotes conversations, never describes how    */}
+      {/* the other person feels.                                          */}
+      {data.relational_pattern?.available && data.relational_pattern?.confidence === 'high' && data.relational_pattern?.summary ? (
+        <View
+          style={[
+            styles.memoryWrap,
+            {
+              borderColor: theme.border,
+              backgroundColor: theme.background,
+            },
+          ]}
+        >
+          <View style={styles.memoryHeader}>
+            <Ionicons
+              name="ellipse"
+              size={5}
+              color={theme.textTertiary}
+              style={{ marginRight: 6, opacity: 0.6 }}
+            />
+            <Text
+              style={[styles.memoryLabel, { color: theme.textTertiary }]}
+            >
+              WHERE THIS SHOWS UP WITH PEOPLE
+            </Text>
+          </View>
+          <Text style={[styles.memoryText, { color: theme.textSecondary }]}>
+            {data.relational_pattern.summary}
           </Text>
         </View>
       ) : null}

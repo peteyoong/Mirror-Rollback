@@ -14232,3 +14232,119 @@ agent_communication:
             ✓ No generic motivational copy
             ✓ TS compiles clean
 
+  - task: "Home V6.2 — Relational Pattern overlay (saved_people / relationship_patterns)"
+    implemented: true
+    working: true
+    file: "backend/services/home_insight_v6.py (_resolve_relational_pattern + safety filters), frontend/components/HomeInsightV6Card.tsx (WHERE THIS SHOWS UP WITH PEOPLE section)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Extended Home V6.1 → V6.2 with a relational pattern overlay.
+          User's takeaway moves from "this is my pattern" to
+          "this is my pattern — and this is how it shows up with
+          people."
+
+          Detection sources (existing data — no new system built):
+            • db.relationship_patterns  (organic mentions logged
+              from Forum / People / Life flows; carries
+              `other_name`, `user_type`, `dynamic_signature`,
+              `timestamp`)
+            • db.saved_people           (authoritative user-curated
+              list — name reveal preferred when present)
+
+          Confidence policy (HIGH only):
+            PERSON reveal:
+              - safe name passes `_is_safe_person_name` filter
+                  (no test patterns, no digit runs, alphabetic only,
+                  length 2–30, banned tokens "test", "escalate",
+                  "fresh", "recurring", etc.)
+              - count ≥ 3 organic mentions in last 30d, OR
+                in saved_people AND count ≥ 1
+              - `user_type` of those records matches today's
+                behavioral theme via `_THEME_USER_TYPES`
+                (initiator / rusher / fixer ⇄ speed_under_uncertainty,
+                 etc.)
+              - cross-30d count ≥ 2
+            CONTEXT fallback:
+              - ≥ 2 distinct safe people, ≥ 4 total safe mentions,
+                top dynamic_signature ≥ 2
+              - label = "close conversations" or
+                "people you've named in your life"
+            Otherwise → `{available:false}` and frontend hides.
+
+          Safety filter (rendering):
+            ✓ Never quotes conversations
+            ✓ Never describes the other person
+            ✓ Never says "X makes you feel"
+            ✓ Never blames / diagnoses / advises
+            ✓ Stays focused on USER behavior — "how YOU respond"
+            ✓ Test/synthetic names auto-rejected (verified against
+              Pete's dataset which contains 9 test names like
+              `EscalateTest1775304769`, `Fresh1775304746`,
+              `Alex1775304710` — all correctly excluded)
+
+          Curated phrasings (no LLM — fully deterministic for safety):
+            Person:
+              - "This may show up in how you respond to {name}.
+                The reaction arrives before clarity fully forms."
+              - "This pattern may surface in how you respond to {name}.
+                The speed comes in before the full picture lands."
+              - "This shows up most when conversations with {name}
+                move faster than clarity."
+            Context:
+              - "This tends to show up in conversations where you
+                feel the need to respond quickly."
+              - "The pattern shows up most when the conversation
+                moves faster than clarity."
+              - "This tends to show up in close conversations — the
+                reply lands before the picture does."
+            Stable per (name + theme) hash so re-renders don't flap.
+
+          Verified outcomes:
+            PETE (697f0c6abf35c0528ff06954):
+              version=v6.2
+              relational_pattern={available:true, confidence:high,
+                                  type:person, label:"Sarah",
+                                  source_count:6,
+                                  theme:speed_under_uncertainty,
+                                  summary:"This pattern may surface
+                                    in how you respond to Sarah.
+                                    The speed comes in before the
+                                    full picture lands."}
+              (Sarah=6 organic mentions in 30d, all `initiator`
+               user_type, matching theme. Mel=5 also qualifies but
+               Sarah ranked higher.)
+
+            MEL (697ec826ad4b18f75bf42616, cold start):
+              relational_pattern={available:false, confidence:low}
+              pattern_memory={available:false, confidence:low}
+              Home still renders perfectly with the 5 main sections.
+
+          Frontend
+          --------
+          New "WHERE THIS SHOWS UP WITH PEOPLE" subtle bordered
+          section in HomeInsightV6Card.tsx, rendered between
+          MIRROR REMEMBERS and CTA. Same subtle style as Pattern
+          Memory (10pt label / 13pt italic body). Renders only when
+          `relational_pattern.available && confidence === 'high'
+          && summary`. TS clean.
+
+          Acceptance — all PASSED
+          -----------------------
+            ✓ Only shows when high confidence
+            ✓ Test/synthetic names never exposed
+            ✓ Never blames the other person
+            ✓ Never diagnoses the relationship
+            ✓ Stays focused on user behavior
+            ✓ Under 2 sentences, observational tone
+            ✓ Adds insight, not noise
+            ✓ Home still works perfectly without it (Mel cold-start
+              verified)
+            ✓ TS compiles clean
+
+          Future hooks remaining: human_design_timing, bazi.
+

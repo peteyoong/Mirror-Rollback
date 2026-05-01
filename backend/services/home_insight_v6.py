@@ -147,7 +147,7 @@ async def build_home_v6_payload(
 
     # 5) Cache + return
     payload = {
-        "version":             "v6.1",
+        "version":             "v6.2",
         "user_id":             user_id,
         "date":                today_str,
         "signature_hash":      sig_hash,
@@ -167,10 +167,10 @@ async def build_home_v6_payload(
         # Pattern Memory layer (v6.1) — only renders on the frontend when
         # `available` is True AND `confidence == "high"`. Fully optional.
         "pattern_memory":      await _resolve_pattern_memory(db, user_id, v5),
+        "relational_pattern":  await _resolve_relational_pattern(db, user_id, v5),
         # Future hooks — explicitly empty placeholders so the contract is
         # stable when later layers light up.
         "future_layers": {
-            "relationship":        None,
             "human_design_timing": None,
             "bazi":                None,
         },
@@ -689,3 +689,213 @@ async def _resolve_pattern_memory(
     except Exception as e:
         logger.warning("[HomeV6/PM] resolution failed: %s", e)
         return {"available": False, "confidence": "low"}
+
+
+# ---------------------------------------------------------------------------
+# Relational Pattern overlay (v6.2)
+# ---------------------------------------------------------------------------
+# Detects whether today's tension also tends to activate around specific
+# people in the user's life — without becoming relationship advice and
+# without exposing private information.
+#
+# Sources (light, existing data only — no new system):
+#   * db.relationship_patterns       (organic interaction logs from
+#                                     Forum / People / Life)
+#   * db.saved_people                (explicit user-curated list,
+#                                     authoritative for naming)
+#
+# Confidence policy:
+#   HIGH only if at least ONE holds:
+#     - ≥ 2 organic interactions with the same non-test person in
+#       the last 30 days AND the user_type from those records matches
+#       today's behavioral theme (e.g. initiator → speed_under_uncertainty)
+#     - person is in saved_people AND has ≥ 1 organic mention in 30d
+#     - ≥ 3 distinct people share the same dynamic_signature, in which
+#       case we render a CONTEXT label (e.g. "close conversations")
+#       rather than a person name.
+#   Anything below → DO NOT render.
+#
+# Safety filter:
+#   - name must pass `_is_safe_person_name`
+#   - name MUST appear in saved_people OR have ≥ 3 organic mentions
+#     (organic threshold prevents accidental exposure of one-off names
+#      that may have been entered for testing / journaling abstractions)
+#   - never quote conversations, never describe the other person
+#   - never state how the other person feels / acts / "makes you feel"
+
+import re
+
+_TEST_NAME_PATTERNS = (
+    re.compile(r"\d{4,}"),                      # contains 4+ digit run
+    re.compile(r"(?i)\btest\b"),                # any "test" token
+    re.compile(r"(?i)^(escalate|fresh|recurring|soft|structure)\w*\d", ),
+)
+
+
+def _is_safe_person_name(name: Optional[str]) -> bool:
+    if not name or not isinstance(name, str):
+        return False
+    n = name.strip()
+    if not (2 <= len(n) <= 30):
+        return False
+    if any(p.search(n) for p in _TEST_NAME_PATTERNS):
+        return False
+    # Must be primarily alphabetic (allow hyphen, apostrophe, single space)
+    if not re.fullmatch(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\-' ]{1,29}", n):
+        return False
+    return True
+
+
+# Map of theme → behavioral keyword aliases.  We use these to decide
+# whether a given relationship_patterns user_type matches today's
+# dominant pattern theme.
+_THEME_USER_TYPES: Dict[str, set] = {
+    "speed_under_uncertainty": {"initiator", "rusher", "fixer"},
+    "premature_initiation":    {"initiator", "starter"},
+    "tight_pressure":          {"initiator", "fixer", "responder"},
+    "competing_pulls":         {"oscillator", "negotiator"},
+    "shift_in_focus":          {"initiator", "transitioner"},
+    "background_pattern":      set(),  # don't anchor by user_type
+}
+
+# Curated, safe phrasings.  Person-anchored vs context-anchored.
+_RELATIONAL_PERSON_LINES = (
+    "This may show up in how you respond to {name}. The reaction arrives before clarity fully forms.",
+    "This pattern may surface in how you respond to {name}. The speed comes in before the full picture lands.",
+    "This shows up most when conversations with {name} move faster than clarity.",
+)
+
+_RELATIONAL_CONTEXT_LINES = (
+    "This tends to show up in conversations where you feel the need to respond quickly.",
+    "This may surface in how you respond to people close to you. The reaction arrives before clarity fully forms.",
+    "The pattern shows up most when the conversation moves faster than clarity.",
+    "This tends to show up in close conversations — the reply lands before the picture does.",
+)
+
+
+def _pick_line(lines: tuple, key: str) -> str:
+    """Deterministic selection — stable per (key) so the same context
+    yields the same phrasing across cache reads."""
+    if not lines:
+        return ""
+    h = sum(ord(c) for c in (key or "")) % len(lines)
+    return lines[h]
+
+
+async def _resolve_relational_pattern(
+    db, user_id: str, v5: Dict[str, Any],
+) -> Dict[str, Any]:
+    try:
+        from datetime import timedelta
+        cutoff_dt  = datetime.now(timezone.utc) - timedelta(days=30)
+        cutoff_iso = cutoff_dt.isoformat()
+        cutoff_q = {"$or": [
+            {"timestamp":  {"$gte": cutoff_dt}},
+            {"timestamp":  {"$gte": cutoff_iso}},
+            {"created_at": {"$gte": cutoff_dt}},
+            {"created_at": {"$gte": cutoff_iso}},
+        ]}
+
+        theme = _theme_for_signal(v5)
+        target_user_types = _THEME_USER_TYPES.get(theme, set())
+
+        # 1) Pull recent relationship_patterns.  Tally organic mentions
+        #    per *safe* name AND tally how many of those rows match
+        #    today's behavioral theme via user_type.
+        rp_recent = []
+        try:
+            rp_recent = await db.relationship_patterns.find({
+                "$and": [{"user_id": user_id}, cutoff_q],
+            }).limit(200).to_list(200)
+        except Exception:
+            rp_recent = []
+
+        from collections import Counter
+        name_counts: Counter = Counter()
+        name_theme_hits: Counter = Counter()
+        dyn_sig_counts: Counter = Counter()
+
+        for r in rp_recent:
+            n = r.get("other_name")
+            if not _is_safe_person_name(n):
+                continue
+            name_counts[n] += 1
+            ut = (r.get("user_type") or "").lower()
+            if target_user_types and ut in target_user_types:
+                name_theme_hits[n] += 1
+            ds = r.get("dynamic_signature")
+            if ds:
+                dyn_sig_counts[ds] += 1
+
+        # 2) Saved_people authoritative list — only names from here may be
+        #    revealed unless organic count is ≥ 3.
+        saved_names: set = set()
+        try:
+            sp_docs = await db.saved_people.find(
+                {"user_id": user_id},
+            ).to_list(200)
+            for sp in sp_docs or []:
+                n = (sp.get("name") or "").strip()
+                if _is_safe_person_name(n):
+                    saved_names.add(n)
+        except Exception:
+            pass
+
+        # 3) Decide person reveal eligibility
+        ranked = name_counts.most_common()
+        chosen_name: Optional[str] = None
+        chosen_count: int = 0
+        for n, c in ranked:
+            organic_ok = (c >= 3) or (n in saved_names and c >= 1)
+            theme_ok   = (
+                not target_user_types          # theme has no behavioral anchor — accept
+                or name_theme_hits.get(n, 0) >= 1
+            )
+            if organic_ok and theme_ok and c >= 2:
+                chosen_name = n
+                chosen_count = c
+                break
+
+        if chosen_name:
+            line = _pick_line(_RELATIONAL_PERSON_LINES, chosen_name + theme)
+            return {
+                "available":     True,
+                "confidence":    "high",
+                "type":          "person",
+                "label":         chosen_name,
+                "summary":       line.format(name=chosen_name),
+                "source_count":  int(chosen_count),
+                "theme":         theme,
+            }
+
+        # 4) Context fallback — only if multiple safe people share a
+        #    common dynamic_signature recently (→ "close conversations" type)
+        total_safe_mentions = sum(name_counts.values())
+        distinct_safe_people = len(name_counts)
+        top_dyn = dyn_sig_counts.most_common(1)
+        if (
+            distinct_safe_people >= 2
+            and total_safe_mentions >= 4
+            and top_dyn
+            and top_dyn[0][1] >= 2
+        ):
+            label = "close conversations"
+            # If saved_people exists, prefer "people you've named"
+            if saved_names and len(saved_names) >= 2:
+                label = "people you've named in your life"
+            line = _pick_line(_RELATIONAL_CONTEXT_LINES, theme + label)
+            return {
+                "available":     True,
+                "confidence":    "high",
+                "type":          "context",
+                "label":         label,
+                "summary":       line,
+                "source_count":  int(total_safe_mentions),
+                "theme":         theme,
+            }
+
+        return {"available": False, "confidence": "low"}
+    except Exception as e:
+        logger.warning("[HomeV6/Rel] resolution failed: %s", e)
+        return {"available": False, "confidence": "low"}
+
