@@ -14348,3 +14348,108 @@ agent_communication:
 
           Future hooks remaining: human_design_timing, bazi.
 
+  - task: "Home V6.2.1 — Relational data integrity (source_verified gating)"
+    implemented: true
+    working: true
+    file: "backend/services/home_insight_v6.py (_resolve_relational_pattern rewrite + verified_names whitelist + source_verified field), frontend/components/HomeInsightV6Card.tsx (hard gate on source_verified === true)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          INCIDENT CONTEXT
+          ----------------
+          V6.2 surfaced "Sarah" for Pete on Home. Audit revealed:
+            - Pete has 0 entries in db.saved_people
+            - Pete has 0 journal mentions of Sarah/Mel
+            - Pete has 0 reflection mentions of Sarah/Mel
+            - All 6 Sarah rows in db.relationship_patterns came in a
+              ~1.5h burst on 2026-04-04 (12:10 → 13:37)
+            - All 5 Mel rows came in ~1 minute on 2026-04-04
+              (12:03–12:04)
+          → These were synthetic/test data injected into the
+          relationship_patterns collection by background pattern
+          engines, NOT user-owned identities. They should NEVER have
+          appeared on Home.
+
+          FIX SHIPPED (V6.2.1)
+          --------------------
+          1. New whitelist concept: `verified_names`. A name is added
+             ONLY when one of these is true:
+                a. exists in db.saved_people for that user
+                b. exists in db.people (legacy) for that user
+                c. appears 2+ times in user's own journal text in
+                   recent ~60 entries (organic mention)
+                d. appears once in journal AND once in reflections
+                e. appears 2+ times in reflections
+             db.relationship_patterns is NEVER a verifying source
+             — it can only be used for *counting activity* against
+             names that are ALREADY verified.
+
+          2. Person reveal rebuilt:
+             - candidate must be in `verified_names`
+             - candidate must have ≥ 2 organic relationship_patterns
+               rows in last 30d that are present after filtering
+             - user_type of those rows must match today's behavioral
+               theme (when theme has a behavioral anchor)
+             - chosen → emits `source_verified: true,
+                                source_type: "saved_people" |
+                                "people" | "journal_organic" |
+                                "reflection_organic"`
+
+          3. Context fallback rebuilt:
+             - Only fires when ≥ 2 *verified* names share a recent
+               dynamic_signature
+             - Context label upgraded to "people you've named in your
+               life" when ≥ 2 saved/people-collection records exist
+
+          4. New payload field: `source_verified: true | false`.
+             When false (or no verified path), payload returns
+             `{available:false, confidence:"low", source_verified:false}`.
+
+          5. Frontend hard gate (HomeInsightV6Card.tsx):
+             - person reveal renders ONLY when
+               `rp.type === 'person' && rp.source_verified === true`
+             - context fallback also requires `source_verified === true`
+
+          ACCEPTANCE TESTS — all PASSED
+          -----------------------------
+          A. Pete (no saved_people, no journal/refl mention of Sarah/Mel):
+             relational_pattern → {available:false,
+                                   confidence:"low",
+                                   source_verified:false}
+             Sarah is gone from Home.  ✅
+             Other sections still render (CALL, REALITY, EDGE,
+             MIRROR REMEMBERS).
+
+          B. Pete + Mel inserted into saved_people:
+             relational_pattern → {available:true,
+                                   confidence:"high",
+                                   type:"person",
+                                   label:"Mel",
+                                   source_verified:true,
+                                   source_type:"saved_people",
+                                   source_count:5,
+                                   summary:"This shows up most when
+                                     conversations with Mel move
+                                     faster than clarity."}
+             Mel is correctly revealed only because it now exists in
+             the authoritative saved_people collection.  ✅
+
+          C. Mel removed from saved_people again:
+             relational_pattern.available → false  ✅
+             relational_pattern.source_verified → false  ✅
+
+          D. No synthetic/seed/demo person can appear in Home —
+             confirmed empirically against Pete's relationship_patterns
+             which contains: Sarah×6, Mel×5, EscalateTest×4, Fresh×4,
+             Alex×4, RecurringTest×3, SoftEntry×3, TestPerson×2,
+             SoftTest×2, StructureTest×1.
+             None of them are surfaced when no saved_people /
+             journal / reflection corroboration exists.  ✅
+
+          Payload version bumped: v6.2 → v6.2.1.
+          TS clean.
+

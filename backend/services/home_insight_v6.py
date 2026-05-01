@@ -147,7 +147,7 @@ async def build_home_v6_payload(
 
     # 5) Cache + return
     payload = {
-        "version":             "v6.2",
+        "version":             "v6.2.1",
         "user_id":             user_id,
         "date":                today_str,
         "signature_hash":      sig_hash,
@@ -799,9 +799,107 @@ async def _resolve_relational_pattern(
         theme = _theme_for_signal(v5)
         target_user_types = _THEME_USER_TYPES.get(theme, set())
 
-        # 1) Pull recent relationship_patterns.  Tally organic mentions
-        #    per *safe* name AND tally how many of those rows match
-        #    today's behavioral theme via user_type.
+        # ---------------------------------------------------------------
+        # SOURCE-OF-TRUTH PEOPLE (authoritative — only these may be
+        # named on the Home card).  We treat as "user-owned" any name
+        # that has a clear act of user creation or organic mention:
+        #
+        #   1. db.saved_people  — explicit user-curated person record
+        #   2. db.people        — legacy collection of user-curated people
+        #   3. journal entries  — name appears in the user's own journal
+        #                         text (organic mention)
+        #   4. reflections      — name appears in user's reflection text
+        #
+        # A name from db.relationship_patterns ALONE is NOT sufficient —
+        # that collection is populated by background pattern engines and
+        # historically also contains test/seed data.  See V6.2 data-
+        # integrity audit for Pete's Sarah/Mel case.
+        # ---------------------------------------------------------------
+
+        verified_names: set = set()      # names with clear user ownership
+        verified_source: Dict[str, str] = {}  # name → source_type label
+
+        # 1) saved_people (highest authority)
+        try:
+            sp_docs = await db.saved_people.find(
+                {"user_id": user_id},
+            ).to_list(200)
+            for sp in sp_docs or []:
+                n = (sp.get("name") or "").strip()
+                if _is_safe_person_name(n):
+                    verified_names.add(n)
+                    verified_source.setdefault(n, "saved_people")
+        except Exception:
+            pass
+
+        # 2) legacy db.people collection
+        try:
+            pp_docs = await db.people.find(
+                {"user_id": user_id},
+            ).to_list(200)
+            for pp in pp_docs or []:
+                n = (pp.get("name") or pp.get("display_name") or "").strip()
+                if _is_safe_person_name(n):
+                    verified_names.add(n)
+                    verified_source.setdefault(n, "people")
+        except Exception:
+            pass
+
+        # 3) journal text mentions (organic — must be >=2 separate
+        #    entries OR appear alongside another verifying source)
+        try:
+            recent_journal = await db.journal.find({
+                "user_id": user_id,
+            }).sort("created_at", -1).limit(60).to_list(60)
+        except Exception:
+            recent_journal = []
+        from collections import Counter
+        journal_name_hits: Counter = Counter()
+        for jx in recent_journal or []:
+            content = (jx.get("content") or jx.get("text") or "")
+            if not content:
+                continue
+            # Capture capitalised tokens with length 2-30 — first-name
+            # heuristic.  We won't add anything to verified_names from
+            # this alone (single-pass capitalisation isn't strong enough
+            # to prove ownership).  Used only for cross-corroboration.
+            for tok in re.findall(r"\b([A-Z][a-zà-ÿ]{1,29})\b", content):
+                journal_name_hits[tok] += 1
+
+        # 4) reflections text mentions
+        try:
+            recent_refl = await db.reflections.find({
+                "user_id": user_id,
+            }).sort("created_at", -1).limit(40).to_list(40)
+        except Exception:
+            recent_refl = []
+        refl_name_hits: Counter = Counter()
+        for rx in recent_refl or []:
+            txt = (rx.get("text") or rx.get("content") or rx.get("insight") or "")
+            for tok in re.findall(r"\b([A-Z][a-zà-ÿ]{1,29})\b", txt):
+                refl_name_hits[tok] += 1
+
+        # Cross-corroboration: a name mentioned in BOTH journal and
+        # reflections (or twice in journal, or twice in reflections)
+        # counts as user-owned even without a saved_people record.
+        for name, c in journal_name_hits.items():
+            if not _is_safe_person_name(name):
+                continue
+            if c >= 2 or refl_name_hits.get(name, 0) >= 1:
+                verified_names.add(name)
+                verified_source.setdefault(name, "journal_organic")
+        for name, c in refl_name_hits.items():
+            if not _is_safe_person_name(name):
+                continue
+            if c >= 2 and name not in verified_names:
+                verified_names.add(name)
+                verified_source.setdefault(name, "reflection_organic")
+
+        # ---------------------------------------------------------------
+        # 5) Now, and only now, look at relationship_patterns.  We
+        #    walk through recent organic activity but ONLY count rows
+        #    whose `other_name` is in `verified_names`.
+        # ---------------------------------------------------------------
         rp_recent = []
         try:
             rp_recent = await db.relationship_patterns.find({
@@ -810,7 +908,6 @@ async def _resolve_relational_pattern(
         except Exception:
             rp_recent = []
 
-        from collections import Counter
         name_counts: Counter = Counter()
         name_theme_hits: Counter = Counter()
         dyn_sig_counts: Counter = Counter()
@@ -818,6 +915,9 @@ async def _resolve_relational_pattern(
         for r in rp_recent:
             n = r.get("other_name")
             if not _is_safe_person_name(n):
+                continue
+            if n not in verified_names:
+                # Unverified — cannot be revealed as a person.
                 continue
             name_counts[n] += 1
             ut = (r.get("user_type") or "").lower()
@@ -827,31 +927,18 @@ async def _resolve_relational_pattern(
             if ds:
                 dyn_sig_counts[ds] += 1
 
-        # 2) Saved_people authoritative list — only names from here may be
-        #    revealed unless organic count is ≥ 3.
-        saved_names: set = set()
-        try:
-            sp_docs = await db.saved_people.find(
-                {"user_id": user_id},
-            ).to_list(200)
-            for sp in sp_docs or []:
-                n = (sp.get("name") or "").strip()
-                if _is_safe_person_name(n):
-                    saved_names.add(n)
-        except Exception:
-            pass
-
-        # 3) Decide person reveal eligibility
+        # ---------------------------------------------------------------
+        # 6) Person-reveal eligibility (verified name path)
+        # ---------------------------------------------------------------
         ranked = name_counts.most_common()
         chosen_name: Optional[str] = None
         chosen_count: int = 0
         for n, c in ranked:
-            organic_ok = (c >= 3) or (n in saved_names and c >= 1)
-            theme_ok   = (
-                not target_user_types          # theme has no behavioral anchor — accept
+            theme_ok = (
+                not target_user_types
                 or name_theme_hits.get(n, 0) >= 1
             )
-            if organic_ok and theme_ok and c >= 2:
+            if theme_ok and c >= 2:
                 chosen_name = n
                 chosen_count = c
                 break
@@ -859,17 +946,24 @@ async def _resolve_relational_pattern(
         if chosen_name:
             line = _pick_line(_RELATIONAL_PERSON_LINES, chosen_name + theme)
             return {
-                "available":     True,
-                "confidence":    "high",
-                "type":          "person",
-                "label":         chosen_name,
-                "summary":       line.format(name=chosen_name),
-                "source_count":  int(chosen_count),
-                "theme":         theme,
+                "available":       True,
+                "confidence":      "high",
+                "type":            "person",
+                "label":           chosen_name,
+                "summary":         line.format(name=chosen_name),
+                "source_count":    int(chosen_count),
+                "source_verified": True,
+                "source_type":     verified_source.get(chosen_name, "verified"),
+                "theme":           theme,
             }
 
-        # 4) Context fallback — only if multiple safe people share a
-        #    common dynamic_signature recently (→ "close conversations" type)
+        # ---------------------------------------------------------------
+        # 7) Context fallback — only fires when there is enough
+        #    *verified* relational activity to justify it.  We
+        #    intentionally do NOT fall back to context based on
+        #    unverified relationship_patterns rows — that would let
+        #    seed/test data drive copy.
+        # ---------------------------------------------------------------
         total_safe_mentions = sum(name_counts.values())
         distinct_safe_people = len(name_counts)
         top_dyn = dyn_sig_counts.most_common(1)
@@ -880,22 +974,31 @@ async def _resolve_relational_pattern(
             and top_dyn[0][1] >= 2
         ):
             label = "close conversations"
-            # If saved_people exists, prefer "people you've named"
-            if saved_names and len(saved_names) >= 2:
+            if len(verified_names) >= 2:
                 label = "people you've named in your life"
             line = _pick_line(_RELATIONAL_CONTEXT_LINES, theme + label)
             return {
-                "available":     True,
-                "confidence":    "high",
-                "type":          "context",
-                "label":         label,
-                "summary":       line,
-                "source_count":  int(total_safe_mentions),
-                "theme":         theme,
+                "available":       True,
+                "confidence":      "high",
+                "type":            "context",
+                "label":           label,
+                "summary":         line,
+                "source_count":    int(total_safe_mentions),
+                "source_verified": True,
+                "source_type":     "context_aggregate",
+                "theme":           theme,
             }
 
-        return {"available": False, "confidence": "low"}
+        return {
+            "available":       False,
+            "confidence":      "low",
+            "source_verified": False,
+        }
     except Exception as e:
         logger.warning("[HomeV6/Rel] resolution failed: %s", e)
-        return {"available": False, "confidence": "low"}
+        return {
+            "available":       False,
+            "confidence":      "low",
+            "source_verified": False,
+        }
 

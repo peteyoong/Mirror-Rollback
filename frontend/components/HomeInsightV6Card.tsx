@@ -65,6 +65,8 @@ interface RelationalPatternBlock {
   label?: string | null;
   summary?: string | null;
   source_count?: number;
+  source_verified?: boolean;
+  source_type?: string | null;
   theme?: string | null;
 }
 
@@ -318,40 +320,54 @@ const HomeInsightV6Card: React.FC<HomeV6CardProps> = ({
       ) : null}
 
       {/* SECTION 4c — WHERE THIS SHOWS UP WITH PEOPLE (Relational overlay) */}
-      {/* High-confidence only. Person reveal requires saved_people OR     */}
-      {/* organic count ≥ 3 + behavioral theme match. Falls back to        */}
-      {/* a context label ("close conversations") when person reveal is    */}
-      {/* not safe. Stays focused on user behavior — never blames the      */}
-      {/* other person, never quotes conversations, never describes how    */}
-      {/* the other person feels.                                          */}
-      {data.relational_pattern?.available && data.relational_pattern?.confidence === 'high' && data.relational_pattern?.summary ? (
-        <View
-          style={[
-            styles.memoryWrap,
-            {
-              borderColor: theme.border,
-              backgroundColor: theme.background,
-            },
-          ]}
-        >
-          <View style={styles.memoryHeader}>
-            <Ionicons
-              name="ellipse"
-              size={5}
-              color={theme.textTertiary}
-              style={{ marginRight: 6, opacity: 0.6 }}
-            />
-            <Text
-              style={[styles.memoryLabel, { color: theme.textTertiary }]}
-            >
-              WHERE THIS SHOWS UP WITH PEOPLE
+      {/* High-confidence only. Person reveal additionally requires       */}
+      {/* `source_verified === true` — a name is rendered ONLY when it    */}
+      {/* exists in db.saved_people / db.people OR has organic            */}
+      {/* journal/reflection corroboration. Background-engine derived     */}
+      {/* names (relationship_patterns alone) are NEVER revealed.         */}
+      {(() => {
+        const rp = data.relational_pattern;
+        if (!rp || !rp.available || rp.confidence !== 'high' || !rp.summary) {
+          return null;
+        }
+        // Hard gate: a person reveal MUST be source_verified.
+        if (rp.type === 'person' && rp.source_verified !== true) {
+          return null;
+        }
+        // Context type must also be source_verified to suppress the
+        // legacy unsafe context fallback.
+        if (rp.type === 'context' && rp.source_verified !== true) {
+          return null;
+        }
+        return (
+          <View
+            style={[
+              styles.memoryWrap,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.background,
+              },
+            ]}
+          >
+            <View style={styles.memoryHeader}>
+              <Ionicons
+                name="ellipse"
+                size={5}
+                color={theme.textTertiary}
+                style={{ marginRight: 6, opacity: 0.6 }}
+              />
+              <Text
+                style={[styles.memoryLabel, { color: theme.textTertiary }]}
+              >
+                WHERE THIS SHOWS UP WITH PEOPLE
+              </Text>
+            </View>
+            <Text style={[styles.memoryText, { color: theme.textSecondary }]}>
+              {rp.summary}
             </Text>
           </View>
-          <Text style={[styles.memoryText, { color: theme.textSecondary }]}>
-            {data.relational_pattern.summary}
-          </Text>
-        </View>
-      ) : null}
+        );
+      })()}
 
       {/* SECTION 5 — CTA */}
       <TouchableOpacity
