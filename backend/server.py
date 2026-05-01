@@ -28838,6 +28838,48 @@ async def get_forum_members(forum_id: str, user_id: str):
     return {"members": members}
 
 
+# =============================================================================
+# LIVE FIELD V1 — Forum field-level pattern engine (per Mirror brief, Feb 2026)
+# =============================================================================
+# Reads the *room* (not the people in it).  Aggregates each member's
+# Astrology Today V5 dominant signal into a field-state classification
+# (acceleration / holding / tension / disengagement / alignment) and
+# returns a 5-section card every member sees the same way except for
+# the personalised "your position" line.
+#
+# Hard rules: never names individuals, never exposes private behavior,
+# never quotes journal text, no advice.
+#
+# Mounted at `/forums/{forum_id}/live-field-v1` to coexist with the
+# legacy V2 engine at `/live-field`.  Frontend may use whichever
+# contract is appropriate.
+@api_router.get("/forums/{forum_id}/live-field-v1")
+async def get_forum_live_field_v1(forum_id: str, user_id: str) -> Dict[str, Any]:
+    if not ObjectId.is_valid(forum_id):
+        raise HTTPException(status_code=400, detail="Invalid forum_id format")
+
+    # Caller must be an active member of the forum.
+    membership = await db.forum_members.find_one({
+        "forum_id": forum_id,
+        "user_id":  user_id,
+        "status":   "active",
+    })
+    if not membership:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not a member of this forum",
+        )
+
+    try:
+        from services.live_field import build_live_field_payload
+        return await build_live_field_payload(db, forum_id, user_id)
+    except Exception as e:
+        logger.exception("[LiveField] failed for forum %s, user %s: %s", forum_id, user_id, e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
 @api_router.get("/forums/domains/list")
 async def get_pattern_domains():
     """

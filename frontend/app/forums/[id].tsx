@@ -41,6 +41,7 @@ import api, {
   ForumMemberSummary,
 } from '../../services/api';
 import ForumChatView from '../../components/ForumChatView';
+import LiveFieldCard from '../../components/LiveFieldCard';
 import Constants from 'expo-constants';
 
 // Types for modal states
@@ -828,6 +829,24 @@ export default function ForumHomeScreen() {
             </View>
           ) : null}
         </View>
+
+        {/* ============================================
+        {/* ============================================
+            LIVE FIELD V1 (Feb 2026 brief) — clean field-state card.
+            Reads only from member V5 sky-state; never names individuals.
+            Renders nothing when forum has <3 active members.
+            Mounted ABOVE the legacy "Story of This Circle" so users
+            see the new V1 read first.
+            ============================================ */}
+        {forumId && user?.id ? (
+          <View style={{ marginBottom: 16 }}>
+            <LiveFieldCard
+              forumId={forumId}
+              userId={user.id}
+              theme={theme}
+            />
+          </View>
+        ) : null}
 
         {/* ============================================
             FORUM STORY HERO — "The Story of This Circle"

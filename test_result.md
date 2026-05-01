@@ -14561,3 +14561,137 @@ agent_communication:
 
           Payload version: v6.2.1 → v6.3.
 
+  - task: "Forum Live Field V1 — field-level pattern engine"
+    implemented: true
+    working: true
+    file: "backend/services/live_field.py (NEW), backend/server.py (GET /api/forums/{forum_id}/live-field-v1), frontend/components/LiveFieldCard.tsx (NEW), frontend/app/forums/[id].tsx (mount above legacy hero)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          Reads the *room*, not the people in it.  Aggregates each
+          member's V5 dominant signal (db.daily_astrology) into a
+          field-state classification + 5 deterministic sections.
+
+          Endpoint
+          --------
+          GET /api/forums/{forum_id}/live-field-v1?user_id={user_id}
+
+          (Mounted at `live-field-v1` to coexist with the existing
+          legacy V2 endpoint at `/live-field` which has a different
+          richer contract used elsewhere.  No collision.)
+
+          Field states (5)
+          ----------------
+            acceleration_field   — many pushing/acting fast
+            holding_field        — many hesitating / processing
+            tension_field        — mixed signals / opposing pulls
+            disengagement_field  — low activity / withdrawal
+            alignment_field      — shared direction / clarity
+
+          Member theme classifier (`_classify_member_theme`)
+          ---------------------------------------------------
+          For each active forum member, pulls their freshest V5 row
+          (today preferred, otherwise <48h) and maps to one of:
+            accelerating | holding | opposing | aligned | disengaged
+          Heuristics:
+            signal_conflict        → opposing
+            full_moon/new_moon     → accelerating
+            ingress                → holding
+            tight_aspect+high      → accelerating
+            tight_aspect+other     → holding
+            high intensity         → accelerating
+            low intensity          → holding
+            medium aligned         → aligned
+            no V5 / >36h stale     → disengaged
+
+          Field classifier (`_classify_field_state`)
+          ------------------------------------------
+            disengaged ≥ 60% of total       → disengagement_field
+            accel ≥ 2 AND hold ≥ 2          → tension_field (polarity)
+            opposing ≥ max(2, n/4)          → tension_field (conflict)
+            accel ≥ 3 AND accel ≥ hold      → acceleration_field
+            hold ≥ 3 AND hold ≥ accel       → holding_field
+            aligned ≥ 50%                   → alignment_field
+            otherwise                       → alignment_field (low)
+
+          Confidence floor: NEVER classifies when active member
+          count < 3 → endpoint returns
+          `{available: false, reason: "insufficient_members"}`.
+
+          Personalised "Your Position"
+          ---------------------------
+          Two phrasings per field state ("in" vs "out") chosen by
+          whether the user's own theme matches the field's typical
+          theme.  Same field-level lines for everyone in the room;
+          only this one line is personalised.
+
+          Curated phrasings (deterministic, no LLM, no jargon)
+          ----------------------------------------------------
+          5 lines × 5 sections — every line stays in "the room"
+          register.  Verified absent from output:
+            • individual names
+            • personality types
+            • astrology terms (Mercury / Moon / etc.)
+            • therapy language
+            • advice / instructions
+          MOVE only renders at high/medium intensity.
+
+          Frontend (LiveFieldCard.tsx)
+          ----------------------------
+          New card with title "LIVE FIELD" and intensity dot +
+          short state badge (ACCELERATION/HOLDING/TENSION/QUIET/
+          ALIGNED).  Mounted in /app/forums/[id].tsx ABOVE the
+          legacy "Story of This Circle" hero.  Renders nothing
+          when `available === false` — forum screen stays clean
+          for low-member rooms.  TS clean.
+
+          Verified outcomes (Pete forums)
+          -------------------------------
+          - 69dda348de9cb1c83c0780fa (4 members, 1 with fresh V5):
+              field_state = disengagement_field, intensity=low
+              field_message = "The room is quieter than usual —
+                most people aren't actively in the field today."
+              user_position = "You're more active than the room
+                right now — what's moving in you isn't yet
+                showing up across the field."
+              trajectory = "If this continues, the field will
+                keep thinning…"
+              story = "It feels like the room hasn't shown up
+                yet today."
+              move = hidden (intensity=low + disengagement)
+            ✓ accurate read of an actual quiet forum
+
+          - 69b2491194f38a09d70df5f8 (1 member, < 3 floor):
+              {available:false, reason:"insufficient_members",
+               member_count:1}
+            ✓ correctly suppressed below floor
+
+          - Synthetic field-state tests
+            (4 accel + 1 hold)        → acceleration_field/high
+            (3 accel + 3 hold)        → tension_field/high
+            (4 disengaged + 1 accel)  → disengagement_field/low
+            (5 aligned)               → alignment_field/medium
+            (4 hold + 1 aligned)      → holding_field/high
+            (3 opposing + 1 aligned)  → tension_field/high
+          All correct.
+
+          Acceptance — all PASSED
+          -----------------------
+            ✓ Reads the room, not people
+            ✓ No individual exposure (no names, no IDs)
+            ✓ No advice / no instructions
+            ✓ Same field for all members; only "your position" varies
+            ✓ Mirror-tone language throughout
+            ✓ Hidden when below confidence floor
+            ✓ Coexists with legacy V2 endpoint without collision
+            ✓ TS clean, no regressions on existing forum screen
+
+          Note: Existing legacy V2 endpoint at `/live-field` and its
+          related rendering ("Story of This Circle" + your_position
+          card) remain in place untouched.  Future task: decide
+          whether to retire legacy V2 once V1 visual is validated.
+
