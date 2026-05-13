@@ -14890,3 +14890,54 @@ agent_communication:
           definition — only the cross's *name*.  Decision pending
           on whether Mirror should adopt GM's antipode convention.
 
+
+  - task: "HD Type Database Migration (one-shot)"
+    implemented: true
+    working: true
+    file: "/app/backend/tests/run_hd_type_migration.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            HD TYPE MIGRATION — APPLIED (hd_motor_to_throat_bfs_v1)
+            =====================================================
+            Ran `python -m tests.run_hd_type_migration --apply` against
+            test_database/db.charts.
+
+            Results:
+              scanned   : 148
+              changed   : 18   (all Generator → Manifesting Generator)
+              unchanged : 127
+              skipped   : 3    (missing_hd_fields — pre-V5 stub docs)
+              written   : 18
+
+            Each migrated chart now carries:
+              human_design.type                    = "Manifesting Generator"
+              human_design.previous_type           = "Generator"
+              human_design.type_migrated_at        = <utc datetime>
+              human_design.type_migration_version  = "hd_motor_to_throat_bfs_v1"
+              human_design.motor_to_throat         = True
+              human_design.motor_to_throat_path    = "<readable path>"
+
+            Spot-check of doc 697f7483e240d58f61c06a25 confirms all
+            six fields are persisted and readable.
+
+            Validation users (negative controls):
+              ✓ Pete (697f0c6abf35c0528ff06954): Manifestor (unchanged)
+              ✓ Mel  (697ec826ad4b18f75bf42616): Reflector (unchanged)
+
+            Sample observed motor→throat paths:
+              Root  →(16-48)→ Spleen  → Throat
+              Sacral→(8-1)  → G      → Throat
+              Sacral→(57-20)→ Spleen → Throat
+              Sacral→(33-13)→ G      → Throat
+
+            All transitions are net additions of Sacral-paired motor
+            paths to Throat — exactly the class of indirect routes the
+            BFS fix was designed to recover. No type DOWNGRADES, no
+            cross-type drift (no Generator→Projector etc.), no write
+            errors. Migration is idempotent: re-running it now reports
+            changed=0 because new type already matches cache.
