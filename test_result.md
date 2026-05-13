@@ -14941,3 +14941,254 @@ agent_communication:
             cross-type drift (no Generator→Projector etc.), no write
             errors. Migration is idempotent: re-running it now reports
             changed=0 because new type already matches cache.
+
+  - task: "HD Type Production Startup Migration (idempotent self-heal)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/hd_type_migration.py + /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            Wired the HD-type motor→throat BFS migration into the backend
+            startup `_safe_run_migrations` background task. Production
+            self-heals on first boot after deploy and is idempotent on
+            every subsequent boot.
+
+            Filter:
+              {"human_design": {"$exists": True},
+               "human_design.type_migration_version":
+                 {"$ne": "hd_motor_to_throat_bfs_v1"}}
+
+            Behavior per scanned doc:
+              - changed type   → write previous_type, type_migrated_at,
+                                  type_migration_version, motor_to_throat,
+                                  motor_to_throat_path (audit trail)
+              - unchanged type → stamp type_migration_version + mtt
+                                  fields so future startups skip it
+              - missing HD     → skipped, counted, NOT stamped
+
+            Safety:
+              - per-doc try/except → exceptions counted as `failed`
+              - outer wrapper in server.py logs error & continues
+              - startup completes regardless of migration outcome
+              - never touches birth_data, astrology, BaZi, numerology,
+                Sun/Earth, Incarnation Crosses, sidereal constants,
+                or timeline data
+
+            Live verification in this preview env:
+              Boot 1 (pre-stamp):   scanned=130 migrated=0 unchanged=127 skipped=3 failed=0
+              Boot 2 (post-stamp):  scanned=3   migrated=0 unchanged=0   skipped=3 failed=0
+              Boot 3 (post-stamp):  scanned=3   migrated=0 unchanged=0   skipped=3 failed=0
+
+            Idempotency proof: after the first run stamps all readable
+            docs, subsequent startups scan only the 3 unparseable docs
+            (which can't be stamped because they have no defined_centers
+            or defined_channels to recompute from).
+
+            Sample log block (production-format):
+              [HD-Migration] ============================================
+              [HD-Migration] HD TYPE MIGRATION REPORT (hd_motor_to_throat_bfs_v1)
+              [HD-Migration]   scanned   : N
+              [HD-Migration]   migrated  : N
+              [HD-Migration]   unchanged : N
+              [HD-Migration]   skipped   : N
+              [HD-Migration]   failed    : N
+              [HD-Migration]   transitions:
+              [HD-Migration]     Generator → Manifesting Generator   ×N
+              [HD-Migration]   sample changed records:
+              [HD-Migration]     user_id=... old → new
+              [HD-Migration]       path: Sacral →(8-1)→ G Center → Throat
+              [HD-Migration] ============================================
+
+  - task: "Astrology Today V5 — daily cache with engine_version + force_refresh"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py + /app/backend/services/astrology_today_v5.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            Today V5 now refreshes once per calendar day per user.
+            
+            Cache key (semantic):
+              astrology_today_v5::{user_id}::{date}::{engine_version}
+
+            Cache storage:
+              db.daily_astrology, primary key {user_id, date}.
+              Each doc carries `engine_version` + `cache_key` fields.
+
+            Refresh rules:
+              - Same-day cached payload returned if engine_version matches
+                AND last generation was < 6h ago
+              - engine_version mismatch → bypass cache (auto-invalidate
+                across all users when ENGINE_VERSION is bumped)
+              - ?force_refresh=true → bypass cache entirely & regenerate
+              - generated payloads include refresh_reason="force_refresh"
+                when applicable
+
+            Engine version constant:
+              services/astrology_today_v5.ENGINE_VERSION = "today_v5.1"
+
+  - task: "Astrology Timeline — weekly cache with year+version+birth_hash triggers"
+    implemented: true
+    working: true
+    file: "/app/backend/services/astrology_timeline_cache.py + /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            Timeline now feels stable, cumulative, trustworthy — does NOT
+            rewrite per chat turn or per day.
+
+            Cache key (semantic):
+              astrology_timeline::{user_id}::{year}::{engine_version}
+
+            Cache storage:
+              db.astrology_timeline_cache (persistent across restarts).
+              One doc per user. Fields: user_id, year, engine_version,
+              birth_data_hash, generated_at, cache_key, payload,
+              refresh_reason.
+
+            Refresh triggers (in priority order):
+              1. force_refresh=True (manual / admin / debug)
+              2. cache miss (no_cache)
+              3. year_rollover  (cached.year != now.year)
+              4. engine_version_changed
+              5. birth_data_changed (sha256 of birth_date|time|tz|lat|lon)
+              6. ttl_expired (> 7 days since generated_at)
+              Otherwise: return cached payload UNCHANGED.
+
+            TTL: 7 days. Timeline is a yearly arc — daily weather lives
+            in Today V5, not here.
+
+            Ask About My Life integration:
+              The "this year / outlook / timeline" intent codepath in
+              ask_life_question now reads from this same cache via
+              `get_or_build_astrology_timeline()`. Year-questions
+              receive the SAME cached arc all week long, no per-turn
+              regeneration.
+
+            Engine version constant:
+              services/astrology_timeline_generator.ENGINE_VERSION =
+              "timeline_v1.0"
+
+            New endpoint:
+              GET /api/astrology/timeline/{user_id}?force_refresh=false
+
+            Live cache test results (preview env, Pete):
+              call 1 (no_cache):       source=generated, refresh_reason=no_cache
+              call 2 (cache hit):      source=cache,     age=13ms
+              call 3 (force_refresh):  source=generated, refresh_reason=force_refresh
+              Persistent doc verified in db.astrology_timeline_cache
+              with full key fields and ENGINE_VERSION stamp.
+
+  - task: "HD Startup Migration + Astrology V5/Timeline Cache Contracts — Validation"
+    implemented: true
+    working: true
+    file: "/app/backend_test.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: |
+            HD STARTUP MIGRATION + ASTROLOGY CACHE CONTRACTS — VALIDATION COMPLETE ✅
+            
+            All 35/35 assertions PASSED against
+            https://micro-reflect-v2.preview.emergentagent.com.
+            
+            Test script: /app/backend_test.py
+            
+            1) HD STARTUP MIGRATION (idempotent + non-blocking) — 8/8 PASS
+               - "HD TYPE MIGRATION REPORT (hd_motor_to_throat_bfs_v1)" block
+                 present in /var/log/supervisor/backend.err.log
+               - "[Migration] Starting background data migrations..." present
+               - Report counts: scanned=3, migrated=0, unchanged=0,
+                 skipped=3 (skipped_reasons: missing_hd_fields ×3), failed=0
+               - Report appears 0.093s after migration start (well within 5s)
+               - No traceback in 2KB window around HD-Migration block
+               - GET /api/health → 200 OK ({"ok":true, "status":"healthy",...})
+            
+            2) GET /api/astrology/today-v5/697f0c6abf35c0528ff06954 — 9/9 PASS
+               - Call A (no params): 200, cache_key =
+                 "astrology_today_v5::697f0c6abf35c0528ff06954::2026-05-13::today_v5.1",
+                 engine_version = "today_v5.1"
+               - Call B (no params): 200, from_cache = True, same cache_key
+               - Call C (?force_refresh=true): 200, from_cache = False,
+                 refresh_reason = "force_refresh"
+            
+            3) GET /api/astrology/timeline/697f0c6abf35c0528ff06954 — 12/12 PASS
+               - Call A: 200, _cache_meta = {source, year, engine_version,
+                 birth_data_hash, generated_at, age_seconds, cache_key}
+                 • year = 2026
+                 • engine_version = "timeline_v1.0"
+                 • cache_key = "astrology_timeline::697f0c6abf35c0528ff06954::2026::timeline_v1.0"
+                 • birth_data_hash = "45ca31c3315a5978" (non-null)
+                 • source = "cache" (a fresh persistent doc already existed)
+               - Call B: source = "cache", age_seconds = 205.05 (>0)
+               - Call C (force_refresh=true): source = "generated",
+                 refresh_reason = "force_refresh"
+            
+            4) Mongo-level verification (test_database) — 6/6 PASS
+               - db.charts.count_documents({"human_design.type_migration_version":
+                 "hd_motor_to_throat_bfs_v1"}) = 145 (>= 145 expected;
+                 127 unchanged + 18 migrated, matches the one-shot run report)
+               - Pete (697f0c6abf35c0528ff06954) human_design.type = "Manifestor" ✓
+               - Mel  (697ec826ad4b18f75bf42616) human_design.type = "Reflector" ✓
+               - db.astrology_timeline_cache has 1 doc for Pete with:
+                 • engine_version = "timeline_v1.0"
+                 • cache_key = "astrology_timeline::697f0c6abf35c0528ff06954::2026::timeline_v1.0"
+                 • fields: [_id, birth_data_hash, cache_key, engine_version,
+                            generated_at, payload, refresh_reason, user_id, year]
+            
+            📊 TEST RESULTS: 35/35 assertions PASSED (100% success rate)
+            
+            CONCLUSION: Both new contracts (HD startup migration, Today V5
+            daily refresh, Timeline V1 weekly cache) behave exactly as
+            specified in the review. The startup migration is idempotent
+            (scanned=3 unstampable docs only, 0 failed), the Today V5 cache
+            key carries the correct shape and engine_version with proper
+            force_refresh bypass, and the Timeline cache returns the
+            expected meta block + persists a Mongo doc with the expected
+            cache_key and engine_version.
+
+agent_communication:
+  - agent: "testing"
+    message: >
+      Validated the new HD startup migration + astrology cache contracts
+      (Today V5 daily refresh + Timeline V1 weekly cache). All 35
+      assertions in /app/backend_test.py passed against
+      https://micro-reflect-v2.preview.emergentagent.com.
+      
+      Highlights:
+        • HD-Migration report present, failed=0, migrated=0, skipped=3,
+          appears within 0.093s of "Starting background data migrations",
+          no tracebacks around it. /api/health returns 200.
+        • Today V5 cache_key shape, engine_version (today_v5.1),
+          from_cache transitions (false→true→false on force_refresh),
+          and refresh_reason="force_refresh" all confirmed.
+        • Timeline V1 _cache_meta carries year=2026,
+          engine_version=timeline_v1.0, cache_key=
+          "astrology_timeline::697f0c6abf35c0528ff06954::2026::timeline_v1.0",
+          non-null birth_data_hash; second call serves from cache with
+          age_seconds>0; force_refresh produces source=generated +
+          refresh_reason=force_refresh.
+        • Mongo: db.charts has 145 docs stamped with type_migration_version
+          "hd_motor_to_throat_bfs_v1" (>=145 expected); Pete=Manifestor,
+          Mel=Reflector; db.astrology_timeline_cache has Pete's doc with
+          the expected engine_version + cache_key.
+      
+      No backend code was modified. No regressions observed in
+      adjacent endpoints during the run.
+

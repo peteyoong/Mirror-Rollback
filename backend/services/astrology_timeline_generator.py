@@ -24,6 +24,13 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 
+# Engine version — bump when the structural timeline contract changes.
+# Timeline caches are keyed by (user_id, year, engine_version,
+# birth_data_hash); a bump automatically invalidates all cached timelines.
+ENGINE_VERSION = "timeline_v1.0"
+
+
+
 # ---------------------------------------------------------------------------
 # House → life area maps (mirror of frontend HOUSE_AREAS / HOUSE_SHORT)
 # ---------------------------------------------------------------------------

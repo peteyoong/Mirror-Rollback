@@ -26740,7 +26740,9 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
     timeline_source: str = "none"
     try:
         from services import astrology_timeline_interpreter as ati
-        from services import astrology_timeline_generator as atg
+        from services.astrology_timeline_cache import (
+            get_or_build_astrology_timeline,
+        )
 
         # Re-detect intent here (cheaply) so we can short-circuit when
         # the question is generic. The interpreter itself does NOT call
@@ -26762,27 +26764,21 @@ async def post_life_ask(user_id: str, body: LifeAskRequest):
             or _timeline_kw
         )
         if _wants_timeline:
-            # 1. Try cached structured astrology timeline first.
+            # Read from the persistent weekly-TTL timeline cache. The
+            # SAME cached payload is returned across the week — a
+            # year-question does NOT spawn a new yearly arc per chat
+            # turn. Refresh is automatic when birth data changes,
+            # engine_version is bumped, year rolls over, or TTL expires.
             payload: Optional[Dict[str, Any]] = None
             try:
-                payload = _life_synth_cache_get(f"astro_timeline::{user_id}")
-            except Exception:  # noqa: BLE001 — cache is best-effort
+                payload = await get_or_build_astrology_timeline(
+                    db, user_id, chart_doc=chart_doc, force_refresh=False,
+                )
+            except Exception as ge:
+                logger.warning(
+                    "[LifeAsk] astro timeline cache failed: %s", ge,
+                )
                 payload = None
-
-            # 2. Cache miss → generate from chart and cache for future
-            #    requests. Cheap deterministic compute, no LLM call.
-            if not payload:
-                try:
-                    payload = atg.generate_astrology_timeline(chart_doc)
-                    if payload:
-                        _life_synth_cache_set(
-                            f"astro_timeline::{user_id}", payload,
-                        )
-                except Exception as ge:
-                    logger.warning(
-                        "[LifeAsk] astro timeline generator failed: %s", ge,
-                    )
-                    payload = None
 
             timeline_context_payload = ati.build_timeline_context(
                 user_id=user_id,
@@ -34221,13 +34217,27 @@ async def get_astrology_today_debug(user_id: str) -> Dict[str, Any]:
 
 
 @api_router.get("/astrology/today-v5/{user_id}")
-async def get_astrology_today_v5(user_id: str) -> Dict[str, Any]:
+async def get_astrology_today_v5(user_id: str, force_refresh: bool = False) -> Dict[str, Any]:
     """Today's astrology reflection, built on the transit-dominance engine.
     Uses a deterministic diagnosis sentence + LLM paragraphs 2-4. Stores
-    the result for continuity-aware next-day generation."""
+    the result for continuity-aware next-day generation.
+
+    Cache rules
+    -----------
+    - One payload per (user_id, date, engine_version). Same calendar day
+      returns the cached payload unless a force_refresh is requested or
+      the engine_version has been bumped since the cache was written.
+    - Cache key (semantic):
+        astrology_today_v5::{user_id}::{date}::{engine_version}
+    - Cache storage: db.daily_astrology, primary keyed by {user_id, date}.
+    - `?force_refresh=true` bypasses the cache lookup and regenerates.
+    """
     try:
         from datetime import datetime as _dt
-        from services.astrology_today_v5 import build_today_v5_payload
+        from services.astrology_today_v5 import (
+            ENGINE_VERSION as _TODAY_V5_VERSION,
+            build_today_v5_payload,
+        )
 
         chart = await db.charts.find_one({"user_id": user_id})
 
@@ -34246,10 +34256,14 @@ async def get_astrology_today_v5(user_id: str) -> Dict[str, Any]:
                 "sky":            prior.get("sky"),
             }
 
-        # If today was already generated in the last 6 hours, return cache
-        cached = await db.daily_astrology.find_one(
-            {"user_id": user_id, "date": today_str},
-        )
+        # If today was already generated AND the engine version matches
+        # AND it's fresh (last 6 hours), return cached. force_refresh
+        # skips this lookup entirely.
+        cached = None
+        if not force_refresh:
+            cached = await db.daily_astrology.find_one(
+                {"user_id": user_id, "date": today_str},
+            )
         if cached and cached.get("generated_at"):
             ga = cached["generated_at"]
             if isinstance(ga, _dt) and ga.tzinfo is None:
@@ -34258,9 +34272,14 @@ async def get_astrology_today_v5(user_id: str) -> Dict[str, Any]:
                 age = (now - ga).total_seconds() if isinstance(ga, _dt) else 9999
             except Exception:
                 age = 9999
-            if age < 6 * 3600:
+            cached_version = cached.get("engine_version")
+            # Only honor cache when engine version matches the current one.
+            if age < 6 * 3600 and (cached_version == _TODAY_V5_VERSION):
                 cached.pop("_id", None)
                 cached["from_cache"] = True
+                cached["cache_key"] = (
+                    f"astrology_today_v5::{user_id}::{today_str}::{_TODAY_V5_VERSION}"
+                )
                 if isinstance(cached.get("generated_at"), _dt):
                     cached["generated_at"] = cached["generated_at"].isoformat()
                 return cached
@@ -34271,10 +34290,15 @@ async def get_astrology_today_v5(user_id: str) -> Dict[str, Any]:
             prior_day_payload=prior_payload,
         )
 
-        # Store for tomorrow's continuity pass
+        # Store for tomorrow's continuity pass — now stamped with the
+        # engine version so version bumps cleanly invalidate.
         store = {
             **payload,
             "generated_at": now,
+            "engine_version": _TODAY_V5_VERSION,
+            "cache_key": (
+                f"astrology_today_v5::{user_id}::{today_str}::{_TODAY_V5_VERSION}"
+            ),
             # Persist the sky snapshot too — tomorrow's prior-Moon-sign
             # detection uses it.
             "sky": (
@@ -34289,12 +34313,57 @@ async def get_astrology_today_v5(user_id: str) -> Dict[str, Any]:
         )
         store.pop("_id", None)
         store["from_cache"] = False
+        if force_refresh:
+            store["refresh_reason"] = "force_refresh"
         # Convert datetime field back to iso for JSON
         if isinstance(store.get("generated_at"), _dt):
             store["generated_at"] = store["generated_at"].isoformat()
         return store
     except Exception as e:
         logger.exception("[Astro/today-v5] failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/astrology/timeline/{user_id}")
+async def get_astrology_timeline(
+    user_id: str,
+    force_refresh: bool = False,
+) -> Dict[str, Any]:
+    """Yearly astrology timeline — stable across the week.
+
+    Cache rules
+    -----------
+    - Cache key (semantic):
+        astrology_timeline::{user_id}::{year}::{engine_version}
+    - Cache storage: db.astrology_timeline_cache (persistent, survives
+      backend restarts).
+    - TTL: 7 days. Cached payload is returned for the full week unless
+      one of these refresh triggers fires:
+        1. ``?force_refresh=true`` (manual / admin / debug)
+        2. The user's birth_data_hash changed (birth_date/time/location)
+        3. The engine version was bumped
+        4. The calendar year rolled over
+    - Never regenerated on every chat / page load. The "Ask About My
+      Life" pipeline reads from the SAME cache so a year-question does
+      not produce a different yearly arc per request.
+    """
+    try:
+        from services.astrology_timeline_cache import (
+            get_or_build_astrology_timeline,
+        )
+        payload = await get_or_build_astrology_timeline(
+            db, user_id, chart_doc=None, force_refresh=force_refresh,
+        )
+        if payload is None:
+            raise HTTPException(
+                status_code=404,
+                detail="No chart available for timeline generation",
+            )
+        return payload
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("[Astro/timeline] failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -34861,6 +34930,24 @@ async def run_startup_data_migrations():
         )
     except Exception as e:
         logger.error(f"[Migration] Enneagram backfill error: {e}")
+
+    # === HD Type motor→throat BFS migration (idempotent self-heal) ===
+    # On production deploys the cached chart docs may carry pre-fix HD
+    # type values. This recomputes `human_design.type` using the current
+    # BFS engine and writes audit fields (previous_type, type_migrated_at,
+    # type_migration_version, motor_to_throat, motor_to_throat_path) only
+    # when the type changes. Unchanged docs receive a version stamp so
+    # they are skipped on subsequent startup runs.
+    try:
+        from services.hd_type_migration import (
+            run_hd_type_startup_migration,
+            format_report as _hd_format_report,
+        )
+        _hd_report = await run_hd_type_startup_migration(db, logger=logger)
+        for _line in _hd_format_report(_hd_report).splitlines():
+            logger.info(_line)
+    except Exception as e:
+        logger.error(f"[Migration] HD type migration error (non-fatal): {e}")
 
     logger.info("[Migration] Startup data migrations complete ✓")
 

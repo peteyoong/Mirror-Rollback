@@ -38,6 +38,12 @@ import logging
 import os
 import re
 from datetime import datetime, timezone
+
+# Engine version — bump when the Today V5 narrative / signal contract changes.
+# Today caches are keyed by (user_id, date, engine_version); a bump
+# automatically invalidates every cached daily payload across all users.
+ENGINE_VERSION = "today_v5.1"
+
 from typing import Any, Dict, List, Optional, Set
 
 from services.transit_dominance_engine import build_dominance_payload
