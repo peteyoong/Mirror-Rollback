@@ -34367,6 +34367,49 @@ async def get_astrology_timeline(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.post("/admin/hd_type_migration")
+async def admin_run_hd_type_migration(
+    confirm: bool = False,
+    apply_changes: bool = True,
+) -> Dict[str, Any]:
+    """Admin-triggered HD-type motor→throat BFS migration.
+
+    This is the manual replacement for the (temporarily disabled)
+    startup hook. Idempotent — only touches charts that have not yet
+    received the `hd_motor_to_throat_bfs_v1` migration stamp.
+
+    Args:
+        confirm: must be True to actually execute. A safety guard so
+            an accidental request returns a no-op summary.
+        apply_changes: when False, the migration runs but does NOT
+            stamp unchanged docs (dry-run style).
+
+    Returns the same report dict the startup hook would have produced.
+    """
+    if not confirm:
+        return {
+            "ok": False,
+            "message": (
+                "Pass ?confirm=true to execute the migration. "
+                "It is idempotent and safe."
+            ),
+        }
+    try:
+        from services.hd_type_migration import (
+            run_hd_type_startup_migration,
+            format_report as _hd_format_report,
+        )
+        report = await run_hd_type_startup_migration(
+            db, logger=logger, stamp_unchanged=bool(apply_changes),
+        )
+        for _line in _hd_format_report(report).splitlines():
+            logger.info(_line)
+        return {"ok": True, "report": report}
+    except Exception as e:
+        logger.exception("[admin/hd_type_migration] failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 app.include_router(api_router)
 
 
@@ -34932,22 +34975,20 @@ async def run_startup_data_migrations():
         logger.error(f"[Migration] Enneagram backfill error: {e}")
 
     # === HD Type motor→throat BFS migration (idempotent self-heal) ===
-    # On production deploys the cached chart docs may carry pre-fix HD
-    # type values. This recomputes `human_design.type` using the current
-    # BFS engine and writes audit fields (previous_type, type_migrated_at,
-    # type_migration_version, motor_to_throat, motor_to_throat_path) only
-    # when the type changes. Unchanged docs receive a version stamp so
-    # they are skipped on subsequent startup runs.
-    try:
-        from services.hd_type_migration import (
-            run_hd_type_startup_migration,
-            format_report as _hd_format_report,
-        )
-        _hd_report = await run_hd_type_startup_migration(db, logger=logger)
-        for _line in _hd_format_report(_hd_report).splitlines():
-            logger.info(_line)
-    except Exception as e:
-        logger.error(f"[Migration] HD type migration error (non-fatal): {e}")
+    # P0 HOTFIX 2026-05-13: temporarily DISABLED at startup. Migration
+    # is now exposed via an admin endpoint instead
+    # (POST /api/admin/hd_type_migration). The startup version was a
+    # suspect for a production boot failure ("Cloudflare 520 / Host
+    # Error" on mirror-lens-fixes.emergent.host immediately after
+    # publish). Even though the code is wrapped in try/except and runs
+    # in a background asyncio task — and was verified safe on preview —
+    # the safest path under production-down conditions is to take this
+    # automatic invocation OFF the boot path entirely and run it
+    # manually from an admin endpoint once production is back online.
+    #
+    # The migration logic itself (services/hd_type_migration.py) is
+    # unchanged and remains idempotent + safe to call any time.
+    logger.info("[Migration] HD type migration skipped at startup (admin-triggered now)")
 
     logger.info("[Migration] Startup data migrations complete ✓")
 
