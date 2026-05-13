@@ -27,7 +27,13 @@ logger = logging.getLogger(__name__)
 # Engine version — bump when the structural timeline contract changes.
 # Timeline caches are keyed by (user_id, year, engine_version,
 # birth_data_hash); a bump automatically invalidates all cached timelines.
-ENGINE_VERSION = "timeline_v1.0"
+#
+# v1.1: payload now emits the rich per-phase bullet arrays
+#       (whats_happening, what_this_creates, where_people_get_it_wrong,
+#       what_its_asking_of_you) + per-phase is_current flag so the
+#       Astrology Timeline tab can render entirely from the server
+#       payload without a client-side fallback generator.
+ENGINE_VERSION = "timeline_v1.1"
 
 
 
@@ -232,6 +238,13 @@ def generate_astrology_timeline(
     tension = pattern["tension"]
 
     # ---- Phases (4 quarters) -------------------------------------------------
+    # Each phase carries BOTH:
+    #   • `description` — single-paragraph summary (used by ATI / LLM)
+    #   • `whats_happening` / `what_this_creates` / `where_people_get_it_wrong`
+    #     / `what_its_asking_of_you` — rich behavioural bullet arrays that
+    #     the frontend Timeline tab renders 1:1. These mirror the original
+    #     client-side bullet structure so the UI can switch fully to the
+    #     server payload without visual regression.
     phases: List[Dict[str, Any]] = [
         {
             "id":             "q1",
@@ -245,6 +258,22 @@ def generate_astrology_timeline(
                 f"feel minor but keep replaying. What is asked of you: notice what keeps echoing, "
                 f"especially around {moon_area}."
             ),
+            "whats_happening": [
+                f"The {tension} tension starts showing up in {sun_area}",
+                f"Small moments in {mars_area} and {venus_area} that carry more weight than they look",
+            ],
+            "what_this_creates": [
+                "A nagging sense you've been here before",
+                "Situations that feel minor but keep replaying in your head",
+            ],
+            "where_people_get_it_wrong": [
+                "Treating these moments as coincidence instead of signal",
+                "Waiting for something bigger before paying attention",
+            ],
+            "what_its_asking_of_you": [
+                f"Notice what keeps echoing, especially around {moon_area}",
+                'Start asking "why does this keep happening?" instead of "when will this stop?"',
+            ],
             "is_primary":      False,
         },
         {
@@ -259,11 +288,27 @@ def generate_astrology_timeline(
                 f"What is asked of you: name what you've been pretending not to see; in {saturn_area}, "
                 f"choose from clarity — not from wanting the discomfort to end."
             ),
+            "whats_happening": [
+                f"What you've been tolerating in {venus_area} and {saturn_area} stops feeling tolerable",
+                f"The gap between how you present in {sun_area} and how you feel in {moon_area} gets harder to bridge",
+            ],
+            "what_this_creates": [
+                "Conversations you've been putting off start demanding attention",
+                "Choices that feel more permanent than before",
+            ],
+            "where_people_get_it_wrong": [
+                "Blaming the situation instead of seeing what you brought to it",
+                "Making a decision just to escape the pressure, then regretting the speed",
+            ],
+            "what_its_asking_of_you": [
+                "Name what you've been pretending not to see",
+                f"In {saturn_area}, choose from clarity—not from wanting the discomfort to end",
+            ],
             "is_primary":      True,
         },
         {
             "id":             "q3",
-            "name":           "Crossroads",
+            "name":           "The Crossroads",
             "period":         f"Jul – Sep {year}",
             "human_meaning":  "A choice, split, or redirection is active",
             "description": (
@@ -273,6 +318,22 @@ def generate_astrology_timeline(
                 f"is already sufficient. What is asked of you: make the choice you've been circling. "
                 f"The year has prepared you for this."
             ),
+            "whats_happening": [
+                f"In {sun_area}, two versions of you become visible—the one you've been and the one you could become",
+                f"The tension in {venus_area} crystallizes into a clear choice",
+            ],
+            "what_this_creates": [
+                "A sense that this period will be remembered as a before/after moment",
+                "The strange calm of knowing what you need to do, even if you haven't done it yet",
+            ],
+            "where_people_get_it_wrong": [
+                "Waiting for certainty that never comes—the information is already sufficient",
+                "Choosing based on what's comfortable instead of what's aligned",
+            ],
+            "what_its_asking_of_you": [
+                "Make the choice you've been circling. The year has prepared you for this.",
+                "Trust what you've learned about yourself since January",
+            ],
             "is_primary":      True,
         },
         {
@@ -287,9 +348,34 @@ def generate_astrology_timeline(
                 f"beneath your feet. Or: the recognition that you're not done yet — and clarity "
                 f"about what next year needs to address."
             ),
+            "whats_happening": [
+                f"The ripples from your Q3 choices start showing in {saturn_area} and {mars_area}",
+                f"What you decided in {venus_area} either settles or requires one more honest conversation",
+            ],
+            "what_this_creates": [
+                "Either: the relief of having finally moved, and the new ground beneath your feet",
+                "Or: the recognition that you're not done yet—and clarity about what next year needs to address",
+            ],
+            "where_people_get_it_wrong": [
+                "Forcing a sense of completion before it's earned",
+                "Dismissing what the year taught because it was uncomfortable",
+            ],
+            "what_its_asking_of_you": [
+                f"Honest inventory: what actually changed in {sun_area}?",
+                "Gratitude for the growth, acceptance for what remains",
+            ],
             "is_primary":      False,
         },
     ]
+
+    # Derive which phase is "current" from the current month so the UI
+    # can highlight it. Only stamps `is_current=True` on the matching
+    # phase (Q1 = Jan-Mar, Q2 = Apr-Jun, Q3 = Jul-Sep, Q4 = Oct-Dec).
+    _now = datetime.utcnow()
+    _current_quarter = (_now.month - 1) // 3  # 0..3
+    for _idx, _phase in enumerate(phases):
+        _phase["is_current"] = (_idx == _current_quarter)
+    current_phase_id = phases[_current_quarter]["id"]
 
     # ---- Turning points ------------------------------------------------------
     turning_points: List[Dict[str, Any]] = [

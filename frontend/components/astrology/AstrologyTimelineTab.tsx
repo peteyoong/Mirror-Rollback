@@ -18,12 +18,22 @@ import {
   UIManager,
   ActivityIndicator,
 } from 'react-native';
+import Constants from 'expo-constants';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
 import { FullChartData } from '../../services/astrology/astrologyTypes';
 import { getJournalEntriesByPhase, getJournalPatterns, JournalEntryResponseWithPhase, JournalPatternAnalysis } from '../../services/api';
 import { useAppStore } from '../../store';
 import { cleanText } from '../../utils/languageGuard';
+
+// Backend URL resolution (same pattern AstrologyTodayV4 uses) — on web
+// we rely on the relative /api proxy, on native we use the absolute
+// EXPO_PUBLIC_BACKEND_URL so the fetch works under both runtimes.
+const TIMELINE_BACKEND_BASE =
+  (Constants.expoConfig?.extra as any)?.EXPO_PUBLIC_BACKEND_URL ||
+  process.env.EXPO_PUBLIC_BACKEND_URL ||
+  '';
+const TIMELINE_APP_BASE = typeof window !== 'undefined' ? '' : TIMELINE_BACKEND_BASE;
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -404,6 +414,125 @@ function generateTimelineData(
 }
 
 // ============================================
+// SERVER PAYLOAD → LOCAL SHAPE ADAPTER
+// ============================================
+// Maps the rich payload from GET /api/astrology/timeline/{user_id}
+// (engine_version "timeline_v1.1") into the existing local
+// `TimelineData` shape so the UI renders without any visual change.
+// Server is treated as the source of truth — this adapter only
+// renames fields. If the server payload is malformed, returns null
+// so the caller can fall back to the client-side generator.
+
+interface ServerPhase {
+  id: string;
+  name: string;
+  period: string;
+  human_meaning: string;
+  description?: string;
+  whats_happening?: string[];
+  what_this_creates?: string[];
+  where_people_get_it_wrong?: string[];
+  what_its_asking_of_you?: string[];
+  is_primary?: boolean;
+  is_current?: boolean;
+}
+
+interface ServerTurningPoint {
+  timing: string;
+  type?: string;
+  life_area: string;
+  what_activates: string;
+  what_becomes_clear: string;
+  if_avoided: string;
+}
+
+interface ServerDecisionWindow {
+  period: string;
+  context: string;
+  prompt: string;
+  if_act: string;
+  if_wait: string;
+}
+
+interface ServerTimelinePayload {
+  year_theme?: string;
+  year_question?: string;
+  arc?: string;
+  phases?: ServerPhase[];
+  turning_points?: ServerTurningPoint[];
+  decision_windows?: ServerDecisionWindow[];
+  _cache_meta?: {
+    source?: 'cache' | 'generated';
+    year?: number;
+    engine_version?: string;
+    birth_data_hash?: string;
+    generated_at?: string;
+    age_seconds?: number;
+    refresh_reason?: string | null;
+    cache_key?: string;
+  };
+}
+
+function adaptServerTimeline(server: ServerTimelinePayload | null): TimelineData | null {
+  if (!server || !Array.isArray(server.phases) || server.phases.length === 0) {
+    return null;
+  }
+
+  const phases: TimelinePhase[] = server.phases.map((p, idx) => ({
+    id:           p.id ?? `q${idx + 1}`,
+    dateRange:    p.period ?? '',
+    phaseName:    p.name ?? '',
+    humanMeaning: p.human_meaning ?? '',
+    whatsHappening:        p.whats_happening ?? (p.description ? [p.description] : []),
+    whatThisCreates:       p.what_this_creates ?? [],
+    wherePeopleGetItWrong: p.where_people_get_it_wrong ?? [],
+    whatItsAskingOfYou:    p.what_its_asking_of_you ?? [],
+    isPrimary:    !!p.is_primary,
+  }));
+
+  const turningPoints: TurningPoint[] = (server.turning_points ?? []).map((t, idx) => ({
+    id:                   `tp${idx + 1}`,
+    date:                 t.timing ?? '',
+    lifeArea:             t.life_area ?? '',
+    whyThisMatters:       t.what_activates ?? '',
+    whatBecomesClear:     t.what_becomes_clear ?? '',
+    whatHappensIfAvoided: t.if_avoided ?? '',
+  }));
+
+  const decisionWindows: DecisionWindow[] = (server.decision_windows ?? []).map((d, idx) => ({
+    id:        `dw${idx + 1}`,
+    dateRange: d.period ?? '',
+    context:   d.context ?? '',
+    prompt:    d.prompt ?? '',
+    ifYouAct:  d.if_act ?? '',
+    ifYouWait: d.if_wait ?? '',
+  }));
+
+  return {
+    yearTheme:    server.year_question ?? server.year_theme ?? '',
+    primaryArc:   server.arc ?? '',
+    phases,
+    turningPoints,
+    decisionWindows,
+  };
+}
+
+// Network helper. Returns parsed payload on 2xx, throws otherwise so
+// the caller can fall back. `forceRefresh` flips the query param.
+async function fetchServerTimeline(
+  userId: string,
+  forceRefresh: boolean = false,
+): Promise<ServerTimelinePayload> {
+  const qs = forceRefresh ? '?force_refresh=true' : '';
+  const url = `${TIMELINE_APP_BASE}/api/astrology/timeline/${userId}${qs}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`timeline endpoint returned HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ============================================
 // COMPONENT
 // ============================================
 
@@ -423,10 +552,56 @@ export default function AstrologyTimelineTab({
   const [patternData, setPatternData] = useState<JournalPatternAnalysis | null>(null);
   const user = useAppStore(state => state.user);
 
-  // Generate timeline data
-  const timelineData = useMemo(() => {
+  // Server-side timeline payload (source of truth).
+  // - Loaded once on mount via GET /api/astrology/timeline/{user_id}.
+  // - Cache lives in db.astrology_timeline_cache with weekly TTL, so
+  //   the SAME yearly arc is returned to UI and to Ask About My Life.
+  // - Falls back to client-side generateTimelineData() ONLY when the
+  //   network request fails (offline / 5xx / chart-missing).
+  const [serverTimeline, setServerTimeline] = useState<TimelineData | null>(null);
+  const [serverMeta, setServerMeta] = useState<ServerTimelinePayload['_cache_meta'] | null>(null);
+  const [timelineError, setTimelineError] = useState<string | null>(null);
+  const [timelineLoading, setTimelineLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const loadServerTimeline = async (forceRefresh: boolean = false) => {
+    if (!user?.id) {
+      setTimelineLoading(false);
+      return;
+    }
+    try {
+      if (forceRefresh) setRefreshing(true); else setTimelineLoading(true);
+      setTimelineError(null);
+      const raw = await fetchServerTimeline(user.id, forceRefresh);
+      const adapted = adaptServerTimeline(raw);
+      if (!adapted) throw new Error('timeline payload could not be adapted');
+      setServerTimeline(adapted);
+      setServerMeta(raw._cache_meta ?? null);
+    } catch (err: any) {
+      console.warn('[Timeline] Server fetch failed; falling back to client generator:', err?.message ?? err);
+      setTimelineError(String(err?.message ?? err));
+      setServerTimeline(null);
+      setServerMeta(null);
+    } finally {
+      setTimelineLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadServerTimeline(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Build the rendered TimelineData. Preference order:
+  //   1. Server payload (adapted)
+  //   2. Client-side generator from fullChartData (fallback only)
+  const timelineData = useMemo<TimelineData>(() => {
+    if (serverTimeline) return serverTimeline;
     return generateTimelineData(fullChartData);
-  }, [fullChartData]);
+  }, [serverTimeline, fullChartData]);
+
+  const usingServerSource = serverTimeline !== null;
 
   // Fetch pattern data (for compressed pattern lines)
   useEffect(() => {
@@ -487,6 +662,40 @@ export default function AstrologyTimelineTab({
         <Text style={[styles.headerSubtitle, { color: theme.textTertiary }]}>
           Where things build, break, and shift
         </Text>
+        {/* Manual refresh — minimal affordance, top-right of header.
+            Calls /api/astrology/timeline/{user_id}?force_refresh=true
+            and re-adapts the payload. */}
+        {user?.id && (
+          <TouchableOpacity
+            onPress={() => loadServerTimeline(true)}
+            disabled={refreshing || timelineLoading}
+            style={styles.refreshButton}
+            accessibilityLabel="Refresh timeline"
+          >
+            {refreshing ? (
+              <ActivityIndicator size="small" color={theme.textTertiary} />
+            ) : (
+              <Text style={[styles.refreshButtonText, { color: theme.textTertiary }]}>
+                ↻ Refresh
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
+        {/* Dev-only cache meta strip. Never visible in production builds. */}
+        {__DEV__ && serverMeta && (
+          <Text style={[styles.debugMeta, { color: theme.textTertiary }]}>
+            [dev] {serverMeta.source} · {serverMeta.engine_version} · y{serverMeta.year}
+            {serverMeta.age_seconds != null
+              ? ` · age=${Math.round(serverMeta.age_seconds)}s`
+              : ''}
+            {serverMeta.refresh_reason ? ` · reason=${serverMeta.refresh_reason}` : ''}
+          </Text>
+        )}
+        {__DEV__ && !usingServerSource && (
+          <Text style={[styles.debugMeta, { color: '#c0392b' }]}>
+            [dev] using client-side fallback{timelineError ? ` (${timelineError})` : ''}
+          </Text>
+        )}
       </View>
 
       {/* Year Theme */}
@@ -817,6 +1026,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     marginBottom: 16,
+    position: 'relative',
   },
   headerTitle: {
     fontSize: 24,
@@ -827,6 +1037,26 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 13,
     fontStyle: 'italic',
+  },
+  refreshButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    minWidth: 80,
+    minHeight: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  refreshButtonText: {
+    fontSize: 12,
+    letterSpacing: 0.4,
+  },
+  debugMeta: {
+    fontSize: 10,
+    marginTop: 6,
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
   },
   sectionLabel: {
     fontSize: 10,
