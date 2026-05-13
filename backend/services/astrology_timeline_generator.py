@@ -18,7 +18,7 @@ inside this module — the output text is in user-experience language.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,19 @@ logger = logging.getLogger(__name__)
 #       what_its_asking_of_you) + per-phase is_current flag so the
 #       Astrology Timeline tab can render entirely from the server
 #       payload without a client-side fallback generator.
-ENGINE_VERSION = "timeline_v1.1"
+#
+# v1.2: REMOVED the fixed Q1/Q2/Q3/Q4 calendar-quarter scaffold and
+#       hard-coded phase names (Recognition / Confrontation /
+#       Crossroads / Integration). Phases are now:
+#         • 3–4 in count (variable)
+#         • dynamically NAMED per user (derived from natal house
+#           emphasis × phase role × Sun-sign tension)
+#         • anchored to forward-looking timing windows starting from
+#           the generation date — NOT calendar quarters
+#         • each carries is_current / is_past / is_upcoming
+#       Turning points and decision windows are likewise re-anchored
+#       relative to "now" (not fixed April / August / November).
+ENGINE_VERSION = "timeline_v1.2"
 
 
 
@@ -237,64 +249,85 @@ def generate_astrology_timeline(
     arc = pattern["arc_description"]
     tension = pattern["tension"]
 
-    # ---- Phases (4 quarters) -------------------------------------------------
-    # Each phase carries BOTH:
-    #   • `description` — single-paragraph summary (used by ATI / LLM)
-    #   • `whats_happening` / `what_this_creates` / `where_people_get_it_wrong`
-    #     / `what_its_asking_of_you` — rich behavioural bullet arrays that
-    #     the frontend Timeline tab renders 1:1. These mirror the original
-    #     client-side bullet structure so the UI can switch fully to the
-    #     server payload without visual regression.
-    phases: List[Dict[str, Any]] = [
+    # =====================================================================
+    # v1.2 — DYNAMIC PHASES (not calendar quarters)
+    # =====================================================================
+    # Phases are generated NOW-FORWARD from the generation timestamp, with
+    # variable date windows (not fixed Q1/Q2/Q3/Q4 buckets) and dynamic
+    # names derived from:
+    #   • the phase's structural role (active pressure / surfacing /
+    #     pivot / settling)
+    #   • the user's natal house emphasis (which life-area the role
+    #     activates)
+    #   • the Sun-sign tension that runs through the whole year
+    # Each phase carries:
+    #   • description    — single-paragraph summary (ATI / LLM)
+    #   • whats_happening / what_this_creates /
+    #     where_people_get_it_wrong / what_its_asking_of_you
+    #   • is_current / is_past / is_upcoming flags
+    # ---------------------------------------------------------------------
+
+    gen_dt = datetime.utcnow()
+
+    def _date_range_label(start: datetime, end: datetime) -> str:
+        """'May 13 – Jun 27, 2026' or 'May 13 – Jun 27' when same year."""
+        same_year = start.year == end.year
+        if same_year:
+            return f"{start.strftime('%b %-d')} – {end.strftime('%b %-d, %Y')}"
+        return (
+            f"{start.strftime('%b %-d, %Y')} – {end.strftime('%b %-d, %Y')}"
+        )
+
+    # Phase role templates — define structural arc that flows from
+    # "right now" forward. Each template carries phase NAMES that
+    # interpolate the user's natal house life-areas so each user gets
+    # different titles. Names deliberately AVOID the old fixed labels
+    # (Recognition / Confrontation / Crossroads / Integration).
+    phase_role_templates: List[Dict[str, Any]] = [
         {
-            "id":             "q1",
-            "name":           "Recognition",
-            "period":         f"Jan – Mar {year}",
-            "human_meaning":  "Something is becoming clear",
-            "description": (
-                f"The {tension} tension starts showing up in {sun_area}. "
-                f"Small moments in {mars_area} and {venus_area} carry more weight than they look. "
-                f"What this creates: a nagging sense you've been here before — situations that "
-                f"feel minor but keep replaying. What is asked of you: notice what keeps echoing, "
-                f"especially around {moon_area}."
-            ),
+            "role":          "active_pressure",
+            "offset_days":   (-21, 35),   # past 3w → next 5w
+            "human_meaning": "What's pressing right now",
+            "name_template":
+                f"What's surfacing in {HOUSE_SHORT.get(sun_house, 'identity')}",
+            "is_primary":    False,
             "whats_happening": [
-                f"The {tension} tension starts showing up in {sun_area}",
-                f"Small moments in {mars_area} and {venus_area} that carry more weight than they look",
+                f"The {tension} tension is most active right now in {sun_area}",
+                f"Small moments in {mars_area} and {moon_area} carry more weight than they look",
             ],
             "what_this_creates": [
-                "A nagging sense you've been here before",
-                "Situations that feel minor but keep replaying in your head",
+                "A sense that something you've been managing is starting to ask for your attention",
+                "Situations that feel like a repeat — but with the stakes slightly higher",
             ],
             "where_people_get_it_wrong": [
-                "Treating these moments as coincidence instead of signal",
-                "Waiting for something bigger before paying attention",
+                "Treating it as background noise instead of signal",
+                "Trying to push through without naming what's actually happening",
             ],
             "what_its_asking_of_you": [
                 f"Notice what keeps echoing, especially around {moon_area}",
-                'Start asking "why does this keep happening?" instead of "when will this stop?"',
+                "Stop calling it 'just busy' — name what you're navigating",
             ],
-            "is_primary":      False,
+            "description": (
+                f"The {tension} tension is showing up most clearly in {sun_area} "
+                f"right now. Small moments in {mars_area} and {moon_area} carry "
+                f"more weight than they look. What's asked of you: notice what "
+                f"keeps echoing — and stop calling it 'just busy.'"
+            ),
         },
         {
-            "id":             "q2",
-            "name":           "Confrontation",
-            "period":         f"Apr – Jun {year}",
-            "human_meaning":  "Something can no longer be avoided",
-            "description": (
-                f"What you've been tolerating in {venus_area} and {saturn_area} stops feeling tolerable. "
-                f"The gap between how you present in {sun_area} and how you feel in {moon_area} gets harder "
-                f"to bridge. Conversations you've been putting off start demanding attention. "
-                f"What is asked of you: name what you've been pretending not to see; in {saturn_area}, "
-                f"choose from clarity — not from wanting the discomfort to end."
-            ),
+            "role":          "surfacing",
+            "offset_days":   (35, 105),   # next 5w → 15w
+            "human_meaning": "Something stops being avoidable",
+            "name_template":
+                f"The pressure point in {HOUSE_SHORT.get(saturn_house, 'career')}",
+            "is_primary":    True,
             "whats_happening": [
                 f"What you've been tolerating in {venus_area} and {saturn_area} stops feeling tolerable",
-                f"The gap between how you present in {sun_area} and how you feel in {moon_area} gets harder to bridge",
+                "The gap between how you've been presenting and how you actually feel gets harder to bridge",
             ],
             "what_this_creates": [
                 "Conversations you've been putting off start demanding attention",
-                "Choices that feel more permanent than before",
+                "Choices that feel more permanent than the ones before",
             ],
             "where_people_get_it_wrong": [
                 "Blaming the situation instead of seeing what you brought to it",
@@ -302,59 +335,61 @@ def generate_astrology_timeline(
             ],
             "what_its_asking_of_you": [
                 "Name what you've been pretending not to see",
-                f"In {saturn_area}, choose from clarity—not from wanting the discomfort to end",
+                f"In {saturn_area}, choose from clarity — not from wanting the discomfort to end",
             ],
-            "is_primary":      True,
+            "description": (
+                f"What you've been tolerating in {venus_area} and {saturn_area} "
+                f"stops feeling tolerable. Conversations you've been putting off "
+                f"start demanding attention. What's asked of you: name what "
+                f"you've been pretending not to see — and choose from clarity, "
+                f"not relief."
+            ),
         },
         {
-            "id":             "q3",
-            "name":           "The Crossroads",
-            "period":         f"Jul – Sep {year}",
-            "human_meaning":  "A choice, split, or redirection is active",
-            "description": (
-                f"In {sun_area}, two versions of you become visible — the one you've been and the one "
-                f"you could become. The tension in {venus_area} crystallizes into a clear choice. "
-                f"Where people get this wrong: waiting for certainty that never comes — the information "
-                f"is already sufficient. What is asked of you: make the choice you've been circling. "
-                f"The year has prepared you for this."
-            ),
+            "role":          "pivot",
+            "offset_days":   (105, 195),  # 15w → 28w
+            "human_meaning": "The choice you've been circling",
+            "name_template":
+                f"Two paths in {HOUSE_SHORT.get(venus_house, 'relationships')}",
+            "is_primary":    True,
             "whats_happening": [
-                f"In {sun_area}, two versions of you become visible—the one you've been and the one you could become",
+                f"In {sun_area}, two versions of you become visible — the one you've been and the one you could become",
                 f"The tension in {venus_area} crystallizes into a clear choice",
             ],
             "what_this_creates": [
-                "A sense that this period will be remembered as a before/after moment",
-                "The strange calm of knowing what you need to do, even if you haven't done it yet",
+                "A sense that this stretch will be remembered as a before/after moment",
+                "The strange calm of knowing what you need to do, even before you've done it",
             ],
             "where_people_get_it_wrong": [
-                "Waiting for certainty that never comes—the information is already sufficient",
-                "Choosing based on what's comfortable instead of what's aligned",
+                "Waiting for certainty that never comes — the information is already sufficient",
+                "Choosing what's comfortable instead of what's actually aligned",
             ],
             "what_its_asking_of_you": [
-                "Make the choice you've been circling. The year has prepared you for this.",
-                "Trust what you've learned about yourself since January",
+                "Make the choice you've been circling — you've been preparing for this",
+                "Trust what you've learned about yourself in the past few months",
             ],
-            "is_primary":      True,
+            "description": (
+                f"In {sun_area}, two versions of you become visible — the one "
+                f"you've been and the one you could become. The tension in "
+                f"{venus_area} crystallizes into a clear choice. What's asked "
+                f"of you: make the choice you've been circling. The year has "
+                f"prepared you for this."
+            ),
         },
         {
-            "id":             "q4",
-            "name":           "Integration",
-            "period":         f"Oct – Dec {year}",
-            "human_meaning":  "Something is settling into a new form",
-            "description": (
-                f"The ripples from your Q3 choices start showing in {saturn_area} and {mars_area}. "
-                f"What you decided in {venus_area} either settles or requires one more honest "
-                f"conversation. Either: the relief of having finally moved, and the new ground "
-                f"beneath your feet. Or: the recognition that you're not done yet — and clarity "
-                f"about what next year needs to address."
-            ),
+            "role":          "settling",
+            "offset_days":   (195, 320),  # 28w → 46w
+            "human_meaning": "Where the year actually lands",
+            "name_template":
+                f"What settles in {HOUSE_SHORT.get(saturn_house, 'career')} and {HOUSE_SHORT.get(mars_house, 'action')}",
+            "is_primary":    False,
             "whats_happening": [
-                f"The ripples from your Q3 choices start showing in {saturn_area} and {mars_area}",
-                f"What you decided in {venus_area} either settles or requires one more honest conversation",
+                f"The ripples from the earlier pivot start showing in {saturn_area} and {mars_area}",
+                f"What you decided in {venus_area} either settles or asks for one more honest conversation",
             ],
             "what_this_creates": [
-                "Either: the relief of having finally moved, and the new ground beneath your feet",
-                "Or: the recognition that you're not done yet—and clarity about what next year needs to address",
+                "Either: the relief of having finally moved, and new ground beneath your feet",
+                "Or: the recognition that you're not done yet — and clarity about what next year needs to address",
             ],
             "where_people_get_it_wrong": [
                 "Forcing a sense of completion before it's earned",
@@ -364,109 +399,188 @@ def generate_astrology_timeline(
                 f"Honest inventory: what actually changed in {sun_area}?",
                 "Gratitude for the growth, acceptance for what remains",
             ],
-            "is_primary":      False,
+            "description": (
+                f"The ripples from your pivot start showing in {saturn_area} "
+                f"and {mars_area}. What you decided in {venus_area} either "
+                f"settles into a new shape, or asks for one more honest "
+                f"conversation. Either way: new ground."
+            ),
         },
     ]
 
-    # Derive which phase is "current" from the current month so the UI
-    # can highlight it. Only stamps `is_current=True` on the matching
-    # phase (Q1 = Jan-Mar, Q2 = Apr-Jun, Q3 = Jul-Sep, Q4 = Oct-Dec).
-    _now = datetime.utcnow()
-    _current_quarter = (_now.month - 1) // 3  # 0..3
-    for _idx, _phase in enumerate(phases):
-        _phase["is_current"] = (_idx == _current_quarter)
-    current_phase_id = phases[_current_quarter]["id"]
+    # Build phases with date windows. Cap each phase end at end-of-year
+    # so a phase doesn't run into next year's arc.
+    eoy = datetime(year, 12, 31)
+    phases: List[Dict[str, Any]] = []
+    for idx, t in enumerate(phase_role_templates):
+        d0, d1 = t["offset_days"]
+        start = gen_dt + timedelta(days=d0)
+        end = gen_dt + timedelta(days=d1)
+        # Don't let phases bleed past calendar year (keeps "this year"
+        # bounded for users reading mid-year).
+        if start > eoy:
+            continue
+        end = min(end, eoy)
+        # Sanity: keep at least 14 days between start and end
+        if (end - start).days < 14:
+            continue
 
-    # ---- Turning points ------------------------------------------------------
-    turning_points: List[Dict[str, Any]] = [
-        {
-            "timing":   f"Late April {year}",
-            "type":     "confrontation",
-            "life_area": HOUSE_AREAS.get(moon_house, "emotional life"),
-            "what_activates": (
-                f"Something happens in {moon_area} that makes the {tension} tension impossible to "
-                f"keep calling 'manageable'. The cost of continuing as you have been becomes clearer "
+        is_current = (start <= gen_dt <= end)
+        is_past = end < gen_dt
+        is_upcoming = start > gen_dt
+
+        phases.append({
+            "id":             f"p{idx + 1}",
+            "role":           t["role"],
+            "name":           t["name_template"],
+            "period":         _date_range_label(start, end),
+            "period_start":   start.strftime("%Y-%m-%d"),
+            "period_end":     end.strftime("%Y-%m-%d"),
+            "human_meaning":  t["human_meaning"],
+            "description":    t["description"],
+            "whats_happening":            t["whats_happening"],
+            "what_this_creates":          t["what_this_creates"],
+            "where_people_get_it_wrong":  t["where_people_get_it_wrong"],
+            "what_its_asking_of_you":     t["what_its_asking_of_you"],
+            "is_primary":     bool(t["is_primary"]),
+            "is_current":     is_current,
+            "is_past":        is_past,
+            "is_upcoming":    is_upcoming,
+        })
+
+    # Cap at 4 (in case eoy logic kept all four); minimum 2 to keep
+    # the UI useful even when generated late in the year.
+    phases = phases[:4]
+
+    current_phase_id = next((p["id"] for p in phases if p["is_current"]), None)
+
+    # ---- Turning points (3, NOW-anchored, no fixed Apr/Aug/Nov) --------
+    # Anchored to "soon", "mid-cycle", "late". Each carries a real
+    # date label derived from gen_dt + offset.
+    def _month_label(dt: datetime) -> str:
+        # "Early May 2026" / "Mid June 2026" / "Late October 2026"
+        d = dt.day
+        bucket = "Early" if d <= 10 else ("Mid" if d <= 20 else "Late")
+        return f"{bucket} {dt.strftime('%B %Y')}"
+
+    tp_offsets = [
+        ("soon",        45,  "confrontation",
+            HOUSE_AREAS.get(moon_house, "emotional life"),
+            moon_area, venus_area),
+        ("mid_cycle",   135, "decision",
+            HOUSE_AREAS.get(sun_house, "identity"),
+            sun_area, saturn_area),
+        ("late_year",   240, "integration",
+            HOUSE_AREAS.get(saturn_house, "responsibility"),
+            saturn_area, sun_area),
+    ]
+    turning_points: List[Dict[str, Any]] = []
+    for slot, days, tp_type, life_area, primary_area, secondary_area in tp_offsets:
+        ts = gen_dt + timedelta(days=days)
+        if ts > eoy:
+            # If it would slip past year-end, anchor to a late-year slot
+            ts = eoy - timedelta(days=7)
+        if tp_type == "confrontation":
+            what_activates = (
+                f"Something happens in {primary_area} that makes the "
+                f"{tension} tension impossible to keep calling 'manageable'. "
+                f"The cost of continuing as you have been becomes clearer "
                 f"than the cost of changing."
-            ),
-            "what_becomes_clear": (
-                f"What you've been tolerating. Why you've been tolerating it. And what it's actually "
-                f"been costing you in {venus_area}."
-            ),
-            "if_avoided": (
-                "The pattern doesn't go away — it goes underground. What could have been addressed as "
-                "a conversation becomes a crisis by August."
-            ),
-        },
-        {
-            "timing":   f"Mid-August {year}",
-            "type":     "decision",
-            "life_area": HOUSE_AREAS.get(sun_house, "identity"),
-            "what_activates": (
-                f"This is the year's primary choice point in {sun_area}. The options are clear. The "
-                f"information is sufficient. What remains is whether you'll choose from who you're "
-                f"becoming — or retreat to who you've been."
-            ),
-            "what_becomes_clear": (
-                "Which direction matches the person you've been growing into. The version of you that "
-                "hesitates and the version that moves forward both become visible."
-            ),
-            "if_avoided": (
-                f"The choice gets made for you by circumstances. In {saturn_area}, you lose authorship "
-                f"of your own direction."
-            ),
-        },
-        {
-            "timing":   f"Early November {year}",
-            "type":     "integration",
-            "life_area": HOUSE_AREAS.get(saturn_house, "responsibility"),
-            "what_activates": (
-                f"The year's arc reaches its natural conclusion in {saturn_area}. What you started in "
-                f"Q1 is ready to be named: either as something that changed, or as something that "
-                f"needs another cycle."
-            ),
-            "what_becomes_clear": (
-                "Whether the year's lesson landed. Whether you're entering next year with new ground "
-                "beneath you — or carrying forward what this year tried to resolve."
-            ),
-            "if_avoided": (
-                "You enter next year still holding what this year asked you to put down. The same "
-                "pattern returns, but with higher stakes."
-            ),
-        },
-    ]
+            )
+            what_becomes_clear = (
+                "What you've been tolerating. Why you've been tolerating it. "
+                f"And what it's actually been costing you in {secondary_area}."
+            )
+            if_avoided = (
+                "The pattern doesn't go away — it goes underground. What "
+                "could have been addressed as a conversation becomes a "
+                "crisis later in the year."
+            )
+        elif tp_type == "decision":
+            what_activates = (
+                f"This is the year's primary choice point in {primary_area}. "
+                "The options are clear. The information is sufficient. What "
+                "remains is whether you'll choose from who you're becoming — "
+                "or retreat to who you've been."
+            )
+            what_becomes_clear = (
+                "Which direction matches the person you've been growing "
+                "into. The version of you that hesitates and the version "
+                "that moves forward both become visible."
+            )
+            if_avoided = (
+                f"The choice gets made for you by circumstances. In "
+                f"{secondary_area}, you lose authorship of your own direction."
+            )
+        else:  # integration
+            what_activates = (
+                f"The year's arc reaches its natural conclusion in "
+                f"{primary_area}. What you started earlier is ready to be "
+                "named: either as something that changed, or as something "
+                "that needs another cycle."
+            )
+            what_becomes_clear = (
+                "Whether the year's lesson landed. Whether you're entering "
+                "next year with new ground beneath you — or carrying forward "
+                "what this year tried to resolve."
+            )
+            if_avoided = (
+                "You enter next year still holding what this year asked you "
+                "to put down. The same pattern returns, but with higher stakes."
+            )
+        turning_points.append({
+            "id":                f"tp_{slot}",
+            "timing":            _month_label(ts),
+            "anchor_date":       ts.strftime("%Y-%m-%d"),
+            "type":              tp_type,
+            "life_area":         life_area,
+            "what_activates":    what_activates,
+            "what_becomes_clear": what_becomes_clear,
+            "if_avoided":        if_avoided,
+        })
 
-    # ---- Decision windows ----------------------------------------------------
-    decision_windows: List[Dict[str, Any]] = [
-        {
-            "period":   f"Mar 15-31 {year}",
-            "context":  f"In {HOUSE_SHORT.get(mars_house, 'action')}",
-            "prompt":   "You can name it now. Or you can wait until it names itself.",
-            "if_act":   (
-                "The conversation gets uncomfortable fast, but the uncertainty stops running the show. "
-                "In two weeks, you'll be glad you didn't wait."
-            ),
-            "if_wait":  (
-                "You preserve the surface peace for now, but the thing you're avoiding keeps growing "
-                "underneath it. By May, it's bigger."
-            ),
-        },
-        {
-            "period":   f"Jun 1-15 {year}",
-            "context":  f"In {HOUSE_SHORT.get(venus_house, 'relationships')}",
-            "prompt":   "You can say what's actually true. Or you can keep editing yourself for the room.",
-            "if_act":   pattern["cost_of_action"]
+    # ---- Decision windows (3, NOW-anchored) -----------------------------
+    dw_specs = [
+        (21,  HOUSE_SHORT.get(mars_house, "action"),
+            "You can name it now. Or you can wait until it names itself.",
+            ("The conversation gets uncomfortable fast, but the uncertainty "
+             "stops running the show. In two weeks you'll be glad you "
+             "didn't wait."),
+            ("You preserve the surface peace for now, but the thing you're "
+             "avoiding keeps growing underneath it. By next window it's bigger.")
+        ),
+        (90,  HOUSE_SHORT.get(venus_house, "relationships"),
+            "You can say what's actually true. Or you can keep editing yourself for the room.",
+            pattern["cost_of_action"]
             + ". The relationship changes — but at least now it's based on something real.",
-            "if_wait":  pattern["cost_of_waiting"]
+            pattern["cost_of_waiting"]
             + ". The connection stays familiar, but you start noticing how tired you are of managing it.",
-        },
-        {
-            "period":   f"Sep 1-20 {year}",
-            "context":  f"In {HOUSE_SHORT.get(saturn_house, 'career')}",
-            "prompt":   "You can commit to the new direction. Or you can keep one foot in both worlds.",
-            "if_act":   "Some doors close. The grief is real. But so is the focus — and the energy that comes from finally choosing.",
-            "if_wait":  "All options stay open, but your energy stays scattered. By November, you'll wish you'd trusted yourself sooner.",
-        },
+        ),
+        (180, HOUSE_SHORT.get(saturn_house, "career"),
+            "You can commit to the new direction. Or you can keep one foot in both worlds.",
+            ("Some doors close. The grief is real. But so is the focus — "
+             "and the energy that comes from finally choosing."),
+            ("All options stay open, but your energy stays scattered. "
+             "You'll wish you'd trusted yourself sooner."),
+        ),
     ]
+    decision_windows: List[Dict[str, Any]] = []
+    for d_off, ctx_short, prompt, if_act, if_wait in dw_specs:
+        ws = gen_dt + timedelta(days=d_off - 7)
+        we = gen_dt + timedelta(days=d_off + 7)
+        if ws > eoy:
+            continue
+        we = min(we, eoy)
+        decision_windows.append({
+            "id":         f"dw_{d_off}",
+            "period":     _date_range_label(ws, we),
+            "period_start": ws.strftime("%Y-%m-%d"),
+            "period_end":   we.strftime("%Y-%m-%d"),
+            "context":    f"In {ctx_short}",
+            "prompt":     prompt,
+            "if_act":     if_act,
+            "if_wait":    if_wait,
+        })
 
     payload = {
         # Top-level — interpreter will pick up year_theme directly.
@@ -475,6 +589,7 @@ def generate_astrology_timeline(
         "arc":             arc,
         "tension":         tension,
         "phases":          phases,
+        "current_phase_id": current_phase_id,
         "turning_points":  turning_points,
         "decision_windows": decision_windows,
         # Optional: explicit dominant life-area hints so ATI's domain
@@ -487,8 +602,9 @@ def generate_astrology_timeline(
             "saturn_area":  saturn_area,
         },
         "year":             year,
+        "generated_for":    gen_dt.strftime("%Y-%m-%d"),
         "source":           "real_astrology_timeline",
-        "generator_version": "astrology_timeline_v1_python",
+        "generator_version": "astrology_timeline_v1_2_python",
     }
     logger.debug(
         "[AstrologyTimelineGenerator] sun=%s sun_house=%d moon_house=%d "

@@ -15248,3 +15248,80 @@ agent_communication:
             Ask About My Life still uses the same cached payload via
             services.astrology_timeline_cache.get_or_build_astrology_timeline().
             UI and Ask-About-My-Life now read identical bytes.
+
+  - task: "Astrology Timeline v1.2 — dynamic phase scaffold (no calendar quarters)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/astrology_timeline_generator.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            REMOVED the fixed Q1/Q2/Q3/Q4 calendar-quarter scaffold and
+            hard-coded phase names (Recognition / Confrontation /
+            The Crossroads / Integration).
+
+            generate_astrology_timeline() now produces 3–4 DYNAMIC
+            phases anchored to the generation timestamp (forward-
+            looking), with:
+              • phase NAMES derived from the user's natal house
+                emphasis (e.g. "What's surfacing in communication",
+                "Two paths in security", "The pressure point in career")
+              • date RANGES expressed in human format (e.g. "Apr 22 –
+                Jun 17, 2026"), not "Apr – Jun 2026" calendar buckets
+              • per-phase flags: is_current / is_past / is_upcoming /
+                is_primary
+              • role tags (active_pressure → surfacing → pivot →
+                settling) so the UI can reason about the arc structurally
+              • a top-level `current_phase_id` for UI highlight
+
+            ENGINE_VERSION bumped to "timeline_v1.2" — auto-invalidates
+            all existing v1.1 caches; users get the new structure on
+            their next timeline view.
+
+            Turning points (3) and decision windows (3) are also now
+            anchored relative to "now" — no more fixed Apr/Aug/Nov
+            timing. Each turning point carries `anchor_date`
+            (YYYY-MM-DD) and `timing` ("Late June 2026") labels.
+
+            Preserved (per user spec):
+              • copy tone & quality
+              • card structure (whats_happening, what_this_creates,
+                where_people_get_it_wrong, what_its_asking_of_you)
+              • "This Year's Question" / "The Arc"
+              • "Turning Points" / "Choice Points"
+              • "If you act / If you wait"
+              • _cache_meta envelope
+              • persistent cache behavior
+              • force_refresh=true
+              • engine versioning
+
+            Frontend (AstrologyTimelineTab.tsx) needs NO changes —
+            existing adapter passes phase ids through (`p1`/`p2`/`p3`/`p4`
+            instead of `q1`-`q4`), all field names match, the date
+            range string is rendered verbatim.
+
+            Live verification (preview, force_refresh):
+              Pete (Pisces Sun, Sun in 3rd → "communication"):
+                p1 active_pressure  "What's surfacing in communication"
+                                    Apr 22 – Jun 17, 2026  [CURRENT]
+                p2 surfacing        "The pressure point in communication"
+                                    Jun 17 – Aug 26, 2026  [upcoming, primary]
+                p3 pivot            "Two paths in security"
+                                    Aug 26 – Nov 24, 2026  [upcoming, primary]
+                p4 settling         "What settles in communication and home"
+                                    Nov 24 – Dec 31, 2026  [upcoming]
+
+              Mel (Sun in 12th → "inner life"):
+                p1 "What's surfacing in inner life"
+                                    Apr 22 – Jun 17, 2026  [CURRENT]
+
+            Different users → different phase NAMES from the same role
+            templates, proving personalization is wired through.
+
+            Cache behavior verified:
+              normal call after force_refresh → source=cache, age=30s
+              cold call on Mel               → source=generated, no_cache
