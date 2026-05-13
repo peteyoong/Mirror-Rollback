@@ -399,8 +399,22 @@ export default function ForumHomeScreen() {
   const [showPatternSignals, setShowPatternSignals] = useState(false);
 
   const fetchData = useCallback(async (showRefresh = false) => {
-    if (!user?.id || !forumId) return;
-    
+    // Safety fix (May 2026): if auth context hasn't resolved yet or
+    // forumId is missing, clear the loading state so the user sees the
+    // error screen with a "Back" / "Retry" button instead of being
+    // stuck on the "Loading forum..." spinner forever.  This is the
+    // bug that left users trapped on the forum URL after PWA reloads.
+    if (!user?.id || !forumId) {
+      setLoading(false);
+      setRefreshing(false);
+      if (!forumId) {
+        setError('Forum not found');
+      } else if (!user?.id) {
+        setError('Please sign in to view this forum');
+      }
+      return;
+    }
+
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
     
@@ -438,6 +452,21 @@ export default function ForumHomeScreen() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Safety net (May 2026): if the loading state hasn't resolved in 12s
+  // for any reason (slow API, hanging auth hydration, network drop on a
+  // deployed PWA, etc.) — surface the error screen with Retry + Back
+  // instead of letting the user sit on an infinite "Loading forum..."
+  // spinner. Cleared on unmount and when `loading` transitions to false.
+  useEffect(() => {
+    if (!loading) return;
+    const t = setTimeout(() => {
+      // Only act if we're still loading and haven't already errored.
+      setError((prev) => prev || "This is taking longer than expected — please retry.");
+      setLoading(false);
+    }, 12000);
+    return () => clearTimeout(t);
+  }, [loading]);
 
   const handleBack = () => {
     clearForumContext();
@@ -660,6 +689,19 @@ export default function ForumHomeScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+        {/* Escape button — always available so users are never stuck     */}
+        {/* on the loading screen, even if the API hangs or auth context  */}
+        {/* hasn't resolved yet on a deployed PWA / fresh tab.            */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.replace('/')}
+            style={styles.backButton}
+          >
+            <Text style={[styles.backText, { color: theme.accent }]}>← Home</Text>
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Forum</Text>
+          <View style={styles.backButton} />
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.accent} />
           <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
@@ -674,8 +716,11 @@ export default function ForumHomeScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Text style={[styles.backText, { color: theme.accent }]}>← Back</Text>
+          <TouchableOpacity
+            onPress={() => router.replace('/')}
+            style={styles.backButton}
+          >
+            <Text style={[styles.backText, { color: theme.accent }]}>← Home</Text>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Forum</Text>
           <View style={styles.backButton} />
