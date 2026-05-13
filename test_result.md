@@ -15192,3 +15192,59 @@ agent_communication:
       No backend code was modified. No regressions observed in
       adjacent endpoints during the run.
 
+
+  - task: "Timeline UI consumes /api/astrology/timeline (server is source of truth)"
+    implemented: true
+    working: true
+    file: "/app/frontend/components/astrology/AstrologyTimelineTab.tsx + /app/backend/services/astrology_timeline_generator.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            Astrology Timeline tab now reads from the persistent
+            server-side cache via GET /api/astrology/timeline/{user_id}.
+            Local generateTimelineData() is preserved ONLY as a fallback
+            when the network request fails.
+
+            Backend (services/astrology_timeline_generator.py):
+              - Bumped ENGINE_VERSION → "timeline_v1.1"
+              - Each phase now emits whats_happening,
+                what_this_creates, where_people_get_it_wrong,
+                what_its_asking_of_you arrays (1:1 with frontend shape)
+              - Each phase carries is_current flag based on calendar
+                month (Q1=Jan-Mar, Q2=Apr-Jun, Q3=Jul-Sep, Q4=Oct-Dec)
+              - Existing description / turning_points / decision_windows
+                fields untouched (ATI / Ask-About-My-Life compatibility)
+
+            Frontend (components/astrology/AstrologyTimelineTab.tsx):
+              - Added adaptServerTimeline() to map server payload →
+                local TimelineData shape (rename fields only)
+              - Added fetchServerTimeline(userId, forceRefresh) helper
+              - Added useEffect that loads on mount
+              - timelineData useMemo returns serverTimeline ||
+                generateTimelineData(fullChartData) — server wins,
+                client is fallback only
+              - Added "↻ Refresh" button (top-right of header) that
+                calls force_refresh=true
+              - Added __DEV__-only meta strip showing source /
+                engine_version / year / age / refresh_reason
+
+            Frontend testing agent verification (full pass):
+              1. Network: initial GET /api/astrology/timeline/{uid}
+                 → 200, _cache_meta.engine_version="timeline_v1.1",
+                 4 phases × 4 bullet arrays, 3 turning points
+              2. UI: year_question / arc / phase names /
+                 expanded-phase bullets / turning point timings all
+                 match server payload character-for-character
+              3. Refresh button → GET ...?force_refresh=true returns
+                 source="generated", reason="force_refresh"
+              4. Cache reuse → second navigation returns source="cache"
+              5. Fallback path preserved (source code verified)
+              6. No regressions on At-a-Glance / Today / Deep Dive
+
+            Ask About My Life still uses the same cached payload via
+            services.astrology_timeline_cache.get_or_build_astrology_timeline().
+            UI and Ask-About-My-Life now read identical bytes.
