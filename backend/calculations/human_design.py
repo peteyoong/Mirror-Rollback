@@ -1161,25 +1161,60 @@ def get_defined_centers(defined_channels: List[Tuple]) -> List[str]:
 
 
 def has_motor_to_throat(defined_channels: List[Tuple]) -> bool:
-    """Check if there's a motor connected to Throat
-    
-    Motors are: Sacral, Solar Plexus, Ego (Heart), Root
-    
-    This checks for DIRECT motor-to-throat channels only.
-    A more complete implementation would trace indirect connections.
-    
+    """Check if any motor center reaches the Throat through defined channels.
+
+    Motor centers: Sacral, Solar Plexus, Ego (Heart), Root.
+
+    Per canonical Ra Uru Hu HD, the Throat is "defined by a motor" whenever
+    there exists a *path* of defined channels from any motor center to the
+    Throat — not only direct motor↔Throat channels.  Example (Michelle Chai,
+    May 2026 fix): Sacral —(2-14)→ G Center —(1-8)→ Throat is a valid
+    motor-to-throat path through the G Center bridge, which classifies the
+    chart as Manifesting Generator (not Generator).
+
     Args:
         defined_channels: List of defined channel tuples
-    
+            (gate1, gate2, center1, center2).
+
     Returns:
-        True if any motor center is directly connected to Throat
+        True if ANY motor center is reachable from the Throat (or vice
+        versa) through the graph of defined channels.
     """
-    for gate1, gate2, center1, center2 in defined_channels:
-        centers = {center1, center2}
-        if 'Throat' in centers:
-            other_center = center1 if center2 == 'Throat' else center2
-            if other_center in MOTOR_CENTERS:
+    # Build adjacency map: center -> set(neighbor centers)
+    adjacency: Dict[str, set] = {}
+    for ch in defined_channels:
+        # Channels are either (g1, g2, c1, c2) tuples or dicts; support both.
+        if isinstance(ch, dict):
+            c1, c2 = ch.get('center1'), ch.get('center2')
+            centers = ch.get('centers') or []
+            if (not c1 or not c2) and len(centers) >= 2:
+                c1, c2 = centers[0], centers[1]
+        else:
+            try:
+                _, _, c1, c2 = ch
+            except (ValueError, TypeError):
+                continue
+        if not c1 or not c2 or c1 == c2:
+            continue
+        adjacency.setdefault(c1, set()).add(c2)
+        adjacency.setdefault(c2, set()).add(c1)
+
+    if 'Throat' not in adjacency:
+        return False
+
+    # BFS from Throat through the channel graph; if we encounter any motor
+    # center, the Throat is motor-defined.
+    visited = {'Throat'}
+    queue = ['Throat']
+    while queue:
+        cur = queue.pop(0)
+        for nb in adjacency.get(cur, ()):
+            if nb in visited:
+                continue
+            if nb in MOTOR_CENTERS:
                 return True
+            visited.add(nb)
+            queue.append(nb)
     return False
 
 

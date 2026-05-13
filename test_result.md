@@ -14783,3 +14783,110 @@ agent_communication:
               endpoint structure unchanged
             ✓ Legacy V2 endpoint untouched
 
+  - task: "HD Bug fix — has_motor_to_throat() graph BFS (Manifesting Generator detection)"
+    implemented: true
+    working: true
+    file: "backend/calculations/human_design.py (has_motor_to_throat rewrite, lines 1123–1187), backend/tests/test_motor_to_throat_fix.py (NEW — 18 unit tests)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: |
+          ROOT CAUSE
+          ----------
+          `has_motor_to_throat()` in calculations/human_design.py only
+          checked DIRECT motor↔Throat channels.  The old code's
+          docstring literally admitted the gap:
+            "This checks for DIRECT motor-to-throat channels only.
+             A more complete implementation would trace indirect
+             connections."
+          This downgraded every chart that defined the Throat via a
+          motor-through-bridge path (e.g. Sacral→G Center→Throat) to
+          Generator instead of Manifesting Generator.
+
+          FIX
+          ---
+          Replaced the direct-only loop with a BFS over the defined-
+          channel graph:
+            1. Build adjacency map (center → set(neighbor centers))
+               from defined_channels — supports both tuple shape
+               (g1, g2, c1, c2) and dict shape.
+            2. BFS starting at 'Throat'.
+            3. Return True the moment we encounter any motor center
+               (Sacral / Root / Solar Plexus / Ego).
+            4. Return False if BFS exhausts without hitting a motor.
+          Motor centers unchanged: Sacral, Root, Solar Plexus, Ego.
+          Canonical Ra Uru Hu spec — motor-defines-throat is a
+          graph-reachability property, not a direct-edge property.
+
+          VALIDATION — Michelle Chai (17 Sep 1984, 09:48 UTC+8)
+          ----------------------------------------------------
+          BEFORE:  Generator
+          AFTER:   Manifesting Generator   ✅ matches Genetic Matrix
+          Defined channels: 8-1, 2-14, 27-50, 28-38
+          Motor→Throat path: Sacral —(2-14)→ G Center —(1-8)→ Throat
+          Profile / Authority / Definition / active gates unchanged
+          (5/1, Sacral, Single, 20 active gates).
+          Cross naming intentionally left as-is per scope.
+
+          VALIDATION — Pete (Manifestor, no Sacral)
+          ----------------------------------------
+          cached_type=Manifestor  →  new_type=Manifestor   ✓
+          motor→throat path detected via direct 35-36 (SP→Throat).
+          Result unchanged.  No regression.
+
+          VALIDATION — Mel (Reflector, no defined centers)
+          -----------------------------------------------
+          cached_type=Reflector  →  new_type=Reflector     ✓
+          motor→throat=False.  No regression.
+
+          UNIT TESTS — 18 / 18 passing
+          ----------------------------
+          tests/test_motor_to_throat_fix.py
+            TestHasMotorToThroat:
+              ✓ direct Sacral→Throat
+              ✓ direct Solar Plexus→Throat
+              ✓ direct Ego→Throat
+              ✓ indirect Sacral via G Center  (Michelle's case)
+              ✓ indirect Root via Solar Plexus
+              ✓ indirect 3-hop path
+              ✓ no throat definition returns False
+              ✓ throat defined but not reaching motor returns False
+              ✓ isolated motor with no path returns False
+              ✓ empty channels returns False
+              ✓ self-loop channel ignored
+              ✓ dict-shape channels supported
+            TestTypeClassificationEndToEnd:
+              ✓ michelle path yields Manifesting Generator
+              ✓ no-throat-link with Sacral defined stays Generator
+              ✓ no-Sacral with motor→throat is Manifestor
+            TestProgressedChannelsDoNotLeak:
+              ✓ natal-only type is deterministic
+              ✓ progressed channels would flip type IF leaked
+                (proves invariant matters; production path only
+                 passes natal channels so cannot regress here)
+            TestMichelleNatalChartE2E:
+              ✓ Michelle full chart returns Manifesting Generator
+
+          NOT CHANGED IN THIS SHIP (out of scope per user)
+          -----------------------------------------------
+            • True Sidereal constants (SVP=31.2836°, J2000, no incr.)
+            • design-date solver (~88° solar arc, 13-iter convergence)
+            • gate wheel mapping / boundaries
+            • Sun/Earth labeling convention
+            • Incarnation Cross naming convention
+              (still reports "Cross of Explanation 1" for Michelle —
+               will be revisited separately when user decides on
+               convention.)
+
+          OUTSTANDING CONVENTION QUESTION (deferred)
+          ------------------------------------------
+          GM shows "LAX Revolution 2" (Sun=Gate 49, Earth=Gate 4),
+          Mirror shows "LAX of Explanation 1" (Sun=Gate 4, Earth=Gate
+          49).  Same gate axis, swapped Sun/Earth roles.  Does not
+          affect type, defined centers, channels, authority, or
+          definition — only the cross's *name*.  Decision pending
+          on whether Mirror should adopt GM's antipode convention.
+
