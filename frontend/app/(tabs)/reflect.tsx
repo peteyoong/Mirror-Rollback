@@ -168,8 +168,13 @@ interface KeystoneContext {
   daily_seed: string;
 }
 
-// ViewMode updated: Timeline removed from UI per product requirements
-type ViewMode = 'journal' | 'mirror' | 'lunar' | 'lunar-history';
+// ViewMode updated: Timeline removed from UI per product requirements.
+// 'entry' = REFLECT V3 emotional entry point (two intent cards).
+// 'journal' = Journal composer + reflection timeline (memory).
+// 'mirror' = Mirror Chat (meaning).
+// 'lunar' / 'lunar-history' = legacy Reflector tools, accessible
+//   from the Journal screen via "View patterns" — no longer top-level.
+type ViewMode = 'entry' | 'journal' | 'mirror' | 'lunar' | 'lunar-history';
 
 // =============================================================================
 // GATE EXPLANATIONS - Human Design Gate Meanings for Lunar Cycle
@@ -321,7 +326,13 @@ export default function JournalScreen() {
     category?: string;
     tensionPair?: string;
   }>();
-  const [viewMode, setViewMode] = useState<ViewMode>('journal');
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    // REFLECT V3: default to the calm entry chooser.
+    // If a deep link asks for a specific sub-view (e.g. journalSource,
+    // fromKeystone, prefillPrompt), the existing useEffect below
+    // re-routes to 'journal' or 'mirror' as needed.
+    'entry'
+  );
   const [newEntry, setNewEntry] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -531,13 +542,35 @@ export default function JournalScreen() {
     }
   };
 
+  // REFLECT V3 — deep-link handler. If the user arrives at /reflect with
+  // any routing param that signals a specific intent (a prefill prompt,
+  // a category, a journalSource, an explicit `view`, etc.), bypass the
+  // calm entry chooser and route straight into the relevant sub-view so
+  // existing call sites keep working without change.
+  useEffect(() => {
+    if (
+      params.view === 'journal' ||
+      params.prefillPrompt ||
+      params.journalSource ||
+      params.category ||
+      params.tensionPair
+    ) {
+      setViewMode('journal');
+    } else if (params.view === 'mirror') {
+      setViewMode('mirror');
+    } else if (params.view === 'lunar') {
+      setViewMode('lunar');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.view, params.prefillPrompt, params.journalSource, params.category, params.tensionPair]);
+
+
   // Handle deep link from Mirror home (fromKeystone=true)
   useEffect(() => {
     async function loadKeystoneContext() {
       if (params.fromKeystone === 'true' && params.view === 'mirror') {
         // Switch to mirror view
         setViewMode('mirror');
-        
         // Load keystone context from storage
         try {
           const stored = await storage.getItem('pending_keystone_context');
@@ -1187,40 +1220,43 @@ export default function JournalScreen() {
     );
   }
 
-  // Render the mode toggle (Journal | Mirror) - Timeline REMOVED per product requirements
+  // REFLECT V3: the dense segmented Journal/Mirror/Lunar tab strip has
+  // been replaced by the entry chooser + a soft "← Reflect" return
+  // link in each sub-view. This function now renders that quieter
+  // return link. The Lunar (Reflector) sub-view is still reachable via
+  // a "View patterns" link inside Journal — not at the top.
   const renderModeToggle = () => {
-    // Check if user is a Reflector based on lunar status
-    const isReflector = lunarStatus?.is_reflector === true;
-    
     return (
-      <View style={styles.modeToggleContainer}>
+      <View style={styles.softReturnRow}>
         <TouchableOpacity
-          style={[styles.modeButton, viewMode === 'journal' && styles.modeButtonActive]}
-          onPress={() => setViewMode('journal')}
+          onPress={() => setViewMode('entry')}
+          style={styles.softReturnButton}
+          accessibilityLabel="Back to Reflect"
         >
-          <Text style={{ fontSize: 16, color: viewMode === 'journal' ? Colors.accent : Colors.textSecondary }}>☰</Text>
-          <Text style={[styles.modeButtonText, viewMode === 'journal' && styles.modeButtonTextActive]}>
-            Journal
+          <Text style={[styles.softReturnText, { color: theme.textSecondary }]}>
+            ← Reflect
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.modeButton, viewMode === 'mirror' && styles.modeButtonActive]}
-          onPress={() => setViewMode('mirror')}
-        >
-          <Text style={{ fontSize: 16, color: viewMode === 'mirror' ? Colors.accent : Colors.textSecondary }}>✦</Text>
-          <Text style={[styles.modeButtonText, viewMode === 'mirror' && styles.modeButtonTextActive]}>
-            Mirror
-          </Text>
-        </TouchableOpacity>
-        {/* Task 51: Lunar Journal tab for Reflectors */}
-        {isReflector && (
+        {/* Reflector-only: subtle access to Lunar tools when on Journal */}
+        {viewMode === 'journal' && lunarStatus?.is_reflector === true && (
           <TouchableOpacity
-            style={[styles.modeButton, (viewMode === 'lunar' || viewMode === 'lunar-history') && styles.modeButtonActive]}
             onPress={() => setViewMode('lunar')}
+            style={styles.softReturnButton}
+            accessibilityLabel="View patterns"
           >
-            <Text style={{ fontSize: 16, color: (viewMode === 'lunar' || viewMode === 'lunar-history') ? '#C0C8D4' : Colors.textSecondary }}>🌙</Text>
-            <Text style={[styles.modeButtonText, (viewMode === 'lunar' || viewMode === 'lunar-history') && { color: '#C0C8D4' }]}>
-              Lunar
+            <Text style={[styles.softReturnText, { color: theme.textTertiary }]}>
+              View patterns
+            </Text>
+          </TouchableOpacity>
+        )}
+        {(viewMode === 'lunar' || viewMode === 'lunar-history') && (
+          <TouchableOpacity
+            onPress={() => setViewMode('journal')}
+            style={styles.softReturnButton}
+            accessibilityLabel="Back to Journal"
+          >
+            <Text style={[styles.softReturnText, { color: theme.textTertiary }]}>
+              ← Journal
             </Text>
           </TouchableOpacity>
         )}
@@ -1953,6 +1989,82 @@ export default function JournalScreen() {
     );
   }
 
+  // ---------------------------------------------------------------------
+  // REFLECT V3 — ENTRY CHOOSER
+  // ---------------------------------------------------------------------
+  // Calm two-card emotional entry point. Replaces the old segmented
+  // Journal/Mirror tabs at the top of every Reflect session. Renders
+  // ONLY when viewMode === 'entry'. Deep links (prefillPrompt, view=...,
+  // fromKeystone=true, etc.) bypass this and route directly into a
+  // sub-view via the deep-link useEffect.
+  if (viewMode === 'entry') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <View style={styles.entryScreen}>
+          <View style={styles.entryHeader}>
+            <Text style={[styles.entryTitle, { color: theme.text }]}>
+              Reflect
+            </Text>
+            <Text style={[styles.entrySubtitle, { color: theme.textSecondary }]}>
+              A mirror, not a verdict.
+            </Text>
+          </View>
+
+          <View style={styles.entryCardsWrap}>
+            {/* CARD 1 — JOURNAL (memory) */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setViewMode('journal')}
+              style={[styles.entryCard, { backgroundColor: theme.surface }]}
+              accessibilityLabel="Open Journal"
+              accessibilityRole="button"
+            >
+              <Text style={[styles.entryCardTitle, { color: theme.text }]}>
+                Capture what's real
+              </Text>
+              <Text style={[styles.entryCardSubtitle, { color: theme.textSecondary }]}>
+                Build reflection over time.
+              </Text>
+              <View style={styles.entryCardCtaRow}>
+                <Text style={[styles.entryCardCta, { color: theme.text }]}>
+                  Write
+                </Text>
+                <Text style={[styles.entryCardCtaArrow, { color: theme.text }]}>
+                  →
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* CARD 2 — MIRROR CHAT (meaning) */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setViewMode('mirror')}
+              style={[styles.entryCard, { backgroundColor: theme.surface }]}
+              accessibilityLabel="Open Mirror Chat"
+              accessibilityRole="button"
+            >
+              <Text style={[styles.entryCardTitle, { color: theme.text }]}>
+                Ask Mirror
+              </Text>
+              <Text style={[styles.entryCardSubtitle, { color: theme.textSecondary }]}>
+                Make sense of what you're experiencing.
+              </Text>
+              <View style={styles.entryCardCtaRow}>
+                <Text style={[styles.entryCardCta, { color: theme.text }]}>
+                  Open Mirror
+                </Text>
+                <Text style={[styles.entryCardCtaArrow, { color: theme.text }]}>
+                  →
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   // Journal View
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -2304,6 +2416,88 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingTop: 0,
     paddingBottom: 24,
+  },
+  // ---------------------------------------------------------------------
+  // REFLECT V3 — entry chooser & soft return link
+  // ---------------------------------------------------------------------
+  entryScreen: {
+    flex: 1,
+    paddingHorizontal: 28,
+    paddingTop: 64,
+    paddingBottom: 32,
+    justifyContent: 'flex-start',
+  },
+  entryHeader: {
+    marginBottom: 56,
+  },
+  entryTitle: {
+    fontSize: 34,
+    fontWeight: '300',
+    letterSpacing: -0.6,
+    marginBottom: 12,
+  },
+  entrySubtitle: {
+    fontSize: 17,
+    lineHeight: 24,
+    fontWeight: '300',
+    opacity: 0.85,
+  },
+  entryCardsWrap: {
+    gap: 16,
+  },
+  entryCard: {
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 24,
+    borderRadius: 20,
+    // No hard border — relies on a soft surface lift for separation.
+  },
+  entryCardTitle: {
+    fontSize: 22,
+    fontWeight: '500',
+    letterSpacing: -0.2,
+    marginBottom: 6,
+  },
+  entryCardSubtitle: {
+    fontSize: 15,
+    lineHeight: 21,
+    fontWeight: '300',
+    opacity: 0.8,
+    marginBottom: 24,
+  },
+  entryCardCtaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  entryCardCta: {
+    fontSize: 15,
+    fontWeight: '500',
+    letterSpacing: 0.2,
+  },
+  entryCardCtaArrow: {
+    fontSize: 16,
+    fontWeight: '400',
+    opacity: 0.6,
+  },
+  softReturnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+  },
+  softReturnButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  softReturnText: {
+    fontSize: 14,
+    fontWeight: '400',
+    letterSpacing: 0.2,
+    opacity: 0.85,
   },
   // =============================================================================
   // LATEST REFLECTION THREAD STYLES
