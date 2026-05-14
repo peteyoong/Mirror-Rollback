@@ -398,6 +398,45 @@ export default function ForumHomeScreen() {
   // Member profile state
   const [showPatternSignals, setShowPatternSignals] = useState(false);
 
+  // Forum loading instrumentation — surfaces in the recovery UI when
+  // a Safari/PWA load gets stuck. Updated as each API call completes
+  // so we always know exactly where we are in the load sequence.
+  const [loadStep, setLoadStep] = useState<string>('idle');
+  const [lastApiUrl, setLastApiUrl] = useState<string>('');
+  const [lastErrorMsg, setLastErrorMsg] = useState<string>('');
+
+  // Per-call timeout helper. We were getting Safari hangs where a
+  // SINGLE slow API call (Forum Pulse, Live Field) blocked the whole
+  // Promise.all for 30s+ before the parent safety timeout fired. By
+  // racing each call against an 8s AbortController/timer and using
+  // Promise.allSettled, the page now renders with whatever loaded —
+  // and surfaces which call actually hung in the debug strip.
+  const withTimeout = <T,>(
+    p: Promise<T>,
+    ms: number,
+    label: string,
+    fallback: T,
+  ): Promise<T> => {
+    return new Promise<T>((resolve) => {
+      let done = false;
+      const finish = (v: T) => { if (!done) { done = true; resolve(v); } };
+      const timer = setTimeout(() => {
+        console.warn(`[Forum] ${label} timed out after ${ms}ms`);
+        setLastErrorMsg((prev) => prev || `${label} timed out`);
+        finish(fallback);
+      }, ms);
+      p.then(
+        (v) => { clearTimeout(timer); finish(v); },
+        (e) => {
+          clearTimeout(timer);
+          console.warn(`[Forum] ${label} rejected:`, e?.message ?? e);
+          setLastErrorMsg((prev) => prev || `${label}: ${e?.message ?? e}`);
+          finish(fallback);
+        },
+      );
+    });
+  };
+
   const fetchData = useCallback(async (showRefresh = false) => {
     // Safety fix (May 2026): if auth context hasn't resolved yet or
     // forumId is missing, clear the loading state so the user sees the
@@ -409,64 +448,131 @@ export default function ForumHomeScreen() {
       setRefreshing(false);
       if (!forumId) {
         setError('Forum not found');
+        setLoadStep('missing_forum_id');
       } else if (!user?.id) {
         setError('Please sign in to view this forum');
+        setLoadStep('missing_user_id');
       }
       return;
     }
 
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
-    
+    setLastErrorMsg('');
+    setLoadStep('fetching_in_parallel');
+
     try {
-      const [forumData, reflectionsData, exerciseData, membersData, pulseData, liveFieldData, contribResp] = await Promise.all([
-        getForum(forumId, user.id),
-        getSharedReflections(forumId, user.id),
-        getForumExercise(forumId, user.id),
-        getForumMembers(forumId, user.id),
-        getForumPulse(forumId, user.id),
-        getForumLiveField(forumId, user.id).catch(() => null), // Don't fail if Live Field errors
-        getForumContributions(forumId, user.id).catch(() => ({ success: false, contributions: [] as ForumContribution[] })),
+      // Per-API timeout = 7s. Granular fallbacks so a single slow call
+      // can't cause the whole forum to spin. Each call also updates
+      // lastApiUrl when it starts so the debug strip can pinpoint
+      // exactly which one is in flight.
+      const trackedGet = <T,>(label: string, url: string, p: Promise<T>, fb: T) => {
+        setLastApiUrl(url);
+        return withTimeout(p, 7000, label, fb);
+      };
+
+      const results = await Promise.allSettled([
+        trackedGet('getForum',               `/forums/${forumId}`,                  getForum(forumId, user.id),                null as any),
+        trackedGet('getSharedReflections',   `/forums/${forumId}/reflections`,      getSharedReflections(forumId, user.id),    { reflections: [] as ForumReflection[] } as any),
+        trackedGet('getForumExercise',       `/forums/${forumId}/exercise`,         getForumExercise(forumId, user.id),        { has_submitted: false } as any),
+        trackedGet('getForumMembers',        `/forums/${forumId}/members`,          getForumMembers(forumId, user.id),         { members: [] as ForumMember[] } as any),
+        trackedGet('getForumPulse',          `/forums/${forumId}/pulse`,            getForumPulse(forumId, user.id),           null as any),
+        trackedGet('getForumLiveField',      `/forums/${forumId}/live-field-v1`,    getForumLiveField(forumId, user.id),       null as any),
+        trackedGet('getForumContributions',  `/forums/${forumId}/contributions`,    getForumContributions(forumId, user.id),   { contributions: [] as ForumContribution[] } as any),
       ]);
-      setForum(forumData);
-      setReflections(reflectionsData.reflections);
-      setHasSubmitted(exerciseData.has_submitted);
-      setMembers(membersData.members);
-      setPulse(pulseData);
-      setLiveField(liveFieldData);
-      setContributions(contribResp?.contributions || []);
+
+      setLoadStep('applying_results');
+      const [forumR, reflR, exR, memR, pulseR, lfR, contR] = results;
+      const val = <T,>(r: PromiseSettledResult<T>): T | null =>
+        r.status === 'fulfilled' ? r.value : null;
+
+      const forumData = val(forumR);
+      if (forumData) {
+        setForum(forumData);
+      } else if (!forum) {
+        // Forum is the ONE call we can't degrade past — if we have no
+        // forum object after a fresh load and have no prior cached one,
+        // surface a hard error rather than render an empty shell.
+        throw new Error('Forum data unavailable');
+      }
+      const reflData  = val(reflR) || { reflections: [] };
+      const exData    = val(exR)   || { has_submitted: false };
+      const memData   = val(memR)  || { members: [] };
+      const contData  = val(contR) || { contributions: [] };
+
+      setReflections((reflData as any).reflections || []);
+      setHasSubmitted(!!(exData as any).has_submitted);
+      setMembers((memData as any).members || []);
+      setPulse(val(pulseR));
+      setLiveField(val(lfR));
+      setContributions((contData as any).contributions || []);
       setError(null);
+      setLoadStep('done');
     } catch (err: any) {
       console.error('[Forum] Error fetching data:', err);
-      if (err.response?.status === 403) {
+      setLastErrorMsg(err?.message || String(err));
+      if (err?.response?.status === 403) {
         setError('You are not a member of this forum');
+        setLoadStep('error_403');
       } else {
         setError('Unable to load forum');
+        setLoadStep('error_generic');
       }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [user?.id, forumId]);
+  }, [user?.id, forumId, forum]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Safety net (May 2026): if the loading state hasn't resolved in 12s
-  // for any reason (slow API, hanging auth hydration, network drop on a
-  // deployed PWA, etc.) — surface the error screen with Retry + Back
-  // instead of letting the user sit on an infinite "Loading forum..."
-  // spinner. Cleared on unmount and when `loading` transitions to false.
+  // Safety net (May 2026): if the loading state hasn't resolved in 8s
+  // for any reason (Safari iOS service-worker hang, stale bundle,
+  // flaky network on a deployed PWA, etc.) surface the recovery UI
+  // with Retry / Clear-Cache / Back instead of letting the user sit
+  // on an infinite "Loading forum..." spinner. Tightened from 12s →
+  // 8s after Safari-specific reports. Cleared on unmount and when
+  // `loading` transitions to false.
   useEffect(() => {
     if (!loading) return;
     const t = setTimeout(() => {
-      // Only act if we're still loading and haven't already errored.
       setError((prev) => prev || "This is taking longer than expected — please retry.");
+      setLoadStep((prev) => prev === 'fetching_in_parallel' ? 'safety_timeout_8s' : prev);
       setLoading(false);
-    }, 12000);
+    }, 8000);
     return () => clearTimeout(t);
   }, [loading]);
+
+  // Clear the most likely sources of Safari/PWA cache corruption and
+  // hard-reload the app, skipping the HTTP cache. Used by the
+  // recovery UI's "Clear local cache & reload" button.
+  const handleClearCacheAndReload = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        // Wipe forum-scoped storage so a stale member-cache doesn't
+        // resurrect after reload, but keep user/session so the user
+        // doesn't have to log back in.
+        try {
+          const keys: string[] = [];
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const k = window.localStorage.key(i);
+            if (!k) continue;
+            if (k.startsWith('forum_') || k.startsWith('mirror_forum_') || k.includes('ForumContext')) {
+              keys.push(k);
+            }
+          }
+          keys.forEach((k) => window.localStorage.removeItem(k));
+        } catch {}
+        try { window.sessionStorage.clear(); } catch {}
+        // Force-reload bypassing the HTTP cache (Safari honors this).
+        window.location.reload();
+      }
+    } catch (e) {
+      console.warn('[Forum] cache clear failed:', e);
+    }
+  }, []);
 
   const handleBack = () => {
     clearForumContext();
@@ -707,6 +813,20 @@ export default function ForumHomeScreen() {
           <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
             Loading forum...
           </Text>
+          {/* Dev / preview only: show what step we're on while the
+              spinner is still up. Production users do not see this. */}
+          {__DEV__ && (
+            <View style={styles.debugStrip}>
+              <Text style={[styles.debugStripText, { color: theme.textTertiary }]}>
+                [dev] step={loadStep}  forumId={forumId || '∅'}
+              </Text>
+              {lastApiUrl ? (
+                <Text style={[styles.debugStripText, { color: theme.textTertiary }]}>
+                  last={lastApiUrl}
+                </Text>
+              ) : null}
+            </View>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -726,10 +846,80 @@ export default function ForumHomeScreen() {
           <View style={styles.backButton} />
         </View>
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: theme.textSecondary }]}>{error}</Text>
-          <TouchableOpacity onPress={() => fetchData()}>
-            <Text style={[styles.retryText, { color: theme.accent }]}>Try Again</Text>
+          <Text style={[styles.errorTitle, { color: theme.text }]}>
+            Forum is taking longer than expected.
+          </Text>
+          <Text style={[styles.errorText, { color: theme.textSecondary }]}>
+            {error}
+          </Text>
+
+          {/* Primary recovery action: retry the load. */}
+          <TouchableOpacity
+            onPress={() => { setError(null); fetchData(); }}
+            style={[styles.recoveryBtnPrimary, { borderColor: theme.accent }]}
+            accessibilityLabel="Retry loading the forum"
+          >
+            <Text style={[styles.recoveryBtnPrimaryText, { color: theme.accent }]}>
+              Retry
+            </Text>
           </TouchableOpacity>
+
+          {/* Web-only: explicit Safari/PWA cache nuke + reload. On
+              native this is a no-op so we hide it. */}
+          {Platform.OS === 'web' && (
+            <TouchableOpacity
+              onPress={handleClearCacheAndReload}
+              style={styles.recoveryBtnSecondary}
+              accessibilityLabel="Clear local cache and reload"
+            >
+              <Text style={[styles.recoveryBtnSecondaryText, { color: theme.textSecondary }]}>
+                Clear local cache & reload
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            onPress={() => router.replace('/forums')}
+            style={styles.recoveryBtnSecondary}
+            accessibilityLabel="Back to forums"
+          >
+            <Text style={[styles.recoveryBtnSecondaryText, { color: theme.textSecondary }]}>
+              Back to Forums
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.replace('/')}
+            style={styles.recoveryBtnSecondary}
+            accessibilityLabel="Back to home"
+          >
+            <Text style={[styles.recoveryBtnSecondaryText, { color: theme.textSecondary }]}>
+              Back to Home
+            </Text>
+          </TouchableOpacity>
+
+          {/* Dev / preview only: rich diagnostic strip showing where
+              we got stuck. Hidden in production builds. */}
+          {__DEV__ && (
+            <View style={styles.debugStrip}>
+              <Text style={[styles.debugStripText, { color: theme.textTertiary }]}>
+                [dev] step={loadStep}
+              </Text>
+              <Text style={[styles.debugStripText, { color: theme.textTertiary }]}>
+                forumId={forumId || '∅'}  user={user?.email || user?.id || '∅'}
+              </Text>
+              {lastApiUrl ? (
+                <Text style={[styles.debugStripText, { color: theme.textTertiary }]}>
+                  last_api={lastApiUrl}
+                </Text>
+              ) : null}
+              {lastErrorMsg ? (
+                <Text style={[styles.debugStripText, { color: theme.textTertiary }]}>
+                  last_err={lastErrorMsg}
+                </Text>
+              ) : null}
+            </View>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -1966,14 +2156,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
-  errorText: {
-    fontSize: 16,
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+    opacity: 0.8,
   },
   retryText: {
     fontSize: 16,
     fontWeight: '500',
+  },
+  recoveryBtnPrimary: {
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    marginBottom: 12,
+    minWidth: 180,
+    alignItems: 'center',
+  },
+  recoveryBtnPrimaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  recoveryBtnSecondary: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  recoveryBtnSecondaryText: {
+    fontSize: 14,
+    fontWeight: '400',
+    letterSpacing: 0.2,
+  },
+  debugStrip: {
+    marginTop: 24,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: 'rgba(127,127,127,0.06)',
+    alignItems: 'center',
+  },
+  debugStripText: {
+    fontSize: 10,
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
+    lineHeight: 14,
   },
   content: {
     flex: 1,

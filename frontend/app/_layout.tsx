@@ -11,6 +11,48 @@ import { AddToHomeScreenBanner, BannerProvider } from '../components/AddToHomeSc
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
 const BUILD_ID = process.env.EXPO_PUBLIC_BUILD_ID || 'unknown';
 
+// Bump this whenever we ship a change that could leave Safari/PWA
+// users with stale cached forum / pulse / live-field state. On boot
+// we compare it against the value stored in localStorage; on
+// mismatch we wipe forum-scoped storage so the new bundle isn't
+// reading old JSON shapes from an earlier deploy.
+const APP_STORAGE_VERSION = '2026.05.13.safari-forum-recovery';
+
+// Web-only: purge stale forum state when the app storage version
+// changes. Safe to call on every boot — it's idempotent and only
+// removes keys that match a tight allowlist of forum / pulse /
+// live-field / member-summary prefixes. User/session keys are
+// preserved so logout is never forced by a version bump.
+function purgeStaleForumStorageIfNeeded() {
+  if (Platform.OS !== 'web') return;
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    const stored = window.localStorage.getItem('mirror_storage_version');
+    if (stored === APP_STORAGE_VERSION) return;
+
+    const PURGE_PREFIXES = [
+      'forum_', 'mirror_forum_', 'forumContext_', 'pulse_', 'live_field_',
+      'forum_member_', 'member_summary_', 'forum_pattern_',
+    ];
+    const toRemove: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (!k) continue;
+      if (PURGE_PREFIXES.some((p) => k.startsWith(p))) toRemove.push(k);
+    }
+    toRemove.forEach((k) => window.localStorage.removeItem(k));
+    window.localStorage.setItem('mirror_storage_version', APP_STORAGE_VERSION);
+    if (toRemove.length) {
+      console.log(
+        `[Storage] APP_STORAGE_VERSION changed (${stored || 'none'} → ${APP_STORAGE_VERSION}). ` +
+        `Purged ${toRemove.length} stale forum-scoped key(s).`
+      );
+    }
+  } catch (e) {
+    console.warn('[Storage] version-guard purge failed (non-fatal):', e);
+  }
+}
+
 // Error Boundary Component
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -181,6 +223,10 @@ function ThemedRootLayout() {
     console.log('[RootLayout] Starting session restore...');
     console.log('[RootLayout] Build:', BUILD_VERSION, 'ID:', BUILD_ID);
     console.log('[RootLayout] Theme:', isDark ? 'DARK' : 'LIGHT');
+    // Safari/PWA self-heal: drop forum-scoped storage whose shape no
+    // longer matches the current bundle BEFORE restoring the session.
+    // Idempotent and platform-gated; native is a no-op.
+    purgeStaleForumStorageIfNeeded();
     setBootstrapStage('restoring_session');
     restoreSession().then(() => {
       setBootstrapStage('ready');

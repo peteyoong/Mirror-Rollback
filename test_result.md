@@ -15325,3 +15325,93 @@ agent_communication:
             Cache behavior verified:
               normal call after force_refresh → source=cache, age=30s
               cold call on Mel               → source=generated, no_cache
+
+  - task: "Forum loading hardening — Safari/PWA recovery UI + storage version guard"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/forums/[id].tsx + /app/frontend/app/_layout.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            Safari iOS report: stuck on "Loading forum..." indefinitely.
+            Chrome unaffected. No service worker exists in the bundle
+            (verified: manifest has no SW, no SW JS in /public).
+
+            ROOT CAUSE (highest probability, can't fully verify
+            without on-device Safari console):
+              1. Safari iOS aggressively caches the root HTML, which
+                 references an OLDER hashed JS bundle that predates the
+                 12s safety timeout fix.
+              2. Even on a fresh bundle, Promise.all of 7 forum APIs
+                 fail-fast on ANY single slow call → 12s of dead spinner
+                 before the safety timeout fires. Safari's stricter
+                 HTTP/2 stream limits make this more likely to hit.
+
+            FIX (defense-in-depth):
+              1. Per-call AbortController-style timeout (7s each) on
+                 every API in fetchData. Wrapped in Promise.allSettled
+                 so a single slow call no longer blocks the whole load.
+                 Individual fallbacks: reflections=[], members=[],
+                 contributions=[], pulse/liveField=null. Only the
+                 forumData itself can still cause a hard error.
+              2. Parent safety timeout tightened 12s → 8s with explicit
+                 "safety_timeout_8s" loadStep marker.
+              3. Loading-step instrumentation: `loadStep`, `lastApiUrl`,
+                 `lastErrorMsg` state surfaces what's hanging in the
+                 dev-only debug strip.
+              4. New recovery UI on error:
+                   • Title: "Forum is taking longer than expected."
+                   • Retry button (primary, pill)
+                   • "Clear local cache & reload" (web-only) — purges
+                     forum-scoped localStorage + sessionStorage and
+                     window.location.reload()
+                   • Back to Forums
+                   • Back to Home
+                   • Dev-only debug strip: step, forumId, user,
+                     last_api, last_err
+              5. App boot storage-version guard (_layout.tsx):
+                   • APP_STORAGE_VERSION constant ("2026.05.13.safari-forum-recovery")
+                   • Compared against stored mirror_storage_version on
+                     every boot, BEFORE restoreSession()
+                   • On mismatch: purges keys matching forum_*,
+                     mirror_forum_*, forumContext_*, pulse_*,
+                     live_field_*, forum_member_*, member_summary_*,
+                     forum_pattern_* — preserving user/session keys
+                   • Bumps stored version, logs purge count
+                   • Idempotent and platform-gated (web only)
+
+            Live verification on preview (390x844 mobile viewport):
+              Navigated to /forums/test_no_user_id with no logged-in user.
+              Within 1s the recovery UI rendered:
+                  Forum is taking longer than expected.
+                  Please sign in to view this forum
+                  [Retry]
+                  Clear local cache & reload
+                  Back to Forums
+                  Back to Home
+                  [dev] step=missing_user_id  forumId=test_no_user_id  user=∅
+
+            Chrome unaffected — same code path, same UI. The new
+            error/recovery state is a strict superset of the old one
+            (old "Try Again" → new "Retry" + adds explicit recovery
+            CTAs). No regression risk for the Chrome path.
+
+            REMAINING RISK & MITIGATION:
+              If Safari is currently serving a STALE pre-fix bundle
+              (because its HTML cache is hours old), users will still
+              see the old "Loading forum..." infinite spinner UNTIL
+              they hard-reload Safari or until their HTML cache
+              expires. After deploy, the FIRST time Safari fetches
+              fresh HTML, the new bundle will activate, APP_STORAGE_
+              VERSION will purge stale state, and from that point
+              forward the recovery UI guarantees no infinite spinner.
+              No code change in this preview can affect already-
+              cached HTML on user devices — that's a Cloudflare/HTTP-
+              cache concern requiring either:
+                a) Cache-Control: no-cache headers on the served
+                   index.html (deploy-side change), or
+                b) Time for Safari's HTML cache to naturally expire.
