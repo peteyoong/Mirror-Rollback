@@ -1,11 +1,13 @@
 import React, { useEffect, useState, Component, ErrorInfo, ReactNode } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { View, Text, ActivityIndicator, StyleSheet, Platform, useWindowDimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { useAppStore } from '../store';
 import { ThemeProvider, useTheme, LightTheme, DarkTheme } from '../contexts/ThemeContext';
 import { ForumContextProvider } from '../contexts/ForumContext';
 import { DebugViewportOverlay } from '../components/DebugViewportOverlay';
 import { AddToHomeScreenBanner, BannerProvider } from '../components/AddToHomeScreenBanner';
+
+import { BUILD_ID as HOTFIX_BUILD_ID } from '../constants/buildMarker';
 
 // Build info from environment
 const BUILD_VERSION = process.env.EXPO_PUBLIC_BUILD_VERSION || 'unknown';
@@ -236,9 +238,37 @@ function ThemedRootLayout() {
     });
   }, []);
 
+  // P0 hotfix v1 (May 14 2026): bootstrap safety timeout. If
+  // `restoreSession()` hangs (Safari iOS localStorage lockdown,
+  // backend slow, network drop), don't sit forever on the "Restoring
+  // your profile..." screen. After 5 seconds of stuck bootstrap, drop
+  // straight to /welcome with the loading gate released.
+  const [bootstrapTimedOut, setBootstrapTimedOut] = useState(false);
+  useEffect(() => {
+    if (hasTriedSessionRestore && !isRestoringSession) return;
+    const t = setTimeout(() => {
+      try { console.warn('[Boot/Safari-debug] bootstrap timeout 5s — releasing gate'); } catch {}
+      setBootstrapTimedOut(true);
+      setBootstrapStage('timeout_5s');
+      // Best-effort navigation to /welcome — falls through if router
+      // not ready yet, in which case bootstrapTimedOut still gates
+      // the loading screen out of the way and renders the app shell.
+      try {
+        // Use a setTimeout(0) to defer the navigation past the
+        // current render and avoid update-during-render warnings.
+        setTimeout(() => {
+          try { router.replace('/welcome'); } catch (e) {
+            try { console.warn('[Boot] /welcome navigation failed:', e); } catch {}
+          }
+        }, 0);
+      } catch {}
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [hasTriedSessionRestore, isRestoringSession, router]);
+
   // Block rendering until we've tried to restore the session
   // This is the AUTH HYDRATION GATE
-  if (!hasTriedSessionRestore || isRestoringSession) {
+  if ((!hasTriedSessionRestore || isRestoringSession) && !bootstrapTimedOut) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[
@@ -250,6 +280,10 @@ function ThemedRootLayout() {
           <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Restoring your profile...</Text>
           <Text style={[styles.buildInfo, { color: theme.textTertiary }]}>v{BUILD_VERSION} • {BUILD_ID}</Text>
           <Text style={[styles.stageInfo, { color: theme.textTertiary }]}>Stage: {bootstrapStage}</Text>
+          {/* Hotfix build marker — visible BEFORE app hydration so we
+              can verify bundle freshness without depending on routing
+              or auth being healthy. */}
+          <Text style={[styles.stageInfo, { color: theme.textTertiary }]}>build · {HOTFIX_BUILD_ID}</Text>
         </View>
         {/* Debug viewport overlay for web */}
         {Platform.OS === 'web' && <DebugViewportOverlay />}

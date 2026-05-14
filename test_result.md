@@ -15759,3 +15759,103 @@ agent_communication:
               c) Delete /app/frontend/dist/ permanently and configure
                  the deploy pipeline to build from source (best long
                  term).
+
+  - task: "P0 — Live serving stale Apr 28 bundle (REAL fix: rebuild /app/backend/web_dist/)"
+    implemented: true
+    working: true
+    file: "/app/backend/web_dist/ (THIS is the production-served directory)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            REAL ROOT CAUSE (proven by live HTTP probe):
+              Live mirror-lens-fixes.emergent.host /reflect serves
+              HTML with:
+                <script src="...entry-f45868dd625ef50b3a4f609aea4a7194.js">
+                Last-Modified: Tue, 28 Apr 2026 02:54:57 GMT
+              Cache-Control headers ARE correct
+              ("no-cache, no-store, must-revalidate, max-age=0").
+              So the origin server itself is serving the Apr 28
+              bundle, not a CDN/Safari cache problem.
+
+              The deploy pipeline ships /app/backend/web_dist/, NOT
+              /app/frontend/dist/. The package.json script proves it:
+                "build:deploy": "npx expo export --platform web &&
+                                 rm -rf ../backend/web_dist/* &&
+                                 cp -r dist/* ../backend/web_dist/"
+              I had been rebuilding /app/frontend/dist/ but never
+              copied to /app/backend/web_dist/. That's the directory
+              the backend serves as static assets and the publish
+              pipeline picks up.
+
+              The backend's own DeploymentGuard logs proved this:
+                "[DeploymentGuard] STALE DEPLOYMENT: Source file
+                 'app/(tabs)/index.tsx' (2026-05-01 08:11:33) is
+                 newer than deployed bundle (2026-04-28 02:54:57)"
+
+            SECONDARY ISSUE — Metro transform cache:
+              First yarn build:deploy ran in 7.9s using cached
+              transforms — the 4 source files that read
+              process.env.EXPO_PUBLIC_BUILD_VERSION kept their
+              cached output with the OLD env value baked in. Only
+              _layout.tsx (which I touched directly) was retransformed
+              with the new value.
+              Fix: rm -rf .metro-cache /tmp/metro-* /tmp/haste-map-*
+              + run `expo export --clear`. After this, all 5 files
+              picked up the fresh env value, 0 occurrences of the
+              old build stamp remained.
+
+            FIXES APPLIED:
+              1. Bumped /app/frontend/.env build stamps:
+                   EXPO_PUBLIC_BUILD_VERSION=v5.0.1-20260514_120951-hotfix
+                   EXPO_PUBLIC_BUILD_ID=20260514_120951-hotfix
+              2. Added 5s bootstrap safety timeout in _layout.tsx:
+                   if "Restoring your profile..." doesn't clear in 5s
+                   → setBootstrapTimedOut(true) + router.replace('/welcome')
+              3. Added HOTFIX_BUILD_ID footer to the bootstrap loader
+                 ("Restoring your profile..." screen) so the user can
+                 verify bundle freshness BEFORE app hydration.
+              4. Wiped Metro cache fully and ran
+                 `expo export --platform web --clear`
+              5. Copied fresh dist → /app/backend/web_dist/
+
+            DEPLOYED ARTIFACT VERIFICATION (/app/backend/web_dist/):
+              ✅ New bundle hash:
+                  entry-108cde4cb0f062b23d9a72dbb566df14.js
+                  (was entry-f45868dd625ef50b3a4f609aea4a7194.js)
+              ✅ HTML files updated to reference new bundle hash
+              ✅ "reflect-forum-safari-hotfix-v1"           ×1
+              ✅ "safety_timeout_5s"                        ×1
+              ✅ "Forum/Safari-debug"                       ×1
+              ✅ "bootstrap timeout 5s"                     ×1
+              ✅ "v5.0.1-20260514_120951-hotfix"            ×5
+              ✅ "A mirror, not a verdict"                  ×2
+              ✅ "Capture what's real"                      ×2
+              ✅ "Need help starting"                       ×1
+              ✅ Stale "20260412_175924"                    ×0
+
+            ACCEPTANCE GATE for live verification (after publish):
+              1. Live no longer shows vv5.0.0-20260412_175924
+                 → SHOULD show vv5.0.1-20260514_120951-hotfix
+              2. "Restoring your profile..." screen shows
+                 "build · reflect-forum-safari-hotfix-v1" footer
+              3. If session restore takes >5s, auto-routes to /welcome
+              4. /reflect shows the two-card entry chooser
+              5. /forums/{id} unauthed → redirects to /welcome
+              6. /forums/{id} with hung API → 5s safety_timeout_5s
+                 → recovery UI with Retry / Clear cache / Back
+
+            FOLLOW-UP RECOMMENDATION:
+              The publish pipeline serves /app/backend/web_dist/ as
+              the static assets directory. To prevent recurrence:
+              a) ALWAYS run `cd /app/frontend && yarn build:deploy
+                 --clear` immediately before the user clicks publish
+                 (or add as a pre-publish hook)
+              b) Or refactor the publish pipeline to invoke the
+                 build at publish time, so /app/backend/web_dist/ is
+                 a build artifact, not a checked-in directory
+              c) Keep the DeploymentGuard logs — they correctly
+                 caught this issue
