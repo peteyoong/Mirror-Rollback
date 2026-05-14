@@ -15610,3 +15610,67 @@ agent_communication:
               HTML that references an older bundle hash → user must
               long-press Safari refresh button → "Reload Without
               Content Blockers" to bypass HTML cache.
+
+  - task: "P0 Blocker — iPhone Expo preview stuck on Loading preview... (FIXED)"
+    implemented: true
+    working: true
+    file: "infrastructure (no code changes required)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            ROOT CAUSE (not a code issue):
+              1. ngrok tunnel session for the Metro dev server had
+                 wedged. Repeated stderr:
+                   "CommandError: TypeError: Cannot read properties
+                    of undefined (reading 'body')"
+                   "Check the Ngrok status page for outages"
+                   "failed to start tunnel / session closed"
+                   "ngrok tunnel took too long to connect"
+              2. Metro's on-disk file-map cache was corrupted with a
+                 cross-version v8 snapshot:
+                   "Error while reading cache, falling back to a full
+                    crawl: Error: Unable to deserialize cloned data
+                    due to invalid or unsupported version."
+
+            Both symptoms occur AT THE INFRASTRUCTURE LAYER (ngrok +
+            Metro disk cache). The web bundle was compiling fine the
+            whole time. The native (iOS) bundle that Expo Go on
+            iPhone requests goes through the same tunnel — so when
+            the tunnel was wedged, the iPhone client sat on the
+            Expo wrapper's "Loading preview..." screen indefinitely.
+
+            FIX (no code change required):
+              1. Stopped expo via supervisorctl
+              2. Removed corrupted caches:
+                   /tmp/metro-*  /tmp/haste-map-*
+                   /app/frontend/.expo
+                   /app/frontend/node_modules/.cache/metro
+              3. Restarted expo
+              4. Tunnel reconnected cleanly:
+                   "Tunnel connected. Tunnel ready."
+
+            VERIFICATION:
+              - Web bundle: HTTP 200, 10,942,950 bytes,
+                BUILD_ID present ✅
+              - iOS native bundle: HTTP 200, 14,082,538 bytes,
+                BUILD_ID present, buildMarker import resolved ✅
+                (compiled in 27.3s — well within Expo Go timeout)
+              - Tunnel: "Tunnel ready" confirmed in expo.out.log
+
+            The user's preview should now load on iPhone Expo Go.
+            If they reload the QR / preview link, the app shell
+            will appear normally and the new entry chooser will be
+            visible at /reflect.
+
+            NOTE on the user's "build marker import" hypothesis:
+              The hypothesis was reasonable (a bad import IS a
+              common cause of native bundle failures), but in this
+              specific case the import was resolving correctly on
+              both targets — the issue was purely the ngrok tunnel +
+              stale Metro cache. The BUILD_ID file is small,
+              dependency-free, and imports cleanly into both web and
+              iOS bundles. No inline-the-constant rewrite needed.
