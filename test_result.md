@@ -15674,3 +15674,88 @@ agent_communication:
               stale Metro cache. The BUILD_ID file is small,
               dependency-free, and imports cleanly into both web and
               iOS bundles. No inline-the-constant rewrite needed.
+
+  - task: "P0 — Stale /app/frontend/dist/ shipping pre-hotfix bundle to production (FIXED)"
+    implemented: true
+    working: true
+    file: "/app/frontend/dist/ (rebuilt from current source)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            ROOT CAUSE — not Safari, not Cloudflare:
+            The /app/frontend/dist/ directory contained a precompiled
+            production bundle dated April 28 (3+ weeks stale). That
+            bundle (entry-f45868dd625ef50b3a4f609aea4a7194.js) had
+            ZERO of the recent hotfix code:
+              - 0 occurrences of "reflect-forum-safari-hotfix-v1"
+              - 0 occurrences of "safety_timeout_5s"
+              - 0 occurrences of "Forum/Safari-debug"
+              - 0 occurrences of router.replace('/welcome') auth-fallback
+            The Emergent publish pipeline was shipping this stale
+            dist/ directly to mirror-lens-fixes.emergent.host instead
+            of rebuilding from source. That explains exactly why:
+              - Live Safari showed "Loading forum..." with NO BUILD_ID
+                footer (the old code never had one)
+              - The 5s safety timeout never fired (didn't exist)
+              - Unauthed /forums/cb8cd54847e5 never redirected to
+                /welcome (the redirect didn't exist)
+            "I cleared Safari cache and re-deployed" did not help
+            because the cleared cache fetched the SAME stale dist/
+            bundle from the origin — the cache was never the problem.
+
+            FIX:
+              1. Renamed the stale dist/ to dist.stale_2026_04_28/
+                 (preserved for rollback if needed)
+              2. Ran: cd /app/frontend && npx expo export -p web
+              3. Fresh dist/ built. New bundle hash:
+                 entry-d8fad89a7e37ffed2f2a4efeef1cd5dd.js
+                 (was entry-f45868dd625ef50b3a4f609aea4a7194.js)
+              4. All hotfix markers present in new bundle:
+                   reflect-forum-safari-hotfix-v1     ×1
+                   safety_timeout_5s                  ×1
+                   Forum/Safari-debug                 ×1
+                   "/welcome" router target           ×7
+                   "A mirror, not a verdict"          ×2
+                   "Capture what's real"              ×2
+                   "Need help starting"               ×1
+              5. All HTML route files (index.html, forums/[id].html,
+                 forums/index.html, forums/join, etc.) now reference
+                 the new bundle hash.
+
+            DEPLOYMENT INSTRUCTION:
+              The user can now publish via the Emergent publish
+              button. The pipeline will ship the FRESH dist/ that
+              actually contains the hotfix code. After publish:
+                - mirror-lens-fixes.emergent.host/reflect → entry
+                  chooser with "build · reflect-forum-safari-hotfix-v1"
+                  footer
+                - /forums/{id} unauthed → router.replace('/welcome')
+                  within 50ms (no spinner)
+                - /forums/{id} authed with API hang → 5s safety
+                  timeout → recovery UI with Retry / Clear cache /
+                  Back to Forums / Back to Home
+
+            ACCEPTANCE GATE check before user publishes:
+              ✅ Stale dist/ moved aside
+              ✅ Fresh dist/ built from current source
+              ✅ New bundle hash (cache-busting at the asset level)
+              ✅ All hotfix strings present in new bundle
+              ✅ HTML routes point at new bundle hash
+              ✅ rollback artifact preserved at dist.stale_2026_04_28/
+
+            FOLLOW-UP recommendation:
+              This stale-dist issue means the Emergent publish
+              pipeline does NOT run `expo export` on the source code
+              at publish time — it ships /app/frontend/dist/ as-is.
+              To prevent recurrence, either:
+              a) Always run `npx expo export -p web` immediately
+                 before publishing, or
+              b) Add a CI step to dist on every preview→publish
+                 transition, or
+              c) Delete /app/frontend/dist/ permanently and configure
+                 the deploy pipeline to build from source (best long
+                 term).
