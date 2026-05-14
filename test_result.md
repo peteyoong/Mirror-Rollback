@@ -15415,3 +15415,105 @@ agent_communication:
                 a) Cache-Control: no-cache headers on the served
                    index.html (deploy-side change), or
                 b) Time for Safari's HTML cache to naturally expire.
+
+  - task: "REFLECT V3 — entry chooser + journal reframe (P0 + P1)"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/(tabs)/reflect.tsx + /app/frontend/components/journal/JournalLeaderCard.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            REFLECT V3 — UX reframe. P0 + P1 shipped. P2 (Mirror Chat
+            redesign) and P3 (memory orchestration) deliberately
+            deferred per user's scope decision.
+
+            Scope agreed: option (b) + (ii) + (y) — P0 + P1, inline
+            switch (no expo-router refactor), Lunar / Phase Mirror /
+            Key Moments tools moved behind Journal route.
+
+            CHANGES:
+
+            1) Entry chooser (`'entry'` ViewMode):
+               - "Reflect" headline (300 weight, -0.6 letter-spacing)
+               - "A mirror, not a verdict." subtitle
+               - Two soft-fill cards stacked vertically, no hard borders
+               - Card 1: "Capture what's real" → "Build reflection
+                 over time." → "Write →"
+               - Card 2: "Ask Mirror" → "Make sense of what you're
+                 experiencing." → "Open Mirror →"
+               - Generous padding (28 horiz, 64 top), 56pt header gap
+               - Touch targets ≥48pt
+
+            2) Soft return link:
+               - Replaces the old segmented Journal/Mirror/Lunar pill
+                 bar entirely
+               - Renders as "← Reflect" plain text link at top of any
+                 sub-view (Journal / Mirror / Lunar)
+               - When viewing Journal as a Reflector, a subtle
+                 "View patterns" link appears (gates Lunar tools
+                 behind Journal as user requested — y option)
+               - When in Lunar / lunar-history, shows "← Journal"
+                 instead
+
+            3) Deep-link handler:
+               - useEffect inspects query params (view, prefillPrompt,
+                 journalSource, category, tensionPair, fromKeystone)
+               - Auto-routes to 'journal' or 'mirror' so existing
+                 deep links from Home V6 / Keystone / Today V5 keep
+                 working without change
+               - Default at /reflect with no params = the calm entry
+                 chooser
+
+            4) Journal composer P1 softening (JournalLeaderCard.tsx):
+               - Collapsed-state copy changed from "Capture what's
+                 real. / Show prompt ›" to "Need help starting? / ›"
+               - Removed the hard border on collapsed surface — now
+                 reads as a subtle text link, not a card
+               - Increased breathing room (16pt bottom margin)
+               - Composer body unchanged (lowest regression risk)
+
+            5) Preserved (no functional change):
+               - All saved journal / reflection data + APIs
+               - JournalInput / EnhancedJournalInput / submit flow
+               - Recognition tags, pattern threading, reflection IDs
+               - Lunar Decision Journal full functionality (just
+                 demoted from top-level tab to "View patterns" link)
+               - Mirror Chat full functionality (P2 redesign deferred)
+               - Bottom tab navigation
+               - Deep-link continuation from Mirror Home keystone
+                 (params.fromKeystone === 'true' branch intact)
+
+            LIVE VERIFICATION on preview (390×844 mobile):
+              /reflect (no params, logged in as Pete):
+                "Reflect" / "A mirror, not a verdict."
+                Card 1: "Capture what's real" / "Build reflection over time." / "Write →"
+                Card 2: "Ask Mirror" / "Make sense of what you're experiencing." / "Open Mirror →"
+                ✅ no segmented pill bar
+                ✅ bottom tab nav still works
+              Tap "Capture what's real" →
+                Journal composer view with "← Reflect" soft return
+                "Need help starting?" collapsed prompt link (no border)
+                ✅ no old "Show prompt ›" anywhere
+              /reflect?view=mirror → bypasses chooser, lands on Mirror Chat
+              /reflect?view=journal → bypasses chooser, lands on Journal
+
+            FILES CHANGED:
+              - app/(tabs)/reflect.tsx (ViewMode union + 'entry' branch
+                + entry chooser JSX + soft-return rewrite of
+                renderModeToggle + deep-link useEffect + new styles)
+              - components/journal/JournalLeaderCard.tsx (collapsed
+                state copy + no-border style)
+
+            NOT TOUCHED (P2/P3 deferred):
+              - Mirror Chat surface internals
+              - "Today's pattern: …" contextual line
+              - Memory-aware orchestration
+
+            P2/P3 plan when user is ready: redesign Mirror Chat copy +
+            input + example prompts; then add memory-aware /
+            phase-aware / lens-aware orchestration in the chat
+            response path.

@@ -39,26 +39,24 @@ export default function JournalLeaderCard({ isExpanded, onToggle }: JournalLeade
     onToggle();
   };
   
-  // Collapsed state - minimal, one-line version
+  // Collapsed state — REFLECT V3: minimal, calm, no hard border.
+  // Reads as "Need help starting?" rather than the old prompt-machinery
+  // language. Tap reveals the full prompt block.
   if (!isExpanded) {
     return (
       <TouchableOpacity
-        style={[
-          styles.collapsedContainer,
-          { 
-            backgroundColor: theme.surface,
-            borderColor: theme.border,
-          }
-        ]}
+        style={styles.collapsedContainer}
         onPress={handleToggle}
-        activeOpacity={0.7}
+        activeOpacity={0.6}
+        accessibilityLabel="Show writing prompt"
+        accessibilityRole="button"
       >
         <View style={styles.collapsedContent}>
-          <Text style={[styles.collapsedText, { color: theme.textSecondary }]}>
-            Capture what's real.
+          <Text style={[styles.collapsedText, { color: theme.textTertiary }]}>
+            Need help starting?
           </Text>
           <Text style={[styles.expandToggle, { color: theme.textTertiary }]}>
-            Show prompt ›
+            ›
           </Text>
         </View>
       </TouchableOpacity>
@@ -124,24 +122,28 @@ export default function JournalLeaderCard({ isExpanded, onToggle }: JournalLeade
 const styles = StyleSheet.create({
   // Collapsed state styles - tighter
   collapsedContainer: {
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 8, // Reduced from 12
-    paddingVertical: 10, // Reduced from 12
-    paddingHorizontal: 14,
+    // REFLECT V3: no hard border. The collapsed state should read as a
+    // subtle text link, not a card. Soft inline affordance.
+    marginBottom: 16,
+    marginTop: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
   },
   collapsedContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    gap: 6,
   },
   collapsedText: {
-    fontSize: 13, // Reduced from 14
-    fontStyle: 'italic',
+    fontSize: 13,
+    fontWeight: '400',
+    letterSpacing: 0.1,
   },
   expandToggle: {
-    fontSize: 11, // Reduced from 12
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '400',
+    opacity: 0.6,
   },
   
   // Expanded state styles - more compact
