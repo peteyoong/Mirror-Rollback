@@ -2311,10 +2311,109 @@ backend:
 
 test_plan:
   current_focus:
-    - "Pattern Graph Phase 1"
+    - "Astrology House SSOT Forensic Endpoint"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+backend:
+  - task: "Astrology House SSOT Forensic Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          P1 ASTROLOGY HOUSE MISMATCH — forensic diagnostic shipped.
+          
+          New endpoint: GET /api/admin/astrology/house_forensic/{user_id}
+          
+          Purpose: forensic verification of Single Source of Truth (SSOT)
+          for the Equal-House mapping used by every interpretation layer
+          (At-a-Glance, Deep Dive, Astrology Today V5, Timeline). The
+          payload re-derives `house_equal_recomputed` from the stored
+          `house_cusps` and asserts it equals `house_stored` for every
+          planet. If `ssot_ok=false` the chart doc is corrupt.
+          
+          It also computes `house_whole_sign_for_compare` so a human can
+          see exactly where an externally-rendered sidereal wheel (which
+          most public sites draw using Whole-Sign or Placidus boundaries)
+          will appear to disagree with our Equal-House cards. Smoking-gun
+          finding for Pete (697f0c6abf35c0528ff06954, ASC=22.7° Sag):
+          
+            Sun:       Equal=H3, WholeSign=H4
+            Moon:      Equal=H4, WholeSign=H5
+            Mercury:   Equal=H2, WholeSign=H3
+            Venus:     Equal=H2, WholeSign=H3
+            Mars:      Equal=H4, WholeSign=H5
+            Saturn:    Equal=H3, WholeSign=H4
+            Pluto:     Equal=H8, WholeSign=H9
+            N.Node:    Equal=H3, WholeSign=H4
+          
+          Backend computation is internally consistent: every planet's
+          stored house matches the Equal-House envelope around the
+          stored Ascendant for both Pete and Mel. The frontend
+          interpretation layer (extractPlacements in
+          services/astrology/astrologyInterpreter.ts and
+          AstrologyLensView.tsx) reads house values DIRECTLY from
+          `planets.X.house` — it never recomputes. SSOT is therefore
+          architecturally enforced; the only divergence is conceptual:
+          users comparing our Equal-House cards to an external
+          Whole-Sign or Placidus wheel will see ~10 of 12 planets
+          appear "off by one house" — which is exactly the pattern the
+          user reported.
+          
+          Test endpoint via:
+            curl /api/admin/astrology/house_forensic/697f0c6abf35c0528ff06954
+            curl /api/admin/astrology/house_forensic/697ec826ad4b18f75bf42616
+      - working: true
+        agent: "testing"
+        comment: |
+          ASTROLOGY HOUSE SSOT FORENSIC ENDPOINT TESTING COMPLETE ✅
+          
+          Endpoint: GET /api/admin/astrology/house_forensic/{user_id}
+          Base URL: https://sidereal-debug.preview.emergentagent.com/api
+          Test file: /app/backend_test.py
+          
+          🎯 ALL 3 REVIEW REQUEST TESTS PASSED:
+          
+          **TEST 1: Pete (697f0c6abf35c0528ff06954) — ASC ≈ 262.7° ✅**
+            - Status: 200 OK
+            - ok: true ✅
+            - ssot_ok: true ✅
+            - ssot_violations: [] ✅
+            - house_system: "Equal" ✅
+            - svp_applied: 31.2836 ✅
+            - ascendant_sidereal_degrees: 262.6995767446388 (between 262 and 263) ✅
+            - house_cusps: 12 entries, house numbers 1..12 monotonic ✅
+            - planets: 14 total; Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn
+              all present with ssot_ok=true and house_stored == house_equal_recomputed ✅
+            - whole_sign_divergences_for_reference_only: 10 entries (expected;
+              documents the Whole-Sign vs Equal-House gap, not an error) ✅
+          
+          **TEST 2: Mel (697ec826ad4b18f75bf42616) — ASC ≈ 89.1° ✅**
+            - Status: 200 OK
+            - ok: true ✅
+            - ssot_ok: true ✅
+            - ssot_violations: [] ✅
+            - house_system: "Equal" ✅
+            - svp_applied: 31.2836 ✅
+            - ascendant_sidereal_degrees: 89.10342319395835 (~89.1°) ✅
+            - house_cusps: 12 entries, monotonic 1..12 ✅
+            - All 14 planets have ssot_ok=true ✅
+          
+          **TEST 3: Invalid user (does_not_exist_999) ✅**
+            - Status: 404 ✅
+            - detail: "No chart for user does_not_exist_999" (mentions 'No chart') ✅
+          
+          📊 SSOT STATUS: Both real users (Pete and Mel) have ssot_ok=true
+          with zero ssot_violations. The stored `house` value on every planet
+          matches what get_house_for_planet() recomputes from the stored
+          Equal-House cusps. Backend SSOT is intact.
 
 agent_communication:
   - agent: "testing"

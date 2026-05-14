@@ -34367,6 +34367,127 @@ async def get_astrology_timeline(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/admin/astrology/house_forensic/{user_id}")
+async def admin_astrology_house_forensic(user_id: str) -> Dict[str, Any]:
+    """Forensic diagnostic for the P1 House Mismatch investigation.
+
+    Returns a single payload that documents — for one user — the EXACT
+    canonical house mapping used by every downstream layer (interpretation
+    cards, transits, etc.). It also computes a Whole-Sign comparison so a
+    human can see *why* an externally-rendered sidereal wheel (which often
+    uses whole-sign or Placidus boundaries) appears to disagree with our
+    Equal House interpretation cards.
+
+    Key contract:
+      * `house_system` is always "Equal" (Project Mirror canonical).
+      * `ssot_ok = true` means every planet's stored `house` matches the
+        Equal-House envelope around `ascendant_sidereal`.  If this is ever
+        `false`, the chart doc is corrupt and must be recomputed.
+
+    NOT for end-user consumption. Engineering diagnostic only.
+    """
+    from calculations.astrology import get_house_for_planet, normalize_degrees
+
+    chart = await db.charts.find_one({"user_id": user_id})
+    if not chart:
+        raise HTTPException(status_code=404, detail=f"No chart for user {user_id}")
+
+    astro = chart.get("astrology", {})
+    if "planets" not in astro:
+        return {
+            "ok": False,
+            "user_id": user_id,
+            "error": "LEGACY_CHART_FORMAT",
+            "message": "Chart is in legacy string format. No planet/house data to verify.",
+            "astro_keys": list(astro.keys()),
+        }
+
+    houses_doc = astro.get("houses", {}) or {}
+    asc_sidereal = houses_doc.get("ascendant")
+    formatted_cusps = houses_doc.get("formatted_cusps", []) or []
+    cusps_long = [c.get("cusp") for c in formatted_cusps if c.get("cusp") is not None]
+
+    def whole_sign_house(asc_long: float, planet_long: float) -> int:
+        """Whole-Sign: house N = the Nth sign counted from the ASC sign."""
+        asc_sign_idx = int((asc_long % 360) // 30)
+        planet_sign_idx = int((planet_long % 360) // 30)
+        return ((planet_sign_idx - asc_sign_idx) % 12) + 1
+
+    planet_rows = []
+    ssot_violations = []
+    ws_divergences = []
+
+    planets = astro.get("planets", {}) or {}
+    for name, p in planets.items():
+        if not isinstance(p, dict):
+            continue
+        lon = p.get("longitude")
+        stored = p.get("house")
+        sign = p.get("sign")
+        degree = p.get("degree")
+        if lon is None:
+            continue
+        eq_house = (
+            get_house_for_planet(lon, cusps_long) if len(cusps_long) == 12 else None
+        )
+        ws_house = (
+            whole_sign_house(asc_sidereal, lon) if asc_sidereal is not None else None
+        )
+        ssot_ok = stored == eq_house
+        if not ssot_ok:
+            ssot_violations.append(
+                {"planet": name, "stored": stored, "computed_equal": eq_house, "longitude": lon}
+            )
+        if eq_house is not None and ws_house is not None and eq_house != ws_house:
+            ws_divergences.append(
+                {"planet": name, "equal": eq_house, "whole_sign": ws_house}
+            )
+        planet_rows.append({
+            "planet": name,
+            "longitude": lon,
+            "sign": sign,
+            "degree": degree,
+            "house_stored": stored,
+            "house_equal_recomputed": eq_house,
+            "house_whole_sign_for_compare": ws_house,
+            "ssot_ok": ssot_ok,
+        })
+
+    angles_doc = astro.get("angles", {}) or {}
+
+    return {
+        "ok": True,
+        "user_id": user_id,
+        "house_system": houses_doc.get("system", "Equal"),
+        "house_system_contract": "Equal",
+        "svp_applied": astro.get("svp_applied"),
+        "ascendant_sidereal_degrees": asc_sidereal,
+        "ascendant_formatted": angles_doc.get("asc"),
+        "mc_formatted": angles_doc.get("mc"),
+        "house_cusps": [
+            {
+                "house": h.get("house"),
+                "longitude": h.get("cusp"),
+                "sign": h.get("sign"),
+                "degree": h.get("degree"),
+            }
+            for h in formatted_cusps
+        ],
+        "planets": planet_rows,
+        "ssot_ok": len(ssot_violations) == 0,
+        "ssot_violations": ssot_violations,
+        "whole_sign_divergences_for_reference_only": ws_divergences,
+        "explanation": (
+            "If ssot_ok=true, every interpretation card and every transit "
+            "calculation downstream is reading the same house value that "
+            "this Equal-House recomputation produces. If an external "
+            "sidereal wheel shows different houses, it is almost certainly "
+            "rendering Whole-Sign or Placidus boundaries. See "
+            "`whole_sign_divergences_for_reference_only` for the deltas."
+        ),
+    }
+
+
 @api_router.post("/admin/hd_type_migration")
 async def admin_run_hd_type_migration(
     confirm: bool = False,
