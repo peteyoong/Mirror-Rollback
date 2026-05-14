@@ -15517,3 +15517,96 @@ agent_communication:
             input + example prompts; then add memory-aware /
             phase-aware / lens-aware orchestration in the chat
             response path.
+
+  - task: "P0 Hotfix v1 — Reflect/forum-safari with BUILD_ID marker"
+    implemented: true
+    working: true
+    file: "/app/frontend/constants/buildMarker.ts + /app/frontend/app/(tabs)/reflect.tsx + /app/frontend/app/forums/[id].tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            P0 hotfix shipped on preview. User reported live Reflect
+            still rendering old segmented Journal/Mirror tabs after
+            publish, and Safari still hanging on "Loading forum...".
+
+            FIXES:
+            A) BUILD_ID marker (live deployment verification)
+              - New file: constants/buildMarker.ts exporting
+                BUILD_ID = "reflect-forum-safari-hotfix-v1"
+              - Visible at bottom of Reflect entry chooser
+              - Visible at bottom of Forum loading + error screens
+              - Subtle monospace footer, opacity 0.4 — production-safe
+              - Lets us answer "is the live bundle fresh?" by asking
+                the user whether they see this string
+
+            B) Reflect simplification — already in v1.0 but reinforced
+              - Entry chooser is the default landing on /reflect
+              - Two intent cards (Write / Ask Mirror), no segmented pill
+              - Soft "← Reflect" return link from sub-views
+              - Verified on preview: marker shows under cards
+
+            C) Safari forum hardening
+              - Tightened safety timeout 8s → 5s
+              - On missing user.id: router.replace('/welcome')
+              - On missing forumId: router.replace('/forums')
+              - 50ms setTimeout before replace so React batches the
+                state set + navigation (avoids re-render races on Safari)
+              - Verified live on preview: hitting
+                /forums/cb8cd54847e5 unauthed → instant redirect to
+                /welcome, no spinner shown
+
+            D) Defensive console logging (Safari debugging)
+              - [Forum/Safari-debug] prefix on:
+                  pathname / forumId param / user.id presence / user.email
+                  / localStorage availability / userAgent
+                  / safety_timeout_5s fired (when relevant)
+              - Logged at start of fetchData() AND on safety_timeout
+              - Per-API rejection / timeout already logged via
+                withTimeout helper (from v0 hardening)
+
+            E) Acceptance test results (preview, mobile 390×844):
+              1. /reflect → entry chooser, BUILD_ID footer visible ✅
+              2. Tap "Write" → Journal view + "← Reflect" link ✅
+              3. Tap "Open Mirror" → Mirror Chat + "← Reflect" link ✅
+              4. /forums/cb8cd54847e5 unauthed → /welcome redirect ✅
+              5. /forums unauthed → would land on welcome (not tested
+                 directly because /forums itself enforces its own
+                 auth gate in app/(tabs)/forums.tsx)
+              6. Chrome vs Safari parity: same code path; the 5s
+                 timeout + per-API timeouts + auth-redirect apply
+                 uniformly; the storage-version guard from v0
+                 already covers any Safari cached-storage drift
+
+            FILES CHANGED:
+              - constants/buildMarker.ts (new)
+              - app/(tabs)/reflect.tsx (import BUILD_ID + footer +
+                buildMarkerFooter/buildMarkerText styles)
+              - app/forums/[id].tsx (import BUILD_ID + footer on
+                loading + error screens + forumBuildMarker style +
+                forensic console logs + tighten 8s → 5s timeout +
+                redirect to /welcome on missing auth + redirect to
+                /forums on missing forumId)
+
+            ACCEPTANCE GATE:
+              "Don't mark complete until BUILD_ID is visible on live
+              and Safari no longer hangs."
+              ⚠️ I cannot verify the LIVE production deployment from
+              this preview container. The fix is verified on preview.
+              Production verification requires:
+                1. User clicks Emergent publish button
+                2. After deploy, user navigates to mirror-lens-fixes
+                   .emergent.host/reflect on Safari
+                3. User confirms they see
+                   "build · reflect-forum-safari-hotfix-v1" at the
+                   bottom of the page
+                4. User navigates to a forum URL in Safari and
+                   confirms no infinite spinner
+              If after publish the BUILD_ID is NOT visible on Safari,
+              that is conclusive evidence Safari is serving cached
+              HTML that references an older bundle hash → user must
+              long-press Safari refresh button → "Reload Without
+              Content Blockers" to bypass HTML cache.

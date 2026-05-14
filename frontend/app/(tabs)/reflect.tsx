@@ -49,6 +49,10 @@ import JournalLeaderCard from '../../components/journal/JournalLeaderCard';
 // Removed Ionicons - using text-based alternatives for web compatibility
 import { useDominantTruthForJournal } from '../../hooks/useDominantTruth';
 
+// REFLECT V3 — visible build marker for live deployment verification.
+import { BUILD_ID } from '../../constants/buildMarker';
+
+
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -2060,6 +2064,15 @@ export default function JournalScreen() {
               </View>
             </TouchableOpacity>
           </View>
+
+          {/* Always-visible build marker — used to confirm whether a
+              given client is running the latest bundle. Subtle bottom
+              footer; production users will not notice it. */}
+          <View style={styles.buildMarkerFooter}>
+            <Text style={[styles.buildMarkerText, { color: theme.textTertiary }]}>
+              build · {BUILD_ID}
+            </Text>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -2498,6 +2511,17 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: 0.2,
     opacity: 0.85,
+  },
+  buildMarkerFooter: {
+    marginTop: 'auto',
+    paddingTop: 24,
+    alignItems: 'center',
+  },
+  buildMarkerText: {
+    fontSize: 10,
+    letterSpacing: 0.4,
+    opacity: 0.4,
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
   },
   // =============================================================================
   // LATEST REFLECTION THREAD STYLES

@@ -44,6 +44,10 @@ import ForumChatView from '../../components/ForumChatView';
 import LiveFieldCard from '../../components/LiveFieldCard';
 import Constants from 'expo-constants';
 
+// Visible build marker for live deployment verification.
+import { BUILD_ID } from '../../constants/buildMarker';
+
+
 // Types for modal states
 interface MemberProfileModal {
   visible: boolean;
@@ -438,20 +442,42 @@ export default function ForumHomeScreen() {
   };
 
   const fetchData = useCallback(async (showRefresh = false) => {
-    // Safety fix (May 2026): if auth context hasn't resolved yet or
-    // forumId is missing, clear the loading state so the user sees the
-    // error screen with a "Back" / "Retry" button instead of being
-    // stuck on the "Loading forum..." spinner forever.  This is the
-    // bug that left users trapped on the forum URL after PWA reloads.
+    // Forensic console logging for Safari debugging — these messages
+    // are the FIRST things to look for in console when the user
+    // reports "stuck on Loading forum..." on Safari.
+    try {
+      console.log('[Forum/Safari-debug] -------- fetchData fired --------');
+      console.log('[Forum/Safari-debug] pathname:',
+        typeof window !== 'undefined' ? window.location.pathname : '(non-web)');
+      console.log('[Forum/Safari-debug] forumId param:', forumId);
+      console.log('[Forum/Safari-debug] user.id present:', !!user?.id, 'user.email:', user?.email);
+      console.log('[Forum/Safari-debug] localStorage available:',
+        typeof window !== 'undefined' && !!window.localStorage);
+      console.log('[Forum/Safari-debug] userAgent:',
+        typeof navigator !== 'undefined' ? navigator.userAgent : '(none)');
+    } catch {/* logging is best effort */}
+
+    // P0 Safari hotfix (May 2026): if auth context hasn't resolved
+    // OR forumId is missing, we used to set a soft error and let the
+    // user sit on a recovery screen. On Safari iOS that path was
+    // occasionally never reached because the auth hook itself was
+    // hanging. New behavior: redirect to the Welcome / Forums landing
+    // immediately instead of waiting forever.
     if (!user?.id || !forumId) {
+      console.warn('[Forum/Safari-debug] missing user.id or forumId → redirecting');
       setLoading(false);
       setRefreshing(false);
       if (!forumId) {
         setError('Forum not found');
         setLoadStep('missing_forum_id');
+        // Send back to forums list — friendlier than a dead screen.
+        setTimeout(() => router.replace('/forums'), 50);
       } else if (!user?.id) {
         setError('Please sign in to view this forum');
         setLoadStep('missing_user_id');
+        // No auth → route to welcome / login. Replace prevents the
+        // forum URL from staying in history and re-firing this state.
+        setTimeout(() => router.replace('/welcome'), 50);
       }
       return;
     }
@@ -528,20 +554,21 @@ export default function ForumHomeScreen() {
     fetchData();
   }, [fetchData]);
 
-  // Safety net (May 2026): if the loading state hasn't resolved in 8s
-  // for any reason (Safari iOS service-worker hang, stale bundle,
-  // flaky network on a deployed PWA, etc.) surface the recovery UI
-  // with Retry / Clear-Cache / Back instead of letting the user sit
-  // on an infinite "Loading forum..." spinner. Tightened from 12s →
-  // 8s after Safari-specific reports. Cleared on unmount and when
-  // `loading` transitions to false.
+  // Safety net (May 2026, hotfix v2): if the loading state hasn't
+  // resolved in 5s for any reason (Safari iOS service-worker hang,
+  // stale bundle, flaky network on a deployed PWA, etc.) surface the
+  // recovery UI with Retry / Clear-Cache / Back instead of letting
+  // the user sit on an infinite "Loading forum..." spinner.
+  // Tightened from 8s → 5s after Safari reports. Cleared on unmount
+  // and when `loading` transitions to false.
   useEffect(() => {
     if (!loading) return;
     const t = setTimeout(() => {
+      console.warn('[Forum/Safari-debug] safety_timeout_5s fired — forcing recovery UI');
       setError((prev) => prev || "This is taking longer than expected — please retry.");
-      setLoadStep((prev) => prev === 'fetching_in_parallel' ? 'safety_timeout_8s' : prev);
+      setLoadStep((prev) => prev === 'fetching_in_parallel' ? 'safety_timeout_5s' : prev);
       setLoading(false);
-    }, 8000);
+    }, 5000);
     return () => clearTimeout(t);
   }, [loading]);
 
@@ -827,6 +854,12 @@ export default function ForumHomeScreen() {
               ) : null}
             </View>
           )}
+          {/* Always-visible build marker — used to confirm a given
+              client is running the latest bundle. Visible in production
+              so we can ask users "do you see this?" in support. */}
+          <Text style={[styles.forumBuildMarker, { color: theme.textTertiary }]}>
+            build · {BUILD_ID}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -920,6 +953,10 @@ export default function ForumHomeScreen() {
               ) : null}
             </View>
           )}
+          {/* Always-visible build marker on error screen too. */}
+          <Text style={[styles.forumBuildMarker, { color: theme.textTertiary }]}>
+            build · {BUILD_ID}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -2208,6 +2245,14 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
     lineHeight: 14,
+  },
+  forumBuildMarker: {
+    fontSize: 10,
+    letterSpacing: 0.4,
+    opacity: 0.4,
+    marginTop: 32,
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
+    textAlign: 'center',
   },
   content: {
     flex: 1,
