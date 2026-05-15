@@ -2052,7 +2052,7 @@ export default function JournalScreen() {
                 Ask Mirror
               </Text>
               <Text style={[styles.entryCardSubtitle, { color: theme.textSecondary }]}>
-                Make sense of what you're experiencing.
+                Say what's been sitting with you.
               </Text>
               <View style={styles.entryCardCtaRow}>
                 <Text style={[styles.entryCardCta, { color: theme.text }]}>
@@ -2091,99 +2091,115 @@ export default function JournalScreen() {
           {/* Mode Toggle */}
           {renderModeToggle()}
 
-          {/* Collapsible Journal Leader Card - Emotional framing */}
-          <JournalLeaderCard 
-            isExpanded={introCardExpanded}
-            onToggle={handleToggleIntroCard}
-          />
+          {/* ─────────────────────────────────────────────────────────
+              REFLECT V4 — Journal redesigned to feel like a private
+              notebook. The JournalLeaderCard intro accordion has been
+              removed: explanatory copy delays emotional entry and the
+              writing surface now dominates the visible viewport.
+              An optional, subtle one-line prompt sits ABOVE the
+              textarea (only when a dominant truth exists) and is
+              dismissible by tapping into the writing surface.
+              ───────────────────────────────────────────────────────── */}
 
-          {/* Dominant Truth Prompt Suggestion (Master Layer Integration) - Compact inline version */}
-          {!introCardExpanded && hasDominantPattern && dominantTruthData && !newEntry.trim() && !dominantTruthPrefilled && (
+          {/* Optional ghost prompt — subtle, single line, dismissible.
+              Becomes invisible the moment the user starts typing. */}
+          {hasDominantPattern && dominantTruthData && !newEntry.trim() && !dominantTruthPrefilled && (
             <TouchableOpacity
-              style={[styles.dominantTruthPromptCard, { backgroundColor: 'rgba(139, 92, 246, 0.06)', borderColor: Colors.accent + '30' }]}
+              style={styles.journalGhostPrompt}
               onPress={() => {
-                // Prefill the journal with the dominant truth question
                 setNewEntry(dominantTruthData.prefill);
                 setDominantTruthPrefilled(true);
                 inputRef.current?.focus();
               }}
-              activeOpacity={0.7}
+              activeOpacity={0.6}
+              accessibilityRole="button"
+              accessibilityLabel="Use today's prompt"
             >
-              <View style={{ flex: 1 }}>
-                <Text style={styles.dominantTruthPromptLabel}>TODAY'S PROMPT</Text>
-                <Text style={[styles.dominantTruthPromptQuestion, { color: theme.text }]} numberOfLines={2}>
-                  {dominantTruthData.question}
-                </Text>
-              </View>
-              <Text style={[styles.dominantTruthPromptCTA, { color: Colors.accent }]}>
-                Start →
+              <Text
+                style={[styles.journalGhostPromptText, { color: theme.textTertiary }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {dominantTruthData.question}
               </Text>
             </TouchableOpacity>
           )}
 
-          {/* New Entry Input */}
-          <View style={styles.inputSection}>
-            <View style={styles.inputContainer}>
+          {/* Primary writing surface — fills the visible viewport */}
+          <View style={styles.journalInputSection}>
+            <View style={styles.journalInputContainer}>
               <TextInput
                 ref={inputRef}
-                style={[styles.input, { backgroundColor: theme.surface, color: theme.text }]}
+                style={[
+                  styles.journalInput,
+                  { color: theme.text },
+                ]}
                 value={newEntry}
                 onChangeText={handleTextChange}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
-                placeholder="What's on your mind?"
+                placeholder="What's here right now…"
                 placeholderTextColor={theme.textTertiary}
                 multiline
-                maxLength={2000}
+                maxLength={4000}
                 editable={!isSubmitting}
                 returnKeyType="default"
                 blurOnSubmit={false}
+                textAlignVertical="top"
               />
-              <View style={styles.inputActions}>
-                {newEntry.trim().length > 0 && (
+              {/* Soft, subtle save chip. Only appears once there is
+                  content — never competes with the writing surface. */}
+              {newEntry.trim().length > 0 && (
+                <View style={styles.journalChipRow}>
                   <TouchableOpacity
-                    style={[styles.dismissButton, { backgroundColor: theme.surfaceLight }]}
+                    style={[styles.journalDismissChip, { borderColor: theme.border }]}
                     onPress={dismissKeyboard}
+                    accessibilityLabel="Hide keyboard"
                   >
-                    <Text style={{ fontSize: 22, color: theme.textSecondary }}>▼</Text>
+                    <Text style={[styles.journalChipText, { color: theme.textSecondary }]}>
+                      Hide keyboard
+                    </Text>
                   </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  style={[
-                    styles.submitButton,
-                    { backgroundColor: theme.text },
-                    (!newEntry.trim() || isSubmitting) && styles.submitButtonDisabled,
-                  ]}
-                  onPress={handleSubmit}
-                  disabled={!newEntry.trim() || isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <ActivityIndicator size="small" color={theme.background} />
-                  ) : (
-                    <Text style={{ fontSize: 22, color: theme.background }}>✓</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-              
-              {/* Reflect with Mirror button for current entry */}
-              {newEntry.trim().length > 20 && (
-                <TouchableOpacity 
-                  style={[
-                    styles.reflectCurrentButton,
-                    reflectionModalVisible && styles.reflectButtonDisabled
-                  ]}
-                  onPress={handleReflectCurrentEntry}
-                  disabled={reflectionModalVisible}
-                >
-                  <Text style={{ fontSize: 16, color: reflectionModalVisible ? Colors.textTertiary : Colors.accent }}>✦</Text>
-                  <Text style={[
-                    styles.reflectCurrentText,
-                    reflectionModalVisible && styles.reflectTextDisabled
-                  ]}>Quick Reflect</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.journalSaveChip,
+                      { backgroundColor: theme.text },
+                      isSubmitting && styles.submitButtonDisabled,
+                    ]}
+                    onPress={handleSubmit}
+                    disabled={!newEntry.trim() || isSubmitting}
+                    accessibilityLabel="Save entry"
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator size="small" color={theme.background} />
+                    ) : (
+                      <Text style={[styles.journalSaveChipText, { color: theme.background }]}>
+                        Save
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
+
+            {/* Quick Reflect — only after meaningful content */}
+            {newEntry.trim().length > 20 && (
+              <TouchableOpacity
+                style={[
+                  styles.reflectCurrentButton,
+                  reflectionModalVisible && styles.reflectButtonDisabled,
+                ]}
+                onPress={handleReflectCurrentEntry}
+                disabled={reflectionModalVisible}
+              >
+                <Text style={{ fontSize: 16, color: reflectionModalVisible ? Colors.textTertiary : Colors.accent }}>✦</Text>
+                <Text style={[
+                  styles.reflectCurrentText,
+                  reflectionModalVisible && styles.reflectTextDisabled,
+                ]}>Quick Reflect</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
             {error && (
               <View style={styles.errorContainer}>
@@ -2731,6 +2747,69 @@ const styles = StyleSheet.create({
     maxHeight: 200, // Increased from 160
     marginRight: 12,
     textAlignVertical: 'top',
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // REFLECT V4 — Journal redesign styles (May 2026)
+  // ─────────────────────────────────────────────────────────────
+  // The writing surface is now the visual anchor of the screen.
+  // Chrome is intentionally light: no card background, no border,
+  // generous line height. The save / hide-keyboard chips sit below
+  // the textarea so the writing area itself is never crowded.
+  journalGhostPrompt: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+    marginBottom: 4,
+  },
+  journalGhostPromptText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    letterSpacing: 0.1,
+  },
+  journalInputSection: {
+    flex: 1,
+    marginBottom: 16,
+  },
+  journalInputContainer: {
+    flex: 1,
+  },
+  journalInput: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+    fontSize: 19,
+    lineHeight: 30,
+    minHeight: 280,
+    textAlignVertical: 'top',
+  },
+  journalChipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 12,
+  },
+  journalDismissChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  journalSaveChip: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    minWidth: 72,
+    alignItems: 'center',
+  },
+  journalChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  journalSaveChipText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   inputActions: {
     flexDirection: 'column',

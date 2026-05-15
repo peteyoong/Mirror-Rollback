@@ -1095,16 +1095,13 @@ export default function MirrorChat({
       {/* Thread Modal */}
       {renderThreadModal()}
 
-      {/* Leader Card - Collapsible intro/framing */}
-      {/* Only show for generalist chat (no lens) */}
-      {!lens && (
-        <View style={styles.leaderCardWrapper}>
-          <MirrorLeaderCard
-            isExpanded={isLeaderExpanded}
-            onToggle={handleLeaderToggle}
-          />
-        </View>
-      )}
+      {/* ─────────────────────────────────────────────────────────────
+          REFLECT V4 — Mirror Chat redesigned for emotional immediacy.
+          The previous "Make sense of what you're going through" leader
+          card has been removed in favour of an immersive chat surface.
+          Users should be able to start typing within seconds, no
+          accordion intro, no marketing copy above the fold.
+          ───────────────────────────────────────────────────────────── */}
 
       {/* Messages */}
       <FlatList
@@ -1139,17 +1136,14 @@ export default function MirrorChat({
         style={styles.messagesList}
       />
 
-      {/* Input Bar - Improved for keyboard handling */}
+      {/* Input Bar - persistent, sticky, always visible above the fold.
+          Disclaimer copy intentionally removed in Reflect V4 to keep
+          the surface emotionally immediate — explanatory text moved to
+          Settings / About if needed. */}
       <View style={[
         styles.inputBar, 
         { paddingBottom: Math.max(insets.bottom, 8) }
       ]}>
-        {/* Transparency line (only in generalist Mirror Chat, not lens modals) */}
-        {!lens && (
-          <Text style={styles.transparencyLine}>
-            Mirror reflects patterns from what you share. Nothing here predicts your future.
-          </Text>
-        )}
         <View style={styles.inputContainer}>
           <TextInput
             ref={inputRef}
@@ -1481,8 +1475,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageWrapper: {
-    marginBottom: 14,
-    maxWidth: '82%',
+    marginBottom: 18,
+    maxWidth: '92%',
   },
   userWrapper: {
     alignSelf: 'flex-end',
@@ -1494,24 +1488,25 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   messageBubble: {
-    padding: 14,
-    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderRadius: 20,
   },
   userBubble: {
     backgroundColor: Colors.text,
     borderBottomRightRadius: 6,
   },
   assistantBubble: {
-    // FIXED: Use dark surface color for assistant bubbles in dark mode
-    // Previous: #FDFCFA (light cream) caused white-on-white text issue
+    // Use surface tone in dark mode; subtle hairline keeps it visible
+    // without competing with the message text.
     backgroundColor: Colors.surface,
     borderBottomLeftRadius: 6,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.border,
   },
   messageText: {
-    fontSize: 17,
-    lineHeight: 30,
+    fontSize: 18,
+    lineHeight: 32,
   },
   userText: {
     color: Colors.surface,

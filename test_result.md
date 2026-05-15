@@ -2311,12 +2311,73 @@ backend:
 
 test_plan:
   current_focus:
-    - "Forum Runtime Stability v2 (P1 Flicker Fix)"
+    - "Reflect V4 Immersive Rebuild (Mirror Chat + Journal)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 frontend:
+  - task: "Reflect V4 Immersive Rebuild (Mirror Chat + Journal)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/MirrorChat.tsx, /app/frontend/app/(tabs)/reflect.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          P1 REFLECT UX REBUILD — Mirror Chat and Journal redesigned to
+          feel like an emotional writing space, not a feature dashboard.
+          
+          MIRROR CHAT (/app/frontend/components/MirrorChat.tsx):
+            - REMOVED the entire MirrorLeaderCard intro accordion ("Make
+              sense of what you're going through" / "Space to think
+              clearly") so the chat surface dominates the viewport
+              immediately. Input is now visible above the fold.
+            - REMOVED the disclaimer transparency line ("Mirror reflects
+              patterns from what you share. Nothing here predicts your
+              future.") from the input bar. Explanatory copy delays
+              emotional entry; it can be surfaced in Settings later.
+            - Typography upgraded: messageText fontSize 17→18,
+              lineHeight 30→32. Bubble maxWidth 82%→92%. Padding 14→
+              18h/14v. Bubble radius 18→20.
+            - Header still shows "Mirror" + "A mirror, not a verdict."
+            - Sticky input bar persists; placeholder default
+              "Say what's real right now…".
+          
+          JOURNAL (/app/frontend/app/(tabs)/reflect.tsx):
+            - REMOVED the JournalLeaderCard render entirely from the
+              Journal view.
+            - REMOVED the bordered "TODAY'S PROMPT" card. Replaced with
+              a single-line italic ghost prompt above the writing
+              surface that disappears the moment the user types.
+            - Writing surface is now the visual anchor: transparent
+              background, no border, 19pt / 30 line height, 280pt
+              minimum height, paddingHorizontal:4 paddingVertical:8 —
+              edge-to-edge notebook feel.
+            - Submit / dismiss become subtle pill chips ("Save",
+              "Hide keyboard") below the textarea, only when content
+              exists. Removed the floating ✓ / ▼ chrome.
+            - Placeholder softened to "What's here right now…",
+              maxLength raised 2000→4000.
+          
+          ENTRY CHOOSER:
+            - Card subtitle softened: "Make sense of what you're
+              experiencing." → "Say what's been sitting with you."
+          
+          BUILD MARKER: bumped to `reflect-v4-immersive-rebuild`.
+          
+          ACCEPTANCE GATE (verify on live Safari):
+            1. Mirror Chat — input visible without scrolling, no intro
+               accordion, no marketing copy above input.
+            2. Journal — textarea fills most of viewport, no large
+               prompt card, optional ghost prompt only.
+            3. Larger / more readable message bubbles in Mirror.
+            4. Build marker reads `reflect-v4-immersive-rebuild`.
+
+backend:
   - task: "Forum Runtime Stability v2 (P1 Flicker Fix)"
     implemented: true
     working: "NA"
