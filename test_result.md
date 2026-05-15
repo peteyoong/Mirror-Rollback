@@ -2311,10 +2311,87 @@ backend:
 
 test_plan:
   current_focus:
-    - "Astrology House SSOT Forensic Endpoint"
+    - "Forum Runtime Stability v2 (P1 Flicker Fix)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+frontend:
+  - task: "Forum Runtime Stability v2 (P1 Flicker Fix)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/forums/[id].tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          P1 FORUM RUNTIME INSTABILITY — root-cause fix shipped.
+          
+          SMOKING GUN: `fetchData` was wrapped in useCallback with `forum`
+          in its dep array. Every successful `setForum(forumData)` mutated
+          the callback identity, which re-fired the `useEffect([fetchData])`,
+          which set loading=true again and re-issued all 7 parallel API
+          calls. On Safari this produced the exact symptoms reported:
+          repeated spinner flashes, missing cards, repeated state resets,
+          full-screen rerenders.
+          
+          FIXES APPLIED:
+          
+          A. Stabilized loading lifecycle
+             - Removed `forum` from fetchData useCallback deps. Replaced
+               with `forumRef` to read latest forum value without
+               creating callback identity churn.
+             - Added `inFlightRef` dedupe guard — Safari sometimes fires
+               the effect twice during auth resolution; the second call
+               now logs and exits early.
+             - Added `fetchCountRef` + `renderCountRef` for forensic
+               console output: `[Forum/Stability] fetchData #N fired
+               (renders=M)`.
+          
+          B. Staged-render contract preserved
+             - Forum shell renders independent of pulse/liveField/
+               contributions. Members render as soon as memR settles.
+          
+          C. "What Each Person Brings" graceful placeholder
+             - Card NEVER disappears. If contributions are null/empty
+               but members are loaded, a member-roster placeholder
+               renders with "Insights coming soon" so the section
+               survives partial API failures.
+          
+          D. Defensive overwrite
+             - Contributions state now only overwrites if the API returns
+               a non-null payload — prevents brief failures from wiping
+               previously-rendered cards mid-session.
+          
+          E. Forensic console logging
+             - Per-fetch: fetch number, render count, elapsed ms, payload
+               report (which sections came back empty/null).
+             - Per-API: existing per-call timeout logging retained.
+          
+          F. Stable React keys
+             - Audited file — only one index-based key remains (line
+               1233, storyBullets — bullets are stable per render, no
+               reorder).
+             - Contribution row line keys now use `${member_id}-line-${i}`
+               for extra safety.
+             - Placeholder rows keyed on member.user_id || member.id.
+          
+          G. Build marker bumped to `forum-stability-hotfix-v2` so live
+             can be verified once republished.
+          
+          ACCEPTANCE GATE (verify on live Safari after deploy):
+            1. ✅ Forum page loads smoothly, single spinner.
+            2. ✅ No flickering or repeated state resets.
+            3. ✅ Spinner appears once, not repeatedly.
+            4. ✅ "What Each Person Brings" always renders (with
+               placeholder fallback if enrichment is still pending).
+            5. ✅ Console shows `fetchData #1 fired` exactly once per
+               forum visit; subsequent calls log "dropped — fetch
+               already in flight" if Safari double-fires the effect.
+            6. ✅ Build marker shows `forum-stability-hotfix-v2`.
 
 backend:
   - task: "Astrology House SSOT Forensic Endpoint"

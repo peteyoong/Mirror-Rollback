@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -409,6 +409,31 @@ export default function ForumHomeScreen() {
   const [lastApiUrl, setLastApiUrl] = useState<string>('');
   const [lastErrorMsg, setLastErrorMsg] = useState<string>('');
 
+  // ===========================================================================
+  // P1 Forum Runtime Stability Refs (May 2026 hotfix)
+  // ---------------------------------------------------------------------------
+  // The previous version of this screen had a subtle infinite re-fetch loop
+  // on Safari because `fetchData` was wrapped in useCallback with `forum` as
+  // a dependency. Every successful `setForum(...)` changed the callback
+  // identity, which re-fired the [fetchData] useEffect, which set
+  // loading=true again — producing the exact flicker / spinner-flash /
+  // partial-render symptoms reported in production.
+  //
+  // The fix:
+  //   1. `forumRef` lets fetchData check "do we already have a forum doc?"
+  //      without needing `forum` in the dep array.
+  //   2. `inFlightRef` dedupes overlapping fetches (Safari sometimes fires
+  //      the effect twice during StrictMode / focus events).
+  //   3. `fetchCountRef`, `renderCountRef` instrument the lifecycle so we
+  //      can verify in the console that the forum loads ONCE.
+  // ===========================================================================
+  const forumRef = useRef<any | null>(null);
+  const inFlightRef = useRef<boolean>(false);
+  const fetchCountRef = useRef<number>(0);
+  const renderCountRef = useRef<number>(0);
+  const hasLoadedOnceRef = useRef<boolean>(false);
+  renderCountRef.current += 1;
+
   // Per-call timeout helper. We were getting Safari hangs where a
   // SINGLE slow API call (Forum Pulse, Live Field) blocked the whole
   // Promise.all for 30s+ before the parent safety timeout fired. By
@@ -442,19 +467,32 @@ export default function ForumHomeScreen() {
   };
 
   const fetchData = useCallback(async (showRefresh = false) => {
+    // ===========================================================================
+    // P1 Forum Runtime Stability (May 2026 hotfix)
+    // ---------------------------------------------------------------------------
+    // 1. Dedupe: if a fetch is already in flight, drop the duplicate. Safari
+    //    sometimes fires the parent effect twice in quick succession during
+    //    auth-context resolution / focus events — without this guard you get
+    //    overlapping Promise.allSettled batches racing each other and the
+    //    later one overwriting the earlier one mid-render → flicker.
+    if (inFlightRef.current) {
+      console.log('[Forum/Stability] fetchData call dropped — fetch already in flight');
+      return;
+    }
+    inFlightRef.current = true;
+    fetchCountRef.current += 1;
+    const thisFetch = fetchCountRef.current;
+
     // Forensic console logging for Safari debugging — these messages
     // are the FIRST things to look for in console when the user
     // reports "stuck on Loading forum..." on Safari.
     try {
-      console.log('[Forum/Safari-debug] -------- fetchData fired --------');
+      console.log(`[Forum/Stability] -------- fetchData #${thisFetch} fired (renders=${renderCountRef.current}) --------`);
       console.log('[Forum/Safari-debug] pathname:',
         typeof window !== 'undefined' ? window.location.pathname : '(non-web)');
       console.log('[Forum/Safari-debug] forumId param:', forumId);
       console.log('[Forum/Safari-debug] user.id present:', !!user?.id, 'user.email:', user?.email);
-      console.log('[Forum/Safari-debug] localStorage available:',
-        typeof window !== 'undefined' && !!window.localStorage);
-      console.log('[Forum/Safari-debug] userAgent:',
-        typeof navigator !== 'undefined' ? navigator.userAgent : '(none)');
+      console.log('[Forum/Safari-debug] hasLoadedOnce:', hasLoadedOnceRef.current);
     } catch {/* logging is best effort */}
 
     // P0 Safari hotfix (May 2026): if auth context hasn't resolved
@@ -467,6 +505,7 @@ export default function ForumHomeScreen() {
       console.warn('[Forum/Safari-debug] missing user.id or forumId → redirecting');
       setLoading(false);
       setRefreshing(false);
+      inFlightRef.current = false;
       if (!forumId) {
         setError('Forum not found');
         setLoadStep('missing_forum_id');
@@ -497,6 +536,7 @@ export default function ForumHomeScreen() {
         return withTimeout(p, 7000, label, fb);
       };
 
+      const t0 = Date.now();
       const results = await Promise.allSettled([
         trackedGet('getForum',               `/forums/${forumId}`,                  getForum(forumId, user.id),                null as any),
         trackedGet('getSharedReflections',   `/forums/${forumId}/reflections`,      getSharedReflections(forumId, user.id),    { reflections: [] as ForumReflection[] } as any),
@@ -506,16 +546,32 @@ export default function ForumHomeScreen() {
         trackedGet('getForumLiveField',      `/forums/${forumId}/live-field-v1`,    getForumLiveField(forumId, user.id),       null as any),
         trackedGet('getForumContributions',  `/forums/${forumId}/contributions`,    getForumContributions(forumId, user.id),   { contributions: [] as ForumContribution[] } as any),
       ]);
+      const elapsed = Date.now() - t0;
+      console.log(`[Forum/Stability] fetch #${thisFetch} settled in ${elapsed}ms`);
 
       setLoadStep('applying_results');
       const [forumR, reflR, exR, memR, pulseR, lfR, contR] = results;
       const val = <T,>(r: PromiseSettledResult<T>): T | null =>
         r.status === 'fulfilled' ? r.value : null;
 
+      // Forensic: log which payload sections came back empty/null so we
+      // can pinpoint which card silently disappeared.
+      const payloadReport = {
+        forum: val(forumR) ? 'ok' : 'MISSING',
+        reflections: (val(reflR) as any)?.reflections?.length ?? 'MISSING',
+        exercise: val(exR) ? 'ok' : 'MISSING',
+        members: (val(memR) as any)?.members?.length ?? 'MISSING',
+        pulse: val(pulseR) ? 'ok' : 'MISSING',
+        liveField: val(lfR) ? 'ok' : 'MISSING',
+        contributions: (val(contR) as any)?.contributions?.length ?? 'MISSING',
+      };
+      console.log(`[Forum/Stability] payload #${thisFetch}:`, payloadReport);
+
       const forumData = val(forumR);
       if (forumData) {
         setForum(forumData);
-      } else if (!forum) {
+        forumRef.current = forumData;
+      } else if (!forumRef.current) {
         // Forum is the ONE call we can't degrade past — if we have no
         // forum object after a fresh load and have no prior cached one,
         // surface a hard error rather than render an empty shell.
@@ -524,16 +580,23 @@ export default function ForumHomeScreen() {
       const reflData  = val(reflR) || { reflections: [] };
       const exData    = val(exR)   || { has_submitted: false };
       const memData   = val(memR)  || { members: [] };
-      const contData  = val(contR) || { contributions: [] };
+      const contData  = val(contR);
 
       setReflections((reflData as any).reflections || []);
       setHasSubmitted(!!(exData as any).has_submitted);
       setMembers((memData as any).members || []);
       setPulse(val(pulseR));
       setLiveField(val(lfR));
-      setContributions((contData as any).contributions || []);
+      // Defensive: only OVERWRITE contributions if we got a non-null
+      // payload back. Keeps any prior render intact when the API
+      // briefly fails — prevents the "What Each Person Brings" card
+      // from disappearing mid-session.
+      if (contData) {
+        setContributions((contData as any).contributions || []);
+      }
       setError(null);
       setLoadStep('done');
+      hasLoadedOnceRef.current = true;
     } catch (err: any) {
       console.error('[Forum] Error fetching data:', err);
       setLastErrorMsg(err?.message || String(err));
@@ -547,10 +610,19 @@ export default function ForumHomeScreen() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      inFlightRef.current = false;
     }
-  }, [user?.id, forumId, forum]);
+    // CRITICAL: Do NOT include `forum` (or any state set inside this
+    // callback) in the deps array. That created an infinite re-fetch
+    // loop in production because every setForum() changed the callback
+    // identity → the parent useEffect re-fired → loading flicker.
+    // We use forumRef.current to read the latest forum value safely.
+  }, [user?.id, forumId, router]);
 
   useEffect(() => {
+    // Load ONCE per (user, forum) pair. fetchData internally dedupes
+    // overlapping calls; this effect is intentionally simple so the
+    // forum shell never thrashes.
     fetchData();
   }, [fetchData]);
 
@@ -1187,6 +1259,13 @@ export default function ForumHomeScreen() {
             WHAT EACH PERSON BRINGS — compact per-member contribution cards
             Scannable: name + 2-3 uppercase chips + one-line primary label.
             Renders inline, NOT behind a "View" button.
+
+            STABLE RENDER CONTRACT (May 2026 hotfix):
+            This card MUST always render once we have any forum data. If
+            contributions are still loading or temporarily empty, fall
+            back to a member-based placeholder so the section never
+            silently disappears between renders (the bug users reported
+            on Safari).
             ============================================ */}
         {contributions && contributions.length > 0 ? (
           <View style={[styles.contributionsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -1237,7 +1316,7 @@ export default function ForumHomeScreen() {
 
                   {lines.map((line, i) => (
                     <Text
-                      key={i}
+                      key={`${c.member_id}-line-${i}`}
                       style={[
                         i === 0 ? styles.superpowerLinePrimary : styles.superpowerLineSupport,
                         { color: i === 0 ? theme.text : theme.textSecondary },
@@ -1249,6 +1328,45 @@ export default function ForumHomeScreen() {
                 </View>
               );
             })}
+          </View>
+        ) : members && members.length > 0 ? (
+          // Graceful placeholder: contributions enrichment is still
+          // streaming in. Show the member roster as a stable shell so
+          // the "What Each Person Brings" card never disappears between
+          // renders — even if the contributions API briefly errors.
+          <View style={[styles.contributionsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.contributionsTitle, { color: theme.text }]}>
+              What Each Person Brings
+            </Text>
+            <Text style={[styles.contributionsSubtitle, { color: theme.textSecondary }]}>
+              {contributions === null
+                ? 'Reading what each person brings into this room…'
+                : 'Each person\'s strengths will appear here once they\'re ready.'}
+            </Text>
+            {members.map((m: any, idx: number) => (
+              <View
+                key={m.user_id || m.id || `member-placeholder-${idx}`}
+                style={[
+                  styles.contributionRow,
+                  idx === members.length - 1 ? styles.contributionRowLast : null,
+                  { borderBottomColor: theme.border },
+                ]}
+              >
+                <View style={styles.contributionHeader}>
+                  <Text style={[styles.contributionHeadline, { color: theme.text }]}>
+                    <Text style={styles.contributionName}>{m.name || m.display_name || 'Member'}</Text>
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.superpowerLineSupport,
+                    { color: theme.textTertiary, fontStyle: 'italic' },
+                  ]}
+                >
+                  {contributions === null ? 'Loading…' : 'Insights coming soon'}
+                </Text>
+              </View>
+            ))}
           </View>
         ) : null}
 

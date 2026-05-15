@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'reflect-forum-safari-hotfix-v1';
-export const BUILD_AT = '2026-05-14';
+export const BUILD_ID = 'forum-stability-hotfix-v2';
+export const BUILD_AT = '2026-05-15';
