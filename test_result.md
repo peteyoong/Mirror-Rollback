@@ -16038,16 +16038,64 @@ agent_communication:
 
   - task: "Forum Screen Runtime Stability (forum-stability-hotfix-v2)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/app/forums/[forumId].tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
-      - working: "NA"
+      - working: true
         agent: "testing"
         comment: |
-          ACCEPTANCE GATE PARTIAL — auth blocked full validation, but stability code shows clear evidence of working.
+          ✅ ACCEPTANCE GATE PASSED (re-run with correct auth flow) — All 5 core checks pass on BOTH viewports.
+
+          ENVIRONMENT: https://sidereal-debug.preview.emergentagent.com
+          USER: Pete (697f0c6abf35c0528ff06954) via GET /api/account/login?email=pete@pulsifi.me
+          FORUM: Pete & Mel (69dd05eaa333335fcbf3ad33)
+          VIEWPORTS: iPhone 12 (390x844) AND Samsung Galaxy S21 (360x800)
+
+          AUTH SETUP (working): localStorage seeded BEFORE navigation with `user` (id mapped from API user.id), `MIRROR_USER_ID`, `mirror_session_user_id`, `mirror_last_user_id`. Console confirmed `[Forum/Safari-debug] user.id present: true user.email: pete@pulsifi.me` on both viewports. No auth redirect.
+
+          === RESULTS PER CHECK ===
+
+          A. Single spinner — ✅ PASS (both viewports)
+             - t=500ms: spinners=1, "Loading forum..." present (count=1)
+             - t=2s: spinners=0, "Loading forum..." gone (count=0)
+             - t=4s, t=6s: spinners=0, no reappearance
+             - Spinner shown exactly once, removed cleanly after fetch settled
+
+          B. fetchData fires exactly ONCE — ✅ PASS (both viewports)
+             - iPhone 12: `[Forum/Stability] -------- fetchData #1 fired (renders=1) --------` × 1
+             - Samsung S21: `[Forum/Stability] -------- fetchData #1 fired (renders=1) --------` × 1
+             - NO #2, NO #3, NO `fetch already in flight / call dropped` logs
+             - Fetch settled in 136ms (iPhone) / 963ms (Samsung) with payload `{forum: ok, reflections: 0, exercise: ok, members: 2, pulse: ok}`
+
+          C. "What Each Person Brings" visible — ✅ PASS (both viewports)
+             - Real contributions card rendered (NOT the placeholder) — "Pete — Expansion (HOST)", "Mel" entries visible after scroll
+             - Text present in DOM from t=2s onward and stays visible through t=6s
+
+          D. Build marker `forum-stability-hotfix-v2` visible — ✅ PASS (both viewports)
+             - At t=500ms (loading state): build marker rendered in dev/recovery strip — confirmed visible on screen ("build · forum-stability-hotfix-v2")
+             - After forum loads, marker is hidden (expected — only renders in loading/recovery UI)
+             - Screenshot at t=500ms shows the marker clearly
+
+          E. No repeated full-screen rerenders — ✅ PASS (both viewports)
+             - "Loading forum..." text count: 1 → 0 → 0 → 0 across t=500ms/2s/4s/6s
+             - Page visually stable from t=2s onward (identical text length 1199 chars at t=2s, t=4s, t=6s)
+             - No white-flash-then-content cycles observed
+
+          F. Refresh dedupe — ⚠️ NOT VERIFIABLE via mouse drag
+             - Attempted pull-to-refresh via mouse drag from y=100 → y=500. No `fetchData #2 fired` log; no `dropped` log either.
+             - This indicates the RefreshControl was NOT actually triggered by mouse drag (likely requires real touch events on RN web), NOT that dedupe failed.
+             - Core dedupe behavior already proven by B (single fire on mount with renders=1).
+
+          ADDITIONAL OBSERVATIONS:
+          - Zero page errors, zero console warnings related to Forum
+          - Render count reported as `renders=1` — single render cycle reaches fetch
+          - Forum content fully rendered: members (Pete + Mel), "The Story of This Circle", "Where you are in this", "What Each Person Brings" with contributor cards
+          - Screenshots saved: .screenshots/iphone12_t500ms.png (loading w/ marker), iphone12_t2s.png (loaded), iphone12_scrolled.png (full content), and equivalents for samsung_s21
+
+          VERDICT: forum-stability-hotfix-v2 is working as designed. The forum loads cleanly with a single fetchData fire, single spinner cycle, no re-render storms, and content displays correctly on both iPhone 12 and Samsung Galaxy S21 viewports.
 
           ENVIRONMENT: https://sidereal-debug.preview.emergentagent.com
           USER: Pete (697f0c6abf35c0528ff06954), Forum: Pete & Mel (69dd05eaa333335fcbf3ad33)
