@@ -2767,20 +2767,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
   journalInputSection: {
-    flex: 1,
     marginBottom: 16,
   },
   journalInputContainer: {
-    flex: 1,
+    // Intentionally NOT flex:1 — the FlatList below this owns the
+    // remaining vertical space. minHeight on the input itself is what
+    // makes the writing surface dominate the initial view.
   },
   journalInput: {
-    flex: 1,
     backgroundColor: 'transparent',
     paddingHorizontal: 4,
     paddingVertical: 8,
     fontSize: 19,
     lineHeight: 30,
-    minHeight: 280,
+    minHeight: 260,
+    maxHeight: 420,
     textAlignVertical: 'top',
   },
   journalChipRow: {

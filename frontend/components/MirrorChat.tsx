@@ -1079,18 +1079,11 @@ export default function MirrorChat({
       {/* Thread Pill (only for generalist chat with active thread) */}
       {renderThreadPill()}
 
-      {/* Dominant Truth Chip (Master Layer Integration - only for generalist chat) */}
-      {!lens && hasDominantPattern && dominantTruthData?.topChip && (
-        <View style={styles.dominantTruthChip}>
-          <Text style={styles.dominantTruthChipIcon}>✧</Text>
-          <Text style={styles.dominantTruthChipText} numberOfLines={2}>
-            {dominantTruthData.topChip}
-          </Text>
-        </View>
-      )}
-
-      {/* Memory Card (above messages) */}
-      {renderMemoryCard()}
+      {/* REFLECT V4.1 — Dominant Truth Chip + Memory Card intentionally
+          removed from the top of the chat. They competed with the
+          conversation for vertical space and made Mirror feel like a
+          dashboard. Contextual signals can be surfaced inline within
+          Mirror's responses, not as widgets above the input. */}
 
       {/* Thread Modal */}
       {renderThreadModal()}
@@ -1191,25 +1184,27 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   
-  // Header
+  // Header — kept intentionally tight in V4.1 so the conversation
+  // can start as close to the top as possible.
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 10,
+    paddingBottom: 8,
     backgroundColor: Colors.background,
   },
   headerContent: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.text,
     letterSpacing: -0.3,
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.textTertiary,
     marginTop: 2,
     fontStyle: 'italic',
@@ -1497,12 +1492,13 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 6,
   },
   assistantBubble: {
-    // Use surface tone in dark mode; subtle hairline keeps it visible
-    // without competing with the message text.
-    backgroundColor: Colors.surface,
-    borderBottomLeftRadius: 6,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
+    // REFLECT V4.1 — Mirror response is conversational, not a card.
+    // No background, no border. The text itself carries the weight,
+    // which is the design intent: an intimate, notebook-like dialogue
+    // rather than a stack of UI widgets.
+    backgroundColor: 'transparent',
+    paddingHorizontal: 4,
+    paddingVertical: 4,
   },
   messageText: {
     fontSize: 18,
@@ -1512,7 +1508,6 @@ const styles = StyleSheet.create({
     color: Colors.surface,
   },
   assistantText: {
-    // FIXED: Use readable text color on dark surface
     color: Colors.text,
   },
   
@@ -1610,47 +1605,43 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 
-  // Input Bar - Use relative positioning for proper touch handling on iOS
+  // Input Bar — REFLECT V4.1: softer, taller, more inviting. Removed
+  // the hard top border in favour of a subtle background-only
+  // separation. The pill grows to a comfortable two-line height by
+  // default so users feel invited to write more than one sentence.
   inputBar: {
     backgroundColor: Colors.background,
     paddingHorizontal: 16,
     paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     backgroundColor: Colors.surface,
-    borderRadius: 24,
-    paddingLeft: 16,
-    paddingRight: 6,
-    paddingVertical: 6,
-    minHeight: 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: 28,
+    paddingLeft: 18,
+    paddingRight: 8,
+    paddingVertical: 10,
+    minHeight: 60,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 17,
     color: Colors.text,
-    maxHeight: 120,
-    minHeight: 36,
+    maxHeight: 160,
+    minHeight: 44,
     paddingVertical: 8,
     paddingTop: Platform.OS === 'ios' ? 10 : 8,
-    lineHeight: 30,
+    lineHeight: 26,
   },
   sendButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.text,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
+    marginLeft: 10,
   },
   sendButtonDisabled: {
     backgroundColor: Colors.border,
