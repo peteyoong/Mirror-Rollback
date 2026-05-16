@@ -145,30 +145,6 @@ export default function ForumsHomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* People setup entry — separate from forum CRUD. */}
-        <TouchableOpacity
-          style={[styles.peopleSetupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-          onPress={handleOpenPeopleSetup}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel="Open People setup"
-        >
-          <View style={styles.peopleSetupRow}>
-            <View style={styles.peopleSetupIcon}>
-              <Ionicons name="people-outline" size={22} color={theme.text} />
-            </View>
-            <View style={styles.peopleSetupBody}>
-              <Text style={[styles.peopleSetupTitle, { color: theme.text }]}>
-                People setup
-              </Text>
-              <Text style={[styles.peopleSetupSub, { color: theme.textSecondary }]} numberOfLines={2}>
-                Save the people whose pattern with you matters most. Birth details improve precision.
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
-          </View>
-        </TouchableOpacity>
-
         {/* Your Forums Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Your Forums</Text>
@@ -217,6 +193,48 @@ export default function ForumsHomeScreen() {
               ))}
             </View>
           )}
+        </View>
+
+        {/* ─────────────────────────────────────────────────────────────
+            RELATIONSHIP MAPPING — secondary, clearly separated section.
+            This is intentionally placed BELOW "Your Forums" so the
+            forum invitation loop (Create / Join) remains the dominant
+            mental model on this screen. The card here is for users
+            who want to map a relationship privately — these people are
+            NOT forum participants and never see your activity.
+            ───────────────────────────────────────────────────────────── */}
+        <View style={[styles.section, styles.mappingSection]}>
+          <Text style={[styles.mappingSectionLabel, { color: theme.textTertiary }]}>
+            Relationship Mapping
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.mappingCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+            ]}
+            onPress={handleOpenPeopleSetup}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Open Relationship Mapping"
+          >
+            <View style={styles.peopleSetupRow}>
+              <View style={styles.peopleSetupIcon}>
+                <Ionicons name="person-add-outline" size={20} color={theme.textSecondary} />
+              </View>
+              <View style={styles.peopleSetupBody}>
+                <Text style={[styles.mappingTitle, { color: theme.text }]}>
+                  Add Private Person
+                </Text>
+                <Text
+                  style={[styles.mappingSub, { color: theme.textSecondary }]}
+                  numberOfLines={3}
+                >
+                  For people you want to understand privately. They are not forum participants.
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
+            </View>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -306,13 +324,39 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   peopleSetupIcon: {
-    width: 40, height: 40, borderRadius: 999,
+    width: 36, height: 36, borderRadius: 999,
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
   peopleSetupBody: { flex: 1, gap: 2 },
   peopleSetupTitle: { fontSize: 15, fontWeight: '600' },
   peopleSetupSub: { fontSize: 12, lineHeight: 17 },
+
+  // ─────────────────────────────────────────────────────────────
+  // Relationship Mapping — secondary section placed BELOW "Your
+  // Forums". Smaller, muted, with an uppercase section label so it
+  // never visually competes with the Create / Join Forum action
+  // layer at the top of the screen.
+  // ─────────────────────────────────────────────────────────────
+  mappingSection: {
+    marginTop: 4,
+    paddingTop: 8,
+  },
+  mappingSectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  mappingCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  mappingTitle: { fontSize: 14, fontWeight: '500' },
+  mappingSub: { fontSize: 12, lineHeight: 17 },
   section: {
     marginBottom: 24,
   },

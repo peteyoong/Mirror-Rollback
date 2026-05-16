@@ -38,6 +38,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { searchLocations } from '../../services/api';
 import {
   AccuracyFlag,
   createSavedPerson,
@@ -127,6 +128,65 @@ export default function PeopleWizardScreen() {
   const [city, setCity]       = useState('');
   const [country, setCountry] = useState('');
 
+  // Step 4 — geocoded location autocomplete (Phase 1 P0 fix).
+  // When a user picks from the list, `selectedLocation` is set to the
+  // canonical {city, country, latitude, longitude, timezone} object
+  // returned by /api/locations/search. This is the ONLY path that
+  // produces verified (high-precision) location data — manually typed
+  // names without a selection are explicitly flagged as unverified.
+  type GeocodedLocation = {
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    timezone?: string | null;
+    display_name?: string;
+  };
+  const [locationQuery, setLocationQuery] = useState('');
+  const [locations, setLocations] = useState<GeocodedLocation[]>([]);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<GeocodedLocation | null>(null);
+  const locationSearchSeqRef = React.useRef(0);
+
+  const runLocationSearch = useCallback(async (query: string) => {
+    setLocationQuery(query);
+    // If user edits after selecting, drop the previous selection — they
+    // are entering a new query and must re-select to remain verified.
+    if (selectedLocation && query !== `${selectedLocation.city}, ${selectedLocation.country}`) {
+      setSelectedLocation(null);
+    }
+    const trimmed = query.trim();
+    if (trimmed.length < 3) {
+      setLocations([]);
+      setIsSearchingLocation(false);
+      return;
+    }
+    const seq = ++locationSearchSeqRef.current;
+    setIsSearchingLocation(true);
+    try {
+      const results = await searchLocations(trimmed);
+      // Race-guard: only apply if this is still the latest query.
+      if (seq !== locationSearchSeqRef.current) return;
+      setLocations(Array.isArray(results) ? results : []);
+    } catch (err) {
+      if (seq !== locationSearchSeqRef.current) return;
+      console.warn('[PeopleWizard] location search failed:', err);
+      setLocations([]);
+    } finally {
+      if (seq === locationSearchSeqRef.current) {
+        setIsSearchingLocation(false);
+      }
+    }
+  }, [selectedLocation]);
+
+  const handleSelectLocation = useCallback((loc: GeocodedLocation) => {
+    setSelectedLocation(loc);
+    setCity(loc.city);
+    setCountry(loc.country);
+    setLocationQuery(`${loc.city}, ${loc.country}`);
+    setLocations([]);
+  }, []);
+
   // Step-level error
   const [error, setError] = useState<string | null>(null);
 
@@ -178,6 +238,23 @@ export default function PeopleWizardScreen() {
         if (p.birth_location) {
           setCity(p.birth_location.city);
           setCountry(p.birth_location.country);
+          setLocationQuery(`${p.birth_location.city}, ${p.birth_location.country}`);
+          // Rehydrate a "verified" state if the stored location already
+          // has lat/lon (saved via the new autocomplete flow). Without
+          // lat/lon we leave selectedLocation = null so the UI shows
+          // "Location needs verification" until the user re-selects.
+          if (
+            typeof p.birth_location.latitude === 'number' &&
+            typeof p.birth_location.longitude === 'number'
+          ) {
+            setSelectedLocation({
+              city: p.birth_location.city,
+              country: p.birth_location.country,
+              latitude: p.birth_location.latitude,
+              longitude: p.birth_location.longitude,
+              timezone: p.timezone ?? null,
+            });
+          }
         }
       } catch (err) {
         // eslint-disable-next-line no-console
@@ -213,10 +290,52 @@ export default function PeopleWizardScreen() {
   const birthLocationPayload = useMemo<SavedPersonLocation | null>(() => {
     if (blAccuracy !== 'exact') return null;
     if (!city.trim() || !country.trim()) return null;
+    // When the user picked a verified result from autocomplete, store
+    // lat/lon. Otherwise persist just the names — the precision is
+    // downgraded to "medium" (see computePrecision below) so the
+    // astrology pipeline knows this was not a verified geocode.
+    if (
+      selectedLocation &&
+      selectedLocation.city === city.trim() &&
+      selectedLocation.country === country.trim()
+    ) {
+      return {
+        city: selectedLocation.city,
+        country: selectedLocation.country,
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
+      };
+    }
     return { city: city.trim(), country: country.trim() };
-  }, [blAccuracy, city, country]);
+  }, [blAccuracy, city, country, selectedLocation]);
 
-  const precision = computePrecision(btAccuracy, blAccuracy);
+  // Precision contract (Phase 1 P0 — May 2026):
+  //   high   : birth_time exact AND birth_location exact AND VERIFIED
+  //            (verified = lat/lon present from autocomplete)
+  //   medium : at least one of time / location is exact, OR location
+  //            is exact but unverified (manually typed name without a
+  //            geocoded match — still useful, but not chart-grade)
+  //   low    : both marked unknown
+  // The Review screen surfaces the verification state explicitly so
+  // the user knows whether the chart will be accurate.
+  const locationVerified = useMemo<boolean>(() => {
+    if (blAccuracy !== 'exact') return false;
+    if (!selectedLocation) return false;
+    if (selectedLocation.city !== city.trim()) return false;
+    if (selectedLocation.country !== country.trim()) return false;
+    return (
+      typeof selectedLocation.latitude === 'number' &&
+      typeof selectedLocation.longitude === 'number'
+    );
+  }, [blAccuracy, selectedLocation, city, country]);
+
+  const precision: PrecisionLevel = useMemo(() => {
+    const timeExact = btAccuracy === 'exact' && !!birthTime24h;
+    const locationExact = blAccuracy === 'exact';
+    if (timeExact && locationExact && locationVerified) return 'high';
+    if (timeExact || locationExact) return 'medium';
+    return 'low';
+  }, [btAccuracy, blAccuracy, birthTime24h, locationVerified]);
   const precInfo  = precisionLabel(precision);
 
   // ---- validation per step ------------------------------------------------
@@ -297,6 +416,14 @@ export default function PeopleWizardScreen() {
       birth_time_accuracy: btAccuracy,
       birth_location: birthLocationPayload,
       birth_location_accuracy: blAccuracy,
+      // When the location was selected from the autocomplete list it
+      // arrives with a timezone string (e.g. "+08:00"). Persisting it
+      // here lets the chart engine compute accurate ascendants without
+      // needing to re-geocode on the backend.
+      timezone:
+        locationVerified && selectedLocation?.timezone
+          ? selectedLocation.timezone
+          : undefined,
     };
     setSubmitting(true);
     setError(null);
@@ -597,26 +724,124 @@ export default function PeopleWizardScreen() {
 
               {blAccuracy === 'exact' && (
                 <>
-                  <Text style={[styles.fieldLabel, { color: theme.textSecondary, marginTop: 16 }]}>City</Text>
+                  <Text
+                    style={[
+                      styles.fieldLabel,
+                      { color: theme.textSecondary, marginTop: 16 },
+                    ]}
+                  >
+                    City &amp; country
+                  </Text>
                   <TextInput
-                    style={[styles.input, { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }]}
-                    value={city}
-                    onChangeText={setCity}
-                    placeholder="e.g. Singapore"
+                    style={[
+                      styles.input,
+                      { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface },
+                    ]}
+                    value={locationQuery}
+                    onChangeText={runLocationSearch}
+                    placeholder="Start typing a city name…"
                     placeholderTextColor={theme.textTertiary}
                     autoCapitalize="words"
+                    autoComplete="off"
+                    autoCorrect={false}
                     maxLength={120}
                   />
-                  <Text style={[styles.fieldLabel, { color: theme.textSecondary, marginTop: 16 }]}>Country</Text>
-                  <TextInput
-                    style={[styles.input, { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }]}
-                    value={country}
-                    onChangeText={setCountry}
-                    placeholder="e.g. Singapore"
-                    placeholderTextColor={theme.textTertiary}
-                    autoCapitalize="words"
-                    maxLength={120}
-                  />
+
+                  {/* Verified pill shows ONLY when a result is selected
+                      and city/country still match — see locationVerified. */}
+                  {locationVerified && selectedLocation && (
+                    <View
+                      style={[
+                        styles.verifiedPill,
+                        { backgroundColor: (theme.success ?? '#1f9d55') + '22' },
+                      ]}
+                    >
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color={theme.success ?? '#1f9d55'}
+                      />
+                      <Text
+                        style={[styles.verifiedPillText, { color: theme.success ?? '#1f9d55' }]}
+                        numberOfLines={1}
+                      >
+                        Verified · {selectedLocation.latitude.toFixed(3)}, {selectedLocation.longitude.toFixed(3)}
+                        {selectedLocation.timezone ? `  · ${selectedLocation.timezone}` : ''}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Unverified warning — user typed a name but never
+                      selected from autocomplete. Chart precision will
+                      be downgraded; we tell them so. */}
+                  {!locationVerified && city.trim().length > 0 && (
+                    <View
+                      style={[
+                        styles.unverifiedPill,
+                        { backgroundColor: (theme.warning ?? '#c08a16') + '1A' },
+                      ]}
+                    >
+                      <Ionicons
+                        name="alert-circle-outline"
+                        size={14}
+                        color={theme.warning ?? '#c08a16'}
+                      />
+                      <Text
+                        style={[styles.unverifiedPillText, { color: theme.warning ?? '#c08a16' }]}
+                        numberOfLines={2}
+                      >
+                        Location needs verification — pick a result from the list to unlock high-precision astrology.
+                      </Text>
+                    </View>
+                  )}
+
+                  {isSearchingLocation && (
+                    <View style={styles.searchLoaderRow}>
+                      <ActivityIndicator size="small" color={theme.accent ?? theme.text} />
+                      <Text style={[styles.searchingText, { color: theme.textTertiary }]}>
+                        Searching…
+                      </Text>
+                    </View>
+                  )}
+
+                  {locations.length > 0 && !locationVerified && (
+                    <View
+                      style={[
+                        styles.locationsList,
+                        { backgroundColor: theme.surface, borderColor: theme.border },
+                      ]}
+                    >
+                      {locations.map((loc, idx) => (
+                        <TouchableOpacity
+                          key={`${loc.city}-${loc.country}-${idx}`}
+                          style={[
+                            styles.locationItem,
+                            idx === locations.length - 1 ? null : { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth },
+                          ]}
+                          onPress={() => handleSelectLocation(loc)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.locationItemMain, { color: theme.text }]}>
+                            {loc.city}, {loc.country}
+                          </Text>
+                          {loc.display_name && loc.display_name !== `${loc.city}, ${loc.country}` && (
+                            <Text style={[styles.locationItemSub, { color: theme.textTertiary }]} numberOfLines={1}>
+                              {loc.display_name}
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+
+                  {!isSearchingLocation
+                    && locationQuery.trim().length >= 3
+                    && locations.length === 0
+                    && !locationVerified && (
+                    <Text style={[styles.noLocationsText, { color: theme.textTertiary }]}>
+                      No matches. Try a different spelling, or include the country.
+                    </Text>
+                  )}
                 </>
               )}
             </View>
@@ -641,9 +866,11 @@ export default function PeopleWizardScreen() {
               <ReviewRow
                 theme={theme}
                 label="Birth location"
-                value={blAccuracy === 'exact'
-                  ? `${city.trim()}, ${country.trim()}`
-                  : 'Marked unknown'}
+                value={
+                  blAccuracy === 'exact'
+                    ? `${city.trim()}, ${country.trim()}${locationVerified ? '  ·  ✓ verified' : '  ·  needs verification'}`
+                    : 'Marked unknown'
+                }
                 onEdit={() => setStep(4)}
               />
 
@@ -850,6 +1077,46 @@ const styles = StyleSheet.create({
   precisionLabel: { fontSize: 12, marginBottom: 4 },
   precisionValue: { fontSize: 16, fontWeight: '600' },
   precisionFootnote: { fontSize: 12, marginTop: 6 },
+
+  // ---------- Location autocomplete (Phase 1 P0 — May 2026) ----------
+  verifiedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginTop: 10,
+  },
+  verifiedPillText: { fontSize: 12, fontWeight: '600' },
+  unverifiedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  unverifiedPillText: { fontSize: 12, fontWeight: '500', flex: 1 },
+  searchLoaderRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10,
+  },
+  searchingText: { fontSize: 13 },
+  locationsList: {
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  locationItem: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  locationItemMain: { fontSize: 15, fontWeight: '500' },
+  locationItemSub: { fontSize: 12, marginTop: 2 },
+  noLocationsText: { fontSize: 13, marginTop: 10, fontStyle: 'italic' },
   errorCard: {
     marginTop: 16, padding: 12, borderRadius: 10, borderWidth: 1,
   },

@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'reflect-v4.1-immersive-rebuild';
-export const BUILD_AT = '2026-05-15';
+export const BUILD_ID = 'forums-architecture-v2-geocode';
+export const BUILD_AT = '2026-05-16';

@@ -2311,12 +2311,72 @@ backend:
 
 test_plan:
   current_focus:
-    - "Reflect V4 Immersive Rebuild (Mirror Chat + Journal)"
+    - "Forums Architecture v2 + People Wizard Geocoding (Phase 1+2)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 frontend:
+  - task: "Forums Architecture v2 + People Wizard Geocoding"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/people/wizard.tsx, /app/frontend/app/forums/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          PHASE 1 — P0 People Wizard Geocoding:
+            * Step 4 city/country TextInputs REPLACED with the same
+              autocomplete used in onboarding (calls /api/locations/search).
+            * New `selectedLocation` state stores {city, country, lat,
+              lon, timezone}. Editing the query field after selection
+              automatically drops the verified state.
+            * Verified pill renders ONLY when a result is selected and
+              city/country still match — shows "Verified · 1.352,
+              103.820 · +08:00".
+            * Unverified warning renders when user typed text but never
+              picked from list — copy: "Location needs verification —
+              pick a result from the list to unlock high-precision
+              astrology."
+            * Precision contract now factors verification:
+                high   = time exact AND location exact AND VERIFIED
+                medium = at least one exact (or location exact but
+                         unverified)
+                low    = both unknown
+            * `birth_location` payload now includes lat/lon when
+              verified. `timezone` is sent at the payload root when
+              available. Backend already accepts these fields.
+            * Edit-mode hydration: stored lat/lon (if present) restore
+              the verified state. Stored docs without lat/lon stay
+              "needs verification" until re-selected.
+            * Review screen "Birth location" row now appends
+              "  ·  ✓ verified" or "  ·  needs verification".
+
+          PHASE 2 — Forums hierarchy restructure:
+            * People Setup card MOVED from above "Your Forums" to a
+              clearly secondary section BELOW "Your Forums".
+            * Section now has uppercase muted label "RELATIONSHIP
+              MAPPING" + smaller card.
+            * Card title renamed: "People setup" → "Add Private Person".
+            * Card subtitle clarifies: "For people you want to
+              understand privately. They are not forum participants."
+            * Create Forum + Join Forum remain the dominant primary/
+              secondary action layer at the top.
+
+          PHASE 3 — Member vs Private Person audit:
+            * Confirmed clean data separation. `db.forum_members` stores
+              forum participants (registered users); `db.saved_people`
+              stores private mapped people. Different collections,
+              different endpoints, never mixed in any UI surface.
+            * No code change required (per user direction "do not
+              overbuild").
+
+          Build marker: `forums-architecture-v2-geocode`.
+
+backend:
   - task: "Reflect V4 Immersive Rebuild (Mirror Chat + Journal)"
     implemented: true
     working: "NA"
@@ -16199,3 +16259,46 @@ agent_communication:
              b) Pre-seed an authenticated session for the test user, or
              c) Provide a magic-link / dev-bypass URL that survives a hard reload
           3. Once authenticated, re-run to verify: build marker visible, "What Each Person Brings" card renders, payload settles in <Xms, refresh (pull-to-refresh) shows `fetchData #2 fired`.
+
+  - task: "Forums Architecture v2 + People Wizard Geocoding"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/forums/index.tsx, /app/frontend/app/people/wizard.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          FORUMS HIERARCHY (F1-F5, F8) — ALL PASS ✅
+          
+          Tested on iPhone 12 viewport (390x844) at https://sidereal-debug.preview.emergentagent.com/forums
+          with localStorage seeded for user 697f0c6abf35c0528ff06954.
+          
+          ✅ F1: "+ Create Forum" + "Join Forum" buttons are the dominant action layer at the top (visible above the fold, large full-width buttons).
+          ✅ F2: "Your Forums" section is the next dominant block, showing existing forums (FM TEST 1, FM Test 2, Pete & Mel, Yoong family).
+          ✅ F3: "RELATIONSHIP MAPPING" section appears BELOW "Your Forums" with the uppercase muted label, an "Add Private Person" card, and the exact subtitle "For people you want to understand privately. They are not forum participants."
+          ✅ F4: Visual weight ordering correct — measured areas: Join Forum=97760px², Your Forums header=48880px², Add Private Person=28384px², RELATIONSHIP MAPPING label=22560px². Add Private Person is clearly smaller/secondary.
+          ✅ F5: Old "People setup" copy is NOT visible anywhere on the page.
+          ✅ F8/W8: Build marker `forums-architecture-v2-geocode` confirmed present in bundled JS scripts (found via fetching script src content).
+          ✅ Tapping "Add Private Person" routes to /people as expected.
+          
+          PEOPLE WIZARD GEOCODING (W1-W7) — INCONCLUSIVE / NOT FULLY VALIDATED ⚠️
+          
+          The wizard renders correctly with the new step structure (Step 1 of 5 with relationship type chips; Step 2 of 5 "Birth date" with Day/Month/Year split inputs). However the automated tester was unable to advance past Step 2 within the 3-invocation budget because the wizard's date inputs are in DD/MM/YYYY column order (not YYYY/MM/DD as the script assumed), causing "Please enter a valid calendar date" to block the Continue button. This is a TEST SCRIPT issue, NOT a product bug.
+          
+          As a result, Step 4's autocomplete UX, the "Verified"/"needs verification" pill behavior, the unverified-on-Atlantis path, edit-drops-verification, and the Review-screen precision panel (W2-W7) could not be directly observed in this run.
+          
+          What WAS observed:
+          - Wizard navigation/step structure is correct (5 steps shown)
+          - Relationship-type chips render correctly (Boss, Child, Client, Close friend, …, Spouse)
+          - No red-screen errors anywhere
+          - Build marker is present (W8 PASS)
+          
+          RECOMMENDATION: Main agent should ask test runner to re-run with corrected date entry (Day=15, Month=06, Year=1990 in that field order) to validate W1-W7. Alternatively, manually verify Step 4 in browser — based on code structure, the new single-input autocomplete is implemented.
+          
+          Screenshots captured:
+          - /app/.screenshots/forums_hierarchy.png (forums page restructured hierarchy)
+          - /app/.screenshots/wizard_step1.png (step 1)
+          - /app/.screenshots/w_step4.png (showed step 2, not 4, due to date issue)
