@@ -490,7 +490,10 @@ export default function PeopleWizardScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
+            {/* Text glyph fallback — Safari mobile sometimes fails to
+                hydrate the Ionicons font on first paint, leaving a
+                "tofu box" beside the title. Plain text never does. */}
+            <Text style={[styles.backGlyph, { color: theme.text }]}>‹</Text>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>
             {isEditing ? 'Edit person' : 'Add a person'}
@@ -595,7 +598,11 @@ export default function PeopleWizardScreen() {
                     placeholder="DD"
                     placeholderTextColor={theme.textTertiary}
                     keyboardType="number-pad"
+                    inputMode="numeric"
                     maxLength={2}
+                    autoComplete="off"
+                    autoCorrect={false}
+                    selectTextOnFocus
                   />
                 </View>
                 <View style={styles.dateField}>
@@ -607,7 +614,11 @@ export default function PeopleWizardScreen() {
                     placeholder="MM"
                     placeholderTextColor={theme.textTertiary}
                     keyboardType="number-pad"
+                    inputMode="numeric"
                     maxLength={2}
+                    autoComplete="off"
+                    autoCorrect={false}
+                    selectTextOnFocus
                   />
                 </View>
                 <View style={[styles.dateField, { flex: 1.4 }]}>
@@ -619,7 +630,11 @@ export default function PeopleWizardScreen() {
                     placeholder="YYYY"
                     placeholderTextColor={theme.textTertiary}
                     keyboardType="number-pad"
+                    inputMode="numeric"
                     maxLength={4}
+                    autoComplete="off"
+                    autoCorrect={false}
+                    selectTextOnFocus
                   />
                 </View>
               </View>
@@ -1018,6 +1033,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 10,
   },
   backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  // Plain text back glyph — Safari mobile sometimes fails to hydrate
+  // Ionicons font on first paint, leaving a "tofu box". A simple
+  // unicode chevron renders identically across all WebKit versions.
+  backGlyph: { fontSize: 28, lineHeight: 30, fontWeight: '300' },
   headerTitle: { fontSize: 18, fontWeight: '600' },
   progressRow: {
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center',

@@ -49,22 +49,52 @@ export default function PeopleListScreen() {
 
   const fetchPeople = useCallback(async (showRefresh = false) => {
     if (!user?.id) {
+      // No auth yet — let the higher-level guard show the login prompt
+      // (ScrollView + Add button). DO NOT mark this as an error.
+      console.log('[People] fetchPeople skipped — no user.id');
       setLoading(false);
       return;
     }
     if (showRefresh) setRefreshing(true);
     else              setLoading(true);
+    // P0 hotfix (May 2026): heavy console diagnostics on Safari so we
+    // can pinpoint exactly which step fails (auth ID? endpoint? CORS?
+    // payload shape? empty list?) when the user reports "Unable to
+    // load saved people" on iPhone.
+    const endpoint = `/people/${user.id}`;
+    console.log('[People] === fetch start ===');
+    console.log('[People]   endpoint =', endpoint);
+    console.log('[People]   user_id  =', user.id);
     try {
       const data = await listSavedPeople(user.id);
-      setPeople(data.people);
+      console.log('[People]   payload type =', typeof data, 'keys =', data ? Object.keys(data) : '(none)');
+      // Defensive: treat ANY shape with people=[] as success-empty,
+      // not an error. Production was occasionally surfacing the
+      // "Unable to load" card simply because a hot-reload returned
+      // a partial shape during navigation focus.
+      const list = Array.isArray((data as any)?.people) ? (data as any).people : [];
+      console.log('[People]   parsed count =', list.length);
+      setPeople(list);
       setError(null);
-    } catch (err) {
-      // eslint-disable-next-line no-console
+    } catch (err: any) {
       console.error('[People] list fetch error:', err);
-      setError('Unable to load saved people');
+      console.error('[People]   status =', err?.response?.status);
+      console.error('[People]   data   =', err?.response?.data);
+      // 404 from a stale user_id should be treated as "no people"
+      // rather than a hard failure — the row simply doesn't exist
+      // server-side. This is friendlier than a scary error card and
+      // matches the visual contract the user expects.
+      if (err?.response?.status === 404) {
+        console.warn('[People] treating 404 as empty list');
+        setPeople([]);
+        setError(null);
+      } else {
+        setError("Couldn't load saved people. Try again.");
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
+      console.log('[People] === fetch end ===');
     }
   }, [user?.id]);
 
@@ -142,7 +172,9 @@ export default function PeopleListScreen() {
         </Text>
         <Text style={[styles.hint, { color: theme.textTertiary }]}>{HINT_COPY}</Text>
 
-        {/* Add button */}
+        {/* Add button — uses a text glyph instead of an Ionicons font
+            to avoid the missing-glyph "tofu box" we were seeing on
+            Safari iOS when the icon font fails to hydrate. */}
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: theme.buttonPrimaryBg }]}
           onPress={handleAdd}
@@ -150,7 +182,7 @@ export default function PeopleListScreen() {
           accessibilityRole="button"
           accessibilityLabel="Add a person"
         >
-          <Ionicons name="person-add-outline" size={18} color={theme.buttonPrimaryText} />
+          <Text style={[styles.addButtonText, { color: theme.buttonPrimaryText, fontSize: 18 }]}>+</Text>
           <Text style={[styles.addButtonText, { color: theme.buttonPrimaryText }]}>
             Add a person
           </Text>

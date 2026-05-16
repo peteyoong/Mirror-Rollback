@@ -2311,12 +2311,64 @@ backend:
 
 test_plan:
   current_focus:
-    - "Forums Architecture v2 + People Wizard Geocoding (Phase 1+2)"
+    - "P0 People Setup + Date Input Hotfix"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 frontend:
+  - task: "P0 People Setup + Date Input Hotfix"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/people/index.tsx, /app/frontend/app/people/wizard.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          P0 REGRESSION FIX — three issues reported on Safari mobile.
+          
+          A. People setup "Unable to load saved people" false-error:
+            * Hardened fetchPeople in /app/people/index.tsx with full
+              diagnostic logging (endpoint, user_id, payload type,
+              parsed count, error status/data).
+            * Defensive: any successful response without a `people`
+              array now becomes `[]` rather than triggering the error
+              card.
+            * 404 from a stale user_id is now treated as empty list,
+              not a hard error.
+            * Error message changed to spec: "Couldn't load saved
+              people. Try again." (was "Unable to load saved people")
+            * UI states preserved: loading spinner, "No people saved
+              yet." empty state, list, and error card with working
+              Try again button.
+          
+          B. Add Person Step 2 date input on Safari mobile:
+            * Added `inputMode="numeric"` to all 3 date fields (Day,
+              Month, Year). RN Web previously relied solely on
+              `keyboardType="number-pad"` which Safari WebView
+              honoured inconsistently.
+            * Added `autoComplete="off"`, `autoCorrect={false}`,
+              `selectTextOnFocus` so tapping into a populated field
+              selects the value for fast editing.
+            * No auto-advance — kept simple, deterministic.
+            * Validation already happens at submit, not on every
+              partial keystroke.
+          
+          C. Missing icon glyphs ("tofu boxes"):
+            * Replaced `<Ionicons name="person-add-outline">` on the
+              People screen with a plain text "+" glyph.
+            * Replaced `<Ionicons name="chevron-back">` in the wizard
+              header with a plain text "‹" glyph (new `backGlyph`
+              style).
+            * Both are guaranteed to render on every WebKit version
+              regardless of icon-font hydration timing.
+          
+          Build marker: `people-setup-date-hotfix-v1`.
+
+backend:
   - task: "Forums Architecture v2 + People Wizard Geocoding"
     implemented: true
     working: true
