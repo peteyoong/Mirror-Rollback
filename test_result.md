@@ -2319,12 +2319,27 @@ test_plan:
 frontend:
   - task: "Forums Architecture v2 + People Wizard Geocoding"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/app/people/wizard.tsx, /app/frontend/app/forums/index.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          PEOPLE WIZARD GEOCODING RE-TEST (W2-W7) COMPLETE — ALL PASS ✅
+          Build marker: forums-architecture-v2-geocode. Mobile viewport iPhone 12 (390×844).
+          Used correct DD/MM/YYYY order (Day=15, Month=06, Year=1990).
+
+          W2 PASS — Single autocomplete input present (placeholder "Start typing a city name…"). No separate country field detected.
+          W3 PASS — Typed "Singapore", results appeared, selected "Singapore, Singapore". Green pill rendered: "Verified · 1.357, 103.819  · +07:00". No unverified warning.
+          W4 PASS — Typed "Atlantis". Yellow unverified pill shown: "Location needs verification — pick a result from the list to unlock high-precision astrology." Verified pill NOT shown. (Note: API returned partial-match results like "Atlantis, United States", so the "No matches" italic line didn't render — but the unverified state is correctly enforced as expected.)
+          W5 PASS — Selected Singapore (verified). After appending a trailing space ("Singapore, Singapore "), green pill disappeared and unverified warning re-appeared.
+          W6 PASS — Review screen shows "Birth location: Singapore, Singapore  ·  ✓ verified".
+          W7 PASS — Precision panel shows "Some details missing" (medium tone). "High precision" NOT shown — correct since birth time was marked unknown.
+
+          Did not tap Save (per instructions). All wizard geocoding behavior verified end-to-end.
       - working: "NA"
         agent: "main"
         comment: |
