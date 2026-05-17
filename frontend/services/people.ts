@@ -15,9 +15,38 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 // ---------------------------------------------------------------------------
-// Base URL resolution (mirror of services/api.ts)
+// Base URL resolution
 // ---------------------------------------------------------------------------
+// IMPORTANT (P0 hotfix — May 2026):
+//   The previous version of this resolver returned the *absolute*
+//   EXPO_PUBLIC_BACKEND_URL value baked in at build time. On the
+//   PREVIEW domain that happened to work, but the moment we
+//   PUBLISHED, the bundle was hosted on a different host (the
+//   Emergent production domain) while still trying to POST to the
+//   preview backend — producing a stale-host 404 on Save.
+//
+//   New behaviour (mirrors services/api.ts):
+//     • On any Emergent web host → return '' (relative). The Kubernetes
+//       ingress proxy routes /api/* to backend:8001 regardless of which
+//       Emergent domain serves the bundle.
+//     • On localhost dev web → http://localhost:8001
+//     • On native (iOS / Android) → fall back to the build-time
+//       EXPO_PUBLIC_BACKEND_URL (mobile binaries have no concept of
+//       "current origin").
 const getApiBaseUrl = (): string => {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (
+      hostname.includes('preview.emergentagent.com') ||
+      hostname.includes('.emergent.host') ||
+      hostname.includes('.emergentagent.com')
+    ) {
+      return '';
+    }
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8001';
+    }
+  }
   const extraUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL;
   if (typeof extraUrl === 'string' && extraUrl.length > 0) {
     return extraUrl;
@@ -26,7 +55,7 @@ const getApiBaseUrl = (): string => {
   if (typeof envUrl === 'string' && envUrl.length > 0) {
     return envUrl;
   }
-  return ''; // Web: relative
+  return '';
 };
 
 const peopleApi = axios.create({
@@ -150,8 +179,9 @@ export const deleteSavedPerson = async (
 
 /**
  * Translate a backend Pydantic-style validation error response into a
- * single friendly sentence. Falls back to the raw message when the
- * shape is unexpected.
+ * single friendly sentence. Falls back to a generic friendly message
+ * — NEVER returns raw axios strings like "Request failed with status
+ * code 404" to the UI.
  */
 export const friendlyPeopleError = (err: unknown): string => {
   if (axios.isAxiosError(err)) {
@@ -166,7 +196,16 @@ export const friendlyPeopleError = (err: unknown): string => {
       // FastAPI 400: { detail: "..." }
       if (typeof data.detail === 'string') return data.detail;
     }
-    if (ax.message) return ax.message;
+    // Map raw HTTP status codes to friendly copy. Critical: NEVER
+    // surface ax.message verbatim — that's the "Request failed with
+    // status code 404" leak the user reported.
+    const status = ax.response?.status;
+    if (status === 404) return "Couldn't save this person. Please try again.";
+    if (status === 401 || status === 403) return 'You are not signed in. Please sign in again.';
+    if (status && status >= 500) return 'The server hit a snag. Please try again in a moment.';
+    if (status && status >= 400) return "Couldn't save this person. Please try again.";
+    // Network / timeout — no response object at all.
+    if (!ax.response) return "We couldn't reach the server. Check your connection and try again.";
   }
   return 'Something went wrong. Please try again.';
 };
