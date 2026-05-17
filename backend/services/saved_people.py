@@ -110,6 +110,13 @@ class SavedPersonCreate(BaseModel):
     timezone: Optional[str] = None      # "+07:30" or IANA — used when
                                         # birth_time is exact
 
+    # --- v0.1 Relationship Profile enhancements (May 2026) ---------------
+    # Optional. NEVER required to save. Storing these unlocks deeper
+    # numerology / typology synthesis on the Profile page.
+    full_birth_name:   Optional[str] = Field(default=None, max_length=200)
+    enneagram_type:    Optional[str] = Field(default=None, max_length=10)
+    enneagram_source:  Optional[str] = Field(default=None, max_length=20)
+
     # ---- validators ------------------------------------------------------
 
     @field_validator("relationship_type")
@@ -192,6 +199,10 @@ class SavedPersonUpdate(BaseModel):
     birth_location_accuracy: Optional[str] = None
     notes: Optional[str] = Field(default=None, max_length=2000)
     timezone: Optional[str] = None
+    # v0.1 Relationship Profile enhancements — see SavedPersonCreate.
+    full_birth_name:   Optional[str] = Field(default=None, max_length=200)
+    enneagram_type:    Optional[str] = Field(default=None, max_length=10)
+    enneagram_source:  Optional[str] = Field(default=None, max_length=20)
 
     @field_validator("relationship_type")
     @classmethod
@@ -256,6 +267,10 @@ class SavedPersonResponse(BaseModel):
     # Derived: callers can use this to surface "needs more info" hints
     # without re-deriving the rule.
     precision_level: str   # "high" | "medium" | "low"
+    # v0.1 Relationship Profile enhancements
+    full_birth_name:  Optional[str] = None
+    enneagram_type:   Optional[str] = None
+    enneagram_source: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -295,6 +310,9 @@ def _serialise(doc: Dict[str, Any]) -> Dict[str, Any]:
         "birth_location_accuracy":  doc["birth_location_accuracy"],
         "notes":                    doc.get("notes"),
         "timezone":                 doc.get("timezone"),
+        "full_birth_name":          doc.get("full_birth_name"),
+        "enneagram_type":           doc.get("enneagram_type"),
+        "enneagram_source":         doc.get("enneagram_source"),
         "created_at": (
             doc["created_at"].isoformat()
             if isinstance(doc.get("created_at"), datetime)

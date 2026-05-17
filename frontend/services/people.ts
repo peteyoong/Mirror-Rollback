@@ -90,6 +90,10 @@ export interface SavedPerson {
   birth_location_accuracy: AccuracyFlag;
   notes: string | null;
   timezone: string | null;
+  // v0.1 Relationship Profile enhancements (optional — not required to save)
+  full_birth_name?: string | null;
+  enneagram_type?: string | null;
+  enneagram_source?: string | null;
   created_at: string;
   updated_at: string;
   precision_level: PrecisionLevel;
@@ -111,6 +115,10 @@ export interface SavedPersonCreatePayload {
   birth_location_accuracy: AccuracyFlag;
   notes?: string | null;
   timezone?: string | null;
+  // v0.1 Relationship Profile enhancements (optional)
+  full_birth_name?: string | null;
+  enneagram_type?: string | null;
+  enneagram_source?: string | null;
 }
 
 export type SavedPersonUpdatePayload = Partial<SavedPersonCreatePayload>;

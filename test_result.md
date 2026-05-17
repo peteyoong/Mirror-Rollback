@@ -2311,12 +2311,67 @@ backend:
 
 test_plan:
   current_focus:
-    - "P0 People Setup + Date Input Hotfix"
+    - "Relationship Profiles v0.1 (architecture + page + cards + schema)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 frontend:
+  - task: "Relationship Profiles v0.1"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/people/[id].tsx, /app/frontend/app/people/index.tsx, /app/frontend/app/forums/index.tsx, /app/backend/services/saved_people.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Phase: Relationship Profiles architecture v0.1.
+
+          PART 1 — Renamed `/people` header "People setup" → 
+            "Relationship Profiles".
+          PART 2 — Forums landing now surfaces saved-people as
+            accent-bordered profile cards in a new "Relationship
+            Profiles" section BELOW "Your Forums" with subtitle
+            "One-to-one relational mirrors. Separate from forums."
+            Each card shows name, relationship_type,
+            precision_label, and available lens chips (Astrology /
+            Numerology / Human Design / Enneagram). Empty state
+            shows the "+ Add Private Person" card. Existing list
+            ends with a dashed "+ Add another private person" CTA.
+          PART 3 — NEW page `/people/[id].tsx`:
+            * Snapshot card: name, relationship, birth date/time/
+              place, precision, available lenses.
+            * Synthesis block "How this person maps to you" with
+              three lines (What feels natural / Where friction may
+              emerge / What this tends to revolve around) — DETER-
+              MINISTIC v0.1, mapped from relationship_type table of
+              16 entries. No LLM. Tone: recognition-first.
+            * Pattern cards (Communication, Emotional, Decision,
+              Pressure) — concise prompts to notice.
+            * "What this is based on" accordion — explains Human
+              Design / Astrology / Numerology / Enneagram evidence
+              state for THIS person.
+            * Enhance Profile panel: optional `full_birth_name` and
+              manual `enneagram_type` (e.g. 7w8). Never required.
+            * Build marker footer.
+          PART 4 — Backend schema extended in saved_people.py:
+            * SavedPersonCreate / SavedPersonUpdate /
+              SavedPersonResponse all support optional
+              `full_birth_name`, `enneagram_type`,
+              `enneagram_source`. _serialise propagates them. Smoke
+              test PATCH returns the new fields. Same fields added
+              to frontend SavedPerson interface and
+              SavedPersonCreatePayload.
+          PART 5 — Removed remaining tofu Ionicons in
+            /people index (pencil-outline next to Edit).
+            People index rows now tappable → opens /people/[id].
+
+          Build marker: `relationship-profiles-v0.1`.
+
+backend:
   - task: "P0 People Setup + Date Input Hotfix"
     implemented: true
     working: "NA"

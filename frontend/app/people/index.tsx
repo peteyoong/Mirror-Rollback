@@ -150,7 +150,7 @@ export default function PeopleListScreen() {
         <TouchableOpacity onPress={handleBack} style={styles.backButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Text style={[styles.backText, { color: theme.accent }]}>← Back</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>People setup</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Relationship Profiles</Text>
         <View style={styles.backButton} />
       </View>
 
@@ -215,9 +215,13 @@ export default function PeopleListScreen() {
               const pl = precisionLabel(p.precision_level);
               const pillColors = precisionPillColor(pl.tone);
               return (
-                <View
+                <TouchableOpacity
                   key={p.id}
                   style={[styles.personCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  activeOpacity={0.7}
+                  onPress={() => router.push(`/people/${p.id}` as any)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open ${p.name}'s relationship profile`}
                 >
                   <View style={styles.personRow}>
                     <View style={styles.personMain}>
@@ -235,16 +239,15 @@ export default function PeopleListScreen() {
                     </View>
                     <TouchableOpacity
                       style={[styles.editButton, { borderColor: theme.border }]}
-                      onPress={() => handleEdit(p.id)}
+                      onPress={(e) => { e.stopPropagation(); handleEdit(p.id); }}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       accessibilityRole="button"
                       accessibilityLabel={`Edit ${p.name}`}
                     >
-                      <Ionicons name="pencil-outline" size={16} color={theme.text} />
                       <Text style={[styles.editText, { color: theme.text }]}>Edit</Text>
                     </TouchableOpacity>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>

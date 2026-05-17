@@ -14,6 +14,12 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAppStore } from '../../store';
 import { getUserForums, Forum } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  listSavedPeople,
+  formatRelationshipType,
+  precisionLabel,
+  SavedPerson,
+} from '../../services/people';
 
 export default function ForumsHomeScreen() {
   const { theme } = useTheme();
@@ -25,6 +31,11 @@ export default function ForumsHomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Relationship Profiles — surfaced as cards below "Your Forums".
+  // These are private 1:1 profiles, intentionally a different visual
+  // surface to forums so users don't conflate the two product concepts.
+  const [people, setPeople] = useState<SavedPerson[]>([]);
+
   const fetchForums = useCallback(async (showRefresh = false) => {
     if (!user?.id) return;
     
@@ -32,12 +43,26 @@ export default function ForumsHomeScreen() {
     else setLoading(true);
     
     try {
-      const response = await getUserForums(user.id);
-      setForums(response.forums);
-      setError(null);
-    } catch (err) {
-      console.error('[Forums] Error fetching forums:', err);
-      setError('Unable to load forums');
+      const [forumsResp, peopleResp] = await Promise.allSettled([
+        getUserForums(user.id),
+        listSavedPeople(user.id),
+      ]);
+
+      if (forumsResp.status === 'fulfilled') {
+        setForums(forumsResp.value.forums);
+        setError(null);
+      } else {
+        console.error('[Forums] Error fetching forums:', forumsResp.reason);
+        setError('Unable to load forums');
+      }
+
+      // Saved-people failure is non-fatal — section just doesn't render.
+      if (peopleResp.status === 'fulfilled') {
+        setPeople(Array.isArray((peopleResp.value as any)?.people) ? (peopleResp.value as any).people : []);
+      } else {
+        console.warn('[Forums] saved people fetch failed:', peopleResp.reason);
+        setPeople([]);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -196,45 +221,94 @@ export default function ForumsHomeScreen() {
         </View>
 
         {/* ─────────────────────────────────────────────────────────────
-            RELATIONSHIP MAPPING — secondary, clearly separated section.
-            This is intentionally placed BELOW "Your Forums" so the
-            forum invitation loop (Create / Join) remains the dominant
-            mental model on this screen. The card here is for users
-            who want to map a relationship privately — these people are
-            NOT forum participants and never see your activity.
+            RELATIONSHIP PROFILES — one-to-one private relational
+            mirrors. Visually distinct from forums (uses accent border
+            + softer card surface) so the two product concepts stay
+            mentally separate. Tapping a card opens /people/[id].
             ───────────────────────────────────────────────────────────── */}
         <View style={[styles.section, styles.mappingSection]}>
           <Text style={[styles.mappingSectionLabel, { color: theme.textTertiary }]}>
-            Relationship Mapping
+            Relationship Profiles
           </Text>
-          <TouchableOpacity
-            style={[
-              styles.mappingCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-            ]}
-            onPress={handleOpenPeopleSetup}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel="Open Relationship Mapping"
-          >
-            <View style={styles.peopleSetupRow}>
-              <View style={styles.peopleSetupIcon}>
-                <Ionicons name="person-add-outline" size={20} color={theme.textSecondary} />
+          <Text style={[styles.mappingSectionHint, { color: theme.textSecondary }]}>
+            One-to-one relational mirrors. Separate from forums.
+          </Text>
+
+          {people.length === 0 ? (
+            <TouchableOpacity
+              style={[styles.mappingCard, { backgroundColor: theme.surface, borderColor: theme.accent + '55' }]}
+              onPress={handleOpenPeopleSetup}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Add Private Person"
+            >
+              <View style={styles.peopleSetupRow}>
+                <View style={styles.peopleSetupBody}>
+                  <Text style={[styles.mappingTitle, { color: theme.text }]}>+ Add Private Person</Text>
+                  <Text style={[styles.mappingSub, { color: theme.textSecondary }]} numberOfLines={3}>
+                    For people you want to understand privately. They are not forum participants.
+                  </Text>
+                </View>
               </View>
-              <View style={styles.peopleSetupBody}>
-                <Text style={[styles.mappingTitle, { color: theme.text }]}>
-                  Add Private Person
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.profilesList}>
+              {people.map((p) => {
+                const pl = precisionLabel(p.precision_level);
+                const lenses: string[] = [];
+                if (p.birth_date) {
+                  lenses.push('Astrology');
+                  lenses.push('Numerology');
+                }
+                if (p.birth_time_accuracy === 'exact') lenses.push('Human Design');
+                if (p.enneagram_type) lenses.push('Enneagram');
+                return (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.accent + '55' }]}
+                    onPress={() => router.push(`/people/${p.id}` as any)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.profileCardTop}>
+                      <Text style={[styles.profileName, { color: theme.text }]} numberOfLines={1}>
+                        {p.name}
+                      </Text>
+                      <Text style={[styles.profilePrecision, { color: theme.textTertiary }]}>
+                        {pl.label}
+                      </Text>
+                    </View>
+                    <Text style={[styles.profileType, { color: theme.textSecondary }]}>
+                      {formatRelationshipType(p.relationship_type)}
+                    </Text>
+                    {lenses.length > 0 && (
+                      <View style={styles.profileLensRow}>
+                        {lenses.map((l) => (
+                          <View key={l} style={[styles.profileLensChip, { borderColor: theme.border, backgroundColor: theme.background }]}>
+                            <Text style={[styles.profileLensText, { color: theme.textSecondary }]}>{l}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+
+              {/* Always show an inline "+ Add another" tap target below
+                  the cards so users can grow the list without leaving
+                  the forum landing. */}
+              <TouchableOpacity
+                style={[styles.profileCardAdd, { borderColor: theme.accent + '55' }]}
+                onPress={handleOpenPeopleSetup}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Add another private person"
+              >
+                <Text style={[styles.profileCardAddText, { color: theme.accent }]}>
+                  + Add another private person
                 </Text>
-                <Text
-                  style={[styles.mappingSub, { color: theme.textSecondary }]}
-                  numberOfLines={3}
-                >
-                  For people you want to understand privately. They are not forum participants.
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -347,7 +421,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    marginBottom: 10,
+    marginBottom: 4,
+  },
+  mappingSectionHint: {
+    fontSize: 12,
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
   mappingCard: {
     borderRadius: 12,
@@ -357,6 +436,43 @@ const styles = StyleSheet.create({
   },
   mappingTitle: { fontSize: 14, fontWeight: '500' },
   mappingSub: { fontSize: 12, lineHeight: 17 },
+
+  // ─────────────────────────────────────────────────────────────
+  // Relationship Profile cards (May 2026 — relationship-profiles-v0.1).
+  // Visually similar to forum cards but with an accent-tinted border
+  // so users can immediately see this is a different product surface.
+  // ─────────────────────────────────────────────────────────────
+  profilesList: { gap: 10 },
+  profileCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  profileCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  profileName: { fontSize: 15, fontWeight: '600', flex: 1 },
+  profilePrecision: { fontSize: 11, fontWeight: '500', marginLeft: 8 },
+  profileType: { fontSize: 12, marginTop: 2 },
+  profileLensRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+  profileLensChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  profileLensText: { fontSize: 10, fontWeight: '500' },
+  profileCardAdd: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderStyle: 'dashed',
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  profileCardAddText: { fontSize: 13, fontWeight: '500' },
   section: {
     marginBottom: 24,
   },
