@@ -16424,3 +16424,38 @@ agent_communication:
           - /app/.screenshots/forums_hierarchy.png (forums page restructured hierarchy)
           - /app/.screenshots/wizard_step1.png (step 1)
           - /app/.screenshots/w_step4.png (showed step 2, not 4, due to date issue)
+
+
+---
+
+## 2026-05-17 — Individual Maps + Person Story (individual-maps-v1)
+
+### Change Summary
+Replaced the generic "How this person maps to you" / "Patterns to notice" sections on `/people/[id]` with a grounded six-section **Person Story**:
+1. Core pattern
+2. How they tend to move through life
+3. How they may feel to be around
+4. What they may need from others
+5. Shadow / pressure pattern
+6. Relationship clue for me
+
+Story is deterministic and data-driven:
+- When `enneagram_type` is set (e.g. `7w8`), the leading digit drives the first five sections via a curated Enneagram-1..9 core map.
+- Otherwise the five sections fall back to a `relationship_type`-keyed grounded map (partner, spouse, ex-partner, parent, child, sibling, family_other, friend, close_friend, colleague, boss, report, client, mentor, mentee, other).
+- The sixth section ("Relationship clue for me") is always pulled from a `relationship_type` overlay so the story closes on what the relationship is asking of the user.
+
+Also added:
+- "Ask about [Name]" button shell beneath the story (placeholder Alert: "Coming next — a private line to Mirror about this person.").
+- Bumped `BUILD_ID` to `individual-maps-v1`.
+
+### Files Touched
+- `/app/frontend/app/people/[id].tsx` — full Person Story rewrite + Ask button + styles.
+- `/app/frontend/constants/buildMarker.ts` — bumped to `individual-maps-v1`.
+
+### Manual Verification
+- Backend logs show `/api/people/{user_id}` and `/api/people/{user_id}/{person_id}` returning 200 OK (existing endpoints, no backend changes needed).
+- Pre-existing ESLint TS parsing error on `type` keyword (`.eslintrc` misconfig, recurring issue, non-blocking — Metro bundles correctly).
+
+### Test Status
+- **Backend**: Not changed, no retest needed.
+- **Frontend**: Needs visual confirmation by user (Pete account → Individual Maps → open a person → confirm six-section Person Story + "Ask about [Name]" button).

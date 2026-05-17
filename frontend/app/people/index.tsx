@@ -150,7 +150,7 @@ export default function PeopleListScreen() {
         <TouchableOpacity onPress={handleBack} style={styles.backButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Text style={[styles.backText, { color: theme.accent }]}>← Back</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Relationship Profiles</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Individual Maps</Text>
         <View style={styles.backButton} />
       </View>
 
@@ -214,6 +214,12 @@ export default function PeopleListScreen() {
             {people.map((p) => {
               const pl = precisionLabel(p.precision_level);
               const pillColors = precisionPillColor(pl.tone);
+              // Lens availability snapshot — used to render the
+              // soft "Add details to unlock" hints inline.
+              const hasTime = p.birth_time_accuracy === 'exact';
+              const hasLocation = p.birth_location_accuracy === 'exact';
+              const hasFullName = !!p.full_birth_name;
+              const hasEnneagram = !!p.enneagram_type;
               return (
                 <TouchableOpacity
                   key={p.id}
@@ -221,7 +227,7 @@ export default function PeopleListScreen() {
                   activeOpacity={0.7}
                   onPress={() => router.push(`/people/${p.id}` as any)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Open ${p.name}'s relationship profile`}
+                  accessibilityLabel={`Open ${p.name}'s individual map`}
                 >
                   <View style={styles.personRow}>
                     <View style={styles.personMain}>
@@ -247,6 +253,42 @@ export default function PeopleListScreen() {
                       <Text style={[styles.editText, { color: theme.text }]}>Edit</Text>
                     </TouchableOpacity>
                   </View>
+
+                  {/* Lens summary rows — each line tells the user
+                      whether the lens is available for this person
+                      and, if not, what's needed to unlock it. */}
+                  <View style={styles.lensSummary}>
+                    <LensSummary
+                      label="Astrology"
+                      available={!!p.birth_date}
+                      hint={p.birth_date ? 'Available' : 'Add date to unlock'}
+                      theme={theme}
+                    />
+                    <LensSummary
+                      label="Human Design"
+                      available={hasTime && hasLocation}
+                      hint={hasTime && hasLocation ? 'Available' : 'Add exact time + verified location to unlock'}
+                      theme={theme}
+                    />
+                    <LensSummary
+                      label="BaZi"
+                      available={false}
+                      hint="Coming soon"
+                      theme={theme}
+                    />
+                    <LensSummary
+                      label="Numerology"
+                      available={!!p.birth_date || hasFullName}
+                      hint={hasFullName ? 'Full name on file' : (p.birth_date ? 'Add full birth name for deeper read' : 'Add date to unlock')}
+                      theme={theme}
+                    />
+                    <LensSummary
+                      label="Enneagram"
+                      available={hasEnneagram}
+                      hint={hasEnneagram ? `Manual: ${p.enneagram_type}` : 'Add details to unlock'}
+                      theme={theme}
+                    />
+                  </View>
                 </TouchableOpacity>
               );
             })}
@@ -256,6 +298,38 @@ export default function PeopleListScreen() {
     </SafeAreaView>
   );
 }
+
+// Small inline component for the per-lens summary line on each card.
+// Available lenses get a quiet check; unavailable lenses say what's
+// needed to unlock them so the user knows where to invest details.
+function LensSummary({ label, available, hint, theme }: { label: string; available: boolean; hint: string; theme: any }) {
+  return (
+    <View style={summaryStyles.row}>
+      <Text
+        style={[
+          summaryStyles.label,
+          { color: available ? theme.text : theme.textTertiary },
+        ]}
+      >
+        {available ? '✓ ' : '·  '}{label}
+      </Text>
+      <Text style={[summaryStyles.hint, { color: theme.textTertiary }]} numberOfLines={1}>
+        {hint}
+      </Text>
+    </View>
+  );
+}
+
+const summaryStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  label: { fontSize: 12, fontWeight: '500' },
+  hint: { fontSize: 11, marginLeft: 12, flexShrink: 1, textAlign: 'right' },
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -299,6 +373,13 @@ const styles = StyleSheet.create({
     padding: 14, borderRadius: 14, borderWidth: 1,
   },
   personRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  lensSummary: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+    gap: 2,
+  },
   personMain: { flex: 1, gap: 4 },
   personName: { fontSize: 16, fontWeight: '600' },
   personType: { fontSize: 13 },

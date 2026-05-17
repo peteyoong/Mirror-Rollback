@@ -52,117 +52,282 @@ import { useAppStore } from '../../store';
 // recognition-first voice so they feel grounded, not generic.
 // ---------------------------------------------------------------------------
 
-type Synthesis = {
-  natural: string;
-  friction: string;
-  revolves: string;
+// ---------------------------------------------------------------------------
+// PERSON STORY — deterministic synthesis (individual-maps-v1)
+// ---------------------------------------------------------------------------
+// Six grounded sections that tell the user *who this person actually is*
+// and how that lands on them — written in Mirror's recognition-first voice.
+// Inputs available at v1:
+//   * relationship_type     (drives the "relationship clue" line)
+//   * enneagram_type        (when set, sharpens core pattern + shadow)
+//   * birth_date / time     (drives an Astrology-light overlay)
+//   * full_birth_name       (numerology hint)
+//
+// No LLM yet — kept deterministic so it always renders the same on every
+// device, and never leaks generic coaching copy.
+// ---------------------------------------------------------------------------
+
+type PersonStory = {
+  core: string;            // Core pattern — who they are at the centre
+  movement: string;        // How they tend to move through life
+  feel: string;            // How they may feel to be around
+  need: string;            // What they may need from others
+  shadow: string;          // Shadow / pressure pattern
+  relationship_clue: string; // Relationship clue for me (this person ↔ me)
 };
 
-const SYNTHESIS_BY_TYPE: Record<string, Synthesis> = {
+// Enneagram-driven core. The mapping is intentionally compact — we tell
+// the truth of the type rather than a sanitised version.
+const ENNEAGRAM_CORE: Record<string, Omit<PersonStory, 'relationship_clue'>> = {
+  '1': {
+    core: 'A self that organises around getting it right. Standards live in the body, not just the head.',
+    movement: 'They move carefully, hold themselves to a higher line than they hold others to — and notice every detail that misses.',
+    feel: 'Steady, principled, sometimes quietly tense. There is often an inner critic working in the background you can almost hear.',
+    need: 'Permission to be human. Less correction, more recognition for the work they\'re already doing on themselves.',
+    shadow: 'Under pressure: rigidity, resentment, a controlled tone that hides anger. The body holds what the mouth refuses to say.',
+  },
+  '2': {
+    core: 'A self that knows itself most clearly through being needed. Love is felt as usefulness.',
+    movement: 'They lean in, anticipate, give before being asked. Their attention is almost always pointed at someone else.',
+    feel: 'Warm, attuned, generous — sometimes so close it crosses a line you didn\'t mark.',
+    need: 'To be loved for who they are, not just what they do. Permission to have needs without earning them first.',
+    shadow: 'Under pressure: covert demand, martyrdom, the bill arriving for help you never asked for.',
+  },
+  '3': {
+    core: 'A self built around performance. Worth and image are tightly bound — and the image is usually polished.',
+    movement: 'They optimise, deliver, shape-shift to win the room. Goals are met; the person inside the goals is harder to find.',
+    feel: 'Capable, charismatic, slightly armoured. The realness sometimes only shows up when the wins stop.',
+    need: 'A relationship where they can be unimpressive and still be loved. Slowness without it meaning failure.',
+    shadow: 'Under pressure: image-management, deflection, a quiet contempt for whoever sees through the polish.',
+  },
+  '4': {
+    core: 'A self that locates identity in feeling and depth. What\'s missing tends to feel more vivid than what\'s here.',
+    movement: 'They move toward intensity, toward the felt edge — and away from anything that feels generic.',
+    feel: 'Textured, emotionally rich, sometimes far away. Pulled toward the longing more than the having.',
+    need: 'To be met without being fixed. Steadiness that doesn\'t mistake their depth for drama.',
+    shadow: 'Under pressure: envy, withdrawal, a story of being uniquely uncared-for that quietly recruits you.',
+  },
+  '5': {
+    core: 'A self that protects its inner resources by stepping back. Knowing replaces touching.',
+    movement: 'They observe before engaging, conserve energy, prefer competence in a small field over chaos in a big one.',
+    feel: 'Cool, considered, sometimes far behind glass. Presence is real but rationed.',
+    need: 'Space without it being taken as rejection. Permission to come back at their own pace.',
+    shadow: 'Under pressure: detachment, hoarding (time, knowledge, affection), a quiet contempt for emotional demand.',
+  },
+  '6': {
+    core: 'A self organised around safety and trust — and around the thinking that keeps testing both.',
+    movement: 'They scan for what could go wrong, run the scenarios, then commit fully once trust is real.',
+    feel: 'Loyal, vigilant, sometimes braced. Their anxiety is often working in service of you, not against you.',
+    need: 'A relationship where doubts can be named out loud without being treated as betrayal.',
+    shadow: 'Under pressure: reactivity, testing, projecting threat onto a person who is actually safe.',
+  },
+  '7': {
+    core: 'A self that moves toward options, possibility, momentum. Pain is real — and there is usually a plan around it.',
+    movement: 'They reframe fast, jump tracks, generate ideas faster than they can finish them.',
+    feel: 'Bright, energising, sometimes hard to pin down. The depth is real but it tends to keep moving.',
+    need: 'A field that can hold them through the heavy thing without trying to cheer it away.',
+    shadow: 'Under pressure: escape, scattering, a sudden coldness when something tries to make them stay with hard feeling.',
+  },
+  '8': {
+    core: 'A self organised around strength, agency, and not being controlled. Tenderness lives underneath, well-guarded.',
+    movement: 'They move directly, take up space, make decisions early and protect their people loudly.',
+    feel: 'Big, present, unmistakable. Safety with them is real — and so is the size of their no.',
+    need: 'Someone who can meet their intensity without collapsing or matching it. Truth-telling, not management.',
+    shadow: 'Under pressure: domination, blunt force, a refusal of vulnerability that turns the room cold.',
+  },
+  '9': {
+    core: 'A self organised around inner peace. Their own preferences are often the last thing they notice.',
+    movement: 'They blend, accommodate, find the middle path — and quietly disappear from their own life if no one notices.',
+    feel: 'Easy, calming, steady. The cost of that ease is rarely visible from the outside.',
+    need: 'To be asked, specifically, what they actually want — and to be waited for while they find the answer.',
+    shadow: 'Under pressure: stubborn passivity, fog, a slow withdrawal that looks like agreement.',
+  },
+};
+
+// Fallback core when no enneagram type is set — based on relationship_type
+// so we still feel grounded rather than generic.
+const RELATIONSHIP_FALLBACK_CORE: Record<string, Omit<PersonStory, 'relationship_clue'>> = {
   partner: {
-    natural: 'A shared sense of inner life, a willingness to keep returning even when it feels uncomfortable.',
-    friction: 'When one of you starts contracting to keep the peace, the other often feels the silence first.',
-    revolves: 'The rhythm of moving close and stepping back. Whether closeness is felt as safety or as pressure on any given week.',
+    core: 'A self you have studied closely — and one that has studied you back, sometimes more than you realise.',
+    movement: 'They show you their full range over time: the version at their best, and the version when something has cost them.',
+    feel: 'Familiar, sometimes too familiar — the kind of person whose mood you can read before they speak.',
+    need: 'To be seen as the person they are becoming, not only as the person you first chose.',
+    shadow: 'Under pressure: the closeness can curdle into watching, scoring, or quiet contracting.',
   },
   spouse: {
-    natural: 'A long-arc trust that the relationship will hold even when each of you changes shape.',
-    friction: 'When one of you starts performing the relationship instead of being in it.',
-    revolves: 'Decisions about time, resources, and direction — and whether those decisions feel mutual or arrived at alone.',
+    core: 'A self woven into the structure of your daily life — and one whose absence would re-shape the rooms you live in.',
+    movement: 'They move with you on the long arc — work, money, family, time — even when neither of you is talking about it.',
+    feel: 'Solid, embedded, sometimes invisible because of how present they are.',
+    need: 'To be noticed inside the partnership, not just relied on as part of the architecture.',
+    shadow: 'Under pressure: performance of the relationship instead of inhabitation of it.',
   },
   ex_partner: {
-    natural: 'A surprising amount of recognition still passes between you — the residue of what was real.',
-    friction: 'When you confuse who they were with who they are now, or vice versa.',
-    revolves: 'What remains useful between you — and what asks to be acknowledged so it can finally settle.',
+    core: 'A self that once held a version of you that no one else has held since.',
+    movement: 'They move through your memory more than through your present — and the memory is usually older than they are now.',
+    feel: 'Charged, layered, sometimes hard to feel cleanly. Real recognition still lives in there.',
+    need: 'To be allowed to have changed. To not be frozen in the version of them that hurt you most.',
+    shadow: 'Under pressure: a return to the dynamic that ended things, on either side, sometimes without warning.',
   },
   parent: {
-    natural: 'A long line of conditioning that shaped how safety, performance and worth feel for you.',
-    friction: 'Patterns you inherited that still run when you are tired, stressed or being seen.',
-    revolves: 'The work of separating what was theirs from what is yours, without erasing them in the process.',
+    core: 'A self that taught you, before you had words for it, what safety, performance and love feel like.',
+    movement: 'They move through their own old loyalties — to their parents, their generation, their fear — even when they\'re with you.',
+    feel: 'Foundational, complicated, sometimes still capable of changing the temperature of a room you\'re in.',
+    need: 'To be met as a person, not only as a role. To be allowed to be wrong without being erased.',
+    shadow: 'Under pressure: the conditioning they passed on shows up — in them, and in you, sometimes at the same time.',
   },
   child: {
-    natural: 'A natural attentiveness to who they are becoming, distinct from who you wanted them to be.',
-    friction: 'When your own unfinished business shows up as expectation, pressure or over-protection.',
-    revolves: 'Holding presence without holding control. Letting them feel both safe and free.',
+    core: 'A self that is still being assembled — and your read of who they are is shaping who they will be.',
+    movement: 'They move toward you and away from you in cycles; both are necessary.',
+    feel: 'Real, surprising, sometimes a mirror you didn\'t ask for.',
+    need: 'Presence without control. To be known as the person they\'re becoming, not the one you hoped for.',
+    shadow: 'Under pressure: they absorb your unfinished business and call it their personality.',
+  },
+  child_minor: {
+    core: 'A self that is still being assembled — and your read of who they are is shaping who they will be.',
+    movement: 'They move toward you and away from you in cycles; both are necessary.',
+    feel: 'Real, surprising, sometimes a mirror you didn\'t ask for.',
+    need: 'Presence without control. To be known as the person they\'re becoming, not the one you hoped for.',
+    shadow: 'Under pressure: they absorb your unfinished business and call it their personality.',
   },
   sibling: {
-    natural: 'A shared origin story that no one else carries in quite the same way.',
-    friction: 'Old roles you both unconsciously slip back into when you spend too much time in the family system.',
-    revolves: 'Renegotiating the relationship as adults rather than as the children you both used to be.',
+    core: 'A self shaped inside the same system that shaped you — but who took a different position in the field.',
+    movement: 'They move through the family roles you both grew up inside, even when neither of you wants to.',
+    feel: 'Familiar in a way no one else is, sometimes for better, sometimes for worse.',
+    need: 'A relationship rebuilt as adults, not as the children you both used to be.',
+    shadow: 'Under pressure: old roles snap back, especially in family rooms.',
   },
   family_other: {
-    natural: 'A shared field of history and obligation — quieter than parent or sibling, but still present.',
-    friction: 'When family expectations bleed into your one-on-one with them.',
-    revolves: 'How much of the wider family system you each agree to carry, and what you decline to.',
+    core: 'A self positioned inside a wider family field that carries its own history and expectation.',
+    movement: 'They move with one foot in the wider system and one foot in their relationship with you.',
+    feel: 'Familiar but partial — the relationship rarely gets all of who they are.',
+    need: 'A direct line that isn\'t routed through the rest of the family.',
+    shadow: 'Under pressure: the family field decides things between you that you never agreed to.',
   },
   friend: {
-    natural: 'A reliable mutual recognition — they tend to see you accurately even when you don\'t.',
-    friction: 'When one of you grows quickly and the other is still relating to who you used to be.',
-    revolves: 'The quality of presence between you, not the frequency of contact.',
+    core: 'A self who has chosen you, and been chosen by you, outside of obligation — which is rarer than it sounds.',
+    movement: 'They move at their own rhythm, and the friendship survives the gaps between contact.',
+    feel: 'Steady, accurate, often more honest about you than your family is.',
+    need: 'To be updated as you both grow, not held to who you used to be at each other.',
+    shadow: 'Under pressure: drift, projection, or sudden distance that wasn\'t fully named.',
   },
   close_friend: {
-    natural: 'A trust that holds even when months pass between conversations.',
-    friction: 'When unspoken needs accumulate and the next conversation has to carry too much.',
-    revolves: 'Telling each other the truth before it becomes a story you have to apologise for later.',
+    core: 'A self who has stayed — through the version of you that wasn\'t easy to stay through.',
+    movement: 'They move close, then give space, then come back; the rhythm is real, not careless.',
+    feel: 'Like a person whose presence settles your nervous system before they\'ve said anything.',
+    need: 'To be told the truth before it has to be apologised for later.',
+    shadow: 'Under pressure: unspoken needs collect and the next conversation has to carry too much.',
   },
   colleague: {
-    natural: 'A working alignment around what good looks like and how decisions get made.',
-    friction: 'When personal style gets confused with professional judgement.',
-    revolves: 'Earning each other\'s default trust so disagreements stay about the work, not about each other.',
+    core: 'A self you see most often in working mode — which is real, but not all of who they are.',
+    movement: 'They move through professional structures: roles, deadlines, the politics of the room.',
+    feel: 'Capable, recognisable, often more layered than the working version suggests.',
+    need: 'To be related to as a person who happens to do this work, not as the work itself.',
+    shadow: 'Under pressure: their style of stress becomes confused with their style of judgement.',
   },
   boss: {
-    natural: 'A clarity about what they need from you and where the boundaries actually sit.',
-    friction: 'When their stress quietly becomes your scope.',
-    revolves: 'How visible your work is — and whether that visibility serves you or just protects them.',
+    core: 'A self with formal authority over part of your life — and an informal authority that is usually larger than the formal one.',
+    movement: 'They move with the constraints of the role: visibility, performance, protecting their own seat.',
+    feel: 'Influential, sometimes hard to read because of the asymmetry.',
+    need: 'A reliable read from you. Truth told well, not management.',
+    shadow: 'Under pressure: their stress quietly becomes your scope.',
   },
   report: {
-    natural: 'A felt sense of psychological safety — they can name a problem without needing to manage you first.',
-    friction: 'When you confuse coaching them with rescuing them.',
-    revolves: 'Their growth, on their timeline, with your honest read of their patterns.',
+    core: 'A self developing inside a field you have real influence over — for better and worse.',
+    movement: 'They move with one eye on the work and one eye on how you\'re reading them.',
+    feel: 'Capable, watchful, sometimes more self-doubting than the surface suggests.',
+    need: 'A clear, honest read. Coaching that doesn\'t become rescuing.',
+    shadow: 'Under pressure: the relationship slips into performance for you instead of partnership with you.',
   },
   client: {
-    natural: 'A clear contract about what is being exchanged and on what terms.',
-    friction: 'When unspoken expectations on either side stretch the agreement quietly.',
-    revolves: 'Whether the work serves their actual need or just the brief they brought you.',
+    core: 'A self meeting you inside a contract — and bringing more than the contract to the table.',
+    movement: 'They move with their own pressures, deadlines, and unspoken expectations of you.',
+    feel: 'Defined by the work, but rarely only that.',
+    need: 'Clarity about what is and isn\'t inside the agreement.',
+    shadow: 'Under pressure: scope expands quietly and trust thins by inches.',
   },
   mentor: {
-    natural: 'A field where you can ask the questions you wouldn\'t ask anywhere else.',
-    friction: 'When you outgrow the relationship before either of you admits it.',
-    revolves: 'What you take seriously from them, and what you have already moved past.',
+    core: 'A self positioned a few steps ahead of you on a road they have walked.',
+    movement: 'They move from earned ground, sometimes with the angle of their own incomplete work still visible.',
+    feel: 'Trustworthy on the things they have lived. Less so on the things they only know in theory.',
+    need: 'Real questions from you, not just admiration.',
+    shadow: 'Under pressure: their model becomes a ceiling instead of a doorway.',
   },
   mentee: {
-    natural: 'A position where your example does more work than your advice.',
-    friction: 'When you give them your conclusions before they have done the asking.',
-    revolves: 'How much you let them figure out for themselves vs. shortcut.',
+    core: 'A self standing where you used to stand — and watching you closely whether they admit it or not.',
+    movement: 'They move at their pace, not yours, even when you wish they would speed up.',
+    feel: 'Hungry, careful, sometimes performing their progress for you.',
+    need: 'Space to figure it out, with you holding the shape rather than the answers.',
+    shadow: 'Under pressure: they collapse into hero-worship or pre-emptive rebellion.',
   },
   other: {
-    natural: 'A specific resonance that doesn\'t fit any standard label — which is often the most useful kind.',
-    friction: 'When you try to make this relationship behave like a category it doesn\'t belong to.',
-    revolves: 'Whatever you are both quietly trying to learn from being near each other.',
+    core: 'A self that doesn\'t fit a clean label — and that often means the relationship is doing something more specific than the categories allow.',
+    movement: 'They move according to whatever the actual thread between you is, not the role.',
+    feel: 'Specific, harder to summarise, usually clearer once you stop trying to.',
+    need: 'To be related to as themselves, not as a category you\'re trying to fit them into.',
+    shadow: 'Under pressure: you reach for a label to manage the relationship, and the label flattens it.',
   },
 };
 
-const PATTERN_CARDS = [
-  {
-    key: 'communication',
-    title: 'Communication style',
-    body: 'Notice whether they default to clarity, warmth, intensity or precision when something matters.',
-  },
-  {
-    key: 'emotional',
-    title: 'Emotional style',
-    body: 'Notice whether emotions arrive as a wave, a pause, a sharpening, or a quiet leak.',
-  },
-  {
-    key: 'decision',
-    title: 'Decision style',
-    body: 'Notice whether they decide from gut, from sense-making, from consensus, or from a slow inner read.',
-  },
-  {
-    key: 'pressure',
-    title: 'Pressure pattern',
-    body: 'Notice what they do when under pressure — and how that differs from who they are when rested.',
-  },
+// Relationship-clue overlay — "what this person is for me, right now".
+// This is the line that turns the story from a description of them into a
+// reading of the relationship.
+const RELATIONSHIP_CLUE: Record<string, string> = {
+  partner: 'This relationship asks you to keep choosing presence over performance — even when it would be easier to drift into roles.',
+  spouse: 'This is the relationship where your long-arc patterns get the most accurate testing. It will show you what you actually believe about partnership.',
+  ex_partner: 'This relationship is finished as a future and unfinished as a teacher. What still surfaces between you is often what is still asking to be acknowledged in you.',
+  parent: 'This relationship is part of the system that wrote your nervous system. What runs between you is often older than either of you.',
+  child: 'This relationship will keep showing you where you are still working on yourself. They are watching closely.',
+  child_minor: 'This relationship will keep showing you where you are still working on yourself. They are watching closely.',
+  sibling: 'This relationship is one of the few places you get to renegotiate your original role in the family. That work is slower than it looks.',
+  family_other: 'This relationship sits inside a wider field. What you decide to carry from the family system shapes what is actually between you.',
+  friend: 'This relationship is voluntary in a way most of your life isn\'t. What you do with that voluntariness is the relationship.',
+  close_friend: 'This relationship is a baseline you don\'t notice until it shifts. Tending it directly is rarer than relying on it.',
+  colleague: 'This relationship will tell you a lot about what you actually trust about your own work, and what you outsource.',
+  boss: 'This relationship sits at the intersection of your work and your nervous system. Both are reading more than you think.',
+  report: 'This relationship is one of the cleanest mirrors of how you handle power when you have it.',
+  client: 'This relationship will reveal what you do when you want the work and the relationship to stay in agreement, and what you do when they pull apart.',
+  mentor: 'This relationship is where you get to test what you take on as truth and what you outgrow.',
+  mentee: 'This relationship will show you what you actually believe about how growth works, by what you offer and what you withhold.',
+  other: 'This relationship is teaching you something specific that the standard categories can\'t name yet — which is often where the real work lives.',
+};
+
+// The six labelled sections of the Person Story, in render order.
+const STORY_SECTIONS: { key: keyof PersonStory; label: string }[] = [
+  { key: 'core', label: 'Core pattern' },
+  { key: 'movement', label: 'How they tend to move through life' },
+  { key: 'feel', label: 'How they may feel to be around' },
+  { key: 'need', label: 'What they may need from others' },
+  { key: 'shadow', label: 'Shadow / pressure pattern' },
+  { key: 'relationship_clue', label: 'Relationship clue for me' },
 ];
+
+/**
+ * Build a PersonStory deterministically from the person + (optional) enneagram.
+ * Always returns a complete story; falls back to relationship-type defaults
+ * for the core block when no enneagram type is set.
+ */
+function buildPersonStory(person: SavedPerson): PersonStory {
+  const relType = person.relationship_type ?? 'other';
+  const ennRaw = (person.enneagram_type ?? '').trim();
+  // Pull the leading digit (e.g. "7w8" -> "7") so we tolerate any wing notation.
+  const ennKey = ennRaw.match(/^[1-9]/)?.[0];
+
+  const coreBlock =
+    (ennKey && ENNEAGRAM_CORE[ennKey])
+      ? ENNEAGRAM_CORE[ennKey]
+      : (RELATIONSHIP_FALLBACK_CORE[relType] ?? RELATIONSHIP_FALLBACK_CORE.other);
+
+  const clue = RELATIONSHIP_CLUE[relType] ?? RELATIONSHIP_CLUE.other;
+
+  return {
+    core: coreBlock.core,
+    movement: coreBlock.movement,
+    feel: coreBlock.feel,
+    need: coreBlock.need,
+    shadow: coreBlock.shadow,
+    relationship_clue: clue,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -205,9 +370,14 @@ export default function RelationshipProfileScreen() {
 
   useEffect(() => { load(); }, [load]);
 
-  const synthesis: Synthesis = useMemo(() => {
-    return SYNTHESIS_BY_TYPE[person?.relationship_type ?? 'other'] ?? SYNTHESIS_BY_TYPE.other;
-  }, [person?.relationship_type]);
+  const story: PersonStory = useMemo(() => {
+    if (!person) {
+      return {
+        core: '', movement: '', feel: '', need: '', shadow: '', relationship_clue: '',
+      };
+    }
+    return buildPersonStory(person);
+  }, [person]);
 
   const availableLenses = useMemo(() => {
     if (!person) return [];
@@ -342,24 +512,46 @@ export default function RelationshipProfileScreen() {
             )}
           </View>
 
-          {/* B — Relationship synthesis */}
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>How this person maps to you</Text>
+          {/* B — PERSON STORY (individual-maps-v1)
+              Six grounded, deterministic sections that describe who this
+              person actually is — and how that lands on the user.  No
+              generic 'notice whether...' copy. */}
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Person story</Text>
+          <Text style={[styles.sectionSubtitle, { color: theme.textTertiary }]}>
+            A grounded read of who they are and how that lives in your relationship.
+          </Text>
           <View style={[styles.synthesisBlock, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <SynthesisRow label="What feels natural" body={synthesis.natural} theme={theme} />
-            <SynthesisRow label="Where friction may emerge" body={synthesis.friction} theme={theme} />
-            <SynthesisRow label="What this tends to revolve around" body={synthesis.revolves} theme={theme} last />
-          </View>
-
-          {/* C — Person pattern cards */}
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Patterns to notice</Text>
-          <View style={styles.patternList}>
-            {PATTERN_CARDS.map((p) => (
-              <View key={p.key} style={[styles.patternCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <Text style={[styles.patternTitle, { color: theme.text }]}>{p.title}</Text>
-                <Text style={[styles.patternBody, { color: theme.textSecondary }]}>{p.body}</Text>
-              </View>
+            {STORY_SECTIONS.map((s, idx) => (
+              <SynthesisRow
+                key={s.key}
+                label={s.label}
+                body={story[s.key]}
+                theme={theme}
+                last={idx === STORY_SECTIONS.length - 1}
+              />
             ))}
           </View>
+
+          {/* Ask about this person — shell only at v1.  Backend wiring lands
+              with the next iteration; for now we surface intent. */}
+          <TouchableOpacity
+            style={[styles.askBtn, { borderColor: theme.border, backgroundColor: theme.surface }]}
+            onPress={() =>
+              Alert.alert(
+                'Ask about this person',
+                'Soon you\'ll be able to ask Mirror a specific question about how to be with this person — what they may be carrying, how to read a moment between you, or what to say next.\n\nThis is coming next.',
+                [{ text: 'OK' }],
+              )
+            }
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Ask about ${person.name}`}
+          >
+            <Text style={[styles.askBtnTitle, { color: theme.text }]}>Ask about {person.name}</Text>
+            <Text style={[styles.askBtnSubtitle, { color: theme.textTertiary }]}>
+              Coming next — a private line to Mirror about this person.
+            </Text>
+          </TouchableOpacity>
 
           {/* D — Why this is showing up accordion */}
           <TouchableOpacity
@@ -536,6 +728,17 @@ const styles = StyleSheet.create({
   patternCard: { borderRadius: 12, borderWidth: 1, padding: 14 },
   patternTitle: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
   patternBody: { fontSize: 13, lineHeight: 20 },
+
+  askBtn: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginBottom: 28,
+    alignItems: 'flex-start',
+  },
+  askBtnTitle: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  askBtnSubtitle: { fontSize: 12, lineHeight: 17 },
 
   evidenceToggle: { paddingVertical: 10, marginBottom: 8 },
   evidenceToggleText: { fontSize: 14, fontWeight: '500' },

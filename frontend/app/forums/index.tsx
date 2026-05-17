@@ -236,75 +236,62 @@ export default function ForumsHomeScreen() {
             Private one-to-one profiles for people you want to understand.
           </Text>
 
-          {/* Render saved-people cards (if any), then ALWAYS append a
-              "+ Add Private Person" card last. This matches the
-              relationship-profiles-list-v1 spec where add-person is a
-              persistent action inside the section, not a replacement
-              for the list when empty. */}
-          <View style={styles.profilesList}>
-            {people.map((p) => {
-              const pl = precisionLabel(p.precision_level);
-              const lenses: string[] = [];
-              if (p.birth_date) {
-                lenses.push('Astrology');
-                lenses.push('Numerology');
-              }
-              if (p.birth_time_accuracy === 'exact') lenses.push('Human Design');
-              if (p.enneagram_type) lenses.push('Enneagram');
-              return (
-                <TouchableOpacity
-                  key={p.id}
-                  style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.accent + '55' }]}
-                  onPress={() => router.push(`/people/${p.id}` as any)}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Open ${p.name}'s relationship profile`}
-                >
-                  <View style={styles.profileCardTop}>
-                    <Text style={[styles.profileName, { color: theme.text }]} numberOfLines={1}>
+        {/* ─────────────────────────────────────────────────────────────
+            INDIVIDUAL MAPS — single folder/card replaces the previous
+            per-person list. Forums landing should not be cluttered
+            with every saved person; it routes to /people instead.
+            ───────────────────────────────────────────────────────────── */}
+        <View style={[styles.section, styles.mappingSection]}>
+          <TouchableOpacity
+            style={[styles.individualMapsCard, { backgroundColor: theme.surface, borderColor: theme.accent + '55' }]}
+            onPress={() => router.push('/people' as any)}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Open Individual Maps"
+          >
+            <View style={styles.imapsHeader}>
+              <Text style={[styles.imapsLabel, { color: theme.textTertiary }]}>
+                INDIVIDUAL MAPS
+              </Text>
+              <Text style={[styles.imapsCount, { color: theme.accent }]}>
+                {people.length === 0 ? '+ Start' : `${people.length} saved`}
+              </Text>
+            </View>
+            <Text style={[styles.imapsTitle, { color: theme.text }]}>
+              {people.length === 0 ? 'Add Private Person' : 'Your individual maps'}
+            </Text>
+            <Text style={[styles.imapsHint, { color: theme.textSecondary }]} numberOfLines={2}>
+              Private one-to-one maps for people you want to understand.
+            </Text>
+            {people.length > 0 && (
+              <View style={styles.imapsPreviewRow}>
+                {people.slice(0, 3).map((p, idx) => (
+                  <View
+                    key={p.id}
+                    style={[
+                      styles.imapsPreviewChip,
+                      { backgroundColor: theme.background, borderColor: theme.border },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.imapsPreviewName, { color: theme.textSecondary }]}
+                      numberOfLines={1}
+                    >
                       {p.name}
                     </Text>
-                    <Text style={[styles.profilePrecision, { color: theme.textTertiary }]}>
-                      {pl.label}
-                    </Text>
                   </View>
-                  <Text style={[styles.profileType, { color: theme.textSecondary }]}>
-                    {formatRelationshipType(p.relationship_type)}
+                ))}
+                {people.length > 3 && (
+                  <Text style={[styles.imapsMore, { color: theme.textTertiary }]}>
+                    +{people.length - 3} more
                   </Text>
-                  {lenses.length > 0 && (
-                    <View style={styles.profileLensRow}>
-                      {lenses.map((l) => (
-                        <View key={l} style={[styles.profileLensChip, { borderColor: theme.border, backgroundColor: theme.background }]}>
-                          <Text style={[styles.profileLensText, { color: theme.textSecondary }]}>{l}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-
-            {/* Persistent add-person card at the bottom of the list.
-                Same accent-tinted styling as the profile cards but
-                with a soft "+ Add Private Person" treatment so users
-                can grow the list without leaving the screen. */}
-            <TouchableOpacity
-              style={[styles.profileCardAdd, { borderColor: theme.accent + '55', backgroundColor: theme.surface }]}
-              onPress={handleOpenPeopleSetup}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Add Private Person"
-            >
-              <Text style={[styles.profileCardAddText, { color: theme.accent }]}>
-                + Add Private Person
-              </Text>
-              {people.length === 0 && (
-                <Text style={[styles.profileCardAddHint, { color: theme.textSecondary }]} numberOfLines={2}>
-                  For people you want to understand privately. They are not forum participants.
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
+                )}
+              </View>
+            )}
+            <Text style={[styles.imapsCta, { color: theme.accent }]}>
+              Open Individual Maps →
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -477,6 +464,50 @@ const styles = StyleSheet.create({
   },
   profileCardAddText: { fontSize: 14, fontWeight: '600' },
   profileCardAddHint: { fontSize: 12, lineHeight: 17, textAlign: 'center', marginTop: 4 },
+
+  // ─────────────────────────────────────────────────────────────
+  // INDIVIDUAL MAPS folder card (individual-maps-v1, May 2026).
+  // Single entry-point on Forums landing. Replaces the previous
+  // per-person card list. Routes to /people which is now the
+  // proper Individual Maps list screen.
+  // ─────────────────────────────────────────────────────────────
+  individualMapsCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 16,
+    gap: 8,
+  },
+  imapsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  imapsLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  imapsCount: { fontSize: 12, fontWeight: '600' },
+  imapsTitle: { fontSize: 16, fontWeight: '600' },
+  imapsHint: { fontSize: 13, lineHeight: 18 },
+  imapsPreviewRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  imapsPreviewChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    maxWidth: 130,
+  },
+  imapsPreviewName: { fontSize: 12, fontWeight: '500' },
+  imapsMore: { fontSize: 11, fontWeight: '500', marginLeft: 4 },
+  imapsCta: { fontSize: 13, fontWeight: '600', marginTop: 4 },
   section: {
     marginBottom: 24,
   },
