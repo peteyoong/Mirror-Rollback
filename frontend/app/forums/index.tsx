@@ -128,7 +128,9 @@ export default function ForumsHomeScreen() {
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Forums</Text>
         <TouchableOpacity onPress={handleGoHome} style={styles.homeButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Ionicons name="home-outline" size={22} color={theme.text} />
+          {/* Plain text glyph — Ionicons can fail to hydrate on
+              Safari iOS first paint, leaving a tofu square. */}
+          <Text style={[styles.homeGlyph, { color: theme.text }]}>⌂</Text>
         </TouchableOpacity>
       </View>
 
@@ -231,84 +233,78 @@ export default function ForumsHomeScreen() {
             Relationship Profiles
           </Text>
           <Text style={[styles.mappingSectionHint, { color: theme.textSecondary }]}>
-            One-to-one relational mirrors. Separate from forums.
+            Private one-to-one profiles for people you want to understand.
           </Text>
 
-          {people.length === 0 ? (
+          {/* Render saved-people cards (if any), then ALWAYS append a
+              "+ Add Private Person" card last. This matches the
+              relationship-profiles-list-v1 spec where add-person is a
+              persistent action inside the section, not a replacement
+              for the list when empty. */}
+          <View style={styles.profilesList}>
+            {people.map((p) => {
+              const pl = precisionLabel(p.precision_level);
+              const lenses: string[] = [];
+              if (p.birth_date) {
+                lenses.push('Astrology');
+                lenses.push('Numerology');
+              }
+              if (p.birth_time_accuracy === 'exact') lenses.push('Human Design');
+              if (p.enneagram_type) lenses.push('Enneagram');
+              return (
+                <TouchableOpacity
+                  key={p.id}
+                  style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.accent + '55' }]}
+                  onPress={() => router.push(`/people/${p.id}` as any)}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open ${p.name}'s relationship profile`}
+                >
+                  <View style={styles.profileCardTop}>
+                    <Text style={[styles.profileName, { color: theme.text }]} numberOfLines={1}>
+                      {p.name}
+                    </Text>
+                    <Text style={[styles.profilePrecision, { color: theme.textTertiary }]}>
+                      {pl.label}
+                    </Text>
+                  </View>
+                  <Text style={[styles.profileType, { color: theme.textSecondary }]}>
+                    {formatRelationshipType(p.relationship_type)}
+                  </Text>
+                  {lenses.length > 0 && (
+                    <View style={styles.profileLensRow}>
+                      {lenses.map((l) => (
+                        <View key={l} style={[styles.profileLensChip, { borderColor: theme.border, backgroundColor: theme.background }]}>
+                          <Text style={[styles.profileLensText, { color: theme.textSecondary }]}>{l}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+
+            {/* Persistent add-person card at the bottom of the list.
+                Same accent-tinted styling as the profile cards but
+                with a soft "+ Add Private Person" treatment so users
+                can grow the list without leaving the screen. */}
             <TouchableOpacity
-              style={[styles.mappingCard, { backgroundColor: theme.surface, borderColor: theme.accent + '55' }]}
+              style={[styles.profileCardAdd, { borderColor: theme.accent + '55', backgroundColor: theme.surface }]}
               onPress={handleOpenPeopleSetup}
-              activeOpacity={0.85}
+              activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Add Private Person"
             >
-              <View style={styles.peopleSetupRow}>
-                <View style={styles.peopleSetupBody}>
-                  <Text style={[styles.mappingTitle, { color: theme.text }]}>+ Add Private Person</Text>
-                  <Text style={[styles.mappingSub, { color: theme.textSecondary }]} numberOfLines={3}>
-                    For people you want to understand privately. They are not forum participants.
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.profilesList}>
-              {people.map((p) => {
-                const pl = precisionLabel(p.precision_level);
-                const lenses: string[] = [];
-                if (p.birth_date) {
-                  lenses.push('Astrology');
-                  lenses.push('Numerology');
-                }
-                if (p.birth_time_accuracy === 'exact') lenses.push('Human Design');
-                if (p.enneagram_type) lenses.push('Enneagram');
-                return (
-                  <TouchableOpacity
-                    key={p.id}
-                    style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.accent + '55' }]}
-                    onPress={() => router.push(`/people/${p.id}` as any)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.profileCardTop}>
-                      <Text style={[styles.profileName, { color: theme.text }]} numberOfLines={1}>
-                        {p.name}
-                      </Text>
-                      <Text style={[styles.profilePrecision, { color: theme.textTertiary }]}>
-                        {pl.label}
-                      </Text>
-                    </View>
-                    <Text style={[styles.profileType, { color: theme.textSecondary }]}>
-                      {formatRelationshipType(p.relationship_type)}
-                    </Text>
-                    {lenses.length > 0 && (
-                      <View style={styles.profileLensRow}>
-                        {lenses.map((l) => (
-                          <View key={l} style={[styles.profileLensChip, { borderColor: theme.border, backgroundColor: theme.background }]}>
-                            <Text style={[styles.profileLensText, { color: theme.textSecondary }]}>{l}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-
-              {/* Always show an inline "+ Add another" tap target below
-                  the cards so users can grow the list without leaving
-                  the forum landing. */}
-              <TouchableOpacity
-                style={[styles.profileCardAdd, { borderColor: theme.accent + '55' }]}
-                onPress={handleOpenPeopleSetup}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel="Add another private person"
-              >
-                <Text style={[styles.profileCardAddText, { color: theme.accent }]}>
-                  + Add another private person
+              <Text style={[styles.profileCardAddText, { color: theme.accent }]}>
+                + Add Private Person
+              </Text>
+              {people.length === 0 && (
+                <Text style={[styles.profileCardAddHint, { color: theme.textSecondary }]} numberOfLines={2}>
+                  For people you want to understand privately. They are not forum participants.
                 </Text>
-              </TouchableOpacity>
-            </View>
-          )}
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -342,6 +338,11 @@ const styles = StyleSheet.create({
   homeButton: {
     width: 60,
     alignItems: 'flex-end',
+  },
+  homeGlyph: {
+    fontSize: 24,
+    lineHeight: 26,
+    fontWeight: '300',
   },
   backText: {
     fontSize: 16,
@@ -469,10 +470,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     borderStyle: 'dashed',
-    paddingVertical: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     alignItems: 'center',
+    gap: 6,
   },
-  profileCardAddText: { fontSize: 13, fontWeight: '500' },
+  profileCardAddText: { fontSize: 14, fontWeight: '600' },
+  profileCardAddHint: { fontSize: 12, lineHeight: 17, textAlign: 'center', marginTop: 4 },
   section: {
     marginBottom: 24,
   },
