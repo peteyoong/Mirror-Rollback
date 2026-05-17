@@ -39,6 +39,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../contexts/ThemeContext';
 import { searchLocations } from '../../services/api';
+import { BUILD_ID } from '../../constants/buildMarker';
 import {
   AccuracyFlag,
   createSavedPerson,
@@ -53,6 +54,7 @@ import {
   SavedPersonCreatePayload,
   SavedPersonLocation,
   updateSavedPerson,
+  __peopleApiBaseUrl,
 } from '../../services/people';
 import { useAppStore } from '../../store';
 
@@ -337,6 +339,22 @@ export default function PeopleWizardScreen() {
     return 'low';
   }, [btAccuracy, blAccuracy, birthTime24h, locationVerified]);
   const precInfo  = precisionLabel(precision);
+
+  // ─────────────────────────────────────────────────────────────────
+  // Diagnostic banner data (P0 hotfix v2 — visible on Step 5 review).
+  // Lets any user on any deployed domain visually confirm:
+  //   * which build they're on
+  //   * the EXACT URL the Save POST will hit
+  //   * the host currently serving the bundle
+  // If `savePostUrl` ever shows an absolute https:// host that does
+  // NOT match the current `host`, the user is on a stale bundle.
+  // ─────────────────────────────────────────────────────────────────
+  const resolvedApiBase = __peopleApiBaseUrl();
+  const currentHostname =
+    typeof window !== 'undefined' && window.location?.hostname
+      ? window.location.hostname
+      : '(native)';
+  const savePostUrl = `${resolvedApiBase || ''}/api/people/${user?.id ?? '(no user)'}`;
 
   // ---- validation per step ------------------------------------------------
   const validateStep = useCallback((s: number): string | null => {
@@ -771,11 +789,7 @@ export default function PeopleWizardScreen() {
                         { backgroundColor: (theme.success ?? '#1f9d55') + '22' },
                       ]}
                     >
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={14}
-                        color={theme.success ?? '#1f9d55'}
-                      />
+                      <Text style={{ fontSize: 14, color: theme.success ?? '#1f9d55', marginRight: 4 }}>✓</Text>
                       <Text
                         style={[styles.verifiedPillText, { color: theme.success ?? '#1f9d55' }]}
                         numberOfLines={1}
@@ -796,11 +810,7 @@ export default function PeopleWizardScreen() {
                         { backgroundColor: (theme.warning ?? '#c08a16') + '1A' },
                       ]}
                     >
-                      <Ionicons
-                        name="alert-circle-outline"
-                        size={14}
-                        color={theme.warning ?? '#c08a16'}
-                      />
+                      <Text style={{ fontSize: 14, color: theme.warning ?? '#c08a16', marginRight: 4 }}>!</Text>
                       <Text
                         style={[styles.unverifiedPillText, { color: theme.warning ?? '#c08a16' }]}
                         numberOfLines={2}
@@ -896,6 +906,39 @@ export default function PeopleWizardScreen() {
                   Astrology and Human Design lenses use this. You can update later.
                 </Text>
               </View>
+
+              {/* ─────────────────────────────────────────────────────
+                  REFLECT DIAGNOSTIC BANNER (May 2026 P0 hotfix v2)
+                  
+                  Visible build / API base / host strip so any user on
+                  any device (especially Safari iOS on the deployed
+                  emergent.host domain) can verify in one glance that
+                  they are running the fixed bundle and that the POST
+                  Save will hit a relative-URL endpoint (which the
+                  K8s ingress correctly routes to backend:8001).
+                  
+                  If they ever see this banner read an absolute URL
+                  (e.g. starts with `https://`) they know they are on
+                  a stale bundle that needs a republish.
+                  ───────────────────────────────────────────────────── */}
+              <View style={[styles.diagBanner, { borderColor: theme.border, backgroundColor: theme.surface }]}>
+                <Text style={[styles.diagLabel, { color: theme.textTertiary }]}>Build / API diagnostic</Text>
+                <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
+                  build: <Text style={{ fontWeight: '700' }}>{BUILD_ID}</Text>
+                </Text>
+                <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
+                  api base: <Text style={{ fontWeight: '600' }}>{resolvedApiBase || '(relative)'}</Text>
+                </Text>
+                <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
+                  save url: <Text style={{ fontWeight: '600' }}>{savePostUrl}</Text>
+                </Text>
+                <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
+                  method: POST
+                </Text>
+                <Text style={[styles.diagLine, { color: theme.text }]} numberOfLines={1}>
+                  host: <Text style={{ fontWeight: '600' }}>{currentHostname}</Text>
+                </Text>
+              </View>
             </View>
           )}
 
@@ -917,7 +960,7 @@ export default function PeopleWizardScreen() {
               accessibilityRole="button"
               accessibilityLabel="Remove person"
             >
-              <Ionicons name="trash-outline" size={16} color={theme.textSecondary} />
+              <Text style={{ fontSize: 14, color: theme.textSecondary, marginRight: 4 }}>×</Text>
               <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>
                 Remove
               </Text>
@@ -935,7 +978,7 @@ export default function PeopleWizardScreen() {
               <Text style={[styles.primaryBtnText, { color: theme.buttonPrimaryText }]}>
                 Continue
               </Text>
-              <Ionicons name="chevron-forward" size={18} color={theme.buttonPrimaryText} />
+              <Text style={{ fontSize: 18, color: theme.buttonPrimaryText, marginLeft: 6 }}>›</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -948,12 +991,9 @@ export default function PeopleWizardScreen() {
               {submitting ? (
                 <ActivityIndicator color={theme.buttonPrimaryText} />
               ) : (
-                <>
-                  <Text style={[styles.primaryBtnText, { color: theme.buttonPrimaryText }]}>
-                    {isEditing ? 'Save changes' : 'Save'}
-                  </Text>
-                  <Ionicons name="checkmark" size={18} color={theme.buttonPrimaryText} />
-                </>
+                <Text style={[styles.primaryBtnText, { color: theme.buttonPrimaryText }]}>
+                  {isEditing ? 'Save changes' : 'Save'}
+                </Text>
               )}
             </TouchableOpacity>
           )}
@@ -1136,6 +1176,29 @@ const styles = StyleSheet.create({
   locationItemMain: { fontSize: 15, fontWeight: '500' },
   locationItemSub: { fontSize: 12, marginTop: 2 },
   noLocationsText: { fontSize: 13, marginTop: 10, fontStyle: 'italic' },
+
+  // Diagnostic banner shown on Step 5 (Review) so any user — including
+  // a non-technical one on deployed Safari — can confirm the exact
+  // URL the Save button will hit. Intentionally compact but unmissable.
+  diagBanner: {
+    marginTop: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  diagLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  diagLine: {
+    fontSize: 11,
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
+    lineHeight: 16,
+  },
   errorCard: {
     marginTop: 16, padding: 12, borderRadius: 10, borderWidth: 1,
   },

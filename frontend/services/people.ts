@@ -250,6 +250,11 @@ export const precisionLabel = (level: PrecisionLevel): {
   }
 };
 
+// Diagnostic helper — exposes the same resolver peopleApi uses so the
+// wizard can render the actual URL it will POST to. Critical for P0
+// triage on deployed Safari (May 2026).
+export const __peopleApiBaseUrl = (): string => getApiBaseUrl();
+
 if (__DEV__) {
   // Tiny dev-time sanity log so we can confirm the base URL once.
   // eslint-disable-next-line no-console
