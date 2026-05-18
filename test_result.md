@@ -16717,6 +16717,162 @@ agent_communication:
 
           ENVIRONMENT: https://sidereal-debug.preview.emergentagent.com
           USER: Pete (697f0c6abf35c0528ff06954) via GET /api/account/login?email=pete@pulsifi.me
+
+---
+
+## 2026-05-18 — Lens Voice Differentiation (lens-voice-differentiation-v1)
+
+### Scope
+Differentiate the interpretive voice of each lens chat while preserving the shared memory architecture from `multi-lens-chat-memory-v1`. Goal: user feels they're speaking to the same intelligence through different interpretive systems — not the same assistant in costumes.
+
+### Architecture
+Added a `voice_prompt` string attribute to each `LensRegistry` (also added to the Protocol). `compose_lens_memory_blocks` now injects the lens voice block BEFORE the universal response-architecture block, so the voice sets the tone and the universal architecture provides the spine. Shared conversation memory, referent resolution, grounding, debug payload — all unchanged.
+
+### Five interpretive stances
+| Lens | Stance | Style emphasis | Forbidden phrasings |
+|---|---|---|---|
+| Astrology | Symbolic cartographer | Archetypal → behavioural; tension-oriented; house/aspect/transit grounded | Horoscope filler; "the universe is asking…"; predictive certainty |
+| Human Design | Energetic mechanic | Energy + decision-mechanism focused; behavioural not poetic; Strategy + Authority always | Mystical/cosmic framing; astrology vocabulary; "trust the flow" |
+| Numerology | Life-pattern decoder | Theme + cycle + chapter language; Core vs Cycle distinction | Fortune-teller framing; lucky/unlucky; "vibration"; event predictions |
+| Enneagram | Motivational psychologist | Motivation first (core fear/desire); defense-pattern aware; stress/security movement | Over-pathologising; type-as-verdict; spiritual framing; stereotype shortcuts |
+| BaZi | Elemental strategist | Structural; resource dynamics; Ten Gods as roles; pillars as domains; timing-aware | Therapy language; mystical framing; lucky/unlucky elements; astrology vocabulary |
+
+Each voice prompt also defines lens-specific response-architecture weighting (which A–G sections to lean into for that lens).
+
+### Debug payload additions
+Every lens chat response now includes:
+- `voice_marker: "lens-voice-differentiation-v1"`
+- `interpretive_stance: "<stance string>"`
+
+This is alongside the existing `multi-lens-chat-memory-v1` debug fields (active_entity, grounding_sources, missing_sources, etc.).
+
+### Files Touched
+- `/app/backend/services/lens_conversation.py` — `LensRegistry` Protocol gains `voice_prompt`; composer injects voice block before universal architecture; debug payload extended with `voice_marker` + `interpretive_stance`.
+- `/app/backend/services/lens_registries/astrology.py` — voice prompt.
+- `/app/backend/services/lens_registries/human_design.py` — voice prompt.
+- `/app/backend/services/lens_registries/numerology.py` — voice prompt.
+- `/app/backend/services/lens_registries/enneagram.py` — voice prompt.
+- `/app/backend/services/lens_registries/bazi.py` — voice prompt.
+- `/app/frontend/constants/buildMarker.ts` → `lens-voice-differentiation-v1`.
+
+### Smoke tests
+All 5 lenses verified: voice block is present in the composed system prompt, `voice_marker` and `interpretive_stance` are populated in the debug payload, no regressions to entity resolution or grounding.
+
+### Test Status
+- **Smoke tests (deterministic)**: PASS for all 5 lenses.
+- **Backend end-to-end LLM tests**: PASS — 2026-05-18 (testing agent). See task entry "Lens Voice Differentiation (lens-voice-differentiation-v1)" below.
+- **Frontend**: build marker bumped; no UI changes (voice differences will be felt in chat responses).
+
+---
+
+backend:
+  - task: "Lens Voice Differentiation (lens-voice-differentiation-v1)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/lens_conversation.py, /app/backend/services/lens_registries/*.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          LENS VOICE DIFFERENTIATION V1 — BACKEND END-TO-END LLM TESTS PASSED (2026-05-18)
+          
+          Endpoint: POST /api/mirror/chat
+          Test user: Pete (697f0c6abf35c0528ff06954)
+          Test artefact: /app/lens_voice_test.py
+          Results JSON: /app/lens_voice_diff_results.json
+          
+          ── V1. Debug payload presence (all 5 lenses) — 5/5 PASS ───────────────
+          For every lens the response.debug payload contained:
+            • voice_marker == "lens-voice-differentiation-v1"
+            • interpretive_stance == expected value
+            • marker == "multi-lens-chat-memory-v1" (preserved)
+            • lens == requested lens
+            • active_entity, active_entity_source, recent_history_entities,
+              grounding_sources, missing_sources, conversation_turns_used (all present)
+          
+          | Lens          | HTTP | stance                  | active_entity      | src     |
+          |---------------|------|-------------------------|--------------------|---------|
+          | astrology     | 200  | symbolic cartographer   | Saturn (planet)    | current |
+          | human_design  | 200  | energetic mechanic      | Authority (hd_top) | current |
+          | numerology    | 200  | life-pattern decoder    | Life Path          | current |
+          | enneagram     | 200  | motivational psychologist | Core Type        | current |
+          | bazi          | 200  | elemental strategist    | Day Master         | current |
+          
+          ── V2. Same-question voice divergence — 4/4 PASS ──────────────────────
+          Pair A (relationships, new session_ids):
+            • Astrology — references "Venus in Aquarius" + "2nd house",
+              archetypal/symbolic framing ("realm of material and physical
+              security", "transformative ideas"). Uses chart vocabulary.
+            • Human Design — references "Manifestor with Emotional Authority",
+              "emotional wave", "informing", "wait for emotional clarity". NO
+              astrology vocab (no signs/houses/planets), no mystical framing.
+          
+          Pair B (work, new session_ids):
+            • Numerology — references actual Life Path 11 ("master number",
+              "inspired teacher", "visionary quality"). Theme + chapter
+              language tied to user's number.
+            • BaZi — references "Day Master, Yin Metal", elemental/structural
+              framing ("refinement and elegance", "preference for organized and
+              methodical approaches", "tendency to seek perfection"). No
+              astrology vocab, no therapy framing, no "lucky element".
+          
+          Stylistic divergence is clear and lens-appropriate across both pairs.
+          
+          ── V3. Forbidden-phrasing spot checks — 4/4 CLEAN ─────────────────────
+          Scanned each V2 response for the deny list:
+            • Astrology: no "the universe is asking", "your stars say", horoscope filler
+            • Human Design: no astrology vocab (Mars, Sun sign, your sign,
+              4th/8th house, horoscope, zodiac), no "trust the flow"
+            • Numerology: no "lucky number", no "vibration"
+            • BaZi: no astrology vocab, no "how does that make you feel?", no
+              "lucky element"
+          Zero forbidden hits across all four V2 captures.
+          
+          ── V4. Regression — multi-lens-chat-memory-v1 referent resolution ────
+          2/2 PASS:
+            • Astro Jupiter T1→T2 (same session)
+                T1 active_entity={'name':'Jupiter','kind':'planet'} src=current
+                T2 active_entity={'name':'Jupiter','kind':'planet'} src=referent
+            • HD Authority T1→T2 (same session)
+                T1 active_entity={'name':'Authority','kind':'hd_top'} src=current
+                T2 active_entity={'name':'Authority','kind':'hd_top'} src=referent
+          Memory + entity tracking still work after voice block was added.
+          
+          ── OVERALL ────────────────────────────────────────────────────────────
+          V1: 5/5 PASS | V2: 4/4 PASS | V3: 4/4 CLEAN | V4: 2/2 PASS
+          
+          Backend integration verified:
+            • Endpoint reachable at EXPO_PUBLIC_BACKEND_URL/api
+            • No 5xx errors, no exceptions in backend logs
+            • Response times 4.4–7.5s (LLM-bounded, normal)
+            • voice_marker and interpretive_stance present on every lens
+            • marker="multi-lens-chat-memory-v1" preserved on every lens
+          
+          Conclusion: lens-voice-differentiation-v1 build is functioning
+          end-to-end. Voice block is correctly composed per lens, debug payload
+          is correctly extended, and the multi-lens-chat-memory-v1 architecture
+          (active entity resolution, grounding/missing sources, conversation
+          turn tracking) remains intact.
+
+test_plan:
+  current_focus: []
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "testing"
+      message: |
+        Completed end-to-end backend LLM testing for lens-voice-differentiation-v1
+        on POST /api/mirror/chat (user Pete 697f0c6abf35c0528ff06954). All four
+        test groups (V1 debug payload presence, V2 voice divergence, V3 forbidden
+        phrasing scan, V4 multi-lens-chat-memory-v1 regression) PASS. Test
+        artefact: /app/lens_voice_test.py. Results JSON:
+        /app/lens_voice_diff_results.json. No code modified.
+
           FORUM: Pete & Mel (69dd05eaa333335fcbf3ad33)
           VIEWPORTS: iPhone 12 (390x844) AND Samsung Galaxy S21 (360x800)
 

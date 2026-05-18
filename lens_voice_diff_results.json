@@ -1,0 +1,277 @@
+{
+  "V1": {
+    "astrology": {
+      "status": 200,
+      "duration_s": 5.56,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "symbolic cartographer",
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "astrology",
+      "active_entity": {
+        "name": "Saturn",
+        "kind": "planet"
+      },
+      "active_entity_source": "current",
+      "grounding_sources": [
+        "Sidereal planets",
+        "House cusps",
+        "Lunar nodes"
+      ],
+      "missing_sources": [],
+      "response_preview": "Your Saturn is in Pisces, in the 3rd house. This placement often highlights a disciplined approach to communication and learning. You may feel a strong responsibility around how you express your thoughts and ideas. This quality can show up in areas l...",
+      "problems": [],
+      "verdict": "PASS"
+    },
+    "human_design": {
+      "status": 200,
+      "duration_s": 4.35,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "energetic mechanic",
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "human_design",
+      "active_entity": {
+        "name": "Authority",
+        "kind": "hd_top"
+      },
+      "active_entity_source": "current",
+      "grounding_sources": [
+        "Type",
+        "Strategy",
+        "Authority",
+        "Profile",
+        "Definition",
+        "Incarnation Cross",
+        "Defined Centers",
+        "Defined Channels"
+      ],
+      "missing_sources": [],
+      "response_preview": "Your Authority in Human Design is Emotional, which means your decision-making process benefits from taking time to feel through your emotions. Emotional clarity tends to come over time, rather than in the moment. Riding the emotional wave without rus...",
+      "problems": [],
+      "verdict": "PASS"
+    },
+    "numerology": {
+      "status": 200,
+      "duration_s": 5.38,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "life-pattern decoder",
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "numerology",
+      "active_entity": {
+        "name": "Life Path",
+        "kind": "life_path"
+      },
+      "active_entity_source": "current",
+      "grounding_sources": [
+        "Life Path",
+        "Birthday Number",
+        "Expression / Soul Urge / Personality (name-based)",
+        "Personal Year/Month/Day cycles"
+      ],
+      "missing_sources": [],
+      "response_preview": "Your Life Path number is 11, which is often viewed as the path of the inspired teacher or spiritual messenger. There's an innate potential for insight and wisdom, manifesting as a deep sensitivity and a capacity to uplift those around you. However, t...",
+      "problems": [],
+      "verdict": "PASS"
+    },
+    "enneagram": {
+      "status": 200,
+      "duration_s": 4.83,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "motivational psychologist",
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "enneagram",
+      "active_entity": {
+        "name": "Core Type",
+        "kind": "core_type"
+      },
+      "active_entity_source": "current",
+      "grounding_sources": [
+        "Core Type",
+        "Wing",
+        "Stress / Security lines (deterministic)"
+      ],
+      "missing_sources": [
+        "Instinctual Stack",
+        "Tritype"
+      ],
+      "response_preview": "Your Core Type 7 \u2014 the Enthusiast \u2014 thrives on excitement and exploration. However, under stress, you may find yourself veering toward the qualities associated with Type 5, the Investigator. This shift often means you might become more withdrawn or i...",
+      "problems": [],
+      "verdict": "PASS"
+    },
+    "bazi": {
+      "status": 200,
+      "duration_s": 5.47,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "elemental strategist",
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "bazi",
+      "active_entity": {
+        "name": "Day Master",
+        "kind": "day_master"
+      },
+      "active_entity_source": "current",
+      "grounding_sources": [
+        "Day Master",
+        "Four Pillars",
+        "Ten Gods",
+        "Favorable / Unfavorable Elements",
+        "Current timing layer"
+      ],
+      "missing_sources": [
+        "Luck Pillars"
+      ],
+      "response_preview": "Your Day Master, Yin Metal, indicates a refined and delicate approach to life, marked by precision and the ability to shape environments gracefully. With your strong Day Master, you naturally possess a robust inner resilience and an appreciation for ...",
+      "problems": [],
+      "verdict": "PASS"
+    }
+  },
+  "V2": {
+    "PairA-relationships::astrology": {
+      "lens": "astrology",
+      "message": "How does my chart show up in relationships?",
+      "status": 200,
+      "duration_s": 4.92,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "symbolic cartographer",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "grounding_sources": [
+        "Sidereal planets",
+        "House cusps",
+        "Lunar nodes"
+      ],
+      "response": "Let's look closely at your Venus in Aquarius, sitting in your 2nd house. This placement often encourages a unique, sometimes unconventional approach to love and relationships. In the realm of material and physical security, you may find that stable connection fosters confidence. In relationships, this can show as valuing independence and seeking partners who respect that space. Your sense of self-worth is often intertwined with your capacity to connect intellectually and share transformative ideas with those close to you. However, under stress, this can lead to emotional distancing or a focus on maintaining individuality at the expense of intimacy. This could create a tension where you're torn between connection and autonomy, seeking freedom yet needing closeness. Have you noticed where this dynamic appears most strongly in your relationships?",
+      "problems": [],
+      "verdict": "PASS"
+    },
+    "PairA-relationships::human_design": {
+      "lens": "human_design",
+      "message": "How does my design show up in relationships?",
+      "status": 200,
+      "duration_s": 5.88,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "energetic mechanic",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "grounding_sources": [
+        "Type",
+        "Strategy",
+        "Authority",
+        "Profile",
+        "Definition",
+        "Incarnation Cross",
+        "Defined Centers",
+        "Defined Channels"
+      ],
+      "response": "As a Manifestor with an Emotional Authority, your design in relationships often shows up as having a strong presence and initiating new directions. This can bring a magnetic quality to your interactions\u2014people feel drawn to your capacity to launch new experiences and engage with intensity. However, navigating the emotional wave is key, as your feelings can fluctuate and need time to settle before clarity emerges. A pattern you might notice is the need to inform the people close to you before making decisions, as it helps them understand your actions and supports smoother connections. Sometimes, the shadow here is the urge to act impulsively without waiting for emotional clarity, which can create misunderstandings. Reflect on how sharing your intent with others influences the connections in your life. What shifts when you give your emotions time to clear before speaking?",
+      "problems": [],
+      "verdict": "PASS"
+    },
+    "PairB-work::numerology": {
+      "lens": "numerology",
+      "message": "How does my Life Path show up at work?",
+      "status": 200,
+      "duration_s": 7.28,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "life-pattern decoder",
+      "active_entity": {
+        "name": "Life Path",
+        "kind": "life_path"
+      },
+      "active_entity_source": "current",
+      "grounding_sources": [
+        "Life Path",
+        "Birthday Number",
+        "Expression / Soul Urge / Personality (name-based)",
+        "Personal Year/Month/Day cycles"
+      ],
+      "response": "Your Life Path number is 11, a master number that often brings a heightened sense of intuition and leadership potential. This can manifest at work as a natural ability to inspire and motivate others. You might find that people are drawn to your vision and clarity, looking to you for guidance. However, there's a shadow side to be aware of. The intuitive and visionary quality intrinsic to a Life Path 11 can sometimes lead to feeling overwhelmed by the expectations placed upon you, both by yourself and others. This may create stress or lead to self-doubt, particularly if you feel uncertain about how to realize your ideas. In what ways do these patterns appear in your professional interactions or decision-making processes?",
+      "problems": [],
+      "verdict": "PASS"
+    },
+    "PairB-work::bazi": {
+      "lens": "bazi",
+      "message": "How does my Day Master show up at work?",
+      "status": 200,
+      "duration_s": 7.45,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "elemental strategist",
+      "active_entity": {
+        "name": "Day Master",
+        "kind": "day_master"
+      },
+      "active_entity_source": "current",
+      "grounding_sources": [
+        "Day Master",
+        "Four Pillars",
+        "Ten Gods",
+        "Favorable / Unfavorable Elements",
+        "Current timing layer"
+      ],
+      "response": "Your Day Master, Yin Metal, often brings a meticulous and precise approach to your work. With a strong Yin Metal influence, you are likely to excel in environments where attention to detail and high standards are valued. Yin Metal has a natural inclination towards refinement and elegance, often translating into a keen ability to improve processes and polish the final result. At work, this may show up as a preference for organized and methodical approaches, ensuring that tasks are done not just quickly but correctly. You may notice that you have an eye for flaws or areas that need enhancement, making you a valuable asset in roles that require a focus on quality and improvement. However, under pressure, the tendency to seek perfection could lead to feeling bogged down or overly critical, both of yourself and others. Balancing this by recognizing moments where \"good enough\" is sufficient can help ease the potential rigidity and enhance your overall productivity. Where do you see this attention to detail making the most significant impact in your work?",
+      "problems": [],
+      "verdict": "PASS"
+    }
+  },
+  "V3": {
+    "PairA-relationships::astrology": [],
+    "PairA-relationships::human_design": [],
+    "PairB-work::numerology": [],
+    "PairB-work::bazi": []
+  },
+  "V4": {
+    "astrology_jupiter_T1_T2": {
+      "T1": {
+        "status": 200,
+        "active_entity": {
+          "name": "Jupiter",
+          "kind": "planet"
+        },
+        "src": "current",
+        "marker": "multi-lens-chat-memory-v1",
+        "voice_marker": "lens-voice-differentiation-v1",
+        "interpretive_stance": "symbolic cartographer",
+        "response_preview": "Your Jupiter is in Cancer, in the 8th house. This placement often amplifies themes of deep emotional exploration and transformative experiences, particularly in intimate and financial domains. You mig..."
+      },
+      "T2": {
+        "status": 200,
+        "active_entity": {
+          "name": "Jupiter",
+          "kind": "planet"
+        },
+        "src": "referent",
+        "marker": "multi-lens-chat-memory-v1",
+        "voice_marker": "lens-voice-differentiation-v1",
+        "interpretive_stance": "symbolic cartographer",
+        "response_preview": "Your Jupiter in Cancer, residing in the 8th house, shows up in your daily life through your approach to deep emotional connections and shared resources. This placement often leads you to seek security..."
+      },
+      "verdict": "PASS"
+    },
+    "hd_authority_T1_T2": {
+      "T1": {
+        "status": 200,
+        "active_entity": {
+          "name": "Authority",
+          "kind": "hd_top"
+        },
+        "src": "current",
+        "marker": "multi-lens-chat-memory-v1",
+        "voice_marker": "lens-voice-differentiation-v1",
+        "interpretive_stance": "energetic mechanic",
+        "response_preview": "Your Authority in Human Design is Emotional, meaning you're designed to make decisions by riding the wave of your emotions. This isn't about making immediate choices; it's about feeling through the hi..."
+      },
+      "T2": {
+        "status": 200,
+        "active_entity": {
+          "name": "Authority",
+          "kind": "hd_top"
+        },
+        "src": "referent",
+        "marker": "multi-lens-chat-memory-v1",
+        "voice_marker": "lens-voice-differentiation-v1",
+        "interpretive_stance": "energetic mechanic",
+        "response_preview": "The most common way you might miss tapping into your Emotional Authority is by rushing decisions. Your body isn't designed for instant clarity; it naturally gravitates towards waiting out the emotiona..."
+      },
+      "verdict": "PASS"
+    }
+  }
+}

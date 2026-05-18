@@ -109,6 +109,9 @@ class LensRegistry(Protocol):
         """Format the grounded source-of-truth block for the system prompt."""
         ...
 
+    # lens-voice-differentiation-v1 — distinct interpretive stance per lens.
+    voice_prompt: str
+
 
 # ---------------------------------------------------------------------------
 # Helpers shared by every registry
@@ -516,6 +519,12 @@ def compose_lens_memory_blocks(
     history_block = format_history_block(history, max_turns=max_history_turns)
     if history_block:
         blocks.append(history_block)
+    # lens-voice-differentiation-v1 — lens-specific interpretive stance,
+    # injected BEFORE the universal architecture so the voice sets the tone
+    # and the architecture provides the spine.
+    voice_block = getattr(registry, "voice_prompt", "") or ""
+    if voice_block:
+        blocks.append(voice_block)
     blocks.append(UNIVERSAL_RESPONSE_ARCHITECTURE)
 
     memory_block_text = "\n\n".join(b for b in blocks if b)
@@ -529,5 +538,15 @@ def compose_lens_memory_blocks(
         missing_sources=missing,
         conversation_turns_used=min(len(history), max_history_turns * 2),
     )
+    # lens-voice-differentiation-v1 — surface the interpretive stance so
+    # frontend dev tools can confirm voice is being applied per lens.
+    debug["voice_marker"] = "lens-voice-differentiation-v1"
+    debug["interpretive_stance"] = {
+        "astrology": "symbolic cartographer",
+        "human_design": "energetic mechanic",
+        "numerology": "life-pattern decoder",
+        "enneagram": "motivational psychologist",
+        "bazi": "elemental strategist",
+    }.get(registry.lens_name)
 
     return memory_block_text, debug
