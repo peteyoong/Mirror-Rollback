@@ -62,9 +62,10 @@ _PATTERN_DEFS: Dict[str, Tuple[str, List[str]]] = {
 
     # --- Relationships ---
     "relational_distance": ("relationships", [
-        r"\bfeel(?:ing)? distant\b", r"\bdrifting apart\b", r"\bdon'?t connect\b",
+        r"\bfeel(?:ing)?(?:\s+\w+){0,3}\s+distant\b",
+        r"\bdrifting apart\b", r"\bdon'?t connect\b",
         r"\bwe (?:hardly )?talk anymore\b", r"\b(?:emotionally )?disconnected\b",
-        r"\bcold and distant\b",
+        r"\bcold and distant\b", r"\bdistant from (?:my |him|her|them|us)\w*\b",
     ]),
     "attachment_anxiety": ("relationships", [
         r"\b(?:abandon(?:ed|ment)|leaving me|will leave me)\b",
@@ -356,6 +357,12 @@ def format_pattern_memory_block(
                 f"  - {phrasing}  (now: {p.get('last_observed_intensity')}, "
                 f"peak was: {p.get('peak_intensity')})"
             )
+        lines.append("")
+        lines.append("If a growth shift is listed above, you MUST gently name it in")
+        lines.append("your reply.  One short line is enough: 'something feels less")
+        lines.append("charged this time', 'there's a different quality here than")
+        lines.append("before', 'this returns with less weight'.  Then continue the")
+        lines.append("answer.  Do NOT over-celebrate.  Do NOT skip the recognition.")
         lines.append("")
     lines.extend([
         "RULES — pattern memory surfacing:",
