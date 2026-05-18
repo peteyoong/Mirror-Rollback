@@ -151,16 +151,36 @@ _REC_RE = re.compile("|".join(_RECRUITMENT_PATTERNS), re.IGNORECASE)
 _BLM_RE = re.compile("|".join(_BLAME_FOCUS_PATTERNS), re.IGNORECASE)
 
 
-def detect_projection_signals(user_message: str, history: List[Dict[str, str]]) -> Dict[str, bool]:
+def detect_projection_signals(
+    user_message: str,
+    history: List[Dict[str, str]],
+    person_name: Optional[str] = None,
+) -> Dict[str, bool]:
     """
     Return projection-risk signals for the current turn.
 
     Each flag is True/False; the prompt block uses them to decide how
     much ambiguity to preserve.
+
+    `person_name`, when provided, is added to the absolutist scan — users
+    naturally refer to the saved person by NAME ("Test Child always", "Sarah
+    never"), so we extend the pronoun-based regex with a dynamic
+    name-aware pattern.
     """
     msg = (user_message or "")
+    absolutist = bool(_ABS_RE.search(msg))
+    if not absolutist and person_name:
+        # Build a per-call regex that catches the person's name followed
+        # within 30 chars by an absolutist marker.
+        name_pattern = (
+            rf"\b{re.escape(person_name)}\b"
+            r"[^.!?]{0,30}?"
+            r"\b(?:always|never|constantly|just won'?t|refuses to|can'?t|cannot|is so|is always|keeps)\b"
+        )
+        if re.search(name_pattern, msg, re.IGNORECASE):
+            absolutist = True
     return {
-        "absolutist_language": bool(_ABS_RE.search(msg)),
+        "absolutist_language": absolutist,
         "recruitment_request": bool(_REC_RE.search(msg)),
         "blame_focus":         bool(_BLM_RE.search(msg)),
     }
@@ -412,7 +432,7 @@ def compose_relational_block(
 
     rel_class = classify_relationship(person.get("relationship_type"))
     ceiling = _CLASS_INTENSITY_CEILING.get(rel_class, "DIRECT")
-    signals = detect_projection_signals(user_message, history)
+    signals = detect_projection_signals(user_message, history, person_name=person.get("name"))
     risk = projection_risk_level(signals)
     applied = cap_intensity_for_relationship(lens_intensity_mode, rel_class)
 
