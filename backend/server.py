@@ -8082,6 +8082,47 @@ NOT: "I opened a generic chat"
                     f"{type(rel_err).__name__}: {rel_err}"
                 )
 
+        # =====================================================================
+        # LONGITUDINAL PATTERN MEMORY (pattern-memory-v1)
+        # =====================================================================
+        # Detect abstracted pattern tags in the user message, upsert
+        # occurrence records (NEVER storing raw text), and inject a
+        # PATTERN MEMORY block when patterns recur at moderate/strong
+        # confidence — or when a growth shift is detected.
+        # =====================================================================
+        pattern_debug_payload: Optional[dict] = None
+        try:
+            from services.longitudinal_pattern_memory import process_pattern_memory
+            # Use the final intensity if available (may have been capped by
+            # relational layer); fall back to OBSERVATIONAL.
+            current_intensity = (
+                (lens_debug_payload or {}).get("intensity_mode")
+                or "OBSERVATIONAL"
+            )
+            pattern_block, pattern_debug_payload = await process_pattern_memory(
+                db=db,
+                user_id=request.user_id,
+                user_message=request.message,
+                lens=request.lens,
+                intensity_mode=current_intensity,
+                domain=None,
+            )
+            if pattern_block:
+                system_prompt += "\n\n" + pattern_block
+            if pattern_debug_payload and pattern_debug_payload.get("matched_patterns"):
+                logger.info(
+                    f"[MIRROR_CHAT][pattern-memory-v1] "
+                    f"user={request.user_id} "
+                    f"matched={len(pattern_debug_payload['matched_patterns'])} "
+                    f"surfaced={pattern_debug_payload['surfaceable_count']} "
+                    f"growth={pattern_debug_payload['growth_shifts_count']}"
+                )
+        except Exception as pat_err:
+            logger.error(
+                f"[MIRROR_CHAT][pattern-memory-v1] error: "
+                f"{type(pat_err).__name__}: {pat_err}"
+            )
+
         # ===== LLM CALL VIA EMERGENT CONTRACT =====
         from emergent_contract import emergent_generate, validate_emergent_output, log_contract_event
         import asyncio
@@ -8584,6 +8625,12 @@ USER SHOULD FEEL:
             if final_debug is None:
                 final_debug = {}
             final_debug["relational"] = relational_debug_payload
+        # pattern-memory-v1 — surface longitudinal recurrence debug data.
+        # Always include when any pattern was matched, even on generalist.
+        if pattern_debug_payload and pattern_debug_payload.get("matched_patterns"):
+            if final_debug is None:
+                final_debug = {}
+            final_debug["pattern_memory"] = pattern_debug_payload
 
         return MirrorChatResponse(
             response=response_text,

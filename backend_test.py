@@ -1,230 +1,224 @@
 """
-Backend test for emotional-timing-v1 (conversational intensity) on
-POST /api/mirror/chat for user Pete (697f0c6abf35c0528ff06954).
-
-Runs the 10 test scenarios from the review request and reports:
-- HTTP status
-- debug.intensity_mode / intensity_marker / lens_intensity_ceiling
-- debug.depth_mode (sanity)
-- Response text (full)
-- PASS / FAIL per scenario
+Backend test for pattern-memory-v1 longitudinal pattern memory.
+Tests POST /api/mirror/chat for user Pete (user_id=697f0c6abf35c0528ff06954).
 """
-
-import json
-import os
-import sys
-import time
-import uuid
+import os, json, asyncio
 import requests
 
-BACKEND_URL = "https://individual-maps-v1.preview.emergentagent.com"
-API = f"{BACKEND_URL}/api"
-USER_ID = "697f0c6abf35c0528ff06954"
-TIMEOUT = 120
+BASE_URL = "https://individual-maps-v1.preview.emergentagent.com/api"
+PETE = "697f0c6abf35c0528ff06954"
 
-results = []
-
-
-def chat(message, lens, session_id=None, include_journal=True, include_history=True):
-    payload = {
-        "user_id": USER_ID,
-        "message": message,
-        "include_journal": include_journal,
-        "include_history": include_history,
-    }
+def call_mirror_chat(message, lens=None):
+    body = {"user_id": PETE, "message": message}
     if lens is not None:
-        payload["lens"] = lens
-    if session_id is not None:
-        payload["session_id"] = session_id
-    t0 = time.time()
-    r = requests.post(f"{API}/mirror/chat", json=payload, timeout=TIMEOUT)
-    dt = time.time() - t0
+        body["lens"] = lens
+    return requests.post(f"{BASE_URL}/mirror/chat", json=body, timeout=120)
+
+def pretty(d):
+    try:
+        return json.dumps(d, indent=2, default=str)
+    except Exception:
+        return str(d)
+
+def show_response_summary(label, r):
+    print(f"\n=== {label} ===")
+    print(f"HTTP: {r.status_code}")
     try:
         data = r.json()
     except Exception:
-        data = {"_raw": r.text}
-    return r.status_code, data, dt
+        print("Non-JSON:", r.text[:500])
+        return None
+    debug = data.get("debug") or {}
+    pm = debug.get("pattern_memory")
+    print("debug.pattern_memory:", pretty(pm))
+    return data
 
+def assert_(label, ok, detail=""):
+    status = "PASS" if ok else "FAIL"
+    print(f"  [{status}] {label} {('— ' + detail) if detail else ''}")
+    return ok
 
-def summarize(name, status, data, dt, expected_mode, expected_ceiling=None,
-              expected_marker="emotional-timing-v1", expect_debug_null=False,
-              extra_checks=None):
-    debug = data.get("debug") if isinstance(data, dict) else None
-    resp_text = data.get("response", "") if isinstance(data, dict) else ""
-    print(f"\n{'='*80}\n{name}  ({dt:.1f}s)  HTTP {status}\n{'='*80}")
+results = {}
 
-    if expect_debug_null:
-        ok = (status == 200) and (debug is None)
-        print(f"debug == None? {debug is None}")
-        print(f"Response (first 300 chars):\n{resp_text[:300]}")
-        verdict = "PASS" if ok else "FAIL"
-        rationale = "debug is None as expected" if ok else f"debug should be None, got: {debug}"
-        results.append((name, verdict, rationale))
-        print(f"VERDICT: {verdict} — {rationale}")
-        return debug, resp_text
+# ---- P1 ----
+print("\n########## P1: Strong recurrence (work_exhaustion) ##########")
+r = call_mirror_chat("I'm completely burnt out again from work. So drained.", lens="astrology")
+data = show_response_summary("P1", r)
+checks = []
+checks.append(assert_("HTTP 200", r.status_code == 200))
+pm = (data.get("debug") or {}).get("pattern_memory") if data else None
+checks.append(assert_("pattern_memory present", pm is not None))
+if pm:
+    checks.append(assert_("marker == pattern-memory-v1", pm.get("marker") == "pattern-memory-v1"))
+    keys = [p["pattern_key"] for p in pm.get("matched_patterns", [])]
+    checks.append(assert_("matched_patterns includes work_exhaustion",
+                          "work_exhaustion" in keys, f"keys={keys}"))
+    checks.append(assert_("surfaceable_count >= 1", pm.get("surfaceable_count", 0) >= 1,
+                          f"got {pm.get('surfaceable_count')}"))
+    checks.append(assert_("surfaced_keys includes work_exhaustion",
+                          "work_exhaustion" in (pm.get("surfaced_keys") or [])))
+resp_text = (data or {}).get("response", "") or ""
+print(f"\n--- P1 RESPONSE TEXT ---\n{resp_text}\n")
+checks.append(assert_("response does not quote 'on [date] you said'",
+                      "you said" not in resp_text.lower() or "on " not in resp_text.lower()
+                      or not any(w in resp_text.lower() for w in [" you said on", "on march", "on april", "on may"])))
+results["P1"] = all(checks)
 
-    if not isinstance(debug, dict):
-        verdict = "FAIL"
-        rationale = f"debug missing or not dict: {debug}"
-        results.append((name, verdict, rationale))
-        print(f"VERDICT: {verdict} — {rationale}")
-        print(f"Raw response keys: {list(data.keys()) if isinstance(data, dict) else 'n/a'}")
-        print(f"Response: {resp_text[:400]}")
-        return debug, resp_text
+# ---- P2 ----
+print("\n########## P2: Moderate recurrence + growth shift (anxiety_loop) ##########")
+r = call_mirror_chat("I'm a bit anxious today but it's manageable, just some overthinking",
+                     lens="enneagram")
+data = show_response_summary("P2", r)
+checks = []
+checks.append(assert_("HTTP 200", r.status_code == 200))
+pm = (data.get("debug") or {}).get("pattern_memory") if data else None
+if pm:
+    keys = [p["pattern_key"] for p in pm.get("matched_patterns", [])]
+    checks.append(assert_("matched_patterns includes anxiety_loop",
+                          "anxiety_loop" in keys, f"keys={keys}"))
+    checks.append(assert_("growth_shifts_count >= 1",
+                          pm.get("growth_shifts_count", 0) >= 1,
+                          f"got {pm.get('growth_shifts_count')}"))
+    checks.append(assert_("growth_keys includes anxiety_loop",
+                          "anxiety_loop" in (pm.get("growth_keys") or [])))
+else:
+    checks.append(assert_("pattern_memory present", False))
+resp_text = (data or {}).get("response", "") or ""
+print(f"\n--- P2 RESPONSE TEXT ---\n{resp_text}\n")
+results["P2"] = all(checks)
 
-    intensity_mode = debug.get("intensity_mode")
-    intensity_marker = debug.get("intensity_marker")
-    lens_intensity_ceiling = debug.get("lens_intensity_ceiling")
-    depth_mode = debug.get("depth_mode")
+# ---- P3: pre-clean ----
+print("\n########## P3: New pattern, weak recurrence (avoidance_pattern) ##########")
+async def clean_avoidance():
+    from motor.motor_asyncio import AsyncIOMotorClient
+    client = AsyncIOMotorClient(os.environ.get('MONGO_URL', 'mongodb://localhost:27017'))
+    db = client[os.environ.get('DB_NAME', 'test_database')]
+    res = await db.longitudinal_pattern_memory.delete_many(
+        {"user_id": PETE, "pattern_key": "avoidance_pattern"})
+    return res.deleted_count
+deleted = asyncio.run(clean_avoidance())
+print(f"(cleaned {deleted} pre-existing avoidance_pattern docs)")
 
-    print(f"intensity_mode           = {intensity_mode}")
-    print(f"intensity_marker         = {intensity_marker}")
-    print(f"lens_intensity_ceiling   = {lens_intensity_ceiling}")
-    print(f"depth_mode (sanity)      = {depth_mode}")
-    print(f"\nResponse:\n{resp_text}\n")
+r = call_mirror_chat("I've been procrastinating on a big work decision", lens="human_design")
+data = show_response_summary("P3", r)
+checks = []
+checks.append(assert_("HTTP 200", r.status_code == 200))
+pm = (data.get("debug") or {}).get("pattern_memory") if data else None
+if pm:
+    keys = [p["pattern_key"] for p in pm.get("matched_patterns", [])]
+    checks.append(assert_("matched_patterns includes avoidance_pattern",
+                          "avoidance_pattern" in keys, f"keys={keys}"))
+    checks.append(assert_("surfaceable_count == 0",
+                          pm.get("surfaceable_count") == 0,
+                          f"got {pm.get('surfaceable_count')}"))
+else:
+    checks.append(assert_("pattern_memory present", False))
+results["P3"] = all(checks)
 
-    checks = []
-    checks.append(("HTTP 200", status == 200))
-    checks.append((f"intensity_mode == {expected_mode}", intensity_mode == expected_mode))
-    checks.append((f"intensity_marker == {expected_marker}", intensity_marker == expected_marker))
-    if expected_ceiling:
-        checks.append((f"lens_intensity_ceiling == {expected_ceiling}",
-                       lens_intensity_ceiling == expected_ceiling))
-    if extra_checks:
-        for label, fn in extra_checks:
-            try:
-                checks.append((label, bool(fn(resp_text, debug))))
-            except Exception:
-                checks.append((label, False))
+# ---- P4 ----
+print("\n########## P4: Persistence — 2nd avoidance message ##########")
+r = call_mirror_chat("I've been procrastinating on a big work decision", lens="human_design")
+data = show_response_summary("P4 second call", r)
+checks = []
+checks.append(assert_("HTTP 200", r.status_code == 200))
+pm = (data.get("debug") or {}).get("pattern_memory") if data else None
+if pm:
+    avoid_entry = next((p for p in pm.get("matched_patterns", [])
+                        if p["pattern_key"] == "avoidance_pattern"), None)
+    if avoid_entry:
+        oc = avoid_entry.get("occurrence_count", 0)
+        checks.append(assert_("avoidance_pattern occurrence_count >= 2",
+                              oc >= 2, f"got {oc}"))
+    else:
+        checks.append(assert_("avoidance_pattern present", False))
+    checks.append(assert_("surfaceable_count >= 1",
+                          pm.get("surfaceable_count", 0) >= 1,
+                          f"got {pm.get('surfaceable_count')}"))
+else:
+    checks.append(assert_("pattern_memory present", False))
+results["P4"] = all(checks)
 
-    all_ok = all(ok for _, ok in checks)
-    for label, ok in checks:
-        print(f"  [{'OK' if ok else 'FAIL'}] {label}")
-    verdict = "PASS" if all_ok else "FAIL"
-    rationale = "; ".join(f"{lbl}={'OK' if ok else 'FAIL'}" for lbl, ok in checks)
-    results.append((name, verdict, rationale))
-    print(f"VERDICT: {verdict}")
-    return debug, resp_text
+# ---- P5 ----
+print("\n########## P5: Clean message, no pattern triggers ##########")
+r = call_mirror_chat("Tell me about my Saturn placement", lens="astrology")
+data = show_response_summary("P5", r)
+checks = []
+checks.append(assert_("HTTP 200", r.status_code == 200))
+debug = (data or {}).get("debug") or {}
+pm = debug.get("pattern_memory")
+checks.append(assert_("debug.pattern_memory is absent",
+                      pm is None, f"got {pretty(pm)}"))
+checks.append(assert_("lens debug still present (non-empty debug)",
+                      bool(debug), "expected lens debug for lens=astrology"))
+results["P5"] = all(checks)
 
+# ---- P6 ----
+print("\n########## P6: Generalist lens + multiple triggers ##########")
+r = call_mirror_chat("I'm so exhausted from work and feeling not good enough", lens=None)
+data = show_response_summary("P6", r)
+checks = []
+checks.append(assert_("HTTP 200", r.status_code == 200))
+pm = (data.get("debug") or {}).get("pattern_memory") if data else None
+if pm:
+    keys = [p["pattern_key"] for p in pm.get("matched_patterns", [])]
+    print(f"  matched keys: {keys}")
+    checks.append(assert_("matched at least one pattern", len(keys) >= 1))
+results["P6"] = all(checks)
 
-def main():
-    # ---------- I1 SOFT detection (astrology, vulnerability) ----------
-    msg = ("I'm completely lost. My partner left me yesterday and I can't stop crying. "
-           "What does my chart say about why this keeps happening to me?")
-    status, data, dt = chat(msg, lens="astrology", session_id=str(uuid.uuid4()))
-    def i1_no_shadow_phrases(text, debug):
-        bad = ["the pattern here is", "what you're avoiding", "what you are avoiding"]
-        return not any(b.lower() in text.lower() for b in bad)
-    summarize("I1 SOFT — vulnerability wins (astrology)", status, data, dt,
-              expected_mode="SOFT", expected_ceiling="DIRECT",
-              extra_checks=[("no harsh shadow phrases", i1_no_shadow_phrases)])
+# ---- P7 ----
+print("\n########## P7: Multiple patterns in one message ##########")
+r = call_mirror_chat(
+    "I feel so distant from my partner and I'm always anxious about being abandoned",
+    lens=None)
+data = show_response_summary("P7", r)
+checks = []
+checks.append(assert_("HTTP 200", r.status_code == 200))
+pm = (data.get("debug") or {}).get("pattern_memory") if data else None
+if pm:
+    keys = [p["pattern_key"] for p in pm.get("matched_patterns", [])]
+    print(f"  matched keys: {keys}")
+    checks.append(assert_("relational_distance present", "relational_distance" in keys))
+    checks.append(assert_("attachment_anxiety present", "attachment_anxiety" in keys))
+else:
+    checks.append(assert_("pattern_memory present", False))
+results["P7"] = all(checks)
 
-    # ---------- I2 SOFT beats DIRECT (enneagram) ----------
-    msg = "I feel broken. Please be honest with me — what am I doing wrong?"
-    status, data, dt = chat(msg, lens="enneagram", session_id=str(uuid.uuid4()))
-    def i2_no_shadow(text, debug):
-        bad = ["the pattern here is", "what you're avoiding", "shadow"]
-        return not any(b.lower() in text.lower() for b in bad)
-    summarize("I2 SOFT beats DIRECT (enneagram, vulnerable + be honest)", status, data, dt,
-              expected_mode="SOFT", expected_ceiling="CONFRONTING",
-              extra_checks=[("gentler — avoid harsh pattern/shadow naming", i2_no_shadow)])
+# ---- P8 ----
+print("\n########## P8: Data hygiene — no raw transcript ##########")
+async def check_hygiene():
+    from motor.motor_asyncio import AsyncIOMotorClient
+    client = AsyncIOMotorClient(os.environ.get('MONGO_URL', 'mongodb://localhost:27017'))
+    db = client[os.environ.get('DB_NAME', 'test_database')]
+    docs = await db.longitudinal_pattern_memory.find(
+        {"user_id": PETE}).to_list(length=50)
+    return docs
 
-    # ---------- I3 DIRECT (astrology, explicit invitation) ----------
-    msg = "Be honest with me. What am I avoiding in my Saturn placement?"
-    status, data, dt = chat(msg, lens="astrology", session_id=str(uuid.uuid4()))
-    summarize("I3 DIRECT — explicit invitation (astrology)", status, data, dt,
-              expected_mode="DIRECT", expected_ceiling="DIRECT")
+docs = asyncio.run(check_hygiene())
+allowed_fields = {
+    "user_id", "pattern_key", "category", "first_seen_at", "last_seen_at",
+    "occurrence_count", "recent_seen_at", "lens_contexts", "intensity_contexts",
+    "domain_contexts", "last_observed_intensity", "peak_intensity",
+    "growth_shifts_count", "_id"
+}
+print(f"  Found {len(docs)} documents for Pete")
+all_ok = True
+for d in docs[:5]:
+    keys = set(d.keys())
+    extra = keys - allowed_fields
+    print(f"   - pattern_key={d.get('pattern_key')} fields={sorted(keys - {'_id'})}")
+    print(f"       occurrence_count={d.get('occurrence_count')} peak={d.get('peak_intensity')} "
+          f"last={d.get('last_observed_intensity')} growth={d.get('growth_shifts_count')}")
+    print(f"       lens_contexts={d.get('lens_contexts')} intensity_contexts={d.get('intensity_contexts')} "
+          f"domain_contexts={d.get('domain_contexts')}")
+    if extra:
+        print(f"       UNEXPECTED FIELDS: {extra}")
+        all_ok = False
+    for k, v in d.items():
+        if isinstance(v, str) and len(v) > 60 and k != "_id":
+            print(f"       SUSPICIOUSLY LONG STRING in {k}: {v[:120]}")
+            all_ok = False
+results["P8"] = assert_("Only allowed fields, no transcripts", all_ok)
 
-    # ---------- I4 CONFRONTING — Enneagram with prior probing (3 turns same session) ----------
-    sid = str(uuid.uuid4())
-    print(f"\n--- I4 session_id: {sid} ---")
-    status1, data1, dt1 = chat("What is my Enneagram type and what is its core fear?",
-                                lens="enneagram", session_id=sid)
-    summarize("I4.1 OBSERVATIONAL — Enneagram intro question", status1, data1, dt1,
-              expected_mode="OBSERVATIONAL", expected_ceiling="CONFRONTING")
-
-    status2, data2, dt2 = chat("Be honest with me — what am I really avoiding?",
-                                lens="enneagram", session_id=sid)
-    summarize("I4.2 DIRECT — probing follow-up", status2, data2, dt2,
-              expected_mode="DIRECT", expected_ceiling="CONFRONTING")
-
-    status3, data3, dt3 = chat("Challenge me. Don't hold back. What do I need to hear?",
-                                lens="enneagram", session_id=sid)
-    summarize("I4.3 CONFRONTING — Enneagram earned after prior probing",
-              status3, data3, dt3,
-              expected_mode="CONFRONTING", expected_ceiling="CONFRONTING")
-
-    # ---------- I5 CONFRONTING earn-the-ramp (Enneagram, no prior probing) ----------
-    msg = "Challenge me. Don't hold back."
-    status, data, dt = chat(msg, lens="enneagram", session_id=str(uuid.uuid4()))
-    summarize("I5 Earn-the-ramp — Enneagram CONFRONTING without prior probing → DIRECT",
-              status, data, dt,
-              expected_mode="DIRECT", expected_ceiling="CONFRONTING")
-
-    # ---------- I6 Astrology ceiling — caps at DIRECT ----------
-    sid = str(uuid.uuid4())
-    print(f"\n--- I6 session_id: {sid} ---")
-    status6a, data6a, dt6a = chat("be honest with me about my chart",
-                                   lens="astrology", session_id=sid)
-    summarize("I6.1 DIRECT — astrology probing", status6a, data6a, dt6a,
-              expected_mode="DIRECT", expected_ceiling="DIRECT")
-
-    status6b, data6b, dt6b = chat("Challenge me. Don't hold back.",
-                                   lens="astrology", session_id=sid)
-    summarize("I6.2 Astrology ceiling cap — CONFRONTING invitation → DIRECT",
-              status6b, data6b, dt6b,
-              expected_mode="DIRECT", expected_ceiling="DIRECT")
-
-    # ---------- I7 BaZi reaches CONFRONTING ----------
-    sid = str(uuid.uuid4())
-    print(f"\n--- I7 session_id: {sid} ---")
-    status7a, data7a, dt7a = chat("be real with me about my Day Master",
-                                   lens="bazi", session_id=sid)
-    summarize("I7.1 DIRECT — bazi probing", status7a, data7a, dt7a,
-              expected_mode="DIRECT", expected_ceiling="CONFRONTING")
-
-    status7b, data7b, dt7b = chat("Hit me with it. What am I missing?",
-                                   lens="bazi", session_id=sid)
-    summarize("I7.2 BaZi CONFRONTING", status7b, data7b, dt7b,
-              expected_mode="CONFRONTING", expected_ceiling="CONFRONTING")
-
-    # ---------- I8 Momentum — 2+ probing turns moves floor to DIRECT ----------
-    sid = str(uuid.uuid4())
-    print(f"\n--- I8 session_id: {sid} ---")
-    status8a, data8a, dt8a = chat("be honest with me", lens="astrology", session_id=sid)
-    summarize("I8.1 DIRECT — astrology probing #1", status8a, data8a, dt8a,
-              expected_mode="DIRECT", expected_ceiling="DIRECT")
-    status8b, data8b, dt8b = chat("what am I avoiding?", lens="astrology", session_id=sid)
-    summarize("I8.2 DIRECT — astrology probing #2", status8b, data8b, dt8b,
-              expected_mode="DIRECT", expected_ceiling="DIRECT")
-    status8c, data8c, dt8c = chat("What about my Saturn placement?",
-                                   lens="astrology", session_id=sid)
-    summarize("I8.3 Momentum — neutral msg but momentum keeps DIRECT floor",
-              status8c, data8c, dt8c,
-              expected_mode="DIRECT", expected_ceiling="DIRECT")
-
-    # ---------- I9 Default OBSERVATIONAL ----------
-    msg = "What does my Saturn mean?"
-    status, data, dt = chat(msg, lens="astrology", session_id=str(uuid.uuid4()))
-    summarize("I9 Default OBSERVATIONAL (astrology)", status, data, dt,
-              expected_mode="OBSERVATIONAL", expected_ceiling="DIRECT")
-
-    # ---------- I10 Generalist regression (lens=None) ----------
-    msg = "be honest with me, what am I avoiding?"
-    status, data, dt = chat(msg, lens=None, session_id=str(uuid.uuid4()))
-    summarize("I10 Generalist regression — debug should be None",
-              status, data, dt,
-              expected_mode=None, expect_debug_null=True)
-
-    # ---------- Final summary ----------
-    print(f"\n\n{'#'*80}\nFINAL SUMMARY\n{'#'*80}")
-    p = sum(1 for _, v, _ in results if v == "PASS")
-    f = sum(1 for _, v, _ in results if v == "FAIL")
-    for name, verdict, rationale in results:
-        mark = "PASS" if verdict == "PASS" else "FAIL"
-        print(f"[{mark}] {name}  →  {rationale}")
-    print(f"\nTOTAL: {p} PASS / {f} FAIL  (of {len(results)})")
-
-
-if __name__ == "__main__":
-    main()
+print("\n\n############### SUMMARY ###############")
+for k, v in results.items():
+    print(f"{k}: {'PASS' if v else 'FAIL'}")

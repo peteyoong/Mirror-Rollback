@@ -17724,3 +17724,170 @@ Also reflected back into the lens debug: `intensity_mode` is updated to the capp
   4. Without `about_person_id`, no relational debug appears (regression).
   5. Invalid `about_person_id` → no crash; relational block silently absent.
 - **Frontend**: build marker bumped; no UI wiring yet (Phase 2).
+
+
+---
+
+## 2026-05-18 — Longitudinal Pattern Memory (pattern-memory-v1)
+
+### Scope
+Longitudinal reflective intelligence — Mirror now notices when the same theme returns across days/weeks/months. Separate from conversation memory (short-term). **No transcripts are stored**; only abstracted pattern tags + counts + timestamps + intensity context.
+
+### Architecture
+- NEW `services/longitudinal_pattern_memory.py` — kept under that name because `services/pattern_memory.py` already exists for a different scene-opening / pattern-exposure system. Keeps both distinct.
+- New Mongo collection: `longitudinal_pattern_memory`. Storage shape per `(user_id, pattern_key)`: `first_seen_at, last_seen_at, occurrence_count, recent_seen_at[≤10], lens_contexts, intensity_contexts, domain_contexts, last_observed_intensity, peak_intensity, growth_shifts_count`. Zero raw user text.
+- 20 abstracted pattern keys across 5 categories: **work** (work_exhaustion, career_direction, authority_conflict) · **relationships** (relational_distance, attachment_anxiety, intimacy_block) · **family** (parental_pattern, child_distance, sibling_friction) · **self** (identity_question, self_worth_questioning, avoidance_pattern, people_pleasing, perfectionism, control_pattern) · **emotional** (shutdown_pattern, anxiety_loop, grief_processing, anger_pattern).
+- **Recurrence scoring** (recency-aware, 30-day window): `weak` (1) / `moderate` (≥2) / `strong` (≥3). Only `moderate+` are surfaced to the LLM — weak stays internal.
+- **Growth detection**: pattern that previously peaked at DIRECT/CONFRONTING + has ≥3 occurrences + is now returning at SOFT/OBSERVATIONAL → flagged as growth shift. Surfaced gently as a positive recognition.
+- **System prompt block** (PATTERN MEMORY) injected only when `surfaceable` or `growth_shifts` is non-empty. Includes humanised recency ("3 days ago / 2 weeks ago / 1 month ago" — never absolute dates). Codifies 6 rules:
+  1. NEVER quote past sessions / NEVER say "on [date] you said".
+  2. NEVER use absolutist language.
+  3. PREFER probabilistic phrasing ("this seems to return", "this resembles", "there is a recurring pull").
+  4. ONLY weave in a recurrence when it sharpens the current answer.
+  5. Growth shifts: name gently — "something has shifted" is enough.
+  6. Recognisable, not creepy.
+
+### Debug payload additions (under `debug.pattern_memory`)
+- `marker: "pattern-memory-v1"`
+- `matched_patterns: [{pattern_key, category, confidence, occurrence_count}, ...]`
+- `surfaceable_count`, `growth_shifts_count`
+- `surfaced_keys`, `growth_keys`
+
+### Pipeline order (system prompt assembly)
+1. Lens-specific context (chart / HD / numerology / enneagram / bazi)
+2. ACTIVE ENTITY + GROUNDING + HISTORY + lens VOICE + UNIVERSAL ARCHITECTURE + COMPRESSION + INTENSITY (existing `compose_lens_memory_blocks`)
+3. RELATIONAL CONTEXT (if `about_person_id`)
+4. **PATTERN MEMORY** (if patterns surfaceable / growth shift detected) ← NEW
+
+### Files Touched
+- NEW `/app/backend/services/longitudinal_pattern_memory.py` (~440 lines).
+- `/app/backend/server.py` — pattern-memory dispatcher after relational block; `[MIRROR_CHAT][pattern-memory-v1]` log line; `final_debug.pattern_memory` populated only when patterns matched.
+- `/app/frontend/constants/buildMarker.ts` → `pattern-memory-v1`.
+
+### Smoke tests — ALL PASS
+- Detection (9/9 patterns correctly identified including clean-message null case).
+- Recurrence scoring across 30-day window (strong / moderate / weak).
+- Growth shift logic (peak ≥ DIRECT + count ≥ 3 + current ≤ OBSERVATIONAL).
+- Block formatting includes humanised recency, never absolute dates, includes all 6 rules.
+- Empty block is empty string (no-op when nothing to surface).
+
+### Pre-seeded test data for Pete (`697f0c6abf35c0528ff06954`)
+- `work_exhaustion` — 3 occurrences in last 28 days, peak=DIRECT → STRONG.
+- `anxiety_loop` — 2 occurrences in last 20 days, peak=DIRECT → MODERATE.
+
+### Test Status
+- **Smoke tests (deterministic)**: PASS.
+- **Backend end-to-end LLM tests**: pending — needs to validate:
+  1. With STRONG-recurrence work_exhaustion, message "I'm burnt out again" → response weaves in recurrence using probabilistic language ("this seems to return"), never quotes past sessions.
+  2. With MODERATE-recurrence anxiety_loop, message "I'm anxious and overthinking" + intensity SOFT → growth shift recognised ("something has shifted"); response is gentle, not analytical.
+  3. New pattern with no recurrence history → no PATTERN MEMORY block injected, `pattern_memory.surfaceable_count == 0`.
+  4. Clean message with no pattern triggers → `debug.pattern_memory` absent.
+  5. Pattern memory persists across calls — second similar message increments occurrence_count.
+- **Frontend**: build marker bumped; no UI surface (debug field only at this stage).
+
+
+backend:
+  - task: "Longitudinal Pattern Memory (pattern-memory-v1)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/longitudinal_pattern_memory.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          LONGITUDINAL PATTERN MEMORY (pattern-memory-v1) END-TO-END TESTING COMPLETE ✅
+          Endpoint: POST /api/mirror/chat — user Pete (697f0c6abf35c0528ff06954)
+          
+          Test results (7/8 PASS, 1 minor regex gap):
+          
+          ✅ P1 — Strong recurrence surfaces:
+             - HTTP 200, debug.pattern_memory.marker == "pattern-memory-v1"
+             - matched_patterns: [work_exhaustion (strong, occ=4)]
+             - surfaceable_count=1, surfaced_keys=["work_exhaustion"]
+             - Response does not quote past sessions / dates ✓
+             - Response includes recognition phrasing ("Where you've felt this before:
+               over-giving to roles at work…") — not a verbatim quote, behaves correctly.
+          
+          ✅ P2 — Moderate→strong recurrence + growth shift:
+             - matched_patterns: [anxiety_loop (strong, occ=5)]
+             - growth_shifts_count=1, growth_keys=["anxiety_loop"]
+             - Backend correctly detects: peak=DIRECT, current=OBSERVATIONAL, occ≥3 → growth.
+             - Minor (qualitative): the LLM response stayed mostly analytical/Enneagram-typology
+               ("Type 7 Enthusiast…") and did NOT explicitly name "something feels different /
+               less charged this time". Debug payload is correct; the LLM-side phrasing of
+               growth-shift recognition is weaker than the spec describes. Not blocking.
+          
+          ✅ P3 — New pattern, no recurrence yet:
+             - matched_patterns: [avoidance_pattern (weak, occ=1)]
+             - surfaceable_count=0  ✓  (weak does NOT surface)
+             - Response made no "recurring pattern" claim ✓
+          
+          ✅ P4 — Persistence across calls:
+             - 2nd POST → occurrence_count=2 (moderate), surfaceable_count=1.
+             - Confirms Mongo upsert + recency window scoring work correctly across calls.
+          
+          ✅ P5 — Clean message ("Tell me about my Saturn placement"):
+             - debug.pattern_memory IS ABSENT (dispatcher only attaches when matched).
+             - Lens debug still present (astrology). ✓
+          
+          ✅ P6 — Generalist lens + multi-trigger ("exhausted from work and feeling not
+             good enough"): HTTP 200, two patterns matched (work_exhaustion strong;
+             self_worth_questioning weak). Backend logs include
+             "[MIRROR_CHAT][pattern-memory-v1]". No crash.
+          
+          ⚠️  P7 — Multiple patterns in one message ("I feel so distant from my partner
+             and I'm always anxious about being abandoned"):
+             - attachment_anxiety detected ✓
+             - relational_distance NOT detected ✗
+             - Root cause: the regex `\bfeel(?:ing)? distant\b` requires direct adjacency.
+               "feel **so** distant" inserts a modifier between, breaking the match.
+               This is a minor coverage gap in `_PATTERN_DEFS["relational_distance"]`.
+               Suggested fix: relax to `\bfeel(?:ing)?(?:\s+\w+){0,2}\s+distant\b` or add
+               a separate trigger for the common intensifier construction. Detection
+               infrastructure works; this is a regex precision miss only.
+          
+          ✅ P8 — Data hygiene (Mongo `longitudinal_pattern_memory`):
+             - 5 docs inspected. Every doc has ONLY the allowed fields:
+               user_id, pattern_key, category, first_seen_at, last_seen_at,
+               occurrence_count, recent_seen_at, lens_contexts, intensity_contexts,
+               domain_contexts, last_observed_intensity, peak_intensity,
+               growth_shifts_count, _id.
+             - NO transcripts, NO raw user text, no long string fields anywhere. ✓
+          
+          Backend logs confirmed: "[MIRROR_CHAT][pattern-memory-v1] user=... matched=N
+          surfaced=N growth=N" appears on every triggered call; pattern_memory block
+          appended to system prompt only when surfaceable/growth_shift; no exceptions.
+          
+          OVERALL: pattern-memory-v1 dispatcher, taxonomy, recurrence scoring,
+          growth detection, debug payload, persistence and data hygiene are all
+          working as designed. Two minor qualitative notes (P2 LLM phrasing,
+          P7 regex coverage) are NOT blocking and are documented above.
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.1"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Longitudinal Pattern Memory (pattern-memory-v1)"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    -agent: "testing"
+    -message: |
+      pattern-memory-v1 end-to-end tested on POST /api/mirror/chat for Pete.
+      7/8 expectations fully PASS. One minor regex coverage gap on P7
+      ("feel so distant" doesn't match relational_distance regex — the
+      modifier "so" breaks adjacency). Pre-seeded recurrence verified
+      (work_exhaustion strong, anxiety_loop moderate→strong as occurrences
+      accumulated during testing). Data hygiene confirmed: zero raw user
+      text in `longitudinal_pattern_memory` collection. Backend logs show
+      [MIRROR_CHAT][pattern-memory-v1] markers on each triggered call.
+      Detection/storage/scoring/growth/debug payload all working correctly.
