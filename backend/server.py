@@ -514,6 +514,11 @@ class MirrorChatRequest(BaseModel):
     keystone_context: Optional[KeystoneContext] = None  # For keystone continuation
     # V1: Pattern Thread Context for Lens → Chat continuity
     pattern_thread_context: Optional[dict] = None  # Contains source_surface, pattern_key, core_truth, etc.
+    # relational-awareness-v1 — when set, the chat is about a saved person
+    # (e.g. "Ask about [Name]" flow on /people/[id]).  The mirror_chat
+    # endpoint loads the saved-person doc and injects a RELATIONAL CONTEXT
+    # system-prompt block + caps intensity per relationship class.
+    about_person_id: Optional[str] = None
 
 
 # Memory Update - "You Over Time" structured tracking
@@ -8016,6 +8021,67 @@ NOT: "I opened a generic chat"
                     f"{type(lens_mem_err).__name__}: {lens_mem_err}"
                 )
 
+        # =====================================================================
+        # RELATIONAL AWARENESS (relational-awareness-v1)
+        # =====================================================================
+        # When the chat is about a saved person (about_person_id provided),
+        # inject a RELATIONAL CONTEXT block + cap intensity by relationship
+        # class.  Independent of lens — applies to lens chats AND generalist.
+        # =====================================================================
+        relational_debug_payload: Optional[dict] = None
+        if request.about_person_id:
+            try:
+                from services.relational_awareness import compose_relational_block
+                # Load saved person doc.  Use the same db handle the saved_people
+                # router uses (motor async).
+                person_doc = await db.saved_people.find_one({
+                    "id": request.about_person_id,
+                    "user_id": request.user_id,
+                })
+                if person_doc:
+                    # Normalise the Mongo doc for the relational module.
+                    person_for_block = {
+                        "id": person_doc.get("id"),
+                        "name": person_doc.get("name"),
+                        "relationship_type": person_doc.get("relationship_type"),
+                        "full_birth_name": person_doc.get("full_birth_name"),
+                        "birth_date": person_doc.get("birth_date"),
+                        "birth_location": person_doc.get("birth_location") or {},
+                        "enneagram_type": person_doc.get("enneagram_type"),
+                    }
+                    # Use the lens-level intensity if available, else default.
+                    lens_intensity = (lens_debug_payload or {}).get("intensity_mode") or "OBSERVATIONAL"
+                    rel_block, relational_debug_payload, applied_intensity = compose_relational_block(
+                        person=person_for_block,
+                        user_message=request.message,
+                        history=history,
+                        lens_intensity_mode=lens_intensity,
+                    )
+                    if rel_block:
+                        system_prompt += "\n\n" + rel_block
+                    # Reflect the capped intensity back into the lens debug
+                    # so the response surfaces the effective value.
+                    if lens_debug_payload is not None and applied_intensity != lens_intensity:
+                        lens_debug_payload["intensity_mode"] = applied_intensity
+                        lens_debug_payload["intensity_capped_by_relational"] = True
+                    logger.info(
+                        f"[MIRROR_CHAT][relational-awareness-v1] "
+                        f"person={person_for_block.get('name')} "
+                        f"class={(relational_debug_payload or {}).get('relationship_class')} "
+                        f"projection_risk={(relational_debug_payload or {}).get('projection_risk')} "
+                        f"intensity={lens_intensity}->{applied_intensity}"
+                    )
+                else:
+                    logger.warning(
+                        f"[MIRROR_CHAT][relational-awareness-v1] "
+                        f"about_person_id={request.about_person_id} not found for user={request.user_id}"
+                    )
+            except Exception as rel_err:
+                logger.error(
+                    f"[MIRROR_CHAT][relational-awareness-v1] error: "
+                    f"{type(rel_err).__name__}: {rel_err}"
+                )
+
         # ===== LLM CALL VIA EMERGENT CONTRACT =====
         from emergent_contract import emergent_generate, validate_emergent_output, log_contract_event
         import asyncio
@@ -8509,13 +8575,23 @@ USER SHOULD FEEL:
         request_duration = time.time() - request_start
         logger.info(f"[MIRROR_CHAT] === REQUEST COMPLETED === user_id={request.user_id}, duration={request_duration:.2f}s, response_length={len(response_text) if response_text else 0}")
         
+        # Compose final debug payload — fold relational debug under
+        # `relational` key so frontend can read both lens + relational layers.
+        final_debug: Optional[dict] = None
+        if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi"):
+            final_debug = dict(lens_debug_payload or {})
+        if relational_debug_payload:
+            if final_debug is None:
+                final_debug = {}
+            final_debug["relational"] = relational_debug_payload
+
         return MirrorChatResponse(
             response=response_text,
             session_id=session_id,
             timestamp=datetime.now(timezone.utc).isoformat(),
             memory_update=memory_update,
             thread=thread_metadata,
-            debug=lens_debug_payload if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi") else None,
+            debug=final_debug,
         )
         
     except HTTPException as http_exc:

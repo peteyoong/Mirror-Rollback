@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'emotional-timing-v1';
+export const BUILD_ID = 'relational-awareness-v1';
 export const BUILD_AT = '2026-05-18';

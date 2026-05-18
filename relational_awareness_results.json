@@ -1,0 +1,652 @@
+{
+  "R1": {
+    "response": "The dynamic between you and Test Child might not be as straightforward as it looks. With your Core Type 7 \u2014 the Enthusiast, there's often an instinct to avoid discomfort, seeking freedom and keeping things light. This can sometimes make you overlook deeper emotional connections or tensions that need to be addressed. From their perspective, especially in a parent-child relationship, they might sense this tendency and react by becoming avoidant themselves. They might feel they need space or different kinds of emotional support. Your connection might benefit from exploring what emotions or topics tend to be sidestepped. Is there a specific moment or pattern you've noticed that makes this feel more pressing?",
+    "session_id": "0ff638c1-0c66-4598-8461-4a96d85ad124",
+    "timestamp": "2026-05-18T12:51:32.129371+00:00",
+    "memory_update": {
+      "themes": [
+        "parent-child dynamics",
+        "emotional processing",
+        "connecting with partner"
+      ],
+      "recurring_tensions": [
+        "need for freedom vs emotional connection",
+        "discomfort vs vulnerability"
+      ],
+      "supportive_moves": [
+        "open conversations with partner",
+        "sitting with thoughts and emotions"
+      ],
+      "drainers": [
+        "tension in shoulders",
+        "feeling burdened"
+      ],
+      "inferred_state": "stabilizing",
+      "confidence": 0.8,
+      "evidence": [
+        "Need to sit with thoughts and emotions",
+        "Felt warmth and trust in conversation with partner",
+        "Tension in shoulders feeling like a burden"
+      ],
+      "updated_at_iso": "2026-05-18T12:51:32.127009+00:00"
+    },
+    "thread": null,
+    "debug": {
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "enneagram",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "recent_history_entities": [],
+      "grounding_sources": [
+        "Core Type",
+        "Wing",
+        "Stress / Security lines (deterministic)"
+      ],
+      "missing_sources": [
+        "Instinctual Stack",
+        "Tritype"
+      ],
+      "conversation_turns_used": 0,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "motivational psychologist",
+      "compression_marker": "conversational-compression-v1",
+      "depth_mode": "NORMAL",
+      "intensity_marker": "emotional-timing-v1",
+      "intensity_mode": "DIRECT",
+      "lens_intensity_ceiling": "CONFRONTING",
+      "relational": {
+        "marker": "relational-awareness-v1",
+        "about_person": {
+          "id": "rel-test-child",
+          "name": "Test Child",
+          "relationship_type": "child"
+        },
+        "relationship_class": "child",
+        "relationship_intensity_ceiling": "DIRECT",
+        "projection_signals": {
+          "absolutist_language": false,
+          "recruitment_request": false,
+          "blame_focus": false
+        },
+        "projection_risk": "low",
+        "intensity_pre_cap": "DIRECT",
+        "intensity_applied": "DIRECT",
+        "intensity_was_capped": false
+      }
+    }
+  },
+  "R2": {
+    "response": "You're in a position to face some realities about wanting to stay perpetually moving, chasing what's next. As a Core Type 7 \u2014 the Enthusiast \u2014 there's motivation to avoid what feels like stillness or stagnation. This often translates into steering clear of uncomfortable emotions or situations that urge you to slow down and dig deeper into what's really present. This pattern can create a shadow where distractions become the shield against discomfort. You might feel tension when life asks you to sit with what is, rather than what's coming. That burden in your shoulders speaks to this \u2014 the weight of unresolved feelings you've been skirting around. Now, imagine if nothing changes: the fast pace, the avoidance. The cost may remain unexamined, as your need for novelty perpetuates avoidance of depth.",
+    "session_id": "d090f28d-fe74-4386-bf5e-27889364bb57",
+    "timestamp": "2026-05-18T12:51:39.538468+00:00",
+    "memory_update": {
+      "themes": [
+        "need to slow down",
+        "desire for connection",
+        "emotional awareness"
+      ],
+      "recurring_tensions": [
+        "avoiding stillness",
+        "discomfort with vulnerability"
+      ],
+      "supportive_moves": [
+        "open conversations with partner",
+        "sitting with thoughts and emotions"
+      ],
+      "drainers": [
+        "tension in shoulders",
+        "feeling of burden"
+      ],
+      "inferred_state": "integrating",
+      "confidence": 0.75,
+      "evidence": [
+        "realizing a need to sit with thoughts instead of rushing",
+        "feeling connected and safe with partner during open conversation",
+        "tension and burden felt physically in shoulders"
+      ],
+      "updated_at_iso": "2026-05-18T12:51:39.536374+00:00"
+    },
+    "thread": null,
+    "debug": {
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "enneagram",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "recent_history_entities": [],
+      "grounding_sources": [
+        "Core Type",
+        "Wing",
+        "Stress / Security lines (deterministic)"
+      ],
+      "missing_sources": [
+        "Instinctual Stack",
+        "Tritype"
+      ],
+      "conversation_turns_used": 0,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "motivational psychologist",
+      "compression_marker": "conversational-compression-v1",
+      "depth_mode": "NORMAL",
+      "intensity_marker": "emotional-timing-v1",
+      "intensity_mode": "DIRECT",
+      "lens_intensity_ceiling": "CONFRONTING",
+      "relational": {
+        "marker": "relational-awareness-v1",
+        "about_person": {
+          "id": "6dabc234-80f6-4a4e-9184-522fc4a8e790",
+          "name": "Test",
+          "relationship_type": "friend"
+        },
+        "relationship_class": "friendship",
+        "relationship_intensity_ceiling": "CONFRONTING",
+        "projection_signals": {
+          "absolutist_language": false,
+          "recruitment_request": false,
+          "blame_focus": false
+        },
+        "projection_risk": "low",
+        "intensity_pre_cap": "DIRECT",
+        "intensity_applied": "DIRECT",
+        "intensity_was_capped": false
+      }
+    }
+  },
+  "R3": {
+    "response": "Alright. You might be focusing on the surface interactions without considering how they're shaped by both your energies. As a Manifestor, you're direct and initiate with impact. But if your boss expects more response than initiation, that creates tension. Notice the clash between starting something and waiting for more power to engage is real-time display. If this stays unchecked, a sense of frustration might build up for you while a sense of aloofness might build in them. Is there a recurring point where your initiating energy feels blocked?",
+    "session_id": "aad136ee-c7f7-4751-bb19-fcab20360b70",
+    "timestamp": "2026-05-18T12:51:44.468725+00:00",
+    "memory_update": {
+      "themes": [
+        "communication challenges",
+        "emotional processing",
+        "relationship reconnection"
+      ],
+      "recurring_tensions": [
+        "self-initiation vs. response need",
+        "managing emotional burdens"
+      ],
+      "supportive_moves": [
+        "sitting with thoughts",
+        "open conversations with partner"
+      ],
+      "drainers": [
+        "tension in shoulders",
+        "feeling slow"
+      ],
+      "inferred_state": "integrating",
+      "confidence": 0.7,
+      "evidence": [
+        "recognizing the need to sit with thoughts",
+        "reflecting on body tension",
+        "feeling connected in open conversation with partner"
+      ],
+      "updated_at_iso": "2026-05-18T12:51:44.466423+00:00"
+    },
+    "thread": null,
+    "debug": {
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "human_design",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "recent_history_entities": [],
+      "grounding_sources": [
+        "Type",
+        "Strategy",
+        "Authority",
+        "Profile",
+        "Definition",
+        "Incarnation Cross",
+        "Defined Centers",
+        "Defined Channels"
+      ],
+      "missing_sources": [],
+      "conversation_turns_used": 0,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "energetic mechanic",
+      "compression_marker": "conversational-compression-v1",
+      "depth_mode": "NORMAL",
+      "intensity_marker": "emotional-timing-v1",
+      "intensity_mode": "DIRECT",
+      "lens_intensity_ceiling": "DIRECT",
+      "relational": {
+        "marker": "relational-awareness-v1",
+        "about_person": {
+          "id": "rel-test-boss",
+          "name": "Test Boss",
+          "relationship_type": "boss"
+        },
+        "relationship_class": "authority",
+        "relationship_intensity_ceiling": "DIRECT",
+        "projection_signals": {
+          "absolutist_language": false,
+          "recruitment_request": false,
+          "blame_focus": false
+        },
+        "projection_risk": "low",
+        "intensity_pre_cap": "DIRECT",
+        "intensity_applied": "DIRECT",
+        "intensity_was_capped": false
+      }
+    }
+  },
+  "R4": {
+    "response": "It seems you're feeling a lot of frustration around your relationship dynamics right now. In such relational fields, it's worth exploring how certain patterns might be playing out on both sides. The themes of distance or coldness might stem from unresolved expectations or unmet needs that aren't being communicated effectively by either of you. Rather than casting blame, reflecting on how you both engage can uncover what might be beneath the surface tension. Is there a space in your interaction where mutual understanding or listening could be cultivated differently?",
+    "session_id": "c57de9c1-56c0-4326-8791-63a08103f2e1",
+    "timestamp": "2026-05-18T12:51:48.129050+00:00",
+    "memory_update": {
+      "themes": [
+        "relationship dynamics",
+        "emotional reflection",
+        "communication"
+      ],
+      "recurring_tensions": [
+        "feeling of distance in relationship",
+        "self-blame vs. partner-blame"
+      ],
+      "supportive_moves": [
+        "open conversations with partner",
+        "sitting with thoughts and emotions"
+      ],
+      "drainers": [
+        "shoulder tension",
+        "feeling burdened"
+      ],
+      "inferred_state": "integrating",
+      "confidence": 0.8,
+      "evidence": [
+        "Expressed frustration about relationship distance with partner.",
+        "Realized benefit of sitting with thoughts and emotions.",
+        "Noted physical tension as sign of emotional burden."
+      ],
+      "updated_at_iso": "2026-05-18T12:51:48.126997+00:00"
+    },
+    "thread": null,
+    "debug": {
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "astrology",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "recent_history_entities": [],
+      "grounding_sources": [
+        "Sidereal planets",
+        "House cusps",
+        "Lunar nodes"
+      ],
+      "missing_sources": [],
+      "conversation_turns_used": 0,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "symbolic cartographer",
+      "compression_marker": "conversational-compression-v1",
+      "depth_mode": "NORMAL",
+      "intensity_marker": "emotional-timing-v1",
+      "intensity_mode": "OBSERVATIONAL",
+      "lens_intensity_ceiling": "DIRECT",
+      "relational": {
+        "marker": "relational-awareness-v1",
+        "about_person": {
+          "id": "rel-test-spouse",
+          "name": "Test Spouse",
+          "relationship_type": "spouse"
+        },
+        "relationship_class": "romantic",
+        "relationship_intensity_ceiling": "DIRECT",
+        "projection_signals": {
+          "absolutist_language": false,
+          "recruitment_request": true,
+          "blame_focus": true
+        },
+        "projection_risk": "high",
+        "intensity_pre_cap": "OBSERVATIONAL",
+        "intensity_applied": "OBSERVATIONAL",
+        "intensity_was_capped": false
+      }
+    }
+  },
+  "R5": {
+    "response": "Reflecting on a former partner, like your Test Ex, often reveals aspects of your inner world and relational patterns. This act of looking back could signal a desire to understand yourself through past experiences. Especially with your Pisces Sun in the 3rd house, there might be a natural pull to ponder and communicate about the emotional connection and narratives formed in close relationships. In relationships, this placement often shows up as a sensitivity to how communication flows and how those exchanges affect your emotional state. You might find yourself revisiting conversations and moments, seeking clarity or closure. Sometimes, this introspection can cast a lingering shadow, leading to over-identifying with past roles or struggles. It's important to navigate this reflection without letting it anchor you in past dramas. As you think about your Test Ex, what are you discovering about your desires and boundaries in relationships?",
+    "session_id": "9ed45db4-79b1-4b2f-9496-7312a8228ab9",
+    "timestamp": "2026-05-18T12:51:52.303704+00:00",
+    "memory_update": {
+      "themes": [
+        "reflection on past relationships",
+        "relationship dynamics"
+      ],
+      "recurring_tensions": [
+        "processing emotional burdens",
+        "navigating vulnerability"
+      ],
+      "supportive_moves": [
+        "open conversations",
+        "sitting with emotions"
+      ],
+      "drainers": [
+        "physical tension",
+        "feeling slow"
+      ],
+      "inferred_state": "integrating",
+      "confidence": 0.7,
+      "evidence": [
+        "Reflecting on former partner to understand self",
+        "Recognizes need to sit with thoughts and emotions",
+        "Feels connected and safe in open conversations"
+      ],
+      "updated_at_iso": "2026-05-18T12:51:52.301416+00:00"
+    },
+    "thread": null,
+    "debug": {
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "astrology",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "recent_history_entities": [],
+      "grounding_sources": [
+        "Sidereal planets",
+        "House cusps",
+        "Lunar nodes"
+      ],
+      "missing_sources": [],
+      "conversation_turns_used": 0,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "symbolic cartographer",
+      "compression_marker": "conversational-compression-v1",
+      "depth_mode": "NORMAL",
+      "intensity_marker": "emotional-timing-v1",
+      "intensity_mode": "OBSERVATIONAL",
+      "lens_intensity_ceiling": "DIRECT",
+      "relational": {
+        "marker": "relational-awareness-v1",
+        "about_person": {
+          "id": "rel-test-ex",
+          "name": "Test Ex",
+          "relationship_type": "ex_partner"
+        },
+        "relationship_class": "former",
+        "relationship_intensity_ceiling": "DIRECT",
+        "projection_signals": {
+          "absolutist_language": false,
+          "recruitment_request": false,
+          "blame_focus": false
+        },
+        "projection_risk": "low",
+        "intensity_pre_cap": "OBSERVATIONAL",
+        "intensity_applied": "OBSERVATIONAL",
+        "intensity_was_capped": false
+      }
+    }
+  },
+  "R6": {
+    "response": "You're looking for what's under the surface here. Your Core Type 7, the Enthusiast, tends to avoid discomfort by seeking out new and pleasant experiences. In a dynamic where avoidance is present, it can be easy to mirror that behavior without realizing it. Your tendency to avoid difficult emotions or situations may be showing up here with Test Child, too. But what if this isn't just about their avoidance? Is there a part of you that is also avoiding something in this relationship?",
+    "session_id": "5cfc4ed9-9210-4398-9fd3-4b3f5c66520d",
+    "timestamp": "2026-05-18T12:51:55.971666+00:00",
+    "memory_update": {
+      "themes": [
+        "avoidance in relationships",
+        "emotional processing",
+        "relationship connection"
+      ],
+      "recurring_tensions": [
+        "avoidance of discomfort",
+        "internal conflict over emotional openness"
+      ],
+      "supportive_moves": [
+        "sitting with thoughts and emotions",
+        "open conversations with partner"
+      ],
+      "drainers": [
+        "feeling of burden",
+        "physical tension"
+      ],
+      "inferred_state": "integrating",
+      "confidence": 0.8,
+      "evidence": [
+        "User connects avoidance tendencies with their personal dynamics.",
+        "User expresses realization about the need to sit with emotions.",
+        "User notes a feeling of burden in their shoulders."
+      ],
+      "updated_at_iso": "2026-05-18T12:51:55.969401+00:00"
+    },
+    "thread": null,
+    "debug": {
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "enneagram",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "recent_history_entities": [],
+      "grounding_sources": [
+        "Core Type",
+        "Wing",
+        "Stress / Security lines (deterministic)"
+      ],
+      "missing_sources": [
+        "Instinctual Stack",
+        "Tritype"
+      ],
+      "conversation_turns_used": 0,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "motivational psychologist",
+      "compression_marker": "conversational-compression-v1",
+      "depth_mode": "NORMAL",
+      "intensity_marker": "emotional-timing-v1",
+      "intensity_mode": "DIRECT",
+      "lens_intensity_ceiling": "CONFRONTING"
+    }
+  },
+  "R7": {
+    "response": "Your day might hold an opportunity to notice how your Core Type 7 \u2014 the Enthusiast, with its boundless potential for creativity and exploration, interacts with the subtleties of daily life. Type 7s often have a core desire for freedom and a core fear of being trapped in emotional pain or limitation. This can lead to seeking new experiences as a way to avoid discomfort. In your journal, you've mentioned the importance of sitting with your thoughts and emotions. This can be a gentle reminder today to slow down and allow yourself the space to process what's present without immediately seeking distraction or change. How might you create a moment today that allows for stillness and introspection?",
+    "session_id": "f0e3f889-0fcb-4b6a-819d-7b7eefee69b3",
+    "timestamp": "2026-05-18T12:52:05.210517+00:00",
+    "memory_update": {
+      "themes": [
+        "importance of sitting with emotions",
+        "connection with partner",
+        "managing emotional waves"
+      ],
+      "recurring_tensions": [
+        "desire for freedom vs fear of emotional pain",
+        "physical tension attributed to emotional burdens"
+      ],
+      "supportive_moves": [
+        "open conversations with partner",
+        "sitting with thoughts and emotions"
+      ],
+      "drainers": [
+        "feeling of physical tension and burden",
+        "pressure of emotional management"
+      ],
+      "inferred_state": "integrating",
+      "confidence": 0.8,
+      "evidence": [
+        "mentioned the importance of sitting with thoughts and emotions",
+        "felt tense shoulders described as a burden",
+        "experienced reconnection and safety in open communication"
+      ],
+      "updated_at_iso": "2026-05-18T12:52:05.208375+00:00"
+    },
+    "thread": null,
+    "debug": {
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "enneagram",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "recent_history_entities": [],
+      "grounding_sources": [
+        "Core Type",
+        "Wing",
+        "Stress / Security lines (deterministic)"
+      ],
+      "missing_sources": [
+        "Instinctual Stack",
+        "Tritype"
+      ],
+      "conversation_turns_used": 0,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "motivational psychologist",
+      "compression_marker": "conversational-compression-v1",
+      "depth_mode": "NORMAL",
+      "intensity_marker": "emotional-timing-v1",
+      "intensity_mode": "OBSERVATIONAL",
+      "lens_intensity_ceiling": "CONFRONTING"
+    }
+  },
+  "R8": {
+    "response": "Take a deep breath, Pete. Your Sun in Pisces often brings a depth of feeling that runs deep. It's as if your heart has a natural affinity for connectedness and empathy, especially within relationships. Right now, this might feel overwhelming, with emotions pulling you into their depths. In moments like these, it's important to acknowledge your sensitivity as both a gift and a challenge. It's there to illuminate something about your connection with Test Spouse. What feels most pressing that you wish they understood or could meet you in?",
+    "session_id": "239ae5cd-c34f-4d5c-95ff-96e308d94833",
+    "timestamp": "2026-05-18T12:52:09.581857+00:00",
+    "memory_update": {
+      "themes": [
+        "emotional depth",
+        "relationship with Test Spouse",
+        "personal introspection"
+      ],
+      "recurring_tensions": [
+        "balancing sensitivity with emotional challenges",
+        "navigating emotional ups and downs"
+      ],
+      "supportive_moves": [
+        "open conversations with partner",
+        "sitting with emotions"
+      ],
+      "drainers": [
+        "feeling lost",
+        "shoulder tension as a burden"
+      ],
+      "inferred_state": "integrating",
+      "confidence": 0.8,
+      "evidence": [
+        "feeling of being lost and crying about Test Spouse",
+        "importance of sitting with thoughts and emotions",
+        "sense of reconnection with partner after distance"
+      ],
+      "updated_at_iso": "2026-05-18T12:52:09.579463+00:00"
+    },
+    "thread": null,
+    "debug": {
+      "marker": "multi-lens-chat-memory-v1",
+      "lens": "astrology",
+      "active_entity": null,
+      "active_entity_source": "none",
+      "recent_history_entities": [],
+      "grounding_sources": [
+        "Sidereal planets",
+        "House cusps",
+        "Lunar nodes"
+      ],
+      "missing_sources": [],
+      "conversation_turns_used": 0,
+      "voice_marker": "lens-voice-differentiation-v1",
+      "interpretive_stance": "symbolic cartographer",
+      "compression_marker": "conversational-compression-v1",
+      "depth_mode": "NORMAL",
+      "intensity_marker": "emotional-timing-v1",
+      "intensity_mode": "SOFT",
+      "lens_intensity_ceiling": "DIRECT",
+      "relational": {
+        "marker": "relational-awareness-v1",
+        "about_person": {
+          "id": "rel-test-spouse",
+          "name": "Test Spouse",
+          "relationship_type": "spouse"
+        },
+        "relationship_class": "romantic",
+        "relationship_intensity_ceiling": "DIRECT",
+        "projection_signals": {
+          "absolutist_language": false,
+          "recruitment_request": false,
+          "blame_focus": false
+        },
+        "projection_risk": "low",
+        "intensity_pre_cap": "SOFT",
+        "intensity_applied": "SOFT",
+        "intensity_was_capped": false
+      }
+    }
+  },
+  "R9": {
+    "response": "Sometimes just sitting with our thoughts can bring a kind of clarity that action often rushes past. This space could allow you to notice what's truly on your mind without the urgency to change or fix anything immediately. What thoughts or feelings are coming up for you right now?",
+    "session_id": "ec35d2f7-0d6b-4bbf-ab30-4b583d840d5d",
+    "timestamp": "2026-05-18T12:52:12.628021+00:00",
+    "memory_update": {
+      "themes": [
+        "slowing down",
+        "emotional awareness",
+        "relationship dynamics"
+      ],
+      "recurring_tensions": [
+        "feeling burdened",
+        "desire for emotional clarity"
+      ],
+      "supportive_moves": [
+        "sitting with thoughts",
+        "open conversations with partner"
+      ],
+      "drainers": [
+        "physical tension",
+        "feeling rushed"
+      ],
+      "inferred_state": "grounding",
+      "confidence": 0.8,
+      "evidence": [
+        "need to sit with thoughts and emotions without rushing",
+        "feelings of burden reflected in physical tension",
+        "connection and open communication with partner"
+      ],
+      "updated_at_iso": "2026-05-18T12:52:12.625743+00:00"
+    },
+    "thread": null,
+    "debug": null
+  },
+  "R10": {
+    "response": "You want clarity on what's happening between you and Test Child. It's understandable to feel that way when interactions don't unfold as hoped. But consider this: Your child might not be avoiding you personally. Instead, there could be elements in your approach or the environment that make them retreat. Perhaps your own intensity might sometimes feel overwhelming. Notice this: as a Manifestor with a defined Throat and emotional authority, you're someone who feels deeply and expresses strongly. That energy might be sensed differently by those around you, especially a sensitive child. Perhaps the pattern isn't about avoidance \u2014 but a need for a different kind of connection.",
+    "session_id": "6d2228e5-62f7-4c46-98e6-c8846beece09",
+    "timestamp": "2026-05-18T12:52:17.026079+00:00",
+    "memory_update": {
+      "themes": [
+        "parent-child interaction",
+        "emotional processing",
+        "relationship connection"
+      ],
+      "recurring_tensions": [
+        "intensity in communication",
+        "burden of emotions"
+      ],
+      "supportive_moves": [
+        "open conversations",
+        "sitting with thoughts and emotions"
+      ],
+      "drainers": [
+        "intense interactions",
+        "physical tension"
+      ],
+      "inferred_state": "integrating",
+      "confidence": 0.8,
+      "evidence": [
+        "Seeking understanding in interactions with Test Child",
+        "Realization of the need to sit with emotions",
+        "Feeling tense and describing it as a burden"
+      ],
+      "updated_at_iso": "2026-05-18T12:52:17.024053+00:00"
+    },
+    "thread": null,
+    "debug": {
+      "relational": {
+        "marker": "relational-awareness-v1",
+        "about_person": {
+          "id": "rel-test-child",
+          "name": "Test Child",
+          "relationship_type": "child"
+        },
+        "relationship_class": "child",
+        "relationship_intensity_ceiling": "DIRECT",
+        "projection_signals": {
+          "absolutist_language": false,
+          "recruitment_request": false,
+          "blame_focus": false
+        },
+        "projection_risk": "low",
+        "intensity_pre_cap": "OBSERVATIONAL",
+        "intensity_applied": "OBSERVATIONAL",
+        "intensity_was_capped": false
+      }
+    }
+  }
+}
