@@ -11388,12 +11388,261 @@ backend:
 
 test_plan:
   current_focus:
-    - "Astrology Chat — Conversational Memory + Entity Tracking (astrology-chat-memory-v1)"
-  stuck_tasks: []
+    - "Multi-Lens Chat Memory + Entity Tracking (multi-lens-chat-memory-v1)"
+  stuck_tasks:
+    - "Multi-Lens Chat Memory + Entity Tracking (multi-lens-chat-memory-v1)"
   test_all: false
   test_priority: "high_first"
 
 backend:
+  - task: "Multi-Lens Chat Memory + Entity Tracking (multi-lens-chat-memory-v1)"
+    implemented: true
+    working: false
+    file: "/app/backend/services/lens_conversation.py, /app/backend/services/lens_registries/*.py, /app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: |
+          MULTI-LENS CHAT MEMORY V1 — END-TO-END LLM TEST RESULTS
+          12 / 17 ASSERTIONS PASSED.  5 FAILS, all caused by the SAME root cause
+          in services/lens_conversation.py (NOT the LLM, NOT the registries' index
+          building, NOT the grounding block).
+
+          Endpoint: POST /api/mirror/chat
+          Test user: Pete (697f0c6abf35c0528ff06954)
+          Test artefact: /app/multi_lens_chat_memory_test.py
+          Results JSON:  /app/multi_lens_chat_memory_results.json
+          Backend logs:  no exceptions raised by services.lens_conversation or
+                         services.lens_registries.*  ✅
+          Every lens response carries debug.marker == "multi-lens-chat-memory-v1". ✅
+          Every lens response carries debug.lens == <correct lens>. ✅
+          Generalist (lens=null) returns debug=null. ✅
+          Ambiguous-referent / no-session payloads return active_entity_source = "none"
+          and never crash, for all 5 lenses. ✅
+
+          ── SECTION A — Astrology Jupiter chain (3 turns, same session) ──────────
+          A.T1  Jupiter (current)            PASS  ✅
+          A.T2  Jupiter (referent, not Nodes/Sun)
+                                            PASS  ✅
+                  Response correctly corrects the user ("Jupiter sits in Cancer,
+                  in your 8th house, not the 4th") — does NOT drift.
+          A.T3  Jupiter (referent)           PASS  ✅
+                  Response plainly answers "8th house".
+          Astrology regression is fully clean — matches the previous
+          astrology-chat-memory-v1 result.
+
+          ── SECTION B — Human Design referent chain ───────────────────────────────
+          B.T1  Authority (current)          ❌ FAIL
+                  debug.active_entity = None, source = "none"
+                  EXPECTED: name="Authority", kind="hd_top", source="current"
+          B.T2  Authority (referent)         ❌ FAIL
+                  debug.active_entity = None, source = "none"
+                  EXPECTED: name="Authority", source="referent"
+                  (history_entities did show ["Authority"], so the registry's
+                  extract_entities_from_text DOES detect it from the prior
+                  Mirror turn — but the resolver never assigns it as active.)
+          B.T3  Profile (explicit pivot)     ❌ FAIL
+                  debug.active_entity = None, source = "none"
+                  EXPECTED: name="Profile", source="current"
+          Grounding sources include Type, Strategy, Authority, Profile, Definition,
+          Incarnation Cross, Defined Centers, Defined Channels ✅
+          Note: LLM responses are STILL on-topic (Authority → Profile → pressure
+          response) because the grounding block carries the same data.  The
+          DEBUG PAYLOAD contract is what fails.
+
+          ── SECTION C — Numerology referent chain ─────────────────────────────────
+          C.T1  Life Path (current)          PASS  ✅
+                  Response cites Life Path 11.
+          C.T2  Life Path (referent)         PASS  ✅
+                  Both responses correctly center on Life Path 11.
+          grounding_sources includes "Life Path" ✅
+
+          ── SECTION D — Enneagram (Pete HAS results: Type 7, Wing 8) ──────────────
+          Pete enneagram results: has_result = True, core_type = 7, wing = 8.
+          D.T1  Core Type (has data)         ❌ FAIL
+                  debug.active_entity = None, source = "none"
+                  EXPECTED: name="Core Type", kind="core_type", source="current"
+          grounding_sources DOES include "Core Type", "Wing",
+          "Stress / Security lines (deterministic)" ✅
+          Response correctly cites Type 7 Enthusiast w8 ✅ — so the LLM is grounded,
+          but the debug payload says "no active entity".
+
+          ── SECTION E — BaZi referent chain ───────────────────────────────────────
+          E.T1  Day Master (current)         ❌ FAIL
+                  debug.active_entity = None, source = "none"
+                  EXPECTED: name="Day Master", source="current"
+                  Response correctly cites "Day Master is Yin Metal (Xin)" ✅
+                  grounding_sources includes "Day Master", "Four Pillars",
+                  "Ten Gods", "Favorable / Unfavorable Elements",
+                  "Current timing layer" ✅
+          E.T2  Month Pillar (explicit pivot)  PASS  ✅
+                  active_entity={"name":"Month Pillar","kind":"pillar"}, source=current.
+                  Response correctly cites "Month Pillar is Yi Mao".
+
+          ── SECTION F — Generalist regression ─────────────────────────────────────
+          F.    Generalist (lens=null), debug = null  PASS  ✅
+
+          ── SECTION G — No-crash regression (all 5 lenses, empty session) ─────────
+          G. astrology      PASS  ✅  active_entity_source="none"
+          G. human_design   PASS  ✅  active_entity_source="none"
+          G. numerology     PASS  ✅  active_entity_source="none"
+          G. enneagram      PASS  ✅  active_entity_source="none"
+          G. bazi           PASS  ✅  active_entity_source="none"
+          No exceptions from services.lens_conversation or services.lens_registries.*
+          in backend logs for any of these 5 calls.
+
+          ─────────────────────────────────────────────────────────────────────────
+          ROOT CAUSE (single bug, three symptoms)
+          ─────────────────────────────────────────────────────────────────────────
+          services/lens_conversation.py · resolve_active_entity() signature:
+
+              primary_kinds: Tuple[str, ...] = (
+                  "planet", "node", "angle", "center", "channel",
+                  "gate", "pillar", "core_type", "life_path",
+              )
+              secondary_kinds: Tuple[str, ...] = (
+                  "house", "incarnation_cross", "ten_god", "element",
+                  "personal_cycle", "wing", "instinct",
+              )
+
+          But the registries assign the following kinds that are NOT in either tuple:
+
+              services/lens_registries/human_design.py
+                  Type / Strategy / Authority / Profile / Definition
+                  → kind = "hd_top"     ← missing from primary_kinds
+
+              services/lens_registries/bazi.py
+                  Day Master            → kind = "day_master"   ← missing
+                  Useful God / Favorable Elements via element → ok ("element")
+                  Luck Pillars          → kind = "luck_pillar"  ← missing
+
+              services/lens_registries/enneagram.py
+                  Stress Line / Security Line → kind = "line"   ← missing
+                  Heart/Head/Body Center → kind = "center"      ✅ (covered)
+                  Tritype               → kind = "tritype"      ← missing
+                  Wing                  → kind = "wing"         ✅ (in secondary)
+                  Core Type             → kind = "core_type"    ✅ (in primary)
+
+          When extract_entities_from_text() returns ["Authority"], the resolver
+          looks up index["Authority"]["kind"] → "hd_top", which is in neither
+          primary_kinds nor secondary_kinds, so current_primary AND current_secondary
+          are both empty.  With no referent in the current message ("What is my
+          Authority and what does it mean?"), the resolver falls through to
+          carryover scan → history is empty → returns (None, "none").
+
+          Same pathway breaks B.T1 / B.T2 / B.T3 (hd_top), D.T1 (the user said
+          "Enneagram type" but the alias regex doesn't include "enneagram type" so
+          no entity matched at all — distinct alias-coverage bug), and E.T1
+          (day_master).
+
+          ─────────────────────────────────────────────────────────────────────────
+          SEPARATE MINOR ALIAS-COVERAGE BUG (Enneagram D.T1 only)
+          ─────────────────────────────────────────────────────────────────────────
+          services/lens_registries/enneagram.py · _ALIASES does NOT include
+          "enneagram type", so "What is my Enneagram type?" matches nothing.
+          ("my type" is in _ALIASES but the regex is \bmy type\b, and the user's
+          message has "my Enneagram type" — the word "Enneagram" sits between
+          "my" and "type", so \bmy type\b never matches.)
+
+          Suggested aliases to add:  "enneagram type", "ennea type", "personality
+          type", "type number".
+
+          ─────────────────────────────────────────────────────────────────────────
+          ADDITIONAL OBSERVATIONS
+          ─────────────────────────────────────────────────────────────────────────
+          • The LLM responses themselves are still grounded because each
+            registry's format_grounding_block correctly lists Type / Authority /
+            Profile / Day Master / Core Type — so the user-visible answers in
+            B / D / E look correct.  But the contract documented in the review
+            request ("debug.active_entity reflects the resolved entity") is
+            violated for HD top-level signals, Day Master, and the Enneagram type
+            phrasing.
+          • No exceptions raised by services.lens_conversation or
+            services.lens_registries.*  during the entire test run.
+          • Backend logs confirm the multi-lens-chat-memory-v1 path is hit for
+            every lens chat call.
+          • Budget-exceeded warnings appeared from emergent_contract on a couple
+            of calls (LiteLLM cost cap) — calls still returned 200 OK from the
+            fallback responder, so functionality wasn't gated by that.
+
+          ─────────────────────────────────────────────────────────────────────────
+          RECOMMENDED FIX (main agent — DO NOT have the testing agent edit this)
+          ─────────────────────────────────────────────────────────────────────────
+          1. In services/lens_conversation.py · resolve_active_entity(), extend
+             primary_kinds to include:
+                "hd_top", "day_master", "tritype", "line", "luck_pillar"
+             (Centers are already covered via "center"; Wing is in secondary_kinds.)
+
+             Recommended one-liner change:
+                primary_kinds: Tuple[str, ...] = (
+                    "planet", "node", "angle", "center", "channel", "gate",
+                    "pillar", "core_type", "life_path",
+                    "hd_top", "day_master", "tritype", "line", "luck_pillar",
+                )
+
+          2. In services/lens_registries/enneagram.py · _ALIASES, add:
+                "enneagram type": "Core Type",
+                "ennea type": "Core Type",
+                "type number": "Core Type",
+                "personality type": "Core Type",
+
+          After these two edits, re-run /app/multi_lens_chat_memory_test.py.
+          All 17 assertions should pass.
+
+agent_communication:
+  - agent: "testing"
+    message: |
+      Multi-lens chat memory v1 end-to-end LLM test complete on the live preview.
+
+      12 / 17 PASS, 5 FAIL.  Astrology (3/3), Numerology (2/2), Generalist
+      regression (1/1), and No-crash regression for all 5 lenses (5/5) all
+      PASS — the orchestration layer is wired correctly and never throws.
+
+      The 5 failures are caused by ONE root bug in
+      services/lens_conversation.py · resolve_active_entity(): the
+      primary_kinds tuple is missing the kinds that HD top-level entries
+      (hd_top), BaZi Day Master (day_master), and Enneagram lines/tritype
+      use.  Because these kinds are in neither primary_kinds nor
+      secondary_kinds, the resolver classifies the message as "no entity in
+      view" and returns (None, "none") — even though the registry's
+      extract_entities_from_text correctly identified the entity.
+
+      Symptoms — all in debug.active_entity / debug.active_entity_source:
+        • B.T1  HD "Authority" (current)        → None / none   (expected Authority/current)
+        • B.T2  HD "Authority" (referent)       → None / none   (expected Authority/referent)
+        • B.T3  HD "Profile" (current pivot)    → None / none   (expected Profile/current)
+        • D.T1  Enneagram "Core Type"           → None / none   (expected Core Type/current)
+        • E.T1  BaZi "Day Master" (current)     → None / none   (expected Day Master/current)
+
+      D.T1 ALSO has a secondary alias-coverage gap: enneagram.py _ALIASES
+      doesn't contain "enneagram type", so the user's phrasing "What is my
+      Enneagram type?" matches nothing.  Even after the primary_kinds fix,
+      D.T1 needs a new alias.  Suggested adds:
+          "enneagram type", "ennea type", "type number", "personality type"
+
+      The LLM responses themselves are STILL well-grounded for the failing
+      cases (Authority answer is correct, Profile answer is correct, Day
+      Master is "Yin Metal Xin", Enneagram answer cites Type 7 Enthusiast
+      w8) because the registries' format_grounding_block blocks are
+      injected verbatim into the system prompt.  So the user-visible
+      quality is largely intact — but the *debug-payload contract* the
+      review request asks for (debug.active_entity reflecting the resolved
+      entity) is broken on HD top-levels, Day Master, and Enneagram type.
+
+      No exceptions from services.lens_conversation or
+      services.lens_registries.* in backend logs.  No-crash regression
+      passes for all 5 lenses with empty session_id and ambiguous referent.
+
+      Files / artefacts:
+        • /app/multi_lens_chat_memory_test.py     (the test harness)
+        • /app/multi_lens_chat_memory_results.json (raw JSON of all 17 asserts)
+
+      Suggested fix (very small) — see status_history above for the full
+      one-liner.
+
   - task: "Astrology Chat — Conversational Memory + Entity Tracking (astrology-chat-memory-v1)"
     implemented: true
     working: true
@@ -16632,3 +16881,62 @@ All 8 scenarios PASS, including the exact reproduction of the user's failing cha
 ### Test Status
 - **Backend**: Restarted clean, deterministic helper passes smoke tests. **Needs end-to-end LLM test** to confirm the LLM honours the new ACTIVE ENTITY + HISTORY blocks (backend testing agent run pending).
 - **Frontend**: Build marker bumped; no UI changes yet. Optional debug UI (Part 6 of spec) deferred — debug payload is now returned on the API and can be wired into a dev-mode toggle later.
+
+
+---
+
+## 2026-05-18 — Multi-Lens Chat Memory + Quality (multi-lens-chat-memory-v1)
+
+### Scope
+Extended the astrology conversational-memory architecture to **5 lens chats**: Astrology · Human Design · Numerology · Enneagram · BaZi. Built as a single shared service so every lens behaves identically (same memory rules, same response architecture, same anti-drift, same debug payload).
+
+### Architecture
+- `services/lens_conversation.py` — shared orchestrator (LensRegistry Protocol, alias regex helpers, active-entity resolver, prompt-block formatters, universal response-architecture prompt, debug-payload builder, one-call `compose_lens_memory_blocks()`).
+- `services/lens_registries/` — five lens-specific registries plug into the shared service:
+  - `astrology.py` (delegates to existing `astrology_conversation.py` index — planets, nodes, angles, houses).
+  - `human_design.py` (Type · Strategy · Authority · Profile · Definition · Incarnation Cross · 9 Centers · Channels · Gates 1–64).
+  - `numerology.py` (Life Path · Expression · Soul Urge · Personality · Birthday · Maturity · Personal Year/Month/Day).
+  - `enneagram.py` (Core Type · Wing · Tritype · Instinctual Stack · Stress/Security Lines · primary Center).
+  - `bazi.py` (Day Master · 4 Pillars · Heavenly Stems · Earthly Branches · Ten Gods · Elements · Animals · Luck Pillars).
+- `server.py · mirror_chat` — single dispatch covering all 5 lenses; calls `compose_lens_memory_blocks(registry, user_context, message, history)` and appends the block to the system prompt.
+- `MirrorChatResponse.debug` — now populated for ALL 5 lenses with marker `multi-lens-chat-memory-v1`.
+- Added `LENS_PROMPTS["enneagram"]` (was missing).
+- Build marker bumped → `multi-lens-chat-memory-v1`.
+
+### Deterministic smoke tests — ALL PASS
+- HD: "Gate 35" then "How does that show up in relationships?" → active=`Gate 35` (referent).
+- Numerology: "Tell me about my Life Path" then "What does that mean for work?" → active=`Life Path` (referent).
+- Enneagram: "What is my wing?" then "How does that show up under stress?" → active=`Wing` (referent).
+- BaZi: "Tell me about my Day Master" then "How does that interact with my Month Pillar?" → active=`Month Pillar` (current pivot honoured).
+- BaZi missing-data honesty: empty BaZi chart → `missing_sources=["BaZi chart not computed (requires birth date)"]`.
+
+### Chat endpoints now covered (multi-lens-chat-memory-v1)
+- `POST /api/mirror/chat?lens=astrology`
+- `POST /api/mirror/chat?lens=human_design`
+- `POST /api/mirror/chat?lens=numerology`
+- `POST /api/mirror/chat?lens=enneagram`
+- `POST /api/mirror/chat?lens=bazi`
+- `POST /api/mirror/chat` (generalist) — unaffected, no debug payload.
+
+### Phase 2 — NOT in this commit (per user direction)
+- **Zi Wei / Purple Star** — needs surface-context analysis; lens chat endpoint location and data shape not yet confirmed.
+- **Life Tab chats (Relationships / Work / Self)** — separate endpoints with their own surface context (synthesis card, role card, today modulation, evidence items, optional Purple Star signals). Need to:
+  - Locate the chat endpoint(s) for each Life Tab domain.
+  - Build a `LifeTabRegistry` keyed by domain (active synthesis card, role card, domain card, today modulation, evidence list).
+  - Wire memory layer into those endpoints similarly.
+
+### Files Touched
+- NEW `/app/backend/services/lens_conversation.py`
+- NEW `/app/backend/services/lens_registries/__init__.py`
+- NEW `/app/backend/services/lens_registries/astrology.py`
+- NEW `/app/backend/services/lens_registries/human_design.py`
+- NEW `/app/backend/services/lens_registries/numerology.py`
+- NEW `/app/backend/services/lens_registries/enneagram.py`
+- NEW `/app/backend/services/lens_registries/bazi.py`
+- `/app/backend/server.py` — generic 5-lens dispatcher replaces astrology-only block, response uses `lens_debug_payload`, added Enneagram lens prompt.
+- `/app/frontend/constants/buildMarker.ts` → `multi-lens-chat-memory-v1`.
+
+### Test Status
+- **Smoke tests (deterministic)**: PASS for all 5 lenses.
+- **Backend end-to-end LLM tests**: pending — to be triggered after this commit.
+- **Frontend**: build marker bumped; no UI changes (debug payload is API-only at this stage).

@@ -1,0 +1,429 @@
+[
+  {
+    "name": "A.T1 Jupiter (current)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "astrology",
+        "active_entity": {
+          "name": "Jupiter",
+          "kind": "planet"
+        },
+        "active_entity_source": "current",
+        "grounding_sources": [
+          "Sidereal planets",
+          "House cusps",
+          "Lunar nodes"
+        ],
+        "missing_sources": [],
+        "history_entities": []
+      },
+      "response": "Your Jupiter sits in Cancer, in your 8th house. This placement often amplifies sensitivity and intuition, especially regarding shared resources, deep emotional connections, and transformation. You mig"
+    }
+  },
+  {
+    "name": "A.T2 Jupiter (referent, not Nodes/Sun)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "astrology",
+        "active_entity": {
+          "name": "Jupiter",
+          "kind": "planet"
+        },
+        "active_entity_source": "referent",
+        "grounding_sources": [
+          "Sidereal planets",
+          "House cusps",
+          "Lunar nodes"
+        ],
+        "missing_sources": [],
+        "history_entities": [
+          "Jupiter",
+          "House 8"
+        ]
+      },
+      "response": "Your Jupiter actually sits in Cancer, in your 8th house, not the 4th. This placement often brings depth to how you experience emotional connections, particularly when it comes to sharing resources or "
+    }
+  },
+  {
+    "name": "A.T3 Jupiter (referent)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "astrology",
+        "active_entity": {
+          "name": "Jupiter",
+          "kind": "planet"
+        },
+        "active_entity_source": "referent",
+        "grounding_sources": [
+          "Sidereal planets",
+          "House cusps",
+          "Lunar nodes"
+        ],
+        "missing_sources": [],
+        "history_entities": [
+          "Jupiter",
+          "House 8",
+          "House 4"
+        ]
+      },
+      "response": "Jupiter sits in your 8th house, Pete. This placement often highlights themes around shared resources, deep emotional bonds, and transformation. You might experience a heightened intuition in these are"
+    }
+  },
+  {
+    "name": "B.T1 Authority (current)",
+    "pass": false,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "human_design",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Type",
+          "Strategy",
+          "Authority",
+          "Profile",
+          "Definition",
+          "Incarnation Cross",
+          "Defined Centers",
+          "Defined Channels"
+        ],
+        "missing_sources": [],
+        "history_entities": []
+      },
+      "response": "Your Authority is Emotional, meaning your decision-making process benefits from waiting to gain clarity through your emotional waves. It's about giving yourself time to feel your way into decisions ra"
+    }
+  },
+  {
+    "name": "B.T2 Authority (referent)",
+    "pass": false,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "human_design",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Type",
+          "Strategy",
+          "Authority",
+          "Profile",
+          "Definition",
+          "Incarnation Cross",
+          "Defined Centers",
+          "Defined Channels"
+        ],
+        "missing_sources": [],
+        "history_entities": [
+          "Authority"
+        ]
+      },
+      "response": "When under pressure, your Emotional Authority can sometimes lead to hasty decisions when there's a push to resolve things quickly. This can manifest as saying or committing to something in the heat of"
+    }
+  },
+  {
+    "name": "B.T3 Profile (current, explicit pivot)",
+    "pass": false,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "human_design",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Type",
+          "Strategy",
+          "Authority",
+          "Profile",
+          "Definition",
+          "Incarnation Cross",
+          "Defined Centers",
+          "Defined Channels"
+        ],
+        "missing_sources": [],
+        "history_entities": [
+          "Authority"
+        ]
+      },
+      "response": "Your Profile is 5/1 in Human Design. This often shows up as a natural problem-solver who others turn to for guidance. You bring a practical and investigative approach to understanding systems and solv",
+      "expected_grounding_present": true
+    }
+  },
+  {
+    "name": "C.T1 Life Path (current)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "numerology",
+        "active_entity": {
+          "name": "Life Path",
+          "kind": "life_path"
+        },
+        "active_entity_source": "current",
+        "grounding_sources": [
+          "Life Path",
+          "Birthday Number",
+          "Expression / Soul Urge / Personality (name-based)",
+          "Personal Year/Month/Day cycles"
+        ],
+        "missing_sources": [],
+        "history_entities": []
+      },
+      "response": "Your Life Path number is 11, often associated with a sense of intuition and spiritual insight. This path tends to invite you into situations where your natural empathy and sensitivity can shine. You m",
+      "has_life_path_grounding": true
+    }
+  },
+  {
+    "name": "C.T2 Life Path (referent)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "numerology",
+        "active_entity": {
+          "name": "Life Path",
+          "kind": "life_path"
+        },
+        "active_entity_source": "referent",
+        "grounding_sources": [
+          "Life Path",
+          "Birthday Number",
+          "Expression / Soul Urge / Personality (name-based)",
+          "Personal Year/Month/Day cycles"
+        ],
+        "missing_sources": [],
+        "history_entities": [
+          "Life Path",
+          "Master Number"
+        ]
+      },
+      "response": "Your Life Path 11, often seen as a path of intuition and insight, could have interesting implications for your career. This number typically invites a creative approach to work, where vision and inspi"
+    }
+  },
+  {
+    "name": "D.T1 Enneagram Core Type (has data)",
+    "pass": false,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "enneagram",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Core Type",
+          "Wing",
+          "Stress / Security lines (deterministic)"
+        ],
+        "missing_sources": [
+          "Instinctual Stack",
+          "Tritype"
+        ],
+        "history_entities": []
+      },
+      "response": "Your Core Enneagram Type is Type 7, known as the Enthusiast, with a Wing 8. This pattern often shows up as a desire for new experiences and a tendency to seek out excitement. There can be a deep drive",
+      "has_core_type_grounding": true
+    }
+  },
+  {
+    "name": "E.T1 Day Master (current)",
+    "pass": false,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "bazi",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Day Master",
+          "Four Pillars",
+          "Ten Gods",
+          "Favorable / Unfavorable Elements",
+          "Current timing layer"
+        ],
+        "missing_sources": [
+          "Luck Pillars"
+        ],
+        "history_entities": []
+      },
+      "response": "Your Day Master is Yin Metal (Xin), and it serves as a reflection of your core operating style, offering insights into how you tend to interact with the world. Yin Metal often carries qualities simila",
+      "grounding_has_day_master": true,
+      "grounding_has_four_pillars": true
+    }
+  },
+  {
+    "name": "E.T2 Month Pillar (explicit pivot wins over referent)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "bazi",
+        "active_entity": {
+          "name": "Month Pillar",
+          "kind": "pillar"
+        },
+        "active_entity_source": "current",
+        "grounding_sources": [
+          "Day Master",
+          "Four Pillars",
+          "Ten Gods",
+          "Favorable / Unfavorable Elements",
+          "Current timing layer"
+        ],
+        "missing_sources": [
+          "Luck Pillars"
+        ],
+        "history_entities": [
+          "Day Master",
+          "Element: Metal"
+        ]
+      },
+      "response": "Your Month Pillar is Yi Mao, which often brings a synergistic support to your Day Master, Yin Metal. The Yi Mao energy emphasizes flexibility and growth, much like a plant that bends and adapts to its"
+    }
+  },
+  {
+    "name": "F. Generalist (debug=null)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug_field": null,
+      "response_length": 232,
+      "response": "We haven't had a conversation yet. You're welcome to bring up anything on your mind that you'd like to explore or reflect upon. Is there a particular aspect of your life or a symbolic lens you're inte"
+    }
+  },
+  {
+    "name": "G. astrology ambiguous referent (no crash)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "astrology",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Sidereal planets",
+          "House cusps",
+          "Lunar nodes"
+        ],
+        "missing_sources": [],
+        "history_entities": []
+      },
+      "response": "These patterns offer one lens for self-understanding. What resonates with your own experience?"
+    }
+  },
+  {
+    "name": "G. human_design ambiguous referent (no crash)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "human_design",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Type",
+          "Strategy",
+          "Authority",
+          "Profile",
+          "Definition",
+          "Incarnation Cross",
+          "Defined Centers",
+          "Defined Channels"
+        ],
+        "missing_sources": [],
+        "history_entities": []
+      },
+      "response": "These patterns offer one lens for self-understanding. What resonates with your own experience?"
+    }
+  },
+  {
+    "name": "G. numerology ambiguous referent (no crash)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "numerology",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Life Path",
+          "Birthday Number",
+          "Expression / Soul Urge / Personality (name-based)",
+          "Personal Year/Month/Day cycles"
+        ],
+        "missing_sources": [],
+        "history_entities": []
+      },
+      "response": "Could you specify which aspect or number you're referring to? Is it something specific about your Life Path 11, your Personal Year 6, or another number in your numerology profile? Let me know so we ca"
+    }
+  },
+  {
+    "name": "G. enneagram ambiguous referent (no crash)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "enneagram",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Core Type",
+          "Wing",
+          "Stress / Security lines (deterministic)"
+        ],
+        "missing_sources": [
+          "Instinctual Stack",
+          "Tritype"
+        ],
+        "history_entities": []
+      },
+      "response": "Sure, Pete. Your Core Type, 7, is known as the Enthusiast. This type typically thrives on new experiences and the pursuit of excitement and joy. With a Wing 8, the Challenger, there might be a bit of "
+    }
+  },
+  {
+    "name": "G. bazi ambiguous referent (no crash)",
+    "pass": true,
+    "info": {
+      "status": 200,
+      "debug": {
+        "marker": "multi-lens-chat-memory-v1",
+        "lens": "bazi",
+        "active_entity": null,
+        "active_entity_source": "none",
+        "grounding_sources": [
+          "Day Master",
+          "Four Pillars",
+          "Ten Gods",
+          "Favorable / Unfavorable Elements",
+          "Current timing layer"
+        ],
+        "missing_sources": [
+          "Luck Pillars"
+        ],
+        "history_entities": []
+      },
+      "response": "Your Day Master, Yin Metal, offers a refined approach to life. In BaZi, Yin Metal is seen as polished and perceptive, often bringing elegance to whatever it touches. Your Day Master is strong, indicat"
+    }
+  }
+]

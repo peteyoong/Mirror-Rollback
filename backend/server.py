@@ -1151,6 +1151,31 @@ NEVER say:
 - "Please provide your birth details..."
 
 ALWAYS reference their existing chart data in your response.
+""",
+    "enneagram": """
+You are the ENNEAGRAM Chat within Project Mirror.
+
+CRITICAL: You are answering using the user's COMPUTED Enneagram results.
+The shared lens-conversation service provides ACTIVE ENTITY + ENNEAGRAM
+SIGNALS + GROUNDING STATUS + CONVERSATION HISTORY + RESPONSE
+ARCHITECTURE blocks below — honour them.
+
+Core principles:
+- Mirror, not labeller
+- Type is a motivational lens, not an identity verdict
+- Centers (Body / Heart / Head) describe how the user takes in the world
+- Lines (Stress / Security) are movement, not promotion or demotion
+- Wing colours the type; it does not replace it
+- Instinct/Subtype shapes how the type expresses in real life
+
+Voice:
+- Speak about Type 1..9 by both number AND archetypal name
+  ("your Core Type 7 — the Enthusiast") so the user feels recognised.
+- Be honest about the type's shadow / passion / fixation.
+- Connect the user's question to THEIR actual type/wing/lines.
+- If the user has no assessment on file (missing source listed in GROUNDING),
+  say plainly: "I don't have your Enneagram results computed yet." Do NOT
+  guess a type from the conversation.
 """
 }
 
@@ -7923,84 +7948,70 @@ NOT: "I opened a generic chat"
         history = chat_sessions[session_id]
         
         # =====================================================================
-        # ASTROLOGY CONVERSATIONAL MEMORY (astrology-chat-memory-v1)
+        # MULTI-LENS CONVERSATIONAL MEMORY (multi-lens-chat-memory-v1)
         # =====================================================================
-        # Fix for the P0 "stateless retrieval" bug:
-        #   - LLM previously got no conversation history → drifted between
-        #     unrelated chart entities every turn.
-        #   - LLM had no concept of "active entity" → couldn't resolve
-        #     "that / it / which house" to the planet under discussion.
-        # We now inject three deterministic blocks into the system prompt for
-        # the astrology lens (and surface debug data on the response).
+        # Shared memory + entity tracking for every lens chat (Astrology,
+        # Human Design, Numerology, Enneagram, BaZi).  Replaces the previous
+        # astrology-only implementation.  Each lens plugs in via a LensRegistry
+        # in services/lens_registries/.  This block:
+        #   1. Resolves the active entity from history + referent words.
+        #   2. Injects ACTIVE ENTITY + GROUNDING + HISTORY + RESPONSE
+        #      ARCHITECTURE prompt blocks into the system prompt.
+        #   3. Returns a consistent debug payload on the API response.
         # =====================================================================
-        astrology_debug_payload: Optional[dict] = None
-        if request.lens == "astrology":
+        lens_debug_payload: Optional[dict] = None
+        if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi"):
             try:
-                from services.astrology_conversation import (
-                    build_chart_entity_index,
-                    extract_entities_from_text,
-                    resolve_active_entity,
-                    format_history_block,
-                    format_active_entity_block,
-                    format_chart_signals_block,
-                    build_debug_payload,
-                )
+                from services.lens_registries import get_registry
+                from services.lens_conversation import compose_lens_memory_blocks
 
-                chart_entity_index = build_chart_entity_index(chart)
+                registry = get_registry(request.lens)
+                if registry is not None:
+                    # Compose user_context — each registry only reads what it needs.
+                    # Use locals().get() so missing variables don't crash.
+                    _locals = locals()
+                    user_context = {
+                        "user": user,
+                        "chart": chart,
+                        "enneagram_results": _locals.get("enneagram_results"),
+                        "bazi_chart": _locals.get("bazi_chart"),
+                    }
+                    # Numerology cycles are only computed inside the per-lens
+                    # block above; pass them through if we have them.
+                    if request.lens == "numerology":
+                        try:
+                            birth_date = user.get('birth_date') if user else None
+                            if birth_date:
+                                from calculations.numerology import get_numerology_cycles
+                                user_context["numerology_cycles"] = get_numerology_cycles(birth_date, datetime.now())
+                        except Exception:
+                            pass
 
-                # Resolve active entity using current message + recent history
-                active_entity, source_label = resolve_active_entity(
-                    user_message=request.message,
-                    history=history,
-                    chart_index=chart_entity_index,
-                )
+                    memory_block, lens_debug_payload = compose_lens_memory_blocks(
+                        registry=registry,
+                        user_context=user_context,
+                        user_message=request.message,
+                        history=history,
+                        max_history_turns=6,
+                    )
 
-                # Collect all chart-entities mentioned across recent history
-                # (for debug surface + future cross-turn synthesis).
-                recent_history_entities: List[str] = []
-                for turn in (history[-12:] if history else []):
-                    for ent in extract_entities_from_text(turn.get("content", "") if isinstance(turn, dict) else ""):
-                        if ent not in recent_history_entities:
-                            recent_history_entities.append(ent)
+                    if memory_block:
+                        system_prompt += "\n\n" + memory_block
 
-                history_block = format_history_block(history, max_turns=6)
-                active_entity_block = format_active_entity_block(
-                    entity=active_entity,
-                    source=source_label,
-                    chart_index=chart_entity_index,
-                )
-                chart_signals_block = format_chart_signals_block(chart_entity_index)
-
-                # Order matters: ACTIVE ENTITY first (sharpest signal), then
-                # CHART SIGNALS (ground truth), then CONVERSATION HISTORY
-                # (recency context).  The astrology lens prompt above
-                # references each of these by name.
-                astro_memory_block = "\n\n".join(
-                    b for b in (active_entity_block, chart_signals_block, history_block) if b
-                )
-                if astro_memory_block:
-                    system_prompt += "\n\n" + astro_memory_block
-
-                astrology_debug_payload = build_debug_payload(
-                    active_entity=active_entity,
-                    source=source_label,
-                    history_entities=recent_history_entities,
-                    chart_index_size=len(chart_entity_index),
-                )
-
-                logger.info(
-                    f"[MIRROR_CHAT][astrology-chat-memory-v1] "
-                    f"active_entity={(active_entity or {}).get('name')} "
-                    f"source={source_label} "
-                    f"chart_index_size={len(chart_entity_index)} "
-                    f"history_len={len(history)}"
-                )
-            except Exception as astro_mem_err:
-                # Memory layer must never crash the chat.  If it fails, log
-                # and fall through to the existing behaviour.
+                    logger.info(
+                        f"[MIRROR_CHAT][multi-lens-chat-memory-v1] "
+                        f"lens={request.lens} "
+                        f"active_entity={(lens_debug_payload or {}).get('active_entity')} "
+                        f"source={(lens_debug_payload or {}).get('active_entity_source')} "
+                        f"grounding={len((lens_debug_payload or {}).get('grounding_sources', []))} "
+                        f"missing={len((lens_debug_payload or {}).get('missing_sources', []))} "
+                        f"history_len={len(history)}"
+                    )
+            except Exception as lens_mem_err:
+                # Memory layer must never crash the chat.
                 logger.error(
-                    f"[MIRROR_CHAT][astrology-chat-memory-v1] memory layer error: "
-                    f"{type(astro_mem_err).__name__}: {astro_mem_err}"
+                    f"[MIRROR_CHAT][multi-lens-chat-memory-v1] memory layer error for lens={request.lens}: "
+                    f"{type(lens_mem_err).__name__}: {lens_mem_err}"
                 )
 
         # ===== LLM CALL VIA EMERGENT CONTRACT =====
@@ -8502,7 +8513,7 @@ USER SHOULD FEEL:
             timestamp=datetime.now(timezone.utc).isoformat(),
             memory_update=memory_update,
             thread=thread_metadata,
-            debug=astrology_debug_payload if request.lens == "astrology" else None,
+            debug=lens_debug_payload if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi") else None,
         )
         
     except HTTPException as http_exc:
