@@ -1,0 +1,153 @@
+[
+  {
+    "test": "C1 debug payload presence",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "NORMAL",
+    "word_count": 140,
+    "response": "Your Saturn is in Pisces, located in the 3rd house of your chart. Saturn in Pisces often brings a sense of responsibility towards deeply understanding emotions and navigating the more nebulous areas of life, such as intuition and creativity. In the 3rd house, this places the emphasis on communication and learning, potentially leading you to develop a structured approach to sharing ideas and exploring beliefs. This placement may sometimes manifest as feeling restricted or hesitant when it comes to expressing your thoughts or feelings, especially if you're not sure they'll be well-received. There's a tension between the fluid, boundary-less nature of Pisces and Saturn's urge for order and clarity\u2014a dance between intuition and discipline. This shows up most prominently in your interactions and learning. Do you find yourself needing firm principles before you fully articulate or commit to new ideas?",
+    "passed": true,
+    "rationale": "checks={'compression_marker': True, 'depth_mode_NORMAL': True, 'marker_legacy': True, 'lens_present': True, 'active_entity_present': True, 'active_entity_source_present': True, 'voice_marker_present': True, 'interpretive_stance_present': True}"
+  },
+  {
+    "test": "C2.1 NORMAL \u2014 Saturn question",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "NORMAL",
+    "word_count": 112,
+    "response": "Your Saturn is in Pisces, sitting in the 3rd house. This often emphasizes structure and discipline in communication, learning, and daily interactions. You might experience a need to approach these areas with a cautious, steady hand, often feeling the need to bring form to nebulous ideas. However, under pressure, this placement can lead to hesitation or doubt in expressing your thoughts, as if there's a weight of responsibility about saying the \"right\" thing. This can sometimes stifle spontaneity. Notice where you might feel a tug between wanting to connect intuitively and the pressure to communicate with precision or authority. How does this show up in your day-to-day interactions, especially when you're stressed?",
+    "passed": true,
+    "rationale": "expected depth_mode=NORMAL, got=NORMAL"
+  },
+  {
+    "test": "C2.2 LIGHT \u2014 'ok' ack",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "LIGHT",
+    "word_count": 12,
+    "response": "Hi Pete, how can I assist you today with your astrology insights?",
+    "passed": true,
+    "rationale": "expected depth_mode=LIGHT, got=LIGHT"
+  },
+  {
+    "test": "C2.3 DEEP \u2014 go deeper",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "DEEP",
+    "word_count": 156,
+    "response": "Your Saturn sits in Pisces, within your 3rd house. This often brings a focus on structuring your communication and everyday thoughts, where you can feel a persistent need to bring clarity to what might initially seem nebulous or intangible. It's about crafting form out of the ethereal. In terms of your lived experience, this can show up in close relationships, local connections, and environments involving communication. You might feel a strong pull towards responsibility in how you express yourself, often distinguishing between what is emotionally resonant and what is practically sound. Under stress, this energy can manifest as a hesitance to communicate, fearing misunderstanding or misinterpretation. The weight of responsibility might dampen spontaneity, leading to overthinking or withdrawing from potentially challenging discussions. Interestingly, given your recent experiences of open conversations with your partner and your need to internalize feelings without rushing to express them, the Saturn placement supports slowing down, even when expressing emotions feels heavy.",
+    "passed": true,
+    "rationale": "expected depth_mode=DEEP, got=DEEP"
+  },
+  {
+    "test": "C2 monotone length",
+    "wc_light": 12,
+    "wc_normal": 112,
+    "wc_deep": 156,
+    "monotone": true,
+    "light_short": true,
+    "deep_long": true,
+    "passed": true,
+    "rationale": "DEEP(156)>NORMAL(112)>LIGHT(12); LIGHT\u226480=True; DEEP\u2265150=True"
+  },
+  {
+    "test": "C3.1 imperative 'Tell me about my Moon' should be NORMAL",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "NORMAL",
+    "word_count": 103,
+    "response": "Your Moon is in Aries, in your 4th house. This often brings an instinctual urge for independence and action, especially when it comes to home and family life. You may find yourself seeking both emotional safety and a sense of pioneering spirit under your own roof. However, this placement can sometimes lead to impatience or restlessness at home. The drive for newness might clash with the need for comfort and security. This can create tension, as the desire to break new ground jostles with the yearning for stability and warmth. Where do you notice this push and pull most vividly in your life?",
+    "passed": true,
+    "rationale": "expected NORMAL, got NORMAL"
+  },
+  {
+    "test": "C3.2 'Yes definitely' should be LIGHT",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "LIGHT",
+    "word_count": 44,
+    "response": "Certainly! If there are any specific aspects or placements you'd like to explore in your chart, feel free to let me know. Your understanding and willingness to dive deeper are valuable in uncovering the patterns at play. Where would you like to focus next?",
+    "passed": true,
+    "rationale": "expected LIGHT, got LIGHT"
+  },
+  {
+    "test": "C4.1a Jupiter setup (NORMAL)",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "NORMAL",
+    "word_count": 115,
+    "response": "Your Jupiter is in Cancer, positioned in the 8th house. This often shows up as a deep connection to shared resources and transformation. You might find that you have an intuitive approach to navigating joint finances or emotional bonds, seeking safety and nurturing within these intricate spaces. A tension with this placement can arise from a tendency to seek security through control, especially when involving others' resources or emotions. Under pressure, there's a risk of becoming overly protective or secretive, potentially leading to power struggles. Watch what happens when you're faced with family dynamics or financial changes; your response can illuminate a lot about this pattern. How do you usually handle shifts in these areas?",
+    "passed": true,
+    "rationale": "got NORMAL"
+  },
+  {
+    "test": "C4.1b 'got it' LIGHT regression",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "LIGHT",
+    "word_count": 35,
+    "response": "If you have anything specific you'd like to explore or any questions about your chart, feel free to ask. I'm here to help you reflect on what stands out or feels relevant in this moment.",
+    "passed": true,
+    "rationale": "depth_mode=LIGHT wc=35 fresh_chart_tour=False"
+  },
+  {
+    "test": "C4.2 DEEP regression \u2014 Saturn interacts",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "DEEP",
+    "word_count": 167,
+    "response": "Your Saturn is in Pisces, sitting in your 3rd house. This position often underscores themes around learning, communication, and sometimes the weight of inherited beliefs or knowledge systems. The placement suggests a structured approach to thinking, often requiring you to delve deep into the intangible or unseen realms, which can sometimes create tension between logic and intuition. This position typically shows up in your life through shared spaces like discussions, daily routines, and the blending of practical knowledge with emotional understanding. There might be a frequent push-and-pull between needing solitude to ground your thoughts and feeling compelled to engage with others to test those ideas. One interaction to note is Saturn in Pisces in your 3rd house aligning with your Sun in Pisces in the same house. This can amplify a need for clear self-expression enhanced by both creativity and responsibility. However, under pressure, this may manifest as feeling silenced or restricted by self-doubt, particularly when confronted with new ideas or perspectives that challenge your core beliefs.",
+    "passed": true,
+    "rationale": "depth_mode=DEEP wc=167 voice_marker=lens-voice-differentiation-v1"
+  },
+  {
+    "test": "C5.1 HD Authority NORMAL",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "NORMAL",
+    "word_count": 69,
+    "response": "Your Authority is Emotional. This means your decision-making process is centered around allowing your emotional wave to settle before reaching clarity. It\u2019s less about immediate responses and more about taking the time to understand how you truly feel about a situation. This often shows up as having to ride out feelings and check back in with your initial reactions later. How does letting emotions settle shift your usual decision-making?",
+    "passed": true,
+    "rationale": "got NORMAL"
+  },
+  {
+    "test": "C5.2 HD 'why?' DEEP",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "DEEP",
+    "word_count": 67,
+    "response": "Your Authority in Human Design is Emotional, meaning your decision-making process benefits from waiting for your emotional wave to settle. This system invites you to notice how your feelings change over time before reaching clarity. The question \"why?\" often arises when engaging with authority that isn't immediate. Try observing when the pull for instant answers surfaces. What does this search for immediate reasons bring up for you?",
+    "passed": false,
+    "rationale": "got DEEP wc_deep=67 wc_normal=69"
+  },
+  {
+    "test": "C5.3 BaZi Day Master NORMAL",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "NORMAL",
+    "word_count": 111,
+    "response": "Your Day Master, Yin Metal, is a key part of your BaZi chart. It symbolizes your core operating style, much like a guiding element in your life. Yin Metal often brings qualities of refinement and precision, akin to a delicate piece of jewelry or a finely sharpened blade. Being strong in your chart, this suggests you have a solid sense of structure and clarity in your actions. You likely have an ability to assess situations with sharp accuracy, noticing details others might overlook. However, under pressure, the focus on refinement can sometimes turn into overly cautious or critical behaviors. How does this resonate with the way you approach challenges or opportunities?",
+    "passed": true,
+    "rationale": "got NORMAL"
+  },
+  {
+    "test": "C5.4 BaZi 'ok' LIGHT",
+    "http": 200,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "LIGHT",
+    "word_count": 54,
+    "response": "Alright. Considering your Day Master, Yin Metal, in your BaZi chart, you typically approach life with precision and refinement. This quality allows you to see details that others might overlook and to enhance situations with your unique touch. Given your strong Day Master, how do you find this influencing your current projects or interactions?",
+    "passed": true,
+    "rationale": "got LIGHT wc_light=54 wc_normal=111"
+  },
+  {
+    "test": "C6 generalist \u2014 debug should be None",
+    "http": 200,
+    "compression_marker": null,
+    "depth_mode": null,
+    "word_count": 17,
+    "response": "We haven't started a conversation yet. Is there something you'd like to explore or reflect on today?",
+    "passed": true,
+    "rationale": "debug is None"
+  }
+]

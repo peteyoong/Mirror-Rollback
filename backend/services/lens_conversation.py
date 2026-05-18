@@ -359,11 +359,12 @@ def format_grounding_status_block(
 
 UNIVERSAL_RESPONSE_ARCHITECTURE = """
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-RESPONSE ARCHITECTURE — every substantive answer
+RESPONSE ARCHITECTURE — available, not mandatory
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Hold the ACTIVE ENTITY for the entire reply.  Use this structure
-(present in substance — labels are not required to be visible):
+You have access to the following components.  Use ONLY the ones the
+current turn actually needs.  See the CONVERSATIONAL COMPRESSION block
+below for which depth mode you're in and how many components to pull on.
 
 A) DIRECT ANSWER     — answer the EXACT question the user asked, up front.
 B) SIGNAL / FACT     — name the precise signal from THIS user's data.
@@ -381,7 +382,9 @@ F) CONNECTION        — one short line tying this to the active question
 G) (OPTIONAL) one sharp reflective close — only if it adds something
                        specific to THIS entity.  Skip otherwise.
 
-Length: 120–240 words for a full answer; 1–2 sentences for a clarification.
+DO NOT mechanically include all seven.  A great answer at LIGHT depth is
+often A + B + one of D/E/F.  Pulling on all seven every turn is the
+"AI completion syndrome" failure mode — avoid it.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 VOICE — observant interpreter, NOT therapy bot
@@ -428,13 +431,145 @@ which are missing for THIS user.
     computed yet."  Do NOT fabricate.  Do NOT substitute a different signal.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ANTI-DRIFT
+SIGNAL HIERARCHY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-One reply = one focus.  Do not tour the chart / design / numbers / type /
-pillars.  Introduce a second signal only if it is directly relevant to the
-active entity, and keep it to ONE connection line.
+Every reply has ONE dominant signal: the ACTIVE ENTITY.
+
+You MAY pull in one supporting signal — but only if it sharpens the
+answer to the user's actual question.  Do not stack 5+ signals.  Do not
+"tour" the chart / design / numbers / type / pillars.  When in doubt,
+cut the supporting signal entirely.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LEAVE INTERPRETIVE SPACE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A world-class interpreter does not explain everything at once.  Trust
+the user to ask the next question.  Confident enough to stop is a
+feature — not a gap.
+
+Do NOT pre-emptively explain every related mechanism, every adjacent
+signal, every possible interpretation.  Answer THIS question with the
+strongest signal, then stop.
 """
+
+
+# ---------------------------------------------------------------------------
+# Conversational compression (conversational-compression-v1)
+# ---------------------------------------------------------------------------
+#
+# A great interpreter does not explain everything at once.  This layer
+# detects which "depth mode" the current turn wants — LIGHT / NORMAL / DEEP
+# — and tells the LLM how compressed the reply should be.
+#
+# Defaults: NORMAL.  The user can pull us into DEEP by asking "why?",
+# "go deeper", "tell me more", "elaborate", "details", "synthesise", etc.
+# Very short acknowledgements ("ok", "got it", "yes", "interesting") and
+# short clarifying questions pull us into LIGHT.
+
+DEEP_TRIGGER_PATTERNS = [
+    r"\bgo deeper\b", r"\bdeep dive\b", r"\bdig deeper\b", r"\bdig in\b",
+    r"^why\??\s*$", r"\bbut why\b",
+    r"\bin (more |full )?detail\b", r"\bmore detail\b", r"\bdetails\b",
+    r"\bexplain\b", r"\belaborate\b", r"\bexpand on\b", r"\bunpack\b",
+    r"\btell me everything\b", r"\bfull picture\b", r"\bfull read\b",
+    r"\ball of it\b", r"\bcomprehensive\b",
+    r"\bsynthes(?:ise|ize|is)\b", r"\bbreak (it|that|this) down\b",
+    r"\bwhat does that really mean\b", r"\bwalk me through\b",
+    r"\btell me more\b",
+]
+_DEEP_RE = re.compile("|".join(DEEP_TRIGGER_PATTERNS), re.IGNORECASE)
+
+LIGHT_ACK_PATTERNS = [
+    r"^\s*(ok(ay)?|yes|yeah|yep|sure|right|fine|cool|nice|great|thanks?)[\.\!\?\s]*$",
+    r"^\s*(got it|makes sense|interesting|hmm+|huh+|i see|fair|fair enough)[\.\!\?\s]*$",
+    r"^\s*(true|exactly|same|hmm)[\.\!\?\s]*$",
+]
+_LIGHT_ACK_RE = re.compile("|".join(LIGHT_ACK_PATTERNS), re.IGNORECASE)
+
+# Imperative / substantive-request patterns — even short, these are real
+# questions and should default to NORMAL, not be flattened to LIGHT.
+SUBSTANTIVE_REQUEST_PATTERNS = [
+    r"\btell me\b", r"\bshow me\b", r"\bdescribe\b", r"\bdefine\b",
+    r"\bwhat about\b", r"\bhow about\b",
+    r"\bwhat (?:is|are|does)\b", r"\bhow (?:is|are|does)\b",
+    r"\bcan you\b", r"\bgive me\b",
+]
+_SUBSTANTIVE_RE = re.compile("|".join(SUBSTANTIVE_REQUEST_PATTERNS), re.IGNORECASE)
+
+
+def detect_depth_mode(user_message: str, history: List[Dict[str, str]]) -> str:
+    """
+    Pick a depth mode for the current turn.  Returns: "LIGHT" | "NORMAL" | "DEEP".
+
+    Heuristics:
+      - Explicit DEEP triggers ("why?", "go deeper", "elaborate", "details"…)
+        → DEEP.
+      - Very short acknowledgement / continuation → LIGHT.
+      - Short messages (≤6 words) that aren't questions OR substantive
+        requests ("tell me about X", "show me Y") → LIGHT.
+      - Everything else → NORMAL.
+    """
+    msg = (user_message or "").strip()
+    if not msg:
+        return "NORMAL"
+    if _DEEP_RE.search(msg):
+        return "DEEP"
+    if _LIGHT_ACK_RE.match(msg):
+        return "LIGHT"
+    word_count = len(msg.split())
+    has_q = "?" in msg
+    is_substantive = bool(_SUBSTANTIVE_RE.search(msg))
+    if word_count <= 6 and not has_q and not is_substantive:
+        return "LIGHT"
+    return "NORMAL"
+
+
+_DEPTH_GUIDANCE = {
+    "LIGHT": (
+        "DEPTH MODE: LIGHT  (fast, conversational, one insight)\n"
+        "  - Target length: 2–4 sentences (≈ 30–70 words).\n"
+        "  - Use ONLY components A + B (direct answer + signal).\n"
+        "    A behaviour line is fine if it is one sentence.\n"
+        "  - Do NOT explain mechanism.  Do NOT pull in supporting signals.\n"
+        "  - One sharp observation > full architecture.  Stop early."
+    ),
+    "NORMAL": (
+        "DEPTH MODE: NORMAL  (default — observant, not encyclopedic)\n"
+        "  - Target length: 90–160 words.  ONE paragraph, or two short ones.\n"
+        "  - Use A + B and 2–3 of D / E / F.  Skip the rest.\n"
+        "  - Lead with the strongest signal.  At most ONE supporting signal\n"
+        "    if it sharpens the answer.\n"
+        "  - End when the answer is complete.  Do NOT pad."
+    ),
+    "DEEP": (
+        "DEPTH MODE: DEEP  (user explicitly asked for more — go deeper)\n"
+        "  - Target length: 200–360 words.  Layered synthesis allowed.\n"
+        "  - You may use A through F generously; G only if useful.\n"
+        "  - You MAY pull in one supporting signal AND its interaction\n"
+        "    with the active entity.\n"
+        "  - Still no therapy-bot prompts.  Still bound to grounded signals."
+    ),
+}
+
+
+def format_compression_block(depth_mode: str) -> str:
+    """Build the CONVERSATIONAL COMPRESSION system-prompt block."""
+    guidance = _DEPTH_GUIDANCE.get(depth_mode, _DEPTH_GUIDANCE["NORMAL"])
+    return (
+        "--- CONVERSATIONAL COMPRESSION (conversational-compression-v1) ---\n"
+        f"{guidance}\n"
+        "\n"
+        "GLOBAL RULES (apply at every depth):\n"
+        "  - One reply = one dominant signal (the ACTIVE ENTITY).\n"
+        "  - Do NOT try to fully complete the topic this turn.\n"
+        "  - Leave interpretive space — the user is allowed to ask the next\n"
+        "    question.  Confident enough to stop is a feature, not a gap.\n"
+        "  - Compression must NOT flatten lens voice.  Stay in stance:\n"
+        "    Astrology = symbolic · HD = mechanical · Numerology = thematic ·\n"
+        "    Enneagram = motivational · BaZi = strategic."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -526,6 +661,11 @@ def compose_lens_memory_blocks(
     if voice_block:
         blocks.append(voice_block)
     blocks.append(UNIVERSAL_RESPONSE_ARCHITECTURE)
+    # conversational-compression-v1 — depth-aware compression guidance.
+    # Detected from the current user message + history.  This is the LAST
+    # block so it stays freshest in the LLM's attention.
+    depth_mode = detect_depth_mode(user_message, history)
+    blocks.append(format_compression_block(depth_mode))
 
     memory_block_text = "\n\n".join(b for b in blocks if b)
 
@@ -548,5 +688,9 @@ def compose_lens_memory_blocks(
         "enneagram": "motivational psychologist",
         "bazi": "elemental strategist",
     }.get(registry.lens_name)
+    # conversational-compression-v1 — surface the depth mode so callers
+    # can adapt max_tokens / UX (e.g. show a "deep dive" indicator).
+    debug["compression_marker"] = "conversational-compression-v1"
+    debug["depth_mode"] = depth_mode
 
     return memory_block_text, debug
