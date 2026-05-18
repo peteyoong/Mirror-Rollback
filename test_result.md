@@ -16857,6 +16857,119 @@ backend:
           (active entity resolution, grounding/missing sources, conversation
           turn tracking) remains intact.
 
+  - task: "Emotional Timing + Conversational Intensity (emotional-timing-v1)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/lens_conversation.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          EMOTIONAL TIMING / CONVERSATIONAL INTENSITY (emotional-timing-v1)
+          END-TO-END BACKEND TESTING COMPLETE — 16/16 PASS ✅
+
+          Endpoint: POST /api/mirror/chat
+          User: Pete (697f0c6abf35c0528ff06954)
+          Tests run: I1–I10 (16 sub-turns total across multi-turn scenarios)
+
+          ── Label-level results (primary check) ─────────────────────────────
+          I1  SOFT — vulnerability wins (astrology):
+              intensity_mode=SOFT, marker=emotional-timing-v1,
+              lens_intensity_ceiling=DIRECT, depth_mode=NORMAL — PASS
+              Response opens with "I'm truly sorry to hear about your situation,
+              Pete. Let's take a steady look…" — no harsh shadow phrasing, no
+              "the pattern here is" / "what you're avoiding". Gentle, grounded.
+
+          I2  SOFT beats DIRECT (enneagram, vuln + "be honest"):
+              intensity_mode=SOFT, ceiling=CONFRONTING — PASS
+              Response: "I'm here with you, Pete. Right now, feeling broken
+              sounds heavy and difficult…" No harsh pattern-naming. Gentle
+              even though user invited honesty.
+
+          I3  DIRECT — explicit invitation (astrology):
+              intensity_mode=DIRECT, ceiling=DIRECT — PASS
+              Response sharper than baseline: names Moon-in-Aries 4th house
+              tension crisply with the cost called out.
+
+          I4  CONFRONTING ramp on Enneagram (same session_id, 3 turns):
+              I4.1 "What is my Enneagram type and core fear?"
+                   → intensity_mode=OBSERVATIONAL, ceiling=CONFRONTING — PASS
+              I4.2 "Be honest with me — what am I really avoiding?"
+                   → intensity_mode=DIRECT,        ceiling=CONFRONTING — PASS
+              I4.3 "Challenge me. Don't hold back. What do I need to hear?"
+                   → intensity_mode=CONFRONTING,   ceiling=CONFRONTING — PASS
+              Turn 3 surfaces Type 7 shadow defensively but with grounded
+              precision ("the cost of this constant pursuit", stress line to 5,
+              wing 8 adds avoidance). No drama, no performative edge.
+
+          I5  Earn-the-ramp — Enneagram CONFRONTING invitation w/o prior probing:
+              intensity_mode=DIRECT (NOT CONFRONTING) — PASS
+              System correctly steps down to DIRECT to honour invitation
+              without leaping past the ramp.
+
+          I6  Astrology lens ceiling caps at DIRECT (2-turn same session):
+              I6.1 "be honest with me about my chart"
+                   → intensity_mode=DIRECT, ceiling=DIRECT — PASS
+              I6.2 "Challenge me. Don't hold back."
+                   → intensity_mode=DIRECT (NOT CONFRONTING),
+                     ceiling=DIRECT — PASS
+              Astrology lens cap correctly honoured.
+
+          I7  BaZi reaches CONFRONTING (2-turn same session):
+              I7.1 "be real with me about my Day Master"
+                   → intensity_mode=DIRECT, ceiling=CONFRONTING — PASS
+              I7.2 "Hit me with it. What am I missing?"
+                   → intensity_mode=CONFRONTING, ceiling=CONFRONTING — PASS
+              Turn 2 surfaces Yin Metal over-evaluation/perfectionism cost
+              with grounded clarity.
+
+          I8  Momentum — 2+ probing turns moves floor to DIRECT:
+              I8.1 "be honest with me"           → DIRECT — PASS
+              I8.2 "what am I avoiding?"          → DIRECT — PASS
+              I8.3 "What about my Saturn placement?" (neutral msg)
+                   → intensity_mode=DIRECT (momentum-driven floor) — PASS
+              Momentum logic confirmed working.
+
+          I9  Default OBSERVATIONAL (astrology, neutral msg):
+              "What does my Saturn mean?"
+              → intensity_mode=OBSERVATIONAL, ceiling=DIRECT — PASS
+
+          I10 Generalist regression (lens=None):
+              HTTP 200, debug == null — PASS
+              Intensity correctly scoped to lens chats only.
+
+          ── Sanity check: depth_mode still working alongside intensity ──────
+          Observed depth_mode values across scenarios: LIGHT, NORMAL.
+          DEEP not triggered (no DEEP triggers in test messages — expected).
+
+          ── Backend integration verified ────────────────────────────────────
+          • All 16 calls returned HTTP 200, response times 3.4–13s (LLM-bound).
+          • debug payload includes intensity_marker="emotional-timing-v1",
+            intensity_mode, lens_intensity_ceiling on every lens call.
+          • debug == null on generalist (lens=None) call — regression intact.
+          • Backend logs show "POST /api/mirror/chat HTTP/1.1 200 OK" for all.
+          • No 5xx, no exceptions, no rate-limit hits.
+
+          ── Qualitative tone reads (secondary check, all consistent w/ spec) ─
+          • I1 / I2 SOFT: response leads with acknowledgement of weight,
+            gentler vocabulary, slower pacing, no shadow surfacing.
+          • I3 DIRECT: pattern named crisply, cost stated, less hedging
+            than baseline.
+          • I4.3 CONFRONTING (Enneagram): shadow surfaced with grounded
+            precision — no judgement, no drama, no edgy performance.
+          • I7.2 CONFRONTING (BaZi): structural pattern + cost +
+            reflective question — grounded, not harsh.
+
+          CONCLUSION: emotional-timing-v1 is functioning end-to-end on
+          POST /api/mirror/chat. All 6 detection rules behave correctly:
+          SOFT-wins-everything, DIRECT-on-explicit-invitation,
+          CONFRONTING-requires-invitation+lens+prior-probing,
+          earn-the-ramp downgrade, lens-ceiling caps, momentum floor.
+          Generalist regression intact (debug=null).
+
 test_plan:
   current_focus: []
   stuck_tasks: []
@@ -16864,6 +16977,49 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
+    - agent: "testing"
+      message: |
+        Completed end-to-end backend LLM testing for emotional-timing-v1 on
+        POST /api/mirror/chat (user Pete 697f0c6abf35c0528ff06954). 16/16
+        sub-tests PASS across I1–I10 (multi-turn scenarios expanded).
+
+        Label-level checks (primary):
+          I1  SOFT (astrology, vulnerable)              → SOFT          ✅
+          I2  SOFT beats DIRECT (enneagram, vuln+honest)→ SOFT          ✅
+          I3  DIRECT (astrology, "be honest")           → DIRECT        ✅
+          I4  Enneagram 3-turn ramp                     → OBS→DIRECT→
+                                                          CONFRONTING   ✅
+          I5  Earn-the-ramp (Enneagram, no prior probe) → DIRECT        ✅
+          I6  Astrology ceiling cap                     → DIRECT        ✅
+          I7  BaZi reaches CONFRONTING                  → DIRECT→
+                                                          CONFRONTING   ✅
+          I8  Momentum floor (2+ probing turns)         → DIRECT        ✅
+          I9  Default                                   → OBSERVATIONAL ✅
+          I10 Generalist regression (lens=None)         → debug=null    ✅
+
+        Debug payload correctly carries:
+          intensity_marker="emotional-timing-v1"
+          intensity_mode ∈ {SOFT, OBSERVATIONAL, DIRECT, CONFRONTING}
+          lens_intensity_ceiling ∈ {DIRECT, CONFRONTING}
+          depth_mode (sanity) still emitted alongside.
+
+        Qualitative tone reads (secondary, all consistent with spec):
+          • I1: opens with "I'm truly sorry to hear about your situation,
+            Pete. Let's take a steady look…" — no shadow naming, gentle,
+            steadier pacing.
+          • I2: opens with "I'm here with you, Pete. Right now, feeling
+            broken sounds heavy and difficult…" — gentler than a normal
+            DIRECT despite user saying "be honest".
+          • I3: pattern named crisply (Moon-in-Aries 4th house tension)
+            with the cost called out and less hedging.
+          • I4.3 (Enneagram CONFRONTING): surfaces Type 7 chase pattern
+            with stress-line-to-5 cost — grounded, no drama, no
+            performative edge.
+          • I7.2 (BaZi CONFRONTING): Yin Metal perfectionism cost named
+            with allies (Water/Wood) — grounded, clear.
+
+        emotional-timing-v1 fully functional end-to-end. No code modified.
+
     - agent: "testing"
       message: |
         Completed end-to-end backend LLM testing for lens-voice-differentiation-v1
@@ -17294,3 +17450,67 @@ Backend log line `[MIRROR_CHAT][multi-lens-chat-memory-v1]` now also includes `d
   3. Lens voice still differentiates across depth modes.
   4. Memory + grounding still work at every depth mode.
 - **Frontend**: build marker bumped; no UI changes (debug field is API-only at this stage).
+
+
+---
+
+## 2026-05-18 — Emotional Timing + Conversational Intensity (emotional-timing-v1)
+
+### Scope
+Added a second calibration axis to every lens chat: **conversational intensity**. Separate from depth (which controls *how much* we say), intensity controls *how hard we land it*. Four internal modes:
+
+- **SOFT** — emotionally safe, gentler wording, low pressure. Triggered when the user shows vulnerability, distress, grief, shock, or spiralling language ("I'm lost", "I can't stop crying", "broke up with me", "I feel broken", "I don't know who I am anymore", "I'm falling apart", "I hate myself"). **SOFT wins everything** — even if the user also asks "be honest", SOFT takes precedence.
+- **OBSERVATIONAL** — neutral descriptive mirror, calm precision. **Default for all 5 lenses.**
+- **DIRECT** — sharper pattern naming, clearer consequences, less cushioning. Triggered by explicit invitations: "be honest", "be real", "be direct", "tell me the truth", "don't sugar-coat", "straight up", "what am I avoiding?", "what's the pattern?", "what's underneath?", "the real reason", "call me out".
+- **CONFRONTING** — high-recognition shadow surfacing. Triggered ONLY by explicit invitation ("challenge me", "push me", "don't hold back", "hit me with it", "be brutal", "what do I need to hear?") AND requires the lens to allow it AND at least one prior probing turn so it feels earned, not abrupt.
+
+### Lens calibration (per spec part 6)
+| Lens | Default | Ceiling | Rationale |
+|---|---|---|---|
+| Astrology | OBSERVATIONAL | DIRECT | Stays interpretive rather than absolute |
+| Human Design | OBSERVATIONAL | DIRECT | Works better observationally — mechanical mirror, not psychological confrontation |
+| Numerology | OBSERVATIONAL | DIRECT | Theme/cycle work doesn't need confrontation |
+| Enneagram | OBSERVATIONAL | **CONFRONTING** | Type/defense work tolerates confrontation when invited |
+| BaZi | OBSERVATIONAL | **CONFRONTING** | Structural/strategic — can be more direct when invited |
+
+When a user invites CONFRONTING but the lens caps at DIRECT (Astrology / HD / Numerology), we honour the *spirit* of the invitation by going to DIRECT rather than ignoring it.
+
+### Conversational momentum (per spec part 5)
+If the user has invited sharper truth **2+ times** across recent turns, the floor moves from OBSERVATIONAL → DIRECT even when the current message doesn't explicitly trigger it. Intensity ramps gradually — never jumps from OBSERVATIONAL to CONFRONTING in one turn.
+
+### Prompt block guarantees (per spec parts 3, 7)
+The INTENSITY block in the system prompt enforces:
+- "Intensity is precision, NOT harshness."
+- "Do NOT manufacture drama. Do NOT force shadow language. Do NOT overstate consequences. Do NOT become cryptic."
+- "Even CONFRONTING must feel grounded, clear, earned — never judgmental, dramatic, or 'performatively edgy'."
+- Lens ceiling is named in the prompt so the LLM knows the cap.
+
+### Debug payload additions
+Every lens chat response now includes:
+- `intensity_marker: "emotional-timing-v1"`
+- `intensity_mode: "SOFT" | "OBSERVATIONAL" | "DIRECT" | "CONFRONTING"`
+- `lens_intensity_ceiling: "DIRECT" | "CONFRONTING"`
+
+The `[MIRROR_CHAT][multi-lens-chat-memory-v1]` log line also includes `intensity_mode=…`.
+
+### Smoke tests — 8/8 PASS
+- SOFT detection (lost / crying / broken / spiralling / breakup / "I feel so broken + be honest" — SOFT wins).
+- DIRECT detection ("be honest, what am I avoiding?").
+- CONFRONTING with prior probing on Enneagram → CONFRONTING.
+- CONFRONTING without prior probing → DIRECT (earn-the-ramp rule).
+- CONFRONTING invitation on Astrology / HD → DIRECT (lens ceiling).
+- OBSERVATIONAL default ("What does my Saturn mean?").
+
+### Files Touched
+- `/app/backend/services/lens_conversation.py` — SOFT/DIRECT/CONFRONTING regex registries; `_LENS_INTENSITY_CEILING` and `_LENS_INTENSITY_DEFAULT` maps; `detect_intensity_mode()`; `format_intensity_block()`; composer appends intensity block after compression block; debug payload extended with `intensity_marker` + `intensity_mode` + `lens_intensity_ceiling`.
+- `/app/backend/server.py` — log line includes `intensity_mode`.
+- `/app/frontend/constants/buildMarker.ts` → `emotional-timing-v1`.
+
+### Test Status
+- **Smoke tests (deterministic)**: PASS for all 8 scenarios across all 5 lenses.
+- **Backend end-to-end LLM tests**: pending — needs to validate that:
+  1. SOFT responses are gentler / steadier and skip shadow language.
+  2. DIRECT responses are sharper than OBSERVATIONAL.
+  3. CONFRONTING (Enneagram with prior probing) surfaces shadow clearly but without harshness.
+  4. Lens ceiling honoured (Astrology "challenge me" with prior probing → DIRECT, not CONFRONTING).
+- **Frontend**: build marker bumped; no UI changes (debug field API-only).

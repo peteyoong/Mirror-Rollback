@@ -1,163 +1,230 @@
 """
-Backend test for the new Astrology House SSOT Forensic Endpoint.
+Backend test for emotional-timing-v1 (conversational intensity) on
+POST /api/mirror/chat for user Pete (697f0c6abf35c0528ff06954).
 
-GET /api/admin/astrology/house_forensic/{user_id}
+Runs the 10 test scenarios from the review request and reports:
+- HTTP status
+- debug.intensity_mode / intensity_marker / lens_intensity_ceiling
+- debug.depth_mode (sanity)
+- Response text (full)
+- PASS / FAIL per scenario
 """
+
+import json
 import os
 import sys
-import json
+import time
+import uuid
 import requests
 
-BASE = os.environ.get("BACKEND_URL", "https://sidereal-debug.preview.emergentagent.com") + "/api"
+BACKEND_URL = "https://individual-maps-v1.preview.emergentagent.com"
+API = f"{BACKEND_URL}/api"
+USER_ID = "697f0c6abf35c0528ff06954"
+TIMEOUT = 120
 
-PETE = "697f0c6abf35c0528ff06954"
-MEL = "697ec826ad4b18f75bf42616"
-
-REQUIRED_PLANETS_PETE = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"]
-
-
-def test_user(user_id: str, label: str, asc_low=None, asc_high=None,
-              check_planets=None, expect_ws_divergence=False):
-    print(f"\n=== {label} ({user_id}) ===")
-    url = f"{BASE}/admin/astrology/house_forensic/{user_id}"
-    r = requests.get(url, timeout=30)
-    print(f"GET {url} -> {r.status_code}")
-    if r.status_code != 200:
-        print(f"  FAIL: status {r.status_code}: {r.text[:300]}")
-        return False, {}, [f"status {r.status_code}"]
-    data = r.json()
-    failures = []
-
-    if data.get("ok") is not True:
-        failures.append(f"ok != true: {data.get('ok')}")
-
-    if data.get("ssot_ok") is not True:
-        failures.append(f"ssot_ok != true: {data.get('ssot_ok')}")
-
-    if data.get("ssot_violations") != []:
-        failures.append(f"ssot_violations not empty: {data.get('ssot_violations')}")
-
-    if data.get("house_system") != "Equal":
-        failures.append(f"house_system != 'Equal': {data.get('house_system')}")
-
-    svp = data.get("svp_applied")
-    if svp is None or abs(svp - 31.2836) > 0.01:
-        failures.append(f"svp_applied not ~31.2836: {svp}")
-
-    asc = data.get("ascendant_sidereal_degrees")
-    if asc_low is not None and asc_high is not None:
-        if asc is None or not (asc_low <= asc <= asc_high):
-            failures.append(f"ascendant not in [{asc_low},{asc_high}]: {asc}")
-
-    cusps = data.get("house_cusps") or []
-    if len(cusps) != 12:
-        failures.append(f"house_cusps not 12: {len(cusps)}")
-    else:
-        house_nums = [c.get("house") for c in cusps]
-        if house_nums != list(range(1, 13)):
-            failures.append(f"house cusps not 1..12 monotonic: {house_nums}")
-
-    planets = data.get("planets") or []
-    planet_map = {p["planet"]: p for p in planets}
-
-    if check_planets:
-        for pname in check_planets:
-            if pname not in planet_map:
-                failures.append(f"missing planet {pname}")
-                continue
-            p = planet_map[pname]
-            if p.get("ssot_ok") is not True:
-                failures.append(f"{pname}.ssot_ok != true")
-            if p.get("house_stored") != p.get("house_equal_recomputed"):
-                failures.append(
-                    f"{pname} house_stored({p.get('house_stored')}) != "
-                    f"house_equal_recomputed({p.get('house_equal_recomputed')})"
-                )
-
-    if expect_ws_divergence:
-        ws_div = data.get("whole_sign_divergences_for_reference_only") or []
-        if len(ws_div) < 1:
-            failures.append("expected >=1 whole_sign_divergences entry")
-
-    print(f"  ok={data.get('ok')} ssot_ok={data.get('ssot_ok')} "
-          f"house_system={data.get('house_system')} svp={data.get('svp_applied')} "
-          f"asc={data.get('ascendant_sidereal_degrees')} cusps={len(cusps)} "
-          f"planets={len(planets)} violations={len(data.get('ssot_violations') or [])} "
-          f"ws_div={len(data.get('whole_sign_divergences_for_reference_only') or [])}")
-
-    if failures:
-        print("  FAIL items:")
-        for f in failures:
-            print(f"    - {f}")
-        return False, data, failures
-    print("  PASS")
-    return True, data, []
+results = []
 
 
-def test_invalid_user():
-    print("\n=== Invalid user (does_not_exist_999) ===")
-    url = f"{BASE}/admin/astrology/house_forensic/does_not_exist_999"
-    r = requests.get(url, timeout=30)
-    print(f"GET {url} -> {r.status_code}")
-    if r.status_code != 404:
-        print(f"  FAIL: expected 404, got {r.status_code}: {r.text[:300]}")
-        return False
+def chat(message, lens, session_id=None, include_journal=True, include_history=True):
+    payload = {
+        "user_id": USER_ID,
+        "message": message,
+        "include_journal": include_journal,
+        "include_history": include_history,
+    }
+    if lens is not None:
+        payload["lens"] = lens
+    if session_id is not None:
+        payload["session_id"] = session_id
+    t0 = time.time()
+    r = requests.post(f"{API}/mirror/chat", json=payload, timeout=TIMEOUT)
+    dt = time.time() - t0
     try:
-        body = r.json()
-        detail = body.get("detail", "")
-        if "No chart" not in detail:
-            print(f"  FAIL: detail missing 'No chart': {detail}")
-            return False
-        print(f"  PASS detail='{detail}'")
-        return True
-    except Exception as e:
-        print(f"  FAIL: response not JSON: {e}")
-        return False
+        data = r.json()
+    except Exception:
+        data = {"_raw": r.text}
+    return r.status_code, data, dt
+
+
+def summarize(name, status, data, dt, expected_mode, expected_ceiling=None,
+              expected_marker="emotional-timing-v1", expect_debug_null=False,
+              extra_checks=None):
+    debug = data.get("debug") if isinstance(data, dict) else None
+    resp_text = data.get("response", "") if isinstance(data, dict) else ""
+    print(f"\n{'='*80}\n{name}  ({dt:.1f}s)  HTTP {status}\n{'='*80}")
+
+    if expect_debug_null:
+        ok = (status == 200) and (debug is None)
+        print(f"debug == None? {debug is None}")
+        print(f"Response (first 300 chars):\n{resp_text[:300]}")
+        verdict = "PASS" if ok else "FAIL"
+        rationale = "debug is None as expected" if ok else f"debug should be None, got: {debug}"
+        results.append((name, verdict, rationale))
+        print(f"VERDICT: {verdict} — {rationale}")
+        return debug, resp_text
+
+    if not isinstance(debug, dict):
+        verdict = "FAIL"
+        rationale = f"debug missing or not dict: {debug}"
+        results.append((name, verdict, rationale))
+        print(f"VERDICT: {verdict} — {rationale}")
+        print(f"Raw response keys: {list(data.keys()) if isinstance(data, dict) else 'n/a'}")
+        print(f"Response: {resp_text[:400]}")
+        return debug, resp_text
+
+    intensity_mode = debug.get("intensity_mode")
+    intensity_marker = debug.get("intensity_marker")
+    lens_intensity_ceiling = debug.get("lens_intensity_ceiling")
+    depth_mode = debug.get("depth_mode")
+
+    print(f"intensity_mode           = {intensity_mode}")
+    print(f"intensity_marker         = {intensity_marker}")
+    print(f"lens_intensity_ceiling   = {lens_intensity_ceiling}")
+    print(f"depth_mode (sanity)      = {depth_mode}")
+    print(f"\nResponse:\n{resp_text}\n")
+
+    checks = []
+    checks.append(("HTTP 200", status == 200))
+    checks.append((f"intensity_mode == {expected_mode}", intensity_mode == expected_mode))
+    checks.append((f"intensity_marker == {expected_marker}", intensity_marker == expected_marker))
+    if expected_ceiling:
+        checks.append((f"lens_intensity_ceiling == {expected_ceiling}",
+                       lens_intensity_ceiling == expected_ceiling))
+    if extra_checks:
+        for label, fn in extra_checks:
+            try:
+                checks.append((label, bool(fn(resp_text, debug))))
+            except Exception:
+                checks.append((label, False))
+
+    all_ok = all(ok for _, ok in checks)
+    for label, ok in checks:
+        print(f"  [{'OK' if ok else 'FAIL'}] {label}")
+    verdict = "PASS" if all_ok else "FAIL"
+    rationale = "; ".join(f"{lbl}={'OK' if ok else 'FAIL'}" for lbl, ok in checks)
+    results.append((name, verdict, rationale))
+    print(f"VERDICT: {verdict}")
+    return debug, resp_text
 
 
 def main():
-    print(f"Base URL: {BASE}")
-    results = {}
+    # ---------- I1 SOFT detection (astrology, vulnerability) ----------
+    msg = ("I'm completely lost. My partner left me yesterday and I can't stop crying. "
+           "What does my chart say about why this keeps happening to me?")
+    status, data, dt = chat(msg, lens="astrology", session_id=str(uuid.uuid4()))
+    def i1_no_shadow_phrases(text, debug):
+        bad = ["the pattern here is", "what you're avoiding", "what you are avoiding"]
+        return not any(b.lower() in text.lower() for b in bad)
+    summarize("I1 SOFT — vulnerability wins (astrology)", status, data, dt,
+              expected_mode="SOFT", expected_ceiling="DIRECT",
+              extra_checks=[("no harsh shadow phrases", i1_no_shadow_phrases)])
 
-    pete_ok, pete_data, pete_fails = test_user(
-        PETE, "Pete", asc_low=262, asc_high=263,
-        check_planets=REQUIRED_PLANETS_PETE, expect_ws_divergence=True,
-    )
-    results["Pete"] = (pete_ok, pete_fails)
+    # ---------- I2 SOFT beats DIRECT (enneagram) ----------
+    msg = "I feel broken. Please be honest with me — what am I doing wrong?"
+    status, data, dt = chat(msg, lens="enneagram", session_id=str(uuid.uuid4()))
+    def i2_no_shadow(text, debug):
+        bad = ["the pattern here is", "what you're avoiding", "shadow"]
+        return not any(b.lower() in text.lower() for b in bad)
+    summarize("I2 SOFT beats DIRECT (enneagram, vulnerable + be honest)", status, data, dt,
+              expected_mode="SOFT", expected_ceiling="CONFRONTING",
+              extra_checks=[("gentler — avoid harsh pattern/shadow naming", i2_no_shadow)])
 
-    mel_ok, mel_data, mel_fails = test_user(
-        MEL, "Mel", asc_low=None, asc_high=None,
-        check_planets=None, expect_ws_divergence=False,
-    )
-    extra = []
-    asc_mel = mel_data.get("ascendant_sidereal_degrees")
-    if asc_mel is None or not (88 <= asc_mel <= 91):
-        extra.append(f"Mel asc not ~89.1: {asc_mel}")
-    for p in mel_data.get("planets", []):
-        if p.get("ssot_ok") is not True:
-            extra.append(f"Mel planet {p.get('planet')} ssot_ok != true")
-    if extra:
-        mel_ok = False
-        mel_fails.extend(extra)
-        for f in extra:
-            print(f"    - {f}")
-    results["Mel"] = (mel_ok, mel_fails)
+    # ---------- I3 DIRECT (astrology, explicit invitation) ----------
+    msg = "Be honest with me. What am I avoiding in my Saturn placement?"
+    status, data, dt = chat(msg, lens="astrology", session_id=str(uuid.uuid4()))
+    summarize("I3 DIRECT — explicit invitation (astrology)", status, data, dt,
+              expected_mode="DIRECT", expected_ceiling="DIRECT")
 
-    invalid_ok = test_invalid_user()
-    results["Invalid"] = (invalid_ok, [])
+    # ---------- I4 CONFRONTING — Enneagram with prior probing (3 turns same session) ----------
+    sid = str(uuid.uuid4())
+    print(f"\n--- I4 session_id: {sid} ---")
+    status1, data1, dt1 = chat("What is my Enneagram type and what is its core fear?",
+                                lens="enneagram", session_id=sid)
+    summarize("I4.1 OBSERVATIONAL — Enneagram intro question", status1, data1, dt1,
+              expected_mode="OBSERVATIONAL", expected_ceiling="CONFRONTING")
 
-    print("\n=== SUMMARY ===")
-    all_pass = True
-    for name, (ok, fails) in results.items():
-        status = "PASS" if ok else "FAIL"
-        print(f"  {name}: {status}")
-        if not ok:
-            all_pass = False
-            for f in fails:
-                print(f"      - {f}")
+    status2, data2, dt2 = chat("Be honest with me — what am I really avoiding?",
+                                lens="enneagram", session_id=sid)
+    summarize("I4.2 DIRECT — probing follow-up", status2, data2, dt2,
+              expected_mode="DIRECT", expected_ceiling="CONFRONTING")
 
-    return 0 if all_pass else 1
+    status3, data3, dt3 = chat("Challenge me. Don't hold back. What do I need to hear?",
+                                lens="enneagram", session_id=sid)
+    summarize("I4.3 CONFRONTING — Enneagram earned after prior probing",
+              status3, data3, dt3,
+              expected_mode="CONFRONTING", expected_ceiling="CONFRONTING")
+
+    # ---------- I5 CONFRONTING earn-the-ramp (Enneagram, no prior probing) ----------
+    msg = "Challenge me. Don't hold back."
+    status, data, dt = chat(msg, lens="enneagram", session_id=str(uuid.uuid4()))
+    summarize("I5 Earn-the-ramp — Enneagram CONFRONTING without prior probing → DIRECT",
+              status, data, dt,
+              expected_mode="DIRECT", expected_ceiling="CONFRONTING")
+
+    # ---------- I6 Astrology ceiling — caps at DIRECT ----------
+    sid = str(uuid.uuid4())
+    print(f"\n--- I6 session_id: {sid} ---")
+    status6a, data6a, dt6a = chat("be honest with me about my chart",
+                                   lens="astrology", session_id=sid)
+    summarize("I6.1 DIRECT — astrology probing", status6a, data6a, dt6a,
+              expected_mode="DIRECT", expected_ceiling="DIRECT")
+
+    status6b, data6b, dt6b = chat("Challenge me. Don't hold back.",
+                                   lens="astrology", session_id=sid)
+    summarize("I6.2 Astrology ceiling cap — CONFRONTING invitation → DIRECT",
+              status6b, data6b, dt6b,
+              expected_mode="DIRECT", expected_ceiling="DIRECT")
+
+    # ---------- I7 BaZi reaches CONFRONTING ----------
+    sid = str(uuid.uuid4())
+    print(f"\n--- I7 session_id: {sid} ---")
+    status7a, data7a, dt7a = chat("be real with me about my Day Master",
+                                   lens="bazi", session_id=sid)
+    summarize("I7.1 DIRECT — bazi probing", status7a, data7a, dt7a,
+              expected_mode="DIRECT", expected_ceiling="CONFRONTING")
+
+    status7b, data7b, dt7b = chat("Hit me with it. What am I missing?",
+                                   lens="bazi", session_id=sid)
+    summarize("I7.2 BaZi CONFRONTING", status7b, data7b, dt7b,
+              expected_mode="CONFRONTING", expected_ceiling="CONFRONTING")
+
+    # ---------- I8 Momentum — 2+ probing turns moves floor to DIRECT ----------
+    sid = str(uuid.uuid4())
+    print(f"\n--- I8 session_id: {sid} ---")
+    status8a, data8a, dt8a = chat("be honest with me", lens="astrology", session_id=sid)
+    summarize("I8.1 DIRECT — astrology probing #1", status8a, data8a, dt8a,
+              expected_mode="DIRECT", expected_ceiling="DIRECT")
+    status8b, data8b, dt8b = chat("what am I avoiding?", lens="astrology", session_id=sid)
+    summarize("I8.2 DIRECT — astrology probing #2", status8b, data8b, dt8b,
+              expected_mode="DIRECT", expected_ceiling="DIRECT")
+    status8c, data8c, dt8c = chat("What about my Saturn placement?",
+                                   lens="astrology", session_id=sid)
+    summarize("I8.3 Momentum — neutral msg but momentum keeps DIRECT floor",
+              status8c, data8c, dt8c,
+              expected_mode="DIRECT", expected_ceiling="DIRECT")
+
+    # ---------- I9 Default OBSERVATIONAL ----------
+    msg = "What does my Saturn mean?"
+    status, data, dt = chat(msg, lens="astrology", session_id=str(uuid.uuid4()))
+    summarize("I9 Default OBSERVATIONAL (astrology)", status, data, dt,
+              expected_mode="OBSERVATIONAL", expected_ceiling="DIRECT")
+
+    # ---------- I10 Generalist regression (lens=None) ----------
+    msg = "be honest with me, what am I avoiding?"
+    status, data, dt = chat(msg, lens=None, session_id=str(uuid.uuid4()))
+    summarize("I10 Generalist regression — debug should be None",
+              status, data, dt,
+              expected_mode=None, expect_debug_null=True)
+
+    # ---------- Final summary ----------
+    print(f"\n\n{'#'*80}\nFINAL SUMMARY\n{'#'*80}")
+    p = sum(1 for _, v, _ in results if v == "PASS")
+    f = sum(1 for _, v, _ in results if v == "FAIL")
+    for name, verdict, rationale in results:
+        mark = "PASS" if verdict == "PASS" else "FAIL"
+        print(f"[{mark}] {name}  →  {rationale}")
+    print(f"\nTOTAL: {p} PASS / {f} FAIL  (of {len(results)})")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

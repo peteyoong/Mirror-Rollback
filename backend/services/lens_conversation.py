@@ -572,6 +572,226 @@ def format_compression_block(depth_mode: str) -> str:
     )
 
 
+
+# ---------------------------------------------------------------------------
+# Emotional timing (emotional-timing-v1) — conversational intensity
+# ---------------------------------------------------------------------------
+#
+# Separate axis from depth.  Depth controls *how much* we say; intensity
+# controls *how hard we land it*.
+#
+# Four modes (internal only — never shown to users):
+#   SOFT          — emotionally safe, gentler wording, low pressure
+#   OBSERVATIONAL — neutral descriptive mirror, calm precision  (DEFAULT)
+#   DIRECT        — sharper pattern naming, clear consequences, less cushion
+#   CONFRONTING   — high-recognition shadow surfacing, only when EARNED
+#
+# Intensity is NOT harshness.  Even CONFRONTING must feel precise, grounded,
+# earned — never judgmental, dramatic, or performatively edgy.
+
+# Markers that pull us DOWN to SOFT (user is vulnerable / shocked / spiralling).
+_SOFT_SIGNAL_PATTERNS = [
+    # Vulnerability
+    r"\bi'?m (lost|scared|terrified|afraid|overwhelmed|broken|drowning|exhausted|so tired)\b",
+    r"\bi (?:can'?t|cannot) (?:stop|sleep|breathe|think|cope|handle|do this)\b",
+    r"\bi feel (?:so )?(lost|alone|empty|numb|hopeless|broken|stuck|crushed|small)\b",
+    r"\bi don'?t know (what to do|who i am|anymore|how to)\b",
+    r"\bi'?m falling apart\b", r"\bfalling apart\b",
+    r"\bi'?m spirall?ing\b", r"\bspirall?ing\b",
+    r"\bi'?m struggling\b", r"\bstruggling so much\b",
+    # Grief / shock / loss
+    r"\b(died|passed away|funeral|grief|grieving|mourning)\b",
+    r"\b(broke up|breakup|divorce|ended (it|things)|left me|leaving me|abandoned me)\b",
+    r"\b(miscarriage|lost (the|my) baby)\b",
+    r"\bdiagnos(ed|is)\b",
+    r"\b(crying|in tears|sobbing|can'?t stop crying)\b",
+    r"\b(in shock|i'?m stunned|i can'?t believe)\b",
+    # Distress / urgency
+    r"\bplease help\b", r"\bi need help\b", r"\bsomething is wrong with me\b",
+    r"\bwhy is this happening\b", r"\bwhat is wrong with me\b",
+    r"\bi hate myself\b", r"\bi want to give up\b",
+]
+_SOFT_SIGNAL_RE = re.compile("|".join(_SOFT_SIGNAL_PATTERNS), re.IGNORECASE)
+
+# Markers that ALLOW DIRECT — user invites sharper truth.
+_DIRECT_SIGNAL_PATTERNS = [
+    r"\bbe honest\b", r"\bbe real (with me)?\b", r"\bbe direct\b",
+    r"\btell me the truth\b", r"\bdon'?t sugar-?coat\b", r"\bno sugar-?coating\b",
+    r"\bstraight up\b", r"\bjust tell me\b",
+    r"\bwhat am i avoiding\b", r"\bwhat am i missing\b",
+    r"\bwhat'?s the pattern\b", r"\bwhat'?s underneath\b", r"\bwhat'?s really going on\b",
+    r"\bthe real reason\b", r"\bthe truth is\b",
+    r"\bcall me out\b", r"\bcall it out\b",
+]
+_DIRECT_SIGNAL_RE = re.compile("|".join(_DIRECT_SIGNAL_PATTERNS), re.IGNORECASE)
+
+# Markers that explicitly INVITE CONFRONTING.
+_CONFRONTING_SIGNAL_PATTERNS = [
+    r"\bchallenge me\b", r"\bpush me\b", r"\bdon'?t hold back\b",
+    r"\bgive it to me straight\b", r"\bwhat do i need to hear\b",
+    r"\bhit me with it\b", r"\bbe brutal\b", r"\bbrutal(ly)? honest\b",
+]
+_CONFRONTING_SIGNAL_RE = re.compile("|".join(_CONFRONTING_SIGNAL_PATTERNS), re.IGNORECASE)
+
+
+# Lens bias on the intensity ramp.  Each lens has a default "ceiling" — the
+# strongest intensity it will reach when the user invites it.  Astrology
+# tops out at DIRECT (stays interpretive, not absolute).  Enneagram and BaZi
+# can go up to CONFRONTING when invited.  HD biases toward OBSERVATIONAL
+# (mechanical mirror, not psychological confrontation).
+_LENS_INTENSITY_CEILING = {
+    "astrology": "DIRECT",
+    "human_design": "DIRECT",
+    "numerology": "DIRECT",
+    "enneagram": "CONFRONTING",
+    "bazi": "CONFRONTING",
+}
+# Default starting mode per lens (when nothing in the message moves us).
+_LENS_INTENSITY_DEFAULT = {
+    "astrology": "OBSERVATIONAL",
+    "human_design": "OBSERVATIONAL",
+    "numerology": "OBSERVATIONAL",
+    "enneagram": "OBSERVATIONAL",
+    "bazi": "OBSERVATIONAL",
+}
+
+_INTENSITY_RANK = {"SOFT": 0, "OBSERVATIONAL": 1, "DIRECT": 2, "CONFRONTING": 3}
+
+
+def _count_direct_invitations_in_history(history: List[Dict[str, str]]) -> int:
+    """How many times the user has invited a sharper read across recent turns."""
+    count = 0
+    for turn in (history or []):
+        if not isinstance(turn, dict):
+            continue
+        if turn.get("role") != "user":
+            continue
+        content = turn.get("content", "") or ""
+        if _DIRECT_SIGNAL_RE.search(content) or _CONFRONTING_SIGNAL_RE.search(content):
+            count += 1
+    return count
+
+
+def detect_intensity_mode(
+    user_message: str,
+    history: List[Dict[str, str]],
+    lens_name: str,
+) -> str:
+    """
+    Pick the intensity for this turn.  Returns:
+        "SOFT" | "OBSERVATIONAL" | "DIRECT" | "CONFRONTING"
+
+    Rules (in order):
+      1. SOFT wins everything: if the user is vulnerable / in distress /
+         spiralling, we soften regardless of any other signal.
+      2. CONFRONTING requires an EXPLICIT invitation in the current message
+         AND the lens must allow it (Enneagram, BaZi).  Plus we like at
+         least one prior DIRECT-type invitation in history so intensity
+         feels earned, not abrupt.
+      3. DIRECT triggers if the current message asks for honesty / pattern
+         exposure / "what am I avoiding", capped by the lens ceiling.
+      4. Conversational momentum: if 2+ prior turns have been probing,
+         the floor moves from OBSERVATIONAL → DIRECT.
+      5. Otherwise: lens default (OBSERVATIONAL for all 5 lenses today).
+    """
+    msg = (user_message or "").strip()
+    if not msg:
+        return _LENS_INTENSITY_DEFAULT.get(lens_name, "OBSERVATIONAL")
+
+    # 1. SOFT always wins.
+    if _SOFT_SIGNAL_RE.search(msg):
+        return "SOFT"
+
+    ceiling = _LENS_INTENSITY_CEILING.get(lens_name, "DIRECT")
+    ceiling_rank = _INTENSITY_RANK[ceiling]
+
+    # 2. Explicit CONFRONTING invitation.
+    if _CONFRONTING_SIGNAL_RE.search(msg):
+        if ceiling_rank >= _INTENSITY_RANK["CONFRONTING"]:
+            # Lens allows CONFRONTING — but require at least one prior
+            # probing turn so the confrontation feels earned, not abrupt.
+            if _count_direct_invitations_in_history(history) >= 1:
+                return "CONFRONTING"
+            return "DIRECT"
+        # Lens doesn't allow CONFRONTING (astrology / HD / numerology) —
+        # step down to the lens ceiling.  The user has clearly invited
+        # sharper truth, so we honour the spirit even if we can't go to
+        # the top of the ramp.
+        return "DIRECT" if ceiling_rank >= _INTENSITY_RANK["DIRECT"] else ceiling
+
+    # 3. DIRECT triggers, capped by lens ceiling.
+    if _DIRECT_SIGNAL_RE.search(msg):
+        return "DIRECT" if ceiling_rank >= _INTENSITY_RANK["DIRECT"] else ceiling
+
+    # 4. Momentum: 2+ probing turns in history → floor at DIRECT.
+    if _count_direct_invitations_in_history(history) >= 2:
+        floor = "DIRECT"
+        if _INTENSITY_RANK[floor] <= ceiling_rank:
+            return floor
+
+    # 5. Lens default.
+    return _LENS_INTENSITY_DEFAULT.get(lens_name, "OBSERVATIONAL")
+
+
+_INTENSITY_GUIDANCE = {
+    "SOFT": (
+        "INTENSITY: SOFT  (the user is vulnerable / in distress — make it safe)\n"
+        "  - Lead with steadiness, not analysis.  Acknowledge the weight\n"
+        "    before naming any pattern.\n"
+        "  - No sharp pattern exposure this turn.  No shadow language.\n"
+        "    No 'here is what you are doing'.  Save those for later.\n"
+        "  - Tone: warm, calm, grounded.  Pace slower.\n"
+        "  - One observation is enough.  Often the right response is to\n"
+        "    name what you see and stop."
+    ),
+    "OBSERVATIONAL": (
+        "INTENSITY: OBSERVATIONAL  (default — calm, precise, neutral mirror)\n"
+        "  - Describe the pattern; do not push.  Name what's there without\n"
+        "    asserting consequences too strongly.\n"
+        "  - Confidence without pressure.  The user gets to decide what\n"
+        "    to do with the observation.\n"
+        "  - Tone: clear, measured, slightly understated."
+    ),
+    "DIRECT": (
+        "INTENSITY: DIRECT  (user invited sharpness — sharper pattern naming)\n"
+        "  - Name the pattern crisply.  Name the consequence honestly.\n"
+        "    Less cushioning, less hedging.\n"
+        "  - You are allowed to say what the user may be avoiding — but\n"
+        "    only if it's specific to THIS signal, not a generic shadow.\n"
+        "  - Tone: confident, observant, slightly leaning in.  Still\n"
+        "    precise — never aggressive."
+    ),
+    "CONFRONTING": (
+        "INTENSITY: CONFRONTING  (rare — user has explicitly invited this)\n"
+        "  - High-recognition shadow surfacing.  Name the defense, the\n"
+        "    cost, the pattern the user has been working to not see.\n"
+        "  - This is precision, not harshness.  Not judgmental.  Not\n"
+        "    dramatic.  Not 'performatively edgy'.\n"
+        "  - Tone: grounded, clear, earned.  The intensity comes from\n"
+        "    accuracy, not from volume."
+    ),
+}
+
+
+def format_intensity_block(intensity: str, lens_name: str) -> str:
+    """Build the CONVERSATIONAL INTENSITY system-prompt block."""
+    guidance = _INTENSITY_GUIDANCE.get(intensity, _INTENSITY_GUIDANCE["OBSERVATIONAL"])
+    ceiling = _LENS_INTENSITY_CEILING.get(lens_name, "DIRECT")
+    return (
+        "--- CONVERSATIONAL INTENSITY (emotional-timing-v1) ---\n"
+        f"{guidance}\n"
+        "\n"
+        "GLOBAL RULES (every intensity):\n"
+        "  - Intensity is precision, NOT harshness.\n"
+        "  - Do NOT manufacture drama.  Do NOT force shadow language.\n"
+        "    Do NOT overstate consequences.  Do NOT become cryptic.\n"
+        "  - Intensity ramps gradually.  Do not jump from OBSERVATIONAL\n"
+        "    to CONFRONTING in one turn unless the user explicitly invited.\n"
+        f"  - Lens ceiling for {lens_name}: {ceiling}.  Even when the user\n"
+        f"    invites more, do not exceed this ceiling."
+    )
+
+
 # ---------------------------------------------------------------------------
 # Debug payload
 # ---------------------------------------------------------------------------
@@ -666,6 +886,11 @@ def compose_lens_memory_blocks(
     # block so it stays freshest in the LLM's attention.
     depth_mode = detect_depth_mode(user_message, history)
     blocks.append(format_compression_block(depth_mode))
+    # emotional-timing-v1 — conversational intensity calibration.
+    # Separate axis from depth: depth = how much we say, intensity = how
+    # hard we land it.  Goes last so it has the strongest pull on tone.
+    intensity_mode = detect_intensity_mode(user_message, history, registry.lens_name)
+    blocks.append(format_intensity_block(intensity_mode, registry.lens_name))
 
     memory_block_text = "\n\n".join(b for b in blocks if b)
 
@@ -692,5 +917,10 @@ def compose_lens_memory_blocks(
     # can adapt max_tokens / UX (e.g. show a "deep dive" indicator).
     debug["compression_marker"] = "conversational-compression-v1"
     debug["depth_mode"] = depth_mode
+    # emotional-timing-v1 — surface the intensity mode for observability
+    # and future relational-intelligence layers.
+    debug["intensity_marker"] = "emotional-timing-v1"
+    debug["intensity_mode"] = intensity_mode
+    debug["lens_intensity_ceiling"] = _LENS_INTENSITY_CEILING.get(registry.lens_name, "DIRECT")
 
     return memory_block_text, debug
