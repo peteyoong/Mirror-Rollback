@@ -11387,22 +11387,61 @@ backend:
           violation per the review-request acceptance criteria.
 
 test_plan:
-  current_focus:
-    - "Multi-Lens Chat Memory + Entity Tracking (multi-lens-chat-memory-v1)"
-  stuck_tasks:
-    - "Multi-Lens Chat Memory + Entity Tracking (multi-lens-chat-memory-v1)"
+  current_focus: []
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 backend:
   - task: "Multi-Lens Chat Memory + Entity Tracking (multi-lens-chat-memory-v1)"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/services/lens_conversation.py, /app/backend/services/lens_registries/*.py, /app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          MULTI-LENS CHAT MEMORY V1 — RE-RUN AFTER FIXES (2026-05-18)
+          17 / 17 ASSERTIONS PASSED ✅ (previously 12/17 with 5 fails).
+
+          Endpoint: POST /api/mirror/chat
+          Test user: Pete (697f0c6abf35c0528ff06954)
+          Test artefact: /app/multi_lens_chat_memory_test.py
+          Results JSON:  /app/multi_lens_chat_memory_results.json
+
+          Fixes verified working:
+          1) services/lens_conversation.py · resolve_active_entity() — primary_kinds
+             tuple now correctly includes hd_top, day_master, tritype, line, luck_pillar;
+             secondary_kinds includes animal, numerology_number.
+          2) services/lens_registries/enneagram.py · _ALIASES — added "enneagram type",
+             "ennea type", "type number", "personality type" → "Core Type".
+
+          ── ALL 17 ASSERTIONS PASS ──────────────────────────────────────────────
+          A.T1  Jupiter (current)          PASS  active_entity=Jupiter, src=current
+          A.T2  Jupiter (referent)         PASS  active_entity=Jupiter, src=referent
+          A.T3  Jupiter (referent)         PASS  active_entity=Jupiter, src=referent
+          B.T1  Authority (current)        PASS  active_entity=Authority(hd_top), src=current  [FIX VERIFIED]
+          B.T2  Authority (referent)       PASS  active_entity=Authority(hd_top), src=referent [FIX VERIFIED]
+          B.T3  Profile (explicit pivot)   PASS  active_entity=Profile(hd_top), src=current   [FIX VERIFIED]
+          C.T1  Life Path (current)        PASS  active_entity=Life Path, src=current
+          C.T2  Life Path (referent)       PASS  active_entity=Life Path, src=referent
+          D.T1  Enneagram Core Type        PASS  active_entity=Core Type, src=current         [FIX VERIFIED — alias hit]
+          E.T1  Day Master (current)       PASS  active_entity=Day Master, src=current        [FIX VERIFIED]
+          E.T2  Month Pillar (pivot wins)  PASS  active_entity=Month Pillar(pillar), src=current
+          F.    Generalist (debug=null)    PASS  debug=null returned correctly
+          G.    No-crash regression (×5)   PASS  all 5 lenses, src=none, no crash
+
+          Markers / lens / grounding sources / missing sources all correct.
+          Backend logs clean — no exceptions in services.lens_conversation or
+          services.lens_registries.*. Build marker = multi-lens-chat-memory-v1
+          on all chat responses (except generalist which returns debug=null by design).
+
+          Previously documented diagnostic FAILS (B.T1/T2/T3, D.T1, E.T1) are
+          all resolved. Task moved from working=false → working=true,
+          stuck_count reset to 0.
       - working: false
         agent: "testing"
         comment: |
@@ -15972,6 +16011,28 @@ agent_communication:
       
       No backend code was modified. No regressions observed in
       adjacent endpoints during the run.
+
+  - agent: "testing"
+    message: >
+      Re-ran multi_lens_chat_memory_test.py after the two fixes
+      (lens_conversation.resolve_active_entity primary/secondary kinds
+      expansion + enneagram._ALIASES additions). All 17/17 assertions PASS.
+
+      Confirmed 5 previously-failing assertions now pass:
+        • B.T1 HD Authority (current)        → active_entity=Authority(hd_top), source=current
+        • B.T2 HD Authority (referent)       → active_entity=Authority(hd_top), source=referent
+        • B.T3 HD Profile (explicit pivot)   → active_entity=Profile(hd_top), source=current
+        • D.T1 Enneagram Core Type           → active_entity=Core Type, source=current
+        • E.T1 BaZi Day Master (current)     → active_entity=Day Master, source=current
+
+      Regressions held green: Astrology Jupiter chain (3/3), Numerology
+      Life Path chain (2/2), BaZi Month Pillar pivot (1/1), Generalist
+      debug=null (1/1), no-crash regression for 5 lenses (5/5).
+
+      Task "Multi-Lens Chat Memory + Entity Tracking
+      (multi-lens-chat-memory-v1)" flipped working=true, stuck_count=0,
+      removed from current_focus and stuck_tasks. No code modified.
+
 
 
   - task: "Timeline UI consumes /api/astrology/timeline (server is source of truth)"

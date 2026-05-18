@@ -164,8 +164,19 @@ def resolve_active_entity(
     history: List[Dict[str, str]],
     registry: LensRegistry,
     index: Dict[str, Dict[str, Any]],
-    primary_kinds: Tuple[str, ...] = ("planet", "node", "angle", "center", "channel", "gate", "pillar", "core_type", "life_path"),
-    secondary_kinds: Tuple[str, ...] = ("house", "incarnation_cross", "ten_god", "element", "personal_cycle", "wing", "instinct"),
+    primary_kinds: Tuple[str, ...] = (
+        "planet", "node", "angle",
+        "center", "channel", "gate", "hd_top",
+        "pillar", "day_master", "luck_pillar",
+        "core_type", "tritype", "line",
+        "life_path",
+    ),
+    secondary_kinds: Tuple[str, ...] = (
+        "house", "incarnation_cross",
+        "ten_god", "element", "animal",
+        "personal_cycle", "numerology_number",
+        "wing", "instinct",
+    ),
 ) -> Tuple[Optional[Dict[str, Any]], str]:
     """
     Resolve which entity the user is currently asking about.

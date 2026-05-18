@@ -20,7 +20,7 @@
         "missing_sources": [],
         "history_entities": []
       },
-      "response": "Your Jupiter sits in Cancer, in your 8th house. This placement often amplifies sensitivity and intuition, especially regarding shared resources, deep emotional connections, and transformation. You mig"
+      "response": "Your Jupiter sits in Cancer in your 8th house. This placement often highlights a deep connection to understanding the complexities of shared resources, intimacy, and transformation. You may find yours"
     }
   },
   {
@@ -47,7 +47,7 @@
           "House 8"
         ]
       },
-      "response": "Your Jupiter actually sits in Cancer, in your 8th house, not the 4th. This placement often brings depth to how you experience emotional connections, particularly when it comes to sharing resources or "
+      "response": "Actually, your Jupiter sits in Cancer, in your 8th house. This often brings an emphasis on deep emotional exchanges and shared resources. The 8th house tends to involve matters of transformation, inti"
     }
   },
   {
@@ -75,19 +75,22 @@
           "House 4"
         ]
       },
-      "response": "Jupiter sits in your 8th house, Pete. This placement often highlights themes around shared resources, deep emotional bonds, and transformation. You might experience a heightened intuition in these are"
+      "response": "Your Jupiter sits in the 8th house. This house is often associated with shared resources, deep emotional exchanges, and transformation. It emphasizes how you navigate complex joint endeavors, whether "
     }
   },
   {
     "name": "B.T1 Authority (current)",
-    "pass": false,
+    "pass": true,
     "info": {
       "status": 200,
       "debug": {
         "marker": "multi-lens-chat-memory-v1",
         "lens": "human_design",
-        "active_entity": null,
-        "active_entity_source": "none",
+        "active_entity": {
+          "name": "Authority",
+          "kind": "hd_top"
+        },
+        "active_entity_source": "current",
         "grounding_sources": [
           "Type",
           "Strategy",
@@ -101,19 +104,22 @@
         "missing_sources": [],
         "history_entities": []
       },
-      "response": "Your Authority is Emotional, meaning your decision-making process benefits from waiting to gain clarity through your emotional waves. It's about giving yourself time to feel your way into decisions ra"
+      "response": "Your Authority is Emotional Authority. This means that your decision-making process is deeply connected to the emotional waves you experience. In practical terms, you might notice that decisions take "
     }
   },
   {
     "name": "B.T2 Authority (referent)",
-    "pass": false,
+    "pass": true,
     "info": {
       "status": 200,
       "debug": {
         "marker": "multi-lens-chat-memory-v1",
         "lens": "human_design",
-        "active_entity": null,
-        "active_entity_source": "none",
+        "active_entity": {
+          "name": "Authority",
+          "kind": "hd_top"
+        },
+        "active_entity_source": "referent",
         "grounding_sources": [
           "Type",
           "Strategy",
@@ -129,19 +135,22 @@
           "Authority"
         ]
       },
-      "response": "When under pressure, your Emotional Authority can sometimes lead to hasty decisions when there's a push to resolve things quickly. This can manifest as saying or committing to something in the heat of"
+      "response": "When your Emotional Authority is under pressure, you might feel a strong urge to make quick decisions to escape the discomfort of waiting through your emotional wave. This often shows up as a tendency"
     }
   },
   {
     "name": "B.T3 Profile (current, explicit pivot)",
-    "pass": false,
+    "pass": true,
     "info": {
       "status": 200,
       "debug": {
         "marker": "multi-lens-chat-memory-v1",
         "lens": "human_design",
-        "active_entity": null,
-        "active_entity_source": "none",
+        "active_entity": {
+          "name": "Profile",
+          "kind": "hd_top"
+        },
+        "active_entity_source": "current",
         "grounding_sources": [
           "Type",
           "Strategy",
@@ -157,7 +166,7 @@
           "Authority"
         ]
       },
-      "response": "Your Profile is 5/1 in Human Design. This often shows up as a natural problem-solver who others turn to for guidance. You bring a practical and investigative approach to understanding systems and solv",
+      "response": "Your Profile in Human Design is the 5/1 Profile, which combines a need to fix and universalize solutions (5) with an investigative nature seeking thorough understanding (1). Often, this shows up as ha",
       "expected_grounding_present": true
     }
   },
@@ -183,7 +192,7 @@
         "missing_sources": [],
         "history_entities": []
       },
-      "response": "Your Life Path number is 11, often associated with a sense of intuition and spiritual insight. This path tends to invite you into situations where your natural empathy and sensitivity can shine. You m",
+      "response": "Your Life Path number is 11, which often shows up as a vibration of intuition and inspiration. This number carries the potential for deep insight and a desire to connect with something greater. You mi",
       "has_life_path_grounding": true
     }
   },
@@ -208,23 +217,25 @@
         ],
         "missing_sources": [],
         "history_entities": [
-          "Life Path",
-          "Master Number"
+          "Life Path"
         ]
       },
-      "response": "Your Life Path 11, often seen as a path of intuition and insight, could have interesting implications for your career. This number typically invites a creative approach to work, where vision and inspi"
+      "response": "Your Life Path 11 often manifests as a strong sense of intuition and inspiration in your career. This path might lead you to roles where you can innovate, inspire, or bring new insights. You might fin"
     }
   },
   {
     "name": "D.T1 Enneagram Core Type (has data)",
-    "pass": false,
+    "pass": true,
     "info": {
       "status": 200,
       "debug": {
         "marker": "multi-lens-chat-memory-v1",
         "lens": "enneagram",
-        "active_entity": null,
-        "active_entity_source": "none",
+        "active_entity": {
+          "name": "Core Type",
+          "kind": "core_type"
+        },
+        "active_entity_source": "current",
         "grounding_sources": [
           "Core Type",
           "Wing",
@@ -236,20 +247,23 @@
         ],
         "history_entities": []
       },
-      "response": "Your Core Enneagram Type is Type 7, known as the Enthusiast, with a Wing 8. This pattern often shows up as a desire for new experiences and a tendency to seek out excitement. There can be a deep drive",
+      "response": "Your Enneagram type is Core Type 7, known as the Enthusiast, with a wing toward Type 8. This describes someone who often seeks new experiences and possibilities, driven by a desire for variety and avo",
       "has_core_type_grounding": true
     }
   },
   {
     "name": "E.T1 Day Master (current)",
-    "pass": false,
+    "pass": true,
     "info": {
       "status": 200,
       "debug": {
         "marker": "multi-lens-chat-memory-v1",
         "lens": "bazi",
-        "active_entity": null,
-        "active_entity_source": "none",
+        "active_entity": {
+          "name": "Day Master",
+          "kind": "day_master"
+        },
+        "active_entity_source": "current",
         "grounding_sources": [
           "Day Master",
           "Four Pillars",
@@ -262,7 +276,7 @@
         ],
         "history_entities": []
       },
-      "response": "Your Day Master is Yin Metal (Xin), and it serves as a reflection of your core operating style, offering insights into how you tend to interact with the world. Yin Metal often carries qualities simila",
+      "response": "Your Day Master is Yin Metal (Xin). In BaZi, the Day Master reflects your core operating style. As Yin Metal, there's a quality of refinement and precision in how you approach life. This often manifes",
       "grounding_has_day_master": true,
       "grounding_has_four_pillars": true
     }
@@ -295,7 +309,7 @@
           "Element: Metal"
         ]
       },
-      "response": "Your Month Pillar is Yi Mao, which often brings a synergistic support to your Day Master, Yin Metal. The Yi Mao energy emphasizes flexibility and growth, much like a plant that bends and adapts to its"
+      "response": "Your Month Pillar is Yi Mao. This pillar often emphasizes themes of growth and adaptability in your life, acting as a significant influence on your day-to-day activities, particularly those related to"
     }
   },
   {
@@ -304,8 +318,8 @@
     "info": {
       "status": 200,
       "debug_field": null,
-      "response_length": 232,
-      "response": "We haven't had a conversation yet. You're welcome to bring up anything on your mind that you'd like to explore or reflect upon. Is there a particular aspect of your life or a symbolic lens you're inte"
+      "response_length": 139,
+      "response": "We\u2019re just starting fresh here. If there's something specific you\u2019d like to dive into, feel free to share. What's been on your mind lately?"
     }
   },
   {
@@ -326,7 +340,7 @@
         "missing_sources": [],
         "history_entities": []
       },
-      "response": "These patterns offer one lens for self-understanding. What resonates with your own experience?"
+      "response": "Could you clarify which specific part or placement you're referring to? This way, I can provide details that are most relevant to your interest. If it involves a specific planet, aspect, or house, let"
     }
   },
   {
@@ -352,7 +366,7 @@
         "missing_sources": [],
         "history_entities": []
       },
-      "response": "These patterns offer one lens for self-understanding. What resonates with your own experience?"
+      "response": "Could you clarify what you mean by \"that\"? Are you referring to something specific about your Human Design, like Manifestor type, Emotional Authority, or perhaps your Profile? Let me know so I can div"
     }
   },
   {
@@ -374,7 +388,7 @@
         "missing_sources": [],
         "history_entities": []
       },
-      "response": "Could you specify which aspect or number you're referring to? Is it something specific about your Life Path 11, your Personal Year 6, or another number in your numerology profile? Let me know so we ca"
+      "response": "I'm here to explore numerology with you, Pete. Let's delve into one specific aspect, your Life Path number, which is 11. Life Path 11 is often seen as the \"Master Teacher\" number, bringing qualities o"
     }
   },
   {
@@ -398,7 +412,7 @@
         ],
         "history_entities": []
       },
-      "response": "Sure, Pete. Your Core Type, 7, is known as the Enthusiast. This type typically thrives on new experiences and the pursuit of excitement and joy. With a Wing 8, the Challenger, there might be a bit of "
+      "response": "I'm here to delve deeper into your Enneagram insights. Your core type is Type 7, known as the Enthusiast, which often speaks to a pattern of seeking variety, excitement, and new experiences. With a wi"
     }
   },
   {
@@ -423,7 +437,7 @@
         ],
         "history_entities": []
       },
-      "response": "Your Day Master, Yin Metal, offers a refined approach to life. In BaZi, Yin Metal is seen as polished and perceptive, often bringing elegance to whatever it touches. Your Day Master is strong, indicat"
+      "response": "Your Day Master is Yin Metal, which indicates an appreciation for precision and beauty. Yin Metal often manifests as someone who values refinement and seeks excellence in what they do. This characteri"
     }
   }
 ]
