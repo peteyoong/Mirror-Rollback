@@ -11388,10 +11388,123 @@ backend:
 
 test_plan:
   current_focus:
-    - "Ask About My Life — Follow-ups + Reflect CTA"
+    - "Astrology Chat — Conversational Memory + Entity Tracking (astrology-chat-memory-v1)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+backend:
+  - task: "Astrology Chat — Conversational Memory + Entity Tracking (astrology-chat-memory-v1)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/astrology_conversation.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ END-TO-END LLM VALIDATION COMPLETE — 24/24 ASSERTIONS PASSED
+
+          Endpoint: POST /api/mirror/chat (lens="astrology")
+          Module: services/astrology_conversation.py (deterministic helper)
+          Test user: Pete (697f0c6abf35c0528ff06954) — has computed chart, 29 entities indexed.
+
+          Test 1 — Health & module load:
+            ✅ GET /api/health returns ok=true, status=healthy
+            ✅ No import errors for services.astrology_conversation in backend logs
+            ✅ All astrology-lens chat responses carry debug.marker == "astrology-chat-memory-v1"
+
+          Test 2 — Jupiter conversation continuity (session_id reused across 4 turns):
+            Turn 1 ("Where does Jupiter sit in my chart and what does that mean?"):
+              debug.active_entity.name        = "Jupiter"   ✅
+              debug.active_entity_source      = "current"   ✅
+              response: "Your Jupiter sits in Cancer, in the 8th house..." (mentions Jupiter ✅)
+
+            Turn 2 ("Oh so that sits in house 4 for me?"):  <-- this was the failing case
+              debug.active_entity.name        = "Jupiter"   ✅ (was previously drifting to Nodes / House 4)
+              debug.active_entity_source      = "referent"  ✅
+              debug.recent_history_entities   = ["Jupiter", "Sign:Cancer", "House 8"]
+              response: "Actually, your Jupiter sits in the 8th house in your chart..." ✅
+                — correctly corrects the user (Jupiter is in H8, not H4) instead of pivoting
+
+            Turn 3 ("I was asking about Jupiter on my chart!?"):
+              debug.active_entity.name        = "Jupiter"   ✅ (snap-back override works)
+              debug.active_entity_source      = "current"   ✅
+              response: "Right — back to Jupiter in your chart. Your Jupiter is in Cancer, in the 8th house..." ✅
+
+            Turn 4 ("And which house does that sit in?"):
+              debug.active_entity.name        = "Jupiter"   ✅ (was previously drifting to Sun)
+              debug.active_entity_source      = "referent"  ✅
+              response: "Your Jupiter sits in the 8th house in your chart..." ✅
+                — short clarification answer, plainly names the house number
+
+          Test 3 — Explicit subject switch:
+            "What about Saturn?" (same session)
+              debug.active_entity.name        = "Saturn"    ✅
+              debug.active_entity_source      = "current"   ✅
+              response: "Your Saturn sits in Pisces, in the 3rd house..." ✅
+
+          Test 4 — Pure house question (new session, no referent, no prior planet):
+            "What is in my 7th house?"
+              debug.active_entity.name        = "House 7"   ✅
+              debug.active_entity_source      = "current"   ✅
+              response: "Your 7th house... is on the cusp of Gemini..." ✅
+
+          Test 5 — Pluto (no fabrication risk):
+            "Tell me about Pluto." (same session as Test 4)
+              debug.active_entity.name        = "Pluto"     ✅
+              debug.active_entity_source      = "current"
+              response: "Your Pluto sits in Leo, in your 8th house..."
+              Pluto IS in this user's chart (entity index returned a valid placement),
+              so no fabrication concern triggered. Grounded answer.
+
+          Test 6 — Non-astrology lens regression:
+            POST /api/mirror/chat with lens=null and message="What did we just discuss?"
+              HTTP 200 OK                                   ✅
+              response.debug                                = null   ✅ (only populated for astrology lens)
+              No backend errors logged.
+
+          Backend log spot-checks confirmed:
+            "[MIRROR_CHAT][astrology-chat-memory-v1] active_entity=Jupiter source=referent chart_index_size=29 history_len=2"
+            etc. for every astrology turn.
+
+          ALL PASS CRITERIA FROM THE REVIEW REQUEST ARE MET:
+            • Turn 2 referent resolves to Jupiter, NOT North/South Node, NOT House 4. ✅
+            • Turn 3 explicit Jupiter mention snaps focus back. ✅
+            • Turn 4 referent stays on Jupiter, NOT Sun, and plainly states the house. ✅
+            • All four responses center on Jupiter (word "Jupiter" present in every one). ✅
+            • Explicit pivot to Saturn honoured. ✅
+            • Pure house question resolves to House 7 with source=current. ✅
+            • Non-astrology lens returns debug=null without error. ✅
+
+          Test artefact: /app/astrology_chat_memory_test.py
+          Result: 24/24 PASS, 0 FAIL.
+
+agent_communication:
+  - agent: "testing"
+    message: >
+      Astrology chat memory + entity tracking (astrology-chat-memory-v1)
+      end-to-end LLM test completed against the live preview backend.
+
+      All 24 assertions PASSED. The four-turn Jupiter sequence (the exact
+      scenario the user reported) now resolves correctly: Turn 1 sets
+      Jupiter as active (source=current), Turn 2 "that sits in house 4"
+      keeps Jupiter as active (source=referent) and the LLM correctly
+      corrects the user to House 8 instead of drifting, Turn 3 snaps back
+      via explicit mention (source=current), Turn 4 "which house does that
+      sit in?" stays on Jupiter (source=referent) and plainly answers
+      "the 8th house". No drift to Sun / Nodes / Saturn observed.
+
+      Saturn pivot, pure-house question (House 7, source=current), and
+      generalist-lens regression (debug field is null when lens is not
+      astrology) all pass. debug.marker == "astrology-chat-memory-v1" on
+      every astrology response. chart_index_size = 29 for Pete.
+
+      No import errors for services.astrology_conversation, no exceptions
+      in backend logs during the test run. Recommend marking this task
+      complete and shipping.
 
 
 agent_communication:
@@ -16459,3 +16572,63 @@ Also added:
 ### Test Status
 - **Backend**: Not changed, no retest needed.
 - **Frontend**: Needs visual confirmation by user (Pete account → Individual Maps → open a person → confirm six-section Person Story + "Ask about [Name]" button).
+
+
+---
+
+## 2026-05-18 — Astrology Chat Memory + Quality (astrology-chat-memory-v1)
+
+### Problem
+P0: Astrology chat behaved as stateless retrieval. Referents like "that / it / which house" drifted between unrelated chart entities (e.g. user asked about Jupiter → answer about Jupiter → user asked "which house?" → answer about Sun or Nodes). Root cause: `emergent_generate()` never received conversation history (each call started a fresh LlmChat session); LLM had zero awareness of prior turns.
+
+### Fix Architecture
+Created new module `/app/backend/services/astrology_conversation.py` with deterministic conversational-memory plumbing:
+
+1. **Chart Entity Index** — every planet, node, angle, and house indexed by canonical name with sign/house/degree/co-tenants pre-resolved.
+2. **Entity Extraction** — regex-based aliases for every planet (Sun/Jupiter/Rahu/Ketu/etc.), every house ("4th house" / "house 4" / "4h" / "fourth house"), signs, and angles (Rising, MC, IC, DSC).
+3. **Active Entity Resolver** — three-tier precedence:
+   - Explicit planet/node/angle in current message ⇒ takes focus (even over referent), so "I was asking about Jupiter!" snaps back instantly.
+   - Referent ("that / it / which house") + house-only mention ⇒ resolves to most recent planet/node/angle in history (so "that sits in house 4 for me?" stays on Jupiter).
+   - Pure referent ⇒ scan history in reverse for the most recent entity.
+   - No referent and no current entity ⇒ carryover from most recent turn.
+   - Nothing found ⇒ source label `"none"` (prompt instructs the LLM to ASK, not guess).
+4. **Three injected system-prompt blocks**:
+   - `ACTIVE ENTITY` — names the conversational focus + how it was resolved + co-tenants if relevant + explicit rule: "Do NOT pivot to a different planet, node, sign, or house unless the user explicitly asks."
+   - `CHART SIGNALS` — full grounded source-of-truth (planets in canonical order + every house cusp sign + tenants). Closes with "If a placement isn't listed, say 'I don't have that data' rather than guessing."
+   - `CONVERSATION HISTORY` — last 6 user/assistant pairs labelled "User:" / "Mirror:".
+
+### Astrology Lens Prompt Rewrite
+Replaced the 4-line `LENS_PROMPTS["astrology"]` with a rigorous prompt covering:
+- Conversational memory rules (must honour ACTIVE ENTITY + HISTORY blocks).
+- Chart-grounding rules (use ONLY CHART SIGNALS).
+- Response architecture: Placement → Core pattern → Where it shows up → Tension/shadow → Interaction → Direct answer.
+- Forbidden therapy-bot phrasings ("How does that make you feel?", "How do you balance…", "What's alive for you right now?").
+- Anti-drift rule: "One reply = one focus. Do not tour the chart."
+- Uncertainty rule: say plainly when data is missing.
+
+### Debug Payload
+`MirrorChatResponse` extended with optional `debug` field returned only for astrology lens, containing:
+- `marker`, `active_entity` (name/kind/sign/house), `active_entity_source` (current/referent/carryover/none), `recent_history_entities`, `chart_index_size`.
+
+### Files Touched
+- `/app/backend/services/astrology_conversation.py` — NEW deterministic helper (no LLM).
+- `/app/backend/server.py`:
+  - `LENS_PROMPTS["astrology"]` rewritten (anti-drift, anti-therapy, response architecture).
+  - `mirror_chat` injects ACTIVE ENTITY + CHART SIGNALS + CONVERSATION HISTORY blocks for astrology lens.
+  - `MirrorChatResponse.debug` optional field added; populated on astrology lens responses.
+- `/app/frontend/constants/buildMarker.ts` — bumped to `astrology-chat-memory-v1`.
+
+### Smoke Tests (deterministic, no LLM)
+All 8 scenarios PASS, including the exact reproduction of the user's failing chat:
+- T1 "Where does Jupiter sit?" → Jupiter (current).
+- T2 "Oh so that sits in house 4 for me?" → **Jupiter (referent)** — used to drift to Nodes.
+- T3 "I was asking about Jupiter!" → **Jupiter (current)** — snap-back override works.
+- T4 "And which house does that sit in?" → **Jupiter (referent)** — used to drift to Sun.
+- T5 carryover w/o referent → Jupiter (carryover).
+- T6 "What about Saturn?" → Saturn (explicit pivot honoured).
+- T7 "What is in my 7th house?" → House 7 (current).
+- T8 no entity / no history → None (LLM will ask).
+
+### Test Status
+- **Backend**: Restarted clean, deterministic helper passes smoke tests. **Needs end-to-end LLM test** to confirm the LLM honours the new ACTIVE ENTITY + HISTORY blocks (backend testing agent run pending).
+- **Frontend**: Build marker bumped; no UI changes yet. Optional debug UI (Part 6 of spec) deferred — debug payload is now returned on the API and can be wired into a dev-mode toggle later.

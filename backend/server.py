@@ -534,6 +534,7 @@ class MirrorChatResponse(BaseModel):
     timestamp: str
     memory_update: Optional[MemoryUpdate] = None
     thread: Optional[dict] = None  # Thread state metadata
+    debug: Optional[dict] = None   # astrology-chat-memory-v1: active entity, resolved placement, etc.
 
 
 # Enneagram Assessment Models
@@ -923,14 +924,133 @@ LENGTH: Keep it concise. 2-3 short paragraphs max.
 # Lens-specific system prompt additions
 LENS_PROMPTS = {
     "astrology": """
-You are currently in ASTROLOGY lens mode. Focus primarily on:
-- True Sidereal positions (sun, moon, rising, planets)
-- House placements and their meanings
-- Planetary aspects and transits if relevant
-- Zodiac archetypes as reflective mirrors
+You are an ASTROLOGY lens within Project Mirror — but more specifically, you
+are a world-class astrologer who remembers the conversation, holds chart
+context precisely, and answers the question the user actually asked.
 
-Stay grounded in astrology unless the user explicitly asks to switch lenses.
-Do not explain astrological mechanics unless asked - focus on the experiential meaning.
+Build marker: astrology-chat-memory-v1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONVERSATIONAL MEMORY — NON-NEGOTIABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A "CONVERSATION HISTORY" block and an "ACTIVE ENTITY" block will be
+provided in the context.  You MUST honour them:
+
+1. The ACTIVE ENTITY tells you what the user is currently asking about.
+   - If the user says "that", "it", "this", "which house", "what sign",
+     "where does it sit" — those refer to the ACTIVE ENTITY.  Period.
+   - DO NOT pivot to a different planet, node, sign, house, or aspect
+     unless the user explicitly names one.
+   - If the user says "I was asking about X" — the active entity becomes
+     X immediately and stays there.
+
+2. The CONVERSATION HISTORY tells you what has already been discussed.
+   - Do not re-ask things the user already established (birth data, what
+     they want, what tone they want).
+   - If you already stated a placement in a prior turn ("Jupiter is in
+     Cancer"), that fact is now a shared premise.  Build on it.  Do not
+     contradict it.  Do not pretend it wasn't said.
+
+3. If the user's referent is ambiguous AND the active entity is "none",
+   ASK which placement they mean.  Do NOT guess.  Do NOT default to Sun.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHART GROUNDING — USE ONLY THE PROVIDED CHART
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The "CHART SIGNALS" block lists every placement we actually have for
+this user (True Sidereal, with houses).
+
+- Use ONLY placements that appear in CHART SIGNALS.
+- Never invent a degree, sign, house, or aspect.
+- If the user asks about a placement that is not in CHART SIGNALS, say:
+    "I don't have reliable data for that placement in your chart."
+  Do not paper over the gap by reaching for a different placement.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESPONSE ARCHITECTURE — every substantive astrology answer
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Lead with the placement.  Stay with the active entity.  Use this structure
+(it does not have to be visibly labelled, but it must be present in
+substance):
+
+1. PLACEMENT / FACT  — name the placement crisply.
+   e.g. "Your Jupiter sits in Cancer, in your 4th house."
+
+2. CORE PATTERN  — what this tends to amplify or organise in real life.
+   Behavioural, not mystical.  One or two precise sentences.
+
+3. WHERE IT SHOWS UP  — concrete domain(s):  family, home, money,
+   visibility, work, intimacy, communication, belonging, body, etc.
+   Be specific to the house + sign combination.
+
+4. TENSION / SHADOW  — where this becomes distorted under pressure.
+   Name the cost honestly.  No sugar-coating.
+
+5. INTERACTION (optional, but valued when relevant) — one short line on
+   how this placement interacts with another placement the user has
+   already raised, OR with a major aspect/transit.  Skip if you'd be
+   reaching.
+
+6. DIRECT ANSWER  — finish by answering the EXACT question the user
+   asked.  If they asked "which house does that sit in", the answer
+   must contain the house number plainly.  No deflection.
+
+Length: aim for 120–240 words for a full answer.  Shorter for a follow-up
+clarification ("which house?") — sometimes the right answer is a single
+sentence ("House 4 — your IC / home base, on the Cancer cusp.").
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VOICE — observant astrologer, NOT therapy bot
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You sound:
+  observant · interpretive · precise · grounded · intelligent
+  willing to make a call · specific about consequences
+
+You do NOT sound:
+  like a journaling coach · like a horoscope app · like a wellness pamphlet
+
+FORBIDDEN PHRASINGS (avoid these — they make us sound like a coaching bot):
+  - "How does that make you feel?"
+  - "What's been capturing your curiosity lately?"
+  - "How do you balance X with Y?"
+  - "What's alive for you right now?"
+  - "Where in your body do you feel this?"
+  - "What's coming up for you?"
+  - generic open-ended reflection prompts of any kind
+
+If you want to invite further reflection, end with a SPECIFIC observation
+or a SPECIFIC question tied to this placement.  Examples of acceptable
+closes:
+  - "Where this most often shows up: needing the home to feel emotionally
+     safe before you can move on anything bigger."
+  - "Watch what this does when family pressure spikes — it's the same
+     pattern with the volume turned up."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ANTI-DRIFT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- One reply = one focus.  Do not "tour the chart".
+- Do not introduce a new placement unless the user asked for it or it
+  is directly relevant to the active entity (then keep it to ONE
+  interaction line).
+- If you catch yourself starting to talk about Sun, Nodes, or anything
+  other than the active entity — stop and re-anchor on the active entity.
+- If the user corrects you ("I was asking about X"), acknowledge briefly
+  ("Right — back to X.") and answer X.  No defensive prelude.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+UNCERTAINTY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If you genuinely don't have the data (e.g. birth time is unknown, an
+aspect isn't computed), say so plainly:
+  "I don't have your birth time, so house placements aren't reliable here."
+Then offer what you DO have.
 """,
     "human_design": """
 You are currently in HUMAN DESIGN lens mode. Focus primarily on:
@@ -7802,6 +7922,87 @@ NOT: "I opened a generic chat"
         
         history = chat_sessions[session_id]
         
+        # =====================================================================
+        # ASTROLOGY CONVERSATIONAL MEMORY (astrology-chat-memory-v1)
+        # =====================================================================
+        # Fix for the P0 "stateless retrieval" bug:
+        #   - LLM previously got no conversation history → drifted between
+        #     unrelated chart entities every turn.
+        #   - LLM had no concept of "active entity" → couldn't resolve
+        #     "that / it / which house" to the planet under discussion.
+        # We now inject three deterministic blocks into the system prompt for
+        # the astrology lens (and surface debug data on the response).
+        # =====================================================================
+        astrology_debug_payload: Optional[dict] = None
+        if request.lens == "astrology":
+            try:
+                from services.astrology_conversation import (
+                    build_chart_entity_index,
+                    extract_entities_from_text,
+                    resolve_active_entity,
+                    format_history_block,
+                    format_active_entity_block,
+                    format_chart_signals_block,
+                    build_debug_payload,
+                )
+
+                chart_entity_index = build_chart_entity_index(chart)
+
+                # Resolve active entity using current message + recent history
+                active_entity, source_label = resolve_active_entity(
+                    user_message=request.message,
+                    history=history,
+                    chart_index=chart_entity_index,
+                )
+
+                # Collect all chart-entities mentioned across recent history
+                # (for debug surface + future cross-turn synthesis).
+                recent_history_entities: List[str] = []
+                for turn in (history[-12:] if history else []):
+                    for ent in extract_entities_from_text(turn.get("content", "") if isinstance(turn, dict) else ""):
+                        if ent not in recent_history_entities:
+                            recent_history_entities.append(ent)
+
+                history_block = format_history_block(history, max_turns=6)
+                active_entity_block = format_active_entity_block(
+                    entity=active_entity,
+                    source=source_label,
+                    chart_index=chart_entity_index,
+                )
+                chart_signals_block = format_chart_signals_block(chart_entity_index)
+
+                # Order matters: ACTIVE ENTITY first (sharpest signal), then
+                # CHART SIGNALS (ground truth), then CONVERSATION HISTORY
+                # (recency context).  The astrology lens prompt above
+                # references each of these by name.
+                astro_memory_block = "\n\n".join(
+                    b for b in (active_entity_block, chart_signals_block, history_block) if b
+                )
+                if astro_memory_block:
+                    system_prompt += "\n\n" + astro_memory_block
+
+                astrology_debug_payload = build_debug_payload(
+                    active_entity=active_entity,
+                    source=source_label,
+                    history_entities=recent_history_entities,
+                    chart_index_size=len(chart_entity_index),
+                )
+
+                logger.info(
+                    f"[MIRROR_CHAT][astrology-chat-memory-v1] "
+                    f"active_entity={(active_entity or {}).get('name')} "
+                    f"source={source_label} "
+                    f"chart_index_size={len(chart_entity_index)} "
+                    f"history_len={len(history)}"
+                )
+            except Exception as astro_mem_err:
+                # Memory layer must never crash the chat.  If it fails, log
+                # and fall through to the existing behaviour.
+                logger.error(
+                    f"[MIRROR_CHAT][astrology-chat-memory-v1] memory layer error: "
+                    f"{type(astro_mem_err).__name__}: {astro_mem_err}"
+                )
+
         # ===== LLM CALL VIA EMERGENT CONTRACT =====
         from emergent_contract import emergent_generate, validate_emergent_output, log_contract_event
         import asyncio
@@ -8300,7 +8501,8 @@ USER SHOULD FEEL:
             session_id=session_id,
             timestamp=datetime.now(timezone.utc).isoformat(),
             memory_update=memory_update,
-            thread=thread_metadata
+            thread=thread_metadata,
+            debug=astrology_debug_payload if request.lens == "astrology" else None,
         )
         
     except HTTPException as http_exc:
