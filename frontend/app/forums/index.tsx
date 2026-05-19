@@ -236,12 +236,11 @@ export default function ForumsHomeScreen() {
             Private one-to-one profiles for people you want to understand.
           </Text>
 
-        {/* ─────────────────────────────────────────────────────────────
-            INDIVIDUAL MAPS — single folder/card replaces the previous
-            per-person list. Forums landing should not be cluttered
-            with every saved person; it routes to /people instead.
-            ───────────────────────────────────────────────────────────── */}
-        <View style={[styles.section, styles.mappingSection]}>
+          {/* ─────────────────────────────────────────────────────────────
+              INDIVIDUAL MAPS — single folder/card replaces the previous
+              per-person list. Forums landing should not be cluttered
+              with every saved person; it routes to /people instead.
+              ───────────────────────────────────────────────────────────── */}
           <TouchableOpacity
             style={[styles.individualMapsCard, { backgroundColor: theme.surface, borderColor: theme.accent + '55' }]}
             onPress={() => router.push('/people' as any)}

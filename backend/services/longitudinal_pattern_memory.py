@@ -185,6 +185,32 @@ def score_recurrence(record: Dict[str, Any], now: Optional[datetime] = None) -> 
     return "weak"
 
 
+# narrative-flexibility-v1
+def score_fatigue(record: Dict[str, Any], now: Optional[datetime] = None) -> str:
+    """
+    How many times has THIS pattern been SURFACED to the LLM recently?
+    Returns "low" | "med" | "high".
+    high  → suppress surfacing this turn (prevents identity locking)
+    med   → soften framing ("this thread is known")
+    low   → fresh enough to surface normally
+    """
+    now = now or datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=_FATIGUE_RECENT_SURFACINGS_WINDOW_DAYS)
+    surf = record.get("recent_surfaced_at") or []
+    fresh = []
+    for t in surf:
+        if isinstance(t, datetime):
+            if t.tzinfo is None:
+                t = t.replace(tzinfo=timezone.utc)
+            if t >= cutoff:
+                fresh.append(t)
+    if len(fresh) >= _FATIGUE_THRESHOLD_HIGH:
+        return "high"
+    if len(fresh) >= _FATIGUE_THRESHOLD_MED:
+        return "med"
+    return "low"
+
+
 _INTENSITY_RANK = {"SOFT": 0, "OBSERVATIONAL": 1, "DIRECT": 2, "CONFRONTING": 3}
 
 
@@ -204,6 +230,14 @@ def detect_growth_shift(record: Dict[str, Any], current_intensity: str) -> bool:
 
 PATTERN_MEMORY_COLLECTION = "longitudinal_pattern_memory"
 _RECENT_BUFFER_SIZE = 10
+
+# narrative-flexibility-v1 — pattern fatigue thresholds.
+# When the same pattern has been SURFACED to the LLM too many times recently,
+# we suppress it / soften the framing.  Distinct from `occurrence_count`
+# which counts user-mentions; this counts agent-surfacings.
+_FATIGUE_RECENT_SURFACINGS_WINDOW_DAYS = 14
+_FATIGUE_THRESHOLD_HIGH = 3   # ≥3 surfacings in 14d → SUPPRESS this turn
+_FATIGUE_THRESHOLD_MED  = 2   # 2 surfacings → SOFTEN framing ("you know this thread")
 
 
 async def upsert_pattern_occurrence(
@@ -270,6 +304,40 @@ async def upsert_pattern_occurrence(
     return doc
 
 
+async def record_pattern_surfacing(
+    db,
+    user_id: str,
+    pattern_keys: List[str],
+    now: Optional[datetime] = None,
+) -> None:
+    """
+    narrative-flexibility-v1 — record that we SURFACED these patterns to the
+    LLM this turn.  Separate from occurrence_count (user-mentions).  Used by
+    `score_fatigue()` next turn to prevent identity locking.
+    """
+    if not pattern_keys:
+        return
+    now = now or datetime.now(timezone.utc)
+    coll = db[PATTERN_MEMORY_COLLECTION]
+    for key in pattern_keys:
+        try:
+            doc = await coll.find_one({"user_id": user_id, "pattern_key": key})
+            if not doc:
+                continue
+            buf = (doc.get("recent_surfaced_at") or []) + [now]
+            buf = buf[-_RECENT_BUFFER_SIZE:]
+            await coll.update_one(
+                {"_id": doc["_id"]},
+                {"$set": {
+                    "recent_surfaced_at": buf,
+                    "last_surfaced_at": now,
+                    "surfaced_count": (doc.get("surfaced_count") or 0) + 1,
+                }},
+            )
+        except Exception:
+            pass
+
+
 async def fetch_pattern_records(db, user_id: str, pattern_keys: List[str]) -> List[Dict[str, Any]]:
     if not pattern_keys:
         return []
@@ -325,8 +393,10 @@ def _humanise_recency(dt: Optional[datetime]) -> str:
 def format_pattern_memory_block(
     surfaceable: List[Dict[str, Any]],
     growth_shifts: List[Dict[str, Any]],
+    softened_keys: Optional[List[str]] = None,
 ) -> str:
     """Build the PATTERN MEMORY system-prompt block (empty if nothing to surface)."""
+    softened_keys = softened_keys or []
     if not surfaceable and not growth_shifts:
         return ""
 
@@ -342,10 +412,11 @@ def format_pattern_memory_block(
         for p in surfaceable:
             phrasing = _PATTERN_PHRASING.get(p["pattern_key"], p["pattern_key"].replace("_", " "))
             conf = p.get("confidence", "moderate")
+            soften_marker = " [SOFTEN: already named recently — assume the user knows]" if p["pattern_key"] in softened_keys else ""
             lines.append(
                 f"  - {phrasing}  (recurrence: {conf}; "
                 f"first surfaced ~{_humanise_recency(p.get('first_seen_at'))}, "
-                f"last surfaced ~{_humanise_recency(p.get('last_seen_at'))})"
+                f"last surfaced ~{_humanise_recency(p.get('last_seen_at'))}){soften_marker}"
             )
         lines.append("")
     if growth_shifts:
@@ -376,8 +447,62 @@ def format_pattern_memory_block(
         "  5. Growth shifts: name gently.  'Something has shifted' is",
         "     enough.  Do not over-celebrate.",
         "  6. Recognisable, not creepy.  Avoid surveillance tone.",
+        "  7. (narrative-flexibility-v1) For patterns marked [SOFTEN]:",
+        "     do NOT re-explain the pattern.  Assume the user knows it.",
+        "     Focus on what is DIFFERENT this time, what is CHANGING, or",
+        "     what the current question is asking that the pattern hasn't",
+        "     answered before.",
     ])
     return "\n".join(lines)
+
+
+# narrative-flexibility-v1 — universal anti-locking addendum.
+# Injected even when no patterns matched — so the LLM keeps openness as
+# a baseline, not just when pattern memory is loud.
+_ANTI_LOCKING_BLOCK = """\
+--- NARRATIVE FLEXIBILITY (narrative-flexibility-v1) ---
+Anti-identity-locking rules (apply at every turn):
+
+  1. PATTERNS, NOT IDENTITY
+     Patterns are dynamic, contextual, evolving.  They are not who the
+     user IS.  Avoid "you are an X kind of person".  Prefer:
+       - "This pattern seems to emerge under these conditions."
+       - "Under pressure, this is what tends to surface."
+       - "In this kind of relational field, this often shows up."
+
+  2. CONTRADICTION TOLERANCE
+     Humans are not internally consistent.  If the user says one thing
+     today and the opposite tomorrow — hold both without trying to
+     collapse them into one coherent theory.  Phase shifts are real.
+
+  3. CONTEXTUAL FRAMING
+     Recurrence does not mean determinism.  Always anchor a pattern in
+     the conditions it appears in — not in the person themselves.
+
+  4. GROWTH OVER PATHOLOGY
+     Look for adaptation, flexibility, new responses, softened
+     reactions, increased awareness.  Do not only re-narrate the
+     repeated wound.
+
+  5. ALTERNATIVE FRAMINGS
+     Even with strong recurrence, occasionally offer a different angle
+     ("another way to read this is…") rather than always confirming the
+     same narrative.
+
+  6. RELATIONAL ANTI-LOCKING
+     For spouses, children, ex-partners, cofounders: NEVER assign a
+     fixed narrative to the other person.  Stay probabilistic, contextual,
+     field-aware.  The other person is also changing.
+
+  7. WHAT IS ALIVE NOW
+     The highest form of reflection is not "this is who you are."
+     It is "this is what seems alive right now."  Bias your interpretation
+     toward what is moving / shifting / changing — not toward what is fixed.
+"""
+
+
+def format_anti_locking_block() -> str:
+    return _ANTI_LOCKING_BLOCK
 
 
 # ---------------------------------------------------------------------------
@@ -422,23 +547,40 @@ async def process_pattern_memory(
             pass
 
     if not matched_keys:
-        return "", debug
+        # narrative-flexibility-v1 — even when no patterns fired, inject
+        # the anti-locking universal addendum so the LLM stays open.
+        return format_anti_locking_block(), debug
 
     records = await fetch_pattern_records(db, user_id, matched_keys)
 
     surfaceable: List[Dict[str, Any]] = []
     growth_shifts: List[Dict[str, Any]] = []
+    suppressed_keys: List[str] = []
+    softened_keys: List[str] = []
     for rec in records:
         conf = score_recurrence(rec)
+        fatigue = score_fatigue(rec)
         rec["confidence"] = conf
+        rec["fatigue"] = fatigue
         debug["matched_patterns"].append({
             "pattern_key": rec["pattern_key"],
             "category": rec.get("category"),
             "confidence": conf,
+            "fatigue": fatigue,
             "occurrence_count": rec.get("occurrence_count"),
+            "surfaced_count": rec.get("surfaced_count", 0),
         })
+        # narrative-flexibility-v1 — fatigue filtering.
+        # HIGH fatigue → suppress this turn entirely (prevents identity locking).
+        # MED fatigue → still surface but with a "soften" flag.
         if conf in ("moderate", "strong"):
-            surfaceable.append(rec)
+            if fatigue == "high":
+                suppressed_keys.append(rec["pattern_key"])
+            else:
+                if fatigue == "med":
+                    softened_keys.append(rec["pattern_key"])
+                surfaceable.append(rec)
+        # Growth shifts bypass fatigue — celebrating change is always OK.
         if detect_growth_shift(rec, intensity_mode or "OBSERVATIONAL"):
             growth_shifts.append(rec)
 
@@ -446,6 +588,15 @@ async def process_pattern_memory(
     debug["growth_shifts_count"] = len(growth_shifts)
     debug["surfaced_keys"] = [p["pattern_key"] for p in surfaceable]
     debug["growth_keys"]   = [p["pattern_key"] for p in growth_shifts]
+    debug["suppressed_due_to_fatigue"] = suppressed_keys
+    debug["softened_due_to_fatigue"] = softened_keys
 
-    block = format_pattern_memory_block(surfaceable, growth_shifts)
+    # Record surfacings so future turns can fatigue them out.
+    surfaced_keys = [p["pattern_key"] for p in surfaceable] + [p["pattern_key"] for p in growth_shifts]
+    if surfaced_keys:
+        await record_pattern_surfacing(db, user_id, surfaced_keys)
+
+    block = format_pattern_memory_block(surfaceable, growth_shifts, softened_keys=softened_keys)
+    # Always append the anti-locking universal addendum.
+    block = (block + "\n\n" + format_anti_locking_block()) if block else format_anti_locking_block()
     return block, debug

@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'pattern-memory-v1';
-export const BUILD_AT = '2026-05-18';
+export const BUILD_ID = 'narrative-flexibility-v1';
+export const BUILD_AT = '2026-05-19';
