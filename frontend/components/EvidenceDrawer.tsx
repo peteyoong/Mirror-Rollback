@@ -46,6 +46,12 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export interface CuratedEvidence {
   marker?: string;
+  /**
+   * Optional surface flag from backend. When 'forum', the drawer renders
+   * field-language sections instead of (or alongside) the individual
+   * curator output. Per forum-conversational-field-v1.
+   */
+  surface?: 'forum' | string;
   master_voice?: {
     domain?: string;
     dominant_pattern?: string;
@@ -62,6 +68,16 @@ export interface CuratedEvidence {
   };
   recurrence?: string;
   calibration?: string[];
+
+  // ── Forum-language fields (forum-conversational-field-v1) ────────────
+  /** Up to 2 calm chip-style labels for the current field state. */
+  field_signals?: string[];
+  /** A 1–2 sentence soft description of the room's current weather. */
+  relational_weather?: string;
+  /** Softening + unsaid bundled into a single soft observation line. */
+  recurring_movement?: string;
+  /** Optional one-line contradiction acknowledgement (no labels). */
+  mixed_signals?: string;
 }
 
 interface Props {
@@ -81,6 +97,11 @@ function hasAnythingToShow(e?: CuratedEvidence | null): boolean {
   if ((e.relational?.moderated_by?.length || 0) > 0) return true;
   if (e.recurrence) return true;
   if ((e.calibration?.length || 0) > 0) return true;
+  // Forum-language evidence (forum-conversational-field-v1)
+  if ((e.field_signals?.length || 0) > 0) return true;
+  if (e.relational_weather) return true;
+  if (e.recurring_movement) return true;
+  if (e.mixed_signals) return true;
   return false;
 }
 
@@ -124,6 +145,63 @@ export default function EvidenceDrawer({ evidence, title }: Props) {
 
       {expanded && (
         <View style={styles.body}>
+          {/* ── Forum-language sections (forum-conversational-field-v1) ── */}
+          {e.field_signals && e.field_signals.length > 0 && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+                Field signals
+              </Text>
+              <View style={styles.chipRow}>
+                {e.field_signals.slice(0, 2).map((c) => (
+                  <View
+                    key={c}
+                    style={[
+                      styles.chip,
+                      { borderColor: theme.border, backgroundColor: 'transparent' },
+                    ]}
+                  >
+                    <Text style={[styles.chipText, { color: theme.textSecondary }]}>
+                      {c}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {!!e.relational_weather && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+                Relational weather
+              </Text>
+              <Text style={[styles.sectionLine, { color: theme.text }]}>
+                {e.relational_weather}
+              </Text>
+            </View>
+          )}
+
+          {!!e.recurring_movement && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+                Recurring movement
+              </Text>
+              <Text style={[styles.sectionLine, { color: theme.text }]}>
+                {e.recurring_movement}
+              </Text>
+            </View>
+          )}
+
+          {!!e.mixed_signals && (
+            <View style={styles.section}>
+              <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>
+                Mixed signals
+              </Text>
+              <Text style={[styles.sectionLine, { color: theme.text }]}>
+                {e.mixed_signals}
+              </Text>
+            </View>
+          )}
+
           {/* Dominant pattern (from Life Tab master voice). ----------------- */}
           {e.master_voice?.dominant_pattern && (
             <View style={styles.section}>

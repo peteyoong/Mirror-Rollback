@@ -1071,6 +1071,33 @@ export default function ForumHomeScreen() {
             GET /api/forums/{id}/story-of-circle. */}
         {id && <StoryOfThisCircle forumId={String(id)} reloadKey={refreshing} />}
 
+        {/* Talk to the room → forum-conversational-field-v1 CTA.
+            Field-observer chat surface. Per-user history. */}
+        {id && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.push(`/forums/${String(id)}/chat` as any)}
+            style={[
+              styles.talkToRoomCta,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Talk to the room"
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.talkToRoomKicker, { color: theme.textTertiary }]}>
+                With the room
+              </Text>
+              <Text style={[styles.talkToRoomLabel, { color: theme.text }]}>
+                Talk to the room →
+              </Text>
+              <Text style={[styles.talkToRoomSub, { color: theme.textSecondary }]}>
+                Field-level reflection. No diagnosis. No naming.
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
         {/* Forum Info */}
         <View style={styles.forumInfo}>
           <Text style={[styles.forumName, { color: theme.text }]}>{forum?.name}</Text>
@@ -2078,6 +2105,34 @@ export default function ForumHomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  // ---- Talk to the room CTA (forum-conversational-field-v1) ----
+  talkToRoomCta: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 4,
+  },
+  talkToRoomKicker: {
+    fontSize: 10,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+  },
+  talkToRoomLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.1,
+    marginTop: 2,
+  },
+  talkToRoomSub: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    marginTop: 2,
+  },
+
   // ---- Forum V2 Hero + Position ----
   heroCard: {
     marginTop: 12,

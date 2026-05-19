@@ -8251,6 +8251,42 @@ NOT: "I opened a generic chat"
                 f"{type(ref_err).__name__}: {ref_err}"
             )
 
+        # =====================================================================
+        # CONTRADICTION INTELLIGENCE v1 (contradiction-intelligence-v1)
+        # =====================================================================
+        # Detects soft divergences between stated language (e.g. "I'm over
+        # this", "I want honesty", "I've grown") and the user's recurring
+        # signals (pattern memory recurrence + micro-reflection texture).
+        # Only MODERATE / STRONG levels surface, and even then only as a
+        # one-clause probabilistic acknowledgement.  Reflection taps
+        # de-escalate by one level.
+        # =====================================================================
+        contradiction_debug_payload: Optional[dict] = None
+        try:
+            from services.contradiction_intelligence import (
+                compute_individual_contradictions,
+                build_contradiction_system_block,
+                build_contradiction_debug,
+            )
+            _contra = await compute_individual_contradictions(
+                db, user_id=request.user_id, message_text=request.message,
+            )
+            contradiction_debug_payload = build_contradiction_debug(_contra)
+            _c_block = build_contradiction_system_block(_contra)
+            if _c_block:
+                system_prompt += "\n\n" + _c_block
+                logger.info(
+                    f"[MIRROR_CHAT][contradiction-intelligence-v1] "
+                    f"user={request.user_id} level={_contra.get('level')} "
+                    f"types={_contra.get('types')} "
+                    f"softened={_contra.get('softened_by_reflection')}"
+                )
+        except Exception as ci_err:
+            logger.error(
+                f"[MIRROR_CHAT][contradiction-intelligence-v1] error: "
+                f"{type(ci_err).__name__}: {ci_err}"
+            )
+
 
         # ===== LLM CALL VIA EMERGENT CONTRACT =====
         from emergent_contract import emergent_generate, validate_emergent_output, log_contract_event
@@ -8778,6 +8814,14 @@ USER SHOULD FEEL:
             if final_debug is None:
                 final_debug = {}
             final_debug["micro_reflection"] = reflection_debug_payload
+
+        # contradiction-intelligence-v1 — fold soft contradiction payload
+        # into final debug.  Even at LOW level (not surfaced) we expose
+        # it so frontend can confirm the dispatcher ran.
+        if contradiction_debug_payload:
+            if final_debug is None:
+                final_debug = {}
+            final_debug["contradictions"] = contradiction_debug_payload
 
         evidence_payload: Optional[dict] = None
         try:
@@ -34614,6 +34658,222 @@ async def forum_story_of_circle(forum_id: str, debug: bool = False):
     if debug:
         out["debug"] = {"forum_field": result["debug"]}
     return out
+
+
+# ============================================
+# FORUM CONVERSATIONAL FIELD  (forum-conversational-field-v1)
+# ============================================
+# A new chat surface where a forum member talks WITH the field of the
+# room.  Field-observer voice.  No member naming.  No diagnosis.  Soft
+# contradiction surfacing.  Reuses topology, timing, field intel,
+# pattern memory, micro-reflections, contradiction intelligence.
+
+class ForumMirrorChatRequest(BaseModel):
+    user_id: str
+    forum_id: str
+    message: str
+    session_id: Optional[str] = None
+    include_history: bool = True
+
+
+class ForumMirrorChatResponse(BaseModel):
+    response: str
+    session_id: str
+    timestamp: str
+    debug: Optional[dict] = None
+    evidence: Optional[dict] = None
+
+
+@api_router.post("/forums/{forum_id}/mirror-chat", response_model=ForumMirrorChatResponse)
+async def forum_mirror_chat(forum_id: str, request: ForumMirrorChatRequest):
+    """
+    Forum-aware conversational mirror.  Returns a field-level reflection
+    of the room from the calling user's vantage.  Per-user history is
+    persisted in `forum_mirror_chat_messages` (no shared chat across
+    members).  Voice and prohibitions are enforced inside
+    `services.forum_conversational_field.compose_forum_field_prompt`.
+    """
+    import time as _time
+    started_at = _time.time()
+
+    # Force the URL forum_id (don't trust body).
+    request.forum_id = forum_id
+
+    if not EMERGENT_LLM_KEY:
+        logger.error("[FORUM_MIRROR_CHAT] EMERGENT_LLM_KEY missing")
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    if not (request.message or "").strip():
+        raise HTTPException(status_code=400, detail="message is required")
+
+    session_id = request.session_id or str(uuid.uuid4())
+
+    # Light per-user/per-forum rate limiting reuses the same window.
+    try:
+        if not check_rate_limit(request.user_id, is_lens=False):
+            raise HTTPException(
+                status_code=429,
+                detail="The room needs a pause. Try again shortly.",
+            )
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+
+    # Best-effort: refresh inferred topology so the field has fresh edges.
+    try:
+        from services.forum_topology import infer_forum_topology_edges
+        await infer_forum_topology_edges(db, forum_id=forum_id)
+    except Exception:
+        # Inference is opportunistic; don't block the chat.
+        pass
+
+    # Compose system prompt + debug + evidence.
+    try:
+        from services.forum_conversational_field import compose_forum_field_prompt
+        system_prompt, ff_debug, ff_evidence = await compose_forum_field_prompt(
+            db, forum_id=forum_id, user_id=request.user_id,
+            user_message=request.message,
+        )
+    except Exception as e:
+        logger.error(
+            f"[FORUM_MIRROR_CHAT] compose error: {type(e).__name__}: {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="The room couldn't be read just now.",
+        )
+
+    # Fetch recent per-user history for this forum.
+    history_text = ""
+    if request.include_history:
+        try:
+            cursor = db.forum_mirror_chat_messages.find(
+                {"user_id": request.user_id, "forum_id": forum_id}
+            ).sort("ts", -1).limit(10)
+            history_rows = []
+            async for r in cursor:
+                history_rows.append(r)
+            history_rows.reverse()
+            lines: List[str] = []
+            for r in history_rows:
+                role = (r.get("role") or "").upper()
+                content = (r.get("content") or "").strip()
+                if role and content:
+                    lines.append(f"{role}: {content}")
+            if lines:
+                history_text = "\n".join(lines)
+        except Exception:
+            history_text = ""
+
+    # Call the LLM through the emergent contract.
+    response_text: str = ""
+    try:
+        from emergent_contract import emergent_generate
+        context_blob: Dict[str, Any] = {"forum_id": forum_id}
+        if history_text:
+            context_blob["conversation_history"] = history_text
+        response_text = await emergent_generate(
+            mode="reflection_chat",
+            user_message=request.message,
+            endpoint="forum_mirror_chat",
+            user_id=request.user_id,
+            context=context_blob,
+            additional_system_prompt=system_prompt,
+            model=get_primary_model(),
+        )
+    except Exception as e:
+        logger.error(
+            f"[FORUM_MIRROR_CHAT] LLM error: {type(e).__name__}: {e}"
+        )
+        response_text = (
+            "The room felt a little quiet just now — try once more in a "
+            "moment."
+        )
+
+    # Persist both turns (no PII beyond what user wrote).
+    try:
+        now_ts = datetime.now(timezone.utc)
+        await db.forum_mirror_chat_messages.insert_many([
+            {
+                "id": str(uuid.uuid4()),
+                "user_id": request.user_id,
+                "forum_id": forum_id,
+                "session_id": session_id,
+                "role": "user",
+                "content": request.message,
+                "ts": now_ts,
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "user_id": request.user_id,
+                "forum_id": forum_id,
+                "session_id": session_id,
+                "role": "assistant",
+                "content": response_text,
+                "ts": now_ts,
+            },
+        ])
+    except Exception as e:
+        logger.error(
+            f"[FORUM_MIRROR_CHAT] persist error: {type(e).__name__}: {e}"
+        )
+
+    duration = _time.time() - started_at
+    logger.info(
+        f"[FORUM_MIRROR_CHAT][forum-conversational-field-v1] "
+        f"user={request.user_id} forum={forum_id} "
+        f"story_ready={ff_debug.get('story_ready')} "
+        f"contra_forum_level={(ff_debug.get('contradictions') or {}).get('forum',{}).get('contradiction_level')} "
+        f"contra_individual_level={(ff_debug.get('contradictions') or {}).get('individual',{}).get('contradiction_level')} "
+        f"duration={duration:.2f}s"
+    )
+
+    return ForumMirrorChatResponse(
+        response=response_text,
+        session_id=session_id,
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        debug={"marker": "forum-conversational-field-v1", **ff_debug},
+        evidence=ff_evidence,
+    )
+
+
+@api_router.get("/forums/{forum_id}/mirror-chat/history")
+async def forum_mirror_chat_history(
+    forum_id: str,
+    user_id: str,
+    limit: int = 50,
+):
+    """Return the calling user's per-forum chat history (newest last)."""
+    try:
+        cursor = db.forum_mirror_chat_messages.find(
+            {"user_id": user_id, "forum_id": forum_id}
+        ).sort("ts", -1).limit(max(1, min(int(limit), 200)))
+        rows: List[Dict[str, Any]] = []
+        async for r in cursor:
+            r.pop("_id", None)
+            ts = r.get("ts")
+            if isinstance(ts, datetime):
+                r["ts"] = ts.isoformat()
+            rows.append(r)
+        rows.reverse()
+        return {
+            "marker": "forum-conversational-field-v1",
+            "forum_id": forum_id,
+            "user_id": user_id,
+            "messages": rows,
+        }
+    except Exception as e:
+        logger.error(
+            f"[FORUM_MIRROR_CHAT] history error: {type(e).__name__}: {e}"
+        )
+        return {
+            "marker": "forum-conversational-field-v1",
+            "forum_id": forum_id,
+            "user_id": user_id,
+            "messages": [],
+        }
+
 
 
 
