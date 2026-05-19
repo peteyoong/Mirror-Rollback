@@ -18475,7 +18475,7 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/services/evidence_curator.py + /app/backend/server.py + /app/frontend/components/EvidenceDrawer.tsx"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: true
     status_history:
@@ -18854,6 +18854,132 @@ backend:
           
           Marking working=false (calibration / generic-chat evidence
           gap), stuck_count=2, needs_retesting=true.
+      - working: false
+        agent: "testing"
+        comment: |
+          EVIDENCE DRAWER V2 — RE-TEST #3 AFTER MASTER_VOICE FALLBACK FIX
+          (curator now reads debug.master_voice.depth_mode / .intensity_mode)
+          
+          Run: /app/backend_test.py against
+          https://narrative-flex-v1.preview.emergentagent.com/api
+          (Pete 697f0c6abf35c0528ff06954, build "evidence-drawer-v2").
+          
+          Result: 32/35 checks passed.  Progress vs. previous run
+          (31/35).  E1 calibration now PASSES.  E2 calibration,
+          E3 evidence-presence, and E7 top-level debug keys
+          still FAIL.  Main agent's local smoke-test claim that
+          "Both calibration arrays now populated" is only true
+          for E1.  E2 and E3 are not addressed by the current fix.
+          
+          DETAILED RESULTS:
+          
+          ✅ E1 (life_domain="self", lens=null) — ALL PASS
+              evidence = {
+                "marker": "evidence-drawer-v2",
+                "master_voice": {
+                  "domain": "self",
+                  "dominant_pattern": "moves toward possibility and
+                    pain-reframe; the depth is real but tends to
+                    keep moving",
+                  "frameworks": ["Enneagram", "Astrology",
+                    "Human Design", "BaZi"]
+                },
+                "calibration": ["reflective", "observational"]  ← FIXED
+              }
+              Backend log: "[MIRROR_CHAT][evidence-drawer-v2]
+              evidence_emitted=True keys=['marker', 'master_voice',
+              'recurrence', 'calibration']"
+          
+          ❌ E2 (about_person_id=rel-test-child) — calibration STILL MISSING
+              evidence = {
+                "marker": "evidence-drawer-v2",
+                "relational": {
+                  "moderated_by": ["a parent–child relational context",
+                    "intensity ceiling direct"],
+                  "applied_intensity": "OBSERVATIONAL"
+                }
+                # NO calibration field
+              }
+              debug.relational.intensity_applied = "OBSERVATIONAL"
+              is present and would yield calibration=["observational"]
+              if the curator read from it.  Current fix only added
+              master_voice fallback, not relational fallback.
+              
+              Required additional fix in
+              services/evidence_curator.py:255-259 — extend intensity
+              fallback chain to also read from
+              debug.relational.intensity_applied /
+              debug.relational.applied_intensity, e.g.:
+                  rel_dbg = (debug.get("relational")
+                             if isinstance(debug.get("relational"), dict)
+                             else {})
+                  intensity = (
+                      debug.get("intensity_mode")
+                      or (mv_dbg.get("intensity_mode") if mv_dbg else None)
+                      or (rel_dbg.get("intensity_applied") if rel_dbg else None)
+                      or (rel_dbg.get("applied_intensity") if rel_dbg else None)
+                      or ""
+                  ).upper()
+          
+          ❌ E3 (generic chat, no lens / no person / no life_domain)
+              evidence = None  (entire object missing)
+              
+              Reason: in generic chat flow, debug payload has
+              NO master_voice, NO relational, NO top-level depth_mode
+              or intensity_mode at all.  Curator builds
+              {"marker": "evidence-drawer-v2"} only, then the guard
+              `if list(evidence.keys()) == ["marker"]: return None`
+              kicks in.
+              
+              Per spec E3: "Generic Mirror chat (no lens, no person,
+              no life_domain) → evidence still surfaces calibration
+              at minimum."  Either (a) the dispatcher needs to write
+              depth_mode/intensity_mode at top-level for generic
+              chat too, OR (b) the curator should synthesise a
+              default calibration (e.g. ["reflective", "observational"])
+              when the chat path is generic but no mode hint exists.
+              The main agent's local smoke test that produced E3
+              with calibration must have been a unit-test using a
+              synthetic debug payload — production /mirror/chat
+              generic flow does NOT include those keys.
+          
+          ❌ E7 — top-level debug.compression_mode /
+              debug.intensity_mode / debug.depth_mode still absent
+              (only nested inside debug.master_voice).  This is the
+              same minor deviation flagged in the previous two
+              runs.  Data is available, just nested.  If the spec
+              wording is strict, this is a fail; if "available
+              anywhere in debug" is acceptable, this is a pass.
+              No change requested by the main agent for this round.
+          
+          ✅ ALL OTHER CHECKS:
+              E1 (8/8), E2 partial (5/6 — only calibration missing),
+              E4 (4/4 no 500s), E6 recurrence softness (3/3),
+              E7 master_voice nested (5/5), E8 saved_people
+              serialisation (3/3).  No regressions.
+          
+          BACKEND LOGS VERIFIED:
+              "[MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True
+               keys=['marker', 'master_voice', 'recurrence',
+               'calibration']"  ← appears on every E1-style call
+              "[MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True
+               keys=['marker', 'relational']"  ← E2-style, no
+               calibration in keys.
+              Zero tracebacks.  Curator never crashes.
+          
+          SUMMARY:
+            • 1 of 3 previously failing calibration checks now passes
+              (E1 ✅).
+            • E2.calibration_present still fails — needs relational
+              fallback in curator.
+            • E3.evidence_is_object still fails — needs generic-chat
+              fallback (synthesise default calibration OR write modes
+              at top-level for generic flow).
+            • E7.debug.compression_or_intensity still fails — minor
+              deviation, data nested rather than top-level.
+          
+          Marking working=false (E2 + E3 still divergent),
+          stuck_count=3, needs_retesting=true.
 
 test_plan_old:
   current_focus: []  19/19 backend assertions PASS

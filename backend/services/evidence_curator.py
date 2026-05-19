@@ -240,9 +240,23 @@ def curate_evidence(debug: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]
     # --- Conversational calibration (depth + intensity) -------------------
     # Surface these as tiny labels — the drawer can show "Reflective ·
     # Observational" rather than the raw mode strings.  Different code
-    # paths write `depth_mode` vs `compression_mode` — accept either.
-    depth = (debug.get("depth_mode") or debug.get("compression_mode") or "").upper()
-    intensity = (debug.get("intensity_mode") or "").upper()
+    # paths write the modes at different locations:
+    #   - lens dispatcher writes them at top level
+    #     (debug.depth_mode / debug.intensity_mode OR debug.compression_mode)
+    #   - life-tab master voice nests them under debug.master_voice.*
+    # Accept either.
+    mv_dbg = debug.get("master_voice") if isinstance(debug.get("master_voice"), dict) else {}
+    depth = (
+        debug.get("depth_mode")
+        or debug.get("compression_mode")
+        or (mv_dbg.get("depth_mode") if mv_dbg else None)
+        or ""
+    ).upper()
+    intensity = (
+        debug.get("intensity_mode")
+        or (mv_dbg.get("intensity_mode") if mv_dbg else None)
+        or ""
+    ).upper()
     calibration: List[str] = []
     if depth:
         calibration.append({
