@@ -519,6 +519,14 @@ class MirrorChatRequest(BaseModel):
     # endpoint loads the saved-person doc and injects a RELATIONAL CONTEXT
     # system-prompt block + caps intensity per relationship class.
     about_person_id: Optional[str] = None
+    # life-tab-master-voice-v1 — when set, the chat is happening on the
+    # Life Tab Master Voice surface (Relationships / Work / Self).  The
+    # endpoint replaces single-lens voice with an integrative behavioural
+    # synthesis voice; memory / compression / intensity / relational /
+    # pattern / anti-locking layers still run as usual.  Mutually
+    # exclusive with `lens` (if both are set, life_domain wins and lens
+    # is ignored for voice purposes).
+    life_domain: Optional[str] = None  # "relationships" | "work" | "self"
 
 
 # Memory Update - "You Over Time" structured tracking
@@ -8022,6 +8030,52 @@ NOT: "I opened a generic chat"
                 )
 
         # =====================================================================
+        # LIFE TAB MASTER VOICE (life-tab-master-voice-v1)
+        # =====================================================================
+        # When the chat is on the Life Tab Master Voice surface
+        # (request.life_domain ∈ {"relationships","work","self"}),
+        # replace the single-lens voice with an integrative behavioural
+        # synthesis voice.  Memory / compression / intensity / relational /
+        # pattern / anti-locking layers downstream still run as usual.
+        # =====================================================================
+        master_voice_debug_payload: Optional[dict] = None
+        if request.life_domain in ("relationships", "work", "self") and not (
+            request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi")
+        ):
+            try:
+                from services.life_tab_master import compose_master_voice_blocks
+                _locals2 = locals()
+                user_context_mv = {
+                    "user": user,
+                    "chart": chart,
+                    "enneagram_results": _locals2.get("enneagram_results"),
+                    "bazi_chart": _locals2.get("bazi_chart"),
+                }
+                mv_block, master_voice_debug_payload = compose_master_voice_blocks(
+                    user_context=user_context_mv,
+                    domain=request.life_domain,
+                    user_message=request.message,
+                    history=history,
+                    max_history_turns=6,
+                )
+                if mv_block:
+                    system_prompt += "\n\n" + mv_block
+                logger.info(
+                    f"[MIRROR_CHAT][life-tab-master-voice-v1] "
+                    f"domain={request.life_domain} "
+                    f"frameworks={(master_voice_debug_payload or {}).get('contributing_frameworks')} "
+                    f"signals={(master_voice_debug_payload or {}).get('signals_count')} "
+                    f"depth={(master_voice_debug_payload or {}).get('depth_mode')} "
+                    f"intensity={(master_voice_debug_payload or {}).get('intensity_mode')}"
+                )
+            except Exception as mv_err:
+                # Master voice must never crash the chat.
+                logger.error(
+                    f"[MIRROR_CHAT][life-tab-master-voice-v1] error: "
+                    f"{type(mv_err).__name__}: {mv_err}"
+                )
+
+        # =====================================================================
         # RELATIONAL AWARENESS (relational-awareness-v1)
         # =====================================================================
         # When the chat is about a saved person (about_person_id provided),
@@ -8633,6 +8687,13 @@ USER SHOULD FEEL:
             if final_debug is None:
                 final_debug = {}
             final_debug["pattern_memory"] = pattern_debug_payload
+        # life-tab-master-voice-v1 — surface the master-voice provenance
+        # so the frontend dev pill can confirm it fired and inspect which
+        # frameworks contributed.
+        if master_voice_debug_payload:
+            if final_debug is None:
+                final_debug = {}
+            final_debug["master_voice"] = master_voice_debug_payload
 
         return MirrorChatResponse(
             response=response_text,

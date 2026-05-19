@@ -31,6 +31,7 @@ import ReflectModal from './ReflectModal';
 import AskAboutLifeModal from './AskAboutLifeModal';
 import { AskLifeChip } from '../services/api';
 import RoleCard from './RoleCard';
+import { useRouter } from 'expo-router';
 
 interface Props {
   userId: string;
@@ -79,6 +80,7 @@ export default function LifeContextView({
   onEventCountChange: _onEventCountChange,
 }: Props) {
   const { theme, isDark } = useTheme();
+  const router = useRouter();
   const [activeContext, setActiveContext] = useState<ExtendedContextType>(initialContext);
 
   // Legacy data (kept as fallback for any future needs; not rendered)
@@ -689,7 +691,8 @@ export default function LifeContextView({
             </Text>
           ) : null}
 
-          {/* Ask About My Life — conversational entry point */}
+          {/* Ask About My Life — fast probing (micro-reflection).
+              Existing one-shot Q&A surface kept intact. */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => {
@@ -709,6 +712,39 @@ export default function LifeContextView({
               💬 Ask about my life
             </Text>
           </TouchableOpacity>
+
+          {/* Talk this through — Life Tab Master Voice (life-tab-master-voice-v1).
+              ONLY shows on the synthesis sub-tabs (Relationships / Work / Self).
+              This is the DEEP-reflection counterpart: multi-turn, longitudinal,
+              with memory + relational awareness + pattern memory + anti-locking.
+              Distinct product surface from the one-shot "Ask about my life" pill. */}
+          {isSynthesisDomain(activeContext) && (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push(`/life/chat/${activeContext}` as any)}
+              style={[
+                styles.deepPill,
+                { borderColor: theme.text },
+              ]}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel={
+                activeContext === 'relationships'
+                  ? 'Talk this through'
+                  : activeContext === 'work'
+                  ? 'Talk through this pattern'
+                  : 'Explore this deeper'
+              }
+            >
+              <Text style={[styles.deepPillText, { color: theme.text }]}>
+                {activeContext === 'relationships'
+                  ? 'Talk this through →'
+                  : activeContext === 'work'
+                  ? 'Talk through this pattern →'
+                  : 'Explore this deeper →'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {renderContextTabs()}
@@ -961,6 +997,22 @@ const styles = StyleSheet.create({
   askPillText: {
     fontSize: 13,
     fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  // life-tab-master-voice-v1 — secondary pill: opens the deep-reflection
+  // multi-turn chat surface on synthesis sub-tabs.  Subordinate to the
+  // primary "Ask about my life" pill — outline style, not filled.
+  deepPill: {
+    alignSelf: 'center',
+    marginTop: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 9,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  deepPillText: {
+    fontSize: 12.5,
+    fontWeight: '600',
     letterSpacing: 0.3,
   },
   // Today toggle — subordinate bar above the synthesis stack

@@ -18263,6 +18263,214 @@ backend:
           📊 RESULT: 35/35 assertions PASS, no failures, no regressions.
           Marking task working: true.
 
+  - task: "Life Tab Master Voice (life-tab-master-voice-v1)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/life_tab_master.py + /app/backend/server.py + /app/frontend/app/life/chat/[domain].tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW backend service `services/life_tab_master.py` implementing the
+          integrative behavioural synthesis voice for Life Tab chats.
+
+          New field `life_domain` added to MirrorChatRequest in server.py.
+          When `life_domain ∈ {"relationships","work","self"}` is set on
+          POST /api/mirror/chat (and no per-lens voice is requested), the
+          dispatcher INJECTS the Master Voice prompt INSTEAD of single-lens
+          voice.  All other layers (memory continuity, compression,
+          intensity, relational awareness, pattern memory, anti-locking)
+          continue to run unchanged.
+
+          New frontend route: /app/frontend/app/life/chat/[domain].tsx
+          (calm/intimate UI, no lens chips, multi-turn).  Opened from a
+          new "Talk this through" / "Talk through this pattern" /
+          "Explore this deeper" pill on Life Tab Relationships / Work /
+          Self sub-tabs.  Existing AskAboutLifeModal one-shot Q&A is
+          preserved (different product surface — micro-reflection).
+
+          Voice rules enforced server-side:
+            - PLAIN LANGUAGE by default (no "Saturn", "Gate 43",
+              "Life Path", "Enneagram 4", "Day Master Wood", etc.).
+            - Synthesis NOT stacking ("astrology says X + HD says Y"
+              is forbidden in the LLM voice).
+            - ONE dominant signal per reply, plus optionally ONE
+              supporting signal.
+            - Recognitional, not declarative ("this pattern tends to
+              show up when…" — never "you are an X person").
+            - Framework names ONLY revealed when the user explicitly
+              asks "why is this showing up?" / "is this astrology?".
+
+          Smoke-tested locally (python):
+            - extract_behavioral_signals(...) returns 5 ranked signals
+              (enneagram → numerology → astrology → human_design → bazi)
+              when all are present on the user.
+            - compose_master_voice_blocks(domain) returns block + debug
+              for each of relationships/work/self with marker
+              `life-tab-master-voice-v1`.
+            - Empty-context fallback returns the honest "no framework
+              signals are currently computed" block (does NOT crash).
+
+          Validation expectations (E1–E7):
+
+          E1. POST /api/mirror/chat with lens=null, life_domain="self",
+              message="What's surfacing in me right now?".  Verify:
+                - HTTP 200.
+                - debug.master_voice.marker == "life-tab-master-voice-v1".
+                - debug.master_voice.domain == "self".
+                - debug.master_voice.contributing_frameworks is a list
+                  (may be empty for users without data).
+                - debug.master_voice.dominant_signal: dict or null.
+                - Backend log emits
+                  "[MIRROR_CHAT][life-tab-master-voice-v1] domain=self
+                  frameworks=[...] signals=N depth=... intensity=...".
+
+          E2. POST /api/mirror/chat with life_domain="relationships" and a
+              message containing a recurring-pattern trigger (e.g.
+              "I feel like we're drifting apart").  Verify:
+                - HTTP 200.
+                - debug.master_voice present (domain=relationships).
+                - debug.pattern_memory present (pattern-memory module
+                  still runs through the master-voice flow).
+                - Backend log includes both
+                  "[MIRROR_CHAT][life-tab-master-voice-v1]" and
+                  "[MIRROR_CHAT][pattern-memory-v1]".
+
+          E3. Same session_id follow-up ("what about that pattern in work?"
+              after E1).  Verify:
+                - HTTP 200.
+                - debug.master_voice still present (continuity holds).
+                - Reply demonstrates contextual awareness of the prior
+                  turn (qualitative).
+
+          E4. Voice quality (qualitative).  Use Pete
+              (user_id=697f0c6abf35c0528ff06954).  Send 1 message on each
+              of the three domains.  Confirm the REPLY:
+                - Does NOT contain "Saturn", "Gate", "Life Path",
+                  "Enneagram", "Sun in", "Day Master", "Mercury" etc.
+                - Speaks BEHAVIOURALLY.
+                - Has the right domain texture (relationships → field
+                  between people; work → pressure/structure; self →
+                  inner weather).
+
+          E5. Framework-reveal on demand.  After E4 send "why is this
+              showing up?" / "what part of my chart is this?".  The reply
+              MAY now name frameworks lightly.  Confirm:
+                - HTTP 200.
+                - debug.master_voice.contributing_frameworks still lists
+                  the provenance (for the future evidence drawer).
+
+          E6. No regression — POST /api/mirror/chat with lens="astrology"
+              and NO life_domain.  Verify:
+                - HTTP 200.
+                - debug.master_voice is NOT present.
+                - Single-lens astrology voice still works as before.
+
+          E7. Mutual exclusion sanity — if BOTH lens and life_domain are
+              set, master voice should NOT activate (lens wins, per the
+              `not (request.lens in ...)` guard at server.py).  Send
+              life_domain="self" + lens="enneagram" and confirm
+              debug.master_voice is NOT in the response.
+
+          If E1–E7 pass, mark working: true.  Test user: Pete
+          (697f0c6abf35c0528ff06954, pete@pulsifi.me).
+      - working: true
+        agent: "testing"
+        comment: |
+          LIFE TAB MASTER VOICE (life-tab-master-voice-v1) — E1–E7 ALL PASS ✅
+
+          Test script: /app/backend_test.py
+          Endpoint: POST {EXPO_PUBLIC_BACKEND_URL}/api/mirror/chat
+          Test user: Pete (697f0c6abf35c0528ff06954)
+
+          E1 ✅ Activation on life_domain="self"
+            - HTTP 200 (5.13s)
+            - debug.master_voice.marker == "life-tab-master-voice-v1"
+            - debug.master_voice.domain == "self"
+            - contributing_frameworks = ["enneagram","astrology","human_design","bazi"] (4)
+            - signals_count = 4
+            - dominant_signal = {framework: "enneagram", signal: "moves toward
+              possibility and pain-reframe; the depth is real but tends to keep
+              moving", why: "core type 7"}
+            - depth_mode = NORMAL, intensity_mode = OBSERVATIONAL
+            - Backend log line "[MIRROR_CHAT][life-tab-master-voice-v1]
+              domain=self frameworks=[...] signals=4 depth=NORMAL
+              intensity=OBSERVATIONAL" found in /var/log/supervisor/backend.err.log.
+
+          E2 ✅ Activation on life_domain="relationships" with pattern trigger
+            - msg = "I feel like we're drifting apart from my partner"
+            - HTTP 200 (6.27s)
+            - debug.master_voice present, domain=="relationships"
+            - debug.pattern_memory present, marker="pattern-memory-v1"
+            - Backend log contains BOTH
+              "[MIRROR_CHAT][life-tab-master-voice-v1]" and
+              "[MIRROR_CHAT][pattern-memory-v1]".
+
+          E3 ✅ Session continuity (reused E1 session_id, switched to life_domain="work")
+            - msg = "What about that pattern in work?"
+            - HTTP 200 (4.96s)
+            - debug.master_voice present, domain=="work", same provenance
+            - Reply demonstrates contextual awareness (talks about the
+              "generating ideas quickly" pattern that links back to the
+              restlessness/possibility theme set up in E1).
+
+          E4 ✅ Voice quality (jargon scan) — one message per domain
+            Sent the following prompts:
+              self          → "I keep feeling restless inside but I can't name why."
+              work          → "Lately work feels heavy and I don't know if it's burnout or misalignment."
+              relationships → "Why do I keep pulling away when someone gets close?"
+            All HTTP 200, all debug.master_voice domains correct.
+            ZERO jargon hits across the full forbidden list (Saturn / Mercury /
+            Venus / Mars / Jupiter / Pluto / Uranus / Neptune / Sun in /
+            Moon in / Gate N / Channel N / Life Path / Day Master /
+            Enneagram / Type 4 / Type 7 / Sacral / Manifestor / Projector /
+            Generator / BaZi / natal / transit / ayanamsa / Throat centre).
+
+            Domain-texture excerpts:
+              self:          "There's a familiar pattern here of moving toward
+                              possibilities and reframing discomfort… your
+                              intuitive, feeling self to process these emotions
+                              in solitude…"  (matches: self / pattern / inner / you)
+              work:          "your creative energy and need for freedom might
+                              clash with environments that feel too structured
+                              or confining… leading to what appears like
+                              burnout…"  (matches: work / structure / burn)
+              relationships: "the exhilaration of potential newness often feels
+                              more compelling than the steadiness of what's
+                              already intimate… emotional closeness feel like a
+                              tether, rather than a comfort…"  (matches:
+                              close / intima / distance / connect)
+
+          E5 ✅ Framework reveal on explicit ask
+            - msg = "Why is this showing up? Is this from my astrology or my
+              Human Design?"
+            - HTTP 200 (4.83s)
+            - debug.master_voice.contributing_frameworks still lists provenance:
+              ["enneagram","astrology","human_design","bazi"]
+            - Reply lightly names one framework: "your Enneagram Core Type 7
+              tendency to explore possibilities" — single mention, not a
+              jargon-dump, exactly per spec (E5 allows framework reveal here).
+
+          E6 ✅ No regression — lens="astrology", life_domain=null
+            - msg = "tell me about my Sun"
+            - HTTP 200 (6.78s)
+            - debug.master_voice ABSENT (correct)
+            - Single-lens astrology voice still works: "Your Sun is in Pisces,
+              located in your 3rd house…"
+
+          E7 ✅ Mutual exclusion — lens="enneagram" + life_domain="self"
+            - HTTP 200 (4.03s)
+            - debug.master_voice ABSENT (lens wins per the dispatcher guard
+              `not (request.lens in (astrology, human_design, numerology,
+              enneagram, bazi))` — confirmed in server.py:8042-8044).
+
+          OVERALL: 7/7 PASS.  No regressions; pattern-memory-v1 still runs
+          alongside master voice; intensity / depth helpers reused from
+          lens_conversation as designed.  Marking task working: true.
+
 test_plan_old:
   current_focus: []  19/19 backend assertions PASS
         in /app/narrative_flex_test.py.
