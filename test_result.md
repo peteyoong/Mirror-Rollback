@@ -18071,10 +18071,200 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
-    - agent: "testing"
-      message: |
-        narrative-flexibility-v1 verified end-to-end on POST /api/mirror/chat
-        for Pete (697f0c6abf35c0528ff06954).  19/19 backend assertions PASS
+    -agent: "testing"
+    -message: |
+        Completed end-to-end backend LLM testing for ask-about-person-v1 on
+        POST /api/mirror/chat using Pete (697f0c6abf35c0528ff06954) and his
+        pre-existing saved_people docs (Test Spouse → romantic, Test Child →
+        child).  No DB writes.
+
+        All E1–E7 expectations PASS — 35/35 assertions.
+
+        Test artefact: /app/ask_about_person_test.py
+        Results JSON:  /app/ask_about_person_results.json
+
+        Highlights:
+        - E1: debug.relational present with marker=relational-awareness-v1,
+          relationship_class=romantic, relationship_intensity_ceiling=DIRECT,
+          intensity_pre_cap/intensity_applied=OBSERVATIONAL,
+          projection_risk=low.  Backend log line emitted.
+        - E2: same session_id, follow-up turn carries relational debug AND
+          back-references prior turn (qualitative continuity holds).
+        - E3 (POLISH): debug.pattern_memory.marker=="pattern-memory-v1" is
+          present on a no-trigger message with matched_patterns=[].
+          Confirms the always-attach polish at server.py:8628-8635.
+        - E4: invalid about_person_id → HTTP 200, debug.relational absent,
+          backend WARNING "about_person_id=... not found" emitted.
+        - E5: child class → relationship_intensity_ceiling=DIRECT (NOT
+          CONFRONTING), intensity_applied=OBSERVATIONAL — cap honoured.
+        - E6: no about_person_id → relational absent, pattern_memory still
+          present (polish), latency 3.6s within baseline.
+        - E7: lens=astrology / numerology / null all return relational debug
+          with class=romantic; lens-specific debug also present at top level
+          of debug for astrology + numerology.
+
+        Note on debug shape: the actual keys returned by
+        services/relational_awareness.py are `relationship_intensity_ceiling`
+        and `intensity_applied` (NOT `intensity_ceiling`/`applied_intensity`
+        as the review request loosely worded).  Tests assert on the real
+        keys.  Frontend should also read these names if it expects to render
+        the relational pill.
+
+        Qualitative: replies stayed on field-between-the-two-people framing,
+        no recruitment / absolutist verdicts even when the prompt invited it.
+        No drop into "starting from scratch" tone on the second turn.
+
+        Marked backend task "Ask About Person — Relational Awareness Chat
+        Wiring (ask-about-person-v1)" working: true.  Main agent can
+        summarise and finish.
+
+backend:
+  - task: "Ask About Person — Relational Awareness Chat Wiring (ask-about-person-v1)"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/people/[id]/chat.tsx + /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW focused chat surface at /app/frontend/app/people/[id]/chat.tsx.
+          "Ask about this person" on /app/frontend/app/people/[id].tsx now
+          opens this route (was a placeholder Alert before).  Build marker
+          bumped to `ask-about-person-v1`.
+
+          POSTs to /api/mirror/chat with: user_id, message, lens (null=Mirror
+          or astrology/human_design/numerology/enneagram/bazi), session_id
+          (stable per visit), include_journal, include_history, AND the new
+          about_person_id pointing to the saved_people doc.
+
+          Backend polish: server.py final_debug now attaches `pattern_memory`
+          whenever the dispatcher ran (lines 8628–8633), not only when
+          matched_patterns was non-empty.  Lets the frontend dev pill verify
+          the module fired.
+
+          Validation expectations (E1–E7):
+            E1. about_person_id=valid saved-person id → 200 OK,
+                debug.relational.relationship_class set,
+                debug.relational.applied_intensity set, backend log line
+                "[MIRROR_CHAT][relational-awareness-v1]" emitted.
+            E2. Same session_id follow-up → continuity holds.
+            E3. POLISH: no-trigger message → debug.pattern_memory exists
+                with marker=="pattern-memory-v1", matched_patterns empty.
+            E4. about_person_id=invalid → 200 OK, debug.relational absent,
+                backend warning logged.
+            E5. relationship_type=child/child_minor → intensity_ceiling
+                must NOT be "CONFRONTING".
+            E6. Regression: no about_person_id → debug.relational absent;
+                debug.pattern_memory still present; latency baseline.
+            E7. Try lens=astrology, numerology, null — all return 200 with
+                debug.relational present in all three.
+
+          Test user: Pete (user_id 697f0c6abf35c0528ff06954, pete@pulsifi.me).
+          Pick any of his saved_people docs for the relational tests.
+      - working: true
+        agent: "testing"
+        comment: |
+          ASK ABOUT PERSON — RELATIONAL AWARENESS CHAT WIRING (ask-about-person-v1) TESTING COMPLETE ✅
+
+          🎯 ALL E1–E7 EXPECTATIONS PASSED — 35/35 assertions (100%)
+
+          Test artefact: /app/ask_about_person_test.py
+          Results JSON:  /app/ask_about_person_results.json
+          Saved people used (all pre-existing on Pete):
+            - rel-test-spouse (Test Spouse, relationship_type=spouse → class=romantic)
+            - rel-test-child  (Test Child,  relationship_type=child  → class=child)
+          No DB writes performed.
+
+          IMPORTANT — actual debug payload key names (from
+          services/relational_awareness.py build_relational_debug_payload):
+            marker, about_person {id,name,relationship_type},
+            relationship_class, relationship_intensity_ceiling,
+            projection_signals, projection_risk,
+            intensity_pre_cap, intensity_applied, intensity_was_capped.
+          (NOT `applied_intensity`/`intensity_ceiling` as the review request
+          loosely worded — the test asserts on the real keys.)
+
+          E1. Relational layer activates on valid about_person_id (spouse) ✅
+            - HTTP 200 (5.0s)
+            - debug.relational.marker == "relational-awareness-v1"
+            - relationship_class = "romantic"
+            - relationship_intensity_ceiling = "DIRECT"
+            - intensity_pre_cap = "OBSERVATIONAL", intensity_applied = "OBSERVATIONAL"
+            - projection_risk = "low" (with all three signal flags returned)
+            - about_person.id correctly echoes "rel-test-spouse"
+            - Backend log emitted: "[MIRROR_CHAT][relational-awareness-v1]
+              person=Test Spouse class=romantic projection_risk=low
+              intensity=OBSERVATIONAL->OBSERVATIONAL"
+            - Reply opens with relational framing ("You're looking to
+              understand something deeper about your connection with them…")
+              with no recruitment / absolutist language.
+
+          E2. Session continuity (same session_id follow-up) ✅
+            - HTTP 200 (4.6s)
+            - debug.relational still set on turn 2
+            - session_id round-tripped unchanged
+            - Reply explicitly back-references prior turn ("…a recurring
+              theme in your work life…") — no "starting from scratch" tone.
+
+          E3. POLISH: pattern_memory.marker always present ✅
+            - Message intentionally without recurring-pattern triggers:
+              "Tell me what's interesting about them today"
+            - HTTP 200 (3.5s)
+            - debug.pattern_memory.marker == "pattern-memory-v1"
+            - matched_patterns == [] (empty as expected) while the
+              dispatcher's debug payload is still attached, confirming the
+              always-attach polish at server.py:8628-8635.
+
+          E4. Invalid about_person_id degrades gracefully ✅
+            - about_person_id="non-existent-id-xyz"
+            - HTTP 200 (4.7s) — no 500, no crash
+            - debug.relational is null/absent
+            - Backend WARNING emitted: "[MIRROR_CHAT][relational-awareness-v1]
+              about_person_id=non-existent-id-xyz not found for
+              user=697f0c6abf35c0528ff06954"
+
+          E5. Cap-by-class sanity (child) ✅
+            - about_person_id="rel-test-child"
+            - relationship_class = "child"
+            - relationship_intensity_ceiling = "DIRECT"  (NOT CONFRONTING) ✅
+            - intensity_applied = "OBSERVATIONAL"        (NOT CONFRONTING) ✅
+            - Matches CLASS_INTENSITY_CEILINGS in relational_awareness.py.
+
+          E6. Regression — without about_person_id ✅
+            - HTTP 200 (3.6s)
+            - debug.relational is null/absent (no relational block injected)
+            - debug.pattern_memory.marker == "pattern-memory-v1" still
+              present (polish holds end-to-end)
+            - Latency 3.6s within the documented 3-12s baseline.
+
+          E7. Multi-lens with relational layer ✅
+            - lens="astrology"  → HTTP 200 (3.4s), relational present
+              (class=romantic), lens-specific top-level debug keys present:
+              marker, lens, active_entity, depth_mode, intensity_mode,
+              voice_marker, compression_marker, etc.
+            - lens="numerology" → HTTP 200 (4.1s), relational present
+              (class=romantic), same lens-specific debug structure.
+            - lens=null         → HTTP 200 (4.6s), relational present
+              (class=romantic); generalist mode (no lens-specific debug
+              expected and correctly absent).
+
+          🔧 QUALITATIVE OBSERVATIONS:
+            - Replies stayed on the "field between user and the person"
+              framing — no recruitment, no absolutist verdicts on the
+              partner/child, even when probing "what should I understand
+              about them".
+            - Relational debug consistently reports projection_risk and
+              the pre-cap vs applied intensity, matching the documented
+              return shape of compose_relational_block().
+
+          📊 RESULT: 35/35 assertions PASS, no failures, no regressions.
+          Marking task working: true.
+
+test_plan_old:
+  current_focus: []  19/19 backend assertions PASS
         in /app/narrative_flex_test.py.
 
         Fatigue escalation curve observed (lens=astrology, repeated burnout

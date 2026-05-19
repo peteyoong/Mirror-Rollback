@@ -532,24 +532,19 @@ export default function RelationshipProfileScreen() {
             ))}
           </View>
 
-          {/* Ask about this person — shell only at v1.  Backend wiring lands
-              with the next iteration; for now we surface intent. */}
+          {/* Ask about this person — opens a focused chat surface that
+              POSTs to /api/mirror/chat with about_person_id, so the
+              backend Relational Awareness layer activates. */}
           <TouchableOpacity
-            style={[styles.askBtn, { borderColor: theme.border, backgroundColor: theme.surface }]}
-            onPress={() =>
-              Alert.alert(
-                'Ask about this person',
-                'Soon you\'ll be able to ask Mirror a specific question about how to be with this person — what they may be carrying, how to read a moment between you, or what to say next.\n\nThis is coming next.',
-                [{ text: 'OK' }],
-              )
-            }
+            style={[styles.askBtn, { borderColor: theme.accent + '66', backgroundColor: theme.surface }]}
+            onPress={() => router.push(`/people/${personId}/chat` as any)}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={`Ask about ${person.name}`}
           >
             <Text style={[styles.askBtnTitle, { color: theme.text }]}>Ask about {person.name}</Text>
             <Text style={[styles.askBtnSubtitle, { color: theme.textTertiary }]}>
-              Coming next — a private line to Mirror about this person.
+              A private line to Mirror about this person — relational tone, no recruitment.
             </Text>
           </TouchableOpacity>
 

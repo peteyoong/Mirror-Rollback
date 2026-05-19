@@ -8626,8 +8626,10 @@ USER SHOULD FEEL:
                 final_debug = {}
             final_debug["relational"] = relational_debug_payload
         # pattern-memory-v1 — surface longitudinal recurrence debug data.
-        # Always include when any pattern was matched, even on generalist.
-        if pattern_debug_payload and pattern_debug_payload.get("matched_patterns"):
+        # Always include when the pattern-memory module ran (even on
+        # no-trigger turns) so the frontend can verify the dispatcher is
+        # active.  Frontend uses `pattern_memory.marker` for dev tooling.
+        if pattern_debug_payload:
             if final_debug is None:
                 final_debug = {}
             final_debug["pattern_memory"] = pattern_debug_payload

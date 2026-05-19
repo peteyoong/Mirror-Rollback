@@ -1,0 +1,182 @@
+{
+  "total": 35,
+  "passed": 35,
+  "failed": 0,
+  "results": [
+    {
+      "name": "E1.http_200",
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    {
+      "name": "E1.relational_present",
+      "status": "PASS",
+      "detail": "keys=['marker', 'about_person', 'relationship_class', 'relationship_intensity_ceiling', 'projection_signals', 'projection_risk', 'intensity_pre_cap', 'intensity_applied', 'intensity_was_capped']"
+    },
+    {
+      "name": "E1.relationship_class_set",
+      "status": "PASS",
+      "detail": "class=romantic"
+    },
+    {
+      "name": "E1.relationship_class_is_romantic_for_spouse",
+      "status": "PASS",
+      "detail": "class=romantic"
+    },
+    {
+      "name": "E1.intensity_applied_set",
+      "status": "PASS",
+      "detail": "intensity_applied=OBSERVATIONAL"
+    },
+    {
+      "name": "E1.intensity_pre_cap_set",
+      "status": "PASS",
+      "detail": "intensity_pre_cap=OBSERVATIONAL"
+    },
+    {
+      "name": "E1.relationship_intensity_ceiling_set",
+      "status": "PASS",
+      "detail": "ceiling=DIRECT"
+    },
+    {
+      "name": "E1.projection_risk_set",
+      "status": "PASS",
+      "detail": "risk=low"
+    },
+    {
+      "name": "E1.marker_relational_v1",
+      "status": "PASS",
+      "detail": "marker=relational-awareness-v1"
+    },
+    {
+      "name": "E1.about_person_id_matches",
+      "status": "PASS",
+      "detail": "about={'id': 'rel-test-spouse', 'name': 'Test Spouse', 'relationship_type': 'spouse'}"
+    },
+    {
+      "name": "E2.http_200",
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    {
+      "name": "E2.relational_still_set_on_followup",
+      "status": "PASS",
+      "detail": "keys=['marker', 'about_person', 'relationship_class', 'relationship_intensity_ceiling', 'projection_signals', 'projection_risk', 'intensity_pre_cap', 'intensity_applied', 'intensity_was_capped']"
+    },
+    {
+      "name": "E2.same_session_id_returned",
+      "status": "PASS",
+      "detail": "session_id=ask-test-8c87c518"
+    },
+    {
+      "name": "E3.http_200",
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    {
+      "name": "E3.pattern_memory_present",
+      "status": "PASS",
+      "detail": "keys=['marker', 'matched_patterns', 'surfaceable_count', 'growth_shifts_count', 'surfaced_keys', 'growth_keys']"
+    },
+    {
+      "name": "E3.pattern_memory_marker_v1",
+      "status": "PASS",
+      "detail": "marker=pattern-memory-v1"
+    },
+    {
+      "name": "E3.matched_patterns_empty_ok",
+      "status": "PASS",
+      "detail": "matched=[]"
+    },
+    {
+      "name": "E4.http_200_no_crash",
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    {
+      "name": "E4.relational_absent_or_null",
+      "status": "PASS",
+      "detail": "relational=None"
+    },
+    {
+      "name": "E5.http_200",
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    {
+      "name": "E5.child_class_detected",
+      "status": "PASS",
+      "detail": "class=child"
+    },
+    {
+      "name": "E5.ceiling_not_confronting",
+      "status": "PASS",
+      "detail": "ceiling=DIRECT"
+    },
+    {
+      "name": "E5.intensity_applied_not_confronting",
+      "status": "PASS",
+      "detail": "intensity_applied=OBSERVATIONAL"
+    },
+    {
+      "name": "E6.http_200",
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    {
+      "name": "E6.relational_absent",
+      "status": "PASS",
+      "detail": "relational=None"
+    },
+    {
+      "name": "E6.pattern_memory_present_polish",
+      "status": "PASS",
+      "detail": "pm=pattern-memory-v1"
+    },
+    {
+      "name": "E6.latency_baseline",
+      "status": "PASS",
+      "detail": "3.6s (target ~3-12s typical)"
+    },
+    {
+      "name": "E7.astrology.http_200",
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    {
+      "name": "E7.astrology.relational_present",
+      "status": "PASS",
+      "detail": "class=romantic"
+    },
+    {
+      "name": "E7.astrology.lens_specific_debug_present",
+      "status": "PASS",
+      "detail": "top_level_keys=['marker', 'lens', 'active_entity', 'active_entity_source', 'recent_history_entities', 'grounding_sources', 'missing_sources', 'conversation_turns_used', 'voice_marker', 'interpretive_stance', 'compression_marker', 'depth_mode', 'intensity_marker', 'intensity_mode', 'lens_intensity_ceiling']"
+    },
+    {
+      "name": "E7.numerology.http_200",
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    {
+      "name": "E7.numerology.relational_present",
+      "status": "PASS",
+      "detail": "class=romantic"
+    },
+    {
+      "name": "E7.numerology.lens_specific_debug_present",
+      "status": "PASS",
+      "detail": "top_level_keys=['marker', 'lens', 'active_entity', 'active_entity_source', 'recent_history_entities', 'grounding_sources', 'missing_sources', 'conversation_turns_used', 'voice_marker', 'interpretive_stance', 'compression_marker', 'depth_mode', 'intensity_marker', 'intensity_mode', 'lens_intensity_ceiling']"
+    },
+    {
+      "name": "E7.null.http_200",
+      "status": "PASS",
+      "detail": "status=200"
+    },
+    {
+      "name": "E7.null.relational_present",
+      "status": "PASS",
+      "detail": "class=romantic"
+    }
+  ]
+}
