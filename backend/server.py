@@ -548,6 +548,10 @@ class MirrorChatResponse(BaseModel):
     memory_update: Optional[MemoryUpdate] = None
     thread: Optional[dict] = None  # Thread state metadata
     debug: Optional[dict] = None   # astrology-chat-memory-v1: active entity, resolved placement, etc.
+    # evidence-drawer-v2 — curated, user-facing version of `debug`.
+    # Frontend renders this in the "Why this is showing up" drawer.
+    # ALWAYS in plain language.  Never leaks framework jargon.
+    evidence: Optional[dict] = None
 
 
 # Enneagram Assessment Models

@@ -38,6 +38,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { BUILD_ID } from '../../../constants/buildMarker';
 import api from '../../../services/api';
+import EvidenceDrawer, { CuratedEvidence } from '../../../components/EvidenceDrawer';
 import { useAppStore } from '../../../store';
 
 // ---------------------------------------------------------------------------
@@ -51,6 +52,7 @@ interface ChatMessage {
   role: 'user' | 'assistant' | 'error';
   content: string;
   timestamp: Date;
+  evidence?: CuratedEvidence | null;
 }
 
 interface MasterVoiceDebug {
@@ -190,6 +192,7 @@ export default function LifeMasterVoiceChat() {
         role: 'assistant',
         content: assistantText,
         timestamp: new Date(data.timestamp || Date.now()),
+        evidence: (data.evidence as CuratedEvidence) || null,
       };
       setMessages((prev) => [...prev, asstMsg]);
 
@@ -289,6 +292,9 @@ export default function LifeMasterVoiceChat() {
                 ]}
               >
                 <Text style={[styles.bubbleText, { color: theme.text }]}>{item.content}</Text>
+                {item.role === 'assistant' && item.evidence && (
+                  <EvidenceDrawer evidence={item.evidence} />
+                )}
               </View>
             </View>
           )}

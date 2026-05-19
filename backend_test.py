@@ -1,452 +1,279 @@
 """
-Backend test for Life Tab Master Voice (life-tab-master-voice-v1).
-
-Test plan (per review request):
-  E1. Activation on life_domain="self"
-  E2. Activation on life_domain="relationships" with pattern trigger
-  E3. Session continuity (multi-turn)
-  E4. Voice quality (qualitative, jargon scan)
-  E5. Framework reveal on explicit ask
-  E6. No regression — lens chat without life_domain
-  E7. Mutual exclusion (lens wins)
+Backend tests for Evidence Drawer v2 (build marker: evidence-drawer-v2).
+Exercises POST /api/mirror/chat and verifies the curated `evidence`
+object alongside the unchanged `debug` field.
 """
-import re
-import time
-import uuid
+from __future__ import annotations
+
+import sys
+from typing import Any, Dict, Optional
+
 import requests
-from pathlib import Path
 
-# Load EXPO_PUBLIC_BACKEND_URL from /app/frontend/.env
-FRONTEND_ENV = Path("/app/frontend/.env")
-BASE_URL = None
-for line in FRONTEND_ENV.read_text().splitlines():
-    if line.startswith("EXPO_PUBLIC_BACKEND_URL="):
-        BASE_URL = line.split("=", 1)[1].strip().strip('"').strip("'")
-        break
+BASE_URL = "https://narrative-flex-v1.preview.emergentagent.com"
+API = f"{BASE_URL}/api"
+PETE = "697f0c6abf35c0528ff06954"
+TIMEOUT = 90
 
-assert BASE_URL, "EXPO_PUBLIC_BACKEND_URL not found"
-API = BASE_URL.rstrip("/") + "/api"
-
-USER_ID = "697f0c6abf35c0528ff06954"  # Pete
-ENDPOINT = f"{API}/mirror/chat"
-
-print(f"[CONFIG] API: {API}")
-print(f"[CONFIG] User ID: {USER_ID}")
-print(f"[CONFIG] Endpoint: {ENDPOINT}")
-print("=" * 78)
+JARGON_TOKENS = [
+    "saturn", "mercury", "venus", "mars", "jupiter", "pluto",
+    "sun in", "moon in", "gate", "channel ", "centre",
+    "life path", "day master", "type 4", "type 7",
+    "sacral", "manifestor", "projector", "generator",
+    "natal", "transit", "ayanamsa",
+]
 
 
-def _post(payload: dict, timeout: int = 120) -> tuple[int, dict]:
-    t0 = time.time()
-    r = requests.post(ENDPOINT, json=payload, timeout=timeout)
-    dur = time.time() - t0
+def _post_chat(payload: Dict[str, Any]) -> requests.Response:
+    return requests.post(f"{API}/mirror/chat", json=payload, timeout=TIMEOUT)
+
+
+def _has_jargon(text: str) -> Optional[str]:
+    s = (text or "").lower()
+    for tok in JARGON_TOKENS:
+        if tok in s:
+            return tok
+    return None
+
+
+def _check_evidence_no_jargon(ev: Dict[str, Any]) -> Optional[str]:
+    if not ev:
+        return None
+    mv = ev.get("master_voice") or {}
+    candidates = []
+    if mv.get("dominant_pattern"):
+        candidates.append(mv["dominant_pattern"])
+    if ev.get("recurrence"):
+        candidates.append(ev["recurrence"])
+    rel = ev.get("relational") or {}
+    for item in rel.get("moderated_by") or []:
+        candidates.append(item)
+    for item in ev.get("calibration") or []:
+        candidates.append(item)
+    for c in candidates:
+        if not isinstance(c, str):
+            continue
+        hit = _has_jargon(c)
+        if hit:
+            return f"{hit!r} found in: {c!r}"
+    return None
+
+
+results = []
+
+
+def record(name: str, ok: bool, info: str = "") -> None:
+    results.append((name, ok, info))
+    badge = "PASS" if ok else "FAIL"
+    print(f"[{badge}] {name}  {info}")
+
+
+def test_e1_life_tab_master_voice():
+    payload = {"user_id": PETE, "message": "What's surfacing in me right now?",
+               "life_domain": "self", "lens": None}
+    r = _post_chat(payload)
+    record("E1.status_200", r.status_code == 200, f"got {r.status_code}")
+    if r.status_code != 200:
+        print(r.text[:500]); return None
+    data = r.json()
+    ev = data.get("evidence")
+    record("E1.evidence_is_object", isinstance(ev, dict), f"evidence={ev!r}")
+    if not isinstance(ev, dict):
+        return data
+    record("E1.evidence.marker", ev.get("marker") == "evidence-drawer-v2",
+           f"marker={ev.get('marker')!r}")
+    mv = ev.get("master_voice") or {}
+    dp = mv.get("dominant_pattern")
+    record("E1.master_voice.dominant_pattern",
+           isinstance(dp, str) and len(dp) > 0, f"dominant_pattern={dp!r}")
+    fws = mv.get("frameworks") or []
+    record("E1.master_voice.frameworks_nonempty",
+           isinstance(fws, list) and len(fws) >= 1, f"frameworks={fws}")
+    record("E1.master_voice.frameworks_human_readable",
+           all(f in {"Astrology", "Human Design", "Numerology", "Enneagram", "BaZi"} for f in fws),
+           f"frameworks={fws}")
+    cal = ev.get("calibration") or []
+    record("E1.calibration_nonempty",
+           isinstance(cal, list) and len(cal) >= 1, f"calibration={cal}")
+    record("E1.debug_still_present", isinstance(data.get("debug"), dict))
+    hit = _check_evidence_no_jargon(ev)
+    record("E1.no_jargon_in_curated_text", hit is None, hit or "")
+    return data
+
+
+def test_e2_ask_about_person():
+    person_id = None
     try:
-        body = r.json()
-    except Exception:
-        body = {"_raw": r.text[:500]}
-    print(f"  -> HTTP {r.status_code} in {dur:.2f}s")
-    return r.status_code, body
+        r = requests.get(f"{API}/people/{PETE}", timeout=TIMEOUT)
+        record("E2.list_people_status", r.status_code == 200, f"got {r.status_code}")
+        if r.status_code == 200:
+            body = r.json()
+            people = body.get("people") if isinstance(body, dict) else body
+            if isinstance(people, list) and people:
+                child = next((p for p in people if p.get("relationship_type") == "child"), None)
+                person_id = (child or people[0]).get("id")
+    except Exception as e:
+        record("E2.list_people_status", False, f"exc={e}")
 
-
-# Forbidden tokens in user-facing `response` text (case-insensitive).
-HARD_JARGON_TOKENS = [
-    r"\bSaturn\b",
-    r"\bMercury\b",
-    r"\bVenus\b",
-    r"\bMars\b",
-    r"\bJupiter\b",
-    r"\bPluto\b",
-    r"\bUranus\b",
-    r"\bNeptune\b",
-    r"\bSun in\b",
-    r"\bMoon in\b",
-    r"\bGate \d+",
-    r"\bChannel \d+",
-    r"\bLife Path\b",
-    r"\bDay Master\b",
-    r"\bEnneagram\b",
-    r"\bType 4\b",
-    r"\bType 7\b",
-    r"\bSacral\b",
-    r"\bManifestor\b",
-    r"\bProjector\b",
-    r"\bGenerator\b",
-    r"\bBaZi\b",
-    r"\bnatal\b",
-    r"\btransit(s)?\b",
-    r"\bayanamsa\b",
-    r"\bThroat (centre|center)\b",
-]
-
-
-def scan_jargon(text: str) -> list[str]:
-    found = []
-    for pat in HARD_JARGON_TOKENS:
-        m = re.search(pat, text, re.IGNORECASE)
-        if m:
-            found.append(m.group(0))
-    return sorted(set(found))
-
-
-LOG_PATHS = [
-    "/var/log/supervisor/backend.err.log",
-    "/var/log/supervisor/backend.out.log",
-]
-
-
-def grep_logs(needle: str, lookback_chars: int = 300_000) -> bool:
-    for p in LOG_PATHS:
+    if not person_id:
         try:
-            data = Path(p).read_text(errors="ignore")[-lookback_chars:]
-            if needle in data:
-                return True
-        except Exception:
-            pass
-    return False
+            cp = {"name": "Test Child Person", "relationship_type": "child",
+                  "birth_date": "2015-04-12", "birth_time": None,
+                  "birth_time_accuracy": "unknown", "birth_location": None,
+                  "birth_location_accuracy": "unknown"}
+            r = requests.post(f"{API}/people/{PETE}", json=cp, timeout=TIMEOUT)
+            if r.status_code == 200:
+                person_id = r.json().get("id")
+                record("E2.create_person", True, f"id={person_id}")
+            else:
+                record("E2.create_person", False, f"got {r.status_code}: {r.text[:200]}")
+        except Exception as e:
+            record("E2.create_person", False, f"exc={e}")
+
+    if not person_id:
+        record("E2.skipped", False, "no person id available"); return None
+
+    payload = {"user_id": PETE, "message": "What should I understand about them?",
+               "about_person_id": person_id}
+    r = _post_chat(payload)
+    record("E2.chat_status_200", r.status_code == 200, f"got {r.status_code}")
+    if r.status_code != 200:
+        print(r.text[:500]); return None
+    data = r.json()
+    ev = data.get("evidence") or {}
+    record("E2.evidence_is_object", isinstance(ev, dict), f"ev={ev!r}")
+    rel = ev.get("relational") if isinstance(ev, dict) else None
+    record("E2.relational.moderated_by_nonempty",
+           bool(rel) and isinstance(rel.get("moderated_by"), list) and len(rel["moderated_by"]) >= 1,
+           f"relational={rel!r}")
+    cal = ev.get("calibration") if isinstance(ev, dict) else None
+    record("E2.calibration_present", isinstance(cal, list) and len(cal) >= 1, f"calibration={cal}")
+    dbg = data.get("debug") or {}
+    record("E2.debug.relational_present", isinstance(dbg.get("relational"), dict),
+           f"debug.relational={dbg.get('relational')!r}")
+    hit = _check_evidence_no_jargon(ev if isinstance(ev, dict) else {})
+    record("E2.no_jargon_in_curated_text", hit is None, hit or "")
+    return data
 
 
-# ===========================================================================
-# E1
-# ===========================================================================
-print("\n[E1] Activation on life_domain='self'")
-e1_session = f"life-test-e1-{uuid.uuid4().hex[:8]}"
-e1_payload = {
-    "user_id": USER_ID,
-    "message": "What's surfacing in me right now?",
-    "lens": None,
-    "session_id": e1_session,
-    "include_journal": True,
-    "include_history": True,
-    "life_domain": "self",
-}
-status, body = _post(e1_payload)
+def test_e3_generic_mirror_chat():
+    payload = {"user_id": PETE, "message": "tell me what's interesting today"}
+    r = _post_chat(payload)
+    record("E3.status_200", r.status_code == 200, f"got {r.status_code}")
+    if r.status_code != 200:
+        print(r.text[:500]); return None
+    data = r.json()
+    ev = data.get("evidence")
+    record("E3.evidence_is_object", isinstance(ev, dict), f"evidence={ev!r}")
+    if isinstance(ev, dict):
+        cal = ev.get("calibration") or []
+        record("E3.calibration_nonempty",
+               isinstance(cal, list) and len(cal) >= 1, f"calibration={cal}")
+        hit = _check_evidence_no_jargon(ev)
+        record("E3.no_jargon_in_curated_text", hit is None, hit or "")
+    return data
 
-e1_pass = True
-e1_failures = []
-if status != 200:
-    e1_pass = False
-    e1_failures.append(f"HTTP {status}: {body}")
-else:
-    debug = (body.get("debug") or {})
-    mv = debug.get("master_voice")
-    if not mv:
-        e1_pass = False
-        e1_failures.append(f"debug.master_voice missing. debug keys: {list(debug.keys())}")
+
+def test_e4_curator_never_crashes():
+    r1 = _post_chat({"user_id": PETE, "message": "   "})
+    record("E4.empty_message_no_500", r1.status_code != 500, f"got {r1.status_code}")
+    long_msg = "burnout " * 800
+    r2 = _post_chat({"user_id": PETE, "message": long_msg})
+    record("E4.long_message_no_500", r2.status_code != 500, f"got {r2.status_code}")
+    r3 = _post_chat({"user_id": PETE, "message": "hi"})
+    record("E4.short_message_no_500", r3.status_code != 500, f"got {r3.status_code}")
+    if r3.status_code == 200:
+        record("E4.short_message_has_response", isinstance(r3.json().get("response"), str))
+
+
+def test_e6_recurrence_softness():
+    payload = {"user_id": PETE,
+               "message": "I am completely burned out from work again",
+               "life_domain": "work"}
+    r = _post_chat(payload)
+    record("E6.status_200", r.status_code == 200, f"got {r.status_code}")
+    if r.status_code != 200:
+        print(r.text[:500]); return
+    data = r.json()
+    ev = data.get("evidence") or {}
+    rec = ev.get("recurrence") if isinstance(ev, dict) else None
+    dbg = data.get("debug") or {}
+    pm = dbg.get("pattern_memory") or {}
+    if rec:
+        soft_tokens = ["surfaced", "recently", "this thread", "has surfaced", "this has"]
+        is_soft = any(t in rec.lower() for t in soft_tokens)
+        record("E6.recurrence_soft_language", is_soft, f"recurrence={rec!r}")
+        bad_tokens = ["january", "february", "march", "april", "may", "june",
+                      "july", "august", "september", "october", "november",
+                      "december", "you said", '"', "'"]
+        bad_hit = next((t for t in bad_tokens if t in rec.lower()), None)
+        record("E6.recurrence_no_absolute_dates_quotes",
+               bad_hit is None, f"hit={bad_hit!r}, recurrence={rec!r}")
     else:
-        if mv.get("marker") != "life-tab-master-voice-v1":
-            e1_pass = False
-            e1_failures.append(f"marker={mv.get('marker')}")
-        if mv.get("domain") != "self":
-            e1_pass = False
-            e1_failures.append(f"domain={mv.get('domain')}")
-        if not isinstance(mv.get("contributing_frameworks"), list):
-            e1_pass = False
-            e1_failures.append("contributing_frameworks not a list")
-        if "dominant_signal" not in mv:
-            e1_pass = False
-            e1_failures.append("dominant_signal key missing")
-        else:
-            ds = mv["dominant_signal"]
-            if ds is not None and not isinstance(ds, dict):
-                e1_pass = False
-                e1_failures.append(f"dominant_signal not dict/null: {type(ds).__name__}")
-        print(f"  marker={mv.get('marker')} domain={mv.get('domain')}")
-        print(f"  contributing_frameworks={mv.get('contributing_frameworks')}")
-        print(f"  signals_count={mv.get('signals_count')}")
-        print(f"  dominant_signal={mv.get('dominant_signal')}")
-        print(f"  depth_mode={mv.get('depth_mode')} intensity_mode={mv.get('intensity_mode')}")
+        suppressed = pm.get("suppressed_due_to_fatigue") or pm.get("suppressed_keys")
+        record("E6.recurrence_absent_ok_if_suppressed",
+               bool(suppressed) or pm.get("matched_patterns") in (None, []),
+               f"pattern_memory_keys={list(pm.keys())}")
 
-time.sleep(1.5)
-log_marker = "[MIRROR_CHAT][life-tab-master-voice-v1]"
-log_found = grep_logs(log_marker)
-if not log_found:
-    e1_pass = False
-    e1_failures.append(f"Backend log line '{log_marker}' not found")
 
-print(f"  log marker found: {log_found}")
-print(f"  E1 result: {'PASS' if e1_pass else 'FAIL'}  failures={e1_failures}")
+def test_e7_backward_compat_debug(e1_data: Optional[Dict[str, Any]]):
+    if not e1_data:
+        record("E7.skipped_no_e1_data", False); return
+    dbg = e1_data.get("debug")
+    record("E7.debug_is_object", isinstance(dbg, dict), f"debug type={type(dbg).__name__}")
+    if not isinstance(dbg, dict):
+        return
+    record("E7.debug.compression_or_intensity",
+           any(k in dbg for k in ("compression_mode", "intensity_mode", "depth_mode")),
+           f"keys={list(dbg.keys())}")
+    mv = dbg.get("master_voice") or {}
+    record("E7.debug.master_voice.marker",
+           mv.get("marker") == "life-tab-master-voice-v1", f"marker={mv.get('marker')}")
+    record("E7.debug.master_voice.domain", mv.get("domain") == "self",
+           f"domain={mv.get('domain')}")
+    record("E7.debug.master_voice.contributing_frameworks",
+           isinstance(mv.get("contributing_frameworks"), list))
+    record("E7.debug.master_voice.dominant_signal",
+           isinstance(mv.get("dominant_signal"), dict))
+    record("E7.debug.master_voice.signals_count",
+           isinstance(mv.get("signals_count"), int))
 
-e1_response_text = body.get("response", "") if status == 200 else ""
 
-# ===========================================================================
-# E2
-# ===========================================================================
-print("\n[E2] Activation on life_domain='relationships'")
-e2_session = f"life-test-e2-{uuid.uuid4().hex[:8]}"
-e2_payload = {
-    "user_id": USER_ID,
-    "message": "I feel like we're drifting apart from my partner",
-    "lens": None,
-    "session_id": e2_session,
-    "include_journal": True,
-    "include_history": True,
-    "life_domain": "relationships",
-}
-status, body = _post(e2_payload)
-
-e2_pass = True
-e2_failures = []
-if status != 200:
-    e2_pass = False
-    e2_failures.append(f"HTTP {status}")
-else:
-    debug = (body.get("debug") or {})
-    mv = debug.get("master_voice")
-    if not mv:
-        e2_pass = False
-        e2_failures.append("debug.master_voice missing")
-    elif mv.get("domain") != "relationships":
-        e2_pass = False
-        e2_failures.append(f"domain={mv.get('domain')}")
-    pm = debug.get("pattern_memory")
-    if not pm:
-        e2_pass = False
-        e2_failures.append(f"debug.pattern_memory missing. debug keys: {list(debug.keys())}")
+def test_e8_saved_people_endpoint():
+    r = requests.get(f"{API}/people/{PETE}", timeout=TIMEOUT)
+    record("E8.status_200", r.status_code == 200, f"got {r.status_code}")
+    if r.status_code != 200:
+        print(r.text[:500]); return
+    body = r.json()
+    if isinstance(body, dict):
+        people = body.get("people")
+        record("E8.response_has_people_list", isinstance(people, list),
+               f"keys={list(body.keys())}")
     else:
-        print(f"  pattern_memory marker={pm.get('marker')}")
-    print(f"  master_voice domain={(mv or {}).get('domain')} contributing={(mv or {}).get('contributing_frameworks')}")
+        people = body
+        record("E8.response_is_list", isinstance(people, list))
+    if isinstance(people, list) and people:
+        sample = people[0]
+        record("E8.birth_time_accuracy_serialised",
+               sample.get("birth_time_accuracy") in {"exact", "unknown"},
+               f"sample.birth_time_accuracy={sample.get('birth_time_accuracy')}")
 
-time.sleep(1.5)
-log_mv = grep_logs("[MIRROR_CHAT][life-tab-master-voice-v1]")
-log_pm = grep_logs("[MIRROR_CHAT][pattern-memory-v1]")
-if not log_mv:
-    e2_pass = False
-    e2_failures.append("life-tab marker not in logs")
-if not log_pm:
-    e2_pass = False
-    e2_failures.append("pattern-memory-v1 marker not in logs")
-print(f"  log master_voice: {log_mv}  log pattern_memory: {log_pm}")
-print(f"  E2 result: {'PASS' if e2_pass else 'FAIL'}  failures={e2_failures}")
 
-e2_response_text = body.get("response", "") if status == 200 else ""
+if __name__ == "__main__":
+    print(f"\n=== Evidence Drawer v2 backend test against {API} ===\n")
+    e1 = test_e1_life_tab_master_voice()
+    test_e2_ask_about_person()
+    test_e3_generic_mirror_chat()
+    test_e4_curator_never_crashes()
+    test_e6_recurrence_softness()
+    test_e7_backward_compat_debug(e1)
+    test_e8_saved_people_endpoint()
 
-# ===========================================================================
-# E3
-# ===========================================================================
-print("\n[E3] Session continuity (reuse E1 session, switch to work)")
-e3_payload = {
-    "user_id": USER_ID,
-    "message": "What about that pattern in work?",
-    "lens": None,
-    "session_id": e1_session,
-    "include_journal": True,
-    "include_history": True,
-    "life_domain": "work",
-}
-status, body = _post(e3_payload)
-
-e3_pass = True
-e3_failures = []
-e3_response_text = ""
-if status != 200:
-    e3_pass = False
-    e3_failures.append(f"HTTP {status}")
-else:
-    debug = (body.get("debug") or {})
-    mv = debug.get("master_voice")
-    if not mv:
-        e3_pass = False
-        e3_failures.append("debug.master_voice missing")
-    else:
-        print(f"  domain={mv.get('domain')}  contributing={mv.get('contributing_frameworks')}")
-    e3_response_text = body.get("response", "")
-    print(f"  Reply (first 320 chars): {e3_response_text[:320]}")
-print(f"  E3 result: {'PASS' if e3_pass else 'FAIL'}  failures={e3_failures}")
-
-# ===========================================================================
-# E4
-# ===========================================================================
-print("\n[E4] Voice quality — one msg per domain, jargon scan")
-
-E4_PROMPTS = {
-    "self": "I keep feeling restless inside but I can't name why.",
-    "work": "Lately work feels heavy and I don't know if it's burnout or misalignment.",
-    "relationships": "Why do I keep pulling away when someone gets close?",
-}
-DOMAIN_TEXTURES = {
-    "self":          ["inside", "identity", "you", "self", "pattern", "alive", "weather", "inner"],
-    "work":          ["work", "pressure", "structure", "capacity", "ambition", "exhaust", "responsibility", "authority", "burn"],
-    "relationships": ["partner", "people", "between", "distance", "attach", "withdraw", "close", "intima", "field", "connect"],
-}
-
-e4_pass = True
-e4_failures = []
-e4_replies: dict[str, str] = {}
-
-for dom, msg in E4_PROMPTS.items():
-    sess = f"life-test-e4-{dom}-{uuid.uuid4().hex[:6]}"
-    payload = {
-        "user_id": USER_ID,
-        "message": msg,
-        "lens": None,
-        "session_id": sess,
-        "include_journal": True,
-        "include_history": True,
-        "life_domain": dom,
-    }
-    print(f"  -> domain={dom}, msg='{msg}'")
-    status, body = _post(payload)
-    if status != 200:
-        e4_pass = False
-        e4_failures.append(f"{dom}: HTTP {status}")
-        continue
-    debug = body.get("debug") or {}
-    mv = debug.get("master_voice")
-    if not mv or mv.get("domain") != dom:
-        e4_pass = False
-        e4_failures.append(f"{dom}: master_voice missing or wrong domain ({(mv or {}).get('domain')})")
-    reply = body.get("response", "") or ""
-    e4_replies[dom] = reply
-    jargon_hits = scan_jargon(reply)
-    if jargon_hits:
-        e4_pass = False
-        e4_failures.append(f"{dom}: jargon found {jargon_hits}")
-    rlow = reply.lower()
-    matches = [k for k in DOMAIN_TEXTURES[dom] if k.lower() in rlow]
-    print(f"     reply 1st 260c: {reply[:260]}")
-    print(f"     jargon_hits={jargon_hits}  domain_texture_matches={matches}")
-    if not matches:
-        e4_failures.append(f"{dom}: WARNING no domain texture words matched")
-
-print(f"  E4 result: {'PASS' if e4_pass else 'FAIL'}  failures={e4_failures}")
-
-# ===========================================================================
-# E5
-# ===========================================================================
-print("\n[E5] Framework reveal on explicit ask")
-e5_sess = f"life-test-e5-{uuid.uuid4().hex[:6]}"
-_post({
-    "user_id": USER_ID,
-    "message": "I notice the same pattern of pulling away.",
-    "lens": None,
-    "session_id": e5_sess,
-    "include_journal": True,
-    "include_history": True,
-    "life_domain": "self",
-})
-time.sleep(0.5)
-
-e5_payload = {
-    "user_id": USER_ID,
-    "message": "Why is this showing up? Is this from my astrology or my Human Design?",
-    "lens": None,
-    "session_id": e5_sess,
-    "include_journal": True,
-    "include_history": True,
-    "life_domain": "self",
-}
-status, body = _post(e5_payload)
-
-e5_pass = True
-e5_failures = []
-if status != 200:
-    e5_pass = False
-    e5_failures.append(f"HTTP {status}")
-else:
-    debug = body.get("debug") or {}
-    mv = debug.get("master_voice")
-    if not mv:
-        e5_pass = False
-        e5_failures.append("master_voice missing")
-    else:
-        cf = mv.get("contributing_frameworks")
-        if not isinstance(cf, list):
-            e5_pass = False
-            e5_failures.append("contributing_frameworks not a list")
-        else:
-            print(f"  contributing_frameworks={cf}")
-    reply = body.get("response", "") or ""
-    print(f"  reply 1st 320c: {reply[:320]}")
-
-print(f"  E5 result: {'PASS' if e5_pass else 'FAIL'}  failures={e5_failures}")
-
-# ===========================================================================
-# E6
-# ===========================================================================
-print("\n[E6] No regression: lens='astrology', life_domain=None")
-e6_payload = {
-    "user_id": USER_ID,
-    "message": "tell me about my Sun",
-    "lens": "astrology",
-    "session_id": f"life-test-e6-{uuid.uuid4().hex[:6]}",
-    "include_journal": True,
-    "include_history": True,
-    "life_domain": None,
-}
-status, body = _post(e6_payload)
-
-e6_pass = True
-e6_failures = []
-if status != 200:
-    e6_pass = False
-    e6_failures.append(f"HTTP {status}")
-else:
-    debug = body.get("debug") or {}
-    mv = debug.get("master_voice")
-    if mv is not None:
-        e6_pass = False
-        e6_failures.append(f"master_voice should be absent, got: {mv}")
-    reply = body.get("response", "") or ""
-    print(f"  master_voice present: {mv is not None}")
-    print(f"  reply 1st 220c: {reply[:220]}")
-print(f"  E6 result: {'PASS' if e6_pass else 'FAIL'}  failures={e6_failures}")
-
-# ===========================================================================
-# E7
-# ===========================================================================
-print("\n[E7] Mutual exclusion: lens='enneagram' + life_domain='self'")
-e7_payload = {
-    "user_id": USER_ID,
-    "message": "What's surfacing in me right now?",
-    "lens": "enneagram",
-    "session_id": f"life-test-e7-{uuid.uuid4().hex[:6]}",
-    "include_journal": True,
-    "include_history": True,
-    "life_domain": "self",
-}
-status, body = _post(e7_payload)
-
-e7_pass = True
-e7_failures = []
-if status != 200:
-    e7_pass = False
-    e7_failures.append(f"HTTP {status}")
-else:
-    debug = body.get("debug") or {}
-    mv = debug.get("master_voice")
-    if mv is not None:
-        e7_pass = False
-        e7_failures.append(f"master_voice should be absent (lens wins), got: {mv}")
-    print(f"  master_voice present: {mv is not None}")
-print(f"  E7 result: {'PASS' if e7_pass else 'FAIL'}  failures={e7_failures}")
-
-# ===========================================================================
-# Summary
-# ===========================================================================
-print("\n" + "=" * 78)
-results = {
-    "E1 self activation": e1_pass,
-    "E2 relationships + pattern_memory": e2_pass,
-    "E3 session continuity": e3_pass,
-    "E4 voice quality (jargon)": e4_pass,
-    "E5 framework reveal": e5_pass,
-    "E6 no regression (astrology lens)": e6_pass,
-    "E7 mutual exclusion (lens wins)": e7_pass,
-}
-for k, v in results.items():
-    print(f"  {'PASS' if v else 'FAIL'}  {k}")
-
-print("\nE4 replies (qualitative excerpts):")
-for dom, txt in e4_replies.items():
-    print(f"\n  --- {dom} ---")
-    print(f"  {txt[:500]}")
-
-print("\nE1 response excerpt:")
-print(f"  {e1_response_text[:320]}")
-print("\nE2 response excerpt:")
-print(f"  {e2_response_text[:320]}")
-print("\nE3 response excerpt:")
-print(f"  {e3_response_text[:320]}")
-
-overall = all(results.values())
-print("\n" + ("OVERALL: PASS" if overall else "OVERALL: FAIL"))
+    print("\n=== Summary ===")
+    passed = sum(1 for _, ok, _ in results if ok)
+    total = len(results)
+    print(f"{passed}/{total} checks passed")
+    for name, ok, info in results:
+        if not ok:
+            print(f"  FAIL  {name}  {info}")
+    sys.exit(0 if passed == total else 1)

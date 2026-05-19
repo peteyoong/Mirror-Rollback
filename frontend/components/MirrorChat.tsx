@@ -25,6 +25,8 @@ import { useDominantTruthForChat } from '../hooks/useDominantTruth';
 import { buildMirrorResponse, getAskMirrorContext, getAskMirrorOpener } from '../services/mirrorResponseEngine';
 // Action Tracking for Engagement Adaptation
 import { trackChatEnter, trackChatSend, trackChatClose } from '../services/actionTracking';
+// evidence-drawer-v2 — curated "Why this is showing up" drawer
+import EvidenceDrawer from './EvidenceDrawer';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -643,6 +645,7 @@ export default function MirrorChat({
         role: 'assistant',
         content: normalized.text!,
         timestamp: new Date(response.data.timestamp || new Date()),
+        evidence: response.data?.evidence ?? null,
       };
       
       // Final validation before adding to messages
@@ -817,6 +820,10 @@ export default function MirrorChat({
           ]}>
             {content}
           </Text>
+          {/* evidence-drawer-v2 — curated "Why this is showing up" drawer */}
+          {!isUser && item.evidence && (
+            <EvidenceDrawer evidence={item.evidence} />
+          )}
         </View>
         <Text style={[
           styles.timestamp,
