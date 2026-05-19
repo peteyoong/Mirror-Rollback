@@ -19089,20 +19089,43 @@ backend:
           finish.
 
 test_plan:
-  current_focus:
-    - "Zi Wei / Purple Star Integration (zi-wei-master-v1)"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
+agent_communication:
+    - agent: "testing"
+      message: |
+        ZI WEI / PURPLE STAR INTEGRATION (zi-wei-master-v1) — RE-TEST PASSED.
+        Re-ran /app/backend_test.py against the deployed backend after the
+        main agent added "zi_wei" to both lens dispatcher tuples in
+        /app/backend/server.py (lines 8019 + 8751).
+
+        Final score: 16 PASS / 0 FAIL / 1 soft warning (T2d active_entity on
+        referent follow-up — non-blocking, pre-existing, documented).
+
+        Critical assertions now passing:
+          - debug.lens_chat.marker == "multi-lens-chat-memory-v1"  ✅
+          - debug.lens_chat.lens == "zi_wei"                        ✅
+          - grounding_sources surfaced via debug payload           ✅
+          - Stability of grounding_sources across two API calls    ✅
+
+        Voice/language layer remains clean (no jargon leaks, probabilistic
+        markers present, structural-behavioural read). Backend logs confirm
+        "mode=reflection_chat" with lens=zi_wei.
+
+        Marking task working=true, needs_retesting=false. Main agent can
+        summarise and finish.
+
 backend:
   - task: "Zi Wei / Purple Star Integration (zi-wei-master-v1)"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/services/zi_wei_interpreter.py + /app/backend/services/lens_registries/zi_wei.py + /app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -19261,6 +19284,83 @@ backend:
 
           No test data was created; the test exercises only Pete's
           existing user record and direct module imports — no cleanup needed.
+      - working: true
+        agent: "testing"
+        comment: |
+          ZI WEI / PURPLE STAR INTEGRATION (zi-wei-master-v1) — RE-TEST AFTER FIX
+          ===================================================================
+          Test harness: /app/backend_test.py
+          Base URL: https://behavioral-lens-2.preview.emergentagent.com/api
+          Test user: Pete (697f0c6abf35c0528ff06954)
+
+          Fix verification: main agent added "zi_wei" to BOTH dispatcher tuples
+          in /app/backend/server.py (line 8019 multi-lens memory dispatcher and
+          line 8751 final_debug merge). Re-running the full harness now flips
+          all previously failing assertions to PASS.
+
+          ===== TRANSCRIPT — TEST 1 (lens=zi_wei base call) =====
+          POST /api/mirror/chat → 200, reply 796 chars
+          reply preview: "Your chart suggests that under pressure at work,
+            you often find yourself challenging structures that no longer serve
+            their purpose. There's a tendency for you to break away from rigid
+            roles when they become too constraining. You might notice that this
+            can create friction, especially in environments that value strict
+            hierarchy and order. You also seem to have a proactive side that
+            prefers initiating change rather than waiting for it to happen. ..."
+          debug.marker = "multi-lens-chat-memory-v1"  ✅
+          debug.lens = "zi_wei"                         ✅
+          debug.grounding_sources = ['12-palace anchor map','Major-star anchors',
+            'Transformations','Current decade anchor','Current year overlay'] ✅
+
+          ===== TRANSCRIPT — TEST 2 (follow-up referent "that") =====
+          POST /api/mirror/chat → 200
+          reply preview: "In relationships, you often find yourself pushing
+            against structures that feel too rigid or confining. You might
+            notice a tendency to break away from roles that don't fit
+            comfortably, creating space for more authentic connections. ..."
+
+          ===== ASSERTION-BY-ASSERTION (16 PASS / 0 FAIL / 1 soft warn) =====
+          PASS  T1a  HTTP 200
+          PASS  T1b  debug.lens_chat.marker == "multi-lens-chat-memory-v1"
+          PASS  T1c  debug.lens_chat.lens == "zi_wei"
+          PASS  T1d  No forbidden jargon tokens in reply
+          PASS  T1e  Probabilistic markers present: ['may ','often','under pressure']
+          PASS  T1f  grounding_sources present: ['12-palace anchor map',
+                     'Major-star anchors','Transformations','Current decade
+                     anchor','Current year overlay']
+          PASS  T2a  HTTP 200 on follow-up
+          PASS  T2b  No forbidden tokens in follow-up reply
+          PASS  T2c  Probabilistic markers in follow-up reply
+          WARN  T2d  active_entity empty on referent follow-up — soft warning
+                     (non-blocking; lens-conversation memory layer remains
+                     idle on this specific referent for zi_wei, but does not
+                     affect grounding or voice)
+          PASS  T3a  missing_sources == ['birth date missing — cannot build profile']
+                     when no birth_date provided
+          PASS  T3b  grounding_sources_present == [] when no birth_date
+          PASS  T3c  Pete grounding_sources_present non-empty (5 items)
+          PASS  T4a  compute_zi_wei_profile major_stars deterministic across
+                     two consecutive calls
+          PASS  T4b  dominant_patterns deterministic
+          PASS  T4c  work_patterns deterministic
+          PASS  T5   grounding_sources stable across two consecutive Pete API calls
+
+          ===== VERDICT =====
+          Voice & language layer: WORKING (no jargon, probabilistic markers,
+            structural-behavioural read, deterministic profile, missing-data
+            handling correct).
+          Conversational-memory layer: NOW WIRED for zi_wei. debug.lens_chat
+            (marker, lens, grounding_sources) is surfaced, fix confirmed.
+
+          Backend logs at test time confirm:
+            "Mirror chat via emergent_generate: user=697f0c6abf35c0528ff06954,
+             lens=zi_wei, mode=reflection_chat"
+
+          All review-request hard assertions pass (16 PASS). One pre-existing
+          soft warning (T2d active_entity on referent follow-up) is documented
+          but explicitly non-blocking per the review.
+
+
 
   - task: "Forum Topology + Timing v1 (forum-topology-and-timing-v1)"
     implemented: true

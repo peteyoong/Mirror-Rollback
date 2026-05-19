@@ -8016,7 +8016,7 @@ NOT: "I opened a generic chat"
         #   3. Returns a consistent debug payload on the API response.
         # =====================================================================
         lens_debug_payload: Optional[dict] = None
-        if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi"):
+        if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi", "zi_wei"):
             try:
                 from services.lens_registries import get_registry
                 from services.lens_conversation import compose_lens_memory_blocks
@@ -8748,7 +8748,7 @@ USER SHOULD FEEL:
         # Compose final debug payload — fold relational debug under
         # `relational` key so frontend can read both lens + relational layers.
         final_debug: Optional[dict] = None
-        if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi"):
+        if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi", "zi_wei"):
             final_debug = dict(lens_debug_payload or {})
         if relational_debug_payload:
             if final_debug is None:

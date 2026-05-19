@@ -2,8 +2,11 @@
   "summary": {
     "passed": [
       "T1a HTTP 200",
+      "T1b lens_chat marker == multi-lens-chat-memory-v1",
+      "T1c lens_chat lens == zi_wei",
       "T1d no forbidden jargon tokens in reply",
       "T1e probabilistic markers present: ['may ', 'often', 'under pressure']",
+      "T1f grounding_sources_present: ['12-palace anchor map', 'Major-star anchors', 'Transformations', 'Current decade anchor', 'Current year overlay']",
       "T2a HTTP 200 on follow-up",
       "T2b no forbidden tokens in follow-up reply",
       "T2c probabilistic markers in follow-up reply",
@@ -12,21 +15,40 @@
       "T3c Pete grounding_sources_present non-empty: ['12-palace anchor map', 'Major-star anchors', 'Transformations', 'Current decade anchor', 'Current year overlay']",
       "T4a major_stars identical across two consecutive calls (deterministic)",
       "T4b dominant_patterns identical across runs",
-      "T4c work_patterns identical across runs"
+      "T4c work_patterns identical across runs",
+      "T5 grounding_sources stable across two consecutive Pete API calls"
     ],
-    "failed": [
-      "T1b lens_chat marker mismatch: got None (expected multi-lens-chat-memory-v1)",
-      "T1c lens_chat lens mismatch: got None (expected zi_wei)"
-    ],
+    "failed": [],
     "soft_warnings": [
-      "T1f grounding_sources empty in debug payload",
-      "T2d active_entity empty on referent follow-up \u2014 soft warning (not blocking)",
-      "T5 grounding_sources empty in both calls \u2014 cannot verify stability via API"
+      "T2d active_entity empty on referent follow-up \u2014 soft warning (not blocking)"
     ]
   },
-  "reply1_excerpt": "When you're under pressure at work, there's often a tendency to focus intensely on meeting expectations and maintaining structure. This can sometimes result in a heightened sense of responsibility and an urge to ensure everything stays in order. You may find that organizing, planning, and taking charge come naturally to you during these times. However, this focus on structure and responsibility can also mean you might overlook opportunities for flexibility or creative problem-solving. It might help to consciously allow space for more fluid, adaptive responses when the pressure builds. How do you typically feel when you're balancing these structured expectations with the need for adaptability?",
-  "reply2_excerpt": "In relationships, there may be a tendency to hold certain roles with a sense of duty or responsibility. This can create a dynamic where you feel the need to support or uphold expectations, often prioritizing the structure of the relationship. Under certain conditions, this posture might lead to a sense of obligation over spontaneity, where maintaining harmony or stability becomes a key focus. This inclination might manifest as a preference for clear roles and defined boundaries, which helps to establish a sense of order. However, it can also mean that when there's a shift in roles or expectations, there could be a period of adjustment that feels uncomfortable. Reflect on how you balance these roles and expectations with authenticity and spontaneity. What would it take to find ease in both structure and flexibility within your relationships?",
+  "reply1_excerpt": "Your chart suggests that under pressure at work, you often find yourself challenging structures that no longer serve their purpose. There's a tendency for you to break away from rigid roles when they become too constraining. You might notice that this can create friction, especially in environments that value strict hierarchy and order. You also seem to have a proactive side that prefers initiating change rather than waiting for it to happen. This drive can lead you to take on leadership roles or undertake projects where you feel a sense of responsibility, even if it's not explicitly assigned to you. However, be mindful that this can sometimes lead to tension with colleagues who may not be prepared for such shifts. How do you see this tendency influencing your current work environment?",
+  "reply2_excerpt": "In relationships, you often find yourself pushing against structures that feel too rigid or confining. You might notice a tendency to break away from roles that don't fit comfortably, creating space for more authentic connections. This can sometimes lead to friction, especially with partners or friends who prefer clear boundaries and definitions. You have a way of initiating change, often seeking to infuse relationships with fresh energy and new dynamics. However, this proactive approach might occasionally unsettle those who are more comfortable with stability. How do you see this pattern playing out in your current relationships?",
   "debug1": {
+    "marker": "multi-lens-chat-memory-v1",
+    "lens": "zi_wei",
+    "active_entity": null,
+    "active_entity_source": "none",
+    "recent_history_entities": [],
+    "grounding_sources": [
+      "12-palace anchor map",
+      "Major-star anchors",
+      "Transformations",
+      "Current decade anchor",
+      "Current year overlay"
+    ],
+    "missing_sources": [
+      "exact birth time (profile downgraded to date-only)"
+    ],
+    "conversation_turns_used": 0,
+    "voice_marker": "lens-voice-differentiation-v1",
+    "interpretive_stance": null,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "NORMAL",
+    "intensity_marker": "emotional-timing-v1",
+    "intensity_mode": "OBSERVATIONAL",
+    "lens_intensity_ceiling": "DIRECT",
     "pattern_memory": {
       "marker": "pattern-memory-v1",
       "matched_patterns": [],
@@ -47,6 +69,29 @@
     }
   },
   "debug2": {
+    "marker": "multi-lens-chat-memory-v1",
+    "lens": "zi_wei",
+    "active_entity": null,
+    "active_entity_source": "none",
+    "recent_history_entities": [],
+    "grounding_sources": [
+      "12-palace anchor map",
+      "Major-star anchors",
+      "Transformations",
+      "Current decade anchor",
+      "Current year overlay"
+    ],
+    "missing_sources": [
+      "exact birth time (profile downgraded to date-only)"
+    ],
+    "conversation_turns_used": 2,
+    "voice_marker": "lens-voice-differentiation-v1",
+    "interpretive_stance": null,
+    "compression_marker": "conversational-compression-v1",
+    "depth_mode": "NORMAL",
+    "intensity_marker": "emotional-timing-v1",
+    "intensity_mode": "OBSERVATIONAL",
+    "lens_intensity_ceiling": "DIRECT",
     "pattern_memory": {
       "marker": "pattern-memory-v1",
       "matched_patterns": [],
