@@ -34464,6 +34464,121 @@ async def get_micro_reflections(user_id: str, limit: int = 50):
     }
 
 
+# =============================================================================
+# FORUM TOPOLOGY + TIMING v1  (forum-topology-and-timing-v1)
+# =============================================================================
+
+
+class ForumTopologySeedEdge(BaseModel):
+    """Admin/test endpoint payload for deterministic edge seeding."""
+    from_user_id: str
+    to_user_id: str
+    role_type: str
+    confidence: Optional[str] = "moderate"
+    emotional_weight: Optional[str] = None
+    power_gradient: Optional[str] = None
+    intimacy_level: Optional[str] = None
+
+
+@api_router.post("/admin/forums/{forum_id}/seed-topology-edge")
+async def admin_seed_topology_edge(forum_id: str, body: ForumTopologySeedEdge):
+    """
+    Hidden admin/testing endpoint.  Used for deterministic edge
+    placement during testing and synthetic field-state simulation.
+    NOT user-facing — no UI surfaces this.
+    """
+    from services.forum_topology import upsert_edge, ALL_ROLES
+    role = body.role_type if body.role_type in ALL_ROLES else "other"
+    edge = await upsert_edge(
+        db,
+        forum_id=forum_id,
+        from_user_id=body.from_user_id,
+        to_user_id=body.to_user_id,
+        role_type=role,
+        inferred=False,
+        confidence=body.confidence or "moderate",
+        emotional_weight=body.emotional_weight,
+        power_gradient=body.power_gradient,
+        intimacy_level=body.intimacy_level,
+    )
+    # Sanitise datetimes for JSON.
+    for k in ("created_at", "updated_at"):
+        if isinstance(edge.get(k), datetime):
+            edge[k] = edge[k].isoformat()
+    logger.info(
+        f"[FORUM_TOPOLOGY] seed edge forum={forum_id} "
+        f"from={body.from_user_id} -> to={body.to_user_id} role={role}"
+    )
+    return {"ok": True, "edge": edge, "marker": "forum-topology-and-timing-v1"}
+
+
+@api_router.post("/forums/{forum_id}/topology/infer")
+async def forum_topology_infer(forum_id: str):
+    """
+    Run auto-inference for this forum.  Edges materialised from each
+    member's saved_people docs whenever the saved name matches another
+    forum member.  Idempotent — safe to re-run.
+    """
+    from services.forum_topology import infer_forum_topology_edges
+    result = await infer_forum_topology_edges(db, forum_id=forum_id)
+    logger.info(
+        f"[FORUM_TOPOLOGY] infer forum={forum_id} "
+        f"members={result.get('members_count')} inferred={result.get('inferred_count')}"
+    )
+    return result
+
+
+@api_router.get("/forums/{forum_id}/topology")
+async def forum_topology_list(forum_id: str):
+    """List edges for a forum.  Used internally / for testing."""
+    from services.forum_topology import (
+        list_edges, get_topology_confidence_state, compute_field_stability_score,
+    )
+    edges = await list_edges(db, forum_id=forum_id)
+    confidence = await get_topology_confidence_state(db, forum_id=forum_id)
+    stability = await compute_field_stability_score(db, forum_id=forum_id)
+    return {
+        "marker": "forum-topology-and-timing-v1",
+        "forum_id": forum_id,
+        "edges": edges,
+        "confidence": confidence,
+        "field_stability": stability,
+    }
+
+
+@api_router.delete("/forums/{forum_id}/topology/edge/{edge_id}")
+async def forum_topology_delete_edge(forum_id: str, edge_id: str):
+    from services.forum_topology import delete_edge
+    n = await delete_edge(db, forum_id=forum_id, edge_id=edge_id)
+    return {"ok": True, "deleted": n, "marker": "forum-topology-and-timing-v1"}
+
+
+@api_router.get("/forums/{forum_id}/story-of-circle")
+async def forum_story_of_circle(forum_id: str, debug: bool = False):
+    """
+    Returns the "Story of This Circle" object: a quiet, recognitional
+    paragraph + sections (the_field, moves_toward, softening, unsaid)
+    + up to 2 field-state chips.  When topology confidence is insufficient
+    the response is a calm placeholder — NOT fabricated insight.
+    Pass `?debug=true` to also receive the internal forum_field debug
+    payload (intended for dev tooling only).
+    """
+    from services.forum_field_intelligence import compose_story_of_circle
+    result = await compose_story_of_circle(db, forum_id=forum_id)
+    story = result["story"]
+    logger.info(
+        f"[FORUM_FIELD] forum={forum_id} ready={story.get('ready')} "
+        f"chips={story.get('field_state_chips')} "
+        f"confidence={result['debug'].get('topology_confidence')}"
+    )
+    out = {"story": story, "marker": "forum-topology-and-timing-v1"}
+    if debug:
+        out["debug"] = {"forum_field": result["debug"]}
+    return out
+
+
+
+
 
 @api_router.post("/resonance/track")
 async def track_resonance(request: Request):

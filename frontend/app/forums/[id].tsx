@@ -42,6 +42,7 @@ import api, {
 } from '../../services/api';
 import ForumChatView from '../../components/ForumChatView';
 import LiveFieldCard from '../../components/LiveFieldCard';
+import StoryOfThisCircle from '../../components/StoryOfThisCircle';
 import Constants from 'expo-constants';
 
 // Visible build marker for live deployment verification.
@@ -1065,6 +1066,11 @@ export default function ForumHomeScreen() {
           />
         }
       >
+        {/* Story of This Circle — forum-topology-and-timing-v1 hero.
+            Quiet, recognitional read of the room. Calls
+            GET /api/forums/{id}/story-of-circle. */}
+        {id && <StoryOfThisCircle forumId={String(id)} reloadKey={refreshing} />}
+
         {/* Forum Info */}
         <View style={styles.forumInfo}>
           <Text style={[styles.forumName, { color: theme.text }]}>{forum?.name}</Text>

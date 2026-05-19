@@ -19090,10 +19090,239 @@ backend:
 
 test_plan:
   current_focus:
-    - "Micro-Reflection v2 (micro-reflection-v2)"
+    - "Forum Topology + Timing v1 (forum-topology-and-timing-v1)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+backend:
+  - task: "Forum Topology + Timing v1 (forum-topology-and-timing-v1)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/forum_topology.py + forum_timing_engine.py + forum_field_intelligence.py + /app/backend/server.py + /app/frontend/components/StoryOfThisCircle.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          FORUM TOPOLOGY + TIMING v1 BACKEND TESTING COMPLETE — 35/35 PASS
+
+          Test harness: /app/backend_test.py
+          Base URL: https://narrative-flex-v1.preview.emergentagent.com/api
+          Test user: Pete (697f0c6abf35c0528ff06954)
+
+          ==================================================================
+          E1 — Empty forum / placeholder  ✅ (5/5)
+          ==================================================================
+          GET /api/forums/empty-nonexistent/story-of-circle → 200
+          marker == "forum-topology-and-timing-v1"
+          story.ready == false
+          story.placeholder contains "field is still becoming visible"
+          story.field_state_chips == []
+
+          ==================================================================
+          E2 — Admin seeding round-trip  ✅ (11/11)
+          ==================================================================
+          POST /api/admin/forums/test-e2-forum/seed-topology-edge
+            {from_user_id: user-a, to_user_id: user-b, role_type: mentor} → 200
+            edge.role_type == "mentor"
+            edge.power_gradient == "soft_hierarchy"
+            edge.emotional_weight == "moderate"
+            edge.inferred == false
+            edge.id matches UUID-v4 (e.g. 9b919434-146b-49b8-9d03-7290e3dff884)
+          GET /api/forums/test-e2-forum/topology → 200, edge present in list
+          DELETE /api/forums/test-e2-forum/topology/edge/{edge_id} → 200, deleted == 1
+          GET /api/forums/test-e2-forum/topology → edges == [] (empty)
+
+          ==================================================================
+          E3 — Topology confidence escalation  ✅ (5/5)
+          ==================================================================
+          Used existing real forum 69dd05eaa333335fcbf3ad33 with 2 members:
+            m1=697f0c6abf35c0528ff06954 (Pete), m2=697ec826ad4b18f75bf42616 (Mel)
+          Seeded 3 admin edges with role_type mentor / mentee / cofounder (all 200).
+          GET /api/forums/{id}/topology → confidence.state == "stable"
+            {state: stable, members: 2, edges: 3, high_confidence_edges: 0,
+             heavy_or_family_edges: 1}
+
+          ==================================================================
+          E4 — Story populated when topology is stable  ✅ (8/8)
+          ==================================================================
+          GET /api/forums/{id}/story-of-circle?debug=true → 200
+          marker == "forum-topology-and-timing-v1"
+          story.ready == true
+          story.the_field non-empty (186 chars):
+            "something in the field feels less guarded, while at the same
+             time old structures are becoming harder to maintain.  These
+             are different registers of the same room — held at the same
+             time."
+          story.moves_toward non-empty (92 chars):
+            "The room tends to move toward shared meaning rather than
+             answers when conversations open up."
+          story.field_state_chips == ["Opening", "Honest"]  (within 0-2)
+          debug.forum_field.marker == "forum-topology-and-timing-v1"
+          debug.forum_field.topology_confidence == "stable"
+
+          ==================================================================
+          E5 — NO jargon leak  ✅ (1/1)
+          ==================================================================
+          Scanned all 4 user-facing sections (the_field, moves_toward,
+          softening, unsaid) for: saturn, pluto, mercury, mars, jupiter,
+          uranus, neptune, sun in, moon in, gate, channel, life path,
+          day master, type 4, type 7, sacral, manifestor, projector,
+          generator, natal, transit, ayanamsa, enneagram.
+          Hits = []  (zero leakage).
+
+          ==================================================================
+          E6 — NO member-level diagnosis  ✅ (1/1)
+          ==================================================================
+          Cross-referenced real member names from db.users: ['Pete', 'Mel'].
+          Scanned for diagnosis phrases: "is avoidant", "is toxic",
+          "is the source", "is the difficult", "causes tension",
+          "this member", "this person is".
+          Hits = [] (no member names found in any section, no diagnosis
+          phrases found). Sections use field-level phrasing — "the
+          room", "the field", "conversations", "several people".
+
+          ==================================================================
+          E7 — Debug payload schema  ✅ (4/4)
+          ==================================================================
+          debug.forum_field contains ALL required keys: marker,
+          topology_confidence, topology_summary, edge_summary,
+          field_stability_score, dominant_field_state,
+          secondary_field_state, convergence_signals, softening_signals,
+          unresolved_tensions, topology_roles_present,
+          timing_pressure_summary, power_gradient_count, member_count.
+          field_stability_score is a dict:
+            {score: 0.65, topology_density: 1.0, recurrence_score: 0.5,
+             reflection_score: 0.0}
+            score is in [0,1] ✓
+          power_gradient_count has all three keys equal / soft_hierarchy /
+          hard_hierarchy:  {equal: 1, soft_hierarchy: 2, hard_hierarchy: 0}.
+
+          ==================================================================
+          Cleanup
+          ==================================================================
+          - Deleted 3 seeded edges from forum 69dd05eaa333335fcbf3ad33
+            (real forum — left intact, only seeded edges removed).
+          - test-e2-forum edges already cleaned by DELETE in E2.
+          - No test forum was created (real one was reused).
+
+          ==================================================================
+          Overall: 35/35 assertions PASS.  All seven expectations (E1–E7)
+          met. Backend task "Forum Topology + Timing v1
+          (forum-topology-and-timing-v1)" marked working: true.  Main
+          agent can summarise and finish.
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW backend modules:
+            services/forum_topology.py — directional relational edges
+              between forum members (collection: forum_relationship_edges).
+              Auto-inference from saved_people. Internal topology-confidence
+              state (none/sparse/emerging/stable). Internal field-stability
+              score. Roles split into family / professional / social
+              vocab; role presets map to power_gradient / emotional_weight
+              / intimacy_level.
+            services/forum_timing_engine.py — collective behavioural-state
+              synthesis from pattern memory + micro-reflections +
+              (best-effort) astrology transit signals. Returns 1 dominant
+              + optional 1 secondary state from a 10-state vocab. NO
+              astrology jargon in output.
+            services/forum_field_intelligence.py — the HEART. Composes
+              the user-facing "Story of This Circle" object with sections:
+              the_field, moves_toward, softening, unsaid, field_state_chips
+              (max 2). Returns calm placeholder when topology confidence
+              is none/sparse — does NOT fabricate insight.
+
+          NEW endpoints (server.py ~line 34466):
+            POST  /api/admin/forums/{forum_id}/seed-topology-edge
+                  Hidden admin/testing endpoint for deterministic edge
+                  placement. NOT user-facing.
+            POST  /api/forums/{forum_id}/topology/infer
+                  Idempotent. Walks members + saved_people to materialise
+                  edges + inverse edges.
+            GET   /api/forums/{forum_id}/topology
+                  Returns edges + topology confidence + field stability.
+            DELETE /api/forums/{forum_id}/topology/edge/{edge_id}
+            GET   /api/forums/{forum_id}/story-of-circle?debug=true
+                  Returns {story:{...}, marker, debug?:{forum_field:{...}}}.
+
+          Frontend:
+            - NEW components/StoryOfThisCircle.tsx — calm card at TOP of
+              /forums/[id]. Loading skeleton, graceful placeholder, no
+              charts/graphs, hairline borders, recognitional footnote.
+            - Build marker bumped to `forum-topology-and-timing-v1`.
+
+          Local smoke test (curl confirmed):
+            GET /api/forums/test-xyz/story-of-circle?debug=true → 200,
+              ready=false, placeholder set, debug.forum_field.marker =
+              "forum-topology-and-timing-v1".
+            POST /api/forums/test-xyz/topology/infer → 200,
+              members_count=0, inferred_count=0.
+
+          Validation expectations:
+
+          E1. Empty forum / no members:
+              GET /api/forums/empty-forum-id/story-of-circle → 200,
+              story.ready=false, story.placeholder includes "field is
+              still becoming visible", chips=[].
+
+          E2. Admin seeding round-trip:
+              POST /api/admin/forums/{id}/seed-topology-edge with role
+              "mentor" → 200, returns edge with id, role_type="mentor",
+              power_gradient="soft_hierarchy", emotional_weight="moderate",
+              inferred=false.
+              GET /api/forums/{id}/topology returns the edge.
+              DELETE /api/forums/{id}/topology/edge/{edge_id} → 200,
+              deleted=1.
+
+          E3. Topology confidence escalation:
+              Use any real forum with ≥2 members (look up via
+              db.forums.find_one then db.forum_members for that id; if
+              no real forum exists, create one quickly with
+              POST /api/forums and add Pete + a second test user).
+              Seed 3 admin edges with role="mentor", "mentee",
+              "cofounder" between the two members.
+              GET /api/forums/{id}/topology → confidence.state should be
+              "emerging" or "stable" (not "none"/"sparse").
+
+          E4. Story populated when confidence is stable+:
+              After E3, GET /api/forums/{id}/story-of-circle → 200,
+              story.ready=true, story.the_field, story.moves_toward set.
+              story.field_state_chips can be [] (no signals seeded);
+              that's acceptable.
+
+          E5. NO jargon leak:
+              In the Story response, the user-facing sections
+              (the_field, moves_toward, softening, unsaid) must NOT
+              contain any of these tokens (case-insensitive): "Saturn",
+              "Pluto", "Mercury", "Mars", "Jupiter", "Uranus", "Neptune",
+              "Sun in", "Moon in", "Gate", "Channel", "Life Path",
+              "Day Master", "Type 4", "Sacral", "Manifestor", "Projector",
+              "Generator", "natal", "transit", "ayanamsa", "Enneagram".
+
+          E6. NO member-level diagnosis:
+              The user-facing sections MUST NOT contain individual
+              member names (other than possibly pronouns like "you").
+              No "John is …", "Sarah seems …", "the avoidant member",
+              "the difficult member". Phrases must use "the room",
+              "the field", "conversations", "several people".
+
+          E7. Debug payload (when ?debug=true):
+              Contains forum_field with marker, topology_confidence,
+              edge_summary, field_stability_score, dominant_field_state,
+              secondary_field_state, convergence_signals,
+              softening_signals, unresolved_tensions,
+              topology_roles_present, timing_pressure_summary,
+              power_gradient_count, member_count.
+
+          If E1–E7 pass, mark working: true.  Test user: Pete
+          (697f0c6abf35c0528ff06954). Cleanup any test edges/forum
+          created at the end of testing.
+
+test_plan_old6:
 
 backend:
   - task: "Micro-Reflection v2 (micro-reflection-v2)"
