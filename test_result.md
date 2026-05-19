@@ -19090,12 +19090,178 @@ backend:
 
 test_plan:
   current_focus:
-    - "Forum Topology + Timing v1 (forum-topology-and-timing-v1)"
+    - "Zi Wei / Purple Star Integration (zi-wei-master-v1)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 backend:
+  - task: "Zi Wei / Purple Star Integration (zi-wei-master-v1)"
+    implemented: true
+    working: false
+    file: "/app/backend/services/zi_wei_interpreter.py + /app/backend/services/lens_registries/zi_wei.py + /app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Zi Wei / Purple Star Phase 1 integration complete. New module
+          `services/zi_wei_interpreter.py` produces a stable, deterministic
+          STRUCTURAL-BEHAVIOURAL profile per (birth_date, birth_time) covering:
+            - 12 palaces (Life, Career, Marriage, Wealth, ...)
+            - 14 major stars (Zi Wei, Tian Fu, Tan Lang, ...)
+            - 4 transformations (Hua Lu, Hua Quan, Hua Ke, Hua Ji)
+            - Decade cycles + current-cycle + current-year overlay
+            - Behavioural-translation strings per palace/star/transformation
+          New lens registry `services/lens_registries/zi_wei.py` exposes:
+            - build_index / extract_entities_from_text / referent_patterns
+            - grounding_sources_present / missing_sources
+            - format_grounding_block with FORBIDDEN tokens (destiny, fated,
+              guarantees, you are meant to, your true role).
+          Wired into `server.py`:
+            - LENS_PROMPTS["zi_wei"] added (line ~1203, build marker
+              `zi-wei-master-v1`).
+            - mirror_chat dispatcher includes zi_wei in the lens-conversation
+              memory chain (line ~8086).
+      - working: false
+        agent: "testing"
+        comment: |
+          ZI WEI / PURPLE STAR INTEGRATION (zi-wei-master-v1) — BACKEND TEST
+          ====================================================================
+          Test harness: /app/backend_test.py
+          Base URL: https://behavioral-lens-2.preview.emergentagent.com/api
+          Test user: Pete (697f0c6abf35c0528ff06954, email pete@pulsifi.me)
+          Pete confirmed in DB: birth_date=1968-04-01, birth_time=01:25, has_chart=True
+
+          ===== TRANSCRIPT — TEST 1 (lens=zi_wei base call) =====
+          REQUEST:
+            POST /api/mirror/chat
+            { "user_id": "697f0c6abf35c0528ff06954", "lens": "zi_wei",
+              "message": "What does my chart say about how I handle pressure at work?",
+              "include_journal": false, "include_history": false }
+
+          RESPONSE (status 200, reply 701 chars):
+            "When you're under pressure at work, there's often a tendency to focus
+             intensely on meeting expectations and maintaining structure. This can
+             sometimes result in a heightened sense of responsibility and an urge
+             to ensure everything stays in order. You may find that organizing,
+             planning, and taking charge come naturally to you during these times.
+             However, this focus on structure and responsibility can also mean you
+             might overlook opportunities for flexibility or creative problem-
+             solving. It might help to consciously allow space for more fluid,
+             adaptive responses when the pressure builds. How do you typically
+             feel when you're balancing these structured expectations with the
+             need for adaptability?"
+
+          debug payload received (top level keys): ['pattern_memory', 'micro_reflection']
+          debug.lens_chat:  NOT PRESENT
+          debug.marker:     None
+          debug.lens:       None
+
+          ===== TRANSCRIPT — TEST 2 (follow-up referent "that") =====
+          REQUEST:
+            POST /api/mirror/chat
+            { "user_id": "...", "lens": "zi_wei",
+              "message": "How does that show up in relationships?",
+              "session_id": <from T1>, "include_history": true }
+
+          RESPONSE (status 200):
+            "In relationships, there may be a tendency to hold certain roles with
+             a sense of duty or responsibility. ... Under certain conditions, this
+             posture might lead to a sense of obligation over spontaneity ...
+             What would it take to find ease in both structure and flexibility
+             within your relationships?"
+
+          debug.lens_chat:  empty {} (no active_entity, no grounding_sources)
+          debug.active_entity:  None
+
+          ===== ASSERTION-BY-ASSERTION =====
+          PASS  T1a  HTTP 200
+          FAIL  T1b  debug.lens_chat.marker == "multi-lens-chat-memory-v1"
+                     ACTUAL: marker missing (lens_chat sub-object NOT present in debug)
+          FAIL  T1c  debug.lens_chat.lens == "zi_wei"
+                     ACTUAL: lens missing
+          PASS  T1d  No forbidden jargon tokens in reply (checked 28 tokens incl.
+                     "destiny","fated","guarantees","you are meant to","your true
+                     role","Zi Wei","ziwei","Tian Fu","Tan Lang","Qi Sha","Po Jun",
+                     "Wu Qu","Tian Xiang","Tian Ji","Tai Yang","Tai Yin","Lian Zhen",
+                     "Ju Men","Tian Tong","Tian Liang","Hua Lu","Hua Quan","Hua Ke",
+                     "Hua Ji","命宫","palace","purple star")
+          PASS  T1e  Probabilistic markers present: ['may ','often','under pressure']
+          WARN  T1f  grounding_sources empty in API debug payload
+                     (because the lens_chat composer never runs for zi_wei)
+          PASS  T2a  HTTP 200 on follow-up
+          PASS  T2b  No forbidden tokens in follow-up reply
+          PASS  T2c  Probabilistic markers in follow-up reply ("may","might","can")
+          WARN  T2d  active_entity empty on referent follow-up — soft warning
+                     (compose_lens_memory_blocks never invoked for zi_wei)
+          PASS  T3a  Direct registry call with empty user context returns
+                     missing_sources=["birth date missing — cannot build profile"]
+          PASS  T3b  grounding_sources_present == [] when no birth_date
+          PASS  T3c  Pete grounding_sources_present == ['12-palace anchor map',
+                     'Major-star anchors','Transformations','Current decade anchor',
+                     'Current year overlay']
+          PASS  T4a  compute_zi_wei_profile major_stars identical across two
+                     calls: ['Ju Men','Lian Zhen','Tai Yin','Tan Lang','Tian Ji',
+                     'Tian Liang','Tian Xiang','Wu Qu']
+          PASS  T4b  dominant_patterns identical across two calls (deterministic)
+          PASS  T4c  work_patterns identical across two calls
+          WARN  T5   Cannot verify API-level stability of profile-derived strings
+                     because debug.lens_chat / grounding_sources are not surfaced
+                     for lens=zi_wei (root cause same as T1b/T1c)
+
+          ===== ROOT CAUSE =====
+          The two server.py lens dispatchers DO NOT include "zi_wei":
+
+            line 8019:  if request.lens in ("astrology", "human_design",
+                          "numerology", "enneagram", "bazi"):
+                        # composes lens memory + debug payload — SKIPPED for zi_wei
+
+            line 8751:  if request.lens in ("astrology", "human_design",
+                          "numerology", "enneagram", "bazi"):
+                            final_debug = dict(lens_debug_payload or {})
+                        # surfaces lens_debug into response.debug — SKIPPED for zi_wei
+
+          The main agent's status_history said the dispatcher was updated at
+          "~line 8086" — that location is the MASTER-VOICE EXCLUSION list
+          (which correctly includes "zi_wei"), but the actual MULTI-LENS
+          MEMORY DISPATCHER (line 8019) and the FINAL DEBUG MERGE (line 8751)
+          were NOT updated.  As a result:
+            - compose_lens_memory_blocks() never runs for lens=zi_wei.
+            - Grounding block from zi_wei registry never reaches the system prompt.
+            - debug.lens_chat is empty.
+            - Referent resolution ("that") cannot use lens_conversation memory.
+            - Active-entity tracking inactive.
+
+          NOTE: LENS_PROMPTS["zi_wei"] is still injected into system_prompt at
+          line 7878 (via the generic LENS_PROMPTS dispatcher), which is why
+          the LLM reply IS in the correct behavioural-strategist voice — no
+          jargon leaks, probabilistic markers present.  That layer is fine.
+          What's broken is the conversational-memory layer's wiring.
+
+          ===== VERDICT =====
+          Voice & language layer: WORKING (no jargon, probabilistic markers,
+            correct structural-behavioural read, missing_sources correctly
+            returns "birth date missing — cannot build profile", profile
+            is deterministic across runs).
+
+          Conversational-memory layer: NOT WIRED for zi_wei.  This blocks the
+            review-request hard assertions T1b/T1c and the active-entity
+            referent resolution test.
+
+          ===== ACTION REQUIRED (main agent) =====
+          Add "zi_wei" to BOTH tuples in /app/backend/server.py:
+            • line 8019 — multi-lens memory dispatcher tuple
+            • line 8751 — final_debug merge tuple
+          After that change, rerun this test harness (/app/backend_test.py).
+          All 4 currently failing/warning items (T1b, T1c, T1f/T2d/T5) should
+          flip to PASS without further code changes.
+
+          No test data was created; the test exercises only Pete's
+          existing user record and direct module imports — no cleanup needed.
+
   - task: "Forum Topology + Timing v1 (forum-topology-and-timing-v1)"
     implemented: true
     working: true
@@ -19686,3 +19852,57 @@ test_plan_old5:
         Backend task "Narrative Flexibility + Anti-Identity Locking
         (narrative-flexibility-v1)" marked working: true.  Main agent can
         summarise and finish.
+
+
+agent_communication:
+    - agent: "testing"
+      message: |
+        ZI WEI / PURPLE STAR INTEGRATION (zi-wei-master-v1) — TESTED.
+
+        Result: 12 PASS, 2 FAIL, 3 SOFT WARN (warnings cascade from the
+        same root cause as the failures, so functionally 2 critical
+        wiring issues).
+
+        ROOT CAUSE: The lens dispatcher tuples in /app/backend/server.py
+        DO NOT include "zi_wei":
+          • line 8019 — multi-lens memory dispatcher
+                ("astrology","human_design","numerology","enneagram","bazi")
+          • line 8751 — final_debug merge tuple
+                ("astrology","human_design","numerology","enneagram","bazi")
+        The main agent's task note said the dispatcher was at "~line 8086";
+        that location is the master-voice EXCLUSION list (which does
+        include zi_wei correctly), but the actual memory + debug
+        dispatchers were missed.
+
+        Effect of the gap:
+          - debug.lens_chat.marker is missing  → T1b FAIL
+          - debug.lens_chat.lens is missing    → T1c FAIL
+          - grounding_sources never surfaced   → T1f/T2d/T5 WARN
+          - referent "that" cannot resolve via lens_conversation memory
+
+        What IS working (do NOT touch):
+          - LENS_PROMPTS["zi_wei"] reaches system_prompt — replies are in
+            the correct structural-strategist voice.
+          - Zero forbidden jargon tokens leak (T1d, T2b PASS).
+          - Probabilistic markers present in every reply (T1e, T2c PASS).
+          - Direct-module test confirms missing_sources returns
+            ["birth date missing — cannot build profile"] when birth_date
+            absent (T3a PASS) and grounding_sources_present is empty (T3b).
+          - Pete grounding_sources_present == ['12-palace anchor map',
+            'Major-star anchors','Transformations','Current decade anchor',
+            'Current year overlay'] (T3c PASS).
+          - compute_zi_wei_profile is deterministic — major_stars,
+            dominant_patterns, work_patterns identical across two
+            consecutive calls for the same (birth_date, birth_time)
+            (T4a/T4b/T4c PASS).
+
+        FIX REQUIRED (1-line change in two places):
+            Add "zi_wei" to both tuples at line 8019 and line 8751.
+        After that change, rerun /app/backend_test.py — expect all 5
+        currently-failing/warn items to flip to PASS without touching
+        any other code.
+
+        No test data was created.  Test exercised Pete's existing
+        record and direct module imports only — no cleanup needed.
+
+        YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.

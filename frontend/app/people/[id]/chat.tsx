@@ -59,7 +59,7 @@ import { useAppStore } from '../../../store';
 // Types
 // ---------------------------------------------------------------------------
 
-type LensKey = null | 'astrology' | 'human_design' | 'numerology' | 'enneagram' | 'bazi';
+type LensKey = null | 'astrology' | 'human_design' | 'numerology' | 'enneagram' | 'bazi' | 'zi_wei';
 
 interface ChatMessage {
   id: string;
@@ -109,13 +109,14 @@ const LENS_LABELS: { key: LensKey; label: string }[] = [
   { key: 'numerology', label: 'Numerology' },
   { key: 'enneagram', label: 'Enneagram' },
   { key: 'bazi', label: 'BaZi' },
+  { key: 'zi_wei', label: 'Zi Wei' },
 ];
 
 function availableLensesForPerson(p: SavedPerson | null): LensKey[] {
   if (!p) return [null];
   const supported: LensKey[] = [null]; // Mirror is always available
   if (p.birth_date) {
-    supported.push('astrology', 'numerology', 'bazi');
+    supported.push('astrology', 'numerology', 'bazi', 'zi_wei');
   }
   if (p.birth_date && p.birth_time_accuracy === 'exact') {
     supported.push('human_design');

@@ -46,6 +46,7 @@ _FRAMEWORK_LABEL: Dict[str, str] = {
     "numerology":   "Numerology",
     "enneagram":    "Enneagram",
     "bazi":         "BaZi",
+    "zi_wei":       "Zi Wei",
 }
 
 

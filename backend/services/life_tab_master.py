@@ -373,6 +373,33 @@ def extract_behavioral_signals(
             "why": f"Day Master {day_master}",
         })
 
+    # --- Zi Wei / Purple Star structural anchor ----------------------------
+    # Pulls a single behavioural recognition per domain from the user's
+    # Zi Wei profile (Career / Marriage / Life palace anchors).  Lazy
+    # compute is safe because the interpreter is stable per birth data.
+    try:
+        from services.zi_wei_interpreter import get_or_compute_profile as _zw_profile
+        zw = _zw_profile(user_context)
+        if zw and zw.get("available"):
+            anchor_palace = {
+                "self":          "Life",
+                "relationships": "Marriage",
+                "work":          "Career",
+            }.get(dom, "Life")
+            anchor = next(
+                (p for p in zw.get("palaces", []) if p.get("palace") == anchor_palace),
+                None,
+            )
+            if anchor and anchor.get("behavioural_signal"):
+                signals.append({
+                    "framework": "zi_wei",
+                    "signal": anchor["behavioural_signal"],
+                    "why": f"{anchor_palace} palace structural anchor",
+                })
+    except Exception:
+        # Zi Wei is optional — never block master voice on failure.
+        pass
+
     return signals
 
 

@@ -1,0 +1,69 @@
+{
+  "summary": {
+    "passed": [
+      "T1a HTTP 200",
+      "T1d no forbidden jargon tokens in reply",
+      "T1e probabilistic markers present: ['may ', 'often', 'under pressure']",
+      "T2a HTTP 200 on follow-up",
+      "T2b no forbidden tokens in follow-up reply",
+      "T2c probabilistic markers in follow-up reply",
+      "T3a missing_sources includes 'birth date missing \u2014 cannot build profile'",
+      "T3b grounding_sources_present empty when no birth_date",
+      "T3c Pete grounding_sources_present non-empty: ['12-palace anchor map', 'Major-star anchors', 'Transformations', 'Current decade anchor', 'Current year overlay']",
+      "T4a major_stars identical across two consecutive calls (deterministic)",
+      "T4b dominant_patterns identical across runs",
+      "T4c work_patterns identical across runs"
+    ],
+    "failed": [
+      "T1b lens_chat marker mismatch: got None (expected multi-lens-chat-memory-v1)",
+      "T1c lens_chat lens mismatch: got None (expected zi_wei)"
+    ],
+    "soft_warnings": [
+      "T1f grounding_sources empty in debug payload",
+      "T2d active_entity empty on referent follow-up \u2014 soft warning (not blocking)",
+      "T5 grounding_sources empty in both calls \u2014 cannot verify stability via API"
+    ]
+  },
+  "reply1_excerpt": "When you're under pressure at work, there's often a tendency to focus intensely on meeting expectations and maintaining structure. This can sometimes result in a heightened sense of responsibility and an urge to ensure everything stays in order. You may find that organizing, planning, and taking charge come naturally to you during these times. However, this focus on structure and responsibility can also mean you might overlook opportunities for flexibility or creative problem-solving. It might help to consciously allow space for more fluid, adaptive responses when the pressure builds. How do you typically feel when you're balancing these structured expectations with the need for adaptability?",
+  "reply2_excerpt": "In relationships, there may be a tendency to hold certain roles with a sense of duty or responsibility. This can create a dynamic where you feel the need to support or uphold expectations, often prioritizing the structure of the relationship. Under certain conditions, this posture might lead to a sense of obligation over spontaneity, where maintaining harmony or stability becomes a key focus. This inclination might manifest as a preference for clear roles and defined boundaries, which helps to establish a sense of order. However, it can also mean that when there's a shift in roles or expectations, there could be a period of adjustment that feels uncomfortable. Reflect on how you balance these roles and expectations with authenticity and spontaneity. What would it take to find ease in both structure and flexibility within your relationships?",
+  "debug1": {
+    "pattern_memory": {
+      "marker": "pattern-memory-v1",
+      "matched_patterns": [],
+      "surfaceable_count": 0,
+      "growth_shifts_count": 0,
+      "surfaced_keys": [],
+      "growth_keys": []
+    },
+    "micro_reflection": {
+      "marker": "micro-reflection-v2",
+      "growth_score": 0,
+      "resistance_score": 0,
+      "resonance_score": 0,
+      "total_recent": 0,
+      "softened_patterns": [],
+      "stuck_patterns": [],
+      "loop_applied": null
+    }
+  },
+  "debug2": {
+    "pattern_memory": {
+      "marker": "pattern-memory-v1",
+      "matched_patterns": [],
+      "surfaceable_count": 0,
+      "growth_shifts_count": 0,
+      "surfaced_keys": [],
+      "growth_keys": []
+    },
+    "micro_reflection": {
+      "marker": "micro-reflection-v2",
+      "growth_score": 0,
+      "resistance_score": 0,
+      "resonance_score": 0,
+      "total_recent": 0,
+      "softened_patterns": [],
+      "stuck_patterns": [],
+      "loop_applied": null
+    }
+  }
+}

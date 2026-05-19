@@ -10,6 +10,7 @@ from .human_design import HUMAN_DESIGN_REGISTRY
 from .numerology import NUMEROLOGY_REGISTRY
 from .enneagram import ENNEAGRAM_REGISTRY
 from .bazi import BAZI_REGISTRY
+from .zi_wei import ZI_WEI_REGISTRY
 
 REGISTRY_BY_LENS = {
     "astrology": ASTROLOGY_REGISTRY,
@@ -17,6 +18,7 @@ REGISTRY_BY_LENS = {
     "numerology": NUMEROLOGY_REGISTRY,
     "enneagram": ENNEAGRAM_REGISTRY,
     "bazi": BAZI_REGISTRY,
+    "zi_wei": ZI_WEI_REGISTRY,
 }
 
 
