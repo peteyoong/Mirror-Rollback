@@ -69,9 +69,9 @@ interface ChatMessage {
 interface RelationalDebug {
   relationship_class?: string;
   relationship_type?: string;
-  intensity_ceiling?: string;
+  relationship_intensity_ceiling?: string;
+  intensity_applied?: string;
   projection_risk?: string | boolean;
-  applied_intensity?: string;
 }
 
 interface PatternMemoryDebug {
@@ -500,8 +500,12 @@ function DebugPill({ debug, theme }: { debug: MirrorDebug; theme: any }) {
         {markers.join(' · ')}
         {rel?.relationship_class
           ? `\nclass: ${rel.relationship_class}${
-              rel.intensity_ceiling ? ` (ceiling: ${rel.intensity_ceiling})` : ''
-            }${rel.projection_risk ? ` · projection: ${rel.projection_risk}` : ''}`
+              rel.relationship_intensity_ceiling
+                ? ` (ceiling: ${rel.relationship_intensity_ceiling})`
+                : ''
+            }${rel.intensity_applied ? ` · applied: ${rel.intensity_applied}` : ''}${
+              rel.projection_risk ? ` · projection: ${rel.projection_risk}` : ''
+            }`
           : ''}
         {pm?.matched_patterns && pm.matched_patterns.length > 0
           ? `\npatterns: ${pm.matched_patterns
