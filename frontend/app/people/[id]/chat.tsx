@@ -46,6 +46,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { BUILD_ID } from '../../../constants/buildMarker';
 import api from '../../../services/api';
 import EvidenceDrawer, { CuratedEvidence } from '../../../components/EvidenceDrawer';
+import MicroReflectionBar from '../../../components/MicroReflectionBar';
 import {
   formatRelationshipType,
   friendlyPeopleError,
@@ -401,7 +402,11 @@ export default function AskAboutPersonChatScreen() {
               </Text>
             </View>
           }
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => {
+            const isLatestAssistant =
+              item.role === 'assistant' &&
+              index === messages.length - 1;
+            return (
             <View
               style={[
                 styles.bubbleRow,
@@ -422,9 +427,20 @@ export default function AskAboutPersonChatScreen() {
                 {item.role === 'assistant' && item.evidence && (
                   <EvidenceDrawer evidence={item.evidence} />
                 )}
+                {item.role === 'assistant' && user?.id && (
+                  <MicroReflectionBar
+                    userId={user.id}
+                    source="people"
+                    isLatest={isLatestAssistant}
+                    sourceSession={sessionId}
+                    sourceMessage={item.id}
+                    contextAboutPersonId={personId}
+                  />
+                )}
               </View>
             </View>
-          )}
+            );
+          }}
         />
 
         {sending && (

@@ -8181,6 +8181,38 @@ NOT: "I opened a generic chat"
                 f"{type(pat_err).__name__}: {pat_err}"
             )
 
+        # =====================================================================
+        # MICRO-REFLECTION v2  (micro-reflection-v2)
+        # =====================================================================
+        # Read the user's recent micro-reflections (one-tap signals such
+        # as "That lands", "Resisting", "Less intense now", "Softer") and,
+        # when a clear signal exists, inject a SOFT system block that
+        # tells the LLM to lightly acknowledge a softening or honour a
+        # recent resistance — WITHOUT mentioning tracking.  Per spec the
+        # system should rarely reference reflection taps explicitly.
+        # =====================================================================
+        reflection_debug_payload: Optional[dict] = None
+        try:
+            from services.micro_reflection_v2 import compose_reflection_loop_block
+            r_block, reflection_debug_payload = await compose_reflection_loop_block(
+                db=db, user_id=request.user_id,
+            )
+            if r_block:
+                system_prompt += "\n\n" + r_block
+                logger.info(
+                    f"[MIRROR_CHAT][micro-reflection-v2] "
+                    f"user={request.user_id} "
+                    f"loop={reflection_debug_payload.get('loop_applied')} "
+                    f"growth={reflection_debug_payload.get('growth_score')} "
+                    f"resistance={reflection_debug_payload.get('resistance_score')}"
+                )
+        except Exception as ref_err:
+            logger.error(
+                f"[MIRROR_CHAT][micro-reflection-v2] error: "
+                f"{type(ref_err).__name__}: {ref_err}"
+            )
+
+
         # ===== LLM CALL VIA EMERGENT CONTRACT =====
         from emergent_contract import emergent_generate, validate_emergent_output, log_contract_event
         import asyncio
@@ -8703,6 +8735,11 @@ USER SHOULD FEEL:
         # `evidence` object that the Evidence Drawer renders.  This is
         # SEPARATE from `debug`: `debug` is for diagnostics, `evidence`
         # is for the user.  Curator failure NEVER breaks the response.
+        if reflection_debug_payload:
+            if final_debug is None:
+                final_debug = {}
+            final_debug["micro_reflection"] = reflection_debug_payload
+
         evidence_payload: Optional[dict] = None
         try:
             from services.evidence_curator import curate_evidence
@@ -34337,6 +34374,95 @@ class ResonanceTrackRequest(BaseModel):
     source_type: Optional[str] = None
     source_id: Optional[str] = None
     resonance: bool = True
+
+
+
+# =============================================================================
+# MICRO-REFLECTION v2  (micro-reflection-v2)
+# =============================================================================
+# Lightweight ambient reflection endpoints.  Designed to be one-tap from
+# under any assistant message — see /app/frontend/components/MicroReflectionBar.tsx.
+# Storage: db.micro_reflections (no raw user text, only labels + textures).
+# Feeds the longitudinal pattern memory layer.
+# =============================================================================
+
+
+class MicroReflectionCreate(BaseModel):
+    """Single tap from a chat surface."""
+    user_id: str
+    label: str
+    source: str = "other"  # "life_tab" | "people" | "mirror" | "other"
+    texture: Optional[str] = None
+    source_session: Optional[str] = None
+    source_message: Optional[str] = None
+    context_pattern_keys: Optional[List[str]] = None
+    context_lens: Optional[str] = None
+    context_life_domain: Optional[str] = None
+    context_about_person_id: Optional[str] = None
+
+
+@api_router.post("/micro-reflection")
+async def create_micro_reflection(body: MicroReflectionCreate):
+    """Record a single micro-reflection tap (one-tap signal)."""
+    from services.micro_reflection_v2 import (
+        record_reflection,
+        is_valid_label,
+        is_valid_texture,
+        valid_labels,
+        valid_textures,
+    )
+    if not is_valid_label(body.label):
+        raise HTTPException(
+            status_code=400,
+            detail=f"invalid label; allowed: {valid_labels()}",
+        )
+    if not is_valid_texture(body.texture):
+        raise HTTPException(
+            status_code=400,
+            detail=f"invalid texture; allowed: {valid_textures()} or null",
+        )
+    try:
+        doc = await record_reflection(
+            db=db,
+            user_id=body.user_id,
+            label=body.label,
+            source=body.source,
+            texture=body.texture,
+            source_session=body.source_session,
+            source_message=body.source_message,
+            context_pattern_keys=body.context_pattern_keys,
+            context_lens=body.context_lens,
+            context_life_domain=body.context_life_domain,
+            context_about_person_id=body.context_about_person_id,
+        )
+        logger.info(
+            f"[MICRO_REFLECTION_V2] user={body.user_id} label={body.label} "
+            f"texture={body.texture} source={body.source}"
+        )
+        # Strip ts datetime for JSON.
+        if isinstance(doc.get("ts"), datetime):
+            doc["ts"] = doc["ts"].isoformat()
+        return {"ok": True, "reflection": doc, "marker": "micro-reflection-v2"}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        logger.error(f"[MICRO_REFLECTION_V2] error recording: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="micro-reflection storage failed")
+
+
+@api_router.get("/micro-reflection/{user_id}/recent")
+async def get_micro_reflections(user_id: str, limit: int = 50):
+    """Return the user's most recent micro-reflections (newest first)."""
+    from services.micro_reflection_v2 import get_recent_reflections, analyze_recent
+    rows = await get_recent_reflections(db, user_id=user_id, limit=limit)
+    summary = await analyze_recent(db, user_id=user_id)
+    return {
+        "marker": "micro-reflection-v2",
+        "user_id": user_id,
+        "reflections": rows,
+        "summary": summary,
+    }
+
 
 
 @api_router.post("/resonance/track")

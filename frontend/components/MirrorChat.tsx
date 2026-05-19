@@ -27,6 +27,8 @@ import { buildMirrorResponse, getAskMirrorContext, getAskMirrorOpener } from '..
 import { trackChatEnter, trackChatSend, trackChatClose } from '../services/actionTracking';
 // evidence-drawer-v2 — curated "Why this is showing up" drawer
 import EvidenceDrawer from './EvidenceDrawer';
+// micro-reflection-v2 — one-tap ambient reflection chips
+import MicroReflectionBar from './MicroReflectionBar';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -823,6 +825,17 @@ export default function MirrorChat({
           {/* evidence-drawer-v2 — curated "Why this is showing up" drawer */}
           {!isUser && item.evidence && (
             <EvidenceDrawer evidence={item.evidence} />
+          )}
+          {/* micro-reflection-v2 — one-tap ambient reflection chips */}
+          {!isUser && userId && (
+            <MicroReflectionBar
+              userId={userId}
+              source="mirror"
+              isLatest={index === messages.length - 1}
+              sourceSession={sessionId}
+              sourceMessage={item.id}
+              contextLens={lens || null}
+            />
           )}
         </View>
         <Text style={[
