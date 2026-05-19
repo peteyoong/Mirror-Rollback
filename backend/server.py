@@ -34794,6 +34794,8 @@ async def forum_mirror_chat(forum_id: str, request: ForumMirrorChatRequest):
     # Persist both turns (no PII beyond what user wrote).
     try:
         now_ts = datetime.now(timezone.utc)
+        # Offset assistant by 1ms so per-turn ordering is deterministic
+        # for frontends rendering alternating bubbles.
         await db.forum_mirror_chat_messages.insert_many([
             {
                 "id": str(uuid.uuid4()),
@@ -34811,7 +34813,7 @@ async def forum_mirror_chat(forum_id: str, request: ForumMirrorChatRequest):
                 "session_id": session_id,
                 "role": "assistant",
                 "content": response_text,
-                "ts": now_ts,
+                "ts": now_ts + timedelta(milliseconds=1),
             },
         ])
     except Exception as e:
