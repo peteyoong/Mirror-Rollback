@@ -18475,7 +18475,7 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/services/evidence_curator.py + /app/backend/server.py + /app/frontend/components/EvidenceDrawer.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
@@ -18684,6 +18684,176 @@ backend:
           Marking working=false, stuck_count=1, needs_retesting=true.
           The implementation is incomplete — service exists, wiring
           does not.
+      - working: false
+        agent: "testing"
+        comment: |
+          EVIDENCE DRAWER V2 — RE-TEST AFTER WIRING (build marker
+          confirmed live in backend logs)
+          
+          Curator is NOW wired correctly:
+            • `grep -n "curate_evidence" /app/backend/server.py` → import
+              at top + call at server.py:8702-8729 confirmed.
+            • Backend logs now emit per successful curation:
+                "[MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True
+                 keys=['marker', 'master_voice', 'recurrence']"
+            • Backend service responded under load; no 500s/tracebacks.
+          
+          Live re-run against
+          https://narrative-flex-v1.preview.emergentagent.com/api with
+          Pete (697f0c6abf35c0528ff06954) — full results:
+          
+          /app/backend_test.py — 31/35 checks passed.
+          
+          PASSES (significant improvements):
+            • E1 — life_domain="self", lens=null
+                - HTTP 200 ✅
+                - evidence is an object ✅
+                - evidence.marker == "evidence-drawer-v2" ✅
+                - master_voice.dominant_pattern populated, plain
+                  language (no jargon): "moves toward possibility and
+                  pain-reframe; the depth is real but tends to keep
+                  moving" ✅
+                - master_voice.frameworks human-readable:
+                  ['Enneagram', 'Astrology', 'Human Design', 'BaZi'] ✅
+                - debug still present (additive) ✅
+                - No jargon leak in any curated text ✅
+            • E2 — about_person_id (parent–child)
+                - HTTP 200 ✅
+                - evidence object present ✅
+                - relational.moderated_by populated:
+                  ['a parent–child relational context',
+                   'intensity ceiling direct'] ✅
+                - applied_intensity = "OBSERVATIONAL" ✅
+                - debug.relational still present (additive) ✅
+                - No jargon leak ✅
+            • E4 — curator never crashes response (empty msg, 800-token
+              long msg, short "hi" msg) all 200 OK ✅
+            • E5 — NO jargon leak across E1/E2 curated text ✅
+            • E6 — Recurrence softness on "burned out from work again":
+                  recurrence = "a recurring sense of being depleted by
+                  work — this has surfaced before"
+                - Soft language ("surfaced") ✅
+                - No absolute dates, no quotes ✅
+            • E7 (partial) — debug.master_voice.marker /
+              .domain / .contributing_frameworks / .dominant_signal /
+              .signals_count all present ✅
+            • E8 — GET /api/people/697f0c6abf35c0528ff06954
+                  200 OK, returns {people:[…], count:N}, all
+                  serialised birth_time_accuracy="unknown" when
+                  missing ✅
+          
+          REMAINING FAILURES — same root cause across 3 items:
+          The curator at services/evidence_curator.py:244-261 reads
+          `depth_mode` / `compression_mode` / `intensity_mode` from the
+          TOP LEVEL of `debug`, but the master-voice dispatcher writes
+          those keys NESTED INSIDE `debug.master_voice.depth_mode` /
+          `debug.master_voice.intensity_mode`.  Result: `calibration`
+          is built as an empty list and excluded, AND generic-chat
+          paths return evidence=None when no master_voice/relational
+          context fires.
+          
+            E1.calibration_nonempty   ❌ FAIL — calibration=[]
+              expected: non-empty list (e.g. ["reflective",
+              "observational"])
+              got: []  (excluded from evidence object)
+              cause: top-level depth_mode/intensity_mode absent in
+              master-voice flow; data lives at
+              debug.master_voice.depth_mode = "NORMAL" and
+              debug.master_voice.intensity_mode = "OBSERVATIONAL".
+            
+            E2.calibration_present    ❌ FAIL — calibration=None
+              same root cause; relational path also routes
+              depth/intensity through nested location.
+            
+            E3.evidence_is_object     ❌ FAIL — evidence is None
+              Generic chat (no lens, no person, no life_domain) does
+              not run master_voice/relational, and top-level
+              depth_mode/intensity_mode are still absent, so the
+              curator's "if list(evidence.keys()) == ['marker']:
+              return None" guard returns None.  Per E3 spec, generic
+              chats should AT LEAST surface calibration.
+            
+            E7.debug.compression_or_intensity  ❌ FAIL
+              Top-level debug keys are ['pattern_memory',
+              'master_voice'] only.  compression_mode /
+              intensity_mode / depth_mode not at top level (they're
+              nested inside debug.master_voice).  This is the same
+              minor deviation flagged in the previous test run;
+              data is available, just nested.  Frontend can read it
+              from either location — but as worded in E7, top-level
+              presence is required.
+          
+          MINIMAL FIX (curator-only, no dispatcher changes):
+          Update services/evidence_curator.py `curate_evidence(...)`
+          so that depth/intensity are read with fallback from
+          debug.master_voice (and from debug.relational if present)
+          when not present at top level.  Approximately:
+          
+            mv = debug.get("master_voice") or {}
+            rel = debug.get("relational") or {}
+            depth = (
+                debug.get("depth_mode")
+                or debug.get("compression_mode")
+                or mv.get("depth_mode")
+                or mv.get("compression_mode")
+                or ""
+            ).upper()
+            intensity = (
+                debug.get("intensity_mode")
+                or mv.get("intensity_mode")
+                or rel.get("intensity_applied")
+                or rel.get("applied_intensity")
+                or ""
+            ).upper()
+          
+          That single change should flip E1 + E2 + E3 + (effectively)
+          E7 to PASS without touching the dispatcher.  The curator
+          implementation is otherwise sound — recurrence softness,
+          relational labelling, jargon-free phrasing, and master_voice
+          framework attribution all work as designed.
+          
+          DETAILED EVIDENCE SAMPLES (live responses):
+          
+            E1 evidence:
+              {
+                "marker": "evidence-drawer-v2",
+                "master_voice": {
+                  "domain": "self",
+                  "dominant_pattern": "moves toward possibility and
+                    pain-reframe; the depth is real but tends to keep
+                    moving",
+                  "frameworks": ["Enneagram", "Astrology",
+                    "Human Design", "BaZi"]
+                }
+                # NB: no "calibration" key — that's the failure.
+              }
+            
+            E2 evidence:
+              {
+                "marker": "evidence-drawer-v2",
+                "relational": {
+                  "moderated_by": [
+                    "a parent–child relational context",
+                    "intensity ceiling direct"
+                  ],
+                  "applied_intensity": "OBSERVATIONAL"
+                }
+                # NB: no calibration here either.
+              }
+            
+            E3 evidence: None  (entire evidence object missing)
+          
+          OVERALL: significant progress from previous run (was 22/27
+          with curator never running, now 31/35 with curator working
+          and emitting markers).  But E1, E2, E3 still fail the
+          calibration / evidence-presence portion of the spec.
+          
+          Recommendation: small curator-side fix as above.  Do NOT
+          re-architect; keep all dispatcher writes as-is.  Then this
+          task should pass cleanly.
+          
+          Marking working=false (calibration / generic-chat evidence
+          gap), stuck_count=2, needs_retesting=true.
 
 test_plan_old:
   current_focus: []  19/19 backend assertions PASS

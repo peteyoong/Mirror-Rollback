@@ -8699,6 +8699,26 @@ USER SHOULD FEEL:
                 final_debug = {}
             final_debug["master_voice"] = master_voice_debug_payload
 
+        # evidence-drawer-v2 — build the small, curated, user-facing
+        # `evidence` object that the Evidence Drawer renders.  This is
+        # SEPARATE from `debug`: `debug` is for diagnostics, `evidence`
+        # is for the user.  Curator failure NEVER breaks the response.
+        evidence_payload: Optional[dict] = None
+        try:
+            from services.evidence_curator import curate_evidence
+            evidence_payload = curate_evidence(final_debug)
+            if evidence_payload:
+                logger.info(
+                    f"[MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True "
+                    f"keys={list(evidence_payload.keys())}"
+                )
+        except Exception as ev_err:
+            logger.error(
+                f"[MIRROR_CHAT][evidence-drawer-v2] curator error: "
+                f"{type(ev_err).__name__}: {ev_err}"
+            )
+            evidence_payload = None
+
         return MirrorChatResponse(
             response=response_text,
             session_id=session_id,
@@ -8706,6 +8726,7 @@ USER SHOULD FEEL:
             memory_update=memory_update,
             thread=thread_metadata,
             debug=final_debug,
+            evidence=evidence_payload,
         )
         
     except HTTPException as http_exc:
