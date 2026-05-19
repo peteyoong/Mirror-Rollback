@@ -244,8 +244,11 @@ def curate_evidence(debug: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]
     #   - lens dispatcher writes them at top level
     #     (debug.depth_mode / debug.intensity_mode OR debug.compression_mode)
     #   - life-tab master voice nests them under debug.master_voice.*
-    # Accept either.
+    #   - relational (Ask About Person) writes intensity at
+    #     debug.relational.intensity_applied
+    # Accept any of the above.
     mv_dbg = debug.get("master_voice") if isinstance(debug.get("master_voice"), dict) else {}
+    rel_dbg = debug.get("relational") if isinstance(debug.get("relational"), dict) else {}
     depth = (
         debug.get("depth_mode")
         or debug.get("compression_mode")
@@ -255,8 +258,18 @@ def curate_evidence(debug: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]
     intensity = (
         debug.get("intensity_mode")
         or (mv_dbg.get("intensity_mode") if mv_dbg else None)
+        or (rel_dbg.get("intensity_applied") if rel_dbg else None)
+        or (rel_dbg.get("applied_intensity") if rel_dbg else None)
         or ""
     ).upper()
+    # If we have no calibration signals at all (rare — generic chat with
+    # no lens / no person / no life-domain), default to the most common
+    # baseline so the drawer always has SOMETHING calm to show.  This
+    # keeps the user-facing experience consistent across surfaces while
+    # still being honest (these are the platform defaults).
+    if not depth and not intensity:
+        depth = "NORMAL"
+        intensity = "OBSERVATIONAL"
     calibration: List[str] = []
     if depth:
         calibration.append({

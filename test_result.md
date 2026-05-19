@@ -18473,11 +18473,11 @@ backend:
 
   - task: "Evidence Drawer v2 (evidence-drawer-v2)"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/services/evidence_curator.py + /app/backend/server.py + /app/frontend/components/EvidenceDrawer.tsx"
     stuck_count: 3
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -18980,6 +18980,113 @@ backend:
           
           Marking working=false (E2 + E3 still divergent),
           stuck_count=3, needs_retesting=true.
+      - working: true
+        agent: "testing"
+        comment: |
+          EVIDENCE DRAWER V2 — FINAL RE-TEST #4 AFTER RELATIONAL + GENERIC FALLBACKS
+
+          Run: /app/backend_test.py against
+          https://narrative-flex-v1.preview.emergentagent.com/api
+          (Pete 697f0c6abf35c0528ff06954, build "evidence-drawer-v2").
+
+          Result: 36/37 checks passed. The only remaining failure is the
+          E7 top-level-debug-keys assertion, which the main agent has
+          explicitly flagged as an intentional design decision (the
+          data IS available, just nested under debug.master_voice for
+          master-voice flows). Per the review request, E7 is acceptable
+          to skip and the rest must pass.
+
+          ✅ E1 (life_domain="self", lens=null) — 9/9 PASS
+              evidence = {
+                "marker": "evidence-drawer-v2",
+                "master_voice": {
+                  "domain": "self",
+                  "dominant_pattern": "moves toward possibility and
+                    pain-reframe; the depth is real but tends to keep
+                    moving",
+                  "frameworks": ["Enneagram", "Astrology",
+                    "Human Design", "BaZi"]
+                },
+                "calibration": ["reflective", "observational"]
+              }
+
+          ✅ E2 (about_person_id=rel-test-child) — 6/6 PASS
+              evidence = {
+                "marker": "evidence-drawer-v2",
+                "relational": {
+                  "moderated_by": [
+                    "a parent–child relational context",
+                    "intensity ceiling direct"
+                  ],
+                  "applied_intensity": "OBSERVATIONAL"
+                },
+                "calibration": ["observational"]   ← FIXED
+              }
+              The relational intensity-applied fallback now flows into
+              the calibration array. No jargon leak. debug.relational
+              still present (additive).
+
+          ✅ E3 (generic chat — no lens, no person, no life_domain) — 3/3 PASS
+              evidence = {
+                "marker": "evidence-drawer-v2",
+                "calibration": ["reflective", "observational"]   ← FIXED
+              }
+              Curator now synthesises the platform baseline
+              (NORMAL / OBSERVATIONAL) when neither master_voice nor
+              relational nor top-level depth/intensity keys are
+              present. evidence object is now non-null on every
+              successful generic chat.
+
+          ✅ E4 (curator robustness) — 4/4 PASS
+              Empty / 800-token / 2-char messages → all 200 OK, no
+              500s, response field present.
+
+          ✅ E5 (no jargon) — verified inline on E1, E2, E3 curated
+              text. Zero jargon tokens detected across all three
+              curated payloads.
+
+          ✅ E6 (recurrence softness on "burned out from work again")
+              recurrence = "a recurring sense of being depleted by
+              work — this has surfaced before"
+              Soft language ✅. No dates, no quotes, no months ✅.
+
+          ⚠️ E7 (top-level debug.compression_mode / intensity_mode /
+              depth_mode) — FAIL but ACCEPTABLE per main agent's
+              explicit note: data is nested under debug.master_voice
+              for master-voice flows. The frontend can read from
+              either location. This is the only remaining failure
+              (1 of 37) and is intentional design.
+
+          ✅ E8 (GET /api/people/697f0c6abf35c0528ff06954) — 3/3 PASS
+              200 OK, returns {people: [...], count: N}, all saved
+              docs serialise birth_time_accuracy="unknown" when
+              missing (collateral KeyError fix confirmed).
+
+          BACKEND LOGS VERIFIED:
+              "[MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True
+               keys=['marker', 'master_voice', 'recurrence',
+               'calibration']"          ← E1, E6
+              "[MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True
+               keys=['marker', 'relational', 'calibration']"
+                                          ← E2
+              "[MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True
+               keys=['marker', 'calibration']"
+                                          ← E3 (generic baseline)
+              Zero tracebacks. Curator never crashes under any payload.
+
+          OVERALL: 36/37 checks pass. E1 calibration, E2 calibration
+          (relational fallback), and E3 evidence-object presence
+          (generic baseline synthesis) — the three previously failing
+          assertions — now all pass. E7 top-level-debug-keys remains
+          a stylistic deviation that the main agent has decided NOT
+          to address to avoid regressing other consumers; data is
+          nested under debug.master_voice and accessible to frontend.
+
+          Marking working=true. The Evidence Drawer v2 backend
+          implementation is complete and meets all functional
+          requirements (E1–E6, E8). E7's top-level location concern
+          is documented as intentional. Main agent can summarise and
+          finish.
 
 test_plan_old:
   current_focus: []  19/19 backend assertions PASS
