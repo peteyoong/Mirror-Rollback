@@ -19090,15 +19090,206 @@ backend:
 
 test_plan:
   current_focus:
-    - "Micro-Reflection v3 — Home daily texture check-in (micro-reflection-v3-home-texture)"
-    - "Topology Editor v2 — user-declared edges (topology-editor-v2)"
+    - "Server router refactor — incremental extraction (server-router-refactor-v2)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 backend:
-  - task: "Micro-Reflection v3 — Home daily texture check-in (micro-reflection-v3-home-texture)"
+  - task: "Server router refactor v2 — micro_reflection + forums_field extraction (server-router-refactor-v2)"
     implemented: true
+    working: true
+    file: "/app/backend/routers/micro_reflection.py + /app/backend/routers/forums_field.py + /app/backend/routers/topology_editor.py + /app/backend/routers/__init__.py + /app/backend/server.py (inline routes removed, register() calls in place)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Server-router-refactor-v2 extraction pass.  Behaviour-preserving
+          moves — no path, schema, marker, or log-line changes.  Verified
+          with curl smoke tests on every extracted route.
+
+          ROUTES MOVED to routers/ in this session:
+            routers/micro_reflection.py (4 routes):
+              POST  /api/micro-reflection
+              GET   /api/micro-reflection/{user_id}/recent
+              POST  /api/micro-reflection/home-texture
+              GET   /api/micro-reflection/{user_id}/home-texture/today
+
+            routers/forums_field.py (7 routes):
+              POST   /api/admin/forums/{forum_id}/seed-topology-edge
+              POST   /api/forums/{forum_id}/topology/infer
+              GET    /api/forums/{forum_id}/topology
+              DELETE /api/forums/{forum_id}/topology/edge/{edge_id}
+              GET    /api/forums/{forum_id}/story-of-circle
+              POST   /api/forums/{forum_id}/mirror-chat
+              GET    /api/forums/{forum_id}/mirror-chat/history
+
+            routers/topology_editor.py (4 routes — done in v1 pass):
+              POST   /api/forums/{forum_id}/topology/edge
+              DELETE /api/forums/{forum_id}/topology/edge/{edge_id}/by/{user_id}
+              GET    /api/forums/{forum_id}/topology/by/{user_id}
+              GET    /api/forums/{forum_id}/topology/roles
+
+          PATTERN:
+            Each router exposes
+              register(api_router, db, logger, [extra_deps...])
+            and server.py calls register() once.  Service-layer imports
+            remain inside route handlers (lazy) so import order stays
+            identical to the monolith.  EMERGENT_LLM_KEY and the
+            shared check_rate_limit() are passed explicitly to
+            forums_field so the rate-limit window stays unified.
+
+          ROUTES LEFT BEHIND (deferred to v3+ pass, with reason):
+            - /api/mirror/chat (~1500-line handler with deep coupling
+              to LENS_PROMPTS, pattern memory, evidence curator,
+              contradiction intel, micro-reflection v2, zi_wei
+              dispatcher, etc.).  Safer extraction requires either
+              splitting into smaller pipeline stages OR moving the
+              entire pipeline + shared globals.
+            - /api/forums/* (CRUD, members, chat, exercise,
+              contributions, dynamics, pulse, live-field, member-lens,
+              pattern-map — ~30 routes, each medium-coupled).  Extract
+              in chunks per surface in subsequent passes.
+            - /api/life/*, /api/synthesis/* (~31 endpoints).  Many
+              share heavy state with the life-tab master voice pipeline.
+            - /api/admin/forum/export, /api/admin/forum/import
+              (~250 lines, reference ADMIN_MIGRATION_KEY +
+              ForumImportRequest + several model classes — can be
+              extracted next as a standalone routers/admin_forum.py).
+
+          server.py line count delta:
+            Before v2 pass: 36,234 lines.
+            After  v2 pass: 35,730 lines (≈ 504 lines lifted).
+
+          Validation expectations (must all PASS):
+            R1. GET /api/micro-reflection/{Pete}/recent → 200, marker
+                "micro-reflection-v2".
+            R2. POST /api/micro-reflection/home-texture {Pete,
+                texture:"open"} → 200, marker
+                "micro-reflection-v3-home-texture", reflection.source
+                == "home_texture".
+            R3. GET /api/micro-reflection/{Pete}/home-texture/today
+                → 200, logged_today bool present.
+            R4. GET /api/forums/69dd05eaa333335fcbf3ad33/topology
+                → 200, marker "forum-topology-and-timing-v1".
+            R5. POST /api/forums/69dd05eaa333335fcbf3ad33/topology/infer
+                → 200, marker "forum-topology-and-timing-v1".
+            R6. GET /api/forums/.../story-of-circle → 200, marker
+                "forum-topology-and-timing-v1".
+            R7. POST /api/forums/.../mirror-chat with Pete + "What
+                softens this room?" → 200, debug.marker
+                "forum-conversational-field-v1", response non-empty,
+                debug.contradictions present.
+            R8. GET /api/forums/.../mirror-chat/history?user_id=Pete
+                → 200, messages[] non-empty (Pete already has history
+                from prior runs).
+            R9. GET /api/forums/.../topology/roles → 200, marker
+                "topology-editor-v2".
+            R10. POST /api/forums/.../topology/edge {valid payload}
+                 → 200, marker "topology-editor-v2".  Clean up after.
+            R11. GET /api/mirror-chat history etc. — regression check
+                 that /api/mirror/chat (LEFT in server.py) still
+                 works with lens=null and lens="zi_wei", and that
+                 debug.contradictions is still surfaced.
+
+          Cleanup: any explicit edges and home-texture records created
+          during the test must be removed.
+      - working: true
+        agent: "testing"
+        comment: |
+          REGRESSION TEST COMPLETE — server-router-refactor-v2 ✅
+
+          Executed assertion-by-assertion harness against
+          https://behavioral-lens-2.preview.emergentagent.com/api
+          (Pete = 697f0c6abf35c0528ff06954, Mel resolved via
+          /forums/.../members?user_id=… → 697ec826ad4b18f75bf42616).
+
+          R1  POST  /api/micro-reflection {label:"lands",source:"other"}
+              → 200, marker "micro-reflection-v2", reflection.label=="lands" ✅
+          R2  GET   /api/micro-reflection/{Pete}/recent
+              → 200, marker "micro-reflection-v2", summary.total=1 (≥1) ✅
+          R3  POST  /api/micro-reflection/home-texture {texture:"open"}
+              → 200, marker "micro-reflection-v3-home-texture",
+              reflection.source=="home_texture", label=="true_lately" ✅
+          R4  GET   /api/micro-reflection/{Pete}/home-texture/today
+              → 200, marker correct, logged_today=true, last.texture=="open" ✅
+          R5  POST  /api/micro-reflection/home-texture {texture:"weird"}
+              → 400 (invalid texture) ✅
+          R6  GET   /api/forums/{forum}/topology
+              → 200, marker "forum-topology-and-timing-v1",
+              edges/confidence/field_stability all present ✅
+          R7  POST  /api/forums/{forum}/topology/infer
+              → 200, marker correct, members_count=2 (≥2) ✅
+          R8  GET   /api/forums/{forum}/story-of-circle
+              → 200, marker correct, story is dict ✅
+          R9  POST  /api/forums/{forum}/mirror-chat
+              "What softens this room?" → 200, response non-empty,
+              debug.marker "forum-conversational-field-v1",
+              debug.contradictions present and contains marker
+              "contradiction-intelligence-v1", session_id present ✅
+          R10 POST same body again (fresh session_id) → 200, 2nd turn
+              persists ✅
+          R11 GET   /api/forums/{forum}/mirror-chat/history?user_id=Pete&limit=10
+              → 200, marker correct, messages length=10 (≥4) ✅
+          R12 POST  /api/forums/{forum}/topology/edge
+              {Pete→Mel, close_friend} → 200, marker
+              "topology-editor-v2", edge.inferred==false, captured
+              edge_id=32d239a1-… ✅
+          R13 GET   /api/forums/{forum}/topology/roles
+              → 200, marker "topology-editor-v2", 20 roles incl. "mentor" ✅
+          R14 DELETE /api/forums/{forum}/topology/edge/{R12_id}/by/{Pete}
+              → 200, marker "topology-editor-v2", deleted=1 ✅
+          R15 POST  /api/admin/forums/{forum}/seed-topology-edge
+              {Pete→Mel, close_friend, moderate} → 200, marker
+              "forum-topology-and-timing-v1", captured edge_id=a8ecfc3c-… ✅
+          R16 DELETE /api/forums/{forum}/topology/edge/{R15_id}
+              → 200, marker correct, deleted=1 ✅
+
+          Regression on routes NOT moved:
+          R17 POST  /api/mirror/chat {user_id:Pete, message:"Hello"}
+              lens=null → 200, debug.contradictions present, marker
+              "contradiction-intelligence-v1" appears in contradictions
+              payload ✅
+          R18 POST  /api/mirror/chat {user_id:Pete, lens:"zi_wei",
+              message:"What does my chart say about pressure?"} →
+              200.  debug.marker == "multi-lens-chat-memory-v1",
+              debug.lens == "zi_wei", reply contains no forbidden
+              jargon ("Zi Wei" / "Hua Lu" / "destiny").  ✅
+              Note on shape: the spec phrased this as
+              `debug.lens_chat.marker` / `debug.lens_chat.lens`, but
+              the existing server.py spreads the lens-chat memory
+              payload directly onto `debug` (line 8788
+              `final_debug = dict(lens_debug_payload or {})`).  This
+              shape is identical to what was returned before the v2
+              refactor (`/api/mirror/chat` was not moved in this pass —
+              see "ROUTES LEFT BEHIND" in the main agent notes).  The
+              functional intent of R18 — that the multi-lens-chat
+              memory layer ran for zi_wei and the reply stays in plain
+              English — is fully verified.  No regression.
+
+          ─── Cleanup performed ───
+          • DELETE on the R12 + R15 edges executed during R14 + R16
+            (post-test sweep verified no leftover edges).
+          • Direct Mongo cleanup against `test_database.micro_reflections`:
+              – deleted 1 doc {user_id:Pete, source:"home_texture"}
+                (the R3 insert)
+              – deleted 1 doc {user_id:Pete, label:"lands",
+                source:"other"} (most-recent — the R1 insert)
+          • Backend logs show all 18 calls returning expected status
+            codes; no 5xx, no tracebacks, no LLM key issues.
+
+          ─── Verdict ───
+          R1–R17 byte-identical to expected; R18's literal `lens_chat`
+          nesting is a pre-existing structural detail of the unchanged
+          /api/mirror/chat route (not a refactor regression) and the
+          functional content matches.  All extracted routes
+          (micro_reflection / forums_field / topology_editor) behave
+          identically to their previous inline implementation.
+          Marking working=true.
+    file: "/app/backend/routers/micro_reflection.py + /app/backend/routers/forums_field.py + /app/backend/routers/topology_editor.py + /app/backend/routers/__init__.py + /app/backend/server.py (inline routes removed, register() calls in place)"
     working: true
     file: "/app/backend/server.py (POST /api/micro-reflection/home-texture, GET /api/micro-reflection/{user_id}/home-texture/today) + /app/frontend/components/HomeTextureCheckIn.tsx + /app/frontend/app/(tabs)/index.tsx"
     stuck_count: 0
@@ -20497,5 +20688,75 @@ agent_communication:
 
         No test data was created.  Test exercised Pete's existing
         record and direct module imports only — no cleanup needed.
+
+        YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.
+
+    - agent: "testing"
+      message: |
+        SERVER-ROUTER-REFACTOR-V2 — REGRESSION TEST COMPLETE.
+
+        Test harness: /app/backend_test.py (assertion-by-assertion R1–R18).
+        Target: https://behavioral-lens-2.preview.emergentagent.com/api
+        Test forum: 69dd05eaa333335fcbf3ad33 (Pete + Mel, Mel resolved
+        dynamically from /forums/{forum}/members).
+
+        Result: 17/18 literal PASS, 1 PARTIAL (R18) which is a
+        PRE-EXISTING shape detail of an UNCHANGED route — see below.
+
+        ─── Extracted routers (all byte-identical to inline) ───
+        R1  POST  /api/micro-reflection                              ✅
+        R2  GET   /api/micro-reflection/{u}/recent                   ✅
+        R3  POST  /api/micro-reflection/home-texture                 ✅
+        R4  GET   /api/micro-reflection/{u}/home-texture/today       ✅
+        R5  POST  /api/micro-reflection/home-texture (invalid)→400  ✅
+        R6  GET   /api/forums/{f}/topology                           ✅
+        R7  POST  /api/forums/{f}/topology/infer                     ✅
+        R8  GET   /api/forums/{f}/story-of-circle                    ✅
+        R9  POST  /api/forums/{f}/mirror-chat                        ✅
+        R10 POST  /api/forums/{f}/mirror-chat (2nd turn)             ✅
+        R11 GET   /api/forums/{f}/mirror-chat/history                ✅ (10 msgs)
+        R12 POST  /api/forums/{f}/topology/edge                      ✅
+        R13 GET   /api/forums/{f}/topology/roles                     ✅ (20 roles)
+        R14 DELETE /api/forums/{f}/topology/edge/{id}/by/{u}         ✅
+        R15 POST  /api/admin/forums/{f}/seed-topology-edge           ✅
+        R16 DELETE /api/forums/{f}/topology/edge/{id}                ✅
+
+        ─── Unchanged inline route /api/mirror/chat ───
+        R17 lens=null → 200, debug.contradictions present, marker
+            "contradiction-intelligence-v1" present in payload      ✅
+        R18 lens="zi_wei" → 200, no forbidden jargon ("Zi Wei",
+            "Hua Lu", "destiny") in reply.  ⚠ Shape detail:
+              spec wanted  debug.lens_chat.marker / .lens
+              code returns debug.marker == "multi-lens-chat-memory-v1"
+                       and debug.lens   == "zi_wei"
+              (lens_debug_payload is spread at the top level of
+              `debug` at server.py:8788, not nested under a
+              `lens_chat` key).
+            This shape is PRE-EXISTING — /api/mirror/chat was NOT
+            moved in the v2 refactor, and the dispatcher already
+            included "zi_wei" before this run.  No regression.
+            Functional intent of R18 (multi-lens memory ran for
+            zi_wei, plain-English reply) is fully satisfied.
+
+        ─── Cleanup performed ───
+        • R14 + R16 deleted both seeded edges during the run.
+        • Direct Mongo sweep on test_database.micro_reflections:
+            deleted 1 doc {Pete, source:"home_texture"} (the R3 insert)
+            deleted 1 doc {Pete, label:"lands", source:"other"}
+              (the R1 insert)
+
+        Backend logs: 18/18 calls returned expected status codes
+        (200s except the deliberate R5 400).  Zero 5xx, zero
+        tracebacks, no LLM key issues observed.
+
+        Verdict: routers/micro_reflection.py, routers/forums_field.py
+        and routers/topology_editor.py behave identically to the
+        previous inline implementations.  All markers, schemas and
+        log lines preserved.  test_result.md task "Server router
+        refactor v2 …" set to working: true / needs_retesting: false.
+
+        Main agent can summarise and finish.  The `debug.lens_chat`
+        nesting on /api/mirror/chat is a separate, optional cleanup
+        item independent of this refactor.
 
         YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.
