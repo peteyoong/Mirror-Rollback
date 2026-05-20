@@ -123,7 +123,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Build marker for refactor tracking
-SERVER_REFACTOR_MARKER = "server-router-refactor-v6"
+SERVER_REFACTOR_MARKER = "server-router-refactor-v7"
 
 # ---------------------------------------------------------------------------
 # Server router refactor v6 — shared forum lens helpers
@@ -8030,287 +8030,121 @@ NOT: "I opened a generic chat"
         
         # =====================================================================
         # MULTI-LENS CONVERSATIONAL MEMORY (multi-lens-chat-memory-v1)
+        # ---------------------------------------------------------------------
+        # v7: hoisted into services.mirror_chat_pipeline.build_lens_context.
+        # Behaviour unchanged — same registry resolution, same prompt block,
+        # same debug payload.
         # =====================================================================
-        # Shared memory + entity tracking for every lens chat (Astrology,
-        # Human Design, Numerology, Enneagram, BaZi).  Replaces the previous
-        # astrology-only implementation.  Each lens plugs in via a LensRegistry
-        # in services/lens_registries/.  This block:
-        #   1. Resolves the active entity from history + referent words.
-        #   2. Injects ACTIVE ENTITY + GROUNDING + HISTORY + RESPONSE
-        #      ARCHITECTURE prompt blocks into the system prompt.
-        #   3. Returns a consistent debug payload on the API response.
-        # =====================================================================
-        lens_debug_payload: Optional[dict] = None
-        if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi", "zi_wei"):
+        from services.mirror_chat_pipeline import (
+            build_lens_context as _build_lens_context,
+            build_life_domain_context as _build_life_domain_context,
+            build_relational_context as _build_relational_context,
+            build_pattern_memory_context as _build_pattern_memory_context,
+            build_micro_reflection_context as _build_micro_reflection_context,
+            build_contradiction_context as _build_contradiction_context,
+        )
+
+        _locals = locals()
+        # Numerology cycles are computed inline above only when lens=numerology.
+        _numerology_cycles = None
+        if request.lens == "numerology":
             try:
-                from services.lens_registries import get_registry
-                from services.lens_conversation import compose_lens_memory_blocks
+                _bd = user.get('birth_date') if user else None
+                if _bd:
+                    from calculations.numerology import get_numerology_cycles
+                    _numerology_cycles = get_numerology_cycles(_bd, datetime.now())
+            except Exception:
+                pass
 
-                registry = get_registry(request.lens)
-                if registry is not None:
-                    # Compose user_context — each registry only reads what it needs.
-                    # Use locals().get() so missing variables don't crash.
-                    _locals = locals()
-                    user_context = {
-                        "user": user,
-                        "chart": chart,
-                        "enneagram_results": _locals.get("enneagram_results"),
-                        "bazi_chart": _locals.get("bazi_chart"),
-                    }
-                    # Numerology cycles are only computed inside the per-lens
-                    # block above; pass them through if we have them.
-                    if request.lens == "numerology":
-                        try:
-                            birth_date = user.get('birth_date') if user else None
-                            if birth_date:
-                                from calculations.numerology import get_numerology_cycles
-                                user_context["numerology_cycles"] = get_numerology_cycles(birth_date, datetime.now())
-                        except Exception:
-                            pass
-
-                    memory_block, lens_debug_payload = compose_lens_memory_blocks(
-                        registry=registry,
-                        user_context=user_context,
-                        user_message=request.message,
-                        history=history,
-                        max_history_turns=6,
-                    )
-
-                    if memory_block:
-                        system_prompt += "\n\n" + memory_block
-
-                    logger.info(
-                        f"[MIRROR_CHAT][multi-lens-chat-memory-v1] "
-                        f"lens={request.lens} "
-                        f"active_entity={(lens_debug_payload or {}).get('active_entity')} "
-                        f"source={(lens_debug_payload or {}).get('active_entity_source')} "
-                        f"depth_mode={(lens_debug_payload or {}).get('depth_mode')} "
-                        f"intensity_mode={(lens_debug_payload or {}).get('intensity_mode')} "
-                        f"grounding={len((lens_debug_payload or {}).get('grounding_sources', []))} "
-                        f"missing={len((lens_debug_payload or {}).get('missing_sources', []))} "
-                        f"history_len={len(history)}"
-                    )
-            except Exception as lens_mem_err:
-                # Memory layer must never crash the chat.
-                logger.error(
-                    f"[MIRROR_CHAT][multi-lens-chat-memory-v1] memory layer error for lens={request.lens}: "
-                    f"{type(lens_mem_err).__name__}: {lens_mem_err}"
-                )
+        memory_block, lens_debug_payload = await _build_lens_context(
+            lens=request.lens,
+            user=user,
+            chart=chart,
+            enneagram_results=_locals.get("enneagram_results"),
+            bazi_chart=_locals.get("bazi_chart"),
+            numerology_cycles=_numerology_cycles,
+            user_message=request.message,
+            history=history,
+            user_id=request.user_id,
+        )
+        if memory_block:
+            system_prompt += "\n\n" + memory_block
 
         # =====================================================================
         # LIFE TAB MASTER VOICE (life-tab-master-voice-v1)
+        # ---------------------------------------------------------------------
+        # v7: hoisted into services.mirror_chat_pipeline.build_life_domain_context.
         # =====================================================================
-        # When the chat is on the Life Tab Master Voice surface
-        # (request.life_domain ∈ {"relationships","work","self"}),
-        # replace the single-lens voice with an integrative behavioural
-        # synthesis voice.  Memory / compression / intensity / relational /
-        # pattern / anti-locking layers downstream still run as usual.
-        # =====================================================================
-        master_voice_debug_payload: Optional[dict] = None
-        if request.life_domain in ("relationships", "work", "self") and not (
-            request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi", "zi_wei")
-        ):
-            try:
-                from services.life_tab_master import compose_master_voice_blocks
-                _locals2 = locals()
-                user_context_mv = {
-                    "user": user,
-                    "chart": chart,
-                    "enneagram_results": _locals2.get("enneagram_results"),
-                    "bazi_chart": _locals2.get("bazi_chart"),
-                }
-                mv_block, master_voice_debug_payload = compose_master_voice_blocks(
-                    user_context=user_context_mv,
-                    domain=request.life_domain,
-                    user_message=request.message,
-                    history=history,
-                    max_history_turns=6,
-                )
-                if mv_block:
-                    system_prompt += "\n\n" + mv_block
-                logger.info(
-                    f"[MIRROR_CHAT][life-tab-master-voice-v1] "
-                    f"domain={request.life_domain} "
-                    f"frameworks={(master_voice_debug_payload or {}).get('contributing_frameworks')} "
-                    f"signals={(master_voice_debug_payload or {}).get('signals_count')} "
-                    f"depth={(master_voice_debug_payload or {}).get('depth_mode')} "
-                    f"intensity={(master_voice_debug_payload or {}).get('intensity_mode')}"
-                )
-            except Exception as mv_err:
-                # Master voice must never crash the chat.
-                logger.error(
-                    f"[MIRROR_CHAT][life-tab-master-voice-v1] error: "
-                    f"{type(mv_err).__name__}: {mv_err}"
-                )
+        mv_block, master_voice_debug_payload = await _build_life_domain_context(
+            life_domain=request.life_domain,
+            lens=request.lens,
+            user=user,
+            chart=chart,
+            enneagram_results=_locals.get("enneagram_results"),
+            bazi_chart=_locals.get("bazi_chart"),
+            user_message=request.message,
+            history=history,
+        )
+        if mv_block:
+            system_prompt += "\n\n" + mv_block
 
         # =====================================================================
         # RELATIONAL AWARENESS (relational-awareness-v1)
+        # ---------------------------------------------------------------------
+        # v7: hoisted into services.mirror_chat_pipeline.build_relational_context.
+        # NOTE: this stage may MUTATE lens_debug_payload in place to reflect
+        # an intensity cap — same behaviour as the inline version.
         # =====================================================================
-        # When the chat is about a saved person (about_person_id provided),
-        # inject a RELATIONAL CONTEXT block + cap intensity by relationship
-        # class.  Independent of lens — applies to lens chats AND generalist.
-        # =====================================================================
-        relational_debug_payload: Optional[dict] = None
-        if request.about_person_id:
-            try:
-                from services.relational_awareness import compose_relational_block
-                # Load saved person doc.  Use the same db handle the saved_people
-                # router uses (motor async).
-                person_doc = await db.saved_people.find_one({
-                    "id": request.about_person_id,
-                    "user_id": request.user_id,
-                })
-                if person_doc:
-                    # Normalise the Mongo doc for the relational module.
-                    person_for_block = {
-                        "id": person_doc.get("id"),
-                        "name": person_doc.get("name"),
-                        "relationship_type": person_doc.get("relationship_type"),
-                        "full_birth_name": person_doc.get("full_birth_name"),
-                        "birth_date": person_doc.get("birth_date"),
-                        "birth_location": person_doc.get("birth_location") or {},
-                        "enneagram_type": person_doc.get("enneagram_type"),
-                    }
-                    # Use the lens-level intensity if available, else default.
-                    lens_intensity = (lens_debug_payload or {}).get("intensity_mode") or "OBSERVATIONAL"
-                    rel_block, relational_debug_payload, applied_intensity = compose_relational_block(
-                        person=person_for_block,
-                        user_message=request.message,
-                        history=history,
-                        lens_intensity_mode=lens_intensity,
-                    )
-                    if rel_block:
-                        system_prompt += "\n\n" + rel_block
-                    # Reflect the capped intensity back into the lens debug
-                    # so the response surfaces the effective value.
-                    if lens_debug_payload is not None and applied_intensity != lens_intensity:
-                        lens_debug_payload["intensity_mode"] = applied_intensity
-                        lens_debug_payload["intensity_capped_by_relational"] = True
-                    logger.info(
-                        f"[MIRROR_CHAT][relational-awareness-v1] "
-                        f"person={person_for_block.get('name')} "
-                        f"class={(relational_debug_payload or {}).get('relationship_class')} "
-                        f"projection_risk={(relational_debug_payload or {}).get('projection_risk')} "
-                        f"intensity={lens_intensity}->{applied_intensity}"
-                    )
-                else:
-                    logger.warning(
-                        f"[MIRROR_CHAT][relational-awareness-v1] "
-                        f"about_person_id={request.about_person_id} not found for user={request.user_id}"
-                    )
-            except Exception as rel_err:
-                logger.error(
-                    f"[MIRROR_CHAT][relational-awareness-v1] error: "
-                    f"{type(rel_err).__name__}: {rel_err}"
-                )
+        rel_block, relational_debug_payload = await _build_relational_context(
+            db=db,
+            user_id=request.user_id,
+            about_person_id=request.about_person_id,
+            user_message=request.message,
+            history=history,
+            lens_debug_payload=lens_debug_payload,
+        )
+        if rel_block:
+            system_prompt += "\n\n" + rel_block
 
         # =====================================================================
         # LONGITUDINAL PATTERN MEMORY (pattern-memory-v1)
+        # ---------------------------------------------------------------------
+        # v7: hoisted into services.mirror_chat_pipeline.build_pattern_memory_context.
         # =====================================================================
-        # Detect abstracted pattern tags in the user message, upsert
-        # occurrence records (NEVER storing raw text), and inject a
-        # PATTERN MEMORY block when patterns recur at moderate/strong
-        # confidence — or when a growth shift is detected.
-        # =====================================================================
-        pattern_debug_payload: Optional[dict] = None
-        try:
-            from services.longitudinal_pattern_memory import process_pattern_memory
-            # Use the final intensity if available (may have been capped by
-            # relational layer); fall back to OBSERVATIONAL.
-            current_intensity = (
-                (lens_debug_payload or {}).get("intensity_mode")
-                or "OBSERVATIONAL"
-            )
-            pattern_block, pattern_debug_payload = await process_pattern_memory(
-                db=db,
-                user_id=request.user_id,
-                user_message=request.message,
-                lens=request.lens,
-                intensity_mode=current_intensity,
-                domain=None,
-            )
-            if pattern_block:
-                system_prompt += "\n\n" + pattern_block
-            if pattern_debug_payload and pattern_debug_payload.get("matched_patterns"):
-                logger.info(
-                    f"[MIRROR_CHAT][pattern-memory-v1] "
-                    f"user={request.user_id} "
-                    f"matched={len(pattern_debug_payload['matched_patterns'])} "
-                    f"surfaced={pattern_debug_payload['surfaceable_count']} "
-                    f"growth={pattern_debug_payload['growth_shifts_count']}"
-                )
-        except Exception as pat_err:
-            logger.error(
-                f"[MIRROR_CHAT][pattern-memory-v1] error: "
-                f"{type(pat_err).__name__}: {pat_err}"
-            )
+        pattern_block, pattern_debug_payload = await _build_pattern_memory_context(
+            db=db,
+            user_id=request.user_id,
+            user_message=request.message,
+            lens=request.lens,
+            lens_debug_payload=lens_debug_payload,
+        )
+        if pattern_block:
+            system_prompt += "\n\n" + pattern_block
 
         # =====================================================================
         # MICRO-REFLECTION v2  (micro-reflection-v2)
+        # ---------------------------------------------------------------------
+        # v7: hoisted into services.mirror_chat_pipeline.build_micro_reflection_context.
         # =====================================================================
-        # Read the user's recent micro-reflections (one-tap signals such
-        # as "That lands", "Resisting", "Less intense now", "Softer") and,
-        # when a clear signal exists, inject a SOFT system block that
-        # tells the LLM to lightly acknowledge a softening or honour a
-        # recent resistance — WITHOUT mentioning tracking.  Per spec the
-        # system should rarely reference reflection taps explicitly.
-        # =====================================================================
-        reflection_debug_payload: Optional[dict] = None
-        try:
-            from services.micro_reflection_v2 import compose_reflection_loop_block
-            r_block, reflection_debug_payload = await compose_reflection_loop_block(
-                db=db, user_id=request.user_id,
-            )
-            if r_block:
-                system_prompt += "\n\n" + r_block
-                logger.info(
-                    f"[MIRROR_CHAT][micro-reflection-v2] "
-                    f"user={request.user_id} "
-                    f"loop={reflection_debug_payload.get('loop_applied')} "
-                    f"growth={reflection_debug_payload.get('growth_score')} "
-                    f"resistance={reflection_debug_payload.get('resistance_score')}"
-                )
-        except Exception as ref_err:
-            logger.error(
-                f"[MIRROR_CHAT][micro-reflection-v2] error: "
-                f"{type(ref_err).__name__}: {ref_err}"
-            )
+        r_block, reflection_debug_payload = await _build_micro_reflection_context(
+            db=db, user_id=request.user_id,
+        )
+        if r_block:
+            system_prompt += "\n\n" + r_block
 
         # =====================================================================
         # CONTRADICTION INTELLIGENCE v1 (contradiction-intelligence-v1)
+        # ---------------------------------------------------------------------
+        # v7: hoisted into services.mirror_chat_pipeline.build_contradiction_context.
         # =====================================================================
-        # Detects soft divergences between stated language (e.g. "I'm over
-        # this", "I want honesty", "I've grown") and the user's recurring
-        # signals (pattern memory recurrence + micro-reflection texture).
-        # Only MODERATE / STRONG levels surface, and even then only as a
-        # one-clause probabilistic acknowledgement.  Reflection taps
-        # de-escalate by one level.
-        # =====================================================================
-        contradiction_debug_payload: Optional[dict] = None
-        try:
-            from services.contradiction_intelligence import (
-                compute_individual_contradictions,
-                build_contradiction_system_block,
-                build_contradiction_debug,
-            )
-            _contra = await compute_individual_contradictions(
-                db, user_id=request.user_id, message_text=request.message,
-            )
-            contradiction_debug_payload = build_contradiction_debug(_contra)
-            _c_block = build_contradiction_system_block(_contra)
-            if _c_block:
-                system_prompt += "\n\n" + _c_block
-                logger.info(
-                    f"[MIRROR_CHAT][contradiction-intelligence-v1] "
-                    f"user={request.user_id} level={_contra.get('level')} "
-                    f"types={_contra.get('types')} "
-                    f"softened={_contra.get('softened_by_reflection')}"
-                )
-        except Exception as ci_err:
-            logger.error(
-                f"[MIRROR_CHAT][contradiction-intelligence-v1] error: "
-                f"{type(ci_err).__name__}: {ci_err}"
-            )
+        _c_block, contradiction_debug_payload = await _build_contradiction_context(
+            db=db,
+            user_id=request.user_id,
+            user_message=request.message,
+        )
+        if _c_block:
+            system_prompt += "\n\n" + _c_block
+
 
 
         # ===== LLM CALL VIA EMERGENT CONTRACT =====
@@ -29220,51 +29054,13 @@ async def get_forum_pulse(forum_id: str, user_id: str):
 #   POST  /api/forums/{forum_id}/pairwise-dynamics
 #   GET   /api/forums/{forum_id}/pattern-map
 # Shared lens helpers come from services/forum_lens_helpers.
-# /forums/{forum_id}/member-summary remains inline for now.
+# /forums/{forum_id}/member-summary now lives in routers/forums_intelligence.py
+# (server-router-refactor-v7 — folded in with the rest of the intelligence surface).
 # =====================================================================
 from routers import forums_intelligence as _forums_intelligence_router
 _forums_intelligence_router.register(api_router, db, logger, EMERGENT_LLM_KEY)
 
 
-@api_router.get("/forums/{forum_id}/member-summary/{member_id}")
-async def get_member_summary_endpoint(forum_id: str, member_id: str, user_id: str):
-    """
-    Quick orientation card for a single forum member — Astrology, HD, BaZi,
-    Enneagram, Numerology + one "how they read in the room" line. Used by
-    the interactive members row on /forums/[id].
-    Requester must be an active member of the forum.
-    """
-    if not ObjectId.is_valid(forum_id):
-        raise HTTPException(status_code=400, detail="Invalid forum_id format")
-    if not ObjectId.is_valid(user_id):
-        raise HTTPException(status_code=400, detail="Invalid user_id format")
-    if not ObjectId.is_valid(member_id):
-        raise HTTPException(status_code=400, detail="Invalid member_id format")
-
-    requester = await db.forum_members.find_one({
-        "forum_id": forum_id, "user_id": user_id, "status": "active",
-    })
-    if not requester:
-        raise HTTPException(status_code=403, detail="You are not a member of this forum")
-
-    try:
-        from services.member_summary import get_member_summary
-        summary = await get_member_summary(db=db, forum_id=forum_id, member_id=member_id)
-        if not summary:
-            raise HTTPException(status_code=404, detail="Member not found in this forum")
-        return JSONResponse(
-            content={"success": True, "summary": summary},
-            headers={"Cache-Control": "no-store, max-age=0",
-                     "CDN-Cache-Control": "no-store"},
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[MemberSummary] error: {e}", exc_info=True)
-        return JSONResponse(
-            content={"success": False, "summary": None, "error": str(e)},
-            headers={"Cache-Control": "no-store"},
-        )
 
 
 

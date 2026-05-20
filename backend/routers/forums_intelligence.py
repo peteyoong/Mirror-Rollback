@@ -47,7 +47,6 @@ from services.forum_lens_helpers import (
     format_lens_for_prompt,
 )
 
-
 # ---------------------------------------------------------------------------
 # Pairwise Dynamics — module-level constants (verbatim from server.py).
 # ---------------------------------------------------------------------------
@@ -318,6 +317,50 @@ def register(
             "success": True,
             "context": context,
         }
+
+    # ──────────────────────────────────────────────────────────────────
+    # GET /api/forums/{forum_id}/member-summary/{member_id}
+    # ──────────────────────────────────────────────────────────────────
+
+    @api_router.get("/forums/{forum_id}/member-summary/{member_id}")
+    async def get_member_summary_endpoint(forum_id: str, member_id: str, user_id: str):
+        """
+        Quick orientation card for a single forum member — Astrology, HD, BaZi,
+        Enneagram, Numerology + one "how they read in the room" line. Used by
+        the interactive members row on /forums/[id].
+        Requester must be an active member of the forum.
+        """
+        if not ObjectId.is_valid(forum_id):
+            raise HTTPException(status_code=400, detail="Invalid forum_id format")
+        if not ObjectId.is_valid(user_id):
+            raise HTTPException(status_code=400, detail="Invalid user_id format")
+        if not ObjectId.is_valid(member_id):
+            raise HTTPException(status_code=400, detail="Invalid member_id format")
+
+        requester = await db.forum_members.find_one({
+            "forum_id": forum_id, "user_id": user_id, "status": "active",
+        })
+        if not requester:
+            raise HTTPException(status_code=403, detail="You are not a member of this forum")
+
+        try:
+            from services.member_summary import get_member_summary
+            summary = await get_member_summary(db=db, forum_id=forum_id, member_id=member_id)
+            if not summary:
+                raise HTTPException(status_code=404, detail="Member not found in this forum")
+            return JSONResponse(
+                content={"success": True, "summary": summary},
+                headers={"Cache-Control": "no-store, max-age=0",
+                         "CDN-Cache-Control": "no-store"},
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"[MemberSummary] error: {e}", exc_info=True)
+            return JSONResponse(
+                content={"success": False, "summary": None, "error": str(e)},
+                headers={"Cache-Control": "no-store"},
+            )
 
     # ──────────────────────────────────────────────────────────────────
     # POST /api/forums/{forum_id}/pairwise-dynamics

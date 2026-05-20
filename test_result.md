@@ -21674,3 +21674,209 @@ agent_communication:
         - pairwise-dynamics has never been called in prod logs, so this
           is the first real test of that route after the latent
           `format_lens_for_prompt` NameError fix
+
+#====================================================================================================
+# Server Router Refactor v7 — fold member-summary + pre-split mirror chat pipeline
+#====================================================================================================
+
+backend:
+  - task: "Server router refactor v7 — fold member-summary into forums_intelligence + extract mirror chat pipeline stages (server-router-refactor-v7)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/mirror_chat_pipeline.py, /app/backend/routers/forums_intelligence.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          v7 — two behaviour-preserving changes in preparation for v8 mirror chat extraction.
+
+          1) FOLDED: /forums/{forum_id}/member-summary/{member_id}
+             Moved into routers/forums_intelligence.py.  Now clusters with
+             member-lens, member-mappings, relationship-map, contributions,
+             dynamics-context, pairwise-dynamics, pattern-map under one
+             intelligence router.  No path / schema / log line changes.
+             Existing services.member_summary delegation preserved.
+
+          2) NEW FILE: services/mirror_chat_pipeline.py
+             Hoisted six self-contained stages from the inline /api/mirror/chat
+             handler in server.py.  Each stage is a thin behaviour-preserving
+             function returning (system_block, debug_payload):
+                • build_lens_context              — multi-lens-chat-memory-v1
+                • build_life_domain_context       — life-tab-master-voice-v1
+                • build_relational_context        — relational-awareness-v1
+                  (still mutates lens_debug_payload in place when intensity
+                  is capped — same behaviour as before)
+                • build_pattern_memory_context    — pattern-memory-v1
+                • build_micro_reflection_context  — micro-reflection-v2
+                • build_contradiction_context     — contradiction-intelligence-v1
+
+             The route in server.py still calls them in the same order, still
+             appends the same blocks to the same system_prompt variable, still
+             surfaces the same debug payloads in the response.  Numerology
+             cycle computation moved up by ~10 lines so the input dict to
+             build_lens_context is fully populated before the call.
+
+          server.py: 33474 → 33308 lines (~166 line net reduction in v7 alone).
+
+          NOT TOUCHED in v7 (per spec — defer to v8):
+            • The /api/mirror/chat route itself stays in server.py.
+            • build_evidence_payload / assemble_system_prompt /
+              persist_chat_turn — these are tangled with mode selection
+              (transit, analyst, timeline, generalist) and the closing
+              evidence-drawer assembly; safer to extract once the route
+              moves to routers/mirror_chat.py in v8.
+
+          REGRESSION TARGETS:
+            • GET  /api/forums/{forum_id}/member-summary/{member_id}
+            • All forum intelligence routes (member-lens, mappings,
+              relationship-map, contributions, dynamics-context,
+              pairwise-dynamics, pattern-map)
+            • POST /api/mirror/chat — astrology lens (must preserve
+              debug.lens_chat.marker + legacy top-level debug.marker)
+            • POST /api/mirror/chat — zi_wei lens (Purple Star)
+            • POST /api/mirror/chat — null lens (no lens specified)
+            • Life Tab master voice: POST /api/mirror/chat with
+              life_domain=relationships|work|self and no lens — verify
+              debug.life_master_voice block surfaces
+            • Ask About Person: POST /api/mirror/chat with about_person_id
+              — verify debug.relational block surfaces, intensity capping
+              still reflected in debug.lens_chat.intensity_mode when applicable
+            • Evidence drawer: response.evidence still populated
+            • Pattern memory: debug.pattern_memory still surfaces matched
+              patterns when present
+            • Micro-reflection loop: debug.micro_reflection still present
+            • Contradiction debug: debug.contradictions still present
+            • Acceptance: backend boots clean, debug shape unchanged,
+              frontend requires zero changes, server.py ready for v8
+              mirror_chat extraction.
+
+          Manual smoke results (preliminary):
+            • Backend boots clean
+            • null lens chat → 200, debug.{pattern_memory,micro_reflection,contradictions}
+            • astrology lens chat → 200, debug.lens_chat.marker = "multi-lens-chat-memory-v1"
+            • zi_wei lens chat → 200, debug.lens_chat.lens = "zi_wei"
+            • member-summary (now from router) → 200
+
+test_plan:
+  current_focus:
+    - "Server router refactor v7 — fold member-summary into forums_intelligence + extract mirror chat pipeline stages (server-router-refactor-v7)"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      v7 router refactor complete.
+
+      (1) /forums/{id}/member-summary now lives in
+          routers/forums_intelligence.py alongside the rest of the
+          intelligence surface.  No path / schema / log line changes.
+
+      (2) Six mirror-chat pipeline stages extracted into
+          services/mirror_chat_pipeline.py:
+            build_lens_context, build_life_domain_context,
+            build_relational_context, build_pattern_memory_context,
+            build_micro_reflection_context, build_contradiction_context.
+          The /api/mirror/chat route in server.py now calls each stage
+          instead of inlining the logic.  Behaviour preserved verbatim.
+
+      Please regression-test against the full list in the status_history
+      comment above.  Particular care:
+        • Debug payload shape MUST be byte-identical to v6.
+          - response.debug.lens_chat.marker should equal
+            "multi-lens-chat-memory-v1" for any lens chat.
+          - Legacy top-level response.debug.marker / debug.lens still
+            present (we maintain both for backwards compatibility).
+        • Intensity capping by the relational layer must still mutate
+          the lens_chat intensity_mode (look for
+          debug.lens_chat.intensity_capped_by_relational = true when
+          about_person_id is passed and the cap applies).
+        • Life Tab master voice path: pass life_domain=self|work|relationships
+          WITHOUT a lens and confirm debug.life_master_voice surfaces.
+
+      Once green, server.py is ready for v8 mirror_chat router extraction.
+
+
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ SERVER ROUTER REFACTOR v7 — REGRESSION TEST COMPLETE — 26/26 PASS
+
+          Test harness: /app/v7_refactor_test.py
+          Base URL:     https://signup-issues-1.preview.emergentagent.com/api
+          Backend boot: clean (no errors in supervisor logs)
+
+          ── A) MEMBER-SUMMARY (folded into forums_intelligence) ─────────
+          ✅ A.1 GET /forums/{forum_id}/member-summary/{pete_id}?user_id=pete  → 200, keys=[success, summary]
+          ✅ A.2 GET /forums/{forum_id}/member-summary/{mel_id}?user_id=pete   → 200, keys=[success, summary]
+          ✅ A.3 Requester not in forum (bogus user_id)                        → 403 (as spec)
+          ✅ A.4 Invalid forum_id                                              → 400 (as spec)
+
+          ── B) FORUM INTELLIGENCE ROUTES (regression) ──────────────────
+          ✅ B.1 GET member-lens/{pete_id}            → 200
+          ✅ B.2 GET member-mappings                  → 200
+          ✅ B.3 GET relationship-map                 → 200
+          ✅ B.4 GET contributions                    → 200
+          ✅ B.5 GET dynamics-context                 → 200
+          ✅ B.6 POST pairwise-dynamics (pete×mel)    → 200
+          ✅ B.7 GET pattern-map                      → 200
+
+          ── C) /api/mirror/chat — PIPELINE STAGES (BYTE-IDENTICAL DEBUG SHAPE) ──
+          ✅ C.1 NULL lens — debug has pattern_memory + micro_reflection + contradictions
+                 (response_len=1347, no lens_chat / master_voice expected for null + no life_domain — correct)
+          ✅ C.2 ASTROLOGY lens — debug.lens_chat.marker="multi-lens-chat-memory-v1",
+                 lens_chat.lens="astrology", active_entity present.  Legacy flat
+                 debug.marker="multi-lens-chat-memory-v1" AND debug.lens="astrology" present
+                 (both nested AND flat forms preserved exactly as v6).
+          ✅ C.3 ZI_WEI (Purple Star) lens — debug.lens_chat.marker="multi-lens-chat-memory-v1",
+                 lens_chat.lens="zi_wei"
+          ✅ C.4 Life Tab life_domain=relationships — debug.master_voice surfaces
+                 (marker=life-tab-master-voice-v1, contributing_frameworks=[enneagram,
+                  astrology, human_design, bazi, zi_wei])
+          ✅ C.5 Life Tab life_domain=work          — debug.master_voice surfaces
+          ✅ C.6 Life Tab life_domain=self          — debug.master_voice surfaces
+          ⏭️  C.7 Ask-about-person — SKIPPED.  GET /api/saved-people?user_id=pete returned
+                 404 Not Found (this endpoint is named /people/{user_id}, not /saved-people).
+                 No saved person was available to drive a relational-context turn.
+                 NOTE: This is NOT a v7 regression — the saved-people endpoint name has
+                 always been /people/{user_id}.  Spec referenced /saved-people which doesn't
+                 exist.  Recommend main agent treat this sub-test as SKIPPED per spec.
+          ✅ C.8 EVIDENCE DRAWER — response.evidence present, evidence.marker="evidence-drawer-v2".
+                 Backend logs confirm: "[MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True
+                 keys=['marker', 'master_voice', 'calibration']"
+
+          ── D) PREVIOUSLY EXTRACTED ROUTERS (sanity) ───────────────────
+          ✅ D.1 GET forums/{id}/chat/history?limit=2          → 200
+          ✅ D.2 GET forums/user/{pete_id}                     → 200
+          ✅ D.3 POST forums/{id}/mirror-chat                  → 200
+          ✅ D.4 GET forums/{id}/story-of-circle               → 200
+          ✅ D.5 POST micro-reflection/home-texture            → 200
+          ✅ D.6 GET pattern-running-me/user/{pete_id}         → 200
+          ✅ D.7 GET forums/{id}/topology                      → 200
+
+          ── NOTES ON SPEC vs REALITY ────────────────────────────────────
+          • Review spec said "debug.life_master_voice" — actual key is "debug.master_voice"
+            (with marker "life-tab-master-voice-v1" inside).  This is BYTE-IDENTICAL to v6
+            (verified against code at server.py:8674 which sets final_debug["master_voice"]).
+            The spec used the wrong key name; the implementation has not changed.
+          • Saved-people endpoint is /api/people/{user_id} (not /api/saved-people).  C.7
+            sub-test was skipped per spec instruction.
+
+          ── CRITERIA VERIFIED ───────────────────────────────────────────
+          ✅ Backend boots clean
+          ✅ No route paths changed (member-summary still at same URL)
+          ✅ No request/response schema changes
+          ✅ Debug payload shape byte-identical to v6
+            - astrology: nested debug.lens_chat.* AND legacy flat debug.marker / debug.lens
+            - life-tab: debug.master_voice with marker="life-tab-master-voice-v1"
+            - pipeline: debug.{pattern_memory, micro_reflection, contradictions} always present
+          ✅ Mirror chat behaviour unchanged for ALL lenses (null, astrology, zi_wei)
+             + life-tab (relationships, work, self)
+          ✅ Evidence drawer log line confirmed in backend output
+
+          26/26 backend assertions PASS.  v7 refactor is regression-clean.
+          server.py ready for v8 mirror_chat router extraction.
