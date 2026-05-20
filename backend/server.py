@@ -8785,7 +8785,15 @@ USER SHOULD FEEL:
         # `relational` key so frontend can read both lens + relational layers.
         final_debug: Optional[dict] = None
         if request.lens in ("astrology", "human_design", "numerology", "enneagram", "bazi", "zi_wei"):
+            # Spread top-level fields (preserved for backwards-compat with
+            # any consumer reading `debug.marker` / `debug.lens` directly),
+            # AND ALSO mirror the full payload under `debug.lens_chat` so
+            # the documented T1b/T1c contract holds:
+            #   debug.lens_chat.marker == "multi-lens-chat-memory-v1"
+            #   debug.lens_chat.lens   == "<lens>"
             final_debug = dict(lens_debug_payload or {})
+            if lens_debug_payload:
+                final_debug["lens_chat"] = dict(lens_debug_payload)
         if relational_debug_payload:
             if final_debug is None:
                 final_debug = {}
@@ -28202,6 +28210,23 @@ class ForumJoinRequest(BaseModel):
     user_id: str
 
 
+# =====================================================================
+# FORUMS CORE routes — moved to routers/forums_core.py
+# (server-router-refactor-v3 — behaviour preserving)
+# Routes attached:
+#   POST  /api/forums/{forum_id}/delete
+#   GET   /api/forums/user/{user_id}
+#   POST  /api/get-user-forums
+#   GET   /api/forums/{forum_id}
+#   GET   /api/forums/invite/{invite_token}
+#   POST  /api/forums/join/{invite_token}
+#   GET   /api/forums/{forum_id}/members
+#   GET   /api/forums/domains/list
+# =====================================================================
+from routers import forums_core as _forums_core_router
+_forums_core_router.register(api_router, db, logger)
+
+
 class ForumReflectionCreate(BaseModel):
     user_id: str
     selected_domain: str
@@ -28329,39 +28354,7 @@ async def create_forum(request: Request):
 
 
 
-@api_router.post("/forums/{forum_id}/delete")
-async def delete_forum(forum_id: str, user_id: str):
-    """
-    Delete a forum. Only the forum creator can delete it.
-    Removes the forum and all member records.
-    """
-    try:
-        forum = await db.forums.find_one({"_id": ObjectId(forum_id)})
-        if not forum:
-            raise HTTPException(status_code=404, detail="Forum not found")
-        
-        # Only creator can delete
-        if forum.get("created_by") != user_id:
-            raise HTTPException(status_code=403, detail="Only the forum creator can delete this forum")
-        
-        # Delete forum members
-        delete_members = await db.forum_members.delete_many({"forum_id": forum_id})
-        
-        # Delete forum
-        await db.forums.delete_one({"_id": ObjectId(forum_id)})
-        
-        logger.info(f"[Forums] Deleted forum {forum_id} ({forum.get('name')}) by user {user_id[:8]}, removed {delete_members.deleted_count} members")
-        
-        return {
-            "success": True,
-            "message": f"Forum '{forum.get('name')}' deleted",
-            "members_removed": delete_members.deleted_count,
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[Forums] Error deleting forum {forum_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+# [server-router-refactor-v3] delete_forum moved to routers/forums_core.py
 
 
 
@@ -28927,205 +28920,16 @@ async def get_forum_mappings_dedicated(request: Request):
 
 
 
-@api_router.get("/forums/user/{user_id}")
-async def get_user_forums(user_id: str):
-    """
-    Get all forums a user is a member of.
-    """
-    logger.info(f"[Forums] Getting forums for user: {user_id[:8]}...")
-    
-    if not ObjectId.is_valid(user_id):
-        raise HTTPException(status_code=400, detail="Invalid user_id format")
-    
-    return await _get_user_forums_data(user_id)
+# [server-router-refactor-v3] get_user_forums + _get_user_forums_data helper + post variant moved to routers/forums_core.py
 
 
-@api_router.post("/get-user-forums")
-async def get_user_forums_post(request: Request):
-    """
-    POST version of get-user-forums to bypass CDN caching on deployed domain.
-    """
-    body = await request.json()
-    user_id = body.get("user_id", "")
-    
-    if not user_id or not ObjectId.is_valid(user_id):
-        raise HTTPException(status_code=400, detail="Invalid user_id")
-    
-    logger.info(f"[Forums] POST getting forums for user: {user_id[:8]}...")
-    result = await _get_user_forums_data(user_id)
-    return JSONResponse(content=result, headers={
-        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-        "CDN-Cache-Control": "no-store",
-    })
+# [server-router-refactor-v3] get_forum detail moved to routers/forums_core.py
 
 
-async def _get_user_forums_data(user_id: str) -> dict:
-    """Shared helper for both GET and POST forum list endpoints."""
-    # Get all forum memberships for this user
-    memberships = await db.forum_members.find({
-        "user_id": user_id,
-        "status": "active"
-    }).to_list(100)
-    
-    forum_ids = [m["forum_id"] for m in memberships]
-    
-    if not forum_ids:
-        return {"forums": []}
-    
-    # Get forum details
-    forums = []
-    for forum_id in forum_ids:
-        forum = await db.forums.find_one({"_id": ObjectId(forum_id)})
-        if forum:
-            # Get member count
-            member_count = await db.forum_members.count_documents({
-                "forum_id": forum_id,
-                "status": "active"
-            })
-            
-            forums.append({
-                "id": str(forum["_id"]),
-                "name": forum["name"],
-                "description": forum.get("description"),
-                "invite_token": forum.get("invite_token", ""),
-                "created_by": forum.get("created_by", ""),
-                "member_count": member_count,
-                "created_at": forum.get("created_at", datetime.now(timezone.utc)).isoformat() if hasattr(forum.get("created_at", ""), "isoformat") else str(forum.get("created_at", "")),
-            })
-    
-    return {"forums": forums}
+# [server-router-refactor-v3] get_forum_by_invite moved to routers/forums_core.py
 
 
-@api_router.get("/forums/{forum_id}")
-async def get_forum(forum_id: str, user_id: str):
-    """
-    Get a single forum's details.
-    User must be a member.
-    """
-    logger.info(f"[Forums] Getting forum: {forum_id}")
-    
-    if not ObjectId.is_valid(forum_id):
-        raise HTTPException(status_code=400, detail="Invalid forum_id format")
-    
-    # Check membership
-    membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": user_id,
-        "status": "active"
-    })
-    
-    if not membership:
-        raise HTTPException(status_code=403, detail="You are not a member of this forum")
-    
-    forum = await db.forums.find_one({"_id": ObjectId(forum_id)})
-    if not forum:
-        raise HTTPException(status_code=404, detail="Forum not found")
-    
-    # Get member count
-    member_count = await db.forum_members.count_documents({
-        "forum_id": forum_id,
-        "status": "active"
-    })
-    
-    # Get active exercise
-    exercise = await db.forum_exercises.find_one({
-        "forum_id": forum_id,
-        "is_active": True
-    })
-    
-    return {
-        "id": str(forum["_id"]),
-        "name": forum["name"],
-        "description": forum.get("description"),
-        "invite_token": forum["invite_token"],
-        "created_by": forum["created_by"],
-        "member_count": member_count,
-        "created_at": forum["created_at"].isoformat(),
-        "active_exercise": {
-            "id": str(exercise["_id"]),
-            "slug": exercise["slug"],
-            "title": exercise["title"],
-            "description": exercise["description"],
-            "prompts": exercise["prompts"],
-        } if exercise else None,
-    }
-
-
-@api_router.get("/forums/invite/{invite_token}")
-async def get_forum_by_invite(invite_token: str):
-    """
-    Get forum info by invite token (for join preview).
-    """
-    logger.info(f"[Forums] Looking up forum by invite token: {invite_token}")
-    
-    forum = await db.forums.find_one({"invite_token": invite_token})
-    if not forum:
-        raise HTTPException(status_code=404, detail="Invalid invite link")
-    
-    # Get member count
-    forum_id = str(forum["_id"])
-    member_count = await db.forum_members.count_documents({
-        "forum_id": forum_id,
-        "status": "active"
-    })
-    
-    return {
-        "id": forum_id,
-        "name": forum["name"],
-        "description": forum.get("description"),
-        "member_count": member_count,
-        "created_at": forum["created_at"].isoformat(),
-    }
-
-
-@api_router.post("/forums/join/{invite_token}")
-async def join_forum(invite_token: str, data: ForumJoinRequest):
-    """
-    Join a forum using an invite token.
-    """
-    logger.info(f"[Forums] User {data.user_id[:8]}... joining forum with token: {invite_token}")
-    
-    if not ObjectId.is_valid(data.user_id):
-        raise HTTPException(status_code=400, detail="Invalid user_id format")
-    
-    # Find forum by invite token
-    forum = await db.forums.find_one({"invite_token": invite_token})
-    if not forum:
-        raise HTTPException(status_code=404, detail="Invalid invite link")
-    
-    forum_id = str(forum["_id"])
-    
-    # Check if already a member
-    existing = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": data.user_id,
-    })
-    
-    if existing:
-        if existing["status"] == "active":
-            return {"message": "Already a member", "forum_id": forum_id, "already_member": True}
-        else:
-            # Reactivate membership
-            await db.forum_members.update_one(
-                {"_id": existing["_id"]},
-                {"$set": {"status": "active", "joined_at": datetime.now(timezone.utc)}}
-            )
-            return {"message": "Membership reactivated", "forum_id": forum_id, "already_member": False}
-    
-    # Add new member
-    member_doc = {
-        "forum_id": forum_id,
-        "user_id": data.user_id,
-        "role": "member",
-        "status": "active",
-        "invited_at": datetime.now(timezone.utc),
-        "joined_at": datetime.now(timezone.utc),
-    }
-    await db.forum_members.insert_one(member_doc)
-    
-    logger.info(f"[Forums] User {data.user_id[:8]}... joined forum {forum_id}")
-    
-    return {"message": "Joined forum successfully", "forum_id": forum_id, "already_member": False}
+# [server-router-refactor-v3] join_forum moved to routers/forums_core.py
 
 
 @api_router.get("/forums/{forum_id}/exercise")
@@ -29334,50 +29138,7 @@ async def get_shared_reflections(forum_id: str, user_id: str):
     }
 
 
-@api_router.get("/forums/{forum_id}/members")
-async def get_forum_members(forum_id: str, user_id: str):
-    """
-    Get members of a forum.
-    """
-    logger.info(f"[Forums] Getting members for forum: {forum_id}")
-    
-    if not ObjectId.is_valid(forum_id):
-        raise HTTPException(status_code=400, detail="Invalid forum_id format")
-    
-    # Check membership
-    membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": user_id,
-        "status": "active"
-    })
-    
-    if not membership:
-        raise HTTPException(status_code=403, detail="You are not a member of this forum")
-    
-    # Get all members
-    members_cursor = db.forum_members.find({
-        "forum_id": forum_id,
-        "status": "active"
-    }).sort("joined_at", 1)
-    
-    members = []
-    async for m in members_cursor:
-        # Get user info
-        user = await db.users.find_one({"_id": ObjectId(m["user_id"])})
-        user_name = user.get("name", "Anonymous") if user else "Anonymous"
-        
-        # Handle optional fields with defaults
-        joined_at = m.get("joined_at")
-        joined_at_str = joined_at.isoformat() if joined_at else None
-        
-        members.append({
-            "user_id": m["user_id"],
-            "user_name": user_name,
-            "role": m.get("role", "member"),  # Default to "member" if role is missing
-            "joined_at": joined_at_str,
-        })
-    
-    return {"members": members}
+# [server-router-refactor-v3] get_forum_members moved to routers/forums_core.py
 
 
 # =============================================================================
@@ -29422,12 +29183,7 @@ async def get_forum_live_field_v1(forum_id: str, user_id: str) -> Dict[str, Any]
 
 
 
-@api_router.get("/forums/domains/list")
-async def get_pattern_domains():
-    """
-    Get list of available pattern domains for reflection exercises.
-    """
-    return {"domains": PATTERN_DOMAINS}
+# [server-router-refactor-v3] get_pattern_domains moved to routers/forums_core.py
 
 
 # =====================================================================
@@ -31885,270 +31641,12 @@ async def get_forum_pattern_map(forum_id: str, user_id: str):
 # FORUM DATA EXPORT/IMPORT - Admin endpoints for data migration
 # =====================================================================
 
-class ForumImportRequest(BaseModel):
-    """Request model for importing forum data"""
-    forum_data: dict
-    new_forum_name: str = None  # Optional: rename forum on import
-    admin_key: str  # Simple security key
-
-ADMIN_MIGRATION_KEY = "forum_migration_2024"  # Simple key for security
-
-@api_router.get("/admin/forum/export/{forum_name}")
-async def export_forum_by_name(forum_name: str, admin_key: str):
-    """
-    Export a forum and all related data by forum name.
-    Returns JSON that can be imported into another environment.
-    
-    Security: Requires admin_key query parameter.
-    """
-    if admin_key != ADMIN_MIGRATION_KEY:
-        raise HTTPException(status_code=403, detail="Invalid admin key")
-    
-    try:
-        # Find forum by name (case-insensitive)
-        forum = await db.forums.find_one({
-            "name": {"$regex": f"^{forum_name}$", "$options": "i"}
-        })
-        
-        if not forum:
-            raise HTTPException(status_code=404, detail=f"Forum '{forum_name}' not found")
-        
-        forum_id = str(forum["_id"])
-        logger.info(f"[ForumExport] Exporting forum: {forum_name} (ID: {forum_id})")
-        
-        # Export forum record
-        forum_export = {
-            "name": forum.get("name"),
-            "description": forum.get("description"),
-            "invite_token": forum.get("invite_token"),
-            "created_by": forum.get("created_by"),
-            "active_exercise_id": forum.get("active_exercise_id"),
-            "created_at": forum.get("created_at").isoformat() if forum.get("created_at") else None,
-        }
-        
-        # Export members
-        members_cursor = db.forum_members.find({"forum_id": forum_id})
-        members = []
-        async for member in members_cursor:
-            members.append({
-                "user_id": member.get("user_id"),
-                "role": member.get("role"),
-                "joined_at": member.get("joined_at").isoformat() if member.get("joined_at") else None,
-            })
-        
-        # Export reflections
-        reflections_cursor = db.forum_reflections.find({"forum_id": forum_id})
-        reflections = []
-        async for reflection in reflections_cursor:
-            reflections.append({
-                "user_id": reflection.get("user_id"),
-                "exercise_id": reflection.get("exercise_id"),
-                "selected_domain": reflection.get("selected_domain"),
-                "reflection_text": reflection.get("reflection_text"),
-                "is_shared": reflection.get("is_shared", False),
-                "created_at": reflection.get("created_at").isoformat() if reflection.get("created_at") else None,
-            })
-        
-        # Export chat messages
-        chat_cursor = db.forum_chat_messages.find({"forum_id": forum_id})
-        chat_messages = []
-        async for msg in chat_cursor:
-            chat_messages.append({
-                "user_id": msg.get("user_id"),
-                "mode": msg.get("mode"),
-                "target_member_id": msg.get("target_member_id"),
-                "message": msg.get("message"),
-                "response": msg.get("response"),
-                "timestamp": msg.get("timestamp").isoformat() if msg.get("timestamp") else None,
-            })
-        
-        # Export forum story cache
-        story_cache = await db.forum_story_cache.find_one({"forum_id": forum_id})
-        story_cache_export = None
-        if story_cache:
-            story_cache_export = {
-                "story": story_cache.get("story"),
-                "generated_at": story_cache.get("generated_at").isoformat() if story_cache.get("generated_at") else None,
-            }
-        
-        # Get user info for members (names)
-        user_ids = [m["user_id"] for m in members]
-        users_info = {}
-        for uid in user_ids:
-            try:
-                user = await db.users.find_one({"_id": ObjectId(uid)})
-                if user:
-                    users_info[uid] = {
-                        "name": user.get("name"),
-                        "email": user.get("email"),
-                    }
-            except:
-                pass
-        
-        export_data = {
-            "export_version": "1.0",
-            "exported_at": datetime.utcnow().isoformat(),
-            "source_forum_id": forum_id,
-            "forum": forum_export,
-            "members": members,
-            "members_info": users_info,
-            "reflections": reflections,
-            "chat_messages": chat_messages,
-            "story_cache": story_cache_export,
-            "stats": {
-                "member_count": len(members),
-                "reflection_count": len(reflections),
-                "chat_message_count": len(chat_messages),
-                "has_story_cache": story_cache_export is not None,
-            }
-        }
-        
-        logger.info(f"[ForumExport] Export complete: {len(members)} members, {len(reflections)} reflections, {len(chat_messages)} chat messages")
-        
-        return export_data
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[ForumExport] Error: {type(e).__name__}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
-
-
-@api_router.post("/admin/forum/import")
-async def import_forum(request: ForumImportRequest):
-    """
-    Import a forum from exported JSON data.
-    Optionally rename the forum on import.
-    
-    Security: Requires admin_key in request body.
-    """
-    if request.admin_key != ADMIN_MIGRATION_KEY:
-        raise HTTPException(status_code=403, detail="Invalid admin key")
-    
-    try:
-        data = request.forum_data
-        forum_info = data.get("forum", {})
-        
-        # Determine forum name
-        new_name = request.new_forum_name or forum_info.get("name")
-        if not new_name:
-            raise HTTPException(status_code=400, detail="Forum name is required")
-        
-        logger.info(f"[ForumImport] Importing forum as: {new_name}")
-        
-        # Check if forum with this name already exists
-        existing = await db.forums.find_one({
-            "name": {"$regex": f"^{new_name}$", "$options": "i"}
-        })
-        
-        if existing:
-            # Delete existing forum and related data
-            existing_id = str(existing["_id"])
-            logger.info(f"[ForumImport] Removing existing forum: {new_name} (ID: {existing_id})")
-            
-            await db.forums.delete_one({"_id": existing["_id"]})
-            await db.forum_members.delete_many({"forum_id": existing_id})
-            await db.forum_reflections.delete_many({"forum_id": existing_id})
-            await db.forum_chat_messages.delete_many({"forum_id": existing_id})
-            await db.forum_story_cache.delete_many({"forum_id": existing_id})
-        
-        # Generate new invite token
-        import secrets
-        new_invite_token = secrets.token_urlsafe(16)
-        
-        # Create new forum
-        forum_doc = {
-            "name": new_name,
-            "description": forum_info.get("description"),
-            "invite_token": new_invite_token,
-            "created_by": forum_info.get("created_by"),
-            "active_exercise_id": forum_info.get("active_exercise_id"),
-            "created_at": datetime.utcnow(),
-        }
-        
-        result = await db.forums.insert_one(forum_doc)
-        new_forum_id = str(result.inserted_id)
-        logger.info(f"[ForumImport] Created forum with ID: {new_forum_id}")
-        
-        # Import members
-        members = data.get("members", [])
-        members_imported = 0
-        for member in members:
-            member_doc = {
-                "forum_id": new_forum_id,
-                "user_id": member.get("user_id"),
-                "role": member.get("role", "member"),
-                "joined_at": datetime.utcnow(),
-            }
-            await db.forum_members.insert_one(member_doc)
-            members_imported += 1
-        
-        # Import reflections
-        reflections = data.get("reflections", [])
-        reflections_imported = 0
-        for reflection in reflections:
-            reflection_doc = {
-                "forum_id": new_forum_id,
-                "user_id": reflection.get("user_id"),
-                "exercise_id": reflection.get("exercise_id"),
-                "selected_domain": reflection.get("selected_domain"),
-                "reflection_text": reflection.get("reflection_text"),
-                "is_shared": reflection.get("is_shared", False),
-                "created_at": datetime.utcnow(),
-            }
-            await db.forum_reflections.insert_one(reflection_doc)
-            reflections_imported += 1
-        
-        # Import chat messages
-        chat_messages = data.get("chat_messages", [])
-        chat_imported = 0
-        for msg in chat_messages:
-            msg_doc = {
-                "forum_id": new_forum_id,
-                "user_id": msg.get("user_id"),
-                "mode": msg.get("mode"),
-                "target_member_id": msg.get("target_member_id"),
-                "message": msg.get("message"),
-                "response": msg.get("response"),
-                "timestamp": datetime.utcnow(),
-            }
-            await db.forum_chat_messages.insert_one(msg_doc)
-            chat_imported += 1
-        
-        # Import story cache if present
-        story_cache = data.get("story_cache")
-        story_imported = False
-        if story_cache and story_cache.get("story"):
-            cache_doc = {
-                "forum_id": new_forum_id,
-                "story": story_cache.get("story"),
-                "generated_at": datetime.utcnow(),
-            }
-            await db.forum_story_cache.insert_one(cache_doc)
-            story_imported = True
-        
-        logger.info(f"[ForumImport] Import complete: {members_imported} members, {reflections_imported} reflections, {chat_imported} chat messages")
-        
-        return {
-            "success": True,
-            "source_forum_id": data.get("source_forum_id"),
-            "destination_forum_id": new_forum_id,
-            "forum_name": new_name,
-            "invite_token": new_invite_token,
-            "stats": {
-                "members_imported": members_imported,
-                "reflections_imported": reflections_imported,
-                "chat_messages_imported": chat_imported,
-                "story_cache_imported": story_imported,
-            },
-            "members_info": data.get("members_info", {}),
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[ForumImport] Error: {type(e).__name__}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+# =====================================================================
+# ADMIN FORUM EXPORT / IMPORT routes — moved to routers/admin_forum.py
+# (server-router-refactor-v3 — behaviour preserving)
+# =====================================================================
+from routers import admin_forum as _admin_forum_router
+_admin_forum_router.register(api_router, db, logger)
 
 
 # =====================================================================
