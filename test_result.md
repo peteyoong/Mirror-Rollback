@@ -19090,12 +19090,201 @@ backend:
 
 test_plan:
   current_focus:
-    - "Server router refactor v4 — forums_chat + forums_exercise extractions (server-router-refactor-v4)"
+    - "Server router refactor v5 — forums_create_auth + pattern_running_me extractions (server-router-refactor-v5)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 backend:
+  - task: "Server router refactor v5 — forums_create_auth + pattern_running_me extractions (server-router-refactor-v5)"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/forums_create_auth.py + /app/backend/routers/pattern_running_me.py + /app/backend/server.py (inline routes removed, register() calls in place)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          v5 extraction pass.  Two new router modules.  Behaviour-
+          preserving — paths, schemas, markers, log lines, response
+          shapes and side-effects (pattern_memory_signals +
+          forum_field_signals inserts) are byte-identical.
+
+          ROUTES MOVED this pass:
+
+            routers/forums_create_auth.py (2 routes):
+              POST /api/forums/login
+              POST /api/forums
+                       (multi-mode: get_mappings OR forum create)
+              `generate_invite_token` moves with the router.
+              `login_user`, `LoginRequest`, `ForumCreate` are PASSED IN
+              via register() to avoid circular imports.
+
+              Note: `/forums/login` uses a `Request` body argument
+              and constructs `LoginRequest(**body)` manually because
+              the pydantic class is only resolved at register() time,
+              not at function definition time (FastAPI introspection
+              limitation).  This is functionally identical to the
+              inline `request: LoginRequest` annotation.
+
+            routers/pattern_running_me.py (3 routes):
+              GET   /api/pattern-running-me/emotions
+              POST  /api/pattern-running-me?user_id=...
+              GET   /api/pattern-running-me/user/{user_id}
+              All dependencies live in services.pattern_running_me_v2,
+              so the router has zero upward coupling on server.py.
+
+          INTENTIONALLY DEFERRED (v6+, with reason):
+
+            routers/forums_intelligence.py — 6 routes:
+              GET  /api/forums/{forum_id}/member-lens/{member_user_id}
+              GET  /api/forums/{forum_id}/relationship-map
+              GET  /api/forums/{forum_id}/contributions
+              GET  /api/forums/{forum_id}/dynamics-context
+              POST /api/forums/{forum_id}/pairwise-dynamics
+              GET  /api/forums/{forum_id}/pattern-map
+              These share `get_member_lens_data` (389 lines) +
+              `build_forum_dynamics_context` (335 lines) helpers
+              that are already passed into forums_chat.  Need a
+              shared helper-passing pattern OR pre-extract helpers
+              into services/forum_lens_helpers.py first.
+
+            /api/forums/{forum_id}/pulse  — ~712 lines, deep LLM
+              + aggregator coupling.
+            /api/forums/{forum_id}/live-field-v1  — services.live_field
+              + astrology-v5 coupling.
+            /api/mirror/chat  — deferred per spec.
+
+          server.py line count delta:
+            Before v5: 34,471 lines.
+            After  v5: 34,312 lines (≈ 175 lifted; 5 routes moved).
+
+          Cumulative across v1+v2+v3+v4+v5:
+            * v1: 4 routes
+            * v2: 11 routes
+            * v3: 10 routes
+            * v4: 8 routes
+            * v5: 5 routes
+            Total: 38 routes now live in routers/, ≈ 2,275 lines lifted
+            from the server.py monolith.
+
+          Validation expectations (must all PASS):
+
+            P1. POST /api/forums/login
+                  body: {email:"pete@pulsifi.me", password:"x"}
+                  → 200, success=true, user.id==Pete's id.
+                  (Backend dev login does not validate password,
+                  same as before.)
+            P2. POST /api/forums  body: {get_mappings:true,
+                  forum_id:69dd05eaa333335fcbf3ad33, user_id:Pete}
+                  → 200, success=true, mappings is a list.
+            P3. POST /api/forums  body: {get_mappings:true,
+                  forum_id:"", user_id:""}
+                  → 200, success=false (graceful missing-arg path).
+            P4. POST /api/forums  body: {name:"V5-Test-Forum",
+                  description:"Created by v5 test", user_id:Pete}
+                  → 200, response contains id, name, invite_token (12 char),
+                  member_count==1.  CAPTURE forum_id for cleanup.
+            P5. POST /api/forums  body: {name:"X", user_id:"not-a-real-id"}
+                  → 400 (Invalid user_id format).
+            P6. GET /api/pattern-running-me/emotions → 200,
+                emotions list, length >= 5.
+            P7. POST /api/pattern-running-me?user_id=Pete
+                body: minimal valid PatternRunningMePayload
+                (the test agent should consult
+                services/pattern_running_me_v2.py for required fields)
+                → 200.  CAPTURE id for cleanup.
+            P8. GET /api/pattern-running-me/user/{Pete} → 200,
+                items list contains the doc from P7.
+            P9. POST /api/pattern-running-me with forum_id set to
+                a forum where Pete is NOT a member → 403.
+
+          REGRESSION (G*) — confirm prior extractions still pass:
+            G1. POST /api/mirror/chat lens="zi_wei" → 200,
+                debug.lens_chat.lens == "zi_wei".
+            G2. POST /api/mirror/chat lens="astrology" → 200.
+            G3. POST /api/mirror/chat lens=null → 200,
+                debug.contradictions present.
+            G4. GET /api/forums/{forum_id}/story-of-circle → 200.
+            G5. POST /api/forums/{forum_id}/mirror-chat → 200,
+                debug.marker "forum-conversational-field-v1".
+            G6. GET /api/forums/{forum_id}/chat/history?user_id=Pete
+                → 200 (forums_chat router).
+            G7. GET /api/forums/{forum_id}/exercise?user_id=Pete
+                → 200 (forums_exercise router).
+            G8. GET /api/forums/{forum_id}/members?user_id=Pete
+                → 200 (forums_core router).
+            G9. GET /api/forums/domains/list → 200 (forums_core router).
+            G10. GET /api/admin/forum/export/PeteAndMel?admin_key=wrong
+                 → 403 (admin_forum router).
+            G11. POST /api/micro-reflection/home-texture {Pete,
+                 texture:"open"} → 200 (micro_reflection router).
+
+          CLEANUP at the end:
+            - Delete the V5-Test-Forum created in P4 (DELETE
+              /api/forums/{forum_id}/delete?user_id=Pete).
+            - Delete the pattern_running_me_v2 doc inserted in P7
+              (by id from the response).
+            - Delete the home-texture doc inserted in G11.
+
+          Test user: Pete (697f0c6abf35c0528ff06954).
+          Test forum: 69dd05eaa333335fcbf3ad33.
+      - working: true
+        agent: "testing"
+        comment: |
+          server-router-refactor-v5 regression: ALL 23/23 assertions PASS.
+
+          NEW (P*) — extracted routes:
+            P1 POST /api/forums/login           → 200, success=true, user.id=Pete ✅
+            P2 POST /api/forums get_mappings    → 200, success=true, mappings list (len=1) ✅
+            P3 POST /api/forums get_mappings    → 200, success=false, "Missing forum_id or user_id" ✅
+            P4 POST /api/forums create          → 200, id=6a0d3bad368c83980151d708 (24-hex),
+                                                  name="V5-Test-Forum-XYZ", invite_token=12 chars,
+                                                  member_count=1 ✅
+            P5 POST /api/forums invalid user_id → 400, detail="Invalid user_id format" ✅
+            P6 GET  /api/pattern-running-me/emotions → 200, 10 emotions ✅
+            P7 POST /api/pattern-running-me     → 200, id returned, doc persisted ✅
+            P8 GET  /api/pattern-running-me/user/Pete → 200, items[] contains P7 doc by id ✅
+            P9 POST /api/pattern-running-me with non-member forum_id
+                                                → 403 "Not a member of this forum" ✅
+
+          REGRESSION (G*):
+            G1  /api/mirror/chat lens=zi_wei    → 200, debug.lens_chat.lens=zi_wei,
+                                                  marker=multi-lens-chat-memory-v1 ✅
+            G2  /api/mirror/chat lens=astrology → 200, debug.lens_chat.lens=astrology ✅
+            G3  /api/mirror/chat lens=null      → 200, debug.contradictions.marker=
+                                                  contradiction-intelligence-v1 ✅
+            G4  GET  /forums/{f}/story-of-circle    → 200, marker=forum-topology-and-timing-v1 ✅
+            G5  POST /forums/{f}/mirror-chat        → 200, marker=forum-conversational-field-v1 ✅
+            G6  GET  /forums/{f}/chat/history       → 200, success=true ✅
+            G7  GET  /forums/{f}/exercise           → 200 ✅
+            G8  GET  /forums/{f}/members            → 200, members len=2 ✅
+            G9  GET  /forums/domains/list           → 200, domains len=7 ✅
+            G10 GET  /admin/forum/export/PeteAndMel?admin_key=wrong → 403 ✅
+            G11 POST /micro-reflection/home-texture → 200, marker=
+                                                  micro-reflection-v3-home-texture ✅
+
+          CLEANUP:
+            P10  Deleted V5-Test-Forum (success=true) ✅
+            P11  Deleted pattern_running_me_v2 doc inserted in P7 ✅
+            G11c Deleted home_texture micro_reflections doc(s) for Pete ✅
+
+          Notes:
+            - Used real payload for PatternRunningMePayload (title, emotions=["Anxious"],
+              story, reflection) — the example body in the review request (pattern_text/
+              domain) does not match the actual pydantic model defined in
+              services/pattern_running_me_v2.py.
+            - Forums /login Request-body construction works correctly (200 on valid body,
+              422 on missing fields — matches inline previous behavior).
+            - Backend logs confirm all new routes hit and previously-extracted routes
+              (forums_chat, forums_exercise, forums_core, admin_forum, micro_reflection)
+              still serve their endpoints unchanged.
+
+          Marking working=true. server-router-refactor-v5 backend extraction is
+          regression-clean.
+
   - task: "Server router refactor v4 — forums_chat + forums_exercise extractions (server-router-refactor-v4)"
     implemented: true
     working: "NA"

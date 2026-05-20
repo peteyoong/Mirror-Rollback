@@ -28262,112 +28262,23 @@ class ForumReflectionResponse(BaseModel):
     created_at: str
 
 
-def generate_invite_token() -> str:
-    """Generate a unique invite token for a forum."""
-    return hashlib.sha256(f"{uuid.uuid4()}{datetime.now(timezone.utc).isoformat()}".encode()).hexdigest()[:12]
-
-
-
-# Login via /forums path to bypass CDN cached 500 on /users/login
-@api_router.post("/forums/login")
-async def forums_login_handler(request: LoginRequest):
-    """Login handler accessible via /api/forums/login — bypasses CDN cached errors on /api/users/login."""
-    return await login_user(request)
-
-
-@api_router.post("/forums")
-async def create_forum(request: Request):
-    """
-    Create a new forum OR get member mappings (via POST to bypass CDN GET caching).
-    If body has 'get_mappings', handles as member-mappings request.
-    """
-    body = await request.json()
-    
-    # MEMBER MAPPINGS MODE
-    if body.get("get_mappings"):
-        forum_id = body.get("forum_id", "")
-        user_id = body.get("user_id", "")
-        if not forum_id or not user_id:
-            return {"success": False, "error": "Missing forum_id or user_id"}
-        try:
-            from services.forum_hd_mapping import get_forum_member_mappings
-            mappings = await get_forum_member_mappings(db, forum_id, user_id)
-            return {"success": True, "mappings": mappings, "current_user_id": user_id}
-        except Exception as e:
-            logger.error(f"[ForumMappingPOST] Error: {e}", exc_info=True)
-            return {"success": False, "mappings": [], "error": str(e)}
-    
-    # NORMAL FORUM CREATE MODE
-    try:
-        data = ForumCreate(**body)
-    except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
-    
-    logger.info(f"[Forums] Creating forum: {data.name} by user {data.user_id[:8]}...")
-    
-    # Validate user exists
-    if not ObjectId.is_valid(data.user_id):
-        raise HTTPException(status_code=400, detail="Invalid user_id format")
-    
-    user = await db.users.find_one({"_id": ObjectId(data.user_id)})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Create the forum
-    invite_token = generate_invite_token()
-    forum_doc = {
-        "name": data.name,
-        "description": data.description,
-        "created_by": data.user_id,
-        "invite_token": invite_token,
-        "created_at": datetime.now(timezone.utc),
-    }
-    
-    result = await db.forums.insert_one(forum_doc)
-    forum_id = str(result.inserted_id)
-    
-    # Add creator as first member with 'owner' role
-    member_doc = {
-        "forum_id": forum_id,
-        "user_id": data.user_id,
-        "role": "owner",
-        "status": "active",
-        "invited_at": datetime.now(timezone.utc),
-        "joined_at": datetime.now(timezone.utc),
-    }
-    await db.forum_members.insert_one(member_doc)
-    
-    # Create the default exercise: "The Pattern Running Me"
-    exercise_doc = {
-        "forum_id": forum_id,
-        "slug": "pattern-running-me",
-        "title": "The Pattern Running Me",
-        "description": "This exercise helps surface one pattern that may currently be shaping how you lead, relate, or respond to life.",
-        "prompts": [
-            "Where is this pattern showing up in your life right now?",
-            "What situation from the last 30–60 days best represents it?",
-            "How has this pattern helped you succeed?",
-            "Where might this same pattern now be limiting you?",
-            "If this pattern softened by 10%, what might change?"
-        ],
-        "is_active": True,
-        "created_at": datetime.now(timezone.utc),
-    }
-    await db.forum_exercises.insert_one(exercise_doc)
-    
-    logger.info(f"[Forums] Forum created: {forum_id} with invite token: {invite_token}")
-    
-    return {
-        "id": forum_id,
-        "name": data.name,
-        "description": data.description,
-        "invite_token": invite_token,
-        "created_by": data.user_id,
-        "member_count": 1,
-        "created_at": forum_doc["created_at"].isoformat(),
-    }
-
-
+# =====================================================================
+# FORUMS CREATE + AUTH routes — moved to routers/forums_create_auth.py
+# (server-router-refactor-v5 — behaviour preserving)
+# Routes attached:
+#   POST /api/forums/login
+#   POST /api/forums   (multi-mode: forum create OR member-mappings)
+# generate_invite_token moves with the router.
+# =====================================================================
+from routers import forums_create_auth as _forums_create_auth_router
+_forums_create_auth_router.register(
+    api_router,
+    db,
+    logger,
+    login_user,
+    LoginRequest,
+    ForumCreate,
+)
 
 # [server-router-refactor-v3] delete_forum moved to routers/forums_core.py
 
@@ -29018,74 +28929,17 @@ async def get_forum_live_field_v1(forum_id: str, user_id: str) -> Dict[str, Any]
 # Feeds Pattern Memory Engine + Forum Field Engine + future Home insights.
 # =============================================================================
 
-from services.pattern_running_me_v2 import (
-    PatternRunningMePayload as _PRPayload,
-    ALLOWED_EMOTIONS as _PR_ALLOWED_EMOTIONS,
-    build_storage_document as _pr_build_doc,
-    build_pattern_memory_signal as _pr_memory_signal,
-    build_forum_field_signal as _pr_forum_signal,
-)
+# =====================================================================
+# PATTERN RUNNING ME V2 routes — moved to routers/pattern_running_me.py
+# (server-router-refactor-v5 — behaviour preserving)
+# Routes attached:
+#   GET   /api/pattern-running-me/emotions
+#   POST  /api/pattern-running-me?user_id=...
+#   GET   /api/pattern-running-me/user/{user_id}
+# =====================================================================
+from routers import pattern_running_me as _pattern_running_me_router
+_pattern_running_me_router.register(api_router, db, logger)
 
-
-@api_router.get("/pattern-running-me/emotions")
-async def pattern_running_me_emotions():
-    """Return the canonical, ordered vocabulary of emotion chips."""
-    return {"emotions": _PR_ALLOWED_EMOTIONS}
-
-
-@api_router.post("/pattern-running-me")
-async def create_pattern_running_me(
-    payload: _PRPayload,
-    user_id: str,
-):
-    """Persist a Pattern Running Me V2 entry. See services/pattern_running_me_v2.py."""
-    if payload.forum_id:
-        membership = await db.forum_members.find_one(
-            {"forum_id": payload.forum_id, "user_id": user_id, "status": "active"}
-        )
-        if not membership:
-            raise HTTPException(status_code=403, detail="Not a member of this forum")
-
-    doc = _pr_build_doc(user_id, payload)
-    res = await db.pattern_running_me_v2.insert_one(doc)
-    doc["_id"] = str(res.inserted_id)
-    doc["id"] = str(res.inserted_id)
-
-    try:
-        await db.pattern_memory_signals.insert_one(_pr_memory_signal(doc))
-    except Exception as e:
-        logger.warning(f"[PRPattern] memory signal failed: {e}")
-
-    try:
-        forum_signal = _pr_forum_signal(doc)
-        if forum_signal:
-            await db.forum_field_signals.insert_one(forum_signal)
-    except Exception as e:
-        logger.warning(f"[PRPattern] forum signal failed: {e}")
-
-    if isinstance(doc.get("created_at"), datetime):
-        doc["created_at"] = doc["created_at"].isoformat()
-    if isinstance(doc.get("updated_at"), datetime):
-        doc["updated_at"] = doc["updated_at"].isoformat()
-    return doc
-
-
-@api_router.get("/pattern-running-me/user/{user_id}")
-async def list_pattern_running_me(user_id: str, limit: int = 20, forum_id: Optional[str] = None):
-    """List a user's recent Pattern Running Me V2 entries."""
-    query: Dict[str, Any] = {"user_id": str(user_id)}
-    if forum_id:
-        query["forum_id"] = forum_id
-    cursor = db.pattern_running_me_v2.find(query).sort("created_at", -1).limit(limit)
-    items = []
-    async for doc in cursor:
-        doc["id"] = str(doc.pop("_id"))
-        if isinstance(doc.get("created_at"), datetime):
-            doc["created_at"] = doc["created_at"].isoformat()
-        if isinstance(doc.get("updated_at"), datetime):
-            doc["updated_at"] = doc["updated_at"].isoformat()
-        items.append(doc)
-    return {"items": items}
 
 
 # [server-router-refactor-v4] save_forum_update moved to routers/forums_exercise.py
