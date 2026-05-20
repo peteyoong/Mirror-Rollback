@@ -243,6 +243,12 @@ export default function ForumMappingsScreen() {
     const signals = (selectedMember as any).signals || null;
     const hdSignals = signals?.human_design || selectedMember.why_this_happens || [];
 
+    // Relationship Field Architecture v1 — additive
+    const field = (selectedMember as any).field || null;
+    const useFieldLayout = field?.version === 'relationship-field-v1';
+    const amplifiers = field?.amplifiers || {};
+    const hasAnyAmplifier = !!(amplifiers.juno || amplifiers.north_node || amplifiers.vertex);
+
     return (
       <Modal
         visible={!!selectedMember}
@@ -261,7 +267,7 @@ export default function ForumMappingsScreen() {
                 {selectedMember.member_name}
               </Text>
               <Text style={[styles.modalSubtitle, { color: theme.textSecondary }]}>
-                How they map to you
+                {useFieldLayout ? 'What happens between you' : 'How they map to you'}
               </Text>
             </View>
             <View style={{ width: 40 }} />
@@ -272,73 +278,188 @@ export default function ForumMappingsScreen() {
             contentContainerStyle={styles.modalContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* ================================================ */}
-            {/* LAYER 1: STORY                                   */}
-            {/* Emotional hook — feels like "this is us"         */}
-            {/* ================================================ */}
-            <View style={[styles.storyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.storyHeadline, { color: theme.text }]}>
-                {story.headline}
-              </Text>
-              <Text style={[styles.storySummary, { color: theme.textSecondary }]}>
-                {story.summary}
-              </Text>
-            </View>
+            {useFieldLayout ? (
+              <>
+                {/* ============================================================
+                    RELATIONSHIP FIELD ARCHITECTURE v1
+                    Activation-first synthesis BEFORE evidence.
+                    ============================================================ */}
 
-            {/* ================================================ */}
-            {/* LAYER 2: PATTERNS                                */}
-            {/* Behavioral — "this is EXACTLY what happens"      */}
-            {/* ================================================ */}
-            
-            {/* What Happens Between You */}
-            {patterns?.what_happens && patterns.what_happens.length > 0 && (
-              <View style={styles.patternSection}>
-                <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
-                  WHAT HAPPENS BETWEEN YOU
-                </Text>
-                {patterns.what_happens.map((item: string, i: number) => (
-                  <View key={`wh-${i}`} style={styles.patternBulletRow}>
-                    <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>›</Text>
-                    <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
-                      {item}
+                {/* FIELD PARAGRAPH — the opener, integrates all lenses */}
+                <View style={[styles.storyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.fieldParagraph, { color: theme.text }]}>
+                    {field.field_paragraph}
+                  </Text>
+                </View>
+
+                {/* ACTIVATION — small emphasis line, sits beneath the paragraph */}
+                {field.activation && (
+                  <View
+                    style={[
+                      styles.activationChip,
+                      { backgroundColor: (theme.accent || '#8B5CF6') + '12', borderColor: (theme.accent || '#8B5CF6') + '40' },
+                    ]}
+                  >
+                    <Text style={[styles.activationLabel, { color: theme.accent || '#8B5CF6' }]}>
+                      WHAT ACTIVATES
+                    </Text>
+                    <Text style={[styles.activationText, { color: theme.text }]}>
+                      {field.activation}
                     </Text>
                   </View>
-                ))}
-              </View>
-            )}
+                )}
 
-            {/* Where Friction Shows Up */}
-            {patterns?.tensions && patterns.tensions.length > 0 && (
-              <View style={styles.patternSection}>
-                <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
-                  WHERE FRICTION SHOWS UP
-                </Text>
-                {patterns.tensions.map((item: string, i: number) => (
-                  <View key={`fr-${i}`} style={styles.patternBulletRow}>
-                    <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>⚡</Text>
-                    <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
-                      {item}
+                {/* THEMES — clustered cards, each contains its own friction in-line */}
+                {Array.isArray(field.themes) && field.themes.length > 0 && (
+                  <View style={styles.themesSection}>
+                    <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                      WHAT LIVES BETWEEN YOU
+                    </Text>
+                    {field.themes.map((theme_: any, idx: number) => (
+                      <View
+                        key={`theme-${idx}`}
+                        style={[
+                          styles.themeCard,
+                          { backgroundColor: theme.surface, borderColor: theme.border },
+                        ]}
+                      >
+                        <Text style={[styles.themeLabel, { color: theme.text }]}>
+                          {theme_.label}
+                        </Text>
+                        <Text style={[styles.themeWhatLivesHere, { color: theme.textSecondary }]}>
+                          {theme_.what_lives_here}
+                        </Text>
+                        {theme_.friction_inside_it && (
+                          <Text style={[styles.themeFriction, { color: theme.textTertiary }]}>
+                            <Text style={{ color: theme.accent || '#8B5CF6' }}>↳ </Text>
+                            {theme_.friction_inside_it}
+                          </Text>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {/* GIFT OF THIS CONNECTION — dedicated, always present */}
+                {field.gift_of_this_connection && (
+                  <View
+                    style={[
+                      styles.giftCard,
+                      {
+                        backgroundColor: theme.surface,
+                        borderColor: (theme.accent || '#8B5CF6') + '50',
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.giftLabel, { color: theme.accent || '#8B5CF6' }]}>
+                      ✦ GIFT OF THIS CONNECTION
+                    </Text>
+                    <Text style={[styles.giftText, { color: theme.text }]}>
+                      {field.gift_of_this_connection}
                     </Text>
                   </View>
-                ))}
-              </View>
-            )}
+                )}
 
-            {/* What You Give Each Other */}
-            {patterns?.gifts && patterns.gifts.length > 0 && (
-              <View style={[styles.giftSection, { borderLeftColor: (theme.accent || '#8B5CF6') + '50' }]}>
-                <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
-                  WHAT YOU GIVE EACH OTHER
-                </Text>
-                {patterns.gifts.map((item: string, i: number) => (
-                  <View key={`gf-${i}`} style={styles.patternBulletRow}>
-                    <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>✦</Text>
-                    <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
-                      {item}
+                {/* AMPLIFIERS — only when at least one is non-null. Subtle, framed as
+                    "significance amplifiers", never as fate/soulmate language. */}
+                {hasAnyAmplifier && (
+                  <View style={styles.amplifiersSection}>
+                    <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                      WHY THE STAKES FEEL HIGHER
                     </Text>
+                    {amplifiers.juno && (
+                      <View style={styles.amplifierRow}>
+                        <Text style={[styles.amplifierPip, { color: theme.textTertiary }]}>·</Text>
+                        <Text style={[styles.amplifierText, { color: theme.textSecondary }]}>
+                          {amplifiers.juno}
+                        </Text>
+                      </View>
+                    )}
+                    {amplifiers.north_node && (
+                      <View style={styles.amplifierRow}>
+                        <Text style={[styles.amplifierPip, { color: theme.textTertiary }]}>·</Text>
+                        <Text style={[styles.amplifierText, { color: theme.textSecondary }]}>
+                          {amplifiers.north_node}
+                        </Text>
+                      </View>
+                    )}
+                    {amplifiers.vertex && (
+                      <View style={styles.amplifierRow}>
+                        <Text style={[styles.amplifierPip, { color: theme.textTertiary }]}>·</Text>
+                        <Text style={[styles.amplifierText, { color: theme.textSecondary }]}>
+                          {amplifiers.vertex}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                ))}
-              </View>
+                )}
+              </>
+            ) : (
+              <>
+                {/* ============================================================
+                    LEGACY 3-LAYER LAYOUT — unchanged fallback path.
+                    Renders when mapping.field is absent OR not v1.
+                    ============================================================ */}
+
+                {/* LAYER 1: STORY */}
+                <View style={[styles.storyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.storyHeadline, { color: theme.text }]}>
+                    {story.headline}
+                  </Text>
+                  <Text style={[styles.storySummary, { color: theme.textSecondary }]}>
+                    {story.summary}
+                  </Text>
+                </View>
+
+                {/* LAYER 2: PATTERNS */}
+                {patterns?.what_happens && patterns.what_happens.length > 0 && (
+                  <View style={styles.patternSection}>
+                    <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                      WHAT HAPPENS BETWEEN YOU
+                    </Text>
+                    {patterns.what_happens.map((item: string, i: number) => (
+                      <View key={`wh-${i}`} style={styles.patternBulletRow}>
+                        <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>›</Text>
+                        <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                          {item}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {patterns?.tensions && patterns.tensions.length > 0 && (
+                  <View style={styles.patternSection}>
+                    <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                      WHERE FRICTION SHOWS UP
+                    </Text>
+                    {patterns.tensions.map((item: string, i: number) => (
+                      <View key={`fr-${i}`} style={styles.patternBulletRow}>
+                        <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>⚡</Text>
+                        <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                          {item}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {patterns?.gifts && patterns.gifts.length > 0 && (
+                  <View style={[styles.giftSection, { borderLeftColor: (theme.accent || '#8B5CF6') + '50' }]}>
+                    <Text style={[styles.patternLabel, { color: theme.textTertiary }]}>
+                      WHAT YOU GIVE EACH OTHER
+                    </Text>
+                    {patterns.gifts.map((item: string, i: number) => (
+                      <View key={`gf-${i}`} style={styles.patternBulletRow}>
+                        <Text style={[styles.patternBulletDash, { color: theme.textTertiary }]}>✦</Text>
+                        <Text style={[styles.patternBulletText, { color: theme.textSecondary }]}>
+                          {item}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
             )}
 
             {/* ================================================ */}
@@ -959,5 +1080,95 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     lineHeight: 30,
+  },
+
+  // ============================================================
+  // Relationship Field Architecture v1 — additive styles
+  // ============================================================
+  fieldParagraph: {
+    fontSize: 18,
+    lineHeight: 32,
+    fontWeight: '500',
+  },
+  activationChip: {
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 28,
+  },
+  activationLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  activationText: {
+    fontSize: 16,
+    lineHeight: 26,
+    fontWeight: '500',
+  },
+  themesSection: {
+    marginBottom: 24,
+  },
+  themeCard: {
+    padding: 18,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  themeLabel: {
+    fontSize: 17,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  themeWhatLivesHere: {
+    fontSize: 16,
+    lineHeight: 28,
+    marginBottom: 10,
+  },
+  themeFriction: {
+    fontSize: 14,
+    lineHeight: 24,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  giftCard: {
+    padding: 18,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    marginBottom: 28,
+  },
+  giftLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+  },
+  giftText: {
+    fontSize: 16,
+    lineHeight: 28,
+    fontWeight: '500',
+  },
+  amplifiersSection: {
+    marginBottom: 20,
+  },
+  amplifierRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    paddingRight: 8,
+  },
+  amplifierPip: {
+    fontSize: 18,
+    marginRight: 10,
+    marginTop: 2,
+    width: 14,
+    textAlign: 'center',
+  },
+  amplifierText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 24,
+    fontStyle: 'italic',
   },
 });

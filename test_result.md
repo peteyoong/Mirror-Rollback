@@ -22476,3 +22476,98 @@ agent_communication:
       verified.  Sister endpoints + v8 mirror_chat still green.
 
       Marking working=true / needs_retesting=false.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RELATIONSHIP FIELD ARCHITECTURE v1 — frontend renderer (Phase 3)
+# ─────────────────────────────────────────────────────────────────────────────
+
+frontend:
+  - task: "Relationship Field Architecture v1 — additive renderer in mappings.tsx detail modal"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/forums/mappings.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: |
+          FRONTEND IMPLEMENTATION COMPLETE — strictly additive renderer
+          inside the existing member-detail modal in mappings.tsx.
+
+          BRANCHING:
+          • If mapping.field?.version === "relationship-field-v1" → render
+            the new activation-first layout (sections below).
+          • Otherwise → fall back to today's legacy 3-layer layout
+            (story.headline + story.summary + patterns.what_happens +
+            patterns.tensions + patterns.gifts) — byte-identical.
+
+          NEW LAYOUT SECTIONS (in order):
+          1. Field paragraph (storyCard surface) — the opener that synthesizes
+             the whole field before any evidence.
+          2. "WHAT ACTIVATES" chip — small accent-bordered emphasis block.
+          3. "WHAT LIVES BETWEEN YOU" — theme cards.  Each card contains
+             label (bold) + what_lives_here (body) + friction_inside_it
+             rendered as a small italicised contextual line WITHIN the same
+             card (prefixed with ↳).  Friction is NEVER a separate warning
+             section.
+          4. "✦ GIFT OF THIS CONNECTION" — dedicated card with accent border.
+          5. "WHY THE STAKES FEEL HIGHER" — amplifiers (juno / north_node /
+             vertex) rendered as compact bullet-style rows.  Only shown when
+             at least one amplifier value is non-null.
+          6. "Why this is so strong" — EXISTING collapsible drawer (HD
+             channel boxes + per-lens prose) is left untouched and now
+             serves as the technical evidence/proof layer.
+
+          LIST ROW: unchanged.  The 4-lens pill strip + Watch/Gift summary
+          on the list row remains exactly as before for scannability.
+
+          NEW STYLES ADDED to the StyleSheet (additive, no removals):
+          fieldParagraph, activationChip, activationLabel, activationText,
+          themesSection, themeCard, themeLabel, themeWhatLivesHere,
+          themeFriction, giftCard, giftLabel, giftText, amplifiersSection,
+          amplifierRow, amplifierPip, amplifierText.
+
+          VERIFICATION (live preview, Pete user, forum 69dd05eaa..., member Mel):
+          • Header reads "Mel — What happens between you" (subtitle swap
+            confirmed).
+          • Field paragraph renders: "What activates between you is emotional
+            — the door opens faster than usual.  The dominant themes here are
+            emotional reach, shared rhythm, and creative momentum."
+          • WHAT ACTIVATES chip present with body text.
+          • All 4 themes visible: Emotional reach / Shared rhythm /
+            Creative momentum / Power and direction — each with embedded ↳
+            friction line.
+          • ✦ GIFT OF THIS CONNECTION card present: "Mel helps you reach
+            emotional depth you'd normally protect — and that depth is what
+            makes this connection worth tending."
+          • WHY THE STAKES FEEL HIGHER amplifiers section visible with the
+            north_node line only (juno/vertex correctly null because Pete's
+            chart predates those compute points).
+          • "Why this is so strong" collapsible drawer at the bottom of the
+            modal — untouched legacy proof layer.
+          • No forbidden vocabulary (soulmate/fate/karmic/compatibility) in
+            any rendered string.
+
+          Metro bundled with no warnings or errors.  Pre-existing ESLint P2
+          parser warning on .tsx interfaces persists (unrelated to this
+          change).  Web preview validated via injected Zustand store.
+
+agent_communication:
+    -agent: "main"
+    -message: |
+      Phase 3 frontend renderer complete and verified visually on the live
+      preview with Pete↔Mel.  Layout matches the requested architecture:
+      activation-first opener, themes with embedded friction (not split
+      out), explicit Gift card, amplifiers framed as significance only
+      (not fate), and the existing collapsible proof drawer preserved for
+      technical evidence.
+
+      Old layout remains as a graceful fallback when mapping.field is
+      absent.  Backend contracts are unchanged.  No chart backfill was
+      triggered.  Existing user charts that lack Juno/Vertex simply skip
+      those two amplifier lines silently — the rest of the envelope still
+      renders correctly (Pete↔Mel: north_node fires, juno+vertex null).
+
+      Ready for user review.
