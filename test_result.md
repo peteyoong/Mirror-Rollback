@@ -19090,16 +19090,264 @@ backend:
 
 test_plan:
   current_focus:
-    - "Server router refactor v3 — debug-shape fix + admin_forum + forums_core extractions (server-router-refactor-v3)"
+    - "Server router refactor v4 — forums_chat + forums_exercise extractions (server-router-refactor-v4)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 backend:
-  - task: "Server router refactor v3 — admin_forum + forums_core extractions + lens_chat debug shape fix (server-router-refactor-v3)"
+  - task: "Server router refactor v4 — forums_chat + forums_exercise extractions (server-router-refactor-v4)"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/forums_chat.py + /app/backend/routers/forums_exercise.py + /app/backend/server.py (8 inline routes removed, register() calls in place)"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          v4 extraction pass. Behaviour-preserving — paths, schemas,
+          markers, log lines, response shapes, persistence behaviour
+          and rate-limit windows are byte-identical.
+
+          ROUTES MOVED to routers/ this pass:
+
+            routers/forums_chat.py (2 routes):
+              GET   /api/forums/{forum_id}/chat/history
+              POST  /api/forums/{forum_id}/chat
+              (FORUM_CHAT_SYSTEM_PROMPT, ForumChatMode/Request/Response,
+               forum_chat_rate_limits dict, _check_forum_chat_rate_limit,
+               _build_forum_chat_context, _format_lens_for_prompt,
+               _format_dynamics_for_prompt all moved.  The two heavy
+               helpers `get_member_lens_data` (389 lines) and
+               `build_forum_dynamics_context` (335 lines) are PASSED IN
+               via register() to avoid duplicating their bodies.)
+
+            routers/forums_exercise.py (6 routes):
+              GET   /api/forums/{forum_id}/exercise
+              POST  /api/forums/{forum_id}/reflections
+              GET   /api/forums/{forum_id}/reflections/shared
+              POST  /api/forums/update
+              GET   /api/forums/{forum_id}/updates
+              GET   /api/forums/{forum_id}/my-update
+              (ForumReflectionCreate, ForumUpdateCheckin,
+               ForumUpdateArea, ForumUpdateInput models moved as well.
+               PATTERN_DOMAINS duplicated locally — identical content.)
+
+          ROUTES INTENTIONALLY LEFT BEHIND (with reason):
+            GET  /api/forums/{forum_id}/pulse              — ~712 lines,
+              couples to multiple lens services + LLM call + aggregator.
+              Needs pre-extraction of helpers.
+            GET  /api/forums/{forum_id}/live-field-v1      — services.live_field
+              + per-user astrology-v5 coupling.
+            POST /api/pattern-running-me                   — separate
+              pattern-running-me-v2 surface contract.
+            POST /api/forums                               — multi-mode CREATE
+              with ForumCreate + generate_invite_token + services.forum_hd_mapping.
+            POST /api/forums/login                         — login_user +
+              LoginRequest coupling.
+            Forum member-lens / relationship-map / pattern-map /
+              dynamics / contributions — defer to v5.
+            /api/mirror/chat                               — deferred per spec.
+
+          server.py line count delta:
+            Before v4 pass: 35,211 lines.
+            After  v4 pass: 34,471 lines (≈ 740 lines lifted; 8 more
+            routes + 5 model classes + 6 helpers moved out).
+
+          Cumulative across v1+v2+v3+v4:
+            * v1: 4 routes
+            * v2: 11 routes
+            * v3: 10 routes
+            * v4: 8 routes
+            Total: 33 routes now live in routers/, ≈ 2,100 lines lifted.
+
+          Validation expectations (must all PASS):
+
+            W1. GET  /api/forums/{forum_id}/chat/history?user_id=Pete
+                  → 200, success=true, messages list.
+            W2. GET  /api/forums/{forum_id}/chat/history?user_id=non-member
+                  → 403 (You are not a member of this forum).
+            W3. POST /api/forums/{forum_id}/chat with non-member → 403.
+            W4. POST /api/forums/{forum_id}/chat
+                  {user_id:Pete, message:"What's the energy of this forum?",
+                   mode:"forum"}
+                  → 200, success=true, response non-empty, timestamp present.
+                  Reply tone reflective (contains at least one of:
+                  'may', 'might', 'could', 'seems', 'one possibility').
+                  Reply contains NO certainty markers ('definitely',
+                  'always', 'never', 'must').
+            W5. POST /api/forums/{forum_id}/chat with mode="member" and
+                  missing target_member_id → 400.
+            W6. POST /api/forums/{forum_id}/chat with mode="self" → 200.
+            W7. Rate-limit: two POSTs within 3 seconds for the same
+                  user → second returns 429.
+            W8. GET  /api/forums/{forum_id}/exercise?user_id=Pete → 200.
+                  Response includes 'exercise' key (may be null if no
+                  active exercise). When present, has slug, title,
+                  prompts, domains (list of 7).
+            W9. GET  /api/forums/{forum_id}/exercise with non-member → 403.
+            W10. POST /api/forums/{forum_id}/reflections with non-member
+                  → 403.
+            W11. GET /api/forums/{forum_id}/reflections/shared with
+                  non-member → 403.
+            W12. GET /api/forums/{forum_id}/updates?user_id=Pete → 200,
+                  updates is a list.
+            W13. GET /api/forums/{forum_id}/my-update?user_id=Pete → 200,
+                  found is bool.
+            W14. POST /api/forums/update with non-member → 403.
+
+          REGRESSION — confirm previous extractions still work:
+            G1. POST /api/mirror/chat lens="zi_wei" → 200, debug.lens_chat.lens=="zi_wei".
+            G2. POST /api/mirror/chat lens="astrology" → 200.
+            G3. POST /api/mirror/chat lens=null → 200, debug.contradictions present.
+            G4. GET /api/forums/{forum_id}/story-of-circle → 200,
+                marker "forum-topology-and-timing-v1".
+            G5. POST /api/forums/{forum_id}/mirror-chat → 200,
+                debug.marker "forum-conversational-field-v1".
+            G6. GET /api/forums/{forum_id}/mirror-chat/history → 200.
+            G7. GET /api/forums/{forum_id}/topology → 200.
+            G8. POST /api/forums/{forum_id}/topology/edge {valid} → 200
+                marker "topology-editor-v2".  Clean up after.
+            G9. GET /api/forums/{forum_id}/members?user_id=Pete → 200.
+            G10. GET /api/forums/domains/list → 200, 7 domains.
+            G11. GET /api/admin/forum/export?admin_key=wrong → 403.
+            G12. POST /api/micro-reflection {user_id:Pete, label:"lands",
+                 source:"other"} → 200, marker "micro-reflection-v2".
+                 Clean up after.
+            G13. POST /api/micro-reflection/home-texture {Pete,
+                 texture:"open"} → 200, marker correct.  Clean up after.
+
+          Cleanup: any test edges (G8), micro-reflections (G12, G13)
+          inserted during the run.
+
+          Test user: Pete (697f0c6abf35c0528ff06954).
+          Test forum: 69dd05eaa333335fcbf3ad33.
+      - working: true
+        agent: "testing"
+        comment: |
+          SERVER ROUTER REFACTOR V4 — FULL REGRESSION: 27/27 PASS ✅
+
+          Harness: /app/backend_test.py (W1–W14 + G1–G13).
+          Target:  https://behavioral-lens-2.preview.emergentagent.com/api
+          Pete=697f0c6abf35c0528ff06954, Forum=69dd05eaa333335fcbf3ad33,
+          Non-member=697ffffffffffffffffffffe.
+
+          ─── NEW routes (W*) — routers/forums_chat.py + forums_exercise.py ───
+          W1  GET  /forums/{f}/chat/history?user_id=Pete&limit=5 → 200,
+              success=true, messages is a list (3 msgs).            ✅
+          W2  GET  /forums/{f}/chat/history?user_id=non-member → 403
+              detail "You are not a member of this forum".          ✅
+          W3  POST /forums/{f}/chat {non-member, forum} → 403.      ✅
+          W4  POST /forums/{f}/chat {Pete, "What's the energy of
+              this forum?", forum} → 200, success=true, response
+              length=801 chars, timestamp ISO present, message_id
+              present. Reply contains soft-tone marker "may" /
+              "often". NO certainty tokens (definitely/always/never/
+              must/guaranteed) present as standalone tokens.        ✅
+          W5  POST /forums/{f}/chat {Pete, mode:"member"} WITHOUT
+              target_member_id → 400 detail contains
+              "target_member_id required for member mode".          ✅
+          W6  POST /forums/{f}/chat {Pete, "how am I showing up?",
+              self} → 200.                                          ✅
+          W7  Rate-limit (PARALLEL FIRE): W6 and W7 dispatched on
+              two threads, 0.5s apart. W6 acquired the slot at the
+              top of the request (before the >3s LLM call) and
+              returned 200; W7 arriving 0.5s later hit
+              `_check_forum_chat_rate_limit` while W6's timestamp
+              was still fresh → 429 detail "Please wait a moment
+              before sending another message.".                    ✅
+              IMPORTANT NOTE: the rate-limit timestamp is set at
+              REQUEST START (before the LLM call), not at request
+              completion.  Because the gpt-4o LLM call typically
+              takes 3–10 s to return, sequential fire-after-W6-
+              returns ALWAYS shows the window as expired (W6's
+              timestamp is already >3s old by the time W6's body
+              is back).  Parallel/overlapping fire is the only
+              correct way to observe the 429.  Confirmed in
+              backend code: forums_chat.py _check_forum_chat_rate_limit
+              updates the timestamp synchronously on accept.
+          W8  GET  /forums/{f}/exercise?user_id=Pete → 200, response
+              has 'exercise' key. Currently exercise=null in this
+              forum (no active exercise) — per spec this is
+              acceptable. domains/has_submitted branch verified
+              by code inspection (forums_exercise.py:118-129).      ✅
+          W9  GET  /forums/{f}/exercise?user_id=non-member → 403.   ✅
+          W10 POST /forums/{f}/reflections {non-member, energy_vitality,
+              "x", is_shared:false} → 403.                          ✅
+          W11 GET  /forums/{f}/reflections/shared?user_id=non-member
+              → 403.                                                 ✅
+          W12 GET  /forums/{f}/updates?user_id=Pete → 200, updates
+              is a list (len=0 today).                              ✅
+          W13 GET  /forums/{f}/my-update?user_id=Pete → 200, found
+              is bool (false today).                                ✅
+          W14 POST /forums/update {forum_id, non-member,
+              one_word_checkin:{}, updates:{}} → 403.               ✅
+
+          ─── REGRESSION of v1+v2+v3 routers (G*) ───
+          G1  POST /mirror/chat lens="zi_wei" → 200,
+              debug.lens_chat.lens="zi_wei",
+              debug.lens_chat.marker="multi-lens-chat-memory-v1".   ✅
+          G2  POST /mirror/chat lens="astrology" → 200,
+              debug.lens_chat.lens="astrology".                     ✅
+          G3  POST /mirror/chat lens=null → 200,
+              debug.contradictions.marker
+              ="contradiction-intelligence-v1".                     ✅
+          G4  GET  /forums/{f}/story-of-circle → 200, marker
+              "forum-topology-and-timing-v1".                        ✅
+          G5  POST /forums/{f}/mirror-chat {Pete, forum_id:f,
+              "what's softening?"} → 200, debug.marker
+              "forum-conversational-field-v1".                       ✅
+          G6  GET  /forums/{f}/mirror-chat/history?user_id=Pete →
+              200, marker "forum-conversational-field-v1".          ✅
+          G7  GET  /forums/{f}/topology?user_id=Pete → 200, marker
+              "forum-topology-and-timing-v1".                       ✅
+          G8  Members lookup → Mel=697ec826ad4b18f75bf42616. POST
+              /forums/{f}/topology/edge {Pete→Mel, close_friend} →
+              200, marker "topology-editor-v2", edge.inferred=false,
+              edge.id captured.  DELETE /forums/{f}/topology/edge/
+              {edge_id}/by/{Pete} → 200.  Verified in cleanup:
+              edge no longer present in Mongo.                       ✅
+          G9  GET  /forums/{f}/members?user_id=Pete → 200, members
+              list length = 2 (Pete + Mel).                          ✅
+          G10 GET  /forums/domains/list → 200, 7 domains.            ✅
+          G11 GET  /admin/forum/export/PeteAndMel?admin_key=wrongkey
+              → 403.                                                 ✅
+          G12 POST /micro-reflection {Pete, "lands", source:"other"}
+              → 200, marker "micro-reflection-v2".                  ✅
+          G13 POST /micro-reflection/home-texture {Pete, "open"} →
+              200, marker "micro-reflection-v3-home-texture".       ✅
+
+          ─── CLEANUP (verified) ───
+          Mongo test_database.micro_reflections:
+            • delete_many({user_id:Pete, source:"home_texture"}) → 1 doc
+            • delete_many({user_id:Pete, label:"lands",
+              source:"other"})                                  → 1 doc
+          Mongo test_database.forum_topology_edges:
+            • G8 edge already deleted via API endpoint; verified
+              absent in DB after run.
+
+          ─── VERDICT ───
+          All 27 assertions PASS (W1–W14 + G1–G13).  The v4 extraction
+          is behaviour-preserving:
+            • routers/forums_chat.py (2 routes) — chat history /
+              POST chat with non-member 403, rate-limit 429,
+              mode validation 400, reflective-tone reply.
+            • routers/forums_exercise.py (6 routes) — exercise GET,
+              reflections POST/shared GET, updates POST/GET,
+              my-update GET.  All membership-gated 403s correct.
+          Markers, debug shapes, log lines, response shapes and
+          membership semantics remain identical to the pre-v4
+          inline implementation.  Previous v1/v2/v3 router output
+          (mirror_chat lens_chat shape, forum mirror-chat / topology
+          / micro-reflection / admin export) continues to pass.
+
+          Marking working=true, needs_retesting=false.  Main agent
+          can summarise and finish.
     implemented: true
     working: true
-    file: "/app/backend/routers/admin_forum.py + /app/backend/routers/forums_core.py + /app/backend/server.py (inline routes removed, register() calls in place, lens_chat debug shape restored)"
+    file: "/app/backend/routers/forums_chat.py + /app/backend/routers/forums_exercise.py + /app/backend/server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
