@@ -122,6 +122,31 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Build marker for refactor tracking
+SERVER_REFACTOR_MARKER = "server-router-refactor-v6"
+
+# ---------------------------------------------------------------------------
+# Server router refactor v6 — shared forum lens helpers
+# These functions used to live inline in server.py (~700 lines combined).
+# They are now in services/forum_lens_helpers.py and shared by:
+#   • routers/forums_chat.py
+#   • routers/forums_intelligence.py
+#   • forum mirror-chat / story-of-circle routes (still inline)
+#   • future forum field routes
+# We bind db + logger here so call sites can keep the original
+# single-arg signature `get_member_lens_data(user_id)`.
+# The astrology auto-migration callback is resolved lazily by the
+# helper module to avoid a circular import at module load time.
+# ---------------------------------------------------------------------------
+from services import forum_lens_helpers as _forum_lens_helpers
+_forum_lens_helpers.init(db, logger)
+from services.forum_lens_helpers import (
+    get_member_lens_data,
+    build_forum_dynamics_context,
+    format_lens_for_prompt,
+    format_dynamics_for_prompt,
+)
+
 # Path to the Expo web build - try multiple locations
 WEB_BUILD_PATH = Path(__file__).parent.parent / "frontend" / "dist"
 # Fallback paths in case the deployment structure is different
@@ -29175,589 +29200,30 @@ async def get_forum_pulse(forum_id: str, user_id: str):
 
 # =====================================================================
 # FORUM MEMBER LENS DATA & DYNAMICS CONTEXT
-# Extended data models for Forum Chat and Forum Dynamics
+# Hoisted into services/forum_lens_helpers.py — see top-of-file import
+# block (server-router-refactor-v6).  `get_member_lens_data` and
+# `build_forum_dynamics_context` are still available under the same
+# names via the module-level import, so existing call sites in this
+# file and in routers/* continue to work unchanged.
 # =====================================================================
 
-async def get_member_lens_data(user_id: str) -> dict:
-    """
-    Build the full forum_member_lens_data object for a user.
-    Aggregates data from existing user profile sources (charts, enneagram, patterns).
-    Returns None values for missing fields - never fails.
-    """
-    lens_data = {
-        "user_id": user_id,
-        "name": None,
-        "human_design": {
-            "type": None,
-            "strategy": None,
-            "authority": None,
-            "profile": None,
-            "definition": None,
-            "incarnation_cross": None,
-            "centers_defined": [],
-            "centers_undefined": [],
-            "active_gates": [],
-            "active_channels": []  # Will be formatted as strings like "37-40"
-        },
-        "enneagram": {
-            "core_type": None,
-            "wing": None,
-            "center": None,
-            "hornevian_group": None,
-            "harmonic_group": None,
-            "growth_direction": None,
-            "stress_direction": None
-        },
-        "astrology": {
-            "sun": None,
-            "moon": None,
-            "rising": None,
-            "dominant_element": None,
-            "dominant_modality": None
-        },
-        "bazi": {
-            "day_master_element": None,      # e.g. "Metal"
-            "day_master_polarity": None,     # e.g. "Yin"
-            "day_master_stem": None,         # e.g. "Xin"
-            "day_master_strength": None,     # e.g. "strong"
-            "structure": None,               # top-level structure label
-            "year_animal": None,
-            "month_animal": None,
-            "day_animal": None,
-            "hour_animal": None,
-            "elements": None                 # dict of element counts
-        },
-        "numerology": {
-            "life_path": None,
-            "expression": None,
-            "soul_urge": None,
-            "personality": None
-        },
-        "patterns": {
-            "active_domains": [],
-            "recurring_domains": []
-        },
-        # Compute status — frontend can use this to surface "missing birth data"
-        # vs "compute failed" vs "ok" clearly instead of showing empty lenses.
-        "compute_status": {
-            "has_birth_data": False,
-            "astrology_ok": False,
-            "bazi_ok": False,
-            "astrology_recomputed": False,
-            "bazi_recomputed": False,
-            "errors": []
-        }
-    }
-    
-    try:
-        # Get user basic info
-        user = await db.users.find_one({"_id": ObjectId(user_id)})
-        if user:
-            lens_data["name"] = user.get("name", "Anonymous")
-            # Detect birth data presence for compute_status
-            has_birth_data = bool(
-                user.get("birth_date")
-                and user.get("birth_time")
-                and (user.get("birth_location", {}).get("latitude") is not None
-                     or user.get("birth_location", {}).get("lat") is not None)
-            )
-            lens_data["compute_status"]["has_birth_data"] = has_birth_data
 
-        # If user has birth data, ensure astrology chart is fresh (auto-migrates
-        # legacy / corrupted chart with empty planets).
-        if user and lens_data["compute_status"]["has_birth_data"]:
-            try:
-                migrated, status_msg, updated = await check_and_migrate_astrology_chart(user_id)
-                if migrated:
-                    logger.info(f"[MemberLens] Astrology migration performed for {user_id[:8]}: {status_msg}")
-                    lens_data["compute_status"]["astrology_recomputed"] = True
-            except Exception as _mig_e:
-                logger.warning(f"[MemberLens] Astrology auto-migration skipped for {user_id[:8]}: {_mig_e}")
-                lens_data["compute_status"]["errors"].append(f"astrology_migration: {_mig_e}")
-
-        # Get chart data (contains astrology, human_design, numerology)
-        chart = await db.charts.find_one({"user_id": user_id})
-        if chart:
-            # === Human Design ===
-            hd = chart.get("human_design", {})
-            if hd:
-                lens_data["human_design"]["type"] = hd.get("type") if hd.get("type") != "Unknown" else None
-                lens_data["human_design"]["strategy"] = hd.get("strategy") if hd.get("strategy") != "Unknown" else None
-                lens_data["human_design"]["authority"] = hd.get("authority") if hd.get("authority") != "Unknown" else None
-                lens_data["human_design"]["profile"] = hd.get("profile") if hd.get("profile") != "Unknown" else None
-                lens_data["human_design"]["definition"] = hd.get("definition") if hd.get("definition") != "Unknown" else None
-                
-                # Incarnation cross - handle both dict and string formats
-                ic = hd.get("incarnation_cross")
-                if isinstance(ic, dict):
-                    lens_data["human_design"]["incarnation_cross"] = ic.get("name", str(ic))
-                elif ic and ic != "Unknown":
-                    lens_data["human_design"]["incarnation_cross"] = str(ic)
-                
-                # Centers
-                lens_data["human_design"]["centers_defined"] = hd.get("defined_centers", [])
-                # Calculate undefined centers
-                all_centers = ["Head", "Ajna", "Throat", "G", "Heart", "Sacral", "Solar Plexus", "Spleen", "Root"]
-                defined = set(hd.get("defined_centers", []))
-                lens_data["human_design"]["centers_undefined"] = [c for c in all_centers if c not in defined]
-                
-                # Gates and channels
-                lens_data["human_design"]["active_gates"] = hd.get("all_gates", hd.get("gates", []))
-                
-                # Format channels as readable strings (e.g., "37-40")
-                raw_channels = hd.get("defined_channels", [])
-                formatted_channels = []
-                for ch in raw_channels:
-                    if isinstance(ch, dict):
-                        # Channel is an object with gate1, gate2
-                        g1 = ch.get("gate1")
-                        g2 = ch.get("gate2")
-                        if g1 and g2:
-                            formatted_channels.append(f"{g1}-{g2}")
-                    elif isinstance(ch, str):
-                        formatted_channels.append(ch)
-                    elif isinstance(ch, (list, tuple)) and len(ch) >= 2:
-                        formatted_channels.append(f"{ch[0]}-{ch[1]}")
-                lens_data["human_design"]["active_channels"] = formatted_channels
-            
-            # === Astrology ===
-            astro = chart.get("astrology", {})
-            if astro:
-                planets = astro.get("planets", {}) or {}
-
-                def _get_planet(pk: str):
-                    """Fetch planet entry by name, case-insensitive. Supports
-                    legacy lowercase ('sun') and canonical title-case ('Sun')."""
-                    if not isinstance(planets, dict):
-                        return {}
-                    if pk in planets:
-                        return planets[pk]
-                    # Try title-case and lower-case variants
-                    for candidate in (pk.title(), pk.lower(), pk.upper()):
-                        if candidate in planets:
-                            return planets[candidate]
-                    return {}
-
-                # Sun
-                sun = _get_planet("sun")
-                if isinstance(sun, dict):
-                    lens_data["astrology"]["sun"] = sun.get("sign")
-                elif isinstance(sun, str):
-                    lens_data["astrology"]["sun"] = sun
-
-                # Moon
-                moon = _get_planet("moon")
-                if isinstance(moon, dict):
-                    lens_data["astrology"]["moon"] = moon.get("sign")
-                elif isinstance(moon, str):
-                    lens_data["astrology"]["moon"] = moon
-                
-                # Rising (Ascendant)
-                houses = astro.get("houses", {})
-                if houses:
-                    rising_sign = houses.get("ascendant_sign")
-                    if not rising_sign:
-                        # If ascendant_sign not available, try to derive from degree
-                        asc_degree = houses.get("ascendant")
-                        if isinstance(asc_degree, (int, float)):
-                            # Convert degree to zodiac sign
-                            signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-                                     "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
-                            sign_index = int(asc_degree / 30) % 12
-                            rising_sign = signs[sign_index]
-                    lens_data["astrology"]["rising"] = rising_sign
-                
-                # Calculate dominant element and modality from planets
-                element_counts = {"Fire": 0, "Earth": 0, "Air": 0, "Water": 0}
-                modality_counts = {"Cardinal": 0, "Fixed": 0, "Mutable": 0}
-                
-                sign_elements = {
-                    "Aries": "Fire", "Taurus": "Earth", "Gemini": "Air", "Cancer": "Water",
-                    "Leo": "Fire", "Virgo": "Earth", "Libra": "Air", "Scorpio": "Water",
-                    "Sagittarius": "Fire", "Capricorn": "Earth", "Aquarius": "Air", "Pisces": "Water"
-                }
-                sign_modalities = {
-                    "Aries": "Cardinal", "Taurus": "Fixed", "Gemini": "Mutable", "Cancer": "Cardinal",
-                    "Leo": "Fixed", "Virgo": "Mutable", "Libra": "Cardinal", "Scorpio": "Fixed",
-                    "Sagittarius": "Mutable", "Capricorn": "Cardinal", "Aquarius": "Fixed", "Pisces": "Mutable"
-                }
-                
-                for planet_name, planet_data in planets.items():
-                    sign = planet_data.get("sign") if isinstance(planet_data, dict) else planet_data
-                    if sign and sign in sign_elements:
-                        element_counts[sign_elements[sign]] += 1
-                        modality_counts[sign_modalities[sign]] += 1
-                
-                if any(element_counts.values()):
-                    lens_data["astrology"]["dominant_element"] = max(element_counts.items(), key=lambda x: x[1])[0]
-                if any(modality_counts.values()):
-                    lens_data["astrology"]["dominant_modality"] = max(modality_counts.items(), key=lambda x: x[1])[0]
-
-                # Mark astrology as OK if we ended up with any of sun/moon/rising
-                if any([lens_data["astrology"]["sun"], lens_data["astrology"]["moon"], lens_data["astrology"]["rising"]]):
-                    lens_data["compute_status"]["astrology_ok"] = True
-                else:
-                    logger.warning(
-                        f"[MemberLens] Astrology yielded no sun/moon/rising for {user_id[:8]} "
-                        f"(planets populated={bool(planets)}). Chart may still be corrupted."
-                    )
-                    lens_data["compute_status"]["errors"].append("astrology_empty_after_extract")
-
-            # === BaZi ===
-            # Prefer persisted chart.bazi. If missing but user has birth data,
-            # compute on-demand via bazi_engine_v2 and persist.
-            bazi = chart.get("bazi") or {}
-            if not bazi and lens_data["compute_status"]["has_birth_data"]:
-                try:
-                    from services.bazi_engine_v2 import compute_bazi_chart_v2
-                    bl = user.get("birth_location", {})
-                    lat = bl.get("latitude", bl.get("lat"))
-                    lon = bl.get("longitude", bl.get("lng", bl.get("lon")))
-                    bazi = compute_bazi_chart_v2(
-                        birth_date=str(user.get("birth_date")),
-                        birth_time=str(user.get("birth_time") or "12:00"),
-                        birth_place=bl.get("city", "Unknown"),
-                        latitude=lat,
-                        longitude=lon,
-                        timezone_str=user.get("timezone") or bl.get("timezone") or "UTC",
-                    ) or {}
-                    if bazi:
-                        await db.charts.update_one(
-                            {"user_id": user_id},
-                            {"$set": {"bazi": bazi, "bazi_updated_at": datetime.now(timezone.utc)}},
-                            upsert=True,
-                        )
-                        lens_data["compute_status"]["bazi_recomputed"] = True
-                        logger.info(f"[MemberLens] BaZi computed on-demand for {user_id[:8]}")
-                except Exception as _bazi_e:
-                    logger.warning(f"[MemberLens] BaZi compute failed for {user_id[:8]}: {_bazi_e}")
-                    lens_data["compute_status"]["errors"].append(f"bazi_compute_failed: {_bazi_e}")
-
-            if bazi:
-                dm = bazi.get("day_master", {}) or {}
-                pillars = bazi.get("pillars", {}) or {}
-
-                lens_data["bazi"]["day_master_element"] = dm.get("element")
-                lens_data["bazi"]["day_master_polarity"] = dm.get("polarity")
-                lens_data["bazi"]["day_master_stem"] = dm.get("stem_pinyin") or dm.get("stem")
-                lens_data["bazi"]["day_master_strength"] = dm.get("strength")
-                lens_data["bazi"]["structure"] = (bazi.get("structure_summary") or {}).get("label") or bazi.get("structure")
-                lens_data["bazi"]["year_animal"] = (pillars.get("year") or {}).get("animal_name")
-                lens_data["bazi"]["month_animal"] = (pillars.get("month") or {}).get("animal_name")
-                lens_data["bazi"]["day_animal"] = (pillars.get("day") or {}).get("animal_name")
-                lens_data["bazi"]["hour_animal"] = (pillars.get("hour") or {}).get("animal_name")
-                lens_data["bazi"]["elements"] = bazi.get("elements")
-
-                if lens_data["bazi"]["day_master_element"]:
-                    lens_data["compute_status"]["bazi_ok"] = True
-                else:
-                    logger.warning(f"[MemberLens] BaZi present but day_master.element missing for {user_id[:8]}")
-                    lens_data["compute_status"]["errors"].append("bazi_day_master_missing")
-            elif lens_data["compute_status"]["has_birth_data"]:
-                # Birth data present but BaZi still empty after attempted compute
-                logger.warning(f"[MemberLens] BaZi unavailable for {user_id[:8]} despite birth data")
-                lens_data["compute_status"]["errors"].append("bazi_unavailable")
-            
-            # === Numerology ===
-            numerology = chart.get("numerology", {})
-            if numerology:
-                lens_data["numerology"]["life_path"] = numerology.get("life_path")
-                lens_data["numerology"]["expression"] = numerology.get("expression")
-                lens_data["numerology"]["soul_urge"] = numerology.get("soul_urge")
-                lens_data["numerology"]["personality"] = numerology.get("personality")
-        
-        # === Enneagram ===
-        # CANONICAL RESOLUTION ORDER (see services/enneagram_source.py):
-        #   1. user.enneagram_type          (single source of truth going forward)
-        #   2. user.enneagram.inferred_core
-        #   3. user.enneagram.core
-        #   4. legacy scalar user.enneagram
-        #   5. enneagram_results collection (wing + assessment metadata only
-        #      when the user doc has nothing)
-        #
-        # Previously this block read ONLY from `db.enneagram_results`, which
-        # caused Forum Dynamics → Enneagram Diversity to drift whenever the
-        # user doc was updated but the collection wasn't. That drift is the
-        # root cause of the reported mismatch.
-        from services.enneagram_source import get_user_enneagram
-        core_type = get_user_enneagram(user) if user else None
-        wing_value = None
-
-        enneagram_data = await db.enneagram_results.find_one({"user_id": user_id})
-        if enneagram_data:
-            # Prefer user-doc canonical core when present; otherwise fall
-            # back to the stored assessment result.
-            if core_type is None:
-                from services.enneagram_source import _normalize_core
-                core_type = _normalize_core(
-                    enneagram_data.get("core_type") or enneagram_data.get("inferred_core")
-                )
-            # Wing always comes from the assessment result (we don't store
-            # a canonical wing on the user doc yet).
-            wing_value = enneagram_data.get("wing") or enneagram_data.get("inferred_wing")
-
-            # Convert wing to int if it's not "balanced"
-            if isinstance(wing_value, str) and wing_value != "balanced":
-                try:
-                    wing_value = int(wing_value)
-                except ValueError:
-                    wing_value = None
-            elif wing_value == "balanced":
-                wing_value = None
-
-        if core_type is not None:
-            lens_data["enneagram"]["core_type"] = core_type
-            lens_data["enneagram"]["wing"] = wing_value
-            
-            # Add Enneagram metadata based on core type
-            if core_type:
-                # Centers (Body/Heart/Head)
-                centers_map = {
-                    8: "Body", 9: "Body", 1: "Body",
-                    2: "Heart", 3: "Heart", 4: "Heart",
-                    5: "Head", 6: "Head", 7: "Head"
-                }
-                # Hornevian Groups (Assertive/Compliant/Withdrawn)
-                hornevian_map = {
-                    3: "Assertive", 7: "Assertive", 8: "Assertive",
-                    1: "Compliant", 2: "Compliant", 6: "Compliant",
-                    4: "Withdrawn", 5: "Withdrawn", 9: "Withdrawn"
-                }
-                # Harmonic Groups (Positive/Competency/Reactive)
-                harmonic_map = {
-                    2: "Positive", 7: "Positive", 9: "Positive",
-                    1: "Competency", 3: "Competency", 5: "Competency",
-                    4: "Reactive", 6: "Reactive", 8: "Reactive"
-                }
-                # Growth and Stress directions
-                growth_map = {1: 7, 2: 4, 3: 6, 4: 1, 5: 8, 6: 9, 7: 5, 8: 2, 9: 3}
-                stress_map = {1: 4, 2: 8, 3: 9, 4: 2, 5: 7, 6: 3, 7: 1, 8: 5, 9: 6}
-                
-                lens_data["enneagram"]["center"] = centers_map.get(core_type)
-                lens_data["enneagram"]["hornevian_group"] = hornevian_map.get(core_type)
-                lens_data["enneagram"]["harmonic_group"] = harmonic_map.get(core_type)
-                lens_data["enneagram"]["growth_direction"] = growth_map.get(core_type)
-                lens_data["enneagram"]["stress_direction"] = stress_map.get(core_type)
-        
-        # === Patterns ===
-        pattern_cache = await db.pattern_cache.find_one({
-            "user_id": user_id,
-            "cache_type": "pattern_graph"
-        })
-        if pattern_cache and pattern_cache.get("categories"):
-            categories = pattern_cache.get("categories", [])
-            active_domains = []
-            recurring_domains = []
-            
-            for cat in categories:
-                signal = cat.get("signal_strength", "")
-                domain_name = cat.get("category_name")
-                if domain_name:
-                    if signal == "active":
-                        active_domains.append(domain_name)
-                    elif signal in ["emerging", "recurring"]:
-                        recurring_domains.append(domain_name)
-            
-            lens_data["patterns"]["active_domains"] = active_domains
-            lens_data["patterns"]["recurring_domains"] = recurring_domains
-    
-    except Exception as e:
-        logger.warning(f"[MemberLensData] Error building lens data for {user_id}: {e}")
-    
-    return lens_data
-
-
-def build_forum_dynamics_context(members_lens_data: List[dict]) -> dict:
-    """
-    Build a structured context object for Forum Chat and Forum Dynamics.
-    Aggregates member lens data into distributions and summaries.
-    
-    Args:
-        members_lens_data: List of forum_member_lens_data objects
-    
-    Returns:
-        Structured context object for AI interpretation
-    """
-    context = {
-        "forum_members": members_lens_data,
-        "member_count": len(members_lens_data),
-        
-        # Distributions
-        "hd_type_distribution": {},
-        "hd_authority_distribution": {},
-        "hd_profile_distribution": {},
-        "enneagram_distribution": {},
-        "astrology_elements": {},
-        "astrology_modalities": {},
-        "numerology_life_paths": {},
-        
-        # Active patterns across forum
-        "active_pattern_domains": [],
-        
-        # Center coverage (for channel/gate dynamics later)
-        "defined_centers_coverage": {},
-        "undefined_centers_coverage": {}
-    }
-    
-    pattern_domain_counts = {}
-    
-    for member in members_lens_data:
-        # HD Type distribution
-        hd = member.get("human_design", {})
-        if hd.get("type"):
-            hd_type = hd["type"]
-            context["hd_type_distribution"][hd_type] = context["hd_type_distribution"].get(hd_type, 0) + 1
-        
-        # HD Authority distribution
-        if hd.get("authority"):
-            auth = hd["authority"]
-            context["hd_authority_distribution"][auth] = context["hd_authority_distribution"].get(auth, 0) + 1
-        
-        # HD Profile distribution
-        if hd.get("profile"):
-            profile = hd["profile"]
-            context["hd_profile_distribution"][profile] = context["hd_profile_distribution"].get(profile, 0) + 1
-        
-        # Center coverage
-        for center in hd.get("centers_defined", []):
-            context["defined_centers_coverage"][center] = context["defined_centers_coverage"].get(center, 0) + 1
-        for center in hd.get("centers_undefined", []):
-            context["undefined_centers_coverage"][center] = context["undefined_centers_coverage"].get(center, 0) + 1
-        
-        # Enneagram distribution
-        enneagram = member.get("enneagram", {})
-        if enneagram.get("core_type"):
-            etype = enneagram["core_type"]
-            context["enneagram_distribution"][etype] = context["enneagram_distribution"].get(etype, 0) + 1
-        
-        # Astrology elements
-        astro = member.get("astrology", {})
-        if astro.get("dominant_element"):
-            elem = astro["dominant_element"]
-            context["astrology_elements"][elem] = context["astrology_elements"].get(elem, 0) + 1
-        if astro.get("dominant_modality"):
-            mod = astro["dominant_modality"]
-            context["astrology_modalities"][mod] = context["astrology_modalities"].get(mod, 0) + 1
-        
-        # Numerology life paths - handle both simple numbers and dict format
-        numerology = member.get("numerology", {})
-        if numerology.get("life_path"):
-            lp = numerology["life_path"]
-            # Handle dict format (e.g., {"number": 11, "description": "..."})
-            if isinstance(lp, dict):
-                lp = lp.get("number")
-            if lp:
-                context["numerology_life_paths"][lp] = context["numerology_life_paths"].get(lp, 0) + 1
-        
-        # Pattern domains
-        patterns = member.get("patterns", {})
-        for domain in patterns.get("active_domains", []):
-            pattern_domain_counts[domain] = pattern_domain_counts.get(domain, 0) + 1
-    
-    # Sort pattern domains by count
-    context["active_pattern_domains"] = sorted(
-        [{"domain": k, "count": v} for k, v in pattern_domain_counts.items()],
-        key=lambda x: -x["count"]
-    )
-    
-    return context
-
-
-@api_router.get("/forums/{forum_id}/member-lens/{member_user_id}")
-async def get_forum_member_lens(forum_id: str, member_user_id: str, user_id: str):
-    """
-    Get detailed lens data for a specific forum member.
-    Used by Member Lens Profile modal.
-    """
-    logger.info(f"[ForumMemberLens] Getting lens data for member {member_user_id[:8]}... in forum {forum_id}")
-    
-    if not ObjectId.is_valid(forum_id):
-        raise HTTPException(status_code=400, detail="Invalid forum_id format")
-    
-    # Check requester membership
-    membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": user_id,
-        "status": "active"
-    })
-    
-    if not membership:
-        raise HTTPException(status_code=403, detail="You are not a member of this forum")
-    
-    # Check target member is also in forum
-    target_membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": member_user_id,
-        "status": "active"
-    })
-    
-    if not target_membership:
-        raise HTTPException(status_code=404, detail="Member not found in this forum")
-    
-    # Get lens data
-    lens_data = await get_member_lens_data(member_user_id)
-    
-    return {
-        "success": True,
-        "lens_data": lens_data
-    }
-
-
-# =============================================================================
-# FORUM HD MAPPING - "How they map to me"
-# =============================================================================
-@api_router.get("/forums/{forum_id}/member-mappings")
-@api_router.get("/forums/{forum_id}/relationship-map")
-async def get_forum_member_mappings(forum_id: str, user_id: str):
-    """
-    Get "How they map to me" - HD channel-completion based mappings
-    for all forum members relative to the current user.
-    
-    Returns relational interpretations, NOT raw HD data.
-    Each member mapping includes:
-    - headline (scannable)
-    - what_to_watch (short watch-out)
-    - description (detail view)
-    - what_works (detail view)
-    - why_this_happens (HD mechanics, hidden unless expanded)
-    """
-    logger.info(f"[ForumMapping] Getting member mappings for user {user_id[:8]}... in forum {forum_id}")
-    
-    if not ObjectId.is_valid(forum_id):
-        raise HTTPException(status_code=400, detail="Invalid forum_id format")
-    
-    # Check membership
-    membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": user_id,
-        "status": "active"
-    })
-    
-    if not membership:
-        raise HTTPException(status_code=403, detail="You are not a member of this forum")
-    
-    try:
-        from services.forum_hd_mapping import get_forum_member_mappings
-        
-        mappings = await get_forum_member_mappings(
-            db=db,
-            forum_id=forum_id,
-            current_user_id=user_id
-        )
-        
-        return {
-            "success": True,
-            "mappings": mappings,
-            "current_user_id": user_id,
-        }
-        
-    except Exception as e:
-        logger.error(f"[ForumMapping] Error: {e}")
-        return {
-            "success": False,
-            "mappings": [],
-            "error": str(e)
-        }
+# =====================================================================
+# FORUM INTELLIGENCE routes — moved to routers/forums_intelligence.py
+# (server-router-refactor-v6 — behaviour preserving)
+# Routes attached:
+#   GET   /api/forums/{forum_id}/member-lens/{member_user_id}
+#   GET   /api/forums/{forum_id}/member-mappings
+#   GET   /api/forums/{forum_id}/relationship-map
+#   GET   /api/forums/{forum_id}/contributions
+#   GET   /api/forums/{forum_id}/dynamics-context
+#   POST  /api/forums/{forum_id}/pairwise-dynamics
+#   GET   /api/forums/{forum_id}/pattern-map
+# Shared lens helpers come from services/forum_lens_helpers.
+# /forums/{forum_id}/member-summary remains inline for now.
+# =====================================================================
+from routers import forums_intelligence as _forums_intelligence_router
+_forums_intelligence_router.register(api_router, db, logger, EMERGENT_LLM_KEY)
 
 
 @api_router.get("/forums/{forum_id}/member-summary/{member_id}")
@@ -29802,100 +29268,6 @@ async def get_member_summary_endpoint(forum_id: str, member_id: str, user_id: st
 
 
 
-@api_router.get("/forums/{forum_id}/contributions")
-async def get_forum_contributions_endpoint(forum_id: str, user_id: str):
-    """
-    "What Each Person Brings" — compact per-member contribution cards.
-
-    Returns, for every active member, 2–3 uppercase attribute chips plus a
-    single-line primary label derived deterministically from the member's
-    Human Design profile (type + profile + prominent defined centers).
-
-    The requester must be an active member of the forum.
-    """
-    logger.info(f"[ForumContributions] forum={forum_id} by user={user_id[:8]}...")
-
-    if not ObjectId.is_valid(forum_id):
-        raise HTTPException(status_code=400, detail="Invalid forum_id format")
-    if not ObjectId.is_valid(user_id):
-        raise HTTPException(status_code=400, detail="Invalid user_id format")
-
-    membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": user_id,
-        "status": "active",
-    })
-    if not membership:
-        raise HTTPException(status_code=403, detail="You are not a member of this forum")
-
-    try:
-        from services.forum_contributions import get_forum_contributions
-        contributions = await get_forum_contributions(db=db, forum_id=forum_id)
-        return JSONResponse(
-            content={
-                "success": True,
-                "contributions": contributions,
-            },
-            headers={
-                "Cache-Control": "no-store, max-age=0",
-                "CDN-Cache-Control": "no-store",
-            },
-        )
-    except Exception as e:
-        logger.error(f"[ForumContributions] Error: {e}", exc_info=True)
-        return JSONResponse(
-            content={"success": False, "contributions": [], "error": str(e)},
-            headers={"Cache-Control": "no-store, max-age=0"},
-        )
-
-
-
-@api_router.get("/forums/{forum_id}/dynamics-context")
-async def get_forum_dynamics_context(forum_id: str, user_id: str):
-    """
-    Get the aggregated dynamics context for a forum.
-    Returns structured data for Forum Chat and future dynamics features.
-    """
-    logger.info(f"[ForumDynamics] Building dynamics context for forum {forum_id}")
-    
-    if not ObjectId.is_valid(forum_id):
-        raise HTTPException(status_code=400, detail="Invalid forum_id format")
-    
-    # Check membership
-    membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": user_id,
-        "status": "active"
-    })
-    
-    if not membership:
-        raise HTTPException(status_code=403, detail="You are not a member of this forum")
-    
-    # Get all active member IDs
-    members_cursor = db.forum_members.find({
-        "forum_id": forum_id,
-        "status": "active"
-    })
-    
-    member_user_ids = []
-    async for m in members_cursor:
-        member_user_ids.append(m["user_id"])
-    
-    # Build lens data for all members
-    members_lens_data = []
-    for mid in member_user_ids:
-        lens_data = await get_member_lens_data(mid)
-        members_lens_data.append(lens_data)
-    
-    # Build dynamics context
-    context = build_forum_dynamics_context(members_lens_data)
-    
-    return {
-        "success": True,
-        "context": context
-    }
-
-
 # =====================================================================
 # FORUM CHAT V1 - Reflective AI Assistant for Forum Dynamics
 # Uses existing forum_member_lens_data and forum_dynamics_context
@@ -29904,13 +29276,14 @@ async def get_forum_dynamics_context(forum_id: str, user_id: str):
 # Rate limiting for Forum Chat: 1 request per 3 seconds per user
 # =====================================================================
 # FORUM CHAT routes — moved to routers/forums_chat.py
-# (server-router-refactor-v4 — behaviour preserving)
+# (server-router-refactor-v4 → v6 — behaviour preserving)
 # Routes attached:
 #   GET  /api/forums/{forum_id}/chat/history
 #   POST /api/forums/{forum_id}/chat
-# Heavy helpers `get_member_lens_data` and `build_forum_dynamics_context`
-# (~700 lines combined) are passed in so the router does not duplicate
-# their bodies.  forum_chat_rate_limits moves with the router.
+# v6: lens helpers now imported by the router directly from
+# services.forum_lens_helpers (single source of truth shared with
+# forums_intelligence and future routers). register() no longer
+# receives them.
 # =====================================================================
 from routers import forums_chat as _forums_chat_router
 _forums_chat_router.register(
@@ -29918,8 +29291,6 @@ _forums_chat_router.register(
     db,
     logger,
     EMERGENT_LLM_KEY,
-    get_member_lens_data,
-    build_forum_dynamics_context,
 )
 
 
@@ -30548,205 +29919,7 @@ async def get_forum_live_field(forum_id: str, user_id: str):
 
 
 
-# =====================================================================
-# PAIRWISE DYNAMICS - Reflective comparison between two forum members
-# =====================================================================
 
-PAIRWISE_DYNAMICS_SYSTEM_PROMPT = """You are Emergent!, a reflective facilitator helping two forum members explore how their different profiles might interact.
-
-YOUR ROLE:
-Generate a calm, thoughtful reflection about how two members' profiles may complement or contrast with each other, based on their lens data (Human Design, Enneagram, Astrology, Numerology, and Pattern work).
-
-TONE GUIDELINES:
-- Reflective facilitator, not analyst or relationship counselor
-- Non-deterministic and exploratory
-- Calm, warm, and grounded
-- Agency-preserving - the pair decides what resonates
-
-USE LANGUAGE LIKE:
-- "may bring different approaches"
-- "might complement each other"
-- "could create productive tension"
-- "one person may tend toward... while the other..."
-- "this contrast sometimes invites..."
-
-AVOID:
-- Relationship predictions or diagnoses
-- Deterministic claims about compatibility
-- Rigid framework explanations
-- Lists of differences without reflection
-- Statements like "you will" or "this means"
-
-OUTPUT FORMAT:
-Write exactly 3 short paragraphs followed by a reflective question. Use these EXACT markers:
-
-[COMPLEMENT]
-How these two profiles may complement each other. Focus on what each might naturally bring that the other doesn't.
-
-[TENSION]
-Where tensions or differences may arise. Frame these as growth invitations, not problems.
-
-[INSIGHT]
-What the pair may help each other see or learn. What might become visible through their differences.
-
-[QUESTION]
-A single reflective question for the pair to explore together.
-
-Keep each section to 2-4 sentences. Write like a wise facilitator offering a gentle observation.
-"""
-
-
-class PairwiseDynamicsRequest(BaseModel):
-    user_id: str
-    member_a_id: str
-    member_b_id: str
-
-
-@api_router.post("/forums/{forum_id}/pairwise-dynamics")
-async def get_pairwise_dynamics(forum_id: str, request: PairwiseDynamicsRequest):
-    """
-    Generate a reflective comparison between two forum members.
-    """
-    import asyncio
-    
-    logger.info(f"[PairwiseDynamics] Comparing {request.member_a_id[:8]}... and {request.member_b_id[:8]}...")
-    
-    if not ObjectId.is_valid(forum_id):
-        raise HTTPException(status_code=400, detail="Invalid forum_id format")
-    
-    # Verify requester is a member
-    membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": request.user_id,
-        "status": "active"
-    })
-    
-    if not membership:
-        raise HTTPException(status_code=403, detail="You are not a member of this forum")
-    
-    # Verify both members are in the forum
-    member_a_membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": request.member_a_id,
-        "status": "active"
-    })
-    member_b_membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": request.member_b_id,
-        "status": "active"
-    })
-    
-    if not member_a_membership or not member_b_membership:
-        raise HTTPException(status_code=404, detail="One or both members not found in this forum")
-    
-    try:
-        if not EMERGENT_LLM_KEY:
-            raise HTTPException(status_code=500, detail="AI service not configured")
-        
-        # Fetch lens data for both members
-        member_a_lens = await get_member_lens_data(request.member_a_id)
-        member_b_lens = await get_member_lens_data(request.member_b_id)
-        
-        # Format for prompt
-        context_text = f"""MEMBER A: {member_a_lens.get('name', 'Member A')}
-{format_lens_for_prompt(member_a_lens)}
-
-MEMBER B: {member_b_lens.get('name', 'Member B')}
-{format_lens_for_prompt(member_b_lens)}"""
-        
-        user_message = f"""Based on these two member profiles, write a reflective narrative about how they might interact or complement each other.
-
-{context_text}
-
-Remember: Write a warm, thoughtful reflection. Avoid predictions or deterministic claims. End with a reflective question for the pair."""
-
-        # Call LLM
-        from emergent_contract import emergent_generate
-        
-        try:
-            reflection_text = await asyncio.wait_for(
-                emergent_generate(
-                    mode="reflection_chat",
-                    user_message=user_message,
-                    endpoint="pairwise_dynamics",
-                    user_id=request.user_id,
-                    context={"forum_id": forum_id},
-                    additional_system_prompt=PAIRWISE_DYNAMICS_SYSTEM_PROMPT,
-                    model=get_primary_model()
-                ),
-                timeout=60.0
-            )
-            logger.info(f"[PairwiseDynamics] Reflection generated, length={len(reflection_text) if reflection_text else 0}")
-        except asyncio.TimeoutError:
-            raise HTTPException(status_code=504, detail="Mirror is taking too long. Please try again.")
-        
-        return {
-            "success": True,
-            "member_a": {
-                "id": request.member_a_id,
-                "name": member_a_lens.get("name", "Member A")
-            },
-            "member_b": {
-                "id": request.member_b_id,
-                "name": member_b_lens.get("name", "Member B")
-            },
-            "reflection": reflection_text
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[PairwiseDynamics] Error: {type(e).__name__}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to generate pairwise dynamics")
-
-
-# =====================================================================
-# FORUM PATTERN MAP - Task 48
-# Visualizes shared life patterns across forum members
-# =====================================================================
-
-@api_router.get("/forums/{forum_id}/pattern-map")
-async def get_forum_pattern_map(forum_id: str, user_id: str):
-    """
-    Get the Forum Pattern Map - aggregated patterns across all forum members.
-    
-    Detects:
-    1. Shared Pattern Types - When multiple members have similar pattern arcs
-    2. Timeline Clusters - Event concentrations across members in time windows
-    
-    Returns pattern visualization data with Mirror language principles.
-    """
-    logger.info(f"[ForumPatternMap] Generating pattern map for forum {forum_id} (requested by {user_id[:8]}...)")
-    
-    if not ObjectId.is_valid(forum_id):
-        raise HTTPException(status_code=400, detail="Invalid forum_id format")
-    if not ObjectId.is_valid(user_id):
-        raise HTTPException(status_code=400, detail="Invalid user_id format")
-    
-    # Check membership
-    membership = await db.forum_members.find_one({
-        "forum_id": forum_id,
-        "user_id": user_id,
-        "status": "active"
-    })
-    
-    if not membership:
-        raise HTTPException(status_code=403, detail="You are not a member of this forum")
-    
-    try:
-        from services.forum_pattern_map import generate_forum_pattern_map
-        
-        pattern_map = await generate_forum_pattern_map(db, forum_id)
-        
-        logger.info(f"[ForumPatternMap] Generated: members={pattern_map['member_count']} events={pattern_map['events_total']} patterns={len(pattern_map['shared_patterns'])} clusters={len(pattern_map['timeline_clusters'])}")
-        
-        return pattern_map
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[ForumPatternMap] Error: {type(e).__name__}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to generate forum pattern map")
 
 
 # =====================================================================

@@ -1,6 +1,6 @@
 """
-Forums Chat routes  (server-router-refactor-v4)
-================================================
+Forums Chat routes  (server-router-refactor-v4 → v6)
+====================================================
 
 Behaviour-preserving extraction of the forum chat surface from
 server.py.  Paths, schemas, log lines, system prompts, rate-limit
@@ -11,19 +11,16 @@ Endpoints attached:
     GET   /api/forums/{forum_id}/chat/history
     POST  /api/forums/{forum_id}/chat
 
-Two heavy server.py helpers (`get_member_lens_data` and
-`build_forum_dynamics_context`) are passed in via `register()` so we
-avoid pulling in their 700+ lines of body, and so they remain a
-single shared implementation across both surfaces.
+v6 change — `get_member_lens_data` and `build_forum_dynamics_context`
+are no longer passed in via register(); they are imported directly
+from `services.forum_lens_helpers`, the single source of truth shared
+with forums_intelligence and the (future) extracted forum mirror-chat
+router.  The prompt formatters (`format_lens_for_prompt`,
+`format_dynamics_for_prompt`) are also imported from there.
 
 Call signature:
 
-    forums_chat.register(
-        api_router, db, logger,
-        emergent_llm_key,
-        get_member_lens_data_fn,
-        build_forum_dynamics_context_fn,
-    )
+    forums_chat.register(api_router, db, logger, emergent_llm_key)
 """
 
 from __future__ import annotations
@@ -37,6 +34,13 @@ from typing import Any, Dict, List, Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+from services.forum_lens_helpers import (
+    get_member_lens_data,
+    build_forum_dynamics_context,
+    format_lens_for_prompt,
+    format_dynamics_for_prompt,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -131,105 +135,6 @@ def _check_forum_chat_rate_limit(user_id: str, cooldown_seconds: float = 3.0) ->
 
 
 # ---------------------------------------------------------------------------
-# Prompt-building helpers — formatting only, no DB access.
-# ---------------------------------------------------------------------------
-
-def _format_lens_for_prompt(lens_data: dict) -> str:
-    parts: List[str] = []
-
-    name = lens_data.get("name", "Anonymous")
-    parts.append(f"Name: {name}")
-
-    hd = lens_data.get("human_design", {})
-    if hd.get("type"):
-        hd_line = f"Human Design: {hd.get('type')}"
-        if hd.get("profile"):
-            hd_line += f" • {hd.get('profile')}"
-        if hd.get("authority"):
-            hd_line += f" • {hd.get('authority')} Authority"
-        parts.append(hd_line)
-
-        if hd.get("definition"):
-            parts.append(f"  Definition: {hd.get('definition')}")
-        if hd.get("centers_defined"):
-            parts.append(f"  Defined Centers: {', '.join(hd.get('centers_defined', []))}")
-        if hd.get("centers_undefined"):
-            parts.append(f"  Open Centers: {', '.join(hd.get('centers_undefined', []))}")
-
-    enneagram = lens_data.get("enneagram", {})
-    if enneagram.get("core_type"):
-        enne_line = f"Enneagram: Type {enneagram.get('core_type')}"
-        if enneagram.get("wing"):
-            enne_line += f"w{enneagram.get('wing')}"
-        parts.append(enne_line)
-
-    astro = lens_data.get("astrology", {})
-    if astro.get("sun") or astro.get("moon"):
-        astro_line = "Astrology:"
-        if astro.get("sun"):
-            astro_line += f" Sun in {astro.get('sun')}"
-        if astro.get("moon"):
-            astro_line += f", Moon in {astro.get('moon')}"
-        if astro.get("rising"):
-            astro_line += f", {astro.get('rising')} Rising"
-        parts.append(astro_line)
-
-    numerology = lens_data.get("numerology", {})
-    if numerology.get("life_path"):
-        lp = numerology.get("life_path")
-        if isinstance(lp, dict):
-            lp = lp.get("number")
-        parts.append(f"Numerology: Life Path {lp}")
-
-    patterns = lens_data.get("patterns", {})
-    if patterns.get("active_domains"):
-        parts.append(f"Active Pattern Domains: {', '.join(patterns.get('active_domains', []))}")
-    if patterns.get("recurring_domains"):
-        parts.append(f"Recurring Domains: {', '.join(patterns.get('recurring_domains', []))}")
-
-    return "\n".join(parts)
-
-
-def _format_dynamics_for_prompt(dynamics: dict) -> str:
-    parts: List[str] = []
-
-    member_count = dynamics.get("member_count", 0)
-    parts.append(f"Forum has {member_count} active member(s)")
-
-    hd_dist = dynamics.get("hd_type_distribution", {})
-    if hd_dist:
-        hd_summary = ", ".join([f"{k}: {v}" for k, v in hd_dist.items()])
-        parts.append(f"Human Design Types: {hd_summary}")
-
-    auth_dist = dynamics.get("hd_authority_distribution", {})
-    if auth_dist:
-        auth_summary = ", ".join([f"{k}: {v}" for k, v in auth_dist.items()])
-        parts.append(f"Authorities: {auth_summary}")
-
-    enne_dist = dynamics.get("enneagram_distribution", {})
-    if enne_dist:
-        enne_summary = ", ".join([f"Type {k}: {v}" for k, v in enne_dist.items()])
-        parts.append(f"Enneagram Types: {enne_summary}")
-
-    elem_dist = dynamics.get("astrology_elements", {})
-    if elem_dist:
-        elem_summary = ", ".join([f"{k}: {v}" for k, v in elem_dist.items()])
-        parts.append(f"Dominant Elements: {elem_summary}")
-
-    pattern_domains = dynamics.get("active_pattern_domains", [])
-    if pattern_domains:
-        domain_names = [d.get("domain", "") for d in pattern_domains[:5]]
-        parts.append(f"Active Pattern Domains: {', '.join(domain_names)}")
-
-    defined_centers = dynamics.get("defined_centers_coverage", {})
-    if defined_centers:
-        coverage = ", ".join([f"{k}({v})" for k, v in list(defined_centers.items())[:5]])
-        parts.append(f"Center Coverage (defined): {coverage}")
-
-    return "\n".join(parts)
-
-
-# ---------------------------------------------------------------------------
 # register() — attach routes onto api_router.
 # ---------------------------------------------------------------------------
 
@@ -238,8 +143,6 @@ def register(
     db,
     logger,
     emergent_llm_key: Optional[str],
-    get_member_lens_data,           # async fn(user_id) -> dict
-    build_forum_dynamics_context,   # sync fn(members_lens_data: List[dict]) -> dict
 ) -> None:
 
     async def _build_forum_chat_context(
@@ -268,15 +171,15 @@ def register(
         if mode in [ForumChatMode.SELF, ForumChatMode.MEMBER]:
             user_lens = await get_member_lens_data(user_id)
             context_parts.append("--- YOUR PROFILE (Requesting User) ---")
-            context_parts.append(_format_lens_for_prompt(user_lens))
+            context_parts.append(format_lens_for_prompt(user_lens))
 
         if mode == ForumChatMode.MEMBER and target_member_id:
             target_lens = await get_member_lens_data(target_member_id)
             context_parts.append("\n--- TARGET MEMBER PROFILE ---")
-            context_parts.append(_format_lens_for_prompt(target_lens))
+            context_parts.append(format_lens_for_prompt(target_lens))
 
         context_parts.append("\n--- FORUM DYNAMICS SUMMARY ---")
-        context_parts.append(_format_dynamics_for_prompt(dynamics))
+        context_parts.append(format_dynamics_for_prompt(dynamics))
 
         return "\n".join(context_parts)
 

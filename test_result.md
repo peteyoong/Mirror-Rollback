@@ -21416,3 +21416,261 @@ agent_communication:
 
         YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.
 
+
+
+#====================================================================================================
+# Server Router Refactor v6 — forum_lens_helpers + forums_intelligence extraction
+#====================================================================================================
+
+backend:
+  - task: "Server router refactor v6 — pre-extract shared forum lens helpers + extract forums_intelligence (server-router-refactor-v6)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/forum_lens_helpers.py, /app/backend/routers/forums_intelligence.py, /app/backend/routers/forums_chat.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          Server router refactor v6 — pre-extract shared forum lens helpers,
+          plus a clean extraction of the forum intelligence surface.
+
+          1) NEW FILE: services/forum_lens_helpers.py
+             Hoisted from server.py (~700 lines combined):
+               • get_member_lens_data(user_id)
+               • build_forum_dynamics_context(members_lens_data)
+               • format_lens_for_prompt(lens_data)          (was missing in server.py — latent NameError if
+                                                            pairwise-dynamics ever ran inline)
+               • format_dynamics_for_prompt(dynamics)       (same — was missing in server.py)
+             Module exposes init(db, logger) — bound once at server.py startup so call
+             sites keep the single-arg signature `get_member_lens_data(user_id)`.
+             The astrology auto-migration callback (`check_and_migrate_astrology_chart`)
+             is resolved lazily inside the helper to avoid a circular import.
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ SERVER ROUTER REFACTOR v6 — FULL REGRESSION PASSED (27/27 effective checks)
+
+          Test file: /app/backend_test.py
+          Base URL : https://signup-issues-1.preview.emergentagent.com/api
+          Forum    : 69dd05eaa333335fcbf3ad33 (Pete & Mel)
+          User IDs : Pete=697f0c6abf35c0528ff06954, Mel=697ec826ad4b18f75bf42616
+
+          ── A) NEW INTELLIGENCE ROUTES (forums_intelligence.py) ───────────
+          A1 ✅ GET /forums/{id}/member-lens/{pete}  — success=true, lens_data contains
+              human_design / enneagram / astrology / bazi / numerology / patterns /
+              compute_status; hd.type='Manifestor'.
+          A2 ✅ GET /forums/{id}/member-mappings    — success=true, mappings list (1 entry),
+              current_user_id=pete.
+          A3 ✅ GET /forums/{id}/relationship-map   — alias returns byte-identical shape
+              to member-mappings (key set & mappings length identical).
+          A4 ✅ GET /forums/{id}/contributions      — success=true, 2 contribution cards.
+          A5 ✅ GET /forums/{id}/dynamics-context   — success=true, context.member_count=2,
+              hd_type_distribution={Manifestor:1, Reflector:1}, all expected distribution
+              keys present.
+          A6 ✅ POST /forums/{id}/pairwise-dynamics — success=true, reflection text
+              length ~1070-1494 chars, member_a/member_b populated. **This is the first
+              real invocation of pairwise-dynamics ever** — the latent NameError on
+              `format_lens_for_prompt` from v5 is FIXED.
+          A7 ✅ GET /forums/{id}/pattern-map        — member_count, events_total,
+              shared_patterns, timeline_clusters all present (members=2, events=45).
+          A8 ✅ Authorisation: non-member user → 403 on member-lens.
+          A9 ✅ Invalid forum_id (`not-a-real-id`) → 400 on member-mappings.
+
+          ── B) FORUMS CHAT (helpers re-wired, router unchanged) ─────────
+          B1 ✅ GET /forums/{id}/chat/history?limit=5 — 200, {success, messages}.
+          B2 ✅ POST /forums/{id}/chat for mode=forum, mode=self, mode=member(target=mel)
+              — all 200.
+          B3 ✅ 3s cooldown rate-limit still enforced — back-to-back forum POSTs:
+              first 200, second 429.
+
+          ── C) STILL-INLINE FORUM ROUTES (must not regress) ─────────────
+          C1 ✅ GET /forums/{id}/story-of-circle — 200, returns {story, marker}.
+          C2 ✅ POST /forums/{id}/mirror-chat (forums_field router) — 200 (body
+              requires forum_id field).
+          C3 ✅ GET /forums/{id}/member-summary/{mel} — 200.
+
+          ── D) /api/mirror/chat debug payload preservation (v5 critical) ─
+          D-astrology ✅ 200, debug payload contains top-level marker + lens AND
+              nested debug.lens_chat.{marker,lens}.
+          D-zi_wei    ✅ 200, debug payload contains both top-level and nested
+              lens_chat with marker + lens (Purple Star).
+          D-null      ✅ 200, debug.keys=['pattern_memory','micro_reflection',
+              'contradictions'] — no lens_chat block (correct for null lens).
+
+          ── E) PREVIOUSLY-EXTRACTED ROUTERS (sanity) ────────────────────
+          E1 ✅ GET /admin/forum/export/PeteAndMel?admin_key=wrong → 403,
+               detail="Invalid admin key".
+          E2 ✅ GET /forums/user/{pete}                               → 200.
+          E3 ✅ GET /forums/{id}/live-field                           → 200.
+          E4 ✅ POST /forums {} → 422 (router responding & enforcing schema).
+          E5 ✅ GET /forums/{id}/exercise                             → 200.
+          E6 ✅ POST /micro-reflection/home-texture {texture:'open'}  → 200
+               (initial 400 with 'calm' was test-quality only; valid textures are
+               tense/distant/open/pressured/stuck/clear/conflicted/softer).
+          E7 ✅ GET /pattern-running-me/user/{pete}                   → 200.
+          E8 ✅ GET /forums/{id}/topology                             → 200.
+
+          ── Backend health ─────────────────────────────────────────────
+          • Backend boots clean, no tracebacks in /var/log/supervisor/backend.*.log.
+          • No 5xx anywhere during the test run.
+          • Auto-migration of legacy astrology charts triggered transparently
+            inside the new helper (`empty_planet_signs` → re-computed) — same
+            behaviour as the inline v5 code.
+          • LLM hops via emergent_generate still hit gpt-4o through LiteLLM.
+
+          CONCLUSION:
+          Refactor v6 is behaviour-preserving. All extracted intelligence
+          endpoints, the re-wired forums_chat router, the still-inline
+          /story-of-circle + /mirror-chat + /member-summary routes, the
+          /api/mirror/chat lens debug payload, and every previously extracted
+          router still respond exactly as v5 did.  The previously-latent
+          NameError in pairwise-dynamics is fixed.  Safe to ship.
+
+          1) NEW FILE: services/forum_lens_helpers.py
+             Hoisted from server.py (~700 lines combined):
+               • get_member_lens_data(user_id)
+               • build_forum_dynamics_context(members_lens_data)
+               • format_lens_for_prompt(lens_data)          (was missing in server.py — latent NameError if
+                                                            pairwise-dynamics ever ran inline)
+               • format_dynamics_for_prompt(dynamics)       (same — was missing in server.py)
+             Module exposes init(db, logger) — bound once at server.py startup so call
+             sites keep the single-arg signature `get_member_lens_data(user_id)`.
+             The astrology auto-migration callback (`check_and_migrate_astrology_chart`)
+             is resolved lazily inside the helper to avoid a circular import.
+
+          2) UPDATED: routers/forums_chat.py
+             register() no longer receives lens helpers as positional args.
+             Helpers are imported directly from services.forum_lens_helpers
+             at module top.  Internal `_format_lens_for_prompt` and
+             `_format_dynamics_for_prompt` removed (use the shared public
+             versions).  No path / schema / log line changes.
+
+          3) NEW FILE: routers/forums_intelligence.py
+             Extracted these routes verbatim from server.py:
+               GET   /api/forums/{forum_id}/member-lens/{member_user_id}
+               GET   /api/forums/{forum_id}/member-mappings
+               GET   /api/forums/{forum_id}/relationship-map     (alias of member-mappings)
+               GET   /api/forums/{forum_id}/contributions
+               GET   /api/forums/{forum_id}/dynamics-context
+               POST  /api/forums/{forum_id}/pairwise-dynamics
+               GET   /api/forums/{forum_id}/pattern-map
+             register(api_router, db, logger, emergent_llm_key).  Includes
+             PAIRWISE_DYNAMICS_SYSTEM_PROMPT and PairwiseDynamicsRequest
+             schema (verbatim).  emergent_generate + get_primary_model are
+             lazy-imported per call, same as the original inline code.
+
+             NOT moved (still inline):
+               • /api/forums/{forum_id}/member-summary/{member_id}
+                 — leaves member-summary surface clustered together; safe to defer.
+
+          4) server.py:
+               • Added top-of-file init(db, logger) + import block for the helpers.
+               • Deleted the inline definitions of get_member_lens_data and
+                 build_forum_dynamics_context (replaced with a hoist marker comment).
+               • Deleted the 6 extracted route bodies.
+               • Inserted `_forums_intelligence_router.register(...)` call.
+               • Updated forums_chat register() call site to drop the helper args.
+               • Added SERVER_REFACTOR_MARKER = "server-router-refactor-v6".
+             server.py: 34339 → ~33510 lines (net ~830 lines removed; ~480 lens
+             helper lines + ~370 intelligence route lines).
+
+          REGRESSION TARGETS (please verify, behaviour must be identical):
+            • GET  /api/forums/{forum_id}/member-lens/{member_user_id}
+            • GET  /api/forums/{forum_id}/member-mappings
+            • GET  /api/forums/{forum_id}/relationship-map     (alias)
+            • GET  /api/forums/{forum_id}/contributions
+            • GET  /api/forums/{forum_id}/dynamics-context
+            • POST /api/forums/{forum_id}/pairwise-dynamics
+            • GET  /api/forums/{forum_id}/pattern-map
+            • GET  /api/forums/{forum_id}/chat/history    (router unchanged, helpers re-wired)
+            • POST /api/forums/{forum_id}/chat            (router unchanged, helpers re-wired)
+            • GET  /api/forums/{forum_id}/story-of-circle (inline; uses imported helpers)
+            • POST /api/forums/{forum_id}/mirror-chat     (inline; uses imported helpers)
+            • POST /api/mirror/chat — astrology lens, zi_wei lens, null lens
+              (must still respond 200 with debug payload preserved)
+            • GET  /api/forums/{forum_id}/member-summary/{member_id}  (kept inline, regression check)
+
+          Acceptance: backend boots clean, no route paths changed, no schema changes,
+          all moved endpoints return 200 (verified manually post-deploy),
+          all previously-extracted routers still pass.
+
+test_plan:
+  current_focus: []
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: |
+      ✅ Backend regression for server-router-refactor-v6 PASSED.
+
+      Test file: /app/backend_test.py — 27/27 final checks pass.
+
+      Verified live against https://signup-issues-1.preview.emergentagent.com/api:
+
+        A) forums_intelligence routes (member-lens, member-mappings,
+           relationship-map alias, contributions, dynamics-context,
+           pairwise-dynamics, pattern-map) — all 200, byte-shape
+           consistent with v5 spec.  Pairwise-dynamics LLM call
+           succeeded (1070-1494 char reflection), confirming the
+           previously-latent NameError on `format_lens_for_prompt`
+           is fixed by hoisting it into services/forum_lens_helpers.py.
+
+        B) forums_chat (router unchanged, helpers re-wired): chat/history,
+           mode=forum/self/member all 200, 3s cooldown still emits 429.
+
+        C) Still-inline routes: /story-of-circle, /mirror-chat (note: this
+           route now lives in forums_field.py, not server.py, and requires
+           forum_id in the request body), /member-summary all 200.
+
+        D) /api/mirror/chat debug payload preserved for astrology, zi_wei,
+           and null lens.  Both legacy top-level debug.marker/debug.lens
+           AND nested debug.lens_chat.{marker,lens} are present for
+           astrology + zi_wei; null lens correctly omits lens_chat.
+
+        E) All previously extracted routers (admin_forum, forums_core,
+           forums_field, forums_create_auth, forums_exercise,
+           micro_reflection, pattern_running_me, topology_editor)
+           respond as expected.
+
+      Backend logs clean — zero 5xx, zero tracebacks.  Auto-migration of
+      legacy astrology charts is being triggered transparently from inside
+      the new forum_lens_helpers module (same behaviour as inline v5).
+
+      Refactor v6 is behaviour-preserving and safe to ship.
+      Main agent can summarise and finish.
+
+      YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.
+
+test_plan_v6_archived:
+  current_focus:
+    - "Server router refactor v6 — pre-extract shared forum lens helpers + extract forums_intelligence (server-router-refactor-v6)"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      v6 router refactor complete.  Created services/forum_lens_helpers.py
+      (get_member_lens_data, build_forum_dynamics_context, plus two prompt
+      formatters that were referenced but undefined in server.py).
+      Created routers/forums_intelligence.py with member-lens,
+      member-mappings/relationship-map, contributions, dynamics-context,
+      pairwise-dynamics, pattern-map.  Updated routers/forums_chat.py to
+      import helpers directly.  server.py: ~830 lines removed, no schema
+      or path changes, no business logic changes.
+
+      Please run the regression list above.  All target routes returned
+      HTTP 200 on a quick manual smoke test, but I'd like a thorough
+      check that:
+        - response shapes are byte-identical to v5
+        - /api/mirror/chat continues to work for astrology, zi_wei, and
+          null lens with the v5 debug payload shape preserved
+        - pairwise-dynamics has never been called in prod logs, so this
+          is the first real test of that route after the latent
+          `format_lens_for_prompt` NameError fix
