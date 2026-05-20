@@ -96,7 +96,15 @@ export default function Onboarding() {
         const results = await searchLocations(query);
         // Only update results if this is still the latest query
         if (lastSearchQueryRef.current === query) {
-          setLocations(results || []);
+          // Dedupe by city+country (case-insensitive) — API can return repeats
+          const seen = new Set<string>();
+          const deduped = (results || []).filter((loc: Location) => {
+            const key = `${(loc.city || '').toLowerCase()}|${(loc.country || '').toLowerCase()}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          setLocations(deduped);
         }
       } catch (err: any) {
         console.error('Location search error:', err);
@@ -120,18 +128,35 @@ export default function Onboarding() {
     setError(''); // Clear any previous errors
   };
 
-  // Convert 12-hour to 24-hour format
+  // Convert to 24-hour format.
+  // Accepts either 24-hour input (0-23, AM/PM ignored) OR 12-hour with AM/PM (1-12).
   const get24HourTime = (): string => {
     if (!birthHour || !birthMinute) return '';
-    
+
     let hour = parseInt(birthHour, 10);
-    if (amPm === 'PM' && hour !== 12) {
-      hour += 12;
-    } else if (amPm === 'AM' && hour === 12) {
+
+    if (hour >= 13 && hour <= 23) {
+      // User entered 24-hour format directly — use as-is
+      // (AM/PM toggle is ignored in this case)
+    } else if (hour === 0) {
+      // 00:xx is valid 24-hour midnight
       hour = 0;
+    } else {
+      // 1-12 → apply AM/PM
+      if (amPm === 'PM' && hour !== 12) {
+        hour += 12;
+      } else if (amPm === 'AM' && hour === 12) {
+        hour = 0;
+      }
     }
-    
+
     return `${String(hour).padStart(2, '0')}:${birthMinute.padStart(2, '0')}`;
+  };
+
+  // Helper: navigate between steps and clear any stale error
+  const goToStep = (next: number) => {
+    setError('');
+    setStep(next);
   };
 
   // Format date as YYYY-MM-DD
@@ -170,12 +195,12 @@ export default function Onboarding() {
     if (birthHour || birthMinute) {
       const hour = parseInt(birthHour, 10);
       const minute = parseInt(birthMinute, 10);
-      
-      if (hour < 1 || hour > 12) {
-        setError('Please enter a valid hour (1-12)');
+
+      if (isNaN(hour) || hour < 0 || hour > 23) {
+        setError('Please enter a valid hour (0-23, or 1-12 with AM/PM)');
         return;
       }
-      if (minute < 0 || minute > 59) {
+      if (isNaN(minute) || minute < 0 || minute > 59) {
         setError('Please enter a valid minute (0-59)');
         return;
       }
@@ -426,7 +451,7 @@ export default function Onboarding() {
                   </View>
                 </View>
                 <Text style={styles.hint}>
-                  If unknown, we'll use noon as a neutral time
+                  Enter 1–12 with AM/PM, or 13–23 for 24-hour time. Unknown? We'll use noon.
                 </Text>
               </View>
             </View>
@@ -515,7 +540,7 @@ export default function Onboarding() {
             {step === 2 && (
               <TouchableOpacity
                 style={[styles.button, styles.buttonSecondary]}
-                onPress={() => setStep(1)}
+                onPress={() => goToStep(1)}
                 disabled={isSubmitting}
               >
                 <Text style={styles.buttonSecondaryText}>Back</Text>
@@ -525,7 +550,7 @@ export default function Onboarding() {
             {step === 1 && (
               <TouchableOpacity
                 style={[styles.button, !canProceed() && styles.buttonDisabled]}
-                onPress={() => setStep(2)}
+                onPress={() => goToStep(2)}
                 disabled={!canProceed()}
               >
                 <Text style={styles.buttonText}>Enter</Text>
