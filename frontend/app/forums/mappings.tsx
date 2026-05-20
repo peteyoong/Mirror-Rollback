@@ -19,6 +19,7 @@ import {
   ForumMemberMapping,
   ChannelCompletion,
 } from '../../services/api';
+import { BUILD_ID, BUILD_AT } from '../../constants/buildMarker';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -636,6 +637,11 @@ export default function ForumMappingsScreen() {
               </View>
             )}
 
+            {/* BUILD MARKER — for deploy verification */}
+            <Text style={[styles.buildMarker, { color: theme.textTertiary }]}>
+              build · {BUILD_ID} · {BUILD_AT}
+            </Text>
+
             {/* Spacer for bottom */}
             <View style={{ height: 40 }} />
           </ScrollView>
@@ -707,6 +713,11 @@ export default function ForumMappingsScreen() {
           {/* Mappings list */}
           {mappings.map(renderMappingRow)}
 
+          {/* BUILD MARKER — for deploy verification */}
+          <Text style={[styles.buildMarker, { color: theme.textTertiary }]}>
+            build · {BUILD_ID} · {BUILD_AT}
+          </Text>
+
           {/* Footer spacer */}
           <View style={{ height: 100 }} />
         </ScrollView>
@@ -721,6 +732,14 @@ export default function ForumMappingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  buildMarker: {
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+    opacity: 0.6,
+    letterSpacing: 0.4,
   },
   header: {
     flexDirection: 'row',

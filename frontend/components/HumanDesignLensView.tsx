@@ -16,6 +16,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useForumContext, PrefilledSource } from '../contexts/ForumContext';
 import { useRouter } from 'expo-router';
 import api from '../services/api';
+import { BUILD_ID as RFV1_BUILD_ID, BUILD_AT as RFV1_BUILD_AT } from '../constants/buildMarker';
 import DebugFooter, { SectionDebug, isDebugEnabled } from './DebugFooter';
 import HDTodayDiagnosis from './HDTodayDiagnosis';
 import { 
@@ -7841,6 +7842,10 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
                 {renderDeepDiveTab()}
                 {/* Global Ask CTA - page level */}
                 {renderDeepDiveAskSection()}
+                {/* BUILD MARKER — Deep Dive deploy verification */}
+                <Text style={[styles.buildVersion, { color: theme.textTertiary, marginTop: 8 }]}>
+                  HD Deep Dive · build {RFV1_BUILD_ID} · {RFV1_BUILD_AT}
+                </Text>
               </>
             )}
 
