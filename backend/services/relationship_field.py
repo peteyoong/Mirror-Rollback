@@ -1,0 +1,732 @@
+"""
+Relationship Field Architecture v1
+==================================
+
+Activation-first synthesizer for "How They Map To You".
+
+Reads the per-lens signals that services.forum_hd_mapping already computes
+(HD channels + astrology + bazi + enneagram + numerology) plus three NEW
+astrology amplifier inputs (Juno / North Node / Vertex synastry), and
+produces a SINGLE relationship-field envelope that answers the user's
+question:
+
+    "What happens between us?"
+
+…BEFORE any technical evidence is shown.
+
+KEY PRODUCT RULES
+-----------------
+1. Activation-first, not friction-first.  The opening sentence MUST
+   describe what activates in this pair — not what conflicts.
+2. Synthesize the field BEFORE evidence.  We name the feel of the pair
+   before naming HD channels, aspects, or animal pairs.
+3. Cluster signals into 2-4 human themes (label + what_lives_here +
+   friction_inside_it).  Friction is contextualised inside a theme,
+   never broken out as a separate list at the top.
+4. Always include a "Gift of this connection" line.
+5. Move technical channel / aspect / animal labels into the evidence
+   drawer (frontend handles this by reading mapping.signals.* like
+   today — we do not touch those keys).
+6. This is NOT compatibility scoring.  We never emit "good fit / bad
+   fit / 7/10 / strong / weak compatibility / they're your match" etc.
+7. Juno / North Node / Vertex are SIGNIFICANCE AMPLIFIERS ONLY.
+   They raise the stakes of a theme that already exists in the field.
+   They are NEVER soulmate / fate / destiny / karmic indicators.
+8. Strict prose sanitizer rejects forbidden vocabulary and re-asks the
+   caller to drop the line (silently — we simply suppress).
+
+ENVELOPE SHAPE
+--------------
+The synthesizer returns a dict that the route attaches under
+``mapping["field"]``::
+
+    {
+        "version": "relationship-field-v1",
+        "field_paragraph": str,           # 1 short paragraph, activation-first
+        "activation": str,                # one-line "what activates here"
+        "themes": [                       # 2-4 themed clusters
+            {
+                "label": str,             # human, no jargon (e.g. "Quiet trust")
+                "what_lives_here": str,   # 1-2 sentences, behavioural
+                "friction_inside_it": Optional[str],  # contextualised friction
+            },
+            ...
+        ],
+        "gift_of_this_connection": str,   # 1 line
+        "amplifiers": {                   # significance amplifiers only
+            "juno":        Optional[str],
+            "north_node":  Optional[str],
+            "vertex":      Optional[str],
+        },
+    }
+
+If absolutely nothing surfaces (extremely rare — the synthesizer
+guarantees a field_paragraph from whatever signals exist), the
+function returns ``None`` and the caller skips the ``field`` key
+entirely.  Old keys (story / patterns / signals) remain byte-identical
+on the mapping object — additive, never destructive.
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+from typing import Any, Dict, List, Optional, Tuple
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Prose guardrail / sanitizer
+# ---------------------------------------------------------------------------
+
+# Forbidden vocabulary — any line containing one of these (case-insensitive,
+# whole-word) is rejected by the sanitizer.  Amplifier lines are the most
+# likely to drift into this register; the sanitizer is a backstop.
+_FORBIDDEN_TERMS = [
+    r"\bsoulmate[s]?\b",
+    r"\btwin\s+flame[s]?\b",
+    r"\bdestin(?:y|ed|ied)\b",
+    r"\bfated?\b",
+    r"\bfate[s]?\b",
+    r"\bkarmic\b",
+    r"\bkarma\b",
+    r"\bpast[-\s]?life\b",
+    r"\bpast[-\s]?lives\b",
+    r"\bcosmic\s+pull\b",
+    r"\bwritten\s+in\s+the\s+stars\b",
+    r"\bmeant\s+to\s+be\b",
+    r"\bdivinely?\b",
+    r"\b(?:perfect|ideal)\s+match\b",
+    r"\bcompatibilit(?:y|ies)\b",
+    r"\bcompatible\b",
+    r"\bincompatible\b",
+]
+_FORBIDDEN_RE = re.compile("|".join(_FORBIDDEN_TERMS), re.IGNORECASE)
+
+
+def _sanitize_line(line: Optional[str]) -> Optional[str]:
+    """
+    Return the line unchanged if it passes the guardrail, else None.
+
+    The sanitizer is intentionally STRICT: we'd rather emit no amplifier
+    line than emit one with forbidden vocabulary.  Logs the rejection at
+    info level so we can monitor it.
+    """
+    if not line or not isinstance(line, str):
+        return None
+    if _FORBIDDEN_RE.search(line):
+        logger.info(
+            f"[RelationshipField] Sanitizer suppressed line containing forbidden "
+            f"vocabulary: {line[:80]!r}"
+        )
+        return None
+    return line.strip() or None
+
+
+# ---------------------------------------------------------------------------
+# Astrology amplifier helpers
+# ---------------------------------------------------------------------------
+
+_SIGN_ORDER = [
+    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+]
+
+# Tight orbs — amplifiers must be specific, not loose.
+_AMP_ASPECTS = {
+    "conjunction": {"angle": 0,   "orb": 6},
+    "opposition":  {"angle": 180, "orb": 6},
+    "trine":       {"angle": 120, "orb": 5},
+    "square":      {"angle": 90,  "orb": 5},
+}
+
+
+def _abs_degree(planet: Optional[Dict[str, Any]]) -> Optional[float]:
+    if not planet:
+        return None
+    sign = planet.get("sign", "")
+    deg = planet.get("degree")
+    if sign not in _SIGN_ORDER or deg is None:
+        # Fall back to longitude if explicitly provided
+        lon = planet.get("longitude")
+        if isinstance(lon, (int, float)):
+            return float(lon)
+        return None
+    return _SIGN_ORDER.index(sign) * 30 + float(deg)
+
+
+def _aspect_between(a: Optional[Dict[str, Any]], b: Optional[Dict[str, Any]]) -> Optional[str]:
+    deg_a = _abs_degree(a)
+    deg_b = _abs_degree(b)
+    if deg_a is None or deg_b is None:
+        return None
+    diff = abs(deg_a - deg_b)
+    if diff > 180:
+        diff = 360 - diff
+    for name, defn in _AMP_ASPECTS.items():
+        if abs(diff - defn["angle"]) <= defn["orb"]:
+            return name
+    return None
+
+
+def _planet(planets: Dict[str, Any], name: str) -> Optional[Dict[str, Any]]:
+    if not planets:
+        return None
+    for key in (name, name.capitalize(), name.lower()):
+        if key in planets:
+            return planets[key]
+    return None
+
+
+def _get_north_node(astro: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Resolve North Node across all storage variants used in the codebase."""
+    if not astro:
+        return None
+    nodes = astro.get("nodes") or {}
+    nn = nodes.get("north") or nodes.get("north_node")
+    if nn and nn.get("sign"):
+        return nn
+    planets = astro.get("planets") or {}
+    for key in ("North Node", "True Node", "Mean Node", "GC"):
+        if key in planets and planets[key].get("sign"):
+            return planets[key]
+    return None
+
+
+def _get_vertex(astro: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    angles = (astro or {}).get("angles") or {}
+    vx = angles.get("vertex")
+    if vx and vx.get("sign"):
+        return vx
+    return None
+
+
+def _get_juno(astro: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    planets = (astro or {}).get("planets") or {}
+    j = planets.get("Juno") or planets.get("juno")
+    if j and j.get("sign"):
+        return j
+    return None
+
+
+def compute_juno_amplifier(
+    astro_a: Dict[str, Any],
+    astro_b: Dict[str, Any],
+    name_b: str,
+) -> Optional[str]:
+    """
+    Juno amplifier: surfaces ONLY when Juno-of-A contacts a personal
+    point of B (Sun / Moon / Venus / Asc) within tight orb.
+
+    Returns a single short line framed as significance, NEVER as
+    soulmate / fate / partnership-promise.  Returns None if no
+    amplifier-grade contact is found OR if Juno is not stored on
+    either chart.
+    """
+    juno_a = _get_juno(astro_a)
+    juno_b = _get_juno(astro_b)
+    if not juno_a and not juno_b:
+        return None
+
+    planets_a = (astro_a or {}).get("planets") or {}
+    planets_b = (astro_b or {}).get("planets") or {}
+    angles_a = (astro_a or {}).get("angles") or {}
+    angles_b = (astro_b or {}).get("angles") or {}
+
+    # We look at BOTH directions — Juno of A → personal of B, and vice versa.
+    candidates: List[Tuple[str, Optional[str]]] = []
+
+    def _emit(label_a_point: str, label_b_point: str, asp: str, direction: str) -> Optional[str]:
+        # direction: "ab" (Juno-of-A → b-point) or "ba"
+        if direction == "ab":
+            return (
+                f"There's added weight in how {name_b}'s presence lands on "
+                f"the part of you that takes commitment seriously — a theme "
+                f"that's already moving in this connection gets louder, not different."
+            )
+        else:
+            return (
+                f"How you show up tends to register on the part of {name_b} "
+                f"that holds commitment carefully — it amplifies what's already "
+                f"alive here, rather than creating something new."
+            )
+
+    if juno_a:
+        for pt_name in ("Sun", "Moon", "Venus"):
+            asp = _aspect_between(juno_a, _planet(planets_b, pt_name))
+            if asp:
+                candidates.append((asp, _emit("Juno", pt_name, asp, "ab")))
+                break
+        if not candidates:
+            asp = _aspect_between(juno_a, angles_b.get("asc"))
+            if asp:
+                candidates.append((asp, _emit("Juno", "Asc", asp, "ab")))
+
+    if not candidates and juno_b:
+        for pt_name in ("Sun", "Moon", "Venus"):
+            asp = _aspect_between(juno_b, _planet(planets_a, pt_name))
+            if asp:
+                candidates.append((asp, _emit(pt_name, "Juno", asp, "ba")))
+                break
+
+    if not candidates:
+        return None
+
+    return _sanitize_line(candidates[0][1])
+
+
+def compute_north_node_amplifier(
+    astro_a: Dict[str, Any],
+    astro_b: Dict[str, Any],
+    name_b: str,
+) -> Optional[str]:
+    """
+    North Node amplifier: NN-of-A contacts a personal of B (or vice
+    versa).  Framed as growth-direction emphasis — never destiny.
+    """
+    nn_a = _get_north_node(astro_a)
+    nn_b = _get_north_node(astro_b)
+    if not nn_a and not nn_b:
+        return None
+
+    planets_a = (astro_a or {}).get("planets") or {}
+    planets_b = (astro_b or {}).get("planets") or {}
+
+    line = None
+    if nn_a:
+        for pt_name in ("Sun", "Moon", "Venus"):
+            asp = _aspect_between(nn_a, _planet(planets_b, pt_name))
+            if asp in ("conjunction", "trine"):
+                line = (
+                    f"The direction you're growing toward keeps showing up in "
+                    f"{name_b}'s presence — what's already opening in you finds "
+                    f"a clearer edge when you're around them."
+                )
+                break
+            elif asp in ("opposition", "square"):
+                line = (
+                    f"There's a pull here that tests where you're heading — "
+                    f"{name_b} touches the part of you that's stretching, and "
+                    f"that stretch becomes more visible in this connection."
+                )
+                break
+
+    if not line and nn_b:
+        for pt_name in ("Sun", "Moon", "Venus"):
+            asp = _aspect_between(nn_b, _planet(planets_a, pt_name))
+            if asp in ("conjunction", "trine"):
+                line = (
+                    f"You activate the direction {name_b} is growing toward — "
+                    f"not by guiding, but by being a context where their next "
+                    f"step feels more obvious."
+                )
+                break
+            elif asp in ("opposition", "square"):
+                line = (
+                    f"You sit on the edge of where {name_b}'s growth is asking "
+                    f"to go — that creates productive friction more than ease."
+                )
+                break
+
+    return _sanitize_line(line)
+
+
+def compute_vertex_amplifier(
+    astro_a: Dict[str, Any],
+    astro_b: Dict[str, Any],
+    name_b: str,
+) -> Optional[str]:
+    """
+    Vertex amplifier: Vertex (or anti-Vertex) of A contacts a personal
+    of B.  Framed as "this encounter has weight" — never as fated
+    meeting / soulmate / destined-to-meet.
+    """
+    vx_a = _get_vertex(astro_a)
+    vx_b = _get_vertex(astro_b)
+    if not vx_a and not vx_b:
+        return None
+
+    planets_a = (astro_a or {}).get("planets") or {}
+    planets_b = (astro_b or {}).get("planets") or {}
+
+    line = None
+    if vx_a:
+        for pt_name in ("Sun", "Moon", "Venus", "Mars"):
+            asp = _aspect_between(vx_a, _planet(planets_b, pt_name))
+            if asp in ("conjunction", "opposition"):
+                line = (
+                    f"This encounter has weight in your chart — {name_b}'s "
+                    f"presence lands on a sensitive contact point, so what "
+                    f"happens between you tends to feel more vivid than the "
+                    f"average interaction."
+                )
+                break
+
+    if not line and vx_b:
+        for pt_name in ("Sun", "Moon", "Venus", "Mars"):
+            asp = _aspect_between(vx_b, _planet(planets_a, pt_name))
+            if asp in ("conjunction", "opposition"):
+                line = (
+                    f"For {name_b}, this encounter lands on a sensitive "
+                    f"contact point — which means the interactions tend to "
+                    f"register for them more than they'd expect."
+                )
+                break
+
+    return _sanitize_line(line)
+
+
+# ---------------------------------------------------------------------------
+# Core field synthesizer
+# ---------------------------------------------------------------------------
+
+# Theme-label dictionary: maps signal fingerprints to a human label and a
+# short connector that the field paragraph can reuse.  Labels are
+# intentionally NEUTRAL — they describe what's alive, not how good it is.
+_THEME_CATALOG: List[Dict[str, Any]] = [
+    {
+        "label": "Emotional reach",
+        "match": {"hd_channels": ["6-59", "39-55"], "astro_signals": ["sun-moon", "moon-moon"]},
+        "what_lives_here": "Feelings move between you faster than most connections allow — the emotional door opens without much prompting.",
+        "friction_inside_it": "When it gets close, one of you tends to pull back to recover space.",
+    },
+    {
+        "label": "Quiet trust",
+        "match": {"hd_channels": ["34-57", "27-50", "13-33"]},
+        "what_lives_here": "There's an instinctive sense of safety here — you don't need words to confirm where you stand with each other.",
+        "friction_inside_it": "The trust can mute the small adjustments that keep a connection current.",
+    },
+    {
+        "label": "Shared rhythm",
+        "match": {"hd_channels": ["5-15", "9-52"]},
+        "what_lives_here": "Your natural pace lines up — when you're in sync, things move without negotiation.",
+        "friction_inside_it": "When the rhythms diverge, the whole connection can feel off, even if nothing went wrong.",
+    },
+    {
+        "label": "Creative momentum",
+        "match": {"hd_channels": ["1-8", "11-56", "35-36"]},
+        "what_lives_here": "Ideas and direction tend to activate between you — when you're together, things start.",
+        "friction_inside_it": "Momentum can outrun the conversation about whether either of you actually wants this.",
+    },
+    {
+        "label": "Power and direction",
+        "match": {"hd_channels": ["21-45", "7-31", "10-34"]},
+        "what_lives_here": "There's a live wire here around who leads, who follows, and how decisions actually get made.",
+        "friction_inside_it": "When this isn't named, it shows up as control or quiet resistance instead of conversation.",
+    },
+    {
+        "label": "Mutual sharpening",
+        "match": {"hd_channels": ["4-63", "17-62", "32-54", "18-58"]},
+        "what_lives_here": "You think things through together — the thinking itself changes both of you.",
+        "friction_inside_it": "Sharpening can land as criticism if the intention isn't shared.",
+    },
+    {
+        "label": "Belonging",
+        "match": {"hd_channels": ["37-40", "10-20"]},
+        "what_lives_here": "A sense of place forms between you — unspoken agreements that feel real even before they're stated.",
+        "friction_inside_it": "What feels 'agreed' may not actually be shared — the unsaid can build pressure.",
+    },
+    {
+        "label": "Emotional honesty under strain",
+        "match": {"ennea_friction": True},
+        "what_lives_here": "When the connection is pressed, both of you have a real chance to be seen — not just managed.",
+        "friction_inside_it": "Type-level patterns mean the pressure can recur in the same place until it's named.",
+    },
+    {
+        "label": "Elemental fit",
+        "match": {"bazi_support": True},
+        "what_lives_here": "Your underlying natures feed each other — there's something steady in how you both move through the world.",
+        "friction_inside_it": "When the support becomes automatic, it can quietly stop being noticed.",
+    },
+    {
+        "label": "Elemental friction",
+        "match": {"bazi_tension": True},
+        "what_lives_here": "Your underlying natures pull in different directions — neither of you is doing it wrong, but the gap is real.",
+        "friction_inside_it": "The friction is the connection — when it disappears, so does the energy.",
+    },
+]
+
+
+def _extract_hd_channel_ids(hd_signals: Optional[List[Dict[str, Any]]]) -> List[str]:
+    if not hd_signals:
+        return []
+    out = []
+    for s in hd_signals:
+        cid = s.get("channel") if isinstance(s, dict) else None
+        if cid:
+            out.append(str(cid))
+    return out
+
+
+def _bazi_has_section(bazi: Optional[Dict[str, Any]], section: str) -> bool:
+    if not isinstance(bazi, dict):
+        return False
+    lst = bazi.get(section)
+    return isinstance(lst, list) and len(lst) > 0
+
+
+def _ennea_has_friction(ennea: Optional[Dict[str, Any]]) -> bool:
+    if not isinstance(ennea, dict):
+        return False
+    lst = ennea.get("friction_pattern")
+    return isinstance(lst, list) and len(lst) > 0
+
+
+def _select_themes(
+    channel_ids: List[str],
+    bazi_signals: Optional[Dict[str, Any]],
+    enneagram_signals: Optional[Dict[str, Any]],
+    max_themes: int = 4,
+) -> List[Dict[str, Any]]:
+    """Walk the theme catalog, return up to `max_themes` matched themes."""
+    selected: List[Dict[str, Any]] = []
+    used_labels: set = set()
+
+    for entry in _THEME_CATALOG:
+        match = entry["match"]
+        ok = False
+
+        if "hd_channels" in match:
+            if any(cid in match["hd_channels"] for cid in channel_ids):
+                ok = True
+
+        if not ok and match.get("bazi_support"):
+            if _bazi_has_section(bazi_signals, "support"):
+                ok = True
+
+        if not ok and match.get("bazi_tension"):
+            if _bazi_has_section(bazi_signals, "tension"):
+                ok = True
+
+        if not ok and match.get("ennea_friction"):
+            if _ennea_has_friction(enneagram_signals):
+                ok = True
+
+        if ok and entry["label"] not in used_labels:
+            selected.append({
+                "label": entry["label"],
+                "what_lives_here": entry["what_lives_here"],
+                "friction_inside_it": entry.get("friction_inside_it"),
+            })
+            used_labels.add(entry["label"])
+        if len(selected) >= max_themes:
+            break
+
+    return selected
+
+
+def _build_activation_line(
+    channel_ids: List[str],
+    astro_signals: Optional[Dict[str, Any]],
+    bazi_signals: Optional[Dict[str, Any]],
+    name_b: str,
+) -> str:
+    """
+    The single most-alive sentence in this connection.  Activation-first
+    — we describe WHAT activates, never what conflicts.
+    """
+    # Channel-driven activation (strongest signal)
+    if channel_ids:
+        if "6-59" in channel_ids or "39-55" in channel_ids:
+            return f"What activates between you is emotional — the door opens faster than usual."
+        if "10-20" in channel_ids or "13-33" in channel_ids:
+            return f"What activates between you is honesty — surface talk dissolves quickly."
+        if "5-15" in channel_ids or "9-52" in channel_ids:
+            return f"What activates between you is timing — when you're aligned, things move without effort."
+        if "1-8" in channel_ids or "35-36" in channel_ids:
+            return f"What activates between you is forward motion — ideas tend to become action."
+        if "21-45" in channel_ids:
+            return f"What activates between you is the live wire around direction and resources."
+        if "34-57" in channel_ids or "27-50" in channel_ids:
+            return f"What activates between you is an instinctive sense of safety."
+        return f"What activates between you is a specific kind of energetic pull — {len(channel_ids)} active completion(s) connect different parts of your designs."
+
+    # Astrology fallback
+    if astro_signals and astro_signals.get("attraction"):
+        return f"What activates between you is something subtle — a chemistry that lives in how you respond to {name_b} more than in any single trait."
+
+    # BaZi fallback
+    if bazi_signals and bazi_signals.get("support"):
+        return f"What activates between you is a quiet elemental fit — your underlying natures feed each other."
+
+    if bazi_signals and bazi_signals.get("tension"):
+        return f"What activates between you is the gap between your natures — not absence of connection, but friction that holds the connection together."
+
+    return (
+        f"What activates between you is built, not automatic — this connection "
+        f"runs on attention rather than pull."
+    )
+
+
+def _build_field_paragraph(
+    activation: str,
+    themes: List[Dict[str, Any]],
+    name_b: str,
+) -> str:
+    """One short paragraph that synthesizes the FEEL of this pair."""
+    if not themes:
+        return activation + (
+            f" The shape of this connection emerges through who you both decide "
+            f"to be inside it, more than through any energetic completion."
+        )
+
+    theme_labels = [t["label"].lower() for t in themes[:3]]
+    if len(theme_labels) == 1:
+        theme_sentence = f"The dominant theme here is {theme_labels[0]}."
+    elif len(theme_labels) == 2:
+        theme_sentence = f"The dominant themes here are {theme_labels[0]} and {theme_labels[1]}."
+    else:
+        theme_sentence = (
+            f"The dominant themes here are {theme_labels[0]}, "
+            f"{theme_labels[1]}, and {theme_labels[2]}."
+        )
+
+    return f"{activation} {theme_sentence}"
+
+
+def _build_gift_line(
+    channel_ids: List[str],
+    bazi_signals: Optional[Dict[str, Any]],
+    enneagram_signals: Optional[Dict[str, Any]],
+    name_b: str,
+) -> str:
+    """
+    Mandatory 'Gift of this connection' line.  Always positive-framed
+    but never inflated.
+    """
+    if "6-59" in channel_ids or "39-55" in channel_ids:
+        return (
+            f"{name_b} helps you reach emotional depth you'd normally protect — "
+            f"and that depth is what makes this connection worth tending."
+        )
+    if "10-20" in channel_ids:
+        return (
+            f"With {name_b}, you get to drop a layer of performance — and you "
+            f"both get to find out who's underneath."
+        )
+    if "37-40" in channel_ids:
+        return (
+            f"Together you build a sense of belonging that neither of you "
+            f"would construct alone."
+        )
+    if "5-15" in channel_ids:
+        return (
+            f"Your shared rhythm creates a container of ease that other "
+            f"connections in your life don't have."
+        )
+    if "1-8" in channel_ids or "35-36" in channel_ids:
+        return (
+            f"{name_b} pulls you toward things you wouldn't start alone — "
+            f"and that's how parts of you grow."
+        )
+
+    if enneagram_signals and enneagram_signals.get("how_you_help_them"):
+        return enneagram_signals["how_you_help_them"][0]
+    if enneagram_signals and enneagram_signals.get("how_they_help_you"):
+        return enneagram_signals["how_they_help_you"][0]
+
+    if bazi_signals and bazi_signals.get("support"):
+        return (
+            f"The gift here is steadiness — your natures meet in a way that "
+            f"gives both of you somewhere reliable to stand."
+        )
+
+    return (
+        f"The gift here is intentional connection — what exists between you "
+        f"is built through choice and attention, not driven by unconscious pull."
+    )
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+def build_relationship_field(
+    *,
+    current_user_name: str,
+    member_name: str,
+    completed_channels: List[Dict[str, Any]],
+    chart_a: Optional[Dict[str, Any]],
+    chart_b: Optional[Dict[str, Any]],
+    astro_signals: Optional[Dict[str, Any]] = None,
+    bazi_signals: Optional[Dict[str, Any]] = None,
+    enneagram_signals: Optional[Dict[str, Any]] = None,
+    numerology_signals: Optional[Dict[str, Any]] = None,
+    hd_signals: Optional[List[Dict[str, Any]]] = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Build the relationship-field-v1 envelope.
+
+    All inputs are already-computed outputs from
+    services.forum_hd_mapping — we only synthesize, we never recompute.
+
+    Amplifiers (Juno / NN / Vertex) are computed here BUT are gated on
+    a corroboration rule:  an amplifier only surfaces if at least one
+    non-amplifier signal (HD channel, astrology contact, bazi support
+    or tension, or enneagram friction) already exists in the field.
+    Stand-alone amplifier lines are suppressed.
+    """
+    try:
+        channel_ids = _extract_hd_channel_ids(hd_signals)
+
+        # Build the activation + themes + gift first (from non-amplifier data).
+        activation = _build_activation_line(channel_ids, astro_signals, bazi_signals, member_name)
+        themes = _select_themes(channel_ids, bazi_signals, enneagram_signals)
+        field_paragraph = _build_field_paragraph(activation, themes, member_name)
+        gift = _build_gift_line(channel_ids, bazi_signals, enneagram_signals, member_name)
+
+        # Corroboration: amplifiers ONLY surface when something else is alive.
+        astro_a = (chart_a or {}).get("astrology", {}) if isinstance(chart_a, dict) else {}
+        astro_b = (chart_b or {}).get("astrology", {}) if isinstance(chart_b, dict) else {}
+
+        has_corroboration = bool(
+            channel_ids
+            or (astro_signals and (
+                astro_signals.get("attraction") or astro_signals.get("tension") or astro_signals.get("growth")
+            ))
+            or (bazi_signals and (
+                bazi_signals.get("support") or bazi_signals.get("tension") or bazi_signals.get("growth")
+            ))
+            or (enneagram_signals and enneagram_signals.get("friction_pattern"))
+        )
+
+        juno_line = None
+        nn_line = None
+        vx_line = None
+
+        if has_corroboration and astro_a and astro_b:
+            juno_line = compute_juno_amplifier(astro_a, astro_b, member_name)
+            nn_line = compute_north_node_amplifier(astro_a, astro_b, member_name)
+            vx_line = compute_vertex_amplifier(astro_a, astro_b, member_name)
+
+        # Final sanitizer pass on every user-visible line in the envelope.
+        envelope = {
+            "version": "relationship-field-v1",
+            "field_paragraph": _sanitize_line(field_paragraph) or field_paragraph,
+            "activation": _sanitize_line(activation) or activation,
+            "themes": [
+                {
+                    "label": t["label"],
+                    "what_lives_here": _sanitize_line(t["what_lives_here"]) or t["what_lives_here"],
+                    "friction_inside_it": _sanitize_line(t.get("friction_inside_it")),
+                }
+                for t in themes
+            ],
+            "gift_of_this_connection": _sanitize_line(gift) or gift,
+            "amplifiers": {
+                "juno": juno_line,
+                "north_node": nn_line,
+                "vertex": vx_line,
+            },
+        }
+
+        return envelope
+
+    except Exception as exc:
+        # Never break the mapping pipeline — log and skip.
+        logger.error(
+            f"[RelationshipField] build_relationship_field failed for "
+            f"{current_user_name} ↔ {member_name}: {type(exc).__name__}: {exc}"
+        )
+        return None

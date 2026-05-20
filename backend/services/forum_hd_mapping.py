@@ -1002,7 +1002,7 @@ def generate_mapping_interpretation(
     """
     
     if not completed_channels:
-        return {
+        no_channel_mapping = {
             "member_name": member_name,
             "story": {
                 "headline": "Your connection runs on intention, not automatic pull.",
@@ -1030,6 +1030,37 @@ def generate_mapping_interpretation(
             "channel_count": 0,
             "strength_score": 0,
         }
+        # Additive: try to synthesize a field envelope even for no-channel pairs
+        # using whatever astro / bazi / ennea / numerology signals exist.  If
+        # nothing surfaces (still possible), the function returns None and we
+        # simply don't attach the `field` key — legacy payload is unchanged.
+        try:
+            from services.relationship_field import build_relationship_field
+            _astro = compute_astrology_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
+            _bazi = compute_bazi_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
+            _ennea = compute_enneagram_signals(user_a, user_b, current_user_name, member_name) if user_a and user_b else None
+            _num = compute_numerology_signals(chart_a, chart_b, current_user_name, member_name) if chart_a and chart_b else None
+            _field = build_relationship_field(
+                current_user_name=current_user_name,
+                member_name=member_name,
+                completed_channels=[],
+                chart_a=chart_a,
+                chart_b=chart_b,
+                astro_signals=_astro,
+                bazi_signals=_bazi,
+                enneagram_signals=_ennea,
+                numerology_signals=_num,
+                hd_signals=[],
+            )
+            if _field is not None:
+                no_channel_mapping["field"] = _field
+        except Exception as _no_ch_field_err:
+            logger.error(
+                f"[RelationshipField] no-channel synthesis skipped for "
+                f"{current_user_name} ↔ {member_name}: "
+                f"{type(_no_ch_field_err).__name__}: {_no_ch_field_err}"
+            )
+        return no_channel_mapping
     
     channel_count = len(completed_channels)
     
@@ -1267,7 +1298,39 @@ def generate_mapping_interpretation(
     tensions = [_fix_pronouns(x) for x in tensions]
     gifts = [_fix_pronouns(x) for x in gifts]
 
-    return {
+    # =========================================================================
+    # RELATIONSHIP FIELD ARCHITECTURE v1 — additive synthesis layer.
+    # ---------------------------------------------------------------------
+    # Reads all the per-lens outputs already computed above and synthesizes
+    # them into a single "what happens between us" envelope BEFORE evidence.
+    # Strictly additive: every legacy key on the returned mapping (story /
+    # patterns / signals / headline / description / what_works /
+    # what_to_watch / why_this_happens / channel_count / strength_score)
+    # remains byte-identical.  Failure here never blocks the legacy payload.
+    # =========================================================================
+    field_envelope = None
+    try:
+        from services.relationship_field import build_relationship_field
+        field_envelope = build_relationship_field(
+            current_user_name=current_user_name,
+            member_name=member_name,
+            completed_channels=completed_channels,
+            chart_a=chart_a,
+            chart_b=chart_b,
+            astro_signals=astrology_signals,
+            bazi_signals=bazi_signals,
+            enneagram_signals=enneagram_signals,
+            numerology_signals=numerology_signals,
+            hd_signals=hd_signals,
+        )
+    except Exception as _rf_err:
+        logger.error(
+            f"[RelationshipField] synthesis skipped for {current_user_name} ↔ "
+            f"{member_name}: {type(_rf_err).__name__}: {_rf_err}"
+        )
+        field_envelope = None
+
+    result = {
         "member_name": member_name,
         # V2 3-LAYER STRUCTURE
         "story": {
@@ -1295,6 +1358,12 @@ def generate_mapping_interpretation(
         "channel_count": channel_count,
         "strength_score": min(channel_count * 20 + 10, 100),
     }
+
+    # Attach the new field envelope ONLY when synthesis succeeded.
+    if field_envelope is not None:
+        result["field"] = field_envelope
+
+    return result
 
 
 async def _ensure_chart_ready(db, user_id: str, user_doc: Dict[str, Any]) -> None:

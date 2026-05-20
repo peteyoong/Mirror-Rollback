@@ -685,6 +685,81 @@ def get_full_natal_chart(
     # =========================================================================
     
     # =========================================================================
+    # RELATIONSHIP-FIELD AMPLIFIERS (relationship-field-v1)
+    # ---------------------------------------------------------------------
+    # Additive, optional points: Juno (asteroid) + Vertex (chart angle).
+    # Used downstream by services/relationship_field.py as significance
+    # amplifiers ONLY — never as soulmate / fate / karmic indicators.
+    # Failures here NEVER break chart building: existing planets / angles
+    # / nodes / aspects / sect / houses payload is unchanged.  Older
+    # stored charts without these fields silently skip the amplifier
+    # layer at synthesis time.
+    # =========================================================================
+    try:
+        # Juno (asteroid id varies across swisseph builds; resolve at runtime).
+        juno_id = getattr(swe, 'JUNO', None)
+        if juno_id is None:
+            juno_id = getattr(swe, 'SE_JUNO', None)
+        if juno_id is not None:
+            try:
+                juno_pos = calculate_planet_position_sidereal(juno_id, jd, svp_degrees)
+                juno_house = get_house_for_planet(juno_pos['longitude'], house_cusps)
+                if juno_house is not None:
+                    juno_house = int(juno_house)
+                    if juno_house < 1 or juno_house > 12:
+                        juno_house = ((juno_house - 1) % 12) + 1
+                planets['Juno'] = {
+                    'longitude': juno_pos['longitude'],
+                    'tropical_longitude': juno_pos.get('tropical_longitude'),
+                    'latitude': juno_pos.get('latitude', 0),
+                    'sign': juno_pos['sign'],
+                    'degree': juno_pos['degree'],
+                    'formatted': juno_pos.get('formatted', f"{juno_pos['degree']:.0f}°{juno_pos['sign']}"),
+                    'house': juno_house,
+                    'speed': juno_pos.get('speed', 0),
+                    'retrograde': juno_pos.get('speed', 0) < 0,
+                    'amplifier': True,  # marker — read-only intent flag for downstream
+                }
+            except Exception:
+                pass  # silently skip if Juno fails
+
+        # Vertex (chart angle).  swe.houses_ex returns ascmc as a list/tuple
+        # where index 3 is the Vertex.  Use Placidus (same as ASC/MC above)
+        # so the Vertex matches the same house-system intent.
+        try:
+            _h_cusps_v, ascmc_v = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)
+            if ascmc_v is not None and len(ascmc_v) > 3:
+                vx_long = normalize_degrees(ascmc_v[3])
+                vx_sign_info = longitude_to_sign_degree(vx_long)
+                # Tropical fallback for downstream readers that prefer it
+                _, ascmc_v_trop = swe.houses(jd, lat, lon, b'P')
+                vx_long_trop = normalize_degrees(ascmc_v_trop[3]) if ascmc_v_trop and len(ascmc_v_trop) > 3 else None
+                angles['vertex'] = {
+                    'sign': vx_sign_info['sign'],
+                    'degree': vx_sign_info['degree'],
+                    'longitude': vx_long,
+                    'tropical_longitude': vx_long_trop,
+                    'formatted': vx_sign_info['formatted'],
+                    'amplifier': True,
+                }
+                # Anti-Vertex (opposite point) — symmetric, sometimes used in synastry.
+                avx_long = normalize_degrees(vx_long + 180)
+                avx_sign_info = longitude_to_sign_degree(avx_long)
+                angles['anti_vertex'] = {
+                    'sign': avx_sign_info['sign'],
+                    'degree': avx_sign_info['degree'],
+                    'longitude': avx_long,
+                    'formatted': avx_sign_info['formatted'],
+                    'amplifier': True,
+                }
+        except Exception:
+            pass  # silently skip if Vertex fails
+
+    except Exception:
+        # Outer safety net — amplifier layer can NEVER block chart build.
+        pass
+
+    # =========================================================================
     # COMPUTE INTEGRITY ASSERTIONS (FAIL FAST)
     # =========================================================================
     compute_errors = []
