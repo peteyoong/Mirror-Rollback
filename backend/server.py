@@ -34548,6 +34548,138 @@ async def get_micro_reflections(user_id: str, limit: int = 50):
 
 
 # =============================================================================
+# MICRO-REFLECTION V3 — Home daily texture check-in
+# Build marker: micro-reflection-v3-home-texture
+# =============================================================================
+# Lightweight Home-tab "how are you holding right now?" tap.  Reuses the
+# existing `micro_reflections` collection — the home tap is stored with
+# source="home_texture" and label="true_lately" (the texture is the
+# signal).  No streaks, no scores, no charts.
+# =============================================================================
+
+
+_HOME_TEXTURE_DOMAINS = {
+    "work", "relationships", "self", "family", "forum", "not_sure", None,
+}
+
+
+class HomeTextureCheckIn(BaseModel):
+    """Single home-tab texture tap."""
+    user_id: str
+    texture: str  # one of the 8 valid textures (tense/distant/open/...)
+    domain: Optional[str] = None  # optional second-step context
+
+
+@api_router.post("/micro-reflection/home-texture")
+async def create_home_texture(body: HomeTextureCheckIn):
+    """
+    Record a home-tab daily texture check-in.
+
+    Maps to the existing micro_reflection_v2 schema:
+      - label   = "true_lately"  (the texture IS what feels true lately)
+      - texture = <validated texture>
+      - source  = "home_texture"
+      - context_life_domain = <optional domain>
+
+    Soft acknowledgement only — no streaks, no scores, no return text.
+    """
+    from services.micro_reflection_v2 import (
+        record_reflection,
+        is_valid_texture,
+        valid_textures,
+    )
+    if not is_valid_texture(body.texture):
+        raise HTTPException(
+            status_code=400,
+            detail=f"invalid texture; allowed: {valid_textures()}",
+        )
+    if body.domain is not None and body.domain not in _HOME_TEXTURE_DOMAINS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"invalid domain; allowed: {sorted([d for d in _HOME_TEXTURE_DOMAINS if d])} or null",
+        )
+    try:
+        # Treat "not_sure" / None the same way — no domain bias.
+        domain_to_store = body.domain if body.domain not in (None, "not_sure") else None
+        doc = await record_reflection(
+            db=db,
+            user_id=body.user_id,
+            label="true_lately",
+            source="home_texture",
+            texture=body.texture,
+            context_life_domain=domain_to_store,
+        )
+        logger.info(
+            f"[MICRO_REFLECTION_V3] user={body.user_id} "
+            f"texture={body.texture} domain={domain_to_store} source=home_texture"
+        )
+        if isinstance(doc.get("ts"), datetime):
+            doc["ts"] = doc["ts"].isoformat()
+        return {
+            "ok": True,
+            "reflection": doc,
+            "marker": "micro-reflection-v3-home-texture",
+        }
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        logger.error(
+            f"[MICRO_REFLECTION_V3] error recording: {type(e).__name__}: {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="home-texture storage failed",
+        )
+
+
+@api_router.get("/micro-reflection/{user_id}/home-texture/today")
+async def get_home_texture_today(user_id: str):
+    """
+    Return whether the user has already logged a home-texture today
+    (used to soften the prompt — "thanks, holding it" rather than
+    re-prompting endlessly).
+    """
+    try:
+        start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        row = await db.micro_reflections.find_one({
+            "user_id": user_id,
+            "source": "home_texture",
+            "ts": {"$gte": start},
+        }, sort=[("ts", -1)])
+        if not row:
+            return {
+                "marker": "micro-reflection-v3-home-texture",
+                "user_id": user_id,
+                "logged_today": False,
+                "last": None,
+            }
+        row.pop("_id", None)
+        ts = row.get("ts")
+        if isinstance(ts, datetime):
+            row["ts"] = ts.isoformat()
+        return {
+            "marker": "micro-reflection-v3-home-texture",
+            "user_id": user_id,
+            "logged_today": True,
+            "last": {
+                "texture": row.get("texture"),
+                "domain": row.get("context_life_domain"),
+                "ts": row.get("ts"),
+            },
+        }
+    except Exception as e:
+        logger.error(
+            f"[MICRO_REFLECTION_V3] today fetch error: {type(e).__name__}: {e}"
+        )
+        return {
+            "marker": "micro-reflection-v3-home-texture",
+            "user_id": user_id,
+            "logged_today": False,
+            "last": None,
+        }
+
+
+# =============================================================================
 # FORUM TOPOLOGY + TIMING v1  (forum-topology-and-timing-v1)
 # =============================================================================
 
@@ -34609,6 +34741,149 @@ async def forum_topology_infer(forum_id: str):
         f"members={result.get('members_count')} inferred={result.get('inferred_count')}"
     )
     return result
+
+
+# =============================================================================
+# TOPOLOGY EDITOR V2 — user-facing CRUD
+# Build marker: topology-editor-v2
+# =============================================================================
+# Lets a forum member declare their own outbound relationship edges.
+# Explicit (user-declared) edges live alongside inferred ones, but
+# inference never downgrades them (see services/forum_topology.upsert_edge).
+
+
+class TopologyEditorUpsert(BaseModel):
+    """User-declared outbound edge from `from_user_id` → `to_user_id`."""
+    from_user_id: str           # must equal the calling user
+    to_user_id: str             # another forum member
+    role_type: str              # one of forum_topology.ALL_ROLES
+    emotional_weight: Optional[str] = None   # heavy | moderate | light
+    power_gradient: Optional[str] = None     # hard_hierarchy | soft_hierarchy | equal
+    intimacy_level: Optional[str] = None     # high | medium | low
+
+
+@api_router.post("/forums/{forum_id}/topology/edge")
+async def topology_editor_upsert(forum_id: str, body: TopologyEditorUpsert):
+    """
+    Create-or-update an explicit edge declared by the calling user.
+
+    Rules:
+      - `from_user_id` must be a forum member.
+      - `to_user_id` must also be a forum member and ≠ `from_user_id`.
+      - `role_type` must be a known role; unknown → 400.
+      - Stored with inferred=False and confidence='high'.
+    """
+    from services.forum_topology import upsert_edge, ALL_ROLES
+
+    if not body.from_user_id or not body.to_user_id:
+        raise HTTPException(status_code=400, detail="from_user_id and to_user_id are required")
+    if body.from_user_id == body.to_user_id:
+        raise HTTPException(status_code=400, detail="cannot declare an edge to yourself")
+    if body.role_type not in ALL_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"unknown role_type; allowed: {sorted(list(ALL_ROLES))}",
+        )
+
+    # Sanity-check forum membership for both endpoints.
+    member_ids: List[str] = []
+    async for r in db.forum_members.find({"forum_id": forum_id}):
+        uid = r.get("user_id")
+        if uid:
+            member_ids.append(str(uid))
+    if body.from_user_id not in member_ids:
+        raise HTTPException(
+            status_code=403,
+            detail="from_user_id is not a member of this forum",
+        )
+    if body.to_user_id not in member_ids:
+        raise HTTPException(
+            status_code=400,
+            detail="to_user_id is not a member of this forum",
+        )
+
+    # Validate optional facets if provided.
+    if body.emotional_weight and body.emotional_weight not in ("heavy", "moderate", "light"):
+        raise HTTPException(status_code=400, detail="invalid emotional_weight")
+    if body.power_gradient and body.power_gradient not in ("hard_hierarchy", "soft_hierarchy", "equal"):
+        raise HTTPException(status_code=400, detail="invalid power_gradient")
+    if body.intimacy_level and body.intimacy_level not in ("high", "medium", "low"):
+        raise HTTPException(status_code=400, detail="invalid intimacy_level")
+
+    edge = await upsert_edge(
+        db,
+        forum_id=forum_id,
+        from_user_id=body.from_user_id,
+        to_user_id=body.to_user_id,
+        role_type=body.role_type,
+        inferred=False,          # explicit — declared by user
+        confidence="high",       # user-declared > inferred
+        emotional_weight=body.emotional_weight,
+        power_gradient=body.power_gradient,
+        intimacy_level=body.intimacy_level,
+    )
+    for k in ("created_at", "updated_at"):
+        if isinstance(edge.get(k), datetime):
+            edge[k] = edge[k].isoformat()
+    logger.info(
+        f"[TOPOLOGY_EDITOR_V2] upsert forum={forum_id} "
+        f"from={body.from_user_id} -> to={body.to_user_id} role={body.role_type}"
+    )
+    return {"ok": True, "edge": edge, "marker": "topology-editor-v2"}
+
+
+@api_router.delete("/forums/{forum_id}/topology/edge/{edge_id}/by/{user_id}")
+async def topology_editor_delete(forum_id: str, edge_id: str, user_id: str):
+    """
+    Delete an edge the calling user declared.  Only the `from_user_id`
+    of the edge can delete it.
+    """
+    from services.forum_topology import delete_edge
+    edge = await db.forum_relationship_edges.find_one({"forum_id": forum_id, "id": edge_id})
+    if not edge:
+        raise HTTPException(status_code=404, detail="edge not found")
+    if str(edge.get("from_user_id")) != str(user_id):
+        raise HTTPException(
+            status_code=403,
+            detail="only the edge owner can delete this edge",
+        )
+    n = await delete_edge(db, forum_id=forum_id, edge_id=edge_id)
+    logger.info(
+        f"[TOPOLOGY_EDITOR_V2] delete forum={forum_id} edge={edge_id} by user={user_id}"
+    )
+    return {"ok": True, "deleted": n, "marker": "topology-editor-v2"}
+
+
+@api_router.get("/forums/{forum_id}/topology/by/{user_id}")
+async def topology_editor_list_for_user(forum_id: str, user_id: str):
+    """
+    Return edges centered on the calling user — both directions, both
+    inferred and explicit.  Used by the "Map your role with this person"
+    editor surface.
+    """
+    from services.forum_topology import list_edges
+    edges = await list_edges(db, forum_id=forum_id)
+    # Outbound = mapped BY the user.  Inbound = how others map them.
+    outbound = [e for e in edges if str(e.get("from_user_id")) == str(user_id)]
+    inbound = [e for e in edges if str(e.get("to_user_id")) == str(user_id)]
+    return {
+        "marker": "topology-editor-v2",
+        "forum_id": forum_id,
+        "user_id": user_id,
+        "outbound": outbound,
+        "inbound": inbound,
+        "all_roles": sorted(list({e.get("role_type") for e in edges if e.get("role_type")})),
+    }
+
+
+@api_router.get("/forums/{forum_id}/topology/roles")
+async def topology_editor_roles():
+    """Expose the allowed roles so the editor doesn't hard-code them."""
+    from services.forum_topology import ALL_ROLES
+    return {
+        "marker": "topology-editor-v2",
+        "roles": sorted(list(ALL_ROLES)),
+    }
 
 
 @api_router.get("/forums/{forum_id}/topology")

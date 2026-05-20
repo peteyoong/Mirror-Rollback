@@ -1098,6 +1098,33 @@ export default function ForumHomeScreen() {
           </TouchableOpacity>
         )}
 
+        {/* Map your role → topology-editor-v2 CTA.
+            Lets the member declare directional edges with other members. */}
+        {id && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.push(`/forums/${String(id)}/topology` as any)}
+            style={[
+              styles.talkToRoomCta,
+              { backgroundColor: theme.surface, borderColor: theme.border, marginTop: 8 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Map your role"
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.talkToRoomKicker, { color: theme.textTertiary }]}>
+                Topology
+              </Text>
+              <Text style={[styles.talkToRoomLabel, { color: theme.text }]}>
+                Map your role →
+              </Text>
+              <Text style={[styles.talkToRoomSub, { color: theme.textSecondary }]}>
+                Quietly declare how you see your role with each person.
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
         {/* Forum Info */}
         <View style={styles.forumInfo}>
           <Text style={[styles.forumName, { color: theme.text }]}>{forum?.name}</Text>

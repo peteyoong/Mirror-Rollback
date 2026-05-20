@@ -163,6 +163,13 @@ async def upsert_edge(
         "role_type": role_type,
     })
     if existing:
+        # NEVER downgrade an explicit (user-declared) edge to inferred.
+        # If we're an inference call landing on a user-declared edge,
+        # leave it untouched. (topology-editor-v2)
+        if bool(inferred) and not existing.get("inferred", True):
+            existing.pop("_id", None)
+            existing["id"] = existing.get("id") or str(uuid.uuid4())
+            return existing
         await db.forum_relationship_edges.update_one(
             {"_id": existing["_id"]}, {"$set": doc},
         )
@@ -238,12 +245,24 @@ async def infer_forum_topology_edges(db, *, forum_id: str) -> Dict[str, Any]:
 
     inferred = 0
     inferred_edges: List[Dict[str, Any]] = []
+    # topology-editor-v2: explicit (user-declared) edges win.  Collect
+    # the set of (from, to) pairs that already have ANY explicit edge so
+    # we can skip auto-inference for those directions entirely.
+    explicit_pairs: set = set()
+    async for ex in db.forum_relationship_edges.find({
+        "forum_id": forum_id, "inferred": False,
+    }):
+        explicit_pairs.add((str(ex.get("from_user_id")), str(ex.get("to_user_id"))))
+
     for from_uid in members:
         cursor = db.saved_people.find({"user_id": from_uid})
         async for sp in cursor:
             target_name = (sp.get("name") or "").strip().lower()
             target_uid = name_to_uid.get(target_name)
             if not target_uid or target_uid == from_uid:
+                continue
+            # Skip if the user has already declared an explicit edge.
+            if (from_uid, target_uid) in explicit_pairs:
                 continue
             role = role_for_relationship_type(sp.get("relationship_type"))
             edge = await upsert_edge(
@@ -257,7 +276,10 @@ async def infer_forum_topology_edges(db, *, forum_id: str) -> Dict[str, Any]:
             )
             inferred += 1
             inferred_edges.append(edge)
-            # Materialise inverse direction too.
+            # Materialise inverse direction too — also gated by explicit
+            # override for that direction.
+            if (target_uid, from_uid) in explicit_pairs:
+                continue
             inv = _INVERSE_ROLE.get(role, "other")
             await upsert_edge(
                 db,

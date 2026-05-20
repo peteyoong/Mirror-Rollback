@@ -27,6 +27,7 @@ import LunarReflectionSignalCard from '../../components/LunarReflectionSignalCar
 import HomeSynthesisCard from '../../components/HomeSynthesisCard';
 import HomeInsightV5Card from '../../components/HomeInsightV5Card';
 import HomeInsightV6Card from '../../components/HomeInsightV6Card';
+import HomeTextureCheckIn from '../../components/HomeTextureCheckIn';
 import WhyThisIsActiveNowCard from '../../components/WhyThisIsActiveNowCard';
 import ActionCard from '../../components/ActionCard';
 import { useExperienceControls } from '../../hooks/useExperienceControls';
@@ -443,6 +444,15 @@ export default function MirrorScreen() {
         {user?.id && (
           <WhyThisIsActiveNowCard userId={user.id} theme={theme} />
         )}
+
+        {/* ===================================================================
+            POSITION 1c: HOME TEXTURE CHECK-IN (micro-reflection-v3-home-texture)
+            Soft, dismissible daily texture chip — "how are you holding
+            right now?"  No streaks. No scores. Auto-collapses once logged
+            for the day.  Feeds into pattern memory + emotional timing +
+            field intelligence.
+            =================================================================== */}
+        {user?.id && <HomeTextureCheckIn userId={user.id} />}
 
         {/* ===================================================================
             POSITION 2: SECONDARY CARD (Mode-dependent)

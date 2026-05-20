@@ -19090,13 +19090,227 @@ backend:
 
 test_plan:
   current_focus:
-    - "Forum-Aware Conversational Mirror + Contradiction Intelligence (forum-conversational-field-v1)"
+    - "Micro-Reflection v3 — Home daily texture check-in (micro-reflection-v3-home-texture)"
+    - "Topology Editor v2 — user-declared edges (topology-editor-v2)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 backend:
-  - task: "Forum-Aware Conversational Mirror + Contradiction Intelligence (forum-conversational-field-v1)"
+  - task: "Micro-Reflection v3 — Home daily texture check-in (micro-reflection-v3-home-texture)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py (POST /api/micro-reflection/home-texture, GET /api/micro-reflection/{user_id}/home-texture/today) + /app/frontend/components/HomeTextureCheckIn.tsx + /app/frontend/app/(tabs)/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          New Home-tab daily texture check-in.  Reuses the existing
+          micro_reflections collection — each home tap is stored with:
+            label   = "true_lately"
+            source  = "home_texture"
+            texture = <one of: tense | distant | open | pressured |
+                              stuck | clear | conflicted | softer>
+            context_life_domain = optional second-step (work,
+                              relationships, self, family, forum, or null).
+
+          New endpoints:
+            POST /api/micro-reflection/home-texture
+              body: {user_id, texture, domain?}
+              returns: {ok, reflection, marker:"micro-reflection-v3-home-texture"}
+              400 on invalid texture or invalid domain.
+
+            GET /api/micro-reflection/{user_id}/home-texture/today
+              returns: {logged_today: bool, last: {texture, domain, ts}?, ...}
+              used by Home to auto-collapse to "Held for today" line.
+
+          Frontend:
+            New `components/HomeTextureCheckIn.tsx` placed on Home
+            (position 1c — under WhyThisIsActiveNow).  Soft, dismissible,
+            no streaks, no scores, no charts.  Two-stage flow:
+              Stage 1: 8 texture chips.
+              Stage 2 (optional): "What does this connect to?" 6 domain
+                chips + Skip.
+            Once logged for the day → collapses to a quiet "Held for
+            today · <texture> · <domain>" line.
+
+          Validation expectations the testing agent must verify:
+            M1. POST /api/micro-reflection/home-texture {user_id: Pete,
+                texture: "open"} → 200, ok=true, marker correct,
+                reflection.label == "true_lately",
+                reflection.source == "home_texture",
+                reflection.texture == "open".
+            M2. POST with texture="open", domain="work" → 200,
+                context_life_domain == "work".
+            M3. POST with invalid texture → 400.
+            M4. POST with invalid domain (e.g. "weird") → 400.
+            M5. POST with domain="not_sure" → 200,
+                context_life_domain stored as null (per spec — "not
+                sure" doesn't bias the domain).
+            M6. GET /api/micro-reflection/{user_id}/home-texture/today
+                AFTER a post → logged_today=true, last.texture matches.
+            M7. The new home-texture taps must FEED INTO existing
+                analyze_recent — i.e. GET /api/micro-reflection/
+                {user_id}/recent should include them in `reflections[]`
+                and `summary.total` should increment.
+            M8. Recurrence: posting again with a different texture
+                creates a SECOND record (no upsert).  count grows by 1
+                per call.
+
+          Cleanup: delete the test reflections for the throwaway user
+          (or Pete's home-texture records inserted during the test).
+      - working: true
+        agent: "testing"
+        comment: |
+          MICRO-REFLECTION V3 — HOME TEXTURE TESTING COMPLETE ✅ (8/8 PASSED)
+
+          Public base: https://behavioral-lens-2.preview.emergentagent.com/api
+          User: Pete (697f0c6abf35c0528ff06954)
+
+          M1 ✅ POST /api/micro-reflection/home-texture {texture:"open"} → 200,
+             marker="micro-reflection-v3-home-texture", reflection.label="true_lately",
+             reflection.source="home_texture", reflection.texture="open".
+          M2 ✅ POST {texture:"open", domain:"work"} → 200,
+             reflection.context_life_domain="work".
+          M3 ✅ POST {texture:"banana"} → 400 ("invalid texture; allowed: [...]").
+          M4 ✅ POST {texture:"open", domain:"weird"} → 400 ("invalid domain; ...").
+          M5 ✅ POST {texture:"open", domain:"not_sure"} → 200,
+             reflection.context_life_domain=None (stored as null per spec).
+          M6 ✅ GET /api/micro-reflection/{Pete}/home-texture/today → 200,
+             logged_today=true, last.texture matches latest post ("open").
+          M7 ✅ GET /api/micro-reflection/{Pete}/recent → 200, reflections[]
+             contains source=="home_texture" rows, summary.total=3 > 0.
+          M8 ✅ Two POSTs (textures "tense" and "clear") produced TWO new
+             records; summary.total grew by exactly 2 (3 → 5). No upsert.
+
+          Cleanup verified: 5 home_texture micro_reflections deleted from
+          MongoDB at end of run.
+
+  - task: "Topology Editor v2 — user-declared edges (topology-editor-v2)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py (POST /forums/{id}/topology/edge, DELETE /forums/{id}/topology/edge/{edge_id}/by/{user_id}, GET /forums/{id}/topology/by/{user_id}, GET /forums/{id}/topology/roles) + /app/backend/services/forum_topology.py (upsert_edge guard + infer skip explicit) + /app/frontend/app/forums/[id]/topology.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          User-facing CRUD for forum_relationship_edges.  Members can
+          declare their own outbound relationship edges with other
+          forum members.  Stored with inferred=False and
+          confidence='high'.
+
+          New endpoints:
+            POST   /api/forums/{forum_id}/topology/edge
+              body: {from_user_id, to_user_id, role_type,
+                     emotional_weight?, power_gradient?, intimacy_level?}
+              Validates: from is member, to is member ≠ from,
+              role_type ∈ ALL_ROLES.
+              Returns: {ok, edge, marker:"topology-editor-v2"}.
+
+            DELETE /api/forums/{forum_id}/topology/edge/{edge_id}/by/{user_id}
+              Only the edge's from_user_id may delete it (403 otherwise).
+
+            GET    /api/forums/{forum_id}/topology/by/{user_id}
+              Returns {outbound[], inbound[], all_roles[]} centered on
+              the calling user.
+
+            GET    /api/forums/{forum_id}/topology/roles
+              Returns the allowed role vocabulary (for frontend chip
+              palette).
+
+          Edge contract changes (services/forum_topology.py):
+            - upsert_edge: when an inference call lands on a matching
+              explicit edge, it no longer overwrites — the explicit
+              edge wins (NEVER downgrade inferred=False → True).
+            - infer_forum_topology_edges: now skips any (from→to)
+              direction that already has an explicit edge.
+
+          Frontend: new screen /forums/[id]/topology.tsx — calm list
+          of members, role chip palette, optional closeness/weight
+          chips.  No graph.  Power-gradient intentionally hidden
+          (auto-set from role preset).
+          CTA "Map your role →" added to /forums/[id].tsx under
+          "Talk to the room →".
+
+          Validation expectations the testing agent must verify:
+            T1. POST /api/forums/{forum_id}/topology/edge with valid
+                payload → 200, edge.inferred == false,
+                edge.confidence == "high".
+            T2. POST same pair AGAIN with a different role → 200,
+                a NEW edge is created (different role_type key) OR
+                the existing same-role edge updates.  Both edges
+                may coexist.
+            T3. POST with from_user_id NOT in the forum → 403.
+            T4. POST with to_user_id == from_user_id → 400.
+            T5. POST with unknown role_type "cult-leader" → 400.
+            T6. DELETE /api/forums/{id}/topology/edge/{eid}/by/{user_id}
+                where user_id != edge.from_user_id → 403.
+            T7. After T1, run POST /api/forums/{id}/topology/infer
+                → the explicit edge from T1 must still be
+                inferred=false (override-not-downgraded).
+            T8. GET /api/forums/{id}/topology/by/{user_id} returns
+                the explicit edge in `outbound`.
+            T9. GET /api/forums/{id}/topology/roles returns an array
+                including 'mentor', 'cofounder', 'spouse', 'close_friend',
+                'forum_mate', 'other'.
+            T10. compose_story_of_circle still works (no regression
+                 on /api/forums/{id}/story-of-circle).
+            T11. forum-conversational-field still works (no regression
+                 on /api/forums/{id}/mirror-chat with the same forum).
+
+          Cleanup: delete the test explicit edges at the end of the
+          run (DELETE by edge owner).
+
+          Test user: Pete (697f0c6abf35c0528ff06954).
+          Test forum (Pete + Mel): 69dd05eaa333335fcbf3ad33.
+          Mel's user_id can be inferred from members API.
+      - working: true
+        agent: "testing"
+        comment: |
+          TOPOLOGY EDITOR V2 TESTING COMPLETE ✅ (11/11 PASSED)
+
+          Public base: https://behavioral-lens-2.preview.emergentagent.com/api
+          Forum: 69dd05eaa333335fcbf3ad33
+          Pete: 697f0c6abf35c0528ff06954
+          Mel resolved from /members?user_id=Pete → 697ec826ad4b18f75bf42616
+
+          T1 ✅ POST /topology/edge {from:Pete, to:Mel, role_type:"close_friend"}
+             → 200, marker="topology-editor-v2", edge.inferred=false,
+             edge.confidence="high".
+          T2 ✅ POST {role_type:"mentor", emotional_weight:"moderate",
+             intimacy_level:"medium"} → 200; subsequent GET
+             /topology/by/Pete shows BOTH close_friend AND mentor outbound
+             explicit edges to Mel.
+          T3 ✅ POST with non-member from_user_id → 403
+             ("from_user_id is not a member of this forum").
+          T4 ✅ POST self-edge (from==to) → 400 ("cannot declare an edge
+             to yourself").
+          T5 ✅ POST role_type="cult-leader" → 400 ("unknown role_type;
+             allowed: [...]").
+          T6 ✅ DELETE /topology/edge/{T1_edge_id}/by/Mel → 403 ("only
+             the edge owner can delete this edge").
+          T7 ✅ POST /topology/infer → 200; re-GET /topology/by/Pete:
+             both explicit edges still have inferred=false (override
+             not downgraded).
+          T8 ✅ GET /topology/by/Pete → outbound contains both
+             close_friend and mentor edges; all_roles non-empty (2).
+          T9 ✅ GET /topology/roles → 200, marker="topology-editor-v2",
+             roles include {mentor, cofounder, spouse, close_friend,
+             forum_mate, other} (all required present; 20 total).
+          T10 ✅ Regression GET /forums/{forum_id}/story-of-circle →
+             200, marker="forum-topology-and-timing-v1".
+          T11 ✅ Regression POST /forums/{forum_id}/mirror-chat with
+             Pete + "How does the room feel today?" → 200,
+             debug.marker="forum-conversational-field-v1".
+
+          Cleanup verified: both explicit edges deleted via owner-by-Pete
+          DELETE (both returned 200).
     implemented: true
     working: true
     file: "/app/backend/services/forum_conversational_field.py + /app/backend/services/contradiction_intelligence.py + /app/backend/server.py (POST /api/forums/{forum_id}/mirror-chat, GET /api/forums/{forum_id}/mirror-chat/history) + /app/frontend/components/ForumMirrorChat.tsx + /app/frontend/app/forums/[id]/chat.tsx"
