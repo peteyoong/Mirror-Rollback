@@ -21880,3 +21880,262 @@ agent_communication:
 
           26/26 backend assertions PASS.  v7 refactor is regression-clean.
           server.py ready for v8 mirror_chat router extraction.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SERVER ROUTER REFACTOR v8 — /api/mirror/chat extraction
+# ─────────────────────────────────────────────────────────────────────────────
+
+backend:
+  - task: "Server Router Refactor v8 — extract /api/mirror/chat to routers/mirror_chat.py"
+    implemented: true
+    working: false
+    file: "/app/backend/routers/mirror_chat.py, /app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: |
+          v8 REFACTOR COMPLETED — behaviour-preserving extraction of POST /api/mirror/chat
+          from server.py into routers/mirror_chat.py.
+
+          CHANGES:
+          • Created /app/backend/routers/mirror_chat.py (1505 lines)
+              - Function body is byte-identical to the inline server.py implementation
+                except for one indentation level (route now lives inside register()).
+              - Late-imports model classes, prompt constants, helper functions, and the
+                shared chat_sessions dict from `server` inside register() — same pattern
+                used by other router extractions; no circular import.
+              - Continues to delegate pipeline stages (lens / life-domain / relational /
+                pattern-memory / micro-reflection / contradiction) to services/mirror_chat_pipeline.
+          • server.py:
+              - Removed 1411 lines (lines 7329..8739 inclusive, the entire mirror_chat fn).
+              - chat_sessions module-level dict declaration preserved at original location
+                so DELETE /api/mirror/chat/{session_id} (still in server.py) and the new
+                router share the same in-memory state.
+              - Added registration call right after forums_intelligence:
+                  from routers import mirror_chat as _mirror_chat_router
+                  _mirror_chat_router.register(api_router, db, logger, EMERGENT_LLM_KEY)
+              - File now 31,917 lines (was 33,308).
+
+          ROUTE REGISTRATION VERIFIED:
+            POST   /api/mirror/chat                 — from routers/mirror_chat.py (v8)
+            DELETE /api/mirror/chat/{session_id}    — still in server.py (shares chat_sessions)
+
+          NO CHANGES TO:
+          • Request schema (MirrorChatRequest)
+          • Response schema (MirrorChatResponse / MemoryUpdate)
+          • Route path or method
+          • System prompts (MIRROR_SYSTEM_PROMPT, LENS_PROMPTS, KEYSTONE_*, THREAD_*,
+            ANALYST_*, TIMELINE_*, transit context, pattern-thread context)
+          • Pipeline stage call order
+          • Debug payload structure (lens_chat / relational / pattern_memory / master_voice
+            / micro_reflection / contradictions all surface exactly as before)
+          • Evidence drawer payload (curate_evidence still called from same point)
+          • Rate-limit windows (still use shared check_rate_limit/get_rate_limit_remaining)
+          • Memory update generation, thread state decrement, timeline event write
+          • Error handling (HTTPException re-raise, 504 timeout, 500 mirror_interpret_failed)
+
+          BACKEND BOOT VERIFIED CLEAN.  No import errors.  No runtime errors.
+
+          REQUEST FOR TESTING AGENT:
+          Please run the full v7 mirror_chat regression suite again against /api/mirror/chat
+          (lens=null, astrology, zi_wei + life_domain=relationships, work, self).  Specifically:
+
+          1. POST /api/mirror/chat with lens=null returns 200 and a response_text.
+          2. POST /api/mirror/chat with lens="astrology" returns 200 AND
+             debug.lens_chat.marker == "multi-lens-chat-memory-v1" AND debug.lens_chat.lens == "astrology"
+             AND legacy flat debug.marker / debug.lens still present (byte-identical to v6/v7).
+          3. POST /api/mirror/chat with lens="zi_wei" → debug.lens_chat.marker present,
+             lens_chat.lens=="zi_wei".
+          4. POST /api/mirror/chat with life_domain="relationships" → debug.master_voice present
+             with marker=="life-tab-master-voice-v1".
+          5. POST /api/mirror/chat with life_domain="work"          → debug.master_voice present.
+          6. POST /api/mirror/chat with life_domain="self"          → debug.master_voice present.
+          7. Evidence drawer — response.evidence present, evidence.marker=="evidence-drawer-v2".
+          8. DELETE /api/mirror/chat/{session_id} still clears the session (shared chat_sessions).
+          9. Previously extracted routers (forums_intelligence, forums_chat, micro_reflection,
+             pattern_running_me, topology) still respond 200.
+
+          Test user: Pete (pete@pulsifi.me, id 697f0c6abf35c0528ff06954).
+          Use any active forum that Pete is a member of for the forum-side sanity checks.
+
+agent_communication:
+    -agent: "main"
+    -message: |
+      Server Router Refactor v8 complete and ready for regression testing.
+
+      Scope: POST /api/mirror/chat extracted from server.py (lines 7329-8739, 1411 lines)
+      into /app/backend/routers/mirror_chat.py using the standard register() pattern.
+      Function body is byte-identical; only indentation shifts (route handler now nested
+      one level inside register()).  All pipeline stages still flow through
+      services/mirror_chat_pipeline.py exactly as in v7.
+
+      DELETE /api/mirror/chat/{session_id} intentionally left in server.py because it
+      shares the in-memory chat_sessions dict.  The new router imports the same dict via
+      `from server import chat_sessions`, so both handlers continue to operate on shared
+      state.
+
+      Please re-run the v7 mirror_chat regression suite to confirm zero behavioural drift.
+
+      - working: false
+        agent: "testing"
+        comment: |
+          ❌ CRITICAL v8 REGRESSION — POST /api/mirror/chat IS COMPLETELY BROKEN (returns 422 for ALL requests).
+
+          Test harness: /app/backend_test.py
+          Base URL:     https://chat-pipeline-split.preview.emergentagent.com/api
+          Backend boot: clean (no errors in supervisor logs).
+
+          ── A) BOOT / REGISTRATION SANITY ────────────────────────────
+          ✅ A.1 backend reachable (GET /api/people/{pete}) → 200
+          ✅ A.2 POST /api/mirror/chat registered (not 404) → 422 (registration confirmed but see B)
+          ✅ A.3 DELETE /api/mirror/chat/{session_id} registered (in server.py) → 200
+
+          ── B) /api/mirror/chat BEHAVIOUR (ALL FAIL) ────────────────
+          ❌ B.1 lens=null                  → 422
+          ❌ B.2 lens=astrology             → 422
+          ❌ B.3 lens=zi_wei                → 422
+          ❌ B.4 life_domain=relationships  → 422
+          ❌ B.5 life_domain=work           → 422
+          ❌ B.6 life_domain=self           → 422
+
+          Every POST /api/mirror/chat returns:
+            HTTP 422 {"detail":[{"type":"missing",
+                                  "loc":["query","request"],
+                                  "msg":"Field required", ...}]}
+
+          ── C) SHARED chat_sessions STATE ────────────────────────────
+          ❌ C.1 POST /mirror/chat (fresh session_id) → 422 (cannot create session)
+          ⏭️  C.2 DELETE skipped — POST never created a session.
+              (Direct DELETE on a fake session_id returns 200, so the DELETE
+               handler in server.py is fine; chat_sessions sharing is moot
+               because POST never reaches the handler.)
+
+          ── D) PREVIOUSLY EXTRACTED ROUTERS (sanity) ──────────────────
+          ✅ D.1 GET   /forums/{id}/chat/history?limit=2          → 200
+          ✅ D.2 GET   /forums/user/{pete}                        → 200 (4 forums found)
+          ✅ D.3 POST  /forums/{id}/mirror-chat                   → 200
+          ✅ D.4 GET   /forums/{id}/story-of-circle               → 200
+          ✅ D.5 POST  /micro-reflection/home-texture             → 200
+          ✅ D.6 GET   /pattern-running-me/user/{pete}            → 200
+          ✅ D.7 GET   /forums/{id}/topology                      → 200
+
+          ── ROOT CAUSE (verified via Python introspection of the live app) ──
+          Reproduced with the following snippet against the live process:
+
+              import server, inspect, typing
+              for r in server.app.routes:
+                  if r.path == '/api/mirror/chat' and 'POST' in r.methods:
+                      sig = inspect.signature(r.endpoint)
+                      print('sig:', sig)
+                      print('hints:', typing.get_type_hints(r.endpoint))
+
+          Output:
+              sig:   (request: 'MirrorChatRequest')
+              hints ERROR: NameError name 'MirrorChatRequest' is not defined
+
+          The router file declares:
+              # routers/mirror_chat.py
+              from __future__ import annotations            ← line 36
+              ...
+              def register(api_router, db, logger, emergent_llm_key):
+                  from server import MirrorChatRequest, ...  ← imported INSIDE register()
+                  ...
+                  @api_router.post("/mirror/chat", response_model=MirrorChatResponse)
+                  async def mirror_chat(request: MirrorChatRequest):
+                      ...
+
+          Because of `from __future__ import annotations`, the parameter
+          annotation `MirrorChatRequest` is stored as the STRING
+          `'MirrorChatRequest'` on `mirror_chat.__annotations__`.  When
+          FastAPI subsequently calls `typing.get_type_hints(endpoint)` to
+          resolve the type, it looks the name up in the function's
+          `__globals__` — i.e. the MODULE GLOBALS of routers/mirror_chat.py
+          — where `MirrorChatRequest` is NOT defined (it lives only in
+          `register()`'s local scope).  `get_type_hints` raises NameError,
+          FastAPI silently falls back to treating `request` as a default
+          parameter (which for POST endpoints means a QUERY parameter),
+          hence the response shape:
+
+              {"loc":["query","request"], "msg":"Field required"}
+
+          This is a real v8 regression introduced by the extraction.  It
+          breaks 100% of mirror chat traffic.  No request can ever reach
+          the function body, so:
+              • debug.lens_chat / debug.master_voice / debug.pattern_memory
+                /debug.micro_reflection / debug.contradictions are NEVER
+                emitted.
+              • evidence drawer is NEVER emitted.
+              • shared chat_sessions test C is vacuously unverifiable.
+              • The frontend Mirror chat surface is COMPLETELY broken on
+                the live preview right now.
+
+          ── HOW THIS DIFFERS FROM OTHER ROUTERS (which work) ────────────
+          routers/forums_chat.py, routers/micro_reflection.py,
+          routers/forums_field.py etc. all DEFINE their Pydantic models
+          AT MODULE SCOPE in the router file itself (e.g.
+          micro_reflection.py:48 `class HomeTextureCheckIn(BaseModel)`),
+          so `get_type_hints()` resolves them via the router's own module
+          globals.  Only mirror_chat.py imports the model from `server`
+          INSIDE register(), which combined with `from __future__ import
+          annotations` produces this exact failure.
+
+          ── REMEDIATION OPTIONS FOR MAIN AGENT (pick one) ────────────────
+          Option A (simplest, behaviour-preserving):
+              In routers/mirror_chat.py REMOVE the line
+                  from __future__ import annotations
+              so the annotation is evaluated EAGERLY at function-definition
+              time (inside register()), where MirrorChatRequest IS in scope.
+              This is the smallest change that fixes the bug.
+
+          Option B:
+              Move the `from server import MirrorChatRequest, MirrorChatResponse,
+              MemoryUpdate` line OUT of register() and put it at module
+              top-level (lazy via TYPE_CHECKING / runtime import).  Then
+              `MirrorChatRequest` is in the router's module globals and
+              `get_type_hints()` will resolve under PEP 563.
+              CAVEAT: server.py imports `routers.mirror_chat` BEFORE
+              MirrorChatRequest is created, so a plain top-level
+              `from server import MirrorChatRequest` will fail with a
+              circular import.  Need either a deferred resolver or have
+              server.py expose the model from a separate module.
+
+          Option C:
+              Annotate the handler with `request: "MirrorChatRequest"` AND
+              explicitly resolve via `Body(...)`:
+                  from fastapi import Body
+                  @api_router.post("/mirror/chat", response_model=MirrorChatResponse)
+                  async def mirror_chat(request: MirrorChatRequest = Body(...)):
+              Even with PEP 563, the explicit Body(...) tells FastAPI it's
+              a body parameter regardless of type-hint resolution.
+
+          Recommendation: Option A — delete `from __future__ import
+          annotations` from /app/backend/routers/mirror_chat.py.  The
+          function body does not use any forward-reference / string
+          annotations that require it, and this is by far the smallest
+          behaviour-preserving fix.
+
+          ── BACKEND LOGS CONFIRM ────────────────────────────────────────
+          Every test request shows up as:
+              INFO: ... "POST /api/mirror/chat HTTP/1.1" 422 Unprocessable Entity
+
+          No `[MIRROR_CHAT] === REQUEST RECEIVED ===` log line is emitted
+          for any call, confirming the function body is never entered.
+
+          ── PASS / FAIL TALLY ────────────────────────────────────────────
+          A: 3/3 PASS
+          B: 0/6 PASS   ← critical regression
+          C: 0/2 PASS   ← blocked by B
+          D: 7/7 PASS   ← previously extracted routers unaffected
+
+          Total: 10/18.  v8 mirror_chat extraction is NOT regression-clean.
+          ROUTE REGISTRATION ITSELF IS CORRECT — the route IS attached and
+          callable — but FastAPI cannot resolve the body parameter type,
+          so every payload is rejected with 422 at the parameter-binding
+          layer.
+
+          ACTION FOR MAIN AGENT: apply remediation Option A (remove
+          `from __future__ import annotations` at routers/mirror_chat.py
+          line 36) and re-trigger this regression suite.
