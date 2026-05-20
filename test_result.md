@@ -21888,11 +21888,11 @@ agent_communication:
 backend:
   - task: "Server Router Refactor v8 — extract /api/mirror/chat to routers/mirror_chat.py"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/routers/mirror_chat.py, /app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         -working: "NA"
         -agent: "main"
@@ -22139,3 +22139,110 @@ agent_communication:
           ACTION FOR MAIN AGENT: apply remediation Option A (remove
           `from __future__ import annotations` at routers/mirror_chat.py
           line 36) and re-trigger this regression suite.
+
+      - working: true
+        agent: "testing"
+        comment: |
+          ✅ v8 REGRESSION CLEAN — 18/18 PASS after fix.
+
+          Fix verified in /app/backend/routers/mirror_chat.py:36 — the
+          `from __future__ import annotations` line has been removed and
+          replaced with an explanatory comment block (lines 36-46)
+          documenting why PEP 563 must remain OFF for this router (eager
+          evaluation of `request: MirrorChatRequest` is required because
+          the model is late-imported inside register()).
+
+          Test harness:  /app/backend_test.py
+          Base URL:      https://chat-pipeline-split.preview.emergentagent.com/api
+          Backend boot:  clean — backend RUNNING, pid 4339, no import or
+                         startup errors in supervisor logs.
+
+          ── A) BOOT / REGISTRATION SANITY ────────────────────────────
+          ✅ A.1 GET /api/people/{pete}                            → 200
+          ✅ A.2 POST /api/mirror/chat registered (422 on empty body, NOT 404)
+          ✅ A.3 DELETE /api/mirror/chat/{session_id} registered    → 200
+
+          ── B) /api/mirror/chat BEHAVIOUR (all green) ─────────────────
+          ✅ B.1 lens=null → 200, response_len=516, debug.pattern_memory
+                 present, debug.micro_reflection present,
+                 debug.contradictions present, evidence.marker==
+                 "evidence-drawer-v2".
+          ✅ B.2 lens="astrology" → debug.lens_chat.marker==
+                 "multi-lens-chat-memory-v1" AND lens_chat.lens=="astrology"
+                 AND legacy flat debug.marker / debug.lens both present.
+          ✅ B.3 lens="zi_wei"  → debug.lens_chat.marker==
+                 "multi-lens-chat-memory-v1" AND lens_chat.lens=="zi_wei".
+          ✅ B.4 life_domain="relationships" → debug.master_voice.marker==
+                 "life-tab-master-voice-v1".
+          ✅ B.5 life_domain="work"          → debug.master_voice present
+                 (marker=="life-tab-master-voice-v1").
+          ✅ B.6 life_domain="self"          → debug.master_voice present
+                 (marker=="life-tab-master-voice-v1").
+
+          ── C) SHARED chat_sessions STATE ────────────────────────────
+          ✅ C.1 POST /mirror/chat with fresh session_id="v8-shared-state-19288c62d8"
+                 → 200 and returned session_id matches sent value.
+          ✅ C.2 DELETE /mirror/chat/{shared_sid} → 200 with
+                 {"message":"Session cleared"} — confirming the router
+                 in routers/mirror_chat.py and the DELETE handler still
+                 in server.py share the same in-memory chat_sessions dict.
+
+          ── D) PREVIOUSLY EXTRACTED ROUTERS (sanity) ─────────────────
+          ✅ D.1 GET   /forums/{id}/chat/history?limit=2          → 200
+          ✅ D.2 GET   /forums/user/{pete}                         → 200 (4 forums)
+          ✅ D.3 POST  /forums/{id}/mirror-chat                    → 200
+          ✅ D.4 GET   /forums/{id}/story-of-circle                → 200
+          ✅ D.5 POST  /micro-reflection/home-texture              → 200
+          ✅ D.6 GET   /pattern-running-me/user/{pete}             → 200
+          ✅ D.7 GET   /forums/{id}/topology                       → 200
+
+          ── BACKEND LOG CONFIRMATION ────────────────────────────────
+          Backend access log shows mirror_chat invocations now reach the
+          handler body:
+              "POST /api/mirror/chat HTTP/1.1" 200 OK   (×8 from this run)
+              "DELETE /api/mirror/chat/v8-shared-state-... HTTP/1.1" 200 OK
+              [MIRROR_CHAT] === REQUEST COMPLETED === ... duration=3.89s
+              [MIRROR_CHAT][evidence-drawer-v2] evidence_emitted=True
+
+          ── PASS / FAIL TALLY ────────────────────────────────────────
+          A: 3/3 PASS
+          B: 6/6 PASS   ← previously 0/6, now fully restored
+          C: 2/2 PASS   ← previously 0/2, now fully restored
+          D: 7/7 PASS   ← unaffected, still green
+
+          TOTAL: 18/18 PASS.  v8 mirror_chat extraction is now
+          regression-clean.  The route handler body is being reached
+          for every call, all debug payload markers
+          (multi-lens-chat-memory-v1, life-tab-master-voice-v1,
+          evidence-drawer-v2) surface correctly, and DELETE on the
+          shared session id confirms cross-module dict sharing works.
+
+          Setting working=true, needs_retesting=false, stuck_count back
+          to 0.
+
+agent_communication:
+    -agent: "testing"
+    -message: |
+      v8 mirror_chat router refactor — RETEST CLEAN.
+
+      Re-ran /app/backend_test.py against the live preview after the
+      `from __future__ import annotations` removal in
+      routers/mirror_chat.py.  18/18 assertions PASS.
+
+      Specifically confirmed:
+        • POST /api/mirror/chat now reaches the handler body (was
+          422'ing 100% of requests on the previous run).
+        • All debug payload markers surface correctly:
+            - debug.lens_chat (multi-lens-chat-memory-v1) for lens=astrology / zi_wei
+            - debug.master_voice (life-tab-master-voice-v1) for all 3 life_domains
+            - debug.pattern_memory / debug.micro_reflection / debug.contradictions
+              for lens=null
+            - evidence.marker == "evidence-drawer-v2"
+        • Shared chat_sessions dict between routers/mirror_chat.py (POST)
+          and server.py (DELETE) works — DELETE returns "Session cleared".
+        • All previously extracted routers (forums_chat, forums user-list,
+          forum mirror-chat, story-of-circle, topology, micro-reflection
+          home-texture, pattern-running-me user) still respond 200.
+
+      No further backend work needed for v8.  Task can be marked
+      complete and the regression suite archived.

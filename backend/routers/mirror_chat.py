@@ -33,7 +33,17 @@ module-level symbols are defined — same pattern used implicitly by
 the rest of the refactor (no circular-import risk).
 """
 
-from __future__ import annotations
+# NOTE: deliberately NOT using `from __future__ import annotations` here.
+# The route handler signature uses `MirrorChatRequest` which is imported
+# inside register() (late-binding from server.py to avoid circular import).
+# PEP 563 string-annotations would turn the type hint into a literal
+# string that typing.get_type_hints() then can't resolve, because the
+# router module's globals don't contain `MirrorChatRequest`.  FastAPI
+# would silently downgrade the body param to a query param and every
+# request would 422 with loc=["query","request"].  Keeping eager
+# annotation evaluation ensures FastAPI sees the actual Pydantic model
+# at function-definition time (inside register(), where the late import
+# has just put `MirrorChatRequest` in scope).
 
 import asyncio
 import json
