@@ -585,6 +585,72 @@ def _build_field_paragraph(
     return f"{activation} {theme_sentence}"
 
 
+def _rewrap_enneagram_gift(line: Optional[str], name_b: str) -> Optional[str]:
+    """
+    Rewrap a raw Enneagram directional string out of arrow-notation
+    ("You → Mel: X") into Mirror prose ("With you, Mel finds X.") while
+    PRESERVING DIRECTION.
+
+    Scope: relationship-field-v1.1 polish — only the gift line uses this.
+    The legacy `signals.enneagram.how_you_help_them` list rendered inside
+    the technical proof drawer is intentionally NOT touched, so the rest
+    of the app continues to render the same strings it always did.
+
+    Recognised prefixes (matched in order):
+        "You → {name_b}: <content>"
+        "{name_b} → you: <content>"
+        "What {name_b} needs most from you: <content>"
+        "What you need most from {name_b}: <content>"
+
+    Any string that doesn't match a known prefix is passed through
+    unchanged.  This keeps the helper conservative — we only rewrite
+    what we can rewrite safely.
+    """
+    if not isinstance(line, str):
+        return line
+    s = line.strip()
+    if not s:
+        return None
+    if not name_b:
+        return s
+
+    # Direction A: viewer → other (gift FROM viewer TO other)
+    pref_a_lower = f"you → {name_b}: ".lower()
+    if s.lower().startswith(pref_a_lower):
+        content = s[len(pref_a_lower):].strip()
+        if content:
+            return f"With you, {name_b} finds {content}."
+        return s
+
+    # Direction B: other → viewer (gift FROM other TO viewer)
+    pref_b_lower = f"{name_b} → you: ".lower()
+    if s.lower().startswith(pref_b_lower):
+        content = s[len(pref_b_lower):].strip()
+        if content:
+            return f"With {name_b}, you find {content}."
+        return s
+
+    # Needs-pattern (other → viewer phrasing — what the other reaches toward you for)
+    pref_c_lower = f"what {name_b} needs most from you: ".lower()
+    if s.lower().startswith(pref_c_lower):
+        content = s[len(pref_c_lower):].strip()
+        if content:
+            return f"{name_b} most reaches toward you for {content}."
+        return s
+
+    # Needs-pattern (viewer → other phrasing — what you reach toward the other for)
+    pref_d_lower = f"what you need most from {name_b}: ".lower()
+    if s.lower().startswith(pref_d_lower):
+        content = s[len(pref_d_lower):].strip()
+        if content:
+            return f"You most reach toward {name_b} for {content}."
+        return s
+
+    # Unknown shape — leave untouched (e.g. center-based fallback strings
+    # like "Your thinking helps Mel step back..." are already clean prose).
+    return s
+
+
 def _build_gift_line(
     channel_ids: List[str],
     bazi_signals: Optional[Dict[str, Any]],
@@ -622,9 +688,9 @@ def _build_gift_line(
         )
 
     if enneagram_signals and enneagram_signals.get("how_you_help_them"):
-        return enneagram_signals["how_you_help_them"][0]
+        return _rewrap_enneagram_gift(enneagram_signals["how_you_help_them"][0], name_b)
     if enneagram_signals and enneagram_signals.get("how_they_help_you"):
-        return enneagram_signals["how_they_help_you"][0]
+        return _rewrap_enneagram_gift(enneagram_signals["how_they_help_you"][0], name_b)
 
     if bazi_signals and bazi_signals.get("support"):
         return (
