@@ -1290,7 +1290,18 @@ def generate_mapping_interpretation(
         }
         
         translation = TRANSLATION_MAP.get(cid, f"Energy flows between your {c['relational']} — this shapes how you interact")
-        
+
+        # Additive: attach the curated CHANNEL_INTERPRETATIONS entry under
+        # `interpretation` so the frontend can render richer card accordions
+        # ("What this opens" / "What works" / "What to watch") later.  When
+        # no curated entry exists for this channel id we fall back to the
+        # "default" interpretation — never None — so the contract is
+        # idempotent and additive.
+        interp = (
+            CHANNEL_INTERPRETATIONS.get(cid)
+            or CHANNEL_INTERPRETATIONS.get("default", {})
+        )
+
         hd_signals.append({
             "channel": cid,
             # Backend returns the short name only (e.g. "Community"); the UI
@@ -1301,6 +1312,16 @@ def generate_mapping_interpretation(
             "translation": translation,
             "your_gate": c["gate_a"],
             "their_gate": c["gate_b"],
+            # Additive: curated interpretation card (headline / description /
+            # what_works / what_to_watch).  Safe even on legacy clients that
+            # ignore unknown keys.
+            "interpretation": {
+                "headline":      interp.get("headline"),
+                "description":   interp.get("description"),
+                "what_works":    interp.get("what_works"),
+                "what_to_watch": interp.get("what_to_watch"),
+                "is_curated":    cid in CHANNEL_INTERPRETATIONS,
+            },
         })
     
     # Compute multi-lens signals (real data, not placeholders)

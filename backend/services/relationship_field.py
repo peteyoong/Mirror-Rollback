@@ -838,10 +838,25 @@ def _build_activation_line(
     """
     The single most-alive sentence in this connection.  Activation-first
     — we describe WHAT activates, never what conflicts.
+
+    Layered-Convergence v1.3 hybrid rule: when an emotional channel
+    (6-59 / 39-55) co-exists with the money/structure channel (21-45),
+    the activation line names BOTH dimensions because that combination
+    is the actual relationship signature — it is not an emotional
+    connection that happens to have money on the side, or vice versa.
     """
     # Channel-driven activation (strongest signal)
     if channel_ids:
-        if "6-59" in channel_ids or "39-55" in channel_ids:
+        has_emotional = "6-59" in channel_ids or "39-55" in channel_ids
+        has_money = "21-45" in channel_ids
+        # Hybrid: emotional + money/structure coexist → name both.
+        if has_emotional and has_money:
+            return (
+                f"What activates between you is both emotional reach and "
+                f"real-world coordination — the door opens fast, and so does "
+                f"the question of what you are building or carrying together."
+            )
+        if has_emotional:
             return f"What activates between you is emotional — the door opens faster than usual."
         if "10-20" in channel_ids or "13-33" in channel_ids:
             return f"What activates between you is honesty — surface talk dissolves quickly."
@@ -849,7 +864,7 @@ def _build_activation_line(
             return f"What activates between you is timing — when you're aligned, things move without effort."
         if "1-8" in channel_ids or "35-36" in channel_ids:
             return f"What activates between you is forward motion — ideas tend to become action."
-        if "21-45" in channel_ids:
+        if has_money:
             return f"What activates between you is real-world coordination — resources, direction, and who carries what move quickly into shared territory."
         if "34-57" in channel_ids or "27-50" in channel_ids:
             return f"What activates between you is an instinctive sense of safety."
@@ -985,8 +1000,22 @@ def _build_gift_line(
     """
     Mandatory 'Gift of this connection' line.  Always positive-framed
     but never inflated.
+
+    Layered-Convergence v1.3 hybrid rule (mirrors `_build_activation_line`):
+    when emotional (6-59/39-55) and money/structure (21-45) coexist, name
+    BOTH — the combination is the signature, not either dimension alone.
     """
-    if "6-59" in channel_ids or "39-55" in channel_ids:
+    has_emotional = "6-59" in channel_ids or "39-55" in channel_ids
+    has_money = "21-45" in channel_ids
+
+    if has_emotional and has_money:
+        return (
+            f"The gift here lives in both registers — {name_b} pulls you into "
+            f"emotional reach you'd normally protect, AND together you can "
+            f"actually build. Most connections give you one of these. This one "
+            f"gives you both."
+        )
+    if has_emotional:
         return (
             f"{name_b} helps you reach emotional depth you'd normally protect — "
             f"and that depth is what makes this connection worth tending."
