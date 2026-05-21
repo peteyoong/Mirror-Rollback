@@ -576,10 +576,25 @@ def compute_enneagram_signals(
         how_they_help_you.append(f"With {name_b}, you find {rel_b['unlocks_in_other']}.")
 
     # Directional needs — what each person most reaches toward the other for.
+    # `needs_from_other` catalogue values sometimes begin with an infinitive
+    # ("to be valued for…"), in which case we drop the "for " bridge to keep
+    # the prose grammatical ("Mel most reaches toward you to be valued…").
+    def _needs_join(prefix: str, value: str) -> str:
+        v = str(value or "").strip()
+        if not v:
+            return ""
+        if v.lower().startswith("to "):
+            return f"{prefix} {v}."
+        return f"{prefix} for {v}."
+
     if rel_b.get("needs_from_other"):
-        how_you_help_them.append(f"{name_b} most reaches toward you for {rel_b['needs_from_other']}.")
+        line = _needs_join(f"{name_b} most reaches toward you", rel_b["needs_from_other"])
+        if line:
+            how_you_help_them.append(line)
     if rel_a.get("needs_from_other"):
-        how_they_help_you.append(f"You most reach toward {name_b} for {rel_a['needs_from_other']}.")
+        line = _needs_join(f"You most reach toward {name_b}", rel_a["needs_from_other"])
+        if line:
+            how_they_help_you.append(line)
     
     # Friction — rooted in core fear/desire interaction
     pair = (core_a, core_b)
