@@ -22571,3 +22571,248 @@ agent_communication:
       renders correctly (Pete↔Mel: north_node fires, juno+vertex null).
 
       Ready for user review.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RELATIONSHIP FIELD v1.x — SIGNAL-LANGUAGE POLISH (21-45 sanitisation, banned
+# shadow vocab, Mirror prose for Enneagram) — regression test
+# ─────────────────────────────────────────────────────────────────────────────
+
+backend:
+  - task: "Relationship Field signal-language polish on /api/forums/{forum_id}/member-mappings — 21-45 Money Line sanitization, banned shadow words removal, Mirror prose for Enneagram (no arrow notation)"
+    implemented: true
+    working: true
+    file: "/app/backend/services/relationship_field.py, /app/backend/services/forum_hd_mapping.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "testing"
+        -comment: |
+          REGRESSION TEST — /app/backend_test_member_mappings_polish.py
+          GET /api/forums/69dda348de9cb1c83c0780fa/member-mappings?user_id=697f0c6abf35c0528ff06954
+          Base URL: https://forum-mappings-hub.preview.emergentagent.com/api
+          Forum: Yoong family, viewer: Pete.  Status: 200 OK.
+          Members returned: ['Thaddeus Yoong', 'Isaac Yoong', 'Mel'] — 3 mappings.
+
+          ── ACCEPTANCE CRITERIA ──────────────────────────────────────
+
+          CHECK 1 — 21-45 / The Money Line sanitization (CRITICAL): PASS
+            • Channel "21-45" and name "The Money Line" still present in
+              signals (technical labels preserved as required).
+            • OLD banned phrase "materialism, control, willpower for
+              resources" — NOT found anywhere in payload.
+            • OLD banned translation "Resources, money, or control become
+              a live wire between you" — NOT found.
+            • NEW theme text "resources, stewardship, responsibility, and
+              the will to provide" — present in
+              signals.human_design[].theme and why_this_happens[].theme
+              for the 21-45 channel (Pete↔Mel mapping).
+            • NEW translation "Resources and responsibility become
+              something you both feel strongly" — present in the 21-45
+              signals.human_design entry.
+            • Gates 21 and 45 both still referenced.
+
+          CHECK 2 — banned shadow words in user-facing fields: PASS
+            Scanned mappings[*].signals.human_design,
+            mappings[*].signals.enneagram,
+            mappings[*].field.themes[*].what_lives_here,
+            mappings[*].field.field_paragraph,
+            mappings[*].field.activation,
+            mappings[*].field.gift_of_this_connection.
+            • Zero standalone occurrences of: materialism, manipulation,
+              domination, selfishness, weakness, failure.
+            • Zero occurrences of phrase "power imbalance".
+            • Zero standalone ", control," keyword-list hits.
+            (Word "control" appears once inside a verb/contextual sentence
+            in field.themes[3].friction_inside_it: "...it shows up as
+            control or quiet resistance instead of conversation." — that
+            usage is allowed per the spec, not a keyword-list violation.)
+
+          CHECK 3 — no raw arrow notation: PASS
+            Scanned full mapping payload for forbidden substrings:
+              "You → ", " → you:", "You → Mel:", "What you need most
+              from", "What Mel needs most from you".
+            • Zero occurrences in any of the 3 mappings.
+            • Mirror prose is in place — signals.enneagram contains:
+                - "With you, Mel finds possibilities they wouldn't
+                   consider alone — you expand what feels available."
+                - "Mel most reaches toward you for ..."
+                - "With Mel, you find forward motion ..."
+                - "You most reach toward Mel for ..."
+
+          CHECK 4 — schema unchanged: PASS
+            • Status 200, top-level "mappings" list (length 3).
+            • Per-mapping keys present: member_name, headline,
+              description, signals, field, patterns, story,
+              what_works, what_to_watch, why_this_happens,
+              channel_count, strength_score, member_id.
+              (Note: the per-mapping identifier key is named `member_id`,
+              not `member_user_id` as the review request worded it — this
+              is the legacy contract that has shipped from
+              Relationship-Field-v1 onward.  No removal/rename detected.)
+            • field.version == "relationship-field-v1" on all 3 mappings.
+
+          CHECK 5 — full mapping dump (Pete → Mel):
+          {
+            "member_name": "Mel",
+            "story": {
+              "headline": "Your emotional worlds don't stay separate for long — feelings move between you.",
+              "summary": "With 6 active channels — including the intimacy channel and the emotional wave — this connection is wired to feel, not just function. You process each other's weather in real time."
+            },
+            "patterns": {
+              "what_happens": [
+                "Your natural rhythms and timing sync up in ways that feel effortless",
+                "You tend to bypass each other's emotional walls faster than either of you expected",
+                "Resources and responsibility become something you both feel strongly — provision, stewardship, who carries what",
+                "You pull each other toward new experiences — sometimes before either of you is ready"
+              ],
+              "tensions": [
+                "The emotional depth can feel overwhelming — one of you may pull back when it gets too close",
+                "Resources, responsibility, and direction over them become something you both feel strongly — agreements may need to be made explicit",
+                "The drive for novelty can destabilize what's already working",
+                "What's happening between you doesn't always land in a way either of you can fully explain."
+              ],
+              "gifts": [
+                "Your shared rhythm creates a container of ease that other relationships don't have",
+                "Mel helps you access emotional depth you'd normally protect",
+                "Mel pulls you toward experiences you'd avoid alone — and that expands you"
+              ]
+            },
+            "signals": {
+              "human_design": [
+                { "channel": "5-15",  "name": "Rhythm",          "theme": "universal timing, natural flow, accepting life's rhythms", "translation": "Your natural rhythms align — you feel 'in sync' without trying", "your_gate": 5,  "their_gate": 15 },
+                { "channel": "6-59",  "name": "Intimacy",        "theme": "emotional bonding, reproduction, breaking barriers",        "translation": "You break through each other's emotional walls naturally",       "your_gate": 6,  "their_gate": 59 },
+                { "channel": "21-45", "name": "The Money Line",  "theme": "resources, stewardship, responsibility, and the will to provide", "translation": "Resources and responsibility become something you both feel strongly", "your_gate": 21, "their_gate": 45 },
+                { "channel": "35-36", "name": "Transitoriness",  "theme": "emotional adventure, seeking new experiences",              "translation": "You push each other toward adventure and new emotional territory", "your_gate": 35, "their_gate": 36 },
+                { "channel": "37-40", "name": "Community",       "theme": "bargains, loyalty, agreements and expectations",            "translation": "Loyalty and mutual agreements form fast — and feel binding",        "your_gate": 40, "their_gate": 37 },
+                { "channel": "39-55", "name": "Emoting",         "theme": "emotional spirit, provocation, melancholy and abundance",   "translation": "Emotions run deeper and more unpredictably between you",            "your_gate": 55, "their_gate": 39 }
+              ],
+              "astrology": {
+                "growth": [
+                  "You hold Mel to a higher standard than most people do — she grows because of it, but may resist in the moment",
+                  "Mel grounds your ambition in reality — what she reflects back isn't what you want to hear, but it's usually what you need"
+                ]
+              },
+              "bazi": {
+                "support": [
+                  "Your core nature is precision, discernment (Metal) — Mel's is momentum, adaptability (Water)",
+                  "Your Metal energy naturally nourishes Mel's Water — you feed what they need to grow",
+                  "You anchor things when Mel feels ungrounded — your steadiness is something they lean on"
+                ],
+                "growth": [
+                  "This works best when acknowledged — otherwise you may feel like you're giving more than you're receiving",
+                  "🐒 Monkey meets 🐓 Rooster — different generational energies that expand each other's perspective"
+                ]
+              },
+              "enneagram": {
+                "how_you_help_them": [
+                  "With you, Mel finds possibilities they wouldn't consider alone — you expand what feels available.",
+                  "Mel most reaches toward you for to be valued for who they are when they stop performing — not just for what they produce."
+                ],
+                "how_they_help_you": [
+                  "With Mel, you find forward motion and a belief that things can actually get done.",
+                  "You most reach toward Mel for to be met in their depth, not just their energy — the lightness hides something real."
+                ],
+                "friction_pattern": [
+                  "You open doors she wants to walk through — but you struggle to stay in one room long enough for her to finish what she started. She builds toward outcomes; you chase the next spark. The friction is between commitment to a path and freedom to explore."
+                ]
+              },
+              "numerology": null
+            },
+            "field": {
+              "version": "relationship-field-v1",
+              "field_paragraph": "What activates between you is emotional — the door opens faster than usual. The dominant themes here are emotional reach, shared rhythm, and creative momentum.",
+              "activation": "What activates between you is emotional — the door opens faster than usual.",
+              "themes": [
+                { "label": "Emotional reach",     "what_lives_here": "Feelings move between you faster than most connections allow — the emotional door opens without much prompting.", "friction_inside_it": "When it gets close, one of you tends to pull back to recover space." },
+                { "label": "Shared rhythm",       "what_lives_here": "Your natural pace lines up — when you're in sync, things move without negotiation.",                          "friction_inside_it": "When the rhythms diverge, the whole connection can feel off, even if nothing went wrong." },
+                { "label": "Creative momentum",   "what_lives_here": "Ideas and direction tend to activate between you — when you're together, things start.",                       "friction_inside_it": "Momentum can outrun the conversation about whether either of you actually wants this." },
+                { "label": "Power and direction", "what_lives_here": "There's a live wire here around who leads, who follows, and how decisions actually get made.",                  "friction_inside_it": "When this isn't named, it shows up as control or quiet resistance instead of conversation." }
+              ],
+              "gift_of_this_connection": "Mel helps you reach emotional depth you'd normally protect — and that depth is what makes this connection worth tending.",
+              "amplifiers": {
+                "juno": null,
+                "north_node": "There's a pull here that tests where you're heading — Mel touches the part of you that's stretching, and that stretch becomes more visible in this connection.",
+                "vertex": null
+              }
+            },
+            "headline": "...",
+            "description": "...",
+            "what_works": "...",
+            "what_to_watch": "...",
+            "channel_count": 6,
+            "strength_score": 100,
+            "member_id": "697ec826ad4b18f75bf42616"
+          }
+
+          ── OVERALL ──────────────────────────────────────────────────
+            5/5 acceptance criteria PASS.  No CRITICAL failures.
+            • 21-45 sanitization confirmed — new theme + new translation
+              text live in production response.  No old phrasing remains.
+            • No banned shadow vocabulary anywhere in user-facing fields.
+            • No raw arrow notation; Mirror prose ("With X, Y finds ...",
+              "X most reaches toward you for ...") in place.
+            • Schema and legacy keys preserved.
+
+          Minor (non-blocking, not in acceptance criteria):
+            • signals.enneagram.how_you_help_them[1] has a small
+              grammar artifact: "Mel most reaches toward you for to be
+              valued for who they are ..." — the catalog `needs_from_other`
+              value already starts with an infinitive ("to be valued..."),
+              so concatenating with "for " produces "for to be ...".
+              Cosmetic only — flagging for main agent.
+
+          Marking working=true, needs_retesting=false.
+
+agent_communication:
+    -agent: "testing"
+    -message: |
+      Relationship Field signal-language polish — REGRESSION CLEAN.
+
+      GET /api/forums/69dda348de9cb1c83c0780fa/member-mappings?user_id=Pete
+      → 200, 3 mappings (Thaddeus, Isaac, Mel).
+
+      All five acceptance checks PASS:
+        1. 21-45 Money Line theme + translation use the new polished
+           strings.  Old "materialism, control, willpower for resources"
+           and old "Resources, money, or control become a live wire
+           between you" are completely absent.  Channel name "The Money
+           Line" and gates 21/45 still surface in signals.
+        2. No banned shadow vocab (materialism / manipulation /
+           domination / selfishness / weakness / failure / "power
+           imbalance") in any of signals.human_design,
+           signals.enneagram, field.themes[*].what_lives_here,
+           field.field_paragraph, field.activation,
+           field.gift_of_this_connection.  No standalone ", control,"
+           keyword-list usage.  (One contextual "...as control or quiet
+           resistance..." sentence remains, which is allowed per spec.)
+        3. No raw "You → Mel:", " → you:", "What you need most from",
+           or "What Mel needs most from you" anywhere.  Mirror prose
+           ("With you, Mel finds X.", "Mel most reaches toward you for
+           X.", "With Mel, you find X.", "You most reach toward Mel for
+           X.") is in place in signals.enneagram.
+        4. Schema unchanged.  Top-level "mappings" + per-mapping
+           member_name / headline / description / signals / field /
+           patterns / story / what_works / what_to_watch /
+           why_this_happens / channel_count / strength_score /
+           member_id all present.  field.version =
+           "relationship-field-v1".  Note: the per-mapping ID key is
+           called `member_id` (not `member_user_id` as worded in the
+           review request) — that's the existing legacy contract.
+        5. Full Mel mapping dumped verbatim in status_history above.
+
+      MINOR (cosmetic, not in acceptance criteria):
+        signals.enneagram.how_you_help_them includes the string
+        "Mel most reaches toward you for to be valued for who they are
+        when they stop performing ..." — the catalogue value for
+        needs_from_other already starts with the infinitive
+        "to be valued ...", so the "for " prefix produces a small
+        grammatical hiccup ("for to be").  Pure copy-fix; not a
+        blocker.  Main agent may want to either drop the leading "to"
+        from those catalogue entries or change the prefix from "for"
+        to "" / ":" / "—".
+
+      Driver script: /app/backend_test_member_mappings_polish.py.
+      No critical issues found.  Setting working=true /
+      needs_retesting=false.

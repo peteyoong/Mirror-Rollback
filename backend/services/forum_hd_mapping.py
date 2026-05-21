@@ -122,8 +122,8 @@ HD_CHANNELS = {
     },
     "21-45": {
         "name": "The Money Line",
-        "theme": "materialism, control, willpower for resources",
-        "relational": "resource dynamics",
+        "theme": "resources, stewardship, responsibility, and the will to provide",
+        "relational": "resources and responsibility",
     },
     "23-43": {
         "name": "Structuring",
@@ -567,17 +567,19 @@ def compute_enneagram_signals(
     how_they_help_you = []
     friction_pattern = []
     
-    # Directional gifts — what each unlocks in the other
+    # Directional gifts — what each unlocks in the other.  Written as
+    # natural Mirror prose so the legacy signals layer renders cleanly
+    # without raw "You → {name}:" arrow notation.
     if rel_a.get("unlocks_in_other"):
-        how_you_help_them.append(f"You → {name_b}: {rel_a['unlocks_in_other']}")
+        how_you_help_them.append(f"With you, {name_b} finds {rel_a['unlocks_in_other']}.")
     if rel_b.get("unlocks_in_other"):
-        how_they_help_you.append(f"{name_b} → you: {rel_b['unlocks_in_other']}")
-    
-    # Directional needs — what each person needs most
+        how_they_help_you.append(f"With {name_b}, you find {rel_b['unlocks_in_other']}.")
+
+    # Directional needs — what each person most reaches toward the other for.
     if rel_b.get("needs_from_other"):
-        how_you_help_them.append(f"What {name_b} needs most from you: {rel_b['needs_from_other']}")
+        how_you_help_them.append(f"{name_b} most reaches toward you for {rel_b['needs_from_other']}.")
     if rel_a.get("needs_from_other"):
-        how_they_help_you.append(f"What you need most from {name_b}: {rel_a['needs_from_other']}")
+        how_they_help_you.append(f"You most reach toward {name_b} for {rel_a['needs_from_other']}.")
     
     # Friction — rooted in core fear/desire interaction
     pair = (core_a, core_b)
@@ -1165,7 +1167,7 @@ def generate_mapping_interpretation(
             "10-20": "When you're together, you both become more openly yourselves — less filtering, more truth",
             "13-33": "One of you speaks while the other deeply absorbs — and the listener often sees more than the speaker realizes",
             "27-50": "You naturally look out for what matters to each other — sometimes before being asked",
-            "21-45": "Money, resources, or control dynamics surface between you — not always comfortably",
+            "21-45": "Resources and responsibility become something you both feel strongly — provision, stewardship, who carries what",
             "35-36": "You pull each other toward new experiences — sometimes before either of you is ready",
             "5-15": "Your natural rhythms and timing sync up in ways that feel effortless",
             "34-57": "There's an instinctive trust between you that doesn't need explanation",
@@ -1184,7 +1186,7 @@ def generate_mapping_interpretation(
             "6-59": "The emotional depth can feel overwhelming — one of you may pull back when it gets too close",
             "37-40": "Unspoken expectations can build up — what feels 'agreed' may not actually be shared",
             "10-20": "Raw authenticity can accidentally land as bluntness — timing matters",
-            "21-45": "Control or resource dynamics may create a power imbalance if not named",
+            "21-45": "Resources, responsibility, and direction over them become something you both feel strongly — agreements may need to be made explicit",
             "35-36": "The drive for novelty can destabilize what's already working",
             "32-54": "Growth-pushing can feel like criticism if the intention isn't clear",
             "39-55": "Emotional provocation — one of you may trigger deep feelings in the other without meaning to",
@@ -1234,7 +1236,7 @@ def generate_mapping_interpretation(
         TRANSLATION_MAP = {
             "5-15": "Your natural rhythms align — you feel 'in sync' without trying",
             "6-59": "You break through each other's emotional walls naturally",
-            "21-45": "Resources, money, or control become a live wire between you",
+            "21-45": "Resources and responsibility become something you both feel strongly",
             "35-36": "You push each other toward adventure and new emotional territory",
             "37-40": "Loyalty and mutual agreements form fast — and feel binding",
             "10-20": "You give each other permission to be more real",
@@ -1297,6 +1299,39 @@ def generate_mapping_interpretation(
     what_happens = [_fix_pronouns(x) for x in what_happens]
     tensions = [_fix_pronouns(x) for x in tensions]
     gifts = [_fix_pronouns(x) for x in gifts]
+
+    # -----------------------------------------------------------------
+    # Channel-card shadow-word sanitizer.
+    # Substitutes shadow-heavy framework vocabulary ("materialism",
+    # "control dynamics", "weakness", "manipulation", "lack of", etc.)
+    # with neutral relational language across every user-visible signal
+    # string — including the legacy proof drawer that renders
+    # hd_signals[*].theme / .translation and signals.enneagram lists.
+    # This is a no-op for already-clean strings.
+    # -----------------------------------------------------------------
+    try:
+        from services.relationship_field import _sanitize_shadow_words as _ss
+        def _clean_text(obj):
+            if obj is None: return None
+            if isinstance(obj, dict): return {k: _clean_text(v) for k, v in obj.items()}
+            if isinstance(obj, list): return [_clean_text(i) for i in obj]
+            if isinstance(obj, str): return _ss(obj) or obj
+            return obj
+        hd_signals = _clean_text(hd_signals)
+        enneagram_signals = _clean_text(enneagram_signals)
+        astrology_signals = _clean_text(astrology_signals)
+        bazi_signals = _clean_text(bazi_signals)
+        numerology_signals = _clean_text(numerology_signals)
+        what_happens = [_ss(x) or x for x in what_happens]
+        tensions = [_ss(x) or x for x in tensions]
+        gifts = [_ss(x) or x for x in gifts]
+        if isinstance(story_headline, str):
+            story_headline = _ss(story_headline) or story_headline
+        if isinstance(story_summary, str):
+            story_summary = _ss(story_summary) or story_summary
+    except Exception as _shadow_err:
+        # Never block on the sanitizer — log and continue with raw strings.
+        logger.warning(f"[ChannelSanitizer] skipped: {_shadow_err}")
 
     # =========================================================================
     # RELATIONSHIP FIELD ARCHITECTURE v1 — additive synthesis layer.

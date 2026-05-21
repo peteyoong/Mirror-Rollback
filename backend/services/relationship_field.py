@@ -105,23 +105,123 @@ _FORBIDDEN_TERMS = [
 _FORBIDDEN_RE = re.compile("|".join(_FORBIDDEN_TERMS), re.IGNORECASE)
 
 
+# Shadow-heavy / framework-jargon vocabulary — substituted (not suppressed)
+# with neutral relational language.  This keeps the descriptive text on the
+# channel/signal cards readable instead of removing whole lines.  Ordering
+# matters: longer/more-specific phrases are matched first so we don't end
+# up double-substituting (e.g. "materialism" replaced before "material").
+#
+# Banned terms come from the product copy spec:
+#   materialism, control, manipulation, domination, lack, selfishness,
+#   weakness, failure.
+# Replacements lean into the neutral palette:
+#   responsibility, rhythm, pressure, trust, direction, resources,
+#   protection, intimacy, timing, agreements, repair, expression,
+#   steadiness, movement.
+_SHADOW_SUBSTITUTIONS: List[tuple] = [
+    # Multi-word phrases first (so "willpower for resources" isn't left
+    # alone after we strip "control"):
+    (re.compile(r"\bwillpower\s+for\s+resources\b", re.IGNORECASE),
+     "the will to provide"),
+    (re.compile(r"\bcontrol\s+dynamics?\b", re.IGNORECASE),
+     "responsibility and direction"),
+    (re.compile(r"\bcontrol\s+become[sn]?\b", re.IGNORECASE),
+     "responsibility becomes"),
+    (re.compile(r"\bpower\s+imbalance\b", re.IGNORECASE),
+     "uneven sense of responsibility"),
+    (re.compile(r"\bemotional\s+manipulation\b", re.IGNORECASE),
+     "emotional influence"),
+    # Single words — only stripped where they read user-facing.  We keep the
+    # substitution conservative so prose stays grammatical.
+    (re.compile(r"\bmaterialism\b", re.IGNORECASE),                "resources"),
+    (re.compile(r"\bmaterialistic\b", re.IGNORECASE),              "resource-focused"),
+    (re.compile(r"\bmanipulation\b", re.IGNORECASE),               "influence"),
+    (re.compile(r"\bmanipulative\b", re.IGNORECASE),               "influencing"),
+    (re.compile(r"\bdomination\b", re.IGNORECASE),                 "leading"),
+    (re.compile(r"\bdominating\b", re.IGNORECASE),                 "leading"),
+    (re.compile(r"\bselfishness\b", re.IGNORECASE),                "self-focus"),
+    (re.compile(r"\bselfish\b", re.IGNORECASE),                    "self-focused"),
+    (re.compile(r"\bweakness\b", re.IGNORECASE),                   "tender spot"),
+    (re.compile(r"\bfailure\b", re.IGNORECASE),                    "setback"),
+    # "control" alone is broad — only substitute when it appears in the
+    # noun sense ("of control", "for control", "and control", ", control,").
+    # We avoid touching verbs like "to control" so callers can still
+    # describe behaviours.  Keep it tight to nominal usage to preserve
+    # grammar.
+    (re.compile(r"\b(of|for|and|over|about|in)\s+control\b", re.IGNORECASE),
+     r"\1 direction"),
+    # Comma-list context: "..., control, ..." → "..., direction, ..."
+    # Common in keyword strings like "materialism, control, willpower".
+    (re.compile(r",\s*control\s*,", re.IGNORECASE),
+     ", direction,"),
+    (re.compile(r",\s*control\s*$", re.IGNORECASE),
+     ", direction"),
+    # "lack" used as a noun in shadow framing ("a lack of trust") rewrites
+    # cleanly to "a gap in trust"; verb usage ("you lack X") is rarer in
+    # the channel templates so we accept the rare false positive.
+    (re.compile(r"\ba\s+lack\s+of\b", re.IGNORECASE),              "a gap in"),
+    (re.compile(r"\black\s+of\b", re.IGNORECASE),                  "gap in"),
+]
+
+
+# Article-grammar fix-up — substitutions can leave "a uneven" / "a influence"
+# in place where it ought to be "an".  Cheap two-pass regex repair.
+_AN_FIXUPS = [
+    (re.compile(r"\ba\s+(uneven|influence|influencing|influencer)\b", re.IGNORECASE),
+     r"an \1"),
+    (re.compile(r"\bA\s+(uneven|influence|influencing|influencer)\b"),
+     r"An \1"),
+]
+
+
+def _sanitize_shadow_words(line: Optional[str]) -> Optional[str]:
+    """
+    Replace shadow-heavy framework words with neutral relational terms.
+    Returns the rewritten line (does NOT suppress).  Intended to run on
+    every user-visible channel theme / signal subtitle before the strict
+    suppression sanitizer.
+    """
+    if not isinstance(line, str) or not line:
+        return line
+    out = line
+    for rx, repl in _SHADOW_SUBSTITUTIONS:
+        out = rx.sub(repl, out)
+    for rx, repl in _AN_FIXUPS:
+        out = rx.sub(repl, out)
+    # Collapse any double-spaces introduced by substitutions.
+    out = re.sub(r"\s{2,}", " ", out).strip()
+    return out or None
+
+
 def _sanitize_line(line: Optional[str]) -> Optional[str]:
     """
     Return the line unchanged if it passes the guardrail, else None.
 
-    The sanitizer is intentionally STRICT: we'd rather emit no amplifier
-    line than emit one with forbidden vocabulary.  Logs the rejection at
-    info level so we can monitor it.
+    Pipeline:
+      1. Shadow-word substitution (soft pass — rewrites banned framework
+         vocabulary like "materialism", "control dynamics", "weakness"
+         into neutral relational language).
+      2. Strict forbidden-vocab suppression (rejects soulmate / fate /
+         compatibility framing entirely).
+
+    The sanitizer is intentionally STRICT on step 2: we'd rather emit no
+    amplifier line than emit one with forbidden vocabulary.  Logs the
+    rejection at info level so we can monitor it.
     """
     if not line or not isinstance(line, str):
         return None
-    if _FORBIDDEN_RE.search(line):
+    # Step 1: soft shadow-word substitution.
+    rewritten = _sanitize_shadow_words(line) or ""
+    if not rewritten:
+        return None
+    # Step 2: hard suppression for soulmate / fate / compatibility framing.
+    if _FORBIDDEN_RE.search(rewritten):
         logger.info(
             f"[RelationshipField] Sanitizer suppressed line containing forbidden "
-            f"vocabulary: {line[:80]!r}"
+            f"vocabulary: {rewritten[:80]!r}"
         )
         return None
-    return line.strip() or None
+    return rewritten.strip() or None
 
 
 # ---------------------------------------------------------------------------
