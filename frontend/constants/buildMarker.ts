@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'relationship-field-v1.1-20260520';
-export const BUILD_AT = '2026-05-20';
+export const BUILD_ID = 'topology-editor-v2.1-20260521';
+export const BUILD_AT = '2026-05-21';

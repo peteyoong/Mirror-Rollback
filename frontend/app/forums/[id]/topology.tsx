@@ -42,8 +42,32 @@ import { BUILD_ID } from '../../../constants/buildMarker';
 
 interface ForumMember {
   user_id: string;
+  // Backend (`/forums/{id}/members`) returns user_name.
+  // Older endpoints / draft shapes may use name / display_name / user.name.
+  user_name?: string;
   name?: string;
   display_name?: string;
+  user?: { name?: string };
+}
+
+// Resolve a human-readable name across the various shapes the API has
+// returned over time.  Never renders the literal string "Member" — if
+// hydration is incomplete we return null and the caller suppresses the
+// row until the name arrives.
+function resolveMemberName(m: ForumMember | null | undefined): string | null {
+  if (!m) return null;
+  const candidate =
+    m.user_name ||
+    m.display_name ||
+    m.name ||
+    m.user?.name ||
+    '';
+  const trimmed = String(candidate).trim();
+  if (!trimmed) return null;
+  // Defensive: legacy seed data sometimes returned "Anonymous" / "Member"
+  // as a literal — treat those as unresolved so we show a skeleton instead.
+  if (/^(anonymous|member|unknown)$/i.test(trimmed)) return null;
+  return trimmed;
 }
 
 interface Edge {
@@ -220,7 +244,11 @@ export default function TopologyEditorScreen() {
 
   // ── Render a single member row. ──────────────────────────────────────
   const renderMember = (m: ForumMember) => {
-    const name = m.display_name || m.name || 'Member';
+    const name = resolveMemberName(m);
+    // Hydration incomplete — suppress this row rather than ever render
+    // a fallback like "Member".  Once the name resolves on the next
+    // render pass we'll display it.
+    if (!name) return null;
     const e = edgeFor(m.user_id);
     const declared = e && !e.inferred;
     const inferred = e && e.inferred;
@@ -411,12 +439,13 @@ export default function TopologyEditorScreen() {
       <View style={[styles.header, { borderBottomColor: theme.border }]}>
         <TouchableOpacity
           onPress={() => router.back()}
-          hitSlop={10}
+          hitSlop={16}
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel="Close and return to forum"
           style={styles.backBtn}
         >
           <Ionicons name="chevron-back" size={22} color={theme.text} />
+          <Text style={[styles.backLabel, { color: theme.text }]}>Forum</Text>
         </TouchableOpacity>
         <View style={styles.titleWrap}>
           <Text style={[styles.kicker, { color: theme.textTertiary }]}>
@@ -426,7 +455,15 @@ export default function TopologyEditorScreen() {
             Map your role
           </Text>
         </View>
-        <View style={styles.backBtn} />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={16}
+          accessibilityRole="button"
+          accessibilityLabel="Done"
+          style={styles.doneBtn}
+        >
+          <Text style={[styles.doneText, { color: theme.text }]}>Done</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -448,6 +485,21 @@ export default function TopologyEditorScreen() {
           </Text>
         ) : (
           members.map(renderMember)
+        )}
+
+        {/* Explicit secondary exit — never let the user feel trapped. */}
+        {!loading && members.length > 0 && (
+          <TouchableOpacity
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Done — return to forum"
+            style={[styles.doneFooterBtn, { borderColor: theme.border }]}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.doneFooterText, { color: theme.text }]}>
+              Done — back to forum
+            </Text>
+          </TouchableOpacity>
         )}
       </ScrollView>
 
@@ -471,7 +523,44 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  backBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+  backBtn: {
+    minWidth: 78,
+    height: 44,
+    paddingHorizontal: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  backLabel: {
+    fontSize: 15,
+    fontWeight: '500',
+    marginLeft: 2,
+  },
+  doneBtn: {
+    minWidth: 78,
+    height: 44,
+    paddingHorizontal: 10,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  doneText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  doneFooterBtn: {
+    marginTop: 18,
+    marginHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  doneFooterText: {
+    fontSize: 14.5,
+    fontWeight: '500',
+    letterSpacing: 0.1,
+  },
   titleWrap: { flex: 1, alignItems: 'center' },
   kicker: {
     fontSize: 10.5,
