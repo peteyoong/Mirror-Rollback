@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'rfv1.3-layered-convergence-20260521';
+export const BUILD_ID = 'rfv1.3-batch1-channels-20260521';
 export const BUILD_AT = '2026-05-21';

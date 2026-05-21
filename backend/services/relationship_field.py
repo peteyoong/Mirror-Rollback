@@ -896,10 +896,16 @@ def _build_field_paragraph(
     """
     One short paragraph that synthesizes the FEEL of this pair.
 
-    Layered Convergence v1.3 rule: the paragraph leads with activation,
-    names the distinct theme dimensions (max 3), and — only if multiple
-    lenses converged on the same dimension upstream — surfaces ONE
-    convergence note.  We never paraphrase the same dimension twice.
+    Layered Convergence v1.3 architectural rule (Phase 4):
+    As the channel cards get richer (curated headline / description /
+    what_works / what_to_watch), the top synthesis must get SHORTER and
+    more distilled — otherwise the page becomes emotionally exhausting.
+
+    The activation line carries the headline.  The theme labels are
+    presented as a compressed signal ("Also alive: X and Y") rather than
+    a fully-formed "The dominant themes here are..." sentence.  We never
+    paraphrase across the synthesis block — the channel layer carries
+    depth, the field layer carries compression.
     """
     if not themes:
         body = activation + (
@@ -910,12 +916,12 @@ def _build_field_paragraph(
 
     theme_labels = [t["label"].lower() for t in themes[:3]]
     if len(theme_labels) == 1:
-        theme_sentence = f"The dominant theme here is {theme_labels[0]}."
+        theme_sentence = f"Also alive: {theme_labels[0]}."
     elif len(theme_labels) == 2:
-        theme_sentence = f"The dominant themes here are {theme_labels[0]} and {theme_labels[1]}."
+        theme_sentence = f"Also alive: {theme_labels[0]} and {theme_labels[1]}."
     else:
         theme_sentence = (
-            f"The dominant themes here are {theme_labels[0]}, "
+            f"Also alive: {theme_labels[0]}, "
             f"{theme_labels[1]}, and {theme_labels[2]}."
         )
 

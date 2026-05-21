@@ -204,42 +204,176 @@ HD_CHANNELS = {
 
 
 # Interpretation templates for different channel types
+#
+# Layered Convergence v1.3 — Phase 4 Batch 1 voice.
+# Each entry answers the 5 channel questions:
+#   1. What activates?  (headline)
+#   2. What forms between them?  (description, opening)
+#   3. What becomes easier together?  (what_works)
+#   4. What tension emerges?  (what_to_watch)
+#   5. What shows up in real life?  (translation — lives in TRANSLATION_MAP)
+# Channel names + gate numbers stay visible as proof in the card chrome.
 CHANNEL_INTERPRETATIONS = {
-    # High-connection channels
+    # ── Batch 1 — most-active / currently-curated channels ──────────────
     "37-40": {
-        "headline": "You naturally create strong agreements with each other",
-        "description": "There's a real sense of loyalty and mutual backing here. Things may feel solid quickly.",
-        "what_works": "Trust, mutual support, shared commitment",
-        "what_to_watch": "Make expectations explicit. Don't assume alignment means agreement.",
+        # The Bargain — community / loyalty / agreements
+        "headline": "Loyalty and unspoken agreements form fast — and feel binding",
+        "description": (
+            "An invisible contract starts the moment you meet. You both feel "
+            "a sense of 'we're in this' before anything is said. What forms "
+            "between you is the architecture of a tribe — promises, "
+            "expectations, mutual backing — even if neither of you used "
+            "those words."
+        ),
+        "what_works": (
+            "Saying out loud what you've already agreed to silently. The "
+            "contract is real either way — making it visible just makes it "
+            "cleaner."
+        ),
+        "what_to_watch": (
+            "What feels 'agreed' may not actually be shared. When loyalty "
+            "meets a different definition of loyalty, the pressure builds "
+            "quietly."
+        ),
     },
     "6-59": {
-        "headline": "Deep emotional intimacy flows between you",
-        "description": "There's potential for profound emotional bonding. Barriers tend to dissolve.",
-        "what_works": "Vulnerability, emotional honesty, presence",
-        "what_to_watch": "Maintain healthy boundaries. Intensity needs space too.",
+        # Mating — intimacy / emotional permeability
+        "headline": "Emotional barriers come down faster than either of you expects",
+        "description": (
+            "When you're around each other, the door to intimacy opens "
+            "without much prompting — old defenses get quiet. You both feel "
+            "the temperature of the room before words land. What forms "
+            "between you is a kind of emotional permeability most people "
+            "rarely experience."
+        ),
+        "what_works": (
+            "Letting closeness arrive without forcing it. Naming the "
+            "temperature out loud when one of you needs a breath."
+        ),
+        "what_to_watch": (
+            "The same permeability that opens you can overwhelm. When it "
+            "gets close, one of you tends to pull back to recover — that's "
+            "recovery, not rejection."
+        ),
     },
     "10-20": {
-        "headline": "You encourage each other's authenticity",
-        "description": "When together, you both feel more permission to be yourselves in the moment.",
-        "what_works": "Honest expression, being present, supporting truth",
-        "what_to_watch": "Don't confuse authenticity with always agreeing. Different truths can coexist.",
+        # Awakening — authenticity / present-moment honesty
+        "headline": "You both become more openly yourselves when together",
+        "description": (
+            "Filters drop. The version of you that performs for most people "
+            "doesn't survive long around each other — you skip past the "
+            "polite layer and land in something more real, faster. What "
+            "forms between you is relief from performing."
+        ),
+        "what_works": (
+            "Honest expression in the moment. Both of you saying what's "
+            "actually true rather than what's strategic."
+        ),
+        "what_to_watch": (
+            "Authenticity can land as bluntness when timing is off. "
+            "Different truths can coexist — don't confuse honesty with "
+            "always agreeing."
+        ),
     },
     "13-33": {
-        "headline": "You're natural witnesses for each other",
-        "description": "One speaks, the other deeply listens. Stories matter here.",
-        "what_works": "Deep listening, sharing experiences, holding space",
-        "what_to_watch": "Balance who speaks and who listens. Both roles need time.",
+        # The Prodigal — witness / story / reflection
+        "headline": "One speaks, the other deeply hears — and stories matter here",
+        "description": (
+            "There's a witnessing dynamic at play: experiences and memories "
+            "surface between you that don't surface elsewhere. The listener "
+            "often sees more than the speaker realizes. What forms between "
+            "you is a kind of archive — your stories acquire meaning by "
+            "being told here."
+        ),
+        "what_works": (
+            "Taking turns. The speaker speaking fully, the listener "
+            "listening fully, before the role flips."
+        ),
+        "what_to_watch": (
+            "If only one of you ever speaks, the dynamic ossifies. Both "
+            "roles need air."
+        ),
     },
     "27-50": {
-        "headline": "You naturally care for what matters to each other",
-        "description": "There's mutual nurturing here—a sense of looking after shared values.",
-        "what_works": "Nurturing, protecting what matters, shared responsibility",
-        "what_to_watch": "Don't over-give. Check that care flows both ways.",
+        # Preservation — care / nourishment / protection of values
+        "headline": "You naturally look out for what matters to each other",
+        "description": (
+            "Care moves between you before being asked — a small "
+            "adjustment, a noticed need, a quiet protection. What forms is "
+            "mutual stewardship of the things and people each of you "
+            "values. This connection naturally moves toward care, "
+            "protection, and sustaining what matters."
+        ),
+        "what_works": (
+            "Letting yourselves receive, not just give. Checking that care "
+            "flows both directions."
+        ),
+        "what_to_watch": (
+            "One of you can over-give until the giving becomes invisible — "
+            "and then resentment finds the gap. Surface the score before it "
+            "gets uneven."
+        ),
+    },
+    "5-15": {
+        # Rhythm — natural pacing / timing / flow
+        "headline": "Your natural pace and timing line up",
+        "description": (
+            "When you're aligned, things move between you without "
+            "negotiation — you fall into the same rhythm of meeting, "
+            "doing, resting. What forms is a container of ease that other "
+            "connections in your life don't have. This one runs on flow, "
+            "not friction."
+        ),
+        "what_works": (
+            "Trusting the rhythm when it's there. Letting timing do the "
+            "work."
+        ),
+        "what_to_watch": (
+            "When the rhythms diverge — different sleep, different "
+            "seasons, different speeds — the whole connection can feel off "
+            "even when nothing's wrong."
+        ),
+    },
+    "34-57": {
+        # Power / Intuition — instinctive read / wordless trust
+        "headline": "An unusually fast instinctive read of each other forms here",
+        "description": (
+            "There's an instinctive read of each other that doesn't need "
+            "data. You can tell when the other is off, before the words. "
+            "What forms between you is an unusually fast instinctive read "
+            "of each other — trust tends to form before explanation does."
+        ),
+        "what_works": (
+            "Trusting the read. When you feel something's off, name it — "
+            "that's the channel doing its job."
+        ),
+        "what_to_watch": (
+            "Fast read can become unchecked read. Don't let instinct "
+            "replace the small adjustments that keep a connection current."
+        ),
+    },
+    "35-36": {
+        # Transitoriness — experience / novelty / movement
+        "headline": "You pull each other into new experiences — sometimes before either of you is ready",
+        "description": (
+            "Together you generate momentum into the new — places, "
+            "projects, emotional terrain neither of you would enter alone. "
+            "What forms between you is appetite. The connection wants "
+            "experience, not stability."
+        ),
+        "what_works": (
+            "Saying yes to the experiment, but checking in with whether "
+            "you both actually want it after."
+        ),
+        "what_to_watch": (
+            "The hunger for novelty can destabilize what's already "
+            "working. Some of what was built quietly needs protection."
+        ),
     },
     "21-45": {
         # The Money Line — gates 21 (control of resources) + 45 (gatherer of
-        # resources).  Founders/operators feel this one in the material world:
-        # provision, capability, ambition, who carries what.
+        # resources).  Founders/operators feel this one in the material
+        # world: provision, capability, ambition, who carries what.
         "headline": "Resources, direction, and responsibility quickly become shared territory",
         "description": (
             "Together, you naturally start organizing resources, direction, "
