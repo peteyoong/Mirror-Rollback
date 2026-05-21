@@ -22816,3 +22816,344 @@ agent_communication:
       Driver script: /app/backend_test_member_mappings_polish.py.
       No critical issues found.  Setting working=true /
       needs_retesting=false.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RELATIONSHIP FIELD v1.3 "LAYERED CONVERGENCE" (Phases 1+2+3) — regression
+# ─────────────────────────────────────────────────────────────────────────────
+
+backend:
+  - task: "Relationship Field v1.3 Layered Convergence — pivot orchestration, theme de-dupe, 21-45 Money Line rewrite on /api/forums/{forum_id}/member-mappings"
+    implemented: true
+    working: true
+    file: "/app/backend/services/relationship_field.py, /app/backend/services/forum_hd_mapping.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "testing"
+        -comment: |
+          REGRESSION TEST — /app/backend_test_layered_convergence.py
+          GET /api/forums/69dda348de9cb1c83c0780fa/member-mappings?user_id=697f0c6abf35c0528ff06954
+          Base URL: https://forum-mappings-hub.preview.emergentagent.com/api
+          Forum: Yoong family, viewer Pete.  Status 200 OK.
+          Mappings returned: 3 — Thaddeus Yoong, Isaac Yoong, Mel.
+
+          ── ACCEPTANCE CRITERIA ──────────────────────────────────────
+
+          A) SCHEMA / CONTRACT (CRITICAL) — ALL PASS
+            A1 PASS — 200 OK, top-level `mappings` is a list (length 3).
+            A2 PASS — every mapping has all required keys:
+                       member_id, member_name, headline, description,
+                       signals, field, patterns, story, what_works,
+                       what_to_watch, why_this_happens.
+            A3 PASS — field.version == "relationship-field-v1" on
+                       all 3 mappings.
+            A4 PASS — internal pivot keys `dimension` and `source_lens`
+                       are STRIPPED from every field.themes[*] before
+                       reaching the API surface.  Only the user-facing
+                       trio (label / what_lives_here / friction_inside_it)
+                       remains.  Pivot annotations stay internal.
+
+          B) LAYERED CONVERGENCE BEHAVIOR
+            B1 PASS — no two themes within a mapping share the same
+                       label (de-dupe verified across all 3 mappings,
+                       each carrying 2 themes).
+            B2.length PASS — every field.field_paragraph is 50-500 chars
+                       (143 / 165 / 143).
+            B2.period PASS — every field_paragraph ends with a period.
+            B2.convergence_sentence (informational only) — the spec
+                       sentence "{Sources} converge on the same pattern
+                       here — that's how clearly {label} sits in this
+                       connection." is NOT present in any of the 3
+                       field_paragraph strings on this request.  Per
+                       the code (relationship_field.py:_build_convergence_note),
+                       the sentence is emitted only when ≥2 DIFFERENT
+                       lenses ("sources") contribute themes to the same
+                       dimension.  In this forum every contributed theme
+                       came from `source_lens="hd"`, so the convergence-
+                       across-lenses condition isn't triggered.  Pivot
+                       still ran (overlapping HD-only themes deduped on
+                       the same dimension) — confirmed in backend logs.
+
+          C) 21-45 MONEY LINE REWRITE (CRITICAL)
+            21-45 channel found on Pete↔Mel mapping.
+
+            C1 PASS  — signals.human_design[21-45].translation matches
+                       EXACTLY (case-sensitive):
+                       "Together, you naturally start organizing resources,
+                       direction, and responsibility — this connection
+                       tends to move toward building something tangible"
+                       Old phrase "Resources and responsibility become
+                       something you both feel strongly" is ABSENT.
+                       ✅ Critical rewrite came through end-to-end.
+
+            C2 N/A   — hd_signals entries do NOT carry an `interpretation`
+                       dict.  The HD signal schema in
+                       forum_hd_mapping.py:1294 only emits
+                       channel / name / theme / translation / your_gate /
+                       their_gate.  The CHANNEL_INTERPRETATIONS catalog
+                       (which has the headline "Resources, direction, and
+                       responsibility quickly become shared territory")
+                       is consumed when building patterns/story/headline
+                       but is NOT surfaced as a per-signal sub-dict.
+                       Spec wording: "if interpretations are surfaced" —
+                       precondition not met, check skipped.  No defect.
+
+            C3 PASS  — strings in patterns/what_works/what_to_watch
+                       referencing the 21-45 territory:
+                         • patterns.what_happens[2]: "Within a short time
+                           of getting close, you start cooperating on
+                           real things — money, plans, structure, who
+                           owns what. Resources and direction quickly
+                           become a shared conversation."
+                         • patterns.tensions[1]: "When direction goes
+                           unspoken, one of you ends up carrying more
+                           than was agreed — provision, decisions, or
+                           load. Make the contract visible while it's
+                           still small."
+                         • patterns.gifts[2]: "Together you can actually
+                           build — this connection has a rare combination
+                           of ambition, capability, and follow-through
+                           wired in"  ← contains "build" (✅ founder/
+                           business resonance preserved).
+                       Banned vocabulary scanned everywhere in this
+                       mapping: 0 hits for "materialism", "power
+                       imbalance", "live wire around direction", "control
+                       dynamics".
+
+            C4 PARTIAL — field.activation on the 21-45 mapping is:
+                       "What activates between you is emotional — the
+                        door opens faster than usual."
+                       It does NOT mention "real-world coordination" or
+                       "resources" + "direction".  Reason: the
+                       _pick_activation_line() function in
+                       relationship_field.py checks emotional channels
+                       (6-59 / 39-55) BEFORE 21-45 and returns the
+                       first match.  Mel mapping carries 6-59 + 21-45
+                       so emotional fires first.  21-45-specific
+                       activation phrasing exists in the code (line 853)
+                       but is only reached when 21-45 is the ONLY (or
+                       first) qualifying channel.
+                       → DESIGN: activation surfaces the strongest
+                         single signal; 21-45 territory still lives in
+                         the themes (label "Building together" with
+                         "Resources, direction, and responsibility
+                         quickly become shared territory — this
+                         connection tends to organize toward building
+                         something tangible").
+                       → Flagging for main agent: if the v1.3 spec
+                         requires 21-45 activation phrasing to
+                         co-surface even when other emotional channels
+                         are present, _pick_activation_line() ordering
+                         needs a tweak.
+
+            C5 PARTIAL — field.gift_of_this_connection on the 21-45
+                       mapping is:
+                       "Mel helps you reach emotional depth you'd
+                        normally protect — and that depth is what makes
+                        this connection worth tending."
+                       It does NOT contain "actually build" / "ambition"
+                       + "follow-through".  Same root cause as C4 —
+                       the _pick_gift_line() function (relationship_
+                       field.py:_build_gift) checks 6-59/39-55 emotional
+                       gift FIRST; 21-45 gift wording (line 1014:
+                       "Together you can actually build — ambition,
+                       capability, and follow-through") only fires when
+                       no earlier branch matched.
+                       → 21-45 gift phrasing IS present elsewhere in
+                         the payload: patterns.gifts[2] carries the
+                         exact "Together you can actually build … rare
+                         combination of ambition, capability, and
+                         follow-through" line.  So C5 in the legacy
+                         contract is satisfied; only the field-level
+                         gift_of_this_connection skipped it.
+
+          D) FULL FIELD DUMP — Pete↔Mel (21-45 active):
+          {
+            "version": "relationship-field-v1",
+            "field_paragraph": "What activates between you is emotional — the door opens faster than usual. The dominant themes here are emotional reach and building together.",
+            "activation":       "What activates between you is emotional — the door opens faster than usual.",
+            "themes": [
+              {
+                "label": "Emotional reach",
+                "what_lives_here": "Feelings move between you faster than most connections allow — the emotional door opens without much prompting.",
+                "friction_inside_it": "When it gets close, one of you tends to pull back to recover space."
+              },
+              {
+                "label": "Building together",
+                "what_lives_here": "Resources, direction, and responsibility quickly become shared territory — this connection tends to organize toward building something tangible.",
+                "friction_inside_it": "When the contract stays unspoken, one of you ends up carrying more than was agreed."
+              }
+            ],
+            "gift_of_this_connection": "Mel helps you reach emotional depth you'd normally protect — and that depth is what makes this connection worth tending.",
+            "amplifiers": {
+              "juno": null,
+              "north_node": "There's a pull here that tests where you're heading — Mel touches the part of you that's stretching, and that stretch becomes more visible in this connection.",
+              "vertex": null
+            }
+          }
+
+          21-45 entry verbatim from signals.human_design:
+          {
+            "channel": "21-45",
+            "name":    "The Money Line",
+            "theme":   "resources, stewardship, responsibility, and the will to provide",
+            "translation": "Together, you naturally start organizing resources, direction, and responsibility — this connection tends to move toward building something tangible",
+            "your_gate": 21,
+            "their_gate": 45
+          }
+
+          E) BACKEND LOGS — [LayeredConvergence] info lines: PASS
+            4 pivot lines emitted during this request:
+              "[LayeredConvergence] Pivoted theme 'Creative momentum'
+                (source=hd, dim=ACTIVATION) — overlaps with owner 'hd'"
+              "[LayeredConvergence] Pivoted theme 'Belonging'
+                (source=hd, dim=ACTIVATION) — overlaps with owner 'hd'"
+              "[LayeredConvergence] Pivoted theme 'Shared rhythm'
+                (source=hd, dim=ACTIVATION) — overlaps with owner 'hd'"
+              "[LayeredConvergence] Pivoted theme 'Creative momentum'
+                (source=hd, dim=ACTIVATION) — overlaps with owner 'hd'"
+            → Pivot orchestration is live and de-duping overlapping
+              themes on the ACTIVATION dimension as designed.
+
+          ── OVERALL ──────────────────────────────────────────────────
+            CRITICAL block A (schema/contract): 4/4 PASS
+            CRITICAL block C1 (21-45 translation rewrite): PASS
+              Old phrase removed, new phrase live.  Critical reference
+              template has come through end-to-end.
+            Block B (layered convergence behavior):
+              de-dupe + paragraph length + period all PASS.
+              The cross-lens convergence note is not surfaced on this
+              request because all themes share a single source_lens (hd)
+              — no defect, just no qualifying cross-lens overlap.
+            Block C2: N/A (precondition not met).
+            Block C3: PASS — "build" / "actually build" / "ambition" /
+              "follow-through" present in 21-45 attribution strings,
+              banned vocab absent.
+            Block C4 + C5: PARTIAL — 21-45 territory surfaces in themes
+              and patterns.gifts, but NOT inside field.activation /
+              field.gift_of_this_connection on mappings that also carry
+              a higher-priority emotional channel (6-59 / 39-55).  This
+              is by current ordering in _pick_activation_line() and
+              _build_gift().  Not a contract regression; flag for main
+              agent if the v1.3 spec intends 21-45 phrasing to
+              co-surface on the field envelope.
+            Block E (pivot logs): PASS — 4 [LayeredConvergence] lines
+              emitted, pivot logic confirmed active.
+
+          No CRITICAL fails on A or C1.  Setting working=true /
+          needs_retesting=false.
+
+agent_communication:
+    -agent: "testing"
+    -message: |
+      Relationship Field v1.3 "Layered Convergence" — REGRESSION CLEAN
+      on all critical contract checks (A1-A4) and on the CRITICAL 21-45
+      Money Line rewrite (C1).
+
+      GET /api/forums/69dda348de9cb1c83c0780fa/member-mappings?
+          user_id=697f0c6abf35c0528ff06954 → 200, 3 mappings
+      (Thaddeus, Isaac, Mel).
+
+      ── PASS ────────────────────────────────────────────────────────
+        A1-A4 ✅  Schema/contract preserved end-to-end.  All required
+                  keys present on every mapping.  field.version ==
+                  "relationship-field-v1".  Internal pivot keys
+                  (`dimension`, `source_lens`) are STRIPPED from the
+                  user-facing field.themes envelope — only label /
+                  what_lives_here / friction_inside_it survive.
+        B1    ✅  No duplicate theme labels — pivot de-dupes overlapping
+                  themes on the same dimension.  Verified by backend
+                  log lines:
+                    [LayeredConvergence] Pivoted theme 'Creative
+                    momentum' (source=hd, dim=ACTIVATION) — overlaps
+                    with owner 'hd'
+                  4 such lines emitted during this single request.
+        B2    ✅  field_paragraph lengths 143/165/143 chars (50-500
+                  range), all end with a period.
+        C1    ✅  CRITICAL — signals.human_design[21-45].translation
+                  matches the new spec string exactly:
+                  "Together, you naturally start organizing resources,
+                  direction, and responsibility — this connection
+                  tends to move toward building something tangible"
+                  Old "Resources and responsibility become something
+                  you both feel strongly" is absent.
+        C3    ✅  "build" wording present in 21-45 attribution strings
+                  (patterns.gifts[2]: "Together you can actually
+                  build — ... rare combination of ambition,
+                  capability, and follow-through").  Banned vocab
+                  (materialism / power imbalance / live wire around
+                  direction / control dynamics) absent everywhere in
+                  the mapping.
+        E     ✅  4 [LayeredConvergence] info lines emitted in backend
+                  logs during the request — pivot orchestration is
+                  actively running.
+
+      ── FLAGGED FOR MAIN AGENT (not critical, not blocking) ──────────
+        B2.convergence_sentence — the spec sentence
+          "{Sources} converge on the same pattern here — that's how
+          clearly {label} sits in this connection."
+          is NOT present in any field_paragraph on this request.
+          Reason: _build_convergence_note() requires ≥2 DIFFERENT
+          `source_lens` values to contribute themes on the same
+          dimension.  In this forum every theme came from
+          source_lens="hd" (HD channels), so the cross-lens
+          convergence condition isn't triggered.  Pivot still ran
+          (HD-on-HD overlaps deduped); the cross-lens line just had
+          no qualifying overlap to announce.  Code is correct; just
+          no data path to surface it on the Yoong family forum.
+
+        C2 — hd_signals entries do not carry an `interpretation`
+          sub-dict.  The CHANNEL_INTERPRETATIONS catalogue
+          (forum_hd_mapping.py) IS consumed by
+          patterns/story/headline assembly, but is NOT exposed at
+          the per-signal level.  Spec wording ("if interpretations
+          are surfaced") suggests this is optional — not a defect.
+          If main agent wants the interpretation dict surfaced on
+          signals.human_design[*], it needs to be added explicitly
+          to the hd_signals.append(...) shape at line ~1294 of
+          forum_hd_mapping.py.
+
+        C4 + C5 (PARTIAL — design call) — on the Pete↔Mel mapping
+          (which carries BOTH 6-59 emotional AND 21-45 money):
+            • field.activation = "What activates between you is
+              emotional — the door opens faster than usual."
+              (does NOT mention "real-world coordination" or
+              "resources + direction").
+            • field.gift_of_this_connection = "Mel helps you reach
+              emotional depth you'd normally protect — and that
+              depth is what makes this connection worth tending."
+              (does NOT mention "actually build" / "ambition" /
+              "follow-through").
+          Root cause: _pick_activation_line() and the gift
+          assembler in relationship_field.py check emotional
+          channels (6-59 / 39-55) BEFORE 21-45 and return the
+          first match.  21-45-specific lines exist (relationship_
+          field.py:852-853 for activation, :1014-1020 for gift)
+          but only fire when no earlier branch wins.
+
+          The 21-45 territory IS surfaced elsewhere on the mapping
+          — themes[1] is "Building together" with the new
+          tangible-build language, and patterns.gifts[2] carries
+          "Together you can actually build — ... ambition,
+          capability, and follow-through".  So legacy contract +
+          themes are satisfied; only the field envelope's single-
+          line activation/gift skipped 21-45.
+
+          → If v1.3 spec intends 21-45 phrasing to co-surface on
+            the field envelope even when an emotional channel is
+            also present, main agent may want to either:
+              (a) move 21-45 check above 6-59 in
+                  _pick_activation_line() / gift assembler, or
+              (b) blend a second sentence on the field_paragraph
+                  when both ACTIVATION-strong emotional and
+                  ACTIVATION-strong money channels co-exist.
+
+      Driver: /app/backend_test_layered_convergence.py
+      Raw response saved to:
+        /app/backend_test_layered_convergence_response.json
+
+      No critical regression.  Setting working=true /
+      needs_retesting=false.
+

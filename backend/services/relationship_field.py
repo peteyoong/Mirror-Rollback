@@ -481,6 +481,197 @@ def compute_vertex_amplifier(
 # Core field synthesizer
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Layered Convergence v1.3 — Lens-domain orchestration
+# ---------------------------------------------------------------------------
+#
+# Each lens owns a distinct interpretive responsibility.  When multiple
+# lenses converge on the same conceptual dimension, the engine keeps the
+# OWNER's contribution and pivots others away — preserving convergence
+# visibility without repetition.
+#
+# Dimensions:
+#   ACTIVATION       — energetic chemistry / completion mechanics (HD owns)
+#   GROWTH_PRESSURE  — consequence / maturation / mirror (Astrology owns)
+#   ATTACHMENT       — unmet needs / pursuit-withdrawal (Enneagram owns)
+#   STRUCTURE        — provision / household / practical life (BaZi owns)
+#   SYMBOLIC         — recurring themes / archetype (Numerology owns)
+#
+# Source-lens tags on each theme catalogue entry let us route a theme to
+# its native domain at pivot time.  Themes without a dimension tag are
+# treated as UNCLAIMED and pass through the pivot filter unmodified.
+
+_LENS_DOMAIN_OWNERSHIP: Dict[str, str] = {
+    "ACTIVATION":      "hd",
+    "GROWTH_PRESSURE": "astrology",
+    "ATTACHMENT":      "enneagram",
+    "STRUCTURE":       "bazi",
+    "SYMBOLIC":        "numerology",
+}
+
+# Keyword buckets used by the dimension classifier.  Moderate detection
+# per V1.3 spec: literal keyword + simple phrase patterns.  Avoid
+# aggressive semantic suppression so the field doesn't thin out.
+_DIMENSION_KEYWORDS: Dict[str, List[str]] = {
+    "ACTIVATION": [
+        "activate", "activation", "chemistry", "energetic pull",
+        "momentum", "rhythm", "completion", "in sync", "wired",
+        "live wire", "click", "spark", "fast", "instinctive",
+    ],
+    "GROWTH_PRESSURE": [
+        "harder to avoid", "evolution", "identity", "consequence",
+        "mirror", "growth", "maturation", "stakes",
+        "pulls both of you toward", "the parts of yourself",
+        "what this relationship will ask",
+    ],
+    "ATTACHMENT": [
+        "reaches toward", "most reaches", "most reach",
+        "validation", "performance", "valued", "valued for",
+        "unmet", "pursuit", "withdrawal",
+        "what each person needs", "what each person reaches",
+        "emotional hunger", "be seen",
+    ],
+    "STRUCTURE": [
+        "provision", "household", "resources", "capability",
+        "capital", "ambition", "follow-through", "follow through",
+        "build", "building", "tangible", "responsibility",
+        "stewardship", "direction", "who carries what",
+        "real-world", "logistics", "structure", "household",
+        "shared territory", "provide",
+    ],
+    "SYMBOLIC": [
+        "theme", "archetype", "lesson", "recurring", "motif",
+        "journey", "expansion", "reinvention", "path",
+        "symbol", "revolves around",
+    ],
+}
+
+# Pre-compile lowercase keyword sets for fast scan.
+_DIMENSION_KEYWORDS_LC: Dict[str, List[str]] = {
+    dim: [kw.lower() for kw in kws] for dim, kws in _DIMENSION_KEYWORDS.items()
+}
+
+
+def _classify_dimension(text: Optional[str]) -> Optional[str]:
+    """
+    Return the dominant dimension claimed by `text`, or None if no
+    dimension has a stronger signal than the others.  Ties go to the
+    first dimension encountered (deterministic).
+    """
+    if not isinstance(text, str) or not text.strip():
+        return None
+    t = text.lower()
+    scores: Dict[str, int] = {}
+    for dim, kws in _DIMENSION_KEYWORDS_LC.items():
+        n = sum(1 for kw in kws if kw in t)
+        if n > 0:
+            scores[dim] = n
+    if not scores:
+        return None
+    # Return dimension with max hits; ties resolved by ownership order
+    best = max(scores.items(), key=lambda kv: (kv[1], -list(_LENS_DOMAIN_OWNERSHIP.keys()).index(kv[0])))
+    return best[0]
+
+
+def _pivot_themes(
+    themes: List[Dict[str, Any]],
+) -> tuple:
+    """
+    Layered-convergence pivot filter.
+
+    Input: themes from `_select_themes`, each carrying an optional
+    `dimension` tag and `source_lens` tag.  Themes without a dimension
+    are classified on the fly from their `what_lives_here` text.
+
+    For each dimension that has 2+ themes claiming it:
+      • Keep the theme whose source_lens matches the dimension OWNER.
+      • Drop the rest (logged as pivots).
+      • Record a convergence note so the field paragraph can surface
+        the agreement as a single line (visible convergence, not echoes).
+
+    Returns (kept_themes, convergence_notes).
+    """
+    if not themes:
+        return [], []
+
+    # Annotate each theme with a resolved dimension (explicit > classified).
+    annotated: List[Dict[str, Any]] = []
+    for t in themes:
+        dim = t.get("dimension")
+        if not dim:
+            dim = _classify_dimension(t.get("what_lives_here")) or _classify_dimension(t.get("label"))
+        annotated.append({**t, "_dim": dim or "UNCLAIMED"})
+
+    # Group by dimension.
+    by_dim: Dict[str, List[Dict[str, Any]]] = {}
+    for t in annotated:
+        by_dim.setdefault(t["_dim"], []).append(t)
+
+    kept: List[Dict[str, Any]] = []
+    convergences: List[Dict[str, Any]] = []
+
+    # Iterate in input order so deterministic output matches catalogue order.
+    seen_dims: set = set()
+    for t in annotated:
+        dim = t["_dim"]
+        if dim in seen_dims:
+            continue
+        seen_dims.add(dim)
+        bucket = by_dim[dim]
+        if dim == "UNCLAIMED" or len(bucket) == 1:
+            kept.extend(bucket)
+            continue
+        # Multi-theme convergence on a claimed dimension.
+        owner = _LENS_DOMAIN_OWNERSHIP.get(dim)
+        primary = next(
+            (b for b in bucket if (b.get("source_lens") or "").lower() == owner),
+            bucket[0],
+        )
+        kept.append(primary)
+        sources = sorted({(b.get("source_lens") or "lens") for b in bucket})
+        for d in bucket:
+            if d is primary:
+                continue
+            logger.info(
+                "[LayeredConvergence] Pivoted theme '%s' (source=%s, dim=%s) — "
+                "overlaps with owner '%s'",
+                d.get("label"), d.get("source_lens"), dim, owner,
+            )
+        if len(sources) >= 2:
+            convergences.append({
+                "dimension": dim,
+                "sources": sources,
+                "primary_label": (primary.get("label") or "").lower(),
+            })
+
+    # Strip the transient `_dim` marker before returning.
+    cleaned = [{k: v for k, v in t.items() if k != "_dim"} for t in kept]
+    return cleaned, convergences
+
+
+def _build_convergence_note(convergences: List[Dict[str, Any]]) -> Optional[str]:
+    """
+    Produce a SINGLE short line that makes multi-lens convergence visible
+    without repeating it.  Returns None when no convergence detected.
+
+    Per V1.3 editorial spec: convergence is interesting and should be
+    SHOWN, but as one line, not paraphrased across the synthesis block.
+    """
+    if not convergences:
+        return None
+    # Use only the first / strongest convergence to keep the field tight.
+    c = convergences[0]
+    sources = c.get("sources") or []
+    label = (c.get("primary_label") or "").strip()
+    if not label or len(sources) < 2:
+        return None
+    src_phrase = " and ".join(s.capitalize() for s in sources[:3])
+    return (
+        f"{src_phrase} converge on the same pattern here — that's how "
+        f"clearly {label} sits in this connection."
+    )
+
+
 # Theme-label dictionary: maps signal fingerprints to a human label and a
 # short connector that the field paragraph can reuse.  Labels are
 # intentionally NEUTRAL — they describe what's alive, not how good it is.
@@ -490,60 +681,80 @@ _THEME_CATALOG: List[Dict[str, Any]] = [
         "match": {"hd_channels": ["6-59", "39-55"], "astro_signals": ["sun-moon", "moon-moon"]},
         "what_lives_here": "Feelings move between you faster than most connections allow — the emotional door opens without much prompting.",
         "friction_inside_it": "When it gets close, one of you tends to pull back to recover space.",
+        "dimension": "ACTIVATION",
+        "source_lens": "hd",
     },
     {
         "label": "Quiet trust",
         "match": {"hd_channels": ["34-57", "27-50", "13-33"]},
         "what_lives_here": "There's an instinctive sense of safety here — you don't need words to confirm where you stand with each other.",
         "friction_inside_it": "The trust can mute the small adjustments that keep a connection current.",
+        "dimension": "ACTIVATION",
+        "source_lens": "hd",
     },
     {
         "label": "Shared rhythm",
         "match": {"hd_channels": ["5-15", "9-52"]},
         "what_lives_here": "Your natural pace lines up — when you're in sync, things move without negotiation.",
         "friction_inside_it": "When the rhythms diverge, the whole connection can feel off, even if nothing went wrong.",
+        "dimension": "ACTIVATION",
+        "source_lens": "hd",
     },
     {
         "label": "Creative momentum",
         "match": {"hd_channels": ["1-8", "11-56", "35-36"]},
         "what_lives_here": "Ideas and direction tend to activate between you — when you're together, things start.",
         "friction_inside_it": "Momentum can outrun the conversation about whether either of you actually wants this.",
+        "dimension": "ACTIVATION",
+        "source_lens": "hd",
     },
     {
-        "label": "Power and direction",
+        "label": "Building together",
         "match": {"hd_channels": ["21-45", "7-31", "10-34"]},
-        "what_lives_here": "There's a live wire here around who leads, who follows, and how decisions actually get made.",
-        "friction_inside_it": "When this isn't named, it shows up as control or quiet resistance instead of conversation.",
+        "what_lives_here": "Resources, direction, and responsibility quickly become shared territory — this connection tends to organize toward building something tangible.",
+        "friction_inside_it": "When the contract stays unspoken, one of you ends up carrying more than was agreed.",
+        "dimension": "STRUCTURE",
+        "source_lens": "hd",
     },
     {
         "label": "Mutual sharpening",
         "match": {"hd_channels": ["4-63", "17-62", "32-54", "18-58"]},
         "what_lives_here": "You think things through together — the thinking itself changes both of you.",
         "friction_inside_it": "Sharpening can land as criticism if the intention isn't shared.",
+        "dimension": "GROWTH_PRESSURE",
+        "source_lens": "hd",
     },
     {
         "label": "Belonging",
         "match": {"hd_channels": ["37-40", "10-20"]},
         "what_lives_here": "A sense of place forms between you — unspoken agreements that feel real even before they're stated.",
         "friction_inside_it": "What feels 'agreed' may not actually be shared — the unsaid can build pressure.",
+        "dimension": "ACTIVATION",
+        "source_lens": "hd",
     },
     {
-        "label": "Emotional honesty under strain",
+        "label": "Reaching toward each other",
         "match": {"ennea_friction": True},
-        "what_lives_here": "When the connection is pressed, both of you have a real chance to be seen — not just managed.",
-        "friction_inside_it": "Type-level patterns mean the pressure can recur in the same place until it's named.",
+        "what_lives_here": "What each of you reaches for from the other becomes visible quickly — and when the reach isn't met, the patterns repeat.",
+        "friction_inside_it": "Type-level needs mean the same hunger can recur in the same place until it's named.",
+        "dimension": "ATTACHMENT",
+        "source_lens": "enneagram",
     },
     {
         "label": "Elemental fit",
         "match": {"bazi_support": True},
         "what_lives_here": "Your underlying natures feed each other — there's something steady in how you both move through the world.",
         "friction_inside_it": "When the support becomes automatic, it can quietly stop being noticed.",
+        "dimension": "STRUCTURE",
+        "source_lens": "bazi",
     },
     {
         "label": "Elemental friction",
         "match": {"bazi_tension": True},
         "what_lives_here": "Your underlying natures pull in different directions — neither of you is doing it wrong, but the gap is real.",
         "friction_inside_it": "The friction is the connection — when it disappears, so does the energy.",
+        "dimension": "STRUCTURE",
+        "source_lens": "bazi",
     },
 ]
 
@@ -608,6 +819,8 @@ def _select_themes(
                 "label": entry["label"],
                 "what_lives_here": entry["what_lives_here"],
                 "friction_inside_it": entry.get("friction_inside_it"),
+                "dimension": entry.get("dimension"),
+                "source_lens": entry.get("source_lens"),
             })
             used_labels.add(entry["label"])
         if len(selected) >= max_themes:
@@ -637,7 +850,7 @@ def _build_activation_line(
         if "1-8" in channel_ids or "35-36" in channel_ids:
             return f"What activates between you is forward motion — ideas tend to become action."
         if "21-45" in channel_ids:
-            return f"What activates between you is the live wire around direction and resources."
+            return f"What activates between you is real-world coordination — resources, direction, and who carries what move quickly into shared territory."
         if "34-57" in channel_ids or "27-50" in channel_ids:
             return f"What activates between you is an instinctive sense of safety."
         return f"What activates between you is a specific kind of energetic pull — {len(channel_ids)} active completion(s) connect different parts of your designs."
@@ -663,13 +876,22 @@ def _build_field_paragraph(
     activation: str,
     themes: List[Dict[str, Any]],
     name_b: str,
+    convergence_note: Optional[str] = None,
 ) -> str:
-    """One short paragraph that synthesizes the FEEL of this pair."""
+    """
+    One short paragraph that synthesizes the FEEL of this pair.
+
+    Layered Convergence v1.3 rule: the paragraph leads with activation,
+    names the distinct theme dimensions (max 3), and — only if multiple
+    lenses converged on the same dimension upstream — surfaces ONE
+    convergence note.  We never paraphrase the same dimension twice.
+    """
     if not themes:
-        return activation + (
+        body = activation + (
             f" The shape of this connection emerges through who you both decide "
             f"to be inside it, more than through any energetic completion."
         )
+        return f"{body} {convergence_note}".strip() if convergence_note else body
 
     theme_labels = [t["label"].lower() for t in themes[:3]]
     if len(theme_labels) == 1:
@@ -682,7 +904,10 @@ def _build_field_paragraph(
             f"{theme_labels[1]}, and {theme_labels[2]}."
         )
 
-    return f"{activation} {theme_sentence}"
+    parts = [activation, theme_sentence]
+    if convergence_note:
+        parts.append(convergence_note)
+    return " ".join(parts)
 
 
 def _rewrap_enneagram_gift(line: Optional[str], name_b: str) -> Optional[str]:
@@ -786,6 +1011,13 @@ def _build_gift_line(
             f"{name_b} pulls you toward things you wouldn't start alone — "
             f"and that's how parts of you grow."
         )
+    if "21-45" in channel_ids:
+        return (
+            f"Together you can actually build — this connection has a rare "
+            f"combination of ambition, capability, and follow-through wired in. "
+            f"Most relationships in your life don't carry this much real-world "
+            f"weight."
+        )
 
     if enneagram_signals and enneagram_signals.get("how_you_help_them"):
         return _rewrap_enneagram_gift(enneagram_signals["how_you_help_them"][0], name_b)
@@ -838,8 +1070,13 @@ def build_relationship_field(
 
         # Build the activation + themes + gift first (from non-amplifier data).
         activation = _build_activation_line(channel_ids, astro_signals, bazi_signals, member_name)
-        themes = _select_themes(channel_ids, bazi_signals, enneagram_signals)
-        field_paragraph = _build_field_paragraph(activation, themes, member_name)
+        themes_raw = _select_themes(channel_ids, bazi_signals, enneagram_signals)
+        # Phase 2 — Layered Convergence pivot: when 2+ lenses claim the same
+        # dimension, keep the owner and surface a single convergence note
+        # instead of paraphrasing the same insight across the synthesis block.
+        themes, convergences = _pivot_themes(themes_raw)
+        convergence_note = _build_convergence_note(convergences)
+        field_paragraph = _build_field_paragraph(activation, themes, member_name, convergence_note)
         gift = _build_gift_line(channel_ids, bazi_signals, enneagram_signals, member_name)
 
         # Corroboration: amplifiers ONLY surface when something else is alive.

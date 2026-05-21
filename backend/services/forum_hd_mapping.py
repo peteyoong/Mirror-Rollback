@@ -236,6 +236,29 @@ CHANNEL_INTERPRETATIONS = {
         "what_works": "Nurturing, protecting what matters, shared responsibility",
         "what_to_watch": "Don't over-give. Check that care flows both ways.",
     },
+    "21-45": {
+        # The Money Line — gates 21 (control of resources) + 45 (gatherer of
+        # resources).  Founders/operators feel this one in the material world:
+        # provision, capability, ambition, who carries what.
+        "headline": "Resources, direction, and responsibility quickly become shared territory",
+        "description": (
+            "Together, you naturally start organizing resources, direction, "
+            "and responsibility — this connection tends to move toward "
+            "building something tangible. Provision and stewardship become "
+            "a live thread between you, and the question of who carries what "
+            "surfaces early."
+        ),
+        "what_works": (
+            "Naming what each of you brings — capital, capability, time, "
+            "follow-through — before the imbalance gets quiet. Visible "
+            "agreements about who provides, who decides, who executes."
+        ),
+        "what_to_watch": (
+            "Unspoken contracts about who provides and who directs. Surface "
+            "them while they're still small — by the time it's resentment, "
+            "the conversation is much harder."
+        ),
+    },
     # Default for channels without specific interpretation
     "default": {
         "headline": "There's a natural energetic completion between you",
@@ -1182,7 +1205,7 @@ def generate_mapping_interpretation(
             "10-20": "When you're together, you both become more openly yourselves — less filtering, more truth",
             "13-33": "One of you speaks while the other deeply absorbs — and the listener often sees more than the speaker realizes",
             "27-50": "You naturally look out for what matters to each other — sometimes before being asked",
-            "21-45": "Resources and responsibility become something you both feel strongly — provision, stewardship, who carries what",
+            "21-45": "Within a short time of getting close, you start cooperating on real things — money, plans, structure, who owns what. Resources and direction quickly become a shared conversation.",
             "35-36": "You pull each other toward new experiences — sometimes before either of you is ready",
             "5-15": "Your natural rhythms and timing sync up in ways that feel effortless",
             "34-57": "There's an instinctive trust between you that doesn't need explanation",
@@ -1201,7 +1224,7 @@ def generate_mapping_interpretation(
             "6-59": "The emotional depth can feel overwhelming — one of you may pull back when it gets too close",
             "37-40": "Unspoken expectations can build up — what feels 'agreed' may not actually be shared",
             "10-20": "Raw authenticity can accidentally land as bluntness — timing matters",
-            "21-45": "Resources, responsibility, and direction over them become something you both feel strongly — agreements may need to be made explicit",
+            "21-45": "When direction goes unspoken, one of you ends up carrying more than was agreed — provision, decisions, or load. Make the contract visible while it's still small.",
             "35-36": "The drive for novelty can destabilize what's already working",
             "32-54": "Growth-pushing can feel like criticism if the intention isn't clear",
             "39-55": "Emotional provocation — one of you may trigger deep feelings in the other without meaning to",
@@ -1217,6 +1240,7 @@ def generate_mapping_interpretation(
             "10-20": f"{member_name} gives you permission to be more authentically yourself",
             "13-33": f"One of you holds space that allows the other to process and release",
             "27-50": f"You protect and nurture what matters to each other — without being asked",
+            "21-45": f"Together you can actually build — this connection has a rare combination of ambition, capability, and follow-through wired in",
             "5-15": f"Your shared rhythm creates a container of ease that other relationships don't have",
             "34-57": f"There's an instinctive safety between you that allows faster trust",
             "35-36": f"{member_name} pulls you toward experiences you'd avoid alone — and that expands you",
@@ -1251,7 +1275,7 @@ def generate_mapping_interpretation(
         TRANSLATION_MAP = {
             "5-15": "Your natural rhythms align — you feel 'in sync' without trying",
             "6-59": "You break through each other's emotional walls naturally",
-            "21-45": "Resources and responsibility become something you both feel strongly",
+            "21-45": "Together, you naturally start organizing resources, direction, and responsibility — this connection tends to move toward building something tangible",
             "35-36": "You push each other toward adventure and new emotional territory",
             "37-40": "Loyalty and mutual agreements form fast — and feel binding",
             "10-20": "You give each other permission to be more real",
