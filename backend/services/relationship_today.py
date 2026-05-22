@@ -71,10 +71,23 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 CACHE_COLLECTION = "relationship_today_cache"
+EVENT_COLLECTION = "relationship_today_events"
 CACHE_TTL_HOURS = 24
-ENGINE_VERSION = "between-you-today-v1.0"
+ENGINE_VERSION = "between-you-today-v1.1"
 LLM_TIMEOUT_SECONDS = 22
 LLM_MAX_RETRIES = 2
+
+# Allowed event names — kept whitelisted to keep the telemetry surface
+# observable rather than overgrown. New event types must be added here
+# explicitly. All events are passive / read-only signals.
+EVENT_TYPES = {
+    "today_card_viewed",
+    "proof_expanded",
+    "proof_collapsed",
+    "proof_mode_switched",
+    "today_card_revisited_same_day",
+    "hero_regenerated_same_day",
+}
 
 # Banned vocabulary at the TOP-LEVEL prose layer (proof_layer.technical may
 # contain astrology jargon; everything else must stay plain English).
@@ -89,6 +102,42 @@ _BANNED_TOP_LEVEL = {
     "manifest", "manifestation",
 }
 _BANNED_PRESCRIPTIVE = {"should", "must "}
+
+# V1.1 — anti-AI-symmetry / generated-prose patterns. Catches "summary-mode"
+# phrasings the LLM tends to slip into. Matched as substrings (case-insensitive).
+# Top-level prose containing any of these is regenerated or, if that fails,
+# replaced with the deterministic embodied seed.
+_BANNED_AI_PATTERNS = [
+    "you both feel",
+    "you both sense",
+    "you both experience",
+    "drives you both",
+    "drive you both",
+    "is being assessed",
+    "are being assessed",
+    "there is a sense of",
+    "there's a sense of",
+    "there is a feeling of",
+    "this may cause",
+    "this might cause",
+    "this can cause",
+    "energy around",
+    "energy between",
+    "the dynamic of",
+    "what this means",
+    "invitation to",
+    "opportunity for growth",
+    "opportunity to grow",
+    "growth edges",
+    "growth opportunities",
+    # over-poetic / mini-essay tells
+    "in this moment",
+    "at this time",
+    "the universe",
+    "is opening up",
+    "are opening up",
+    "open up to",
+]
 
 
 # Emotional vs practical channel taxonomy — drives dimensional routing
@@ -145,6 +194,14 @@ def _guard_top_level(text: str) -> bool:
     for w in _BANNED_PRESCRIPTIVE:
         if w in t:
             return False
+    # V1.1 — anti-AI-symmetry / generated-prose substring check
+    for pat in _BANNED_AI_PATTERNS:
+        if pat in t:
+            return False
+    # Cap "today" appearances per text block — overuse is the strongest
+    # tell of generated prose. Allow at most 2 per single string.
+    if t.count("today") > 2:
+        return False
     return True
 
 
@@ -204,8 +261,84 @@ async def ensure_cache_indexes(db) -> None:
         await db[CACHE_COLLECTION].create_index(
             "expires_at", expireAfterSeconds=0
         )
+        # Events collection indexes — for revisit-rate / engagement analytics
+        await db[EVENT_COLLECTION].create_index("anchor_id")
+        await db[EVENT_COLLECTION].create_index("date")
+        await db[EVENT_COLLECTION].create_index("event")
     except Exception as e:
         logger.warning(f"[BetweenYouToday] index ensure failed: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Telemetry — passive event log. Read-only signal collection.
+# Never blocks the request path. Writes are best-effort.
+# ---------------------------------------------------------------------------
+
+async def record_event(
+    db,
+    *,
+    event: str,
+    forum_id: str,
+    anchor_id: str,
+    target_id: str,
+    date_str: Optional[str] = None,
+    intensity: Optional[str] = None,
+    cache_hit: Optional[bool] = None,
+    extra: Optional[Dict[str, Any]] = None,
+) -> bool:
+    """
+    Append a single passive telemetry event. Returns True iff persisted.
+    Silent on failure — telemetry must never affect the user request.
+
+    Event whitelist enforced via EVENT_TYPES.
+
+    Side effect: when `event == 'today_card_viewed'`, we also detect
+    same-day revisits by checking whether a prior 'today_card_viewed'
+    exists for (anchor_id, target_id, date_str). If so, we ALSO emit
+    a derived 'today_card_revisited_same_day' event.
+    """
+    if event not in EVENT_TYPES:
+        logger.warning(f"[BetweenYouToday] rejected unknown event: {event}")
+        return False
+    try:
+        if not date_str:
+            date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+        doc = {
+            "event":      event,
+            "forum_id":   forum_id,
+            "anchor_id":  anchor_id,
+            "target_id":  target_id,
+            "date":       date_str,
+            "intensity":  intensity,
+            "cache_hit":  cache_hit,
+            "extra":      extra or {},
+            "ts":         datetime.now(timezone.utc),
+        }
+        await db[EVENT_COLLECTION].insert_one(doc)
+
+        # Derived revisit event — fires on the SECOND view of the same
+        # pair on the same day. We treat this as the strongest passive
+        # interest signal we can detect without notifications.
+        if event == "today_card_viewed":
+            prior = await db[EVENT_COLLECTION].count_documents({
+                "event":     "today_card_viewed",
+                "anchor_id": anchor_id,
+                "target_id": target_id,
+                "date":      date_str,
+            })
+            # prior includes the doc we just inserted, so >1 means revisit
+            if prior > 1:
+                await db[EVENT_COLLECTION].insert_one({
+                    **doc,
+                    "event": "today_card_revisited_same_day",
+                    "extra": {**doc["extra"], "view_count": prior},
+                    "ts":    datetime.now(timezone.utc),
+                })
+        return True
+    except Exception as e:
+        logger.warning(f"[BetweenYouToday] event write failed ({event}): {e}")
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -334,98 +467,132 @@ def _compute_intensity(
 def _activated_dimension_summary(
     activations: List[Dict[str, Any]],
     dimensions: Dict[str, bool],
+    intensity: str = "medium",
+    rotation_seed: int = 0,
 ) -> List[Dict[str, str]]:
     """
     For each unique transit-driven dimension, decide WHAT it activates
     inside the relationship architecture. Returns a structured list
     that downstream LLM polish can express, but never invent past.
+
+    V1.1 — embodied, relationally specific seed library. Three pools per
+    (dimension × already-active-shape): the rotation_seed (= blake2b
+    of anchor|target|date) selects one consistently for the day,
+    giving day-to-day variety even on the deterministic path.
     """
     summary: List[Dict[str, str]] = []
     seen: set = set()
+
+    def _pick(pool: List[str]) -> str:
+        if not pool:
+            return ""
+        return pool[rotation_seed % len(pool)]
+
     for a in activations:
         dim = a["dimension"]
         if dim in seen:
             continue
         seen.add(dim)
 
-        # Map onto already-active relationship dimensions
+        # ──────────────────────────────────────────────────────────
+        # EMOTIONAL AMPLIFICATION
+        # ──────────────────────────────────────────────────────────
         if dim == "emotional_amplification":
             if dimensions["emotional"]:
-                summary.append({
-                    "dimension":       "emotional_amplification",
-                    "modulates":       "emotional_layer",
-                    "what_it_does":    "the emotional permeability already present between you is unusually open today — closeness comes easier, but reactions also land more strongly",
-                    "evidence_kind":   "lunar/emotional transit",
-                    "evidence_label":  a["label"],
-                })
+                pool = [
+                    "the emotional door between you is thinner today — closeness, tension, and reactions all register faster than usual",
+                    "feelings move more quickly across the space between you today; what would normally take hours to land lands in minutes",
+                    "the pair is operating with less emotional buffer today — small things land closer to the bone on both sides",
+                ]
             elif dimensions["trust"]:
-                summary.append({
-                    "dimension":       "emotional_amplification",
-                    "modulates":       "trust_layer",
-                    "what_it_does":    "the thin layer of trust you usually move through gets felt more directly today — what's unsaid takes up more space than usual",
-                    "evidence_kind":   "lunar/emotional transit",
-                    "evidence_label":  a["label"],
-                })
+                pool = [
+                    "the unsaid takes up more room today — silences and pauses carry more weight than they normally would",
+                    "today the trust between you is more audible; what is and isn't said registers more sharply on both sides",
+                    "small moments of withholding land louder today than the words around them",
+                ]
             else:
-                summary.append({
-                    "dimension":       "emotional_amplification",
-                    "modulates":       "tone",
-                    "what_it_does":    "feelings move closer to the surface today than this connection usually carries — small moments are weighted differently",
-                    "evidence_kind":   "lunar/emotional transit",
-                    "evidence_label":  a["label"],
-                })
+                pool = [
+                    "feelings sit closer to the surface today than this connection usually carries — small moments are weighted differently",
+                    "today the emotional register between you is one notch louder than the relationship's baseline",
+                    "the connection is running with a thinner skin today — minor frictions and warmths both arrive more directly",
+                ]
+            summary.append({
+                "dimension":      "emotional_amplification",
+                "modulates":      "emotional_layer" if dimensions["emotional"] else ("trust_layer" if dimensions["trust"] else "tone"),
+                "what_it_does":   _pick(pool),
+                "evidence_kind":  "lunar/emotional transit",
+                "evidence_label": a["label"],
+            })
 
+        # ──────────────────────────────────────────────────────────
+        # TIMING COMPRESSION
+        # ──────────────────────────────────────────────────────────
         elif dim == "timing_compression":
-            if dimensions["momentum"]:
-                summary.append({
-                    "dimension":       "timing_compression",
-                    "modulates":       "momentum_layer",
-                    "what_it_does":    "momentum outruns clarity today — the connection wants movement before both people fully understand what they feel",
-                    "evidence_kind":   "tight aspect window",
-                    "evidence_label":  a["label"],
-                })
-            elif dimensions["building"]:
-                summary.append({
-                    "dimension":       "timing_compression",
-                    "modulates":       "building_layer",
-                    "what_it_does":    "the connection moves toward building and coordination today — decisions won't stay abstract for long",
-                    "evidence_kind":   "tight aspect window",
-                    "evidence_label":  a["label"],
-                })
+            if dimensions["building"]:
+                pool = [
+                    "questions about direction, responsibility, or what this connection is actually building become harder to ignore today",
+                    "decisions that have been hovering over the pair want to land — abstraction won't hold them today",
+                    "the practical conversation you've been delaying gets closer to the surface today; the window for clean coordination is narrow",
+                ]
+            elif dimensions["momentum"]:
+                pool = [
+                    "the pull is to act first and process second; the pace between you outruns the room either of you has to feel it through",
+                    "the connection is in a hurry today — it wants movement, not interpretation",
+                    "today, the urge to do something with this connection is louder than the urge to understand it",
+                ]
             else:
-                summary.append({
-                    "dimension":       "timing_compression",
-                    "modulates":       "decision_window",
-                    "what_it_does":    "a narrow timing window is alive between you today — small choices land heavier than they normally would",
-                    "evidence_kind":   "tight aspect window",
-                    "evidence_label":  a["label"],
-                })
+                pool = [
+                    "small choices between you are heavier than usual today; the pair is making decisions at a pace it can't fully feel yet",
+                    "the timing of a single conversation matters more today than the conversation itself does",
+                    "decisions that would normally drift quietly between you sharpen up and ask to be answered today",
+                ]
+            summary.append({
+                "dimension":      "timing_compression",
+                "modulates":      "building_layer" if dimensions["building"] else ("momentum_layer" if dimensions["momentum"] else "decision_window"),
+                "what_it_does":   _pick(pool),
+                "evidence_kind":  "tight aspect window",
+                "evidence_label": a["label"],
+            })
 
+        # ──────────────────────────────────────────────────────────
+        # STRUCTURAL SHIFT
+        # ──────────────────────────────────────────────────────────
         elif dim == "structural_shift":
             if dimensions["building"]:
-                summary.append({
-                    "dimension":       "structural_shift",
-                    "modulates":       "building_layer",
-                    "what_it_does":    "what you're building together gets read against a different floor today — what felt stable yesterday is being weighed against something larger",
-                    "evidence_kind":   "outer-body movement",
-                    "evidence_label":  a["label"],
-                })
+                pool = [
+                    "what the two of you are building gets weighed against a bigger frame today — yesterday's stable answer might not land the same way",
+                    "the ground under what you're building is moving slightly; today is for noticing the shift, not committing to a new shape",
+                    "the floor underneath the partnership has changed register — old agreements feel less self-evident today",
+                ]
             else:
-                summary.append({
-                    "dimension":       "structural_shift",
-                    "modulates":       "ground_under_pair",
-                    "what_it_does":    "the floor under this connection is moving in a way neither of you can name yet — today is not the day to make it big",
-                    "evidence_kind":   "outer-body movement",
-                    "evidence_label":  a["label"],
-                })
-
-        elif dim == "tone_shift":
+                pool = [
+                    "the floor under this connection is moving in a way neither of you can fully name; today is not the day to make it big",
+                    "something underneath this relationship is rearranging; small moves carry more weight than usual",
+                    "the baseline this connection sits on is being recalibrated today — the right move is to wait, not to declare",
+                ]
             summary.append({
-                "dimension":       "tone_shift",
-                "modulates":       "register",
-                "what_it_does":    "the register this connection runs in is shifting under you — yesterday's tone is not today's tone",
-                "evidence_kind":   "ingress / sign change",
-                "evidence_label":  a["label"],
+                "dimension":      "structural_shift",
+                "modulates":      "building_layer" if dimensions["building"] else "ground_under_pair",
+                "what_it_does":   _pick(pool),
+                "evidence_kind":  "outer-body movement",
+                "evidence_label": a["label"],
+            })
+
+        # ──────────────────────────────────────────────────────────
+        # TONE SHIFT
+        # ──────────────────────────────────────────────────────────
+        elif dim == "tone_shift":
+            pool = [
+                "the register the two of you are speaking in has shifted; yesterday's read of each other is not today's read",
+                "the tone between you has rotated since the last time you spoke — old assumptions fit slightly less well",
+                "the way you read each other is recalibrating today; the same words may not mean what they did last time",
+            ]
+            summary.append({
+                "dimension":      "tone_shift",
+                "modulates":      "register",
+                "what_it_does":   _pick(pool),
+                "evidence_kind":  "ingress / sign change",
+                "evidence_label": a["label"],
             })
 
     return summary
@@ -435,57 +602,89 @@ def _distortion_risks(
     summary: List[Dict[str, str]],
     dimensions: Dict[str, bool],
     intensity: str,
+    rotation_seed: int = 0,
 ) -> List[str]:
     """
     Surface temporary distortion risks specific to today's activations.
     Always relational, never moralising, never deterministic.
+
+    V1.1 — distortion is now the strongest stickiness layer; lean into
+    misinterpretation, pacing mismatch, projection, momentum-vs-clarity,
+    practical-stress-disguised-as-emotion. Pools rotate by date seed.
     """
     out: List[str] = []
     activated = {s["dimension"] for s in summary}
 
+    def _pick(pool: List[str]) -> str:
+        return pool[rotation_seed % len(pool)] if pool else ""
+
     if "emotional_amplification" in activated:
         if dimensions["attachment_friction"]:
-            out.append(
-                "Today amplifies what's already unresolved between you instead of hiding it — the urge to revisit an old conversation is stronger than usual."
-            )
+            pool = [
+                "an old conversation that one of you thought was settled is more pullable today than usual",
+                "the urge to re-open something you'd quietly buried is louder; the temptation will look like 'just clarifying'",
+                "what's already unresolved between you is louder today, not quieter — and louder will feel like 'finally talking about it'",
+            ]
         elif dimensions["emotional"]:
-            out.append(
-                "One of you may interpret silence more personally than usual."
-            )
+            pool = [
+                "one of you may read a pause as withdrawal that the other meant as space",
+                "a small silence is more likely to be filled in with the wrong story today",
+                "tone gets misread first today — what's said second is heard before what's said first",
+            ]
         else:
-            out.append(
-                "Small reactions can be read as bigger statements than they are."
-            )
+            pool = [
+                "small reactions can read as bigger statements than they are",
+                "a tone-of-voice mismatch lands harder than the words it carried",
+                "a casual moment can be over-interpreted before either of you notices it has been",
+            ]
+        out.append(_pick(pool))
 
     if "timing_compression" in activated:
         if dimensions["building"]:
-            out.append(
-                "Practical stress can disguise itself as emotional distance today."
-            )
+            pool = [
+                "practical stress can disguise itself as emotional distance — the pair will look further apart than the actual issue is",
+                "logistical pressure on one of you may register as relational coolness on the other",
+                "what looks like emotional withdrawal today might just be one of you carrying more practical weight than the other can see",
+            ]
         elif dimensions["momentum"]:
-            out.append(
-                "The connection may move faster than emotional processing can keep up with."
-            )
+            pool = [
+                "movement outruns processing — the connection may agree to something today that one of you hasn't fully felt through",
+                "a fast yes today is more available than a clean yes",
+                "the speed of the conversation may outpace the readiness underneath it",
+            ]
         else:
-            out.append(
-                "The urge to decide outruns the readiness to decide."
-            )
+            pool = [
+                "the urge to decide outruns the readiness to decide",
+                "a decision is more available today than clarity is — and one will look like the other",
+                "the temptation is to close a question that hasn't actually finished forming",
+            ]
+        out.append(_pick(pool))
 
     if "structural_shift" in activated:
-        out.append(
-            "A small choice between you may be treated as bigger than it actually is."
-        )
+        pool = [
+            "a small choice between you may be treated as bigger than it is — and what you settle here today might lock in something that should still be moving",
+            "today's instinct is to make a clean call; the cleaner call may be to leave the question open another day",
+            "neither of you is wrong about what's shifting — but acting on it before it has fully shifted is where the misstep lives",
+        ]
+        out.append(_pick(pool))
 
     if "tone_shift" in activated:
-        out.append(
-            "Yesterday's read of each other is not today's read — pattern-matching the old version is where the miss happens."
-        )
+        pool = [
+            "pattern-matching the old version of each other is where the miss happens today",
+            "yesterday's read of each other is the most likely thing to lead you wrong today",
+            "you'll be tempted to use last week's framing on this week's conversation; it will not fit cleanly",
+        ]
+        out.append(_pick(pool))
 
-    # Intensity-aware fallbacks if nothing fired (low days deserve honesty too)
+    # Low-intensity fallbacks — gentle, observational, not warnings
     if not out and intensity == "low":
-        out.append(
-            "Today is quieter between you than usual — nothing is asking to be solved."
-        )
+        low_pool = [
+            "the connection isn't asking for anything today — over-interpreting the quiet is the only real risk",
+            "nothing in particular is wrong today; the temptation to look for something to fix is itself the distortion",
+            "the dynamic is mostly resting today — reading meaning into the quiet is where today goes wrong",
+        ]
+        out.append(_pick(low_pool))
+
     return out[:3]
 
 
@@ -493,28 +692,72 @@ def _softeners(
     summary: List[Dict[str, str]],
     dimensions: Dict[str, bool],
     intensity: str,
+    rotation_seed: int = 0,
 ) -> List[str]:
-    """Non-prescriptive easing — observations, not coaching."""
+    """
+    Non-prescriptive easing — observations, not coaching.
+    V1.1 — no "should" / "must" / "try to". Soft observational register.
+    """
     out: List[str] = []
     activated = {s["dimension"] for s in summary}
 
+    def _pick(pool: List[str]) -> str:
+        return pool[rotation_seed % len(pool)] if pool else ""
+
     if "emotional_amplification" in activated:
-        out.append("Clarity matters more than reassurance today.")
+        pool = [
+            "clarity lands better than reassurance today",
+            "naming what's actually happening tends to ease the field faster than soothing it does",
+            "the field eases when one of you is willing to be the first to be specific",
+        ]
+        out.append(_pick(pool))
+
     if "timing_compression" in activated:
         if dimensions["building"]:
-            out.append("The field softens when expectations are named early.")
+            pool = [
+                "the field softens when expectations are named early",
+                "the pair tends to ease when the practical question gets put on the table cleanly, before it leaks into tone",
+                "the friction tends to drop the moment the unspoken decision is named out loud",
+            ]
         else:
-            out.append("Giving each other a little more pacing room helps today.")
+            pool = [
+                "a little more pacing room between you helps today",
+                "letting the conversation breathe ends up being faster than rushing the resolution",
+                "the field tends to ease when neither of you has to decide anything in the same hour",
+            ]
+        out.append(_pick(pool))
+
     if "structural_shift" in activated:
-        out.append("This works better as reconnection than resolution.")
+        pool = [
+            "this works better as reconnection than resolution",
+            "today is more useful for noticing than for deciding",
+            "the field eases when neither of you tries to make today's shift mean something final",
+        ]
+        out.append(_pick(pool))
+
     if "tone_shift" in activated:
-        out.append("Humour breaks tension faster than explanation right now.")
+        pool = [
+            "humour ends up landing faster than explanation here",
+            "a small re-introduction lands cleaner than a long context-set",
+            "going slow at the start of the conversation tends to do the recalibration on its own",
+        ]
+        out.append(_pick(pool))
 
     if not out:
         if intensity == "low":
-            out.append("Nothing in particular needs handling — the connection is allowed to rest today.")
+            low_pool = [
+                "nothing in particular needs handling — the connection is allowed to coast today",
+                "today is a logistical day between you more than an emotional one; treating it that way is enough",
+                "the connection is running smoothly today; the right move is to not over-attend to it",
+            ]
+            out.append(_pick(low_pool))
         else:
-            out.append("Naming what's actually here is enough — nothing needs to be fixed.")
+            mid_pool = [
+                "naming what's actually here is enough — nothing needs to be solved",
+                "the field doesn't need anything special — it just needs to not be over-managed",
+                "today, presence outperforms intervention",
+            ]
+            out.append(_pick(mid_pool))
 
     return out[:3]
 
@@ -564,7 +807,9 @@ _LLM_SYSTEM_PROMPT = """You are the BETWEEN YOU TODAY narrator inside an emotion
 
 You are NOT an astrologer. You are NOT a couple's horoscope writer.
 You are a relational modulation narrator who takes a SET OF
-ALREADY-DETECTED relational signals and renders them as plain English.
+ALREADY-DETECTED relational signals and renders them as plain English
+that a real person would recognise as exactly how today feels between
+the two named people.
 
 ABSOLUTE RULES:
 1. Do NOT invent new relationship mechanics. Only express the
@@ -578,23 +823,66 @@ ABSOLUTE RULES:
 4. NO advice. NO "should", "must", "try to", "remember to".
 5. NO soulmate / fate / compatibility / karmic / cosmic vocabulary.
 6. NO numeric timing ("for 20 minutes", "in 3 hours").
-7. Keep the HERO to 1–3 short sentences. It is the retention hook.
-   It must read in under 5 seconds.
-8. Keep each ACTIVATED bullet to one sentence. Lead with what is
-   moving, not why.
-9. Keep each DISTORTION RISK bullet to one sentence. State the
-   temporary distortion, not the diagnosis.
-10. Keep each SOFTENS bullet to one sentence. Observational, not
-    prescriptive.
-11. Vary phrasing across days. The payload includes a rotation_seed
-    integer — use it to favour a different sentence opening / verb
-    register than yesterday would have produced.
-12. Reference the relationship by its real shape (use first names
-    when natural) — never "your partner", "your friend".
+7. Reference the relationship by its real shape (use first names
+   when natural) — never "your partner", "your friend".
+8. The HERO is 2–3 short sentences, ≤45 words total. Compressed,
+   embodied, fast to read, emotionally charged. NOT a mini-essay.
+9. Each ACTIVATED / DISTORTION / SOFTENS bullet is ONE short
+   sentence. Max ~22 words.
+10. Vary phrasing across days using the rotation_seed integer.
+    Don't reuse the same sentence opening or verb register that
+    yesterday would have used.
+
+CRITICAL — RECOGNITION RULES (V1.1):
+The output must feel OBSERVED, not INTERPRETED. The reader should
+feel: "that IS what today is between us" — not "interesting
+astrology insight".
+
+ANTI-PATTERNS (FORBIDDEN — will be rejected by post-filter):
+  • "you both feel" / "you both sense" / "you both experience"
+  • "X drives you both" / "drives you both" / "is being assessed"
+  • "there is a sense of" / "there's a feeling of"
+  • "this may cause" / "this can cause"
+  • "energy around" / "energy between" / "the dynamic of"
+  • "what this means" / "invitation to" / "opportunity for growth"
+  • "in this moment" / "at this time"
+  • mirrored sentence symmetry ("X opens, Y opens", "X is louder, Y is louder")
+  • the word "today" more than 2 times in any single string
+  • therapy-blog / coaching phrases
+  • explanatory transitions ("which means…", "so that…", "because of this…")
+
+WORK FROM THESE BAD vs BETTER EXAMPLES:
+
+  BAD:    "Emotions drive you both, opening doors quickly."
+            (abstract, generated, mirrored, generic)
+  BETTER: "The emotional door between Pete and Mel is thinner today —
+           closeness, tension, and reactions all register faster than
+           usual."
+
+  BAD:    "What you're building together is being assessed on a larger scale."
+            (systemic, abstract, AI-shaped)
+  BETTER: "Questions about direction, responsibility, or what this
+           connection is actually building become harder to ignore today."
+
+  BAD:    "There is a sense of opportunity for growth between you both."
+            (banned vocabulary, summary-mode)
+  BETTER: "The pair is operating with less emotional buffer today —
+           small things land closer to the bone on both sides."
+
+LOW-INTENSITY DAYS (CRITICAL):
+When `intensity == "low"`, the prose MUST feel quieter, more
+practical, more observational. NOT muted emotion — actually grounded
+everyday register. Examples of correct low-day register:
+  • "The connection feels more practical than emotional today."
+  • "Most of today between Pete and Mel is logistical — the field
+     is running smoothly without needing attention."
+  • "Nothing dramatic is pulling at the connection today; it settles
+     more into rhythm than intensity."
+Do NOT make every day feel intense / transformative / heavy.
 
 OUTPUT FORMAT — strict JSON, no markdown, no commentary:
 {
-  "hero":               "string (1–3 sentences)",
+  "hero":               "string (2–3 sentences, ≤45 words total)",
   "activated_today":    ["string", ...],
   "distortion_risk":    ["string", ...],
   "softens_field":      ["string", ...]
@@ -724,43 +1012,71 @@ def _deterministic_hero(
     summary: List[Dict[str, str]],
     intensity: str,
     member_name: str,
+    rotation_seed: int = 0,
 ) -> str:
+    """
+    V1.1 — embodied, 2–3 sentences, ≤45 words, day-rotated. The
+    deterministic hero is the safety net when the LLM polish either
+    isn't available or fails the post-filter. It must still feel
+    like a real person noticing today, not a generated summary.
+    """
+    def _pick(pool: List[str]) -> str:
+        return pool[rotation_seed % len(pool)] if pool else ""
+
     if not summary:
         if intensity == "low":
-            return (
-                "Today is quiet between you. Nothing in particular is "
-                "asking to be moved — the connection is allowed to rest."
-            )
-        return (
-            "Today moves gently between you. Whatever is alive between "
-            "you can be carried at its own pace."
-        )
+            pool = [
+                f"Today is quiet between you and {member_name}. The connection isn't asking for anything in particular — it's running at its baseline.",
+                f"Most of today between you and {member_name} is logistical. Nothing is pulling at the field; the dynamic is mostly resting.",
+                f"The connection between you and {member_name} feels more practical than emotional today. The field is breathable; nothing is sharpening.",
+            ]
+            return _pick(pool)
+        pool = [
+            f"Today moves gently between you and {member_name}. Whatever is alive between you can be carried at its own pace; nothing is forcing.",
+            f"The connection between you and {member_name} is steady today — not flat, not loud. Today is for tending, not for deciding.",
+        ]
+        return _pick(pool)
 
     first = summary[0]
     dim = first["dimension"]
+
     if dim == "emotional_amplification":
-        return (
-            f"The emotional door is thinner between you and {member_name} today. "
-            f"Closeness lands faster, and so does the rest of it."
-        )
+        pool = [
+            f"The emotional door between you and {member_name} is thinner today. Closeness, tension, and small reactions all register faster than usual.",
+            f"Feelings move more quickly across the space between you and {member_name} today. What would normally take hours to land lands in minutes.",
+            "The pair is operating with less emotional buffer today. Small things land closer to the bone on both sides.",
+        ]
+        return _pick(pool)
+
     if dim == "timing_compression":
-        return (
-            f"Today favours movement over abstraction between you and {member_name}. "
-            f"Decisions won't stay theoretical for long."
-        )
+        pool = [
+            f"Questions about direction, responsibility, or what this connection between you and {member_name} is actually building become harder to ignore today.",
+            f"Today, the conversation between you and {member_name} wants to land. Decisions that have been hovering won't stay abstract much longer.",
+            f"The pace between you and {member_name} is slightly ahead of the room you have to feel things through. Action is more available than clarity.",
+        ]
+        return _pick(pool)
+
     if dim == "structural_shift":
-        return (
-            "The floor under this connection is moving. Today is not the day to make "
-            "it big — it's the day to notice what's shifting."
-        )
+        pool = [
+            f"The floor under what you and {member_name} have built is moving slightly. Today is for noticing the shift, not committing to a new shape.",
+            f"Something underneath the connection between you and {member_name} is rearranging. Old agreements feel less self-evident than they did last week.",
+            "The ground this connection sits on is being recalibrated. The right move is to wait, not to declare.",
+        ]
+        return _pick(pool)
+
     if dim == "tone_shift":
-        return (
-            f"The register between you and {member_name} is shifting today. "
-            f"Yesterday's read of each other is not today's read."
-        )
-    return (
-        f"Something is moving inside the connection between you and {member_name} today."
-    )
+        pool = [
+            f"The register between you and {member_name} has rotated. Yesterday's read of each other is the most likely thing to lead you wrong today.",
+            f"The tone between you and {member_name} has shifted since you last spoke. Old assumptions don't fit quite as cleanly.",
+            "The way you read each other is recalibrating today. The same words may not mean what they did last time.",
+        ]
+        return _pick(pool)
+
+    pool = [
+        f"Something is moving inside the connection between you and {member_name} today.",
+        f"The connection between you and {member_name} is in modulation today — small things carry more weight than usual.",
+    ]
+    return _pick(pool)
 
 
 def _deterministic_activated_bullets(
@@ -865,15 +1181,16 @@ async def build_between_you_today(
         dimensions = _dominant_lens_dimensions(target_mapping)
         activations = _detect_transit_activations(dominance_a, dominance_b)
         intensity = _compute_intensity(activations, dominance_a, dominance_b)
-        summary = _activated_dimension_summary(activations, dimensions)
-        distortions = _distortion_risks(summary, dimensions, intensity)
-        softeners_out = _softeners(summary, dimensions, intensity)
+
+        seed = _rotation_seed(anchor_user_id, target_user_id, date_str)
+
+        summary = _activated_dimension_summary(activations, dimensions, intensity, seed)
+        distortions = _distortion_risks(summary, dimensions, intensity, seed)
+        softeners_out = _softeners(summary, dimensions, intensity, seed)
 
         field = target_mapping.get("field") or {}
         field_paragraph = field.get("field_paragraph")
         field_activation = field.get("activation")
-
-        seed = _rotation_seed(anchor_user_id, target_user_id, date_str)
 
         # Hybrid LLM polish
         polished = await _llm_polish(
@@ -896,7 +1213,7 @@ async def build_between_you_today(
             distortion_risk = polished["distortion_risk"] or distortions
             softens_field = polished["softens_field"] or softeners_out
         else:
-            hero = _deterministic_hero(summary, intensity, member_name)
+            hero = _deterministic_hero(summary, intensity, member_name, seed)
             activated_today = _deterministic_activated_bullets(summary)
             distortion_risk = distortions
             softens_field = softeners_out
@@ -907,7 +1224,7 @@ async def build_between_you_today(
         distortion_risk = _strip_bad_lines(distortion_risk)
         softens_field = _strip_bad_lines(softens_field)
         if not _guard_top_level(hero):
-            hero = _deterministic_hero(summary, intensity, member_name)
+            hero = _deterministic_hero(summary, intensity, member_name, seed)
 
         proof = _proof_layer(
             summary, dominance_a, dominance_b, target_mapping,
@@ -949,5 +1266,7 @@ async def build_between_you_today(
 __all__ = [
     "build_between_you_today",
     "ensure_cache_indexes",
+    "record_event",
     "ENGINE_VERSION",
+    "EVENT_TYPES",
 ]

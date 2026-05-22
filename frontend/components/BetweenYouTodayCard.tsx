@@ -26,7 +26,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getBetweenYouToday, BetweenYouToday } from '../services/api';
+import { getBetweenYouToday, BetweenYouToday, postBetweenYouTodayEvent } from '../services/api';
 
 interface ThemeShape {
   background: string;
@@ -79,6 +79,12 @@ const BetweenYouTodayCard: React.FC<Props> = ({
         const res = await getBetweenYouToday(forumId, userId, memberId);
         if (!cancelled && res.success && res.today) {
           setToday(res.today);
+          // Telemetry — passive view event
+          postBetweenYouTodayEvent(forumId, userId, memberId, 'today_card_viewed', {
+            intensity: res.today.intensity,
+            cache_hit: !!res.today._cache_hit,
+            date: res.today.date,
+          });
         }
       } catch (e) {
         // Silent — the field card below still loads.
@@ -95,6 +101,32 @@ const BetweenYouTodayCard: React.FC<Props> = ({
       cancelled = true;
     };
   }, [forumId, userId, memberId]);
+
+  const handleToggleProof = () => {
+    const next = !proofExpanded;
+    setProofExpanded(next);
+    postBetweenYouTodayEvent(
+      forumId,
+      userId,
+      memberId,
+      next ? 'proof_expanded' : 'proof_collapsed',
+      {
+        intensity: today?.intensity,
+        date: today?.date,
+        extra: { mode: proofMode },
+      }
+    );
+  };
+
+  const handleProofModeSwitch = (mode: 'plain' | 'technical') => {
+    if (mode === proofMode) return;
+    setProofMode(mode);
+    postBetweenYouTodayEvent(forumId, userId, memberId, 'proof_mode_switched', {
+      intensity: today?.intensity,
+      date: today?.date,
+      extra: { from: proofMode, to: mode },
+    });
+  };
 
   if (loading) {
     return (
@@ -204,7 +236,7 @@ const BetweenYouTodayCard: React.FC<Props> = ({
         <View style={styles.proofSection}>
           <TouchableOpacity
             style={[styles.proofToggle, { borderColor: theme.border }]}
-            onPress={() => setProofExpanded(!proofExpanded)}
+            onPress={handleToggleProof}
             activeOpacity={0.7}
           >
             <Text style={[styles.proofToggleText, { color: theme.textSecondary }]}>
@@ -223,7 +255,7 @@ const BetweenYouTodayCard: React.FC<Props> = ({
               {today.proof_layer?.technical?.length ? (
                 <View style={styles.modeRow}>
                   <TouchableOpacity
-                    onPress={() => setProofMode('plain')}
+                    onPress={() => handleProofModeSwitch('plain')}
                     style={[
                       styles.modePill,
                       proofMode === 'plain' && { backgroundColor: accent + '22' },
@@ -240,7 +272,7 @@ const BetweenYouTodayCard: React.FC<Props> = ({
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => setProofMode('technical')}
+                    onPress={() => handleProofModeSwitch('technical')}
                     style={[
                       styles.modePill,
                       proofMode === 'technical' && { backgroundColor: accent + '22' },

@@ -1439,6 +1439,40 @@ export const getBetweenYouToday = async (
   return response.data;
 };
 
+// Telemetry — passive observation, fire-and-forget. Never throws.
+export type BetweenYouTodayEventName =
+  | 'today_card_viewed'
+  | 'proof_expanded'
+  | 'proof_collapsed'
+  | 'proof_mode_switched'
+  | 'hero_regenerated_same_day';
+
+export const postBetweenYouTodayEvent = async (
+  forumId: string,
+  userId: string,
+  memberId: string,
+  event: BetweenYouTodayEventName,
+  meta?: { intensity?: string; cache_hit?: boolean; date?: string; extra?: Record<string, unknown> }
+): Promise<void> => {
+  try {
+    await apiWithRetry.post(
+      `/forums/${forumId}/between-you-today/event`,
+      {
+        event,
+        user_id: userId,
+        member_id: memberId,
+        intensity: meta?.intensity,
+        cache_hit: meta?.cache_hit,
+        date: meta?.date,
+        extra: meta?.extra,
+      },
+      { timeout: 4000 }
+    );
+  } catch {
+    // Telemetry must never affect UX. Silent on failure.
+  }
+};
+
 // =====================================================
 // LIFE SYNTHESIS ENGINE (Phase 1a v1a2)
 // =====================================================

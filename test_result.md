@@ -23186,18 +23186,218 @@ user_problem_statement: |
     5c Proof layer with plain + technical toggle
 
 backend:
-  - task: "Between You Today — relationship_today.py service + GET /api/forums/{forum_id}/between-you-today endpoint"
+  - task: "Between You Today V1.1 — recognition refinement + telemetry layer"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/services/relationship_today.py, /app/backend/routers/forums_intelligence.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-        -working: true
+        -working: false
+        -agent: "testing"
+        -comment: |
+          V1.1 + TELEMETRY TESTING COMPLETE (17/18 PASS) — 1 REAL BUG FOUND
+          
+          Test harness: /app/backend_test.py
+          Backend URL: https://mapping-phase4.preview.emergentagent.com/api
+          forum_id = 69dda348de9cb1c83c0780fa
+          anchor   = 697f0c6abf35c0528ff06954 (Pete)
+          members  = 69dd0b2cc92ba973f8838c11 (Thaddeus),
+                     69dda348de9cb1c83c0780f8 (Isaac),
+                     697ec826ad4b18f75bf42616 (Mel)
+          
+          ✅ A. ENGINE V1.1 SCHEMA + GUARD (5/5 PASS)
+            • A1 engine_version == "between-you-today-v1.1"  PASS
+            • A2 schema fields all present (hero, activated_today,
+                 distortion_risk, softens_field, intensity, proof_layer,
+                 date)  PASS
+            • A3 enhanced top-level prose guard — concatenated 735 chars
+                 across hero+activated+distortion+softens contains ZERO
+                 banned tokens (no astrology jargon, no should/must, no
+                 V1.1 anti-AI patterns, "today" appears at most twice
+                 per single string)  PASS
+            • A4 hero word count = 30 (≤ 45)  PASS
+            • A5 all 3 forum members produce valid V1.1 envelopes
+                 (Thaddeus 0.1s, Isaac 1.8s, Mel 2.6s)  PASS
+          
+          ✅ B. TELEMETRY ENDPOINT (5/5 PASS)
+            • B6 all whitelisted events return 200 success:true:
+                today_card_viewed, proof_expanded, proof_collapsed,
+                proof_mode_switched (with extra), hero_regenerated_same_day
+            • B7 unknown event "random_event" → 200 success:false  PASS
+            • B8 missing 'event' field → 400 "missing required fields"  PASS
+            • B9 anchor 000000000000000000000099 → 403 "not a forum
+                 member"  PASS
+            • B10 forum_id "not-objectid" → 400 "invalid forum_id"  PASS
+          
+          ❌ C. AUTO-DERIVED REVISIT EVENT (FAIL)
+            Test C11: fired today_card_viewed three times in a row for
+            (Pete, Thaddeus, 2026-05-22). Direct Mongo query of
+            relationship_today_events returned:
+              views:    4   (1 from B6 + 3 from C11)
+              revisits: 0   (expected: 3, i.e. views-1)
+            
+            ROOT CAUSE — bug in services/relationship_today.py::record_event
+            (lines 317–337). All three C11 calls returned success=False
+            from the API. Backend log shows the cause:
+            
+              [BetweenYouToday] event write failed (today_card_viewed):
+              E11000 duplicate key error collection:
+              test_database.relationship_today_events index: _id_
+              dup key: { _id: ObjectId('6a0fdf3e85a8f146e080b2a9') }
+            
+            Sequence inside record_event():
+              1. doc = {...}                         # no _id yet
+              2. await db[EVENTS].insert_one(doc)    # motor MUTATES
+                                                     # doc, sets doc["_id"]
+              3. if prior > 1:                       # revisit branch
+                    await db[EVENTS].insert_one({
+                        **doc,                       # ← still has _id from
+                                                     #   step 2!
+                        "event": "today_card_revisited_same_day",
+                        ...
+                    })  # → E11000 duplicate key on _id
+              4. except → returns False; revisit row is NEVER written.
+            
+            Net effects:
+              • The original today_card_viewed row IS persisted (step 2
+                already ran), so view rows exist in DB.
+              • The revisit row is NEVER persisted on any view past the
+                first.
+              • The endpoint returns success=False to the client even
+                though the primary event was actually saved — misleading.
+            
+            ONE-LINE FIX (recommended):
+              Strip _id before spreading doc for the revisit insert:
+              
+                revisit_doc = {k: v for k, v in doc.items() if k != "_id"}
+                revisit_doc.update({
+                    "event": "today_card_revisited_same_day",
+                    "extra": {**doc["extra"], "view_count": prior},
+                    "ts":    datetime.now(timezone.utc),
+                })
+                await db[EVENT_COLLECTION].insert_one(revisit_doc)
+              
+              (Or build doc fresh instead of spreading.)
+            
+            A secondary issue is that record_event returns False when the
+            revisit insert fails even though the primary write succeeded —
+            consider returning True for the primary write success and only
+            log the revisit failure independently, otherwise this metric is
+            unreliable.
+          
+          ✅ D. NO REGRESSION (7/7 PASS)
+            • D12a GET happy path  PASS
+            • D12b 403 (anchor not in forum)  PASS
+            • D12c 404 (member not in forum)  PASS
+            • D12d 400 (invalid forum_id)  PASS
+            • D12e cache hit on second GET — same hero, _cache_hit=true
+                  PASS  (V1.0 cache bug confirmed fixed)
+            • D12f refresh=true bypass returns 200 + valid envelope  PASS
+            • D12g parallel members all valid  PASS
+          
+          OVERALL: 17/18 PASS. The V1.1 engine + prose guard + LLM
+          polish + cache + auth/validation paths all work correctly.
+          The single failure is the revisit auto-derivation telemetry,
+          which is broken because of a duplicate-_id error in
+          record_event when spreading the freshly-inserted doc into a
+          second insert. Fix is one line.
+        -working: "NA"
         -agent: "main"
         -comment: |
-          CACHE FIX APPLIED + LIVE-VERIFIED.
+          V1.1 — RECOGNITION REFINEMENT + TELEMETRY LAYER
+
+          PHASE A — RECOGNITION REFINEMENT (relationship_today.py):
+            • ENGINE_VERSION bumped to "between-you-today-v1.1" (auto-
+              invalidates V1.0 cache because cache_key includes the
+              engine version).
+            • Strengthened LLM system prompt with explicit BAD vs
+              BETTER examples and an anti-pattern suppression list:
+                - "you both feel" / "drives you both" / "is being
+                   assessed" / "there is a sense of" / "this may
+                   cause" / "energy around" / "the dynamic of" /
+                   "what this means" / "invitation to" / "opportunity
+                   for growth" / "in this moment" / "at this time"
+                - mirrored sentence symmetry, explanatory transitions
+            • Top-level guard now also rejects:
+                - all of the AI anti-patterns above
+                - any single string containing "today" more than 2×
+                - banned vocabulary still rejected
+            • Hero spec changed from 1–3 sentences to 2–3 sentences
+              ≤45 words — allows more embodied specificity.
+            • Deterministic seed library completely rewritten:
+                - 3-variant pools per (dimension × already-active-shape)
+                - rotation_seed (= blake2b(anchor|target|date)) selects
+                  one consistently for the day → daily variation even
+                  on the deterministic fallback path
+                - all phrasings now embodied, relationally specific,
+                  named where natural ("Pete and Thaddeus") instead of
+                  generic ("you both")
+            • Added LOW-intensity calibrated seed pools — quiet,
+              practical, observational register (NOT muted emotion).
+            • _activated_dimension_summary, _distortion_risks,
+              _softeners now accept (intensity, rotation_seed)
+
+          PHASE B — TELEMETRY (passive observation, no optimization):
+            • New collection: relationship_today_events
+                index on anchor_id, date, event
+            • New whitelisted event types:
+                - today_card_viewed
+                - proof_expanded
+                - proof_collapsed
+                - proof_mode_switched
+                - today_card_revisited_same_day (auto-derived)
+                - hero_regenerated_same_day (event shape ready, no UI)
+            • Auto-derivation: on every today_card_viewed for a given
+              (anchor, target, date), we count prior matching events
+              and emit today_card_revisited_same_day when count > 1.
+            • New endpoint:
+                POST /api/forums/{forum_id}/between-you-today/event
+                Body: { event, user_id, member_id, intensity?,
+                        cache_hit?, date?, extra? }
+              - 400 on missing fields / unknown event / invalid
+                forum_id
+              - 403 if anchor not in forum
+              - never blocks UX on telemetry failure (returns
+                {success:false} with 200 on internal errors)
+            • Frontend BetweenYouTodayCard wires:
+                - today_card_viewed (after fetch success)
+                - proof_expanded / proof_collapsed (toggle handler)
+                - proof_mode_switched (plain↔technical pill)
+              All telemetry calls are fire-and-forget with 4s timeout
+              and silent on failure.
+
+          NEEDS TESTING:
+            1. POST /api/forums/{forum_id}/between-you-today/event
+               with each whitelisted event name → 200 success:true
+            2. POST with unknown event name → 400 or success:false
+            3. POST with non-member user → 403
+            4. POST with invalid forum_id → 400
+            5. Verify today_card_revisited_same_day fires on second
+               view of same (anchor, target, date) — query
+               relationship_today_events directly to confirm.
+            6. GET /api/forums/{forum_id}/between-you-today still
+               works (no regression, schema unchanged) and returns
+               envelope with engine_version: "between-you-today-v1.1".
+            7. Top-level prose guard: hero + activated_today +
+               distortion_risk + softens_field do NOT contain any of:
+                 "drives you both" / "is being assessed" /
+                 "you both feel" / "energy around" / "the dynamic of" /
+                 "what this means" / "invitation to" /
+                 "opportunity for growth" / "in this moment" /
+                 "at this time" / "should " / "must " / banned
+                 astrology vocabulary
+               (proof_layer.technical IS allowed astrology terms.)
+            8. Hero word count ≤ 45 words (post-LLM polish).
+
+          Live verification already done (refresh=true):
+            ✓ engine_version is "between-you-today-v1.1"
+            ✓ _cache_hit is false on first V1.1 hit (V1.0 cache invalidated)
+            ✓ llm_polished is true
+            ✓ Hero references both first names ("Pete and Thaddeus")
+            ✓ All seed phrasings now read as observed, not interpreted
+            ✓ No banned tokens present
 
           Patched services/relationship_today.py::_read_cache to
           normalise Mongo's naive UTC datetime to aware before
@@ -23386,6 +23586,47 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
+    -agent: "testing"
+    -message: |
+      BETWEEN YOU TODAY V1.1 + TELEMETRY tested (18 scenarios,
+      /app/backend_test.py). Result: 17/18 PASS. One real bug.
+      
+      ✅ All V1.1 schema, prose guard, hero word count, all-3-members
+         coverage PASS.
+      ✅ All telemetry endpoint contracts (whitelisted events, unknown
+         event, missing field 400, non-member 403, invalid forum_id 400)
+         PASS.
+      ✅ All 7 V1.0 regression tests PASS — including cache-hit (the
+         old V1.0 bug is confirmed fixed).
+      
+      ❌ C11 — Auto-derived revisit event is broken:
+         services/relationship_today.py::record_event lines 317-337.
+         After motor's first insert_one(doc) mutates `doc` to set _id,
+         the revisit branch does `await db.insert_one({**doc, "event":
+         "today_card_revisited_same_day", ...})` which carries over
+         the same _id → E11000 duplicate key. The revisit row is
+         NEVER persisted, AND the function returns False (so the API
+         responds {"success": false} even though the primary view row
+         was actually written).
+         
+         Mongo confirms: 4 today_card_viewed rows exist for
+         (Pete, Thaddeus, 2026-05-22), 0 today_card_revisited_same_day
+         rows. Backend log:
+           "[BetweenYouToday] event write failed (today_card_viewed):
+            E11000 duplicate key error … _id_ dup key"
+         
+         One-line fix: strip _id before spreading:
+           revisit_doc = {k: v for k, v in doc.items() if k != "_id"}
+           revisit_doc["event"] = "today_card_revisited_same_day"
+           revisit_doc["extra"] = {**doc["extra"], "view_count": prior}
+           revisit_doc["ts"] = datetime.now(timezone.utc)
+           await db[EVENT_COLLECTION].insert_one(revisit_doc)
+         
+         Optional polish: when the primary insert already succeeded,
+         consider returning True even if the revisit derivation fails,
+         and log the revisit failure separately. Current behaviour
+         makes the primary success metric unreliable.
+
     -agent: "testing"
     -message: |
       BETWEEN YOU TODAY endpoint tested (8 scenarios, /app/backend_test.py).

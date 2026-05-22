@@ -37,7 +37,7 @@ import asyncio
 from typing import Optional
 
 from bson import ObjectId
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -309,6 +309,88 @@ def register(
             logger.error(f"[BetweenYouToday] Error: {e}", exc_info=True)
             return JSONResponse(
                 content={"success": False, "today": None, "error": str(e)},
+                headers={"Cache-Control": "no-store, max-age=0"},
+            )
+
+    # ──────────────────────────────────────────────────────────────────
+    # POST /api/forums/{forum_id}/between-you-today/event
+    # Passive telemetry — observation only. Never affects user response.
+    # Whitelisted event names: today_card_viewed, proof_expanded,
+    # proof_collapsed, proof_mode_switched, today_card_revisited_same_day,
+    # hero_regenerated_same_day.
+    # ──────────────────────────────────────────────────────────────────
+
+    @api_router.post("/forums/{forum_id}/between-you-today/event")
+    async def post_between_you_today_event(forum_id: str, request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse(
+                content={"success": False, "error": "invalid json body"},
+                status_code=400,
+            )
+
+        event_name = (body or {}).get("event") or ""
+        anchor_id = (body or {}).get("user_id") or (body or {}).get("anchor_id") or ""
+        target_id = (body or {}).get("member_id") or (body or {}).get("target_id") or ""
+        intensity = (body or {}).get("intensity")
+        cache_hit = (body or {}).get("cache_hit")
+        date_str = (body or {}).get("date")
+        extra = (body or {}).get("extra") or {}
+
+        if not (event_name and anchor_id and target_id):
+            return JSONResponse(
+                content={"success": False, "error": "missing required fields"},
+                status_code=400,
+            )
+
+        if not ObjectId.is_valid(forum_id):
+            return JSONResponse(
+                content={"success": False, "error": "invalid forum_id"},
+                status_code=400,
+            )
+
+        # Soft membership check — we still want to record events from
+        # legitimate users. Reject quietly if anchor is not in the forum.
+        membership = await db.forum_members.find_one({
+            "forum_id": forum_id,
+            "user_id": anchor_id,
+            "status": "active",
+        })
+        if not membership:
+            return JSONResponse(
+                content={"success": False, "error": "not a forum member"},
+                status_code=403,
+            )
+
+        try:
+            from services.relationship_today import (
+                record_event, ensure_cache_indexes,
+            )
+            try:
+                await ensure_cache_indexes(db)
+            except Exception:
+                pass
+            ok = await record_event(
+                db,
+                event=event_name,
+                forum_id=forum_id,
+                anchor_id=anchor_id,
+                target_id=target_id,
+                date_str=date_str,
+                intensity=intensity,
+                cache_hit=cache_hit,
+                extra=extra,
+            )
+            return JSONResponse(
+                content={"success": ok},
+                headers={"Cache-Control": "no-store, max-age=0"},
+            )
+        except Exception as e:
+            logger.warning(f"[BetweenYouToday] event endpoint error: {e}")
+            return JSONResponse(
+                content={"success": False, "error": str(e)},
+                status_code=200,  # never block UX on telemetry failure
                 headers={"Cache-Control": "no-store, max-age=0"},
             )
 
