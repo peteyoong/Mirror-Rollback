@@ -6400,7 +6400,247 @@ Remember: Your wisdom comes from sampling. You're not designed for quick certain
   const renderCenterContent = (center: any) => {
     const centerName = center.name || center.center_name;
     const isDefined = center.defined === true;
-    
+
+    // ──────────────────────────────────────────────────────────────────
+    // HD DEEP DIVE V2 — Recognition-First Rewrite
+    // When the backend supplies center.v2, render the V2 layout:
+    //   RECOGNITION → HOW IT SHOWS UP → THE DISTORTION → THE GIFT →
+    //   SIDDHI (3-line block + optional resonance) →
+    //   WHY THIS EXISTS (smallest, proof-layer)
+    // Falls back to the V1 layout for any center that hasn't been
+    // ported yet (currently only Ajna ships with V2).
+    // ──────────────────────────────────────────────────────────────────
+    const v2 = center?.v2;
+    if (v2 && v2.recognition) {
+      const siddhi = v2.the_siddhi || {};
+      return (
+        <View style={{ gap: 16 }}>
+          {/* RECOGNITION — dominant visual + emotional weight */}
+          <View>
+            <Text style={[styles.mirrorSectionLabel, { color: theme.accent }]}>
+              RECOGNITION
+            </Text>
+            <Text
+              style={[
+                styles.mirrorSectionText,
+                {
+                  color: theme.text,
+                  fontSize: 16,
+                  lineHeight: 24,
+                  fontWeight: '500',
+                  marginTop: 4,
+                },
+              ]}
+            >
+              {v2.recognition}
+            </Text>
+          </View>
+
+          {/* HOW IT SHOWS UP — 3 behavioral bullets */}
+          {Array.isArray(v2.how_it_shows_up) && v2.how_it_shows_up.length > 0 && (
+            <View>
+              <Text style={[styles.mirrorSectionLabel, { color: theme.textTertiary }]}>
+                HOW IT SHOWS UP
+              </Text>
+              <View style={{ gap: 6, marginTop: 6 }}>
+                {v2.how_it_shows_up.map((line: string, i: number) => (
+                  <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                    <Text style={{ color: theme.textTertiary, width: 14, lineHeight: 21 }}>·</Text>
+                    <Text
+                      style={[
+                        styles.mirrorSectionText,
+                        { color: theme.textSecondary, flex: 1, lineHeight: 21 },
+                      ]}
+                    >
+                      {line}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* THE DISTORTION — never moralising */}
+          {Array.isArray(v2.the_distortion) && v2.the_distortion.length > 0 && (
+            <View>
+              <Text style={[styles.mirrorSectionLabel, { color: theme.warning || '#FF9800' }]}>
+                THE DISTORTION
+              </Text>
+              <View style={{ gap: 6, marginTop: 6 }}>
+                {v2.the_distortion.map((line: string, i: number) => (
+                  <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                    <Text style={{ color: theme.textTertiary, width: 14, lineHeight: 21 }}>·</Text>
+                    <Text
+                      style={[
+                        styles.mirrorSectionText,
+                        { color: theme.textSecondary, flex: 1, lineHeight: 21 },
+                      ]}
+                    >
+                      {line}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* THE GIFT — integrated expression */}
+          {Array.isArray(v2.the_gift) && v2.the_gift.length > 0 && (
+            <View>
+              <Text style={[styles.mirrorSectionLabel, { color: theme.success || '#4CAF50' }]}>
+                THE GIFT
+              </Text>
+              <View style={{ gap: 6, marginTop: 6 }}>
+                {v2.the_gift.map((line: string, i: number) => (
+                  <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                    <Text style={{ color: theme.textTertiary, width: 14, lineHeight: 21 }}>·</Text>
+                    <Text
+                      style={[
+                        styles.mirrorSectionText,
+                        { color: theme.textSecondary, flex: 1, lineHeight: 21 },
+                      ]}
+                    >
+                      {line}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* SIDDHI — compressed transcendent layer.
+              Sequence after the Gift, per the layered emotional arc:
+                recognition → distortion → integration → transcendence. */}
+          {(siddhi.shadow || siddhi.gift || siddhi.siddhi) && (
+            <View
+              style={{
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: theme.border,
+                backgroundColor: theme.surface,
+                padding: 14,
+                marginTop: 2,
+              }}
+            >
+              {siddhi.shadow ? (
+                <View style={{ marginBottom: 8 }}>
+                  <Text
+                    style={{
+                      color: theme.textTertiary,
+                      fontSize: 10,
+                      fontWeight: '700',
+                      letterSpacing: 1,
+                    }}
+                  >
+                    SHADOW
+                  </Text>
+                  <Text style={{ color: theme.textSecondary, fontSize: 13, lineHeight: 19, marginTop: 2 }}>
+                    {siddhi.shadow}
+                  </Text>
+                </View>
+              ) : null}
+              {siddhi.gift ? (
+                <View style={{ marginBottom: 8 }}>
+                  <Text
+                    style={{
+                      color: theme.textTertiary,
+                      fontSize: 10,
+                      fontWeight: '700',
+                      letterSpacing: 1,
+                    }}
+                  >
+                    GIFT
+                  </Text>
+                  <Text style={{ color: theme.textSecondary, fontSize: 13, lineHeight: 19, marginTop: 2 }}>
+                    {siddhi.gift}
+                  </Text>
+                </View>
+              ) : null}
+              {siddhi.siddhi ? (
+                <View>
+                  <Text
+                    style={{
+                      color: theme.accent,
+                      fontSize: 10,
+                      fontWeight: '700',
+                      letterSpacing: 1,
+                    }}
+                  >
+                    SIDDHI
+                  </Text>
+                  <Text style={{ color: theme.text, fontSize: 14, lineHeight: 21, marginTop: 2, fontStyle: 'italic' }}>
+                    {siddhi.siddhi}
+                  </Text>
+                </View>
+              ) : null}
+              {siddhi.resonance_line ? (
+                <Text
+                  style={{
+                    color: theme.textTertiary,
+                    fontSize: 12,
+                    lineHeight: 18,
+                    marginTop: 10,
+                    fontStyle: 'italic',
+                    textAlign: 'center',
+                  }}
+                >
+                  &ldquo;{siddhi.resonance_line}&rdquo;
+                </Text>
+              ) : null}
+            </View>
+          )}
+
+          {/* WHY THIS EXISTS — proof-layer energy. Shortest section,
+              visually de-emphasized. Framework comes last. */}
+          {v2.why_this_exists ? (
+            <View style={{ marginTop: 2 }}>
+              <Text
+                style={{
+                  color: theme.textTertiary,
+                  fontSize: 10,
+                  fontWeight: '700',
+                  letterSpacing: 1,
+                }}
+              >
+                WHY THIS EXISTS
+              </Text>
+              <Text
+                style={{
+                  color: theme.textTertiary,
+                  fontSize: 12,
+                  lineHeight: 18,
+                  marginTop: 4,
+                }}
+              >
+                {v2.why_this_exists}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Reflect CTA */}
+          <TouchableOpacity
+            style={[styles.deepDiveAskCta, { borderTopColor: theme.border }]}
+            onPress={() =>
+              openReflection(
+                `${isDefined ? 'Defined' : 'Undefined'} ${centerName}`,
+                'center',
+                getCenterReflectionPrompt(centerName, isDefined),
+                'deep_dive',
+                `center_${centerName.toLowerCase().replace(/\s/g, '_')}`,
+                isDefined ? 'defined' : 'undefined',
+              )
+            }
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.deepDiveAskCtaText, { color: theme.accent }]}>
+              Reflect on this →
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // ── V1 fallback (unchanged) ──────────────────────────────────────
     return (
       <View style={{ gap: 12 }}>
         {/* Recognition */}

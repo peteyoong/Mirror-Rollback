@@ -149,7 +149,46 @@ HD_CENTER_CONTENT = {
                 "Map someone's logic before deciding they're wrong."
             ],
             "why_this_is_happening": "Your Ajna center processes information in fixed patterns. This creates mental reliability but can become rigidity if you stop questioning your own conclusions.",
-            "system_label": "Ajna · defined"
+            "system_label": "Ajna · defined",
+            # ──────────────────────────────────────────────────────────
+            # V2 — Recognition-First Rewrite (HD Deep Dive V2)
+            # Centers = the stable psychological weather system
+            # underneath the person. Atmospheric, identity-level.
+            # Framework explanation moves LAST and stays short.
+            # ──────────────────────────────────────────────────────────
+            "v2": {
+                "recognition": (
+                    "You settle into a way of understanding things and stay "
+                    "with it longer than most people do. Others experience "
+                    "your thinking as consistent — sometimes stabilizing, "
+                    "sometimes difficult to move."
+                ),
+                "how_it_shows_up": [
+                    "You don't easily abandon a perspective once it clicks internally.",
+                    "People look to you for certainty or interpretation.",
+                    "Mental consistency becomes part of how others recognize you.",
+                ],
+                "the_distortion": [
+                    "Certainty can quietly become rigidity.",
+                    "You defend conclusions long after curiosity should have reopened.",
+                    "The pressure to already know closes off the room you'd actually think best inside.",
+                ],
+                "the_gift": [
+                    "Your steadiness helps others orient themselves.",
+                    "You can hold a line of thought through chaos without collapsing into confusion.",
+                ],
+                "the_siddhi": {
+                    "shadow": "Defending what you already concluded.",
+                    "gift": "Steadying others through complexity.",
+                    "siddhi": "Holding clarity loosely enough that it can move.",
+                    "resonance_line": "Not every certainty needs to be guarded.",
+                },
+                "why_this_exists": (
+                    "This comes from a defined Ajna center — the area "
+                    "Human Design associates with how you interpret and "
+                    "stabilize thought."
+                ),
+            },
         },
         "undefined": {
             "recognition": "You think differently depending on who you're around.",
@@ -168,7 +207,46 @@ HD_CENTER_CONTENT = {
                 "Practice being comfortable without a fixed opinion."
             ],
             "why_this_is_happening": "Your Ajna center takes in others' thought processes. This makes you mentally flexible but can create confusion about what you actually believe.",
-            "system_label": "Ajna · open"
+            "system_label": "Ajna · open",
+            # ──────────────────────────────────────────────────────────
+            # V2 — open centers must NOT be pathologized.
+            # Read as: permeability, amplification, sensitivity,
+            # wisdom-through-exposure. NOT: lack, inconsistency.
+            # ──────────────────────────────────────────────────────────
+            "v2": {
+                "recognition": (
+                    "Your thinking borrows shape from whatever room you're "
+                    "in. Around clear thinkers you sound clear; around "
+                    "confusion you sound less sure — what looks like "
+                    "inconsistency is actually a much wider mental aperture."
+                ),
+                "how_it_shows_up": [
+                    "You read other people's thinking quickly — sometimes before they finish a sentence.",
+                    "Your view on the same question can land differently in different conversations.",
+                    "You catch the logic gap in someone else's argument faster than they do.",
+                ],
+                "the_distortion": [
+                    "You defend a position you don't actually hold, just because you were the one who said it.",
+                    "The need to have an answer closes a mind built for holding many at once.",
+                    "Borrowed certainty starts to feel like your own — and you carry it past where it served you.",
+                ],
+                "the_gift": [
+                    "You can hold contradictory ideas without collapsing them too early.",
+                    "You see the shape of someone else's thinking, which is what makes you a useful interpreter and editor.",
+                    "Time and contrast reveal what is actually yours to think — and over the years that becomes a kind of accuracy.",
+                ],
+                "the_siddhi": {
+                    "shadow": "Performing certainty you haven't actually arrived at.",
+                    "gift": "Reading the field of thought without flattening it.",
+                    "siddhi": "Knowing the wisest move is often to stay in the question.",
+                    "resonance_line": "Not knowing is its own form of accuracy.",
+                },
+                "why_this_exists": (
+                    "This comes from an undefined Ajna center — in Human "
+                    "Design, an open Ajna is built to absorb and reflect "
+                    "many forms of thinking rather than lock into one."
+                ),
+            },
         }
     },
     "Throat": {

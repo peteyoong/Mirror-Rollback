@@ -368,7 +368,7 @@ def get_center_interpretation(
         "gates_present": gates_present,
         "themes": themes,
         
-        # MIRROR CONTENT SYSTEM V1 STRUCTURE
+        # MIRROR CONTENT SYSTEM V1 STRUCTURE (legacy, preserved for back-compat)
         "recognition": mirror_content["recognition"],
         "what_this_is": mirror_content["what_this_is"],
         "when_it_trips_you_up": mirror_content["when_it_trips_you_up"],
@@ -378,6 +378,16 @@ def get_center_interpretation(
         "try_this": mirror_content["try_this"],
         "why_this_is_happening": mirror_content["why_this_is_happening"],
         "system_label": system_label,
+
+        # ──────────────────────────────────────────────────────────────
+        # HD DEEP DIVE V2 — Recognition-First Rewrite
+        # When present, the frontend renders the V2 layout instead of V1:
+        #   recognition → how_it_shows_up → the_distortion → the_gift →
+        #   the_siddhi → why_this_exists (smallest / proof-layer energy)
+        # Only Ajna has V2 content at the moment (calibration anchor).
+        # Other centers continue to render V1 until the rollout extends.
+        # ──────────────────────────────────────────────────────────────
+        "v2": mirror_content.get("v2"),
     }
 
 
