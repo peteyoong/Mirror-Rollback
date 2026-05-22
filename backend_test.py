@@ -1,272 +1,298 @@
 """
-v8 Server Router Refactor Regression Test — /api/mirror/chat extracted to routers/mirror_chat.py
-Tests the same v7 mirror_chat regression suite to verify zero behavioural drift.
+Backend test for "Between You Today" relationship timing endpoint.
 
-Pete (user_id 697f0c6abf35c0528ff06954) is the test user.
+Endpoint: GET /api/forums/{forum_id}/between-you-today
+Query params: user_id (anchor), member_id (target), optional refresh=true/false
 """
-import sys
-import uuid
+
+import re
+import time
 import requests
-from pathlib import Path
+from typing import List, Tuple
 
-FRONTEND_ENV = Path("/app/frontend/.env")
-BACKEND_URL = None
-for line in FRONTEND_ENV.read_text().splitlines():
-    if line.startswith("EXPO_PUBLIC_BACKEND_URL="):
-        BACKEND_URL = line.split("=", 1)[1].strip().strip('"').strip("'")
-        break
+BASE_URL = "https://mapping-phase4.preview.emergentagent.com/api"
 
-API = f"{BACKEND_URL}/api"
-PETE = "697f0c6abf35c0528ff06954"
+FORUM_ID = "69dda348de9cb1c83c0780fa"
+ANCHOR_USER_ID = "697f0c6abf35c0528ff06954"   # Pete
 
-results = []
-def record(name, passed, info=""):
-    results.append((name, passed, info))
-    status = "PASS" if passed else "FAIL"
-    print(f"[{status}] {name}{('  — ' + info) if info else ''}")
+BANNED_TOKENS = [
+    "transit", "transits", "retrograde", "aspect", "conjunction", "opposition",
+    "trine", "square", "sextile", "house", "houses", "ingress", "decan",
+    "natal chart", "ascendant", "rising sign", "soulmate", "twin flame",
+    "destiny", "destined", "fated", "karmic", "karma", "compatibility",
+    "compatible", "vibes", "cosmic", "manifest", "manifestation",
+]
+BANNED_PHRASES_SPACED = ["should", "must"]
 
 
-def post(path, body, timeout=120):
-    return requests.post(f"{API}{path}", json=body, timeout=timeout)
+def banned_token_hits(text: str) -> List[str]:
+    hits = []
+    low = text.lower()
+    for tok in BANNED_TOKENS:
+        pattern = r"\b" + re.escape(tok) + r"\b"
+        if re.search(pattern, low):
+            hits.append(tok)
+    for ph in BANNED_PHRASES_SPACED:
+        pattern = r"\b" + re.escape(ph) + r"\b"
+        if re.search(pattern, low):
+            hits.append(ph)
+    return hits
 
 
-def get(path, params=None, timeout=60):
-    return requests.get(f"{API}{path}", params=params, timeout=timeout)
+def fetch_member_ids() -> List[str]:
+    url = f"{BASE_URL}/forums/{FORUM_ID}/member-mappings"
+    resp = requests.get(url, params={"user_id": ANCHOR_USER_ID}, timeout=60)
+    print(f"[member-mappings] status={resp.status_code}")
+    if resp.status_code != 200:
+        print(f"  body: {resp.text[:400]}")
+        return []
+    data = resp.json()
+    print(f"  top-level keys: {list(data.keys()) if isinstance(data, dict) else type(data).__name__}")
+    mappings = []
+    if isinstance(data, dict):
+        for key in ("mappings", "members", "data", "items", "results"):
+            if isinstance(data.get(key), list):
+                mappings = data[key]
+                print(f"  using key '{key}' with {len(mappings)} items")
+                break
+    if not mappings and isinstance(data, list):
+        mappings = data
+    if not mappings:
+        # dump a peek
+        print(f"  raw body preview: {str(data)[:500]}")
+    member_ids = []
+    for m in mappings:
+        if not isinstance(m, dict):
+            continue
+        mid = (m.get("member_id") or m.get("user_id")
+               or m.get("target_user_id") or m.get("member"))
+        if mid and mid != ANCHOR_USER_ID:
+            member_ids.append(mid)
+    # de-dup preserving order
+    seen = set()
+    uniq = []
+    for mid in member_ids:
+        if mid not in seen:
+            seen.add(mid)
+            uniq.append(mid)
+    print(f"  resolved member ids ({len(uniq)}): {uniq}")
+    return uniq
 
 
-def delete(path, timeout=30):
-    return requests.delete(f"{API}{path}", timeout=timeout)
+def call_endpoint(forum_id, user_id, member_id, refresh=False, timeout=120):
+    url = f"{BASE_URL}/forums/{forum_id}/between-you-today"
+    params = {"user_id": user_id, "member_id": member_id}
+    if refresh:
+        params["refresh"] = "true"
+    t0 = time.time()
+    resp = requests.get(url, params=params, timeout=timeout)
+    elapsed = time.time() - t0
+    return resp, elapsed
 
 
-def mirror_chat(body):
-    return post("/mirror/chat", body, timeout=180)
+def validate_envelope(envelope):
+    errors = []
+    if envelope.get("version") != "between-you-today-v1":
+        errors.append(f"version mismatch: {envelope.get('version')}")
+    if envelope.get("engine_version") != "between-you-today-v1.0":
+        errors.append(f"engine_version mismatch: {envelope.get('engine_version')}")
+    if envelope.get("intensity") not in {"low", "medium", "high"}:
+        errors.append(f"intensity invalid: {envelope.get('intensity')}")
+    date_str = envelope.get("date", "")
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", str(date_str)):
+        errors.append(f"date format invalid: {date_str}")
+    hero = envelope.get("hero")
+    if not isinstance(hero, str) or not hero.strip():
+        errors.append(f"hero must be non-empty string, got: {repr(hero)[:80]}")
+    for k in ("activated_today", "distortion_risk", "softens_field"):
+        v = envelope.get(k)
+        if not isinstance(v, list):
+            errors.append(f"{k} must be list, got: {type(v).__name__}")
+    proof = envelope.get("proof_layer")
+    if not isinstance(proof, dict):
+        errors.append("proof_layer must be dict")
+    else:
+        if not isinstance(proof.get("plain_english"), list):
+            errors.append("proof_layer.plain_english must be list")
+        if not isinstance(proof.get("technical"), list):
+            errors.append("proof_layer.technical must be list")
+    return (len(errors) == 0), errors
 
 
-print("=" * 72)
-print(f"v8 mirror_chat router regression — {API}")
-print("=" * 72)
+results = {}
 
-# A) Boot/Registration
-print("\n-- A) BOOT / REGISTRATION SANITY --")
-r = get(f"/people/{PETE}")
-record("A.1 backend reachable (GET /api/people/{pete})", r.status_code == 200,
-       f"status={r.status_code}")
 
-r = requests.post(f"{API}/mirror/chat", json={}, timeout=30)
-record("A.2 POST /api/mirror/chat registered (not 404)", r.status_code != 404,
-       f"status={r.status_code}")
+def section(name):
+    print("\n" + "=" * 72)
+    print(name)
+    print("=" * 72)
 
-fake_sid = "v8-nonexistent-" + uuid.uuid4().hex[:8]
-r = delete(f"/mirror/chat/{fake_sid}")
-record("A.3 DELETE /api/mirror/chat/{session_id} registered (not 404)",
-       r.status_code != 404, f"status={r.status_code}")
 
-# B) Mirror chat behaviour
-print("\n-- B) /api/mirror/chat BEHAVIOUR --")
+# ───── Step 0
+section("STEP 0 — Fetch member mappings")
+member_ids = fetch_member_ids()
+if not member_ids:
+    print("FATAL: Cannot fetch member ids – cannot continue.")
+    raise SystemExit(2)
 
-# B.1 lens=null
-body = {
-    "user_id": PETE,
-    "message": "I've been feeling restless about my direction lately.",
-    "lens": None,
-    "session_id": "v8-test-null-" + uuid.uuid4().hex[:8],
-    "include_journal": True,
-    "include_history": True,
-}
-r = mirror_chat(body)
-if r.status_code == 200:
-    j = r.json()
-    response_text = j.get("response", "")
-    debug = j.get("debug") or {}
-    evidence = j.get("evidence") or {}
-    has_response = bool(response_text and len(response_text.strip()))
-    has_pm = "pattern_memory" in debug
-    has_mr = "micro_reflection" in debug
-    has_contra = "contradictions" in debug
-    has_ev = evidence.get("marker") == "evidence-drawer-v2"
-    detail = (f"len={len(response_text)} pm={has_pm} mr={has_mr} contra={has_contra} "
-              f"ev.marker={evidence.get('marker')}")
-    record("B.1 lens=null returns 200 + response + debug{pm,mr,contra} + evidence.marker",
-           has_response and has_pm and has_mr and has_contra and has_ev, detail)
+primary_member_id = member_ids[0]
+print(f"Primary member_id for tests: {primary_member_id}")
+
+# ───── Test 1: Happy path
+section("TEST 1 — Happy path")
+resp, elapsed = call_endpoint(FORUM_ID, ANCHOR_USER_ID, primary_member_id, refresh=False)
+print(f"status={resp.status_code} elapsed={elapsed:.2f}s")
+body = None
+today = None
+if resp.status_code == 200:
+    body = resp.json()
+    print(f"success={body.get('success')}")
+    today = body.get("today") or {}
+    print(f"version={today.get('version')} engine_version={today.get('engine_version')}")
+    print(f"date={today.get('date')} intensity={today.get('intensity')}")
+    print(f"hero: {str(today.get('hero',''))[:300]}")
+    print(f"activated_today ({len(today.get('activated_today') or [])}): {today.get('activated_today')}")
+    print(f"distortion_risk ({len(today.get('distortion_risk') or [])}): {today.get('distortion_risk')}")
+    print(f"softens_field ({len(today.get('softens_field') or [])}): {today.get('softens_field')}")
+    proof = today.get("proof_layer") or {}
+    print(f"proof_layer.plain_english ({len(proof.get('plain_english') or [])}): {proof.get('plain_english')}")
+    print(f"proof_layer.technical ({len(proof.get('technical') or [])}): {proof.get('technical')}")
+    ok, errs = validate_envelope(today)
+    if ok and body.get("success") is True:
+        results["happy_path"] = ("PASS", None)
+    else:
+        results["happy_path"] = ("FAIL", f"success={body.get('success')} errors={errs}")
 else:
-    record("B.1 lens=null 200", False, f"status={r.status_code} body={r.text[:200]}")
+    print(f"body: {resp.text[:500]}")
+    results["happy_path"] = ("FAIL", f"status={resp.status_code}")
 
-# B.2 lens=astrology
-body = {
-    "user_id": PETE,
-    "message": "What's surfacing for me in my chart right now?",
-    "lens": "astrology",
-    "session_id": "v8-test-astro-" + uuid.uuid4().hex[:8],
-    "include_journal": True,
-    "include_history": True,
-}
-r = mirror_chat(body)
-if r.status_code == 200:
-    j = r.json()
-    debug = j.get("debug") or {}
-    lc = debug.get("lens_chat") or {}
-    nested_ok = lc.get("marker") == "multi-lens-chat-memory-v1" and lc.get("lens") == "astrology"
-    flat_ok = debug.get("marker") == "multi-lens-chat-memory-v1" and debug.get("lens") == "astrology"
-    detail = (f"nested(marker={lc.get('marker')}, lens={lc.get('lens')}) "
-              f"flat(marker={debug.get('marker')}, lens={debug.get('lens')})")
-    record("B.2 lens=astrology nested+flat debug shape", nested_ok and flat_ok, detail)
+# ───── Test 2: Prose guard
+section("TEST 2 — Top-level prose guard")
+if today:
+    parts = []
+    if isinstance(today.get("hero"), str):
+        parts.append(today["hero"])
+    for k in ("activated_today", "distortion_risk", "softens_field"):
+        v = today.get(k)
+        if isinstance(v, list):
+            for item in v:
+                if isinstance(item, str):
+                    parts.append(item)
+                elif isinstance(item, dict):
+                    for f in ("text", "title", "label", "body"):
+                        if isinstance(item.get(f), str):
+                            parts.append(item[f])
+    concatenated = " || ".join(parts)
+    print(f"Concatenated top-level prose ({len(concatenated)} chars):")
+    print(concatenated[:800])
+    hits = banned_token_hits(concatenated)
+    if hits:
+        results["prose_guard"] = ("FAIL", f"banned tokens at top level: {hits}")
+        print(f"  BANNED tokens: {hits}")
+    else:
+        results["prose_guard"] = ("PASS", None)
+        print("  ✅ No banned tokens at top level")
 else:
-    record("B.2 lens=astrology 200", False, f"status={r.status_code} body={r.text[:200]}")
+    results["prose_guard"] = ("FAIL", "no envelope from test 1")
 
-# B.3 lens=zi_wei
-body = {
-    "user_id": PETE,
-    "message": "What patterns am I noticing this week?",
-    "lens": "zi_wei",
-    "session_id": "v8-test-ziwei-" + uuid.uuid4().hex[:8],
-}
-r = mirror_chat(body)
-if r.status_code == 200:
-    j = r.json()
-    debug = j.get("debug") or {}
-    lc = debug.get("lens_chat") or {}
-    ok = lc.get("marker") == "multi-lens-chat-memory-v1" and lc.get("lens") == "zi_wei"
-    record("B.3 lens=zi_wei lens_chat.marker + lens=zi_wei", ok,
-           f"marker={lc.get('marker')} lens={lc.get('lens')}")
+# ───── Test 3: Cache hit
+section("TEST 3 — Cache hit (call twice without refresh)")
+resp2, elapsed2 = call_endpoint(FORUM_ID, ANCHOR_USER_ID, primary_member_id, refresh=False)
+print(f"second call status={resp2.status_code} elapsed={elapsed2:.2f}s")
+if resp2.status_code == 200 and today:
+    body2 = resp2.json()
+    today2 = body2.get("today") or {}
+    same_hero = (today.get("hero") == today2.get("hero"))
+    same_date = (today.get("date") == today2.get("date"))
+    cache_hit_flag = today2.get("_cache_hit")
+    print(f"same hero={same_hero}  same date={same_date}  _cache_hit={cache_hit_flag}")
+    if same_hero and same_date:
+        results["cache_hit"] = ("PASS", f"_cache_hit={cache_hit_flag}")
+    else:
+        print(f"hero1: {today.get('hero')[:200]}")
+        print(f"hero2: {today2.get('hero')[:200]}")
+        results["cache_hit"] = ("FAIL", f"hero_match={same_hero} date_match={same_date}")
 else:
-    record("B.3 lens=zi_wei 200", False, f"status={r.status_code} body={r.text[:200]}")
+    results["cache_hit"] = ("FAIL", f"status={resp2.status_code}")
 
-# B.4 life_domain=relationships
-body = {
-    "user_id": PETE,
-    "message": "Things have been tense with someone close — what should I notice?",
-    "life_domain": "relationships",
-    "session_id": "v8-test-life-rel-" + uuid.uuid4().hex[:8],
-}
-r = mirror_chat(body)
-if r.status_code == 200:
-    j = r.json()
-    debug = j.get("debug") or {}
-    mv = debug.get("master_voice") or {}
-    ok = bool(mv) and mv.get("marker") == "life-tab-master-voice-v1"
-    record("B.4 life_domain=relationships -> debug.master_voice marker=life-tab-master-voice-v1",
-           ok, f"marker={mv.get('marker')}")
+# ───── Test 4: Cache bypass refresh=true
+section("TEST 4 — Cache bypass (refresh=true)")
+resp3, elapsed3 = call_endpoint(FORUM_ID, ANCHOR_USER_ID, primary_member_id, refresh=True)
+print(f"refresh call status={resp3.status_code} elapsed={elapsed3:.2f}s")
+if resp3.status_code == 200:
+    body3 = resp3.json()
+    today3 = body3.get("today") or {}
+    ok3, errs3 = validate_envelope(today3)
+    print(f"envelope valid={ok3} errors={errs3}")
+    if ok3 and body3.get("success") is True:
+        results["cache_bypass"] = ("PASS", None)
+    else:
+        results["cache_bypass"] = ("FAIL", f"errors={errs3}")
 else:
-    record("B.4 life_domain=relationships 200", False, f"status={r.status_code} body={r.text[:200]}")
+    print(f"body: {resp3.text[:500]}")
+    results["cache_bypass"] = ("FAIL", f"status={resp3.status_code}")
 
-# B.5 life_domain=work
-body = {
-    "user_id": PETE,
-    "message": "Work has been heavy. What's underneath this?",
-    "life_domain": "work",
-    "session_id": "v8-test-life-work-" + uuid.uuid4().hex[:8],
-}
-r = mirror_chat(body)
-if r.status_code == 200:
-    j = r.json()
-    debug = j.get("debug") or {}
-    mv = debug.get("master_voice") or {}
-    record("B.5 life_domain=work -> debug.master_voice present", bool(mv),
-           f"marker={mv.get('marker')}")
+# ───── Test 5: Unauthorized
+section("TEST 5 — Unauthorized (user_id not a member)")
+fake_user = "000000000000000000000001"
+resp5, _ = call_endpoint(FORUM_ID, fake_user, primary_member_id, refresh=False, timeout=30)
+print(f"status={resp5.status_code} body={resp5.text[:300]}")
+if resp5.status_code == 403:
+    results["unauthorized_403"] = ("PASS", None)
 else:
-    record("B.5 life_domain=work 200", False, f"status={r.status_code} body={r.text[:200]}")
+    results["unauthorized_403"] = ("FAIL", f"expected 403, got {resp5.status_code}")
 
-# B.6 life_domain=self
-body = {
-    "user_id": PETE,
-    "message": "I've been feeling stuck in my own head. What's surfacing?",
-    "life_domain": "self",
-    "session_id": "v8-test-life-self-" + uuid.uuid4().hex[:8],
-}
-r = mirror_chat(body)
-if r.status_code == 200:
-    j = r.json()
-    debug = j.get("debug") or {}
-    mv = debug.get("master_voice") or {}
-    record("B.6 life_domain=self -> debug.master_voice present", bool(mv),
-           f"marker={mv.get('marker')}")
+# ───── Test 6: Member not in forum
+section("TEST 6 — Member not in forum")
+fake_member = "000000000000000000000002"
+resp6, _ = call_endpoint(FORUM_ID, ANCHOR_USER_ID, fake_member, refresh=False, timeout=30)
+print(f"status={resp6.status_code} body={resp6.text[:300]}")
+if resp6.status_code == 404:
+    results["member_not_in_forum_404"] = ("PASS", None)
 else:
-    record("B.6 life_domain=self 200", False, f"status={r.status_code} body={r.text[:200]}")
+    results["member_not_in_forum_404"] = ("FAIL", f"expected 404, got {resp6.status_code}")
 
-# C) Shared chat_sessions state
-print("\n-- C) SHARED chat_sessions STATE --")
-shared_sid = "v8-shared-state-" + uuid.uuid4().hex[:10]
-body = {
-    "user_id": PETE,
-    "message": "Quick check-in to test shared session state.",
-    "session_id": shared_sid,
-}
-r = mirror_chat(body)
-if r.status_code == 200:
-    returned_sid = r.json().get("session_id")
-    record("C.1 POST /mirror/chat with fresh session_id returns same session_id",
-           returned_sid == shared_sid, f"sent={shared_sid} got={returned_sid}")
-    r2 = delete(f"/mirror/chat/{shared_sid}")
-    msg = ""
-    try:
-        msg = r2.json().get("message", "")
-    except Exception:
-        pass
-    record("C.2 DELETE /mirror/chat/{sid} -> 200 + {'message':'Session cleared'} (shared dict)",
-           r2.status_code == 200 and msg == "Session cleared",
-           f"status={r2.status_code} message='{msg}'")
+# ───── Test 7: Invalid forum id
+section("TEST 7 — Invalid forum id")
+resp7, _ = call_endpoint("not-an-objectid", ANCHOR_USER_ID, primary_member_id, refresh=False, timeout=30)
+print(f"status={resp7.status_code} body={resp7.text[:300]}")
+if resp7.status_code == 400:
+    results["invalid_forum_id_400"] = ("PASS", None)
 else:
-    record("C.1 POST shared session", False, f"status={r.status_code} body={r.text[:200]}")
-    record("C.2 DELETE shared session", False, "skipped")
+    results["invalid_forum_id_400"] = ("FAIL", f"expected 400, got {resp7.status_code}")
 
-# D) Previously extracted routers
-print("\n-- D) PREVIOUSLY EXTRACTED ROUTERS (sanity) --")
-forum_id = None
-r = get(f"/forums/user/{PETE}")
-if r.status_code == 200:
-    payload = r.json()
-    forums_list = payload if isinstance(payload, list) else (
-        payload.get("forums") or payload.get("data") or []
-    )
-    if isinstance(forums_list, list) and forums_list:
-        first = forums_list[0]
-        forum_id = (first.get("forum_id") or first.get("_id") or first.get("id"))
-    record("D.2 GET /forums/user/{pete}", True,
-           f"count={len(forums_list) if isinstance(forums_list, list) else 'n/a'} forum_id={forum_id}")
+# ───── Test 8: Parallel members
+section("TEST 8 — Parallel members (all from member-mappings)")
+all_ok = True
+details = []
+for idx, mid in enumerate(member_ids[:3]):
+    r, e = call_endpoint(FORUM_ID, ANCHOR_USER_ID, mid, refresh=False, timeout=120)
+    if r.status_code != 200:
+        all_ok = False
+        details.append(f"  member {idx}={mid}: status={r.status_code} body={r.text[:200]}")
+        continue
+    b = r.json()
+    t = b.get("today") or {}
+    ok, errs = validate_envelope(t) if t else (False, ["no envelope"])
+    if not (ok and b.get("success") and t):
+        all_ok = False
+    details.append(f"  member {idx}={mid}: status=200 success={b.get('success')} valid={ok} hero_len={len(str(t.get('hero','')))} intensity={t.get('intensity')}")
+for d in details:
+    print(d)
+if all_ok and len(member_ids) >= 1:
+    results["parallel_members"] = ("PASS", f"{len(member_ids[:3])} members all valid")
 else:
-    record("D.2 GET /forums/user/{pete}", False, f"status={r.status_code}")
+    results["parallel_members"] = ("FAIL", "; ".join(details))
 
-if forum_id:
-    r = get(f"/forums/{forum_id}/chat/history", params={"user_id": PETE, "limit": 2})
-    record("D.1 GET /forums/{id}/chat/history?limit=2", r.status_code == 200,
-           f"status={r.status_code}")
-
-    r = post(f"/forums/{forum_id}/mirror-chat",
-             {"user_id": PETE, "forum_id": forum_id, "message": "v8 sanity"}, timeout=180)
-    record("D.3 POST /forums/{id}/mirror-chat", r.status_code == 200,
-           f"status={r.status_code}")
-
-    r = get(f"/forums/{forum_id}/story-of-circle", params={"user_id": PETE})
-    record("D.4 GET /forums/{id}/story-of-circle", r.status_code == 200,
-           f"status={r.status_code}")
-
-    r = get(f"/forums/{forum_id}/topology", params={"user_id": PETE})
-    record("D.7 GET /forums/{id}/topology", r.status_code == 200,
-           f"status={r.status_code}")
-else:
-    print("[SKIP] forum-side sanity (no forum found for Pete)")
-
-r = post("/micro-reflection/home-texture",
-         {"user_id": PETE, "texture": "open", "domain": "self"}, timeout=60)
-record("D.5 POST /micro-reflection/home-texture", r.status_code == 200,
-       f"status={r.status_code}")
-
-r = get(f"/pattern-running-me/user/{PETE}")
-record("D.6 GET /pattern-running-me/user/{pete}", r.status_code == 200,
-       f"status={r.status_code}")
-
-# Summary
-print("\n" + "=" * 72)
-passed_count = sum(1 for _, ok, _ in results if ok)
-total = len(results)
-print(f"RESULTS: {passed_count}/{total} passed")
-print("=" * 72)
-if passed_count != total:
-    print("\nFAILED tests:")
-    for name, ok, info in results:
-        if not ok:
-            print(f"  FAIL  {name} — {info}")
-    sys.exit(1)
-else:
-    print("\nv8 mirror_chat refactor — ALL TESTS PASS, no behavioural drift")
-    sys.exit(0)
+# ───── Summary
+section("RESULTS SUMMARY")
+passed = 0
+failed = 0
+for name, (status, detail) in results.items():
+    marker = "PASS" if status == "PASS" else "FAIL"
+    print(f"[{marker}] {name:30s}  {detail or ''}")
+    if status == "PASS":
+        passed += 1
+    else:
+        failed += 1
+print(f"\nTOTAL: {passed} passed / {failed} failed")

@@ -220,6 +220,99 @@ def register(
             }
 
     # ──────────────────────────────────────────────────────────────────
+    # GET /api/forums/{forum_id}/between-you-today
+    # Relationship Timing Layer v1 — "Between You Today"
+    # Modulates the existing relationship architecture against today's
+    # transit dominance for each side. NOT a horoscope, NOT a forecast.
+    # ──────────────────────────────────────────────────────────────────
+
+    @api_router.get("/forums/{forum_id}/between-you-today")
+    async def get_between_you_today(
+        forum_id: str,
+        user_id: str,
+        member_id: str,
+        refresh: Optional[bool] = False,
+    ):
+        """
+        Generate (or return cached) "Between You Today" envelope for the
+        anchor↔target pair on today's date.
+
+        - forum_id:  the forum context (used to authorise + scope)
+        - user_id:   the anchor (current user) viewing the card
+        - member_id: the target member they are looking at
+        - refresh:   if True, bypass 24h cache
+        """
+        logger.info(
+            f"[BetweenYouToday] forum={forum_id} anchor={user_id[:8]}... "
+            f"target={member_id[:8]}... refresh={refresh}"
+        )
+
+        if not ObjectId.is_valid(forum_id):
+            raise HTTPException(status_code=400, detail="Invalid forum_id format")
+
+        # Anchor must be an active member of the forum
+        membership = await db.forum_members.find_one({
+            "forum_id": forum_id,
+            "user_id": user_id,
+            "status": "active",
+        })
+        if not membership:
+            raise HTTPException(status_code=403, detail="You are not a member of this forum")
+
+        # Target must also be in the forum
+        target_membership = await db.forum_members.find_one({
+            "forum_id": forum_id,
+            "user_id": member_id,
+            "status": "active",
+        })
+        if not target_membership:
+            raise HTTPException(status_code=404, detail="Member not found in this forum")
+
+        try:
+            from services.relationship_today import (
+                build_between_you_today, ensure_cache_indexes,
+            )
+            # Lazy index creation — idempotent; never raises into request path
+            try:
+                await ensure_cache_indexes(db)
+            except Exception:
+                pass
+
+            envelope = await build_between_you_today(
+                db=db,
+                forum_id=forum_id,
+                anchor_user_id=user_id,
+                target_user_id=member_id,
+                emergent_llm_key=emergent_llm_key,
+                force_refresh=bool(refresh),
+            )
+
+            if envelope is None:
+                return JSONResponse(
+                    content={
+                        "success": False,
+                        "today": None,
+                        "error": "unable to compute relationship timing for this pair",
+                    },
+                    headers={"Cache-Control": "no-store, max-age=0"},
+                )
+
+            return JSONResponse(
+                content={"success": True, "today": envelope},
+                headers={
+                    "Cache-Control": "no-store, max-age=0",
+                    "CDN-Cache-Control": "no-store",
+                },
+            )
+
+        except Exception as e:
+            logger.error(f"[BetweenYouToday] Error: {e}", exc_info=True)
+            return JSONResponse(
+                content={"success": False, "today": None, "error": str(e)},
+                headers={"Cache-Control": "no-store, max-age=0"},
+            )
+
+    # ──────────────────────────────────────────────────────────────────
     # GET /api/forums/{forum_id}/contributions
     # ──────────────────────────────────────────────────────────────────
 

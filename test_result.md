@@ -23157,3 +23157,258 @@ agent_communication:
       No critical regression.  Setting working=true /
       needs_retesting=false.
 
+
+
+
+#====================================================================================================
+# BETWEEN YOU TODAY — Relationship Timing Layer v1
+#====================================================================================================
+
+user_problem_statement: |
+  NEW FEATURE INITIATIVE — "BETWEEN YOU TODAY" (relationship_timing_v1).
+  Build a daily relational timing modulation engine that sits ON TOP of
+  the existing relationship architecture (Today V5 transit dominance,
+  Relationship Field v1.3, forum HD mapping). NOT a couple horoscope —
+  the engine modulates the already-existing relationship structure
+  against today's timing inputs and surfaces:
+    • hero (1–3 sentences retention hook)
+    • activated_today (2–4 short bullets)
+    • distortion_risk (1–3 short bullets)
+    • softens_field (1–3 short bullets)
+    • intensity (low / medium / high — internal, drives future UI)
+    • proof_layer { plain_english, technical }
+
+  Decision matrix locked by user:
+    1a Surface ABOVE Relationship Field on mapping detail screen
+    2b Hybrid synthesis (deterministic detection + LLM polish)
+    3b 24h Mongo TTL cache keyed by (anchor:target:date)
+    4a Forum members only in V1
+    5c Proof layer with plain + technical toggle
+
+backend:
+  - task: "Between You Today — relationship_today.py service + GET /api/forums/{forum_id}/between-you-today endpoint"
+    implemented: true
+    working: false
+    file: "/app/backend/services/relationship_today.py, /app/backend/routers/forums_intelligence.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: false
+        -agent: "testing"
+        -comment: |
+          BETWEEN YOU TODAY — ENDPOINT TESTING COMPLETE (7/8 PASS, 1 CRITICAL BUG)
+
+          Test harness: /app/backend_test.py
+          Backend URL: https://mapping-phase4.preview.emergentagent.com/api
+          forum_id = 69dda348de9cb1c83c0780fa
+          anchor  = 697f0c6abf35c0528ff06954 (Pete)
+          members from /member-mappings:
+            69dd0b2cc92ba973f8838c11 (Thaddeus Yoong)
+            69dda348de9cb1c83c0780f8
+            697ec826ad4b18f75bf42616
+
+          ✅ TEST 1 — Happy path: status=200, success=true, version="between-you-today-v1",
+             engine_version="between-you-today-v1.0", date="2026-05-22",
+             intensity="high", hero non-empty, all required arrays/keys present.
+             Sample hero: "Emotional doors open swiftly between Pete and Thaddeus Yoong today."
+             proof_layer has plain_english (3 items) + technical (3 items, contains
+             channel ids "4-63, 6-59, 12-22" as expected).
+
+          ✅ TEST 2 — Top-level prose guard: concatenated hero + activated_today +
+             distortion_risk + softens_field (580 chars) contains NONE of the
+             banned tokens (transit/aspect/conjunction/should/must/soulmate/etc).
+
+          ❌ TEST 3 — CACHE HIT: FAILED. Second call (no refresh) returned a
+             DIFFERENT hero and _cache_hit=false. Root cause confirmed via
+             backend logs:
+               "[BetweenYouToday] cache read failed: can't compare
+                offset-naive and offset-aware datetimes"
+             Bug location: services/relationship_today.py::_read_cache (line ~170).
+             MongoDB returns timezone-NAIVE datetimes by default, but the code
+             compares against datetime.now(timezone.utc) (aware). Comparison
+             throws TypeError → cache read silently returns None → engine
+             regenerates the envelope on every call. The TTL cache is therefore
+             effectively dead. Hero1 vs Hero2 sample:
+               h1: "Emotional doors open swiftly between Pete and Thaddeus Yoong today."
+               h2: "Emotions move more quickly between Pete and Thaddeus Yoong today."
+             Cache write IS happening (no warning); only the read path is broken.
+             Suggested fix (one-line): make expires_at timezone-aware on read
+             (`expires_at = expires_at.replace(tzinfo=timezone.utc)` when naive)
+             or compare with naive `datetime.utcnow()`.
+
+          ✅ TEST 4 — Cache bypass (refresh=true): status=200, envelope valid.
+
+          ✅ TEST 5 — Unauthorized: user_id "000000000000000000000001" →
+             403 {"detail":"You are not a member of this forum"}.
+
+          ✅ TEST 6 — Member not in forum: member_id "000000000000000000000002" →
+             404 {"detail":"Member not found in this forum"}.
+
+          ✅ TEST 7 — Invalid forum id: forum_id "not-an-objectid" →
+             400 {"detail":"Invalid forum_id format"}.
+
+          ✅ TEST 8 — Parallel members: all 3 members from member-mappings
+             returned status=200, success=true, valid envelope, intensity="high".
+
+          SUMMARY: 7/8 PASS. Endpoint contract, prose guard, authorisation,
+          input validation, deterministic envelope generation, and LLM polish
+          are all working. The ONLY failure is a real bug in the Mongo cache
+          read path (offset-naive vs offset-aware datetime comparison).
+          Functionality is correct but cache is effectively bypassed on every
+          request, which has performance + LLM-cost implications.
+
+        -working: "NA"
+        -agent: "main"
+        -comment: |
+          NEW FILE: services/relationship_today.py implementing the
+          BETWEEN YOU TODAY engine. Pure deterministic signal detection
+          + hybrid LLM polish (GPT-4o via Emergent LLM key).
+
+          Endpoint added:
+            GET /api/forums/{forum_id}/between-you-today
+                ?user_id=<anchor>&member_id=<target>&refresh=<bool>
+
+          Behaviour:
+            • Resolves anchor+target charts and the existing relationship
+              mapping (does NOT recompute the field — purely additive).
+            • Computes Today V5 transit dominance for both sides separately
+              via build_dominance_payload (NOT A+B summation — modulation).
+            • Routes transit signals onto relational dimensions:
+                emotional_amplification / timing_compression /
+                structural_shift / tone_shift.
+            • Detects which dimensions are already strongly present in
+              this pair's architecture (channels + astro contacts +
+              enneagram attachment friction) — only modulates those.
+            • Computes today_intensity (low/medium/high) from activation
+              count + tight_aspect_count + signal_conflict.
+            • Generates deterministic seeds for hero / activated /
+              distortion / softener bullets.
+            • LLM polish layer reads the structured seeds and rewrites
+              ONLY the prose (NOT the mechanics). Strict prompt forbids
+              astrology jargon at top level, prescriptive language,
+              soulmate/fate vocabulary, predictions, numeric timing.
+              Rotation seed = blake2b(anchor|target|date) → daily variety.
+            • Mongo cache: collection `relationship_today_cache`, unique
+              key index + TTL index on `expires_at` (24h). Lazy index
+              creation via ensure_cache_indexes() on first endpoint call.
+            • Falls back to deterministic prose if EMERGENT_LLM_KEY
+              absent or LLM call fails.
+            • Top-level guard rejects banned vocabulary at the envelope
+              boundary and falls back to deterministic hero if guard fires.
+
+          Envelope shape returned by endpoint:
+            {
+              "success": true,
+              "today": {
+                "version": "between-you-today-v1",
+                "engine_version": "between-you-today-v1.0",
+                "date": "YYYY-MM-DD",
+                "intensity": "low|medium|high",
+                "hero": str,
+                "activated_today": [str, ...],
+                "distortion_risk": [str, ...],
+                "softens_field": [str, ...],
+                "proof_layer": {
+                  "plain_english": [str, ...],
+                  "technical": [str, ...]
+                },
+                "_meta": {...},
+                "_cache_hit": bool
+              }
+            }
+
+          NEEDS TESTING:
+            1. GET with valid forum + anchor + member returns 200 with
+               envelope; envelope.version == "between-you-today-v1".
+            2. 403 when anchor not a member of forum.
+            3. 404 when target not a member.
+            4. 400 when forum_id is malformed.
+            5. Cache: second call within 24h returns SAME envelope
+               (verify date string + hero text matches; ideally a
+               _cache_hit flag becomes true). Pass `refresh=true` to
+               bypass — should regenerate.
+            6. Top-level guard: hero + activated_today + distortion_risk
+               + softens_field must NOT contain banned vocabulary:
+               'transit', 'aspect', 'conjunction', 'soulmate',
+               'should', 'must ', etc.
+            7. intensity is one of low / medium / high.
+            8. proof_layer.technical may contain transit/channel names
+               (allowed in technical only).
+
+          Test credentials (Pete's forum already used for V1.3 tests):
+            forum_id  = 69dda348de9cb1c83c0780fa
+            anchor    = 697f0c6abf35c0528ff06954  (Pete)
+            member    = use one of the 3 returned by
+                        GET /api/forums/{forum_id}/member-mappings
+
+metadata:
+  created_by: "main_agent"
+  version: "1.5"
+  test_sequence: 13
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Between You Today — relationship_today.py service + GET /api/forums/{forum_id}/between-you-today endpoint"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    -agent: "testing"
+    -message: |
+      BETWEEN YOU TODAY endpoint tested (8 scenarios, /app/backend_test.py).
+      Result: 7/8 PASS, 1 CRITICAL CACHE BUG.
+
+      ✅ Working:
+        • Happy path envelope shape (version, engine_version, intensity,
+          date YYYY-MM-DD, hero, activated_today, distortion_risk,
+          softens_field, proof_layer.plain_english/technical).
+        • Top-level prose guard — zero banned tokens in hero +
+          activated_today + distortion_risk + softens_field.
+        • refresh=true bypass returns valid envelope.
+        • 403 for non-member anchor.
+        • 404 for non-member target.
+        • 400 for invalid forum_id.
+        • All 3 forum members return valid envelopes (no crash, no None).
+
+      ❌ CRITICAL BUG — Mongo cache read is broken:
+        Backend log:
+          "[BetweenYouToday] cache read failed: can't compare offset-naive
+           and offset-aware datetimes"
+        Location: services/relationship_today.py::_read_cache (~line 170).
+        MongoDB returns naive datetimes; code compares against
+        datetime.now(timezone.utc) (aware) → TypeError → cache silently
+        falls through → engine regenerates envelope (+LLM call) on every
+        request. Second call produced a different hero and _cache_hit=False
+        instead of identical text and _cache_hit=True.
+        One-line fix: when reading expires_at, normalise tz:
+          if expires_at.tzinfo is None:
+              expires_at = expires_at.replace(tzinfo=timezone.utc)
+        (or compare with datetime.utcnow() everywhere).
+
+      Functionality of the endpoint itself is correct — only caching is
+      effectively disabled, which has cost / latency implications.
+
+    -agent: "main"
+    -message: |
+      NEW FEATURE: Between You Today (relationship_timing_v1) ready
+      for backend testing.
+
+      Endpoint:
+        GET /api/forums/{forum_id}/between-you-today
+            ?user_id={anchor}&member_id={target}
+            (optional: &refresh=true)
+
+      Please verify the 8 test cases listed in the status_history.
+      The most important checks are:
+        • Top-level prose guard (no astrology jargon / no prescriptive
+          words at the user-visible top level)
+        • Cache hit / miss behaviour
+        • Envelope schema integrity
+        • Graceful 4xx for membership errors
+
+      The engine is additive — it does not modify the existing
+      member-mappings response. The new collection is
+      `relationship_today_cache` (Mongo TTL — 24h).
