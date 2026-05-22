@@ -58,11 +58,20 @@ before scaling to the other 8 centers.
   Gene Keys data for gate cards (Phase 2).
 - 5c: Ajna first → user verifies tone → then batch the other 8.
 
-## Currently shipped
-- Ajna defined + Ajna open V2 content live in
-  `/app/backend/services/mirror_content_system.py` under
-  `HD_CENTER_CONTENT["Ajna"]["defined"|"undefined"]["v2"]`.
+## Currently shipped (all 9 centers — full Phase 1 complete)
+- Defined + Open V2 content live in
+  `/app/backend/services/mirror_content_system.py` for:
+  Head, Ajna, Throat, G Center, Ego, Solar Plexus, Sacral, Spleen, Root.
+- Open-center protection verified: G Center, Ego/Heart, Solar Plexus,
+  Sacral all framed as permeability/amplification/wave-based wisdom,
+  never as deficiency.
 - Plumbed through `services/human_design_centers.py::get_center_interpretation`.
 - Rendered by `components/HumanDesignLensView.tsx::renderCenterContent`
-  (V2 branch when `center.v2` exists, V1 fallback otherwise).
-- BUILD_ID: `hd-deep-dive-v2-ajna-20260522`.
+  (V2 layout when `center.v2` exists, V1 fallback otherwise).
+- BUILD_ID: `mirror-v2-scaleout-20260522`.
+
+## Relationship Field V1.3 — Batch 2 channels also shipped
+- 32-54, 28-38, 39-55, 18-58, 12-22, 1-8, 4-63, 11-56 added to
+  `services/forum_hd_mapping.py::CHANNEL_INTERPRETATIONS`.
+- All voice-calibrated against the over-intensification risk
+  (especially 39-55, 28-38, 18-58 which can drift into suffering archetypes).

@@ -393,6 +393,168 @@ CHANNEL_INTERPRETATIONS = {
             "the conversation is much harder."
         ),
     },
+    # ─────────────────────────────────────────────────────────────────────
+    # V1.3 — BATCH 2 channel rewrites (32-54, 28-38, 39-55, 18-58, 12-22,
+    # 1-8, 4-63, 11-56). Voice calibrated to "what activates / what forms
+    # between two people in lived reality" — recognisable, behavioural,
+    # not melodramatic. Especially careful with 39-55, 28-38, 18-58 which
+    # are easy to over-intensify into suffering archetypes.
+    # ─────────────────────────────────────────────────────────────────────
+    "32-54": {
+        # Transformation — ambition / ascent. Founder/operator energy.
+        "headline": "Together you start treating ambition as something to engineer, not just talk about",
+        "description": (
+            "There's a steady ladder-climbing energy here. You stop asking "
+            "whether something is possible and start asking what it would "
+            "actually take. What forms between you is a working version of "
+            "ambition — the kind that survives weeks four through twelve, "
+            "not just the first conversation."
+        ),
+        "what_works": (
+            "Naming the bigger thing you're moving toward, then resourcing "
+            "it properly — money, time, the right people."
+        ),
+        "what_to_watch": (
+            "Ambition can become the only language you speak together. "
+            "Notice when the connection has quietly become a project plan."
+        ),
+    },
+    "28-38": {
+        # Struggle — purpose / stake-holding. Not melodrama; lived stakes.
+        "headline": "What each of you refuses to give up on becomes visible here",
+        "description": (
+            "Between you, the question of what's worth standing behind "
+            "stops being abstract. You catch each other testing whether "
+            "something is real enough to defend. What forms is a kind of "
+            "mutual stake-holding — not drama, but accuracy about what each "
+            "of you is unwilling to abandon."
+        ),
+        "what_works": (
+            "Letting each of you name your stake without negotiating it "
+            "down. The honesty matters more than the agreement."
+        ),
+        "what_to_watch": (
+            "When both of you have something to defend, the same "
+            "conversation can keep happening at the wrong angle. The real "
+            "stake is usually one layer beneath the surface argument."
+        ),
+    },
+    "39-55": {
+        # Emoting — provocation + emotional abundance. Avoid melodrama.
+        "headline": "Moods carry more information between you than either of you expected",
+        "description": (
+            "Emotional tone matters here in a way it doesn't in most "
+            "connections. You catch the shift in each other's mood faster "
+            "than the other has named it. What forms is a sensitivity to "
+            "atmosphere — when the spirit is high between you, the "
+            "connection feels rich; when it's flat, both of you feel that too."
+        ),
+        "what_works": (
+            "Naming the mood out loud rather than pretending it isn't in "
+            "the room. The connection regulates faster once it's said."
+        ),
+        "what_to_watch": (
+            "Small jabs can leak in — provocations testing for a reaction. "
+            "Catch them early; the channel is asking for honesty, not a fight."
+        ),
+    },
+    "18-58": {
+        # Judgment — correction / improvement. Not critical; quietly improving.
+        "headline": "You catch what's off and want to fix it — and most of the time, you're right",
+        "description": (
+            "Between you, there's a sharp eye for what could be better. "
+            "You notice the broken thing first, the unsaid imbalance, the "
+            "place a system isn't working yet. What forms is a quietly "
+            "improving connection — care expressed as the willingness to "
+            "point at the thing that needs adjusting."
+        ),
+        "what_works": (
+            "Letting the correction land on the thing, not the person. The "
+            "accuracy is the love; the tone is the test."
+        ),
+        "what_to_watch": (
+            "The same eye that sees what could improve can become the eye "
+            "that never lets up. Some things between you don't need to be "
+            "optimised."
+        ),
+    },
+    "12-22": {
+        # Openness — social grace / mood-driven expression. Behavioural.
+        "headline": "How easily this connection moves depends on the mood it walks in with",
+        "description": (
+            "When the spirit is open between you, everything flows — "
+            "conversation, affection, plans. When it isn't, no amount of "
+            "pushing fixes it. What forms is a connection that runs on "
+            "receptivity rather than effort: the moment determines what's "
+            "possible, and you've both learnt to read that."
+        ),
+        "what_works": (
+            "Letting the door open when it's open, and not trying to pry it "
+            "open when it isn't."
+        ),
+        "what_to_watch": (
+            "When the mood goes flat, one of you may push for expression "
+            "the moment can't carry. Wait it out."
+        ),
+    },
+    "1-8": {
+        # Inspiration — creative direction + contribution.
+        "headline": "You become more creatively bold around each other than you are alone",
+        "description": (
+            "Between you, individual expression gets a witness — and the "
+            "witness is part of what gives it shape. One of you brings the "
+            "original spark; the other helps direct it into something other "
+            "people can actually see. What forms is a creative pairing "
+            "where ambition for the work matters as much as the work itself."
+        ),
+        "what_works": (
+            "Honouring whose vision it actually is, and putting structure "
+            "under it instead of around it."
+        ),
+        "what_to_watch": (
+            "If one of you keeps shaping the other's expression without "
+            "contributing your own, the dynamic flattens. Both creators "
+            "have to be visible."
+        ),
+    },
+    "4-63": {
+        # Logic — doubt → answers / testing ideas in pairs.
+        "headline": "You think things through together — answers arrive faster than they would alone",
+        "description": (
+            "There's a back-and-forth structure to your thinking here. One "
+            "of you raises a doubt; the other finds the formulation that "
+            "resolves it. What forms is a working pair of minds — better at "
+            "testing ideas together than either of you is on your own."
+        ),
+        "what_works": (
+            "Letting the doubt be a real question, not a rhetorical one. "
+            "The friction is the engine."
+        ),
+        "what_to_watch": (
+            "Premature answers close the loop before it's actually finished "
+            "forming. Let some questions stay open longer than feels "
+            "comfortable."
+        ),
+    },
+    "11-56": {
+        # Curiosity — ideas + storytelling.
+        "headline": "Ideas and stories travel back and forth here — and the best ones come out of motion",
+        "description": (
+            "You exchange ideas, framings, and stories with unusual ease. "
+            "Something one of you says triggers something in the other, "
+            "which triggers something back — and over time you accumulate a "
+            "private library of useful frames other people don't have "
+            "access to. What forms is a connection that thinks in stories."
+        ),
+        "what_works": (
+            "Letting the back-and-forth play out without rushing to a "
+            "conclusion. The metabolising is the value."
+        ),
+        "what_to_watch": (
+            "Curiosity without grounding can stay theoretical forever. "
+            "Land at least some of what you've talked about in something real."
+        ),
+    },
     # Default for channels without specific interpretation
     "default": {
         "headline": "There's a natural energetic completion between you",
