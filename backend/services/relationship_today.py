@@ -315,26 +315,36 @@ async def record_event(
             "extra":      extra or {},
             "ts":         datetime.now(timezone.utc),
         }
+        primary_payload = dict(doc)  # snapshot BEFORE motor mutates with _id
         await db[EVENT_COLLECTION].insert_one(doc)
+        # The primary write succeeded — never let derived events demote
+        # the success signal of the parent insert.
 
         # Derived revisit event — fires on the SECOND view of the same
         # pair on the same day. We treat this as the strongest passive
         # interest signal we can detect without notifications.
         if event == "today_card_viewed":
-            prior = await db[EVENT_COLLECTION].count_documents({
-                "event":     "today_card_viewed",
-                "anchor_id": anchor_id,
-                "target_id": target_id,
-                "date":      date_str,
-            })
-            # prior includes the doc we just inserted, so >1 means revisit
-            if prior > 1:
-                await db[EVENT_COLLECTION].insert_one({
-                    **doc,
-                    "event": "today_card_revisited_same_day",
-                    "extra": {**doc["extra"], "view_count": prior},
-                    "ts":    datetime.now(timezone.utc),
+            try:
+                prior = await db[EVENT_COLLECTION].count_documents({
+                    "event":     "today_card_viewed",
+                    "anchor_id": anchor_id,
+                    "target_id": target_id,
+                    "date":      date_str,
                 })
+                if prior > 1:
+                    revisit_doc = dict(primary_payload)
+                    revisit_doc["event"] = "today_card_revisited_same_day"
+                    revisit_doc["extra"] = {
+                        **(primary_payload.get("extra") or {}),
+                        "view_count": prior,
+                    }
+                    revisit_doc["ts"] = datetime.now(timezone.utc)
+                    await db[EVENT_COLLECTION].insert_one(revisit_doc)
+            except Exception as derived_e:
+                # Never surface derived-event failure to the caller.
+                logger.warning(
+                    f"[BetweenYouToday] revisit derive failed: {derived_e}"
+                )
         return True
     except Exception as e:
         logger.warning(f"[BetweenYouToday] event write failed ({event}): {e}")
