@@ -20,6 +20,7 @@ import {
   ChannelCompletion,
 } from '../../services/api';
 import { BUILD_ID, BUILD_AT } from '../../constants/buildMarker';
+import BetweenYouTodayCard from '../../components/BetweenYouTodayCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -279,6 +280,23 @@ export default function ForumMappingsScreen() {
             contentContainerStyle={styles.modalContent}
             showsVerticalScrollIndicator={false}
           >
+            {/* ============================================================
+                BETWEEN YOU TODAY — Relationship Timing Layer v1
+                Modulation card sits ABOVE the Relationship Field
+                architecture. Today is modulation; the field below is
+                architecture. The card silently no-ops if today's
+                envelope can't be computed.
+                ============================================================ */}
+            {user?.id && selectedMember?.member_id && forumId ? (
+              <BetweenYouTodayCard
+                forumId={forumId as string}
+                userId={user.id}
+                memberId={selectedMember.member_id}
+                memberName={selectedMember.member_name}
+                theme={theme}
+              />
+            ) : null}
+
             {useFieldLayout ? (
               <>
                 {/* ============================================================

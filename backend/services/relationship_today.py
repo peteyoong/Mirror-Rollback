@@ -167,8 +167,13 @@ async def _read_cache(db, key: str) -> Optional[Dict[str, Any]]:
         if not doc:
             return None
         expires_at = doc.get("expires_at")
-        if isinstance(expires_at, datetime) and expires_at < datetime.now(timezone.utc):
-            return None
+        if isinstance(expires_at, datetime):
+            # Mongo returns naive UTC datetimes; normalise so we don't blow up
+            # on naive-vs-aware comparison.
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if expires_at < datetime.now(timezone.utc):
+                return None
         return doc.get("payload")
     except Exception as e:
         logger.warning(f"[BetweenYouToday] cache read failed: {e}")

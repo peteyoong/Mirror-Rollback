@@ -1391,6 +1391,55 @@ export const getForumMemberSummary = async (
 };
 
 // =====================================================
+// BETWEEN YOU TODAY — Relationship Timing Layer v1
+// =====================================================
+
+export interface BetweenYouTodayProofLayer {
+  plain_english: string[];
+  technical: string[];
+}
+
+export interface BetweenYouToday {
+  version: string;
+  engine_version: string;
+  date: string;
+  intensity: 'low' | 'medium' | 'high';
+  hero: string;
+  activated_today: string[];
+  distortion_risk: string[];
+  softens_field: string[];
+  proof_layer: BetweenYouTodayProofLayer;
+  _meta?: Record<string, unknown>;
+  _cache_hit?: boolean;
+}
+
+export interface BetweenYouTodayResponse {
+  success: boolean;
+  today: BetweenYouToday | null;
+  error?: string;
+}
+
+export const getBetweenYouToday = async (
+  forumId: string,
+  userId: string,
+  memberId: string,
+  options?: { refresh?: boolean }
+): Promise<BetweenYouTodayResponse> => {
+  const response = await apiWithRetry.get(
+    `/forums/${forumId}/between-you-today`,
+    {
+      params: {
+        user_id: userId,
+        member_id: memberId,
+        ...(options?.refresh ? { refresh: true } : {}),
+        _cb: Date.now(),
+      },
+    }
+  );
+  return response.data;
+};
+
+// =====================================================
 // LIFE SYNTHESIS ENGINE (Phase 1a v1a2)
 // =====================================================
 

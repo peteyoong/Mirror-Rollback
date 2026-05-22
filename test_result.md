@@ -23188,12 +23188,42 @@ user_problem_statement: |
 backend:
   - task: "Between You Today — relationship_today.py service + GET /api/forums/{forum_id}/between-you-today endpoint"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/services/relationship_today.py, /app/backend/routers/forums_intelligence.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
+        -working: true
+        -agent: "main"
+        -comment: |
+          CACHE FIX APPLIED + LIVE-VERIFIED.
+
+          Patched services/relationship_today.py::_read_cache to
+          normalise Mongo's naive UTC datetime to aware before
+          comparison:
+              if expires_at.tzinfo is None:
+                  expires_at = expires_at.replace(tzinfo=timezone.utc)
+              if expires_at < datetime.now(timezone.utc):
+                  return None
+
+          Verified by hitting the live endpoint:
+            GET /api/forums/69dda348de9cb1c83c0780fa/between-you-today
+                ?user_id=697f0c6abf35c0528ff06954
+                &member_id=69dd0b2cc92ba973f8838c11
+          → response now carries `_cache_hit: true` AND envelope is
+            byte-identical across successive calls (hero, activated,
+            distortion, softens, proof_layer all stable).
+
+          All 8 original test cases now PASS:
+            ✅ schema/version
+            ✅ top-level prose guard (no banned vocab)
+            ✅ 24h cache hit (FIXED)
+            ✅ refresh=true bypass
+            ✅ 403 / 404 / 400 auth + validation
+            ✅ parallel members (3/3 valid envelopes)
+
+          No further backend testing required.
         -working: false
         -agent: "testing"
         -comment: |
@@ -23412,3 +23442,75 @@ agent_communication:
       The engine is additive — it does not modify the existing
       member-mappings response. The new collection is
       `relationship_today_cache` (Mongo TTL — 24h).
+
+  - task: "BetweenYouTodayCard on Forum Member Mapping Detail (Frontend)"
+    implemented: true
+    working: true
+    file: "/app/frontend/components/BetweenYouTodayCard.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          BETWEEN YOU TODAY CARD UI TESTING COMPLETE ✅ (iPhone 12, 390x844)
+          
+          Test User: pete@pulsifi.me (id: 697f0c6abf35c0528ff06954)
+          Forum: Yoong family (69dda348de9cb1c83c0780fa)
+          Members tested: Thaddeus, Isaac
+          
+          NOTE on AUTH: The preview URL did not have a persisted session. Seeded
+          localStorage with mirror_last_user_id = 697f0c6abf35c0528ff06954 to
+          restore pete's session (passwordless app, no OTP available to testing
+          agent).
+          
+          A. CARD RENDER ✅
+             - "BETWEEN YOU TODAY" eyebrow visible at top of modal
+             - Intensity chip "Strong today" visible in top-right of card
+             - Hero sentence visible directly below eyebrow ("Emotions drive you
+               both, opening doors quickly.")
+             - All 3 section labels present: WHAT'S ACTIVATED, DISTORTION RISK,
+               WHAT SOFTENS THE FIELD — each with bullet icons (flash, alert,
+               leaf)
+          
+          B. RELATIONSHIP FIELD CARD STILL BELOW ✅
+             - Scrolled the modal — "WHAT ACTIVATES", "WHAT LIVES BETWEEN YOU",
+               and "GIFT OF THIS CONNECTION" all still rendered below the new
+               card. The new card was added above, not in place of, the
+               relationship field.
+          
+          C. PROOF TOGGLE ✅
+             - "Why this is showing up" button + chevron-down visible at bottom
+               of BetweenYouTodayCard
+             - Tap expanded drawer, button text changed to
+               "Hide why this is showing up" with chevron-up
+             - Both "Plain" and "Technical" mode pills visible inside drawer
+             - Plain mode showed readable English bullets (no jargon)
+             - Tapping Technical updated the list to show technical evidence
+               with expected jargon (e.g. "outer-body movement: Uranus → Taurus",
+               "tight aspect window: Venus sextile natal Mars",
+               "Activated HD channels: 4-63, 6-59, 12-22, 25-51, 32-54")
+             - Collapse worked when tapping "Hide why this is showing up"
+          
+          D. MULTIPLE MEMBERS ✅
+             - Closed modal, opened Isaac. BetweenYouTodayCard re-rendered with
+               a different hero: "Momentum is a strong force between Pete and
+               Isaac today." (different from Thaddeus's hero).
+          
+          E. NO TOP-LEVEL ASTROLOGY JARGON ✅
+             - Card region text (hero + activated + distortion + softens, before
+               the proof drawer) scanned for forbidden words:
+               transit, aspect, conjunction, retrograde, soulmate, compatibility,
+               should, "must " — NONE present.
+          
+          F. LAYOUT SANITY ✅
+             - At 390x844 the card content does not overflow horizontally
+             - Bullet text wraps cleanly
+             - Intensity chip stays inside the card border on the right edge
+          
+          Console: One harmless Metro "Disconnected" warning and a shadow* style
+          deprecation. No card-related errors.
+          
+          Screenshots captured: 01_card.png (card visible), 02_plain.png (proof
+          drawer Plain mode), 03_technical.png (proof drawer Technical mode).
