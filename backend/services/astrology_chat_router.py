@@ -111,9 +111,13 @@ def classify_astrology_intent(message: str) -> Optional[Dict[str, Any]]:
     has_timeline = bool(_TIMELINE_RE.search(text))
 
     # ── transit_to_natal ───────────────────────────────────────────────
-    # Aspect verb + body + (transit_now OR no natal anchor) →
-    # we treat as transit-to-natal aspect query.
-    if has_aspect and body and (has_transit_now or not has_natal):
+    # Aspect verb + body → transit-to-natal aspect query.
+    # NOTE: when the user writes "my natal Sun" the natal flag turns True,
+    # but in aspect queries the "natal" anchor refers to the TARGET body
+    # (Sun), not the transiting subject (Uranus). So we ignore has_natal
+    # in this branch — the aspect verb itself is the strongest intent
+    # signal we can get. astro-chat-transit-grounding-v1
+    if has_aspect and body:
         return {
             "data_mode":     "transit_to_natal",
             "object":        body,
