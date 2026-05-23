@@ -25,6 +25,7 @@ import { FullChartData } from '../../services/astrology/astrologyTypes';
 import { getJournalEntriesByPhase, getJournalPatterns, JournalEntryResponseWithPhase, JournalPatternAnalysis } from '../../services/api';
 import { useAppStore } from '../../store';
 import { cleanText } from '../../utils/languageGuard';
+import GoverningChapterCard from '../GoverningChapterCard';
 
 // Backend URL resolution (same pattern AstrologyTodayV4 uses) — on web
 // we rely on the relative /api proxy, on native we use the absolute
@@ -697,6 +698,13 @@ export default function AstrologyTimelineTab({
           </Text>
         )}
       </View>
+
+      {/* TIMELINE V2 — Governing Life Chapter
+          Build marker: phase-architecture-v1a
+          The chapter card is the new gravitational center. Existing
+          year-theme / arc / phase cards still render below — they are
+          becoming subordinate, not removed. */}
+      {user?.id ? <GoverningChapterCard userId={user.id} /> : null}
 
       {/* Year Theme */}
       <View style={[styles.yearThemeCard, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.05)', borderColor: Colors.accent + '30' }]}>

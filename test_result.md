@@ -24607,3 +24607,153 @@ agent_communication:
         malformed inputs. No regressions on Certainty Pattern or
         Emotional Permeability. Multi-atom coexistence returns all 3
         atoms in declaration order. No source files modified.
+
+
+  - task: "Timeline V2 / Phase Architecture V1A — Governing Chapter Endpoint"
+    implemented: true
+    working: false
+    file: "/app/backend/services/phase_governor.py, /app/backend/services/chapter_library.py, /app/backend/routers/governing_chapter.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: |
+          PHASE ARCHITECTURE V1A — GET /api/timeline/governing-chapter/{user_id}
+          ====================================================================
+          Tested all 11 scenarios from review request via /app/backend_test.py
+          against the public preview URL. Synthetic charts cleaned up.
+          
+          Summary: 23 PASS / 6 FAIL across 29 assertions.
+          
+          ✅ PASSING (core architecture works):
+          - S1 (Pete): chapter_id="cost_of_keeping_the_peace",
+            title="The Cost Of Keeping The Peace", selection_mode=
+            "llm_from_shortlist", Cache-Control: no-store ✓,
+            build_marker="phase-architecture-v1a" ✓.
+          - S1 (Mel): chapter_id="cost_of_keeping_the_peace",
+            selection_mode="llm_from_shortlist".
+          - S1 (Achievement demo 6a111d24): shortlist=
+            [when_momentum_stops_working, cost_of_keeping_the_peace,
+             end_of_absorbing_everything]; chosen=when_momentum_stops_working
+            (llm pick).
+          - S2: 404 returned for unknown user id 000000…0099 with detail
+            "chart not found for user".
+          - S5 (LLM guardrail): seeded synthetic chart scored 2 chapters
+            above 1.0. Shortlist size=2; LLM picked cost_of_keeping_the_peace
+            (in shortlist), reason "It has the highest score and matches
+            more signals." (50 chars). proof.score=7.2 == shortlist score.
+            No invented chapter; guardrail confirmed.
+          - S8: Pete's signals_extracted contains all 4 required IDs:
+            astro_saturn_house_3_4_7, hd_channel_22, hd_channel_49,
+            hd_defined_heart (plus astro_saturn_hard_to_sun,
+            hd_defined_authority_center).
+          - S9: Title "The Cost Of Keeping The Peace" contains no forbidden
+            terms; body_visible has no "you must"/"you should" and len=264;
+            proof.internal_topics is an array.
+          - S10: /api/synthesis/atoms/{pete} still returns
+            Achievement-as-Stabilization atom — no regression from new
+            router registration.
+          - S11: Pete force-refresh and Mel non-force return distinct
+            payloads with distinct computed_at_iso timestamps — no cache
+            cross-contamination between users.
+          
+          ❌ FAILURES (with root-cause analysis):
+          
+          ❌ S3 cache_hit / S4 cache TTL reading:
+             Second call (without force_refresh) returns the cached payload
+             with the SAME computed_at_iso as the prior force-refresh, BUT
+             from_cache=False is returned.
+             ROOT CAUSE: services/phase_governor.py line ~427:
+               payload.setdefault("from_cache", True)
+             The originally-cached payload already contains
+             "from_cache": False (written at line 529 before caching).
+             setdefault() does NOT overwrite existing keys, so cached
+             responses are always reported as from_cache=False.
+             FIX (one-liner): change to `payload["from_cache"] = True`.
+             Note: caching itself works — the iso is preserved across calls
+             — only the `from_cache` flag is misreported.
+          
+          ❌ S6 fallback_no_score / S7 resilience:
+             For the sparse synthetic chart in S6 (defined_centers=["Ajna"],
+             no Saturn aspects, Saturn house 5, no gates 22/49) the endpoint
+             returns chapter_id="cost_of_keeping_the_peace" with score 2.0
+             and selection_mode="llm_from_shortlist" instead of the
+             expected "fallback_no_score" / "active_recalibration".
+             For S7 (entirely empty chart — no astrology, no human_design)
+             the endpoint again returns "cost_of_keeping_the_peace" with
+             selection_mode="llm_from_shortlist", not the fallback.
+             ROOT CAUSE: services/phase_governor.py — `_is_center_open()`
+             treats absent/empty defined_centers as "open everywhere".
+             With hd={} or defined_centers=["Ajna"], both Solar Plexus and
+             Throat are reported open, firing hd_open_solar_plexus (1.2)
+             and hd_open_throat (0.8) → cost_of_keeping_the_peace scores
+             2.0 ≥ MIN_SHORTLIST_SCORE (1.0), so the fallback path is
+             never reached.
+             This is a deterministic mis-extraction of signals from
+             missing data, not just a thresholding issue. Two reasonable
+             fixes (main agent to choose):
+               (a) Treat empty/missing defined_centers OR empty
+                   human_design payload as "no HD data available" and
+                   skip all hd_open_* signals.
+               (b) Require an explicit `defined_centers` list of length
+                   >= 1 (or non-None) before any `_is_center_open()` check
+                   evaluates to True.
+             Once this is corrected, both S6 and S7 will return
+             selection_mode="fallback_no_score" and the FALLBACK_CHAPTER.
+          
+          ARCHITECTURE OBSERVATIONS (informational only):
+          - LLM selection via Emergent LLM key (gpt-4o-mini) IS active —
+            backend logs show LiteLLM completions for every call and
+            selection_mode is "llm_from_shortlist" in all multi-shortlist
+            cases. Guardrail correctly rejects LLM picks outside the
+            shortlist (verified indirectly via S5 — LLM consistently
+            picked an in-shortlist id; code path lines 384-390 enforces
+            this).
+          - Caching writes to db.governing_chapter_cache successfully
+            (computed_at_iso preserved across non-force calls), but the
+            from_cache flag is misreported as noted above.
+          - signals_extracted is returned sorted and deduplicated.
+          - shortlist entries always carry {chapter_id, title, score,
+            matched_signals} as specified.
+          - proof.score matches the chosen chapter's shortlist score.
+          - Cache-Control: no-store is set on the JSONResponse.
+          
+          Cleanup: 3 synthetic chart docs (cross_lens_atoms_test_s5_user,
+          _s6_user, _s7_user) and their governing_chapter_cache entries
+          deleted via PyMongo before exit. No real user data touched.
+
+agent_communication:
+    - agent: "testing"
+      message: |
+        Phase Architecture V1A governing-chapter endpoint tested end-to-end
+        against the public preview URL. 23/29 assertions PASS. Core
+        functionality is sound (correct chapter resolution for Pete/Mel/
+        Achievement demo; LLM-pick guardrail honored; signal extraction
+        correct for real users; no regression on /api/synthesis/atoms).
+        
+        TWO BUGS to flag for main agent (both in
+        /app/backend/services/phase_governor.py — main agent owns the fix):
+        
+        1) `from_cache` flag misreported as False on cached reads.
+           Line ~427 uses `payload.setdefault("from_cache", True)` but the
+           originally-cached payload already contains "from_cache": False
+           (line 529), so setdefault is a no-op. Cached iso IS preserved
+           correctly, only the flag is wrong. ONE-LINE FIX:
+             payload["from_cache"] = True   # replace setdefault(...)
+        
+        2) Open-center signals fire on absent/empty HD data.
+           `_is_center_open()` returns True when defined_centers is None or
+           empty because of `not _is_center_defined(...)`. With an empty
+           chart, hd_open_solar_plexus (1.2) and hd_open_throat (0.8) both
+           fire, scoring cost_of_keeping_the_peace to 2.0 and bypassing the
+           fallback path. This breaks S6 (sparse chart expecting
+           fallback_no_score) and S7 (empty chart expecting fallback).
+           Suggested fix: guard `_is_center_open()` to require a non-empty
+           defined_centers list (or explicit HD payload presence) before
+           returning True.
+        
+        Both fixes are localized to services/phase_governor.py. No source
+        files were modified during testing. Synthetic test charts cleaned
+        up. YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.

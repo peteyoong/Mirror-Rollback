@@ -27678,6 +27678,19 @@ _cross_lens_atoms_router.register_cross_lens_atoms_routes(api_router, db)
 
 
 # =====================================================================
+# TIMELINE V2 — PHASE ARCHITECTURE V1A
+# Build marker: phase-architecture-v1a
+# Resolves the user's Governing Life Chapter (3-9 month phase) which
+# becomes the gravitational center of the new Astrology Timeline.
+# Today/transit cards become subordinate to the chapter in subsequent
+# phases (1B/1C); V1A only adds the chapter card without removing the
+# existing timeline content.
+# =====================================================================
+from routers import governing_chapter as _governing_chapter_router
+_governing_chapter_router.register_governing_chapter_routes(api_router, db)
+
+
+# =====================================================================
 # MIRROR CHAT route — moved to routers/mirror_chat.py
 # (server-router-refactor-v8 — behaviour preserving)
 # Routes attached:

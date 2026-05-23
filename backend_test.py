@@ -1,606 +1,425 @@
 """
-Backend test harness — Achievement-as-Stabilization atom
-(third detector in /app/backend/services/cross_lens_atoms.py)
+Backend tests for Timeline V2 / Phase Architecture V1A
+GET /api/timeline/governing-chapter/{user_id}
 """
-from __future__ import annotations
-
-import asyncio
 import os
-import sys
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
+import time
+import json
 import requests
-from motor.motor_asyncio import AsyncIOMotorClient
+from datetime import datetime, timezone
+from pymongo import MongoClient
 from dotenv import load_dotenv
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-BACKEND = os.path.join(HERE, "backend")
-load_dotenv(os.path.join(BACKEND, ".env"))
+load_dotenv("/app/backend/.env")
 
-BASE = "http://localhost:8001/api"
 MONGO_URL = os.environ["MONGO_URL"]
-DB_NAME = os.environ.get("DB_NAME", "test_database")
+DB_NAME = os.environ["DB_NAME"]
 
-SEED_PREFIX = "cross_lens_atoms_test_"
+# Public URL from frontend .env
+BASE = None
+with open("/app/frontend/.env") as f:
+    for line in f:
+        if line.startswith("EXPO_PUBLIC_BACKEND_URL"):
+            BASE = line.split("=", 1)[1].strip().strip('"')
+            break
+API = f"{BASE}/api"
+print(f"Using API base: {API}")
 
-PASS: List[str] = []
-FAIL: List[str] = []
+mongo = MongoClient(MONGO_URL)
+db = mongo[DB_NAME]
 
-
-def check(label: str, ok: bool, detail: str = "") -> None:
-    if ok:
-        PASS.append(label)
-        print(f"  PASS  {label}")
-    else:
-        FAIL.append(f"{label} :: {detail}")
-        print(f"  FAIL  {label} :: {detail}")
-
-
-def get_atoms(user_id: str) -> Dict[str, Any]:
-    r = requests.get(f"{BASE}/synthesis/atoms/{user_id}", timeout=15)
-    if r.status_code != 200:
-        return {"_status": r.status_code, "_body": r.text, "atom_count": -1, "atoms": []}
-    return r.json()
+PETE = "697f0c6abf35c0528ff06954"
+MEL = "697ec826ad4b18f75bf42616"
+ACHIEVE = "6a111d24328ffbb9b24c74cd"
+UNKNOWN = "000000000000000000000099"
 
 
-_db = None
+def ENDPOINT(uid, fr=False):
+    if fr:
+        return f"{API}/timeline/governing-chapter/{uid}?force_refresh=true"
+    return f"{API}/timeline/governing-chapter/{uid}"
 
 
-async def get_db():
-    global _db
-    if _db is None:
-        client = AsyncIOMotorClient(MONGO_URL)
-        _db = client[DB_NAME]
-    return _db
+results = {}
 
 
-async def seed_chart(suffix: str, chart_overrides: Dict[str, Any]) -> str:
-    db = await get_db()
-    uid = f"{SEED_PREFIX}{suffix}"
-    await db.charts.delete_many({"user_id": uid})
-    doc = {
-        "user_id":       uid,
-        "calculated_at": datetime.now(timezone.utc),
-        "debug_stamp":   {"migration": "synthetic_achievement_test"},
-        "human_design":  chart_overrides.get("human_design", {}),
-        "astrology":     chart_overrides.get("astrology", {}),
-        "numerology":    chart_overrides.get("numerology", {}),
-    }
-    await db.charts.insert_one(doc)
-    return uid
+def record(name, ok, detail=""):
+    results[name] = (ok, detail)
+    status = "PASS" if ok else "FAIL"
+    print(f"[{status}] {name}: {detail}")
 
 
-async def cleanup_synthetic() -> None:
-    db = await get_db()
-    res = await db.charts.delete_many({"user_id": {"$regex": f"^{SEED_PREFIX}"}})
-    print(f"[cleanup] deleted {res.deleted_count} synthetic chart docs")
-
-
-DEFAULT_PLANETS = {
-    "Sun":     {"sign": "Sagittarius", "degree":  3.0, "longitude": 243.0, "house":  9, "retrograde": False},
-    "Moon":    {"sign": "Aries",       "degree": 24.0, "longitude":  24.0, "house":  1, "retrograde": False},
-    "Mercury": {"sign": "Scorpio",     "degree": 12.0, "longitude": 222.0, "house":  8, "retrograde": False},
-    "Venus":   {"sign": "Capricorn",   "degree":  2.0, "longitude": 272.0, "house": 11, "retrograde": False},
-    "Mars":    {"sign": "Leo",         "degree": 18.0, "longitude": 138.0, "house":  5, "retrograde": False},
-    "Jupiter": {"sign": "Virgo",       "degree":  6.0, "longitude": 156.0, "house":  6, "retrograde": False},
-    "Saturn":  {"sign": "Libra",       "degree": 16.0, "longitude": 196.0, "house":  6, "retrograde": False},
-    "Uranus":  {"sign": "Scorpio",     "degree": 26.0, "longitude": 236.0, "house":  8, "retrograde": True},
-    "Neptune": {"sign": "Sagittarius", "degree": 22.0, "longitude": 262.0, "house":  9, "retrograde": True},
-    "Pluto":   {"sign": "Libra",       "degree": 22.0, "longitude": 202.0, "house":  9, "retrograde": True},
-}
-
-
-def mk_chart(
-    *,
-    hd: Optional[Dict[str, Any]] = None,
-    aspects: Optional[List[Dict[str, Any]]] = None,
-    planets_override: Optional[Dict[str, Dict[str, Any]]] = None,
-    numerology: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
-    hd_default = {
-        "defined_centers":   ["Throat", "G Center", "Sacral", "Spleen"],
-        "undefined_centers": ["Head", "Ajna", "Solar Plexus", "Root", "Ego"],
-        "defined_channels":  [],
-        "active_gates":      [],
-        "all_gates":         [],
-    }
-    if hd:
-        hd_default.update(hd)
-    planets = dict(DEFAULT_PLANETS)
-    if planets_override:
-        for k, v in planets_override.items():
-            planets[k] = v
-    astro = {
-        "planets": planets,
-        "aspects": aspects or [],
-        "houses":  {"system": "Equal", "ascendant": 20.0, "mc": 290.0},
-    }
-    return {"human_design": hd_default, "astrology": astro, "numerology": numerology or {}}
-
-
-def signals_labels(atom: Dict[str, Any]) -> List[str]:
-    return [s["label"] for s in atom.get("signals", [])]
-
-
-# S1
-def test_s1_real_users() -> None:
-    print("\n========== S1: Selectivity on real users ==========")
-    d = get_atoms("697f0c6abf35c0528ff06954")
-    check("S1.Pete returns 1 atom", d.get("atom_count") == 1, f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        check("S1.Pete atom_id == achievement_as_stabilization",
-              a.get("atom_id") == "achievement_as_stabilization", f"got {a.get('atom_id')}")
-        check("S1.Pete astro_kind == saturn_personal",
-              a.get("astro_kind") == "saturn_personal", f"got {a.get('astro_kind')}")
-
-    d = get_atoms("697ec826ad4b18f75bf42616")
-    check("S1.Mel atom_count == 0", d.get("atom_count") == 0,
-          f"atom_count={d.get('atom_count')} ids={[a.get('atom_id') for a in d.get('atoms',[])]}")
-
-    d = get_atoms("69dda348de9cb1c83c0780f8")
-    check("S1.Isaac atom_count == 0", d.get("atom_count") == 0,
-          f"atom_count={d.get('atom_count')}")
-
-    d = get_atoms("69dd0b2cc92ba973f8838c11")
-    check("S1.Thaddeus returns 1 atom", d.get("atom_count") == 1,
-          f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        check("S1.Thaddeus atom_id == achievement_as_stabilization",
-              a.get("atom_id") == "achievement_as_stabilization", f"got {a.get('atom_id')}")
-        check("S1.Thaddeus astro_kind == saturn_personal",
-              a.get("astro_kind") == "saturn_personal", f"got {a.get('astro_kind')}")
-
-
-# S2
-def test_s2_demo() -> None:
-    print("\n========== S2: Seeded achievement demo ==========")
-    d = get_atoms("6a111d24328ffbb9b24c74cd")
-    check("S2.demo atom_count == 1", d.get("atom_count") == 1,
-          f"atom_count={d.get('atom_count')}")
-    if not d.get("atoms"):
+def test_s2_404_unknown():
+    r = requests.get(ENDPOINT(UNKNOWN), timeout=30)
+    if r.status_code != 404:
+        record("S2_404_unknown_user", False, f"expected 404, got {r.status_code}: {r.text[:200]}")
         return
-    a = d["atoms"][0]
-    check("S2.demo atom_id", a.get("atom_id") == "achievement_as_stabilization",
-          f"got {a.get('atom_id')}")
-    labels = signals_labels(a)
-    expected = [
-        "Channel 21-45 — Authority",
-        "Defined Heart (Ego)",
-        "Mars Square Saturn (2.0°)",
-        "Life Path 8 (supporting)",
-    ]
-    check("S2.demo signal order matches exactly", labels == expected, f"got {labels}")
-    check("S2.demo astro_kind == mars_saturn",
-          a.get("astro_kind") == "mars_saturn", f"got {a.get('astro_kind')}")
-    check("S2.demo has_supporting True",
-          a.get("has_supporting") is True, f"got {a.get('has_supporting')}")
-    check("S2.demo matched == required == 4",
-          a.get("matched") == 4 and a.get("required") == 4,
-          f"matched={a.get('matched')} required={a.get('required')}")
-    check("S2.demo core_signals_required == 2",
-          a.get("core_signals_required") == 2, f"got {a.get('core_signals_required')}")
-    conf = a.get("confidence")
-    check("S2.demo confidence is float > 2.0",
-          isinstance(conf, (int, float)) and conf > 2.0, f"got {conf}")
-
-
-# S3
-async def test_s3_boundaries() -> None:
-    print("\n========== S3: Boundary variants ==========")
-
-    # (a)
-    uid = await seed_chart("s3a_hd_only", mk_chart(
-        hd={"defined_centers": ["Ego", "Throat"], "active_gates": [21], "all_gates": [21]},
-        aspects=[],
-    ))
-    d = get_atoms(uid)
-    check("S3.a HD-only blocks (no astro) -> 0", d.get("atom_count") == 0,
-          f"atom_count={d.get('atom_count')}")
-
-    # (b)
-    uid = await seed_chart("s3b_astro_only", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [], "all_gates": []},
-        aspects=[{"body1": "Mars", "body2": "Saturn", "type": "square", "orb": 2.0}],
-    ))
-    d = get_atoms(uid)
-    check("S3.b Astro-only blocks -> 0", d.get("atom_count") == 0,
-          f"atom_count={d.get('atom_count')}")
-
-    # (c)
-    uid = await seed_chart("s3c_satmerc_3_5", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [21], "all_gates": [21]},
-        aspects=[{"body1": "Saturn", "body2": "Mercury", "type": "square", "orb": 3.5}],
-    ))
-    d = get_atoms(uid)
-    check("S3.c Saturn-Mercury 3.5deg -> 0", d.get("atom_count") == 0,
-          f"atom_count={d.get('atom_count')}")
-
-    # (d)
-    uid = await seed_chart("s3d_satmerc_2", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [21], "all_gates": [21]},
-        aspects=[{"body1": "Saturn", "body2": "Mercury", "type": "square", "orb": 2.0}],
-    ))
-    d = get_atoms(uid)
-    check("S3.d Saturn-Mercury 2deg -> 1 atom", d.get("atom_count") == 1,
-          f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        check("S3.d astro_kind == saturn_mercury",
-              a.get("astro_kind") == "saturn_mercury", f"got {a.get('astro_kind')}")
-        check("S3.d signals length == 2", len(a.get("signals", [])) == 2,
-              f"len={len(a.get('signals', []))}")
-        labels = signals_labels(a)
-        check("S3.d signal[0] starts 'Gate 21'",
-              len(labels) >= 1 and labels[0].startswith("Gate 21"),
-              f"got {labels}")
-        check("S3.d signal[1] is Saturn-Mercury",
-              len(labels) >= 2 and "Saturn" in labels[1] and "Mercury" in labels[1],
-              f"got {labels}")
-        check("S3.d has_supporting False",
-              a.get("has_supporting") is False, f"got {a.get('has_supporting')}")
-        check("S3.d confidence <= 1.2",
-              a.get("confidence", 99) <= 1.2, f"got {a.get('confidence')}")
-
-    # (e)
-    uid = await seed_chart("s3e_satsun_4_5", mk_chart(
-        hd={
-            "defined_centers": ["Throat", "Sacral"],
-            "defined_channels": [{"gate1": 32, "gate2": 54}],
-            "active_gates": [32, 54], "all_gates": [32, 54],
-        },
-        aspects=[{"body1": "Saturn", "body2": "Sun", "type": "square", "orb": 4.5}],
-        numerology={"core": {"life_path": {"number": 4}}},
-    ))
-    d = get_atoms(uid)
-    check("S3.e Saturn-Sun 4.5 + ch32-54 + LP4 -> 1 atom",
-          d.get("atom_count") == 1, f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        labels = signals_labels(a)
-        expected = ["Channel 32-54 — Drive", "Saturn Square Sun (4.5°)", "Life Path 4 (supporting)"]
-        check("S3.e signal labels match (no Heart)", labels == expected, f"got {labels}")
-        check("S3.e astro_kind == saturn_personal",
-              a.get("astro_kind") == "saturn_personal", f"got {a.get('astro_kind')}")
-
-    # (f)
-    uid = await seed_chart("s3f_satsun_5_5", mk_chart(
-        hd={
-            "defined_centers": ["Throat", "Sacral"],
-            "defined_channels": [{"gate1": 32, "gate2": 54}],
-            "active_gates": [32, 54], "all_gates": [32, 54],
-        },
-        aspects=[{"body1": "Saturn", "body2": "Sun", "type": "square", "orb": 5.5}],
-    ))
-    d = get_atoms(uid)
-    check("S3.f Saturn-Sun 5.5deg (over tight cap) -> 0",
-          d.get("atom_count") == 0, f"atom_count={d.get('atom_count')}")
-
-    # (g) priority cascade
-    cap_planets = {
-        "Sun":     {"sign": "Capricorn", "house": 10, "degree": 5, "longitude": 275},
-        "Moon":    {"sign": "Capricorn", "house": 10, "degree": 6, "longitude": 276},
-        "Mercury": {"sign": "Capricorn", "house": 10, "degree": 7, "longitude": 277},
-        "Venus":   {"sign": "Capricorn", "house": 10, "degree": 8, "longitude": 278},
-        "Saturn":  {"sign": "Aries",     "house": 1,  "degree": 1, "longitude": 1},
-        "Mars":    {"sign": "Leo",       "house": 5,  "degree": 10, "longitude": 130},
-    }
-    uid = await seed_chart("s3g_priority", mk_chart(
-        hd={"defined_centers": ["Ego"], "active_gates": [21], "all_gates": [21]},
-        aspects=[
-            {"body1": "Mars",   "body2": "Saturn", "type": "opposition",  "orb": 5.0},
-            {"body1": "Saturn", "body2": "MC",     "type": "conjunction", "orb": 1.0},
-        ],
-        planets_override=cap_planets,
-    ))
-    d = get_atoms(uid)
-    check("S3.g priority cascade -> 1 atom",
-          d.get("atom_count") == 1, f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        check("S3.g astro_kind == mars_saturn",
-              a.get("astro_kind") == "mars_saturn", f"got {a.get('astro_kind')}")
-        astro_sig = next((s for s in a["signals"] if s["lens"] == "Astrology"), None)
-        check("S3.g astro label starts 'Mars Opposition Saturn'",
-              astro_sig is not None and astro_sig["label"].startswith("Mars Opposition Saturn"),
-              f"got {astro_sig and astro_sig.get('label')}")
-
-    # (h)
-    uid = await seed_chart("s3h_satmc", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [45], "all_gates": [45]},
-        aspects=[{"body1": "Saturn", "body2": "MC", "type": "square", "orb": 3.0}],
-        numerology={"core": {"life_path": {"number": 8}}},
-    ))
-    d = get_atoms(uid)
-    check("S3.h Saturn-MC -> 1 atom", d.get("atom_count") == 1,
-          f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        check("S3.h astro_kind == saturn_mc",
-              a.get("astro_kind") == "saturn_mc", f"got {a.get('astro_kind')}")
-        labels = signals_labels(a)
-        expected = ["Gate 45 — Gatherer", "Saturn Square MC (3.0°)", "Life Path 8 (supporting)"]
-        check("S3.h signal order/labels", labels == expected, f"got {labels}")
-
-    # (i)
-    uid = await seed_chart("s3i_marsmc", mk_chart(
-        hd={
-            "defined_centers": ["Throat", "Sacral"],
-            "defined_channels": [{"gate1": 21, "gate2": 45}],
-            "active_gates": [21, 45], "all_gates": [21, 45],
-        },
-        aspects=[{"body1": "Mars", "body2": "MC", "type": "conjunction", "orb": 4.0}],
-    ))
-    d = get_atoms(uid)
-    check("S3.i Mars-MC -> 1 atom", d.get("atom_count") == 1,
-          f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        check("S3.i astro_kind == mars_mc",
-              a.get("astro_kind") == "mars_mc", f"got {a.get('astro_kind')}")
-
-    # (j)
-    uid = await seed_chart("s3j_satangular", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [32], "all_gates": [32]},
-        aspects=[],
-        planets_override={"Saturn": {"sign": "Libra", "house": 4, "degree": 16, "longitude": 196}},
-    ))
-    d = get_atoms(uid)
-    check("S3.j Saturn angular -> 1 atom", d.get("atom_count") == 1,
-          f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        check("S3.j astro_kind == saturn_angular",
-              a.get("astro_kind") == "saturn_angular", f"got {a.get('astro_kind')}")
-        astro_sig = next((s for s in a["signals"] if s["lens"] == "Astrology"), None)
-        check("S3.j astro label == 'Saturn angular (house 4)'",
-              astro_sig is not None and astro_sig["label"] == "Saturn angular (house 4)",
-              f"got {astro_sig and astro_sig.get('label')}")
-
-    # (k)
-    cap_planets = {
-        "Sun":     {"sign": "Capricorn", "house": 6, "degree": 5},
-        "Moon":    {"sign": "Capricorn", "house": 6, "degree": 6},
-        "Mercury": {"sign": "Capricorn", "house": 6, "degree": 7},
-        "Venus":   {"sign": "Aquarius",  "house": 7, "degree": 8},
-        "Mars":    {"sign": "Leo",       "house": 11, "degree": 10},
-        "Saturn":  {"sign": "Libra",     "house": 6, "degree": 16},
-    }
-    uid = await seed_chart("s3k_capstellium", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [54], "all_gates": [54]},
-        aspects=[],
-        planets_override=cap_planets,
-    ))
-    d = get_atoms(uid)
-    check("S3.k Capricorn stellium -> 1 atom", d.get("atom_count") == 1,
-          f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        check("S3.k astro_kind == capricorn_stellium",
-              a.get("astro_kind") == "capricorn_stellium", f"got {a.get('astro_kind')}")
-        astro_sig = next((s for s in a["signals"] if s["lens"] == "Astrology"), None)
-        check("S3.k label == '3 personal planets in Capricorn'",
-              astro_sig is not None and astro_sig["label"] == "3 personal planets in Capricorn",
-              f"got {astro_sig and astro_sig.get('label')}")
-
-    # (l)
-    h10_planets = {
-        "Sun":     {"sign": "Aries",  "house": 10, "degree": 5},
-        "Moon":    {"sign": "Taurus", "house": 10, "degree": 6},
-        "Mercury": {"sign": "Aries",  "house": 10, "degree": 7},
-        "Venus":   {"sign": "Gemini", "house": 11, "degree": 8},
-        "Mars":    {"sign": "Leo",    "house": 5,  "degree": 10},
-        "Saturn":  {"sign": "Libra",  "house": 6,  "degree": 16},
-    }
-    uid = await seed_chart("s3l_h10stellium", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [21], "all_gates": [21]},
-        aspects=[],
-        planets_override=h10_planets,
-    ))
-    d = get_atoms(uid)
-    check("S3.l 10th-house stellium -> 1 atom", d.get("atom_count") == 1,
-          f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        check("S3.l astro_kind == tenth_house_stellium",
-              a.get("astro_kind") == "tenth_house_stellium", f"got {a.get('astro_kind')}")
-
-    # (m)
-    for variant_name, center in [("heart", "Heart"), ("will", "Will")]:
-        uid = await seed_chart(f"s3m_{variant_name}", mk_chart(
-            hd={"defined_centers": [center, "Throat"],
-                "defined_channels": [{"gate1": 21, "gate2": 45}],
-                "active_gates": [21, 45], "all_gates": [21, 45]},
-            aspects=[{"body1": "Mars", "body2": "Saturn", "type": "square", "orb": 2.0}],
-        ))
-        d = get_atoms(uid)
-        ok = d.get("atom_count") == 1
-        labels: List[str] = []
-        if ok:
-            a = d["atoms"][0]
-            labels = signals_labels(a)
-            ok = "Defined Heart (Ego)" in labels
-        check(f"S3.m '{center}' variant adds Defined Heart (Ego)", ok,
-              f"atom_count={d.get('atom_count')} labels={labels}")
-
-    # (n)
-    uid = await seed_chart("s3n_expr8", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [21], "all_gates": [21]},
-        aspects=[{"body1": "Mars", "body2": "Saturn", "type": "square", "orb": 2.0}],
-        numerology={"core": {"expression": {"number": 8}}},
-    ))
-    d = get_atoms(uid)
-    check("S3.n Expression 8 fallback -> 1 atom", d.get("atom_count") == 1,
-          f"atom_count={d.get('atom_count')}")
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        num_sig = next((s for s in a["signals"] if s["lens"] == "Numerology"), None)
-        check("S3.n numerology label == 'Expression 8 (supporting)'",
-              num_sig is not None and num_sig["label"] == "Expression 8 (supporting)",
-              f"got {num_sig and num_sig.get('label')}")
-
-    # (o) LP 4 wording
-    uid = await seed_chart("s3o_lp4_wording", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [21], "all_gates": [21]},
-        aspects=[{"body1": "Mars", "body2": "Saturn", "type": "square", "orb": 2.0}],
-        numerology={"core": {"life_path": {"number": 4}}},
-    ))
-    d = get_atoms(uid)
-    ok = False
-    msg = ""
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        num_sig = next((s for s in a["signals"] if s["lens"] == "Numerology"), None)
-        if num_sig:
-            ev = num_sig.get("evidence", "").lower()
-            ok = ("structure" in ev) and ("steady" in ev)
-            msg = ev
-    check("S3.o LP 4 evidence contains 'structure' and 'steady'", ok, msg)
-
-    # LP 8 wording
-    uid = await seed_chart("s3o_lp8_wording", mk_chart(
-        hd={"defined_centers": ["Throat"], "active_gates": [21], "all_gates": [21]},
-        aspects=[{"body1": "Mars", "body2": "Saturn", "type": "square", "orb": 2.0}],
-        numerology={"core": {"life_path": {"number": 8}}},
-    ))
-    d = get_atoms(uid)
-    ok = False
-    msg = ""
-    if d.get("atoms"):
-        a = d["atoms"][0]
-        num_sig = next((s for s in a["signals"] if s["lens"] == "Numerology"), None)
-        if num_sig:
-            ev = num_sig.get("evidence", "").lower()
-            ok = ("mastery" in ev) and ("material" in ev)
-            msg = ev
-    check("S3.o LP 8 evidence contains 'mastery' and 'material'", ok, msg)
-
-
-# S4
-async def test_s4_resilience() -> None:
-    print("\n========== S4: Resilience ==========")
-    db = await get_db()
-
-    uid = await seed_chart("s4_empty_hd", {"human_design": {},
-        "astrology": {"planets": DEFAULT_PLANETS, "aspects": []}, "numerology": {}})
-    d = get_atoms(uid)
-    check("S4 empty human_design -> 200, atoms=[]",
-          d.get("atom_count") == 0 and isinstance(d.get("atoms"), list),
-          f"resp={d}")
-
-    uid = await seed_chart("s4_no_aspects", mk_chart(
-        hd={"defined_centers": ["Ego"], "active_gates": [21], "all_gates": [21]},
-    ))
-    await db.charts.update_one({"user_id": uid}, {"$unset": {"astrology.aspects": ""}})
-    d = get_atoms(uid)
-    check("S4 missing aspects -> 200, no 500",
-          isinstance(d.get("atoms"), list), f"resp={d}")
-
-    uid = await seed_chart("s4_no_planets", mk_chart(
-        hd={"defined_centers": ["Ego"], "active_gates": [21], "all_gates": [21]},
-    ))
-    await db.charts.update_one({"user_id": uid}, {"$unset": {"astrology.planets": ""}})
-    d = get_atoms(uid)
-    check("S4 missing planets -> 200",
-          isinstance(d.get("atoms"), list), f"resp={d}")
-
-    uid = await seed_chart("s4_malformed_ch", mk_chart(
-        hd={
-            "defined_centers": ["Ego"],
-            "defined_channels": [{"gate1": "abc", "gate2": 45}, {"gate1": 21, "gate2": "xyz"}],
-            "active_gates": [], "all_gates": [],
-        },
-        aspects=[],
-    ))
-    d = get_atoms(uid)
-    check("S4 malformed channels -> 200",
-          isinstance(d.get("atoms"), list), f"resp={d}")
-
-    uid = await seed_chart("s4_no_num", mk_chart(
-        hd={"defined_centers": ["Ego"], "active_gates": [21], "all_gates": [21]},
-        aspects=[{"body1": "Mars", "body2": "Saturn", "type": "square", "orb": 2.0}],
-        numerology=None,
-    ))
-    d = get_atoms(uid)
-    check("S4 missing numerology -> 200",
-          isinstance(d.get("atoms"), list), f"resp={d}")
-
-
-# S5
-def test_s5_regression() -> None:
-    print("\n========== S5: Regression on prior atoms ==========")
-    d = get_atoms("6a110c549ea9d4f6f4e1e961")
-    ok = (d.get("atom_count") == 1
-          and d.get("atoms", [{}])[0].get("atom_id") == "certainty_pattern")
-    check("S5.certainty.demo -> 1 atom: certainty_pattern", ok,
-          f"atom_count={d.get('atom_count')} ids={[a.get('atom_id') for a in d.get('atoms',[])]}")
-
-    d = get_atoms("6a111013f662cf2da04a389c")
-    ok = (d.get("atom_count") == 1
-          and d.get("atoms", [{}])[0].get("atom_id") == "emotional_permeability")
-    check("S5.permeability.demo -> 1 atom: emotional_permeability", ok,
-          f"atom_count={d.get('atom_count')} ids={[a.get('atom_id') for a in d.get('atoms',[])]}")
-
-
-# S6
-async def test_s6_multi() -> None:
-    print("\n========== S6: Multi-atom coexistence ==========")
-    hd = {
-        "defined_centers":   ["Ajna", "Ego", "Throat", "G Center", "Sacral"],
-        "undefined_centers": ["Head", "Solar Plexus", "Spleen", "Root"],
-        "defined_channels": [
-            {"gate1": 21, "gate2": 45},
-            {"gate1": 6,  "gate2": 59},
-        ],
-        "active_gates": [4, 63, 21, 45, 6, 59],
-        "all_gates":    [4, 63, 21, 45, 6, 59],
-    }
-    aspects = [
-        {"body1": "Mercury", "body2": "Saturn",  "type": "square", "orb": 2.0},
-        {"body1": "Moon",    "body2": "Neptune", "type": "square", "orb": 2.0},
-        {"body1": "Mars",    "body2": "Saturn",  "type": "square", "orb": 2.0},
-    ]
-    uid = await seed_chart("s6_multi", mk_chart(
-        hd=hd,
-        aspects=aspects,
-        numerology={"core": {"life_path": {"number": 7}}},
-    ))
-    d = get_atoms(uid)
-    check("S6 atom_count == 3", d.get("atom_count") == 3,
-          f"atom_count={d.get('atom_count')} ids={[a.get('atom_id') for a in d.get('atoms',[])]}")
-    ids = [a.get("atom_id") for a in d.get("atoms", [])]
-    expected_order = ["certainty_pattern", "emotional_permeability", "achievement_as_stabilization"]
-    check("S6 atoms in declaration order", ids == expected_order, f"got {ids}")
-
-
-async def main() -> None:
-    print("=" * 70)
-    print("Achievement-as-Stabilization atom — backend test suite")
-    print(f"BASE = {BASE}")
-    print(f"DB   = {DB_NAME}")
-    print("=" * 70)
     try:
-        test_s1_real_users()
-        test_s2_demo()
-        await test_s3_boundaries()
-        await test_s4_resilience()
-        test_s5_regression()
-        await test_s6_multi()
-    finally:
-        await cleanup_synthetic()
+        body = r.json()
+        if "chart not found" in str(body.get("detail", "")).lower():
+            record("S2_404_unknown_user", True, f"detail={body.get('detail')}")
+        else:
+            record("S2_404_unknown_user", False, f"detail mismatch: {body}")
+    except Exception as e:
+        record("S2_404_unknown_user", False, f"json parse: {e}")
 
-    print("\n" + "=" * 70)
-    print(f"PASSED: {len(PASS)}")
-    print(f"FAILED: {len(FAIL)}")
-    if FAIL:
-        print("\nFAILURES:")
-        for f in FAIL:
-            print(f"  - {f}")
-    print("=" * 70)
-    sys.exit(0 if not FAIL else 1)
+
+def test_s1_pete():
+    r = requests.get(ENDPOINT(PETE, fr=True), timeout=60)
+    if r.status_code != 200:
+        record("S1_pete", False, f"status {r.status_code}: {r.text[:200]}")
+        return None
+    data = r.json()
+    cache_control = r.headers.get("cache-control", "")
+    if "no-store" not in cache_control.lower():
+        record("S1_pete_cache_control", False, f"Cache-Control missing no-store: {cache_control!r}")
+    else:
+        record("S1_pete_cache_control", True, "Cache-Control: no-store present")
+
+    if data.get("build_marker") != "phase-architecture-v1a":
+        record("S1_pete_build_marker", False, f"got {data.get('build_marker')}")
+    else:
+        record("S1_pete_build_marker", True, "phase-architecture-v1a")
+
+    ch = data.get("chapter") or {}
+    chid = ch.get("chapter_id")
+    title = ch.get("title")
+    sel = data.get("selection_mode")
+    sl_ids = [c.get("chapter_id") for c in (data.get("shortlist") or [])]
+    if chid != "cost_of_keeping_the_peace":
+        record("S1_pete_chapter_id", False, f"expected cost_of_keeping_the_peace, got {chid}; mode={sel}; shortlist={sl_ids}")
+    else:
+        record("S1_pete_chapter_id", True, f"{chid} (mode={sel})")
+    if title != "The Cost Of Keeping The Peace":
+        record("S1_pete_title", False, f"got {title!r}")
+    else:
+        record("S1_pete_title", True, title)
+    if sel not in ("llm_from_shortlist", "deterministic_top1"):
+        record("S1_pete_selection_mode", False, f"unexpected: {sel}")
+    else:
+        record("S1_pete_selection_mode", True, sel)
+    return data
+
+
+def test_s1_mel():
+    r = requests.get(ENDPOINT(MEL, fr=True), timeout=60)
+    if r.status_code != 200:
+        record("S1_mel", False, f"status {r.status_code}: {r.text[:200]}")
+        return
+    data = r.json()
+    chid = (data.get("chapter") or {}).get("chapter_id")
+    sel = data.get("selection_mode")
+    sl_ids = [c.get("chapter_id") for c in (data.get("shortlist") or [])]
+    if chid != "cost_of_keeping_the_peace":
+        record("S1_mel_chapter_id", False, f"expected cost_of_keeping_the_peace, got {chid}; mode={sel}; shortlist={sl_ids}")
+    else:
+        record("S1_mel_chapter_id", True, f"{chid} (mode={sel})")
+
+
+def test_s1_achievement():
+    r = requests.get(ENDPOINT(ACHIEVE), timeout=60)
+    if r.status_code != 200:
+        record("S1_achievement", False, f"status {r.status_code}: {r.text[:200]}")
+        return
+    data = r.json()
+    sl = data.get("shortlist") or []
+    chosen = (data.get("chapter") or {}).get("chapter_id")
+    if len(sl) < 1 and data.get("selection_mode") != "fallback_no_score":
+        record("S1_achievement_shortlist", False, f"shortlist empty without fallback; mode={data.get('selection_mode')}")
+    else:
+        record("S1_achievement_shortlist", True, f"size={len(sl)} ids={[c.get('chapter_id') for c in sl]}; chosen={chosen}; from_cache={data.get('from_cache')}")
+
+
+def test_s3_s4_caching():
+    r1 = requests.get(ENDPOINT(PETE, fr=True), timeout=60)
+    if r1.status_code != 200:
+        record("S3_caching", False, f"first force-refresh failed: {r1.status_code}")
+        return
+    d1 = r1.json()
+    iso1 = d1.get("computed_at_iso")
+    if d1.get("from_cache") is True:
+        record("S3_force_refresh_not_cached", False, f"force_refresh returned from_cache=true: {iso1}")
+    else:
+        record("S3_force_refresh_not_cached", True, f"computed_at_iso={iso1}, from_cache={d1.get('from_cache')}")
+
+    time.sleep(1)
+    r2 = requests.get(ENDPOINT(PETE), timeout=60)
+    d2 = r2.json()
+    iso2 = d2.get("computed_at_iso")
+    if d2.get("from_cache") is True and iso2 == iso1:
+        record("S3_cache_hit", True, f"from_cache=True, iso preserved={iso2}")
+    else:
+        record("S3_cache_hit", False, f"from_cache={d2.get('from_cache')}, iso1={iso1}, iso2={iso2}")
+
+    time.sleep(2)
+    r3 = requests.get(ENDPOINT(PETE, fr=True), timeout=60)
+    d3 = r3.json()
+    iso3 = d3.get("computed_at_iso")
+    if d3.get("from_cache") is True:
+        record("S3_force_refresh_again_not_cached", False, "from_cache=true unexpectedly")
+    else:
+        record("S3_force_refresh_again_not_cached", True, "from_cache=False")
+    if iso3 and iso3 != iso1:
+        record("S3_force_refresh_new_iso", True, f"new iso {iso3} != {iso1}")
+    else:
+        record("S3_force_refresh_new_iso", False, f"iso did not change: {iso1} vs {iso3}")
+
+    time.sleep(1)
+    r4 = requests.get(ENDPOINT(PETE), timeout=60)
+    d4 = r4.json()
+    if d4.get("from_cache") is True and d4.get("computed_at_iso") == iso3:
+        chid_match = (d4.get("chapter") or {}).get("chapter_id") == (d3.get("chapter") or {}).get("chapter_id")
+        record("S4_cache_ttl_force_isolation", chid_match, f"iso={d4.get('computed_at_iso')}, chid_match={chid_match}")
+    else:
+        record("S4_cache_ttl_force_isolation", False, f"from_cache={d4.get('from_cache')} iso={d4.get('computed_at_iso')} vs {iso3}")
+
+    return d3
+
+
+SYNTHETIC_S5 = "cross_lens_atoms_test_s5_user"
+
+
+def seed_s5_chart():
+    chart = {
+        "user_id": SYNTHETIC_S5,
+        "human_design": {
+            "defined_centers": ["Ajna", "Head"],
+            "active_gates": [22, 49],
+        },
+        "astrology": {
+            "planets": {
+                "Saturn": {"house": 3, "sign": "Aries"},
+                "Moon":   {"house": 5, "sign": "Cancer"},
+            },
+            "aspects": [
+                {"body1": "Saturn", "body2": "Moon",    "type": "square"},
+                {"body1": "Saturn", "body2": "Venus",   "type": "opposition"},
+                {"body1": "Saturn", "body2": "Mercury", "type": "conjunction"},
+            ],
+        },
+    }
+    db.charts.replace_one({"user_id": SYNTHETIC_S5}, chart, upsert=True)
+
+
+def test_s5_guardrail():
+    seed_s5_chart()
+    db.governing_chapter_cache.delete_one({"user_id": SYNTHETIC_S5})
+    r = requests.get(ENDPOINT(SYNTHETIC_S5, fr=True), timeout=60)
+    if r.status_code != 200:
+        record("S5_guardrail", False, f"status {r.status_code}: {r.text[:300]}")
+        return
+    data = r.json()
+    sl = data.get("shortlist") or []
+    sl_ids = [c["chapter_id"] for c in sl]
+    if not (2 <= len(sl) <= 3):
+        record("S5_shortlist_size", False, f"len={len(sl)} ids={sl_ids}")
+    else:
+        record("S5_shortlist_size", True, f"size={len(sl)} ids={sl_ids}")
+    chosen_id = (data.get("chapter") or {}).get("chapter_id")
+    if chosen_id not in sl_ids:
+        record("S5_chosen_in_shortlist", False, f"chosen={chosen_id} not in {sl_ids}")
+    else:
+        record("S5_chosen_in_shortlist", True, f"chosen={chosen_id}")
+    mode = data.get("selection_mode")
+    reason = data.get("selection_reason")
+    if mode == "llm_from_shortlist":
+        if reason and isinstance(reason, str) and 0 < len(reason) < 250:
+            record("S5_selection_reason", True, f"len={len(reason)} reason={reason!r}")
+        else:
+            record("S5_selection_reason", False, f"reason invalid: {reason!r}")
+    else:
+        record("S5_selection_reason", True, f"mode={mode} (skipped)")
+    proof_score = (data.get("proof") or {}).get("score")
+    sl_score = next((c["score"] for c in sl if c["chapter_id"] == chosen_id), None)
+    if proof_score == sl_score:
+        record("S5_proof_score_matches", True, f"score={proof_score}")
+    else:
+        record("S5_proof_score_matches", False, f"proof.score={proof_score} != shortlist={sl_score}")
+
+
+SYNTHETIC_S6 = "cross_lens_atoms_test_s6_user"
+
+
+def seed_s6_chart():
+    chart = {
+        "user_id": SYNTHETIC_S6,
+        "human_design": {
+            "defined_centers": ["Ajna"],
+            "active_gates": [1, 2, 3],
+        },
+        "astrology": {
+            "planets": {
+                "Saturn": {"house": 5, "sign": "Leo"},
+                "Moon":   {"house": 8, "sign": "Pisces"},
+            },
+            "aspects": [],
+        },
+        "numerology": {},
+    }
+    db.charts.replace_one({"user_id": SYNTHETIC_S6}, chart, upsert=True)
+
+
+def test_s6_fallback():
+    seed_s6_chart()
+    db.governing_chapter_cache.delete_one({"user_id": SYNTHETIC_S6})
+    r = requests.get(ENDPOINT(SYNTHETIC_S6, fr=True), timeout=60)
+    if r.status_code != 200:
+        record("S6_fallback", False, f"status {r.status_code}: {r.text[:300]}")
+        return
+    data = r.json()
+    if data.get("selection_mode") != "fallback_no_score":
+        record("S6_selection_mode", False, f"got {data.get('selection_mode')}; signals={data.get('signals_extracted')}; shortlist={data.get('shortlist')}")
+    else:
+        record("S6_selection_mode", True, "fallback_no_score")
+    chid = (data.get("chapter") or {}).get("chapter_id")
+    if chid != "active_recalibration":
+        record("S6_chapter_id", False, f"got {chid}")
+    else:
+        record("S6_chapter_id", True, chid)
+    score = (data.get("proof") or {}).get("score")
+    if score != 0.0:
+        record("S6_proof_score_zero", False, f"got {score}")
+    else:
+        record("S6_proof_score_zero", True, "0.0")
+    sl = data.get("shortlist")
+    record("S6_shortlist", True, f"shortlist={sl}")
+
+
+SYNTHETIC_S7 = "cross_lens_atoms_test_s7_user"
+
+
+def seed_s7_chart():
+    chart = {"user_id": SYNTHETIC_S7}
+    db.charts.replace_one({"user_id": SYNTHETIC_S7}, chart, upsert=True)
+
+
+def test_s7_resilience():
+    seed_s7_chart()
+    db.governing_chapter_cache.delete_one({"user_id": SYNTHETIC_S7})
+    try:
+        r = requests.get(ENDPOINT(SYNTHETIC_S7, fr=True), timeout=60)
+    except Exception as e:
+        record("S7_resilience", False, f"request error: {e}")
+        return
+    if r.status_code != 200:
+        record("S7_resilience", False, f"status {r.status_code}: {r.text[:300]}")
+        return
+    data = r.json()
+    chid = (data.get("chapter") or {}).get("chapter_id")
+    if chid == "active_recalibration":
+        record("S7_resilience", True, f"200 with fallback; mode={data.get('selection_mode')}")
+    else:
+        record("S7_resilience", False, f"200 but chapter={chid}")
+
+
+def test_s8_signals(pete_data):
+    if not pete_data:
+        r = requests.get(ENDPOINT(PETE), timeout=60)
+        pete_data = r.json()
+    sigs = set(pete_data.get("signals_extracted") or [])
+    required = {"astro_saturn_house_3_4_7", "hd_channel_22", "hd_channel_49", "hd_defined_heart"}
+    missing = required - sigs
+    if missing:
+        record("S8_signals_extracted", False, f"missing: {missing}; got: {sorted(sigs)}")
+    else:
+        record("S8_signals_extracted", True, f"all 4 present; total={len(sigs)}: {sorted(sigs)}")
+
+
+def test_s9_tone(pete_data):
+    if not pete_data:
+        r = requests.get(ENDPOINT(PETE), timeout=60)
+        pete_data = r.json()
+    ch = pete_data.get("chapter") or {}
+    title = ch.get("title") or ""
+    body = ch.get("body_visible") or ""
+    forbidden = ["communication", "house", "vedic", "jyotish", "transit", "ascendant"]
+    title_v = [t for t in forbidden if t in title.lower()]
+    if title_v:
+        record("S9_title_clean", False, f"violations: {title_v}; title={title!r}")
+    else:
+        record("S9_title_clean", True, title)
+    bv = [t for t in ("you must", "you should") if t in body.lower()]
+    if bv:
+        record("S9_body_no_prescriptive", False, f"found: {bv}")
+    else:
+        record("S9_body_no_prescriptive", True, "ok")
+    if len(body) < 100:
+        record("S9_body_length", False, f"len={len(body)}")
+    else:
+        record("S9_body_length", True, f"len={len(body)}")
+    topics = (pete_data.get("proof") or {}).get("internal_topics")
+    if isinstance(topics, list):
+        record("S9_internal_topics_array", True, f"{topics}")
+    else:
+        record("S9_internal_topics_array", False, f"type={type(topics).__name__}")
+
+
+def test_s10_regression():
+    r = requests.get(f"{API}/synthesis/atoms/{PETE}", timeout=60)
+    if r.status_code != 200:
+        record("S10_atoms_regression", False, f"status {r.status_code}: {r.text[:200]}")
+        return
+    data = r.json()
+    atoms = data.get("atoms") or []
+    atom_ids = [a.get("atom_id") for a in atoms]
+    titles = [a.get("title", "") for a in atoms]
+    blob = " ".join(str(x) for x in atom_ids + titles).lower()
+    if "achievement" in blob and "stabil" in blob:
+        record("S10_atoms_regression", True, f"Achievement-as-Stabilization found; total atoms={len(atoms)}")
+    else:
+        record("S10_atoms_regression", False, f"atom_ids={atom_ids}, titles={titles}")
+
+
+def test_s11_cache_isolation():
+    rp = requests.get(ENDPOINT(PETE, fr=True), timeout=60)
+    dp = rp.json()
+    pete_chid = (dp.get("chapter") or {}).get("chapter_id")
+    pete_iso = dp.get("computed_at_iso")
+    rm = requests.get(ENDPOINT(MEL), timeout=60)
+    dm = rm.json()
+    mel_chid = (dm.get("chapter") or {}).get("chapter_id")
+    mel_iso = dm.get("computed_at_iso")
+    if mel_iso == pete_iso:
+        record("S11_cache_isolation", False, f"Mel iso == Pete iso ({mel_iso}) — cache leak")
+    else:
+        record("S11_cache_isolation", True, f"Pete({pete_chid},{pete_iso}); Mel({mel_chid},{mel_iso})")
+
+
+def cleanup():
+    for uid in (SYNTHETIC_S5, SYNTHETIC_S6, SYNTHETIC_S7):
+        db.charts.delete_one({"user_id": uid})
+        db.governing_chapter_cache.delete_one({"user_id": uid})
+    print("Cleanup complete: synthetic charts removed.")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    print("=" * 80)
+    print("Timeline V2 / Phase Architecture V1A Backend Tests")
+    print("=" * 80)
+
+    try:
+        test_s2_404_unknown()
+        pete_data = test_s1_pete()
+        test_s1_mel()
+        test_s1_achievement()
+        test_s3_s4_caching()
+        test_s5_guardrail()
+        test_s6_fallback()
+        test_s7_resilience()
+        rp = requests.get(ENDPOINT(PETE), timeout=60)
+        rp_data = rp.json() if rp.status_code == 200 else {}
+        test_s8_signals(rp_data)
+        test_s9_tone(rp_data)
+        test_s10_regression()
+        test_s11_cache_isolation()
+    finally:
+        cleanup()
+
+    print("\n" + "=" * 80)
+    print("SUMMARY")
+    print("=" * 80)
+    passed = sum(1 for ok, _ in results.values() if ok)
+    failed = sum(1 for ok, _ in results.values() if not ok)
+    for name, (ok, detail) in results.items():
+        print(f"  [{'PASS' if ok else 'FAIL'}] {name}")
+    print(f"\nTotal: {passed} passed, {failed} failed out of {len(results)}")
