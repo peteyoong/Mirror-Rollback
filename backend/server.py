@@ -32148,7 +32148,7 @@ async def run_startup_data_migrations():
                           "source": "inferred"},
         },
         {
-            "emails": ["mel@test.com", "melissa.mars@gmail.com"],
+            "emails": ["mel@test.com", "melissa.mars@gmail.com", "mel@pulsifi.me"],
             "names": ["Mel", "Melissa", "Melissa Mars"],
             "enneagram": {"inferred_core": 3, "inferred_wing": 4, "confidence": 0.85, "confidence_tier": "high",
                           "enneagram_computed_details": {"center": "heart", "hornevian_group": "assertive", "harmonic_group": "competency"},
