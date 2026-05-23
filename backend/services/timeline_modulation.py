@@ -86,25 +86,30 @@ _ARC_TO_BIAS: Dict[str, str] = {
 # Lines are intentionally HORIZONTAL (no chapter reference, no slogan).
 # ---------------------------------------------------------------------------
 THREAD_LINES_BY_FAMILY: Dict[str, List[str]] = {
+    # Tone target (per product owner):
+    #   atmospheric, observational, soft-modal ("may", "seems to", "today").
+    #   NEVER: directive ("notice where..."), gnomic profundity, chapter-quoting,
+    #   therapy/coaching cadence, or Mirror-system fingerprints.
+    #   These read as weather coloration, not as system narration.
     "emotional_permeability": [
-        "What gets absorbed today without being named will still be carried tomorrow.",
-        "Small relational moments may register more weight than they appear to.",
-        "Notice where smoothing the room is happening before you choose it.",
-        "The cost of holding the peace continues to accumulate quietly underneath.",
-        "Some of what arrives today belongs to someone else's emotional state, not yours.",
+        "The emotional cost of smoothing things over may feel harder to ignore today.",
+        "Something about today seems to amplify what's being absorbed without being said.",
+        "Small relational currents may register more weight than they usually do.",
+        "The room's mood may sit closer to the skin than usual today.",
+        "What gets carried quietly for others may feel less invisible than usual.",
     ],
     "cognitive_recursion": [
-        "The thinking that protected you isn't doing new work today — just the same work louder.",
-        "Refinement is asking to be re-examined as a category.",
-        "The small decisions in front of you may not need the certainty you're asking them to wait for.",
-        "Pre-deciding is starting to feel like the deciding.",
-        "The question is being used as cover for the move.",
+        "Something about today keeps pulling the mind back toward unfinished conclusions.",
+        "The pull toward one more reassurance may feel louder than usual.",
+        "Refining a decision may feel harder to distinguish from delaying it today.",
+        "Today's small decisions may not need the precision the mind is asking for.",
+        "The pre-deciding may be doing more of the actual work than the deciding.",
     ],
     "achievement_axis": [
-        "Effort and progress aren't tracking together right now. Read the gap directly.",
-        "Output isn't the variable today. Recovery is.",
-        "What you're calling momentum may already be inertia.",
-        "Stopping briefly will give you more useful information than continuing.",
+        "The gap between effort and actual replenishment may feel more visible than usual.",
+        "Movement and progress may not be tracking together today.",
+        "Today's pace may be borrowing more energy than it's returning.",
+        "What feels like momentum may register a little differently underneath.",
     ],
 }
 

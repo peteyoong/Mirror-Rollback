@@ -37,6 +37,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '../services/api';
+import TimelineWhisper, { TimelineModulation } from './TimelineWhisper';
 
 // ============================================
 // Types
@@ -97,6 +98,7 @@ interface HomeV6Payload {
     signal_conflict?: boolean;
     house_clusters?: Array<{ house: number; bodies: string[] }>;
   };
+  timeline_modulation?: TimelineModulation;
   generated_at?: string;
 }
 
@@ -241,6 +243,11 @@ const HomeInsightV6Card: React.FC<HomeV6CardProps> = ({
           {data.the_reality}
         </Text>
       ) : null}
+
+      {/* TIMELINE WHISPER — atmospheric coloration only on HIGH modulation. */}
+      {/* Sits between The Reality and Where This Lands — soft weather       */}
+      {/* between the body and the situational landing.                       */}
+      <TimelineWhisper modulation={data.timeline_modulation} theme={theme} placement="spaced" />
 
       {/* SECTION 2b — TIMING COMPRESSION ("why now") */}
       {/* Single-line subtle insertion. No label, no divider, slightly */}

@@ -31,6 +31,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { InsightCardFooter } from '../InsightCardFooter';
+import TimelineWhisper, { TimelineModulation } from '../TimelineWhisper';
 
 interface TimeLayer {
   today?: string;
@@ -139,6 +140,7 @@ interface AstrologyTodayV4Data {
     has_divergence?: boolean;
     divergent_bodies?: { body: string; zodiac_sign: string; constellation: string }[];
   };
+  timeline_modulation?: TimelineModulation;
 }
 
 interface AstrologyTodayV4Props {
@@ -525,6 +527,11 @@ const AstrologyTodayV4: React.FC<AstrologyTodayV4Props> = ({ userId, theme, onRe
             <Text style={[styles.paragraphText, { color: theme.text }]}>{data.whats_happening}</Text>
           </View>
         )}
+
+        {/* TIMELINE WHISPER — atmospheric coloration only on HIGH modulation. */}
+        {/* No chapter name, no badge, never narrates. Single low-contrast    */}
+        {/* italic line that sits below the main paragraph as soft weather.    */}
+        <TimelineWhisper modulation={data.timeline_modulation} theme={theme} placement="inline" />
 
         {/* HOW IT SHOWS UP */}
         {data.how_it_shows_up?.length > 0 && (
