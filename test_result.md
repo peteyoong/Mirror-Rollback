@@ -24229,7 +24229,7 @@ backend:
 frontend:
   - task: "Echo Across Systems card on Lifeline tab"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/components/EchoAcrossSystems.tsx"
     stuck_count: 0
     priority: "medium"
@@ -24255,3 +24255,42 @@ frontend:
 
           Frontend test deferred — will only ask user permission before
           running expo_frontend_testing_agent.
+      - working: true
+        agent: "testing"
+        comment: |
+          FRONTEND VERIFICATION COMPLETE — all functional checks PASS,
+          all qualitative criteria score 4-5/5.
+
+          Seeded synthetic user (certainty.demo@test.com) used to trigger
+          the atom. Verified at 390x844 (iPhone 12/13/14):
+            A. Header "Echo Across Systems" + subtitle render ✅
+            B. "CERTAINTY PATTERN" + exact recognition line render ✅
+            C. "Why this pattern? (4/4 systems)" row with chevron ✅
+            D. Expansion reveals 4 signals in exact spec order:
+               1. HUMAN DESIGN · Defined Ajna
+               2. HUMAN DESIGN · Gates 4 & 63 — Answers & Doubt
+               3. ASTROLOGY · Mercury Square Saturn (2.0°)
+               4. NUMEROLOGY · Life Path 7 ✅
+            E. Collapse + "Hide the systems" label flip ✅
+            F. Card sits within Lifeline sub-tab only (absent on
+               Relationships/Work/Self) and positioned below Phase card ✅
+            G. No console errors from EchoAcrossSystems / synthesis/atoms ✅
+
+          Qualitative ratings (1-5 scale):
+            Q1 Quiet (not "special feature"): 4/5
+            Q2 Compression lands <5s: 5/5
+            Q3 Proof layer doesn't dominate: 4/5
+            Q4 Echo not summary: 5/5
+            Q5 Additive not repetitive: 5/5
+            Q6 Hidden technical builds trust: 5/5
+            Q7 Narrower / behavioural (not abstract drift): 5/5
+            Q8 Does NOT feel "AI generated synthesis": 4/5
+
+          Negative case verified at API layer: Pete (Life Path 11, no
+          Mercury-Saturn hard aspect) -> atoms=[], card cannot render
+          for him.
+
+          Note: sub-tab bar + "Ask about my life" button sit between the
+          Phase card and the Echo card inside the Lifeline sub-tab — this
+          is intentional layout chrome and matches "below the main daily
+          card within the Lifeline tab".
