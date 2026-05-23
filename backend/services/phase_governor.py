@@ -1,7 +1,7 @@
 """
 Phase Governor — Timeline V2 / Phase Architecture
 =================================================
-Build marker: phase-architecture-v1a
+Build marker: timeline-v2-archetype-differentiation-v1
 
 Resolves the single Governing Life Chapter (3-9 month window) for a user.
 The chapter is the gravitational center of the new Timeline V2 — every
@@ -10,26 +10,25 @@ derived FROM the chapter, not parallel to it.
 
 Architecture (load-bearing):
   1. Extract a deterministic SIGNAL VECTOR from the user's natal chart
-     + their existing yearly timeline payload. Each signal is a boolean
-     flag the chapter library can score against.
-  2. Score every chapter in the library against the signal vector
-     (deterministic, reproducible).
-  3. Take the top-N candidates as a SHORTLIST.
-  4. Pass the shortlist to the LLM (Emergent LLM key) with the user's
-     lifeline history / journal context. The LLM may pick ONE chapter
-     from the shortlist — it MAY NOT invent a chapter or reject the
-     shortlist.
-  5. On any LLM failure / unavailable key / parse error: deterministic
-     top-1 from the shortlist is returned. The governor is never blocked
-     on the LLM.
+     + their existing yearly timeline payload.
 
-Public surface:
-  resolve_governing_chapter(db, user_id, *, force_refresh=False)
-      Returns: {
-        chapter_id, title, subtitle, arc_type, body_visible,
-        proof_summary, proof_internal_topics, signals_matched,
-        shortlist, selection_mode, build_marker, computed_at_iso
-      }
+     v1A signals: raw structural traits (Open SP, Saturn-house, etc.)
+
+     v2 ARCHETYPE DIFFERENTIATION: a second tier of DERIVED SYNTHESIS
+     signals encodes HOW the user metabolizes pressure (cognitively
+     vs relationally vs through achievement). Chapters that describe
+     existential mechanics score AGAINST these derived signals, not
+     against raw traits — so two users sharing surface behaviour
+     (delay, silence, containment) but different metabolism (cognitive
+     recursion vs emotional permeability) get DIFFERENT chapters.
+
+  2. Score every chapter in the library against the signal set.
+  3. Top-N candidates form the SHORTLIST. v2 adds a DIVERSITY GUARD:
+     when the deterministic top spans only one existential family,
+     the shortlist is augmented with the strongest competing-family
+     chapter so the LLM always has a real choice.
+  4. LLM picks ONE chapter from the shortlist. It MAY NOT invent.
+  5. On LLM failure: deterministic top-1.
 """
 from __future__ import annotations
 
@@ -48,7 +47,7 @@ from services.chapter_library import (
 
 logger = logging.getLogger(__name__)
 
-BUILD_MARKER = "phase-architecture-v1a"
+BUILD_MARKER = "timeline-v2-archetype-differentiation-v1"
 
 # How many candidates the deterministic stage hands to the LLM.
 SHORTLIST_SIZE = 3
@@ -200,21 +199,42 @@ def extract_signals(
     """Return the set of signal IDs the chart + timeline currently fire.
 
     Signal IDs match the keys used in chapter_library.signal_rules.
+
+    v2 ARCHETYPE DIFFERENTIATION: in addition to raw structural signals
+    (Open SP, Saturn-house, etc.), this extractor emits DERIVED SYNTHESIS
+    signals that encode existential mechanics:
+
+      * derived_certainty_loop                — defined Ajna + (G4 or G63) + Mercury-Saturn hard
+      * derived_recursive_questioning         — G63 + defined Ajna + Mercury-Saturn hard
+      * derived_stabilization_through_analysis— defined Ajna + LP 7 + Mercury-Saturn hard
+      * derived_proof_before_action           — defined Ajna + Mercury-Saturn + (Saturn-MC OR Mercury-Saturn applying)
+      * derived_inability_to_conclude_safely  — defined Ajna + (Mercury-Neptune hard OR G63)
+      * derived_mental_overcontainment        — defined Ajna + Mercury-Saturn + Open Throat
+      * derived_unresolved_cognition          — Mercury-Neptune hard OR (Mercury-Saturn + Open SP)
+      * derived_excessive_air_mentalization   — >=3 personal planets in air signs
+      * derived_mutable_mental_overprocessing — >=3 personal planets in mutable signs
+
+    These derived signals are the ones the new cognitive-recursion
+    chapters score against — NOT raw traits — so a user with defined
+    Ajna alone (no Mercury-Saturn) won't fall into a cognitive-recursion
+    chapter just because they have an Ajna.
     """
     if not isinstance(chart, dict):
         return set()
     hd = chart.get("human_design") or {}
     astro = chart.get("astrology") or {}
+    num = chart.get("numerology") or {}
     out: Set[str] = set()
 
-    # --- HD signals
+    # =================================================================
+    # RAW STRUCTURAL SIGNALS — v1A (unchanged for backwards-compat)
+    # =================================================================
     if _is_center_open(hd, ("Solar Plexus", "Emotional Solar Plexus")):
         out.add("hd_open_solar_plexus")
     if _is_center_open(hd, ("Throat",)):
         out.add("hd_open_throat")
     if _is_center_defined(hd, ("Ego", "Heart", "Will")):
         out.add("hd_defined_heart")
-    # Authority centers — used by "Stepping Into Authority" chapter
     if _is_center_defined(hd, ("Sacral", "Splenic", "Ego", "G Center")):
         out.add("hd_defined_authority_center")
     if _has_gate(hd, 22):
@@ -222,7 +242,6 @@ def extract_signals(
     if _has_gate(hd, 49):
         out.add("hd_channel_49")
 
-    # --- Astro structural signals
     sat_h = _saturn_house(astro)
     if sat_h in (3, 4, 7):
         out.add("astro_saturn_house_3_4_7")
@@ -246,9 +265,105 @@ def extract_signals(
         out.add("astro_10th_house_emphasis")
     if _personal_planets_in_house(astro, 4) >= 3:
         out.add("astro_4th_house_emphasis")
-
-    # --- Timeline-derived soft overlays
     out.update(_timeline_theme_keywords(timeline_payload))
+
+    # =================================================================
+    # v2 RAW SIGNALS — additional structural ground truth
+    # =================================================================
+    has_ajna = _is_center_defined(hd, ("Ajna",))
+    has_g4   = _has_gate(hd, 4)
+    has_g63  = _has_gate(hd, 63)
+    if has_ajna:
+        out.add("hd_defined_ajna")
+    if has_g4:
+        out.add("hd_gate_4")
+    if has_g63:
+        out.add("hd_gate_63")
+    # Head-Ajna pressure: defined Head + defined Ajna creates the
+    # "always thinking" / pressure-to-conclude axis.
+    if _is_center_defined(hd, ("Head",)) and has_ajna:
+        out.add("hd_head_ajna_pressure")
+
+    has_merc_sat_hard = _find_hard_aspect(astro, "Mercury", "Saturn")
+    has_merc_nep_hard = _find_hard_aspect(astro, "Mercury", "Neptune")
+    has_merc_plu_hard = _find_hard_aspect(astro, "Mercury", "Pluto")
+    if has_merc_sat_hard:
+        out.add("astro_mercury_saturn_hard")
+    if has_merc_nep_hard:
+        out.add("astro_mercury_neptune_uncertainty")
+    if has_merc_plu_hard:
+        out.add("astro_mercury_pluto_compulsion")
+
+    # Mental over-processing — sign-emphasis without going generic
+    # "earth/water/fire". Air = thinking/abstraction; mutable = endless
+    # re-evaluation. Each requires >=3 personal planets to fire.
+    AIR_SIGNS     = {"gemini", "libra", "aquarius"}
+    MUTABLE_SIGNS = {"gemini", "virgo", "sagittarius", "pisces"}
+    planets = astro.get("planets") or {}
+    personal = ("Sun", "Moon", "Mercury", "Venus", "Mars")
+    air_count = sum(
+        1 for p in personal
+        if _safe_lower(planets.get(p, {}).get("sign")) in AIR_SIGNS
+    )
+    mutable_count = sum(
+        1 for p in personal
+        if _safe_lower(planets.get(p, {}).get("sign")) in MUTABLE_SIGNS
+    )
+    if air_count >= 3:
+        out.add("astro_excessive_air_mentalization")
+    if mutable_count >= 3:
+        out.add("astro_mutable_mental_overprocessing")
+
+    # Numerology Life Path 7 — the introspective / verification path.
+    lp_n: Optional[int] = None
+    core_num = num.get("core") or {}
+    lp_block = core_num.get("life_path") or num.get("life_path") or {}
+    try:
+        lp_n = int(lp_block.get("number"))
+    except (TypeError, ValueError):
+        lp_n = None
+    if lp_n == 7:
+        out.add("num_life_path_7")
+
+    # =================================================================
+    # v2 DERIVED SYNTHESIS SIGNALS — existential mechanics
+    # These are the load-bearing signals that the new cognitive-
+    # recursion chapters score AGAINST. They encode HOW pressure is
+    # metabolized, not WHICH traits exist.
+    # =================================================================
+    if has_ajna and (has_g4 or has_g63) and has_merc_sat_hard:
+        out.add("derived_certainty_loop")
+
+    if has_ajna and has_g63 and has_merc_sat_hard:
+        out.add("derived_recursive_questioning")
+
+    if has_ajna and lp_n == 7 and has_merc_sat_hard:
+        out.add("derived_stabilization_through_analysis")
+
+    # proof_before_action: Ajna defined + Mercury-Saturn + structural
+    # ground (Saturn-MC hard OR Saturn-Sun hard — additional weight
+    # behind the proof requirement).
+    if has_ajna and has_merc_sat_hard and (
+        _find_hard_aspect(astro, "Saturn", "MC")
+        or _find_hard_aspect(astro, "Saturn", "Sun")
+    ):
+        out.add("derived_proof_before_action")
+
+    # inability_to_conclude_safely: Ajna + (Merc-Neptune hard OR G63).
+    # G63 alone with Ajna creates "every answer triggers a new question";
+    # Merc-Neptune adds dissolution / unfinishability.
+    if has_ajna and (has_merc_nep_hard or has_g63):
+        out.add("derived_inability_to_conclude_safely")
+
+    # mental_overcontainment: defined Ajna + Mercury-Saturn + Open Throat.
+    # The thinking is structured (Ajna+MercSat) but can't reach speech
+    # (Open Throat).
+    if has_ajna and has_merc_sat_hard and "hd_open_throat" in out:
+        out.add("derived_mental_overcontainment")
+
+    # unresolved_cognition: cognitive uncertainty entering the system.
+    if has_merc_nep_hard or (has_merc_sat_hard and "hd_open_solar_plexus" in out):
+        out.add("derived_unresolved_cognition")
 
     return out
 
@@ -278,28 +393,58 @@ def build_shortlist(
     A chapter is eligible for the shortlist only when:
       * its score >= min_score, AND
       * it has at least one non-amplifier (active / positive) signal
-        matched. Amplifier-only matches (e.g. just "Open SP + Open
-        Throat") describe a baseline disposition, not an active phase —
-        they amplify a chapter that's already pointed-to by other
-        evidence, but they don't pick the chapter on their own.
+        matched. Amplifier-only matches describe a baseline disposition,
+        not an active phase.
+
+    v2 DIVERSITY GUARD: when the top-N deterministic candidates all come
+    from a single existential_family (e.g. all "emotional_permeability"),
+    the strongest eligible chapter from a DIFFERENT family is promoted
+    into the shortlist by displacing the lowest same-family entry. This
+    prevents the LLM from being handed a single-axis shortlist when a
+    cross-axis competitor is actually scoring above threshold — exactly
+    the failure mode that collapsed certainty-pattern users into
+    permeability chapters in QA.
     """
     scored: List[Dict[str, Any]] = []
     for ch in get_library():
         score, matched = score_chapter(ch, signals)
         if score < min_score:
             continue
-        # Require at least one non-amplifier matched signal.
         positive_matched = [m for m in matched if m not in _AMPLIFIER_SIGNALS]
         if not positive_matched:
             continue
         scored.append({
-            "chapter_id":      ch["chapter_id"],
-            "title":           ch["title"],
-            "score":           round(score, 3),
-            "matched_signals": matched,
+            "chapter_id":         ch["chapter_id"],
+            "title":              ch["title"],
+            "existential_family": ch.get("existential_family"),
+            "score":              round(score, 3),
+            "matched_signals":    matched,
         })
     scored.sort(key=lambda x: (-x["score"], x["chapter_id"]))
-    return scored[:size]
+    head = scored[:size]
+
+    # Diversity guard — only meaningful when (a) there's a head, (b) we
+    # have remaining candidates outside the head, and (c) the head is
+    # mono-family (every entry shares the same existential_family).
+    if head and len(scored) > len(head):
+        head_families = {c.get("existential_family") for c in head}
+        if len(head_families) == 1:
+            head_family = next(iter(head_families))
+            # Find the strongest competitor from a different family in
+            # the remainder. Untagged chapters (None family) are NOT
+            # treated as competitors — they participate purely on score.
+            promoted: Optional[Dict[str, Any]] = None
+            for cand in scored[len(head):]:
+                fam = cand.get("existential_family")
+                if fam and fam != head_family:
+                    promoted = cand
+                    break
+            if promoted is not None:
+                # Displace the LOWEST-scoring head entry so the
+                # promoted competitor enters at the bottom of the
+                # shortlist (deterministic top-1 is still preserved).
+                head = head[:-1] + [promoted]
+    return head
 
 
 # ===========================================================================

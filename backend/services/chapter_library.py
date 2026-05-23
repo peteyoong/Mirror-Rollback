@@ -81,6 +81,10 @@ COST_OF_KEEPING_THE_PEACE: Chapter = {
     "title":        "The Cost Of Keeping The Peace",
     "subtitle":     "Where absorbing has started to cost more than naming.",
     "arc_type":     "ending",
+    # v2 archetype-differentiation tag — used by the diversity guard.
+    # "emotional_permeability" captures the metabolism: pressure
+    # processed relationally/emotionally rather than cognitively.
+    "existential_family": "emotional_permeability",
     "body_visible": (
         "You're inside a chapter where keeping things smooth has slowly "
         "become more expensive than saying the thing out loud. The "
@@ -140,8 +144,9 @@ def _chapter(
     proof_summary: str,
     proof_topics: List[str],
     signal_rules: Optional[Dict[str, SignalRule]] = None,
+    existential_family: Optional[str] = None,
 ) -> Chapter:
-    return {
+    out: Chapter = {
         "chapter_id":             chapter_id,
         "title":                  title,
         "subtitle":               subtitle,
@@ -151,10 +156,84 @@ def _chapter(
         "proof_internal_topics":  proof_topics,
         "signal_rules":           signal_rules or {},
     }
+    if existential_family is not None:
+        out["existential_family"] = existential_family
+    return out
 
 
 _LIBRARY: List[Chapter] = [
     COST_OF_KEEPING_THE_PEACE,
+    # ---------------------------------------------------------------------
+    # ARCHETYPE DIFFERENTIATION V1 — cognitive recursion chapters.
+    # Score against DERIVED SYNTHESIS signals (not raw traits), so users
+    # who share a defined Ajna with Pete but lack Mercury-Saturn don't
+    # incorrectly land in this family.
+    # ---------------------------------------------------------------------
+    {
+        "chapter_id": "certainty_that_never_arrives",
+        "title":      "The Certainty That Never Arrives",
+        "subtitle":   "Waiting for an inner ground that doesn't come in the form expected.",
+        "arc_type":   "threshold",
+        "body_visible": (
+            "You're inside a chapter where you've been waiting for a kind of "
+            "internal certainty before you move. The version of that "
+            "certainty you've been waiting for may not exist in the form you "
+            "expect. Refinement has quietly become a way of staying — not "
+            "a way of getting closer to ready."
+        ),
+        "proof_summary": (
+            "Multiple structures point to the same loop: thinking is doing "
+            "the work that movement was meant to do."
+        ),
+        "proof_internal_topics": [
+            "cognitive_recursion", "certainty_seeking",
+            "conceptual_stabilization", "ajna_fixation",
+        ],
+        # Existential family — used by the v2 shortlist diversity guard.
+        "existential_family": "cognitive_recursion",
+        # Signal rules score AGAINST derived synthesis signals (not raw
+        # traits) so users who share Ajna-defined wiring but lack Mercury-
+        # Saturn don't fall into this chapter.
+        "signal_rules": {
+            "derived_certainty_loop":               {"weight": 1.8, "description": "Defined Ajna + Gate 4/63 + Mercury-Saturn = certainty-seeking loop"},
+            "derived_recursive_questioning":        {"weight": 1.0, "description": "G63 + Ajna + Mercury-Saturn = each answer triggers a new question"},
+            "derived_stabilization_through_analysis":{"weight": 1.0, "description": "Ajna + LP 7 + Mercury-Saturn = analysis as ground"},
+            "derived_proof_before_action":          {"weight": 0.8, "description": "Ajna + Mercury-Saturn + structural anchor = proof gates action"},
+            "derived_inability_to_conclude_safely": {"weight": 0.6, "description": "Ajna + Mercury-Neptune or G63 = closure feels unsafe"},
+            "num_life_path_7":                      {"weight": 0.4, "description": "Life Path 7 — introspective verification path"},
+        },
+    },
+    {
+        "chapter_id": "question_stops_protecting_you",
+        "title":      "When The Question Stops Protecting You",
+        "subtitle":   "Continued questioning has crossed from safety into delay.",
+        "arc_type":   "threshold",
+        "body_visible": (
+            "You're in a chapter where the questions that once kept you from "
+            "moving prematurely have started keeping you from moving at all. "
+            "The refinement that used to be preparation has quietly become "
+            "the new thing you're hiding inside. Conceptual readiness was "
+            "never going to be the moment that releases you — and at this "
+            "point you've gathered enough."
+        ),
+        "proof_summary": (
+            "The cognitive machinery built to protect you from premature "
+            "movement is now functioning as the main brake on any movement."
+        ),
+        "proof_internal_topics": [
+            "endless_refinement", "premature_movement_fear",
+            "preparation_as_avoidance", "identity_in_being_ready",
+        ],
+        "existential_family": "cognitive_recursion",
+        "signal_rules": {
+            "derived_recursive_questioning":        {"weight": 1.5, "description": "Each answer triggers a new question — the protection loop"},
+            "derived_inability_to_conclude_safely": {"weight": 1.5, "description": "Closure can't yet feel safe — refinement persists"},
+            "derived_proof_before_action":          {"weight": 1.0, "description": "Proof gates action — the gate has stopped opening"},
+            "derived_certainty_loop":               {"weight": 1.0, "description": "Underlying certainty-seeking loop"},
+            "derived_mental_overcontainment":       {"weight": 0.8, "description": "Mental capacity exceeds the system's ability to release it"},
+            "astro_mutable_mental_overprocessing":  {"weight": 0.4, "description": "Multiple mutable personal planets — endless re-evaluation"},
+        },
+    },
     _chapter(
         chapter_id="choosing_what_remains",
         title="Choosing What Remains",
@@ -214,6 +293,7 @@ _LIBRARY: List[Chapter] = [
         title="When Momentum Stops Working",
         subtitle="Movement is no longer the same as progress.",
         arc_type="pressure",
+        existential_family="achievement_axis",
         body_visible=(
             "You're in a chapter where doing more doesn't move the thing "
             "forward anymore. The system that used to convert effort "
