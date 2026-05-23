@@ -31709,6 +31709,144 @@ async def admin_run_hd_type_migration(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ---------------------------------------------------------------------
+# Admin: Emergency Mel fix
+# build marker: live-forum-mel-rising-stale-source-fix-v1
+# Direct fix for live Mel (Yoong family forum). Sets canonical timezone,
+# email, and Melaka coords, then triggers chart recompute. Idempotent.
+# ---------------------------------------------------------------------
+@api_router.post("/admin/fix_mel_live")
+async def admin_fix_mel_live(user_id: str = "69b50ecb2b86cfb90750ec04"):
+    """Force-fix the live Yoong-family Mel record + recompute her chart.
+    
+    Default user_id is the production-deployed Mel (per credentials).
+    Returns before/after summary so the caller can confirm Cancer Rising.
+    """
+    try:
+        from bson import ObjectId as _OID
+        from calculations.astrology import get_full_natal_chart
+        from services.bazi_engine_v2 import compute_bazi_chart_v2
+        from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+        import pytz as _pytz
+        
+        user = await db.users.find_one({"_id": _OID(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail=f"user {user_id} not found")
+        
+        # Snapshot before
+        before = {
+            "email": user.get("email"),
+            "timezone": user.get("timezone"),
+            "birth_location": user.get("birth_location"),
+        }
+        chart_before = await db.charts.find_one({"user_id": user_id})
+        before_chart_summary = None
+        if chart_before:
+            a = chart_before.get("astrology", {})
+            before_chart_summary = {
+                "asc": a.get("angles", {}).get("asc", {}).get("formatted"),
+                "sun": a.get("planets", {}).get("Sun", {}).get("formatted"),
+                "moon": a.get("planets", {}).get("Moon", {}).get("formatted"),
+                "tropical_asc": a.get("angles", {}).get("asc", {}).get("tropical_longitude"),
+                "zodiac_mode": a.get("zodiac_mode"),
+            }
+        
+        # Apply canonical fixes
+        canonical = {
+            "email": "melissa.mars@gmail.com",
+            "name": "Mel",
+            "gender": "female",
+            "timezone": "Asia/Kuala_Lumpur",
+            "birth_date": "1981-07-13",
+            "birth_time": "07:25",
+            "birth_location": {
+                "city": "Melaka", "country": "Malaysia",
+                "latitude": 2.1896, "longitude": 102.2501
+            },
+            "latitude": 2.1896,
+            "longitude": 102.2501,
+        }
+        await db.users.update_one({"_id": _OID(user_id)}, {"$set": canonical})
+        logger.info(f"[admin/fix_mel_live] Applied canonical user fields for {user_id}")
+        
+        # Build birth_dt with the historical Malaysia timezone
+        try:
+            tz_obj = _pytz.timezone("Asia/Kuala_Lumpur")
+            birth_dt = tz_obj.localize(_dt(1981, 7, 13, 7, 25))
+        except Exception:
+            birth_dt = _dt(1981, 7, 13, 7, 25, tzinfo=_tz(_td(hours=7, minutes=30)))
+        
+        astro_chart = None
+        bazi_chart = None
+        hd_chart = None
+        try:
+            astro_chart = get_full_natal_chart(birth_dt, 2.1896, 102.2501)
+        except Exception as e:
+            logger.warning(f"[admin/fix_mel_live] astro recompute failed: {e}")
+        try:
+            bazi_chart = compute_bazi_chart_v2("1981-07-13", "07:25", "Asia/Kuala_Lumpur", include_timing=False)
+        except Exception as e:
+            logger.warning(f"[admin/fix_mel_live] bazi recompute failed: {e}")
+        try:
+            from calculations.human_design import get_human_design_chart
+            hd_chart = get_human_design_chart(birth_dt, 2.1896, 102.2501)
+        except Exception as e:
+            logger.warning(f"[admin/fix_mel_live] hd recompute failed: {e}")
+        
+        # Build update dict
+        update_fields = {
+            "debug_stamp": {
+                "sidereal_settings_used": {"svp_degrees": 31.2836, "reference_year": 2000, "yearly_increment": 0.0},
+                "computed_at_iso": _dt.utcnow().isoformat(),
+                "migration": "admin_fix_mel_live_v1",
+            }
+        }
+        if astro_chart:
+            update_fields["astrology"] = astro_chart
+        if bazi_chart:
+            update_fields["bazi"] = bazi_chart
+        if hd_chart:
+            update_fields["human_design"] = hd_chart
+        
+        await db.charts.update_one({"user_id": user_id}, {"$set": update_fields}, upsert=True)
+        
+        # Clear sign-derived caches
+        for col in ["today_v4_cache", "today_v5_cache", "home_insight_v6_cache",
+                    "governing_chapter_cache", "synthesis_atoms_cache", "deep_dive_cache",
+                    "timeline_cache", "phase_governor_cache", "astrology_today_v4_cache",
+                    "transit_signals_cache"]:
+            try:
+                await db[col].delete_many({"user_id": user_id})
+            except Exception:
+                pass
+        
+        # Snapshot after
+        chart_after = await db.charts.find_one({"user_id": user_id})
+        after_chart_summary = None
+        if chart_after:
+            a = chart_after.get("astrology", {})
+            after_chart_summary = {
+                "asc": a.get("angles", {}).get("asc", {}).get("formatted"),
+                "sun": a.get("planets", {}).get("Sun", {}).get("formatted"),
+                "moon": a.get("planets", {}).get("Moon", {}).get("formatted"),
+                "tropical_asc": a.get("angles", {}).get("asc", {}).get("tropical_longitude"),
+                "zodiac_mode": a.get("zodiac_mode"),
+            }
+        
+        return {
+            "ok": True,
+            "build_marker": "live-forum-mel-rising-stale-source-fix-v1",
+            "user_id": user_id,
+            "before": {"user_fields": before, "chart": before_chart_summary},
+            "after":  {"user_fields": canonical, "chart": after_chart_summary},
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("[admin/fix_mel_live] failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 app.include_router(api_router)
 
 
