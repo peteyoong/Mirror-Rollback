@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../store';
 import { loginUser } from '../services/api';
+import { BUILD_ID } from '../constants/buildMarker';
 
 // Forums redirect target type
 type ForumsRedirect = 'create' | 'join' | null;
@@ -313,6 +314,7 @@ export default function Welcome() {
             <Text style={styles.forumLinkText}>Join Forum</Text>
           </TouchableOpacity>
         </View>
+        <Text style={styles.buildMarker}>build · {BUILD_ID}</Text>
       </View>
     </SafeAreaView>
   );
@@ -457,6 +459,13 @@ const styles = StyleSheet.create({
   forumDivider: {
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.25)',
+  },
+  buildMarker: {
+    fontSize: 11,
+    fontVariant: ['tabular-nums'],
+    color: 'rgba(255, 255, 255, 0.22)',
+    marginTop: 4,
+    letterSpacing: 0.3,
   },
   
   // Login form styles

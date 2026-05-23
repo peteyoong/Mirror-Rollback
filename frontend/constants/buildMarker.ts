@@ -10,5 +10,5 @@
  * diagnostic step is to ask whether they see this BUILD_ID at the
  * bottom of those screens.
  */
-export const BUILD_ID = 'astro-object-expansion-v1-20260523';
+export const BUILD_ID = 'live-deploy-verification-v1-20260523';
 export const BUILD_AT = '2026-05-23';
