@@ -223,11 +223,16 @@ def get_current_transits(dt: Optional[datetime] = None) -> Dict[str, Dict]:
         result = swe.calc_ut(jd, pid, swe.FLG_SWIEPH | swe.FLG_SIDEREAL)
         lon = result[0][0] % 360.0
         speed = result[0][3]
-        sign_idx = int(lon / 30) % 12
+        # Sign attribution honours global mode (uniform_30 or true_sidereal_midpoint).
+        # `lon` here is SIDEREAL (FLG_SIDEREAL set above); longitude_to_sign_degree
+        # converts back to tropical internally when mode = true_sidereal_midpoint.
+        # Build marker: true-sidereal-midpoint-production-migration-v1
+        from calculations.astrology import longitude_to_sign_degree as _lts
+        _attr = _lts(lon)
         positions[name] = {
             'longitude': lon,
-            'sign': SIGNS[sign_idx],
-            'degree': lon % 30,
+            'sign': _attr['sign'],
+            'degree': _attr['degree'],
             'speed': speed,
             'retrograde': speed < 0,
         }

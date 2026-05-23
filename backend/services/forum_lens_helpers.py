@@ -287,11 +287,10 @@ async def get_member_lens_data(user_id: str) -> dict:
                         # If ascendant_sign not available, try to derive from degree
                         asc_degree = houses.get("ascendant")
                         if isinstance(asc_degree, (int, float)):
-                            # Convert degree to zodiac sign
-                            signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-                                     "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
-                            sign_index = int(asc_degree / 30) % 12
-                            rising_sign = signs[sign_index]
+                            # Convert degree to zodiac sign via global attribution mode.
+                            # Build marker: true-sidereal-midpoint-production-migration-v1
+                            from calculations.astrology import longitude_to_sign_degree as _lts
+                            rising_sign = _lts(float(asc_degree) % 360)["sign"]
                     lens_data["astrology"]["rising"] = rising_sign
 
                 # Calculate dominant element and modality from planets

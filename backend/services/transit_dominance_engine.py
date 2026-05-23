@@ -247,6 +247,12 @@ def detect_ingresses(
     plans.append(("Moon", window_days_moon))
 
     ingresses: List[Dict[str, Any]] = []
+    # Sign-index helper honours global attribution mode.
+    # Build marker: true-sidereal-midpoint-production-migration-v1
+    from calculations.astrology import longitude_to_sign_degree as _lts
+    def _sign_idx(lon_sid: float) -> int:
+        return _lts(lon_sid % 360)["sign_index"]
+
     for planet, days in plans:
         pid = _SWE_PLANETS[planet]
         # Sample at 6-hour resolution for the Moon (fast), 1-day for others
@@ -254,12 +260,12 @@ def detect_ingresses(
         t0 = dt - timedelta(days=days)
         t_cur = t0
         prev_lon = calculate_planet_sidereal(pid, t_cur)["longitude"]
-        prev_sign = int(prev_lon // 30) % 12
+        prev_sign = _sign_idx(prev_lon)
         total_steps = int((2 * days * 24) / step_hours)
         for _ in range(total_steps):
             t_cur = t_cur + timedelta(hours=step_hours)
             cur_lon = calculate_planet_sidereal(pid, t_cur)["longitude"]
-            cur_sign = int(cur_lon // 30) % 12
+            cur_sign = _sign_idx(cur_lon)
             if cur_sign != prev_sign:
                 # Bisect to hour precision within (t_cur - step, t_cur)
                 lo = t_cur - timedelta(hours=step_hours)
@@ -267,7 +273,7 @@ def detect_ingresses(
                 for _ in range(18):
                     mid = lo + (hi - lo) / 2
                     lon_mid = calculate_planet_sidereal(pid, mid)["longitude"]
-                    sign_mid = int(lon_mid // 30) % 12
+                    sign_mid = _sign_idx(lon_mid)
                     if sign_mid == prev_sign:
                         lo = mid
                     else:

@@ -26782,12 +26782,12 @@ async def diagnose_astro_system():
         ok = False
         guard_error = str(e)
     return {
-        "astro_system": "True Sidereal-M (canonical user-defined, Chimeri-aligned)",
-        "zodiac_mode": "true_sidereal",
+        "astro_system": "True Sidereal-M (Midpoint) — Chimeri-aligned, IAU-midpoint sign boundaries",
+        "zodiac_mode": "true_sidereal_midpoint_12_merged_candidate",
         "ayanamsa_or_svp": SVP_DEGREES,
         "reference_epoch_jd": J2000_EPOCH,
         "yearly_increment": 0.0,
-        "ophiuchus_enabled": False,  # 12-sign canonical; Ophiuchus handled as interpretive layer in chat
+        "ophiuchus_enabled": False,  # 12-sign; Ophiuchus merged into Scorpius per Variant B
         "hd_source_system": "True Sidereal-M — HD reads its planet longitudes from the SAME canonical layer as Astrology",
         "canonical_config": CANONICAL_SIDEREAL_CONFIG,
         "canonical_planet_set": CANONICAL_PLANET_SET,

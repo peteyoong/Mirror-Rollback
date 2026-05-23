@@ -228,10 +228,13 @@ def _gather_lunar_signals(now: datetime) -> List[Signal]:
         diff = 360 - diff
 
     signals: List[Signal] = []
-    SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+    # NOTE: `sun` and `moon` above are TROPICAL longitudes (calc_ut without
+    # FLG_SIDEREAL). We attribute the sign via the global mode-aware router.
+    # Build marker: true-sidereal-midpoint-production-migration-v1
+    from calculations.sign_attribution import attribute_sign
 
     if diff < 6:
-        sign = SIGNS[int(moon / 30) % 12]
+        sign = attribute_sign(moon)["sign"]
         signals.append(Signal(
             source="lunar_event",
             kind="new_moon",
@@ -240,7 +243,7 @@ def _gather_lunar_signals(now: datetime) -> List[Signal]:
             evidence={"type": "new_moon", "sign": sign, "orb": round(diff, 2)},
         ))
     elif abs(diff - 180) < 6:
-        sign = SIGNS[int(moon / 30) % 12]
+        sign = attribute_sign(moon)["sign"]
         signals.append(Signal(
             source="lunar_event",
             kind="full_moon",

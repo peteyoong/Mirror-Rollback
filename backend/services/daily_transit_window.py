@@ -170,11 +170,16 @@ ZODIAC_SIGNS = [
 ]
 
 def longitude_to_sign(longitude: float) -> str:
-    """Convert longitude to zodiac sign name."""
+    """Convert longitude to zodiac sign name.
+
+    Honours the global attribution mode (uniform_30 / true_sidereal_midpoint).
+    Build marker: true-sidereal-midpoint-production-migration-v1
+    """
+    from calculations.astrology import longitude_to_sign_degree as _lts
     longitude = longitude % 360
     if longitude < 0:
         longitude += 360
-    return ZODIAC_SIGNS[int(longitude / 30)]
+    return _lts(longitude)['sign']
 
 
 def sign_to_index(sign: str) -> int:
