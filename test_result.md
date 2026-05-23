@@ -25323,3 +25323,43 @@ agent_communication:
         _s6_user, _s7_user) and their governing_chapter_cache entries
         deleted. No source files modified. No real user data touched.
         YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.
+
+
+backend:
+  - task: "True Sidereal-M Midpoint Auto-Migration Startup Hook"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: |
+            Added idempotent True Sidereal-M Midpoint migration as Migration 0
+            at startup. Function `_migrate_true_sidereal_midpoint()` runs in the
+            existing background migration task. It:
+              (a) counts charts where astrology.zodiac_mode != MIDPOINT_MODEL_NAME
+                  ("true_sidereal_midpoint_12_merged_candidate")
+              (b) if zero pending, exits as no-op with log line
+              (c) otherwise re-applies non-uniform IAU midpoint sign attribution
+                  per-chart using tests.recompute_true_sidereal_midpoint.migrate_chart
+              (d) clears sign-derived caches only when at least one chart migrated
+              (e) writes a migration_reports record
+            
+            Verified locally:
+              ✅ No-op on already-migrated DB (preview): logs "all charts already migrated ✓"
+              ✅ Catches stale chart: downgrading Pete to zodiac_mode='uniform_30' +
+                 ASC.sign='FAKE_SIGN' → next startup re-migrated 1 chart, corrected
+                 ASC FAKE_SIGN → Sagittarius, cleared 3 cache entries, asc_flips=1
+              ✅ Wrapped in try/except (non-fatal); never blocks server boot
+              ✅ Runs in background asyncio task (no startup delay)
+            
+            Purpose: fixes Live Deployment Regression where Live DB still showed
+            uniform_30 attribution. When user deploys via Emergent Publish button,
+            the startup hook auto-migrates the live DB on first boot.
+
+metadata:
+  last_main_agent_action: "Added True Sidereal-M Midpoint startup migration hook (P0 — Live Deployment Regression fix)"
+  last_main_agent_timestamp: "2026-05-23"

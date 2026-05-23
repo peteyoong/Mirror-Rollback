@@ -31886,12 +31886,109 @@ async def _safe_run_migrations():
         logger.error(f"[Migration] Background migration failed (non-fatal): {e}")
 
 
+async def _migrate_true_sidereal_midpoint():
+    """
+    Idempotent migration: re-applies True Sidereal-M Midpoint sign attribution
+    to every stored chart using non-uniform IAU midpoint boundaries (SVP=31.2836).
+    
+    Skips any chart already marked with astrology.zodiac_mode == 'true_sidereal_midpoint'.
+    Clears sign-derived caches only when at least one chart was actually migrated.
+    
+    Safe to call on every startup — exits as no-op once all charts are migrated.
+    """
+    # Defer imports so a missing module never blocks server boot
+    from tests.recompute_true_sidereal_midpoint import (
+        migrate_chart as _midpoint_migrate_chart,
+        clear_caches as _midpoint_clear_caches,
+        BUILD_MARKER as _MIDPOINT_BUILD_MARKER,
+    )
+    from calculations.sign_attribution import MIDPOINT_MODEL_NAME
+    
+    # Quick scan: how many charts still need migration?
+    needs_migration_filter = {
+        "$or": [
+            {"astrology.zodiac_mode": {"$exists": False}},
+            {"astrology.zodiac_mode": {"$ne": MIDPOINT_MODEL_NAME}},
+        ]
+    }
+    pending_count = await db.charts.count_documents(needs_migration_filter)
+    if pending_count == 0:
+        logger.info("[Migration 0] True Sidereal-M Midpoint: all charts already migrated ✓")
+        return
+    
+    logger.info(
+        f"[Migration 0] True Sidereal-M Midpoint: {pending_count} chart(s) pending — running..."
+    )
+    
+    migrated = 0
+    asc_flips = 0
+    errors = 0
+    samples = []
+    
+    async for chart in db.charts.find(needs_migration_filter):
+        uid = chart.get("user_id")
+        if not uid:
+            continue
+        try:
+            r = await _midpoint_migrate_chart(db, uid, chart, dry_run=False)
+            migrated += 1
+            if r.get("asc_flipped"):
+                asc_flips += 1
+            if len(samples) < 5:
+                samples.append({
+                    "user_id": uid[:8],
+                    "asc": f"{r.get('asc_before')} → {r.get('asc_after')}",
+                    "sun": f"{r.get('sun_before')} → {r.get('sun_after')}",
+                })
+        except Exception as e:
+            errors += 1
+            logger.warning(f"[Migration 0] Chart {uid} failed: {type(e).__name__}: {e}")
+    
+    if migrated > 0:
+        try:
+            caches = await _midpoint_clear_caches(db, dry_run=False)
+            cleared_total = sum(v for v in caches.values() if isinstance(v, int) and v > 0)
+            logger.info(f"[Migration 0] Cleared {cleared_total} sign-derived cache entries across {len([k for k,v in caches.items() if v > 0])} collections")
+        except Exception as e:
+            logger.warning(f"[Migration 0] Cache clear failed (non-fatal): {e}")
+        
+        # Persist run report
+        try:
+            await db.migration_reports.insert_one({
+                "ran_at": datetime.utcnow().isoformat(),
+                "build_marker": _MIDPOINT_BUILD_MARKER,
+                "source": "startup_hook",
+                "migrated": migrated,
+                "asc_flips": asc_flips,
+                "errors": errors,
+                "samples": samples,
+            })
+        except Exception:
+            pass
+    
+    logger.info(
+        f"[Migration 0] True Sidereal-M Midpoint complete: migrated={migrated} "
+        f"asc_flips={asc_flips} errors={errors}"
+    )
+    for s in samples:
+        logger.info(f"[Migration 0]   {s['user_id']}: ASC {s['asc']} | Sun {s['sun']}")
+
+
 async def run_startup_data_migrations():
     """
     Auto-fix database state on startup to ensure deployed versions have correct data.
     This handles cases where the deployed DB snapshot is from an earlier state.
     """
     from bson import ObjectId
+    
+    # --- Migration 0: True Sidereal-M Midpoint zodiac attribution migration ---
+    # Idempotent. Re-applies non-uniform IAU-midpoint sign boundaries to every
+    # stored chart. Safe to run on every boot — exits as no-op once all charts
+    # have astrology.zodiac_mode == "true_sidereal_midpoint".
+    try:
+        await _migrate_true_sidereal_midpoint()
+    except Exception as e:
+        logger.error(f"[Migration 0] True Sidereal-M Midpoint migration failed (non-fatal): {e}")
     
     # --- Migration 1: Recompute charts missing SVP True Sidereal OR incomplete BaZi ---
     charts_cursor = db.charts.find({})
