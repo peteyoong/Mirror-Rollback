@@ -128,7 +128,16 @@ def _is_center_defined(hd: Dict[str, Any], names: Tuple[str, ...]) -> bool:
 
 
 def _is_center_open(hd: Dict[str, Any], names: Tuple[str, ...]) -> bool:
-    return not _is_center_defined(hd, names)
+    """Open = the center is NOT in defined_centers AND the HD payload
+    actually contains a defined_centers list. When the HD block is
+    missing/empty we have no evidence — return False rather than
+    treating every center as 'open' by default. Without this guard a
+    chart with no HD data would falsely fire every hd_open_* signal."""
+    centers_raw = hd.get("defined_centers")
+    if not isinstance(centers_raw, list) or len(centers_raw) == 0:
+        return False
+    centers = {_safe_lower(c) for c in centers_raw}
+    return not any(n.lower() in centers for n in names)
 
 
 def _timeline_theme_keywords(timeline_payload: Optional[Dict[str, Any]]) -> Set[str]:
@@ -424,7 +433,10 @@ async def resolve_governing_chapter(
                 age = (datetime.now(timezone.utc) - computed_at.replace(tzinfo=timezone.utc)).total_seconds()
                 if age < 7 * 24 * 3600:
                     payload = cached.get("payload") or {}
-                    payload.setdefault("from_cache", True)
+                    # Force the flag — the stored payload was written with
+                    # from_cache=False (fresh compute), so setdefault is a
+                    # no-op. Explicit assignment is required.
+                    payload["from_cache"] = True
                     return payload
 
     # --- Chart fetch

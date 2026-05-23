@@ -24613,7 +24613,7 @@ agent_communication:
     implemented: true
     working: false
     file: "/app/backend/services/phase_governor.py, /app/backend/services/chapter_library.py, /app/backend/routers/governing_chapter.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -24757,3 +24757,94 @@ agent_communication:
         Both fixes are localized to services/phase_governor.py. No source
         files were modified during testing. Synthetic test charts cleaned
         up. YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.
+
+    - agent: "testing"
+      message: |
+        RE-RUN after main agent's bug-fix patches to services/phase_governor.py
+        — 26 PASS / 3 FAIL out of 29 (improvement from 23/29).
+
+        ✅ FIX #1 (`from_cache` flag) VERIFIED WORKING:
+        - S3_cache_hit: PASS — second call returns from_cache=True with
+          IDENTICAL computed_at_iso to the prior force-refresh.
+        - S4_cache_ttl_force_isolation: PASS — flag toggles correctly
+          across force-refresh boundaries (False on force, True on cached
+          read, iso updated on each force-refresh).
+        - S3_force_refresh_not_cached: PASS, S3_force_refresh_new_iso: PASS,
+          S3_force_refresh_again_not_cached: PASS.
+
+        ✅ FIX #2 (open-center guard) PARTIALLY VERIFIED:
+        - S7_resilience: PASS — entirely empty chart (no astrology, no
+          human_design) now correctly falls through to fallback
+          chapter_id="active_recalibration" with mode="fallback_no_score".
+          Backend logs confirm: chapter=active_recalibration
+          mode=fallback_no_score. The `defined_centers is None/empty
+          → return False` guard works for the missing-HD case.
+
+        ❌ S6 STILL FAILS — fix #2 as implemented does NOT cover the
+        sparse-but-non-empty HD case:
+        - Synthetic S6 chart has human_design.defined_centers=["Ajna"]
+          (non-empty list of length 1).
+        - In services/phase_governor.py:130-140, `_is_center_open()` now
+          guards on `if not isinstance(centers_raw, list) or len(centers_raw)
+          == 0: return False`. With defined_centers=["Ajna"], the list IS
+          non-empty, so the guard does NOT trigger. The function then
+          correctly identifies Solar Plexus and Throat as "not in defined
+          set" → returns True for both.
+        - Result: hd_open_solar_plexus (weight 1.2) and hd_open_throat
+          (weight 0.8) BOTH fire for the S6 sparse chart, producing:
+            cost_of_keeping_the_peace score=2.0
+            end_of_absorbing_everything score=1.0
+          Both clear MIN_SHORTLIST_SCORE=1.0, so the LLM shortlist path
+          runs instead of fallback.
+        - S6_selection_mode FAIL: got "llm_from_shortlist", expected
+          "fallback_no_score".
+        - S6_chapter_id FAIL: got "cost_of_keeping_the_peace", expected
+          "active_recalibration".
+        - S6_proof_score_zero FAIL: got 2.0, expected 0.0.
+
+        ROOT CAUSE: The patch description says "if HD payload is missing
+        or defined_centers is empty, all hd_open_* signals return False".
+        But the S6 test case has defined_centers=["Ajna"] (non-empty),
+        which is a perfectly valid HD payload — Ajna IS truly defined,
+        Solar Plexus IS truly open. From the open-center detector's
+        perspective there is nothing wrong with this state, and per the
+        described semantics fix #2 doesn't (and shouldn't) suppress those
+        signals.
+
+        The S6 review expectation is internally inconsistent with the
+        described fix: a one-defined-center chart is a legitimate HD
+        configuration where Solar Plexus and Throat ARE open. Two paths
+        to reconcile (main agent must choose):
+          (a) Treat S6 as not-truly-sparse and rewrite expectations
+              (S6 SHOULD return cost_of_keeping_the_peace because the
+              open-center evidence is real); OR
+          (b) Tighten the fallback gating: require that signals come
+              from MULTIPLE LENSES, or require at least one non-open-center
+              signal, before scoring above MIN_SHORTLIST_SCORE. This would
+              correctly funnel any chart whose only signals are
+              hd_open_* (i.e., no astro evidence, no defined gates 22/49,
+              no defined Heart) to fallback_no_score; OR
+          (c) Lower the weights of hd_open_* signals below 1.0 so that
+              they alone cannot clear the shortlist threshold.
+
+        ALL OTHER SCENARIOS PASS (no regressions):
+        - S1 (Pete/Mel/Achievement): PASS — chapter_id, title,
+          selection_mode, build_marker, Cache-Control: no-store all correct.
+        - S2 (unknown user 404): PASS — "chart not found for user".
+        - S5 (LLM guardrail): PASS — shortlist size 2, chosen
+          cost_of_keeping_the_peace in shortlist, proof.score=7.2
+          matches shortlist score, selection_reason 65 chars.
+        - S8 (signals_extracted): PASS — all 4 required ids present
+          for Pete (astro_saturn_house_3_4_7, hd_channel_22,
+          hd_channel_49, hd_defined_heart).
+        - S9 (tone): PASS — title clean, no prescriptive language in
+          body (264 chars), internal_topics is an array.
+        - S10 (regression /api/synthesis/atoms/{pete}): PASS —
+          Achievement-as-Stabilization still returned.
+        - S11 (cache isolation Pete vs Mel): PASS — distinct iso
+          timestamps and no cross-contamination.
+
+        Cleanup: 3 synthetic chart docs (cross_lens_atoms_test_s5_user,
+        _s6_user, _s7_user) and their governing_chapter_cache entries
+        deleted. No source files modified. No real user data touched.
+        YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.
