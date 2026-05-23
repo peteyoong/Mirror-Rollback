@@ -58,6 +58,17 @@ SHORTLIST_SIZE = 3
 # surfaced — otherwise we fall back to the recalibration chapter.
 MIN_SHORTLIST_SCORE = 1.0
 
+# Amplifier signals — negative-space evidence (something is permeable /
+# absent / open). On their own they describe a baseline disposition but
+# do NOT constitute active pressure. A chapter MUST also have at least
+# one non-amplifier (positive / active) signal matched before it can
+# enter the shortlist. This prevents charts that are simply "open" from
+# being read as actively pressured.
+_AMPLIFIER_SIGNALS: frozenset = frozenset({
+    "hd_open_solar_plexus",
+    "hd_open_throat",
+})
+
 
 # ===========================================================================
 # Signal extraction — turn the chart + timeline into a vector of booleans.
@@ -262,11 +273,24 @@ def build_shortlist(
     size: int = SHORTLIST_SIZE,
     min_score: float = MIN_SHORTLIST_SCORE,
 ) -> List[Dict[str, Any]]:
-    """Rank the library by score against the signal vector."""
+    """Rank the library by score against the signal vector.
+
+    A chapter is eligible for the shortlist only when:
+      * its score >= min_score, AND
+      * it has at least one non-amplifier (active / positive) signal
+        matched. Amplifier-only matches (e.g. just "Open SP + Open
+        Throat") describe a baseline disposition, not an active phase —
+        they amplify a chapter that's already pointed-to by other
+        evidence, but they don't pick the chapter on their own.
+    """
     scored: List[Dict[str, Any]] = []
     for ch in get_library():
         score, matched = score_chapter(ch, signals)
         if score < min_score:
+            continue
+        # Require at least one non-amplifier matched signal.
+        positive_matched = [m for m in matched if m not in _AMPLIFIER_SIGNALS]
+        if not positive_matched:
             continue
         scored.append({
             "chapter_id":      ch["chapter_id"],

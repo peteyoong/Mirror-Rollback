@@ -24611,9 +24611,9 @@ agent_communication:
 
   - task: "Timeline V2 / Phase Architecture V1A — Governing Chapter Endpoint"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/services/phase_governor.py, /app/backend/services/chapter_library.py, /app/backend/routers/governing_chapter.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -24723,6 +24723,71 @@ agent_communication:
           Cleanup: 3 synthetic chart docs (cross_lens_atoms_test_s5_user,
           _s6_user, _s7_user) and their governing_chapter_cache entries
           deleted via PyMongo before exit. No real user data touched.
+      - working: true
+        agent: "testing"
+        comment: |
+          FINAL RE-RUN AFTER AMPLIFIER-SIGNAL FIX — 29 / 29 PASS ✅
+
+          Third design decision verified in
+          /app/backend/services/phase_governor.py:
+          - `_AMPLIFIER_SIGNALS` frozenset declares hd_open_solar_plexus
+            and hd_open_throat as amplifiers.
+          - `build_shortlist()` now requires at least one non-amplifier
+            (positive/active) signal matched in addition to score >= 1.0.
+          - Amplifier-only chapters are silently filtered out before
+            entering the shortlist.
+
+          ALL 29 ASSERTIONS PASS (was 26/29 in prior run):
+
+          ✅ S1 Pete: chapter_id=cost_of_keeping_the_peace, title="The
+             Cost Of Keeping The Peace", selection_mode=llm_from_shortlist,
+             Cache-Control: no-store, build_marker=phase-architecture-v1a.
+             Positive signals (hd_channel_22, hd_channel_49,
+             astro_saturn_house_3_4_7) qualify as non-amplifier matches.
+          ✅ S1 Mel: chapter_id=cost_of_keeping_the_peace. Her positive
+             signals (astro_saturn_house_3_4_7, astro_saturn_hard_to_*,
+             hd_channel_22) clear the gate.
+          ✅ S1 Achievement (6a111d24): shortlist size=1
+             ids=['when_momentum_stops_working']; chosen=
+             when_momentum_stops_working (LLM pick).
+          ✅ S2: 404 for unknown user, detail "chart not found for user".
+          ✅ S3 caching: force-refresh returns from_cache=false with new
+             iso; subsequent non-force returns from_cache=true with
+             identical iso. Force-refresh again rotates iso.
+          ✅ S4 cache-ttl/force isolation: chapter_id stable across cached
+             reads after each force-refresh.
+          ✅ S5 LLM guardrail: shortlist size=2
+             [cost_of_keeping_the_peace, end_of_absorbing_everything];
+             chosen in shortlist; selection_reason len=61 chars;
+             proof.score=7.2 matches shortlist score.
+          ✅ S6 (NOW PASSING — the headline fix): synthetic sparse chart
+             with defined_centers=["Ajna"], no Saturn aspects, Saturn
+             house 5, no gates 22/49. Only firing signals are
+             hd_open_solar_plexus + hd_open_throat (both AMPLIFIER) →
+             filtered out by build_shortlist() → shortlist=[] →
+             selection_mode=fallback_no_score, chapter_id=
+             active_recalibration, proof.score=0.0.
+             Backend log confirms:
+               [GoverningChapter] user=cross_le... chapter=
+               active_recalibration mode=fallback_no_score.
+          ✅ S7 (empty chart resilience): 200 OK, chapter_id=
+             active_recalibration, mode=fallback_no_score.
+          ✅ S8 (signals_extracted): all 4 required signals present for
+             Pete (astro_saturn_house_3_4_7, hd_channel_22, hd_channel_49,
+             hd_defined_heart) plus hd_defined_authority_center,
+             astro_saturn_hard_to_sun — total 6, sorted/deduped.
+          ✅ S9 (tone): title "The Cost Of Keeping The Peace" clean (no
+             jargon); body 264 chars, no "you must"/"you should";
+             proof.internal_topics is an array with 5 items.
+          ✅ S10 regression: GET /api/synthesis/atoms/{pete} still
+             returns Achievement-as-Stabilization atom unchanged.
+          ✅ S11 cache isolation: Pete and Mel have distinct
+             computed_at_iso timestamps; no cross-user contamination.
+
+          Cleanup: 3 synthetic chart docs (cross_lens_atoms_test_s5_user,
+          _s6_user, _s7_user) and their governing_chapter_cache entries
+          deleted via PyMongo before exit. No real user data touched.
+          No source files modified during testing.
 
 agent_communication:
     - agent: "testing"
@@ -24784,6 +24849,47 @@ agent_communication:
         sparse-but-non-empty HD case:
         - Synthetic S6 chart has human_design.defined_centers=["Ajna"]
           (non-empty list of length 1).
+
+    - agent: "testing"
+      message: |
+        FINAL RE-RUN AFTER AMPLIFIER-SIGNAL FIX — 29/29 PASS ✅
+
+        Third design decision verified in services/phase_governor.py:
+        - _AMPLIFIER_SIGNALS frozenset contains hd_open_solar_plexus and
+          hd_open_throat.
+        - build_shortlist() requires at least one non-amplifier (positive)
+          signal matched in addition to score >= 1.0.
+        - Amplifier-only chapters are silently filtered out of the shortlist.
+
+        S6 (the headline case) NOW PASSES:
+        - Sparse synthetic chart defined_centers=["Ajna"], no Saturn aspects,
+          Saturn house 5, no gates 22/49. The only firing signals are
+          hd_open_solar_plexus + hd_open_throat (both AMPLIFIER) → filtered →
+          shortlist=[] → selection_mode=fallback_no_score, chapter_id=
+          active_recalibration, proof.score=0.0.
+        - Backend log confirms: chapter=active_recalibration mode=fallback_no_score.
+
+        S1 Pete / S1 Mel still PASS because they have positive (non-amplifier)
+        signals that clear the gate (hd_channel_22, hd_channel_49,
+        astro_saturn_house_3_4_7, astro_saturn_hard_to_*).
+
+        S5 (synthetic strong-match) PASS — shortlist size=2, both contain
+        positive signals (hd_channel_22/49 + astro_saturn_house_3_4_7).
+
+        S7 (empty chart) PASS — fallback_no_score / active_recalibration.
+
+        S10 (/api/synthesis/atoms/{pete}) clean — Achievement-as-Stabilization
+        still returned.
+
+        S11 (Pete/Mel cache isolation) clean — distinct iso timestamps.
+
+        All other scenarios (S2 404, S3 caching, S4 cache-ttl, S8 signals,
+        S9 tone) continue to PASS — no regressions.
+
+        Cleanup: 3 synthetic chart docs deleted. No source files modified.
+        No real user data touched.
+        YOU MUST ASK USER BEFORE DOING FRONTEND TESTING.
+
         - In services/phase_governor.py:130-140, `_is_center_open()` now
           guards on `if not isinstance(centers_raw, list) or len(centers_raw)
           == 0: return False`. With defined_centers=["Ajna"], the list IS
