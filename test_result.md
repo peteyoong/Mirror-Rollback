@@ -24114,3 +24114,144 @@ agent_communication:
           
           Screenshots captured: 01_card.png (card visible), 02_plain.png (proof
           drawer Plain mode), 03_technical.png (proof drawer Technical mode).
+
+
+backend:
+  - task: "Cross-Lens Synthesis Atoms V1 — Certainty Pattern"
+    implemented: true
+    working: true
+    file: "/app/backend/services/cross_lens_atoms.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW: Cross-Lens Synthesis V1 atoms.
+          Build marker: cross-lens-atoms-v1
+
+          Files added:
+          - services/cross_lens_atoms.py  -> detect_certainty_pattern, compute_atoms
+          - routers/cross_lens_atoms.py   -> GET /api/synthesis/atoms/{user_id}
+          - server.py registers the router right after astrology_lookup.
+
+          Detector: detect_certainty_pattern (strict ALL-4)
+            1. HD: "Ajna" in chart.human_design.defined_centers
+            2. HD: Gate 4 OR Gate 63 present in human_design.active_gates
+                   (or .all_gates fallback)
+            3. Astro: Mercury<->Saturn aspect of type conjunction/square/opposition
+                   in chart.astrology.aspects (tightest orb wins)
+            4. Numerology: chart.numerology.core.life_path.number == 7
+                   (legacy numerology.life_path.number fallback)
+
+          Output atom contains: atom_id, name, framing, recognition (single
+          lived line, no framework lecture), signals[] (HD center, HD gate(s),
+          astro, numerology), matched/required/match_mode.
+
+          Recognition tone (load-bearing): "You tend to look for certainty
+          under pressure — and to doubt the answer the moment you've found one."
+          No pathologizing language, no "Your Ajna is defined so..." preamble.
+
+          Verified locally:
+          - Synthetic chart matching all 4 -> 1 atom returned, signals list
+            includes "Defined Ajna", "Gates 4 & 63 — Answers & Doubt",
+            "Mercury Square Saturn (2.1°)", "Life Path 7".
+          - Synthetic chart with only Gate 4 -> signal label "Gate 4 — Answers".
+          - Synthetic chart with only Gate 63 -> signal label "Gate 63 — Doubt".
+          - Mercury-Saturn trine -> [] (trine is intentionally not a hard contact).
+          - Life Path 8 -> [].
+          - Live endpoint GET /api/synthesis/atoms/{pete_user_id} -> 200,
+            atoms=[] (Pete is Life Path 11, no Mercury-Saturn contact, so
+            no match — correct strict behavior).
+
+          Please test:
+          - 404 when user_id has no chart
+          - 200 + atoms=[] for real users that fail any signal
+          - 200 + matched atom for a synthetic / seeded chart that satisfies all 4
+          - The endpoint never crashes on malformed numerology / missing aspects
+          - Response headers include Cache-Control: no-store
+      - working: true
+        agent: "testing"
+        comment: |
+          CROSS-LENS SYNTHESIS ATOMS V1 — FULL BACKEND TEST COMPLETE ✅
+          Harness: /app/cross_lens_atoms_test.py
+          Result: 66/66 assertions PASS across all 5 scenarios.
+
+          Scenario 1 — Real users (Pete, Mel, Isaac, Thaddeus):
+          ✅ All 4 users return 200 with success=true, build_marker="cross-lens-atoms-v1",
+             data_mode="cross_lens_atoms", atom_count=0, atoms=[].
+          ✅ Cache-Control header contains "no-store" for every response
+             (actual: "no-store, no-cache, must-revalidate, max-age=0" — middleware
+             adds the extra directives but no-store is present as required).
+
+          Scenario 2 — Unknown user_id (000000000000000000000099):
+          ✅ HTTP 404 returned; detail = "chart not found for user".
+
+          Scenario 3 — Synthetic match (all 4 signals):
+          Seeded chart with defined_centers=["Ajna","Throat"], active_gates=[4,63,17,11],
+          Mercury-Saturn square 2.1°, life_path 7.
+          ✅ atom_count=1, atom_id="certainty_pattern", matched=4, required=4,
+             match_mode="strict_all", signals length=4.
+          ✅ Signal ordering exactly as specified:
+             [0] Human Design / "Defined Ajna"
+             [1] Human Design / "Gates 4 & 63 — Answers & Doubt" (both gates → conjoined label)
+             [2] Astrology / "Mercury Square Saturn (2.1°)"
+             [3] Numerology / "Life Path 7"
+          ✅ recognition = "You tend to look for certainty under pressure — and to
+             doubt the answer the moment you've found one." — non-empty, does NOT
+             start with "Your Ajna" (recognition-first tone preserved).
+
+          Scenario 4 — Boundary variants (each cleaned up):
+          ✅ life_path=8 → atom_count=0
+          ✅ aspect type=trine → atom_count=0 (soft contact correctly excluded)
+          ✅ defined_centers=["Throat","Spleen"] (no Ajna) → atom_count=0
+          ✅ active_gates=[17,11] (neither 4 nor 63) → atom_count=0
+          ✅ active_gates=[4] only → 1 atom, signals[1].label="Gate 4 — Answers"
+          ✅ active_gates=[63] only → 1 atom, signals[1].label="Gate 63 — Doubt"
+
+          Scenario 5 — Resilience:
+          ✅ Chart with empty {human_design:{}, astrology:{}, numerology:{}} →
+             200, atoms=[], no 500.
+          ✅ Chart with no top-level lens sections at all → 200, atoms=[].
+
+          Cleanup: all synthetic docs with user_id prefix "cross_lens_atoms_test_"
+          deleted, plus defensive removal of historical "synthetic_certainty_test_user".
+          Verified via Mongo motor client against MONGO_URL/DB_NAME from
+          /app/backend/.env (mongodb://localhost:27017 / test_database).
+
+          Backend logs confirm clean processing — no exceptions, no warnings,
+          one log line per request with atom_id list, e.g.:
+            [CrossLensAtoms] user=cross_le... atoms=1 ids=['certainty_pattern']
+
+          Endpoint is production-ready. No source files were modified during testing.
+
+frontend:
+  - task: "Echo Across Systems card on Lifeline tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/components/EchoAcrossSystems.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: |
+          NEW component EchoAcrossSystems wired into renderLifelineTab in
+          LifeContextView.tsx, placed BELOW the daily PhaseTimeline card and
+          ABOVE the LifelineTimeline.
+
+          Behaviour:
+          - Fetches GET /api/synthesis/atoms/{userId} on mount.
+          - If atoms list is empty OR the request fails, renders NOTHING
+            (silent failure — synthesis is additive, never blocks Lifeline).
+          - Otherwise renders a small card titled "Echo Across Systems"
+            with subtitle "Where different systems point to the same thing".
+          - Each atom shows its recognition line + a collapsible
+            "Why this pattern? (4/4 systems)" toggle revealing per-lens
+            signals (Human Design / Astrology / Numerology) with their
+            framework label and a short lived-evidence sentence.
+
+          Frontend test deferred — will only ask user permission before
+          running expo_frontend_testing_agent.

@@ -27667,6 +27667,17 @@ _astrology_lookup_router.register_astrology_lookup_routes(api_router, db)
 
 
 # =====================================================================
+# CROSS-LENS SYNTHESIS ATOMS — V1
+# Build marker: cross-lens-atoms-v1
+# Surfaces small, deterministic "atoms" of convergence across HD,
+# Astrology and Numerology. First atom shipped: "Certainty Pattern".
+# Live compute, no caching. All-required strict match.
+# =====================================================================
+from routers import cross_lens_atoms as _cross_lens_atoms_router
+_cross_lens_atoms_router.register_cross_lens_atoms_routes(api_router, db)
+
+
+# =====================================================================
 # MIRROR CHAT route — moved to routers/mirror_chat.py
 # (server-router-refactor-v8 — behaviour preserving)
 # Routes attached:

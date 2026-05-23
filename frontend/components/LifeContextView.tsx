@@ -29,6 +29,7 @@ import { LifelineTimeline } from './lifeline';
 import PhaseTimeline from './PhaseTimeline';
 import ReflectModal from './ReflectModal';
 import AskAboutLifeModal from './AskAboutLifeModal';
+import EchoAcrossSystems from './EchoAcrossSystems';
 import { AskLifeChip } from '../services/api';
 import RoleCard from './RoleCard';
 import { useRouter } from 'expo-router';
@@ -563,6 +564,10 @@ export default function LifeContextView({
           onAddMoment={handlePhaseAddMoment}
         />
       </View>
+      {/* Cross-Lens Synthesis V1 — Echo Across Systems.
+          Renders ONLY when at least one atom matches all required signals.
+          Silent otherwise. Sits just below the main daily Phase card. */}
+      <EchoAcrossSystems userId={userId} />
       <LifelineTimeline
         userId={userId}
         externalAddRequest={lifelineAddRequest}
