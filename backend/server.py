@@ -32155,6 +32155,7 @@ async def run_startup_data_migrations():
                           "source": "user_declared"},
             "fix_name": "Mel",
             "fix_gender": "female",
+            "fix_email": "melissa.mars@gmail.com",  # canonical email for the deployed Yoong family Mel
             "fix_timezone": "Asia/Kuala_Lumpur",
             "fix_location": {"city": "Melaka", "country": "Malaysia", "latitude": 2.1896, "longitude": 102.2501},
             "fix_birth_date": "1981-07-13",
@@ -32231,6 +32232,11 @@ async def run_startup_data_migrations():
             # Fix gender if specified
             if known.get("fix_gender") and not user.get("gender"):
                 updates["gender"] = known["fix_gender"]
+            
+            # Fix email if specified (canonicalize the email address)
+            if known.get("fix_email") and (user.get("email") or "").strip().lower() != known["fix_email"].strip().lower():
+                updates["email"] = known["fix_email"]
+                logger.info(f"[Migration] Canonicalized email for {user_name}: {user.get('email')} → {known['fix_email']}")
             
             # Fix timezone if specified
             if known.get("fix_timezone") and not user.get("timezone"):
