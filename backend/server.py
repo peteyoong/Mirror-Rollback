@@ -31336,7 +31336,245 @@ async def admin_astrology_house_forensic(user_id: str) -> Dict[str, Any]:
     }
 
 
-@api_router.post("/admin/hd_type_migration")
+@api_router.get("/admin/asc_forensic/{user_id}")
+async def admin_asc_forensic(user_id: str) -> Dict[str, Any]:
+    """ASC / House-system forensic dump (Build marker: asc-house-forensic-fix-v1).
+
+    Returns EVERY intermediate value used to compute a user's Ascendant —
+    timezone, UTC conversion, Julian Day, tropical ASC, the exact ayanamsa
+    being applied, the sidereal ASC, and a sweep of alternative ayanamsa
+    values so a human reviewer can see the bias.
+
+    Use this whenever a user reports an incorrect rising sign and we need
+    to localize the bug (timezone vs ayanamsa vs convention).
+
+    NOT for end-user consumption.
+    """
+    from datetime import datetime, timezone as _tz
+    import swisseph as _swe
+    from calculations.sidereal_config import SVP_DEGREES, J2000_EPOCH
+    from bson import ObjectId
+
+    SIGNS = [
+        "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+    ]
+
+    def fmt(lng: float) -> Dict[str, Any]:
+        n = lng % 360
+        s = int(n // 30)
+        d = n % 30
+        return {"longitude": round(n, 6), "sign": SIGNS[s], "degree": round(d, 4), "formatted": f"{int(d)}°{SIGNS[s]} {d % 1 * 60:.0f}'"}
+
+    # ----- Resolve user -----
+    try:
+        uoid = ObjectId(user_id)
+        user = await db.users.find_one({"_id": uoid})
+    except Exception:
+        user = None
+    if not user:
+        user = await db.users.find_one({"_id": user_id})  # already a string id
+    if not user:
+        raise HTTPException(status_code=404, detail=f"No user {user_id}")
+
+    chart = await db.charts.find_one({"user_id": user_id})
+    if not chart:
+        raise HTTPException(status_code=404, detail=f"No chart for user {user_id}")
+
+    # ----- Birth inputs -----
+    bd = user.get("birth_date")
+    bt = user.get("birth_time")
+    tz_raw = user.get("timezone") or user.get("birth_timezone")
+    place = user.get("birth_place") or user.get("birth_city")
+    # lat/lng — may be in user OR in chart coordinates
+    coords = (chart.get("astrology") or {}).get("coordinates") or {}
+    lat = user.get("birth_lat") or coords.get("latitude") or coords.get("lat")
+    lon = (
+        user.get("birth_lng")
+        or user.get("birth_lon")
+        or coords.get("longitude")
+        or coords.get("lon")
+    )
+
+    # ----- Reconstruct local + UTC datetimes -----
+    local_dt_str = None
+    utc_dt_str = None
+    tz_offset_seconds = None
+    tz_resolution_note = None
+    try:
+        date_part = bd.strftime("%Y-%m-%d") if hasattr(bd, "strftime") else str(bd)[:10]
+        if isinstance(bt, str) and ":" in bt:
+            time_part = bt
+        else:
+            time_part = "00:00"
+        local_naive = datetime.strptime(f"{date_part} {time_part}", "%Y-%m-%d %H:%M")
+        local_dt_str = local_naive.isoformat()
+
+        if isinstance(tz_raw, str) and tz_raw:
+            # Try IANA first
+            try:
+                from zoneinfo import ZoneInfo
+                local_aware = local_naive.replace(tzinfo=ZoneInfo(tz_raw))
+                tz_resolution_note = f"IANA zone '{tz_raw}' resolved historical offset"
+            except Exception:
+                # Try fixed offset like "+07:30"
+                sign = 1 if tz_raw.startswith("+") else -1
+                hhmm = tz_raw.lstrip("+-")
+                hh, mm = hhmm.split(":") if ":" in hhmm else (hhmm[:2], hhmm[2:] or "00")
+                offset_min = sign * (int(hh) * 60 + int(mm))
+                from datetime import timedelta, timezone as _t
+                local_aware = local_naive.replace(tzinfo=_t(timedelta(minutes=offset_min)))
+                tz_resolution_note = (
+                    f"Fixed-offset '{tz_raw}' applied. WARNING: fixed offsets do NOT "
+                    f"account for historical DST or zone changes (e.g. Malaysia switched "
+                    f"from +07:30 → +08:00 on 1982-01-01)."
+                )
+        else:
+            local_aware = local_naive.replace(tzinfo=_tz.utc)
+            tz_resolution_note = "No timezone stored — assumed UTC."
+        utc_dt = local_aware.astimezone(_tz.utc)
+        utc_dt_str = utc_dt.isoformat()
+        tz_offset_seconds = int(local_aware.utcoffset().total_seconds()) if local_aware.utcoffset() else 0
+    except Exception as e:
+        utc_dt = None
+        tz_resolution_note = f"Failed to reconstruct datetime: {e}"
+
+    # ----- Julian Day (recomputed live) -----
+    jd_live = None
+    if utc_dt is not None:
+        jd_live = _swe.julday(
+            utc_dt.year, utc_dt.month, utc_dt.day,
+            utc_dt.hour + utc_dt.minute / 60.0 + utc_dt.second / 3600.0,
+        )
+
+    # ----- Raw tropical and sidereal ASC from SWE -----
+    tropical_asc = sidereal_asc_swe = sidereal_asc_manual = None
+    tropical_mc = sidereal_mc_swe = None
+    house_cusps_live = []
+    ayanamsa_implied = None
+    if jd_live is not None and lat is not None and lon is not None:
+        try:
+            houses_p, ascmc_t = _swe.houses(jd_live, float(lat), float(lon), b"P")
+            tropical_asc = ascmc_t[0]
+            tropical_mc = ascmc_t[1]
+            # Sidereal via SWE native mode (matches what Mirror uses internally)
+            _swe.set_sid_mode(_swe.SIDM_USER, J2000_EPOCH, SVP_DEGREES)
+            houses_s, ascmc_s = _swe.houses_ex(jd_live, float(lat), float(lon), b"P", _swe.FLG_SIDEREAL)
+            sidereal_asc_swe = ascmc_s[0]
+            sidereal_mc_swe = ascmc_s[1]
+            sidereal_asc_manual = (tropical_asc - SVP_DEGREES) % 360
+            # Equal-house cusps from sidereal ASC
+            house_cusps_live = [(sidereal_asc_swe + 30 * i) % 360 for i in range(12)]
+        except Exception as e:
+            tz_resolution_note = (tz_resolution_note or "") + f" | SWE error: {e}"
+
+    # ----- Stored chart values for cross-check -----
+    astro = chart.get("astrology", {}) or {}
+    angles = astro.get("angles", {}) or {}
+    houses_doc = astro.get("houses", {}) or {}
+    stored_asc = (angles.get("asc") or {})
+    stored_mc = (angles.get("mc") or {})
+    stored_jd = astro.get("julian_day")
+    stored_utc = astro.get("input_datetime_utc")
+
+    # ----- Alt-ayanamsa sweep (so reviewers can see which value matches GM) -----
+    alt_ayanamsa_sweep = []
+    if tropical_asc is not None:
+        for ay, label in [
+            (SVP_DEGREES, "MIRROR CURRENT (svp=31.2836)"),
+            (24.9700, "Athen Chimenti True Sidereal-M ~5° Pisces SVP"),
+            (25.0000, "Fagan-Bradley J2000"),
+            (23.8500, "Lahiri J2000"),
+            (27.0700, "Empirical match for Mel → Cancer 3°19'"),
+        ]:
+            sid = (tropical_asc - ay) % 360
+            alt_ayanamsa_sweep.append({
+                "ayanamsa": ay,
+                "label": label,
+                "resulting_sidereal_asc": fmt(sid),
+            })
+
+    return {
+        "build_marker": "asc-house-forensic-fix-v1",
+        "user_id": user_id,
+        "user_label": user.get("email") or user.get("name") or user.get("first_name"),
+
+        # === inputs ===
+        "birth_local": local_dt_str,
+        "birth_place_label": place,
+        "timezone_stored": tz_raw,
+        "timezone_resolution_note": tz_resolution_note,
+        "utc_datetime": utc_dt_str,
+        "utc_offset_seconds": tz_offset_seconds,
+        "coordinates": {"latitude": lat, "longitude": lon},
+
+        # === computed ===
+        "julian_day_live": jd_live,
+        "julian_day_stored_in_chart": stored_jd,
+        "jd_match": (
+            None if jd_live is None or stored_jd is None
+            else abs(jd_live - stored_jd) < 1e-6
+        ),
+
+        # === ASC / MC ===
+        "tropical_asc_raw": fmt(tropical_asc) if tropical_asc is not None else None,
+        "tropical_mc_raw":  fmt(tropical_mc)  if tropical_mc is not None else None,
+        "sidereal_asc_swe_native": fmt(sidereal_asc_swe) if sidereal_asc_swe is not None else None,
+        "sidereal_asc_manual_subtract_svp": fmt(sidereal_asc_manual) if sidereal_asc_manual is not None else None,
+        "sidereal_mc_swe_native":  fmt(sidereal_mc_swe)  if sidereal_mc_swe is not None else None,
+        "stored_asc_in_chart": stored_asc,
+        "stored_mc_in_chart":  stored_mc,
+
+        # === sidereal config ===
+        "ayanamsa_applied_by_mirror": SVP_DEGREES,
+        "sidereal_mode": "SE_SIDM_USER",
+        "reference_epoch": "J2000 (JD 2451545.0)",
+        "yearly_increment": 0.0,
+        "house_system": houses_doc.get("system", "Equal"),
+        "svp_applied_per_chart_doc": astro.get("svp_applied"),
+
+        # === houses ===
+        "house_cusps_live_equal_from_sidereal_asc": [
+            fmt(c) for c in house_cusps_live
+        ],
+        "house_cusps_stored": (houses_doc.get("formatted_cusps") or [])[:12],
+
+        # === alt-ayanamsa sweep (the actual diagnostic surface) ===
+        "alt_ayanamsa_sweep": alt_ayanamsa_sweep,
+
+        # === Swiss Ephemeris call path ===
+        "swisseph_flags": [
+            "FLG_SWIEPH",
+            "FLG_SIDEREAL (for sidereal calls)",
+            "houses(jd, lat, lon, b'P') → tropical ASC/MC",
+            "houses_ex(jd, lat, lon, b'P', FLG_SIDEREAL) → sidereal ASC/MC",
+            "set_sid_mode(SIDM_USER, J2000_EPOCH, SVP_DEGREES) before sidereal calls",
+        ],
+        "post_processing_steps": [
+            "1. Reconstruct local datetime from birth_date + birth_time + timezone",
+            "2. Convert to UTC via IANA zoneinfo (handles historical zones)",
+            "3. Compute Julian Day from UTC datetime",
+            "4. Compute tropical ASC/MC via swe.houses(jd, lat, lon, 'P')",
+            "5. Sidereal ASC = tropical ASC - SVP_DEGREES (mod 360)",
+            "6. Equal-house cusps generated from sidereal ASC: cusp[i] = (asc + 30*i) mod 360",
+        ],
+        "midpoint_adjustments": [
+            "NONE — Mirror does NOT apply a midpoint adjustment on top of SVP. "
+            "If Genetic Matrix's 'True Sidereal-M (Midpoint)' applies an additional "
+            "offset (e.g. constellation-midpoint anchoring beyond the standard SVP), "
+            "this codebase currently has NO such logic."
+        ],
+
+        # === diagnostic conclusion ===
+        "diagnostic_summary": (
+            "ASC sign depends solely on the ayanamsa value applied to the "
+            "tropical ASC. Mirror applies 31.2836°. See alt_ayanamsa_sweep to "
+            "compare resulting ASC across canonical sidereal frameworks."
+        ),
+    }
+
+
+
 async def admin_run_hd_type_migration(
     confirm: bool = False,
     apply_changes: bool = True,
