@@ -27657,6 +27657,16 @@ _forums_intelligence_router.register(api_router, db, logger, EMERGENT_LLM_KEY)
 
 
 # =====================================================================
+# ASTROLOGY LOOKUP — deterministic transit-object endpoint
+# Build marker: astro-chat-transit-grounding-v1
+# Used by Astrology Lens Chat to ground transit questions in real
+# ephemeris data before any LLM interpretation runs.
+# =====================================================================
+from routers import astrology_lookup as _astrology_lookup_router
+_astrology_lookup_router.register_astrology_lookup_routes(api_router, db)
+
+
+# =====================================================================
 # MIRROR CHAT route — moved to routers/mirror_chat.py
 # (server-router-refactor-v8 — behaviour preserving)
 # Routes attached:

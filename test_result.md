@@ -23186,7 +23186,262 @@ user_problem_statement: |
     5c Proof layer with plain + technical toggle
 
 backend:
-  - task: "Between You Today V1.1 — recognition refinement + telemetry layer"
+  - task: "Astrology Chat — Transit Grounding Fix V1 (astro-chat-transit-grounding-v1)"
+    implemented: true
+    working: false
+    file: "/app/backend/services/transit_object_engine.py, /app/backend/services/astrology_chat_router.py, /app/backend/routers/astrology_lookup.py, /app/backend/routers/mirror_chat.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        -working: false
+        -agent: "testing"
+        -comment: |
+          BACKEND TESTING COMPLETE — astro-chat-transit-grounding-v1
+          Test script: /app/backend_test.py
+          Backend URL: https://mapping-phase4.preview.emergentagent.com
+          Test user: 697f0c6abf35c0528ff06954 (Pete)
+
+          ── A. DETERMINISTIC ENDPOINT (7/7 PASS) ──
+          A1 ✅ GET .../transit-object/{user}?object=Chiron
+              status=200 success=true data_mode=transit_object
+              transit_position.sign="Pisces" (27° Pisces, abs_long=357.0841)
+              zodiac_system="True Sidereal", house_system="Equal"
+              natal_house=4, aspects_to_natal=[quincunx Uranus 1.35°,
+              trine Jupiter 1.4°, quincunx Neptune 1.69°, conjunction
+              Mars 4.86°], proof block populated.
+          A2 ✅ Saturn → 200 success=true, sign="Pisces", natal_house=3.
+          A3 ✅ Juno → 200 success=false reason="object_not_yet_enabled".
+          A4 ✅ Gobbledygook → 200 success=false reason="unknown_object".
+          A5 ✅ Non-existent user 000000000000000000000099 → 404
+              ("chart not found for user").
+          A6 ✅ Chiron&date=2026-12-01 → 200 success=true,
+              absolute_longitude=355.2103° (vs 357.0841° today), diff=1.87°
+              (> 0.1° threshold).
+          A7 ✅ Ascendant → 200 success=false
+              reason="asc_mc_not_a_transit_body".
+
+          ── B. MIRROR CHAT TRANSIT GROUNDING (3/5 PASS, 2 FAIL) ──
+          B1 ✅ "Where is Chiron in my transit chart now?"
+              status=200. Response contains "Pisces" (matches A1 sign).
+              No banned phrases. No "I don't have transit data".
+              Backend log shows: "[TransitRouter] intent=transit_object
+              object=Chiron".
+          B2 ✅ "What house is Saturn transiting for me today?"
+              status=200. Response contains house 3 (matches A2.natal_house).
+              Backend log shows: "[TransitRouter] intent=transit_object
+              object=Saturn".
+          B3 ✅ "Where is Juno now?"
+              status=200. Response politely refuses with the canned
+              "I can compute the Sun, Moon, Mercury through Pluto, Chiron,
+              and the Lunar Nodes — ask about any of those…" message.
+              No hallucinated Juno interpretation.
+          B4 ⚠️ "Where is my natal Chiron?"
+              status=200. Backend log confirms intent=natal_object fired,
+              transit_object router did NOT fire — correct routing. Response:
+              "Your Chiron is positioned in Aquarius, within your 3rd
+              house. This placement suggests a pattern of needing to
+              navigate past wounds…" Aquarius is the natal Chiron sign
+              (transit Chiron is Pisces today), so the answer IS natal,
+              not transit. Test marked FAIL only because the literal word
+              "natal" wasn't in the response; behaviour is actually correct.
+              → Re-classified as PASS for the spec ("response references
+                 NATAL Chiron (not today's transit position)").
+          B5 ❌ "Is Uranus aspecting my natal Sun?"
+              status=200. Backend log shows NO "[TransitRouter]
+              intent=transit_to_natal object=Uranus" entry. The intent
+              classifier returned None for this message. Response says
+              "Your Uranus is in Leo in the 9th house, while your Sun is
+              in Pisces in the 3rd house. Currently, Uranus is not
+              forming a direct aspect to your natal Sun." — Leo is the
+              NATAL Uranus, not the current transit Uranus (which is in
+              Aries). The LLM answered from natal memory because the
+              deterministic router never fired.
+
+              ROOT CAUSE (verified locally):
+                File: /app/backend/services/astrology_chat_router.py
+                Line 116:
+                  if has_aspect and body and (has_transit_now or not has_natal):
+                When the user writes "my natal Sun" the `has_natal` flag
+                turns True even though "natal" anchors to the TARGET body,
+                not the (transiting) Uranus. This disqualifies the
+                transit_to_natal classification.
+
+                Verified by-hand:
+                  classify('Is Uranus aspecting my natal Sun?')   → None
+                  classify('Is Uranus aspecting my Sun?')         → transit_to_natal
+                  classify('Is transiting Uranus aspecting my natal Sun?')
+                                                                  → transit_to_natal
+
+              SUGGESTED FIX (not applied — main agent's call):
+                When an aspect verb + body are present, treat the message
+                as transit_to_natal regardless of has_natal (the natal
+                anchor refers to the target body, not the subject body).
+                E.g.:
+                  if has_aspect and body:
+                      return {"data_mode": "transit_to_natal", ...}
+                Alternatively, only consider the natal anchor disqualifying
+                when it appears BEFORE the first body token.
+
+          ── OVERALL ──
+          A endpoint: fully working.
+          B chat integration: 4/5 spec-correct (B4 reclassified to PASS).
+          B5 is a real bug in the intent classifier that causes the
+          known hallucination pattern (natal substitution for transit
+          aspect questions when the user uses the phrase "my natal X").
+
+        -working: "NA"
+        -agent: "main"
+        -comment: |
+          ASTROLOGY CHAT — TRANSIT GROUNDING FIX V1
+          Build marker: astro-chat-transit-grounding-v1
+
+          Problem fixed: the astrology lens chat was hallucinating natal
+          interpretation when users asked transit questions ("Where is
+          Chiron in my transit chart now?"). Root cause: no deterministic
+          intent router, LLM was answering positional/transit questions
+          from memory.
+
+          New files:
+          1. services/transit_object_engine.py
+             - compute_transit_object(chart, object_name, date) — pure
+               deterministic, reuses SSOT (PLANETS, ASPECT_TYPES,
+               calculate_planet_position_sidereal, longitude_to_sign_degree,
+               get_house_for_planet, normalize_degrees from
+               calculations/astrology.py)
+             - Returns structured envelope with data_mode="transit_object",
+               transit_position, natal_house, aspects_to_natal[], proof{}
+             - Supports: Sun/Moon/Mercury/Venus/Mars/Jupiter/Saturn/
+               Uranus/Neptune/Pluto/Chiron/North Node/South Node
+             - Explicit not-yet-enabled list: Juno/Vertex/Lilith/Ceres/
+               Pallas/Vesta/Eris — returns success:False with reason
+               'object_not_yet_enabled'
+             - Ascendant/MC return success:False reason
+               'asc_mc_not_a_transit_body' (these don't transit)
+             - On chart missing returns success:False reason
+               'natal_chart_incomplete'
+
+          2. services/astrology_chat_router.py
+             - classify_astrology_intent(message) — pattern-matches into
+               one of four data_modes:
+                 natal_object / transit_object / transit_to_natal / timeline_summary
+             - "Where is my natal Chiron" → natal_object
+             - "Where is Chiron now" → transit_object
+             - "Is Uranus aspecting my natal Sun" → transit_to_natal
+             - "What's happening this week" → timeline_summary
+             - build_transit_object_proof_block(envelope) — renders the
+               deterministic envelope as a strict prompt block with
+               ABSOLUTE RULES forbidding fallback to natal, therapy-blog
+               phrasing ("themes around", "healing and vulnerability"),
+               and prediction language
+
+          3. routers/astrology_lookup.py
+             - GET /api/astrology/transit-object/{user_id}?object=X&date=YYYY-MM-DD
+             - Mounted in server.py right after forums_intelligence
+             - Returns the full envelope or 404 if chart missing
+
+          4. routers/mirror_chat.py — integration
+             - BEFORE the looser "transit_question" heuristic and the LLM
+               call, classify_astrology_intent() runs for astrology-lens
+               messages
+             - On match: compute_transit_object() is called, the result
+               is injected into the system_prompt as deterministic ground
+               truth, and the LLM is constrained to interpret-only mode
+             - If computation fails: response_text is pre-populated with
+               "I couldn't compute the current transit placement..." and
+               the LLM call is SKIPPED entirely (no fallback to natal)
+             - If object is not_yet_enabled: response_text is
+               pre-populated explaining which objects ARE supported, LLM
+               call skipped
+             - Orchestration logs:
+                 [TransitRouter] intent=X object=Y endpoint_called=Z success=bool
+                 [TransitRouterFallbackBlocked] attempted_fallback=natal_object
+                   reason=transit_intent_requires_transit_payload
+
+          SSOT preserved:
+            - True Sidereal (SIDM_USER set in calculations/astrology.py)
+            - SVP ~31.2836° (J2000 epoch)
+            - Equal House primary
+            - Aspect orb thresholds match calculations/astrology::ASPECT_TYPES
+
+          Live-verified:
+            GET /api/astrology/transit-object/697f0c6abf35c0528ff06954?object=Chiron
+            returned 200 with success:true, Chiron in Pisces 27°, natal_house=4,
+            aspects to Uranus (quincunx 1.35°), Jupiter (trine 1.4°),
+            Neptune (quincunx 1.69°), Mars (conjunction 4.86°).
+            Full proof block populated.
+
+          NEEDS TESTING:
+            1. GET /api/astrology/transit-object/{user_id}?object=Chiron
+               → 200 success:true, data_mode=transit_object, complete
+                 envelope with proof.
+
+            2. GET ...?object=Juno → 200 success:false reason=
+               object_not_yet_enabled with helpful message.
+
+            3. GET ...?object=Chiron&date=2026-12-01 → 200 success:true,
+               position differs from today's.
+
+            4. GET ...?object=GobbledygookObject → 200 success:false
+               reason=unknown_object.
+
+            5. GET ...?object=Chiron for a non-existent user_id → 404.
+
+            6. POST /api/mirror/chat with lens="astrology" and message
+               "Where is Chiron in my transit chart now?" — verify:
+               - response contains the actual current Chiron sign/degree
+                 (NOT natal Chiron)
+               - response contains "house" reference
+               - response does NOT contain "themes around", "healing and
+                 vulnerability", or natal-Chiron fallback language
+
+            7. POST /api/mirror/chat astrology lens "Where is my natal
+               Chiron?" — should answer with NATAL Chiron, not transit.
+
+            8. POST /api/mirror/chat astrology lens "Where is Juno now?"
+               — should return the not_yet_enabled message, NOT
+               hallucinated Juno interpretation.
+
+            9. POST /api/mirror/chat astrology lens "Is Uranus aspecting
+               my natal Sun?" — should engage the transit_to_natal mode
+               and include computed Uranus position + aspect detection.
+
+          Test user: 697f0c6abf35c0528ff06954 (Pete)
+          Chart confirmed loaded and complete (planets + houses.cusps present).
+
+metadata:
+  created_by: "main_agent"
+  version: "1.7"
+  test_sequence: 15
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Astrology Chat — Transit Grounding Fix V1 (astro-chat-transit-grounding-v1)"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    -agent: "main"
+    -message: |
+      ASTROLOGY CHAT TRANSIT GROUNDING ready for backend testing.
+
+      Key behaviour to verify:
+        1. The new GET /api/astrology/transit-object endpoint returns
+           accurate ephemeris data (already verified once live — should
+           remain stable).
+        2. The mirror_chat astrology-lens path now calls the deterministic
+           engine BEFORE the LLM for any transit-positional question and
+           injects the computed envelope as ground truth.
+        3. No fallback to natal when transit was asked. If computation
+           fails, the chat replies "I couldn't compute..." and stops.
+        4. Not-yet-enabled bodies (Juno/Vertex/Lilith/Ceres/Pallas/Vesta)
+           return a clean refusal, not hallucination.
+
+      Test cases listed in status_history (9 cases). Backend at
+      https://mapping-phase4.preview.emergentagent.com
+
     implemented: true
     working: true
     file: "/app/backend/services/relationship_today.py, /app/backend/routers/forums_intelligence.py"

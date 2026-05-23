@@ -931,6 +931,92 @@ NOT: "I opened a generic chat"
             response_text = None
             llm_start = time.time()
             try:
+                # =================================================================
+                # ASTROLOGY TRANSIT GROUNDING — astro-chat-transit-grounding-v1
+                # Runs BEFORE the looser "transit question" heuristic below.
+                # If the user asks where a body IS (transit) or whether a
+                # transit is aspecting natal, we compute the answer
+                # deterministically and pin the LLM to interpret-only mode.
+                # =================================================================
+                grounded_transit_envelope = None
+                grounded_intent = None
+                if request.lens == "astrology" and chart is not None:
+                    try:
+                        from services.astrology_chat_router import (
+                            classify_astrology_intent,
+                            build_transit_object_proof_block,
+                            build_transit_object_user_facing_prefix,
+                        )
+                        from services.transit_object_engine import (
+                            compute_transit_object,
+                            NOT_YET_ENABLED,
+                            resolve_object_name,
+                        )
+
+                        grounded_intent = classify_astrology_intent(request.message)
+                        if grounded_intent:
+                            mode_label = grounded_intent["data_mode"]
+                            obj_name = grounded_intent.get("object")
+                            logger.info(
+                                f"[TransitRouter] intent={mode_label} "
+                                f"object={obj_name} user={request.user_id[:8]}..."
+                            )
+
+                            # transit_object + transit_to_natal both need
+                            # the deterministic transit position envelope.
+                            if mode_label in ("transit_object", "transit_to_natal") and obj_name:
+                                canonical = resolve_object_name(obj_name)
+                                if canonical in NOT_YET_ENABLED:
+                                    logger.info(
+                                        f"[TransitRouter] object={canonical} "
+                                        "not_yet_enabled — short-circuit response"
+                                    )
+                                    response_text = (
+                                        f"{canonical} is not yet enabled in the "
+                                        "transit lookup engine. I can compute the "
+                                        "Sun, Moon, Mercury through Pluto, Chiron, "
+                                        "and the Lunar Nodes — ask about any of "
+                                        "those and I'll pull the current placement."
+                                    )
+                                else:
+                                    grounded_transit_envelope = compute_transit_object(
+                                        chart=chart,
+                                        object_name=obj_name,
+                                    )
+                                    logger.info(
+                                        f"[TransitRouter] endpoint_called=compute_transit_object "
+                                        f"success={grounded_transit_envelope.get('success')} "
+                                        f"reason={grounded_transit_envelope.get('reason')}"
+                                    )
+                                    # Inject deterministic block at the END of
+                                    # the system prompt so it overrides any
+                                    # earlier looser context.
+                                    system_prompt += "\n\n" + build_transit_object_proof_block(
+                                        grounded_transit_envelope
+                                    )
+                                    # If computation failed, refuse to interpret.
+                                    if not grounded_transit_envelope.get("success"):
+                                        logger.warning(
+                                            "[TransitRouterFallbackBlocked] "
+                                            f"attempted_fallback=natal_object "
+                                            f"reason=transit_intent_requires_transit_payload "
+                                            f"engine_reason={grounded_transit_envelope.get('reason')}"
+                                        )
+                                        response_text = (
+                                            "I couldn't compute the current "
+                                            f"transit placement for "
+                                            f"{canonical or obj_name} from the "
+                                            "chart engine yet. "
+                                            f"(reason: {grounded_transit_envelope.get('reason')})"
+                                        )
+                    except Exception as router_exc:
+                        # Intent router failure is non-fatal — fall through
+                        # to the regular astrology chat path. We log loudly
+                        # so this never silently degrades.
+                        logger.exception(
+                            f"[TransitRouter] classifier/compute crashed: {router_exc}"
+                        )
+
                 # ===== TRANSIT/TIMING QUESTION DETECTION =====
                 # Detect if user is asking about timing, transits, or "what the stars say"
                 transit_keywords = [
@@ -1223,20 +1309,29 @@ USER SHOULD FEEL:
                     emit_context["thread_tone"] = thread_state.get("tone", "unclear")
                     emit_context["thread_remaining"] = thread_state.get("remaining_turns", 0)
 
-                # Use centralized contract-enforced generation with timeout
+                # Use centralized contract-enforced generation with timeout.
+                # SKIP LLM CALL entirely if the deterministic transit router
+                # already produced a final answer (e.g., object_not_yet_enabled
+                # or computation failed) — astro-chat-transit-grounding-v1.
                 try:
-                    response_text = await asyncio.wait_for(
-                        emergent_generate(
-                            mode=mode,
-                            user_message=request.message,
-                            endpoint="mirror_chat",
-                            user_id=request.user_id,
-                            context=emit_context,
-                            additional_system_prompt=system_prompt,
-                            model=get_primary_model()
-                        ),
-                        timeout=90.0  # 90 second timeout for LLM call
-                    )
+                    if response_text is None:
+                        response_text = await asyncio.wait_for(
+                            emergent_generate(
+                                mode=mode,
+                                user_message=request.message,
+                                endpoint="mirror_chat",
+                                user_id=request.user_id,
+                                context=emit_context,
+                                additional_system_prompt=system_prompt,
+                                model=get_primary_model()
+                            ),
+                            timeout=90.0  # 90 second timeout for LLM call
+                        )
+                    else:
+                        logger.info(
+                            "[TransitRouter] response_text pre-populated by "
+                            "deterministic router — skipping LLM call"
+                        )
                     llm_duration = time.time() - llm_start
                     logger.info(f"[MIRROR_CHAT] LLM call completed: duration={llm_duration:.2f}s, response_length={len(response_text) if response_text else 0}")
                 except asyncio.TimeoutError:
