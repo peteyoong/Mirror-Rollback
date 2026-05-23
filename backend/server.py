@@ -31337,7 +31337,7 @@ async def admin_astrology_house_forensic(user_id: str) -> Dict[str, Any]:
 
 
 @api_router.get("/admin/asc_forensic/{user_id}")
-async def admin_asc_forensic(user_id: str) -> Dict[str, Any]:
+async def admin_asc_forensic(user_id: str, attribution: Optional[str] = None) -> Dict[str, Any]:
     """ASC / House-system forensic dump (Build marker: asc-house-forensic-fix-v1).
 
     Returns EVERY intermediate value used to compute a user's Ascendant —
@@ -31345,14 +31345,30 @@ async def admin_asc_forensic(user_id: str) -> Dict[str, Any]:
     being applied, the sidereal ASC, and a sweep of alternative ayanamsa
     values so a human reviewer can see the bias.
 
-    Use this whenever a user reports an incorrect rising sign and we need
-    to localize the bug (timezone vs ayanamsa vs convention).
+    Optional query param ?attribution=uniform_30 | true_sidereal_midpoint
+      - omitted (default)         → returns BOTH modes side-by-side for
+                                     every body, plus the full forensic block.
+      - "uniform_30"              → restricts attribution preview to Mirror's
+                                     current production behaviour.
+      - "true_sidereal_midpoint"  → restricts attribution preview to the
+                                     Genetic Matrix candidate (Variant B,
+                                     Ophiuchus merged into Scorpius).
 
-    NOT for end-user consumption.
+    THIS ENDPOINT NEVER MUTATES STORED DATA. Production output and stored
+    charts remain on uniform_30 regardless of which preview mode is invoked.
+
+    Build marker (preview layer): true-sidereal-midpoint-toggle-v1
     """
     from datetime import datetime, timezone as _tz
     import swisseph as _swe
     from calculations.sidereal_config import SVP_DEGREES, J2000_EPOCH
+    from calculations.sign_attribution import (
+        attribute_sign_uniform_30,
+        attribute_sign_true_sidereal_midpoint,
+        MODE_UNIFORM_30,
+        MODE_TRUE_SIDEREAL_MIDPOINT,
+        MIDPOINT_MODEL_NAME,
+    )
     from bson import ObjectId
 
     SIGNS = [
@@ -31494,6 +31510,68 @@ async def admin_asc_forensic(user_id: str) -> Dict[str, Any]:
                 "resulting_sidereal_asc": fmt(sid),
             })
 
+    # ----- BODIES — both-mode attribution preview (Build: true-sidereal-midpoint-toggle-v1) -----
+    # Pull each body's TROPICAL longitude and run it through both attribution
+    # functions. This NEVER mutates stored chart data — pure read-and-derive.
+    requested_mode = (attribution or "").strip().lower() or None
+    include_uniform   = requested_mode in (None, MODE_UNIFORM_30)
+    include_midpoint  = requested_mode in (None, MODE_TRUE_SIDEREAL_MIDPOINT)
+
+    def _both_modes(trop: Optional[float]) -> Dict[str, Any]:
+        out: Dict[str, Any] = {"tropical_longitude": None if trop is None else round(trop % 360, 6)}
+        if trop is None:
+            return out
+        if include_uniform:
+            u = attribute_sign_uniform_30(trop, ayanamsa=SVP_DEGREES)
+            out[MODE_UNIFORM_30] = {
+                "sign": u["sign"],
+                "degree": u["degree_within_sign"],
+            }
+        if include_midpoint:
+            m = attribute_sign_true_sidereal_midpoint(trop)
+            out[MODE_TRUE_SIDEREAL_MIDPOINT] = {
+                "sign":              m["sign"],
+                "degree":            m["degree_within_sign"],
+                "sign_start":        m["sign_start"],
+                "sign_end":          m["sign_end"],
+                "sign_width":        m["sign_width"],
+                "attribution_model": m["attribution_mode"],
+            }
+        return out
+
+    bodies_comparison: List[Dict[str, Any]] = []
+
+    # ASC + MC from live SWE call (most authoritative)
+    if tropical_asc is not None:
+        bodies_comparison.append({"body": "ASC", **_both_modes(tropical_asc)})
+    if tropical_mc is not None:
+        bodies_comparison.append({"body": "MC",  **_both_modes(tropical_mc)})
+
+    # Planets + nodes from stored chart (uses each body's tropical_longitude)
+    planets_doc = astro.get("planets", {}) or {}
+    nodes_doc = astro.get("nodes", {}) or {}
+    for body_name, body_data in list(planets_doc.items()) + list(nodes_doc.items()):
+        if not isinstance(body_data, dict):
+            continue
+        trop = body_data.get("tropical_longitude")
+        if trop is None:
+            # Reconstruct from sidereal longitude if needed
+            sid = body_data.get("longitude")
+            if sid is not None:
+                trop = (sid + SVP_DEGREES) % 360
+        bodies_comparison.append({"body": body_name, **_both_modes(trop)})
+
+    # House cusps — stored as SIDEREAL longitudes. Reconstruct tropical
+    # so attribution can be compared.
+    house_cusps_compare: List[Dict[str, Any]] = []
+    stored_cusps = (houses_doc.get("cusps") or [])
+    for i, c in enumerate(stored_cusps[:12]):
+        trop_cusp = (c + SVP_DEGREES) % 360
+        house_cusps_compare.append({
+            "house": i + 1,
+            **_both_modes(trop_cusp),
+        })
+
     return {
         "build_marker": "asc-house-forensic-fix-v1",
         "user_id": user_id,
@@ -31541,6 +31619,20 @@ async def admin_asc_forensic(user_id: str) -> Dict[str, Any]:
 
         # === alt-ayanamsa sweep (the actual diagnostic surface) ===
         "alt_ayanamsa_sweep": alt_ayanamsa_sweep,
+
+        # === ATTRIBUTION TOGGLE PREVIEW ===
+        # Build marker: true-sidereal-midpoint-toggle-v1
+        # Each entry includes the body's tropical longitude and its sign
+        # attribution under each requested mode. NEVER mutates stored data.
+        "attribution_preview": {
+            "build_marker": "true-sidereal-midpoint-toggle-v1",
+            "requested_mode": requested_mode or "both",
+            "production_mode": MODE_UNIFORM_30,
+            "candidate_mode": MIDPOINT_MODEL_NAME,
+            "production_visible_output_unchanged": True,
+            "bodies": bodies_comparison,
+            "house_cusps_equal_from_asc": house_cusps_compare,
+        },
 
         # === Swiss Ephemeris call path ===
         "swisseph_flags": [
