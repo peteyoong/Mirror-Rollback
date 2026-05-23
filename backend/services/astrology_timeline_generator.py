@@ -45,7 +45,16 @@ logger = logging.getLogger(__name__)
 #         • each carries is_current / is_past / is_upcoming
 #       Turning points and decision windows are likewise re-anchored
 #       relative to "now" (not fixed April / August / November).
-ENGINE_VERSION = "timeline_v1.2"
+#
+# v1.3: PRESSURE WINDOW REFRAMING (Timeline V2 Phase 1 — copy-layer
+#       only; computation unchanged). Visible phase titles changed
+#       from categorical / house-topic language ("What's surfacing
+#       in communication") to existential / consequence / threshold
+#       language ("Where You Stop Managing Quietly"). The old
+#       categorical title is preserved on each phase as
+#       `categorical_label` for use inside the proof drawer ONLY —
+#       it must never appear in user-visible primary copy.
+ENGINE_VERSION = "timeline_v1.3"
 
 
 
@@ -283,12 +292,25 @@ def generate_astrology_timeline(
     # interpolate the user's natal house life-areas so each user gets
     # different titles. Names deliberately AVOID the old fixed labels
     # (Recognition / Confrontation / Crossroads / Integration).
+    # Phase role templates — define structural arc that flows from
+    # "right now" forward. Each template carries phase NAMES that
+    # interpolate the user's natal house life-areas so each user gets
+    # different titles. Names deliberately AVOID the old fixed labels
+    # (Recognition / Confrontation / Crossroads / Integration).
+    #
+    # v1.3 PRESSURE WINDOW REFRAMING:
+    # `name_template` is now the EXISTENTIAL / consequence-framed
+    # visible title (what the user reads first). The previous
+    # categorical / house-topic title is preserved as
+    # `categorical_label` for the proof drawer ONLY — it must never
+    # be surfaced as user-visible primary copy.
     phase_role_templates: List[Dict[str, Any]] = [
         {
             "role":          "active_pressure",
             "offset_days":   (-21, 35),   # past 3w → next 5w
-            "human_meaning": "What's pressing right now",
-            "name_template":
+            "human_meaning": "Where pressure becomes recognition",
+            "name_template": "Where You Stop Managing Quietly",
+            "categorical_label":
                 f"What's surfacing in {HOUSE_SHORT.get(sun_house, 'identity')}",
             "is_primary":    False,
             "whats_happening": [
@@ -317,8 +339,9 @@ def generate_astrology_timeline(
         {
             "role":          "surfacing",
             "offset_days":   (35, 105),   # next 5w → 15w
-            "human_meaning": "Something stops being avoidable",
-            "name_template":
+            "human_meaning": "When delay starts costing more than naming",
+            "name_template": "When Delay Starts Costing More Than Clarity",
+            "categorical_label":
                 f"The pressure point in {HOUSE_SHORT.get(saturn_house, 'career')}",
             "is_primary":    True,
             "whats_happening": [
@@ -348,8 +371,9 @@ def generate_astrology_timeline(
         {
             "role":          "pivot",
             "offset_days":   (105, 195),  # 15w → 28w
-            "human_meaning": "The choice you've been circling",
-            "name_template":
+            "human_meaning": "The threshold you can't cross twice",
+            "name_template": "The Threshold You Can't Cross Twice",
+            "categorical_label":
                 f"Two paths in {HOUSE_SHORT.get(venus_house, 'relationships')}",
             "is_primary":    True,
             "whats_happening": [
@@ -379,8 +403,9 @@ def generate_astrology_timeline(
         {
             "role":          "settling",
             "offset_days":   (195, 320),  # 28w → 46w
-            "human_meaning": "Where the year actually lands",
-            "name_template":
+            "human_meaning": "What the year asks you to keep",
+            "name_template": "The Shape That Holds After",
+            "categorical_label":
                 f"What settles in {HOUSE_SHORT.get(saturn_house, 'career')} and {HOUSE_SHORT.get(mars_house, 'action')}",
             "is_primary":    False,
             "whats_happening": [
@@ -433,6 +458,11 @@ def generate_astrology_timeline(
             "id":             f"p{idx + 1}",
             "role":           t["role"],
             "name":           t["name_template"],
+            # Phase 1 reframing: preserve the old categorical/topic
+            # title for use inside the proof drawer only — it must
+            # never appear in user-visible primary copy. The visible
+            # "name" above is the new existential title.
+            "categorical_label": t.get("categorical_label", ""),
             "period":         _date_range_label(start, end),
             "period_start":   start.strftime("%Y-%m-%d"),
             "period_end":     end.strftime("%Y-%m-%d"),
