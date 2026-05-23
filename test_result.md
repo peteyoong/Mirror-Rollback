@@ -24294,3 +24294,76 @@ frontend:
           Phase card and the Echo card inside the Lifeline sub-tab — this
           is intentional layout chrome and matches "below the main daily
           card within the Lifeline tab".
+
+
+  - task: "Cross-Lens Synthesis Atoms — Emotional Permeability"
+    implemented: true
+    working: true
+    file: "/app/backend/services/cross_lens_atoms.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          EMOTIONAL PERMEABILITY ATOM — FULL BACKEND TEST COMPLETE ✅
+          Harness: /app/backend_test_emotional_permeability.py
+          Result: 21/21 scenarios PASS.
+
+          S1 — Real users (Pete, Mel, Isaac, Thaddeus) all return atom_count=0
+          (strict selectivity holds; no false positives on production users).
+
+          S2 — Seeded permeability demo (6a111013f662cf2da04a389c) returns
+          exactly 1 atom with all expected attributes:
+            * atom_id == "emotional_permeability"
+            * matched==4, required==4, match_mode=="strict_all"
+            * core_signals_required==3, has_supporting==True
+            * recognition matches canonical text exactly
+            * signals[0]: Human Design · "Open Solar Plexus"
+            * signals[1]: Human Design · "Channel 6-59 — Intimacy"
+            * signals[2]: Astrology · "Moon Square Neptune (1.8°)"
+            * signals[3]: Numerology · "Life Path 2 (supporting)"
+
+          S3 — Boundary variants (synthetic charts seeded & torn down):
+            a) Defined SP blocks ➜ atom_count=0 ✅
+            b) Open SP but no permeability channel/gate ➜ 0 ✅
+            c) No qualifying astro signal ➜ 0 ✅
+            d) Numerology LP 2 alone ➜ 0 ✅
+            e) Channel 39-55 + Moon-12th + no qualifying LP ➜
+               labels [Open SP, Channel 39-55 — Moodiness, Moon in the 12th house],
+               len(signals)=3, has_supporting=False ✅
+            f) Gate 22 + Neptune house 1 + LP 11 ➜
+               labels [Open SP, Gate 22 — Grace, Neptune angular (house 1),
+               Life Path 11 (supporting)] ✅
+            g) Gate 49 + 3 Pisces personals + LP 6 ➜
+               labels [Open SP, Gate 49 — Principles, 3 personal planets in
+               Pisces, Life Path 6 (supporting)] ✅
+            h) Moon-Pluto opposition (3.0°) + LP 7 ➜
+               signals[2]="Moon Opposition Pluto (3.0°)", len=3 (LP 7 NOT
+               supporting) ✅
+            i) Aspect tightness preference: Pluto opp 2.0° beats Neptune sq 5.0°
+               ➜ signals[2] starts with "Moon Opposition Pluto" ✅
+            j) Soft trine alone (no other astro markers) ➜ 0 ✅
+            k) Certainty + Permeability both qualified ➜ atom_count=2 in
+               declaration order [certainty_pattern, emotional_permeability] ✅
+
+          S4 — Resilience: empty human_design, missing aspects, missing
+          numerology, malformed gates list (strings) — all return 200 with
+          atoms as a list, no 500s. ✅
+
+          S5 — Certainty seed regression (6a110c549ea9d4f6f4e1e961):
+          returns exactly 1 atom (atom_id == "certainty_pattern"). Registering
+          the new detector did NOT regress Certainty Pattern. ✅
+
+          Cleanup: every synthetic chart (user_id prefix
+          `cross_lens_atoms_test_`) deleted after assertion. No real users
+          touched. Production demo seeds (permeability.demo, certainty.demo)
+          left intact.
+
+agent_communication:
+    - agent: "testing"
+      message: |
+        Emotional Permeability atom passes all 21 scenarios (S1–S5).
+        Backend logs confirm endpoint health and no exceptions across
+        ~25 calls. No regressions on Certainty Pattern.
