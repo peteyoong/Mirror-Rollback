@@ -46,7 +46,7 @@ BUILD_MARKER = "true-sidereal-midpoint-toggle-v1"
 # Mode constants (the public API)
 MODE_UNIFORM_30 = "uniform_30"
 MODE_TRUE_SIDEREAL_MIDPOINT = "true_sidereal_midpoint"
-DEFAULT_MODE = MODE_UNIFORM_30
+DEFAULT_MODE = MODE_TRUE_SIDEREAL_MIDPOINT  # Production default — migrated to True Sidereal-M Midpoint (Build: true-sidereal-midpoint-production-migration-v1)
 
 # Internal label exposed in debug output so consumers can disambiguate
 # variants if/when we ship Variant A (Ophiuchus dropped).

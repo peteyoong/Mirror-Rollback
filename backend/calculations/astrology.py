@@ -148,19 +148,56 @@ def tropical_to_sidereal(tropical_longitude: float, svp_degrees: float) -> float
     return normalize_degrees(sidereal)
 
 
-def longitude_to_sign_degree(longitude: float) -> Dict:
-    """Convert longitude to sign and degree within sign
+def longitude_to_sign_degree(longitude: float, tropical_longitude: Optional[float] = None) -> Dict:
+    """Convert longitude to sign and degree within sign.
+    
+    HONOURS THE GLOBAL ATTRIBUTION MODE.
     
     Args:
-        longitude: Ecliptic longitude (0-360)
+        longitude: Ecliptic longitude (0-360). For Mirror's sidereal pipeline
+                   this is the sidereal longitude AFTER SVP subtraction.
+        tropical_longitude: Optional pre-computed tropical longitude (used by
+                            the True Sidereal Midpoint pathway). If omitted,
+                            it is derived by adding the SVP back.
     
     Returns:
-        Dict with sign index, sign name, degree in sign, formatted string
+        Dict with sign index, sign name, degree in sign, formatted string.
+    
+    Build marker (migration): true-sidereal-midpoint-production-migration-v1
     """
+    from calculations.sign_attribution import (
+        attribute_sign,
+        DEFAULT_MODE,
+        MODE_TRUE_SIDEREAL_MIDPOINT,
+        DEFAULT_AYANAMSA,
+    )
     longitude = normalize_degrees(longitude)
+    mode = DEFAULT_MODE
+    
+    if mode == MODE_TRUE_SIDEREAL_MIDPOINT:
+        # Midpoint attribution operates on TROPICAL longitude.
+        # Reconstruct tropical from sidereal if not supplied.
+        trop = (
+            normalize_degrees(tropical_longitude)
+            if tropical_longitude is not None
+            else normalize_degrees(longitude + DEFAULT_AYANAMSA)
+        )
+        r = attribute_sign(trop, mode=mode)
+        try:
+            sign_idx = ZODIAC_SIGNS.index(r["sign"])
+        except ValueError:
+            sign_idx = 0
+        deg = r["degree_within_sign"]
+        return {
+            "sign_index": sign_idx,
+            "sign":       r["sign"],
+            "degree":     deg,
+            "formatted":  f"{int(deg)}°{r['sign']}",
+        }
+    
+    # uniform_30 fallback — original Mirror behaviour, preserved verbatim.
     sign_num = int(longitude / 30)
     degree_in_sign = longitude % 30
-    
     return {
         'sign_index': sign_num,
         'sign': ZODIAC_SIGNS[sign_num],
