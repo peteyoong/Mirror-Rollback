@@ -1002,13 +1002,20 @@ NOT: "I opened a generic chat"
                                             f"reason=transit_intent_requires_transit_payload "
                                             f"engine_reason={grounded_transit_envelope.get('reason')}"
                                         )
-                                        response_text = (
-                                            "I couldn't compute the current "
-                                            f"transit placement for "
-                                            f"{canonical or obj_name} from the "
-                                            "chart engine yet. "
-                                            f"(reason: {grounded_transit_envelope.get('reason')})"
-                                        )
+                                        # Prefer the engine-supplied message (e.g.,
+                                        # Vertex explanation, ephemeris-missing
+                                        # diagnostic) when present.
+                                        eng_msg = grounded_transit_envelope.get("message")
+                                        eng_reason = grounded_transit_envelope.get("reason")
+                                        if eng_msg:
+                                            response_text = eng_msg
+                                        else:
+                                            response_text = (
+                                                "I couldn't compute the current "
+                                                f"transit placement for "
+                                                f"{canonical or obj_name} from the "
+                                                f"chart engine yet. (reason: {eng_reason})"
+                                            )
                     except Exception as router_exc:
                         # Intent router failure is non-fatal — fall through
                         # to the regular astrology chat path. We log loudly
