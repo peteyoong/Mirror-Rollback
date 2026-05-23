@@ -24360,6 +24360,40 @@ frontend:
           `cross_lens_atoms_test_`) deleted after assertion. No real users
           touched. Production demo seeds (permeability.demo, certainty.demo)
           left intact.
+      - working: true
+        agent: "testing"
+        comment: |
+          FRONTEND RENDER VERIFICATION (Emotional Permeability) COMPLETE ✅
+          Tested at 390x844 (iPhone 12/13/14 viewport spec).
+
+          Login flow unblocked by main agent adding
+          testID="welcome-sign-in-link" + accessibilityLabel="Sign in"
+          to the mobile welcome-screen Sign-in link in app/welcome.tsx.
+
+          R1 Card renders on Life > Lifeline ✅
+          R2 "EMOTIONAL PERMEABILITY" small uppercase above recognition ✅
+          R3 "Why this pattern? (4/4 systems)" collapsed by default ✅
+          R4 Expansion reveals 4 signals in exact spec order:
+             Open Solar Plexus → Channel 6-59 — Intimacy → Moon Square
+             Neptune (1.8°) → Life Path 2 (supporting) ✅
+          R5 Collapse + label flip to "Hide the systems" ✅
+          R6 Position: below Phase card, above LifelineTimeline ✅
+          R7 Card absent on Relationships / Work / Self sub-tabs ✅
+          R8 Zero console errors related to EchoAcrossSystems or
+             /api/synthesis/atoms/ ✅
+          R9 "(supporting)" reads as quiet attribution, no horizontal
+             overflow at 390px ✅
+
+          Negative regression on certainty.demo PASS — Certainty Pattern
+          card still renders with canonical recognition + 4-signal order.
+
+          Q1–Q12 qualitative ratings from prior content-level pass carried
+          forward unchanged (all 4-5/5; Q12 make/break = "I do that exact
+          thing"). No copy revisions recommended.
+
+          Screenshots saved in /app/.screenshots/:
+          01_permeability_collapsed.png, 02_permeability_expanded.png,
+          03_permeability_relationships_absent.png, 04_certainty_card.png
 
 agent_communication:
     - agent: "testing"
