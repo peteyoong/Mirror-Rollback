@@ -802,10 +802,15 @@ def detect_achievement_as_stabilization(chart: Dict[str, Any]) -> Optional[Dict[
             other_raw = (bodies - {"saturn"}).pop()
             other = "Ascendant" if other_raw == "asc" else other_raw.capitalize()
             astro_label = f"Saturn {_safe_lower(asp['type']).capitalize()} {other} ({_format_orb(asp.get('orb'))})"
+            # Mechanism-only phrasing — earlier "you build where others rest"
+            # phrasing introduced a comparative-trait framing ("where most
+            # people just live") that drifted toward exceptionalism / founder
+            # flattery when surfaced on real operators. The atom's core rule
+            # is movement-as-regulation, NOT achievement-as-identity.
             astro_evidence = (
-                "Saturn presses on a personal point in your chart. "
-                "Structure, weight and proving show up where most people "
-                "just live — you build where others rest."
+                "Saturn presses on a personal point in your chart. Structure "
+                "and weight attach close to who you are — so making something "
+                "real becomes a way of steadying that part."
             )
             astro_kind = "saturn_personal"
 
