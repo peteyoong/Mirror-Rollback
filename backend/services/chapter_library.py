@@ -194,11 +194,18 @@ _LIBRARY: List[Chapter] = [
         # Signal rules score AGAINST derived synthesis signals (not raw
         # traits) so users who share Ajna-defined wiring but lack Mercury-
         # Saturn don't fall into this chapter.
+        # NOTE: weights here are intentionally HIGH on the primary derived
+        # signals — these signals require the discriminator combination
+        # (Ajna + MercSat + G4/G63) to fire, so high weights are SAFE and
+        # necessary to overcome emotional_permeability's broader shared-
+        # trait scoring stack when both families' signatures co-occur in
+        # the same chart (e.g. mental-overcontainment users).
         "signal_rules": {
-            "derived_certainty_loop":               {"weight": 1.8, "description": "Defined Ajna + Gate 4/63 + Mercury-Saturn = certainty-seeking loop"},
-            "derived_recursive_questioning":        {"weight": 1.0, "description": "G63 + Ajna + Mercury-Saturn = each answer triggers a new question"},
-            "derived_stabilization_through_analysis":{"weight": 1.0, "description": "Ajna + LP 7 + Mercury-Saturn = analysis as ground"},
-            "derived_proof_before_action":          {"weight": 0.8, "description": "Ajna + Mercury-Saturn + structural anchor = proof gates action"},
+            "derived_certainty_loop":               {"weight": 2.5, "description": "Defined Ajna + Gate 4/63 + Mercury-Saturn = certainty-seeking loop"},
+            "derived_recursive_questioning":        {"weight": 1.2, "description": "G63 + Ajna + Mercury-Saturn = each answer triggers a new question"},
+            "derived_stabilization_through_analysis":{"weight": 1.2, "description": "Ajna + LP 7 + Mercury-Saturn = analysis as ground"},
+            "derived_proof_before_action":          {"weight": 1.0, "description": "Ajna + Mercury-Saturn + structural anchor = proof gates action"},
+            "derived_mental_overcontainment":       {"weight": 1.2, "description": "Ajna + Mercury-Saturn + Open Throat = thinking can't reach speech"},
             "derived_inability_to_conclude_safely": {"weight": 0.6, "description": "Ajna + Mercury-Neptune or G63 = closure feels unsafe"},
             "num_life_path_7":                      {"weight": 0.4, "description": "Life Path 7 — introspective verification path"},
         },
@@ -228,9 +235,9 @@ _LIBRARY: List[Chapter] = [
         "signal_rules": {
             "derived_recursive_questioning":        {"weight": 1.5, "description": "Each answer triggers a new question — the protection loop"},
             "derived_inability_to_conclude_safely": {"weight": 1.5, "description": "Closure can't yet feel safe — refinement persists"},
+            "derived_mental_overcontainment":       {"weight": 2.5, "description": "Mental capacity exceeds the system's ability to release it — overcontainment signature"},
+            "derived_certainty_loop":               {"weight": 2.0, "description": "Underlying certainty-seeking loop (boosted so cognitive route dominates when present)"},
             "derived_proof_before_action":          {"weight": 1.0, "description": "Proof gates action — the gate has stopped opening"},
-            "derived_certainty_loop":               {"weight": 1.0, "description": "Underlying certainty-seeking loop"},
-            "derived_mental_overcontainment":       {"weight": 0.8, "description": "Mental capacity exceeds the system's ability to release it"},
             "astro_mutable_mental_overprocessing":  {"weight": 0.4, "description": "Multiple mutable personal planets — endless re-evaluation"},
         },
     },
@@ -257,6 +264,7 @@ _LIBRARY: List[Chapter] = [
         title="The End Of Absorbing Everything",
         subtitle="The cost of permeability is becoming visible.",
         arc_type="ending",
+        existential_family="emotional_permeability",
         body_visible=(
             "You're moving out of a long stretch of taking in more than "
             "was yours. What was once invisible is now showing up as "
@@ -303,8 +311,16 @@ _LIBRARY: List[Chapter] = [
         proof_summary="Effort-output curve has flattened; integration over acceleration.",
         proof_topics=["productivity_plateau", "rest_resistance"],
         signal_rules={
-            "astro_saturn_hard_to_mars":     {"weight": 1.1},
-            "hd_defined_heart":              {"weight": 0.5},
+            # Achievement-axis users metabolize pressure through momentum.
+            # The original Mars-Saturn anchor catches the most explicit
+            # form (output-pressure friction). Saturn-Sun + Saturn-angular
+            # catch the broader authority-through-pressure variant where
+            # identity itself has become structurally weight-bearing.
+            "astro_saturn_hard_to_mars":     {"weight": 1.1, "description": "Mars-Saturn — direct output pressure"},
+            "astro_saturn_hard_to_sun":      {"weight": 0.9, "description": "Saturn-Sun — identity becoming structurally weight-bearing"},
+            "astro_saturn_angular":          {"weight": 0.6, "description": "Saturn on an angle — pressure made structural"},
+            "astro_10th_house_emphasis":     {"weight": 0.7, "description": "10th-house stellium — public/output identity"},
+            "hd_defined_heart":              {"weight": 0.5, "description": "Defined Heart — willpower channel intact"},
         },
     ),
     _chapter(

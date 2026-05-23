@@ -1,0 +1,965 @@
+[
+  {
+    "user": "E1_pure_permeability",
+    "label": "Pure permeability \u2014 open SP, Saturn-Moon, peacekeeping",
+    "category": "emotional_permeability",
+    "expected_family": "emotional_permeability",
+    "primary_chapter": "cost_of_keeping_the_peace",
+    "primary_chapter_title": "The Cost Of Keeping The Peace",
+    "family": "emotional_permeability",
+    "adjacent_chapters": [
+      "end_of_absorbing_everything",
+      "when_momentum_stops_working"
+    ],
+    "adjacent_families": [
+      "emotional_permeability",
+      "achievement_axis"
+    ],
+    "metabolization_style": "emotional_absorptive_silence",
+    "why_it_fit": [
+      "hd_open_solar_plexus",
+      "hd_channel_22",
+      "hd_channel_49",
+      "astro_saturn_house_3_4_7",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_hard_to_venus"
+    ],
+    "why_adjacent_did_not_win": [
+      "end_of_absorbing_everything (score=2.0, family=emotional_permeability)",
+      "when_momentum_stops_working (score=1.1, family=achievement_axis)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_hard_to_venus",
+      "astro_saturn_house_3_4_7",
+      "hd_channel_22",
+      "hd_channel_49",
+      "hd_defined_authority_center",
+      "hd_defined_heart",
+      "hd_open_solar_plexus"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 5.6,
+        "matched": [
+          "hd_open_solar_plexus",
+          "hd_channel_22",
+          "hd_channel_49",
+          "astro_saturn_house_3_4_7",
+          "astro_saturn_hard_to_moon",
+          "astro_saturn_hard_to_venus"
+        ]
+      },
+      {
+        "chapter_id": "end_of_absorbing_everything",
+        "title": "The End Of Absorbing Everything",
+        "family": "emotional_permeability",
+        "score": 2.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "astro_saturn_hard_to_moon"
+        ]
+      },
+      {
+        "chapter_id": "when_momentum_stops_working",
+        "title": "When Momentum Stops Working",
+        "family": "achievement_axis",
+        "score": 1.1,
+        "matched": [
+          "astro_saturn_angular",
+          "hd_defined_heart"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "E2_relational_duty",
+    "label": "Permeability + 7th house Saturn duty",
+    "category": "emotional_permeability",
+    "expected_family": "emotional_permeability",
+    "primary_chapter": "cost_of_keeping_the_peace",
+    "primary_chapter_title": "The Cost Of Keeping The Peace",
+    "family": "emotional_permeability",
+    "adjacent_chapters": [
+      "when_momentum_stops_working"
+    ],
+    "adjacent_families": [
+      "achievement_axis"
+    ],
+    "metabolization_style": "emotional_absorptive_silence",
+    "why_it_fit": [
+      "hd_open_solar_plexus",
+      "hd_channel_49",
+      "astro_saturn_house_3_4_7",
+      "astro_saturn_hard_to_venus",
+      "astro_mars_venus_hard"
+    ],
+    "why_adjacent_did_not_win": [
+      "when_momentum_stops_working (score=1.1, family=achievement_axis)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_mars_venus_hard",
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_venus",
+      "astro_saturn_house_3_4_7",
+      "hd_channel_49",
+      "hd_defined_authority_center",
+      "hd_defined_heart",
+      "hd_open_solar_plexus"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 4.7,
+        "matched": [
+          "hd_open_solar_plexus",
+          "hd_channel_49",
+          "astro_saturn_house_3_4_7",
+          "astro_saturn_hard_to_venus",
+          "astro_mars_venus_hard"
+        ]
+      },
+      {
+        "chapter_id": "when_momentum_stops_working",
+        "title": "When Momentum Stops Working",
+        "family": "achievement_axis",
+        "score": 1.1,
+        "matched": [
+          "astro_saturn_angular",
+          "hd_defined_heart"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "E3_12th_house_moon",
+    "label": "Permeability + 12th house Moon (hidden emotional life)",
+    "category": "emotional_permeability",
+    "expected_family": "emotional_permeability",
+    "primary_chapter": "cost_of_keeping_the_peace",
+    "primary_chapter_title": "The Cost Of Keeping The Peace",
+    "family": "emotional_permeability",
+    "adjacent_chapters": [
+      "end_of_absorbing_everything"
+    ],
+    "adjacent_families": [
+      "emotional_permeability"
+    ],
+    "metabolization_style": "emotional_absorptive_silence",
+    "why_it_fit": [
+      "hd_open_solar_plexus",
+      "hd_open_throat",
+      "hd_channel_22",
+      "astro_saturn_house_3_4_7",
+      "astro_saturn_hard_to_moon",
+      "astro_12th_house_moon"
+    ],
+    "why_adjacent_did_not_win": [
+      "end_of_absorbing_everything (score=2.0, family=emotional_permeability)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_12th_house_moon",
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_house_3_4_7",
+      "hd_channel_22",
+      "hd_defined_authority_center",
+      "hd_open_solar_plexus",
+      "hd_open_throat"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 5.6,
+        "matched": [
+          "hd_open_solar_plexus",
+          "hd_open_throat",
+          "hd_channel_22",
+          "astro_saturn_house_3_4_7",
+          "astro_saturn_hard_to_moon",
+          "astro_12th_house_moon"
+        ]
+      },
+      {
+        "chapter_id": "end_of_absorbing_everything",
+        "title": "The End Of Absorbing Everything",
+        "family": "emotional_permeability",
+        "score": 2.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "astro_saturn_hard_to_moon"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "C1_full_certainty_loop",
+    "label": "Pure certainty loop \u2014 Ajna+G4+G63+MercSat+LP7",
+    "category": "cognitive_recursion",
+    "expected_family": "cognitive_recursion",
+    "primary_chapter": "certainty_that_never_arrives",
+    "primary_chapter_title": "The Certainty That Never Arrives",
+    "family": "cognitive_recursion",
+    "adjacent_chapters": [
+      "question_stops_protecting_you",
+      "cost_of_keeping_the_peace"
+    ],
+    "adjacent_families": [
+      "cognitive_recursion",
+      "emotional_permeability"
+    ],
+    "metabolization_style": "cognitive_recursive_delay",
+    "why_it_fit": [
+      "derived_certainty_loop",
+      "derived_recursive_questioning",
+      "derived_stabilization_through_analysis",
+      "derived_proof_before_action",
+      "derived_inability_to_conclude_safely",
+      "num_life_path_7"
+    ],
+    "why_adjacent_did_not_win": [
+      "question_stops_protecting_you (score=6.4, family=cognitive_recursion)",
+      "cost_of_keeping_the_peace (score=2.0, family=emotional_permeability)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_mercury_saturn_hard",
+      "astro_mutable_mental_overprocessing",
+      "astro_saturn_hard_to_mercury",
+      "astro_saturn_hard_to_sun",
+      "derived_certainty_loop",
+      "derived_inability_to_conclude_safely",
+      "derived_proof_before_action",
+      "derived_recursive_questioning",
+      "derived_stabilization_through_analysis",
+      "derived_unresolved_cognition",
+      "hd_defined_ajna",
+      "hd_gate_4",
+      "hd_gate_63",
+      "hd_head_ajna_pressure",
+      "hd_open_solar_plexus",
+      "num_life_path_7"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "certainty_that_never_arrives",
+        "title": "The Certainty That Never Arrives",
+        "family": "cognitive_recursion",
+        "score": 6.9,
+        "matched": [
+          "derived_certainty_loop",
+          "derived_recursive_questioning",
+          "derived_stabilization_through_analysis",
+          "derived_proof_before_action",
+          "derived_inability_to_conclude_safely",
+          "num_life_path_7"
+        ]
+      },
+      {
+        "chapter_id": "question_stops_protecting_you",
+        "title": "When The Question Stops Protecting You",
+        "family": "cognitive_recursion",
+        "score": 6.4,
+        "matched": [
+          "derived_recursive_questioning",
+          "derived_inability_to_conclude_safely",
+          "derived_certainty_loop",
+          "derived_proof_before_action",
+          "astro_mutable_mental_overprocessing"
+        ]
+      },
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 2.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "astro_saturn_hard_to_mercury"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "C2_recursive_questioning",
+    "label": "Recursive questioning \u2014 Ajna+G63+MercSat (no G4)",
+    "category": "cognitive_recursion",
+    "expected_family": "cognitive_recursion",
+    "primary_chapter": "question_stops_protecting_you",
+    "primary_chapter_title": "When The Question Stops Protecting You",
+    "family": "cognitive_recursion",
+    "adjacent_chapters": [
+      "certainty_that_never_arrives",
+      "cost_of_keeping_the_peace"
+    ],
+    "adjacent_families": [
+      "cognitive_recursion",
+      "emotional_permeability"
+    ],
+    "metabolization_style": "cognitive_recursive_delay",
+    "why_it_fit": [
+      "derived_recursive_questioning",
+      "derived_inability_to_conclude_safely",
+      "derived_certainty_loop",
+      "astro_mutable_mental_overprocessing"
+    ],
+    "why_adjacent_did_not_win": [
+      "certainty_that_never_arrives (score=4.3, family=cognitive_recursion)",
+      "cost_of_keeping_the_peace (score=2.0, family=emotional_permeability)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_mercury_neptune_uncertainty",
+      "astro_mercury_saturn_hard",
+      "astro_mutable_mental_overprocessing",
+      "astro_saturn_hard_to_mercury",
+      "derived_certainty_loop",
+      "derived_inability_to_conclude_safely",
+      "derived_recursive_questioning",
+      "derived_unresolved_cognition",
+      "hd_defined_ajna",
+      "hd_defined_authority_center",
+      "hd_gate_63",
+      "hd_open_solar_plexus"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "question_stops_protecting_you",
+        "title": "When The Question Stops Protecting You",
+        "family": "cognitive_recursion",
+        "score": 5.4,
+        "matched": [
+          "derived_recursive_questioning",
+          "derived_inability_to_conclude_safely",
+          "derived_certainty_loop",
+          "astro_mutable_mental_overprocessing"
+        ]
+      },
+      {
+        "chapter_id": "certainty_that_never_arrives",
+        "title": "The Certainty That Never Arrives",
+        "family": "cognitive_recursion",
+        "score": 4.3,
+        "matched": [
+          "derived_certainty_loop",
+          "derived_recursive_questioning",
+          "derived_inability_to_conclude_safely"
+        ]
+      },
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 2.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "astro_saturn_hard_to_mercury"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "C3_mental_overcontainment",
+    "label": "Mental overcontainment \u2014 Ajna+MercSat+Open Throat",
+    "category": "cognitive_recursion",
+    "expected_family": "cognitive_recursion",
+    "primary_chapter": "question_stops_protecting_you",
+    "primary_chapter_title": "When The Question Stops Protecting You",
+    "family": "cognitive_recursion",
+    "adjacent_chapters": [
+      "cost_of_keeping_the_peace",
+      "certainty_that_never_arrives"
+    ],
+    "adjacent_families": [
+      "emotional_permeability",
+      "cognitive_recursion"
+    ],
+    "metabolization_style": "cognitive_recursive_delay",
+    "why_it_fit": [
+      "derived_mental_overcontainment",
+      "derived_certainty_loop"
+    ],
+    "why_adjacent_did_not_win": [
+      "cost_of_keeping_the_peace (score=4.2, family=emotional_permeability)",
+      "certainty_that_never_arrives (score=3.7, family=cognitive_recursion)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_mercury_saturn_hard",
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_mercury",
+      "astro_saturn_house_3_4_7",
+      "derived_certainty_loop",
+      "derived_mental_overcontainment",
+      "derived_unresolved_cognition",
+      "hd_defined_ajna",
+      "hd_defined_authority_center",
+      "hd_gate_4",
+      "hd_head_ajna_pressure",
+      "hd_open_solar_plexus",
+      "hd_open_throat"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "question_stops_protecting_you",
+        "title": "When The Question Stops Protecting You",
+        "family": "cognitive_recursion",
+        "score": 4.5,
+        "matched": [
+          "derived_mental_overcontainment",
+          "derived_certainty_loop"
+        ]
+      },
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 4.2,
+        "matched": [
+          "hd_open_solar_plexus",
+          "hd_open_throat",
+          "astro_saturn_house_3_4_7",
+          "astro_saturn_hard_to_mercury"
+        ]
+      },
+      {
+        "chapter_id": "certainty_that_never_arrives",
+        "title": "The Certainty That Never Arrives",
+        "family": "cognitive_recursion",
+        "score": 3.7,
+        "matched": [
+          "derived_certainty_loop",
+          "derived_mental_overcontainment"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "H1_open_sp_plus_ajna_no_mercsat",
+    "label": "Hybrid: Open SP + defined Ajna, NO Mercury-Saturn",
+    "category": "hybrid_emotional_dominant",
+    "expected_family": "emotional_permeability",
+    "primary_chapter": "cost_of_keeping_the_peace",
+    "primary_chapter_title": "The Cost Of Keeping The Peace",
+    "family": "emotional_permeability",
+    "adjacent_chapters": [
+      "end_of_absorbing_everything",
+      "question_stops_protecting_you"
+    ],
+    "adjacent_families": [
+      "emotional_permeability",
+      "cognitive_recursion"
+    ],
+    "metabolization_style": "emotional_absorptive_silence",
+    "why_it_fit": [
+      "hd_open_solar_plexus",
+      "hd_open_throat",
+      "astro_saturn_house_3_4_7",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_hard_to_venus",
+      "astro_12th_house_moon"
+    ],
+    "why_adjacent_did_not_win": [
+      "end_of_absorbing_everything (score=2.0, family=emotional_permeability)",
+      "question_stops_protecting_you (score=1.5, family=cognitive_recursion)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_12th_house_moon",
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_hard_to_venus",
+      "astro_saturn_house_3_4_7",
+      "derived_inability_to_conclude_safely",
+      "hd_defined_ajna",
+      "hd_defined_authority_center",
+      "hd_gate_4",
+      "hd_gate_63",
+      "hd_head_ajna_pressure",
+      "hd_open_solar_plexus",
+      "hd_open_throat",
+      "num_life_path_7"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 6.2,
+        "matched": [
+          "hd_open_solar_plexus",
+          "hd_open_throat",
+          "astro_saturn_house_3_4_7",
+          "astro_saturn_hard_to_moon",
+          "astro_saturn_hard_to_venus",
+          "astro_12th_house_moon"
+        ]
+      },
+      {
+        "chapter_id": "end_of_absorbing_everything",
+        "title": "The End Of Absorbing Everything",
+        "family": "emotional_permeability",
+        "score": 2.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "astro_saturn_hard_to_moon"
+        ]
+      },
+      {
+        "chapter_id": "question_stops_protecting_you",
+        "title": "When The Question Stops Protecting You",
+        "family": "cognitive_recursion",
+        "score": 1.5,
+        "matched": [
+          "derived_inability_to_conclude_safely"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "H2_ajna_open_sp_open_throat",
+    "label": "Hybrid: Ajna defined + Open SP + Open Throat (smart absorber)",
+    "category": "hybrid_emotional_dominant",
+    "expected_family": "emotional_permeability",
+    "primary_chapter": "cost_of_keeping_the_peace",
+    "primary_chapter_title": "The Cost Of Keeping The Peace",
+    "family": "emotional_permeability",
+    "adjacent_chapters": [
+      "end_of_absorbing_everything",
+      "question_stops_protecting_you"
+    ],
+    "adjacent_families": [
+      "emotional_permeability",
+      "cognitive_recursion"
+    ],
+    "metabolization_style": "emotional_absorptive_silence",
+    "why_it_fit": [
+      "hd_open_solar_plexus",
+      "hd_open_throat",
+      "hd_channel_22",
+      "astro_saturn_house_3_4_7",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_hard_to_venus"
+    ],
+    "why_adjacent_did_not_win": [
+      "end_of_absorbing_everything (score=2.0, family=emotional_permeability)",
+      "question_stops_protecting_you (score=1.5, family=cognitive_recursion)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_excessive_air_mentalization",
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_hard_to_venus",
+      "astro_saturn_house_3_4_7",
+      "derived_inability_to_conclude_safely",
+      "hd_channel_22",
+      "hd_defined_ajna",
+      "hd_defined_authority_center",
+      "hd_gate_63",
+      "hd_open_solar_plexus",
+      "hd_open_throat"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 6.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "hd_open_throat",
+          "hd_channel_22",
+          "astro_saturn_house_3_4_7",
+          "astro_saturn_hard_to_moon",
+          "astro_saturn_hard_to_venus"
+        ]
+      },
+      {
+        "chapter_id": "end_of_absorbing_everything",
+        "title": "The End Of Absorbing Everything",
+        "family": "emotional_permeability",
+        "score": 2.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "astro_saturn_hard_to_moon"
+        ]
+      },
+      {
+        "chapter_id": "question_stops_protecting_you",
+        "title": "When The Question Stops Protecting You",
+        "family": "cognitive_recursion",
+        "score": 1.5,
+        "matched": [
+          "derived_inability_to_conclude_safely"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "H3_mercsat_no_ajna",
+    "label": "Hybrid: Mercury-Saturn + Open SP, NO Ajna (heavy thinker but no recursion)",
+    "category": "hybrid_emotional_dominant",
+    "expected_family": "emotional_permeability",
+    "primary_chapter": "cost_of_keeping_the_peace",
+    "primary_chapter_title": "The Cost Of Keeping The Peace",
+    "family": "emotional_permeability",
+    "adjacent_chapters": [
+      "end_of_absorbing_everything"
+    ],
+    "adjacent_families": [
+      "emotional_permeability"
+    ],
+    "metabolization_style": "emotional_absorptive_silence",
+    "why_it_fit": [
+      "hd_open_solar_plexus",
+      "hd_channel_49",
+      "astro_saturn_house_3_4_7",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_hard_to_mercury"
+    ],
+    "why_adjacent_did_not_win": [
+      "end_of_absorbing_everything (score=2.0, family=emotional_permeability)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_mercury_saturn_hard",
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_mercury",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_house_3_4_7",
+      "derived_unresolved_cognition",
+      "hd_channel_49",
+      "hd_defined_authority_center",
+      "hd_open_solar_plexus"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 5.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "hd_channel_49",
+          "astro_saturn_house_3_4_7",
+          "astro_saturn_hard_to_moon",
+          "astro_saturn_hard_to_mercury"
+        ]
+      },
+      {
+        "chapter_id": "end_of_absorbing_everything",
+        "title": "The End Of Absorbing Everything",
+        "family": "emotional_permeability",
+        "score": 2.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "astro_saturn_hard_to_moon"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "A1_mars_saturn_momentum",
+    "label": "Achievement: Defined Heart + Mars-Saturn + 10th emphasis",
+    "category": "achievement_axis",
+    "expected_family": "achievement_axis",
+    "primary_chapter": "when_momentum_stops_working",
+    "primary_chapter_title": "When Momentum Stops Working",
+    "family": "achievement_axis",
+    "adjacent_chapters": [],
+    "adjacent_families": [],
+    "metabolization_style": "achievement_through_momentum",
+    "why_it_fit": [
+      "astro_saturn_hard_to_mars",
+      "astro_saturn_angular",
+      "astro_10th_house_emphasis",
+      "hd_defined_heart"
+    ],
+    "why_adjacent_did_not_win": [],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_10th_house_emphasis",
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_mars",
+      "hd_defined_authority_center",
+      "hd_defined_heart"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "when_momentum_stops_working",
+        "title": "When Momentum Stops Working",
+        "family": "achievement_axis",
+        "score": 2.9,
+        "matched": [
+          "astro_saturn_hard_to_mars",
+          "astro_saturn_angular",
+          "astro_10th_house_emphasis",
+          "hd_defined_heart"
+        ]
+      }
+    ],
+    "notes": [
+      "No adjacent chapters \u2014 shortlist is single-entry; thin gravity."
+    ]
+  },
+  {
+    "user": "A2_saturn_sun_authority",
+    "label": "Achievement: Defined Heart + Saturn-Sun + Saturn angular",
+    "category": "achievement_axis",
+    "expected_family": "achievement_axis",
+    "primary_chapter": "when_momentum_stops_working",
+    "primary_chapter_title": "When Momentum Stops Working",
+    "family": "achievement_axis",
+    "adjacent_chapters": [],
+    "adjacent_families": [],
+    "metabolization_style": "achievement_through_momentum",
+    "why_it_fit": [
+      "astro_saturn_hard_to_sun",
+      "astro_saturn_angular",
+      "hd_defined_heart"
+    ],
+    "why_adjacent_did_not_win": [],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_sun",
+      "hd_defined_authority_center",
+      "hd_defined_heart",
+      "hd_open_solar_plexus"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "when_momentum_stops_working",
+        "title": "When Momentum Stops Working",
+        "family": "achievement_axis",
+        "score": 2.0,
+        "matched": [
+          "astro_saturn_hard_to_sun",
+          "astro_saturn_angular",
+          "hd_defined_heart"
+        ]
+      }
+    ],
+    "notes": [
+      "No adjacent chapters \u2014 shortlist is single-entry; thin gravity."
+    ]
+  },
+  {
+    "user": "S1_balanced_chart",
+    "label": "Stable: balanced chart, few hard aspects",
+    "category": "stable",
+    "expected_family": null,
+    "primary_chapter": null,
+    "primary_chapter_title": null,
+    "family": null,
+    "adjacent_chapters": [],
+    "adjacent_families": [],
+    "metabolization_style": "fallback_quiet_recalibration",
+    "why_it_fit": [],
+    "why_adjacent_did_not_win": [],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "hd_defined_authority_center",
+      "hd_defined_heart",
+      "hd_open_solar_plexus"
+    ],
+    "shortlist": [],
+    "notes": []
+  },
+  {
+    "user": "S2_quiet_chart",
+    "label": "Stable: quiet chart, no major activation",
+    "category": "stable",
+    "expected_family": null,
+    "primary_chapter": null,
+    "primary_chapter_title": null,
+    "family": null,
+    "adjacent_chapters": [],
+    "adjacent_families": [],
+    "metabolization_style": "fallback_quiet_recalibration",
+    "why_it_fit": [],
+    "why_adjacent_did_not_win": [],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "hd_defined_authority_center",
+      "hd_open_solar_plexus",
+      "hd_open_throat"
+    ],
+    "shortlist": [],
+    "notes": []
+  },
+  {
+    "user": "AV1_12th_moon_no_recursion",
+    "label": "Avoidant: 12th house Moon, Saturn heavy, NO Ajna",
+    "category": "avoidant",
+    "expected_family": "emotional_permeability_or_closure",
+    "primary_chapter": "cost_of_keeping_the_peace",
+    "primary_chapter_title": "The Cost Of Keeping The Peace",
+    "family": "emotional_permeability",
+    "adjacent_chapters": [
+      "when_momentum_stops_working"
+    ],
+    "adjacent_families": [
+      "achievement_axis"
+    ],
+    "metabolization_style": "emotional_absorptive_silence",
+    "why_it_fit": [
+      "hd_open_solar_plexus",
+      "hd_open_throat",
+      "astro_12th_house_moon"
+    ],
+    "why_adjacent_did_not_win": [
+      "when_momentum_stops_working (score=2.0, family=achievement_axis)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_12th_house_moon",
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_sun",
+      "hd_defined_authority_center",
+      "hd_defined_heart",
+      "hd_open_solar_plexus",
+      "hd_open_throat"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 2.6,
+        "matched": [
+          "hd_open_solar_plexus",
+          "hd_open_throat",
+          "astro_12th_house_moon"
+        ]
+      },
+      {
+        "chapter_id": "when_momentum_stops_working",
+        "title": "When Momentum Stops Working",
+        "family": "achievement_axis",
+        "score": 2.0,
+        "matched": [
+          "astro_saturn_hard_to_sun",
+          "astro_saturn_angular",
+          "hd_defined_heart"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  {
+    "user": "AV2_mercsat_no_ajna_withdrawn",
+    "label": "Avoidant: Mercury-Saturn + 12th Moon, NO Ajna defined",
+    "category": "avoidant",
+    "expected_family": "emotional_permeability_or_closure",
+    "primary_chapter": "cost_of_keeping_the_peace",
+    "primary_chapter_title": "The Cost Of Keeping The Peace",
+    "family": "emotional_permeability",
+    "adjacent_chapters": [
+      "end_of_absorbing_everything"
+    ],
+    "adjacent_families": [
+      "emotional_permeability"
+    ],
+    "metabolization_style": "emotional_absorptive_silence",
+    "why_it_fit": [
+      "hd_open_solar_plexus",
+      "astro_saturn_house_3_4_7",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_hard_to_mercury",
+      "astro_12th_house_moon"
+    ],
+    "why_adjacent_did_not_win": [
+      "end_of_absorbing_everything (score=2.0, family=emotional_permeability)"
+    ],
+    "collapse_risk": "low",
+    "false_intellectualization": false,
+    "false_emotionalization": false,
+    "signals_extracted": [
+      "astro_12th_house_moon",
+      "astro_mercury_saturn_hard",
+      "astro_saturn_angular",
+      "astro_saturn_hard_to_mercury",
+      "astro_saturn_hard_to_moon",
+      "astro_saturn_house_3_4_7",
+      "derived_unresolved_cognition",
+      "hd_defined_authority_center",
+      "hd_open_solar_plexus"
+    ],
+    "shortlist": [
+      {
+        "chapter_id": "cost_of_keeping_the_peace",
+        "title": "The Cost Of Keeping The Peace",
+        "family": "emotional_permeability",
+        "score": 5.2,
+        "matched": [
+          "hd_open_solar_plexus",
+          "astro_saturn_house_3_4_7",
+          "astro_saturn_hard_to_moon",
+          "astro_saturn_hard_to_mercury",
+          "astro_12th_house_moon"
+        ]
+      },
+      {
+        "chapter_id": "end_of_absorbing_everything",
+        "title": "The End Of Absorbing Everything",
+        "family": "emotional_permeability",
+        "score": 2.0,
+        "matched": [
+          "hd_open_solar_plexus",
+          "astro_saturn_hard_to_moon"
+        ]
+      }
+    ],
+    "notes": []
+  }
+]
