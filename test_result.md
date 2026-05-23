@@ -24367,3 +24367,93 @@ agent_communication:
         Emotional Permeability atom passes all 21 scenarios (S1–S5).
         Backend logs confirm endpoint health and no exceptions across
         ~25 calls. No regressions on Certainty Pattern.
+
+  - task: "Cross-Lens Synthesis Atoms — Emotional Permeability (Frontend Render)"
+    implemented: true
+    working: true
+    file: "/app/frontend/components/EchoAcrossSystems.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: |
+          EMOTIONAL PERMEABILITY — FRONTEND RENDER VERIFICATION COMPLETE.
+          Mobile flow (welcome -> sign-in link -> email -> Enter -> Life
+          tab -> Lifeline sub-tab) executed successfully using new
+          testID="welcome-sign-in-link". All R1-R9 checks PASS.
+
+          R1 PASS — Card renders on Lifeline tab for permeability.demo@test.com.
+                    "Echo Across Systems" header + subtitle "Where different
+                    systems point to the same thing" present.
+          R2 PASS — "EMOTIONAL PERMEABILITY" appears in small uppercase
+                    above the recognition line ("Emotional environments
+                    enter you quickly. You often adapt to what others are
+                    feeling before deciding whether you actually want to
+                    carry it.").
+          R3 PASS — "Why this pattern? (4/4 systems)" row collapsed by
+                    default with chevron-down. "Hide the systems" NOT in
+                    DOM before the first tap.
+          R4 PASS — Tapping the row expands and reveals the 4 signals in
+                    the exact spec order:
+                       1. HUMAN DESIGN · Open Solar Plexus
+                       2. HUMAN DESIGN · Channel 6-59 — Intimacy
+                       3. ASTROLOGY · Moon Square Neptune (1.8°)
+                       4. NUMEROLOGY · Life Path 2 (supporting)
+                    Order verified both in DOM text (positions strictly
+                    ascending) and in the captured screenshot.
+          R5 PASS — Label flips to "Hide the systems" while expanded;
+                    tapping again collapses and label reverts to
+                    "Why this pattern? (4/4 systems)" (DOM-confirmed).
+          R6 PASS — Card position is BELOW the Phase card
+                    ("THE ROLE YOU'RE IN") and ABOVE LifelineTimeline
+                    ("THE MOMENTS THAT SHAPED YOU"). Confirmed via
+                    bounding-rect y-coordinates and visual capture.
+          R7 PASS — Card ABSENT on Relationships / Work / Self sub-tabs.
+                    For each sub-tab, "Echo Across Systems" and
+                    "EMOTIONAL PERMEABILITY" were both False in DOM body
+                    text.
+          R8 PASS — Zero console errors related to EchoAcrossSystems or
+                    /api/synthesis/atoms/.
+          R9 PASS — Echo card visually feels like a small inline echo,
+                    not a feature panel. No horizontal overflow.
+                    "Life Path 2 (supporting)" parenthetical reads as
+                    quiet attribution in the same muted tone as the
+                    framework label — not a label flag.
+
+          NEGATIVE / REGRESSION (certainty.demo@test.com):
+          After clearing client storage (localStorage + sessionStorage
+          + IndexedDB) and reloading, signed in as certainty.demo. On
+          her Lifeline tab the Certainty Pattern card renders correctly:
+            * recognition starts "You tend to look for certainty under
+              pressure — and to doubt the answer the moment you've
+              found one." ✅
+            * signals expand in the exact 4-item spec order:
+                 1. HUMAN DESIGN · Defined Ajna
+                 2. HUMAN DESIGN · Gates 4 & 63 — Answers & Doubt
+                 3. ASTROLOGY · Mercury Square Saturn (2.0°)
+                 4. NUMEROLOGY · Life Path 7
+            * no "(supporting)" parenthetical on LP 7 (correct — LP 7
+              is a core signal for Certainty, not supporting).
+
+          Q1-Q12 qualitative ratings from prior pass are carried forward
+          unchanged; nothing rendered contradicts the content-level read.
+
+          Screenshots captured in /app/.screenshots/:
+            01_permeability_collapsed.png
+            02_permeability_expanded.png
+            03_permeability_relationships_absent.png
+            04_certainty_card.png
+          Note: the automation environment rendered screenshots at the
+          containing viewport (~1920px) rather than the 390px viewport
+          set via page.set_viewport_size — content verification is
+          unaffected (text, order, presence/absence, console all checked
+          via DOM evaluation).
+
+agent_communication:
+    - agent: "testing"
+      message: |
+        Emotional Permeability render-level checks (R1-R9) all PASS
+        after the welcome-sign-in-link fix. Negative regression for
+        Certainty Pattern also PASS. No code changes required.

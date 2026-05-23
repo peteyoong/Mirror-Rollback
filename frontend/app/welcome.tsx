@@ -289,7 +289,13 @@ export default function Welcome() {
               <Text style={styles.secondaryActionText}>I'm new here</Text>
             </TouchableOpacity>
             <Text style={styles.secondaryActionDivider}>·</Text>
-            <TouchableOpacity onPress={() => setShowLogin(true)} activeOpacity={0.6}>
+            <TouchableOpacity
+              onPress={() => setShowLogin(true)}
+              activeOpacity={0.6}
+              testID="welcome-sign-in-link"
+              accessibilityLabel="Sign in"
+              accessibilityRole="button"
+            >
               <Text style={styles.secondaryActionText}>Sign in</Text>
             </TouchableOpacity>
           </View>
