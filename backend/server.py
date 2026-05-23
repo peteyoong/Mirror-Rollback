@@ -31845,6 +31845,7 @@ app.add_middleware(NoCacheAPIMiddleware)
 async def startup():
     """Initialize resources at server startup"""
     # Log deployment status at startup
+    logger.info("[Startup] BUILD_MARKER=live-midpoint-propagation-fix-v2")
     logger.info("[Startup] Running deployment guard validation...")
     deployment_valid = log_deployment_status()
     if not deployment_valid:
@@ -31895,6 +31896,8 @@ async def _migrate_true_sidereal_midpoint():
     Clears sign-derived caches only when at least one chart was actually migrated.
     
     Safe to call on every startup — exits as no-op once all charts are migrated.
+    
+    Build marker: live-midpoint-propagation-fix-v2
     """
     # Defer imports so a missing module never blocks server boot
     from tests.recompute_true_sidereal_midpoint import (
