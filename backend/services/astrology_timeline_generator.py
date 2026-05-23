@@ -54,7 +54,22 @@ logger = logging.getLogger(__name__)
 #       categorical title is preserved on each phase as
 #       `categorical_label` for use inside the proof drawer ONLY —
 #       it must never appear in user-visible primary copy.
-ENGINE_VERSION = "timeline_v1.3"
+# v1.4: DESCRIPTION + BULLET REWRITE pass (Timeline V2 Phase 1
+#       continued). All {house_area} / {*_area} interpolations
+#       removed from visible-tier copy:
+#         - each phase's description rewritten existentially
+#         - each phase's whats_happening / what_this_creates /
+#           where_people_get_it_wrong / what_its_asking_of_you
+#           bullet arrays rewritten without categorical interpolation
+#         - turning points (confrontation / decision / integration)
+#           rewritten without house labels in user-visible text
+#         - decision-window `context` is now an existential label
+#           ("Naming", "Truth-telling in close range", etc.) instead
+#           of "In {house}".
+#       Categorical labels are preserved on each phase / turning
+#       point / decision window under `categorical_context` for
+#       future proof-drawer surfacing.
+ENGINE_VERSION = "timeline_v1.4"
 
 
 
@@ -292,18 +307,14 @@ def generate_astrology_timeline(
     # interpolate the user's natal house life-areas so each user gets
     # different titles. Names deliberately AVOID the old fixed labels
     # (Recognition / Confrontation / Crossroads / Integration).
-    # Phase role templates — define structural arc that flows from
-    # "right now" forward. Each template carries phase NAMES that
-    # interpolate the user's natal house life-areas so each user gets
-    # different titles. Names deliberately AVOID the old fixed labels
-    # (Recognition / Confrontation / Crossroads / Integration).
-    #
-    # v1.3 PRESSURE WINDOW REFRAMING:
-    # `name_template` is now the EXISTENTIAL / consequence-framed
-    # visible title (what the user reads first). The previous
-    # categorical / house-topic title is preserved as
-    # `categorical_label` for the proof drawer ONLY — it must never
-    # be surfaced as user-visible primary copy.
+    # v1.3 PHASE 2 COPY PASS: descriptions + bullet arrays rewritten
+    # from categorical / {house_area} interpolations to existential /
+    # consequence-framed language. The {tension} interpolation is
+    # retained because it describes the charge/dynamic (e.g. "absorbing
+    # vs naming"), not a topic. {*_area} interpolations are fully
+    # removed from visible-tier copy and preserved internally on each
+    # phase as `categorical_context` for the proof drawer.
+
     phase_role_templates: List[Dict[str, Any]] = [
         {
             "role":          "active_pressure",
@@ -312,28 +323,39 @@ def generate_astrology_timeline(
             "name_template": "Where You Stop Managing Quietly",
             "categorical_label":
                 f"What's surfacing in {HOUSE_SHORT.get(sun_house, 'identity')}",
+            "categorical_context": (
+                f"Underlying activation: {sun_area} (Sun), "
+                f"{mars_area} (Mars), {moon_area} (Moon)."
+            ),
             "is_primary":    False,
             "whats_happening": [
-                f"The {tension} tension is most active right now in {sun_area}",
-                f"Small moments in {mars_area} and {moon_area} carry more weight than they look",
+                f"The {tension} tension you've been quietly managing is "
+                "moving from background to foreground",
+                "Small moments are carrying more weight than they look — "
+                "the system has stopped being able to neutralise them",
             ],
             "what_this_creates": [
-                "A sense that something you've been managing is starting to ask for your attention",
-                "Situations that feel like a repeat — but with the stakes slightly higher",
+                "A sense that something you've been steering around is "
+                "starting to ask for your attention",
+                "Situations that feel like a repeat — but with the stakes "
+                "noticeably higher",
             ],
             "where_people_get_it_wrong": [
                 "Treating it as background noise instead of signal",
-                "Trying to push through without naming what's actually happening",
+                "Trying to push through without naming what's actually "
+                "happening",
             ],
             "what_its_asking_of_you": [
-                f"Notice what keeps echoing, especially around {moon_area}",
-                "Stop calling it 'just busy' — name what you're navigating",
+                "Notice what keeps echoing — the same edge in slightly "
+                "different shapes",
+                "Stop calling it 'just busy' — name what you're actually "
+                "navigating",
             ],
             "description": (
-                f"The {tension} tension is showing up most clearly in {sun_area} "
-                f"right now. Small moments in {mars_area} and {moon_area} carry "
-                f"more weight than they look. What's asked of you: notice what "
-                f"keeps echoing — and stop calling it 'just busy.'"
+                f"The {tension} tension is moving from something you've "
+                "been quietly managing to something that's asking for "
+                "your attention. The version of this you've been carrying "
+                "for a while is no longer paying its own way."
             ),
         },
         {
@@ -343,29 +365,39 @@ def generate_astrology_timeline(
             "name_template": "When Delay Starts Costing More Than Clarity",
             "categorical_label":
                 f"The pressure point in {HOUSE_SHORT.get(saturn_house, 'career')}",
+            "categorical_context": (
+                f"Underlying activation: {saturn_area} (Saturn), "
+                f"{venus_area} (Venus)."
+            ),
             "is_primary":    True,
             "whats_happening": [
-                f"What you've been tolerating in {venus_area} and {saturn_area} stops feeling tolerable",
-                "The gap between how you've been presenting and how you actually feel gets harder to bridge",
+                "What you've been tolerating stops feeling tolerable — "
+                "not dramatically, just consistently",
+                "The gap between how you've been presenting and how you "
+                "actually feel gets harder to bridge",
             ],
             "what_this_creates": [
-                "Conversations you've been putting off start demanding attention",
+                "Conversations you've been putting off start demanding "
+                "attention",
                 "Choices that feel more permanent than the ones before",
             ],
             "where_people_get_it_wrong": [
-                "Blaming the situation instead of seeing what you brought to it",
-                "Making a decision just to escape the pressure, then regretting the speed",
+                "Blaming the situation instead of seeing what you brought "
+                "to it",
+                "Making a decision just to escape the pressure, then "
+                "regretting the speed",
             ],
             "what_its_asking_of_you": [
                 "Name what you've been pretending not to see",
-                f"In {saturn_area}, choose from clarity — not from wanting the discomfort to end",
+                "Choose from clarity — not from wanting the discomfort "
+                "to end",
             ],
             "description": (
-                f"What you've been tolerating in {venus_area} and {saturn_area} "
-                f"stops feeling tolerable. Conversations you've been putting off "
-                f"start demanding attention. What's asked of you: name what "
-                f"you've been pretending not to see — and choose from clarity, "
-                f"not relief."
+                "This is the part of the year where avoiding clarity "
+                "starts taking more energy than facing it. What was "
+                "manageable on the surface is no longer manageable "
+                "underneath. The cost of staying quiet about it has "
+                "quietly crossed the cost of saying it out loud."
             ),
         },
         {
@@ -375,29 +407,41 @@ def generate_astrology_timeline(
             "name_template": "The Threshold You Can't Cross Twice",
             "categorical_label":
                 f"Two paths in {HOUSE_SHORT.get(venus_house, 'relationships')}",
+            "categorical_context": (
+                f"Underlying activation: {sun_area} (Sun), "
+                f"{venus_area} (Venus)."
+            ),
             "is_primary":    True,
             "whats_happening": [
-                f"In {sun_area}, two versions of you become visible — the one you've been and the one you could become",
-                f"The tension in {venus_area} crystallizes into a clear choice",
+                "Two versions of you become visible — the one you've "
+                "been and the one you could become",
+                "The tension you've been carrying crystallises into a "
+                "clear choice",
             ],
             "what_this_creates": [
-                "A sense that this stretch will be remembered as a before/after moment",
-                "The strange calm of knowing what you need to do, even before you've done it",
+                "A sense that this stretch will be remembered as a "
+                "before / after moment",
+                "The strange calm of knowing what you need to do, even "
+                "before you've done it",
             ],
             "where_people_get_it_wrong": [
-                "Waiting for certainty that never comes — the information is already sufficient",
-                "Choosing what's comfortable instead of what's actually aligned",
+                "Waiting for certainty that never comes — the "
+                "information is already sufficient",
+                "Choosing what's comfortable instead of what's actually "
+                "aligned",
             ],
             "what_its_asking_of_you": [
-                "Make the choice you've been circling — you've been preparing for this",
-                "Trust what you've learned about yourself in the past few months",
+                "Make the choice you've been circling — you've been "
+                "preparing for this",
+                "Trust what you've learned about yourself in the past "
+                "few months",
             ],
             "description": (
-                f"In {sun_area}, two versions of you become visible — the one "
-                f"you've been and the one you could become. The tension in "
-                f"{venus_area} crystallizes into a clear choice. What's asked "
-                f"of you: make the choice you've been circling. The year has "
-                f"prepared you for this."
+                "Two versions of you become visible — the one you've "
+                "been, and the one you've been quietly becoming. The "
+                "choice that's been building since earlier in the year "
+                "becomes the kind of choice you can only make once. "
+                "Walking back across it later isn't really an option."
             ),
         },
         {
@@ -406,29 +450,43 @@ def generate_astrology_timeline(
             "human_meaning": "What the year asks you to keep",
             "name_template": "The Shape That Holds After",
             "categorical_label":
-                f"What settles in {HOUSE_SHORT.get(saturn_house, 'career')} and {HOUSE_SHORT.get(mars_house, 'action')}",
+                f"What settles in {HOUSE_SHORT.get(saturn_house, 'career')} "
+                f"and {HOUSE_SHORT.get(mars_house, 'action')}",
+            "categorical_context": (
+                f"Underlying activation: {saturn_area} (Saturn), "
+                f"{mars_area} (Mars), {venus_area} (Venus)."
+            ),
             "is_primary":    False,
             "whats_happening": [
-                f"The ripples from the earlier pivot start showing in {saturn_area} and {mars_area}",
-                f"What you decided in {venus_area} either settles or asks for one more honest conversation",
+                "The ripples from the earlier pivot start showing up "
+                "in how things actually run, day to day",
+                "What you decided either holds its new shape, or asks "
+                "for one more honest conversation",
             ],
             "what_this_creates": [
-                "Either: the relief of having finally moved, and new ground beneath your feet",
-                "Or: the recognition that you're not done yet — and clarity about what next year needs to address",
+                "Either: the relief of having finally moved, and new "
+                "ground beneath your feet",
+                "Or: the recognition that you're not done yet — and "
+                "clarity about what next year still needs to address",
             ],
             "where_people_get_it_wrong": [
                 "Forcing a sense of completion before it's earned",
-                "Dismissing what the year taught because it was uncomfortable",
+                "Dismissing what the year taught because it was "
+                "uncomfortable",
             ],
             "what_its_asking_of_you": [
-                f"Honest inventory: what actually changed in {sun_area}?",
+                "Honest inventory: what actually changed, and what "
+                "only temporarily settled?",
                 "Gratitude for the growth, acceptance for what remains",
             ],
             "description": (
-                f"The ripples from your pivot start showing in {saturn_area} "
-                f"and {mars_area}. What you decided in {venus_area} either "
-                f"settles into a new shape, or asks for one more honest "
-                f"conversation. Either way: new ground."
+                "What remains after the adjustment becomes more "
+                "important than what was temporarily preserved. The "
+                "choice you made earlier in the year either holds its "
+                "shape, or quietly asks for one more honest pass. "
+                "Either way: the ground you're standing on at the end "
+                "of the year isn't the ground you were standing on at "
+                "the start."
             ),
         },
     ]
@@ -510,16 +568,21 @@ def generate_astrology_timeline(
         if ts > eoy:
             # If it would slip past year-end, anchor to a late-year slot
             ts = eoy - timedelta(days=7)
+        # v1.3: rewritten to existential / consequence framing.
+        # `life_area` and `*_area` strings are retained internally as
+        # `categorical_context` for the proof drawer only — never in
+        # user-visible primary copy.
         if tp_type == "confrontation":
             what_activates = (
-                f"Something happens in {primary_area} that makes the "
-                f"{tension} tension impossible to keep calling 'manageable'. "
-                f"The cost of continuing as you have been becomes clearer "
-                f"than the cost of changing."
+                f"Something happens that makes the {tension} tension "
+                "impossible to keep calling 'manageable'. The cost of "
+                "continuing as you have been becomes more visible than "
+                "the cost of changing."
             )
             what_becomes_clear = (
-                "What you've been tolerating. Why you've been tolerating it. "
-                f"And what it's actually been costing you in {secondary_area}."
+                "What you've been tolerating. Why you've been tolerating "
+                "it. And what it's actually been taking from you while "
+                "you weren't looking."
             )
             if_avoided = (
                 "The pattern doesn't go away — it goes underground. What "
@@ -528,74 +591,96 @@ def generate_astrology_timeline(
             )
         elif tp_type == "decision":
             what_activates = (
-                f"This is the year's primary choice point in {primary_area}. "
-                "The options are clear. The information is sufficient. What "
-                "remains is whether you'll choose from who you're becoming — "
-                "or retreat to who you've been."
+                "This is the year's primary choice point. The options "
+                "are clear. The information is sufficient. What remains "
+                "is whether you'll choose from who you're becoming — or "
+                "retreat to who you've already been."
             )
             what_becomes_clear = (
                 "Which direction matches the person you've been growing "
                 "into. The version of you that hesitates and the version "
-                "that moves forward both become visible."
+                "that moves forward both become visible at the same time."
             )
             if_avoided = (
-                f"The choice gets made for you by circumstances. In "
-                f"{secondary_area}, you lose authorship of your own direction."
+                "The choice gets made for you by circumstances. You stay "
+                "moving, but you lose authorship of your own direction."
             )
         else:  # integration
             what_activates = (
-                f"The year's arc reaches its natural conclusion in "
-                f"{primary_area}. What you started earlier is ready to be "
-                "named: either as something that changed, or as something "
-                "that needs another cycle."
+                "The year's arc reaches its natural conclusion. What you "
+                "started earlier is ready to be named: either as "
+                "something that changed, or as something that needs "
+                "another cycle to finish."
             )
             what_becomes_clear = (
-                "Whether the year's lesson landed. Whether you're entering "
-                "next year with new ground beneath you — or carrying forward "
-                "what this year tried to resolve."
+                "Whether the year's lesson actually landed. Whether "
+                "you're entering next year with new ground beneath you "
+                "— or carrying forward what this year tried to resolve."
             )
             if_avoided = (
-                "You enter next year still holding what this year asked you "
-                "to put down. The same pattern returns, but with higher stakes."
+                "You enter next year still holding what this year asked "
+                "you to put down. The same pattern returns, but with "
+                "higher stakes."
             )
         turning_points.append({
             "id":                f"tp_{slot}",
             "timing":            _month_label(ts),
             "anchor_date":       ts.strftime("%Y-%m-%d"),
             "type":              tp_type,
+            # `life_area` is retained for backwards-compat consumers
+            # (Ask About My Life interpreter, life_phase generator).
+            # The proof drawer will surface it as `categorical_context`.
             "life_area":         life_area,
+            "categorical_context": (
+                f"Underlying activation: {primary_area} (primary), "
+                f"{secondary_area} (secondary). Life area: {life_area}."
+            ),
             "what_activates":    what_activates,
             "what_becomes_clear": what_becomes_clear,
             "if_avoided":        if_avoided,
         })
 
     # ---- Decision windows (3, NOW-anchored) -----------------------------
+    # v1.3 rewrite: drop "In {house_short}" context; existential prompt
+    # carries the framing. The old categorical context is preserved on
+    # each window as `categorical_context` for the proof drawer.
     dw_specs = [
-        (21,  HOUSE_SHORT.get(mars_house, "action"),
+        (21,
+            HOUSE_SHORT.get(mars_house, "action"),
+            "Naming",                                    # existential context label
             "You can name it now. Or you can wait until it names itself.",
-            ("The conversation gets uncomfortable fast, but the uncertainty "
-             "stops running the show. In two weeks you'll be glad you "
-             "didn't wait."),
-            ("You preserve the surface peace for now, but the thing you're "
-             "avoiding keeps growing underneath it. By next window it's bigger.")
+            ("The conversation gets uncomfortable fast, but the "
+             "uncertainty stops running the show. In two weeks you'll "
+             "be glad you didn't wait."),
+            ("You preserve the surface peace for now, but the thing "
+             "you're avoiding keeps growing underneath it. By the next "
+             "window it's bigger.")
         ),
-        (90,  HOUSE_SHORT.get(venus_house, "relationships"),
-            "You can say what's actually true. Or you can keep editing yourself for the room.",
+        (90,
+            HOUSE_SHORT.get(venus_house, "relationships"),
+            "Truth-telling in close range",
+            "You can say what's actually true. Or you can keep editing "
+            "yourself for the room.",
             pattern["cost_of_action"]
-            + ". The relationship changes — but at least now it's based on something real.",
+            + ". The connection changes — but at least now it's based "
+              "on something real.",
             pattern["cost_of_waiting"]
-            + ". The connection stays familiar, but you start noticing how tired you are of managing it.",
+            + ". The connection stays familiar, but you start noticing "
+              "how tired you are of managing it.",
         ),
-        (180, HOUSE_SHORT.get(saturn_house, "career"),
-            "You can commit to the new direction. Or you can keep one foot in both worlds.",
-            ("Some doors close. The grief is real. But so is the focus — "
-             "and the energy that comes from finally choosing."),
+        (180,
+            HOUSE_SHORT.get(saturn_house, "career"),
+            "Committing to the new direction",
+            "You can commit to the new direction. Or you can keep one "
+            "foot in both worlds.",
+            ("Some doors close. The grief is real. But so is the focus "
+             "— and the energy that comes from finally choosing."),
             ("All options stay open, but your energy stays scattered. "
              "You'll wish you'd trusted yourself sooner."),
         ),
     ]
     decision_windows: List[Dict[str, Any]] = []
-    for d_off, ctx_short, prompt, if_act, if_wait in dw_specs:
+    for d_off, ctx_short, ctx_existential, prompt, if_act, if_wait in dw_specs:
         ws = gen_dt + timedelta(days=d_off - 7)
         we = gen_dt + timedelta(days=d_off + 7)
         if ws > eoy:
@@ -606,7 +691,10 @@ def generate_astrology_timeline(
             "period":     _date_range_label(ws, we),
             "period_start": ws.strftime("%Y-%m-%d"),
             "period_end":   we.strftime("%Y-%m-%d"),
-            "context":    f"In {ctx_short}",
+            # v1.3: visible-tier context is existential, not "In {house}".
+            "context":    ctx_existential,
+            # categorical context retained for the proof drawer.
+            "categorical_context": f"In {ctx_short}",
             "prompt":     prompt,
             "if_act":     if_act,
             "if_wait":    if_wait,
