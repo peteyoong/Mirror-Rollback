@@ -11147,6 +11147,15 @@ async def get_astrology_today_v4(user_id: str, nocache: int = 0):
             logger.warning(f"[Ophiuchus] V4 injection skipped: {_e}")
             insight.setdefault("distortion_layer", {"active": False})
 
+        # --- TIMELINE V2 MODULATION (Phase 1B) ---
+        # Non-destructive overlay — attaches timeline_modulation +
+        # timeline_modulation_debug. Never mutates existing Today fields.
+        try:
+            from services.timeline_modulation import attach_modulation_to_today
+            await attach_modulation_to_today(db, user_id, insight, day_key=day_key)
+        except Exception as _e:
+            logger.warning(f"[TimelineModulation] V4 attach skipped: {_e}")
+
         # --- STORE IN CACHE ---
         _ASTRO_TODAY_V4_CACHE[cache_key] = {
             "stored_at": now_utc,
@@ -13533,6 +13542,15 @@ async def get_home_insight_v6(user_id: str) -> Dict[str, Any]:
     try:
         from services.home_insight_v6 import build_home_v6_payload
         payload = await build_home_v6_payload(db, user_id)
+        # --- TIMELINE V2 MODULATION (Phase 1C) ---
+        # Non-destructive overlay — never mutates existing Home fields.
+        try:
+            from services.timeline_modulation import attach_modulation_to_home
+            from datetime import datetime as _dt, timezone as _tz
+            _day_key = _dt.now(_tz.utc).strftime("%Y-%m-%d")
+            await attach_modulation_to_home(db, user_id, payload, day_key=_day_key)
+        except Exception as _e:
+            logger.warning(f"[TimelineModulation] V6 attach skipped: {_e}")
         return payload
     except Exception as e:
         logger.exception("[HomeV6] failed for %s: %s", user_id, e)
